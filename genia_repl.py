@@ -443,6 +443,17 @@ class Env:
     def set(self, name: str, value: Any) -> None:
         self.values[name] = value
 
+    def define_function(self, fn: "GeniaFunction") -> None:
+        existing = self.values.get(fn.name)
+        if existing is None:
+            self.values[fn.name] = {fn.arity: fn}
+            return
+        if not isinstance(existing, dict) or not all(isinstance(k, int) for k in existing):
+            raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
+        if fn.arity in existing:
+            raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
+        existing[fn.arity] = fn
+
 
 @dataclass
 class GeniaFunction:
@@ -451,16 +462,20 @@ class GeniaFunction:
     body: Node
     closure: Env
 
+    @property
+    def arity(self) -> int:
+        return len(self.params)
+
     def __call__(self, *args: Any) -> Any:
-        if len(args) != len(self.params):
-            raise TypeError(f"{self.name} expected {len(self.params)} args, got {len(args)}")
+        if len(args) != self.arity:
+            raise TypeError(f"{self.name} expected {self.arity} args, got {len(args)}")
         frame = Env(self.closure)
         for p, a in zip(self.params, args):
             frame.set(p, a)
         return Evaluator(frame).eval_function_body(self.params, args, self.body)
 
     def __repr__(self) -> str:
-        return f"<function {self.name}/{len(self.params)}>"
+        return f"<function {self.name}/{self.arity}>"
 
 
 class Evaluator:
@@ -545,7 +560,11 @@ class Evaluator:
         if isinstance(node, Nil):
             return None
         if isinstance(node, Var):
-            return self.env.get(node.name)
+            value = self.env.get(node.name)
+            if isinstance(value, dict) and all(isinstance(k, int) for k in value):
+                available = ", ".join(f"{node.name}/{arity}" for arity in sorted(value))
+                raise RuntimeError(f"Function {node.name} requires a call with matching arity. Available: {available}")
+            return value
         if isinstance(node, Unary):
             value = self.eval(node.expr)
             if node.op == "MINUS":
@@ -556,8 +575,16 @@ class Evaluator:
         if isinstance(node, Binary):
             return self.eval_binary(node)
         if isinstance(node, Call):
-            fn = self.eval(node.fn)
+            fn = self.env.get(node.fn.name) if isinstance(node.fn, Var) else self.eval(node.fn)
             args = [self.eval(a) for a in node.args]
+            if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+                arity = len(args)
+                target = fn.get(arity)
+                if target is None:
+                    available = ", ".join(f"{target_fn.name}/{n}" for n, target_fn in sorted(fn.items()))
+                    callee = node.fn.name if isinstance(node.fn, Var) else "function"
+                    raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
+                return target(*args)
             return fn(*args)
         if isinstance(node, Block):
             local = Env(self.env)
@@ -568,7 +595,7 @@ class Evaluator:
             return result
         if isinstance(node, FuncDef):
             fn = GeniaFunction(node.name, node.params, node.body, self.env)
-            self.env.set(node.name, fn)
+            self.env.define_function(fn)
             return fn
         if isinstance(node, CaseExpr):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")
@@ -642,6 +669,8 @@ Examples:
     0 -> 1 |
     n -> n * fact2(n - 1)
   }
+
+  add() = 0
 
   add(x, y) =
     (0, y) -> y |
