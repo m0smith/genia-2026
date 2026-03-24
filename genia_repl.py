@@ -8,6 +8,8 @@ Implemented subset:
 - comparison: < <= > >= == !=
 - variables and function calls
 - function definitions: name(args) = expr
+- varargs function definitions: name(a, ..rest) = expr
+- spread call arguments: f(a, ..rest)
 - function definitions with blocks: name(args) { ... }
 - case expressions in function bodies and as final expression in blocks
 - pattern matching against the full argument tuple
@@ -68,6 +70,7 @@ TOKEN_SPEC = [
     ("SEMI", r";"),
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
+    ("DOTDOT", r"\.\."),
     ("IDENT", r"[A-Za-z_][A-Za-z0-9_]*"),
     ("MISMATCH", r"."),
 ]
@@ -148,6 +151,11 @@ class Call(Node):
 
 
 @dataclass
+class SpreadArg(Node):
+    expr: Node
+
+
+@dataclass
 class ExprStmt(Node):
     expr: Node
 
@@ -178,6 +186,7 @@ class CaseExpr(Node):
 class FuncDef(Node):
     name: str
     params: list[str]
+    rest_param: Optional[str]
     body: Node
 
 
@@ -244,26 +253,40 @@ class Parser:
             try:
                 name = self.eat("IDENT").text
                 self.eat("LPAREN")
-                params: list[str] = []
-                if not self.at("RPAREN"):
-                    while True:
-                        params.append(self.eat("IDENT").text)
-                        if not self.maybe("COMMA"):
-                            break
+                params, rest_param = self.parse_param_list()
                 self.eat("RPAREN")
                 if self.at("ASSIGN"):
                     self.eat("ASSIGN")
                     self.skip_separators()
                     body = self.parse_function_body_after_intro()
-                    return FuncDef(name, params, body)
+                    return FuncDef(name, params, rest_param, body)
                 if self.at("LBRACE"):
                     body = self.parse_block(allow_final_case=True)
-                    return FuncDef(name, params, body)
+                    return FuncDef(name, params, rest_param, body)
                 self.i = save
             except SyntaxError:
                 self.i = save
         expr = self.parse_expr()
         return ExprStmt(expr)
+
+
+    def parse_param_list(self) -> tuple[list[str], Optional[str]]:
+        params: list[str] = []
+        rest_param: Optional[str] = None
+        if self.at("RPAREN"):
+            return params, rest_param
+        while True:
+            if self.maybe("DOTDOT"):
+                if rest_param is not None:
+                    raise SyntaxError("Only one varargs parameter is allowed")
+                rest_param = self.eat("IDENT").text
+                if self.maybe("COMMA"):
+                    raise SyntaxError("Varargs parameter must be final")
+                break
+            params.append(self.eat("IDENT").text)
+            if not self.maybe("COMMA"):
+                break
+        return params, rest_param
 
     def parse_function_body_after_intro(self) -> Node:
         if self.looks_like_case_start():
@@ -417,7 +440,10 @@ class Parser:
         args: list[Node] = []
         if not self.at("RPAREN"):
             while True:
-                args.append(self.parse_expr())
+                if self.maybe("DOTDOT"):
+                    args.append(SpreadArg(self.parse_expr()))
+                else:
+                    args.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
         self.eat("RPAREN")
@@ -446,19 +472,23 @@ class Env:
     def define_function(self, fn: "GeniaFunction") -> None:
         existing = self.values.get(fn.name)
         if existing is None:
-            self.values[fn.name] = {fn.arity: fn}
-            return
-        if not isinstance(existing, dict) or not all(isinstance(k, int) for k in existing):
-            raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
-        if fn.arity in existing:
-            raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
-        existing[fn.arity] = fn
+            self.values[fn.name] = []
+            existing = self.values[fn.name]
+        if not isinstance(existing, list) or not all(isinstance(x, GeniaFunction) for x in existing):
+            raise TypeError(f"Cannot define function {fn.signature()}: name already bound to non-function value")
+        for other in existing:
+            if other.rest_param is None and fn.rest_param is None and other.arity == fn.arity:
+                raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
+            if other.rest_param is not None and fn.rest_param is not None and other.min_arity == fn.min_arity:
+                raise TypeError(f"Duplicate varargs function definition: {fn.name}/{fn.min_arity}+")
+        existing.append(fn)
 
 
 @dataclass
 class GeniaFunction:
     name: str
     params: list[str]
+    rest_param: Optional[str]
     body: Node
     closure: Env
 
@@ -466,16 +496,37 @@ class GeniaFunction:
     def arity(self) -> int:
         return len(self.params)
 
+    @property
+    def min_arity(self) -> int:
+        return len(self.params)
+
+    @property
+    def is_varargs(self) -> bool:
+        return self.rest_param is not None
+
+    def matches_arity(self, n: int) -> bool:
+        return n >= self.min_arity if self.is_varargs else n == self.arity
+
+    def signature(self) -> str:
+        if self.rest_param is None:
+            return f"{self.name}/{self.arity}"
+        return f"{self.name}/{self.min_arity}+"
+
     def __call__(self, *args: Any) -> Any:
-        if len(args) != self.arity:
-            raise TypeError(f"{self.name} expected {self.arity} args, got {len(args)}")
+        if self.rest_param is None:
+            if len(args) != self.arity:
+                raise TypeError(f"{self.name} expected {self.arity} args, got {len(args)}")
+        elif len(args) < self.min_arity:
+            raise TypeError(f"{self.name} expected at least {self.min_arity} args, got {len(args)}")
         frame = Env(self.closure)
-        for p, a in zip(self.params, args):
+        for p, a in zip(self.params, args[:len(self.params)]):
             frame.set(p, a)
+        if self.rest_param is not None:
+            frame.set(self.rest_param, list(args[len(self.params):]))
         return Evaluator(frame).eval_function_body(self.params, args, self.body)
 
     def __repr__(self) -> str:
-        return f"<function {self.name}/{self.arity}>"
+        return f"<function {self.signature()}>"
 
 
 class Evaluator:
@@ -561,8 +612,8 @@ class Evaluator:
             return None
         if isinstance(node, Var):
             value = self.env.get(node.name)
-            if isinstance(value, dict) and all(isinstance(k, int) for k in value):
-                available = ", ".join(f"{node.name}/{arity}" for arity in sorted(value))
+            if isinstance(value, list) and all(isinstance(x, GeniaFunction) for x in value):
+                available = ", ".join(fn.signature() for fn in sorted(value, key=lambda f: (f.min_arity, f.is_varargs)))
                 raise RuntimeError(f"Function {node.name} requires a call with matching arity. Available: {available}")
             return value
         if isinstance(node, Unary):
@@ -576,15 +627,27 @@ class Evaluator:
             return self.eval_binary(node)
         if isinstance(node, Call):
             fn = self.env.get(node.fn.name) if isinstance(node.fn, Var) else self.eval(node.fn)
-            args = [self.eval(a) for a in node.args]
-            if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+            args: list[Any] = []
+            for a in node.args:
+                if isinstance(a, SpreadArg):
+                    spread_val = self.eval(a.expr)
+                    if not isinstance(spread_val, (list, tuple)):
+                        raise TypeError("Spread arguments require a list or tuple value")
+                    args.extend(list(spread_val))
+                else:
+                    args.append(self.eval(a))
+            if isinstance(fn, list) and all(isinstance(x, GeniaFunction) for x in fn):
                 arity = len(args)
-                target = fn.get(arity)
-                if target is None:
-                    available = ", ".join(f"{target_fn.name}/{n}" for n, target_fn in sorted(fn.items()))
-                    callee = node.fn.name if isinstance(node.fn, Var) else "function"
-                    raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
-                return target(*args)
+                exact = [cand for cand in fn if not cand.is_varargs and cand.matches_arity(arity)]
+                if exact:
+                    return exact[0](*args)
+                varargs = [cand for cand in fn if cand.is_varargs and cand.matches_arity(arity)]
+                if varargs:
+                    target = max(varargs, key=lambda f: f.min_arity)
+                    return target(*args)
+                available = ", ".join(cand.signature() for cand in sorted(fn, key=lambda f: (f.min_arity, f.is_varargs)))
+                callee = node.fn.name if isinstance(node.fn, Var) else "function"
+                raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             return fn(*args)
         if isinstance(node, Block):
             local = Env(self.env)
@@ -594,7 +657,7 @@ class Evaluator:
                 result = ev.eval(expr)
             return result
         if isinstance(node, FuncDef):
-            fn = GeniaFunction(node.name, node.params, node.body, self.env)
+            fn = GeniaFunction(node.name, node.params, node.rest_param, node.body, self.env)
             self.env.define_function(fn)
             return fn
         if isinstance(node, CaseExpr):
@@ -676,6 +739,9 @@ Examples:
     (0, y) -> y |
     (x, 0) -> x |
     (x, y) -> x + y
+
+  sum(..xs) = log(xs)
+  add_many(a, ..rest) = add(a, ..rest)
 
 Commands:
   :quit   exit
