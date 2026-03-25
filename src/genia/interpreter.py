@@ -631,15 +631,38 @@ class GeniaFunction:
         return len(self.params)
 
     def __call__(self, *args: Any) -> Any:
-        if len(args) != self.arity:
-            raise TypeError(f"{self.name} expected {self.arity} args, got {len(args)}")
-        frame = Env(self.closure)
-        for p, a in zip(self.params, args):
-            frame.set(p, a)
-        return Evaluator(frame).eval_function_body(self.params, args, self.body)
+        return eval_with_tco(self, args)
 
     def __repr__(self) -> str:
         return f"<function {self.name}/{self.arity}>"
+
+
+@dataclass
+class TailCall:
+    fn: Any
+    args: tuple[Any, ...]
+
+
+def eval_with_tco(fn: Any, args: tuple[Any, ...]) -> Any:
+    current_fn = fn
+    current_args = args
+
+    while True:
+        if isinstance(current_fn, GeniaFunction):
+            if len(current_args) != current_fn.arity:
+                raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
+            frame = Env(current_fn.closure)
+            for p, a in zip(current_fn.params, current_args):
+                frame.set(p, a)
+            result = Evaluator(frame).eval_function_body(current_fn.params, current_args, current_fn.body)
+        else:
+            result = current_fn(*current_args)
+
+        if isinstance(result, TailCall):
+            current_fn = result.fn
+            current_args = result.args
+            continue
+        return result
 
 
 class Evaluator:
@@ -664,8 +687,8 @@ class Evaluator:
             last = body.exprs[-1]
             if isinstance(last, CaseExpr):
                 return self.eval_case_expr(args, last)
-            return self.eval(last)
-        return self.eval(body)
+            return self.eval_tail(last)
+        return self.eval_tail(body)
 
     def eval_case_expr(self, args: tuple[Any, ...], case_expr: CaseExpr) -> Any:
         for clause in case_expr.clauses:
@@ -677,8 +700,54 @@ class Evaluator:
                 local.set(k, v)
             if clause.guard is not None and not Evaluator(local).eval(clause.guard):
                 continue
-            return Evaluator(local).eval(clause.result)
+            return Evaluator(local).eval_tail(clause.result)
         raise RuntimeError(f"No matching case for arguments {args!r}")
+
+    def eval_tail(self, node: Node) -> Any:
+        if isinstance(node, Call):
+            return self.eval_call(node, tail_position=True)
+        if isinstance(node, Block):
+            local = Env(self.env)
+            ev = Evaluator(local)
+            for expr in node.exprs[:-1]:
+                ev.eval(expr)
+            if not node.exprs:
+                return None
+            return ev.eval_tail(node.exprs[-1])
+        return self.eval(node)
+
+    def eval_call(self, node: Call, tail_position: bool) -> Any:
+        args = [self.eval(a) for a in node.args]
+
+        if isinstance(node.fn, Var):
+            name = node.fn.name
+            try:
+                fn = self.env.get(name)
+            except NameError:
+                if self.env.try_autoload(name, len(args)):
+                    fn = self.env.get(name)
+                else:
+                    raise
+        else:
+            fn = self.eval(node.fn)
+
+        if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+            arity = len(args)
+            target = fn.get(arity)
+
+            if target is None and isinstance(node.fn, Var):
+                if self.env.try_autoload(node.fn.name, arity):
+                    fn = self.env.get(node.fn.name)
+                    if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+                        target = fn.get(arity)
+
+            if target is None:
+                callee = node.fn.name if isinstance(node.fn, Var) else "function"
+                available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
+                raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
+            return TailCall(target, tuple(args)) if tail_position else target(*args)
+
+        return TailCall(fn, tuple(args)) if tail_position else fn(*args)
 
     def match_pattern(self, pattern: Node, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         # full parameter tuple matching
@@ -790,37 +859,7 @@ class Evaluator:
         if isinstance(node, Binary):
             return self.eval_binary(node)
         if isinstance(node, Call):
-            args = [self.eval(a) for a in node.args]
-
-            if isinstance(node.fn, Var):
-                name = node.fn.name
-                try:
-                    fn = self.env.get(name)
-                except NameError:
-                    if self.env.try_autoload(name, len(args)):
-                        fn = self.env.get(name)
-                    else:
-                        raise
-            else:
-                fn = self.eval(node.fn)
-
-            if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
-                arity = len(args)
-                target = fn.get(arity)
-
-                if target is None and isinstance(node.fn, Var):
-                    if self.env.try_autoload(node.fn.name, arity):
-                        fn = self.env.get(node.fn.name)
-                        if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
-                            target = fn.get(arity)
-
-                if target is None:
-                    callee = node.fn.name if isinstance(node.fn, Var) else "function"
-                    available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
-                    raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
-                return target(*args)
-
-            return fn(*args)
+            return self.eval_call(node, tail_position=False)
 
         if isinstance(node, Block):
             local = Env(self.env)
