@@ -78,6 +78,7 @@ TOKEN_SPEC = [
     ("DOTDOT", r"\.\."),
     ("COMMA", r","),
     ("SEMI", r";"),
+    ("COMMENT", r"#[^\n]*"),
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
     ("IDENT", r"[A-Za-z_][A-Za-z0-9_]*"),
@@ -98,7 +99,7 @@ def lex(source: str) -> list[Token]:
     for m in TOKEN_RE.finditer(source):
         kind = m.lastgroup
         text = m.group()
-        if kind == "SKIP":
+        if kind in {"SKIP", "COMMENT"}:
             continue
         if kind == "MISMATCH":
             raise SyntaxError(f"Unexpected character {text!r} at {m.start()}")
