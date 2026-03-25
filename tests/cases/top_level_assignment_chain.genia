@@ -1,0 +1,6 @@
+add(x, y) = x + y
+
+a = 10
+b = add(a, 5)
+c = add(b, 7)
+c

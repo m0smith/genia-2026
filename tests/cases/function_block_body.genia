@@ -1,0 +1,6 @@
+trace_square(x) {
+  print(x)
+  x * x
+}
+
+trace_square(6)

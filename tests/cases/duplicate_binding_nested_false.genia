@@ -1,0 +1,5 @@
+nested(xs) =
+  [[x, x], y] -> true |
+  _ -> false
+
+nested([[4, 5], 9])

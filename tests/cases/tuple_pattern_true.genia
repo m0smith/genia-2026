@@ -1,0 +1,5 @@
+same_pair(a, b) =
+  (x, x) -> true |
+  (_, _) -> false
+
+same_pair(8, 8)

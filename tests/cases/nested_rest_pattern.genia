@@ -1,0 +1,4 @@
+grab(xs) =
+  [[x, ..rest], y] -> rest
+
+grab([[1, 2, 3], 9])

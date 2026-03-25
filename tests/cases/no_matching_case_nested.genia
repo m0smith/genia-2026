@@ -1,0 +1,4 @@
+only_two(xs) =
+  [x, y] -> x + y
+
+only_two([1, 2, 3])

@@ -1,32 +1,22 @@
-# Genia starter cases
+# Additional Genia test cases
 
-Drop `tests/test_cases.py` into your project and copy the files under `tests/cases/`.
+Copy these files into your repo under:
 
-Recommended layout:
+tests/cases/
 
-```text
-tests/
-  test_cases.py
-  cases/
-    arithmetic_precedence.genia
-    arithmetic_precedence.out
-    ...
-```
+These cases focus on:
+- parser edge cases
+- call vs definition ambiguity
+- lambda calls and closures
+- block-bodied functions
+- rest-pattern behavior
+- duplicate binding correctness
+- top-level assignment
+- higher-order reduce usage
+- representative error cases
 
-Run:
+Run with:
 
 ```bash
 uv run pytest tests/test_cases.py -q
 ```
-
-Starter cases included:
-- arithmetic
-- list literals
-- recursive len
-- duplicate bindings
-- reduce/count
-- reduce/sum
-- lambda apply
-- top-level assignment
-- tuple patterns
-- error cases

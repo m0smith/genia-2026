@@ -1,0 +1,4 @@
+make_adder(n, x) =
+  ((y) -> y + n)(x)
+
+make_adder(10, 7)

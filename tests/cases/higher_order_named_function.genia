@@ -1,0 +1,8 @@
+reduce(f, acc, xs) =
+  (f, acc, []) -> acc |
+  (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
+
+sum_step(acc, x) = acc + x
+sum(xs) = reduce(sum_step, 0, xs)
+
+sum([1, 2, 3, 4, 5])

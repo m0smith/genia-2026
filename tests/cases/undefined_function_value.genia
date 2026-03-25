@@ -1,0 +1,3 @@
+apply1(f, x) = f(x)
+
+apply1(missing, 3)
