@@ -6,7 +6,8 @@ def test_multiline_program(run):
     result
     """
     assert run(src) == 5
-    
+
+
 def test_reduce_pipeline(run):
     src = """
     reduce(f, acc, xs) =

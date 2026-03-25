@@ -35,10 +35,11 @@ Not yet implemented:
 from __future__ import annotations
 
 import math
+import operator
 import re
 import sys
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 
 # -----------------------------
@@ -210,6 +211,12 @@ class Lambda(Node):
 
 
 @dataclass
+class Assign(Node):
+    name: str
+    expr: Node
+
+
+@dataclass
 class FuncDef(Node):
     name: str
     params: list[str]
@@ -297,6 +304,12 @@ class Parser:
                 self.i = save
             except SyntaxError:
                 self.i = save
+        if self.at("IDENT") and self.peek(1).kind == "ASSIGN":
+            name = self.eat("IDENT").text
+            self.eat("ASSIGN")
+            self.skip_separators()
+            expr = self.parse_expr()
+            return Assign(name, expr)
         expr = self.parse_expr()
         return ExprStmt(expr)
 
@@ -622,6 +635,8 @@ class Evaluator:
                 if sub is None:
                     return None
                 for k, v in sub.items():
+                    if k in env and env[k] != v:
+                        return None
                     env[k] = v
             return env
         # single-parameter shorthand
@@ -663,6 +678,8 @@ class Evaluator:
                     if sub is None:
                         return None
                     for k, v in sub.items():
+                        if k in env and env[k] != v:
+                            return None
                         env[k] = v
                 return env
 
@@ -678,12 +695,16 @@ class Evaluator:
                 if sub is None:
                     return None
                 for k, v in sub.items():
+                    if k in env and env[k] != v:
+                        return None
                     env[k] = v
 
             sub = self.match_pattern_atom(rest_pat, arg[len(prefix):])
             if sub is None:
                 return None
             for k, v in sub.items():
+                if k in env and env[k] != v:
+                    return None
                 env[k] = v
             return env
         raise RuntimeError(f"Unsupported pattern: {pattern!r}")
@@ -745,6 +766,11 @@ class Evaluator:
                 return Evaluator(frame).eval(body)
 
             return fn
+
+        if isinstance(node, Assign):
+            value = self.eval(node.expr)
+            self.env.set(node.name, value)
+            return value
 
         if isinstance(node, FuncDef):
             fn = GeniaFunction(node.name, node.params, node.body, self.env)
