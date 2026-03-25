@@ -2,14 +2,21 @@
 """
 Minimal Genia REPL / interpreter prototype.
 
+Need to implement soon:
+And I would say this requires:
+
+- list values
+- list patterns
+- wildcard _
+- rest pattern ..
+- recursion
+
 Implemented subset:
 - numbers, booleans, nil, strings
 - arithmetic: + - * / %
 - comparison: < <= > >= == !=
 - variables and function calls
 - function definitions: name(args) = expr
-- varargs function definitions: name(a, ..rest) = expr
-- spread call arguments: f(a, ..rest)
 - function definitions with blocks: name(args) { ... }
 - case expressions in function bodies and as final expression in blocks
 - pattern matching against the full argument tuple
@@ -66,11 +73,11 @@ TOKEN_SPEC = [
     ("RBRACE", r"\}"),
     ("LBRACK", r"\["),
     ("RBRACK", r"\]"),
+    ("DOTDOT", r"\.\."),
     ("COMMA", r","),
     ("SEMI", r";"),
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
-    ("DOTDOT", r"\.\."),
     ("IDENT", r"[A-Za-z_][A-Za-z0-9_]*"),
     ("MISMATCH", r"."),
 ]
@@ -151,11 +158,6 @@ class Call(Node):
 
 
 @dataclass
-class SpreadArg(Node):
-    expr: Node
-
-
-@dataclass
 class ExprStmt(Node):
     expr: Node
 
@@ -163,6 +165,26 @@ class ExprStmt(Node):
 @dataclass
 class Block(Node):
     exprs: list[Node]
+
+
+@dataclass
+class ListLiteral(Node):
+    items: list[Node]
+
+
+@dataclass
+class ListPattern(Node):
+    items: list[Node]
+
+
+@dataclass
+class WildcardPattern(Node):
+    pass
+
+
+@dataclass
+class RestPattern(Node):
+    name: str | None
 
 
 @dataclass
@@ -186,7 +208,6 @@ class CaseExpr(Node):
 class FuncDef(Node):
     name: str
     params: list[str]
-    rest_param: Optional[str]
     body: Node
 
 
@@ -253,40 +274,26 @@ class Parser:
             try:
                 name = self.eat("IDENT").text
                 self.eat("LPAREN")
-                params, rest_param = self.parse_param_list()
+                params: list[str] = []
+                if not self.at("RPAREN"):
+                    while True:
+                        params.append(self.eat("IDENT").text)
+                        if not self.maybe("COMMA"):
+                            break
                 self.eat("RPAREN")
                 if self.at("ASSIGN"):
                     self.eat("ASSIGN")
                     self.skip_separators()
                     body = self.parse_function_body_after_intro()
-                    return FuncDef(name, params, rest_param, body)
+                    return FuncDef(name, params, body)
                 if self.at("LBRACE"):
                     body = self.parse_block(allow_final_case=True)
-                    return FuncDef(name, params, rest_param, body)
+                    return FuncDef(name, params, body)
                 self.i = save
             except SyntaxError:
                 self.i = save
         expr = self.parse_expr()
         return ExprStmt(expr)
-
-
-    def parse_param_list(self) -> tuple[list[str], Optional[str]]:
-        params: list[str] = []
-        rest_param: Optional[str] = None
-        if self.at("RPAREN"):
-            return params, rest_param
-        while True:
-            if self.maybe("DOTDOT"):
-                if rest_param is not None:
-                    raise SyntaxError("Only one varargs parameter is allowed")
-                rest_param = self.eat("IDENT").text
-                if self.maybe("COMMA"):
-                    raise SyntaxError("Varargs parameter must be final")
-                break
-            params.append(self.eat("IDENT").text)
-            if not self.maybe("COMMA"):
-                break
-        return params, rest_param
 
     def parse_function_body_after_intro(self) -> Node:
         if self.looks_like_case_start():
@@ -311,7 +318,7 @@ class Parser:
         return Block(exprs)
 
     def looks_like_case_start(self) -> bool:
-        # single param shorthand cases: 0 ->, name ->, name ? ... ->
+        # single param shorthand cases: 0 ->, name ->, [x, y] ->, name ? ... ->
         # tuple case: ( ... ) ->
         # We only detect enough for v0.1.
         if self.at("NUMBER", "STRING", "IDENT"):
@@ -320,14 +327,16 @@ class Parser:
                 j += 1
             if self.tokens[j].kind in {"ARROW", "QMARK"}:
                 return True
-        if self.at("LPAREN"):
+        if self.at("LPAREN", "LBRACK"):
+            open_kind = self.peek().kind
+            close_kind = "RPAREN" if open_kind == "LPAREN" else "RBRACK"
             depth = 0
             j = self.i
             while True:
                 tok = self.tokens[j]
-                if tok.kind == "LPAREN":
+                if tok.kind == open_kind:
                     depth += 1
-                elif tok.kind == "RPAREN":
+                elif tok.kind == close_kind:
                     depth -= 1
                     if depth == 0:
                         j += 1
@@ -379,6 +388,14 @@ class Parser:
         if tok.kind == "STRING":
             self.i += 1
             return String(eval(tok.text))
+        if tok.kind == "DOTDOT":
+            self.i += 1
+            if self.at("IDENT"):
+                name = self.eat("IDENT").text
+                if name == "_":
+                    return RestPattern(None)
+                return RestPattern(name)
+            return RestPattern(None)
         if tok.kind == "IDENT":
             self.i += 1
             if tok.text == "true":
@@ -387,7 +404,25 @@ class Parser:
                 return Boolean(False)
             if tok.text == "nil":
                 return Nil()
+            if tok.text == "_":
+                return WildcardPattern()
             return Var(tok.text)
+        if tok.kind == "LBRACK":
+            self.i += 1
+            items: list[Node] = []
+            saw_rest = False
+            if not self.at("RBRACK"):
+                while True:
+                    item = self.parse_pattern_atom()
+                    if saw_rest:
+                        raise SyntaxError("..rest must be the final item in a list pattern")
+                    items.append(item)
+                    if isinstance(item, RestPattern):
+                        saw_rest = True
+                    if not self.maybe("COMMA"):
+                        break
+            self.eat("RBRACK")
+            return ListPattern(items)
         raise SyntaxError(f"Invalid pattern at {tok.pos}")
 
     def parse_expr(self, min_prec: int = 0) -> Node:
@@ -431,19 +466,29 @@ class Parser:
             expr = self.parse_expr()
             self.eat("RPAREN")
             return expr
+        if tok.kind == "LBRACK":
+            return self.parse_list_literal()
         if tok.kind == "LBRACE":
             return self.parse_block(allow_final_case=False)
         raise SyntaxError(f"Unexpected token {tok.kind} at {tok.pos}")
+
+    def parse_list_literal(self) -> ListLiteral:
+        self.eat("LBRACK")
+        items: list[Node] = []
+        if not self.at("RBRACK"):
+            while True:
+                items.append(self.parse_expr())
+                if not self.maybe("COMMA"):
+                    break
+        self.eat("RBRACK")
+        return ListLiteral(items)
 
     def finish_call(self, fn: Node) -> Node:
         self.eat("LPAREN")
         args: list[Node] = []
         if not self.at("RPAREN"):
             while True:
-                if self.maybe("DOTDOT"):
-                    args.append(SpreadArg(self.parse_expr()))
-                else:
-                    args.append(self.parse_expr())
+                args.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
         self.eat("RPAREN")
@@ -472,23 +517,19 @@ class Env:
     def define_function(self, fn: "GeniaFunction") -> None:
         existing = self.values.get(fn.name)
         if existing is None:
-            self.values[fn.name] = []
-            existing = self.values[fn.name]
-        if not isinstance(existing, list) or not all(isinstance(x, GeniaFunction) for x in existing):
-            raise TypeError(f"Cannot define function {fn.signature()}: name already bound to non-function value")
-        for other in existing:
-            if other.rest_param is None and fn.rest_param is None and other.arity == fn.arity:
-                raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
-            if other.rest_param is not None and fn.rest_param is not None and other.min_arity == fn.min_arity:
-                raise TypeError(f"Duplicate varargs function definition: {fn.name}/{fn.min_arity}+")
-        existing.append(fn)
+            self.values[fn.name] = {fn.arity: fn}
+            return
+        if not isinstance(existing, dict) or not all(isinstance(k, int) for k in existing):
+            raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
+        if fn.arity in existing:
+            raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
+        existing[fn.arity] = fn
 
 
 @dataclass
 class GeniaFunction:
     name: str
     params: list[str]
-    rest_param: Optional[str]
     body: Node
     closure: Env
 
@@ -496,37 +537,16 @@ class GeniaFunction:
     def arity(self) -> int:
         return len(self.params)
 
-    @property
-    def min_arity(self) -> int:
-        return len(self.params)
-
-    @property
-    def is_varargs(self) -> bool:
-        return self.rest_param is not None
-
-    def matches_arity(self, n: int) -> bool:
-        return n >= self.min_arity if self.is_varargs else n == self.arity
-
-    def signature(self) -> str:
-        if self.rest_param is None:
-            return f"{self.name}/{self.arity}"
-        return f"{self.name}/{self.min_arity}+"
-
     def __call__(self, *args: Any) -> Any:
-        if self.rest_param is None:
-            if len(args) != self.arity:
-                raise TypeError(f"{self.name} expected {self.arity} args, got {len(args)}")
-        elif len(args) < self.min_arity:
-            raise TypeError(f"{self.name} expected at least {self.min_arity} args, got {len(args)}")
+        if len(args) != self.arity:
+            raise TypeError(f"{self.name} expected {self.arity} args, got {len(args)}")
         frame = Env(self.closure)
-        for p, a in zip(self.params, args[:len(self.params)]):
+        for p, a in zip(self.params, args):
             frame.set(p, a)
-        if self.rest_param is not None:
-            frame.set(self.rest_param, list(args[len(self.params):]))
         return Evaluator(frame).eval_function_body(self.params, args, self.body)
 
     def __repr__(self) -> str:
-        return f"<function {self.signature()}>"
+        return f"<function {self.name}/{self.arity}>"
 
 
 class Evaluator:
@@ -595,8 +615,54 @@ class Evaluator:
             return {} if pattern.value == arg else None
         if isinstance(pattern, Nil):
             return {} if arg is None else None
+        if isinstance(pattern, WildcardPattern):
+            return {}
+        if isinstance(pattern, RestPattern):
+            return {pattern.name: arg} if pattern.name is not None else {}
         if isinstance(pattern, Var):
             return {pattern.name: arg}
+        if isinstance(pattern, ListPattern):
+            if not isinstance(arg, list):
+                return None
+
+            rest_index = None
+            for i, pat in enumerate(pattern.items):
+                if isinstance(pat, RestPattern):
+                    rest_index = i
+                    break
+
+            if rest_index is None:
+                if len(pattern.items) != len(arg):
+                    return None
+                env: dict[str, Any] = {}
+                for pat, item in zip(pattern.items, arg):
+                    sub = self.match_pattern_atom(pat, item)
+                    if sub is None:
+                        return None
+                    for k, v in sub.items():
+                        env[k] = v
+                return env
+
+            prefix = pattern.items[:rest_index]
+            rest_pat = pattern.items[rest_index]
+
+            if len(arg) < len(prefix):
+                return None
+
+            env: dict[str, Any] = {}
+            for pat, item in zip(prefix, arg[:len(prefix)]):
+                sub = self.match_pattern_atom(pat, item)
+                if sub is None:
+                    return None
+                for k, v in sub.items():
+                    env[k] = v
+
+            sub = self.match_pattern_atom(rest_pat, arg[len(prefix):])
+            if sub is None:
+                return None
+            for k, v in sub.items():
+                env[k] = v
+            return env
         raise RuntimeError(f"Unsupported pattern: {pattern!r}")
 
     def eval(self, node: Node) -> Any:
@@ -610,10 +676,12 @@ class Evaluator:
             return node.value
         if isinstance(node, Nil):
             return None
+        if isinstance(node, ListLiteral):
+            return [self.eval(item) for item in node.items]
         if isinstance(node, Var):
             value = self.env.get(node.name)
-            if isinstance(value, list) and all(isinstance(x, GeniaFunction) for x in value):
-                available = ", ".join(fn.signature() for fn in sorted(value, key=lambda f: (f.min_arity, f.is_varargs)))
+            if isinstance(value, dict) and all(isinstance(k, int) for k in value):
+                available = ", ".join(f"{node.name}/{arity}" for arity in sorted(value))
                 raise RuntimeError(f"Function {node.name} requires a call with matching arity. Available: {available}")
             return value
         if isinstance(node, Unary):
@@ -627,27 +695,15 @@ class Evaluator:
             return self.eval_binary(node)
         if isinstance(node, Call):
             fn = self.env.get(node.fn.name) if isinstance(node.fn, Var) else self.eval(node.fn)
-            args: list[Any] = []
-            for a in node.args:
-                if isinstance(a, SpreadArg):
-                    spread_val = self.eval(a.expr)
-                    if not isinstance(spread_val, (list, tuple)):
-                        raise TypeError("Spread arguments require a list or tuple value")
-                    args.extend(list(spread_val))
-                else:
-                    args.append(self.eval(a))
-            if isinstance(fn, list) and all(isinstance(x, GeniaFunction) for x in fn):
+            args = [self.eval(a) for a in node.args]
+            if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
                 arity = len(args)
-                exact = [cand for cand in fn if not cand.is_varargs and cand.matches_arity(arity)]
-                if exact:
-                    return exact[0](*args)
-                varargs = [cand for cand in fn if cand.is_varargs and cand.matches_arity(arity)]
-                if varargs:
-                    target = max(varargs, key=lambda f: f.min_arity)
-                    return target(*args)
-                available = ", ".join(cand.signature() for cand in sorted(fn, key=lambda f: (f.min_arity, f.is_varargs)))
-                callee = node.fn.name if isinstance(node.fn, Var) else "function"
-                raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
+                target = fn.get(arity)
+                if target is None:
+                    available = ", ".join(f"{target_fn.name}/{n}" for n, target_fn in sorted(fn.items()))
+                    callee = node.fn.name if isinstance(node.fn, Var) else "function"
+                    raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
+                return target(*args)
             return fn(*args)
         if isinstance(node, Block):
             local = Env(self.env)
@@ -657,7 +713,7 @@ class Evaluator:
                 result = ev.eval(expr)
             return result
         if isinstance(node, FuncDef):
-            fn = GeniaFunction(node.name, node.params, node.rest_param, node.body, self.env)
+            fn = GeniaFunction(node.name, node.params, node.body, self.env)
             self.env.define_function(fn)
             return fn
         if isinstance(node, CaseExpr):
@@ -706,12 +762,20 @@ def truthy(value: Any) -> bool:
 # Builtins / REPL
 # -----------------------------
 
-def make_global_env() -> Env:
+def make_global_env(stdin_data: Optional[list[str]] = None) -> Env:
     env = Env()
 
     def log(*args: Any) -> Any:
         print(*args)
         return args[-1] if args else None
+
+    def print_fn(*args: Any) -> Any:
+        print(*args)
+        return args[-1] if args else None
+    def builtin_count(x):
+        if isinstance(x, list):
+            return len(x)
+        raise Exception(f"count(...) expects a list, got {type(x).__name__}")
 
     def help_fn() -> None:
         print(
@@ -740,8 +804,17 @@ Examples:
     (x, 0) -> x |
     (x, y) -> x + y
 
-  sum(..xs) = log(xs)
-  add_many(a, ..rest) = add(a, ..rest)
+  print(stdin)
+  count([1, 2, 3])
+  print([1, 2, 3])
+
+  first_pair(xs) =
+    [a, b] -> a + b
+
+  describe(xs) =
+    [] -> "empty" |
+    [x] -> "one" |
+    [x, y] -> "two"
 
 Commands:
   :quit   exit
@@ -749,8 +822,10 @@ Commands:
   :help   show this help
 """.strip()
         )
-
+    env.set("count", builtin_count)
     env.set("log", log)
+    env.set("print", print_fn)
+    env.set("stdin", [] if stdin_data is None else stdin_data)
     env.set("help", help_fn)
     env.set("pi", math.pi)
     env.set("e", math.e)
@@ -805,7 +880,7 @@ def run_source(source: str, env: Env) -> Any:
 
 
 def repl() -> None:
-    env = make_global_env()
+    env = make_global_env([])
     print("Genia prototype REPL. Type :help for examples, :quit to exit.")
     buf = ""
     while True:
@@ -841,7 +916,8 @@ def repl() -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        env = make_global_env()
+        stdin_data = sys.stdin.read().splitlines()
+        env = make_global_env(stdin_data)
         with open(sys.argv[1], "r", encoding="utf-8") as f:
             result = run_source(f.read(), env)
         if result is not None:
