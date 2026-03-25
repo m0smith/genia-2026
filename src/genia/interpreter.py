@@ -23,7 +23,7 @@ Implemented subset:
 - single-argument pattern shorthand: 0 -> 1 is treated like (0) -> 1
 - guards: pattern ? condition -> result
 - blocks with newline or ; expression separators
-- builtins: log(...), help()
+- builtins: log(...), print(...), input(prompt), help()
 
 Not yet implemented:
 - lambdas
@@ -950,6 +950,9 @@ def make_global_env(stdin_data: Optional[list[str]] = None) -> Env:
         print(*args)
         return args[-1] if args else None
 
+    def input_fn(prompt: str = "") -> str:
+        return input(prompt)
+
     def help_fn() -> None:
         print(
             """
@@ -997,6 +1000,7 @@ Commands:
         )
     env.set("log", log)
     env.set("print", print_fn)
+    env.set("input", input_fn)
     env.set("stdin", [] if stdin_data is None else stdin_data)
     env.set("help", help_fn)
     env.set("pi", math.pi)
