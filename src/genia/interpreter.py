@@ -655,7 +655,12 @@ def eval_with_tco(fn: Any, args: tuple[Any, ...]) -> Any:
             frame = Env(current_fn.closure)
             for p, a in zip(current_fn.params, current_args):
                 frame.set(p, a)
-            result = Evaluator(frame).eval_function_body(current_fn.params, current_args, current_fn.body)
+            result = Evaluator(frame).eval_function_body(
+                current_fn.params,
+                current_args,
+                current_fn.body,
+                current_fn.name,
+            )
         else:
             result = current_fn(*current_args)
 
@@ -676,9 +681,15 @@ class Evaluator:
             result = self.eval(node)
         return result
 
-    def eval_function_body(self, params: list[str], args: tuple[Any, ...], body: Node) -> Any:
+    def eval_function_body(
+        self,
+        params: list[str],
+        args: tuple[Any, ...],
+        body: Node,
+        fn_name: str | None = None,
+    ) -> Any:
         if isinstance(body, CaseExpr):
-            return self.eval_case_expr(args, body)
+            return self.eval_case_expr(args, body, fn_name)
         if isinstance(body, Block):
             # If the final expr is a case expr, it matches against function args.
             for expr in body.exprs[:-1]:
@@ -687,11 +698,11 @@ class Evaluator:
                 return None
             last = body.exprs[-1]
             if isinstance(last, CaseExpr):
-                return self.eval_case_expr(args, last)
+                return self.eval_case_expr(args, last, fn_name)
             return self.eval_tail(last)
         return self.eval_tail(body)
 
-    def eval_case_expr(self, args: tuple[Any, ...], case_expr: CaseExpr) -> Any:
+    def eval_case_expr(self, args: tuple[Any, ...], case_expr: CaseExpr, fn_name: str | None = None) -> Any:
         for clause in case_expr.clauses:
             match_env = self.match_pattern(clause.pattern, args)
             if match_env is None:
@@ -702,6 +713,10 @@ class Evaluator:
             if clause.guard is not None and not Evaluator(local).eval(clause.guard):
                 continue
             return Evaluator(local).eval_tail(clause.result)
+        if fn_name is not None:
+            raise RuntimeError(
+                f"No matching case for function {fn_name}/{len(args)} with arguments {args!r}"
+            )
         raise RuntimeError(f"No matching case for arguments {args!r}")
 
     def eval_tail(self, node: Node) -> Any:
