@@ -205,6 +205,12 @@ class CaseExpr(Node):
 
 
 @dataclass
+class Lambda(Node):
+    params: list[str]
+    body: Node
+
+
+@dataclass
 class FuncDef(Node):
     name: str
     params: list[str]
@@ -462,6 +468,24 @@ class Parser:
             self.i += 1
             return Unary(tok.kind, self.parse_expr(70))
         if tok.kind == "LPAREN":
+            save = self.i
+            try:
+                self.i += 1
+                params: list[str] = []
+                if not self.at("RPAREN"):
+                    while True:
+                        params.append(self.eat("IDENT").text)
+                        if not self.maybe("COMMA"):
+                            break
+                self.eat("RPAREN")
+                if self.at("ARROW"):
+                    self.eat("ARROW")
+                    body = self.parse_expr()
+                    return Lambda(params, body)
+                self.i = save
+            except SyntaxError:
+                self.i = save
+
             self.i += 1
             expr = self.parse_expr()
             self.eat("RPAREN")
@@ -679,11 +703,7 @@ class Evaluator:
         if isinstance(node, ListLiteral):
             return [self.eval(item) for item in node.items]
         if isinstance(node, Var):
-            value = self.env.get(node.name)
-            if isinstance(value, dict) and all(isinstance(k, int) for k in value):
-                available = ", ".join(f"{node.name}/{arity}" for arity in sorted(value))
-                raise RuntimeError(f"Function {node.name} requires a call with matching arity. Available: {available}")
-            return value
+            return self.env.get(node.name)
         if isinstance(node, Unary):
             value = self.eval(node.expr)
             if node.op == "MINUS":
@@ -712,6 +732,21 @@ class Evaluator:
             for expr in node.exprs:
                 result = ev.eval(expr)
             return result
+        if isinstance(node, Lambda):
+            params = node.params
+            body = node.body
+            closure = self.env
+
+            def fn(*args):
+                if len(args) != len(params):
+                    raise TypeError(f"lambda expected {len(params)} args, got {len(args)}")
+                frame = Env(closure)
+                for p, a in zip(params, args):
+                    frame.set(p, a)
+                return Evaluator(frame).eval(body)
+
+            return fn
+
         if isinstance(node, FuncDef):
             fn = GeniaFunction(node.name, node.params, node.body, self.env)
             self.env.define_function(fn)
@@ -772,10 +807,6 @@ def make_global_env(stdin_data: Optional[list[str]] = None) -> Env:
     def print_fn(*args: Any) -> Any:
         print(*args)
         return args[-1] if args else None
-    def builtin_count(x):
-        if isinstance(x, list):
-            return len(x)
-        raise Exception(f"count(...) expects a list, got {type(x).__name__}")
 
     def help_fn() -> None:
         print(
@@ -822,7 +853,6 @@ Commands:
   :help   show this help
 """.strip()
         )
-    env.set("count", builtin_count)
     env.set("log", log)
     env.set("print", print_fn)
     env.set("stdin", [] if stdin_data is None else stdin_data)
