@@ -35,10 +35,13 @@ Not yet implemented:
 from __future__ import annotations
 
 import math
+from pathlib import Path
 import re
 import sys
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional
+
+BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
 
 
 # -----------------------------
@@ -553,9 +556,18 @@ class Parser:
 # -----------------------------
 
 class Env:
-    def __init__(self, parent: Optional[Env] = None):
+    def __init__(self, parent: Optional["Env"] = None):
         self.parent = parent
         self.values: dict[str, Any] = {}
+        self.autoloads: dict[tuple[str, int], str] = {}
+        self.loaded_files: set[str] = set()
+        self.loading_files: set[str] = set()
+
+    def root(self) -> "Env":
+        env = self
+        while env.parent is not None:
+            env = env.parent
+        return env
 
     def get(self, name: str) -> Any:
         if name in self.values:
@@ -577,6 +589,34 @@ class Env:
         if fn.arity in existing:
             raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
         existing[fn.arity] = fn
+
+    def register_autoload(self, name: str, arity: int, path: str) -> None:
+        root = self.root()
+        root.autoloads[(name, arity)] = path
+
+    def try_autoload(self, name: str, arity: int) -> bool:
+        root = self.root()
+        path = root.autoloads.get((name, arity))
+        if path is None:
+            return False
+
+        full_path = (BASE_DIR / path).resolve()
+        key = str(full_path)
+
+        if key in root.loaded_files:
+            return True
+
+        if key in root.loading_files:
+            raise RuntimeError(f"Autoload cycle detected while loading {full_path}")
+
+        root.loading_files.add(key)
+        try:
+            source = full_path.read_text(encoding="utf-8")
+            run_source(source, root)
+            root.loaded_files.add(key)
+            return True
+        finally:
+            root.loading_files.remove(key)
 
 
 @dataclass
@@ -617,7 +657,6 @@ class Evaluator:
             return self.eval_case_expr(args, body)
         if isinstance(body, Block):
             # If the final expr is a case expr, it matches against function args.
-            
             for expr in body.exprs[:-1]:
                 self.eval(expr)
             if not body.exprs:
@@ -751,17 +790,38 @@ class Evaluator:
         if isinstance(node, Binary):
             return self.eval_binary(node)
         if isinstance(node, Call):
-            fn = self.env.get(node.fn.name) if isinstance(node.fn, Var) else self.eval(node.fn)
             args = [self.eval(a) for a in node.args]
+
+            if isinstance(node.fn, Var):
+                name = node.fn.name
+                try:
+                    fn = self.env.get(name)
+                except NameError:
+                    if self.env.try_autoload(name, len(args)):
+                        fn = self.env.get(name)
+                    else:
+                        raise
+            else:
+                fn = self.eval(node.fn)
+
             if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
                 arity = len(args)
                 target = fn.get(arity)
+
+                if target is None and isinstance(node.fn, Var):
+                    if self.env.try_autoload(node.fn.name, arity):
+                        fn = self.env.get(node.fn.name)
+                        if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+                            target = fn.get(arity)
+
                 if target is None:
-                    available = ", ".join(f"{target_fn.name}/{n}" for n, target_fn in sorted(fn.items()))
                     callee = node.fn.name if isinstance(node.fn, Var) else "function"
+                    available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
                     raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
                 return target(*args)
+
             return fn(*args)
+
         if isinstance(node, Block):
             local = Env(self.env)
             result = None
@@ -904,6 +964,10 @@ Commands:
     env.set("true", True)
     env.set("false", False)
     env.set("nil", None)
+
+    env.register_autoload("reduce", 3, "std/prelude/list.genia")
+    env.register_autoload("count", 1, "std/prelude/list.genia")
+    env.register_autoload("sum", 1, "std/prelude/math.genia")
     return env
 
 
