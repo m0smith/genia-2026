@@ -1,0 +1,5 @@
+# full-line comment should be ignored
+add(x, y) = x + y  # inline comment after function definition
+
+xs = [1, 2, 3] # comment after list literal
+add(sum(xs), 4) # comment after final expression
