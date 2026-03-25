@@ -1,0 +1,135 @@
+# Tic-Tac-Toe in a single Genia file
+#
+# Assumptions for this draft:
+# - Strings, lists, pattern matching, and recursion exist.
+# - print(...) and input(...) are available.
+# - Equality operators work in guards.
+# - `_` in patterns is a wildcard.
+# - "_" as a string is the empty square value.
+#
+# This file is written to be as close as possible to the current Genia direction:
+# - no decide
+# - no repeat
+# - no nil for empty squares
+# - control flow through pattern matching + guards + recursion
+
+empty() = "_"
+
+newBoard() = ["_", "_", "_", "_", "_", "_", "_", "_", "_"]
+
+nextPlayer(player) =
+  "X" -> "O" |
+  "O" -> "X"
+
+showSquare(square) = square
+
+printBoard(board) =
+  [a, b, c, d, e, f, g, h, i] -> {
+    print("")
+    print(showSquare(a) + " " + showSquare(b) + " " + showSquare(c))
+    print(showSquare(d) + " " + showSquare(e) + " " + showSquare(f))
+    print(showSquare(g) + " " + showSquare(h) + " " + showSquare(i))
+    print("")
+  }
+
+winner(board) =
+  ["X", "X", "X", .._] -> "X" |
+  [_,   _,   _,   "X", "X", "X", _,   _,   _] -> "X" |
+  [_,   _,   _,   _,   _,   _,   "X", "X", "X"] -> "X" |
+
+  ["X", _,   _,   "X", _,   _,   "X", _,   _] -> "X" |
+  [_,   "X", _,   _,   "X", _,   _,   "X", _] -> "X" |
+  [_,   _,   "X", _,   _,   "X", _,   _,   "X"] -> "X" |
+
+  ["X", _,   _,   _,   "X", _,   _,   _,   "X"] -> "X" |
+  [_,   _,   "X", _,   "X", _,   "X", _,   _] -> "X" |
+
+  ["O", "O", "O", _,   _,   _,   _,   _,   _] -> "O" |
+  [_,   _,   _,   "O", "O", "O", _,   _,   _] -> "O" |
+  [_,   _,   _,   _,   _,   _,   "O", "O", "O"] -> "O" |
+
+  ["O", _,   _,   "O", _,   _,   "O", _,   _] -> "O" |
+  [_,   "O", _,   _,   "O", _,   _,   "O", _] -> "O" |
+  [_,   _,   "O", _,   _,   "O", _,   _,   "O"] -> "O" |
+
+  ["O", _,   _,   _,   "O", _,   _,   _,   "O"] -> "O" |
+  [_,   _,   "O", _,   "O", _,   "O", _,   _] -> "O" |
+
+  _ -> "_"
+
+containsEmpty(board) =
+  ["_", _,   _,   _,   _,   _,   _,   _,   _] -> true |
+  [_,   "_", _,   _,   _,   _,   _,   _,   _] -> true |
+  [_,   _,   "_", _,   _,   _,   _,   _,   _] -> true |
+  [_,   _,   _,   "_", _,   _,   _,   _,   _] -> true |
+  [_,   _,   _,   _,   "_", _,   _,   _,   _] -> true |
+  [_,   _,   _,   _,   _,   "_", _,   _,   _] -> true |
+  [_,   _,   _,   _,   _,   _,   "_", _,   _] -> true |
+  [_,   _,   _,   _,   _,   _,   _,   "_", _] -> true |
+  [_,   _,   _,   _,   _,   _,   _,   _,   "_"] -> true |
+  _ -> false
+
+# setAt replaces the board position at index 0..8.
+setAt(board, index, value) =
+  ([_, b, c, d, e, f, g, h, i], '0', value) -> [value, b, c, d, e, f, g, h, i] |
+  ([a, _, c, d, e, f, g, h, i], '1', value) -> [a, value, c, d, e, f, g, h, i] |
+  ([a, b, _, d, e, f, g, h, i], '2', value) -> [a, b, value, d, e, f, g, h, i] |
+  ([a, b, c, _, e, f, g, h, i], '3', value) -> [a, b, c, value, e, f, g, h, i] |
+  ([a, b, c, d, _, f, g, h, i], '4', value) -> [a, b, c, d, value, f, g, h, i] |
+  ([a, b, c, d, e, _, g, h, i], '5', value) -> [a, b, c, d, e, value, g, h, i] |
+  ([a, b, c, d, e, f, _, h, i], '6', value) -> [a, b, c, d, e, f, value, h, i] |
+  ([a, b, c, d, e, f, g, _, i], '7', value) -> [a, b, c, d, e, f, g, value, i] |
+  ([a, b, c, d, e, f, g, h, _], '8', value) -> [a, b, c, d, e, f, g, h, value]
+
+# A move is legal only if the chosen square is currently empty.
+isLegalMove(board, index) =
+  (["_", _,   _,   _,   _,   _,   _,   _,   _], '0') -> true |
+  ([_,   "_", _,   _,   _,   _,   _,   _,   _], '1') -> true |
+  ([_,   _,   "_", _,   _,   _,   _,   _,   _], '2') -> true |
+  ([_,   _,   _,   "_", _,   _,   _,   _,   _], '3') -> true |
+  ([_,   _,   _,   _,   "_", _,   _,   _,   _], '4') -> true |
+  ([_,   _,   _,   _,   _,   "_", _,   _,   _], '5') -> true |
+  ([_,   _,   _,   _,   _,   _,   "_", _,   _], '6') -> true |
+  ([_,   _,   _,   _,   _,   _,   _,   "_", _], '7') -> true |
+  ([_,   _,   _,   _,   _,   _,   _,   _,   "_"], '8') -> true |
+  _ -> false
+
+readMove(player) {
+  print("Player " + player + ", enter a move from 0 to 8:")
+  input()
+}
+
+playTurn(board, player, move) =
+  (b, p, m) ? isLegalMove(b, m) == true -> play(setAt(b, m, p), nextPlayer(p)) |
+  (b, p, _) -> retryTurn(b, p)
+
+retryTurn(board, player) {
+  print("That square is not available. Try again.")
+  play(board, player)
+}
+
+play(board, player) {
+  printBoard(board)
+  finishOrContinue(board, player, winner(board), containsEmpty(board))
+}
+
+
+finishOrContinue(board, player, whoWon, hasEmpty) =
+  (_, _, "X", _) -> print("X wins!") |
+  (_, _, "O", _) -> print("O wins!") |
+  (_, _, "_", false) -> print("Draw!") |
+  (_, _, "_", true) -> promptMove(board, player)
+
+promptMove(board, player) =
+  playTurn(board, player, readMove(player))
+
+main() {
+  print("Tic-Tac-Toe")
+  print("Use positions 0 through 8.")
+  print("0 1 2")
+  print("3 4 5")
+  print("6 7 8")
+  play(newBoard(), "X")
+}
+
+main()
