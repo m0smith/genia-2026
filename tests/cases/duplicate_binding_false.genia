@@ -1,0 +1,5 @@
+same(xs) =
+  [x, x] -> true |
+  _ -> false
+
+same([7, 8])

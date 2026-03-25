@@ -1,0 +1,4 @@
+only_empty(xs) =
+  [] -> 0
+
+only_empty([1])

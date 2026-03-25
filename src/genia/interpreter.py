@@ -35,11 +35,10 @@ Not yet implemented:
 from __future__ import annotations
 
 import math
-import operator
 import re
 import sys
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Iterable, Optional
 
 
 # -----------------------------
@@ -279,37 +278,55 @@ class Parser:
             self.skip_separators()
         return out
 
+    def try_parse_function_header(self) -> tuple[str, list[str]] | None:
+        if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
+            return None
+
+        save = self.i
+        try:
+            name = self.eat("IDENT").text
+            self.eat("LPAREN")
+            params: list[str] = []
+            if not self.at("RPAREN"):
+                while True:
+                    params.append(self.eat("IDENT").text)
+                    if not self.maybe("COMMA"):
+                        break
+            self.eat("RPAREN")
+
+            if self.at("ASSIGN", "LBRACE"):
+                return name, params
+
+            self.i = save
+            return None
+        except SyntaxError:
+            self.i = save
+            return None
+
     def parse_toplevel(self) -> Node:
-        # Try function definition: IDENT ( params ) (= body | { block })
-        if self.at("IDENT") and self.peek(1).kind == "LPAREN":
-            save = self.i
-            try:
-                name = self.eat("IDENT").text
-                self.eat("LPAREN")
-                params: list[str] = []
-                if not self.at("RPAREN"):
-                    while True:
-                        params.append(self.eat("IDENT").text)
-                        if not self.maybe("COMMA"):
-                            break
-                self.eat("RPAREN")
-                if self.at("ASSIGN"):
-                    self.eat("ASSIGN")
-                    self.skip_separators()
-                    body = self.parse_function_body_after_intro()
-                    return FuncDef(name, params, body)
-                if self.at("LBRACE"):
-                    body = self.parse_block(allow_final_case=True)
-                    return FuncDef(name, params, body)
-                self.i = save
-            except SyntaxError:
-                self.i = save
+        header = self.try_parse_function_header()
+        if header is not None:
+            name, params = header
+
+            if self.at("ASSIGN"):
+                self.eat("ASSIGN")
+                self.skip_separators()
+                body = self.parse_function_body_after_intro()
+                return FuncDef(name, params, body)
+
+            if self.at("LBRACE"):
+                body = self.parse_block(allow_final_case=True)
+                return FuncDef(name, params, body)
+
+            raise SyntaxError("Internal parser error: expected function body")
+
         if self.at("IDENT") and self.peek(1).kind == "ASSIGN":
             name = self.eat("IDENT").text
             self.eat("ASSIGN")
             self.skip_separators()
             expr = self.parse_expr()
             return Assign(name, expr)
+
         expr = self.parse_expr()
         return ExprStmt(expr)
 
@@ -600,9 +617,9 @@ class Evaluator:
             return self.eval_case_expr(args, body)
         if isinstance(body, Block):
             # If the final expr is a case expr, it matches against function args.
-            result = None
+            
             for expr in body.exprs[:-1]:
-                result = self.eval(expr)
+                self.eval(expr)
             if not body.exprs:
                 return None
             last = body.exprs[-1]

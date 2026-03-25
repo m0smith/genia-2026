@@ -1,0 +1,3 @@
+apply2(f, a, b) = f(a, b)
+
+apply2((x, y) -> x * y, 6, 7)
