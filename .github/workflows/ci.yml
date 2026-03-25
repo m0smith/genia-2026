@@ -32,6 +32,12 @@ jobs:
 
       - name: Sync dependencies
         run: uv sync --dev
-
+      
+      - name: Lint (ruff)
+        run: uvx ruff check .
+        
       - name: Run tests
-        run: uv run pytest -q
+        run: uv run pytest -q -vv --maxfail=1
+
+      - name: Run tests with coverage
+        run: uv run pytest --cov=genia --cov-report=term-missing

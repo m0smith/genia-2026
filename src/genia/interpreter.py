@@ -35,11 +35,10 @@ Not yet implemented:
 from __future__ import annotations
 
 import math
-import operator
 import re
 import sys
 from dataclasses import dataclass
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Iterable, Optional
 
 
 # -----------------------------

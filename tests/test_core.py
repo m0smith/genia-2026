@@ -28,3 +28,23 @@ def test_function_definition_and_call(run):
     square(5)
     '''
     assert run(src) == 25
+
+def test_duplicate_binding_enforces_equality(run):
+    src = """
+    same(xs) =
+      [x, x] -> true |
+      _ -> false
+
+    same([1,1])
+    """
+    assert run(src) is True
+
+def test_duplicate_binding_mismatch(run):
+    src = """
+    same(xs) =
+      [x, x] -> true |
+      _ -> false
+
+    same([1,2])
+    """
+    assert run(src) is False
