@@ -38,22 +38,25 @@ def test_autoload_missing_file():
         run_source("ghost(1)", env)
 
 
-def test_autoload_mutual_recursion_raises_recursion_error(tmp_path: Path):
+def test_autoload_mutual_tail_recursion_works(tmp_path: Path):
     std = tmp_path / "std" / "prelude"
     std.mkdir(parents=True)
 
     (std / "a.genia").write_text(
-        "a() = b()\n",
+        "a(n) =\n"
+        "  0 -> 0 |\n"
+        "  n -> b(n - 1)\n",
         encoding="utf-8",
     )
     (std / "b.genia").write_text(
-        "b() = a()\n",
+        "b(n) =\n"
+        "  0 -> 0 |\n"
+        "  n -> a(n - 1)\n",
         encoding="utf-8",
     )
 
     env = make_global_env([])
-    env.register_autoload("a", 0, str((std / "a.genia").resolve()))
-    env.register_autoload("b", 0, str((std / "b.genia").resolve()))
+    env.register_autoload("a", 1, str((std / "a.genia").resolve()))
+    env.register_autoload("b", 1, str((std / "b.genia").resolve()))
 
-    with pytest.raises(RecursionError):
-        run_source("a()", env)
+    assert run_source("a(5000)", env) == 0
