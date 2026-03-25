@@ -1,7 +1,20 @@
 [project]
-name = "genia-2026"
+name = "genia"
 version = "0.1.0"
-description = "Add your description here"
+description = "Genia language prototype interpreter and regression tests"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
