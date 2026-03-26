@@ -6,4 +6,4 @@ reduce(f, acc, xs) =
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
 sum(xs) = reduce((acc, x) -> acc + x, 0, xs)
 
-print(count(stdin))
+print(count(stdin()))
