@@ -1,0 +1,103 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Genia",
+  "scopeName": "source.genia",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#function-definition" },
+    { "include": "#keywords" },
+    { "include": "#numbers" },
+    { "include": "#spread" },
+    { "include": "#pattern-operators" },
+    { "include": "#operators" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.genia",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.genia",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.genia",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "constant.language.genia",
+          "match": "\\b(?:true|false|nil)\\b"
+        }
+      ]
+    },
+    "function-definition": {
+      "patterns": [
+        {
+          "name": "meta.function.definition.genia",
+          "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(\\()\\s*([^)]*?)\\s*(\\))\\s*=",
+          "captures": {
+            "1": { "name": "entity.name.function.genia" },
+            "2": { "name": "punctuation.section.parameters.begin.genia" },
+            "3": { "name": "variable.parameter.genia" },
+            "4": { "name": "punctuation.section.parameters.end.genia" }
+          }
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.genia",
+          "match": "\\b(?:\\d+\\.\\d+|\\d+)\\b"
+        }
+      ]
+    },
+    "pattern-operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.pattern.genia",
+          "match": "->|\\||\\?"
+        }
+      ]
+    },
+    "spread": {
+      "patterns": [
+        {
+          "name": "keyword.operator.spread.genia",
+          "match": "\\.\\."
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.genia",
+          "match": "==|!=|<=|>=|[+\\-*/%<>]"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.genia",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

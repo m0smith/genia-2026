@@ -1,0 +1,7 @@
+add(a, b) = a + b
+
+xs = [1, 2, 3]
+
+result = add(1, 2)
+
+print(result)
