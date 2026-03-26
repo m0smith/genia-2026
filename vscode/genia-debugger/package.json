@@ -19,7 +19,9 @@
       {
         "type": "genia",
         "label": "Genia Debugger",
-        "languages": [],
+        "languages": [
+          "genia"
+        ],
         "configurationAttributes": {
           "launch": {
             "required": [
@@ -64,6 +66,26 @@
             "stopOnEntry": true
           }
         ]
+      }
+    ],
+    "languages": [
+      {
+        "id": "genia",
+        "aliases": [
+          "Genia",
+          "genia"
+        ],
+        "extensions": [
+          ".genia"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "genia",
+        "scopeName": "source.genia",
+        "path": "./syntaxes/genia.tmLanguage.json"
       }
     ]
   },

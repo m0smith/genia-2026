@@ -226,6 +226,19 @@ Genia intentionally keeps the core small. These are **not yet part of the langua
 
 ---
 
+## 🧰 VS Code Extension
+
+A minimal VS Code extension lives at `vscode/genia-debugger` and now includes:
+
+* `.genia` file recognition
+* Syntax highlighting
+* Basic editor language configuration (comments, brackets, indentation)
+* Debugging support via the `genia` launch configuration
+
+To run it in dev mode, see `vscode/genia-debugger/README.md`.
+
+---
+
 ## 🧪 Running Tests
 
 ```bash
