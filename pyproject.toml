@@ -23,3 +23,6 @@ python_files = ["test_*.py"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[project.scripts]
+genia = "genia.interpreter:_main"

@@ -1,15 +1,15 @@
 {
   "version": "0.2.0",
   "configurations": [
-    
     {
-      "name": "Run Genia Debugger Extension",
-      "type": "extensionHost",
+      "type": "genia",
       "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"],
-      "preLaunchTask": "npm: build"
+      "name": "Launch Genia File (uv)",
+      "program": "${file}",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "-m", "genia.interpreter"],
+      "stopOnEntry": true
     }
   ]
 }
