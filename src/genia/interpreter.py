@@ -228,6 +228,230 @@ class FuncDef(Node):
 
 
 # -----------------------------
+# Tiny IR
+# -----------------------------
+
+class IrNode:
+    """Base type for lowered Genia IR nodes."""
+
+
+@dataclass
+class IrLiteral(IrNode):
+    """Normalized constant value (number/string/bool/nil)."""
+
+    value: Any
+
+
+@dataclass
+class IrVar(IrNode):
+    """Variable read by name (kept explicit for analysis and rewriting)."""
+
+    name: str
+
+
+@dataclass
+class IrUnary(IrNode):
+    """Unary operator application."""
+
+    op: str
+    expr: IrNode
+
+
+@dataclass
+class IrBinary(IrNode):
+    """Binary operator application with explicit operands."""
+
+    left: IrNode
+    op: str
+    right: IrNode
+
+
+@dataclass
+class IrCall(IrNode):
+    """Function call where callee and args are already lowered."""
+
+    fn: IrNode
+    args: list[IrNode]
+
+
+@dataclass
+class IrExprStmt(IrNode):
+    """Top-level expression statement (keeps source ordering explicit)."""
+
+    expr: IrNode
+
+
+@dataclass
+class IrBlock(IrNode):
+    """Sequential expression block."""
+
+    exprs: list[IrNode]
+
+
+@dataclass
+class IrList(IrNode):
+    """List literal with lowered items."""
+
+    items: list[IrNode]
+
+
+class IrPattern:
+    """Base type for case patterns in IR."""
+
+
+@dataclass
+class IrPatLiteral(IrPattern):
+    """Literal pattern used in case matching."""
+
+    value: Any
+
+
+@dataclass
+class IrPatBind(IrPattern):
+    """Pattern variable binding."""
+
+    name: str
+
+
+@dataclass
+class IrPatWildcard(IrPattern):
+    """Wildcard pattern (_) that matches without binding."""
+
+    pass
+
+
+@dataclass
+class IrPatRest(IrPattern):
+    """List-rest pattern (.. or ..name)."""
+
+    name: str | None
+
+
+@dataclass
+class IrPatTuple(IrPattern):
+    """Tuple argument-pattern shape for function dispatch."""
+
+    items: list[IrPattern]
+
+
+@dataclass
+class IrPatList(IrPattern):
+    """List structural pattern with optional rest."""
+
+    items: list[IrPattern]
+
+
+@dataclass
+class IrCaseClause(IrNode):
+    """Single case arm with optional guard."""
+
+    pattern: IrPattern
+    guard: Optional[IrNode]
+    result: IrNode
+
+
+@dataclass
+class IrCase(IrNode):
+    """Case dispatch is explicit so optimization passes can inspect patterns."""
+
+    clauses: list[IrCaseClause]
+
+
+@dataclass
+class IrLambda(IrNode):
+    """Lambda expression with params and lowered body."""
+
+    params: list[str]
+    body: IrNode
+
+
+@dataclass
+class IrAssign(IrNode):
+    """Top-level assignment side effect."""
+
+    name: str
+    expr: IrNode
+
+
+@dataclass
+class IrFuncDef(IrNode):
+    """Named function definition with lowered body."""
+
+    name: str
+    params: list[str]
+    body: IrNode
+
+
+def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
+    return [lower_node(node) for node in nodes]
+
+
+def lower_node(node: Node) -> IrNode:
+    if isinstance(node, ExprStmt):
+        return IrExprStmt(lower_node(node.expr))
+    if isinstance(node, Number):
+        return IrLiteral(node.value)
+    if isinstance(node, String):
+        return IrLiteral(node.value)
+    if isinstance(node, Boolean):
+        return IrLiteral(node.value)
+    if isinstance(node, Nil):
+        return IrLiteral(None)
+    if isinstance(node, Var):
+        return IrVar(node.name)
+    if isinstance(node, Unary):
+        return IrUnary(node.op, lower_node(node.expr))
+    if isinstance(node, Binary):
+        return IrBinary(lower_node(node.left), node.op, lower_node(node.right))
+    if isinstance(node, Call):
+        return IrCall(lower_node(node.fn), [lower_node(arg) for arg in node.args])
+    if isinstance(node, Block):
+        return IrBlock([lower_node(expr) for expr in node.exprs])
+    if isinstance(node, ListLiteral):
+        return IrList([lower_node(item) for item in node.items])
+    if isinstance(node, CaseExpr):
+        return IrCase(
+            [
+                IrCaseClause(
+                    lower_pattern(clause.pattern),
+                    lower_node(clause.guard) if clause.guard is not None else None,
+                    lower_node(clause.result),
+                )
+                for clause in node.clauses
+            ]
+        )
+    if isinstance(node, Lambda):
+        return IrLambda(node.params, lower_node(node.body))
+    if isinstance(node, Assign):
+        return IrAssign(node.name, lower_node(node.expr))
+    if isinstance(node, FuncDef):
+        return IrFuncDef(node.name, node.params, lower_node(node.body))
+    raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
+
+
+def lower_pattern(pattern: Node) -> IrPattern:
+    if isinstance(pattern, Number):
+        return IrPatLiteral(pattern.value)
+    if isinstance(pattern, String):
+        return IrPatLiteral(pattern.value)
+    if isinstance(pattern, Boolean):
+        return IrPatLiteral(pattern.value)
+    if isinstance(pattern, Nil):
+        return IrPatLiteral(None)
+    if isinstance(pattern, WildcardPattern):
+        return IrPatWildcard()
+    if isinstance(pattern, RestPattern):
+        return IrPatRest(pattern.name)
+    if isinstance(pattern, Var):
+        return IrPatBind(pattern.name)
+    if isinstance(pattern, TuplePattern):
+        return IrPatTuple([lower_pattern(item) for item in pattern.items])
+    if isinstance(pattern, ListPattern):
+        return IrPatList([lower_pattern(item) for item in pattern.items])
+    raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
+
+
+# -----------------------------
 # Parser
 # -----------------------------
 
@@ -625,7 +849,7 @@ class Env:
 class GeniaFunction:
     name: str
     params: list[str]
-    body: Node
+    body: IrNode
     closure: Env
 
     @property
@@ -713,7 +937,7 @@ class Evaluator:
     def __init__(self, env: Env):
         self.env = env
 
-    def eval_program(self, nodes: Iterable[Node]) -> Any:
+    def eval_program(self, nodes: Iterable[IrNode]) -> Any:
         result = None
         for node in nodes:
             result = self.eval(node)
@@ -723,24 +947,24 @@ class Evaluator:
         self,
         params: list[str],
         args: tuple[Any, ...],
-        body: Node,
+        body: IrNode,
         fn_name: str | None = None,
     ) -> Any:
-        if isinstance(body, CaseExpr):
+        if isinstance(body, IrCase):
             return self.eval_case_expr(args, body, fn_name)
-        if isinstance(body, Block):
+        if isinstance(body, IrBlock):
             # If the final expr is a case expr, it matches against function args.
             for expr in body.exprs[:-1]:
                 self.eval(expr)
             if not body.exprs:
                 return None
             last = body.exprs[-1]
-            if isinstance(last, CaseExpr):
+            if isinstance(last, IrCase):
                 return self.eval_case_expr(args, last, fn_name)
             return self.eval_tail(last)
         return self.eval_tail(body)
 
-    def eval_case_expr(self, args: tuple[Any, ...], case_expr: CaseExpr, fn_name: str | None = None) -> Any:
+    def eval_case_expr(self, args: tuple[Any, ...], case_expr: IrCase, fn_name: str | None = None) -> Any:
         for clause in case_expr.clauses:
             match_env = self.match_pattern(clause.pattern, args)
             if match_env is None:
@@ -757,10 +981,10 @@ class Evaluator:
             )
         raise RuntimeError(f"No matching case for arguments {args!r}")
 
-    def eval_tail(self, node: Node) -> Any:
-        if isinstance(node, Call):
+    def eval_tail(self, node: IrNode) -> Any:
+        if isinstance(node, IrCall):
             return self.eval_call(node, tail_position=True)
-        if isinstance(node, Block):
+        if isinstance(node, IrBlock):
             local = Env(self.env)
             ev = Evaluator(local)
             for expr in node.exprs[:-1]:
@@ -770,10 +994,10 @@ class Evaluator:
             return ev.eval_tail(node.exprs[-1])
         return self.eval(node)
 
-    def eval_call(self, node: Call, tail_position: bool) -> Any:
+    def eval_call(self, node: IrCall, tail_position: bool) -> Any:
         args = [self.eval(a) for a in node.args]
 
-        if isinstance(node.fn, Var):
+        if isinstance(node.fn, IrVar):
             name = node.fn.name
             try:
                 fn = self.env.get(name)
@@ -789,23 +1013,23 @@ class Evaluator:
             arity = len(args)
             target = fn.get(arity)
 
-            if target is None and isinstance(node.fn, Var):
+            if target is None and isinstance(node.fn, IrVar):
                 if self.env.try_autoload(node.fn.name, arity):
                     fn = self.env.get(node.fn.name)
                     if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
                         target = fn.get(arity)
 
             if target is None:
-                callee = node.fn.name if isinstance(node.fn, Var) else "function"
+                callee = node.fn.name if isinstance(node.fn, IrVar) else "function"
                 available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             return TailCall(target, tuple(args)) if tail_position else target(*args)
 
         return TailCall(fn, tuple(args)) if tail_position else fn(*args)
 
-    def match_pattern(self, pattern: Node, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
+    def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         # full parameter tuple matching
-        if isinstance(pattern, TuplePattern):
+        if isinstance(pattern, IrPatTuple):
             if len(pattern.items) != len(args):
                 return None
             env: dict[str, Any] = {}
@@ -823,28 +1047,22 @@ class Evaluator:
             return None
         return self.match_pattern_atom(pattern, args[0])
 
-    def match_pattern_atom(self, pattern: Node, arg: Any) -> Optional[dict[str, Any]]:
-        if isinstance(pattern, Number):
+    def match_pattern_atom(self, pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]:
+        if isinstance(pattern, IrPatLiteral):
             return {} if pattern.value == arg else None
-        if isinstance(pattern, String):
-            return {} if pattern.value == arg else None
-        if isinstance(pattern, Boolean):
-            return {} if pattern.value == arg else None
-        if isinstance(pattern, Nil):
-            return {} if arg is None else None
-        if isinstance(pattern, WildcardPattern):
+        if isinstance(pattern, IrPatWildcard):
             return {}
-        if isinstance(pattern, RestPattern):
+        if isinstance(pattern, IrPatRest):
             return {pattern.name: arg} if pattern.name is not None else {}
-        if isinstance(pattern, Var):
+        if isinstance(pattern, IrPatBind):
             return {pattern.name: arg}
-        if isinstance(pattern, ListPattern):
+        if isinstance(pattern, IrPatList):
             if not isinstance(arg, list):
                 return None
 
             rest_index = None
             for i, pat in enumerate(pattern.items):
-                if isinstance(pat, RestPattern):
+                if isinstance(pat, IrPatRest):
                     rest_index = i
                     break
 
@@ -888,41 +1106,35 @@ class Evaluator:
             return env
         raise RuntimeError(f"Unsupported pattern: {pattern!r}")
 
-    def eval(self, node: Node) -> Any:
-        if isinstance(node, ExprStmt):
+    def eval(self, node: IrNode) -> Any:
+        if isinstance(node, IrExprStmt):
             return self.eval(node.expr)
-        if isinstance(node, Number):
+        if isinstance(node, IrLiteral):
             return node.value
-        if isinstance(node, String):
-            return node.value
-        if isinstance(node, Boolean):
-            return node.value
-        if isinstance(node, Nil):
-            return None
-        if isinstance(node, ListLiteral):
+        if isinstance(node, IrList):
             return [self.eval(item) for item in node.items]
-        if isinstance(node, Var):
+        if isinstance(node, IrVar):
             return self.env.get(node.name)
-        if isinstance(node, Unary):
+        if isinstance(node, IrUnary):
             value = self.eval(node.expr)
             if node.op == "MINUS":
                 return -value
             if node.op == "BANG":
                 return not truthy(value)
             raise RuntimeError(f"Unknown unary operator {node.op}")
-        if isinstance(node, Binary):
+        if isinstance(node, IrBinary):
             return self.eval_binary(node)
-        if isinstance(node, Call):
+        if isinstance(node, IrCall):
             return self.eval_call(node, tail_position=False)
 
-        if isinstance(node, Block):
+        if isinstance(node, IrBlock):
             local = Env(self.env)
             result = None
             ev = Evaluator(local)
             for expr in node.exprs:
                 result = ev.eval(expr)
             return result
-        if isinstance(node, Lambda):
+        if isinstance(node, IrLambda):
             params = node.params
             body = node.body
             closure = self.env
@@ -937,20 +1149,20 @@ class Evaluator:
 
             return fn
 
-        if isinstance(node, Assign):
+        if isinstance(node, IrAssign):
             value = self.eval(node.expr)
             self.env.set(node.name, value)
             return value
 
-        if isinstance(node, FuncDef):
+        if isinstance(node, IrFuncDef):
             fn = GeniaFunction(node.name, node.params, node.body, self.env)
             self.env.define_function(fn)
             return fn
-        if isinstance(node, CaseExpr):
+        if isinstance(node, IrCase):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")
         raise RuntimeError(f"Unknown node: {node!r}")
 
-    def eval_binary(self, node: Binary) -> Any:
+    def eval_binary(self, node: IrBinary) -> Any:
         left = self.eval(node.left)
         if node.op == "AND":
             return left and self.eval(node.right)
@@ -1141,8 +1353,10 @@ def is_complete(source: str) -> bool:
 def run_source(source: str, env: Env) -> Any:
     tokens = lex(source)
     parser = Parser(tokens)
-    nodes = parser.parse_program()
-    return Evaluator(env).eval_program(nodes)
+    ast_nodes = parser.parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    # Future optimization passes should transform `ir_nodes` here before execution.
+    return Evaluator(env).eval_program(ir_nodes)
 
 
 def repl() -> None:
