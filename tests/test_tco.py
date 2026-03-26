@@ -29,3 +29,42 @@ def test_non_tail_recursion_still_uses_stack():
     """
     with pytest.raises(RecursionError):
         run_with_env(src)
+
+
+def test_nth_loop_optimization_correctness():
+    src = """
+    nth(n, xs) =
+      (_, []) -> nil |
+      (0, [x, .._]) -> x |
+      (n, [_, ..rest]) -> nth(n - 1, rest)
+
+    [nth(0, [1, 2, 3]), nth(2, [1, 2, 3]), nth(5, [1, 2, 3])]
+    """
+    assert run_with_env(src) == [1, 3, None]
+
+
+def test_nth_negative_index_returns_nil():
+    src = """
+    nth(n, xs) =
+      (_, []) -> nil |
+      (0, [x, .._]) -> x |
+      (n, [_, ..rest]) -> nth(n - 1, rest)
+
+    nth(-1, [1, 2, 3])
+    """
+    assert run_with_env(src) is None
+
+
+def test_debug_print_for_list_traversal_optimization(monkeypatch, capsys):
+    monkeypatch.setenv("GENIA_DEBUG_OPT", "1")
+    src = """
+    nth(n, xs) =
+      (_, []) -> nil |
+      (0, [x, .._]) -> x |
+      (n, [_, ..rest]) -> nth(n - 1, rest)
+
+    nth(0, [1])
+    """
+    run_with_env(src)
+    captured = capsys.readouterr()
+    assert "Applied list traversal optimization to function nth/2" in captured.out
