@@ -18,6 +18,16 @@ def test_autoload_sum():
     assert run_with_env("sum([1, 2, 3, 4])") == 10
 
 
+def test_autoload_awkify():
+    src = """
+    odd_rows(n, row) =
+      (n, row) ? n % 2 == 1 -> row |
+      (_, _) -> nil
+    awkify(odd_rows, ["a", "b", "c", "d"])
+    """
+    assert run_with_env(src) == ["a", "c"]
+
+
 def test_autoload_reduce_direct():
     src = """
     reduce((acc, x) -> acc + x, 0, [1, 2, 3, 4])

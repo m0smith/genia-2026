@@ -1,44 +1,29 @@
-# Internal helper: include or skip a value
-keep_or_skip(value, tail) =
-  (nil, tail) -> tail |
-  (value, tail) -> [value] + tail
-
 awkify(fn, xs) = awkify_from(fn, xs, 1)
 
 awkify_from(fn, xs, n) =
   (_, [], _) -> [] |
-  (fn, [x, ..rest], n) -> {
-    value = fn(n, x)
-    tail = awkify_from(fn, rest, n + 1)
-    keep_or_skip(value, tail)
-  }
-
-# --- Convenience helpers ---
-
-# Keep rows where predicate is true (returns original row)
-awk_filter(fn, xs) =
-  awkify((n, row) ->
-    fn(n, row) ? row |
-    _ -> nil,
-  xs)
+  (fn, [x, ..rest], n) ? fn(n, x) == nil -> awkify_from(fn, rest, n + 1) |
+  (fn, [x, ..rest], n) -> [fn(n, x)] + awkify_from(fn, rest, n + 1)
 
 
-# Map rows (always keep result)
-awk_map(fn, xs) =
-  awkify((n, row) -> fn(n, row), xs)
+awk_filter(fn, xs) = awk_filter_from(fn, xs, 1)
+
+awk_filter_from(fn, xs, n) =
+  (_, [], _) -> [] |
+  (fn, [x, ..rest], n) ? fn(n, x) == true -> [x] + awk_filter_from(fn, rest, n + 1) |
+  (fn, [_, ..rest], n) -> awk_filter_from(fn, rest, n + 1)
 
 
-# Count rows matching predicate
-awk_count(fn, xs) =
-  awk_count_from(fn, xs, 1, 0)
+awk_map(fn, xs) = awk_map_from(fn, xs, 1)
+
+awk_map_from(fn, xs, n) =
+  (_, [], _) -> [] |
+  (fn, [x, ..rest], n) -> [fn(n, x)] + awk_map_from(fn, rest, n + 1)
+
+
+awk_count(fn, xs) = awk_count_from(fn, xs, 1, 0)
 
 awk_count_from(fn, xs, n, acc) =
   (_, [], _, acc) -> acc |
-
-  (fn, [x, ..rest], n, acc) -> {
-    next =
-      fn(n, x) ? acc + 1 |
-      _ -> acc
-
-    awk_count_from(fn, rest, n + 1, next)
-  }
+  (fn, [x, ..rest], n, acc) ? fn(n, x) == true -> awk_count_from(fn, rest, n + 1, acc + 1) |
+  (fn, [_, ..rest], n, acc) -> awk_count_from(fn, rest, n + 1, acc)
