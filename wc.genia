@@ -1,9 +1,4 @@
 
-reduce(f, acc, xs) =
-  (f, acc, []) -> acc |
-  (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
-count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
-sum(xs) = reduce((acc, x) -> acc + x, 0, xs)
 
 print(count(stdin()))
