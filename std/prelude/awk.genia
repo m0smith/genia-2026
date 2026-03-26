@@ -9,7 +9,7 @@ awkify_from(fn, xs, n, acc) =
 awkify_step(value, fn, rest, n, acc) =
   (nil, fn, rest, n, acc)   ->  awkify_from(fn, rest, n + 1, acc) |
 
-  (value, fn, rest, n, acc) ->  awkify_from(fn, rest, n + 1, acc + [value])
+  (value, fn, rest, n, acc) ->  awkify_from(fn, rest, n + 1, [..acc, value])
 
 
 awk_filter(fn, xs) = awk_filter_from(fn, xs, 1)

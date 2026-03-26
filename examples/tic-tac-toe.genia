@@ -62,11 +62,11 @@ containsEmpty?(board) =
 
 # setAt replaces the board position at index 0..8.
 setAt(board, index, value) =
-  ([_, b, c, d, e, f, g, h, i], '0', value) -> [value, b, c, d, e, f, g, h, i] |
-  ([a, _, c, d, e, f, g, h, i], '1', value) -> [a, value, c, d, e, f, g, h, i] |
-  ([a, b, _, d, e, f, g, h, i], '2', value) -> [a, b, value, d, e, f, g, h, i] |
-  ([a, b, c, _, e, f, g, h, i], '3', value) -> [a, b, c, value, e, f, g, h, i] |
-  ([a, b, c, d, _, f, g, h, i], '4', value) -> [a, b, c, d, value, f, g, h, i] |
+  ([_, ..squares], '0', value)              -> [value, ..squares] |
+  ([a, _, ..squares], '1', value)           -> [a, value, ..squares] |
+  ([a, b, _, ..squares], '2', value)        -> [a, b, value, ..squares] |
+  ([a, b, c, _, ..squares], '3', value)     -> [a, b, c, value, ..squares] |
+  ([a, b, c, d, _, ..squares], '4', value)  -> [a, b, c, d, value, ..squares] |
   ([a, b, c, d, e, _, g, h, i], '5', value) -> [a, b, c, d, e, value, g, h, i] |
   ([a, b, c, d, e, f, _, h, i], '6', value) -> [a, b, c, d, e, f, value, h, i] |
   ([a, b, c, d, e, f, g, _, i], '7', value) -> [a, b, c, d, e, f, g, value, i] |
