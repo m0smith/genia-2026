@@ -1094,6 +1094,9 @@ Commands:
     env.register_autoload("reduce", 3, "std/prelude/list.genia")
     env.register_autoload("count", 1, "std/prelude/list.genia")
     env.register_autoload("any?", 2, "std/prelude/list.genia")
+    env.register_autoload("nth", 2, "std/prelude/list.genia")
+    env.register_autoload("take", 2, "std/prelude/list.genia")
+    env.register_autoload("drop", 2, "std/prelude/list.genia")
     env.register_autoload("sum", 1, "std/prelude/math.genia")
     return env
 

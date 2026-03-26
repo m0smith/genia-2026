@@ -14,3 +14,13 @@ nth(n, xs) =
   (_, []) -> nil |
   (0, [x, .._]) -> x |
   (n, [_, ..rest]) -> nth(n - 1, rest)
+
+take(n, xs) =
+  (_, []) -> [] |
+  (0, _) -> [] |
+  (n, [x, ..rest]) -> [x] + take(n - 1, rest)
+
+drop(n, xs) =
+  (_, []) -> [] |
+  (0, xs) -> xs |
+  (n, [_, ..rest]) -> drop(n - 1, rest)
