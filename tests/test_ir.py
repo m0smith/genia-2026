@@ -1,6 +1,7 @@
 from genia.interpreter import (
     IrCase,
     IrFuncDef,
+    IrListTraversalLoop,
     IrPatBind,
     IrPatList,
     IrPatRest,
@@ -8,6 +9,7 @@ from genia.interpreter import (
     Parser,
     lex,
     lower_program,
+    optimize_program,
 )
 
 
@@ -49,3 +51,31 @@ def test_ir_execution_preserves_lambda_and_named_function_values(run):
     apply(inc, 41)
     """
     assert run(src) == 42
+
+
+def test_nth_shape_is_rewritten_to_loop_ir():
+    src = """
+    nth(n, xs) =
+      (_, []) -> nil |
+      (0, [x, .._]) -> x |
+      (n, [_, ..rest]) -> nth(n - 1, rest)
+    """
+    ast_nodes = Parser(lex(src)).parse_program()
+    ir_nodes = optimize_program(lower_program(ast_nodes))
+    fn = ir_nodes[0]
+    assert isinstance(fn, IrFuncDef)
+    assert isinstance(fn.body, IrListTraversalLoop)
+
+
+def test_non_matching_recursion_is_not_rewritten():
+    src = """
+    bad(n, xs) =
+      (_, []) -> nil |
+      (0, [x, .._]) -> x |
+      (n, [_, ..rest]) -> 1 + bad(n - 1, rest)
+    """
+    ast_nodes = Parser(lex(src)).parse_program()
+    ir_nodes = optimize_program(lower_program(ast_nodes))
+    fn = ir_nodes[0]
+    assert isinstance(fn, IrFuncDef)
+    assert isinstance(fn.body, IrCase)

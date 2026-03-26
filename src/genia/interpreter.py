@@ -35,6 +35,7 @@ Not yet implemented:
 from __future__ import annotations
 
 import math
+import os
 from pathlib import Path
 import re
 import sys
@@ -382,6 +383,17 @@ class IrFuncDef(IrNode):
     body: IrNode
 
 
+@dataclass
+class IrListTraversalLoop(IrNode):
+    """Optimized loop-like form for nth-style list traversal recursion."""
+
+    counter_var: str
+    list_var: str
+    step_size: int
+    empty_clause: IrCaseClause
+    zero_clause: IrCaseClause
+
+
 def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
     return [lower_node(node) for node in nodes]
 
@@ -449,6 +461,148 @@ def lower_pattern(pattern: Node) -> IrPattern:
     if isinstance(pattern, ListPattern):
         return IrPatList([lower_pattern(item) for item in pattern.items])
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
+
+
+def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list[IrNode]:
+    optimized: list[IrNode] = []
+    for node in ir_nodes:
+        if isinstance(node, IrFuncDef):
+            rewritten = optimize_nth_style_recursion(node)
+            if rewritten is not node and debug:
+                print(f"Applied list traversal optimization to function {node.name}/{len(node.params)}")
+            optimized.append(rewritten)
+        else:
+            optimized.append(node)
+    return optimized
+
+
+def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
+    if len(fn.params) != 2 or not isinstance(fn.body, IrCase):
+        return fn
+    case = fn.body
+    if any(clause.guard is not None for clause in case.clauses):
+        return fn
+
+    empty_clause: IrCaseClause | None = None
+    zero_clause: IrCaseClause | None = None
+    recur_clause: IrCaseClause | None = None
+
+    for clause in case.clauses:
+        if recursive_call_count(clause.result, fn.name) > 1:
+            return fn
+        tuple_pat = clause.pattern
+        if not isinstance(tuple_pat, IrPatTuple) or len(tuple_pat.items) != 2:
+            continue
+        n_pat, xs_pat = tuple_pat.items
+        if (
+            isinstance(xs_pat, IrPatList)
+            and len(xs_pat.items) == 0
+            and isinstance(clause.result, IrLiteral)
+            and clause.result.value is None
+            and empty_clause is None
+        ):
+            empty_clause = clause
+            continue
+        if (
+            isinstance(n_pat, IrPatLiteral)
+            and n_pat.value == 0
+            and isinstance(xs_pat, IrPatList)
+            and len(xs_pat.items) == 2
+            and isinstance(xs_pat.items[0], IrPatBind)
+            and isinstance(xs_pat.items[1], IrPatRest)
+            and isinstance(clause.result, IrVar)
+            and clause.result.name == xs_pat.items[0].name
+            and zero_clause is None
+        ):
+            zero_clause = clause
+            continue
+        if recur_clause is None and is_tail_recursive_step(clause, fn.name):
+            recur_clause = clause
+            n_bind = n_pat if isinstance(n_pat, IrPatBind) else None
+            rest_pat = xs_pat.items[1] if isinstance(xs_pat, IrPatList) and len(xs_pat.items) == 2 else None
+            if n_bind is None or not isinstance(rest_pat, IrPatRest) or rest_pat.name is None:
+                return fn
+            continue
+        if recursive_call_count(clause.result, fn.name) > 0:
+            return fn
+
+    if empty_clause is None or zero_clause is None or recur_clause is None:
+        return fn
+    recur_pat = recur_clause.pattern
+    assert isinstance(recur_pat, IrPatTuple)
+    recur_n_pat, recur_xs_pat = recur_pat.items
+    if not (isinstance(recur_n_pat, IrPatBind) and isinstance(recur_xs_pat, IrPatList)):
+        return fn
+    if len(recur_xs_pat.items) != 2 or not isinstance(recur_xs_pat.items[1], IrPatRest):
+        return fn
+    rest_name = recur_xs_pat.items[1].name
+    if rest_name is None:
+        return fn
+    recur_result = recur_clause.result
+    if not isinstance(recur_result, IrCall) or not isinstance(recur_result.fn, IrVar) or recur_result.fn.name != fn.name:
+        return fn
+    if len(recur_result.args) != 2:
+        return fn
+    n_arg, xs_arg = recur_result.args
+    if not (
+        isinstance(n_arg, IrBinary)
+        and n_arg.op == "MINUS"
+        and isinstance(n_arg.left, IrVar)
+        and n_arg.left.name == recur_n_pat.name
+        and isinstance(n_arg.right, IrLiteral)
+        and n_arg.right.value == 1
+    ):
+        return fn
+    if not (isinstance(xs_arg, IrVar) and xs_arg.name == rest_name):
+        return fn
+
+    return IrFuncDef(
+        fn.name,
+        fn.params,
+        IrListTraversalLoop(
+            counter_var=fn.params[0],
+            list_var=fn.params[1],
+            step_size=1,
+            empty_clause=empty_clause,
+            zero_clause=zero_clause,
+        ),
+    )
+
+
+def is_tail_recursive_step(clause: IrCaseClause, fn_name: str) -> bool:
+    tuple_pat = clause.pattern
+    if not isinstance(tuple_pat, IrPatTuple) or len(tuple_pat.items) != 2:
+        return False
+    _, xs_pat = tuple_pat.items
+    if not (isinstance(xs_pat, IrPatList) and len(xs_pat.items) == 2 and isinstance(xs_pat.items[1], IrPatRest)):
+        return False
+    result = clause.result
+    if not isinstance(result, IrCall):
+        return False
+    if not isinstance(result.fn, IrVar) or result.fn.name != fn_name:
+        return False
+    return recursive_call_count(result, fn_name) == 1
+
+
+def recursive_call_count(node: IrNode, fn_name: str) -> int:
+    if isinstance(node, IrCall):
+        own = 1 if isinstance(node.fn, IrVar) and node.fn.name == fn_name else 0
+        return own + recursive_call_count(node.fn, fn_name) + sum(recursive_call_count(arg, fn_name) for arg in node.args)
+    if isinstance(node, IrUnary):
+        return recursive_call_count(node.expr, fn_name)
+    if isinstance(node, IrBinary):
+        return recursive_call_count(node.left, fn_name) + recursive_call_count(node.right, fn_name)
+    if isinstance(node, IrBlock):
+        return sum(recursive_call_count(expr, fn_name) for expr in node.exprs)
+    if isinstance(node, IrExprStmt):
+        return recursive_call_count(node.expr, fn_name)
+    if isinstance(node, IrCase):
+        return sum(recursive_call_count(clause.result, fn_name) for clause in node.clauses)
+    if isinstance(node, IrAssign):
+        return recursive_call_count(node.expr, fn_name)
+    if isinstance(node, IrLambda):
+        return recursive_call_count(node.body, fn_name)
+    return 0
 
 
 # -----------------------------
@@ -950,6 +1104,8 @@ class Evaluator:
         body: IrNode,
         fn_name: str | None = None,
     ) -> Any:
+        if isinstance(body, IrListTraversalLoop):
+            return self.eval_list_traversal_loop(params, args, body)
         if isinstance(body, IrCase):
             return self.eval_case_expr(args, body, fn_name)
         if isinstance(body, IrBlock):
@@ -963,6 +1119,38 @@ class Evaluator:
                 return self.eval_case_expr(args, last, fn_name)
             return self.eval_tail(last)
         return self.eval_tail(body)
+
+    def eval_list_traversal_loop(self, params: list[str], args: tuple[Any, ...], body: IrListTraversalLoop) -> Any:
+        values = dict(zip(params, args))
+        n_value = values.get(body.counter_var)
+        xs_value = values.get(body.list_var)
+
+        while True:
+            current_args = (n_value, xs_value)
+            if not isinstance(xs_value, list) or len(xs_value) == 0:
+                match_env = self.match_pattern(body.empty_clause.pattern, current_args)
+                if match_env is None:
+                    return None
+                local = Env(self.env)
+                for k, v in match_env.items():
+                    local.set(k, v)
+                return Evaluator(local).eval_tail(body.empty_clause.result)
+
+            if n_value == 0:
+                match_env = self.match_pattern(body.zero_clause.pattern, current_args)
+                if match_env is None:
+                    return None
+                local = Env(self.env)
+                for k, v in match_env.items():
+                    local.set(k, v)
+                return Evaluator(local).eval_tail(body.zero_clause.result)
+
+            if not isinstance(n_value, (int, float)):
+                return None
+            if n_value < 0:
+                return None
+            n_value = n_value - body.step_size
+            xs_value = xs_value[body.step_size:]
 
     def eval_case_expr(self, args: tuple[Any, ...], case_expr: IrCase, fn_name: str | None = None) -> Any:
         for clause in case_expr.clauses:
@@ -1160,6 +1348,8 @@ class Evaluator:
             return fn
         if isinstance(node, IrCase):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")
+        if isinstance(node, IrListTraversalLoop):
+            raise RuntimeError("Optimized list traversal nodes are only valid as function bodies")
         raise RuntimeError(f"Unknown node: {node!r}")
 
     def eval_binary(self, node: IrBinary) -> Any:
@@ -1371,7 +1561,7 @@ def run_source(source: str, env: Env) -> Any:
     parser = Parser(tokens)
     ast_nodes = parser.parse_program()
     ir_nodes = lower_program(ast_nodes)
-    # Future optimization passes should transform `ir_nodes` here before execution.
+    ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
     return Evaluator(env).eval_program(ir_nodes)
 
 
