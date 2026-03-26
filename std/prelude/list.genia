@@ -3,3 +3,9 @@ reduce(f, acc, xs) =
   (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
+
+
+any?(predicate, xs) =
+  (predicate, []) -> false |
+  (predicate, [x, ..rest]) ? predicate(x) == true -> true |
+  (predicate, [_, ..rest]) -> any?(predicate, rest)

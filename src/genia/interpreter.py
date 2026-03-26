@@ -82,7 +82,7 @@ TOKEN_SPEC = [
     ("COMMENT", r"#[^\n]*"),
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
-    ("IDENT", r"[A-Za-z_][A-Za-z0-9_]*"),
+    ("IDENT", r"[A-Za-z_][A-Za-z0-9_]*\??"),
     ("MISMATCH", r"."),
 ]
 TOKEN_RE = re.compile("|".join(f"(?P<{n}>{p})" for n, p in TOKEN_SPEC))
@@ -1093,6 +1093,7 @@ Commands:
 
     env.register_autoload("reduce", 3, "std/prelude/list.genia")
     env.register_autoload("count", 1, "std/prelude/list.genia")
+    env.register_autoload("any?", 2, "std/prelude/list.genia")
     env.register_autoload("sum", 1, "std/prelude/math.genia")
     return env
 

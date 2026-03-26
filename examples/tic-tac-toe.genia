@@ -58,16 +58,7 @@ winner(board) =
   _ -> "_"
 
 containsEmpty(board) =
-  ["_", _,   _,   _,   _,   _,   _,   _,   _] -> true |
-  [_,   "_", _,   _,   _,   _,   _,   _,   _] -> true |
-  [_,   _,   "_", _,   _,   _,   _,   _,   _] -> true |
-  [_,   _,   _,   "_", _,   _,   _,   _,   _] -> true |
-  [_,   _,   _,   _,   "_", _,   _,   _,   _] -> true |
-  [_,   _,   _,   _,   _,   "_", _,   _,   _] -> true |
-  [_,   _,   _,   _,   _,   _,   "_", _,   _] -> true |
-  [_,   _,   _,   _,   _,   _,   _,   "_", _] -> true |
-  [_,   _,   _,   _,   _,   _,   _,   _,   "_"] -> true |
-  _ -> false
+  any?((c) -> c == "_", board)
 
 # setAt replaces the board position at index 0..8.
 setAt(board, index, value) =
