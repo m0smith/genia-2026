@@ -271,6 +271,11 @@ class ListLiteral(Node):
 
 
 @dataclass
+class Spread(Node):
+    expr: Node
+
+
+@dataclass
 class ListPattern(Node):
     items: list[Node]
 
@@ -387,6 +392,13 @@ class IrList(IrNode):
     """List literal with lowered items."""
 
     items: list[IrNode]
+
+
+@dataclass
+class IrSpread(IrNode):
+    """List spread element in a list literal."""
+
+    expr: IrNode
 
 
 class IrPattern:
@@ -514,6 +526,8 @@ def lower_node(node: Node) -> IrNode:
         return IrBlock([lower_node(expr) for expr in node.exprs])
     if isinstance(node, ListLiteral):
         return IrList([lower_node(item) for item in node.items])
+    if isinstance(node, Spread):
+        return IrSpread(lower_node(node.expr))
     if isinstance(node, CaseExpr):
         return IrCase(
             [
@@ -1070,7 +1084,11 @@ class Parser:
         items: list[Node] = []
         if not self.at("RBRACK"):
             while True:
-                items.append(self.parse_expr())
+                if self.at("DOTDOT"):
+                    self.eat("DOTDOT")
+                    items.append(Spread(self.parse_expr()))
+                else:
+                    items.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
         self.eat("RBRACK")
@@ -1457,7 +1475,16 @@ class Evaluator:
         if isinstance(node, IrLiteral):
             return node.value
         if isinstance(node, IrList):
-            return [self.eval(item) for item in node.items]
+            result: list[Any] = []
+            for item in node.items:
+                if isinstance(item, IrSpread):
+                    value = self.eval(item.expr)
+                    if not isinstance(value, list):
+                        raise TypeError("Cannot spread non-list")
+                    result.extend(value)
+                else:
+                    result.append(self.eval(item))
+            return result
         if isinstance(node, IrVar):
             return self.env.get(node.name)
         if isinstance(node, IrUnary):
