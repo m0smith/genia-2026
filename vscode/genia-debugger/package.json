@@ -1,0 +1,84 @@
+{
+  "name": "genia-debugger",
+  "displayName": "Genia Debugger",
+  "description": "Minimal VS Code debugger extension for the Genia runtime.",
+  "version": "0.0.1",
+  "publisher": "genia",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Debuggers"
+  ],
+  "activationEvents": [
+    "onDebug:genia"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "debuggers": [
+      {
+        "type": "genia",
+        "label": "Genia Debugger",
+        "languages": [],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to the Genia program to run.",
+                "default": "${file}"
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Working directory for the debuggee."
+              },
+              "runtimeExecutable": {
+                "type": "string",
+                "description": "Runtime executable (for example: python, python3, or a direct Genia CLI binary)."
+              },
+              "runtimeArgs": {
+                "type": "array",
+                "description": "Arguments passed before --debug-stdio and the program path.",
+                "items": {
+                  "type": "string"
+                },
+                "default": []
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Stop when program execution reaches the first statement.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "genia",
+            "request": "launch",
+            "name": "Launch Genia File",
+            "program": "${file}",
+            "stopOnEntry": true
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "vscode:prepublish": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "@vscode/debugadapter": "^1.69.0",
+    "@vscode/debugprotocol": "^1.69.0"
+  }
+}
