@@ -718,6 +718,8 @@ PRECEDENCE = {
     "PERCENT": 60,
 }
 
+RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil"})
+
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -746,6 +748,56 @@ class Parser:
         while self.at("NEWLINE", "SEMI"):
             self.i += 1
 
+    def validate_parameter_name(self, tok: Token, *, context: str) -> str:
+        name = tok.text
+        if name in RESERVED_LITERAL_IDENTIFIERS:
+            raise SyntaxError(f"{context} cannot use reserved literal {name!r} as a parameter at {tok.pos}")
+        if name == "_":
+            raise SyntaxError(f"{context} cannot use '_' as a parameter name at {tok.pos}")
+        return name
+
+    def function_header_has_body_starter(self, start_index: int) -> bool:
+        j = start_index + 1
+        if j >= len(self.tokens) or self.tokens[j].kind != "LPAREN":
+            return False
+        depth = 0
+        while j < len(self.tokens):
+            kind = self.tokens[j].kind
+            if kind == "LPAREN":
+                depth += 1
+            elif kind == "RPAREN":
+                depth -= 1
+                if depth == 0:
+                    j += 1
+                    while j < len(self.tokens) and self.tokens[j].kind == "NEWLINE":
+                        j += 1
+                    return j < len(self.tokens) and self.tokens[j].kind in {"ASSIGN", "LBRACE"}
+            elif kind == "EOF":
+                return False
+            j += 1
+        return False
+
+    def parenthesized_intro_has_arrow(self, start_index: int) -> bool:
+        if start_index >= len(self.tokens) or self.tokens[start_index].kind != "LPAREN":
+            return False
+        j = start_index
+        depth = 0
+        while j < len(self.tokens):
+            kind = self.tokens[j].kind
+            if kind == "LPAREN":
+                depth += 1
+            elif kind == "RPAREN":
+                depth -= 1
+                if depth == 0:
+                    j += 1
+                    while j < len(self.tokens) and self.tokens[j].kind == "NEWLINE":
+                        j += 1
+                    return j < len(self.tokens) and self.tokens[j].kind == "ARROW"
+            elif kind == "EOF":
+                return False
+            j += 1
+        return False
+
     def parse_program(self) -> list[Node]:
         out: list[Node] = []
         self.skip_separators()
@@ -765,7 +817,11 @@ class Parser:
             params: list[str] = []
             if not self.at("RPAREN"):
                 while True:
-                    params.append(self.eat("IDENT").text)
+                    if not self.at("IDENT"):
+                        bad = self.peek()
+                        raise SyntaxError(f"Invalid function parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
+                    param_tok = self.eat("IDENT")
+                    params.append(self.validate_parameter_name(param_tok, context="Function definition"))
                     if not self.maybe("COMMA"):
                         break
             self.eat("RPAREN")
@@ -777,6 +833,8 @@ class Parser:
             return None
         except SyntaxError:
             self.i = save
+            if self.function_header_has_body_starter(save):
+                raise
             return None
 
     def parse_toplevel(self) -> Node:
@@ -934,7 +992,7 @@ class Parser:
                         break
             self.eat("RBRACK")
             return ListPattern(items)
-        raise SyntaxError(f"Invalid pattern at {tok.pos}")
+        raise SyntaxError(f"Invalid pattern token {tok.text!r} ({tok.kind}) at {tok.pos}")
 
     def parse_expr(self, min_prec: int = 0) -> Node:
         left = self.parse_prefix()
@@ -979,7 +1037,11 @@ class Parser:
                 params: list[str] = []
                 if not self.at("RPAREN"):
                     while True:
-                        params.append(self.eat("IDENT").text)
+                        if not self.at("IDENT"):
+                            bad = self.peek()
+                            raise SyntaxError(f"Invalid lambda parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
+                        param_tok = self.eat("IDENT")
+                        params.append(self.validate_parameter_name(param_tok, context="Lambda"))
                         if not self.maybe("COMMA"):
                             break
                 self.eat("RPAREN")
@@ -990,6 +1052,8 @@ class Parser:
                 self.i = save
             except SyntaxError:
                 self.i = save
+                if self.parenthesized_intro_has_arrow(save):
+                    raise
 
             self.i += 1
             expr = self.parse_expr()
@@ -999,7 +1063,7 @@ class Parser:
             return self.parse_list_literal()
         if tok.kind == "LBRACE":
             return self.parse_block(allow_final_case=False)
-        raise SyntaxError(f"Unexpected token {tok.kind} at {tok.pos}")
+        raise SyntaxError(f"Unexpected token {tok.text!r} ({tok.kind}) at {tok.pos}")
 
     def parse_list_literal(self) -> ListLiteral:
         self.eat("LBRACK")
