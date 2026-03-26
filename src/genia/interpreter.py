@@ -396,7 +396,7 @@ class IrList(IrNode):
 
 @dataclass
 class IrSpread(IrNode):
-    """List spread element in a list literal."""
+    """List spread element in expression contexts (list literals and call args)."""
 
     expr: IrNode
 
@@ -1099,7 +1099,11 @@ class Parser:
         args: list[Node] = []
         if not self.at("RPAREN"):
             while True:
-                args.append(self.parse_expr())
+                if self.at("DOTDOT"):
+                    self.eat("DOTDOT")
+                    args.append(Spread(self.parse_expr()))
+                else:
+                    args.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
         self.eat("RPAREN")
@@ -1358,7 +1362,15 @@ class Evaluator:
         return self.eval(node)
 
     def eval_call(self, node: IrCall, tail_position: bool) -> Any:
-        args = [self.eval(a) for a in node.args]
+        args: list[Any] = []
+        for arg_node in node.args:
+            if isinstance(arg_node, IrSpread):
+                value = self.eval(arg_node.expr)
+                if not isinstance(value, list):
+                    raise TypeError("Cannot spread non-list into function arguments")
+                args.extend(value)
+            else:
+                args.append(self.eval(arg_node))
 
         if isinstance(node.fn, IrVar):
             name = node.fn.name
