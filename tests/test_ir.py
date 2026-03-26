@@ -1,6 +1,8 @@
 from genia.interpreter import (
+    IrCall,
     IrCase,
     IrFuncDef,
+    IrSpread,
     IrListTraversalLoop,
     IrPatBind,
     IrPatList,
@@ -79,3 +81,12 @@ def test_non_matching_recursion_is_not_rewritten():
     fn = ir_nodes[0]
     assert isinstance(fn, IrFuncDef)
     assert isinstance(fn.body, IrCase)
+
+
+def test_call_spread_lowers_to_ir_spread_arg():
+    ast_nodes = Parser(lex("f(..[1, 2])")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt.expr, IrCall)
+    assert isinstance(expr_stmt.expr.args[0], IrSpread)
