@@ -83,10 +83,45 @@ TOKEN_SPEC = [
     ("COMMENT", r"#[^\n]*"),
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
-    ("IDENT", r"[A-Za-z_][A-Za-z0-9_]*\??"),
-    ("MISMATCH", r"."),
 ]
-TOKEN_RE = re.compile("|".join(f"(?P<{n}>{p})" for n, p in TOKEN_SPEC))
+NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
+STRING_RE = re.compile(r'"([^"\\]|\\.)*"|\'([^\'\\]|\\.)*\'')
+PUNCTUATION_TOKENS = [
+    ("ARROW", "->"),
+    ("EQEQ", "=="),
+    ("NE", "!="),
+    ("LE", "<="),
+    ("GE", ">="),
+    ("AND", "&&"),
+    ("OR", "||"),
+    ("DOTDOT", ".."),
+    ("ASSIGN", "="),
+    ("LT", "<"),
+    ("GT", ">"),
+    ("PLUS", "+"),
+    ("MINUS", "-"),
+    ("STAR", "*"),
+    ("SLASH", "/"),
+    ("PERCENT", "%"),
+    ("BANG", "!"),
+    ("QMARK", "?"),
+    ("PIPE", "|"),
+    ("LPAREN", "("),
+    ("RPAREN", ")"),
+    ("LBRACE", "{"),
+    ("RBRACE", "}"),
+    ("LBRACK", "["),
+    ("RBRACK", "]"),
+    ("COMMA", ","),
+    ("SEMI", ";"),
+]
+TOKEN_BOUNDARIES = [text for _, text in PUNCTUATION_TOKENS] + ["#"]
+IDENT_TOKEN_BOUNDARIES = [boundary for boundary in TOKEN_BOUNDARIES if boundary != "?"]
+
+
+def _starts_token_boundary(source: str, pos: int, *, for_identifier: bool = False) -> bool:
+    boundaries = IDENT_TOKEN_BOUNDARIES if for_identifier else TOKEN_BOUNDARIES
+    return any(source.startswith(boundary, pos) for boundary in boundaries)
 
 
 @dataclass
@@ -98,14 +133,58 @@ class Token:
 
 def lex(source: str) -> list[Token]:
     tokens: list[Token] = []
-    for m in TOKEN_RE.finditer(source):
-        kind = m.lastgroup
-        text = m.group()
-        if kind in {"SKIP", "COMMENT"}:
+    pos = 0
+    length = len(source)
+
+    while pos < length:
+        ch = source[pos]
+
+        if ch in " \t\r":
+            pos += 1
             continue
-        if kind == "MISMATCH":
-            raise SyntaxError(f"Unexpected character {text!r} at {m.start()}")
-        tokens.append(Token(kind, text, m.start()))
+        if ch == "\n":
+            tokens.append(Token("NEWLINE", ch, pos))
+            pos += 1
+            continue
+        if ch == "#":
+            while pos < length and source[pos] != "\n":
+                pos += 1
+            continue
+
+        number_match = NUMBER_RE.match(source, pos)
+        if number_match is not None:
+            text = number_match.group()
+            tokens.append(Token("NUMBER", text, pos))
+            pos += len(text)
+            continue
+
+        if ch in "\"'":
+            string_match = STRING_RE.match(source, pos)
+            if string_match is None:
+                raise SyntaxError(f"Unexpected character {ch!r} at {pos}")
+            text = string_match.group()
+            tokens.append(Token("STRING", text, pos))
+            pos += len(text)
+            continue
+
+        matched_punctuation = False
+        for kind, text in PUNCTUATION_TOKENS:
+            if source.startswith(text, pos):
+                tokens.append(Token(kind, text, pos))
+                pos += len(text)
+                matched_punctuation = True
+                break
+        if matched_punctuation:
+            continue
+
+        ident_start = pos
+        while pos < length and not source[pos].isspace() and not _starts_token_boundary(source, pos, for_identifier=True):
+            pos += 1
+        if pos > ident_start:
+            tokens.append(Token("IDENT", source[ident_start:pos], ident_start))
+            continue
+        raise SyntaxError(f"Unexpected character {source[pos]!r} at {pos}")
+
     tokens.append(Token("EOF", "", len(source)))
     return tokens
 
