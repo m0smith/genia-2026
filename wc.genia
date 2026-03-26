@@ -1,4 +1,2 @@
 
-
-
-print(count(stdin()))
+count(stdin())
