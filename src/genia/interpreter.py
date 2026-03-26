@@ -38,6 +38,7 @@ import math
 import os
 import bisect
 from pathlib import Path
+import argparse
 import re
 import sys
 import threading
@@ -1521,9 +1522,13 @@ class Evaluator:
                 callee = node.fn.name if isinstance(node.fn, IrVar) else "function"
                 available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
-            return TailCall(target, tuple(args)) if tail_position else target(*args)
+            if tail_position and not self.debug_mode:
+                return TailCall(target, tuple(args))
+            return target(*args)
 
-        return TailCall(fn, tuple(args)) if tail_position else fn(*args)
+        if tail_position and not self.debug_mode:
+            return TailCall(fn, tuple(args))
+        return fn(*args)
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         # full parameter tuple matching
@@ -1734,17 +1739,26 @@ def make_global_env(
     stdin_provider: Optional[Callable[[], list[str]]] = None,
     debug_hooks: DebugHooks | None = None,
     debug_mode: bool = False,
+    output_handler: Optional[Callable[[str], None]] = None,
 ) -> Env:
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
     env.debug_mode = debug_mode
 
     def log(*args: Any) -> Any:
-        print(*args)
+        output = " ".join(str(arg) for arg in args) + "\n"
+        if output_handler is None:
+            print(*args)
+        else:
+            output_handler(output)
         return args[-1] if args else None
 
     def print_fn(*args: Any) -> Any:
-        print(*args)
+        output = " ".join(str(arg) for arg in args) + "\n"
+        if output_handler is None:
+            print(*args)
+        else:
+            output_handler(output)
         return args[-1] if args else None
 
     def input_fn(prompt: str = "") -> str:
@@ -1954,12 +1968,47 @@ def repl() -> None:
             print(f"Error: {e}", file=sys.stderr)
 
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
+def run_debug_stdio(
+    program_path: str,
+    *,
+    command_stream: Any = None,
+    event_stream: Any = None,
+    error_stream: Any = None,
+) -> int:
+    from .debug_controller import StdioDebugSession
+
+    command_stream = command_stream or sys.stdin
+    event_stream = event_stream or sys.stdout
+    error_stream = error_stream or sys.stderr
+    resolved_path = str(Path(program_path).resolve())
+    source = Path(program_path).read_text(encoding="utf-8")
+    session = StdioDebugSession(command_stream, event_stream, filename=resolved_path)
+    env = make_global_env(debug_hooks=session, debug_mode=True, output_handler=session.emit_stdout_output)
+    session.ensure_root_frame(env)
+    return session.run(lambda: run_source(source, env, filename=resolved_path, debug_hooks=session, debug_mode=True), error_stream=error_stream)
+
+
+def _main(argv: Optional[list[str]] = None) -> int:
+    parser = argparse.ArgumentParser(prog="genia.interpreter")
+    parser.add_argument("program", nargs="?")
+    parser.add_argument("--debug-stdio", action="store_true")
+    args = parser.parse_args(argv)
+
+    if args.debug_stdio:
+        if args.program is None:
+            parser.error("--debug-stdio requires a program path")
+        return run_debug_stdio(args.program)
+    if args.program is not None:
         env = make_global_env()
-        with open(sys.argv[1], "r", encoding="utf-8") as f:
-            result = run_source(f.read(), env, filename=str(Path(sys.argv[1]).resolve()))
+        with open(args.program, "r", encoding="utf-8") as f:
+            result = run_source(f.read(), env, filename=str(Path(args.program).resolve()))
         if result is not None:
             print(repr(result))
-    else:
-        repl()
+        return 0
+
+    repl()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_main())
