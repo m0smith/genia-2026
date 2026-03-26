@@ -1595,6 +1595,10 @@ Commands:
     env.register_autoload("take", 2, "std/prelude/list.genia")
     env.register_autoload("drop", 2, "std/prelude/list.genia")
     env.register_autoload("sum", 1, "std/prelude/math.genia")
+    env.register_autoload("awkify", 2, "std/prelude/awk.genia")
+    env.register_autoload("awk_filter", 2, "std/prelude/awk.genia")
+    env.register_autoload("awk_map", 2, "std/prelude/awk.genia")
+    env.register_autoload("awk_count", 2, "std/prelude/awk.genia")
     return env
 
 
