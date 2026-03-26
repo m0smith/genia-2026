@@ -38,6 +38,7 @@ import math
 from pathlib import Path
 import re
 import sys
+import threading
 from dataclasses import dataclass
 from typing import Any, Iterable, Optional
 
@@ -644,6 +645,43 @@ class TailCall:
     args: tuple[Any, ...]
 
 
+_UNSET = object()
+
+
+class GeniaRef:
+    def __init__(self, initial: Any = _UNSET):
+        self._condition = threading.Condition()
+        self._value = initial
+        self._is_set = initial is not _UNSET
+
+    def get(self) -> Any:
+        with self._condition:
+            while not self._is_set:
+                self._condition.wait()
+            return self._value
+
+    def set(self, value: Any) -> Any:
+        with self._condition:
+            self._value = value
+            self._is_set = True
+            self._condition.notify_all()
+            return value
+
+    def update(self, fn: Any) -> Any:
+        with self._condition:
+            while not self._is_set:
+                self._condition.wait()
+            self._value = fn(self._value)
+            self._condition.notify_all()
+            return self._value
+
+    def __repr__(self) -> str:
+        with self._condition:
+            if self._is_set:
+                return f"<ref {self._value!r}>"
+            return "<ref <unset>>"
+
+
 def eval_with_tco(fn: Any, args: tuple[Any, ...]) -> Any:
     current_fn = fn
     current_args = args
@@ -1013,6 +1051,31 @@ Commands:
   :help   show this help
 """.strip()
         )
+
+    def ref_fn(*args: Any) -> GeniaRef:
+        if len(args) == 0:
+            return GeniaRef()
+        if len(args) == 1:
+            return GeniaRef(args[0])
+        raise TypeError(f"ref expected 0 or 1 args, got {len(args)}")
+
+    def ref_get_fn(ref_value: Any) -> Any:
+        if not isinstance(ref_value, GeniaRef):
+            raise TypeError("ref_get expected a ref")
+        return ref_value.get()
+
+    def ref_set_fn(ref_value: Any, value: Any) -> Any:
+        if not isinstance(ref_value, GeniaRef):
+            raise TypeError("ref_set expected a ref as first argument")
+        return ref_value.set(value)
+
+    def ref_update_fn(ref_value: Any, updater: Any) -> Any:
+        if not isinstance(ref_value, GeniaRef):
+            raise TypeError("ref_update expected a ref as first argument")
+        if not callable(updater):
+            raise TypeError("ref_update expected a function as second argument")
+        return ref_value.update(updater)
+
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -1023,6 +1086,10 @@ Commands:
     env.set("true", True)
     env.set("false", False)
     env.set("nil", None)
+    env.set("ref", ref_fn)
+    env.set("ref_get", ref_get_fn)
+    env.set("ref_set", ref_set_fn)
+    env.set("ref_update", ref_update_fn)
 
     env.register_autoload("reduce", 3, "std/prelude/list.genia")
     env.register_autoload("count", 1, "std/prelude/list.genia")
