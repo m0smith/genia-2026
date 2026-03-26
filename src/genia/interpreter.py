@@ -50,6 +50,16 @@ BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else P
 # Lexer
 # -----------------------------
 
+# Single source of truth for symbol/operator policy:
+# - These characters are always token delimiters/operators in Genia.
+# - Clojure-style symbol punctuation that we allow in names is listed below.
+# - `name?` and `name!` are ordinary identifiers (no special lexer semantics).
+# - `/` is reserved for division and is not allowed inside identifier names.
+ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "-", "*", "/", "%", "=", "<", ">", "|", ",", ";", "(", ")", "{", "}", "[", "]"})
+ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", ":", "$"})
+IDENT_START_RE = re.compile(r"[A-Za-z_]")
+IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
+
 TOKEN_SPEC = [
     ("NUMBER", r"\d+(?:\.\d+)?"),
     ("STRING", r'"([^"\\]|\\.)*"|\'([^\'\\]|\\.)*\''),
@@ -115,13 +125,16 @@ PUNCTUATION_TOKENS = [
     ("COMMA", ","),
     ("SEMI", ";"),
 ]
-TOKEN_BOUNDARIES = [text for _, text in PUNCTUATION_TOKENS] + ["#"]
-IDENT_TOKEN_BOUNDARIES = [boundary for boundary in TOKEN_BOUNDARIES if boundary != "?"]
+def _is_identifier_start(ch: str) -> bool:
+    return bool(IDENT_START_RE.fullmatch(ch))
 
 
-def _starts_token_boundary(source: str, pos: int, *, for_identifier: bool = False) -> bool:
-    boundaries = IDENT_TOKEN_BOUNDARIES if for_identifier else TOKEN_BOUNDARIES
-    return any(source.startswith(boundary, pos) for boundary in boundaries)
+def _is_identifier_part(ch: str) -> bool:
+    if IDENT_BODY_RE.fullmatch(ch):
+        return True
+    if ch in ALWAYS_OPERATOR_DELIMITERS:
+        return False
+    return ch in ALLOWED_SYMBOL_PUNCTUATION
 
 
 @dataclass
@@ -167,6 +180,14 @@ def lex(source: str) -> list[Token]:
             pos += len(text)
             continue
 
+        if _is_identifier_start(ch):
+            ident_start = pos
+            pos += 1
+            while pos < length and _is_identifier_part(source[pos]):
+                pos += 1
+            tokens.append(Token("IDENT", source[ident_start:pos], ident_start))
+            continue
+
         matched_punctuation = False
         for kind, text in PUNCTUATION_TOKENS:
             if source.startswith(text, pos):
@@ -175,13 +196,6 @@ def lex(source: str) -> list[Token]:
                 matched_punctuation = True
                 break
         if matched_punctuation:
-            continue
-
-        ident_start = pos
-        while pos < length and not source[pos].isspace() and not _starts_token_boundary(source, pos, for_identifier=True):
-            pos += 1
-        if pos > ident_start:
-            tokens.append(Token("IDENT", source[ident_start:pos], ident_start))
             continue
         raise SyntaxError(f"Unexpected character {source[pos]!r} at {pos}")
 
