@@ -72,18 +72,21 @@ setAt(board, index, value) =
   ([a, b, c, d, e, f, g, _, i], '7', value) -> [a, b, c, d, e, f, g, value, i] |
   ([a, b, c, d, e, f, g, h, _], '8', value) -> [a, b, c, d, e, f, g, h, value]
 
+parseMove(s) =
+  "0" -> 0 |
+  "1" -> 1 |
+  "2" -> 2 |
+  "3" -> 3 |
+  "4" -> 4 |
+  "5" -> 5 |
+  "6" -> 6 |
+  "7" -> 7 |
+  "8" -> 8 |
+  _   -> nil
+
 # A move is legal only if the chosen square is currently empty.
-isLegalMove(board, index) =
-  (["_", .._], '0') -> true |
-  ([_,   "_", .._], '1') -> true |
-  ([_,   _,   "_", .._], '2') -> true |
-  ([_,   _,   _,   "_", .._], '3') -> true |
-  ([_,   _,   _,   _,   "_", .._], '4') -> true |
-  ([_,   _,   _,   _,   _,   "_", .._], '5') -> true |
-  ([_,   _,   _,   _,   _,   _,   "_", _,   _], '6') -> true |
-  ([_,   _,   _,   _,   _,   _,   _,   "_", _], '7') -> true |
-  ([_,   _,   _,   _,   _,   _,   _,   _,   "_"], '8') -> true |
-  _ -> false
+isLegalMove(board, move) = nth(parseMove(move), board) == "_"
+
 
 readMove(player) {
   input("Player " + player + ", enter a move from 0 to 8:")
