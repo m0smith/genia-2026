@@ -40,7 +40,7 @@ import re
 import sys
 import threading
 from dataclasses import dataclass
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
 
@@ -1204,7 +1204,10 @@ def truthy(value: Any) -> bool:
 # Builtins / REPL
 # -----------------------------
 
-def make_global_env(stdin_data: Optional[list[str]] = None) -> Env:
+def make_global_env(
+    stdin_data: Optional[list[str]] = None,
+    stdin_provider: Optional[Callable[[], list[str]]] = None,
+) -> Env:
     env = Env()
 
     def log(*args: Any) -> Any:
@@ -1217,6 +1220,19 @@ def make_global_env(stdin_data: Optional[list[str]] = None) -> Env:
 
     def input_fn(prompt: str = "") -> str:
         return input(prompt)
+
+    stdin_cache: Optional[list[str]] = None
+
+    def stdin_fn() -> list[str]:
+        nonlocal stdin_cache
+        if stdin_cache is None:
+            if stdin_provider is not None:
+                stdin_cache = stdin_provider()
+            elif stdin_data is not None:
+                stdin_cache = stdin_data
+            else:
+                stdin_cache = sys.stdin.read().splitlines()
+        return stdin_cache
 
     def help_fn() -> None:
         print(
@@ -1245,7 +1261,7 @@ Examples:
     (x, 0) -> x |
     (x, y) -> x + y
 
-  print(stdin)
+  print(stdin())
   count([1, 2, 3])
   print([1, 2, 3])
 
@@ -1291,7 +1307,7 @@ Commands:
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
-    env.set("stdin", [] if stdin_data is None else stdin_data)
+    env.set("stdin", stdin_fn)
     env.set("help", help_fn)
     env.set("pi", math.pi)
     env.set("e", math.e)
@@ -1396,8 +1412,7 @@ def repl() -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-        stdin_data = sys.stdin.read().splitlines()
-        env = make_global_env(stdin_data)
+        env = make_global_env()
         with open(sys.argv[1], "r", encoding="utf-8") as f:
             result = run_source(f.read(), env)
         if result is not None:
