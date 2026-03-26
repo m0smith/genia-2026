@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import math
 import os
+import bisect
 from pathlib import Path
 import re
 import sys
@@ -144,6 +145,15 @@ class Token:
     pos: int
 
 
+@dataclass(frozen=True)
+class SourceSpan:
+    filename: str
+    line: int
+    column: int
+    end_line: int
+    end_column: int
+
+
 def lex(source: str) -> list[Token]:
     tokens: list[Token] = []
     pos = 0
@@ -214,32 +224,37 @@ class Node:
 @dataclass
 class Number(Node):
     value: int | float
+    span: SourceSpan | None = None
 
 
 @dataclass
 class String(Node):
     value: str
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Boolean(Node):
     value: bool
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Nil(Node):
-    pass
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Var(Node):
     name: str
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Unary(Node):
     op: str
     expr: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -247,52 +262,61 @@ class Binary(Node):
     left: Node
     op: str
     right: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Call(Node):
     fn: Node
     args: list[Node]
+    span: SourceSpan | None = None
 
 
 @dataclass
 class ExprStmt(Node):
     expr: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Block(Node):
     exprs: list[Node]
+    span: SourceSpan | None = None
 
 
 @dataclass
 class ListLiteral(Node):
     items: list[Node]
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Spread(Node):
     expr: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
 class ListPattern(Node):
     items: list[Node]
+    span: SourceSpan | None = None
 
 
 @dataclass
 class WildcardPattern(Node):
-    pass
+    span: SourceSpan | None = None
 
 
 @dataclass
 class RestPattern(Node):
     name: str | None
+    span: SourceSpan | None = None
 
 
 @dataclass
 class TuplePattern(Node):
     items: list[Node]
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -300,23 +324,27 @@ class CaseClause(Node):
     pattern: Node
     guard: Optional[Node]
     result: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
 class CaseExpr(Node):
     clauses: list[CaseClause]
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Lambda(Node):
     params: list[str]
     body: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
 class Assign(Node):
     name: str
     expr: Node
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -324,6 +352,7 @@ class FuncDef(Node):
     name: str
     params: list[str]
     body: Node
+    span: SourceSpan | None = None
 
 
 # -----------------------------
@@ -339,6 +368,7 @@ class IrLiteral(IrNode):
     """Normalized constant value (number/string/bool/nil)."""
 
     value: Any
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -346,6 +376,7 @@ class IrVar(IrNode):
     """Variable read by name (kept explicit for analysis and rewriting)."""
 
     name: str
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -354,6 +385,7 @@ class IrUnary(IrNode):
 
     op: str
     expr: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -363,6 +395,7 @@ class IrBinary(IrNode):
     left: IrNode
     op: str
     right: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -371,6 +404,7 @@ class IrCall(IrNode):
 
     fn: IrNode
     args: list[IrNode]
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -378,6 +412,7 @@ class IrExprStmt(IrNode):
     """Top-level expression statement (keeps source ordering explicit)."""
 
     expr: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -385,6 +420,7 @@ class IrBlock(IrNode):
     """Sequential expression block."""
 
     exprs: list[IrNode]
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -392,6 +428,7 @@ class IrList(IrNode):
     """List literal with lowered items."""
 
     items: list[IrNode]
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -399,6 +436,7 @@ class IrSpread(IrNode):
     """List spread element in expression contexts (list literals and call args)."""
 
     expr: IrNode
+    span: SourceSpan | None = None
 
 
 class IrPattern:
@@ -454,6 +492,7 @@ class IrCaseClause(IrNode):
     pattern: IrPattern
     guard: Optional[IrNode]
     result: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -461,6 +500,7 @@ class IrCase(IrNode):
     """Case dispatch is explicit so optimization passes can inspect patterns."""
 
     clauses: list[IrCaseClause]
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -469,6 +509,7 @@ class IrLambda(IrNode):
 
     params: list[str]
     body: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -477,6 +518,7 @@ class IrAssign(IrNode):
 
     name: str
     expr: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -486,6 +528,7 @@ class IrFuncDef(IrNode):
     name: str
     params: list[str]
     body: IrNode
+    span: SourceSpan | None = None
 
 
 @dataclass
@@ -497,6 +540,7 @@ class IrListTraversalLoop(IrNode):
     step_size: int
     empty_clause: IrCaseClause
     zero_clause: IrCaseClause
+    span: SourceSpan | None = None
 
 
 def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
@@ -505,29 +549,29 @@ def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
 
 def lower_node(node: Node) -> IrNode:
     if isinstance(node, ExprStmt):
-        return IrExprStmt(lower_node(node.expr))
+        return IrExprStmt(lower_node(node.expr), span=node.span)
     if isinstance(node, Number):
-        return IrLiteral(node.value)
+        return IrLiteral(node.value, span=node.span)
     if isinstance(node, String):
-        return IrLiteral(node.value)
+        return IrLiteral(node.value, span=node.span)
     if isinstance(node, Boolean):
-        return IrLiteral(node.value)
+        return IrLiteral(node.value, span=node.span)
     if isinstance(node, Nil):
-        return IrLiteral(None)
+        return IrLiteral(None, span=node.span)
     if isinstance(node, Var):
-        return IrVar(node.name)
+        return IrVar(node.name, span=node.span)
     if isinstance(node, Unary):
-        return IrUnary(node.op, lower_node(node.expr))
+        return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
-        return IrBinary(lower_node(node.left), node.op, lower_node(node.right))
+        return IrBinary(lower_node(node.left), node.op, lower_node(node.right), span=node.span)
     if isinstance(node, Call):
-        return IrCall(lower_node(node.fn), [lower_node(arg) for arg in node.args])
+        return IrCall(lower_node(node.fn), [lower_node(arg) for arg in node.args], span=node.span)
     if isinstance(node, Block):
-        return IrBlock([lower_node(expr) for expr in node.exprs])
+        return IrBlock([lower_node(expr) for expr in node.exprs], span=node.span)
     if isinstance(node, ListLiteral):
-        return IrList([lower_node(item) for item in node.items])
+        return IrList([lower_node(item) for item in node.items], span=node.span)
     if isinstance(node, Spread):
-        return IrSpread(lower_node(node.expr))
+        return IrSpread(lower_node(node.expr), span=node.span)
     if isinstance(node, CaseExpr):
         return IrCase(
             [
@@ -535,16 +579,18 @@ def lower_node(node: Node) -> IrNode:
                     lower_pattern(clause.pattern),
                     lower_node(clause.guard) if clause.guard is not None else None,
                     lower_node(clause.result),
+                    span=clause.span,
                 )
                 for clause in node.clauses
-            ]
+            ],
+            span=node.span,
         )
     if isinstance(node, Lambda):
-        return IrLambda(node.params, lower_node(node.body))
+        return IrLambda(node.params, lower_node(node.body), span=node.span)
     if isinstance(node, Assign):
-        return IrAssign(node.name, lower_node(node.expr))
+        return IrAssign(node.name, lower_node(node.expr), span=node.span)
     if isinstance(node, FuncDef):
-        return IrFuncDef(node.name, node.params, lower_node(node.body))
+        return IrFuncDef(node.name, node.params, lower_node(node.body), span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -672,7 +718,9 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
             step_size=1,
             empty_clause=empty_clause,
             zero_clause=zero_clause,
+            span=fn.span,
         ),
+        span=fn.span,
     )
 
 
@@ -736,9 +784,33 @@ RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil"})
 
 
 class Parser:
-    def __init__(self, tokens: list[Token]):
+    def __init__(self, tokens: list[Token], source: str = "", filename: str = "<memory>"):
         self.tokens = tokens
+        self.source = source
+        self.filename = filename
         self.i = 0
+        self._line_starts = [0]
+        for idx, ch in enumerate(source):
+            if ch == "\n":
+                self._line_starts.append(idx + 1)
+
+    def _line_col(self, pos: int) -> tuple[int, int]:
+        line_idx = bisect.bisect_right(self._line_starts, pos) - 1
+        line_start = self._line_starts[line_idx]
+        return line_idx + 1, pos - line_start + 1
+
+    def span_for_tokens(self, start_tok: Token, end_tok: Token) -> SourceSpan:
+        end_pos = end_tok.pos + max(len(end_tok.text) - 1, 0)
+        line, col = self._line_col(start_tok.pos)
+        end_line, end_col = self._line_col(end_pos)
+        return SourceSpan(self.filename, line, col, end_line, end_col)
+
+    def merge_spans(self, start: SourceSpan | None, end: SourceSpan | None) -> SourceSpan | None:
+        if start is None:
+            return end
+        if end is None:
+            return start
+        return SourceSpan(start.filename, start.line, start.column, end.end_line, end.end_column)
 
     def peek(self, offset: int = 0) -> Token:
         return self.tokens[self.i + offset]
@@ -820,13 +892,14 @@ class Parser:
             self.skip_separators()
         return out
 
-    def try_parse_function_header(self) -> tuple[str, list[str]] | None:
+    def try_parse_function_header(self) -> tuple[str, list[str], Token] | None:
         if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
             return None
 
         save = self.i
         try:
-            name = self.eat("IDENT").text
+            name_token = self.eat("IDENT")
+            name = name_token.text
             self.eat("LPAREN")
             params: list[str] = []
             if not self.at("RPAREN"):
@@ -841,7 +914,7 @@ class Parser:
             self.eat("RPAREN")
 
             if self.at("ASSIGN", "LBRACE"):
-                return name, params
+                return name, params, name_token
 
             self.i = save
             return None
@@ -854,29 +927,30 @@ class Parser:
     def parse_toplevel(self) -> Node:
         header = self.try_parse_function_header()
         if header is not None:
-            name, params = header
+            name, params, name_tok = header
 
             if self.at("ASSIGN"):
                 self.eat("ASSIGN")
                 self.skip_separators()
                 body = self.parse_function_body_after_intro()
-                return FuncDef(name, params, body)
+                return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
 
             if self.at("LBRACE"):
                 body = self.parse_block(allow_final_case=True)
-                return FuncDef(name, params, body)
+                return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
 
             raise SyntaxError("Internal parser error: expected function body")
 
         if self.at("IDENT") and self.peek(1).kind == "ASSIGN":
-            name = self.eat("IDENT").text
+            name_tok = self.eat("IDENT")
+            name = name_tok.text
             self.eat("ASSIGN")
             self.skip_separators()
             expr = self.parse_expr()
-            return Assign(name, expr)
+            return Assign(name, expr, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), expr.span))
 
         expr = self.parse_expr()
-        return ExprStmt(expr)
+        return ExprStmt(expr, span=expr.span)
 
     def parse_function_body_after_intro(self) -> Node:
         if self.looks_like_case_start():
@@ -884,7 +958,7 @@ class Parser:
         return self.parse_expr()
 
     def parse_block(self, allow_final_case: bool) -> Block:
-        self.eat("LBRACE")
+        start = self.eat("LBRACE")
         exprs: list[Node] = []
         self.skip_separators()
         while not self.at("RBRACE"):
@@ -897,8 +971,8 @@ class Parser:
                 break
             exprs.append(self.parse_expr())
             self.skip_separators()
-        self.eat("RBRACE")
-        return Block(exprs)
+        end = self.eat("RBRACE")
+        return Block(exprs, span=self.span_for_tokens(start, end))
 
     def looks_like_case_start(self) -> bool:
         # single param shorthand cases: 0 ->, name ->, [x, y] ->, name ? ... ->
@@ -936,7 +1010,7 @@ class Parser:
         while self.maybe("PIPE"):
             self.skip_separators()
             clauses.append(self.parse_case_clause(single_param_shorthand_ok))
-        return CaseExpr(clauses)
+        return CaseExpr(clauses, span=self.merge_spans(clauses[0].span, clauses[-1].span))
 
     def parse_case_clause(self, single_param_shorthand_ok: bool) -> CaseClause:
         pattern = self.parse_pattern(single_param_shorthand_ok)
@@ -945,53 +1019,53 @@ class Parser:
             guard = self.parse_expr()
         self.eat("ARROW")
         result = self.parse_expr()
-        return CaseClause(pattern, guard, result)
+        return CaseClause(pattern, guard, result, span=self.merge_spans(pattern.span, result.span))
 
     def parse_pattern(self, single_param_shorthand_ok: bool) -> Node:
         if self.at("LPAREN"):
-            self.eat("LPAREN")
+            start = self.eat("LPAREN")
             items: list[Node] = []
             if not self.at("RPAREN"):
                 while True:
                     items.append(self.parse_pattern_atom())
                     if not self.maybe("COMMA"):
                         break
-            self.eat("RPAREN")
-            return TuplePattern(items)
+            end = self.eat("RPAREN")
+            return TuplePattern(items, span=self.span_for_tokens(start, end))
         atom = self.parse_pattern_atom()
         if single_param_shorthand_ok:
             return atom
-        return TuplePattern([atom])
+        return TuplePattern([atom], span=atom.span)
 
     def parse_pattern_atom(self) -> Node:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text))
+            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
-            return String(eval(tok.text))
+            return String(eval(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "DOTDOT":
             self.i += 1
             if self.at("IDENT"):
                 name = self.eat("IDENT").text
                 if name == "_":
-                    return RestPattern(None)
-                return RestPattern(name)
-            return RestPattern(None)
+                    return RestPattern(None, span=self.span_for_tokens(tok, tok))
+                return RestPattern(name, span=self.span_for_tokens(tok, tok))
+            return RestPattern(None, span=self.span_for_tokens(tok, tok))
         if tok.kind == "IDENT":
             self.i += 1
             if tok.text == "true":
-                return Boolean(True)
+                return Boolean(True, span=self.span_for_tokens(tok, tok))
             if tok.text == "false":
-                return Boolean(False)
+                return Boolean(False, span=self.span_for_tokens(tok, tok))
             if tok.text == "nil":
-                return Nil()
+                return Nil(span=self.span_for_tokens(tok, tok))
             if tok.text == "_":
-                return WildcardPattern()
-            return Var(tok.text)
+                return WildcardPattern(span=self.span_for_tokens(tok, tok))
+            return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind == "LBRACK":
-            self.i += 1
+            start = self.eat("LBRACK")
             items: list[Node] = []
             saw_rest = False
             if not self.at("RBRACK"):
@@ -1004,8 +1078,8 @@ class Parser:
                         saw_rest = True
                     if not self.maybe("COMMA"):
                         break
-            self.eat("RBRACK")
-            return ListPattern(items)
+            end = self.eat("RBRACK")
+            return ListPattern(items, span=self.span_for_tokens(start, end))
         raise SyntaxError(f"Invalid pattern token {tok.text!r} ({tok.kind}) at {tok.pos}")
 
     def parse_expr(self, min_prec: int = 0) -> Node:
@@ -1021,31 +1095,33 @@ class Parser:
             op = tok.kind
             self.i += 1
             right = self.parse_expr(prec + 1)
-            left = Binary(left, op, right)
+            left = Binary(left, op, right, span=self.merge_spans(left.span, right.span))
         return left
 
     def parse_prefix(self) -> Node:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text))
+            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
-            return String(eval(tok.text))
+            return String(eval(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "IDENT":
             self.i += 1
             if tok.text == "true":
-                return Boolean(True)
+                return Boolean(True, span=self.span_for_tokens(tok, tok))
             if tok.text == "false":
-                return Boolean(False)
+                return Boolean(False, span=self.span_for_tokens(tok, tok))
             if tok.text == "nil":
-                return Nil()
-            return Var(tok.text)
+                return Nil(span=self.span_for_tokens(tok, tok))
+            return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind in ("MINUS", "BANG"):
             self.i += 1
-            return Unary(tok.kind, self.parse_expr(70))
+            expr = self.parse_expr(70)
+            return Unary(tok.kind, expr, span=self.merge_spans(self.span_for_tokens(tok, tok), expr.span))
         if tok.kind == "LPAREN":
             save = self.i
+            start = self.peek()
             try:
                 self.i += 1
                 params: list[str] = []
@@ -1062,7 +1138,7 @@ class Parser:
                 if self.at("ARROW"):
                     self.eat("ARROW")
                     body = self.parse_expr()
-                    return Lambda(params, body)
+                    return Lambda(params, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span))
                 self.i = save
             except SyntaxError:
                 self.i = save
@@ -1080,19 +1156,20 @@ class Parser:
         raise SyntaxError(f"Unexpected token {tok.text!r} ({tok.kind}) at {tok.pos}")
 
     def parse_list_literal(self) -> ListLiteral:
-        self.eat("LBRACK")
+        start = self.eat("LBRACK")
         items: list[Node] = []
         if not self.at("RBRACK"):
             while True:
                 if self.at("DOTDOT"):
-                    self.eat("DOTDOT")
-                    items.append(Spread(self.parse_expr()))
+                    dotdot = self.eat("DOTDOT")
+                    expr = self.parse_expr()
+                    items.append(Spread(expr, span=self.merge_spans(self.span_for_tokens(dotdot, dotdot), expr.span)))
                 else:
                     items.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
-        self.eat("RBRACK")
-        return ListLiteral(items)
+        end = self.eat("RBRACK")
+        return ListLiteral(items, span=self.span_for_tokens(start, end))
 
     def finish_call(self, fn: Node) -> Node:
         self.eat("LPAREN")
@@ -1100,19 +1177,49 @@ class Parser:
         if not self.at("RPAREN"):
             while True:
                 if self.at("DOTDOT"):
-                    self.eat("DOTDOT")
-                    args.append(Spread(self.parse_expr()))
+                    dotdot = self.eat("DOTDOT")
+                    expr = self.parse_expr()
+                    args.append(Spread(expr, span=self.merge_spans(self.span_for_tokens(dotdot, dotdot), expr.span)))
                 else:
                     args.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
-        self.eat("RPAREN")
-        return Call(fn, args)
+        end = self.eat("RPAREN")
+        return Call(fn, args, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
 
 
 # -----------------------------
 # Runtime
 # -----------------------------
+
+class DebugHooks:
+    def before_node(self, node: IrNode, env: "Env") -> None:  # noqa: ARG002
+        pass
+
+    def after_node(self, node: IrNode, env: "Env", result: Any) -> None:  # noqa: ARG002
+        pass
+
+    def on_function_enter(
+        self,
+        fn_name: str,
+        args: tuple[Any, ...],
+        env: "Env",
+        span: SourceSpan | None,
+    ) -> None:  # noqa: ARG002
+        pass
+
+    def on_function_exit(
+        self,
+        fn_name: str,
+        result: Any,
+        env: "Env",
+        span: SourceSpan | None,
+    ) -> None:  # noqa: ARG002
+        pass
+
+
+NOOP_DEBUG_HOOKS = DebugHooks()
+
 
 class Env:
     def __init__(self, parent: Optional["Env"] = None):
@@ -1121,6 +1228,8 @@ class Env:
         self.autoloads: dict[tuple[str, int], str] = {}
         self.loaded_files: set[str] = set()
         self.loading_files: set[str] = set()
+        self.debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS
+        self.debug_mode: bool = False
 
     def root(self) -> "Env":
         env = self
@@ -1171,7 +1280,7 @@ class Env:
         root.loading_files.add(key)
         try:
             source = full_path.read_text(encoding="utf-8")
-            run_source(source, root)
+            run_source(source, root, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
             root.loaded_files.add(key)
             return True
         finally:
@@ -1184,13 +1293,16 @@ class GeniaFunction:
     params: list[str]
     body: IrNode
     closure: Env
+    span: SourceSpan | None = None
+    debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS
+    debug_mode: bool = False
 
     @property
     def arity(self) -> int:
         return len(self.params)
 
     def __call__(self, *args: Any) -> Any:
-        return eval_with_tco(self, args)
+        return eval_with_tco(self, args, debug_hooks=self.debug_hooks, debug_mode=self.debug_mode)
 
     def __repr__(self) -> str:
         return f"<function {self.name}/{self.arity}>"
@@ -1239,7 +1351,12 @@ class GeniaRef:
             return "<ref <unset>>"
 
 
-def eval_with_tco(fn: Any, args: tuple[Any, ...]) -> Any:
+def eval_with_tco(
+    fn: Any,
+    args: tuple[Any, ...],
+    debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+    debug_mode: bool = False,
+) -> Any:
     current_fn = fn
     current_args = args
 
@@ -1250,12 +1367,16 @@ def eval_with_tco(fn: Any, args: tuple[Any, ...]) -> Any:
             frame = Env(current_fn.closure)
             for p, a in zip(current_fn.params, current_args):
                 frame.set(p, a)
-            result = Evaluator(frame).eval_function_body(
+            if debug_mode:
+                debug_hooks.on_function_enter(current_fn.name, current_args, frame, current_fn.span)
+            result = Evaluator(frame, debug_hooks=debug_hooks, debug_mode=debug_mode).eval_function_body(
                 current_fn.params,
                 current_args,
                 current_fn.body,
                 current_fn.name,
             )
+            if debug_mode:
+                debug_hooks.on_function_exit(current_fn.name, result, frame, current_fn.span)
         else:
             result = current_fn(*current_args)
 
@@ -1267,8 +1388,10 @@ def eval_with_tco(fn: Any, args: tuple[Any, ...]) -> Any:
 
 
 class Evaluator:
-    def __init__(self, env: Env):
+    def __init__(self, env: Env, debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS, debug_mode: bool = False):
         self.env = env
+        self.debug_hooks = debug_hooks
+        self.debug_mode = debug_mode
 
     def eval_program(self, nodes: Iterable[IrNode]) -> Any:
         result = None
@@ -1313,7 +1436,7 @@ class Evaluator:
                 local = Env(self.env)
                 for k, v in match_env.items():
                     local.set(k, v)
-                return Evaluator(local).eval_tail(body.empty_clause.result)
+                return Evaluator(local, self.debug_hooks, self.debug_mode).eval_tail(body.empty_clause.result)
 
             if n_value == 0:
                 match_env = self.match_pattern(body.zero_clause.pattern, current_args)
@@ -1322,7 +1445,7 @@ class Evaluator:
                 local = Env(self.env)
                 for k, v in match_env.items():
                     local.set(k, v)
-                return Evaluator(local).eval_tail(body.zero_clause.result)
+                return Evaluator(local, self.debug_hooks, self.debug_mode).eval_tail(body.zero_clause.result)
 
             if not isinstance(n_value, (int, float)):
                 return None
@@ -1339,9 +1462,9 @@ class Evaluator:
             local = Env(self.env)
             for k, v in match_env.items():
                 local.set(k, v)
-            if clause.guard is not None and not Evaluator(local).eval(clause.guard):
+            if clause.guard is not None and not Evaluator(local, self.debug_hooks, self.debug_mode).eval(clause.guard):
                 continue
-            return Evaluator(local).eval_tail(clause.result)
+            return Evaluator(local, self.debug_hooks, self.debug_mode).eval_tail(clause.result)
         if fn_name is not None:
             raise RuntimeError(
                 f"No matching case for function {fn_name}/{len(args)} with arguments {args!r}"
@@ -1353,7 +1476,7 @@ class Evaluator:
             return self.eval_call(node, tail_position=True)
         if isinstance(node, IrBlock):
             local = Env(self.env)
-            ev = Evaluator(local)
+            ev = Evaluator(local, self.debug_hooks, self.debug_mode)
             for expr in node.exprs[:-1]:
                 ev.eval(expr)
             if not node.exprs:
@@ -1482,6 +1605,14 @@ class Evaluator:
         raise RuntimeError(f"Unsupported pattern: {pattern!r}")
 
     def eval(self, node: IrNode) -> Any:
+        if self.debug_mode:
+            self.debug_hooks.before_node(node, self.env)
+        result = self._eval_impl(node)
+        if self.debug_mode:
+            self.debug_hooks.after_node(node, self.env, result)
+        return result
+
+    def _eval_impl(self, node: IrNode) -> Any:
         if isinstance(node, IrExprStmt):
             return self.eval(node.expr)
         if isinstance(node, IrLiteral):
@@ -1514,7 +1645,7 @@ class Evaluator:
         if isinstance(node, IrBlock):
             local = Env(self.env)
             result = None
-            ev = Evaluator(local)
+            ev = Evaluator(local, self.debug_hooks, self.debug_mode)
             for expr in node.exprs:
                 result = ev.eval(expr)
             return result
@@ -1529,7 +1660,7 @@ class Evaluator:
                 frame = Env(closure)
                 for p, a in zip(params, args):
                     frame.set(p, a)
-                return Evaluator(frame).eval(body)
+                return Evaluator(frame, self.debug_hooks, self.debug_mode).eval(body)
 
             return fn
 
@@ -1539,7 +1670,15 @@ class Evaluator:
             return value
 
         if isinstance(node, IrFuncDef):
-            fn = GeniaFunction(node.name, node.params, node.body, self.env)
+            fn = GeniaFunction(
+                node.name,
+                node.params,
+                node.body,
+                self.env,
+                span=node.span,
+                debug_hooks=self.debug_hooks,
+                debug_mode=self.debug_mode,
+            )
             self.env.define_function(fn)
             return fn
         if isinstance(node, IrCase):
@@ -1593,8 +1732,12 @@ def truthy(value: Any) -> bool:
 def make_global_env(
     stdin_data: Optional[list[str]] = None,
     stdin_provider: Optional[Callable[[], list[str]]] = None,
+    debug_hooks: DebugHooks | None = None,
+    debug_mode: bool = False,
 ) -> Env:
     env = Env()
+    env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
+    env.debug_mode = debug_mode
 
     def log(*args: Any) -> Any:
         print(*args)
@@ -1756,13 +1899,24 @@ def is_complete(source: str) -> bool:
     return not (last.endswith("=") or last.endswith("|") or last.endswith("->") or last.endswith("?"))
 
 
-def run_source(source: str, env: Env) -> Any:
+def run_source(
+    source: str,
+    env: Env,
+    *,
+    filename: str = "<memory>",
+    debug_hooks: DebugHooks | None = None,
+    debug_mode: bool = False,
+) -> Any:
+    effective_hooks = debug_hooks or env.debug_hooks or NOOP_DEBUG_HOOKS
+    effective_debug_mode = debug_mode or env.debug_mode
     tokens = lex(source)
-    parser = Parser(tokens)
+    parser = Parser(tokens, source=source, filename=filename)
     ast_nodes = parser.parse_program()
     ir_nodes = lower_program(ast_nodes)
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
-    return Evaluator(env).eval_program(ir_nodes)
+    env.debug_hooks = effective_hooks
+    env.debug_mode = effective_debug_mode
+    return Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
 
 
 def repl() -> None:
@@ -1804,7 +1958,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         env = make_global_env()
         with open(sys.argv[1], "r", encoding="utf-8") as f:
-            result = run_source(f.read(), env)
+            result = run_source(f.read(), env, filename=str(Path(sys.argv[1]).resolve()))
         if result is not None:
             print(repr(result))
     else:
