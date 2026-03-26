@@ -1,0 +1,5 @@
+odd_rows(n, row) =
+  (n, row) ? n % 2 == 1 -> row |
+  (_, _) -> nil
+
+awkify(odd_rows, ["a", "b", "c", "d"])
