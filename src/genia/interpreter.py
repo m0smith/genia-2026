@@ -748,11 +748,11 @@ class Parser:
         while self.at("NEWLINE", "SEMI"):
             self.i += 1
 
-    def validate_parameter_name(self, tok: Token, *, context: str) -> str:
+    def validate_parameter_name(self, tok: Token, *, context: str, allow_wildcard: bool = False) -> str:
         name = tok.text
         if name in RESERVED_LITERAL_IDENTIFIERS:
             raise SyntaxError(f"{context} cannot use reserved literal {name!r} as a parameter at {tok.pos}")
-        if name == "_":
+        if name == "_" and not allow_wildcard:
             raise SyntaxError(f"{context} cannot use '_' as a parameter name at {tok.pos}")
         return name
 
@@ -1041,7 +1041,7 @@ class Parser:
                             bad = self.peek()
                             raise SyntaxError(f"Invalid lambda parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
                         param_tok = self.eat("IDENT")
-                        params.append(self.validate_parameter_name(param_tok, context="Lambda"))
+                        params.append(self.validate_parameter_name(param_tok, context="Lambda", allow_wildcard=True))
                         if not self.maybe("COMMA"):
                             break
                 self.eat("RPAREN")
