@@ -9,3 +9,8 @@ any?(predicate, xs) =
   (predicate, []) -> false |
   (predicate, [x, ..rest]) ? predicate(x) == true -> true |
   (predicate, [_, ..rest]) -> any?(predicate, rest)
+
+nth(n, xs) =
+  (_, []) -> nil |
+  (0, [x, .._]) -> x |
+  (n, [_, ..rest]) -> nth(n - 1, rest)
