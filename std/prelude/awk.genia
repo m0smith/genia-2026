@@ -1,3 +1,5 @@
+fields(row) = split_whitespace(row)
+
 awkify(fn, xs) = awkify_from(fn, xs, 1, [])
 
 awkify_from(fn, xs, n, acc) =

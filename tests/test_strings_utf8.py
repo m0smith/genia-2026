@@ -60,7 +60,7 @@ def test_fields_minimal_awkify_style_split_behavior():
 
 
 def test_fields_rejects_non_string_argument():
-    with pytest.raises(TypeError, match="fields expected a string"):
+    with pytest.raises(TypeError, match="expected a string"):
         _run("fields(123)")
 
 
