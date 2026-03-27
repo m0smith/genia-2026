@@ -402,6 +402,7 @@ class CaseExpr(Node):
 @dataclass
 class Lambda(Node):
     params: list[str]
+    rest_param: str | None
     body: Node
     span: SourceSpan | None = None
 
@@ -417,6 +418,7 @@ class Assign(Node):
 class FuncDef(Node):
     name: str
     params: list[str]
+    rest_param: str | None
     body: Node
     span: SourceSpan | None = None
 
@@ -574,6 +576,7 @@ class IrLambda(IrNode):
     """Lambda expression with params and lowered body."""
 
     params: list[str]
+    rest_param: str | None
     body: IrNode
     span: SourceSpan | None = None
 
@@ -593,6 +596,7 @@ class IrFuncDef(IrNode):
 
     name: str
     params: list[str]
+    rest_param: str | None
     body: IrNode
     span: SourceSpan | None = None
 
@@ -652,11 +656,11 @@ def lower_node(node: Node) -> IrNode:
             span=node.span,
         )
     if isinstance(node, Lambda):
-        return IrLambda(node.params, lower_node(node.body), span=node.span)
+        return IrLambda(node.params, node.rest_param, lower_node(node.body), span=node.span)
     if isinstance(node, Assign):
         return IrAssign(node.name, lower_node(node.expr), span=node.span)
     if isinstance(node, FuncDef):
-        return IrFuncDef(node.name, node.params, lower_node(node.body), span=node.span)
+        return IrFuncDef(node.name, node.params, node.rest_param, lower_node(node.body), span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -696,7 +700,7 @@ def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list
 
 
 def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
-    if len(fn.params) != 2 or not isinstance(fn.body, IrCase):
+    if fn.rest_param is not None or len(fn.params) != 2 or not isinstance(fn.body, IrCase):
         return fn
     case = fn.body
     if any(clause.guard is not None for clause in case.clauses):
@@ -778,6 +782,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
     return IrFuncDef(
         fn.name,
         fn.params,
+        fn.rest_param,
         IrListTraversalLoop(
             counter_var=fn.params[0],
             list_var=fn.params[1],
@@ -958,7 +963,33 @@ class Parser:
             self.skip_separators()
         return out
 
-    def try_parse_function_header(self) -> tuple[str, list[str], Token] | None:
+    def parse_parameter_list(self, *, context: str, allow_wildcard: bool = False) -> tuple[list[str], str | None]:
+        params: list[str] = []
+        rest_param: str | None = None
+        if self.at("RPAREN"):
+            return params, rest_param
+
+        while True:
+            if self.at("DOTDOT"):
+                dotdot = self.eat("DOTDOT")
+                if not self.at("IDENT"):
+                    bad = self.peek()
+                    raise SyntaxError(f"{context} rest parameter requires a name at {bad.pos}")
+                rest_tok = self.eat("IDENT")
+                rest_param = self.validate_parameter_name(rest_tok, context=context, allow_wildcard=allow_wildcard)
+                if self.maybe("COMMA"):
+                    raise SyntaxError(f"{context} rest parameter must be final at {dotdot.pos}")
+                break
+            if not self.at("IDENT"):
+                bad = self.peek()
+                raise SyntaxError(f"Invalid {context.lower()} parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
+            param_tok = self.eat("IDENT")
+            params.append(self.validate_parameter_name(param_tok, context=context, allow_wildcard=allow_wildcard))
+            if not self.maybe("COMMA"):
+                break
+        return params, rest_param
+
+    def try_parse_function_header(self) -> tuple[str, list[str], str | None, Token] | None:
         if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
             return None
 
@@ -967,20 +998,11 @@ class Parser:
             name_token = self.eat("IDENT")
             name = name_token.text
             self.eat("LPAREN")
-            params: list[str] = []
-            if not self.at("RPAREN"):
-                while True:
-                    if not self.at("IDENT"):
-                        bad = self.peek()
-                        raise SyntaxError(f"Invalid function parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
-                    param_tok = self.eat("IDENT")
-                    params.append(self.validate_parameter_name(param_tok, context="Function definition"))
-                    if not self.maybe("COMMA"):
-                        break
+            params, rest_param = self.parse_parameter_list(context="Function definition")
             self.eat("RPAREN")
 
             if self.at("ASSIGN", "LBRACE"):
-                return name, params, name_token
+                return name, params, rest_param, name_token
 
             self.i = save
             return None
@@ -993,17 +1015,29 @@ class Parser:
     def parse_toplevel(self) -> Node:
         header = self.try_parse_function_header()
         if header is not None:
-            name, params, name_tok = header
+            name, params, rest_param, name_tok = header
 
             if self.at("ASSIGN"):
                 self.eat("ASSIGN")
                 self.skip_separators()
                 body = self.parse_function_body_after_intro()
-                return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
+                return FuncDef(
+                    name,
+                    params,
+                    rest_param,
+                    body,
+                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
+                )
 
             if self.at("LBRACE"):
                 body = self.parse_block(allow_final_case=True)
-                return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
+                return FuncDef(
+                    name,
+                    params,
+                    rest_param,
+                    body,
+                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
+                )
 
             raise SyntaxError("Internal parser error: expected function body")
 
@@ -1190,21 +1224,12 @@ class Parser:
             start = self.peek()
             try:
                 self.i += 1
-                params: list[str] = []
-                if not self.at("RPAREN"):
-                    while True:
-                        if not self.at("IDENT"):
-                            bad = self.peek()
-                            raise SyntaxError(f"Invalid lambda parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
-                        param_tok = self.eat("IDENT")
-                        params.append(self.validate_parameter_name(param_tok, context="Lambda", allow_wildcard=True))
-                        if not self.maybe("COMMA"):
-                            break
+                params, rest_param = self.parse_parameter_list(context="Lambda", allow_wildcard=True)
                 self.eat("RPAREN")
                 if self.at("ARROW"):
                     self.eat("ARROW")
                     body = self.parse_expr()
-                    return Lambda(params, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span))
+                    return Lambda(params, rest_param, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span))
                 self.i = save
             except SyntaxError:
                 self.i = save
@@ -1315,14 +1340,15 @@ class Env:
 
     def define_function(self, fn: "GeniaFunction") -> None:
         existing = self.values.get(fn.name)
+        key: int | VarArgKey = fn.arity_key
         if existing is None:
-            self.values[fn.name] = {fn.arity: fn}
+            self.values[fn.name] = {key: fn}
             return
-        if not isinstance(existing, dict) or not all(isinstance(k, int) for k in existing):
+        if not isinstance(existing, dict):
             raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
-        if fn.arity in existing:
+        if key in existing:
             raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
-        existing[fn.arity] = fn
+        existing[key] = fn
 
     def register_autoload(self, name: str, arity: int, path: str) -> None:
         root = self.root()
@@ -1357,6 +1383,7 @@ class Env:
 class GeniaFunction:
     name: str
     params: list[str]
+    rest_param: str | None
     body: IrNode
     closure: Env
     span: SourceSpan | None = None
@@ -1367,11 +1394,29 @@ class GeniaFunction:
     def arity(self) -> int:
         return len(self.params)
 
+    @property
+    def arity_key(self) -> int | "VarArgKey":
+        if self.rest_param is None:
+            return self.arity
+        return VarArgKey(self.arity)
+
+    def accepts_arity(self, arg_count: int) -> bool:
+        if self.rest_param is None:
+            return arg_count == self.arity
+        return arg_count >= self.arity
+
     def __call__(self, *args: Any) -> Any:
         return eval_with_tco(self, args, debug_hooks=self.debug_hooks, debug_mode=self.debug_mode)
 
     def __repr__(self) -> str:
-        return f"<function {self.name}/{self.arity}>"
+        if self.rest_param is None:
+            return f"<function {self.name}/{self.arity}>"
+        return f"<function {self.name}/{self.arity}+>"
+
+
+@dataclass(frozen=True)
+class VarArgKey:
+    min_arity: int
 
 
 @dataclass
@@ -1428,11 +1473,15 @@ def eval_with_tco(
 
     while True:
         if isinstance(current_fn, GeniaFunction):
-            if len(current_args) != current_fn.arity:
-                raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
+            if not current_fn.accepts_arity(len(current_args)):
+                if current_fn.rest_param is None:
+                    raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
+                raise TypeError(f"{current_fn.name} expected at least {current_fn.arity} args, got {len(current_args)}")
             frame = Env(current_fn.closure)
             for p, a in zip(current_fn.params, current_args):
                 frame.set(p, a)
+            if current_fn.rest_param is not None:
+                frame.set(current_fn.rest_param, list(current_args[current_fn.arity:]))
             if debug_mode:
                 debug_hooks.on_function_enter(current_fn.name, current_args, frame, current_fn.span)
             result = Evaluator(frame, debug_hooks=debug_hooks, debug_mode=debug_mode).eval_function_body(
@@ -1451,6 +1500,33 @@ def eval_with_tco(
             current_args = result.args
             continue
         return result
+
+
+def resolve_overload(fn_table: dict[Any, Any], arg_count: int) -> Any:
+    target = fn_table.get(arg_count)
+    if target is not None:
+        return target
+    vararg_candidates: list[tuple[VarArgKey, Any]] = [
+        (key, value)
+        for key, value in fn_table.items()
+        if isinstance(key, VarArgKey) and arg_count >= key.min_arity
+    ]
+    if not vararg_candidates:
+        return None
+    best_key, best_target = max(vararg_candidates, key=lambda item: item[0].min_arity)
+    if sum(1 for key, _ in vararg_candidates if key.min_arity == best_key.min_arity) > 1:
+        return None
+    return best_target
+
+
+def format_available_signatures(callee: str, fn_table: dict[Any, Any]) -> str:
+    rendered: list[str] = []
+    for key in fn_table:
+        if isinstance(key, int):
+            rendered.append(f"{callee}/{key}")
+        elif isinstance(key, VarArgKey):
+            rendered.append(f"{callee}/{key.min_arity}+")
+    return ", ".join(sorted(rendered))
 
 
 class Evaluator:
@@ -1573,19 +1649,19 @@ class Evaluator:
         else:
             fn = self.eval(node.fn)
 
-        if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+        if isinstance(fn, dict):
             arity = len(args)
-            target = fn.get(arity)
+            target = resolve_overload(fn, arity)
 
             if target is None and isinstance(node.fn, IrVar):
                 if self.env.try_autoload(node.fn.name, arity):
                     fn = self.env.get(node.fn.name)
-                    if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
-                        target = fn.get(arity)
+                    if isinstance(fn, dict):
+                        target = resolve_overload(fn, arity)
 
             if target is None:
                 callee = node.fn.name if isinstance(node.fn, IrVar) else "function"
-                available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
+                available = format_available_signatures(callee, fn)
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             if tail_position and not self.debug_mode:
                 return TailCall(target, tuple(args))
@@ -1721,15 +1797,20 @@ class Evaluator:
             return result
         if isinstance(node, IrLambda):
             params = node.params
+            rest_param = node.rest_param
             body = node.body
             closure = self.env
 
             def fn(*args):
-                if len(args) != len(params):
+                if rest_param is None and len(args) != len(params):
                     raise TypeError(f"lambda expected {len(params)} args, got {len(args)}")
+                if rest_param is not None and len(args) < len(params):
+                    raise TypeError(f"lambda expected at least {len(params)} args, got {len(args)}")
                 frame = Env(closure)
                 for p, a in zip(params, args):
                     frame.set(p, a)
+                if rest_param is not None:
+                    frame.set(rest_param, list(args[len(params):]))
                 return Evaluator(frame, self.debug_hooks, self.debug_mode).eval(body)
 
             return fn
@@ -1743,6 +1824,7 @@ class Evaluator:
             fn = GeniaFunction(
                 node.name,
                 node.params,
+                node.rest_param,
                 node.body,
                 self.env,
                 span=node.span,
@@ -1973,6 +2055,18 @@ Commands:
             raise TypeError("ref_update expected a function as second argument")
         return ref_value.update(updater)
 
+    def apply_fn(fn_value: Any, xs: Any) -> Any:
+        if not isinstance(xs, list):
+            raise TypeError("apply expected a list as second argument")
+        if isinstance(fn_value, dict):
+            arity = len(xs)
+            target = resolve_overload(fn_value, arity)
+            if target is None:
+                available = format_available_signatures("function", fn_value)
+                raise TypeError(f"No matching function: function/{arity}. Available: {available}")
+            return target(*xs)
+        return fn_value(*xs)
+
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -1987,6 +2081,7 @@ Commands:
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)
     env.set("ref_update", ref_update_fn)
+    env.set("apply", apply_fn)
     env.set("byte_length", byte_length_fn)
     env.set("is_empty", is_empty_fn)
     env.set("concat", concat_fn)
