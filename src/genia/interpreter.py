@@ -1712,23 +1712,39 @@ class Evaluator:
 
         if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
             arity = len(args)
-            target = fn.get(arity)
-            if target is None:
-                for candidate in fn.values():
-                    if isinstance(candidate, GeniaFunction) and candidate.rest_param is not None and arity >= candidate.arity:
-                        target = candidate
-                        break
+
+            def resolve_target(functions: dict[int, Any], call_arity: int) -> Any | None:
+                exact = functions.get(call_arity)
+                if exact is not None:
+                    return exact
+
+                vararg_matches = [
+                    candidate
+                    for candidate in functions.values()
+                    if isinstance(candidate, GeniaFunction)
+                    and candidate.rest_param is not None
+                    and call_arity >= candidate.arity
+                ]
+                if len(vararg_matches) == 1:
+                    return vararg_matches[0]
+                if len(vararg_matches) > 1:
+                    callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
+                    candidates = ", ".join(
+                        f"{callee}/{candidate.arity}+"
+                        for candidate in sorted(vararg_matches, key=lambda f: f.arity)
+                    )
+                    raise TypeError(
+                        f"Ambiguous function resolution: {callee}/{call_arity}. Matching varargs: {candidates}"
+                    )
+                return None
+
+            target = resolve_target(fn, arity)
 
             if target is None and isinstance(callee_node, IrVar):
                 if self.env.try_autoload(callee_node.name, arity):
                     fn = self.env.get(callee_node.name)
                     if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
-                        target = fn.get(arity)
-                        if target is None:
-                            for candidate in fn.values():
-                                if isinstance(candidate, GeniaFunction) and candidate.rest_param is not None and arity >= candidate.arity:
-                                    target = candidate
-                                    break
+                        target = resolve_target(fn, arity)
 
             if target is None:
                 callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
