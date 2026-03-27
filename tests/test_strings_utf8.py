@@ -1,3 +1,5 @@
+import pytest
+
 from genia import make_global_env, run_source
 from genia.utf8 import format_debug, utf8_codepoints, utf8_is_boundary, utf8_safe_slice_by_codepoint
 
@@ -47,6 +49,19 @@ def test_split_and_split_whitespace_for_ascii_and_unicode():
     assert _run('split("a,b,c", ",")') == ["a", "b", "c"]
     assert _run('split("é|漢|🙂", "|")') == ["é", "漢", "🙂"]
     assert _run('split_whitespace("a  b\tc\nd")') == ["a", "b", "c", "d"]
+
+
+def test_fields_minimal_awkify_style_split_behavior():
+    assert _run('fields("")') == []
+    assert _run('fields("abc")') == ["abc"]
+    assert _run('fields("a b c")') == ["a", "b", "c"]
+    assert _run('fields("  a   b\tc\nd  ")') == ["a", "b", "c", "d"]
+    assert _run('fields("é 漢 🙂")') == ["é", "漢", "🙂"]
+
+
+def test_fields_rejects_non_string_argument():
+    with pytest.raises(TypeError, match="fields expected a string"):
+        _run("fields(123)")
 
 
 def test_join_for_ascii_and_unicode_sequences():

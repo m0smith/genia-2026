@@ -1846,6 +1846,9 @@ def make_global_env(
     def split_whitespace_fn(value: Any) -> list[str]:
         return _ensure_string(value, "split_whitespace").split()
 
+    def fields_fn(value: Any) -> list[str]:
+        return _ensure_string(value, "fields").split()
+
     def join_fn(sep: Any, xs: Any) -> str:
         separator = _ensure_string(sep, "join")
         if not isinstance(xs, list):
@@ -1978,6 +1981,7 @@ Commands:
     env.set("find", find_fn)
     env.set("split", split_fn)
     env.set("split_whitespace", split_whitespace_fn)
+    env.set("fields", fields_fn)
     env.set("join", join_fn)
     env.set("trim", trim_fn)
     env.set("trim_start", trim_start_fn)
