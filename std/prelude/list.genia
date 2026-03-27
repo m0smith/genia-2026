@@ -1,9 +1,40 @@
+list(..xs) = xs
+
+first(xs) =
+  [x, .._] -> x
+
+rest(xs) =
+  [_, ..tail] -> tail
+
+empty?(xs) =
+  [] -> true |
+  _ -> false
+
+nil?(x) =
+  nil -> true |
+  _ -> false
+
+append(xs, ys) =
+  ([], ys) -> ys |
+  ([x, ..rest], ys) -> [x] + append(rest, ys)
+
+length(xs) = length_acc(xs, 0)
+
+length_acc(xs, acc) =
+  ([], acc) -> acc |
+  ([_, ..rest], acc) -> length_acc(rest, acc + 1)
+
+reverse(xs) = reverse_acc(xs, [])
+
+reverse_acc(xs, acc) =
+  ([], acc) -> acc |
+  ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
+
 reduce(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
-
 
 any?(predicate, xs) =
   (predicate, []) -> false |
