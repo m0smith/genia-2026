@@ -44,6 +44,11 @@ import sys
 import threading
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional
+from .utf8 import (
+    format_debug,
+    format_display,
+    utf8_byte_length,
+)
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
 
@@ -212,6 +217,53 @@ def lex(source: str) -> list[Token]:
 
     tokens.append(Token("EOF", "", len(source)))
     return tokens
+
+
+def parse_string_literal(text: str) -> str:
+    if len(text) < 2 or text[0] not in "\"'" or text[-1] != text[0]:
+        raise SyntaxError(f"Invalid string literal: {text!r}")
+    quote = text[0]
+    content = text[1:-1]
+    out: list[str] = []
+    i = 0
+    while i < len(content):
+        ch = content[i]
+        if ch != "\\":
+            out.append(ch)
+            i += 1
+            continue
+
+        i += 1
+        if i >= len(content):
+            raise SyntaxError("Trailing backslash in string literal")
+        esc = content[i]
+        i += 1
+
+        if esc == "n":
+            out.append("\n")
+        elif esc == "r":
+            out.append("\r")
+        elif esc == "t":
+            out.append("\t")
+        elif esc == "\\":
+            out.append("\\")
+        elif esc == "\"":
+            out.append("\"")
+        elif esc == "'":
+            out.append("'")
+        elif esc == "u":
+            if i + 4 > len(content):
+                raise SyntaxError("Invalid \\u escape in string literal")
+            hex_part = content[i:i + 4]
+            if not re.fullmatch(r"[0-9A-Fa-f]{4}", hex_part):
+                raise SyntaxError("Invalid \\u escape in string literal")
+            out.append(chr(int(hex_part, 16)))
+            i += 4
+        elif esc == quote:
+            out.append(quote)
+        else:
+            raise SyntaxError(f"Unsupported escape sequence: \\{esc}")
+    return "".join(out)
 
 
 # -----------------------------
@@ -1045,7 +1097,7 @@ class Parser:
             return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
-            return String(eval(tok.text), span=self.span_for_tokens(tok, tok))
+            return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "DOTDOT":
             self.i += 1
             if self.at("IDENT"):
@@ -1106,7 +1158,7 @@ class Parser:
             return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
-            return String(eval(tok.text), span=self.span_for_tokens(tok, tok))
+            return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "IDENT":
             self.i += 1
             if tok.text == "true":
@@ -1746,20 +1798,76 @@ def make_global_env(
     env.debug_mode = debug_mode
 
     def log(*args: Any) -> Any:
-        output = " ".join(str(arg) for arg in args) + "\n"
+        output = " ".join(format_display(arg) for arg in args) + "\n"
         if output_handler is None:
-            print(*args)
+            print(output, end="")
         else:
             output_handler(output)
         return args[-1] if args else None
 
     def print_fn(*args: Any) -> Any:
-        output = " ".join(str(arg) for arg in args) + "\n"
+        output = " ".join(format_display(arg) for arg in args) + "\n"
         if output_handler is None:
-            print(*args)
+            print(output, end="")
         else:
             output_handler(output)
         return args[-1] if args else None
+
+    def _ensure_string(value: Any, name: str) -> str:
+        if not isinstance(value, str):
+            raise TypeError(f"{name} expected a string")
+        return value
+
+    def byte_length_fn(value: Any) -> int:
+        return utf8_byte_length(_ensure_string(value, "byte_length"))
+
+    def is_empty_fn(value: Any) -> bool:
+        return _ensure_string(value, "is_empty") == ""
+
+    def concat_fn(left: Any, right: Any) -> str:
+        return _ensure_string(left, "concat") + _ensure_string(right, "concat")
+
+    def contains_fn(haystack: Any, needle: Any) -> bool:
+        return _ensure_string(needle, "contains") in _ensure_string(haystack, "contains")
+
+    def starts_with_fn(value: Any, prefix: Any) -> bool:
+        return _ensure_string(value, "starts_with").startswith(_ensure_string(prefix, "starts_with"))
+
+    def ends_with_fn(value: Any, suffix: Any) -> bool:
+        return _ensure_string(value, "ends_with").endswith(_ensure_string(suffix, "ends_with"))
+
+    def find_fn(value: Any, needle: Any) -> int | None:
+        idx = _ensure_string(value, "find").find(_ensure_string(needle, "find"))
+        return None if idx < 0 else idx
+
+    def split_fn(value: Any, sep: Any) -> list[str]:
+        return _ensure_string(value, "split").split(_ensure_string(sep, "split"))
+
+    def split_whitespace_fn(value: Any) -> list[str]:
+        return _ensure_string(value, "split_whitespace").split()
+
+    def join_fn(sep: Any, xs: Any) -> str:
+        separator = _ensure_string(sep, "join")
+        if not isinstance(xs, list):
+            raise TypeError("join expected a list as second argument")
+        if not all(isinstance(item, str) for item in xs):
+            raise TypeError("join expected a list of strings")
+        return separator.join(xs)
+
+    def trim_fn(value: Any) -> str:
+        return _ensure_string(value, "trim").strip()
+
+    def trim_start_fn(value: Any) -> str:
+        return _ensure_string(value, "trim_start").lstrip()
+
+    def trim_end_fn(value: Any) -> str:
+        return _ensure_string(value, "trim_end").rstrip()
+
+    def lower_fn(value: Any) -> str:
+        return _ensure_string(value, "lower").lower()
+
+    def upper_fn(value: Any) -> str:
+        return _ensure_string(value, "upper").upper()
 
     def input_fn(prompt: str = "") -> str:
         return input(prompt)
@@ -1861,6 +1969,21 @@ Commands:
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)
     env.set("ref_update", ref_update_fn)
+    env.set("byte_length", byte_length_fn)
+    env.set("is_empty", is_empty_fn)
+    env.set("concat", concat_fn)
+    env.set("contains", contains_fn)
+    env.set("starts_with", starts_with_fn)
+    env.set("ends_with", ends_with_fn)
+    env.set("find", find_fn)
+    env.set("split", split_fn)
+    env.set("split_whitespace", split_whitespace_fn)
+    env.set("join", join_fn)
+    env.set("trim", trim_fn)
+    env.set("trim_start", trim_start_fn)
+    env.set("trim_end", trim_end_fn)
+    env.set("lower", lower_fn)
+    env.set("upper", upper_fn)
 
     env.register_autoload("reduce", 3, "std/prelude/list.genia")
     env.register_autoload("count", 1, "std/prelude/list.genia")
@@ -1951,7 +2074,7 @@ def repl() -> None:
             continue
         if not buf and line.strip() == ":env":
             for k in sorted(env.values):
-                print(f"{k} = {env.values[k]!r}")
+                print(f"{k} = {format_debug(env.values[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):
@@ -1963,7 +2086,7 @@ def repl() -> None:
         try:
             result = run_source(source, env)
             if result is not None:
-                print(repr(result))
+                print(format_debug(result))
         except Exception as e:  # noqa: BLE001
             print(f"Error: {e}", file=sys.stderr)
 
@@ -2003,7 +2126,7 @@ def _main(argv: Optional[list[str]] = None) -> int:
         with open(args.program, "r", encoding="utf-8") as f:
             result = run_source(f.read(), env, filename=str(Path(args.program).resolve()))
         if result is not None:
-            print(repr(result))
+            print(format_debug(result))
         return 0
 
     repl()
