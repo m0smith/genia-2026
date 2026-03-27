@@ -44,11 +44,22 @@ import sys
 import threading
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional
-from .utf8 import (
-    format_debug,
-    format_display,
-    utf8_byte_length,
-)
+
+if __package__ in (None, ""):
+    _src_root = Path(__file__).resolve().parents[1]
+    if str(_src_root) not in sys.path:
+        sys.path.insert(0, str(_src_root))
+    from genia.utf8 import (
+        format_debug,
+        format_display,
+        utf8_byte_length,
+    )
+else:
+    from .utf8 import (
+        format_debug,
+        format_display,
+        utf8_byte_length,
+    )
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
 
@@ -62,9 +73,9 @@ BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else P
 # - Clojure-style symbol punctuation that we allow in names is listed below.
 # - `name?` and `name!` are ordinary identifiers (no special lexer semantics).
 # - `/` is reserved for division and is not allowed inside identifier names.
-ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "-", "*", "/", "%", "=", "<", ">", "|", ",", ";", "(", ")", "{", "}", "[", "]"})
-ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", ":", "$"})
-IDENT_START_RE = re.compile(r"[A-Za-z_]")
+ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", "(", ")", "{", "}", "[", "]"})
+ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", ":", "$", "-"})
+IDENT_START_RE = re.compile(r"[A-Za-z_$]")
 IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
 
 TOKEN_SPEC = [
@@ -202,6 +213,8 @@ def lex(source: str) -> list[Token]:
             ident_start = pos
             pos += 1
             while pos < length and _is_identifier_part(source[pos]):
+                if source[pos] == "-" and pos + 1 < length and source[pos + 1] == ">":
+                    break
                 pos += 1
             tokens.append(Token("IDENT", source[ident_start:pos], ident_start))
             continue
@@ -889,6 +902,10 @@ class Parser:
         while self.at("NEWLINE", "SEMI"):
             self.i += 1
 
+    def skip_newlines(self) -> None:
+        while self.at("NEWLINE"):
+            self.i += 1
+
     def validate_parameter_name(self, tok: Token, *, context: str, allow_wildcard: bool = False) -> str:
         name = tok.text
         if name in RESERVED_LITERAL_IDENTIFIERS:
@@ -956,6 +973,7 @@ class Parser:
             name_token = self.eat("IDENT")
             name = name_token.text
             self.eat("LPAREN")
+            self.skip_newlines()
             params: list[str] = []
             if not self.at("RPAREN"):
                 while True:
@@ -966,7 +984,12 @@ class Parser:
                     params.append(self.validate_parameter_name(param_tok, context="Function definition"))
                     if not self.maybe("COMMA"):
                         break
+                    self.skip_newlines()
+                    if self.at("RPAREN"):
+                        break
+                    self.skip_newlines()
             self.eat("RPAREN")
+            self.skip_newlines()
 
             if self.at("ASSIGN", "LBRACE"):
                 return name, params, name_token
@@ -1226,6 +1249,7 @@ class Parser:
             start = self.peek()
             try:
                 self.i += 1
+                self.skip_newlines()
                 params: list[str] = []
                 if not self.at("RPAREN"):
                     while True:
@@ -1236,7 +1260,12 @@ class Parser:
                         params.append(self.validate_parameter_name(param_tok, context="Lambda", allow_wildcard=True))
                         if not self.maybe("COMMA"):
                             break
+                        self.skip_newlines()
+                        if self.at("RPAREN"):
+                            break
+                        self.skip_newlines()
                 self.eat("RPAREN")
+                self.skip_newlines()
                 if self.at("ARROW"):
                     self.eat("ARROW")
                     body = self.parse_expr()
@@ -1248,7 +1277,9 @@ class Parser:
                     raise
 
             self.i += 1
+            self.skip_newlines()
             expr = self.parse_expr()
+            self.skip_newlines()
             self.eat("RPAREN")
             return expr
         if tok.kind == "LBRACK":
@@ -1259,6 +1290,7 @@ class Parser:
 
     def parse_list_literal(self) -> ListLiteral:
         start = self.eat("LBRACK")
+        self.skip_newlines()
         items: list[Node] = []
         self.skip_separators()
         if not self.at("RBRACK"):
@@ -1272,12 +1304,17 @@ class Parser:
                 self.skip_separators()
                 if not self.maybe("COMMA"):
                     break
-                self.skip_separators()
+                self.skip_newlines()
+                if self.at("RBRACK"):
+                    break
+                self.skip_newlines()
+        self.skip_newlines()
         end = self.eat("RBRACK")
         return ListLiteral(items, span=self.span_for_tokens(start, end))
 
     def finish_call(self, fn: Node) -> Node:
         self.eat("LPAREN")
+        self.skip_newlines()
         args: list[Node] = []
         self.skip_separators()
         if not self.at("RPAREN"):
@@ -1291,7 +1328,11 @@ class Parser:
                 self.skip_separators()
                 if not self.maybe("COMMA"):
                     break
-                self.skip_separators()
+                self.skip_newlines()
+                if self.at("RPAREN"):
+                    break
+                self.skip_newlines()
+        self.skip_newlines()
         end = self.eat("RPAREN")
         return Call(fn, args, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
 
@@ -1897,7 +1938,11 @@ def make_global_env(
 
     def split_fn(value: Any, sep: Any) -> list[str]:
         parts = _ensure_string(value, "split").split(_ensure_string(sep, "split"))
-        return [part for part in parts if part != ""]
+        if parts and parts[0] == "":
+            parts = parts[1:]
+        if parts and parts[-1] == "":
+            parts = parts[:-1]
+        return parts
 
     def split_whitespace_fn(value: Any) -> list[str]:
         return _ensure_string(value, "split_whitespace").split()

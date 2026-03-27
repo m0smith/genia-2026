@@ -18,12 +18,10 @@ def test_name_suffix_qmark_and_bang_are_plain_identifiers():
     ]
 
 
-def test_plus_minus_and_slash_are_always_operators_not_identifier_chars():
+def test_plus_and_slash_are_operators_but_hyphenated_names_are_identifiers():
     tokens = _kinds_texts("foo-bar + a+b + ns/name")
     assert tokens == [
-        ("IDENT", "foo"),
-        ("MINUS", "-"),
-        ("IDENT", "bar"),
+        ("IDENT", "foo-bar"),
         ("PLUS", "+"),
         ("IDENT", "a"),
         ("PLUS", "+"),

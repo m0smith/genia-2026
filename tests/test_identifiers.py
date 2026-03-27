@@ -58,7 +58,7 @@ def test_identifier_regression_for_underscore_and_reserved_literals(run):
 
 
 def test_arithmetic_operator_tokens_regression():
-    tokens = _kinds_texts("a+b-c*d/e%f")
+    tokens = _kinds_texts("a+b - c*d/e%f")
     assert tokens == [
         ("IDENT", "a"),
         ("PLUS", "+"),
@@ -72,3 +72,12 @@ def test_arithmetic_operator_tokens_regression():
         ("PERCENT", "%"),
         ("IDENT", "f"),
     ]
+
+
+def test_dollar_and_skewer_case_supported_in_all_names(run):
+    src = """
+    my-fn-name($value, second-arg) = $value + second-arg
+    $result-value = my-fn-name(20, 22)
+    $result-value
+    """
+    assert run(src) == 42
