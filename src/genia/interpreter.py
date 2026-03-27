@@ -73,9 +73,9 @@ BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else P
 # - Clojure-style symbol punctuation that we allow in names is listed below.
 # - `name?` and `name!` are ordinary identifiers (no special lexer semantics).
 # - `/` is reserved for division and is not allowed inside identifier names.
-ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "-", "*", "/", "%", "=", "<", ">", "|", ",", ";", "(", ")", "{", "}", "[", "]"})
-ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", ":", "$"})
-IDENT_START_RE = re.compile(r"[A-Za-z_]")
+ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", "(", ")", "{", "}", "[", "]"})
+ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", ":", "$", "-"})
+IDENT_START_RE = re.compile(r"[A-Za-z_$]")
 IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
 
 TOKEN_SPEC = [
@@ -211,6 +211,8 @@ def lex(source: str) -> list[Token]:
             ident_start = pos
             pos += 1
             while pos < length and _is_identifier_part(source[pos]):
+                if source[pos] == "-" and pos + 1 < length and source[pos + 1] == ">":
+                    break
                 pos += 1
             tokens.append(Token("IDENT", source[ident_start:pos], ident_start))
             continue
