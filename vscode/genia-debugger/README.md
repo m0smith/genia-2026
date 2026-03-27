@@ -15,7 +15,28 @@ The extension now contributes a `genia` language with:
 - Line comments with `#`
 - Basic indentation behavior around `{` and `}`
 
-This is intentionally minimal and does **not** include LSP features (autocomplete, hover, go-to-definition, rename, semantic analysis, formatting, linting, etc.).
+This is intentionally lightweight and implemented directly in extension APIs (not a full Language Server).
+
+In addition to declarative syntax/comment support, the extension now provides:
+
+- Document symbols / Outline for top-level Genia functions and assignments
+- Breadcrumb-friendly symbol ranges for top-level definitions
+- Basic same-file go-to-definition for top-level functions and assignments
+- Basic workspace symbol search across `*.genia` files
+
+This is still **not** a full semantic stack and does **not** yet include:
+
+- Hover
+- Autocomplete / completion
+- Diagnostics
+- Rename
+- References
+- Cross-file semantic analysis
+- Semantic tokens
+- Formatting
+- Code actions
+- Signature help
+- Full LSP architecture
 
 ## Debugging support
 
@@ -38,7 +59,7 @@ This is intentionally minimal and does **not** include LSP features (autocomplet
 - Data breakpoints
 - Debug console REPL integration
 - Inline values
-- Language server features (autocomplete, hover, go-to-definition, etc.)
+- Full Language Server Protocol (LSP) implementation
 
 ## Runtime assumptions
 
@@ -94,11 +115,12 @@ Optional fields:
 
 ## Architecture (minimal)
 
-- `src/extension.ts`: registers a debug adapter descriptor factory for debugger type `genia`.
+- `src/extension.ts`: registers the debug adapter descriptor factory plus lightweight language providers (`DocumentSymbolProvider`, `DefinitionProvider`, and `WorkspaceSymbolProvider`) for `genia`.
+- `src/languageIndexer.ts`: tiny top-level parser/indexer used by symbol and definition features.
 - `src/geniaDebugAdapter.ts`: standalone debug adapter process using `@vscode/debugadapter`.
 - `language-configuration.json`: basic editing behavior (comments, brackets, pairs, indentation).
 - `syntaxes/genia.tmLanguage.json`: regex-based TextMate highlighting rules.
 
 ## Next logical milestone
 
-Add robust protocol correlation IDs and richer variable expansion (nested values with non-zero variable references), then add attach mode.
+For language tooling, the next step before a full LSP is incremental document/workspace indexing with small correctness improvements (import-aware cross-file definition lookup, safer range recovery, and provider-level caching).
