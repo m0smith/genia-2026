@@ -1,37 +1,15 @@
-fields(row) = split_whitespace(row)
+# Split the string `row` on whitespace, the first element is always row
+fields(row) = [row, ..split_whitespace(row)]
 
 awkify(fn, xs) = awkify_from(fn, xs, 1, [])
 
 awkify_from(fn, xs, n, acc) =
-  (_, [], _, acc) -> acc |
-
+  (_, [], _, acc)           -> acc |
   (fn, [x, ..rest], n, acc) ->  awkify_step(fn(n, x), fn, rest, n, acc)
 
 
 awkify_step(value, fn, rest, n, acc) =
   (nil, fn, rest, n, acc)   ->  awkify_from(fn, rest, n + 1, acc) |
-
   (value, fn, rest, n, acc) ->  awkify_from(fn, rest, n + 1, [..acc, value])
 
 
-awk_filter(fn, xs) = awk_filter_from(fn, xs, 1)
-
-awk_filter_from(fn, xs, n) =
-  (_, [], _) -> [] |
-  (fn, [x, ..rest], n) ? fn(n, x) == true   -> [x] + awk_filter_from(fn, rest, n + 1) |
-  (fn, [_, ..rest], n)                      -> awk_filter_from(fn, rest, n + 1)
-
-
-awk_map(fn, xs) = awk_map_from(fn, xs, 1)
-
-awk_map_from(fn, xs, n) =
-  (_, [], _) -> [] |
-  (fn, [x, ..rest], n) -> [fn(n, x)] + awk_map_from(fn, rest, n + 1)
-
-
-awk_count(fn, xs) = awk_count_from(fn, xs, 1, 0)
-
-awk_count_from(fn, xs, n, acc) =
-  (_, [], _, acc) -> acc |
-  (fn, [x, ..rest], n, acc) ? fn(n, x) == true -> awk_count_from(fn, rest, n + 1, acc + 1) |
-  (fn, [_, ..rest], n, acc) -> awk_count_from(fn, rest, n + 1, acc)

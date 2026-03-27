@@ -52,11 +52,11 @@ def test_split_and_split_whitespace_for_ascii_and_unicode():
 
 
 def test_fields_minimal_awkify_style_split_behavior():
-    assert _run('fields("")') == []
-    assert _run('fields("abc")') == ["abc"]
-    assert _run('fields("a b c")') == ["a", "b", "c"]
-    assert _run('fields("  a   b\tc\nd  ")') == ["a", "b", "c", "d"]
-    assert _run('fields("é 漢 🙂")') == ["é", "漢", "🙂"]
+    assert _run('fields("")') == [""]
+    assert _run('fields("abc")') == ["abc","abc"]
+    assert _run('fields("a b c")') == ["a b c", "a", "b", "c"]
+    assert _run('fields("  a   b\tc\nd  ")') == ["  a   b\tc\nd  ","a", "b", "c", "d"]
+    assert _run('fields("é 漢 🙂")') == ["é 漢 🙂", "é", "漢", "🙂"]
 
 
 def test_fields_rejects_non_string_argument():
