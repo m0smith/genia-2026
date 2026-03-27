@@ -133,6 +133,8 @@ PUNCTUATION_TOKENS = [
     ("SEMI", ";"),
 ]
 def _is_identifier_start(ch: str) -> bool:
+    if ch == "$":
+        return True
     return bool(IDENT_START_RE.fullmatch(ch))
 
 
