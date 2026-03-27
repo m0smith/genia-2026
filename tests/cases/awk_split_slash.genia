@@ -1,0 +1,6 @@
+process_line(n, line) =
+    (n, [_, f1, .._]) -> nth(0, split(f1, "/"))
+
+with_fields(n, line) = process_line(n, fields(line))
+
+awkify(with_fields,  ["/a/b/c"])
