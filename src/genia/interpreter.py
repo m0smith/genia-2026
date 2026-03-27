@@ -44,11 +44,22 @@ import sys
 import threading
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Optional
-from .utf8 import (
-    format_debug,
-    format_display,
-    utf8_byte_length,
-)
+
+if __package__ in (None, ""):
+    _src_root = Path(__file__).resolve().parents[1]
+    if str(_src_root) not in sys.path:
+        sys.path.insert(0, str(_src_root))
+    from genia.utf8 import (
+        format_debug,
+        format_display,
+        utf8_byte_length,
+    )
+else:
+    from .utf8 import (
+        format_debug,
+        format_display,
+        utf8_byte_length,
+    )
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
 
@@ -1841,7 +1852,12 @@ def make_global_env(
         return None if idx < 0 else idx
 
     def split_fn(value: Any, sep: Any) -> list[str]:
-        return _ensure_string(value, "split").split(_ensure_string(sep, "split"))
+        parts = _ensure_string(value, "split").split(_ensure_string(sep, "split"))
+        if parts and parts[0] == "":
+            parts = parts[1:]
+        if parts and parts[-1] == "":
+            parts = parts[:-1]
+        return parts
 
     def split_whitespace_fn(value: Any) -> list[str]:
         return _ensure_string(value, "split_whitespace").split()
