@@ -1996,6 +1996,7 @@ Commands:
     env.register_autoload("awk_filter", 2, "std/prelude/awk.genia")
     env.register_autoload("awk_map", 2, "std/prelude/awk.genia")
     env.register_autoload("awk_count", 2, "std/prelude/awk.genia")
+    env.register_autoload("fields", 1, "std/prelude/awk.genia")
     return env
 
 
