@@ -1642,6 +1642,8 @@ class Evaluator:
             try:
                 fn = self.env.get(name)
             except NameError:
+                if name == "apply":
+                    return self.eval_apply_builtin(args, tail_position=tail_position)
                 if self.env.try_autoload(name, len(args)):
                     fn = self.env.get(name)
                 else:
@@ -1670,6 +1672,25 @@ class Evaluator:
         if tail_position and not self.debug_mode:
             return TailCall(fn, tuple(args))
         return fn(*args)
+
+    def eval_apply_builtin(self, args: list[Any], *, tail_position: bool) -> Any:
+        if len(args) != 2:
+            raise TypeError(f"apply expected 2 args, got {len(args)}")
+        fn_value, xs = args
+        if not isinstance(xs, list):
+            raise TypeError("apply expected a list as second argument")
+        if isinstance(fn_value, dict):
+            arity = len(xs)
+            target = resolve_overload(fn_value, arity)
+            if target is None:
+                available = format_available_signatures("function", fn_value)
+                raise TypeError(f"No matching function: function/{arity}. Available: {available}")
+            if tail_position and not self.debug_mode:
+                return TailCall(target, tuple(xs))
+            return target(*xs)
+        if tail_position and not self.debug_mode:
+            return TailCall(fn_value, tuple(xs))
+        return fn_value(*xs)
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         # full parameter tuple matching
@@ -2055,18 +2076,6 @@ Commands:
             raise TypeError("ref_update expected a function as second argument")
         return ref_value.update(updater)
 
-    def apply_fn(fn_value: Any, xs: Any) -> Any:
-        if not isinstance(xs, list):
-            raise TypeError("apply expected a list as second argument")
-        if isinstance(fn_value, dict):
-            arity = len(xs)
-            target = resolve_overload(fn_value, arity)
-            if target is None:
-                available = format_available_signatures("function", fn_value)
-                raise TypeError(f"No matching function: function/{arity}. Available: {available}")
-            return target(*xs)
-        return fn_value(*xs)
-
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -2081,7 +2090,6 @@ Commands:
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)
     env.set("ref_update", ref_update_fn)
-    env.set("apply", apply_fn)
     env.set("byte_length", byte_length_fn)
     env.set("is_empty", is_empty_fn)
     env.set("concat", concat_fn)
