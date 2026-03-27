@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "genia",
+      "request": "launch",
+      "name": "Launch Genia File",
+      "program": "${file}",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "-m", "genia.interpreter"],
+      "stopOnEntry": true
+    }
+  ]
+}
