@@ -11,7 +11,9 @@
     "Debuggers"
   ],
   "activationEvents": [
-    "onDebug:genia"
+    "onDebug:genia",
+    "onLanguage:genia",
+    "onWorkspaceSymbol"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -92,7 +94,8 @@
   "scripts": {
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
-    "vscode:prepublish": "npm run build"
+    "vscode:prepublish": "npm run build",
+    "test": "npm run build && node --test out/languageIndexer.test.js"
   },
   "devDependencies": {
     "@types/node": "^20.14.2",
