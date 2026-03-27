@@ -18,6 +18,21 @@ def test_autoload_sum():
     assert run_with_env("sum([1, 2, 3, 4])") == 10
 
 
+def test_autoload_list_and_first():
+    assert run_with_env("list(1, 2, 3)") == [1, 2, 3]
+    assert run_with_env("first([7, 8, 9])") == 7
+
+
+def test_autoload_length_and_reverse():
+    assert run_with_env("length([1, 2, 3, 4])") == 4
+    assert run_with_env("reverse([1, 2, 3])") == [3, 2, 1]
+
+
+def test_autoload_math_helpers():
+    assert run_with_env("inc(41)") == 42
+    assert run_with_env("abs(-9)") == 9
+
+
 def test_autoload_awkify():
     src = """
     odd_rows(n, row) =
