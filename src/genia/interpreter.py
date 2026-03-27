@@ -900,6 +900,10 @@ class Parser:
         while self.at("NEWLINE", "SEMI"):
             self.i += 1
 
+    def skip_newlines(self) -> None:
+        while self.at("NEWLINE"):
+            self.i += 1
+
     def validate_parameter_name(self, tok: Token, *, context: str, allow_wildcard: bool = False) -> str:
         name = tok.text
         if name in RESERVED_LITERAL_IDENTIFIERS:
@@ -1223,6 +1227,7 @@ class Parser:
 
     def parse_list_literal(self) -> ListLiteral:
         start = self.eat("LBRACK")
+        self.skip_newlines()
         items: list[Node] = []
         if not self.at("RBRACK"):
             while True:
@@ -1234,11 +1239,17 @@ class Parser:
                     items.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
+                self.skip_newlines()
+                if self.at("RBRACK"):
+                    break
+                self.skip_newlines()
+        self.skip_newlines()
         end = self.eat("RBRACK")
         return ListLiteral(items, span=self.span_for_tokens(start, end))
 
     def finish_call(self, fn: Node) -> Node:
         self.eat("LPAREN")
+        self.skip_newlines()
         args: list[Node] = []
         if not self.at("RPAREN"):
             while True:
@@ -1250,6 +1261,11 @@ class Parser:
                     args.append(self.parse_expr())
                 if not self.maybe("COMMA"):
                     break
+                self.skip_newlines()
+                if self.at("RPAREN"):
+                    break
+                self.skip_newlines()
+        self.skip_newlines()
         end = self.eat("RPAREN")
         return Call(fn, args, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
 
