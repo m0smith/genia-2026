@@ -404,6 +404,7 @@ class CaseExpr(Node):
 @dataclass
 class Lambda(Node):
     params: list[str]
+    rest_param: str | None
     body: Node
     span: SourceSpan | None = None
 
@@ -419,6 +420,7 @@ class Assign(Node):
 class FuncDef(Node):
     name: str
     params: list[str]
+    rest_param: str | None
     body: Node
     span: SourceSpan | None = None
 
@@ -576,6 +578,7 @@ class IrLambda(IrNode):
     """Lambda expression with params and lowered body."""
 
     params: list[str]
+    rest_param: str | None
     body: IrNode
     span: SourceSpan | None = None
 
@@ -595,6 +598,7 @@ class IrFuncDef(IrNode):
 
     name: str
     params: list[str]
+    rest_param: str | None
     body: IrNode
     span: SourceSpan | None = None
 
@@ -654,11 +658,11 @@ def lower_node(node: Node) -> IrNode:
             span=node.span,
         )
     if isinstance(node, Lambda):
-        return IrLambda(node.params, lower_node(node.body), span=node.span)
+        return IrLambda(node.params, node.rest_param, lower_node(node.body), span=node.span)
     if isinstance(node, Assign):
         return IrAssign(node.name, lower_node(node.expr), span=node.span)
     if isinstance(node, FuncDef):
-        return IrFuncDef(node.name, node.params, lower_node(node.body), span=node.span)
+        return IrFuncDef(node.name, node.params, node.rest_param, lower_node(node.body), span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -698,7 +702,7 @@ def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list
 
 
 def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
-    if len(fn.params) != 2 or not isinstance(fn.body, IrCase):
+    if fn.rest_param is not None or len(fn.params) != 2 or not isinstance(fn.body, IrCase):
         return fn
     case = fn.body
     if any(clause.guard is not None for clause in case.clauses):
@@ -780,6 +784,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
     return IrFuncDef(
         fn.name,
         fn.params,
+        fn.rest_param,
         IrListTraversalLoop(
             counter_var=fn.params[0],
             list_var=fn.params[1],
@@ -964,7 +969,46 @@ class Parser:
             self.skip_separators()
         return out
 
-    def try_parse_function_header(self) -> tuple[str, list[str], Token] | None:
+    def parse_parameter_list(
+        self,
+        *,
+        context: str,
+        allow_wildcard: bool = False,
+    ) -> tuple[list[str], str | None]:
+        params: list[str] = []
+        rest_param: str | None = None
+        if self.at("RPAREN"):
+            return params, rest_param
+        while True:
+            if self.at("DOTDOT"):
+                dotdot = self.eat("DOTDOT")
+                if rest_param is not None:
+                    raise SyntaxError(f"{context} can only have one rest parameter at {dotdot.pos}")
+                if not self.at("IDENT"):
+                    bad = self.peek()
+                    raise SyntaxError(f"Invalid {context.lower()} rest parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
+                rest_tok = self.eat("IDENT")
+                rest_param = self.validate_parameter_name(rest_tok, context=context, allow_wildcard=allow_wildcard)
+                self.skip_newlines()
+                if self.at("COMMA"):
+                    comma = self.eat("COMMA")
+                    raise SyntaxError(f"{context} rest parameter must be final at {comma.pos}")
+                break
+
+            if not self.at("IDENT"):
+                bad = self.peek()
+                raise SyntaxError(f"Invalid {context.lower()} parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
+            param_tok = self.eat("IDENT")
+            params.append(self.validate_parameter_name(param_tok, context=context, allow_wildcard=allow_wildcard))
+            if not self.maybe("COMMA"):
+                break
+            self.skip_newlines()
+            if self.at("RPAREN"):
+                break
+            self.skip_newlines()
+        return params, rest_param
+
+    def try_parse_function_header(self) -> tuple[str, list[str], str | None, Token] | None:
         if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
             return None
 
@@ -974,25 +1018,12 @@ class Parser:
             name = name_token.text
             self.eat("LPAREN")
             self.skip_newlines()
-            params: list[str] = []
-            if not self.at("RPAREN"):
-                while True:
-                    if not self.at("IDENT"):
-                        bad = self.peek()
-                        raise SyntaxError(f"Invalid function parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
-                    param_tok = self.eat("IDENT")
-                    params.append(self.validate_parameter_name(param_tok, context="Function definition"))
-                    if not self.maybe("COMMA"):
-                        break
-                    self.skip_newlines()
-                    if self.at("RPAREN"):
-                        break
-                    self.skip_newlines()
+            params, rest_param = self.parse_parameter_list(context="Function definition")
             self.eat("RPAREN")
             self.skip_newlines()
 
             if self.at("ASSIGN", "LBRACE"):
-                return name, params, name_token
+                return name, params, rest_param, name_token
 
             self.i = save
             return None
@@ -1005,17 +1036,29 @@ class Parser:
     def parse_toplevel(self) -> Node:
         header = self.try_parse_function_header()
         if header is not None:
-            name, params, name_tok = header
+            name, params, rest_param, name_tok = header
 
             if self.at("ASSIGN"):
                 self.eat("ASSIGN")
                 self.skip_separators()
                 body = self.parse_function_body_after_intro(len(params))
-                return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
+                return FuncDef(
+                    name,
+                    params,
+                    rest_param,
+                    body,
+                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
+                )
 
             if self.at("LBRACE"):
                 body = self.parse_block(allow_final_case=True)
-                return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
+                return FuncDef(
+                    name,
+                    params,
+                    rest_param,
+                    body,
+                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
+                )
 
             raise SyntaxError("Internal parser error: expected function body")
 
@@ -1250,26 +1293,13 @@ class Parser:
             try:
                 self.i += 1
                 self.skip_newlines()
-                params: list[str] = []
-                if not self.at("RPAREN"):
-                    while True:
-                        if not self.at("IDENT"):
-                            bad = self.peek()
-                            raise SyntaxError(f"Invalid lambda parameter token {bad.text!r} ({bad.kind}) at {bad.pos}")
-                        param_tok = self.eat("IDENT")
-                        params.append(self.validate_parameter_name(param_tok, context="Lambda", allow_wildcard=True))
-                        if not self.maybe("COMMA"):
-                            break
-                        self.skip_newlines()
-                        if self.at("RPAREN"):
-                            break
-                        self.skip_newlines()
+                params, rest_param = self.parse_parameter_list(context="Lambda", allow_wildcard=True)
                 self.eat("RPAREN")
                 self.skip_newlines()
                 if self.at("ARROW"):
                     self.eat("ARROW")
                     body = self.parse_expr()
-                    return Lambda(params, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span))
+                    return Lambda(params, rest_param, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span))
                 self.i = save
             except SyntaxError:
                 self.i = save
@@ -1440,6 +1470,7 @@ class Env:
 class GeniaFunction:
     name: str
     params: list[str]
+    rest_param: str | None
     body: IrNode
     closure: Env
     span: SourceSpan | None = None
@@ -1454,7 +1485,9 @@ class GeniaFunction:
         return eval_with_tco(self, args, debug_hooks=self.debug_hooks, debug_mode=self.debug_mode)
 
     def __repr__(self) -> str:
-        return f"<function {self.name}/{self.arity}>"
+        if self.rest_param is None:
+            return f"<function {self.name}/{self.arity}>"
+        return f"<function {self.name}/{self.arity}+>"
 
 
 @dataclass
@@ -1464,6 +1497,7 @@ class TailCall:
 
 
 _UNSET = object()
+_APPLY_SENTINEL = object()
 
 
 class GeniaRef:
@@ -1511,11 +1545,16 @@ def eval_with_tco(
 
     while True:
         if isinstance(current_fn, GeniaFunction):
-            if len(current_args) != current_fn.arity:
-                raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
+            if current_fn.rest_param is None:
+                if len(current_args) != current_fn.arity:
+                    raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
+            elif len(current_args) < current_fn.arity:
+                raise TypeError(f"{current_fn.name} expected at least {current_fn.arity} args, got {len(current_args)}")
             frame = Env(current_fn.closure)
             for p, a in zip(current_fn.params, current_args):
                 frame.set(p, a)
+            if current_fn.rest_param is not None:
+                frame.set(current_fn.rest_param, list(current_args[current_fn.arity:]))
             if debug_mode:
                 debug_hooks.on_function_enter(current_fn.name, current_args, frame, current_fn.span)
             result = Evaluator(frame, debug_hooks=debug_hooks, debug_mode=debug_mode).eval_function_body(
@@ -1649,25 +1688,57 @@ class Evaluator:
             try:
                 fn = self.env.get(name)
             except NameError:
-                if self.env.try_autoload(name, len(args)):
+                if name == "apply":
+                    fn = _APPLY_SENTINEL
+                elif self.env.try_autoload(name, len(args)):
                     fn = self.env.get(name)
                 else:
                     raise
         else:
             fn = self.eval(node.fn)
 
+        if fn is _APPLY_SENTINEL:
+            if len(args) != 2:
+                raise TypeError(f"apply expected 2 args, got {len(args)}")
+            target_fn = args[0]
+            target_args = args[1]
+            if not isinstance(target_args, list):
+                raise TypeError("apply expected a list as second argument")
+            return self.invoke_callable(target_fn, target_args, tail_position=tail_position)
+
+        return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
+
+    def invoke_callable(
+        self,
+        fn: Any,
+        args: list[Any],
+        *,
+        tail_position: bool,
+        callee_node: IrNode | None = None,
+    ) -> Any:
+
         if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
             arity = len(args)
             target = fn.get(arity)
+            if target is None:
+                for candidate in fn.values():
+                    if isinstance(candidate, GeniaFunction) and candidate.rest_param is not None and arity >= candidate.arity:
+                        target = candidate
+                        break
 
-            if target is None and isinstance(node.fn, IrVar):
-                if self.env.try_autoload(node.fn.name, arity):
-                    fn = self.env.get(node.fn.name)
+            if target is None and isinstance(callee_node, IrVar):
+                if self.env.try_autoload(callee_node.name, arity):
+                    fn = self.env.get(callee_node.name)
                     if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
                         target = fn.get(arity)
+                        if target is None:
+                            for candidate in fn.values():
+                                if isinstance(candidate, GeniaFunction) and candidate.rest_param is not None and arity >= candidate.arity:
+                                    target = candidate
+                                    break
 
             if target is None:
-                callee = node.fn.name if isinstance(node.fn, IrVar) else "function"
+                callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
                 available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             if tail_position and not self.debug_mode:
@@ -1804,15 +1875,21 @@ class Evaluator:
             return result
         if isinstance(node, IrLambda):
             params = node.params
+            rest_param = node.rest_param
             body = node.body
             closure = self.env
 
             def fn(*args):
-                if len(args) != len(params):
-                    raise TypeError(f"lambda expected {len(params)} args, got {len(args)}")
+                if rest_param is None:
+                    if len(args) != len(params):
+                        raise TypeError(f"lambda expected {len(params)} args, got {len(args)}")
+                elif len(args) < len(params):
+                    raise TypeError(f"lambda expected at least {len(params)} args, got {len(args)}")
                 frame = Env(closure)
                 for p, a in zip(params, args):
                     frame.set(p, a)
+                if rest_param is not None:
+                    frame.set(rest_param, list(args[len(params):]))
                 return Evaluator(frame, self.debug_hooks, self.debug_mode).eval(body)
 
             return fn
@@ -1826,6 +1903,7 @@ class Evaluator:
             fn = GeniaFunction(
                 node.name,
                 node.params,
+                node.rest_param,
                 node.body,
                 self.env,
                 span=node.span,
