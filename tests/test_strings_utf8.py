@@ -1,19 +1,10 @@
-import pytest
-
 from genia import make_global_env, run_source
+from genia.utf8 import format_debug, utf8_codepoints, utf8_is_boundary, utf8_safe_slice_by_codepoint
 
 
 def _run(src: str):
     env = make_global_env([])
     return run_source(src, env)
-
-
-def _assert_pending_or_equal(src: str, expected):
-    try:
-        result = _run(src)
-    except NameError:
-        pytest.xfail(f"pending builtin behavior for: {src}")
-    assert result == expected
 
 
 def test_unicode_string_literals_round_trip_through_parser_and_eval(run):
@@ -34,44 +25,45 @@ def test_string_literal_escapes_round_trip(run):
 
 
 def test_byte_length_utf8_minimal_examples():
-    _assert_pending_or_equal('byte_length("")', 0)
-    _assert_pending_or_equal('byte_length("abc")', 3)
-    _assert_pending_or_equal('byte_length("é")', 2)
-    _assert_pending_or_equal('byte_length("漢")', 3)
-    _assert_pending_or_equal('byte_length("🙂")', 4)
+    assert _run('byte_length("")') == 0
+    assert _run('byte_length("abc")') == 3
+    assert _run('byte_length("é")') == 2
+    assert _run('byte_length("漢")') == 3
+    assert _run('byte_length("🙂")') == 4
 
 
 def test_basic_string_predicates_and_search_for_ascii_and_unicode():
-    _assert_pending_or_equal('contains("café", "fé")', True)
-    _assert_pending_or_equal('starts_with("漢字abc", "漢")', True)
-    _assert_pending_or_equal('ends_with("hi🙂", "🙂")', True)
+    assert _run('contains("café", "fé")') is True
+    assert _run('starts_with("漢字abc", "漢")') is True
+    assert _run('ends_with("hi🙂", "🙂")') is True
 
     # Minimal model expectation: `find` returns Unicode code-point positions.
-    _assert_pending_or_equal('find("naïve", "ï")', 2)
-    _assert_pending_or_equal('find("🙂a", "a")', 1)
+    assert _run('find("naïve", "ï")') == 2
+    assert _run('find("🙂a", "a")') == 1
+    assert _run('find("abc", "x")') is None
 
 
 def test_split_and_split_whitespace_for_ascii_and_unicode():
-    _assert_pending_or_equal('split("a,b,c", ",")', ["a", "b", "c"])
-    _assert_pending_or_equal('split("é|漢|🙂", "|")', ["é", "漢", "🙂"])
-    _assert_pending_or_equal('split_whitespace("a  b\tc\nd")', ["a", "b", "c", "d"])
+    assert _run('split("a,b,c", ",")') == ["a", "b", "c"]
+    assert _run('split("é|漢|🙂", "|")') == ["é", "漢", "🙂"]
+    assert _run('split_whitespace("a  b\tc\nd")') == ["a", "b", "c", "d"]
 
 
 def test_join_for_ascii_and_unicode_sequences():
-    _assert_pending_or_equal('join(",", ["a", "b", "c"])', "a,b,c")
-    _assert_pending_or_equal('join(" ", ["🙂", "漢字"])', "🙂 漢字")
+    assert _run('join(",", ["a", "b", "c"])') == "a,b,c"
+    assert _run('join(" ", ["🙂", "漢字"])') == "🙂 漢字"
 
 
 def test_trim_variants_for_ascii_and_unicode():
-    _assert_pending_or_equal('trim("  hello  ")', "hello")
-    _assert_pending_or_equal('trim_start("  hello")', "hello")
-    _assert_pending_or_equal('trim_end("hello  ")', "hello")
-    _assert_pending_or_equal('trim("  漢字  ")', "漢字")
+    assert _run('trim("  hello  ")') == "hello"
+    assert _run('trim_start("  hello")') == "hello"
+    assert _run('trim_end("hello  ")') == "hello"
+    assert _run('trim("  漢字  ")') == "漢字"
 
 
 def test_basic_case_conversion_ascii_only():
-    _assert_pending_or_equal('lower("ABC")', "abc")
-    _assert_pending_or_equal('upper("abc")', "ABC")
+    assert _run('lower("ABC")') == "abc"
+    assert _run('upper("abc")') == "ABC"
 
 
 def test_print_displays_string_content_without_quotes():
@@ -83,5 +75,19 @@ def test_print_displays_string_content_without_quotes():
     assert outputs == ["漢字🙂\n"]
 
 
-# TODO: Add explicit debug/repr string formatting tests if/when the runtime
-# exposes a stable repr/display distinction for programmatic assertions.
+def test_debug_format_uses_quoted_escaped_strings():
+    assert format_debug("漢字🙂") == '"漢字🙂"'
+    assert format_debug("a\n\tb") == r'"a\n\tb"'
+
+
+def test_utf8_internal_helpers_boundaries_and_slicing_are_safe():
+    text = "é漢🙂z"
+    assert list(utf8_codepoints(text)) == ["é", "漢", "🙂", "z"]
+    assert utf8_is_boundary(text, 0) is True
+    assert utf8_is_boundary(text, 1) is False
+    assert utf8_is_boundary(text, 2) is True
+    assert utf8_is_boundary(text, 5) is True
+    assert utf8_is_boundary(text, 8) is False
+    assert utf8_is_boundary(text, 9) is True
+    assert utf8_safe_slice_by_codepoint(text, 0, 3) == "é漢🙂"
+    assert utf8_safe_slice_by_codepoint(text, 1, 3) == "漢🙂"
