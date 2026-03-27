@@ -144,6 +144,8 @@ PUNCTUATION_TOKENS = [
     ("SEMI", ";"),
 ]
 def _is_identifier_start(ch: str) -> bool:
+    if ch == "$":
+        return True
     return bool(IDENT_START_RE.fullmatch(ch))
 
 
@@ -1008,7 +1010,7 @@ class Parser:
             if self.at("ASSIGN"):
                 self.eat("ASSIGN")
                 self.skip_separators()
-                body = self.parse_function_body_after_intro()
+                body = self.parse_function_body_after_intro(len(params))
                 return FuncDef(name, params, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
 
             if self.at("LBRACE"):
@@ -1028,8 +1030,55 @@ class Parser:
         expr = self.parse_expr()
         return ExprStmt(expr, span=expr.span)
 
-    def parse_function_body_after_intro(self) -> Node:
+    def leading_parenthesized_item_count_before_arrow(self) -> int | None:
+        if not self.at("LPAREN"):
+            return None
+        j = self.i + 1
+        nested_depth = 0
+        item_count = 0
+        in_item = False
+        opening_kinds = {"LPAREN", "LBRACK", "LBRACE"}
+        matching_close = {"LPAREN": "RPAREN", "LBRACK": "RBRACK", "LBRACE": "RBRACE"}
+        close_stack: list[str] = []
+        while j < len(self.tokens):
+            tok = self.tokens[j]
+            kind = tok.kind
+            if nested_depth == 0 and kind == "RPAREN":
+                if in_item:
+                    item_count += 1
+                j += 1
+                while j < len(self.tokens) and self.tokens[j].kind == "NEWLINE":
+                    j += 1
+                if j >= len(self.tokens) or self.tokens[j].kind != "ARROW":
+                    return None
+                return item_count
+            if kind == "EOF":
+                return None
+            if nested_depth == 0 and kind == "NEWLINE":
+                j += 1
+                continue
+            if nested_depth == 0 and kind == "COMMA":
+                if in_item:
+                    item_count += 1
+                    in_item = False
+                j += 1
+                continue
+
+            in_item = True
+            if kind in opening_kinds:
+                close_stack.append(matching_close[kind])
+                nested_depth += 1
+            elif close_stack and kind == close_stack[-1]:
+                close_stack.pop()
+                nested_depth -= 1
+            j += 1
+        return None
+
+    def parse_function_body_after_intro(self, param_count: int) -> Node:
         if self.looks_like_case_start():
+            leading_tuple_arity = self.leading_parenthesized_item_count_before_arrow()
+            if leading_tuple_arity is not None and leading_tuple_arity != param_count:
+                return self.parse_expr()
             return self.parse_case_expr(single_param_shorthand_ok=True)
         return self.parse_expr()
 
@@ -1243,6 +1292,7 @@ class Parser:
         start = self.eat("LBRACK")
         self.skip_newlines()
         items: list[Node] = []
+        self.skip_separators()
         if not self.at("RBRACK"):
             while True:
                 if self.at("DOTDOT"):
@@ -1251,6 +1301,7 @@ class Parser:
                     items.append(Spread(expr, span=self.merge_spans(self.span_for_tokens(dotdot, dotdot), expr.span)))
                 else:
                     items.append(self.parse_expr())
+                self.skip_separators()
                 if not self.maybe("COMMA"):
                     break
                 self.skip_newlines()
@@ -1265,6 +1316,7 @@ class Parser:
         self.eat("LPAREN")
         self.skip_newlines()
         args: list[Node] = []
+        self.skip_separators()
         if not self.at("RPAREN"):
             while True:
                 if self.at("DOTDOT"):
@@ -1273,6 +1325,7 @@ class Parser:
                     args.append(Spread(expr, span=self.merge_spans(self.span_for_tokens(dotdot, dotdot), expr.span)))
                 else:
                     args.append(self.parse_expr())
+                self.skip_separators()
                 if not self.maybe("COMMA"):
                     break
                 self.skip_newlines()
