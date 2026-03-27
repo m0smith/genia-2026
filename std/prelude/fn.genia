@@ -1,0 +1,7 @@
+apply(f, args) = f(..args)
+
+compose(..fns) = (..args) -> compose_apply(fns, args)
+
+compose_apply(fns, args) =
+  ([f], args) -> apply(f, args) |
+  ([f, ..rest], args) -> f(compose_apply(rest, args))

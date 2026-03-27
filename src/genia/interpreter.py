@@ -1445,7 +1445,12 @@ class Env:
         root = self.root()
         path = root.autoloads.get((name, arity))
         if path is None:
-            return False
+            for (autoload_name, _), candidate_path in root.autoloads.items():
+                if autoload_name == name:
+                    path = candidate_path
+                    break
+            if path is None:
+                return False
 
         full_path = (BASE_DIR / path).resolve()
         key = str(full_path)
@@ -1497,7 +1502,6 @@ class TailCall:
 
 
 _UNSET = object()
-_APPLY_SENTINEL = object()
 
 
 class GeniaRef:
@@ -1688,23 +1692,12 @@ class Evaluator:
             try:
                 fn = self.env.get(name)
             except NameError:
-                if name == "apply":
-                    fn = _APPLY_SENTINEL
-                elif self.env.try_autoload(name, len(args)):
+                if self.env.try_autoload(name, len(args)):
                     fn = self.env.get(name)
                 else:
                     raise
         else:
             fn = self.eval(node.fn)
-
-        if fn is _APPLY_SENTINEL:
-            if len(args) != 2:
-                raise TypeError(f"apply expected 2 args, got {len(args)}")
-            target_fn = args[0]
-            target_args = args[1]
-            if not isinstance(target_args, list):
-                raise TypeError("apply expected a list as second argument")
-            return self.invoke_callable(target_fn, target_args, tail_position=tail_position)
 
         return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
 
@@ -2170,6 +2163,9 @@ Commands:
     env.register_autoload("nth", 2, "std/prelude/list.genia")
     env.register_autoload("take", 2, "std/prelude/list.genia")
     env.register_autoload("drop", 2, "std/prelude/list.genia")
+    env.register_autoload("apply", 2, "std/prelude/fn.genia")
+    env.register_autoload("compose", 1, "std/prelude/fn.genia")
+
     env.register_autoload("sum", 1, "std/prelude/math.genia")
     env.register_autoload("awkify", 2, "std/prelude/awk.genia")
     env.register_autoload("awk_filter", 2, "std/prelude/awk.genia")
