@@ -224,9 +224,9 @@ Result:
 
 ---
 
-# 8. Host-backed Concurrency (Minimal)
+# 8. Host-backed Concurrency and Agents
 
-## 8.1 Process Creation and Message Send
+## 8.1 Basic Process + Send
 
 ```genia
 inbox = ref([])
@@ -243,7 +243,61 @@ Result (after mailbox drains):
 ["a", "b", "c"]
 ```
 
-## 8.2 Process Liveness
+## 8.2 Ref Used with a Process
+
+```genia
+total = ref(0)
+p = spawn((msg) -> ref_update(total, (n) -> n + msg))
+send(p, 10)
+send(p, 5)
+ref_get(total)
+```
+
+Result (after mailbox drains):
+
+```text
+15
+```
+
+## 8.3 Simple Counter Agent
+
+```genia
+counter = agent(0)
+agent_send(counter, (n) -> n + 1)
+agent_send(counter, (n) -> n + 1)
+agent_send(counter, (n) -> n + 1)
+agent_get(counter)
+```
+
+Result (after mailbox drains):
+
+```text
+3
+```
+
+## 8.4 Logging / Background Worker Pattern
+
+```genia
+append_logged(xs, msg) {
+  log(msg)
+  append(xs, [msg])
+}
+
+logs = ref([])
+logger = spawn((msg) -> ref_update(logs, (xs) -> append_logged(xs, msg)))
+send(logger, "boot")
+send(logger, "request")
+send(logger, "done")
+ref_get(logs)
+```
+
+Result (after mailbox drains):
+
+```text
+["boot", "request", "done"]
+```
+
+## 8.5 Process Liveness
 
 ```genia
 p = spawn((msg) -> msg)
@@ -480,6 +534,7 @@ These examples demonstrate:
 * Pattern matching (including nested and duplicate bindings)
 * List destructuring with rest patterns
 * Lambda functions and closures
+* Processes, refs, and agents for host-backed concurrency
 * Blocks and evaluation order
 * Higher-order functions
 * Autoloaded standard library
