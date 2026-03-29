@@ -1,75 +1,85 @@
-Here’s a clean, production-ready **`AGENTS.md`** tailored for your Genia project, Codex usage, and your workflow as an architect-level developer.
-
----
-
 # AGENTS.md
 
 ## Purpose
 
-This document defines how AI agents (e.g., Codex, ChatGPT, or other automated contributors) should operate within the Genia codebase.
+This document defines how AI agents (e.g., Codex, ChatGPT, or other automated contributors) must operate within the Genia codebase.
 
-The goal is to ensure:
+The goals are:
 
-* Consistency with Genia’s design philosophy
-* Alignment with current implementation state
-* High-quality, maintainable contributions
-* Continuous documentation accuracy
+* Preserve Genia’s philosophy
+* Ensure implementation and documentation never drift
+* Maintain a **living, correct “Reasoned Schemer–style” learning system**
+* Enforce high-quality, minimal, and consistent contributions
 
 ---
 
 ## Source of Truth
 
-Agents **must treat the following files as authoritative**:
+Agents **must treat the following as authoritative and synchronized**:
 
-* `GENIA_STATE.md` → Current implementation state
-* `GENIA_RULES.md` → Language semantics and rules
-* `GENIA_REPL_README.md` → Execution and REPL behavior
-* `README.md` → Project overview
+* `GENIA_STATE.md` → What is actually implemented (ground truth)
+* `GENIA_RULES.md` → Language semantics (law)
+* `GENIA_REPL_README.md` → Runtime behavior
+* `README.md` → High-level overview
+* `docs/book/*` → Learning system (must reflect reality)
 
-📌 These files **must be consulted before making any changes** 
+📌 If these disagree, **GENIA_STATE.md is the final authority**
 
 ---
 
-## Core Principles
+## Non-Negotiable Rule (CRITICAL)
+
+> Any change to language behavior, syntax, runtime semantics, parser rules, or examples MUST also update:
+>
+> * `GENIA_STATE.md`
+> * relevant chapter(s) in `docs/book/`
+>
+> Documentation must describe **only behavior that is implemented and verified by tests**
+
+No exceptions.
+
+---
+
+## Core Philosophy
 
 ### 1. Preserve Simplicity
 
-Genia is designed to be:
+Genia must remain:
 
 * Minimal
 * Expressive
 * Human-readable
-* Easy to implement across runtimes
+* Easy to implement
 
 Avoid:
 
-* Unnecessary syntax
-* Over-engineering
-* Hidden complexity
+* Extra syntax
+* Cleverness over clarity
+* Hidden behavior
 
 ---
 
-### 2. Pattern Matching First
+### 2. Pattern Matching Is the Core
 
-Genia is fundamentally a **pattern-matching language**.
+Genia is a **pattern-matching-first language**.
 
-Agents should:
+Agents must:
 
-* Prefer pattern matching over conditionals
-* Expand pattern matching expressiveness where appropriate
-* Avoid introducing traditional `if` constructs
+* Prefer pattern matching over all alternatives
+* Improve pattern expressiveness when needed
+* Avoid fallback to imperative constructs
 
 ---
 
 ### 3. “decide” Is the Only Conditional
 
-All conditional logic must use:
+Allowed:
 
 ```
 decide
 ```
 
-Never introduce:
+Forbidden:
 
 * `if`
 * `switch`
@@ -79,8 +89,8 @@ Never introduce:
 
 ### 4. Immutability by Default
 
-* Variables are immutable unless explicitly designed otherwise
-* Avoid side effects unless clearly intentional
+* No mutation unless explicitly designed
+* Favor value transformation
 
 ---
 
@@ -89,60 +99,163 @@ Never introduce:
 Favor:
 
 * Pure functions
-* Recursion (with TCO in mind)
+* Recursion (TCO-aware)
 * Composition
 
 Avoid:
 
-* Imperative loops (except `repeat`, when defined)
-* Mutable shared state
+* Imperative loops (except `repeat`)
+* Shared mutable state
 
 ---
 
-## Current Architecture Awareness
+## Book-Driven Development (CRITICAL)
 
-Agents must align with the **actual implementation state**, not an idealized design.
+The `docs/book/` directory is not documentation.
 
-Before coding:
+It is the **primary interface for understanding Genia**.
 
-1. Read `GENIA_STATE.md`
-2. Confirm what is already implemented
-3. Extend — do not reinvent
+Agents must:
+
+* Treat chapters as executable learning artifacts
+* Keep them aligned with real implementation
+* Update them alongside any change
 
 ---
 
-## Required Workflow for Changes
+## Chapter Mapping Responsibility
 
-### Step 1: Understand Context
+Agents must map features → chapters:
 
-* Read relevant `.md` files
-* Identify gaps vs. current implementation
+| Feature          | Chapter             |
+| ---------------- | ------------------- |
+| Data / literals  | 01-core-data        |
+| Pattern matching | 02-pattern-matching |
+| Functions        | 03-functions        |
+| decide           | 04-decide           |
+| Lists            | 05-lists            |
+| Recursion        | 06-recursion        |
+| repeat           | 07-repeat           |
+| Protocols        | 08-protocols        |
+| Errors/retries   | 09-errors           |
+| Concurrency      | 10-concurrency      |
 
-### Step 2: Design First
+If a feature doesn’t fit → update closest chapter or create a new one.
 
-* Propose minimal, idiomatic solution
-* Ensure consistency with Genia philosophy
+---
+
+## Required Workflow for Any Change
+
+### Step 1: Read First
+
+Agents MUST read:
+
+* `GENIA_STATE.md`
+* `GENIA_RULES.md`
+* Relevant chapter(s) in `docs/book/`
+
+---
+
+### Step 2: Design
+
+* Keep solution minimal
+* Align with philosophy
+* Avoid introducing syntax unless necessary
+
+---
 
 ### Step 3: Implement
 
-* Keep changes small and focused
-* Avoid breaking existing behavior
+* Small, focused changes
+* Preserve existing behavior
+
+---
 
 ### Step 4: Update Documentation (MANDATORY)
 
-Every meaningful change must update:
+Agents MUST update:
 
-* `GENIA_STATE.md` → reflect new capabilities
-* `GENIA_RULES.md` → if semantics changed
-* `README.md` → if user-facing behavior changed
+* `GENIA_STATE.md`
+* Relevant chapter(s)
+* Examples if behavior changed
+
+---
+
+### Step 5: Validate Truthfulness
+
+Before finishing, verify:
+
+* Docs match actual parser/runtime behavior
+* No feature is documented unless implemented
+* Partial features are labeled as partial
+
+---
+
+## Documentation Rules (VERY IMPORTANT)
+
+### 1. No Speculation
+
+Docs must NOT describe:
+
+* Planned features as implemented
+* Idealized behavior
+* Future syntax
+
+---
+
+### 2. Every Feature Must Include
+
+In book chapters:
+
+* Minimal example
+* Edge case example
+* Failure case example
+
+---
+
+### 3. Implemented vs Missing
+
+Each chapter must include:
+
+* ✅ What is implemented
+* ⚠️ What is partial
+* ❌ What is not implemented
+
+---
+
+### 4. Examples Must Be Real
+
+All examples must:
+
+* Reflect actual syntax
+* Be executable or testable
+* Match current runtime behavior
+
+---
+
+## Generated Documentation Sections
+
+Some parts of documentation must be treated as **generated truth**.
+
+Markers:
+
+```
+<!-- GENERATED:section-name:start -->
+...
+<!-- GENERATED:section-name:end -->
+```
+
+Agents:
+
+* MAY update content inside markers
+* MUST NOT remove markers
+* SHOULD regenerate based on code when possible
 
 ---
 
 ## Code Style Guidelines
 
-### Function Definitions
-
-Prefer concise, pattern-based definitions:
+### Functions
 
 ```
 fact(0) -> 1 |
@@ -153,8 +266,6 @@ fact(n) -> n * fact(n - 1)
 
 ### Pattern Matching
 
-Favor expressive destructuring:
-
 ```
 head([x, .._]) -> x
 ```
@@ -163,129 +274,105 @@ head([x, .._]) -> x
 
 ### Naming
 
-* Use clear, semantic names
-* Avoid abbreviations unless idiomatic
+* Clear, semantic
+* No unnecessary abbreviations
 
 ---
 
 ## Optimization Guidelines
 
-Agents may introduce optimizations **only if**:
+Allowed only if:
 
-* They preserve semantics
-* They reduce runtime complexity or allocations
-* They align with simplicity goals
+* Semantics unchanged
+* Simplicity preserved
+* Measurable improvement
 
 Examples:
 
-* Tail-call optimization (TCO)
-* Pattern match flattening
-* Basic IR transformations
+* TCO
+* Pattern match optimization
+* Small IR improvements
 
 ---
 
-## When Adding Features
+## Feature Additions
 
 Agents must:
 
-1. Justify the feature:
-
-   * What problem does it solve?
-   * Why is it necessary?
-
-2. Ensure:
-
-   * It fits the language philosophy
-   * It does not introduce unnecessary syntax
-
-3. Provide:
-
-   * Examples
-   * Updated documentation
+1. Justify necessity
+2. Prove alignment with philosophy
+3. Add examples
+4. Update docs
 
 ---
 
-## When Refactoring
+## Refactoring Rules
 
 Allowed when:
 
 * Improves clarity
+* Enables features
 * Reduces duplication
-* Enables future features
 
 Must:
 
 * Preserve behavior
-* Update docs if structure changes
-
----
-
-## Codex Prompting Rules
-
-When generating prompts for Codex:
-
-* Always include:
-
-  * Reference to `GENIA_STATE.md`
-  * Instruction to update documentation
-* Be explicit about:
-
-  * Scope
-  * Constraints
-  * Expected output
-
----
-
-### Example Codex Prompt Pattern
-
-```
-Read GENIA_STATE.md and GENIA_RULES.md before making changes.
-
-Task:
-[clear description]
-
-Constraints:
-- Do not introduce new syntax unless necessary
-- Preserve pattern matching semantics
-- Keep implementation minimal
-
-After completion:
-- Update GENIA_STATE.md to reflect changes
-- Update GENIA_RULES.md if semantics changed
-```
-
----
-
-## Anti-Patterns (Do NOT Do)
-
-* Introduce `if` statements
-* Add unnecessary keywords
-* Overcomplicate pattern matching
-* Ignore documentation updates
-* Reimplement existing functionality
-* Drift from functional paradigm
+* Update documentation
 
 ---
 
 ## Testing Expectations
 
-Agents should:
+Agents must:
 
-* Add or update examples
-* Validate edge cases
-* Ensure pattern matching correctness
+* Add examples or tests
+* Cover edge cases
+* Validate pattern matching behavior
 
 ---
 
-## Long-Term Vision Alignment
+## Codex Prompt Requirements
 
-Genia aims to be:
+Every Codex prompt must include:
 
-* A small, portable core language
-* Easily implementable in multiple host languages
-* Friendly to both humans and AI
+* Instruction to read:
 
-Every contribution should move toward that goal.
+  * `GENIA_STATE.md`
+  * `GENIA_RULES.md`
+* Instruction to update documentation
+* Clear constraints
+
+---
+
+### Standard Prompt Template
+
+```
+Read GENIA_STATE.md and GENIA_RULES.md before making changes.
+
+Task:
+[description]
+
+Constraints:
+- Do not introduce unnecessary syntax
+- Preserve pattern matching semantics
+- Keep implementation minimal
+
+After completion:
+- Update GENIA_STATE.md
+- Update relevant docs/book chapters
+- Ensure examples match real behavior
+```
+
+---
+
+## Anti-Patterns (STRICTLY FORBIDDEN)
+
+* Introducing `if`
+* Overcomplicating pattern matching
+* Adding unnecessary keywords
+* Ignoring documentation updates
+* Reimplementing existing features
+* Documenting unimplemented behavior
 
 ---
 
@@ -293,6 +380,5 @@ Every contribution should move toward that goal.
 
 If unsure:
 
-👉 Choose the **simplest solution that fits the philosophy**.
-
-
+👉 Choose the simplest solution that fits the philosophy
+👉 And make sure the book teaches it correctly
