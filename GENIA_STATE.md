@@ -115,6 +115,18 @@ Behavior:
 - `trim`, `trim_start`, `trim_end`
 - `lower`, `upper`
 
+### Simulation primitives (Phase 2, host-backed builtins)
+
+- `rand()`
+- `rand_int(n)`
+- `sleep(ms)`
+
+Behavior:
+
+- `rand()` returns a float in `[0, 1)` using host RNG
+- `rand_int(n)` returns an integer in `[0, n)`; raises clear `TypeError` for non-integer `n` and `ValueError` for `n <= 0`
+- `sleep(ms)` blocks current execution for `ms` milliseconds; raises clear `TypeError` for non-numeric values and `ValueError` for negative values
+
 ## 6) Autoloaded stdlib
 
 Autoload is keyed by `(name, arity)` and currently registers functions from:

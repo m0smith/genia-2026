@@ -8,6 +8,7 @@ This repository currently provides:
 - a REPL and file runner (`python3 -m genia.interpreter`)
 - host-backed concurrency primitives (`spawn`, `send`, `process_alive?`)
 - refs (`ref`, `ref_get`, `ref_set`, `ref_update`)
+- simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, agents)
 - debug-stdio adapter support for editor integration
 
@@ -122,6 +123,13 @@ agent_get(counter)
 ### Concurrency
 
 - `spawn`, `send`, `process_alive?`
+
+### Simulation primitives (Phase 2)
+
+- `rand()` returns a float in `[0, 1)`
+- `rand_int(n)` returns an integer in `[0, n)` for positive integer `n`
+- `sleep(ms)` blocks for `ms` milliseconds
+- intentionally simple: no scheduler, no async/await, no event loop
 
 ### Phase 1 persistent associative maps
 

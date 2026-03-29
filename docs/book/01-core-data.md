@@ -113,3 +113,94 @@ Expected behavior:
 - member/index syntax for maps
 - general host interop / FFI
 
+---
+
+## Simulation primitives (Phase 2)
+
+Genia includes minimal host-backed simulation builtins:
+
+- `rand()`
+- `rand_int(n)`
+- `sleep(ms)`
+
+These are builtins only. They do **not** add async runtime behavior, a scheduler, or new syntax.
+
+### Random decision example
+
+```genia
+decide rand_int(2) {
+  0 -> print("left")
+  1 -> print("right")
+}
+```
+
+Expected behavior:
+
+- one branch is selected using random integer output in `[0, 2)`
+
+### Simple loop with sleep
+
+```genia
+step(n) =
+  n ? n <= 0 -> "done" |
+  _ -> {
+    print(rand())
+    sleep(5)
+    step(n - 1)
+  }
+```
+
+Expected behavior:
+
+- prints a random float each step
+- blocks briefly each iteration
+- remains single-threaded from language perspective
+
+### Edge case example
+
+```genia
+rand_int(1)
+```
+
+Expected behavior:
+
+- always returns `0`
+
+### Failure case examples
+
+```genia
+rand_int(0)
+```
+
+Expected behavior:
+
+- raises `ValueError` (`n` must be `> 0`)
+
+And:
+
+```genia
+sleep("10")
+```
+
+Expected behavior:
+
+- raises `TypeError` (`ms` must be numeric)
+
+### Implementation status
+
+### ✅ Implemented
+
+- `rand()` returns float in `[0, 1)`
+- `rand_int(n)` validates integer and positive bound, returns integer in `[0, n)`
+- `sleep(ms)` validates non-negative numeric argument and blocks for milliseconds
+
+### ⚠️ Partial
+
+- randomness is host-RNG quality, not seed-controlled by language-level API
+- sleep granularity depends on host scheduler/timer resolution
+
+### ❌ Not implemented
+
+- scheduler/event loop primitives
+- async/await syntax
+- deterministic RNG seeding controls
