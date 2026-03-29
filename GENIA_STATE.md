@@ -1,375 +1,134 @@
 # Genia — Current Language State (Main Branch)
 
-> This document defines the **actual, enforced, and intended behavior** of Genia as it exists on the main branch.
->
-> Audience:
->
-> * AI agents (Codex, ChatGPT)
-> * Language implementers
-> * Contributors modifying parser, runtime, or syntax
->
-> This is the **ground truth**, not a wishlist.
+This file describes what is **actually implemented now** in the Python runtime.
 
----
+## 1) Execution model
 
-# 1. Language Identity
+- programs are expression sequences
+- top-level assignment is supported (`name = expr`)
+- blocks evaluate expressions in order and return the last value
+- no statement/declaration split at runtime level
 
-Genia is a:
+## 2) Implemented syntax and expression forms
 
-* Functional-first language
-* Expression-oriented language (everything evaluates to a value)
-* Runtime-typed language
-* Non-whitespace-sensitive language
-* Minimal-core, composition-first language
+- literals: number, string, boolean, `nil`
+- variables
+- function calls
+- unary operators: `-`, `!`
+- binary operators: `+ - * / % < <= > >= == != && ||`
+- block expressions: `{ ... }`
+- list literals: `[a, b, c]`
+- list spread in literals: `[..xs]`, `[1, ..xs, 2]`
+- call spread: `f(..xs)`
+- lambdas: `(x) -> x + 1`
+- varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
 
-Design priority:
+## 3) Functions and dispatch
 
-> Reduce ambiguity for both humans and AI while keeping the implementation small.
+- named functions are first-class values
+- multiple definitions by arity shape are allowed
+- varargs named functions are supported (`f(a, ..rest) = ...`)
+- resolution behavior:
+  - exact fixed arity beats varargs
+  - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
 
----
+## 4) Case expressions and pattern matching
 
-# 2. Execution Model
+Case arms support:
 
-* Programs are evaluated as expressions
-* There are **no statements**
-* Every construct returns a value
-* Blocks evaluate sequentially and return the last expression
-
----
-
-# 3. Function Model
-
-## 3.1 Function Definitions
-
-### Expression body
-
-```
-inc(x) = x + 1
-```
-
-### Case body
-
-```
-fact(n) =
-  0 -> 1 |
-  n -> n * fact(n - 1)
-```
-
-### Block body
-
-```
-fact(n) {
-  log(n)
-  0 -> 1 |
-  n -> n * fact(n - 1)
-}
-```
-
----
-
-## 3.2 Tuple Semantics (Critical)
-
-All function arguments are treated as a **single tuple**.
-
-```
-f(x, y)
-```
-
-is equivalent to:
-
-```
-f((x, y))
-```
-
-Implications:
-
-* Pattern matching always targets the full argument tuple
-* Multi-argument functions are syntactic sugar
-
----
-
-# 4. Pattern Matching
-
-## 4.1 Case Structure
-
-Each case:
-
-```
+```genia
 pattern -> result
 pattern ? guard -> result
 ```
 
-Cases are separated by:
+Implemented pattern types:
 
-```
-|
-```
+- literal patterns
+- variable binding
+- wildcard `_`
+- tuple patterns
+- list patterns
+- rest pattern `..name` / `.._` (list patterns only; final position only)
+- duplicate binding semantics (same name must match equal value)
 
----
+Case placement rules (enforced):
 
-## 4.2 Evaluation Rules
+- allowed in function body
+- allowed as final expression in block
+- rejected in ordinary subexpressions / call args / non-final block positions
 
-* Cases are evaluated top-to-bottom
-* Pattern must match first
-* Guard (if present) must evaluate to true
-* First matching case is selected
+## 5) Builtins (runtime)
 
----
+### Core I/O and utilities
 
-## 4.3 Examples
+- `log`, `print`, `input`, `stdin`, `help`
+- constants in global env: `pi`, `e`, `true`, `false`, `nil`
 
-### Simple
+### Refs
 
-```
-fact(n) =
-  n ? n <= 1 -> 1 |
-  n -> n * fact(n - 1)
-```
+- `ref([initial])`
+- `ref_get(ref)`
+- `ref_set(ref, value)`
+- `ref_is_set(ref)`
+- `ref_update(ref, updater)`
 
-### Tuple matching
+Behavior: refs are synchronized host objects; `ref_get` / `ref_update` block until value is set when created via `ref()`.
 
-```
-add(x, y) =
-  (0, y) -> y |
-  (x, 0) -> x |
-  (x, y) -> x + y
-```
+### Host-backed concurrency
 
-### List destructuring
+- `spawn(handler)`
+- `send(process, message)`
+- `process_alive?(process)`
 
-```
-sum(list) =
-  [] -> 0 |
-  [head, ...tail] -> head + sum(tail)
-```
+Behavior:
 
----
+- each process has FIFO mailbox
+- one handler invocation at a time per process
+- implemented with host threads
 
-# 5. Case Expression Placement (Strict)
+### String builtins
 
-Case expressions are **NOT general expressions**.
+- `byte_length`, `is_empty`, `concat`
+- `contains`, `starts_with`, `ends_with`, `find`
+- `split`, `split_whitespace`, `join`
+- `trim`, `trim_start`, `trim_end`
+- `lower`, `upper`
 
-They are ONLY allowed in:
+## 6) Autoloaded stdlib
 
-* Function bodies
-* Final expression of a block
+Autoload is keyed by `(name, arity)` and currently registers functions from:
 
-They are NOT allowed in:
+- `std/prelude/list.genia`
+- `std/prelude/fn.genia`
+- `std/prelude/math.genia`
+- `std/prelude/awk.genia`
+- `std/prelude/agent.genia`
 
-* Subexpressions
-* Function arguments
-* Lists or maps
-* Mid-block positions
+Notable autoloaded functions include:
 
----
+- list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `count`, `any?`, `nth`, `take`, `drop`
+- fn: `apply`, `compose`
+- math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
+- awk: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
+- agent: `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
 
-# 6. Expression Model
+## 7) Optimization behavior
 
-## 6.1 Ordinary Expressions
+Implemented optimizations:
 
-Include:
+- self tail-call elimination via trampoline for tail-position calls
+- specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
 
-* Literals
-* Identifiers
-* Function calls
-* Arithmetic
-* Comparisons
-* Logical operations
-* Pipelines
-* Lambdas
-* Blocks
+## 8) Debug/runtime tooling
 
----
+- parser/IR nodes carry source spans (filename + line/column ranges)
+- `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
 
-## 6.2 Case Expressions
+## 9) Explicitly not implemented (current)
 
-Separate grammar system.
-
-Symbols reserved for case grammar:
-
-* `->` (pattern mapping)
-* `?` (guard)
-* `|` (case separator)
-
-These do NOT participate in normal operator precedence.
-
----
-
-# 7. Operator Precedence (Ordinary Expressions)
-
-From highest → lowest:
-
-1. grouping (), literals, identifiers
-2. function calls, indexing, member access
-3. unary (-, !)
-4. *, /, %
-5. +, -
-6. comparisons (<, <=, >, >=)
-7. equality (==, !=)
-8. logical AND (&&)
-9. logical OR
-10. pipeline
-
-Constraints:
-
-* Comparisons are non-associative
-* Equality is non-associative
-
----
-
-# 8. Lambda Semantics
-
-Lambda form:
-
-```
-(x) -> x + 1
-```
-
-Important:
-
-* Uses the same `->` symbol as case expressions
-* Meaning is determined by context:
-
-  * expression context → lambda
-  * case context → pattern mapping
-
----
-
-# 9. Blocks
-
-```
-{
-  expr1
-  expr2
-  expr3
-}
-```
-
-Rules:
-
-* Expressions are separated by newlines
-* Indentation is irrelevant
-* Last expression is returned
-
-Constraints:
-
-* At most one case expression per block
-* If present, it must be the final expression
-
----
-
-# 10. Data Types
-
-Core runtime types:
-
-* Number
-* String
-* Boolean
-* Nil
-* List
-* Map
-* Function
-
----
-
-# 11. Data Processing Model
-
-Unified sequence abstraction.
-
-Core operations:
-
-* map
-* filter
-* reduce
-* take
-
-Example:
-
-```
-[1,2,3] |> map(x -> x * 2)
-```
-
----
-
-# 12. I/O Model
-
-* stdin
-* stdout
-* stderr
-
-Logging:
-
-```
-log("message")
-```
-
----
-
-# 13. Error Model (v0.1)
-
-* Pattern match failure → runtime error
-* No exception system in core
-
----
-
-# 14. Structural Constraints (Non-Negotiable)
-
-These must be preserved:
-
-* Case expressions are NOT general expressions
-* Pattern matching always targets full tuple
-* No indentation-based parsing
-* Minimal syntax is preferred over flexibility
-* One clear way to express each concept
-
----
-
-# 15. Known Gaps (Current State)
-
-The following areas are incomplete or evolving:
-
-* Standard library
-* Module system
-* Error handling model
-* AWK-like streaming mode
-* Optimization / IR layer
-* Compiler backend
-
----
-
-# 16. Design Philosophy (Enforcement Rules)
-
-All new features must:
-
-1. Reduce ambiguity
-2. Keep grammar simple
-3. Avoid overlapping concepts
-4. Preserve separation of expression types
-5. Favor composition over special cases
-
----
-
-# 17. Mental Model for AI
-
-Genia is best understood as:
-
-* A pattern-matching function engine
-* With expression evaluation
-* And strict placement rules for control flow
-
----
-
-# 18. Modification Checklist (For AI + Contributors)
-
-Before implementing a change:
-
-* Does this introduce parsing ambiguity?
-* Does it blur case vs expression boundaries?
-* Does it duplicate an existing mechanism?
-* Can it be expressed via composition instead?
-
-If YES → redesign
-
----
-
-# END
+- map literals / map patterns
+- module/import syntax
+- member access syntax
+- index syntax
+- general pipeline operator syntax
+- language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
