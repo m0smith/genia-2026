@@ -1523,6 +1523,10 @@ class GeniaRef:
             self._condition.notify_all()
             return value
 
+    def is_set(self) -> bool:
+        with self._condition:
+            return self._is_set
+
     def update(self, fn: Any) -> Any:
         with self._condition:
             while not self._is_set:
@@ -2136,6 +2140,11 @@ Commands:
             raise TypeError("ref_set expected a ref as first argument")
         return ref_value.set(value)
 
+    def ref_is_set_fn(ref_value: Any) -> bool:
+        if not isinstance(ref_value, GeniaRef):
+            raise TypeError("ref_is_set expected a ref")
+        return ref_value.is_set()
+
     def ref_update_fn(ref_value: Any, updater: Any) -> Any:
         if not isinstance(ref_value, GeniaRef):
             raise TypeError("ref_update expected a ref as first argument")
@@ -2156,6 +2165,7 @@ Commands:
     env.set("ref", ref_fn)
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)
+    env.set("ref_is_set", ref_is_set_fn)
     env.set("ref_update", ref_update_fn)
     env.set("byte_length", byte_length_fn)
     env.set("is_empty", is_empty_fn)
