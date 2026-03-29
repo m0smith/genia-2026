@@ -2132,6 +2132,11 @@ Examples:
   count([1, 2, 3])
   print([1, 2, 3])
 
+  inbox = ref([])
+  p = spawn((msg) -> ref_update(inbox, (xs) -> append(xs, [msg])))
+  send(p, "hello")
+  process_alive?(p)
+
   first_pair(xs) =
     [a, b] -> a + b
 
@@ -2144,6 +2149,11 @@ Commands:
   :quit   exit
   :env    show defined names
   :help   show this help
+
+Concurrency builtins (host-backed):
+  spawn(handler)          create a process with a mailbox
+  send(process, message)  enqueue a message for that process
+  process_alive?(process) check whether process worker thread is alive
 """.strip()
         )
 
