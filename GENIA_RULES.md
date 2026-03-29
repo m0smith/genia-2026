@@ -92,8 +92,16 @@ No implicit pipeline/member/index operators should be introduced without explici
 - unmatched function/case dispatch should raise deterministic runtime errors
 - invalid grammar forms should fail during parse with syntax errors
 - type-invalid builtins (e.g., non-list spread) should raise clear `TypeError`
+- value-invalid builtins should raise clear `ValueError` where appropriate (e.g., `rand_int(0)`, `sleep(-1)`)
 
-## 13) Documentation + tests as contract
+## 13) Simulation primitive builtins (host-backed only)
+
+- supported builtins: `rand`, `rand_int`, `sleep`
+- `rand()` returns a float in `[0, 1)`
+- `rand_int(n)` requires a positive integer `n`, returns integer in `[0, n)`
+- `sleep(ms)` requires a non-negative number and blocks current execution for `ms` milliseconds
+- these are simple runtime builtins only: no scheduler, no async/await, no event loop, no new syntax
+## 14) Documentation + tests as contract
 
 When changing syntax/semantics/runtime behavior, update together:
 

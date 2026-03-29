@@ -46,6 +46,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
   - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
   - constants: `pi`, `e`, `true`, `false`, `nil`
 
@@ -63,3 +64,15 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - general pipeline operator syntax
+
+## Simulation primitive semantics
+
+- `rand()` returns a host-RNG float in `[0, 1)`.
+- `rand_int(n)` returns an integer in `[0, n)` and raises:
+  - `TypeError` when `n` is not an integer
+  - `ValueError` when `n <= 0`
+- `sleep(ms)` blocks execution for `ms` milliseconds and raises:
+  - `TypeError` when `ms` is not numeric
+  - `ValueError` when `ms < 0`
+
+These are blocking builtins only; they do not introduce scheduler/async runtime behavior.

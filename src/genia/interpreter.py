@@ -38,6 +38,8 @@ import math
 import os
 import bisect
 import queue
+import random
+import time
 from pathlib import Path
 import argparse
 import re
@@ -2208,6 +2210,11 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
   map_has?(map, key)
   map_remove(map, key)
   map_count(map)
+
+Simulation primitives (host-backed builtins):
+  rand()                float in [0, 1)
+  rand_int(n)           integer in [0, n), n must be a positive integer
+  sleep(ms)             block for ms milliseconds
 """.strip()
         )
 
@@ -2286,6 +2293,26 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
         genia_map = _ensure_map(map_value, "map_count")
         return genia_map.count()
 
+    def rand_fn(*args: Any) -> float:
+        if len(args) != 0:
+            raise TypeError(f"rand expected 0 args, got {len(args)}")
+        return random.random()
+
+    def rand_int_fn(n: Any) -> int:
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError("rand_int expected a positive integer")
+        if n <= 0:
+            raise ValueError("rand_int expected n > 0")
+        return random.randrange(n)
+
+    def sleep_fn(ms: Any) -> None:
+        if not isinstance(ms, (int, float)) or isinstance(ms, bool):
+            raise TypeError("sleep expected a non-negative number")
+        if ms < 0:
+            raise ValueError("sleep expected ms >= 0")
+        time.sleep(ms / 1000.0)
+        return None
+
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -2310,6 +2337,9 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
     env.set("map_has?", map_has_fn)
     env.set("map_remove", map_remove_fn)
     env.set("map_count", map_count_fn)
+    env.set("rand", rand_fn)
+    env.set("rand_int", rand_int_fn)
+    env.set("sleep", sleep_fn)
     env.set("byte_length", byte_length_fn)
     env.set("is_empty", is_empty_fn)
     env.set("concat", concat_fn)
