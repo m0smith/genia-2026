@@ -37,6 +37,7 @@ from __future__ import annotations
 import math
 import os
 import bisect
+import queue
 from pathlib import Path
 import argparse
 import re
@@ -1542,6 +1543,29 @@ class GeniaRef:
             return "<ref <unset>>"
 
 
+class GeniaProcess:
+    def __init__(self, handler: Callable[[Any], Any]):
+        self._handler = handler
+        self._mailbox: queue.Queue[Any] = queue.Queue()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _run(self) -> None:
+        while True:
+            message = self._mailbox.get()
+            self._handler(message)
+
+    def send(self, message: Any) -> None:
+        self._mailbox.put(message)
+
+    def is_alive(self) -> bool:
+        return self._thread.is_alive()
+
+    def __repr__(self) -> str:
+        status = "alive" if self.is_alive() else "dead"
+        return f"<process {status}>"
+
+
 def eval_with_tco(
     fn: Any,
     args: tuple[Any, ...],
@@ -2152,6 +2176,22 @@ Commands:
             raise TypeError("ref_update expected a function as second argument")
         return ref_value.update(updater)
 
+    def spawn_fn(handler: Any) -> GeniaProcess:
+        if not callable(handler):
+            raise TypeError("spawn expected a function")
+        return GeniaProcess(handler)
+
+    def send_fn(process: Any, message: Any) -> None:
+        if not isinstance(process, GeniaProcess):
+            raise TypeError("send expected a process as first argument")
+        process.send(message)
+        return None
+
+    def process_alive_fn(process: Any) -> bool:
+        if not isinstance(process, GeniaProcess):
+            raise TypeError("process_alive? expected a process")
+        return process.is_alive()
+
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -2167,6 +2207,9 @@ Commands:
     env.set("ref_set", ref_set_fn)
     env.set("ref_is_set", ref_is_set_fn)
     env.set("ref_update", ref_update_fn)
+    env.set("spawn", spawn_fn)
+    env.set("send", send_fn)
+    env.set("process_alive?", process_alive_fn)
     env.set("byte_length", byte_length_fn)
     env.set("is_empty", is_empty_fn)
     env.set("concat", concat_fn)
