@@ -86,6 +86,27 @@ Behavior:
 - one handler invocation at a time per process
 - implemented with host threads
 
+### Host-backed persistent associative maps (Phase 1 bridge)
+
+- `map_new()`
+- `map_get(map, key)`
+- `map_put(map, key, value)`
+- `map_has?(map, key)`
+- `map_remove(map, key)`
+- `map_count(map)`
+
+Behavior:
+
+- map values are opaque runtime values (`<map N>`) and do not expose host methods
+- `map_new` returns an empty map
+- `map_put` and `map_remove` are persistent (return a new map, do not mutate input map)
+- `map_get` returns stored value or `nil` when key is missing
+- `map_has?` returns `true`/`false`
+- `map_count` returns entry count
+- list keys are supported by stable structural key-freezing in runtime
+- tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
+- invalid map arguments and unsupported key types raise clear `TypeError`
+
 ### String builtins
 
 - `byte_length`, `is_empty`, `concat`
@@ -127,6 +148,7 @@ Implemented optimizations:
 ## 9) Explicitly not implemented (current)
 
 - map literals / map patterns
+- general host interop / FFI layer
 - module/import syntax
 - member access syntax
 - index syntax
