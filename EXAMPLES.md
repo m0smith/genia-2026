@@ -224,7 +224,41 @@ Result:
 
 ---
 
-# 8. Blocks
+# 8. Host-backed Concurrency (Minimal)
+
+## 8.1 Process Creation and Message Send
+
+```genia
+inbox = ref([])
+p = spawn((msg) -> ref_update(inbox, (xs) -> append(xs, [msg])))
+send(p, "a")
+send(p, "b")
+send(p, "c")
+ref_get(inbox)
+```
+
+Result (after mailbox drains):
+
+```text
+["a", "b", "c"]
+```
+
+## 8.2 Process Liveness
+
+```genia
+p = spawn((msg) -> msg)
+process_alive?(p)
+```
+
+Result:
+
+```text
+true
+```
+
+---
+
+# 9. Blocks
 
 ```genia
 double(x) {
@@ -245,7 +279,7 @@ Result:
 
 ---
 
-# 9. Case Expressions in Blocks
+# 10. Case Expressions in Blocks
 
 ```genia
 classify(n) {

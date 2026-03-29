@@ -169,6 +169,40 @@ Rules:
 
 ---
 
+## ⚙️ Host-backed Concurrency (Minimal)
+
+Genia exposes a tiny process/mailbox substrate through builtins:
+
+* `spawn(handler)` → creates a process handle
+* `send(process, message)` → enqueues a message to that process mailbox
+* `process_alive?(process)` → checks whether the host worker thread is alive
+
+### Semantics
+
+* **Process creation**: `spawn` starts a host-backed worker (Python thread) that runs forever and invokes `handler(msg)` for each received message.
+* **Mailbox ordering**: for a single process, messages are handled in FIFO order (`send(p, a)` then `send(p, b)` means `a` is handled before `b`).
+* **Serial processing per process**: each process handles one message at a time; no concurrent handler execution within the same process.
+* **Host-backed concurrency**: this feature is implemented by the runtime host (not as a pure language-level scheduler).
+
+### Minimal Examples
+
+```genia
+# Fan-in to shared state
+total = ref(0)
+p = spawn((msg) -> ref_update(total, (n) -> n + msg))
+send(p, 1)
+send(p, 2)
+ref_get(total)   # eventually 3
+```
+
+```genia
+# Observe liveness
+p = spawn((msg) -> msg)
+process_alive?(p)  # true
+```
+
+---
+
 ## 📚 Standard Library (Autoloaded)
 
 Genia’s standard library is written in Genia and loaded on demand.
