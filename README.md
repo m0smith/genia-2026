@@ -41,6 +41,7 @@ pytest -q
 - Function
 - Host-backed reference (`ref`)
 - Host-backed process handle (`spawn`)
+- Host-backed persistent associative map (`map_new`, `map_put`, ...)
 
 ### Functions and lambdas
 
@@ -122,6 +123,12 @@ agent_get(counter)
 
 - `spawn`, `send`, `process_alive?`
 
+### Phase 1 persistent associative maps
+
+- `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- implemented as an opaque host-backed runtime wrapper (no map syntax added)
+- persistent semantics from Genia perspective (`map_put`/`map_remove` return new map values)
+
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `nth`, `take`, `drop`, ...
@@ -133,6 +140,7 @@ agent_get(counter)
 ## Not implemented yet
 
 - map literals/patterns
+- general host interop / FFI
 - module/import syntax
 - member access / indexing syntax
 - general pipeline operator syntax

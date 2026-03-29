@@ -79,13 +79,21 @@ No implicit pipeline/member/index operators should be introduced without explici
 - one handler invocation at a time per process
 - concurrency remains host-backed (threads), not language-scheduled
 
-## 11) Error behavior
+## 11) Host-backed persistent map bridge invariants
+
+- persistent map support is runtime/builtin only (no syntax added)
+- required builtins: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- map values are opaque runtime wrappers, not exposed host objects
+- `map_put` / `map_remove` must return new map values (no mutation of prior values)
+- unsupported map input types and unsupported key types must raise clear `TypeError`
+
+## 12) Error behavior
 
 - unmatched function/case dispatch should raise deterministic runtime errors
 - invalid grammar forms should fail during parse with syntax errors
 - type-invalid builtins (e.g., non-list spread) should raise clear `TypeError`
 
-## 12) Documentation + tests as contract
+## 13) Documentation + tests as contract
 
 When changing syntax/semantics/runtime behavior, update together:
 

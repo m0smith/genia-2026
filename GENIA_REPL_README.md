@@ -45,6 +45,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - I/O: `log`, `print`, `input`, `stdin`, `help`
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
+  - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
   - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
   - constants: `pi`, `e`, `true`, `false`, `nil`
 
@@ -57,8 +58,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ## Not implemented (current)
 
 - map/dict literals and map patterns
+- general host interop / FFI
 - module/import system
 - member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - general pipeline operator syntax
-

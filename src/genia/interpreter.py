@@ -1543,6 +1543,52 @@ class GeniaRef:
             return "<ref <unset>>"
 
 
+def _freeze_map_key(value: Any) -> Any:
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return value
+    if isinstance(value, list):
+        return ("list", tuple(_freeze_map_key(item) for item in value))
+    if isinstance(value, tuple):
+        return ("tuple", tuple(_freeze_map_key(item) for item in value))
+    raise TypeError(f"map key type is not supported: {type(value).__name__}")
+
+
+class GeniaMap:
+    def __init__(self, entries: dict[Any, tuple[Any, Any]] | None = None):
+        self._entries = {} if entries is None else entries
+
+    def get(self, key: Any) -> Any:
+        frozen_key = _freeze_map_key(key)
+        entry = self._entries.get(frozen_key)
+        if entry is None:
+            return None
+        return entry[1]
+
+    def put(self, key: Any, value: Any) -> "GeniaMap":
+        frozen_key = _freeze_map_key(key)
+        next_entries = dict(self._entries)
+        next_entries[frozen_key] = (key, value)
+        return GeniaMap(next_entries)
+
+    def has(self, key: Any) -> bool:
+        frozen_key = _freeze_map_key(key)
+        return frozen_key in self._entries
+
+    def remove(self, key: Any) -> "GeniaMap":
+        frozen_key = _freeze_map_key(key)
+        if frozen_key not in self._entries:
+            return self
+        next_entries = dict(self._entries)
+        del next_entries[frozen_key]
+        return GeniaMap(next_entries)
+
+    def count(self) -> int:
+        return len(self._entries)
+
+    def __repr__(self) -> str:
+        return f"<map {len(self._entries)}>"
+
+
 class GeniaProcess:
     def __init__(self, handler: Callable[[Any], Any]):
         self._handler = handler
@@ -2154,6 +2200,14 @@ Concurrency builtins (host-backed):
   spawn(handler)          create a process with a mailbox
   send(process, message)  enqueue a message for that process
   process_alive?(process) check whether process worker thread is alive
+
+Persistent map builtins (phase 1, host-backed opaque wrapper):
+  map_new()
+  map_get(map, key)
+  map_put(map, key, value)
+  map_has?(map, key)
+  map_remove(map, key)
+  map_count(map)
 """.strip()
         )
 
@@ -2202,6 +2256,36 @@ Concurrency builtins (host-backed):
             raise TypeError("process_alive? expected a process")
         return process.is_alive()
 
+    def _ensure_map(value: Any, name: str) -> GeniaMap:
+        if not isinstance(value, GeniaMap):
+            raise TypeError(f"{name} expected a map as first argument")
+        return value
+
+    def map_new_fn(*args: Any) -> GeniaMap:
+        if len(args) != 0:
+            raise TypeError(f"map_new expected 0 args, got {len(args)}")
+        return GeniaMap()
+
+    def map_get_fn(map_value: Any, key: Any) -> Any:
+        genia_map = _ensure_map(map_value, "map_get")
+        return genia_map.get(key)
+
+    def map_put_fn(map_value: Any, key: Any, value: Any) -> GeniaMap:
+        genia_map = _ensure_map(map_value, "map_put")
+        return genia_map.put(key, value)
+
+    def map_has_fn(map_value: Any, key: Any) -> bool:
+        genia_map = _ensure_map(map_value, "map_has?")
+        return genia_map.has(key)
+
+    def map_remove_fn(map_value: Any, key: Any) -> GeniaMap:
+        genia_map = _ensure_map(map_value, "map_remove")
+        return genia_map.remove(key)
+
+    def map_count_fn(map_value: Any) -> int:
+        genia_map = _ensure_map(map_value, "map_count")
+        return genia_map.count()
+
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -2220,6 +2304,12 @@ Concurrency builtins (host-backed):
     env.set("spawn", spawn_fn)
     env.set("send", send_fn)
     env.set("process_alive?", process_alive_fn)
+    env.set("map_new", map_new_fn)
+    env.set("map_get", map_get_fn)
+    env.set("map_put", map_put_fn)
+    env.set("map_has?", map_has_fn)
+    env.set("map_remove", map_remove_fn)
+    env.set("map_count", map_count_fn)
     env.set("byte_length", byte_length_fn)
     env.set("is_empty", is_empty_fn)
     env.set("concat", concat_fn)
