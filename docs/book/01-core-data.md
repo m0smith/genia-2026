@@ -204,3 +204,82 @@ Expected behavior:
 - scheduler/event loop primitives
 - async/await syntax
 - deterministic RNG seeding controls
+
+---
+
+## First simulation demo: ants (minimal, text mode)
+
+Genia now ships a first working ants-style demo at:
+
+- `examples/ants.genia`
+
+This demo is intentionally minimal and uses only currently implemented builtins and syntax:
+
+- host-backed persistent maps for world state (`map_new`, `map_get`, `map_put`, `map_has?`)
+- random direction selection (`rand_int(4)`)
+- recursive stepping (finite number of steps)
+- blocking frame pacing (`sleep(ms)`)
+- plain text rendering (`print`)
+
+### Minimal example (from the demo)
+
+```genia
+cell_get(world, pos) =
+  (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
+  (_, _) -> "empty"
+
+step_cell(world, ant_pos, target, target_cell) =
+  (world, ant_pos, target, "ant") -> [world, ant_pos, "blocked"] |
+  (world, ant_pos, target, "food") -> [move_ant(world, ant_pos, target), target, "ate_food"] |
+  (world, ant_pos, target, _) -> [move_ant(world, ant_pos, target), target, "moved"]
+```
+
+This shows the central simulation shape:
+
+- world is a persistent map keyed by `[x, y]`
+- missing cell defaults to `"empty"`
+- each step returns `[next_world, next_ant_pos, event]`
+
+### Edge case example
+
+```genia
+wrap(n, size) =
+  (n, size) ? n < 0 -> size - 1 |
+  (n, size) ? n >= size -> 0 |
+  (n, _) -> n
+```
+
+Expected behavior (demo grid wrapping):
+
+- `wrap(-1, 8)` -> `7`
+- `wrap(8, 8)` -> `0`
+
+### Failure / limitation notes
+
+- The demo is text-mode only (no graphics).
+- The first version is single-ant only.
+- Simulation timing is blocking (`sleep`) and host-dependent.
+- There is still no native map syntax (no map literals, no map patterns).
+- There is still no scheduler/event loop or language-level simulation framework.
+
+### Implementation status for the ants demo
+
+### ✅ Implemented
+
+- runnable finite-step simulation in `examples/ants.genia`
+- random movement + wrapped grid movement
+- persistent map-based world updates
+- default-empty cell lookup via helper function
+- recursive step loop with `sleep` timing
+
+### ⚠️ Partial
+
+- only one ant entity is modeled
+- randomness is non-deterministic host RNG (no seed API)
+- rendering is plain ASCII grid text
+
+### ❌ Not implemented
+
+- actor/scheduler-based simulation runtime
+- native language abstractions for agents, ticks, or worlds
+- native map syntax for simulation state authoring

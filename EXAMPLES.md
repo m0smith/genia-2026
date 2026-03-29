@@ -259,6 +259,21 @@ Result (after mailbox drains):
 15
 ```
 
+---
+
+# 9. Ants-Style Simulation (Minimal, Text Mode)
+
+See `examples/ants.genia` for the full runnable demo.
+
+Characteristics:
+
+- single-ant first
+- wrapped 2D grid
+- world stored in host-backed persistent map keyed by `[x, y]`
+- stochastic movement via `rand_int(4)`
+- recursive stepping with `sleep(ms)` pacing
+- plain text rendering only
+
 ## 8.3 Simple Counter Agent
 
 ```genia

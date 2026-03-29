@@ -1,0 +1,107 @@
+# Minimal ants-style simulation demo (single ant, text mode)
+# Uses only currently implemented builtins and syntax.
+
+width() = 8
+height() = 5
+
+empty_cell() = "empty"
+food_cell() = "food"
+ant_cell() = "ant"
+
+ant_start() = [2, 2]
+
+wrap(n, size) =
+  (n, size) ? n < 0 -> size - 1 |
+  (n, size) ? n >= size -> 0 |
+  (n, _) -> n
+
+pos_add(pos, delta) =
+  ([x, y], [dx, dy]) -> [
+    wrap(x + dx, width()),
+    wrap(y + dy, height())
+  ]
+
+cell_get(world, pos) =
+  (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
+  (_, _) -> empty_cell()
+
+cell_put(world, pos, value) = map_put(world, pos, value)
+
+cell_char(cell) =
+  "ant" -> "A" |
+  "food" -> "*" |
+  _ -> "."
+
+seed_world() =
+  map_put(
+    map_put(
+      map_put(
+        map_put(map_new(), ant_start(), ant_cell()),
+        [0, 0],
+        food_cell()
+      ),
+      [5, 1],
+      food_cell()
+    ),
+    [7, 4],
+    food_cell()
+  )
+
+move_ant(world, from, to) =
+  cell_put(cell_put(world, from, empty_cell()), to, ant_cell())
+
+dir_from_int(n) =
+  0 -> [1, 0] |
+  1 -> [-1, 0] |
+  2 -> [0, 1] |
+  _ -> [0, -1]
+
+random_dir() = dir_from_int(rand_int(4))
+
+step(world, ant_pos) = step_with_dir(world, ant_pos, random_dir())
+
+step_with_dir(world, ant_pos, dir) =
+  step_target(world, ant_pos, pos_add(ant_pos, dir))
+
+step_target(world, ant_pos, target) =
+  step_cell(world, ant_pos, target, cell_get(world, target))
+
+step_cell(world, ant_pos, target, target_cell) =
+  (world, ant_pos, target, "ant") -> [world, ant_pos, "blocked"] |
+  (world, ant_pos, target, "food") -> [move_ant(world, ant_pos, target), target, "ate_food"] |
+  (world, ant_pos, target, _) -> [move_ant(world, ant_pos, target), target, "moved"]
+
+render_cell(world, pos) =
+  (world, [x, y]) -> cell_char(cell_get(world, [x, y]))
+
+render_row(world, y, x) =
+  (world, y, x) ? x >= width() -> "" |
+  (world, y, x) -> render_cell(world, [x, y]) + render_row(world, y, x + 1)
+
+render_rows(world, y) =
+  (world, y) ? y >= height() -> nil |
+  (world, y) -> {
+    print(render_row(world, y, 0))
+    render_rows(world, y + 1)
+  }
+
+render(world) = render_rows(world, 0)
+
+run_after_step(step_result, steps_left, delay_ms) =
+  ([world2, ant2, event], steps_left, delay_ms) -> {
+    print(event)
+    sleep(delay_ms)
+    run(world2, ant2, steps_left - 1, delay_ms)
+  }
+
+run(world, ant_pos, steps_left, delay_ms) =
+  (_, _, steps_left, _) ? steps_left <= 0 -> "done" |
+  (world, ant_pos, steps_left, delay_ms) -> {
+    print("-----")
+    render(world)
+    run_after_step(step(world, ant_pos), steps_left, delay_ms)
+  }
+
+main() = run(seed_world(), ant_start(), 12, 80)
+
+main()
