@@ -184,15 +184,47 @@ Genia exposes a tiny process/mailbox substrate through builtins:
 * **Serial processing per process**: each process handles one message at a time; no concurrent handler execution within the same process.
 * **Host-backed concurrency**: this feature is implemented by the runtime host (not as a pure language-level scheduler).
 
-### Minimal Examples
+### Runnable Examples
 
 ```genia
-# Fan-in to shared state
+# 1) Basic process + send
+inbox = ref([])
+p = spawn((msg) -> ref_update(inbox, (xs) -> append(xs, [msg])))
+send(p, "a")
+send(p, "b")
+send(p, "c")
+ref_get(inbox)  # eventually ["a", "b", "c"]
+```
+
+```genia
+# 2) Ref used with a process
 total = ref(0)
-p = spawn((msg) -> ref_update(total, (n) -> n + msg))
-send(p, 1)
-send(p, 2)
-ref_get(total)   # eventually 3
+acc = spawn((msg) -> ref_update(total, (n) -> n + msg))
+send(acc, 10)
+send(acc, 5)
+ref_get(total)  # eventually 15
+```
+
+```genia
+# 3) Simple counter agent (autoloaded from std/prelude/agent.genia)
+counter = agent(0)
+agent_send(counter, (n) -> n + 1)
+agent_send(counter, (n) -> n + 1)
+agent_get(counter)  # eventually 2
+```
+
+```genia
+# 4) Logging/background worker pattern
+append_logged(xs, msg) {
+  log(msg)
+  append(xs, [msg])
+}
+
+logs = ref([])
+logger = spawn((msg) -> ref_update(logs, (xs) -> append_logged(xs, msg)))
+send(logger, "boot")
+send(logger, "request")
+ref_get(logs)  # eventually ["boot", "request"]
 ```
 
 ```genia
