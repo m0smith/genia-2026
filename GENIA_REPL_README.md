@@ -1,75 +1,52 @@
 # Genia Prototype REPL
 
-This is a Python prototype REPL for the current Genia design.
+This document describes the **actual current behavior** of the Python prototype in `src/genia/interpreter.py`.
 
 ## Run
 
-```bash
-python3 genia_repl.py
-```
-
-Or run a file:
+Run the REPL:
 
 ```bash
-python3 genia_repl.py sample.genia
+python3 -m genia.interpreter
 ```
 
-## Supported in this prototype
+Run a program file:
 
-- numbers, strings, booleans, nil
-- arithmetic: `+ - * / %`
-- comparison: `< <= > >= == !=`
-- variables and function calls
-- function definitions with `=`
-- function definitions with `{}` block bodies
-- case expressions in function bodies
-- case expressions as the final expression in a block
-- pattern matching against the full argument tuple
-- single-parameter shorthand patterns
-- guards with `?`
-- `log(...)` builtin
-
-## Examples
-
-### Arithmetic
-
-```genia
-1 + 2 * 3
+```bash
+python3 -m genia.interpreter path/to/file.genia
 ```
 
-### Simple function
+Run in stdio debug-adapter mode:
 
-```genia
-square(x) = x * x
-square(5)
+```bash
+python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ```
 
-### Factorial
+## Implemented today
 
-```genia
-fact(n) =
-  0 -> 1 |
-  n -> n * fact(n - 1)
-```
-
-### Factorial with logging block
-
-```genia
-fact2(n) {
-  log(n)
-  0 -> 1 |
-  n -> n * fact2(n - 1)
-}
-```
-
-### Tuple-pattern matching
-
-```genia
-add(x, y) =
-  (0, y) -> y |
-  (x, 0) -> x |
-  (x, y) -> x + y
-```
+- literals: numbers, strings (single/double quotes + escapes), booleans, `nil`
+- variables and top-level assignment (`name = expr`)
+- unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
+- function definitions with expression body, block body, or case body
+- lambda expressions, including varargs lambdas with `..rest`
+- list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
+- function-call argument spread (`f(..xs)`)
+- pattern matching:
+  - tuple patterns
+  - list patterns
+  - wildcard `_`
+  - rest pattern `..rest` / `.._`
+  - duplicate-binding equality semantics (`[x, x]`)
+  - guards with `?`
+- case expressions in function bodies and as final expression in a block
+- function resolution with fixed arity + varargs precedence
+- autoloaded stdlib functions keyed by `(name, arity)`
+- builtins:
+  - I/O: `log`, `print`, `input`, `stdin`, `help`
+  - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+  - concurrency: `spawn`, `send`, `process_alive?`
+  - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
+  - constants: `pi`, `e`, `true`, `false`, `nil`
 
 ## REPL commands
 
@@ -77,13 +54,11 @@ add(x, y) =
 - `:env`
 - `:quit`
 
-## Not implemented yet
+## Not implemented (current)
 
-- lambdas
-- lists/maps/destructuring beyond tuple parameter matching
-- pipelines
-- modules/imports
-- member access / indexing
-- full standard library
+- map/dict literals and map patterns
+- module/import system
+- member access and indexing syntax
+- a language-level scheduler (concurrency is host-thread based)
+- general pipeline operator syntax
 
-This is a prototype to validate the language model and syntax decisions, not a finished implementation.

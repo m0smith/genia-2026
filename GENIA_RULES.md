@@ -1,298 +1,96 @@
-# Genia — Compiler & Language Invariants (DO NOT BREAK)
+# Genia — Compiler & Language Invariants (Current)
 
-> This document defines **non-negotiable invariants** for the Genia language.
->
-> Audience:
->
-> * AI agents (Codex, ChatGPT)
-> * Parser / compiler implementers
-> * Contributors modifying syntax or semantics
->
-> If a change violates any rule in this document, it MUST be rejected or redesigned.
+These are implementation invariants that contributors should preserve.
 
----
+## 1) Expression vs case grammar separation
 
-# 1. Core Principle
+- Case syntax (`->`, `?`, `|`) is not a normal infix-expression system.
+- Parser must only parse case arms in explicit case contexts.
 
-Genia prioritizes:
+## 2) Case placement (hard constraint)
 
-> **Clarity over flexibility**
+Case expressions are valid only:
 
-and
+- as full function bodies
+- as the final expression in a block
 
-> **Unambiguous parsing over expressive shortcuts**
+Parser must reject case syntax in subexpressions, call arguments, list elements, and non-final block positions.
 
----
+## 3) One case expression per block
 
-# 2. Expression vs Case Separation (CRITICAL)
+- A block may include zero or more ordinary expressions.
+- If a case expression appears, it must be the final expression.
 
-## RULE 1
+## 4) Full tuple match model
 
-Case expressions are NOT ordinary expressions.
+Pattern matching always targets the full argument tuple.
 
-They exist in a separate grammar layer.
+- `f(x)` still matches a one-item tuple target.
+- Multi-arg functions are tuple-pattern sugar, not a separate mechanism.
 
-## MUST NOT
+## 5) Arrow disambiguation by parse context
 
-* Treat `->` as a general infix operator
-* Allow `|` outside case expressions
-* Allow `?` outside case guard context
+`->` means:
 
-## CONSEQUENCE
+- lambda arrow in expression parsing
+- case arm mapping in case parsing
 
-Parser must:
+Do not resolve this via precedence hacks.
 
-* Detect case context explicitly
-* Never attempt to interpret case syntax inside expression parsing
+## 6) Pattern validity rules
 
----
+Supported patterns:
 
-# 3. Case Expression Placement (HARD RULE)
+- literal
+- variable binding
+- wildcard `_`
+- tuple pattern
+- list pattern with optional rest
 
-## RULE 2
+Required constraints:
 
-Case expressions are ONLY allowed in:
+- list rest pattern (`..name` / `.._`) is valid only in final list-pattern position
+- duplicate names in a pattern require equality at match time
 
-* Function bodies
-* Final position in a block
+## 7) Spread semantics
 
-## MUST NOT
+- list literal spread requires list value at runtime
+- call argument spread requires list value at runtime
+- spreading non-list values must raise `TypeError`
 
-* Appear in subexpressions
-* Appear as function arguments
-* Appear inside lists or maps
-* Appear before other expressions in a block
+## 8) Function resolution invariants
 
-## CONSEQUENCE
+- fixed-arity match is preferred over varargs match
+- varargs ambiguity must raise `TypeError("Ambiguous function resolution")`
 
-Parser MUST reject:
+## 9) Operator model
 
-```
-x + (0 -> 1 | n -> n)
-```
+Implemented operators are limited to:
 
-```
-f(0 -> 1 | n -> n)
-```
+- unary: `-`, `!`
+- binary: `+ - * / % < <= > >= == != && ||`
 
-```
-{
-  0 -> 1 |
-  n -> n
-  log(x)
-}
-```
+No implicit pipeline/member/index operators should be introduced without explicitly updating state/rules docs and tests.
 
----
+## 10) Ref + concurrency runtime guarantees
 
-# 4. Single Case Expression Per Block
+- refs are synchronized host objects
+- process mailbox handling is FIFO per process
+- one handler invocation at a time per process
+- concurrency remains host-backed (threads), not language-scheduled
 
-## RULE 3
+## 11) Error behavior
 
-A block may contain:
+- unmatched function/case dispatch should raise deterministic runtime errors
+- invalid grammar forms should fail during parse with syntax errors
+- type-invalid builtins (e.g., non-list spread) should raise clear `TypeError`
 
-* zero or more ordinary expressions
-* at most ONE case expression
+## 12) Documentation + tests as contract
 
-If present:
+When changing syntax/semantics/runtime behavior, update together:
 
-* it MUST be the final expression
-
----
-
-# 5. Tuple Matching Model (CRITICAL)
-
-## RULE 4
-
-All pattern matching operates on the FULL argument tuple.
-
-Even for:
-
-```
-f(x)
-```
-
-Matching target is:
-
-```
-(x)
-```
-
-## MUST NOT
-
-* Match partial arguments implicitly
-* Introduce alternative matching targets
-
----
-
-# 6. Lambda vs Case Arrow Disambiguation
-
-## RULE 5
-
-`->` has TWO meanings, resolved by context ONLY:
-
-* Expression context → lambda
-* Case context → pattern mapping
-
-## MUST NOT
-
-* Use precedence to resolve ambiguity
-* Allow mixed interpretation in the same parse position
-
-## CONSEQUENCE
-
-Parser must decide BEFORE parsing `->`:
-
-* Are we in expression mode?
-* Or case mode?
-
----
-
-# 7. Block Semantics
-
-## RULE 6
-
-Blocks:
-
-* Are NOT indentation-sensitive
-* Use newlines as expression separators
-* Return the last expression
-
-## MUST NOT
-
-* Use indentation for structure
-* Require semicolons
-
----
-
-# 8. Operator Simplicity
-
-## RULE 7
-
-Operators must remain simple and predictable.
-
-## MUST NOT
-
-* Introduce new operators that overlap existing meaning
-* Reuse symbols already assigned to case grammar
-
----
-
-# 9. Non-Associative Comparisons
-
-## RULE 8
-
-These are invalid unless explicitly supported later:
-
-```
-a < b < c
-```
-
-```
-a == b == c
-```
-
-Parser must reject them.
-
----
-
-# 10. Minimal Core Guarantee
-
-## RULE 9
-
-The core language must remain minimal.
-
-## MUST NOT
-
-* Add features that duplicate existing capability
-* Add alternate syntax for the same concept
-
----
-
-# 11. No Hidden Semantics
-
-## RULE 10
-
-All behavior must be explicit in syntax.
-
-## MUST NOT
-
-* Introduce implicit conversions that affect control flow
-* Introduce hidden evaluation rules
-
----
-
-# 12. Error Model (v0.1 Constraint)
-
-## RULE 11
-
-Pattern match failure MUST produce a runtime error.
-
-## MUST NOT
-
-* Silently continue
-* Fall through to undefined behavior
-
----
-
-# 13. Grammar Simplicity Constraint
-
-## RULE 12
-
-Grammar must remain:
-
-* Layered (expression vs case)
-* Predictable
-* Small
-
-## MUST NOT
-
-* Merge case grammar into expression grammar
-* Create ambiguous productions
-
----
-
-# 14. AI Interpretability Constraint
-
-## RULE 13
-
-The language must remain easy for LLMs to reason about.
-
-## MUST NOT
-
-* Introduce syntax requiring global inference
-* Introduce context-sensitive ambiguity
-
----
-
-# 15. Feature Acceptance Test
-
-Before accepting any feature, it MUST pass:
-
-1. Does this reduce ambiguity?
-2. Does this simplify parsing?
-3. Does this preserve grammar separation?
-4. Can this be expressed via composition instead?
-
-If ANY answer is "no" → reject or redesign
-
----
-
-# 16. Parser Enforcement Requirements
-
-The parser MUST:
-
-* Reject invalid case placement
-* Reject ambiguous constructs
-* Enforce tuple matching rules
-* Distinguish lambda vs case early
-
----
-
-# 17. Final Principle
-
-> If a feature makes the language harder to explain in one paragraph, it does not belong in the core.
-
----
-
-# END
+- `GENIA_STATE.md`
+- `GENIA_RULES.md`
+- `GENIA_REPL_README.md`
+- `README.md` for user-visible behavior
+- corresponding tests under `tests/`
