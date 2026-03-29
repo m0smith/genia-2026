@@ -354,6 +354,14 @@ Genia is built on a few core principles:
 * Let the standard library do the heavy lifting
 
 ---
+## Language Constraints
+
+Before modifying the language:
+
+1. Read GENIA_STATE.md (what exists)
+2. Read GENIA_RULES.md (what is allowed)
+
+Violating GENIA_RULES.md is not permitted.
 
 ## 🏁 Summary
 

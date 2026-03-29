@@ -14,9 +14,12 @@ nil?(x) =
   nil -> true |
   _ -> false
 
+append() = []
+append(xs) = xs
 append(xs, ys) =
   ([], ys) -> ys |
-  ([x, ..rest], ys) -> [x] + append(rest, ys)
+  (xs, []) -> xs |
+  (xs, ys) -> [..xs, ..ys]
 
 length(xs) = length_acc(xs, 0)
 
