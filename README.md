@@ -11,6 +11,7 @@ This repository currently provides:
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, agents)
 - debug-stdio adapter support for editor integration
+- runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
 
 ## Quick start
 
@@ -22,6 +23,12 @@ Run a program:
 
 ```bash
 python3 -m genia.interpreter path/to/program.genia
+```
+
+Run the ants demo:
+
+```bash
+python3 -m genia.interpreter examples/ants.genia
 ```
 
 Run tests:
@@ -152,6 +159,7 @@ agent_get(counter)
 - module/import syntax
 - member access / indexing syntax
 - general pipeline operator syntax
+- language-level scheduler/event loop for simulations
 
 For stricter implementation details and invariants, see:
 

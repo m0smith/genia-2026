@@ -166,3 +166,18 @@ Implemented optimizations:
 - index syntax
 - general pipeline operator syntax
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
+
+## 10) Example demos shipped in-repo
+
+- `examples/tic-tac-toe.genia`: interactive text game example
+- `examples/ants.genia`: first minimal ants-style stochastic grid simulation demo
+
+`examples/ants.genia` intentionally uses only currently implemented features:
+
+- host-backed map builtins for persistent world updates
+- `rand_int` for random movement choice
+- recursion for stepping
+- `sleep` for blocking frame delay
+- text rendering via `print`
+
+It is intentionally minimal and single-ant first. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce new language syntax.

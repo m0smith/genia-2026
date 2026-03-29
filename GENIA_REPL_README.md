@@ -16,6 +16,12 @@ Run a program file:
 python3 -m genia.interpreter path/to/file.genia
 ```
 
+Run the ants demo:
+
+```bash
+python3 -m genia.interpreter examples/ants.genia
+```
+
 Run in stdio debug-adapter mode:
 
 ```bash
@@ -76,3 +82,10 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `ValueError` when `ms < 0`
 
 These are blocking builtins only; they do not introduce scheduler/async runtime behavior.
+
+## Demo note: ants simulation example
+
+- `examples/ants.genia` is the first in-repo stochastic grid simulation demo.
+- It is text-only, single-ant, recursive, and finite-step.
+- It uses builtins only (`map_*`, `rand_int`, `sleep`, `print`) with no new syntax.
+- It is not actor-based and does not provide a scheduler/event loop abstraction.
