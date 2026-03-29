@@ -1,0 +1,16 @@
+agent(initial) = agent_with_state(ref(initial))
+
+agent_with_state(state) =
+  ["agent", state, spawn((update) -> ref_update(state, update))]
+
+agent_send(agent, update) =
+  (["agent", _, worker], update) -> send(worker, update)
+
+agent_get(agent) =
+  (["agent", state, _]) -> ref_get(state)
+
+agent_state(agent) =
+  (["agent", state, _]) -> ref_get(state)
+
+agent_alive?(agent) =
+  (["agent", _, worker]) -> process_alive?(worker)
