@@ -1,8 +1,8 @@
-list(..xs) = "Build a list from all provided arguments." xs
+list(..xs) = "# list\n\nBuild a list from all provided arguments." xs
 
-first(xs) = "Return the first element of a non-empty list." ([x, .._]) -> x
+first(xs) = ([x, .._]) -> x
 
-rest(xs) = "Return every element after the head of a non-empty list." ([_, ..tail]) -> tail
+rest(xs) = ([_, ..tail]) -> tail
 
 empty?(xs) =
   [] -> true |
@@ -19,13 +19,13 @@ append(xs, ys) =
   (xs, []) -> xs |
   (xs, ys) -> [..xs, ..ys]
 
-length(xs) = "Count the number of elements in a list." length_acc(xs, 0)
+length(xs) = "# length\n\nCount the number of elements in a list." length_acc(xs, 0)
 
 length_acc(xs, acc) =
   ([], acc) -> acc |
   ([_, ..rest], acc) -> length_acc(rest, acc + 1)
 
-reverse(xs) = reverse_acc(xs, [])
+reverse(xs) = "# reverse\n\nReturn a list with elements in reverse order." reverse_acc(xs, [])
 
 reverse_acc(xs, acc) =
   ([], acc) -> acc |
@@ -35,16 +35,15 @@ reduce(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
-map(f, xs) = reduce((acc, x) -> [..acc, f(x)], [], xs)
+map(f, xs) = "# map\n\nApply a function to every list element.\n\n## Examples\n\n```genia\nmap((x) -> x * 2, [1, 2, 3]) -> [2, 4, 6]\n```" reduce((acc, x) -> [..acc, f(x)], [], xs)
 
-filter(predicate, xs) =
-  reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
+filter(predicate, xs) = "# filter\n\nKeep elements where `predicate(x)` is `true`." reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
 
 filter_keep(predicate, acc, x) =
   (predicate, acc, x) ? predicate(x) == true -> [..acc, x] |
   (_, acc, _) -> acc
 
-count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
+count(xs) = "# count\n\nCount list elements." reduce((acc, _) -> acc + 1, 0, xs)
 
 any?(predicate, xs) =
   (predicate, []) -> false |

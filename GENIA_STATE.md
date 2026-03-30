@@ -152,8 +152,9 @@ Notable autoloaded functions include:
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
 - fn: `apply`, `compose`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
-- awk: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
+- awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
 - agent: `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
+- prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 7) Optimization behavior
 

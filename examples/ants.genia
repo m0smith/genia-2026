@@ -1,6 +1,3 @@
-# Minimal ants-style simulation demo (single ant, text mode)
-# Uses only currently implemented builtins and syntax.
-
 width() = 8
 height() = 5
 
@@ -8,7 +5,7 @@ empty_cell() = "empty"
 food_cell() = "food"
 ant_cell() = "ant"
 
-ant_start() = [2, 2]
+ant_start() = "# ant_start\n\nInitial ant position." [2, 2]
 
 wrap(n, size) =
   (n, size) ? n < 0 -> size - 1 |
@@ -32,8 +29,7 @@ cell_char(cell) =
   "food" -> "*" |
   _ -> "."
 
-seed_world() =
-  map_put(
+seed_world() = "# seed_world\n\nCreate a world with one ant and several food cells." map_put(
     map_put(
       map_put(
         map_put(map_new(), ant_start(), ant_cell()),
@@ -47,8 +43,7 @@ seed_world() =
     food_cell()
   )
 
-move_ant(world, from, to) =
-  cell_put(cell_put(world, from, empty_cell()), to, ant_cell())
+move_ant(world, from, to) = cell_put(cell_put(world, from, empty_cell()), to, ant_cell())
 
 dir_from_int(n) =
   0 -> [1, 0] |
@@ -102,6 +97,6 @@ run(world, ant_pos, steps_left, delay_ms) =
     run_after_step(step(world, ant_pos), steps_left, delay_ms)
   }
 
-main() = run(seed_world(), ant_start(), 12, 80)
+main() = "# main\n\nRun the ants simulation example." run(seed_world(), ant_start(), 12, 80)
 
 main()

@@ -24,13 +24,13 @@ Core helpers include:
 - `drop`
 - `range`
 
+Each public helper includes a Markdown docstring readable through `help("name")`.
+
 ---
 
 ## `map` and `filter` (reduce-driven)
 
-`map` and `filter` are implemented in stdlib using `reduce` and `reverse`.
-
-This keeps the implementation minimal and takes advantage of existing tail-recursive accumulation behavior already used by `reduce`.
+`map` and `filter` are implemented in stdlib using `reduce`.
 
 ### Minimal example
 
@@ -66,7 +66,37 @@ map((x) -> x + 1, 123)
 
 Expected behavior:
 
-- runtime match failure, because `map` delegates to list-pattern-based `reduce` and non-list input cannot match those list cases.
+- runtime match failure, because `reduce` expects list-pattern-compatible input.
+
+---
+
+## `nth`, `take`, and `drop`
+
+### Minimal example
+
+```genia
+nth(1, ["a", "b", "c"]) -> "b"
+take(2, [1, 2, 3, 4]) -> [1, 2]
+drop(2, [1, 2, 3, 4]) -> [3, 4]
+```
+
+### Edge case example
+
+```genia
+nth(9, [1, 2]) -> nil
+take(0, [1, 2]) -> []
+drop(0, [1, 2]) -> [1, 2]
+```
+
+### Failure case example
+
+```genia
+take(2, 42)
+```
+
+Expected behavior:
+
+- runtime match failure (second argument is not a list).
 
 ---
 
@@ -124,7 +154,7 @@ Expected behavior:
 - list-pattern matching with rest patterns
 - recursive list helpers in stdlib
 - `reduce`
-- `map` and `filter` as reduce-based stdlib functions
+- `map` and `filter` as stdlib functions
 - `range` helpers for 1-, 2-, and 3-arity calls
 
 ### ⚠️ Partial

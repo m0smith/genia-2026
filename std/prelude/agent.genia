@@ -1,4 +1,4 @@
-agent(initial) = agent_with_state(ref(initial))
+agent(initial) = "# agent\n\nCreate an agent with initial state and a worker process." agent_with_state(ref(initial))
 
 agent_with_state(state) =
   ["agent", state, spawn((update) -> ref_update(state, update))]
