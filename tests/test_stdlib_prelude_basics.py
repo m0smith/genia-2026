@@ -41,6 +41,16 @@ def test_reverse(run):
     assert run("reverse([1, 2, 3])") == [3, 2, 1]
 
 
+def test_map(run):
+    assert run("map((x) -> x + 1, [])") == []
+    assert run("map((x) -> x + 1, [1, 2, 3])") == [2, 3, 4]
+
+
+def test_filter(run):
+    assert run("filter((x) -> x % 2 == 0, [])") == []
+    assert run("filter((x) -> x % 2 == 0, [1, 2, 3, 4, 5])") == [2, 4]
+
+
 def test_numeric_helpers(run):
     assert run("inc(4)") == 5
     assert run("dec(4)") == 3
@@ -59,3 +69,5 @@ def test_direct_prelude_load_without_autoload():
     run_source(prelude_path.read_text(encoding="utf-8"), env, filename=str(prelude_path.resolve()))
     assert run_source("append([1], [2, 3])", env) == [1, 2, 3]
     assert run_source("reverse([1, 2, 3])", env) == [3, 2, 1]
+    assert run_source("map((x) -> x + 1, [1, 2, 3])", env) == [2, 3, 4]
+    assert run_source("filter((x) -> x % 2 == 1, [1, 2, 3, 4])", env) == [1, 3]

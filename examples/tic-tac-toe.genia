@@ -8,12 +8,6 @@
 # 3) guards (`pattern ? condition -> result`),
 # 4) recursion (the game loop is recursive, not an imperative while-loop).
 #
-# This file is written to be as close as possible to the current Genia direction:
-# - branching via pattern matching
-# - no repeat
-# - no nil for empty squares
-# - control flow through pattern matching + guards + recursion
-#
 # This example intentionally stays simple:
 # - board is a list of 9 strings
 # - empty square is represented by "_" (a plain string)

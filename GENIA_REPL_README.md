@@ -48,6 +48,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - conditionals expressed only through pattern matching in function definitions/case expressions
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
+  - includes list transforms such as `reduce`, `map`, and `filter`
 - builtins:
   - I/O: `log`, `print`, `input`, `stdin`, `help`
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`

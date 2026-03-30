@@ -2365,6 +2365,8 @@ Simulation primitives (host-backed builtins):
     env.register_autoload("length", 1, "std/prelude/list.genia")
     env.register_autoload("reverse", 1, "std/prelude/list.genia")
     env.register_autoload("reduce", 3, "std/prelude/list.genia")
+    env.register_autoload("map", 2, "std/prelude/list.genia")
+    env.register_autoload("filter", 2, "std/prelude/list.genia")
     env.register_autoload("count", 1, "std/prelude/list.genia")
     env.register_autoload("any?", 2, "std/prelude/list.genia")
     env.register_autoload("nth", 2, "std/prelude/list.genia")
