@@ -57,6 +57,12 @@ Case placement rules (enforced):
 - allowed as final expression in block
 - rejected in ordinary subexpressions / call args / non-final block positions
 
+### Conditionals
+
+- implemented via pattern matching in function definitions and case expressions
+- no dedicated conditional keyword exists
+- `decide` has been removed from the language
+
 ## 5) Builtins (runtime)
 
 ### Core I/O and utilities

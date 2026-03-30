@@ -5,7 +5,7 @@
 Start with a concrete, curiosity-driven question.
 
 > Example:
-> How does Genia decide which pattern to match?
+> How does Genia choose which pattern to match?
 
 ---
 

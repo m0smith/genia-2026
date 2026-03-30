@@ -8,7 +8,7 @@
 # - "_" as a string is the empty square value.
 #
 # This file is written to be as close as possible to the current Genia direction:
-# - no decide
+# - branching via pattern matching
 # - no repeat
 # - no nil for empty squares
 # - control flow through pattern matching + guards + recursion

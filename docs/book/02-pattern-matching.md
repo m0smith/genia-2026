@@ -2,7 +2,7 @@
 
 ## The Question
 
-How does Genia decide what code to run?
+How does Genia choose which branch runs?
 
 ---
 
@@ -194,17 +194,26 @@ Write `last` using pattern matching and recursion.
 * Ordered evaluation
 * List destructuring (`[x, ..rest]`)
 * Variable binding
+* Pattern guards (`pattern ? guard -> result`)
 
 ### ⚠️ Partial
 
 * Error messages for failed matches may be minimal
-* No advanced pattern guards (if not implemented yet)
 
 ### ❌ Missing
 
 * Exhaustiveness checking
-* Pattern guards (e.g., conditions inside patterns)
 * Match optimizations (decision trees, indexing)
+
+---
+
+## Conditionals in Genia
+
+Genia has no dedicated conditional keyword.
+
+* Genia does **not** use `if` or `switch`
+* All conditional logic is expressed via pattern matching
+* Pattern matching is the only branching mechanism
 
 ---
 
@@ -225,7 +234,7 @@ Source: parser + runtime
 * Pattern clauses supported: YES
 * Ordered evaluation: YES
 * List destructuring: YES
-* Guards: NO
+* Guards: YES
 * Exhaustiveness checking: NO
 
 <!-- GENERATED:pattern-matching-status:end -->

@@ -45,6 +45,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - duplicate-binding equality semantics (`[x, x]`)
   - guards with `?`
 - case expressions in function bodies and as final expression in a block
+- conditionals expressed only through pattern matching in function definitions/case expressions
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
 - builtins:
@@ -70,6 +71,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - general pipeline operator syntax
+
+## Conditionals in Genia
+
+- Genia does **not** use `if` or `switch`.
+- All branching is expressed through pattern matching.
+- There is no dedicated conditional keyword.
 
 ## Simulation primitive semantics
 
