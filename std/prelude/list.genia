@@ -37,6 +37,15 @@ reduce(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
+map(f, xs) = reverse(reduce((acc, x) -> [f(x)] + acc, [], xs))
+
+filter(predicate, xs) =
+  reverse(reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs))
+
+filter_keep(predicate, acc, x) =
+  (predicate, acc, x) ? predicate(x) == true -> [x] + acc |
+  (_, acc, _) -> acc
+
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
 
 any?(predicate, xs) =

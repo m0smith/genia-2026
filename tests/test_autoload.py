@@ -50,6 +50,13 @@ def test_autoload_reduce_direct():
     assert run_with_env(src) == 10
 
 
+def test_autoload_map_and_filter():
+    src = """
+    [map((x) -> x * 2, [1, 2, 3]), filter((x) -> x > 2, [1, 2, 3, 4])]
+    """
+    assert run_with_env(src) == [[2, 4, 6], [3, 4]]
+
+
 def test_autoload_same_file_loads_helper_too():
     env = make_global_env([])
     assert run_source("count([1, 2, 3])", env) == 3

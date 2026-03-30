@@ -47,6 +47,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - case expressions in function bodies and as final expression in a block
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
+  - includes list transforms such as `reduce`, `map`, and `filter`
 - builtins:
   - I/O: `log`, `print`, `input`, `stdin`, `help`
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
