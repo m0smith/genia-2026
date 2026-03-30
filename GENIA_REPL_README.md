@@ -40,6 +40,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
+  - official docstring style/templates live in `docs/book/03-functions.md`
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - function-call argument spread (`f(..xs)`)

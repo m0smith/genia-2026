@@ -64,6 +64,7 @@ list = (..xs) -> xs
 - named functions may include optional docstring metadata:
   - `inc(x) = "increment by one" x + 1`
   - `help(name)` renders docstrings with lightweight Markdown-aware formatting
+  - official style guide + templates: `docs/book/03-functions.md` ("Official Docstring Style Guide")
 - closures are supported
 
 ### Pattern matching

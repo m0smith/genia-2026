@@ -20,6 +20,7 @@ inc(x) = "# inc\n\nIncrement a number by one." x + 1
 
 The string is metadata for the named function group, not a normal runtime expression.
 Docstrings are rendered by `help(...)` as lightweight Markdown text.
+Docstrings are allowed for **named functions only** (not lambdas).
 
 You can inspect it with:
 
@@ -27,39 +28,214 @@ You can inspect it with:
 help("inc")
 ```
 
-### Recommended docstring shape
+---
 
-Use short Markdown sections when they add value:
+## Official Docstring Style Guide
+
+Use this guide for new or updated public named functions.
+
+### What a docstring is in Genia
+
+* A string literal placed immediately after `=` in a named function definition.
+* Attached as metadata for `help(...)`.
+* Not evaluated as part of the function body expression.
+
+### Where docstrings are allowed
+
+* ✅ Named functions
+* ❌ Lambdas
+
+### Markdown support (implemented subset)
+
+`help(...)` currently preserves and normalizes lightweight Markdown structure:
+
+* Headings (`#`, `##`)
+* Bullet lists (`-` or `*`)
+* Inline code (`` `like_this` ``)
+* Fenced code blocks (```genia ... ```)
+* Paragraph spacing (extra blank lines are collapsed)
+
+This is terminal-first formatting, not a full Markdown rendering engine.
+
+### Canonical multi-clause rule
+
+For a single named function group (same name across clauses):
+
+* no docstrings → undocumented function
+* one total docstring across clauses → documented function
+* repeated identical docstrings across clauses → valid
+* conflicting docstrings across clauses → runtime `TypeError`
+
+### How `help` displays docstrings
+
+`help("name")` prints:
+
+1. function signature header (`name/shape`)
+2. source location (`Defined at file:line`) when available
+3. rendered docstring, or `No documentation available.`
+
+---
+
+## Official Templates
+
+### Minimal template
+
+```text
+"""
+One-line summary.
+"""
+```
+
+### Standard template
+
+```text
+"""
+# function-name
+
+One-line summary.
+
+Optional short description.
+
+## Params
+
+* `param`: description
+
+## Returns
+
+* description
+
+## Examples
 
 ```genia
-sum(xs) = "# sum\n\nAdd all numbers in `xs`.\n\n## Params\n\n* `xs`: list of numbers\n\n## Examples\n\n```genia\nsum([1, 2, 3]) -> 6\n```" 0
+example() -> result
+```
+
+## Edge cases
+
+* description
+
+## Failure
+
+* description
+"""
+```
+
+Use these templates as the **content** of the string literal docstring.
+
+---
+
+## Usage Guidelines
+
+### When to use minimal vs standard
+
+* Use **minimal** for tiny helpers with obvious behavior.
+* Use **standard** for most public stdlib-style functions.
+
+### Keep docstrings concise
+
+* Lead with one clear summary sentence.
+* Add sections only when they improve understanding.
+
+### Avoid redundant documentation
+
+Avoid repeating things that are obvious from the function name/signature.
+
+### Include examples for public functions
+
+Most public functions should have at least one realistic example.
+
+### Include edge/failure sections when behavior is non-trivial
+
+Add `## Edge cases` and `## Failure` when:
+
+* behavior depends on special inputs, or
+* runtime errors are expected for invalid input.
+
+### Avoid overdocumentation
+
+If a section adds no new information, omit it.
+
+---
+
+## Real Examples (Valid Genia Syntax)
+
+### 1) Simple function
+
+```genia
+inc(x) = "\"\"\"\n# inc\n\nIncrement `x` by one.\n\n## Params\n\n* `x`: number\n\n## Returns\n\n* number\n\n## Examples\n\n```genia\ninc(4) -> 5\n```\n\"\"\"" x + 1
+```
+
+### 2) Recursive function
+
+```genia
+fact(n) = "\"\"\"\n# fact\n\nCompute factorial recursively.\n\n## Params\n\n* `n`: non-negative integer\n\n## Returns\n\n* factorial of `n`\n\n## Examples\n\n```genia\nfact(5) -> 120\n```\n\n## Edge cases\n\n* `fact(0)` returns `1`\n\n## Failure\n\n* this version does not include an explicit negative-input guard\n\"\"\"" (
+  0 -> 1 |
+  n -> n * fact(n - 1)
+)
+```
+
+### 3) Pattern-matching multi-clause function
+
+All clauses must use the same canonical docstring text (or only one clause provides it):
+
+```genia
+sign(0) = "\"\"\"\n# sign\n\nClassify a number by sign.\n\"\"\"" 0
+sign(n) = "\"\"\"\n# sign\n\nClassify a number by sign.\n\"\"\"" (
+  n > 0 -> 1 |
+  _ -> -1
+)
+```
+
+### 4) Stdlib-style helper
+
+```genia
+sum(xs) = "\"\"\"\n# sum\n\nAdd all numbers in `xs`.\n\n## Params\n\n* `xs`: list of numbers\n\n## Returns\n\n* total as number\n\n## Examples\n\n```genia\nsum([1, 2, 3]) -> 6\nsum([]) -> 0\n```\n\"\"\"" (
+  [] -> 0 |
+  [x, ..rest] -> x + sum(rest)
+)
 ```
 
 ---
 
-## Edge Case Example
+## `help` Output Examples
 
-Multiple clauses can share one canonical docstring:
+### Documented function
 
-```genia
-echo() = "# echo\n\nReturn value unchanged." nil
-echo(x) = "# echo\n\nReturn value unchanged." x
-```
-
-This is valid (same docstring text).
-
----
-
-## Failure Case Example
-
-Conflicting docstrings across clauses raise a clear error:
+Given:
 
 ```genia
-echo() = "first doc" nil
-echo(x) = "second doc" x
+inc(x) = "\"\"\"\n# inc\n\nIncrement `x` by one.\n\"\"\"" x + 1
+help("inc")
 ```
 
-Expected behavior: runtime `TypeError` for conflicting function docstrings.
+Typical output:
+
+```text
+inc/1
+Defined at demo.genia:1
+
+# inc
+
+Increment `x` by one.
+```
+
+### Undocumented function
+
+Given:
+
+```genia
+plain(x) = x
+help("plain")
+```
+
+Typical output:
+
+```text
+plain/1
+Defined at demo.genia:1
+
+No documentation available.
+```
 
 ---
 
