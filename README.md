@@ -63,6 +63,7 @@ list = (..xs) -> xs
 - varargs supported in named functions and lambdas via `..rest`
 - named functions may include optional docstring metadata:
   - `inc(x) = "increment by one" x + 1`
+  - `help(name)` renders docstrings with lightweight Markdown-aware formatting
 - closures are supported
 
 ### Pattern matching
@@ -123,7 +124,7 @@ agent_get(counter)
 ### Core
 
 - `log`, `print`, `input`, `stdin`, `help`
-- `help(name)` prints named function metadata (arity shape, docstring, source if available)
+- `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - constants: `pi`, `e`, `true`, `false`, `nil`
 
 ### Refs

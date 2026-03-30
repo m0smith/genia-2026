@@ -57,7 +57,9 @@ if __package__ in (None, ""):
         format_display,
         utf8_byte_length,
     )
+    from genia.docstrings import render_markdown_docstring
 else:
+    from .docstrings import render_markdown_docstring
     from .utf8 import (
         format_debug,
         format_display,
@@ -2225,7 +2227,7 @@ def make_global_env(
     def _format_span(span: SourceSpan | None) -> str | None:
         if span is None:
             return None
-        return f"{span.filename}:{span.line}:{span.column}"
+        return f"{span.filename}:{span.line}"
 
     def _format_function_shapes(group: GeniaFunctionGroup) -> str:
         shapes: list[str] = []
@@ -2244,15 +2246,16 @@ def make_global_env(
         return min(spans, key=lambda s: (s.line, s.column, s.end_line, s.end_column))
 
     def _describe_function_group(group: GeniaFunctionGroup) -> str:
-        lines = [
-            f"{group.name}",
-            f"  arities: {_format_function_shapes(group)}",
-        ]
-        if group.docstring is not None:
-            lines.append(f"  doc: {group.docstring}")
+        shapes = _format_function_shapes(group)
+        lines = [f"{group.name}/{shapes}"]
         span_text = _format_span(_group_span(group))
         if span_text is not None:
-            lines.append(f"  source: {span_text}")
+            lines.append(f"Defined at {span_text}")
+        lines.append("")
+        if group.docstring is not None:
+            lines.append(render_markdown_docstring(group.docstring))
+        else:
+            lines.append("No documentation available.")
         return "\n".join(lines)
 
     def help_fn(*args: Any) -> None:
