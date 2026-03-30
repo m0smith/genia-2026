@@ -1,6 +1,14 @@
-apply(f, args) = "# apply\n\nCall `f` with a list of positional arguments.\n\n## Params\n\n* `f`: callable value\n* `args`: list of arguments\n\n## Returns\n\n* The result of calling `f(..args)`.\n\n## Examples\n\n```genia\nadd(a, b) = a + b\napply(add, [20, 22]) -> 42\n```\n\n## Failure\n\n* Fails when `args` is not a list (call spread requires a list)." f(..args)
+apply(f, args) = """
+# apply
 
-compose(..fns) = "# compose\n\nCompose functions right-to-left into one callable.\n\n## Params\n\n* `..fns`: functions where the last one receives the original arguments\n\n## Returns\n\n* A function that applies each function to the next result.\n\n## Examples\n\n```genia\ninc(x) = x + 1\ndouble(x) = x * 2\ncompose(inc, double)(3) -> 7\n```\n\n## Edge cases\n\n* `compose(f)` returns a function equivalent to `f`." (..args) -> compose_apply(fns, args)
+Call `f` with a list of positional arguments.
+""" f(..args)
+
+compose(..fns) = """
+# compose
+
+Compose functions right-to-left into one callable.
+""" (..args) -> compose_apply(fns, args)
 
 compose_apply(fns, args) =
   ([f], args) -> apply(f, args) |

@@ -30,12 +30,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 ## Implemented today
 
-- literals: numbers, strings (single/double quotes + escapes), booleans, `nil`
+- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - function definitions with expression body, block body, or case body
 - optional named-function docstring metadata:
-  - `f(x) = "doc text" x + 1`
+  - `f(x) = """ ... """ x + 1` (multi-line Markdown docstring literal)
   - docstring is attached to function metadata (not evaluated as runtime expression)
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)

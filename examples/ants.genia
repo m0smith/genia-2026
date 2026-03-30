@@ -1,35 +1,166 @@
-width() = 8
-height() = 5
+width() = """
+# width
 
-empty_cell() = "empty"
-food_cell() = "food"
-ant_cell() = "ant"
+Grid width used by the ants demo.
 
-ant_start() = "# ant_start\n\nInitial ant position." [2, 2]
+## Returns
 
-wrap(n, size) =
+* grid width as number
+""" 8
+height() = """
+# height
+
+Grid height used by the ants demo.
+
+## Returns
+
+* grid height as number
+""" 5
+
+empty_cell() = """
+# empty_cell
+
+Cell tag for empty space.
+
+## Returns
+
+* `"empty"`
+""" "empty"
+food_cell() = """
+# food_cell
+
+Cell tag for food.
+
+## Returns
+
+* `"food"`
+""" "food"
+ant_cell() = """
+# ant_cell
+
+Cell tag for ant position.
+
+## Returns
+
+* `"ant"`
+""" "ant"
+
+ant_start() = """
+# ant_start
+
+Return the initial ant position.
+
+## Returns
+
+* `[x, y]` starting coordinate
+
+## Examples
+
+```genia
+ant_start() -> [2, 2]
+```
+""" [2, 2]
+
+wrap(n, size) = """
+# wrap
+
+Wrap one coordinate into `[0, size)`.
+
+## Params
+
+* `n`: coordinate
+* `size`: grid dimension
+
+## Returns
+
+* wrapped coordinate
+""" (
   (n, size) ? n < 0 -> size - 1 |
   (n, size) ? n >= size -> 0 |
   (n, _) -> n
+)
 
-pos_add(pos, delta) =
+pos_add(pos, delta) = """
+# pos_add
+
+Add a movement delta to a position with toroidal wrapping.
+
+## Params
+
+* `pos`: current position `[x, y]`
+* `delta`: movement `[dx, dy]`
+
+## Returns
+
+* wrapped next position
+""" (
   ([x, y], [dx, dy]) -> [
     wrap(x + dx, width()),
     wrap(y + dy, height())
   ]
+)
 
-cell_get(world, pos) =
+cell_get(world, pos) = """
+# cell_get
+
+Read a world cell, defaulting to empty.
+
+## Params
+
+* `world`: persistent map world
+* `pos`: coordinate `[x, y]`
+
+## Returns
+
+* stored cell tag or `empty_cell()`
+""" (
   (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
   (_, _) -> empty_cell()
+)
 
-cell_put(world, pos, value) = map_put(world, pos, value)
+cell_put(world, pos, value) = """
+# cell_put
 
-cell_char(cell) =
+Write a cell value in the persistent world map.
+
+## Params
+
+* `world`: persistent map world
+* `pos`: coordinate
+* `value`: cell tag
+
+## Returns
+
+* new world map
+""" map_put(world, pos, value)
+
+cell_char(cell) = """
+# cell_char
+
+Render a cell tag as one printable character.
+
+## Params
+
+* `cell`: cell tag
+
+## Returns
+
+* display character
+""" (
   "ant" -> "A" |
   "food" -> "*" |
   _ -> "."
+)
 
-seed_world() = "# seed_world\n\nCreate a world with one ant and several food cells." map_put(
+seed_world() = """
+# seed_world
+
+Create the initial world with one ant and several food cells.
+
+## Returns
+
+* world map containing initial entities
+""" map_put(
     map_put(
       map_put(
         map_put(map_new(), ant_start(), ant_cell()),
@@ -43,60 +174,250 @@ seed_world() = "# seed_world\n\nCreate a world with one ant and several food cel
     food_cell()
   )
 
-move_ant(world, from, to) = cell_put(cell_put(world, from, empty_cell()), to, ant_cell())
+move_ant(world, from, to) = """
+# move_ant
 
-dir_from_int(n) =
+Move the ant from one coordinate to another.
+
+## Params
+
+* `world`: current world map
+* `from`: source coordinate
+* `to`: destination coordinate
+
+## Returns
+
+* new world map with updated ant position
+""" cell_put(cell_put(world, from, empty_cell()), to, ant_cell())
+
+dir_from_int(n) = """
+# dir_from_int
+
+Map a random integer to one cardinal direction.
+
+## Params
+
+* `n`: integer from `0` to `3`
+
+## Returns
+
+* direction delta `[dx, dy]`
+""" (
   0 -> [1, 0] |
   1 -> [-1, 0] |
   2 -> [0, 1] |
   _ -> [0, -1]
+)
 
-random_dir() = dir_from_int(rand_int(4))
+random_dir() = """
+# random_dir
 
-step(world, ant_pos) = step_with_dir(world, ant_pos, random_dir())
+Choose one random movement direction.
 
-step_with_dir(world, ant_pos, dir) =
-  step_target(world, ant_pos, pos_add(ant_pos, dir))
+## Returns
 
-step_target(world, ant_pos, target) =
-  step_cell(world, ant_pos, target, cell_get(world, target))
+* direction delta `[dx, dy]`
+""" dir_from_int(rand_int(4))
 
-step_cell(world, ant_pos, target, target_cell) =
+step(world, ant_pos) = """
+# step
+
+Advance the simulation by one random movement attempt.
+
+## Params
+
+* `world`: current world map
+* `ant_pos`: current ant position
+
+## Returns
+
+* `[world2, ant_pos2, event]`
+""" step_with_dir(world, ant_pos, random_dir())
+
+step_with_dir(world, ant_pos, dir) = """
+# step_with_dir
+
+Advance one step using an explicit direction.
+
+## Params
+
+* `world`: current world map
+* `ant_pos`: current ant position
+* `dir`: movement delta
+
+## Returns
+
+* `[world2, ant_pos2, event]`
+""" step_target(world, ant_pos, pos_add(ant_pos, dir))
+
+step_target(world, ant_pos, target) = """
+# step_target
+
+Resolve a step against a computed target coordinate.
+
+## Params
+
+* `world`: current world map
+* `ant_pos`: current ant position
+* `target`: destination coordinate
+
+## Returns
+
+* `[world2, ant_pos2, event]`
+""" step_cell(world, ant_pos, target, cell_get(world, target))
+
+step_cell(world, ant_pos, target, target_cell) = """
+# step_cell
+
+Update world state based on the target cell contents.
+
+## Params
+
+* `world`: current world map
+* `ant_pos`: current ant position
+* `target`: destination coordinate
+* `target_cell`: cell value at destination
+
+## Returns
+
+* `[world2, ant_pos2, event]` where event is `"blocked"`, `"ate_food"`, or `"moved"`
+""" (
   (world, ant_pos, target, "ant") -> [world, ant_pos, "blocked"] |
   (world, ant_pos, target, "food") -> [move_ant(world, ant_pos, target), target, "ate_food"] |
   (world, ant_pos, target, _) -> [move_ant(world, ant_pos, target), target, "moved"]
+)
 
-render_cell(world, pos) =
+render_cell(world, pos) = """
+# render_cell
+
+Render one world position to a character.
+
+## Params
+
+* `world`: world map
+* `pos`: coordinate
+
+## Returns
+
+* display character for that cell
+""" (
   (world, [x, y]) -> cell_char(cell_get(world, [x, y]))
+)
 
-render_row(world, y, x) =
+render_row(world, y, x) = """
+# render_row
+
+Render one row recursively from column `x` to row end.
+
+## Params
+
+* `world`: world map
+* `y`: row index
+* `x`: column index
+
+## Returns
+
+* string for one row
+""" (
   (world, y, x) ? x >= width() -> "" |
   (world, y, x) -> render_cell(world, [x, y]) + render_row(world, y, x + 1)
+)
 
-render_rows(world, y) =
+render_rows(world, y) = """
+# render_rows
+
+Print rows from index `y` to the bottom of the grid.
+
+## Params
+
+* `world`: world map
+* `y`: starting row index
+
+## Returns
+
+* `nil` after printing all rows
+""" (
   (world, y) ? y >= height() -> nil |
   (world, y) -> {
     print(render_row(world, y, 0))
     render_rows(world, y + 1)
   }
+)
 
-render(world) = render_rows(world, 0)
+render(world) = """
+# render
 
-run_after_step(step_result, steps_left, delay_ms) =
+Print the full world grid.
+
+## Params
+
+* `world`: world map
+
+## Returns
+
+* `nil` after rendering rows
+""" render_rows(world, 0)
+
+run_after_step(step_result, steps_left, delay_ms) = """
+# run_after_step
+
+Handle one computed step result, then recurse.
+
+## Params
+
+* `step_result`: `[world2, ant2, event]`
+* `steps_left`: remaining steps
+* `delay_ms`: frame delay in milliseconds
+
+## Returns
+
+* recursive result from `run`
+""" (
   ([world2, ant2, event], steps_left, delay_ms) -> {
     print(event)
     sleep(delay_ms)
     run(world2, ant2, steps_left - 1, delay_ms)
   }
+)
 
-run(world, ant_pos, steps_left, delay_ms) =
+run(world, ant_pos, steps_left, delay_ms) = """
+# run
+
+Execute the simulation for a fixed number of steps.
+
+## Params
+
+* `world`: current world map
+* `ant_pos`: current ant position
+* `steps_left`: remaining step count
+* `delay_ms`: frame delay in milliseconds
+
+## Returns
+
+* `"done"` when steps are exhausted
+""" (
   (_, _, steps_left, _) ? steps_left <= 0 -> "done" |
   (world, ant_pos, steps_left, delay_ms) -> {
     print("-----")
     render(world)
     run_after_step(step(world, ant_pos), steps_left, delay_ms)
   }
+)
 
-main() = "# main\n\nRun the ants simulation example." run(seed_world(), ant_start(), 12, 80)
+main() = """
+# main
+
+Run the ants simulation example.
+
+## Returns
+
+* final `run` result
+
+## Examples
+
+```genia
+main()
+```
+""" run(seed_world(), ant_start(), 12, 80)
 
 main()

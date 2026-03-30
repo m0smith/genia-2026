@@ -206,12 +206,28 @@ def lex(source: str) -> list[Token]:
             continue
 
         if ch in "\"'":
-            string_match = STRING_RE.match(source, pos)
-            if string_match is None:
-                raise SyntaxError(f"Unexpected character {ch!r} at {pos}")
-            text = string_match.group()
-            tokens.append(Token("STRING", text, pos))
-            pos += len(text)
+            if source.startswith(ch * 3, pos):
+                delim = ch * 3
+                i = pos + 3
+                while i < length:
+                    if source.startswith(delim, i):
+                        text = source[pos:i + 3]
+                        tokens.append(Token("STRING", text, pos))
+                        pos = i + 3
+                        break
+                    if source[i] == "\\":
+                        i += 2
+                        continue
+                    i += 1
+                else:
+                    raise SyntaxError(f"Unterminated triple-quoted string at {pos}")
+            else:
+                string_match = STRING_RE.match(source, pos)
+                if string_match is None:
+                    raise SyntaxError(f"Unexpected character {ch!r} at {pos}")
+                text = string_match.group()
+                tokens.append(Token("STRING", text, pos))
+                pos += len(text)
             continue
 
         if _is_identifier_start(ch):
@@ -240,10 +256,17 @@ def lex(source: str) -> list[Token]:
 
 
 def parse_string_literal(text: str) -> str:
-    if len(text) < 2 or text[0] not in "\"'" or text[-1] != text[0]:
+    if text.startswith('"""') and text.endswith('"""') and len(text) >= 6:
+        quote = '"'
+        content = text[3:-3]
+    elif text.startswith("'''") and text.endswith("'''") and len(text) >= 6:
+        quote = "'"
+        content = text[3:-3]
+    elif len(text) >= 2 and text[0] in "\"'" and text[-1] == text[0]:
+        quote = text[0]
+        content = text[1:-1]
+    else:
         raise SyntaxError(f"Invalid string literal: {text!r}")
-    quote = text[0]
-    content = text[1:-1]
     out: list[str] = []
     i = 0
     while i < len(content):

@@ -62,7 +62,14 @@ list = (..xs) -> xs
 - functions are dispatched by name + arity shape (fixed arity preferred over varargs)
 - varargs supported in named functions and lambdas via `..rest`
 - named functions may include optional docstring metadata:
-  - `inc(x) = "increment by one" x + 1`
+  - example:
+    ```genia
+    inc(x) = """
+    # inc
+
+    Increment by one.
+    """ x + 1
+    ```
   - `help(name)` renders docstrings with lightweight Markdown-aware formatting
   - official style guide + templates: `docs/book/03-functions.md` ("Official Docstring Style Guide")
 - closures are supported

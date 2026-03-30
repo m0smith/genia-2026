@@ -86,3 +86,20 @@ def test_help_docstring_normalizes_triple_quote_wrappers_and_indentation():
     out = "".join(outputs)
     assert "# sum" in out
     assert "- xs: list of numbers" in out
+
+
+def test_triple_quoted_multiline_docstring_source_is_supported():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    src = '''
+    inc(x) = """
+    # inc
+
+    Increment by one.
+    """ x + 1
+    help("inc")
+    '''
+    run_source(src, env, filename="inc.genia")
+    out = "".join(outputs)
+    assert "# inc" in out
+    assert "Increment by one." in out
