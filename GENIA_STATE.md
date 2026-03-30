@@ -149,7 +149,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from:
 
 Notable autoloaded functions include:
 
-- list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`
+- list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
 - fn: `apply`, `compose`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`

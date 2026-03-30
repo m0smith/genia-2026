@@ -2494,6 +2494,9 @@ Simulation primitives (host-backed builtins):
     env.register_autoload("nth", 2, "std/prelude/list.genia")
     env.register_autoload("take", 2, "std/prelude/list.genia")
     env.register_autoload("drop", 2, "std/prelude/list.genia")
+    env.register_autoload("range", 1, "std/prelude/list.genia")
+    env.register_autoload("range", 2, "std/prelude/list.genia")
+    env.register_autoload("range", 3, "std/prelude/list.genia")
     env.register_autoload("apply", 2, "std/prelude/fn.genia")
     env.register_autoload("compose", 1, "std/prelude/fn.genia")
 
