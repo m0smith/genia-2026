@@ -1,6 +1,14 @@
-apply(f, args) = "\"\"\"\n# apply\n\nCall `f` with a list of positional arguments.\n\"\"\"" f(..args)
+apply(f, args) = """
+# apply
 
-compose(..fns) = "\"\"\"\n# compose\n\nCompose functions right-to-left into one callable.\n\"\"\"" (..args) -> compose_apply(fns, args)
+Call `f` with a list of positional arguments.
+""" f(..args)
+
+compose(..fns) = """
+# compose
+
+Compose functions right-to-left into one callable.
+""" (..args) -> compose_apply(fns, args)
 
 compose_apply(fns, args) =
   ([f], args) -> apply(f, args) |
