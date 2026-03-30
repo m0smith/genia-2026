@@ -28,6 +28,12 @@ def test_autoload_length_and_reverse():
     assert run_with_env("reverse([1, 2, 3])") == [3, 2, 1]
 
 
+def test_autoload_range():
+    assert run_with_env("range(4)") == [0, 1, 2, 3]
+    assert run_with_env("range(1, 4)") == [1, 2, 3, 4]
+    assert run_with_env("range(1, 7, 3)") == [1, 4, 7]
+
+
 def test_autoload_math_helpers():
     assert run_with_env("inc(41)") == 42
     assert run_with_env("abs(-9)") == 9

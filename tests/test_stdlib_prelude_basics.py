@@ -51,6 +51,16 @@ def test_filter(run):
     assert run("filter((x) -> x % 2 == 0, [1, 2, 3, 4, 5])") == [2, 4]
 
 
+def test_range(run):
+    assert run("range(5)") == [0, 1, 2, 3, 4]
+    assert run("range(2, 5)") == [2, 3, 4, 5]
+    assert run("range(2, 8, 2)") == [2, 4, 6, 8]
+    assert run("range(5, 1, -2)") == [5, 3, 1]
+    assert run("range(5, 1)") == []
+    assert run("range(1, 5, -1)") == []
+    assert run("range(1, 5, 0)") == []
+
+
 def test_numeric_helpers(run):
     assert run("inc(4)") == 5
     assert run("dec(4)") == 3

@@ -22,6 +22,7 @@ Core helpers include:
 - `nth`
 - `take`
 - `drop`
+- `range`
 
 ---
 
@@ -69,6 +70,52 @@ Expected behavior:
 
 ---
 
+## `range`
+
+`range` is a recursive stdlib helper that builds numeric lists.
+
+Implemented arities:
+
+- `range(stop)` → delegates to `range(0, stop - 1, 1)`
+- `range(start, stop)` → delegates to `range(start, stop, 1)`
+- `range(start, stop, step)` → inclusive stop model with explicit step control
+
+### Minimal example
+
+```genia
+range(5)
+```
+
+Expected result:
+
+```genia
+[0, 1, 2, 3, 4]
+```
+
+### Edge case example
+
+```genia
+range(5, 1, -2)
+```
+
+Expected result:
+
+```genia
+[5, 3, 1]
+```
+
+### Failure case example
+
+```genia
+range(1, 5, 0)
+```
+
+Expected behavior:
+
+- returns `[]` to avoid non-terminating recursion when step is zero.
+
+---
+
 ## Implementation status
 
 ### ✅ Implemented
@@ -78,6 +125,7 @@ Expected behavior:
 - recursive list helpers in stdlib
 - `reduce`
 - `map` and `filter` as reduce-based stdlib functions
+- `range` helpers for 1-, 2-, and 3-arity calls
 
 ### ⚠️ Partial
 

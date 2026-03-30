@@ -152,7 +152,7 @@ agent_get(counter)
 
 ## Autoloaded stdlib highlights
 
-- list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, ...
+- list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
 - fn helpers: `apply`, `compose`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
