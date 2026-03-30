@@ -28,6 +28,10 @@ This file describes what is **actually implemented now** in the Python runtime.
 - named functions are first-class values
 - multiple definitions by arity shape are allowed
 - varargs named functions are supported (`f(a, ..rest) = ...`)
+- named function definitions may include an optional leading docstring string literal after `=`
+  - example: `inc(x) = "increment by one" x + 1`
+  - docstrings are metadata, not runtime body expressions
+  - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
 - resolution behavior:
   - exact fixed arity beats varargs
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
@@ -162,6 +166,11 @@ Implemented optimizations:
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
+- `help(name)` displays named-function metadata when available:
+  - function name
+  - arity shape list (including varargs markers)
+  - docstring text (when present)
+  - source location (when available)
 
 ## 9) Explicitly not implemented (current)
 

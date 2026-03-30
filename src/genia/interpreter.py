@@ -45,7 +45,7 @@ import argparse
 import re
 import sys
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Callable, Iterable, Optional
 
 if __package__ in (None, ""):
@@ -424,6 +424,7 @@ class FuncDef(Node):
     name: str
     params: list[str]
     rest_param: str | None
+    docstring: str | None
     body: Node
     span: SourceSpan | None = None
 
@@ -602,6 +603,7 @@ class IrFuncDef(IrNode):
     name: str
     params: list[str]
     rest_param: str | None
+    docstring: str | None
     body: IrNode
     span: SourceSpan | None = None
 
@@ -665,7 +667,14 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, Assign):
         return IrAssign(node.name, lower_node(node.expr), span=node.span)
     if isinstance(node, FuncDef):
-        return IrFuncDef(node.name, node.params, node.rest_param, lower_node(node.body), span=node.span)
+        return IrFuncDef(
+            node.name,
+            node.params,
+            node.rest_param,
+            node.docstring,
+            lower_node(node.body),
+            span=node.span,
+        )
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -788,6 +797,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
         fn.name,
         fn.params,
         fn.rest_param,
+        fn.docstring,
         IrListTraversalLoop(
             counter_var=fn.params[0],
             list_var=fn.params[1],
@@ -1044,11 +1054,20 @@ class Parser:
             if self.at("ASSIGN"):
                 self.eat("ASSIGN")
                 self.skip_separators()
+                docstring: str | None = None
+                if self.at("STRING"):
+                    save = self.i
+                    candidate = parse_string_literal(self.eat("STRING").text)
+                    if self.at_expr_start():
+                        docstring = candidate
+                    else:
+                        self.i = save
                 body = self.parse_function_body_after_intro(len(params))
                 return FuncDef(
                     name,
                     params,
                     rest_param,
+                    docstring,
                     body,
                     span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
                 )
@@ -1059,6 +1078,7 @@ class Parser:
                     name,
                     params,
                     rest_param,
+                    None,
                     body,
                     span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
                 )
@@ -1075,6 +1095,9 @@ class Parser:
 
         expr = self.parse_expr()
         return ExprStmt(expr, span=expr.span)
+
+    def at_expr_start(self) -> bool:
+        return self.at("NUMBER", "STRING", "IDENT", "MINUS", "BANG", "LPAREN", "LBRACK", "LBRACE")
 
     def leading_parenthesized_item_count_before_arrow(self) -> int | None:
         if not self.at("LPAREN"):
@@ -1432,13 +1455,13 @@ class Env:
     def define_function(self, fn: "GeniaFunction") -> None:
         existing = self.values.get(fn.name)
         if existing is None:
-            self.values[fn.name] = {fn.arity: fn}
+            group = GeniaFunctionGroup(fn.name)
+            group.add_clause(fn)
+            self.values[fn.name] = group
             return
-        if not isinstance(existing, dict) or not all(isinstance(k, int) for k in existing):
+        if not isinstance(existing, GeniaFunctionGroup):
             raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
-        if fn.arity in existing:
-            raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
-        existing[fn.arity] = fn
+        existing.add_clause(fn)
 
     def register_autoload(self, name: str, arity: int, path: str) -> None:
         root = self.root()
@@ -1475,10 +1498,52 @@ class Env:
 
 
 @dataclass
+class GeniaFunctionGroup:
+    name: str
+    functions: dict[int, "GeniaFunction"] = field(default_factory=dict)
+    docstring: str | None = None
+
+    def add_clause(self, fn: "GeniaFunction") -> None:
+        existing = self.functions.get(fn.arity)
+        if existing is not None:
+            raise TypeError(f"Duplicate function definition: {fn.name}/{fn.arity}")
+        self._merge_docstring(fn.docstring)
+        self.functions[fn.arity] = fn
+
+    def _merge_docstring(self, candidate: str | None) -> None:
+        if candidate is None:
+            return
+        if self.docstring is None:
+            self.docstring = candidate
+            return
+        if self.docstring != candidate:
+            raise TypeError(
+                f"Conflicting docstrings for function {self.name}: got {candidate!r}, expected {self.docstring!r}"
+            )
+
+    def __iter__(self):
+        return iter(self.functions)
+
+    def __getitem__(self, key: int) -> "GeniaFunction":
+        return self.functions[key]
+
+    def get(self, key: int) -> "GeniaFunction | None":
+        return self.functions.get(key)
+
+    def values(self):
+        return self.functions.values()
+
+    def sorted_arities(self) -> list[int]:
+        return sorted(self.functions)
+
+
+
+@dataclass
 class GeniaFunction:
     name: str
     params: list[str]
     rest_param: str | None
+    docstring: str | None
     body: IrNode
     closure: Env
     span: SourceSpan | None = None
@@ -1786,10 +1851,10 @@ class Evaluator:
         callee_node: IrNode | None = None,
     ) -> Any:
 
-        if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+        if isinstance(fn, GeniaFunctionGroup):
             arity = len(args)
 
-            def resolve_target(functions: dict[int, Any], call_arity: int) -> Any | None:
+            def resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any | None:
                 exact = functions.get(call_arity)
                 if exact is not None:
                     return exact
@@ -1819,12 +1884,12 @@ class Evaluator:
             if target is None and isinstance(callee_node, IrVar):
                 if self.env.try_autoload(callee_node.name, arity):
                     fn = self.env.get(callee_node.name)
-                    if isinstance(fn, dict) and all(isinstance(k, int) for k in fn):
+                    if isinstance(fn, GeniaFunctionGroup):
                         target = resolve_target(fn, arity)
 
             if target is None:
                 callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
-                available = ", ".join(f"{callee}/{n}" for n in sorted(fn))
+                available = ", ".join(f"{callee}/{n}" for n in fn.sorted_arities())
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             if tail_position and not self.debug_mode:
                 return TailCall(target, tuple(args))
@@ -1989,6 +2054,7 @@ class Evaluator:
                 node.name,
                 node.params,
                 node.rest_param,
+                node.docstring,
                 node.body,
                 self.env,
                 span=node.span,
@@ -2149,8 +2215,63 @@ def make_global_env(
                 stdin_cache = sys.stdin.read().splitlines()
         return stdin_cache
 
-    def help_fn() -> None:
-        print(
+    def _emit_help(text: str) -> None:
+        output = text + "\n"
+        if output_handler is None:
+            print(output, end="")
+        else:
+            output_handler(output)
+
+    def _format_span(span: SourceSpan | None) -> str | None:
+        if span is None:
+            return None
+        return f"{span.filename}:{span.line}:{span.column}"
+
+    def _format_function_shapes(group: GeniaFunctionGroup) -> str:
+        shapes: list[str] = []
+        for arity in group.sorted_arities():
+            fn_value = group.get(arity)
+            if fn_value is None:
+                continue
+            suffix = "+" if fn_value.rest_param is not None else ""
+            shapes.append(f"{arity}{suffix}")
+        return ", ".join(shapes) if shapes else "unknown"
+
+    def _group_span(group: GeniaFunctionGroup) -> SourceSpan | None:
+        spans = [fn.span for fn in group.values() if isinstance(fn, GeniaFunction) and fn.span is not None]
+        if not spans:
+            return None
+        return min(spans, key=lambda s: (s.line, s.column, s.end_line, s.end_column))
+
+    def _describe_function_group(group: GeniaFunctionGroup) -> str:
+        lines = [
+            f"{group.name}",
+            f"  arities: {_format_function_shapes(group)}",
+        ]
+        if group.docstring is not None:
+            lines.append(f"  doc: {group.docstring}")
+        span_text = _format_span(_group_span(group))
+        if span_text is not None:
+            lines.append(f"  source: {span_text}")
+        return "\n".join(lines)
+
+    def help_fn(*args: Any) -> None:
+        if len(args) > 1:
+            raise TypeError(f"help expected 0 or 1 args, got {len(args)}")
+        if len(args) == 1:
+            target = args[0]
+            if isinstance(target, str):
+                target = env.get(target)
+            if isinstance(target, GeniaFunctionGroup):
+                _emit_help(_describe_function_group(target))
+                return
+            if isinstance(target, GeniaFunction):
+                singleton = GeniaFunctionGroup(target.name, functions={target.arity: target}, docstring=target.docstring)
+                _emit_help(_describe_function_group(singleton))
+                return
+            raise TypeError("help expected a function name or named function")
+
+        _emit_help(
             """
 Genia prototype help
 --------------------
@@ -2197,6 +2318,7 @@ Commands:
   :quit   exit
   :env    show defined names
   :help   show this help
+  help(name)   show metadata for a named function
 
 Concurrency builtins (host-backed):
   spawn(handler)          create a process with a mailbox

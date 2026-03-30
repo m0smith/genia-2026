@@ -1,6 +1,6 @@
-apply(f, args) = f(..args)
+apply(f, args) = "Call f with a list of positional args." f(..args)
 
-compose(..fns) = (..args) -> compose_apply(fns, args)
+compose(..fns) = "Compose functions right-to-left into one callable." (..args) -> compose_apply(fns, args)
 
 compose_apply(fns, args) =
   ([f], args) -> apply(f, args) |

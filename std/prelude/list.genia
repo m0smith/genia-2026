@@ -1,10 +1,8 @@
-list(..xs) = xs
+list(..xs) = "Build a list from all provided arguments." xs
 
-first(xs) =
-  [x, .._] -> x
+first(xs) = "Return the first element of a non-empty list." ([x, .._]) -> x
 
-rest(xs) =
-  [_, ..tail] -> tail
+rest(xs) = "Return every element after the head of a non-empty list." ([_, ..tail]) -> tail
 
 empty?(xs) =
   [] -> true |
@@ -21,7 +19,7 @@ append(xs, ys) =
   (xs, []) -> xs |
   (xs, ys) -> [..xs, ..ys]
 
-length(xs) = length_acc(xs, 0)
+length(xs) = "Count the number of elements in a list." length_acc(xs, 0)
 
 length_acc(xs, acc) =
   ([], acc) -> acc |

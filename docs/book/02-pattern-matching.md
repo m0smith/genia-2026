@@ -222,6 +222,7 @@ Genia has no dedicated conditional keyword.
 * Pattern matching is the **core abstraction** of Genia
 * Any feature that introduces branching should integrate with this model
 * Avoid adding alternative conditional constructs
+* Function docstrings are metadata only and must not change case/pattern semantics
 
 ---
 
