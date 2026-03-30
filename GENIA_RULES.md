@@ -73,6 +73,7 @@ Required constraints:
 - parser may treat a string literal as function docstring metadata only for named function definitions after `=`
 - the docstring is metadata, not a runtime expression
 - lambdas do not support docstrings
+- docstring text is interpreted as Markdown for `help(...)` display with lightweight formatting only (no full Markdown engine)
 
 ## 9) Operator model
 

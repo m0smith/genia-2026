@@ -167,10 +167,11 @@ Implemented optimizations:
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
 - `help(name)` displays named-function metadata when available:
-  - function name
-  - arity shape list (including varargs markers)
-  - docstring text (when present)
-  - source location (when available)
+  - function signature header (`name/shape`, shapes include `+` for varargs)
+  - source location (`Defined at file:line`) when available
+  - Markdown-aware docstring rendering (headings, bullet lists, inline code, fenced code blocks, paragraph spacing)
+  - docstring normalization (trim outer blank lines, dedent indentation, optional triple-quote wrapper stripping, collapse excessive blank lines)
+  - undocumented fallback message (`No documentation available.`)
 
 ## 9) Explicitly not implemented (current)
 
