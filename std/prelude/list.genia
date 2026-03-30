@@ -1,76 +1,142 @@
-list(..xs) = "# list\n\nBuild a list from all provided arguments." xs
+list(..xs) = "\"\"\"\n# list\n\nBuild a list from all provided arguments.\n\n## Params\n\n* `..xs`: values to include in order\n\n## Returns\n\n* list containing all provided values\n\n## Examples\n\n```genia\nlist(1, 2, 3) -> [1, 2, 3]\n```\n\"\"\"" xs
 
-first(xs) = ([x, .._]) -> x
+first(xs) = "\"\"\"\n# first\n\nReturn the first element of a non-empty list.\n\n## Params\n\n* `xs`: non-empty list\n\n## Returns\n\n* first element in `xs`\n\n## Examples\n\n```genia\nfirst([10, 20, 30]) -> 10\n```\n\"\"\"" first_impl(xs)
+first_impl(xs) = [x, .._] -> x
 
-rest(xs) = ([_, ..tail]) -> tail
+rest(xs) = "\"\"\"\n# rest\n\nReturn all elements except the first.\n\n## Params\n\n* `xs`: non-empty list\n\n## Returns\n\n* tail of `xs`\n\n## Examples\n\n```genia\nrest([10, 20, 30]) -> [20, 30]\n```\n\"\"\"" rest_impl(xs)
+rest_impl(xs) = [_, ..tail] -> tail
 
-empty?(xs) =
+empty?(xs) = "\"\"\"\n# empty?\n\nCheck whether a list has no elements.\n\n## Params\n\n* `xs`: value to test\n\n## Returns\n\n* `true` for `[]`, otherwise `false`\n\"\"\"" empty_impl(xs)
+empty_impl(xs) =
   [] -> true |
   _ -> false
 
-nil?(x) =
+nil?(x) = "\"\"\"\n# nil?\n\nCheck whether a value is `nil`.\n\n## Params\n\n* `x`: value to test\n\n## Returns\n\n* `true` when `x` is `nil`, otherwise `false`\n\"\"\"" nil_impl(x)
+nil_impl(x) =
   nil -> true |
   _ -> false
 
-append() = []
-append(xs) = xs
-append(xs, ys) =
+append() = "\"\"\"
+# append
+
+Concatenate zero or more lists.
+
+## Examples
+
+```genia
+append([1, 2], [3]) -> [1, 2, 3]
+```
+\"\"\"" []
+append(xs) = "\"\"\"
+# append
+
+Concatenate zero or more lists.
+
+## Examples
+
+```genia
+append([1, 2], [3]) -> [1, 2, 3]
+```
+\"\"\"" xs
+append(xs, ys) = "\"\"\"
+# append
+
+Concatenate zero or more lists.
+
+## Examples
+
+```genia
+append([1, 2], [3]) -> [1, 2, 3]
+```
+\"\"\"" append2(xs, ys)
+append2(xs, ys) =
   ([], ys) -> ys |
   (xs, []) -> xs |
   (xs, ys) -> [..xs, ..ys]
 
-length(xs) = "# length\n\nCount the number of elements in a list." length_acc(xs, 0)
-
+length(xs) = "\"\"\"\n# length\n\nCount elements in a list.\n\n## Examples\n\n```genia\nlength([]) -> 0\n```\n\"\"\"" length_acc(xs, 0)
 length_acc(xs, acc) =
   ([], acc) -> acc |
   ([_, ..rest], acc) -> length_acc(rest, acc + 1)
 
-reverse(xs) = "# reverse\n\nReturn a list with elements in reverse order." reverse_acc(xs, [])
-
+reverse(xs) = "\"\"\"\n# reverse\n\nReturn a list with elements in reverse order.\n\"\"\"" reverse_acc(xs, [])
 reverse_acc(xs, acc) =
   ([], acc) -> acc |
   ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
 
-reduce(f, acc, xs) =
+reduce(f, acc, xs) = "\"\"\"\n# reduce\n\nFold a list from left to right.\n\"\"\"" reduce_impl(f, acc, xs)
+reduce_impl(f, acc, xs) =
   (f, acc, []) -> acc |
-  (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
+  (f, acc, [x, ..rest]) -> reduce_impl(f, f(acc, x), rest)
 
-map(f, xs) = "# map\n\nApply a function to every list element.\n\n## Examples\n\n```genia\nmap((x) -> x * 2, [1, 2, 3]) -> [2, 4, 6]\n```" reduce((acc, x) -> [..acc, f(x)], [], xs)
+map(f, xs) = "\"\"\"\n# map\n\nApply a function to every list element.\n\"\"\"" reduce((acc, x) -> [..acc, f(x)], [], xs)
 
-filter(predicate, xs) = "# filter\n\nKeep elements where `predicate(x)` is `true`." reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
-
+filter(predicate, xs) = "\"\"\"\n# filter\n\nKeep elements where `predicate(x)` is `true`.\n\"\"\"" reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
 filter_keep(predicate, acc, x) =
   (predicate, acc, x) ? predicate(x) == true -> [..acc, x] |
   (_, acc, _) -> acc
 
-count(xs) = "# count\n\nCount list elements." reduce((acc, _) -> acc + 1, 0, xs)
+count(xs) = "\"\"\"\n# count\n\nCount elements in a list.\n\"\"\"" reduce((acc, _) -> acc + 1, 0, xs)
 
-any?(predicate, xs) =
+any?(predicate, xs) = "\"\"\"\n# any?\n\nReturn `true` when any element satisfies a predicate.\n\"\"\"" any_impl(predicate, xs)
+any_impl(predicate, xs) =
   (predicate, []) -> false |
   (predicate, [x, ..rest]) ? predicate(x) == true -> true |
-  (predicate, [_, ..rest]) -> any?(predicate, rest)
+  (predicate, [_, ..rest]) -> any_impl(predicate, rest)
 
-nth(n, xs) =
+nth(n, xs) = "\"\"\"\n# nth\n\nReturn the element at zero-based index `n`, or `nil` when out of range.\n\"\"\"" nth_impl(n, xs)
+nth_impl(n, xs) =
   (_, []) -> nil |
   (0, [x, .._]) -> x |
-  (n, [_, ..rest]) -> nth(n - 1, rest)
+  (n, [_, ..rest]) -> nth_impl(n - 1, rest)
 
-take(n, xs) =
+take(n, xs) = "\"\"\"\n# take\n\nTake the first `n` items from a list.\n\"\"\"" take_impl(n, xs)
+take_impl(n, xs) =
   (_, []) -> [] |
   (0, _) -> [] |
-  (n, [x, ..rest]) -> [x] + take(n - 1, rest)
+  (n, [x, ..rest]) -> [x] + take_impl(n - 1, rest)
 
-drop(n, xs) =
+drop(n, xs) = "\"\"\"\n# drop\n\nDrop the first `n` items from a list.\n\"\"\"" drop_impl(n, xs)
+drop_impl(n, xs) =
   (_, []) -> [] |
   (0, xs) -> xs |
-  (n, [_, ..rest]) -> drop(n - 1, rest)
+  (n, [_, ..rest]) -> drop_impl(n - 1, rest)
 
-range(stop) = range(0, stop - 1, 1)
+range(stop) = "\"\"\"
+# range
 
-range(start, stop) = range(start, stop, 1)
+Build a numeric range.
 
-range(start, stop, step) =
+## Examples
+
+```genia
+range(5) -> [0, 1, 2, 3, 4]
+```
+\"\"\"" range(0, stop - 1, 1)
+range(start, stop) = "\"\"\"
+# range
+
+Build a numeric range.
+
+## Examples
+
+```genia
+range(5) -> [0, 1, 2, 3, 4]
+```
+\"\"\"" range(start, stop, 1)
+range(start, stop, step) = "\"\"\"
+# range
+
+Build a numeric range.
+
+## Examples
+
+```genia
+range(5) -> [0, 1, 2, 3, 4]
+```
+\"\"\"" range_impl(start, stop, step)
+range_impl(start, stop, step) =
   (_, _, 0) -> [] |
   (start, stop, step) ? step > 0 && start > stop -> [] |
   (start, stop, step) ? step < 0 && start < stop -> [] |
-  (start, stop, step) -> [start] + range(start + step, stop, step)
+  (start, stop, step) -> [start] + range_impl(start + step, stop, step)

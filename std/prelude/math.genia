@@ -1,18 +1,21 @@
-inc(x) = "# inc\n\nIncrement a number by one." x + 1
+inc(x) = "\"\"\"\n# inc\n\nIncrement a number by one.\n\n## Examples\n\n```genia\ninc(4) -> 5\n```\n\"\"\"" x + 1
 
-dec(x) = "# dec\n\nDecrement a number by one." x - 1
+dec(x) = "\"\"\"\n# dec\n\nDecrement a number by one.\n\"\"\"" x - 1
 
-mod(a, b) = "# mod\n\nReturn the remainder of `a / b`." a % b
+mod(a, b) = "\"\"\"\n# mod\n\nReturn the remainder of `a / b`.\n\"\"\"" a % b
 
-abs(x) =
+abs(x) = "\"\"\"\n# abs\n\nReturn the absolute value of a number.\n\"\"\"" abs_impl(x)
+abs_impl(x) =
   (x) ? x < 0 -> 0 - x |
   (x) -> x
 
-min(a, b) =
+min(a, b) = "\"\"\"\n# min\n\nReturn the smaller of two numbers.\n\"\"\"" min_impl(a, b)
+min_impl(a, b) =
   (a, b) ? a <= b -> a |
   (a, b) -> b
 
-max(a, b) =
+max(a, b) = "\"\"\"\n# max\n\nReturn the larger of two numbers.\n\"\"\"" max_impl(a, b)
+max_impl(a, b) =
   (a, b) ? a >= b -> a |
   (a, b) -> b
 
@@ -20,4 +23,4 @@ reduce(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
-sum(xs) = "# sum\n\nAdd all numeric elements of a list.\n\n## Examples\n\n```genia\nsum([1, 2, 3, 4]) -> 10\n```" reduce((acc, x) -> acc + x, 0, xs)
+sum(xs) = "\"\"\"\n# sum\n\nAdd all numeric elements of a list.\n\n## Examples\n\n```genia\nsum([1, 2, 3, 4]) -> 10\n```\n\"\"\"" reduce((acc, x) -> acc + x, 0, xs)

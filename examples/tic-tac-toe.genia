@@ -1,12 +1,13 @@
-newBoard() = "# newBoard\n\nCreate a fresh 3x3 board." ["_", "_", "_", "_", "_", "_", "_", "_", "_"]
+newBoard() = "\"\"\"\n# newBoard\n\nCreate a fresh 3x3 board.\n\n## Returns\n\n* list with 9 empty squares (`"_"`)\n\n## Examples\n\n```genia\nnewBoard() -> ["_", "_", "_", "_", "_", "_", "_", "_", "_"]\n```\n\"\"\"" ["_", "_", "_", "_", "_", "_", "_", "_", "_"]
 
-nextPlayer(player) =
+nextPlayer(player) = "\"\"\"\n# nextPlayer\n\nSwitch from one player marker to the other.\n\n## Params\n\n* `player`: `"X"` or `"O"`\n\n## Returns\n\n* the opposite marker\n\n## Examples\n\n```genia\nnextPlayer("X") -> "O"\n```\n\"\"\"" (
   "X" -> "O" |
   "O" -> "X"
+)
 
-showSquare(square) = square
+showSquare(square) = "\"\"\"\n# showSquare\n\nRender one square as display text.\n\n## Params\n\n* `square`: board marker\n\n## Returns\n\n* unchanged square text\n\"\"\"" square
 
-printBoard(board) =
+printBoard(board) = "\"\"\"\n# printBoard\n\nPrint the board as three rows.\n\n## Params\n\n* `board`: 9-element board list\n\n## Returns\n\n* last print result from the block\n\n## Failure\n\n* Match failure when `board` is not length 9.\n\"\"\"" (
   [a, b, c, d, e, f, g, h, i] -> {
     print("")
     print(showSquare(a) + " " + showSquare(b) + " " + showSquare(c))
@@ -14,8 +15,9 @@ printBoard(board) =
     print(showSquare(g) + " " + showSquare(h) + " " + showSquare(i))
     print("")
   }
+)
 
-winner(board) =
+winner(board) = "\"\"\"\n# winner\n\nDetect whether `X` or `O` has a winning line.\n\n## Params\n\n* `board`: 9-element board list\n\n## Returns\n\n* `"X"`, `"O"`, or `"_"` when no winner yet\n\n## Examples\n\n```genia\nwinner(["X", "X", "X", "_", "_", "_", "_", "_", "_"]) -> "X"\n```\n\"\"\"" (
   ["X", "X", "X", .._] -> "X" |
   [_,   _,   _,   "X", "X", "X", _,   _,   _] -> "X" |
   [_,   _,   _,   _,   _,   _,   "X", "X", "X"] -> "X" |
@@ -33,10 +35,11 @@ winner(board) =
   ["O", _,   _,   _,   "O", _,   _,   _,   "O"] -> "O" |
   [_,   _,   "O", _,   "O", _,   "O", _,   _] -> "O" |
   _ -> "_"
+)
 
-containsEmpty?(board) = any?((c) -> c == "_", board)
+containsEmpty?(board) = "\"\"\"\n# containsEmpty?\n\nCheck whether a board still has open squares.\n\n## Params\n\n* `board`: board list\n\n## Returns\n\n* `true` when at least one square is `"_"`\n\"\"\"" any?((c) -> c == "_", board)
 
-setAt(board, index, value) =
+setAt(board, index, value) = "\"\"\"\n# setAt\n\nPlace a value at board index `0` through `8`.\n\n## Params\n\n* `board`: 9-element board list\n* `index`: string digit from `"0"` to `"8"`\n* `value`: marker to place\n\n## Returns\n\n* new board with one updated square\n\n## Failure\n\n* Match failure when index is invalid or target square shape does not match.\n\"\"\"" (
   ([_, ..squares], '0', value)              -> [value, ..squares] |
   ([a, _, ..squares], '1', value)           -> [a, value, ..squares] |
   ([a, b, _, ..squares], '2', value)        -> [a, b, value, ..squares] |
@@ -46,8 +49,9 @@ setAt(board, index, value) =
   ([a, b, c, d, e, f, _, h, i], '6', value) -> [a, b, c, d, e, f, value, h, i] |
   ([a, b, c, d, e, f, g, _, i], '7', value) -> [a, b, c, d, e, f, g, value, i] |
   ([a, b, c, d, e, f, g, h, _], '8', value) -> [a, b, c, d, e, f, g, h, value]
+)
 
-parseMove(s) =
+parseMove(s) = "\"\"\"\n# parseMove\n\nParse user input into board index value.\n\n## Params\n\n* `s`: user input string\n\n## Returns\n\n* integer index `0..8`, or `nil` for invalid input\n\n## Examples\n\n```genia\nparseMove("2") -> 2\nparseMove("q") -> nil\n```\n\"\"\"" (
   "0" -> 0 |
   "1" -> 1 |
   "2" -> 2 |
@@ -58,34 +62,37 @@ parseMove(s) =
   "7" -> 7 |
   "8" -> 8 |
   _   -> nil
+)
 
-isLegalMove(board, move) = nth(parseMove(move), board) == "_"
+isLegalMove(board, move) = "\"\"\"\n# isLegalMove\n\nCheck whether a requested move targets an empty square.\n\n## Params\n\n* `board`: board list\n* `move`: user move string\n\n## Returns\n\n* `true` when move selects an empty square\n\"\"\"" nth(parseMove(move), board) == "_"
 
-readMove(player) = "# readMove\n\nPrompt the active player for a move." input("Player " + player + ", enter a move from 0 to 8:")
+readMove(player) = "\"\"\"\n# readMove\n\nPrompt the active player for a move.\n\n## Params\n\n* `player`: current marker (`"X"` or `"O"`)\n\n## Returns\n\n* raw input string from stdin\n\"\"\"" input("Player " + player + ", enter a move from 0 to 8:")
 
-playTurn(board, player, move) =
+playTurn(board, player, move) = "\"\"\"\n# playTurn\n\nApply one move, or retry when the move is illegal.\n\n## Params\n\n* `board`: current board\n* `player`: active marker\n* `move`: user input\n\n## Returns\n\n* result of the next game state transition\n\"\"\"" (
   (b, p, m) ? isLegalMove(b, m) -> play(setAt(b, m, p), nextPlayer(p)) |
   (b, p, _) -> retryTurn(b, p)
+)
 
-retryTurn(board, player) = {
+retryTurn(board, player) = "\"\"\"\n# retryTurn\n\nPrint an error and continue the current player's turn.\n\n## Params\n\n* `board`: current board\n* `player`: active marker\n\n## Returns\n\n* result of continuing play\n\"\"\"" {
   print("That square is not available. Try again.")
   play(board, player)
 }
 
-play(board, player) = {
+play(board, player) = "\"\"\"\n# play\n\nRun one game loop iteration.\n\n## Params\n\n* `board`: current board\n* `player`: active marker\n\n## Returns\n\n* final game output or recursive continuation\n\"\"\"" {
   printBoard(board)
   finishOrContinue(board, player, winner(board), containsEmpty?(board))
 }
 
-finishOrContinue(board, player, whoWon, hasEmpty) =
+finishOrContinue(board, player, whoWon, hasEmpty) = "\"\"\"\n# finishOrContinue\n\nEnd the game when finished, otherwise prompt for the next move.\n\n## Params\n\n* `board`: current board\n* `player`: active marker\n* `whoWon`: winner marker or `"_"`\n* `hasEmpty`: whether moves remain\n\n## Returns\n\n* final print result or next-turn continuation\n\"\"\"" (
   (_, _, "X", _) -> print("X wins!") |
   (_, _, "O", _) -> print("O wins!") |
   (_, _, "_", false) -> print("Draw!") |
   (_, _, "_", true) -> promptMove(board, player)
+)
 
-promptMove(board, player) = playTurn(board, player, readMove(player))
+promptMove(board, player) = "\"\"\"\n# promptMove\n\nRead and apply the next move for the active player.\n\n## Params\n\n* `board`: current board\n* `player`: active marker\n\n## Returns\n\n* result of `playTurn`\n\"\"\"" playTurn(board, player, readMove(player))
 
-main() = "# main\n\nRun the Tic-Tac-Toe example." {
+main() = "\"\"\"\n# main\n\nRun the Tic-Tac-Toe example.\n\n## Returns\n\n* result of full game execution\n\"\"\"" {
   print("Tic-Tac-Toe")
   print("Use positions 0 through 8.")
   print("0 1 2")

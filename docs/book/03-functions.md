@@ -15,7 +15,7 @@ Named functions are values and dispatch by name + arity shape.
 A named function may include a leading docstring string literal after `=`:
 
 ```genia
-inc(x) = "# inc\n\nIncrement a number by one." x + 1
+inc(x) = """\n# inc\n\nIncrement a number by one.\n""" x + 1
 ```
 
 The string is metadata for the named function group, not a normal runtime expression.

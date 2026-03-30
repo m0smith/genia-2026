@@ -29,7 +29,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 - multiple definitions by arity shape are allowed
 - varargs named functions are supported (`f(a, ..rest) = ...`)
 - named function definitions may include an optional leading docstring string literal after `=`
-  - example: `inc(x) = "increment by one" x + 1`
+  - example: `inc(x) = """\n# inc\n\nIncrement by one.\n""" x + 1`
   - docstrings are metadata, not runtime body expressions
   - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
 - resolution behavior:

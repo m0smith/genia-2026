@@ -35,7 +35,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - function definitions with expression body, block body, or case body
 - optional named-function docstring metadata:
-  - `f(x) = "doc text" x + 1`
+  - `f(x) = """\n# f\n\nSummary.\n""" x + 1`
   - docstring is attached to function metadata (not evaluated as runtime expression)
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)
