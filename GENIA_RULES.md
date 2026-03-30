@@ -62,6 +62,17 @@ Required constraints:
 
 - fixed-arity match is preferred over varargs match
 - varargs ambiguity must raise `TypeError("Ambiguous function resolution")`
+- named-function groups may carry one canonical docstring:
+  - no docstrings => undocumented
+  - one docstring total => valid
+  - repeated identical docstrings => valid
+  - conflicting docstrings => clear `TypeError`
+
+## 8.1) Named function docstring parse invariant
+
+- parser may treat a string literal as function docstring metadata only for named function definitions after `=`
+- the docstring is metadata, not a runtime expression
+- lambdas do not support docstrings
 
 ## 9) Operator model
 

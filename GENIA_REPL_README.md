@@ -34,6 +34,10 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - function definitions with expression body, block body, or case body
+- optional named-function docstring metadata:
+  - `f(x) = "doc text" x + 1`
+  - docstring is attached to function metadata (not evaluated as runtime expression)
+  - lambdas do not support docstrings
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - function-call argument spread (`f(..xs)`)
@@ -63,6 +67,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - `:help`
 - `:env`
 - `:quit`
+- `help(name)` to inspect named-function metadata (`name`, arities, docstring, source location when available)
 
 ## Not implemented (current)
 
