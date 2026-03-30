@@ -125,6 +125,7 @@ agent_get(counter)
 
 - `log`, `print`, `input`, `stdin`, `help`
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
+- stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
 
 ### Refs

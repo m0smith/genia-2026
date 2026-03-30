@@ -55,6 +55,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, and `range`
+  - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - I/O: `log`, `print`, `input`, `stdin`, `help`
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`

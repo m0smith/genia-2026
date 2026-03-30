@@ -15,7 +15,7 @@ Named functions are values and dispatch by name + arity shape.
 A named function may include a leading docstring string literal after `=`:
 
 ```genia
-inc(x) = "Increment a number by one." x + 1
+inc(x) = "# inc\n\nIncrement a number by one." x + 1
 ```
 
 The string is metadata for the named function group, not a normal runtime expression.
@@ -27,11 +27,12 @@ You can inspect it with:
 help("inc")
 ```
 
-Markdown-aware example:
+### Recommended docstring shape
+
+Use short Markdown sections when they add value:
 
 ```genia
-sum(xs) = "# sum\n\nReturn the total from `xs`.\n\n## Params\n- xs: list of numbers" 0
-help("sum")
+sum(xs) = "# sum\n\nAdd all numbers in `xs`.\n\n## Params\n\n* `xs`: list of numbers\n\n## Examples\n\n```genia\nsum([1, 2, 3]) -> 6\n```" 0
 ```
 
 ---
@@ -41,8 +42,8 @@ help("sum")
 Multiple clauses can share one canonical docstring:
 
 ```genia
-echo() = "Return value unchanged." nil
-echo(x) = "Return value unchanged." x
+echo() = "# echo\n\nReturn value unchanged." nil
+echo(x) = "# echo\n\nReturn value unchanged." x
 ```
 
 This is valid (same docstring text).
@@ -54,8 +55,8 @@ This is valid (same docstring text).
 Conflicting docstrings across clauses raise a clear error:
 
 ```genia
-echo() = "First doc." nil
-echo(x) = "Second doc." x
+echo() = "first doc" nil
+echo(x) = "second doc" x
 ```
 
 Expected behavior: runtime `TypeError` for conflicting function docstrings.

@@ -1,15 +1,21 @@
-# Split the string `row` on whitespace, the first element is always row
-fields(row) = [row, ..split_whitespace(row)]
+fields(row) = "# fields\n\nSplit a row into whitespace-separated fields, keeping the original row first.\n\n## Params\n\n* `row`: input string\n\n## Returns\n\n* `[row, ..split_whitespace(row)]`.\n\n## Examples\n\n```genia\nfields(row) -> [row, ..split_whitespace(row)]\n```" [row, ..split_whitespace(row)]
 
-awkify(fn, xs) = awkify_from(fn, xs, 1, [])
+awkify(fn, xs) = "# awkify\n\nApply an AWK-style row function over a list of rows.\n\n## Params\n\n* `fn`: called as `fn(line_no, row)`\n* `xs`: list of rows\n\n## Returns\n\n* List of non-`nil` results, in input order.\n\n## Examples\n\n```genia\nodd(n, row) = n % 2 == 1 -> row | _ -> nil\nawkify(odd, rows) -> filtered_rows\n```\n\n## Edge cases\n\n* `awkify(fn, [])` returns `[]`." awkify_from(fn, xs, 1, [])
+
+awk_filter(predicate, xs) = "# awk_filter\n\nFilter rows with an AWK-style predicate.\n\n## Params\n\n* `predicate`: called as `predicate(line_no, row)`, keep row only when result is `true`\n* `xs`: list of rows\n\n## Returns\n\n* Rows that pass the predicate.\n\n## Examples\n\n```genia\nawk_filter((n, _) -> n > 1, rows) -> rows_after_first\n```" awkify((n, row) -> awk_filter_pick(predicate(n, row), row), xs)
+
+awk_filter_pick(ok, row) =
+  (true, row) -> row |
+  (_, _) -> nil
+
+awk_map(fn, xs) = "# awk_map\n\nMap rows with AWK-style line numbering.\n\n## Params\n\n* `fn`: called as `fn(line_no, row)`\n* `xs`: list of rows\n\n## Returns\n\n* List of mapped values.\n\n## Examples\n\n```genia\nawk_map((n, row) -> fn(n, row), rows) -> mapped_rows\n```" awkify((n, row) -> fn(n, row), xs)
+
+awk_count(predicate, xs) = "# awk_count\n\nCount rows that satisfy an AWK-style predicate.\n\n## Params\n\n* `predicate`: called as `predicate(line_no, row)`\n* `xs`: list of rows\n\n## Returns\n\n* Number of rows where predicate is `true`.\n\n## Examples\n\n```genia\nawk_count(predicate, rows) -> number\n```" length(awk_filter(predicate, xs))
 
 awkify_from(fn, xs, n, acc) =
   (_, [], _, acc)           -> acc |
-  (fn, [x, ..rest], n, acc) ->  awkify_step(fn(n, x), fn, rest, n, acc)
-
+  (fn, [x, ..rest], n, acc) -> awkify_step(fn(n, x), fn, rest, n, acc)
 
 awkify_step(value, fn, rest, n, acc) =
-  (nil, fn, rest, n, acc)   ->  awkify_from(fn, rest, n + 1, acc) |
-  (value, fn, rest, n, acc) ->  awkify_from(fn, rest, n + 1, [..acc, value])
-
-
+  (nil, fn, rest, n, acc)   -> awkify_from(fn, rest, n + 1, acc) |
+  (value, fn, rest, n, acc) -> awkify_from(fn, rest, n + 1, [..acc, value])
