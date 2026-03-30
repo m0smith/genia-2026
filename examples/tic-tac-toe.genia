@@ -154,7 +154,7 @@ retryTurn(board, player) {
 # Main recursive game loop:
 # 1) render board
 # 2) compute "winner?" and "any empty squares?"
-# 3) decide whether to finish or ask for next move
+# 3) determine whether to finish or ask for next move
 play(board, player) {
   printBoard(board)
   finishOrContinue(board, player, winner(board), containsEmpty?(board))

@@ -71,19 +71,18 @@ Agents must:
 
 ---
 
-### 3. “decide” Is the Only Conditional
+### 3. Pattern Matching Is the Only Conditional Model
 
 Allowed:
 
-```
-decide
-```
+* Pattern matching in function definitions / case expressions
 
 Forbidden:
 
 * `if`
 * `switch`
 * ternary operators
+* introducing conditional keywords
 
 ---
 
@@ -132,7 +131,7 @@ Agents must map features → chapters:
 | Data / literals  | 01-core-data        |
 | Pattern matching | 02-pattern-matching |
 | Functions        | 03-functions        |
-| decide           | 04-decide           |
+| Conditionals     | 02-pattern-matching |
 | Lists            | 05-lists            |
 | Recursion        | 06-recursion        |
 | repeat           | 07-repeat           |

@@ -80,6 +80,12 @@ Supported pattern forms:
 - guards (`pattern ? condition -> result`)
 - duplicate bindings (`[x, x]` only matches equal values)
 
+### Conditionals in Genia
+
+- Genia does **not** use `if` or `switch`
+- all conditional logic is expressed with function-based pattern matching
+- pattern matching is the only branching mechanism
+
 ### Case placement rules
 
 Case expressions are valid only:

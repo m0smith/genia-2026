@@ -125,18 +125,19 @@ Genia includes minimal host-backed simulation builtins:
 
 These are builtins only. They do **not** add async runtime behavior, a scheduler, or new syntax.
 
-### Random decision example
+### Random branching example
 
 ```genia
-decide rand_int(2) {
-  0 -> print("left")
+pick_direction(n) =
+  0 -> print("left") |
   1 -> print("right")
-}
+
+pick_direction(rand_int(2))
 ```
 
 Expected behavior:
 
-- one branch is selected using random integer output in `[0, 2)`
+- one pattern branch is selected using random integer output in `[0, 2)`
 
 ### Simple loop with sleep
 

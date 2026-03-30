@@ -110,3 +110,8 @@ When changing syntax/semantics/runtime behavior, update together:
 - `GENIA_REPL_README.md`
 - `README.md` for user-visible behavior
 - corresponding tests under `tests/`
+
+## 15) Conditional model invariant
+
+- Genia has no conditional keyword (`if` or `switch`)
+- branching is expressed only through pattern matching
