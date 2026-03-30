@@ -1,28 +1,56 @@
-# Tic-Tac-Toe in a single Genia file
+# Tic-Tac-Toe in one Genia file (heavily commented for learning).
 #
-# Assumptions for this draft:
-# - Strings, lists, pattern matching, and recursion exist.
-# - print(...) and input(...) are available.
-# - Equality operators work in guards.
-# - `_` in patterns is a wildcard.
-# - "_" as a string is the empty square value.
+# HOW TO READ THIS FILE
+# ---------------------
+# Genia programs are expression-oriented, and this demo leans on four core ideas:
+# 1) values (strings, lists, booleans),
+# 2) pattern matching (function heads and case-like function bodies),
+# 3) guards (`pattern ? condition -> result`),
+# 4) recursion (the game loop is recursive, not an imperative while-loop).
 #
 # This file is written to be as close as possible to the current Genia direction:
 # - branching via pattern matching
 # - no repeat
 # - no nil for empty squares
 # - control flow through pattern matching + guards + recursion
+#
+# This example intentionally stays simple:
+# - board is a list of 9 strings
+# - empty square is represented by "_" (a plain string)
+# - players are "X" and "O"
+# - moves are entered as characters "0" .. "8"
+#
+# Why strings for moves?
+# `input(...)` returns text, so keeping move comparisons as strings makes
+# pattern matching direct and beginner-friendly.
+#
+# Also note:
+# - `_` in a PATTERN means "wildcard, ignore this value"
+# - "_" as a STRING means "the square is empty"
+# These are different things that happen to look similar.
 
+# Helper to keep "empty square value" in one place.
 empty() = "_"
 
+# Create a fresh 3x3 board as a flat list:
+# indexes are:
+# 0 1 2
+# 3 4 5
+# 6 7 8
 newBoard() = ["_", "_", "_", "_", "_", "_", "_", "_", "_"]
 
+# Toggle whose turn it is.
+# This is a tiny two-case pattern match.
 nextPlayer(player) =
   "X" -> "O" |
   "O" -> "X"
 
+# Kept as a tiny indirection so beginners can later customize rendering
+# (for example, map "_" to "." or "·") in one place.
 showSquare(square) = square
 
+# Destructure all 9 squares and print as 3 rows.
+# Pattern matching gives names (`a`..`i`) to each board position.
 printBoard(board) =
   [a, b, c, d, e, f, g, h, i] -> {
     print("")
@@ -32,6 +60,13 @@ printBoard(board) =
     print("")
   }
 
+# `winner(board)` tries each winning pattern in order.
+# If any line of X matches, return "X".
+# If any line of O matches, return "O".
+# Otherwise return "_" to mean "no winner yet".
+#
+# This is a good Genia-style example of "control flow via pattern matching":
+# we do not calculate rows/columns procedurally; we declare winning shapes.
 winner(board) =
   ["X", "X", "X", .._] -> "X" |
   [_,   _,   _,   "X", "X", "X", _,   _,   _] -> "X" |
@@ -57,10 +92,23 @@ winner(board) =
 
   _ -> "_"
 
+# Ask: does the board still have at least one empty square?
+# `any?` comes from stdlib prelude and checks whether predicate is true
+# for any list element.
 containsEmpty?(board) =
   any?((c) -> c == "_", board)
 
-# setAt replaces the board position at index 0..8.
+# `setAt` returns a NEW board with one square replaced.
+# It does not mutate in place.
+#
+# Each case matches:
+# - current board shape,
+# - move as character ('0' .. '8'),
+# - value to place ("X" or "O").
+#
+# Even though the comment says "index", this function is driven by the
+# move text the user typed. Keeping input as text avoids conversion work
+# inside the game loop.
 setAt(board, index, value) =
   ([_, ..squares], '0', value)              -> [value, ..squares] |
   ([a, _, ..squares], '1', value)           -> [a, value, ..squares] |
@@ -72,6 +120,8 @@ setAt(board, index, value) =
   ([a, b, c, d, e, f, g, _, i], '7', value) -> [a, b, c, d, e, f, g, value, i] |
   ([a, b, c, d, e, f, g, h, _], '8', value) -> [a, b, c, d, e, f, g, h, value]
 
+# Convert move text to number for `nth(...)` lookup.
+# Invalid input becomes `nil` (and then legal-move check fails).
 parseMove(s) =
   "0" -> 0 |
   "1" -> 1 |
@@ -84,38 +134,53 @@ parseMove(s) =
   "8" -> 8 |
   _   -> nil
 
-# A move is legal only if the chosen square is currently empty.
+# A move is legal when the chosen board square currently contains "_".
+# If parseMove(move) returns nil, nth(nil, board) won't equal "_",
+# so invalid text is treated as an illegal move.
 isLegalMove(board, move) = nth(parseMove(move), board) == "_"
 
-
+# Prompt user and return typed text.
 readMove(player) {
   input("Player " + player + ", enter a move from 0 to 8:")
 }
 
+# `playTurn` uses a guard:
+# - if move is legal, apply move and recurse to next turn
+# - otherwise fall through to retry path
 playTurn(board, player, move) =
   (b, p, m) ? isLegalMove(b, m) -> play(setAt(b, m, p), nextPlayer(p)) |
   (b, p, _) -> retryTurn(b, p)
 
+# Friendly error path for illegal moves.
 retryTurn(board, player) {
   print("That square is not available. Try again.")
   play(board, player)
 }
 
+# Main recursive game loop:
+# 1) render board
+# 2) compute "winner?" and "any empty squares?"
+# 3) determine whether to finish or ask for next move
 play(board, player) {
   printBoard(board)
   finishOrContinue(board, player, winner(board), containsEmpty?(board))
 }
 
-
+# Terminal-state dispatcher.
+# Note how tuple-style matching lets us ignore values we don't care about
+# in each branch by using `_`.
 finishOrContinue(board, player, whoWon, hasEmpty) =
   (_, _, "X", _) -> print("X wins!") |
   (_, _, "O", _) -> print("O wins!") |
   (_, _, "_", false) -> print("Draw!") |
   (_, _, "_", true) -> promptMove(board, player)
 
+# Split out prompt+playTurn call for readability.
 promptMove(board, player) =
   playTurn(board, player, readMove(player))
 
+# Program entry point.
+# It prints index help text, then starts game with empty board and player X.
 main() {
   print("Tic-Tac-Toe")
   print("Use positions 0 through 8.")
