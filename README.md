@@ -25,6 +25,12 @@ Run a program:
 python3 -m genia.interpreter path/to/program.genia
 ```
 
+Run inline source from the command line:
+
+```bash
+genia -c "[1,2,3] |> count"
+```
+
 Run the ants demo:
 
 ```bash

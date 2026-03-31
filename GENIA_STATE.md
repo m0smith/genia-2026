@@ -8,6 +8,10 @@ This file describes what is **actually implemented now** in the Python runtime.
 - top-level assignment is supported (`name = expr`)
 - blocks evaluate expressions in order and return the last value
 - no statement/declaration split at runtime level
+- CLI entry points support three execution modes:
+  - file mode: `genia path/to/file.genia`
+  - command mode: `genia -c "expr_or_program_source"`
+  - REPL mode: `genia` (no file/command arguments)
 
 ## 2) Implemented syntax and expression forms
 

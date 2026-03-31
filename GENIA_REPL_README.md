@@ -16,6 +16,12 @@ Run a program file:
 python3 -m genia.interpreter path/to/file.genia
 ```
 
+Run a command string:
+
+```bash
+python3 -m genia.interpreter -c "[1,2,3] |> count"
+```
+
 Run the ants demo:
 
 ```bash
