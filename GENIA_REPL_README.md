@@ -120,6 +120,15 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `aliases`: map alias->canonical name
 - This layer does **not** add shell tokenization, dotted access syntax, or `$` positional variables.
 
+## Program entrypoint behavior
+
+- In **file mode** and **`-c` command mode**, Genia applies a runtime `main` convention after top-level evaluation:
+  1. If `main/1` exists, it runs `main(argv())`.
+  2. Else if `main/0` exists, it runs `main()`.
+  3. Else, no entrypoint call is made (existing behavior is preserved).
+- In **REPL mode**, no automatic `main` invocation is performed.
+- `main` remains a normal function name (not syntax).
+
 ## Simulation primitive semantics
 
 - `rand()` returns a host-RNG float in `[0, 1)`.

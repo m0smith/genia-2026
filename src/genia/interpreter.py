@@ -3025,16 +3025,32 @@ def _main(argv: Optional[list[str]] = None) -> int:
         if args.command is not None:
             parser.error("--debug-stdio cannot be used with --command")
         return run_debug_stdio(args.program)
+
+    def resolve_program_result(run_result: Any, env: Env) -> Any:
+        main_group = env.values.get("main")
+        if not isinstance(main_group, GeniaFunctionGroup):
+            return run_result
+        main_with_args = main_group.get(1)
+        if main_with_args is not None:
+            cli_args = env.get("argv")()
+            return main_with_args(cli_args)
+        main_without_args = main_group.get(0)
+        if main_without_args is not None:
+            return main_without_args()
+        return run_result
+
     if args.command is not None:
         env = make_global_env(cli_args=script_args)
-        result = run_source(args.command, env, filename="<command>")
+        run_result = run_source(args.command, env, filename="<command>")
+        result = resolve_program_result(run_result, env)
         if result is not None:
             print(format_debug(result))
         return 0
     if args.program is not None:
         env = make_global_env(cli_args=script_args)
         with open(args.program, "r", encoding="utf-8") as f:
-            result = run_source(f.read(), env, filename=str(Path(args.program).resolve()))
+            run_result = run_source(f.read(), env, filename=str(Path(args.program).resolve()))
+        result = resolve_program_result(run_result, env)
         if result is not None:
             print(format_debug(result))
         return 0
