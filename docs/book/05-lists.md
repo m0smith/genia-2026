@@ -175,3 +175,42 @@ Expected behavior:
 - iterator protocol
 - flow-aware list pipelines (backpressure/cancellation/multi-output stages)
 - built-in map/filter syntax (helpers exist only as stdlib functions)
+
+---
+
+## List-based archive pipelines (Phase 1 bridge)
+
+`zip_entries(path)` currently returns a **list**, so existing list helpers (`map`, `filter`, `count`) work directly.
+
+### Minimal example
+
+```genia
+zip_entries("in.zip")
+  |> map(entry_name)
+```
+
+Expected result:
+
+- list of entry names in archive order
+
+### Edge case example
+
+```genia
+zip_entries("in.zip")
+  |> map((e) -> e ? entry_json(e) -> entry_name(e) | _ -> nil)
+```
+
+Expected behavior:
+
+- preserves list ordering
+- emits `nil` for non-JSON entries
+
+### Failure case example
+
+```genia
+zip_entries("missing.zip")
+```
+
+Expected behavior:
+
+- raises clear file error for unreadable/missing archive path

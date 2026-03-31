@@ -122,7 +122,22 @@ No additional member/index/flow operators should be introduced without explicitl
 - `rand_int(n)` requires a positive integer `n`, returns integer in `[0, n)`
 - `sleep(ms)` requires a non-negative number and blocks current execution for `ms` milliseconds
 - these are simple runtime builtins only: no scheduler, no async/await, no event loop, no new syntax
-## 14) Documentation + tests as contract
+
+## 14) Bytes / JSON / ZIP bridge invariants (host-backed only)
+
+- bytes are runtime wrapper values (not string/list aliases)
+- zip entries are runtime wrapper values with name + bytes payload
+- required builtins:
+  - `utf8_decode`, `utf8_encode`
+  - `json_parse`, `json_pretty`
+  - `zip_entries`, `zip_write`
+  - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
+- `zip_entries(path)` returns an eager list in this phase (not lazy flow semantics)
+- `zip_write` preserves the order of entries it receives
+- `json_parse` returns runtime map values for JSON objects
+- this bridge does not introduce a generalized Flow system
+
+## 15) Documentation + tests as contract
 
 When changing syntax/semantics/runtime behavior, update together:
 
@@ -132,7 +147,7 @@ When changing syntax/semantics/runtime behavior, update together:
 - `README.md` for user-visible behavior
 - corresponding tests under `tests/`
 
-## 15) Conditional model invariant
+## 16) Conditional model invariant
 
 - Genia has no conditional keyword (`if` or `switch`)
 - branching is expressed only through pattern matching

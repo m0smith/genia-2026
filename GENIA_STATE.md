@@ -144,6 +144,29 @@ Behavior:
 - `trim`, `trim_start`, `trim_end`
 - `lower`, `upper`
 
+### Bytes / JSON / ZIP bridge builtins (Phase 1, host-backed)
+
+- `utf8_decode(bytes) -> string`
+- `utf8_encode(string) -> bytes`
+- `json_parse(string) -> value`
+- `json_pretty(value) -> string`
+- `zip_entries(path) -> list of zip entries`
+- `zip_write(entries, path) -> path` (also accepts `(path, entries)` for pipeline ergonomics)
+- `entry_name(entry) -> string`
+- `entry_bytes(entry) -> bytes`
+- `set_entry_bytes(entry, new_bytes) -> entry`
+- `update_entry_bytes(entry, f) -> entry`
+- `entry_json(entry) -> bool`
+
+Behavior:
+
+- bytes are opaque runtime wrappers (`<bytes N>`)
+- zip entries are opaque runtime wrappers (`<zip-entry ...>`) containing entry name + bytes payload
+- `zip_entries` currently returns a strict list (Phase 1) and preserves entry order
+- JSON objects from `json_parse` are represented as persistent runtime map values (`map_*` bridge type)
+- `json_pretty` currently emits deterministic pretty JSON with 2-space indentation and sorted object keys
+- this is a minimal host-backed bridge and is **not** the full flow system
+
 ### Simulation primitives (Phase 2, host-backed builtins)
 
 - `rand()`
@@ -201,6 +224,7 @@ Implemented optimizations:
 - member access syntax
 - index syntax
 - generalized flow runtime semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 
 ## 10) Example demos shipped in-repo

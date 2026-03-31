@@ -281,6 +281,11 @@ Result:
 [1, 9]
 ```
 
+Pipeline-friendly API design note:
+
+- With current rewrite semantics (`x |> f(y)` => `f(y, x)`), functions that are commonly terminal pipeline steps often use destination/config args first.
+- Example: `entries |> zip_write("out.zip")` calls `zip_write("out.zip", entries)` in this phase.
+
 ### Failure case example
 
 ```genia

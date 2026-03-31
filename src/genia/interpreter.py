@@ -37,9 +37,11 @@ from __future__ import annotations
 import math
 import os
 import bisect
+import json
 import queue
 import random
 import time
+import zipfile
 from pathlib import Path
 import argparse
 import re
@@ -1716,6 +1718,23 @@ class GeniaProcess:
         return f"<process {status}>"
 
 
+class GeniaBytes:
+    def __init__(self, value: bytes):
+        self.value = value
+
+    def __repr__(self) -> str:
+        return f"<bytes {len(self.value)}>"
+
+
+class GeniaZipEntry:
+    def __init__(self, name: str, data: GeniaBytes):
+        self.name = name
+        self.data = data
+
+    def __repr__(self) -> str:
+        return f"<zip-entry {self.name!r} {len(self.data.value)}>"
+
+
 def eval_with_tco(
     fn: Any,
     args: tuple[Any, ...],
@@ -2180,6 +2199,42 @@ def make_global_env(
             raise TypeError(f"{name} expected a string")
         return value
 
+    def _ensure_bytes(value: Any, name: str) -> GeniaBytes:
+        if not isinstance(value, GeniaBytes):
+            raise TypeError(f"{name} expected bytes")
+        return value
+
+    def _ensure_zip_entry(value: Any, name: str) -> GeniaZipEntry:
+        if not isinstance(value, GeniaZipEntry):
+            raise TypeError(f"{name} expected a zip entry")
+        return value
+
+    def _json_from_runtime(value: Any) -> Any:
+        if value is None or isinstance(value, (bool, int, float, str)):
+            return value
+        if isinstance(value, list):
+            return [_json_from_runtime(item) for item in value]
+        if isinstance(value, GeniaMap):
+            data: dict[str, Any] = {}
+            for _, (original_key, original_value) in value._entries.items():
+                if not isinstance(original_key, str):
+                    raise TypeError("json_pretty expected object keys to be strings")
+                data[original_key] = _json_from_runtime(original_value)
+            return data
+        raise TypeError(f"json_pretty expected a JSON-compatible value, got {type(value).__name__}")
+
+    def _json_to_runtime(value: Any) -> Any:
+        if value is None or isinstance(value, (bool, int, float, str)):
+            return value
+        if isinstance(value, list):
+            return [_json_to_runtime(item) for item in value]
+        if isinstance(value, dict):
+            result = GeniaMap()
+            for k, v in value.items():
+                result = result.put(k, _json_to_runtime(v))
+            return result
+        raise TypeError(f"json_parse produced unsupported host value: {type(value).__name__}")
+
     def byte_length_fn(value: Any) -> int:
         return utf8_byte_length(_ensure_string(value, "byte_length"))
 
@@ -2375,6 +2430,19 @@ Simulation primitives (host-backed builtins):
   rand()                float in [0, 1)
   rand_int(n)           integer in [0, n), n must be a positive integer
   sleep(ms)             block for ms milliseconds
+
+Bytes / JSON / ZIP builtins (host-backed runtime bridge):
+  utf8_encode(string)        bytes wrapper
+  utf8_decode(bytes)         string
+  json_parse(string)         runtime value (objects become map values)
+  json_pretty(value)         stable pretty JSON string
+  zip_entries(path)          list of zip entries
+  zip_write(entries, path)   writes zip and returns path
+  entry_name(entry)
+  entry_bytes(entry)
+  set_entry_bytes(entry, bytes)
+  update_entry_bytes(entry, updater)
+  entry_json(entry)
 """.strip()
         )
 
@@ -2473,6 +2541,91 @@ Simulation primitives (host-backed builtins):
         time.sleep(ms / 1000.0)
         return None
 
+    def utf8_encode_fn(value: Any) -> GeniaBytes:
+        text = _ensure_string(value, "utf8_encode")
+        return GeniaBytes(text.encode("utf-8"))
+
+    def utf8_decode_fn(value: Any) -> str:
+        encoded = _ensure_bytes(value, "utf8_decode")
+        try:
+            return encoded.value.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"utf8_decode invalid UTF-8: {exc}") from exc
+
+    def json_parse_fn(value: Any) -> Any:
+        text = _ensure_string(value, "json_parse")
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"json_parse invalid JSON: {exc.msg} at line {exc.lineno} column {exc.colno}") from exc
+        return _json_to_runtime(parsed)
+
+    def json_pretty_fn(value: Any) -> str:
+        return json.dumps(_json_from_runtime(value), indent=2, ensure_ascii=False, sort_keys=True)
+
+    def zip_entries_fn(path: Any) -> list[GeniaZipEntry]:
+        zip_path = _ensure_string(path, "zip_entries")
+        try:
+            with zipfile.ZipFile(zip_path, "r") as archive:
+                entries: list[GeniaZipEntry] = []
+                for info in archive.infolist():
+                    if info.is_dir():
+                        continue
+                    entries.append(GeniaZipEntry(info.filename, GeniaBytes(archive.read(info.filename))))
+                return entries
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(f"zip_entries could not read zip file: {zip_path}") from exc
+        except zipfile.BadZipFile as exc:
+            raise ValueError(f"zip_entries invalid zip archive: {zip_path}") from exc
+        except OSError as exc:
+            raise OSError(f"zip_entries could not read zip file: {zip_path}") from exc
+
+    def entry_name_fn(entry: Any) -> str:
+        return _ensure_zip_entry(entry, "entry_name").name
+
+    def entry_bytes_fn(entry: Any) -> GeniaBytes:
+        return _ensure_zip_entry(entry, "entry_bytes").data
+
+    def set_entry_bytes_fn(entry: Any, new_bytes: Any) -> GeniaZipEntry:
+        zip_entry = _ensure_zip_entry(entry, "set_entry_bytes")
+        data = _ensure_bytes(new_bytes, "set_entry_bytes")
+        return GeniaZipEntry(zip_entry.name, data)
+
+    def update_entry_bytes_fn(entry: Any, updater: Any) -> GeniaZipEntry:
+        zip_entry = _ensure_zip_entry(entry, "update_entry_bytes")
+        if not callable(updater):
+            raise TypeError("update_entry_bytes expected a function as second argument")
+        next_data = updater(zip_entry.data)
+        if not isinstance(next_data, GeniaBytes):
+            raise TypeError("update_entry_bytes updater must return bytes")
+        return GeniaZipEntry(zip_entry.name, next_data)
+
+    def entry_json_fn(entry: Any) -> bool:
+        zip_entry = _ensure_zip_entry(entry, "entry_json")
+        return zip_entry.name.lower().endswith(".json")
+
+    def zip_write_fn(first: Any, second: Any) -> str:
+        if isinstance(first, str) and isinstance(second, list):
+            out_path = first
+            entries = second
+        elif isinstance(first, list) and isinstance(second, str):
+            entries = first
+            out_path = second
+        else:
+            raise TypeError("zip_write expected (entries, path) or (path, entries)")
+
+        for item in entries:
+            if not isinstance(item, GeniaZipEntry):
+                raise TypeError("zip_write expected a list of zip entries")
+
+        try:
+            with zipfile.ZipFile(out_path, "w") as archive:
+                for item in entries:
+                    archive.writestr(item.name, item.data.value)
+        except OSError as exc:
+            raise OSError(f"zip_write could not write zip file: {out_path}") from exc
+        return out_path
+
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -2515,6 +2668,17 @@ Simulation primitives (host-backed builtins):
     env.set("trim_end", trim_end_fn)
     env.set("lower", lower_fn)
     env.set("upper", upper_fn)
+    env.set("utf8_decode", utf8_decode_fn)
+    env.set("utf8_encode", utf8_encode_fn)
+    env.set("json_parse", json_parse_fn)
+    env.set("json_pretty", json_pretty_fn)
+    env.set("zip_entries", zip_entries_fn)
+    env.set("zip_write", zip_write_fn)
+    env.set("entry_name", entry_name_fn)
+    env.set("entry_bytes", entry_bytes_fn)
+    env.set("set_entry_bytes", set_entry_bytes_fn)
+    env.set("update_entry_bytes", update_entry_bytes_fn)
+    env.set("entry_json", entry_json_fn)
 
     env.register_autoload("list", 0, "std/prelude/list.genia")
     env.register_autoload("first", 1, "std/prelude/list.genia")

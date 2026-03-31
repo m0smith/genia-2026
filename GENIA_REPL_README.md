@@ -70,6 +70,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
+  - bytes/json/zip bridge builtins (phase 1):
+    - `utf8_encode`, `utf8_decode`
+    - `json_parse`, `json_pretty`
+    - `zip_entries`, `zip_write`
+    - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
   - constants: `pi`, `e`, `true`, `false`, `nil`
 
@@ -88,6 +93,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- full Flow runtime system (stages/sinks/backpressure/cancellation/multi-port stages)
 
 ## Conditionals in Genia
 
@@ -106,6 +112,17 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `ValueError` when `ms < 0`
 
 These are blocking builtins only; they do not introduce scheduler/async runtime behavior.
+
+## Bytes / JSON / ZIP bridge semantics
+
+- `utf8_encode(string)` returns an opaque bytes wrapper value.
+- `utf8_decode(bytes)` decodes UTF-8 and raises `ValueError` for invalid byte sequences.
+- `json_parse(string)` parses JSON and raises `ValueError` for invalid JSON text.
+  - JSON objects become runtime map values (same family used by `map_new`/`map_put`).
+- `json_pretty(value)` renders deterministic pretty JSON (`indent=2`, sorted keys).
+- `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
+- `zip_write(entries, path)` writes entries in order and returns `path`.
+  - It also accepts `(path, entries)` to stay pipeline-friendly with current `|>` rewrite behavior.
 
 ## Demo note: ants simulation example
 
