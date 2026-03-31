@@ -16,7 +16,7 @@ Genia currently supports these runtime value families:
 - **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
 - **phase-1 host-backed zip entry wrappers** (`zip_entries`, `entry_*`, `zip_write`)
 
-This chapter focuses on the map bridge because it is the newest core data capability.
+This chapter covers the current Phase-1 host-backed core-data bridges (maps, bytes, and zip entries), starting with maps.
 
 ---
 
