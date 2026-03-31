@@ -58,6 +58,14 @@ Expected result:
 
 Order is preserved in output.
 
+Pipeline form (Phase 1):
+
+```genia
+[1, 2, 3] |> map(inc)
+```
+
+This works through the pipeline rewrite rule `x |> f(y)` → `f(y, x)`.
+
 ### Failure case example
 
 ```genia
@@ -165,4 +173,5 @@ Expected behavior:
 
 - lazy sequences
 - iterator protocol
+- flow-aware list pipelines (backpressure/cancellation/multi-output stages)
 - built-in map/filter syntax (helpers exist only as stdlib functions)
