@@ -151,3 +151,14 @@ When changing syntax/semantics/runtime behavior, update together:
 
 - Genia has no conditional keyword (`if` or `switch`)
 - branching is expressed only through pattern matching
+
+## 17) CLI args + parsing invariants (runtime-only, list-first)
+
+- raw process args are exposed via `argv()` as a list of strings (no `$1`/`$2` syntax)
+- CLI parsing is runtime builtin behavior (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`), not parser syntax
+- `cli_parse` returns `[opts_map, positionals_list]` where `opts_map` is persistent (`map_put` semantics, last write wins)
+- `cli_parse(args, spec)` accepts minimal map spec keys only:
+  - `flags` (list of strings)
+  - `options` (list of strings)
+  - `aliases` (map of string->string)
+- invalid CLI arg/spec/value types raise clear deterministic `TypeError`; ambiguous grouped short-option-with-value specs raise deterministic `ValueError`

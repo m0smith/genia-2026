@@ -16,6 +16,12 @@ Run a program file:
 python3 -m genia.interpreter path/to/file.genia
 ```
 
+Pass raw CLI args into a program:
+
+```bash
+python3 -m genia.interpreter path/to/file.genia --pretty input.txt
+```
+
 Run a command string:
 
 ```bash
@@ -66,6 +72,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - I/O: `log`, `print`, `input`, `stdin`, `help`
+  - CLI: `argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
@@ -88,6 +95,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ## Not implemented (current)
 
 - map/dict literals and map patterns
+- `$1` / `$2` / `ARGV`-style special CLI syntax
 - general host interop / FFI
 - module/import system
 - member access and indexing syntax
@@ -100,6 +108,17 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - Genia does **not** use `if` or `switch`.
 - All branching is expressed through pattern matching.
 - There is no dedicated conditional keyword.
+
+## CLI args model (list-first)
+
+- `argv()` returns raw trailing command-line args as a plain list of strings.
+- Positional-only CLI programs should pattern match directly on that list.
+- `cli_parse(args)` returns `[opts, positionals]` where `opts` is a persistent map.
+- `cli_parse(args, spec)` supports minimal map spec keys:
+  - `flags`: list of names forced to boolean
+  - `options`: list of names forced to consume values
+  - `aliases`: map alias->canonical name
+- This layer does **not** add shell tokenization, dotted access syntax, or `$` positional variables.
 
 ## Simulation primitive semantics
 

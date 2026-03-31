@@ -8,6 +8,7 @@ This repository currently provides:
 - a REPL and file runner (`python3 -m genia.interpreter`)
 - host-backed concurrency primitives (`spawn`, `send`, `process_alive?`)
 - refs (`ref`, `ref_get`, `ref_set`, `ref_update`)
+- list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, agents)
 - debug-stdio adapter support for editor integration
@@ -23,6 +24,12 @@ Run a program:
 
 ```bash
 python3 -m genia.interpreter path/to/program.genia
+```
+
+Pass raw trailing CLI args into the running program:
+
+```bash
+python3 -m genia.interpreter path/to/program.genia --pretty input.txt
 ```
 
 Run inline source from the command line:
@@ -154,6 +161,13 @@ agent_get(counter)
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
+
+### CLI args / options (runtime layer)
+
+- `argv()` exposes raw trailing CLI args as a plain list of strings
+- `cli_parse(args)` and `cli_parse(args, spec)` return `[opts_map, positionals]`
+- `cli_flag?(opts, name)`, `cli_option(opts, name)`, `cli_option_or(opts, name, default)` help read options cleanly
+- no `$1`/`$2` syntax is added; positional arguments are list-pattern friendly
 
 ### Refs
 
