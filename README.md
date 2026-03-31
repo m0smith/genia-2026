@@ -56,6 +56,8 @@ pytest -q
 - Host-backed reference (`ref`)
 - Host-backed process handle (`spawn`)
 - Host-backed persistent associative map (`map_new`, `map_put`, ...)
+- Host-backed bytes wrapper
+- Host-backed zip entry wrapper
 
 ### Functions and lambdas
 
@@ -174,6 +176,18 @@ agent_get(counter)
 - `sleep(ms)` blocks for `ms` milliseconds
 - intentionally simple: no scheduler, no async/await, no event loop
 
+### Bytes / JSON / ZIP bridge builtins (Phase 1)
+
+- `utf8_encode(string) -> bytes`
+- `utf8_decode(bytes) -> string`
+- `json_parse(string) -> value` (objects become runtime map values)
+- `json_pretty(value) -> string`
+- `zip_entries(path) -> list of zip entries`
+- `zip_write(entries, path) -> path` (also accepts `(path, entries)` for pipeline style)
+- `entry_name(entry)`, `entry_bytes(entry)`, `set_entry_bytes(entry, bytes)`, `update_entry_bytes(entry, f)`, `entry_json(entry)`
+
+This is a minimal host-backed bridge for pipeline-first archive transforms; it is **not** the full Flow runtime system.
+
 ### Phase 1 persistent associative maps
 
 - `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
@@ -195,6 +209,7 @@ agent_get(counter)
 - module/import syntax
 - member access / indexing syntax
 - generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/event loop for simulations
 
 For stricter implementation details and invariants, see:

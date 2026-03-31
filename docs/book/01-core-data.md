@@ -13,6 +13,8 @@ Genia currently supports these runtime value families:
 - refs (`ref`)
 - process handles (`spawn`)
 - **phase-1 host-backed persistent associative maps** (`map_new`, `map_put`, ...)
+- **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
+- **phase-1 host-backed zip entry wrappers** (`zip_entries`, `entry_*`, `zip_write`)
 
 This chapter focuses on the map bridge because it is the newest core data capability.
 
@@ -112,6 +114,83 @@ Expected behavior:
 - map pattern matching
 - member/index syntax for maps
 - general host interop / FFI
+
+---
+
+## Bytes / JSON / ZIP bridge (phase 1)
+
+Genia now includes a minimal host-backed bridge for byte-safe JSON rewriting inside zip archives.
+
+Flat pipeline-friendly API (no member/dot syntax):
+
+- `utf8_encode(string) -> bytes`
+- `utf8_decode(bytes) -> string`
+- `json_parse(string) -> value`
+- `json_pretty(value) -> string`
+- `zip_entries(path) -> list of zip entries`
+- `zip_write(entries, path) -> path`
+- `entry_name(entry)`, `entry_bytes(entry)`, `set_entry_bytes(entry, bytes)`, `update_entry_bytes(entry, f)`, `entry_json(entry)`
+
+### Minimal example
+
+```genia
+format_json_bytes(bytes) =
+  compose(utf8_encode, json_pretty, json_parse, utf8_decode)(bytes)
+```
+
+### Edge case example
+
+```genia
+rewrite_entry(entry) =
+  entry ? entry_json(entry) -> update_entry_bytes(entry, format_json_bytes) |
+  _ -> entry
+```
+
+Expected behavior:
+
+- `entry_json(entry)` true: bytes are reformatted JSON
+- `entry_json(entry)` false: bytes are unchanged
+
+### Failure case examples
+
+```genia
+utf8_decode("not-bytes")
+```
+
+Expected behavior:
+
+- raises `TypeError` (`utf8_decode expected bytes`)
+
+And:
+
+```genia
+json_parse("{\"x\":")
+```
+
+Expected behavior:
+
+- raises `ValueError` with parse location details
+
+### Implementation status
+
+### ✅ Implemented
+
+- opaque bytes runtime wrapper values
+- opaque zip entry runtime wrapper values
+- UTF-8 encode/decode builtins
+- JSON parse/pretty builtins
+- zip read/write builtins with preserved entry order
+- JSON objects mapped to runtime map values
+
+### ⚠️ Partial
+
+- `zip_entries` is eager list-based in this phase (not lazy sequences)
+- `zip_write` supports both `(entries, path)` and `(path, entries)` to stay compatible with current pipeline rewrite shape
+
+### ❌ Not implemented
+
+- full Flow runtime (stages, backpressure, cancellation, multi-port stages)
+- stream-native zip processing or lazy archive sequences
 
 ---
 
