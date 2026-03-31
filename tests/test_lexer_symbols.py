@@ -31,3 +31,15 @@ def test_plus_and_slash_are_operators_but_hyphenated_names_are_identifiers():
         ("SLASH", "/"),
         ("IDENT", "name"),
     ]
+
+
+def test_pipeline_operator_tokenizes_as_pipe_fwd():
+    tokens = _kinds_texts("x |> f(y)")
+    assert tokens == [
+        ("IDENT", "x"),
+        ("PIPE_FWD", "|>"),
+        ("IDENT", "f"),
+        ("LPAREN", "("),
+        ("IDENT", "y"),
+        ("RPAREN", ")"),
+    ]

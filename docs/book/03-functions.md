@@ -243,12 +243,63 @@ No documentation available.
 
 ---
 
+## Pipeline Operator (Phase 1)
+
+Genia now supports a minimal pipeline operator for left-to-right function composition:
+
+`left |> right`
+
+Rewrite rules (implemented):
+
+* `x |> f` becomes `f(x)`
+* `x |> f(y)` becomes `f(y, x)` (the piped value is appended as the final argument)
+* chaining is left-associative: `a |> f |> g` becomes `g(f(a))`
+
+### Minimal example
+
+```genia
+inc(x) = x + 1
+4 |> inc
+```
+
+Result:
+
+```genia
+5
+```
+
+### Edge case example
+
+```genia
+pair(a, b) = [a, b]
+9 |> pair(1)
+```
+
+Result:
+
+```genia
+[1, 9]
+```
+
+### Failure case example
+
+```genia
+1 |> 2
+```
+
+Expected behavior:
+
+* runtime `TypeError` because `2` is not callable.
+
+---
+
 ## Implementation Status
 
 ### ✅ Implemented
 
 * Named function definitions
 * Arity-based + varargs dispatch
+* Pipeline operator `|>` with expression-level call rewriting
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:
   * signature header (`name/shape`)
@@ -260,8 +311,10 @@ No documentation available.
 
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
+* Pipeline is only call composition, not a full flow runtime model
 
 ### ❌ Not implemented
 
 * Lambda docstrings
 * Separate docstring keywords or block syntax
+* Generalized flow semantics (lazy streams, multi-output stages, backpressure, cancellation)

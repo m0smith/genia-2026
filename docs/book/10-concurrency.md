@@ -51,3 +51,7 @@ Expected behavior:
 - language-level scheduler
 - selective receive
 - timeouts in message receive syntax
+- generalized flow runtime semantics (`|>` is expression-level composition only in Phase 1)
+- lazy sequences
+- multi-output flow stages
+- backpressure and cancellation

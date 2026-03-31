@@ -82,8 +82,16 @@ Implemented operators are limited to:
 
 - unary: `-`, `!`
 - binary: `+ - * / % < <= > >= == != && ||`
+- pipeline: `|>`
 
-No implicit pipeline/member/index operators should be introduced without explicitly updating state/rules docs and tests.
+Pipeline rewrite invariant:
+
+- `x |> f` is equivalent to `f(x)`
+- `x |> f(y)` is equivalent to `f(y, x)` (append source value as final arg)
+- chaining is left-associative
+- this is expression-level call rewriting only (no stream runtime semantics)
+
+No additional member/index/flow operators should be introduced without explicitly updating state/rules docs and tests.
 
 ## 10) Ref + concurrency runtime guarantees
 

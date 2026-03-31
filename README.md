@@ -114,6 +114,17 @@ add(..[20, 22])
 - list literal spread is implemented
 - function call argument spread is implemented
 
+### Pipeline operator (Phase 1)
+
+```genia
+[1, 2, 3] |> map(inc)
+```
+
+- `x |> f` rewrites to `f(x)`
+- `x |> f(y)` rewrites to `f(y, x)` (append piped value as final argument)
+- left-associative chaining is supported (`a |> f |> g`)
+- this is expression-level composition only (not full flow runtime semantics)
+
 ### Concurrency and agents
 
 ```genia
@@ -177,7 +188,7 @@ agent_get(counter)
 - general host interop / FFI
 - module/import syntax
 - member access / indexing syntax
-- general pipeline operator syntax
+- generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
 - language-level scheduler/event loop for simulations
 
 For stricter implementation details and invariants, see:

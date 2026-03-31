@@ -93,6 +93,7 @@ TOKEN_SPEC = [
     ("GE", r">="),
     ("AND", r"&&"),
     ("OR", r"\|\|"),
+    ("PIPE_FWD", r"\|>"),
     ("ASSIGN", r"="),
     ("LT", r"<"),
     ("GT", r">"),
@@ -127,6 +128,7 @@ PUNCTUATION_TOKENS = [
     ("GE", ">="),
     ("AND", "&&"),
     ("OR", "||"),
+    ("PIPE_FWD", "|>"),
     ("DOTDOT", ".."),
     ("ASSIGN", "="),
     ("LT", "<"),
@@ -876,6 +878,7 @@ def recursive_call_count(node: IrNode, fn_name: str) -> int:
 # -----------------------------
 
 PRECEDENCE = {
+    "PIPE_FWD": 5,
     "OR": 10,
     "AND": 20,
     "EQEQ": 30,
@@ -1314,8 +1317,17 @@ class Parser:
             op = tok.kind
             self.i += 1
             right = self.parse_expr(prec + 1)
-            left = Binary(left, op, right, span=self.merge_spans(left.span, right.span))
+            if op == "PIPE_FWD":
+                left = self.rewrite_pipeline(left, right)
+            else:
+                left = Binary(left, op, right, span=self.merge_spans(left.span, right.span))
         return left
+
+    def rewrite_pipeline(self, left: Node, right: Node) -> Call:
+        if isinstance(right, Call):
+            args = [*right.args, left]
+            return Call(right.fn, args, span=self.merge_spans(left.span, right.span))
+        return Call(right, [left], span=self.merge_spans(left.span, right.span))
 
     def parse_prefix(self) -> Node:
         tok = self.peek()

@@ -33,6 +33,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
+- pipeline operator (phase 1): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`)
 - function definitions with expression body, block body, or case body
 - optional named-function docstring metadata:
   - `f(x) = """ ... """ x + 1` (multi-line Markdown docstring literal)
@@ -80,7 +81,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - module/import system
 - member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
-- general pipeline operator syntax
+- generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
 
 ## Conditionals in Genia
 

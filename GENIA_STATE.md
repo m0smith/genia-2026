@@ -16,12 +16,20 @@ This file describes what is **actually implemented now** in the Python runtime.
 - function calls
 - unary operators: `-`, `!`
 - binary operators: `+ - * / % < <= > >= == != && ||`
+- pipeline operator: `|>`
 - block expressions: `{ ... }`
 - list literals: `[a, b, c]`
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
+
+Pipeline (Phase 1) rewrite model:
+
+- `x |> f` rewrites to `f(x)`
+- `x |> f(y)` rewrites to `f(y, x)` (left value appended as the last argument)
+- left associative: `a |> f |> g` rewrites to `g(f(a))`
+- no stream runtime semantics are added in this phase
 
 ## 3) Functions and dispatch
 
@@ -188,7 +196,7 @@ Implemented optimizations:
 - module/import syntax
 - member access syntax
 - index syntax
-- general pipeline operator syntax
+- generalized flow runtime semantics (lazy sequences, multi-output stages, backpressure, cancellation)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 
 ## 10) Example demos shipped in-repo
