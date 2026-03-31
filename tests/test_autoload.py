@@ -39,6 +39,12 @@ def test_autoload_math_helpers():
     assert run_with_env("abs(-9)") == 9
 
 
+def test_autoload_math_then_list_no_duplicate_function_error():
+    env = make_global_env([])
+    assert run_source("inc(1)", env) == 2
+    assert run_source("[1, 2, 3] |> map(inc)", env) == [2, 3, 4]
+
+
 def test_autoload_awkify():
     src = """
     odd_rows(n, row) =
