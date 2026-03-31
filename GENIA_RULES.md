@@ -162,3 +162,13 @@ When changing syntax/semantics/runtime behavior, update together:
   - `options` (list of strings)
   - `aliases` (map of string->string)
 - invalid CLI arg/spec/value types raise clear deterministic `TypeError`; ambiguous grouped short-option-with-value specs raise deterministic `ValueError`
+
+## 18) Program entrypoint invariant (runtime convention only)
+
+- `main` is not a keyword and introduces no parser syntax
+- automatic entrypoint execution applies only in file mode and `-c` command mode
+- entrypoint resolution order is exact arity:
+  - prefer exact `main/1` and call it with `argv()`
+  - else use exact `main/0`
+  - else do nothing
+- no partial matching/coercion is performed by the entrypoint selector

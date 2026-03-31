@@ -169,6 +169,31 @@ agent_get(counter)
 - `cli_flag?(opts, name)`, `cli_option(opts, name)`, `cli_option_or(opts, name, default)` help read options cleanly
 - no `$1`/`$2` syntax is added; positional arguments are list-pattern friendly
 
+## CLI Programs (`main` Entrypoint Convention)
+
+In file mode (`genia path/to/program.genia`) and command mode (`genia -c "..."`), Genia checks for `main` after top-level evaluation:
+
+1. `main/1` → called as `main(argv())`
+2. else `main/0` → called as `main()`
+3. else → no implicit entrypoint call
+
+`main` is a runtime convention, not syntax.
+
+Example (`main/1` + list pattern matching):
+
+```genia
+main(args) =
+  [] -> print("usage") |
+  ["hello", name] -> print("Hello " + name) |
+  _ -> print("unknown command")
+```
+
+Example (`main/0`):
+
+```genia
+main() = print("Hello world")
+```
+
 ### Refs
 
 - `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`

@@ -13,6 +13,10 @@ This file describes what is **actually implemented now** in the Python runtime.
   - command mode: `genia -c "expr_or_program_source"`
   - REPL mode: `genia` (no file/command arguments)
 - in file/command mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
+- after file/command source evaluation, runtime entrypoint convention is:
+  - if `main/1` exists, call `main(argv())`
+  - else if `main/0` exists, call `main()`
+  - else keep existing result behavior (no implicit call)
 
 ## 2) Implemented syntax and expression forms
 
@@ -118,7 +122,15 @@ Behavior:
   - `flags`: list of names forced to boolean behavior
   - `options`: list of names forced to value-taking behavior
   - `aliases`: map of alias name -> canonical name (string keys/values)
-  - grouped short options with spec raise clear `ValueError` for ambiguous mixes
+- grouped short options with spec raise clear `ValueError` for ambiguous mixes
+
+### Program entrypoint convention (runtime, no syntax)
+
+- `main` is a runtime convention, not parser syntax
+- in file mode and `-c` command mode, `main/1` is preferred over `main/0`
+- arity coercion is not performed by the entrypoint selector:
+  - only exact `main/1` or exact `main/0` are auto-invoked
+  - if neither exists, no entrypoint call is attempted
 
 ### Refs
 

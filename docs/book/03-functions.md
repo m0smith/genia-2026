@@ -304,6 +304,9 @@ Expected behavior:
 
 * Named function definitions
 * Arity-based + varargs dispatch
+* Runtime `main` entrypoint convention in file/`-c` modes:
+  * `main/1` is preferred and called as `main(argv())`
+  * fallback to `main/0` when `main/1` is absent
 * Pipeline operator `|>` with expression-level call rewriting
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:
@@ -317,9 +320,43 @@ Expected behavior:
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
 * Pipeline is only call composition, not a full flow runtime model
+* `main` auto-invocation is only for file/`-c` execution modes (not REPL)
 
 ### ❌ Not implemented
 
 * Lambda docstrings
 * Separate docstring keywords or block syntax
+* Dedicated CLI syntax (`$1`, `$2`, special argument keywords)
 * Generalized flow semantics (lazy streams, multi-output stages, backpressure, cancellation)
+
+---
+
+## CLI Entrypoint with `main` (Runtime Convention)
+
+`main` is just a normal function name with runtime convention behavior in file/`-c` execution.
+No parser syntax is added.
+
+### Minimal example
+
+```genia
+main(args) = length(args)
+```
+
+When run with two trailing args, this returns `2`.
+
+### Edge case example
+
+```genia
+main() = "ok"
+```
+
+If `main/1` is absent, `main/0` is called automatically.
+
+### Failure case example
+
+```genia
+main(args) = args
+main() = "fallback"
+```
+
+`main/1` has precedence, so this returns the argv list rather than `"fallback"`.
