@@ -188,6 +188,20 @@ agent_get(counter)
 
 This is a minimal host-backed bridge for pipeline-first archive transforms; it is **not** the full Flow runtime system.
 
+Example archive rewrite pipeline (list-based in this phase):
+
+```genia
+rewrite_entry(entry) =
+  entry ? entry_json(entry) ->
+    update_entry_bytes(entry, compose(utf8_encode, json_pretty, json_parse, utf8_decode)) |
+  _ -> entry
+
+rewrite_zip(in_path, out_path) =
+  zip_entries(in_path)
+    |> map(rewrite_entry)
+    |> zip_write(out_path)
+```
+
 ### Phase 1 persistent associative maps
 
 - `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
