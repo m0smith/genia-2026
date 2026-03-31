@@ -12,6 +12,7 @@ This file describes what is **actually implemented now** in the Python runtime.
   - file mode: `genia path/to/file.genia`
   - command mode: `genia -c "expr_or_program_source"`
   - REPL mode: `genia` (no file/command arguments)
+- in file/command mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
 
 ## 2) Implemented syntax and expression forms
 
@@ -91,7 +92,33 @@ Case placement rules (enforced):
 ### Core I/O and utilities
 
 - `log`, `print`, `input`, `stdin`, `help`
+- `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, `nil`
+
+### CLI argument helpers (host-backed builtin layer)
+
+- `cli_parse(args) -> [opts, positionals]`
+- `cli_parse(args, spec) -> [opts, positionals]`
+- `cli_flag?(opts, name) -> bool`
+- `cli_option(opts, name) -> value_or_nil`
+- `cli_option_or(opts, name, default) -> value`
+
+Behavior:
+
+- raw args are list-first data (`argv()`), intended for normal list pattern matching
+- `cli_parse` returns a persistent map (`opts`) and remaining positional args list
+- default parsing:
+  - `--name` => boolean `true` unless followed by a non-option token (then `--name value`)
+  - `--name=value` => string value
+  - `-abc` => grouped short boolean flags
+  - `-o value` => short option value when next token is non-option
+  - `--` terminates option parsing
+  - repeated keys are deterministic last-one-wins (`map_put` replacement semantics)
+- `cli_parse(args, spec)` supports a minimal map-based spec:
+  - `flags`: list of names forced to boolean behavior
+  - `options`: list of names forced to value-taking behavior
+  - `aliases`: map of alias name -> canonical name (string keys/values)
+  - grouped short options with spec raise clear `ValueError` for ambiguous mixes
 
 ### Refs
 

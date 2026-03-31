@@ -217,6 +217,69 @@ Genia has no dedicated conditional keyword.
 
 ---
 
+## CLI parsing + pattern matching
+
+Genia keeps CLI handling list-first:
+
+- raw args: `argv()` (list of strings)
+- parsed args: `cli_parse(args)` -> `[opts, positionals]`
+
+You can parse flags/options first, then pattern match the remaining positional list.
+
+### Minimal example
+
+```genia
+main(args) =
+  run_parsed(cli_parse(args))
+
+run_parsed(parsed) =
+  ([opts, [input]]) -> [cli_flag?(opts, "pretty"), input] |
+  ([opts, [input, output]]) -> [cli_flag?(opts, "pretty"), input, output] |
+  _ -> "usage"
+```
+
+### Edge case example
+
+Use `--` to stop option parsing:
+
+```genia
+cli_parse(["--pretty", "--", "--literal"])
+```
+
+Expected positional remainder includes `"--literal"`.
+
+### Failure case example
+
+```genia
+cli_parse(["-ab"], map_put(map_new(), "options", ["a", "b"]))
+```
+
+Expected behavior:
+
+- deterministic `ValueError` for ambiguous grouped short option parsing.
+
+### CLI parsing status
+
+### ✅ Implemented
+
+* list-first raw args via `argv()`
+* `cli_parse(args)` and minimal `cli_parse(args, spec)`
+* helper readers: `cli_flag?`, `cli_option`, `cli_option_or`
+* no parser changes required for CLI support
+
+### ⚠️ Partial
+
+* `spec` support is intentionally small: `flags`, `options`, `aliases`
+* no advanced argparse-style validation/actions
+
+### ❌ Missing
+
+* `$1`, `$2`, `$NF`, `ARGV`, or any special positional-variable syntax
+* shell tokenization/quoting logic (Genia operates on host-tokenized args)
+* full argparse/subcommand system
+
+---
+
 ## Notes for Contributors
 
 * Pattern matching is the **core abstraction** of Genia

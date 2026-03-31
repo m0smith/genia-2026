@@ -78,6 +78,44 @@ Expected behavior:
 
 ---
 
+## CLI args as lists (implemented)
+
+Genia exposes raw CLI args with `argv()`, and that value is just a list of strings.
+This means optional positional arguments can use ordinary list patterns.
+
+### Minimal example
+
+```genia
+main(args) =
+  ([input]) -> ["one", input] |
+  ([input, output]) -> ["two", input, output] |
+  _ -> "usage"
+
+main(argv())
+```
+
+### Edge case example
+
+```genia
+main(args) =
+  [] -> "no args" |
+  [first, ..rest] -> [first, length(rest)]
+```
+
+This stays pure list matching with no special CLI variable syntax.
+
+### Failure case example
+
+```genia
+cli_parse(1)
+```
+
+Expected behavior:
+
+- raises `TypeError` (`cli_parse expected a list of strings`)
+
+---
+
 ## `nth`, `take`, and `drop`
 
 ### Minimal example
