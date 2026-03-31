@@ -49,9 +49,9 @@ max_impl(a, b) =
   (a, b) ? a >= b -> a |
   (a, b) -> b
 
-reduce(f, acc, xs) =
+sum_reduce(f, acc, xs) =
   (f, acc, []) -> acc |
-  (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
+  (f, acc, [x, ..rest]) -> sum_reduce(f, f(acc, x), rest)
 
 sum(xs) = """
 # sum
@@ -63,4 +63,4 @@ Add all numeric elements of a list.
 ```genia
 sum([1, 2, 3, 4]) -> 10
 ```
-""" reduce((acc, x) -> acc + x, 0, xs)
+""" sum_reduce((acc, x) -> acc + x, 0, xs)
