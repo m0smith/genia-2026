@@ -2673,13 +2673,25 @@ def run_debug_stdio(
 def _main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="genia.interpreter")
     parser.add_argument("program", nargs="?")
+    parser.add_argument("-c", "--command")
     parser.add_argument("--debug-stdio", action="store_true")
     args = parser.parse_args(argv)
+
+    if args.program is not None and args.command is not None:
+        parser.error("program path and --command cannot be used together")
 
     if args.debug_stdio:
         if args.program is None:
             parser.error("--debug-stdio requires a program path")
+        if args.command is not None:
+            parser.error("--debug-stdio cannot be used with --command")
         return run_debug_stdio(args.program)
+    if args.command is not None:
+        env = make_global_env()
+        result = run_source(args.command, env, filename="<command>")
+        if result is not None:
+            print(format_debug(result))
+        return 0
     if args.program is not None:
         env = make_global_env()
         with open(args.program, "r", encoding="utf-8") as f:
