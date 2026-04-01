@@ -91,6 +91,46 @@ No conditionals needed.
 
 ---
 
+## Multiline list patterns (implemented)
+
+List pattern shapes can span lines inside `[...]`.
+
+### Minimal example
+
+```genia
+first3(xs) =
+  [
+    a, b, c,
+    .._
+  ] -> [a, b, c]
+```
+
+### Edge case example
+
+```genia
+head_or_none(xs) =
+  [
+    x,
+    .._
+  ] -> x |
+  [] -> "none"
+```
+
+### Failure case example
+
+```genia
+bad(xs) =
+  [
+    a,
+    ..rest,
+    b
+  ] -> a
+```
+
+Expected behavior: parse error (`..rest must be the final item in a list pattern`).
+
+---
+
 ## Glob String Patterns (Phase 1)
 
 Genia supports a minimal glob pattern form in pattern position:

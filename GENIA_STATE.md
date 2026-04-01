@@ -82,6 +82,7 @@ Implemented pattern types:
 - list patterns
 - rest pattern `..name` / `.._` (list patterns only; final position only)
 - duplicate binding semantics (same name must match equal value)
+- multiline list pattern formatting is accepted (newlines inside `[...]` pattern shapes)
 
 Glob pattern semantics (Phase 1):
 

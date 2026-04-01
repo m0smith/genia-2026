@@ -51,6 +51,7 @@ Supported patterns:
 Required constraints:
 
 - list rest pattern (`..name` / `.._`) is valid only in final list-pattern position
+- parser ignores newlines between list-pattern delimiters and items
 - duplicate names in a pattern require equality at match time
 - glob patterns match only string values and must match the entire string
 - glob pattern syntax supports only:
