@@ -48,6 +48,15 @@ def test_map_patterns_explicit_binding(run):
     assert run(src) == "Hello Matthew"
 
 
+def test_map_patterns_explicit_string_key_binding(run):
+    src = '''
+    greet(person) =
+      ({ "name": n }) -> "Hello " + n
+    greet({ name: "Matthew", age: 42 })
+    '''
+    assert run(src) == "Hello Matthew"
+
+
 def test_map_patterns_shorthand_binding(run):
     src = '''
     greet(person) =
@@ -114,6 +123,15 @@ def test_map_patterns_work_in_case_expressions(run):
     }
 
     classify({ type: "user", name: "Ada", extra: true })
+    '''
+    assert run(src) == "user:Ada"
+
+
+def test_map_patterns_allow_trailing_comma(run):
+    src = '''
+    classify(x) =
+      ({ type: "user", name, }) -> "user:" + name
+    classify({ type: "user", name: "Ada" })
     '''
     assert run(src) == "user:Ada"
 

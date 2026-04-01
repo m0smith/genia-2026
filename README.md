@@ -106,6 +106,7 @@ Supported pattern forms:
 - tuple patterns (`(a, b)`)
 - list patterns (`[x, ..rest]`)
 - map patterns (`{name}`, `{name: n}`, `{"name": n}`; partial by default)
+- map pattern shorthand is identifier-only (`{"name"}` shorthand is invalid; use `{"name": n}`)
 - guards (`pattern ? condition -> result`)
 - duplicate bindings (`[x, x]` only matches equal values)
 

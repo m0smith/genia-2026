@@ -2,15 +2,6 @@
 """
 Minimal Genia REPL / interpreter prototype.
 
-Need to implement soon:
-And I would say this requires:
-
-- list values
-- list patterns
-- wildcard _
-- rest pattern ..
-- recursion
-
 Implemented subset:
 - numbers, booleans, nil, strings
 - arithmetic: + - * / %
@@ -24,13 +15,6 @@ Implemented subset:
 - guards: pattern ? condition -> result
 - blocks with newline or ; expression separators
 - builtins: log(...), print(...), input(prompt), help()
-
-Not yet implemented:
-- lambdas
-- lists/maps/destructuring beyond tuple-parameter patterns
-- pipelines
-- member access / indexing
-- modules
 """
 from __future__ import annotations
 

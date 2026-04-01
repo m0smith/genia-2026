@@ -92,6 +92,7 @@ Map pattern semantics:
   - explicit: `{ name: n }`, `{ "name": n }`
   - shorthand binding: `{ name }` (identifier keys only; sugar for `{ name: name }`)
   - mixed forms are supported (`{ name, age: years }`)
+- trailing commas are accepted (`{ name, age: years, }`)
 - patterns are partial by default:
   - `{ name }` matches any map containing key `"name"`
   - multiple entries require all listed keys to be present

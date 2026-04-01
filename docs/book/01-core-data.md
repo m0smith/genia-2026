@@ -345,7 +345,7 @@ Expected behavior (demo grid wrapping):
 - The demo is text-mode only (no graphics).
 - The first version is single-ant only.
 - Simulation timing is blocking (`sleep`) and host-dependent.
-- There is still no native map syntax (no map literals, no map patterns).
+- Native map syntax is available for authoring state (`{}`, `{ key: value }`, map patterns like `{name}`).
 - There is still no scheduler/event loop or language-level simulation framework.
 
 ### Implementation status for the ants demo
