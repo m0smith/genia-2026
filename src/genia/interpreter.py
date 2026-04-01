@@ -1500,6 +1500,7 @@ class Parser:
             start = self.eat("LBRACK")
             items: list[Node] = []
             saw_rest = False
+            self.skip_newlines()
             if not self.at("RBRACK"):
                 while True:
                     item = self.parse_pattern_atom()
@@ -1508,8 +1509,10 @@ class Parser:
                     items.append(item)
                     if isinstance(item, RestPattern):
                         saw_rest = True
+                    self.skip_newlines()
                     if not self.maybe("COMMA"):
                         break
+                    self.skip_newlines()
             end = self.eat("RBRACK")
             return ListPattern(items, span=self.span_for_tokens(start, end))
         raise SyntaxError(f"Invalid pattern token {tok.text!r} ({tok.kind}) at {tok.pos}")

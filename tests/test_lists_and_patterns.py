@@ -23,6 +23,20 @@ def test_rest_pattern_and_wildcard(run):
     assert run(src) == 9
 
 
+def test_multiline_list_pattern_clause(run):
+    src = """
+    winner(xs) =
+      [
+        x, x, x,
+        .._
+      ] -> x |
+      _ -> "none"
+
+    winner([7, 7, 7, 0, 1, 2])
+    """
+    assert run(src) == 7
+
+
 def test_list_spread_literal(run):
     assert run("[..[1,2]]") == [1, 2]
     assert run("[1, ..[2,3]]") == [1, 2, 3]
