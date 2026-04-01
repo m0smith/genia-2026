@@ -2248,6 +2248,29 @@ class Evaluator:
                 return TailCall(target, tuple(args))
             return target(*args)
 
+        if isinstance(fn, GeniaMap):
+            arg_count = len(args)
+            if arg_count == 1:
+                return fn.get(args[0])
+            if arg_count == 2:
+                value = fn.get(args[0])
+                if value is None:
+                    return args[1]
+                return value
+            raise TypeError(f"map callable expected 1 or 2 args, got {arg_count}")
+
+        if isinstance(fn, str):
+            arg_count = len(args)
+            if arg_count not in (1, 2):
+                raise TypeError(f"string projector expected 1 or 2 args, got {arg_count}")
+            target = args[0]
+            if not isinstance(target, GeniaMap):
+                raise TypeError("string projector expected a map as first argument")
+            value = target.get(fn)
+            if value is None and arg_count == 2:
+                return args[1]
+            return value
+
         if tail_position and not self.debug_mode:
             return TailCall(fn, tuple(args))
         return fn(*args)

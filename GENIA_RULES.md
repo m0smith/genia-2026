@@ -118,6 +118,16 @@ No additional member/index/flow operators should be introduced without explicitl
 - `map_put` / `map_remove` must return new map values (no mutation of prior values)
 - unsupported map input types and unsupported key types must raise clear `TypeError`
 
+## 11.1) Callable-data invariants (phase 1)
+
+- ordinary call syntax may target map values and string values in these exact forms only:
+  - `m(key)` / `m(key, default)` where `m` is a map value
+  - `"key"(m)` / `"key"(m, default)` where first arg is a map value
+- map-call and string-projector-call arity is restricted to 1 or 2; other arities raise clear `TypeError`
+- missing map keys return `nil` unless an explicit default is provided in arity-2 form
+- string projector with non-map target raises clear `TypeError`
+- this does not add parser syntax, call operators, or user-defined callable-data protocols
+
 ## 12) Error behavior
 
 - unmatched function/case dispatch should raise deterministic runtime errors

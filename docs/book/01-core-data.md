@@ -111,6 +111,12 @@ Expected behavior:
 - map builtins (`map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`)
 - persistent behavior for `map_put` and `map_remove`
 - missing-key lookup returns `nil`
+- callable map lookup:
+  - `m(key)` => value or `nil`
+  - `m(key, default)` => value or `default`
+- callable string projectors for maps:
+  - `"key"(m)` => value or `nil`
+  - `"key"(m, default)` => value or `default`
 
 ### ⚠️ Partial
 
@@ -119,7 +125,76 @@ Expected behavior:
 ### ❌ Not implemented
 
 - member/index syntax for maps
+- callable data beyond maps and string projectors (no list-call, no string indexing, no callable protocol)
 - general host interop / FFI
+
+---
+
+## Callable data (phase 1, map-centric)
+
+Only two callable-data forms are implemented in this phase.
+
+### Minimal example
+
+```genia
+person = { name: "Matthew", age: 42 }
+[person("name"), "age"(person)]
+```
+
+Expected result:
+
+```genia
+["Matthew", 42]
+```
+
+### Edge case example
+
+```genia
+person = { name: "Matthew" }
+[person("missing"), person("missing", "?"), "missing"(person, "?")]
+```
+
+Expected result:
+
+```genia
+[nil, "?", "?"]
+```
+
+### Failure case example
+
+```genia
+"name"(42)
+```
+
+Expected behavior:
+
+- raises `TypeError` because string projector targets must be maps.
+
+Another failure case:
+
+```genia
+{}()
+```
+
+Expected behavior:
+
+- raises `TypeError` because callable maps support only arity 1 or 2.
+
+### Implementation status
+
+### ✅ Implemented
+
+- map callable lookup by key (`m(key)`) and key-with-default (`m(key, default)`)
+- string key projector lookup against maps (`"key"(m)` and `"key"(m, default)`)
+- missing-key result is `nil` (or provided default in arity-2 forms)
+
+### ⚠️ Partial
+
+- callable-data support is intentionally narrow to canonical map lookup and string projection only
+
+### ❌ Not implemented
+
+- any other callable-data behavior (lists, nested path lookup, mutation-by-call, user-defined callable protocols)
 
 ---
 
