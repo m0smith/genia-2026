@@ -58,10 +58,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - official docstring style/templates live in `docs/book/03-functions.md`
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
+- map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
 - function-call argument spread (`f(..xs)`)
 - pattern matching:
   - tuple patterns
   - list patterns
+  - map patterns (`{name}`, `{name: n}`, `{"name": n}`)
   - glob string patterns (`glob"..."`) with whole-string matching only
   - wildcard `_`
   - rest pattern `..rest` / `.._`
@@ -97,7 +99,6 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 ## Not implemented (current)
 
-- map/dict literals and map patterns
 - regex patterns / extglob operators
 - `$1` / `$2` / `ARGV`-style special CLI syntax
 - general host interop / FFI

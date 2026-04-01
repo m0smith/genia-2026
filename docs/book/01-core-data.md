@@ -22,7 +22,7 @@ This chapter covers the current Phase-1 host-backed core-data bridges (maps, byt
 
 ## Phase 1 map bridge (what it is)
 
-Genia does **not** have map literals or map patterns yet.
+Genia now has minimal map literals and map patterns, and still exposes the runtime/builtin bridge APIs directly.
 
 Instead, Genia now exposes a minimal runtime/builtin bridge:
 
@@ -33,7 +33,15 @@ Instead, Genia now exposes a minimal runtime/builtin bridge:
 - `map_remove(m, key)`
 - `map_count(m)`
 
-Implementation note: this is a **Phase 1 host-backed opaque map bridge**, not full native map syntax.
+Implementation note: map values remain the same **Phase 1 host-backed opaque map runtime value** under both builtin and literal syntax.
+
+Literal forms implemented:
+
+- `{}` (empty map)
+- `{ name: "Matthew" }` (identifier key sugar for string key)
+- `{ "name": "Matthew" }` (explicit string key)
+- trailing commas are accepted
+- duplicate keys are deterministic last-one-wins
 
 ---
 
@@ -110,8 +118,6 @@ Expected behavior:
 
 ### ❌ Not implemented
 
-- map literals
-- map pattern matching
 - member/index syntax for maps
 - general host interop / FFI
 

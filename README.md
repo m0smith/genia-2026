@@ -105,6 +105,7 @@ Supported pattern forms:
 - wildcard `_`
 - tuple patterns (`(a, b)`)
 - list patterns (`[x, ..rest]`)
+- map patterns (`{name}`, `{name: n}`, `{"name": n}`; partial by default)
 - guards (`pattern ? condition -> result`)
 - duplicate bindings (`[x, x]` only matches equal values)
 
@@ -130,6 +131,18 @@ add(..[20, 22])
 
 - list literal spread is implemented
 - function call argument spread is implemented
+
+### Map literals
+
+```genia
+person = { name: "Matthew", age: 42 }
+point = { "x": 10, "y": 20 }
+empty = {}
+```
+
+- identifier keys in literals are sugar for string keys
+- trailing commas are supported
+- duplicate keys are deterministic last-one-wins
 
 ### Pipeline operator (Phase 1)
 
@@ -260,7 +273,6 @@ rewrite_zip(in_path, out_path) =
 
 ## Not implemented yet
 
-- map literals/patterns
 - general host interop / FFI
 - module/import syntax
 - member access / indexing syntax

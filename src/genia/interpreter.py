@@ -80,8 +80,8 @@ BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else P
 # - Clojure-style symbol punctuation that we allow in names is listed below.
 # - `name?` and `name!` are ordinary identifiers (no special lexer semantics).
 # - `/` is reserved for division and is not allowed inside identifier names.
-ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", "(", ")", "{", "}", "[", "]"})
-ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", ":", "$", "-"})
+ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", ":", "(", ")", "{", "}", "[", "]"})
+ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", "$", "-"})
 IDENT_START_RE = re.compile(r"[A-Za-z_$]")
 IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
 
@@ -115,6 +115,7 @@ TOKEN_SPEC = [
     ("RBRACK", r"\]"),
     ("DOTDOT", r"\.\."),
     ("COMMA", r","),
+    ("COLON", r":"),
     ("SEMI", r";"),
     ("COMMENT", r"#[^\n]*"),
     ("NEWLINE", r"\n"),
@@ -150,6 +151,7 @@ PUNCTUATION_TOKENS = [
     ("LBRACK", "["),
     ("RBRACK", "]"),
     ("COMMA", ","),
+    ("COLON", ":"),
     ("SEMI", ";"),
 ]
 def _is_identifier_start(ch: str) -> bool:
@@ -575,6 +577,12 @@ class ListLiteral(Node):
 
 
 @dataclass
+class MapLiteral(Node):
+    items: list[tuple[str, Node]]
+    span: SourceSpan | None = None
+
+
+@dataclass
 class Spread(Node):
     expr: Node
     span: SourceSpan | None = None
@@ -606,6 +614,12 @@ class RestPattern(Node):
 @dataclass
 class TuplePattern(Node):
     items: list[Node]
+    span: SourceSpan | None = None
+
+
+@dataclass
+class MapPattern(Node):
+    items: list[tuple[str, Node]]
     span: SourceSpan | None = None
 
 
@@ -725,6 +739,14 @@ class IrList(IrNode):
 
 
 @dataclass
+class IrMap(IrNode):
+    """Map literal with lowered values and normalized string keys."""
+
+    items: list[tuple[str, IrNode]]
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrSpread(IrNode):
     """List spread element in expression contexts (list literals and call args)."""
 
@@ -776,6 +798,13 @@ class IrPatList(IrPattern):
     """List structural pattern with optional rest."""
 
     items: list[IrPattern]
+
+
+@dataclass
+class IrPatMap(IrPattern):
+    """Map pattern that requires listed string keys to exist."""
+
+    items: list[tuple[str, IrPattern]]
 
 
 @dataclass
@@ -879,6 +908,8 @@ def lower_node(node: Node) -> IrNode:
         return IrBlock([lower_node(expr) for expr in node.exprs], span=node.span)
     if isinstance(node, ListLiteral):
         return IrList([lower_node(item) for item in node.items], span=node.span)
+    if isinstance(node, MapLiteral):
+        return IrMap([(key, lower_node(value)) for key, value in node.items], span=node.span)
     if isinstance(node, Spread):
         return IrSpread(lower_node(node.expr), span=node.span)
     if isinstance(node, CaseExpr):
@@ -929,6 +960,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatTuple([lower_pattern(item) for item in pattern.items])
     if isinstance(pattern, ListPattern):
         return IrPatList([lower_pattern(item) for item in pattern.items])
+    if isinstance(pattern, MapPattern):
+        return IrPatMap([(key, lower_pattern(value)) for key, value in pattern.items])
     if isinstance(pattern, GlobPattern):
         return IrPatGlob(compile_glob_pattern(pattern.pattern))
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
@@ -1413,9 +1446,9 @@ class Parser:
                 j += 1
             if self.tokens[j].kind in {"ARROW", "QMARK"}:
                 return True
-        if self.at("LPAREN", "LBRACK"):
+        if self.at("LPAREN", "LBRACK", "LBRACE"):
             open_kind = self.peek().kind
-            close_kind = "RPAREN" if open_kind == "LPAREN" else "RBRACK"
+            close_kind = {"LPAREN": "RPAREN", "LBRACK": "RBRACK", "LBRACE": "RBRACE"}[open_kind]
             depth = 0
             j = self.i
             while True:
@@ -1515,6 +1548,8 @@ class Parser:
                     self.skip_newlines()
             end = self.eat("RBRACK")
             return ListPattern(items, span=self.span_for_tokens(start, end))
+        if tok.kind == "LBRACE":
+            return self.parse_map_pattern()
         raise SyntaxError(f"Invalid pattern token {tok.text!r} ({tok.kind}) at {tok.pos}")
 
     def parse_expr(self, min_prec: int = 0) -> Node:
@@ -1582,8 +1617,16 @@ class Parser:
         if tok.kind == "LBRACK":
             return self.parse_list_literal()
         if tok.kind == "LBRACE":
-            return self.parse_block(allow_final_case=False)
+            return self.parse_brace_expr()
         raise SyntaxError(f"Unexpected token {tok.text!r} ({tok.kind}) at {tok.pos}")
+
+    def parse_brace_expr(self) -> Node:
+        save = self.i
+        try:
+            return self.parse_map_literal()
+        except SyntaxError:
+            self.i = save
+            return self.parse_block(allow_final_case=False)
 
     def parse_list_literal(self) -> ListLiteral:
         start = self.eat("LBRACK")
@@ -1608,6 +1651,74 @@ class Parser:
         self.skip_newlines()
         end = self.eat("RBRACK")
         return ListLiteral(items, span=self.span_for_tokens(start, end))
+
+    def parse_map_literal_key(self) -> str:
+        if self.at("IDENT"):
+            return self.eat("IDENT").text
+        if self.at("STRING"):
+            return parse_string_literal(self.eat("STRING").text)
+        tok = self.peek()
+        raise SyntaxError(f"Invalid map key token {tok.text!r} ({tok.kind}) at {tok.pos}")
+
+    def parse_map_literal(self) -> MapLiteral:
+        start = self.eat("LBRACE")
+        self.skip_newlines()
+        items: list[tuple[str, Node]] = []
+        if not self.at("RBRACE"):
+            while True:
+                key = self.parse_map_literal_key()
+                self.skip_newlines()
+                self.eat("COLON")
+                self.skip_newlines()
+                value = self.parse_expr()
+                items.append((key, value))
+                self.skip_separators()
+                if not self.maybe("COMMA"):
+                    break
+                self.skip_newlines()
+                if self.at("RBRACE"):
+                    break
+                self.skip_newlines()
+        self.skip_newlines()
+        end = self.eat("RBRACE")
+        return MapLiteral(items, span=self.span_for_tokens(start, end))
+
+    def parse_map_pattern(self) -> MapPattern:
+        start = self.eat("LBRACE")
+        self.skip_newlines()
+        items: list[tuple[str, Node]] = []
+        if not self.at("RBRACE"):
+            while True:
+                if self.at("IDENT"):
+                    key_tok = self.eat("IDENT")
+                    key = key_tok.text
+                    if self.maybe("COLON"):
+                        self.skip_newlines()
+                        value_pattern = self.parse_pattern_atom()
+                    else:
+                        value_pattern = Var(key, span=self.span_for_tokens(key_tok, key_tok))
+                    items.append((key, value_pattern))
+                elif self.at("STRING"):
+                    key_tok = self.eat("STRING")
+                    key = parse_string_literal(key_tok.text)
+                    if not self.maybe("COLON"):
+                        raise SyntaxError(f"Map pattern shorthand is only allowed for identifier keys at {key_tok.pos}")
+                    self.skip_newlines()
+                    value_pattern = self.parse_pattern_atom()
+                    items.append((key, value_pattern))
+                else:
+                    bad = self.peek()
+                    raise SyntaxError(f"Invalid map pattern key token {bad.text!r} ({bad.kind}) at {bad.pos}")
+
+                self.skip_newlines()
+                if not self.maybe("COMMA"):
+                    break
+                self.skip_newlines()
+                if self.at("RBRACE"):
+                    break
+                self.skip_newlines()
+        end = self.eat("RBRACE")
+        return MapPattern(items, span=self.span_for_tokens(start, end))
 
     def finish_call(self, fn: Node) -> Node:
         self.eat("LPAREN")
@@ -2238,6 +2349,22 @@ class Evaluator:
                     return None
                 env[k] = v
             return env
+        if isinstance(pattern, IrPatMap):
+            if not isinstance(arg, GeniaMap):
+                return None
+            env: dict[str, Any] = {}
+            for key, value_pattern in pattern.items:
+                if not arg.has(key):
+                    return None
+                value = arg.get(key)
+                sub = self.match_pattern_atom(value_pattern, value)
+                if sub is None:
+                    return None
+                for k, v in sub.items():
+                    if k in env and env[k] != v:
+                        return None
+                    env[k] = v
+            return env
         raise RuntimeError(f"Unsupported pattern: {pattern!r}")
 
     def eval(self, node: IrNode) -> Any:
@@ -2263,6 +2390,11 @@ class Evaluator:
                     result.extend(value)
                 else:
                     result.append(self.eval(item))
+            return result
+        if isinstance(node, IrMap):
+            result = GeniaMap()
+            for key, value_node in node.items:
+                result = result.put(key, self.eval(value_node))
             return result
         if isinstance(node, IrVar):
             return self.env.get(node.name)

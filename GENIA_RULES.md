@@ -47,10 +47,12 @@ Supported patterns:
 - wildcard `_`
 - tuple pattern
 - list pattern with optional rest
+- map pattern (string-keyed entries; partial-by-default)
 
 Required constraints:
 
 - list rest pattern (`..name` / `.._`) is valid only in final list-pattern position
+- map pattern shorthand is valid only for identifier keys (`{name}`), not string keys (`{"name"}` requires `:`)
 - parser ignores newlines between list-pattern delimiters and items
 - duplicate names in a pattern require equality at match time
 - glob patterns match only string values and must match the entire string
@@ -108,9 +110,9 @@ No additional member/index/flow operators should be introduced without explicitl
 - one handler invocation at a time per process
 - concurrency remains host-backed (threads), not language-scheduled
 
-## 11) Host-backed persistent map bridge invariants
+## 11) Host-backed persistent map invariants
 
-- persistent map support is runtime/builtin only (no syntax added)
+- persistent map runtime is shared by both map builtins and map literal/pattern syntax
 - required builtins: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - map values are opaque runtime wrappers, not exposed host objects
 - `map_put` / `map_remove` must return new map values (no mutation of prior values)
