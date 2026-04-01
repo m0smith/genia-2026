@@ -113,10 +113,10 @@ Expected behavior:
 - missing-key lookup returns `nil`
 - callable map lookup:
   - `m(key)` => value or `nil`
-  - `m(key, default)` => value or `default`
+  - `m(key, default)` => stored value when key exists, else `default`
 - callable string projectors for maps:
   - `"key"(m)` => value or `nil`
-  - `"key"(m, default)` => value or `default`
+  - `"key"(m, default)` => stored value when key exists, else `default`
 
 ### ⚠️ Partial
 
@@ -186,7 +186,7 @@ Expected behavior:
 
 - map callable lookup by key (`m(key)`) and key-with-default (`m(key, default)`)
 - string key projector lookup against maps (`"key"(m)` and `"key"(m, default)`)
-- missing-key result is `nil` (or provided default in arity-2 forms)
+- missing-key result is `nil` (or provided default in arity-2 forms); existing keys mapped to `nil` still return `nil`
 
 ### ⚠️ Partial
 

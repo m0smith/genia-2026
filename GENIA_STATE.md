@@ -66,11 +66,11 @@ Pipeline (Phase 1) rewrite model:
 - callable data (phase 1):
   - maps are callable lookup values:
     - `m(key)` returns stored value or `nil`
-    - `m(key, default)` returns stored value or `default` when key is missing
+    - `m(key, default)` returns stored value when key exists, otherwise `default`
     - arity other than 1 or 2 raises `TypeError`
   - strings are callable map projectors:
     - `"key"(m)` returns `map_get(m, "key")` behavior (`value` or `nil`)
-    - `"key"(m, default)` returns `value` or `default` when key is missing
+    - `"key"(m, default)` returns stored value when key exists, otherwise `default`
     - first argument must be a map; non-map targets raise `TypeError`
     - arity other than 1 or 2 raises `TypeError`
 

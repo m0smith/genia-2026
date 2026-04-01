@@ -59,6 +59,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
+- callable data (phase 1 subset):
+  - map lookup calls: `m(key)`, `m(key, default)`
+  - string projector calls over maps: `"key"(m)`, `"key"(m, default)`
 - function-call argument spread (`f(..xs)`)
 - pattern matching:
   - tuple patterns

@@ -9,12 +9,28 @@ def test_map_callable_lookup_and_default(run):
     assert run(src) == ["Matthew", None, "?"]
 
 
+def test_map_callable_default_only_for_missing_keys(run):
+    src = '''
+    person = { name: nil }
+    person("name", "?")
+    '''
+    assert run(src) is None
+
+
 def test_string_projector_lookup_and_default(run):
     src = '''
     person = { name: "Matthew", age: 42 }
     ["name"(person), "missing"(person), "missing"(person, "?")]
     '''
     assert run(src) == ["Matthew", None, "?"]
+
+
+def test_string_projector_default_only_for_missing_keys(run):
+    src = '''
+    person = { name: nil }
+    "name"(person, "?")
+    '''
+    assert run(src) is None
 
 
 def test_map_callable_wrong_arity_raises_clear_error(run):
