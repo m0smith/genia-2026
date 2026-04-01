@@ -419,5 +419,3 @@ Run the ants simulation example.
 main()
 ```
 """ run(seed_world(), ant_start(), 12, 80)
-
-main()

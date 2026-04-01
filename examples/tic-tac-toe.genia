@@ -164,5 +164,3 @@ Run the Tic-Tac-Toe example.
   print("6 7 8")
   play(newBoard(), "X")
 }
-
-main()
