@@ -209,6 +209,23 @@ def lex(source: str) -> list[Token]:
             pos += len(text)
             continue
 
+        if source.startswith('glob"', pos):
+            literal_start = pos + 4
+            i = literal_start + 1
+            while i < length:
+                if source[i] == "\\":
+                    i += 2
+                    continue
+                if source[i] == '"':
+                    text = source[pos:i + 1]
+                    tokens.append(Token("GLOB", text, pos))
+                    pos = i + 1
+                    break
+                i += 1
+            else:
+                raise SyntaxError(f"Unterminated glob pattern literal at {pos}")
+            continue
+
         if ch in "\"'":
             if source.startswith(ch * 3, pos):
                 delim = ch * 3
@@ -313,6 +330,173 @@ def parse_string_literal(text: str) -> str:
     return "".join(out)
 
 
+def parse_glob_literal(text: str) -> str:
+    if not (text.startswith('glob"') and text.endswith('"') and len(text) >= 6):
+        raise SyntaxError(f"Invalid glob literal: {text!r}")
+    content = text[5:-1]
+    out: list[str] = []
+    i = 0
+    while i < len(content):
+        ch = content[i]
+        if ch != "\\":
+            out.append(ch)
+            i += 1
+            continue
+        i += 1
+        if i >= len(content):
+            raise SyntaxError("Invalid glob literal: trailing backslash")
+        esc = content[i]
+        i += 1
+        if esc in {"*", "?", "[", "]", "\\"}:
+            out.append("\\" + esc)
+            continue
+        raise SyntaxError(f"Invalid glob literal escape: \\{esc}")
+    return "".join(out)
+
+
+@dataclass(frozen=True)
+class GlobClassEntry:
+    start: str
+    end: str
+
+
+@dataclass(frozen=True)
+class GlobToken:
+    kind: str
+    value: Any = None
+
+
+@dataclass(frozen=True)
+class CompiledGlobPattern:
+    source: str
+    tokens: tuple[GlobToken, ...]
+
+
+def compile_glob_pattern(text: str) -> CompiledGlobPattern:
+    tokens: list[GlobToken] = []
+    i = 0
+    while i < len(text):
+        ch = text[i]
+        if ch == "\\":
+            if i + 1 >= len(text):
+                raise SyntaxError("Invalid glob pattern: trailing backslash")
+            tokens.append(GlobToken("LITERAL", text[i + 1]))
+            i += 2
+            continue
+        if ch == "*":
+            if not tokens or tokens[-1].kind != "STAR":
+                tokens.append(GlobToken("STAR"))
+            i += 1
+            continue
+        if ch == "?":
+            tokens.append(GlobToken("ANY_ONE"))
+            i += 1
+            continue
+        if ch == "[":
+            token, i = _parse_glob_class(text, i)
+            tokens.append(token)
+            continue
+        tokens.append(GlobToken("LITERAL", ch))
+        i += 1
+    return CompiledGlobPattern(source=text, tokens=tuple(tokens))
+
+
+def _parse_glob_class(text: str, start_idx: int) -> tuple[GlobToken, int]:
+    i = start_idx + 1
+    if i >= len(text):
+        raise SyntaxError("Invalid glob pattern: unterminated character class")
+    negated = False
+    if text[i] == "!":
+        negated = True
+        i += 1
+    entries: list[GlobClassEntry] = []
+    saw_entry = False
+    pending_literal: str | None = None
+
+    while i < len(text):
+        ch = text[i]
+        if ch == "]":
+            if pending_literal is not None:
+                entries.append(GlobClassEntry(pending_literal, pending_literal))
+                pending_literal = None
+                saw_entry = True
+            if not saw_entry:
+                raise SyntaxError("Invalid glob pattern: empty character class")
+            return GlobToken("CLASS", (negated, tuple(entries))), i + 1
+
+        if ch == "\\":
+            if i + 1 >= len(text):
+                raise SyntaxError("Invalid glob pattern: trailing backslash in character class")
+            literal = text[i + 1]
+            i += 2
+        else:
+            literal = ch
+            i += 1
+
+        if pending_literal is None:
+            pending_literal = literal
+            continue
+
+        if literal == "-" and i < len(text) and text[i] != "]":
+            if text[i] == "\\":
+                if i + 1 >= len(text):
+                    raise SyntaxError("Invalid glob pattern: trailing backslash in range")
+                range_end = text[i + 1]
+                i += 2
+            else:
+                range_end = text[i]
+                i += 1
+            if ord(pending_literal) > ord(range_end):
+                raise SyntaxError("Invalid glob pattern: descending character range")
+            entries.append(GlobClassEntry(pending_literal, range_end))
+            pending_literal = None
+            saw_entry = True
+            continue
+
+        entries.append(GlobClassEntry(pending_literal, pending_literal))
+        pending_literal = literal
+        saw_entry = True
+
+    raise SyntaxError("Invalid glob pattern: unterminated character class")
+
+
+def glob_match(compiled: CompiledGlobPattern, value: str) -> bool:
+    tokens = compiled.tokens
+    memo: dict[tuple[int, int], bool] = {}
+
+    def go(tok_i: int, str_i: int) -> bool:
+        key = (tok_i, str_i)
+        if key in memo:
+            return memo[key]
+        if tok_i == len(tokens):
+            memo[key] = str_i == len(value)
+            return memo[key]
+        token = tokens[tok_i]
+        if token.kind == "STAR":
+            memo[key] = go(tok_i + 1, str_i) or (str_i < len(value) and go(tok_i, str_i + 1))
+            return memo[key]
+        if str_i >= len(value):
+            memo[key] = False
+            return False
+        ch = value[str_i]
+        if token.kind == "LITERAL":
+            memo[key] = ch == token.value and go(tok_i + 1, str_i + 1)
+            return memo[key]
+        if token.kind == "ANY_ONE":
+            memo[key] = go(tok_i + 1, str_i + 1)
+            return memo[key]
+        if token.kind == "CLASS":
+            negated, entries = token.value
+            in_class = any(entry.start <= ch <= entry.end for entry in entries)
+            if negated:
+                in_class = not in_class
+            memo[key] = in_class and go(tok_i + 1, str_i + 1)
+            return memo[key]
+        raise RuntimeError(f"Unsupported compiled glob token: {token.kind}")
+
+    return go(0, 0)
+
+
 # -----------------------------
 # AST
 # -----------------------------
@@ -399,6 +583,12 @@ class Spread(Node):
 @dataclass
 class ListPattern(Node):
     items: list[Node]
+    span: SourceSpan | None = None
+
+
+@dataclass
+class GlobPattern(Node):
+    pattern: str
     span: SourceSpan | None = None
 
 
@@ -589,6 +779,13 @@ class IrPatList(IrPattern):
 
 
 @dataclass
+class IrPatGlob(IrPattern):
+    """Whole-string glob pattern matcher."""
+
+    matcher: "CompiledGlobPattern"
+
+
+@dataclass
 class IrCaseClause(IrNode):
     """Single case arm with optional guard."""
 
@@ -726,6 +923,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatTuple([lower_pattern(item) for item in pattern.items])
     if isinstance(pattern, ListPattern):
         return IrPatList([lower_pattern(item) for item in pattern.items])
+    if isinstance(pattern, GlobPattern):
+        return IrPatGlob(compile_glob_pattern(pattern.pattern))
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
 
 
@@ -1202,7 +1401,7 @@ class Parser:
         # single param shorthand cases: 0 ->, name ->, [x, y] ->, name ? ... ->
         # tuple case: ( ... ) ->
         # We only detect enough for v0.1.
-        if self.at("NUMBER", "STRING", "IDENT"):
+        if self.at("NUMBER", "STRING", "IDENT", "GLOB"):
             j = self.i + 1
             while self.tokens[j].kind == "NEWLINE":
                 j += 1
@@ -1269,6 +1468,9 @@ class Parser:
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
+        if tok.kind == "GLOB":
+            self.i += 1
+            return GlobPattern(parse_glob_literal(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "DOTDOT":
             self.i += 1
             if self.at("IDENT"):
@@ -1984,6 +2186,10 @@ class Evaluator:
             return {pattern.name: arg} if pattern.name is not None else {}
         if isinstance(pattern, IrPatBind):
             return {pattern.name: arg}
+        if isinstance(pattern, IrPatGlob):
+            if not isinstance(arg, str):
+                return None
+            return {} if glob_match(pattern.matcher, arg) else None
         if isinstance(pattern, IrPatList):
             if not isinstance(arg, list):
                 return None

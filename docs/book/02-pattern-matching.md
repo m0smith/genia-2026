@@ -91,6 +91,65 @@ No conditionals needed.
 
 ---
 
+## Glob String Patterns (Phase 1)
+
+Genia supports a minimal glob pattern form in pattern position:
+
+```
+glob"..."
+```
+
+This is still pattern matching (not regex, not captures).
+
+### Minimal example
+
+```genia
+kind(name) =
+  glob"*.md" -> "markdown" |
+  _ -> "other"
+```
+
+### Edge case example
+
+```genia
+kind(s) =
+  glob"" -> "empty" |
+  glob"*" -> "any" |
+  _ -> "fallback"
+```
+
+- `glob""` matches only `""`
+- `glob"*"` matches every string, including `""`
+
+### Failure case example
+
+Malformed classes fail deterministically:
+
+```genia
+bad(s) =
+  glob"[a-z" -> "nope" |
+  _ -> "ok"
+```
+
+Expected behavior: syntax error for unterminated character class.
+
+Supported glob features in this phase:
+
+- `*` (zero or more chars)
+- `?` (exactly one char)
+- class: `[abc]`
+- range: `[a-z]`
+- negated class: `[!abc]`
+- escapes: `\*`, `\?`, `\[`, `\]`, `\\`
+
+Not part of this phase:
+
+- regex
+- extglob
+- captures/destructuring
+
+---
+
 ## A Failure Case
 
 ```
@@ -195,15 +254,19 @@ Write `last` using pattern matching and recursion.
 * List destructuring (`[x, ..rest]`)
 * Variable binding
 * Pattern guards (`pattern ? guard -> result`)
+* Glob string patterns (`glob"..."`) with whole-string matching only
+* Glob class/range/negated-class matching and minimal escapes
 
 ### ⚠️ Partial
 
 * Error messages for failed matches may be minimal
+* Glob parsing is intentionally small (no regex/extglob/capture syntax)
 
 ### ❌ Missing
 
 * Exhaustiveness checking
 * Match optimizations (decision trees, indexing)
+* Regex patterns, extglob operators, or capture extraction in glob patterns
 
 ---
 
@@ -298,6 +361,7 @@ Source: parser + runtime
 * Pattern clauses supported: YES
 * Ordered evaluation: YES
 * List destructuring: YES
+* Glob string patterns: YES
 * Guards: YES
 * Exhaustiveness checking: NO
 
