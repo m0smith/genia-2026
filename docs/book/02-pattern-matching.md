@@ -108,7 +108,7 @@ greet(person) =
 
 ```genia
 describe(person) =
-  ({ name, age: years, city }) -> [name, years, city]
+  ({ "name": name, age: years, city, }) -> [name, years, city]
 ```
 
 Map patterns are partial by default: extra keys are allowed.  
