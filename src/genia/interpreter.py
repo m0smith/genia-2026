@@ -2253,10 +2253,10 @@ class Evaluator:
             if arg_count == 1:
                 return fn.get(args[0])
             if arg_count == 2:
-                value = fn.get(args[0])
-                if value is None:
-                    return args[1]
-                return value
+                key = args[0]
+                if fn.has(key):
+                    return fn.get(key)
+                return args[1]
             raise TypeError(f"map callable expected 1 or 2 args, got {arg_count}")
 
         if isinstance(fn, str):
@@ -2266,10 +2266,9 @@ class Evaluator:
             target = args[0]
             if not isinstance(target, GeniaMap):
                 raise TypeError("string projector expected a map as first argument")
-            value = target.get(fn)
-            if value is None and arg_count == 2:
+            if arg_count == 2 and not target.has(fn):
                 return args[1]
-            return value
+            return target.get(fn)
 
         if tail_position and not self.debug_mode:
             return TailCall(fn, tuple(args))
