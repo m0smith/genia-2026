@@ -42,10 +42,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 ## Implemented today
 
+- parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 1): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`)
+  - lowering/desugaring happens in the AST→Core IR pass
 - function definitions with expression body, block body, or case body
 - optional named-function docstring metadata:
   - `f(x) = """ ... """ x + 1` (multi-line Markdown docstring literal)

@@ -5,6 +5,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 ## 1) Execution model
 
 - programs are expression sequences
+- parser AST stays close to surface syntax, then lowers into a tiny Core IR before evaluation
 - top-level assignment is supported (`name = expr`)
 - blocks evaluate expressions in order and return the last value
 - no statement/declaration split at runtime level
@@ -39,6 +40,7 @@ Pipeline (Phase 1) rewrite model:
 - `x |> f` rewrites to `f(x)`
 - `x |> f(y)` rewrites to `f(y, x)` (left value appended as the last argument)
 - left associative: `a |> f |> g` rewrites to `g(f(a))`
+- rewrite is performed in the AST→Core IR lowering pass (not by runtime special-casing)
 - no stream runtime semantics are added in this phase
 
 ## 3) Functions and dispatch
@@ -244,6 +246,13 @@ Implemented optimizations:
 
 - self tail-call elimination via trampoline for tail-position calls
 - specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
+
+Core IR shape currently includes:
+
+- program items: expression statement, assignment, named function definition
+- expressions: literal, variable, call, unary, binary, lambda, block, list, spread, case
+- patterns: wildcard, variable, literal, tuple, list, final rest
+- function docstrings are carried as metadata on named-function definitions (not runtime expressions)
 
 ## 8) Debug/runtime tooling
 

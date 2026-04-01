@@ -669,6 +669,12 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, Unary):
         return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
+        if node.op == "PIPE_FWD":
+            lowered_left = lower_node(node.left)
+            lowered_right = lower_node(node.right)
+            if isinstance(lowered_right, IrCall):
+                return IrCall(lowered_right.fn, [*lowered_right.args, lowered_left], span=node.span)
+            return IrCall(lowered_right, [lowered_left], span=node.span)
         return IrBinary(lower_node(node.left), node.op, lower_node(node.right), span=node.span)
     if isinstance(node, Call):
         return IrCall(lower_node(node.fn), [lower_node(arg) for arg in node.args], span=node.span)
@@ -1319,17 +1325,8 @@ class Parser:
             op = tok.kind
             self.i += 1
             right = self.parse_expr(prec + 1)
-            if op == "PIPE_FWD":
-                left = self.rewrite_pipeline(left, right)
-            else:
-                left = Binary(left, op, right, span=self.merge_spans(left.span, right.span))
+            left = Binary(left, op, right, span=self.merge_spans(left.span, right.span))
         return left
-
-    def rewrite_pipeline(self, left: Node, right: Node) -> Call:
-        if isinstance(right, Call):
-            args = [*right.args, left]
-            return Call(right.fn, args, span=self.merge_spans(left.span, right.span))
-        return Call(right, [left], span=self.merge_spans(left.span, right.span))
 
     def parse_prefix(self) -> Node:
         tok = self.peek()

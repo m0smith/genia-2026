@@ -5,6 +5,7 @@ Genia is a small, functional-first, expression-oriented language prototype.
 This repository currently provides:
 
 - a parser + evaluator (`src/genia/interpreter.py`)
+- a tiny Core IR + AST→IR lowering pass used before evaluation
 - a REPL and file runner (`python3 -m genia.interpreter`)
 - host-backed concurrency primitives (`spawn`, `send`, `process_alive?`)
 - refs (`ref`, `ref_get`, `ref_set`, `ref_update`)
@@ -138,6 +139,7 @@ add(..[20, 22])
 - `x |> f` rewrites to `f(x)`
 - `x |> f(y)` rewrites to `f(y, x)` (append piped value as final argument)
 - left-associative chaining is supported (`a |> f |> g`)
+- rewrite occurs during AST→Core IR lowering (not as a special runtime node)
 - this is expression-level composition only (not full flow runtime semantics)
 
 ### Concurrency and agents
