@@ -89,6 +89,7 @@ Pipeline rewrite invariant:
 - `x |> f` is equivalent to `f(x)`
 - `x |> f(y)` is equivalent to `f(y, x)` (append source value as final arg)
 - chaining is left-associative
+- rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
 - this is expression-level call rewriting only (no stream runtime semantics)
 
 No additional member/index/flow operators should be introduced without explicitly updating state/rules docs and tests.

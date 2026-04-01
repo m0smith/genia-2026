@@ -119,19 +119,18 @@ Patterns must match **completely**, not partially.
 
 ---
 
-## Interpreter / Compiler View
+## Interpreter / Compiler View (Implemented)
 
-Internally, pattern matching is likely implemented as:
+Current runtime behavior is implemented as:
 
-* Sequential pattern checks
-* Structural comparisons
-* Variable binding environments
+* Parsed case/function patterns lower into explicit Core IR pattern nodes.
+* Matching runs sequentially, top-to-bottom.
+* Structural comparison + variable-binding environments are used at runtime.
+* Duplicate bindings (like `[x, x]`) require equal values at match time.
 
-Potential optimizations:
+Current optimization scope:
 
-* Pattern indexing
-* Decision trees
-* Match flattening
+* A narrow recognized recursion shape (nth-style list traversal) may lower further to a specialized loop IR node.
 
 ---
 

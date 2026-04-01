@@ -254,6 +254,7 @@ Rewrite rules (implemented):
 * `x |> f` becomes `f(x)`
 * `x |> f(y)` becomes `f(y, x)` (the piped value is appended as the final argument)
 * chaining is left-associative: `a |> f |> g` becomes `g(f(a))`
+* this rewrite happens in the AST→Core IR lowering pass
 
 ### Minimal example
 
