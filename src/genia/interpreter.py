@@ -2265,7 +2265,7 @@ class Evaluator:
                 raise TypeError(f"string projector expected 1 or 2 args, got {arg_count}")
             target = args[0]
             if not isinstance(target, GeniaMap):
-                raise TypeError("string projector expected a map as first argument")
+                raise TypeError("string projector expected a map-like target as first argument")
             if arg_count == 2 and not target.has(fn):
                 return args[1]
             return target.get(fn)
