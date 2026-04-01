@@ -13,6 +13,7 @@ This file describes what is **actually implemented now** in the Python runtime.
   - command mode: `genia -c "expr_or_program_source"`
   - REPL mode: `genia` (no file/command arguments)
 - in file/command mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
+  - command mode accepts both bare positionals (`a`) and option-like args (`--pretty`) as trailing args
 - after file/command source evaluation, runtime entrypoint convention is:
   - if `main/1` exists, call `main(argv())`
   - else if `main/0` exists, call `main()`
