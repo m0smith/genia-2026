@@ -91,6 +91,40 @@ No conditionals needed.
 
 ---
 
+## Map patterns (implemented)
+
+Map patterns match required keys in persistent map values.
+
+### Minimal example
+
+```genia
+greet(person) =
+  ({ name }) -> "Hello " + name
+```
+
+`{ name }` is shorthand for `{ name: name }`.
+
+### Edge case example
+
+```genia
+describe(person) =
+  ({ name, age: years, city }) -> [name, years, city]
+```
+
+Map patterns are partial by default: extra keys are allowed.  
+All listed keys must be present.
+
+### Failure case example
+
+```genia
+bad(person) =
+  ({ "name" }) -> person
+```
+
+Expected behavior: syntax error (shorthand is only allowed for identifier keys; string keys must use `:`).
+
+---
+
 ## Multiline list patterns (implemented)
 
 List pattern shapes can span lines inside `[...]`.
@@ -291,6 +325,7 @@ Write `last` using pattern matching and recursion.
 * Basic pattern matching
 * Ordered evaluation
 * List destructuring (`[x, ..rest]`)
+* Map destructuring (`{name}`, `{name: n}`, mixed forms)
 * Variable binding
 * Pattern guards (`pattern ? guard -> result`)
 * Glob string patterns (`glob"..."`) with whole-string matching only

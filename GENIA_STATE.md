@@ -30,6 +30,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 - pipeline operator: `|>`
 - block expressions: `{ ... }`
 - list literals: `[a, b, c]`
+- map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
@@ -80,9 +81,22 @@ Implemented pattern types:
 - wildcard `_`
 - tuple patterns
 - list patterns
+- map patterns (partial-by-default key matching)
 - rest pattern `..name` / `.._` (list patterns only; final position only)
 - duplicate binding semantics (same name must match equal value)
 - multiline list pattern formatting is accepted (newlines inside `[...]` pattern shapes)
+
+Map pattern semantics:
+
+- key forms:
+  - explicit: `{ name: n }`, `{ "name": n }`
+  - shorthand binding: `{ name }` (identifier keys only; sugar for `{ name: name }`)
+  - mixed forms are supported (`{ name, age: years }`)
+- patterns are partial by default:
+  - `{ name }` matches any map containing key `"name"`
+  - multiple entries require all listed keys to be present
+- missing keys fail the match
+- duplicate binding names follow normal duplicate-binding equality semantics
 
 Glob pattern semantics (Phase 1):
 
@@ -265,8 +279,8 @@ Implemented optimizations:
 Core IR shape currently includes:
 
 - program items: expression statement, assignment, named function definition
-- expressions: literal, variable, call, unary, binary, lambda, block, list, spread, case
-- patterns: wildcard, variable, literal, tuple, list, final rest
+- expressions: literal, variable, call, unary, binary, lambda, block, list, map, spread, case
+- patterns: wildcard, variable, literal, tuple, list, map, final rest
 - function docstrings are carried as metadata on named-function definitions (not runtime expressions)
 
 ## 8) Debug/runtime tooling
@@ -282,7 +296,6 @@ Core IR shape currently includes:
 
 ## 9) Explicitly not implemented (current)
 
-- map literals / map patterns
 - general host interop / FFI layer
 - module/import syntax
 - member access syntax
