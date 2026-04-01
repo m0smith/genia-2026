@@ -67,24 +67,23 @@ setAt(board, index, value) = """
 # setAt
 
 Place a value at board index `0` through `8`.
-""" setAt_impl(board, index, value)
-setAt_impl(board, index, value) =
-  ([_, ..squares], '0', value)              -> [value, ..squares] |
-  ([a, _, ..squares], '1', value)           -> [a, value, ..squares] |
-  ([a, b, _, ..squares], '2', value)        -> [a, b, value, ..squares] |
-  ([a, b, c, _, ..squares], '3', value)     -> [a, b, c, value, ..squares] |
-  ([a, b, c, d, _, ..squares], '4', value)  -> [a, b, c, d, value, ..squares] |
-  ([a, b, c, d, e, _, g, h, i], '5', value) -> [a, b, c, d, e, value, g, h, i] |
-  ([a, b, c, d, e, f, _, h, i], '6', value) -> [a, b, c, d, e, f, value, h, i] |
-  ([a, b, c, d, e, f, g, _, i], '7', value) -> [a, b, c, d, e, f, g, value, i] |
-  ([a, b, c, d, e, f, g, h, _], '8', value) -> [a, b, c, d, e, f, g, h, value]
+""" setAt_impl(board, as-int(index), value)
+
+setAt_impl(board, index, value) = 
+  [
+    ..take(index, board), 
+    value, 
+    ..drop(index + 1, board)]
+
+
 
 parseMove(s) = """
 # parseMove
 
 Parse user input into board index value.
-""" parseMove_impl(s)
-parseMove_impl(s) =
+""" as-int(s)
+
+as-int(s) =
   "0" -> 0 |
   "1" -> 1 |
   "2" -> 2 |
