@@ -71,7 +71,7 @@ Pipeline (Phase 1) rewrite model:
   - strings are callable map projectors:
     - `"key"(m)` returns `map_get(m, "key")` behavior (`value` or `nil`)
     - `"key"(m, default)` returns stored value when key exists, otherwise `default`
-    - first argument must be a map; non-map targets raise `TypeError`
+    - first argument must be map-like (runtime map value); non-map targets raise clear `TypeError`
     - arity other than 1 or 2 raises `TypeError`
 
 ## 4) Case expressions and pattern matching

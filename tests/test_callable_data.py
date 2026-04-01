@@ -50,13 +50,22 @@ def test_string_projector_wrong_arity_raises_clear_error(run):
 
 
 def test_string_projector_requires_map_target(run):
-    with pytest.raises(TypeError, match="string projector expected a map as first argument"):
+    with pytest.raises(TypeError, match="string projector expected a map-like target as first argument"):
         run('"name"(42)')
 
 
 def test_ordinary_non_callable_values_still_fail_normally(run):
     with pytest.raises(TypeError):
         run("1(2)")
+
+
+def test_phase1_callable_data_required_matrix(run):
+    assert run('{x: 1}("x")') == 1
+    assert run('{x: 1}("y")') is None
+    assert run('{x: 1}("y", 9)') == 9
+    assert run('"x"({x: 1})') == 1
+    assert run('"y"({x: 1})') is None
+    assert run('"y"({x: 1}, 9)') == 9
 
 
 def test_ordinary_function_calls_still_work(run):

@@ -13,6 +13,7 @@ Ordinary call syntax also supports a small callable-data subset:
 - maps: `m(key)` / `m(key, default)`
 - string projectors over maps: `"key"(m)` / `"key"(m, default)`
 - in arity-2 forms, the second argument is used only when the key is missing
+- string projector calls raise a clear `TypeError` when the first argument is not a map-like runtime map value
 
 No other callable-data forms are implemented in this phase.
 

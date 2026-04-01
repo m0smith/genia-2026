@@ -168,7 +168,7 @@ Expected result:
 
 Expected behavior:
 
-- raises `TypeError` because string projector targets must be maps.
+- raises `TypeError` because string projector targets must be map-like runtime map values.
 
 Another failure case:
 
