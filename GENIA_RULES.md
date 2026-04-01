@@ -42,6 +42,7 @@ Do not resolve this via precedence hacks.
 Supported patterns:
 
 - literal
+- glob string pattern (`glob"..."`)
 - variable binding
 - wildcard `_`
 - tuple pattern
@@ -51,6 +52,11 @@ Required constraints:
 
 - list rest pattern (`..name` / `.._`) is valid only in final list-pattern position
 - duplicate names in a pattern require equality at match time
+- glob patterns match only string values and must match the entire string
+- glob pattern syntax supports only:
+  - `*`, `?`, `[abc]`, `[a-z]`, `[!abc]`
+  - escapes: `\*`, `\?`, `\[`, `\]`, `\\`
+- malformed glob classes must raise deterministic syntax errors
 
 ## 7) Spread semantics
 

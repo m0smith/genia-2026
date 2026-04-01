@@ -100,6 +100,7 @@ head(xs) =
 Supported pattern forms:
 
 - literals (`0`, `"ok"`, `true`, `nil`)
+- glob string patterns (`glob"..."`) for whole-string string matching
 - variable bindings
 - wildcard `_`
 - tuple patterns (`(a, b)`)

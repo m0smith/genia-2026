@@ -62,6 +62,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - pattern matching:
   - tuple patterns
   - list patterns
+  - glob string patterns (`glob"..."`) with whole-string matching only
   - wildcard `_`
   - rest pattern `..rest` / `.._`
   - duplicate-binding equality semantics (`[x, x]`)
@@ -97,6 +98,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ## Not implemented (current)
 
 - map/dict literals and map patterns
+- regex patterns / extglob operators
 - `$1` / `$2` / `ARGV`-style special CLI syntax
 - general host interop / FFI
 - module/import system

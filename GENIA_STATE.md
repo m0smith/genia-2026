@@ -75,12 +75,26 @@ pattern ? guard -> result
 Implemented pattern types:
 
 - literal patterns
+- glob string patterns (`glob"..."`) for whole-string matching
 - variable binding
 - wildcard `_`
 - tuple patterns
 - list patterns
 - rest pattern `..name` / `.._` (list patterns only; final position only)
 - duplicate binding semantics (same name must match equal value)
+
+Glob pattern semantics (Phase 1):
+
+- valid in any pattern position accepted by function clauses / case arms
+- matches only string values (non-string values fail to match)
+- whole-string matching only (no substring mode)
+- supported metacharacters:
+  - `*` (zero or more chars)
+  - `?` (exactly one char)
+  - character classes: `[abc]`, `[a-z]`, `[!abc]`
+- supported escaping inside glob text:
+  - `\*`, `\?`, `\[`, `\]`, `\\`
+- malformed character classes raise deterministic syntax errors
 
 Case placement rules (enforced):
 
