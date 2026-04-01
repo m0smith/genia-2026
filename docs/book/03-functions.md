@@ -8,6 +8,13 @@ inc(x) = x + 1
 
 Named functions are values and dispatch by name + arity shape.
 
+Ordinary call syntax also supports a small callable-data subset:
+
+- maps: `m(key)` / `m(key, default)`
+- string projectors over maps: `"key"(m)` / `"key"(m, default)`
+
+No other callable-data forms are implemented in this phase.
+
 ---
 
 ## Function Docstrings (Implemented)

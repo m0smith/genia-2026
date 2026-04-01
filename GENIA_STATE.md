@@ -63,6 +63,16 @@ Pipeline (Phase 1) rewrite model:
 - resolution behavior:
   - exact fixed arity beats varargs
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
+- callable data (phase 1):
+  - maps are callable lookup values:
+    - `m(key)` returns stored value or `nil`
+    - `m(key, default)` returns stored value or `default` when key is missing
+    - arity other than 1 or 2 raises `TypeError`
+  - strings are callable map projectors:
+    - `"key"(m)` returns `map_get(m, "key")` behavior (`value` or `nil`)
+    - `"key"(m, default)` returns `value` or `default` when key is missing
+    - first argument must be a map; non-map targets raise `TypeError`
+    - arity other than 1 or 2 raises `TypeError`
 
 ## 4) Case expressions and pattern matching
 
