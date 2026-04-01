@@ -10,9 +10,11 @@ def test_command_flag_executes_source_and_prints_result(capsys):
     assert captured.out.strip() == "3"
 
 
-def test_command_flag_rejects_program_path_combination():
-    with pytest.raises(SystemExit):
-        _main(["examples/ants.genia", "-c", "1 + 1"])
+def test_command_mode_treats_non_option_trailing_tokens_as_cli_args(capsys):
+    exit_code = _main(["-c", "main(args) = args", "examples/ants.genia"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out.strip() == '["examples/ants.genia"]'
 
 
 def test_command_flag_rejects_debug_stdio_combination():
@@ -34,6 +36,13 @@ def test_command_mode_invokes_main_1_with_empty_cli_args(capsys):
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out.strip() == "0"
+
+
+def test_command_mode_passes_bare_cli_args_into_main_1(capsys):
+    exit_code = _main(["-c", "main(args) = args", "a"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out.strip() == '["a"]'
 
 
 def test_command_mode_invokes_main_0_when_main_1_missing(capsys):

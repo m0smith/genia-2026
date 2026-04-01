@@ -307,6 +307,7 @@ Expected behavior:
 * Runtime `main` entrypoint convention in file/`-c` modes:
   * `main/1` is preferred and called as `main(argv())`
   * fallback to `main/0` when `main/1` is absent
+  * trailing CLI args in `-c` mode are passed through to `argv()` (including bare positional values)
 * Pipeline operator `|>` with expression-level call rewriting
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:

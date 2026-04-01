@@ -3009,22 +3009,24 @@ def run_debug_stdio(
 
 def _main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="genia.interpreter")
-    parser.add_argument("program", nargs="?")
     parser.add_argument("-c", "--command")
     parser.add_argument("--debug-stdio", action="store_true")
-    args, script_args = parser.parse_known_args(argv)
+    args, remaining_args = parser.parse_known_args(argv)
 
-    if args.program is not None and args.command is not None:
-        parser.error("program path and --command cannot be used together")
-    if args.program is None and args.command is None and script_args:
-        parser.error(f"unexpected arguments: {' '.join(script_args)}")
+    program_path: Optional[str] = None
+    script_args: list[str] = []
+    if args.command is not None:
+        script_args = remaining_args
+    elif remaining_args:
+        program_path = remaining_args[0]
+        script_args = remaining_args[1:]
 
     if args.debug_stdio:
-        if args.program is None:
+        if program_path is None:
             parser.error("--debug-stdio requires a program path")
         if args.command is not None:
             parser.error("--debug-stdio cannot be used with --command")
-        return run_debug_stdio(args.program)
+        return run_debug_stdio(program_path)
 
     def resolve_program_result(run_result: Any, env: Env) -> Any:
         main_group = env.values.get("main")
@@ -3046,10 +3048,10 @@ def _main(argv: Optional[list[str]] = None) -> int:
         if result is not None:
             print(format_debug(result))
         return 0
-    if args.program is not None:
+    if program_path is not None:
         env = make_global_env(cli_args=script_args)
-        with open(args.program, "r", encoding="utf-8") as f:
-            run_result = run_source(f.read(), env, filename=str(Path(args.program).resolve()))
+        with open(program_path, "r", encoding="utf-8") as f:
+            run_result = run_source(f.read(), env, filename=str(Path(program_path).resolve()))
         result = resolve_program_result(run_result, env)
         if result is not None:
             print(format_debug(result))
