@@ -1872,7 +1872,6 @@ class Env:
             root.loading_files.remove(key)
 
     def resolve_module_path(self, module_name: str, requester_filename: str | None = None) -> Path:
-        root = self.root()
         candidates: list[Path] = []
         if requester_filename and requester_filename not in {"<memory>", "<command>"}:
             requester = Path(requester_filename)
