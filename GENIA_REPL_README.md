@@ -43,7 +43,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ## Implemented today
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
-- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`
+- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
@@ -87,6 +87,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - phase-1 primitive option model: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
   - bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`

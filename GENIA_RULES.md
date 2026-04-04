@@ -152,6 +152,20 @@ No additional member/index/flow operators should be introduced without explicitl
 - string projector with non-map target raises clear `TypeError`
 - this does not add parser syntax, call operators, or user-defined callable-data protocols
 
+## 11.2) Option invariants (phase 1)
+
+- primitive option values are `none` and `some(value)` (where `none` is distinct from `nil`)
+- `get?(key, target)` is defined exactly as:
+  - `get?(key, none) -> none`
+  - `get?(key, some(map)) -> get?(key, map)`
+  - `get?(key, map) -> some(value)` when key exists
+  - `get?(key, map) -> none` when key is missing
+- key presence, not value truthiness, determines `some(...)` vs `none`
+  - key mapped to `nil` still returns `some(nil)`
+- `unwrap_or(default, opt)` accepts option values only
+- `is_some?(opt)` and `is_none?(opt)` report option shape
+- pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
+
 ## 12) Error behavior
 
 - unmatched function/case dispatch should raise deterministic runtime errors

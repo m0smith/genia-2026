@@ -520,3 +520,71 @@ Expected behavior (demo grid wrapping):
 - actor/scheduler-based simulation runtime
 - native language abstractions for agents, ticks, or worlds
 - native map syntax for simulation state authoring
+
+---
+
+## Primitive Option values (phase 1)
+
+Genia now has a minimal Option model that is separate from `nil`.
+
+- `none`
+- `some(value)`
+
+And minimal helpers:
+
+- `get?(key, target)`
+- `unwrap_or(default, opt)`
+- `is_some?(opt)`
+- `is_none?(opt)`
+
+### Minimal example
+
+```genia
+person = { name: "Genia" }
+person |> get?("name") |> unwrap_or("unknown")
+```
+
+Expected result:
+
+```genia
+"Genia"
+```
+
+### Edge case example
+
+```genia
+[get?("a", {a:nil}), get?("b", {a:nil})]
+```
+
+Expected behavior:
+
+- first result is `some(nil)` (key exists)
+- second result is `none` (key missing)
+
+### Failure case example
+
+```genia
+get?("name", 42)
+```
+
+Expected behavior:
+
+- raises `TypeError` (`get?` supports map targets, `some(map)`, and `none`)
+
+### Implementation status
+
+### ✅ Implemented
+
+- primitive option values: `none`, `some(value)`
+- `get?` lookup semantics with key-presence distinction (`some(nil)` vs `none`)
+- `unwrap_or(default, opt)` for defaulting on `none`
+- `is_some?` / `is_none?` predicates
+- pipeline-friendly lookup (`record |> get?("name")`)
+
+### ⚠️ Partial
+
+- pattern matching can match `none` directly, but there is no constructor-pattern syntax for destructuring `some(x)`
+
+### ❌ Not implemented
+
+- dedicated option-pattern constructor syntax (e.g., `some(x)` pattern destructuring)
