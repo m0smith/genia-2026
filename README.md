@@ -210,6 +210,7 @@ agent_get(counter)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
 - option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
+- flow runtime (Phase 1): `lines`, `map`/`filter` (flow-aware), `take`, `head`, `each`, `collect`, `run`
 
 ### CLI args / options (runtime layer)
 
@@ -308,7 +309,7 @@ rewrite_zip(in_path, out_path) =
 
 - general host interop / FFI
 - general member access / indexing syntax
-- generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- full flow system beyond Phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/event loop for simulations
 

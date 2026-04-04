@@ -232,3 +232,17 @@ When changing syntax/semantics/runtime behavior, update together:
   - else use exact `main/0`
   - else do nothing
 - no partial matching/coercion is performed by the entrypoint selector
+
+## 19) Flow runtime invariants (phase 1)
+
+- pipeline operator semantics are unchanged (AST→Core IR call rewrite only)
+- flow behavior is runtime-level and value-based, with no parser/operator additions
+- `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
+- phase-1 flow builtins:
+  - sources/transforms: `lines`, `map`, `filter`, `take`, `head`
+  - sinks/materialization: `each`, `run`, `collect`
+- flows are single-use:
+  - first consumption succeeds
+  - second consumption must raise `RuntimeError("Flow has already been consumed")`
+- `take(n, flow)` must stop upstream pulling immediately after producing `n` items
+- reaching EOF or a `take`/`head` limit is normal completion (not an error)

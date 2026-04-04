@@ -1959,6 +1959,29 @@ class GeniaFunctionGroup:
     def sorted_arities(self) -> list[int]:
         return sorted(self.functions)
 
+    def __call__(self, *args: Any) -> Any:
+        arity = len(args)
+        exact = self.get(arity)
+        if exact is not None:
+            return exact(*args)
+        vararg_matches = [
+            candidate
+            for candidate in self.values()
+            if isinstance(candidate, GeniaFunction)
+            and candidate.rest_param is not None
+            and arity >= candidate.arity
+        ]
+        if len(vararg_matches) == 1:
+            return vararg_matches[0](*args)
+        if len(vararg_matches) > 1:
+            candidates = ", ".join(
+                f"{self.name}/{candidate.arity}+"
+                for candidate in sorted(vararg_matches, key=lambda fn: fn.arity)
+            )
+            raise TypeError(f"Ambiguous function resolution: {self.name}/{arity}. Matching varargs: {candidates}")
+        available = ", ".join(f"{self.name}/{n}" for n in self.sorted_arities())
+        raise TypeError(f"No matching function: {self.name}/{arity}. Available: {available}")
+
 
 
 @dataclass
@@ -2150,6 +2173,23 @@ class GeniaZipEntry:
         return f"<zip-entry {self.name!r} {len(self.data.value)}>"
 
 
+class GeniaFlow:
+    def __init__(self, iterator_factory: Callable[[], Iterable[Any]], *, label: str = "flow"):
+        self._iterator_factory = iterator_factory
+        self._label = label
+        self._consumed = False
+
+    def consume(self) -> Iterable[Any]:
+        if self._consumed:
+            raise RuntimeError("Flow has already been consumed")
+        self._consumed = True
+        return self._iterator_factory()
+
+    def __repr__(self) -> str:
+        state = "consumed" if self._consumed else "ready"
+        return f"<flow {self._label} {state}>"
+
+
 def eval_with_tco(
     fn: Any,
     args: tuple[Any, ...],
@@ -2323,6 +2363,43 @@ class Evaluator:
     ) -> Any:
 
         if isinstance(fn, GeniaFunctionGroup):
+            if isinstance(callee_node, IrVar) and len(args) == 2 and isinstance(args[1], GeniaFlow):
+                if callee_node.name == "map":
+                    mapper = args[0]
+                    source = args[1]
+
+                    def iterator() -> Iterable[Any]:
+                        for item in source.consume():
+                            yield self.invoke_callable(mapper, [item], tail_position=False)
+
+                    return GeniaFlow(iterator, label="map")
+                if callee_node.name == "filter":
+                    predicate = args[0]
+                    source = args[1]
+
+                    def iterator() -> Iterable[Any]:
+                        for item in source.consume():
+                            if self.invoke_callable(predicate, [item], tail_position=False):
+                                yield item
+
+                    return GeniaFlow(iterator, label="filter")
+                if callee_node.name == "take":
+                    count = args[0]
+                    source = args[1]
+                    if not isinstance(count, int) or isinstance(count, bool):
+                        raise TypeError("take expected an integer count as first argument")
+
+                    def iterator() -> Iterable[Any]:
+                        if count <= 0:
+                            return
+                        remaining = count
+                        for item in source.consume():
+                            if remaining <= 0:
+                                break
+                            yield item
+                            remaining -= 1
+
+                    return GeniaFlow(iterator, label="take")
             arity = len(args)
 
             def resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any | None:
@@ -2805,8 +2882,122 @@ def make_global_env(
                 stdin_cache = sys.stdin.read().splitlines()
         return stdin_cache
 
+    setattr(stdin_fn, "_genia_stdin_source", True)
+
     def argv_fn() -> list[str]:
         return list(argv_cache)
+
+    def _ensure_flow(value: Any, name: str) -> GeniaFlow:
+        if not isinstance(value, GeniaFlow):
+            raise TypeError(f"{name} expected a flow")
+        return value
+
+    def _ensure_callable(value: Any, name: str) -> Callable[..., Any]:
+        if not callable(value):
+            raise TypeError(f"{name} expected a function")
+        return value
+
+    def lines_fn(source: Any) -> GeniaFlow:
+        if isinstance(source, GeniaFlow):
+            upstream = _ensure_flow(source, "lines")
+
+            def iterator() -> Iterable[Any]:
+                for item in upstream.consume():
+                    if not isinstance(item, str):
+                        raise TypeError("lines expected string input items")
+                    yield item
+
+            return GeniaFlow(iterator, label="lines")
+
+        if callable(source):
+            raw_lines = source()
+        else:
+            raw_lines = source
+
+        if not isinstance(raw_lines, list):
+            raise TypeError("lines expected stdin source, flow, or list of strings")
+        if not all(isinstance(item, str) for item in raw_lines):
+            raise TypeError("lines expected a list of strings")
+
+        def iterator() -> Iterable[str]:
+            for item in raw_lines:
+                yield item
+
+        return GeniaFlow(iterator, label="lines")
+
+    def map_flow_fn(fn_value: Any, source: Any) -> Any:
+        mapper = _ensure_callable(fn_value, "map")
+        if isinstance(source, GeniaFlow):
+            upstream = source
+
+            def iterator() -> Iterable[Any]:
+                for item in upstream.consume():
+                    yield mapper(item)
+
+            return GeniaFlow(iterator, label="map")
+        if not isinstance(source, list):
+            raise TypeError("map expected a flow or list")
+        return [mapper(item) for item in source]
+
+    def filter_flow_fn(predicate_value: Any, source: Any) -> Any:
+        predicate = _ensure_callable(predicate_value, "filter")
+        if isinstance(source, GeniaFlow):
+            upstream = source
+
+            def iterator() -> Iterable[Any]:
+                for item in upstream.consume():
+                    if predicate(item):
+                        yield item
+
+            return GeniaFlow(iterator, label="filter")
+        if not isinstance(source, list):
+            raise TypeError("filter expected a flow or list")
+        return [item for item in source if predicate(item)]
+
+    def take_fn(n: Any, source: Any) -> GeniaFlow:
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError("take expected an integer count as first argument")
+        upstream = _ensure_flow(source, "take")
+
+        def iterator() -> Iterable[Any]:
+            if n <= 0:
+                return
+            remaining = n
+            for item in upstream.consume():
+                if remaining <= 0:
+                    break
+                yield item
+                remaining -= 1
+
+        return GeniaFlow(iterator, label="take")
+
+    def head_fn(*args: Any) -> GeniaFlow:
+        if len(args) == 1:
+            return take_fn(1, args[0])
+        if len(args) == 2:
+            return take_fn(args[0], args[1])
+        raise TypeError(f"head expected 1 or 2 args, got {len(args)}")
+
+    def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
+        effect = _ensure_callable(fn_value, "each")
+        upstream = _ensure_flow(source, "each")
+
+        def iterator() -> Iterable[Any]:
+            for item in upstream.consume():
+                effect(item)
+                yield item
+
+        return GeniaFlow(iterator, label="each")
+
+    def collect_fn(source: Any) -> list[Any]:
+        flow = _ensure_flow(source, "collect")
+        return list(flow.consume())
+
+    def run_fn(source: Any) -> None:
+        flow = _ensure_flow(source, "run")
+        for _ in flow.consume():
+            pass
+        return None
 
     def _emit_help(text: str) -> None:
         output = text + "\n"
@@ -3328,6 +3519,10 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("print", print_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_fn)
+    env.set("lines", lines_fn)
+    env.set("each", each_fn)
+    env.set("run", run_fn)
+    env.set("collect", collect_fn)
     env.set("argv", argv_fn)
     env.set("help", help_fn)
     env.set("pi", math.pi)
@@ -3404,6 +3599,8 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("any?", 2, "std/prelude/list.genia")
     env.register_autoload("nth", 2, "std/prelude/list.genia")
     env.register_autoload("take", 2, "std/prelude/list.genia")
+    env.register_autoload("head", 1, "std/prelude/list.genia")
+    env.register_autoload("head", 2, "std/prelude/list.genia")
     env.register_autoload("drop", 2, "std/prelude/list.genia")
     env.register_autoload("range", 1, "std/prelude/list.genia")
     env.register_autoload("range", 2, "std/prelude/list.genia")

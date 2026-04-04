@@ -153,6 +153,26 @@ Case placement rules (enforced):
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, `nil`
 
+### Flow runtime (Phase 1)
+
+- `stdin` is a stream source value when used in pipelines (`stdin |> lines`)
+  - `stdin()` still returns cached full stdin lines list for compatibility
+- flow transforms:
+  - `lines(flow_or_source)`
+  - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
+  - `take(n, flow)` when second arg is a flow
+  - `head(flow)` and `head(n, flow)` via stdlib aliases over `take`
+- flow sinks/materialization:
+  - `each(f, flow)` (tap-style stage)
+  - `collect(flow)` (materialize to list)
+  - `run(flow)` (consume to completion)
+
+Flow semantics:
+
+- lazy, pull-based, single-use
+- consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
+- `take` performs early termination (stops upstream pulling as soon as limit is reached)
+
 ### CLI argument helpers (host-backed builtin layer)
 
 - `cli_parse(args) -> [opts, positionals]`
@@ -347,7 +367,7 @@ Core IR shape currently includes:
 - general host interop / FFI layer
 - general member access syntax
 - index syntax
-- generalized flow runtime semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- generalized flow runtime semantics beyond Phase 1 (multi-output stages, async scheduling, advanced backpressure/cancellation)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 

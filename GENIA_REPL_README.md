@@ -97,6 +97,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
   - constants: `pi`, `e`, `true`, `false`, `nil`
+- flow runtime (phase 1):
+  - `stdin |> lines` creates a lazy single-use flow
+  - transforms: `lines`, `map`, `filter`, `take`, `head`
+  - sinks/materialization: `each`, `run`, `collect`
+  - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
+  - `take`/`head` perform early upstream termination (normal completion)
 
 ## REPL commands
 
@@ -112,8 +118,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - general host interop / FFI
 - general member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
-- generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
-- full Flow runtime system (stages/sinks/backpressure/cancellation/multi-port stages)
+- full Flow runtime system beyond phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
 
 ## Conditionals in Genia
 

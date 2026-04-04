@@ -216,6 +216,17 @@ take_impl(n, xs) =
   (0, _) -> [] |
   (n, [x, ..rest]) -> [x] + take_impl(n - 1, rest)
 
+head(xs) = """
+# head
+
+Convenience alias for `take`.
+""" take(1, xs)
+head(n, xs) = """
+# head
+
+Convenience alias for `take`.
+""" take(n, xs)
+
 drop(n, xs) = """
 # drop
 
