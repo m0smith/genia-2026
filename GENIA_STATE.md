@@ -166,8 +166,9 @@ Case placement rules (enforced):
 
 ### Flow runtime (Phase 1)
 
-- `stdin` is a stream source value when used in pipelines (`stdin |> lines`)
-  - `stdin()` still returns cached full stdin lines list for compatibility
+- `stdin` is a lazy source value when used in pipelines (`stdin |> lines`)
+  - `stdin |> lines` reads incrementally from the underlying source
+  - `stdin()` still materializes and caches the full remaining input as a list for compatibility
 - flow transforms:
   - `lines(flow_or_source)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
@@ -180,9 +181,9 @@ Case placement rules (enforced):
 
 Flow semantics:
 
-- lazy, pull-based, single-use
+- lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
-- `take` performs early termination (stops upstream pulling as soon as limit is reached)
+- `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
 
 ### CLI argument helpers (host-backed builtin layer)
 

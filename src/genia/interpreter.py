@@ -32,7 +32,7 @@ import re
 import sys
 import threading
 from dataclasses import dataclass, field
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Iterable, Iterator, Optional
 
 if __package__ in (None, ""):
     _src_root = Path(__file__).resolve().parents[1]
@@ -2257,6 +2257,51 @@ class GeniaFlow:
         return f"<flow {self._label} {state}>"
 
 
+class GeniaStdinSource:
+    def __init__(self, iterator_factory: Callable[[], Iterable[str]]):
+        self._iterator_factory = iterator_factory
+        self._iterator: Iterator[str] | None = None
+        self._cache: list[str] = []
+        self._exhausted = False
+
+    def _ensure_iterator(self) -> Iterator[str] | None:
+        if self._exhausted:
+            return None
+        if self._iterator is None:
+            self._iterator = iter(self._iterator_factory())
+        return self._iterator
+
+    def iter_lines(self) -> Iterable[str]:
+        while True:
+            iterator = self._ensure_iterator()
+            if iterator is None:
+                return
+            try:
+                item = next(iterator)
+            except StopIteration:
+                self._iterator = None
+                self._exhausted = True
+                return
+            if not isinstance(item, str):
+                raise TypeError("stdin expected string input items")
+            normalized = item.rstrip("\r\n")
+            self._cache.append(normalized)
+            yield normalized
+
+    def materialize(self) -> list[str]:
+        if not self._exhausted:
+            for _ in self.iter_lines():
+                pass
+        return list(self._cache)
+
+    def __call__(self) -> list[str]:
+        return self.materialize()
+
+    def __repr__(self) -> str:
+        state = "exhausted" if self._exhausted else "ready"
+        return f"<stdin-source {state}>"
+
+
 def eval_with_tco(
     fn: Any,
     args: tuple[Any, ...],
@@ -2460,9 +2505,12 @@ class Evaluator:
                         if count <= 0:
                             return
                         remaining = count
-                        for item in source.consume():
-                            if remaining <= 0:
-                                break
+                        upstream = iter(source.consume())
+                        while remaining > 0:
+                            try:
+                                item = next(upstream)
+                            except StopIteration:
+                                return
                             yield item
                             remaining -= 1
 
@@ -2812,7 +2860,7 @@ def truthy(value: Any) -> bool:
 
 def make_global_env(
     stdin_data: Optional[list[str]] = None,
-    stdin_provider: Optional[Callable[[], list[str]]] = None,
+    stdin_provider: Optional[Callable[[], Iterable[str]]] = None,
     cli_args: Optional[list[str]] = None,
     debug_hooks: DebugHooks | None = None,
     debug_mode: bool = False,
@@ -2940,20 +2988,20 @@ def make_global_env(
 
     argv_cache = list(cli_args or [])
 
-    stdin_cache: Optional[list[str]] = None
+    def stdin_iterable() -> Iterable[str]:
+        if stdin_provider is not None:
+            return stdin_provider()
+        if stdin_data is not None:
+            return iter(stdin_data)
 
-    def stdin_fn() -> list[str]:
-        nonlocal stdin_cache
-        if stdin_cache is None:
-            if stdin_provider is not None:
-                stdin_cache = stdin_provider()
-            elif stdin_data is not None:
-                stdin_cache = stdin_data
-            else:
-                stdin_cache = sys.stdin.read().splitlines()
-        return stdin_cache
+        def host_stdin_lines() -> Iterable[str]:
+            for line in sys.stdin:
+                yield line
 
-    setattr(stdin_fn, "_genia_stdin_source", True)
+        return host_stdin_lines()
+
+    stdin_source = GeniaStdinSource(stdin_iterable)
+    setattr(stdin_source, "_genia_stdin_source", True)
 
     def argv_fn() -> list[str]:
         return list(argv_cache)
@@ -2979,6 +3027,9 @@ def make_global_env(
                     yield item
 
             return GeniaFlow(iterator, label="lines")
+
+        if isinstance(source, GeniaStdinSource):
+            return GeniaFlow(source.iter_lines, label="lines")
 
         if callable(source):
             raw_lines = source()
@@ -3034,9 +3085,12 @@ def make_global_env(
             if n <= 0:
                 return
             remaining = n
-            for item in upstream.consume():
-                if remaining <= 0:
-                    break
+            items = iter(upstream.consume())
+            while remaining > 0:
+                try:
+                    item = next(items)
+                except StopIteration:
+                    return
                 yield item
                 remaining -= 1
 
@@ -3589,7 +3643,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
-    env.set("stdin", stdin_fn)
+    env.set("stdin", stdin_source)
     env.set("lines", lines_fn)
     env.set("each", each_fn)
     env.set("run", run_fn)

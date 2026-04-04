@@ -187,7 +187,19 @@ person = { name: "Matthew", age: 42 }
 - `x |> f(y)` rewrites to `f(y, x)` (append piped value as final argument)
 - left-associative chaining is supported (`a |> f |> g`)
 - rewrite occurs during AST→Core IR lowering (not as a special runtime node)
-- this is expression-level composition only (not full flow runtime semantics)
+- this rewrite is unchanged even when working with Flow values; streaming behavior is runtime-level, not parser-level
+
+### Flow runtime (Phase 1)
+
+```genia
+stdin |> lines |> take(2) |> each(print) |> run
+```
+
+- `stdin |> lines` creates a lazy, pull-based, single-use Flow
+- reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
+- `take` stops upstream pulling as soon as the limit is satisfied
+- `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
+- `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
 
 ### Concurrency and agents
 
@@ -211,7 +223,7 @@ agent_get(counter)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
 - option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
-- flow runtime (Phase 1): `lines`, `map`/`filter` (flow-aware), `take`, `head`, `each`, `collect`, `run`
+- flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `each`, `collect`, `run`, plus prelude `head` aliases over `take`
 
 ### CLI args / options (runtime layer)
 

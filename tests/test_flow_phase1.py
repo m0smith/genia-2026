@@ -67,3 +67,45 @@ def test_take_zero_does_not_pull_upstream():
     env.set("ticks", ticks)
     assert run_source("ticks() |> take(0) |> collect", env) == []
     assert state["pulled"] == 0
+
+
+def test_take_stops_without_overpulling_generator_backed_flow():
+    env = make_global_env()
+    state = {"pulled": 0}
+
+    def ticks():
+        def iterator():
+            i = 0
+            while True:
+                state["pulled"] += 1
+                yield i
+                i += 1
+
+        return GeniaFlow(iterator, label="ticks")
+
+    env.set("ticks", ticks)
+    assert run_source("ticks() |> take(3) |> collect", env) == [0, 1, 2]
+    assert state["pulled"] == 3
+
+
+def test_stdin_flow_binding_is_lazy_and_stops_on_take():
+    calls = 0
+    state = {"pulled": 0}
+
+    def provider():
+        nonlocal calls
+        calls += 1
+
+        def iterator():
+            for item in ["a", "b", "c", "d"]:
+                state["pulled"] += 1
+                yield item
+
+        return iterator()
+
+    env = make_global_env(stdin_provider=provider)
+    assert calls == 0
+    assert state["pulled"] == 0
+    assert run_source("stdin |> lines |> take(2) |> collect", env) == ["a", "b"]
+    assert calls == 1
+    assert state["pulled"] == 2

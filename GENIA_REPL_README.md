@@ -100,10 +100,13 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - constants: `pi`, `e`, `true`, `false`, `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
-  - transforms: `lines`, `map`, `filter`, `take`, `head`
+  - binding `stdin` into a flow does not read all input up front
+  - `stdin()` still returns cached full stdin lines for compatibility
+  - transforms: `lines`, `map`, `filter`, `take`
+  - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
-  - `take`/`head` perform early upstream termination (normal completion)
+  - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
 
 ## REPL commands
 

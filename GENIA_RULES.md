@@ -242,10 +242,12 @@ When changing syntax/semantics/runtime behavior, update together:
 - flow behavior is runtime-level and value-based, with no parser/operator additions
 - `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
 - phase-1 flow builtins:
-  - sources/transforms: `lines`, `map`, `filter`, `take`, `head`
+  - sources/transforms: `lines`, `map`, `filter`, `take`
+  - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
 - flows are single-use:
   - first consumption succeeds
   - second consumption must raise `RuntimeError("Flow has already been consumed")`
 - `take(n, flow)` must stop upstream pulling immediately after producing `n` items
+- `stdin |> lines` must remain lazy; binding the source must not force a full stdin read up front
 - reaching EOF or a `take`/`head` limit is normal completion (not an error)

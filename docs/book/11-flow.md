@@ -11,6 +11,8 @@ A Flow is:
 - source-bound
 - single-use (consumable)
 
+The pipeline operator is unchanged: `|>` still rewrites to ordinary calls in the AST→Core IR pass. Flow behavior starts at runtime when those calls produce or consume Flow values.
+
 ## Reusable stages
 
 Any function of shape `(flow) -> flow` can be reused as a stage.
@@ -36,6 +38,8 @@ Expected result:
 []
 ```
 
+This must not pull any upstream items.
+
 ### Failure case example
 
 ```genia
@@ -51,14 +55,16 @@ Expected behavior:
 ## `take` / `head`
 
 - `take(n, flow)` returns at most `n` items
-- `head(flow)` is an alias of `take(1, flow)`
-- `head(n, flow)` is an alias of `take(n, flow)`
+- `head(flow)` is the prelude alias `take(1, flow)`
+- `head(n, flow)` is the prelude alias `take(n, flow)`
 
 These stop upstream pulling as soon as the limit is reached.
 
 ## `stdin` vs `input()`
 
 - `stdin` is stream input for flows
+- `stdin |> lines` binds lazily and reads incrementally
+- `stdin()` materializes the full remaining input into a cached list
 - `input()` remains interactive prompt input
 
 ## Implementation status
