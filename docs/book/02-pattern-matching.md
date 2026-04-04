@@ -322,6 +322,8 @@ Write `last` using pattern matching and recursion.
 
 Option values can be matched directly with literal and constructor patterns.
 
+These Option values are distinct from `nil`.
+
 ### Minimal example
 
 ```genia
@@ -330,7 +332,7 @@ fallback(opt) =
   some(_) -> "present"
 ```
 
-`none` is a literal pattern and matches only the Option none value.
+`none` is a literal pattern and matches only the Option none value, not `nil`.
 
 ### Edge case example
 

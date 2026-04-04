@@ -20,7 +20,80 @@ This file describes what is **actually implemented now** in the Python runtime.
   - else if `main/0` exists, call `main()`
   - else keep existing result behavior (no implicit call)
 
-## 2) Implemented syntax and expression forms
+## 2) Implemented runtime value categories
+
+This is the current runtime value model in `main`. It is intentionally descriptive, not a new static type system.
+
+### Core values
+
+- Number
+- String
+- Boolean
+- List
+- Map
+  - map literals and `map_*` builtins produce the same runtime map value family
+  - map values are persistent and opaque at runtime (`<map N>`)
+- Function
+  - named functions are first-class values
+  - lambdas evaluate to ordinary callable runtime values
+- Module
+  - `import mod` / `import mod as alias` bind module namespace values
+  - module values are distinct from maps and are accessed with narrow slash access (`mod/name`)
+
+### Optionality / absence values
+
+- Nil (`nil`)
+  - ordinary runtime null/empty result value
+  - currently also used by several missing-value APIs (`map_get`, map slash access, callable map lookup, callable string projector lookup, `cli_option`)
+- None / Some
+  - `none` is a distinct runtime value, not the same value as `nil`
+  - `some(value)` wraps a present value explicitly
+  - `get?` is the current builtin that returns `none` / `some(value)` instead of legacy `nil`-for-missing behavior
+  - pattern matching supports literal `none` and constructor pattern `some(pattern)`
+
+### Callable values / callable behaviors
+
+- Function values are callable in the ordinary way
+- Map values also have callable lookup behavior
+  - `m(key)` -> stored value or `nil`
+  - `m(key, default)` -> stored value when key exists, otherwise `default`
+- String values can act as callable map projectors
+  - `"key"(m)` -> map lookup behavior (`value` or `nil`)
+  - `"key"(m, default)` -> stored value when key exists, otherwise `default`
+- This callable layer is behavior-based, not a single unified nominal type
+  - maps stay maps even when callable
+  - strings stay strings even when used as projectors
+
+### Runtime capability values
+
+- Flow
+  - Flow is a real runtime value family (`<flow ...>`), not just pipeline syntax
+  - flows are lazy, pull-based, source-bound, and single-use
+  - Phase 1 flow behavior is runtime-level and value-based; `|>` itself is still only call rewriting
+- Ref
+  - refs are synchronized host-backed runtime cells
+  - `ref_get` / `ref_update` may block until a value is present
+- Process
+  - `spawn` returns a host-backed process handle value
+- Bytes
+  - `utf8_encode` and ZIP helpers produce opaque bytes wrapper values
+- ZipEntry
+  - `zip_entries` returns opaque zip entry wrapper values
+
+### Current consistency notes
+
+- Missing-value behavior is currently split across two models:
+  - legacy lookup paths return `nil` for missing values (`map_get`, map slash access, callable map/string lookup, `cli_option`)
+  - option-aware lookup uses `none` / `some(value)` (`get?`)
+- `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
+- Callable behavior currently crosses nominal value boundaries:
+  - functions are callable as functions
+  - maps are callable as lookup values
+  - strings are callable as map projectors
+- Flow and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
+- The current model is implemented and tested, but it is still piecemeal rather than a single fully unified type/protocol system.
+
+## 3) Implemented syntax and expression forms
 
 - literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
 - variables
@@ -48,7 +121,7 @@ Pipeline (Phase 2) rewrite model:
 - rewrite is performed in the AST→Core IR lowering pass (not by runtime special-casing)
 - no stream runtime semantics are added in this phase
 
-## 3) Functions and dispatch
+## 4) Functions and dispatch
 
 - named functions are first-class values
 - multiple definitions by arity shape are allowed
@@ -95,7 +168,7 @@ Pipeline (Phase 2) rewrite model:
     - first argument must be map-like (runtime map value); non-map targets raise clear `TypeError`
     - arity other than 1 or 2 raises `TypeError`
 
-## 4) Case expressions and pattern matching
+## 5) Case expressions and pattern matching
 
 Case arms support:
 
@@ -156,7 +229,7 @@ Case placement rules (enforced):
 - no dedicated conditional keyword exists
 - `decide` has been removed from the language
 
-## 5) Builtins (runtime)
+## 6) Builtins (runtime)
 
 ### Core I/O and utilities
 
@@ -336,7 +409,7 @@ Behavior:
 - `rand_int(n)` returns an integer in `[0, n)`; raises clear `TypeError` for non-integer `n` and `ValueError` for `n <= 0`
 - `sleep(ms)` blocks current execution for `ms` milliseconds; raises clear `TypeError` for non-numeric values and `ValueError` for negative values
 
-## 6) Autoloaded stdlib
+## 7) Autoloaded stdlib
 
 Autoload is keyed by `(name, arity)` and currently registers functions from:
 
@@ -355,7 +428,7 @@ Notable autoloaded functions include:
 - agent: `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
-## 7) Optimization behavior
+## 8) Optimization behavior
 
 Implemented optimizations:
 
@@ -369,7 +442,7 @@ Core IR shape currently includes:
 - patterns: wildcard, variable, literal, tuple, list, map, final rest
 - function docstrings are carried as metadata on named-function definitions (not runtime expressions)
 
-## 8) Debug/runtime tooling
+## 9) Debug/runtime tooling
 
 - parser/IR nodes carry source spans (filename + line/column ranges)
 - `run_debug_stdio(...)` exposes debugger protocol endpoints used by the VS Code extension
@@ -380,7 +453,7 @@ Core IR shape currently includes:
   - docstring normalization (trim outer blank lines, dedent indentation, optional triple-quote wrapper stripping, collapse excessive blank lines)
   - undocumented fallback message (`No documentation available.`)
 
-## 9) Explicitly not implemented (current)
+## 10) Explicitly not implemented (current)
 
 - general host interop / FFI layer
 - general member access syntax
@@ -389,7 +462,7 @@ Core IR shape currently includes:
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 
-## 10) Example demos shipped in-repo
+## 11) Example demos shipped in-repo
 
 - `examples/tic-tac-toe.genia`: interactive text game example
 - `examples/ants.genia`: first minimal ants-style stochastic grid simulation demo

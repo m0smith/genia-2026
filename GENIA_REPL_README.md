@@ -43,6 +43,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ## Implemented today
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
+- runtime value categories today:
+  - core values: Number, String, Boolean, List, Map, Function, Module
+  - optionality / absence: `nil`, plus distinct Option values `none` and `some(value)`
+  - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
+  - runtime capability values: Flow, Ref, Process handle, Bytes wrapper, Zip entry wrapper
+  - current missing-value behavior is split: legacy lookup helpers return `nil`, while `get?` returns `none` / `some(value)`
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
@@ -100,6 +106,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - constants: `pi`, `e`, `true`, `false`, `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
+  - Flow is a runtime value family; pipeline syntax itself is unchanged call rewriting
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
   - transforms: `lines`, `map`, `filter`, `take`

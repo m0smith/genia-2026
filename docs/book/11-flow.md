@@ -2,6 +2,8 @@
 
 Genia now supports a minimal lazy Flow runtime model for stream-style pipelines.
 
+Flow is a runtime value family, not a parser feature and not a special meaning of `|>` by itself.
+
 ## Flow model
 
 A Flow is:
@@ -72,6 +74,7 @@ These stop upstream pulling as soon as the limit is reached.
 ### ✅ Implemented
 
 - lazy single-use flow values
+- Flow as a first-class runtime value family (`<flow ...>`)
 - `stdin |> lines` source binding
 - flow-aware `map`, `filter`, `take`
 - `head/1` and `head/2` aliases (stdlib)

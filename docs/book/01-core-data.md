@@ -2,21 +2,45 @@
 
 ## What data exists in Genia today?
 
-Genia currently supports these runtime value families:
+Genia's current runtime value model is broader than just "plain data".
+
+### Core values
 
 - numbers
 - strings
 - booleans (`true`, `false`)
-- `nil`
 - lists
 - functions
+- modules (`import mod`)
+- **phase-1 host-backed persistent associative maps** (`map_new`, map literals, map patterns)
+
+### Optionality / absence values
+
+- `nil`
+- Option values: `none`, `some(value)`
+
+### Callable behaviors layered on values
+
+- functions are callable values
+- maps are callable lookup values
+- strings can be used as callable map projectors
+
+### Runtime capability values
+
+- Flow
 - refs (`ref`)
 - process handles (`spawn`)
-- **phase-1 host-backed persistent associative maps** (`map_new`, `map_put`, ...)
 - **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
 - **phase-1 host-backed zip entry wrappers** (`zip_entries`, `entry_*`, `zip_write`)
 
-This chapter covers the current Phase-1 host-backed core-data bridges (maps, bytes, and zip entries), starting with maps.
+Current consistency note:
+
+- missing values are not represented by one fully unified model today
+- map lookup and callable map/string lookup return `nil` for missing keys
+- `get?` returns `none` / `some(value)` instead
+- Flow and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
+
+This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
 
 ---
 
@@ -193,7 +217,7 @@ Expected behavior:
 
 ## Callable data (phase 1, map-centric)
 
-Only two callable-data forms are implemented in this phase.
+Only two non-function callable-data forms are implemented in this phase.
 
 ### Minimal example
 
@@ -262,6 +286,7 @@ Expected behavior:
 
 - map callable lookup by key (`m(key)`) and key-with-default (`m(key, default)`)
 - string key projector lookup against maps (`"key"(m)` and `"key"(m, default)`)
+- maps stay map values when called; strings stay string values when used as projectors
 - missing-key result is `nil` (or provided default in arity-2 forms); existing keys mapped to `nil` still return `nil`
 
 ### ⚠️ Partial
@@ -527,6 +552,8 @@ Expected behavior (demo grid wrapping):
 
 Genia now has a minimal Option model that is separate from `nil`.
 
+This is the current explicit presence/absence model, but it does not replace all legacy `nil`-for-missing behavior.
+
 - `none`
 - `some(value)`
 
@@ -576,6 +603,7 @@ Expected behavior:
 ### ✅ Implemented
 
 - primitive option values: `none`, `some(value)`
+- `none` is distinct from `nil`
 - `get?` lookup semantics with key-presence distinction (`some(nil)` vs `none`)
 - `unwrap_or(default, opt)` for defaulting on `none`
 - `is_some?` / `is_none?` predicates
@@ -585,6 +613,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
+- lookup consistency is still partial: `get?` uses Option values, while callable maps/string projectors and `map_get` still use legacy `nil` semantics for missing keys
 
 ### ❌ Not implemented
 

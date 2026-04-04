@@ -53,22 +53,27 @@ pytest -q
 
 ## Language snapshot (implemented)
 
-### Core values
+### Runtime value categories
 
-- Number
-- String (UTF-8 safe helpers available through builtins)
-- Boolean (`true`, `false`)
-- Nil (`nil`)
-- Option none literal (`none`) and option wrappers (`some(value)`)
-- Option-aware pattern matching (`none`, `some(pattern)`)
-- List
-- Function
-- Host-backed reference (`ref`)
-- Host-backed process handle (`spawn`)
-- Host-backed persistent associative map (`map_new`, `map_put`, ...)
-- Host-backed bytes wrapper
-- Host-backed zip entry wrapper
-- Module value (`import mod`, `import mod as alias`)
+- Core values: Number, String, Boolean, List, Map, Function, Module
+- Optionality / absence: `nil`, plus distinct Option values `none` and `some(value)`
+- Callable behaviors:
+  - functions/lambdas are callable values
+  - maps are callable lookup values
+  - strings can act as callable map projectors
+- Runtime capability values:
+  - Flow
+  - Ref
+  - Process handle
+  - Bytes wrapper
+  - Zip entry wrapper
+
+Current consistency note:
+
+- missing-value behavior is not fully unified yet
+- map lookup, callable map/string lookup, slash map access, and `cli_option` return `nil` for missing values
+- `get?` returns `none` / `some(value)` instead
+- Flow and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
 
 ### Functions and lambdas
 
@@ -103,6 +108,7 @@ head(xs) =
 Supported pattern forms:
 
 - literals (`0`, `"ok"`, `true`, `nil`)
+- option patterns (`none`, `some(pattern)`)
 - glob string patterns (`glob"..."`) for whole-string string matching
 - variable bindings
 - wildcard `_`
@@ -196,6 +202,7 @@ stdin |> lines |> take(2) |> each(print) |> run
 ```
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
+- Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
 - `take` stops upstream pulling as soon as the limit is satisfied
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion

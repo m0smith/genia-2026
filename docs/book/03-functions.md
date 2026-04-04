@@ -15,6 +15,12 @@ Ordinary call syntax also supports a small callable-data subset:
 - in arity-2 forms, the second argument is used only when the key is missing
 - string projector calls raise a clear `TypeError` when the first argument is not a map-like runtime map value
 
+This means Genia's current callable story is behavior-based, not one flat nominal "callable type":
+
+- functions and lambdas are ordinary callable values
+- maps remain map values even when called for lookup
+- strings remain string values even when used as map projectors
+
 No other callable-data forms are implemented in this phase.
 
 ---
