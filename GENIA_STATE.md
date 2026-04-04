@@ -32,6 +32,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 - list literals: `[a, b, c]`
 - map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)
 - module import: `import mod`, `import mod as alias`
+  - imports are cached by module name in `loaded_modules` (repeat imports/aliases reuse the same module instance)
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
@@ -71,6 +72,7 @@ Pipeline (Phase 2) rewrite model:
   - supported LHS runtime kinds: module values, map values
   - map missing key => `nil`
   - module missing export => clear error
+  - non-identifier RHS (for example `lhs/(1 + 2)`) raises a clear `TypeError`
   - this does not add general member/index access
 - callable data (phase 1):
   - maps are callable lookup values:

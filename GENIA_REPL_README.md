@@ -61,6 +61,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
 - module import forms: `import mod`, `import mod as alias`
+  - imports are cached by module name; repeated imports/aliases reuse the same module value
 - phase-1 slash named accessor: `mod/name`, `map/name` (bare identifier RHS only)
 - callable data (phase 1 subset):
   - map lookup calls: `m(key)`, `m(key, default)`

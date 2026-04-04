@@ -94,7 +94,9 @@ Required constraints:
 - imports bind only the module value in the current environment (no export splatting)
 - module values are runtime namespace values distinct from maps
 - module resolution is file-based only in this phase
+- module loads are cached by module name (`loaded_modules`); duplicate imports/aliases must reuse the same module value instance
 - top-level named assignments/functions from the module file are exported
+- missing module files must raise a deterministic `FileNotFoundError("Module not found: <name>")`
 
 ## 9) Operator model
 

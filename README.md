@@ -159,6 +159,7 @@ import math as m
 
 - `import mod` binds a module value to `mod`
 - `import mod as alias` binds the same module value to `alias`
+- module imports are cached by module name (`loaded_modules`) so duplicate imports are not re-evaluated
 - module exports are accessed with narrow slash access (`mod/name`)
 - modules are immutable runtime namespace values (distinct from maps)
 

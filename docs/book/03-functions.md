@@ -33,8 +33,24 @@ Notes:
 
 - `import math` binds one module value named `math`.
 - `import math as m` binds that same module value as `m`.
+- repeated imports are cached by module name, so module files are evaluated once per root environment.
 - export access uses `module/name` (bare identifier RHS only).
 - module values are namespace-like and distinct from maps.
+
+Failure examples:
+
+```genia
+import no_such_module
+```
+
+- raises `FileNotFoundError("Module not found: no_such_module")`.
+
+```genia
+import math
+math/missing
+```
+
+- raises `NameError` for the missing export.
 
 ## Function Docstrings (Implemented)
 
