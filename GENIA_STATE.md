@@ -98,6 +98,7 @@ Implemented pattern types:
 
 - literal patterns
 - glob string patterns (`glob"..."`) for whole-string matching
+- option constructor patterns (`some(pattern)`)
 - variable binding
 - wildcard `_`
 - tuple patterns
@@ -274,6 +275,12 @@ Compatibility note:
 - existing callable-data map/string-projector behavior is unchanged:
   - `m(key)`, `m(key, default)`
   - `"key"(m)`, `"key"(m, default)`
+
+Pattern matching note:
+
+- `none` matches as a literal pattern
+- `some(pattern)` destructures option values in function clauses and case arms
+- `some(...)` pattern form requires exactly one inner pattern
 
 ### String builtins
 

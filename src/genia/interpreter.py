@@ -613,6 +613,12 @@ class MapPattern(Node):
 
 
 @dataclass
+class SomePattern(Node):
+    inner: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
 class CaseClause(Node):
     pattern: Node
     guard: Optional[Node]
@@ -811,6 +817,13 @@ class IrPatGlob(IrPattern):
 
 
 @dataclass
+class IrPatSome(IrPattern):
+    """Option constructor pattern that matches `some(value)` values."""
+
+    inner: IrPattern
+
+
+@dataclass
 class IrCaseClause(IrNode):
     """Single case arm with optional guard."""
 
@@ -973,6 +986,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatMap([(key, lower_pattern(value)) for key, value in pattern.items])
     if isinstance(pattern, GlobPattern):
         return IrPatGlob(compile_glob_pattern(pattern.pattern))
+    if isinstance(pattern, SomePattern):
+        return IrPatSome(lower_pattern(pattern.inner))
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
 
 
@@ -1470,6 +1485,23 @@ class Parser:
         # single param shorthand cases: 0 ->, name ->, [x, y] ->, name ? ... ->
         # tuple case: ( ... ) ->
         # We only detect enough for v0.1.
+        if self.at("IDENT") and self.peek(1).kind == "LPAREN":
+            depth = 0
+            j = self.i + 1
+            while True:
+                tok = self.tokens[j]
+                if tok.kind == "LPAREN":
+                    depth += 1
+                elif tok.kind == "RPAREN":
+                    depth -= 1
+                    if depth == 0:
+                        j += 1
+                        while self.tokens[j].kind == "NEWLINE":
+                            j += 1
+                        return self.tokens[j].kind in {"ARROW", "QMARK"}
+                elif tok.kind == "EOF":
+                    return False
+                j += 1
         if self.at("NUMBER", "STRING", "IDENT", "GLOB"):
             j = self.i + 1
             while self.tokens[j].kind == "NEWLINE":
@@ -1558,6 +1590,16 @@ class Parser:
                 return Nil(span=self.span_for_tokens(tok, tok))
             if tok.text == "none":
                 return NoneOption(span=self.span_for_tokens(tok, tok))
+            if tok.text == "some" and self.at("LPAREN"):
+                start = self.eat("LPAREN")
+                self.skip_newlines()
+                inner = self.parse_pattern_atom()
+                self.skip_newlines()
+                if self.at("COMMA"):
+                    comma = self.eat("COMMA")
+                    raise SyntaxError(f"some(...) pattern expects exactly one inner pattern at {comma.pos}")
+                end = self.eat("RPAREN")
+                return SomePattern(inner, span=self.span_for_tokens(tok, end))
             if tok.text == "_":
                 return WildcardPattern(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
@@ -2502,6 +2544,10 @@ class Evaluator:
             if not isinstance(arg, str):
                 return None
             return {} if glob_match(pattern.matcher, arg) else None
+        if isinstance(pattern, IrPatSome):
+            if not isinstance(arg, GeniaOptionSome):
+                return None
+            return self.match_pattern_atom(pattern.inner, arg.value)
         if isinstance(pattern, IrPatList):
             if not isinstance(arg, list):
                 return None

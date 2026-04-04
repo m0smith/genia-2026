@@ -60,6 +60,7 @@ pytest -q
 - Boolean (`true`, `false`)
 - Nil (`nil`)
 - Option none literal (`none`) and option wrappers (`some(value)`)
+- Option-aware pattern matching (`none`, `some(pattern)`)
 - List
 - Function
 - Host-backed reference (`ref`)

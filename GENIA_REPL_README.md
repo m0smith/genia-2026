@@ -72,6 +72,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - list patterns
   - map patterns (`{name}`, `{name: n}`, `{"name": n}`)
   - glob string patterns (`glob"..."`) with whole-string matching only
+  - option constructor patterns (`some(pattern)`) and literal `none`
   - wildcard `_`
   - rest pattern `..rest` / `.._`
   - duplicate-binding equality semantics (`[x, x]`)

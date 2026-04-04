@@ -584,8 +584,8 @@ Expected behavior:
 
 ### ⚠️ Partial
 
-- pattern matching can match `none` directly, but there is no constructor-pattern syntax for destructuring `some(x)`
+- `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
 
 ### ❌ Not implemented
 
-- dedicated option-pattern constructor syntax (e.g., `some(x)` pattern destructuring)
+- multi-argument option constructor pattern forms (e.g., `some(a, b)`)

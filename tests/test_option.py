@@ -86,10 +86,26 @@ def test_option_values_work_with_pattern_matching(run):
     src = '\n'.join([
         'status(opt) =',
         '  none -> "missing" |',
-        '  x ? is_some?(x) -> unwrap_or("?", x)',
+        '  some(x) -> x',
         '[status(get?("name", {name: "Genia"})), status(none)]',
     ])
     assert run(src) == ["Genia", "missing"]
+
+
+def test_some_pattern_supports_nested_shapes(run):
+    src = '\n'.join([
+        'extract_name(opt) =',
+        '  some({name}) -> name |',
+        '  _ -> "?"',
+        '[extract_name(some({name: "Genia"})), extract_name(some({})), extract_name(none)]',
+    ])
+    assert run(src) == ["Genia", "?", "?"]
+
+
+def test_some_pattern_rejects_multiple_inner_patterns(run):
+    with pytest.raises(SyntaxError, match="some\\(\\.\\.\\.\\) pattern expects exactly one inner pattern"):
+        run('f(x) = some(a, b) -> a')
+
 
 def test_unwrap_or_requires_option(run):
     with pytest.raises(TypeError, match="unwrap_or expected an option value"):
