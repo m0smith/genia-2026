@@ -392,7 +392,7 @@ Expected behavior:
 
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
-* Pipeline is only call composition, not a full flow runtime model
+* Pipeline syntax is only call composition; Flow runtime behavior is implemented separately in Phase 1 and does not change the `|>` rewrite rules
 * `main` auto-invocation is only for file/`-c` execution modes (not REPL)
 
 ### ❌ Not implemented
@@ -400,7 +400,7 @@ Expected behavior:
 * Lambda docstrings
 * Separate docstring keywords or block syntax
 * Dedicated CLI syntax (`$1`, `$2`, special argument keywords)
-* Generalized flow semantics (lazy streams, multi-output stages, backpressure, cancellation)
+* Advanced Flow runtime features beyond Phase 1 (multi-output stages, async scheduling, richer backpressure/cancellation controls)
 
 ---
 

@@ -9,21 +9,20 @@ Genia's current runtime value model is broader than just "plain data".
 - numbers
 - strings
 - booleans (`true`, `false`)
-- lists
-- functions
-- modules (`import mod`)
-- **phase-1 host-backed persistent associative maps** (`map_new`, map literals, map patterns)
-
-### Optionality / absence values
-
 - `nil`
 - Option values: `none`, `some(value)`
+- lists
+- maps
+  - map literals and `map_*` builtins produce the same runtime map value family
+- functions
+- modules (`import mod`)
 
 ### Callable behaviors layered on values
 
 - functions are callable values
 - maps are callable lookup values
 - strings can be used as callable map projectors
+- maps and strings do not become separate callable types when used this way
 
 ### Runtime capability values
 
@@ -33,11 +32,21 @@ Genia's current runtime value model is broader than just "plain data".
 - **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
 - **phase-1 host-backed zip entry wrappers** (`zip_entries`, `entry_*`, `zip_write`)
 
+## Current absence semantics
+
+- `nil` and `none` coexist today; they are distinct runtime values
+- these APIs return `nil` for missing values:
+  - `map_get`
+  - map slash access (`map/name`)
+  - callable map lookup (`m(key)`)
+  - callable string projector lookup (`"key"(m)`)
+  - `cli_option`
+- `get?` returns `none` / `some(value)` instead
+- `some(nil)` is possible and means the key exists with value `nil`
+
 Current consistency note:
 
 - missing values are not represented by one fully unified model today
-- map lookup and callable map/string lookup return `nil` for missing keys
-- `get?` returns `none` / `some(value)` instead
 - Flow and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
@@ -371,7 +380,7 @@ Expected behavior:
 
 ### ❌ Not implemented
 
-- full Flow runtime (stages, backpressure, cancellation, multi-port stages)
+- advanced Flow runtime features beyond Phase 1 (multi-port stages, richer cancellation/backpressure controls)
 - stream-native zip processing or lazy archive sequences
 
 ---
@@ -604,16 +613,20 @@ Expected behavior:
 
 - primitive option values: `none`, `some(value)`
 - `none` is distinct from `nil`
+- pattern matching on Option values:
+  - literal `none`
+  - constructor pattern `some(pattern)`
 - `get?` lookup semantics with key-presence distinction (`some(nil)` vs `none`)
 - `unwrap_or(default, opt)` for defaulting on `none`
 - `is_some?` / `is_none?` predicates
 - pipeline-friendly lookup (`record |> get?("name")`)
 - callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
+- `cli_option` also remains in the legacy `value_or_nil` family
 
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
-- lookup consistency is still partial: `get?` uses Option values, while callable maps/string projectors and `map_get` still use legacy `nil` semantics for missing keys
+- lookup consistency is still partial: `get?` uses Option values, while callable maps/string projectors, `map_get`, slash map access, and `cli_option` still use legacy `nil` semantics for missing values
 
 ### ❌ Not implemented
 
