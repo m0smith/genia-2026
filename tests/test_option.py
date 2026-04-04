@@ -76,6 +76,21 @@ def test_get_unsupported_target_type_error(run):
         run('get?("a", 42)')
 
 
+
+def test_get_some_non_map_target_type_error(run):
+    with pytest.raises(TypeError, match=r"get\? expected a map, some\(map\), or none target"):
+        run('get?("a", some(42))')
+
+
+def test_option_values_work_with_pattern_matching(run):
+    src = '\n'.join([
+        'status(opt) =',
+        '  none -> "missing" |',
+        '  x ? is_some?(x) -> unwrap_or("?", x)',
+        '[status(get?("name", {name: "Genia"})), status(none)]',
+    ])
+    assert run(src) == ["Genia", "missing"]
+
 def test_unwrap_or_requires_option(run):
     with pytest.raises(TypeError, match="unwrap_or expected an option value"):
         run('unwrap_or(0, 42)')
