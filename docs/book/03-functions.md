@@ -19,6 +19,23 @@ No other callable-data forms are implemented in this phase.
 
 ---
 
+
+## Calling module exports (Phase 1 modules)
+
+Module imports bind module values, and exports are accessed with narrow slash access.
+
+```genia
+import math
+math/inc(2)
+```
+
+Notes:
+
+- `import math` binds one module value named `math`.
+- `import math as m` binds that same module value as `m`.
+- export access uses `module/name` (bare identifier RHS only).
+- module values are namespace-like and distinct from maps.
+
 ## Function Docstrings (Implemented)
 
 A named function may include a leading docstring string literal after `=`:

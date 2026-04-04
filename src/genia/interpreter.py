@@ -646,6 +646,13 @@ class FuncDef(Node):
     span: SourceSpan | None = None
 
 
+@dataclass
+class ImportStmt(Node):
+    module_name: str
+    alias: str
+    span: SourceSpan | None = None
+
+
 # -----------------------------
 # Tiny IR
 # -----------------------------
@@ -848,6 +855,13 @@ class IrFuncDef(IrNode):
 
 
 @dataclass
+class IrImport(IrNode):
+    module_name: str
+    alias: str
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrListTraversalLoop(IrNode):
     """Optimized loop-like form for nth-style list traversal recursion."""
 
@@ -922,6 +936,8 @@ def lower_node(node: Node) -> IrNode:
             lower_node(node.body),
             span=node.span,
         )
+    if isinstance(node, ImportStmt):
+        return IrImport(node.module_name, node.alias, span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -1299,6 +1315,27 @@ class Parser:
             return None
 
     def parse_toplevel(self) -> Node:
+        if self.at("IDENT") and self.peek().text == "import":
+            import_tok = self.eat("IDENT")
+            self.skip_newlines()
+            if not self.at("IDENT"):
+                bad = self.peek()
+                raise SyntaxError(f"import expected a module name identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+            module_tok = self.eat("IDENT")
+            module_name = module_tok.text
+            alias = module_name
+            end_tok = module_tok
+            self.skip_newlines()
+            if self.at("IDENT") and self.peek().text == "as":
+                self.eat("IDENT")
+                self.skip_newlines()
+                if not self.at("IDENT"):
+                    bad = self.peek()
+                    raise SyntaxError(f"import as expected an alias identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+                end_tok = self.eat("IDENT")
+                alias = end_tok.text
+            return ImportStmt(module_name, alias, span=self.span_for_tokens(import_tok, end_tok))
+
         header = self.try_parse_function_header()
         if header is not None:
             name, params, rest_param, name_tok = header
@@ -1543,6 +1580,12 @@ class Parser:
             if tok.kind == "LPAREN":
                 left = self.finish_call(left)
                 continue
+            if tok.kind == "SLASH" and min_prec <= PRECEDENCE["SLASH"] and self.peek(1).kind == "IDENT":
+                self.i += 1
+                rhs_tok = self.eat("IDENT")
+                rhs = Var(rhs_tok.text, span=self.span_for_tokens(rhs_tok, rhs_tok))
+                left = Binary(left, "SLASH", rhs, span=self.merge_spans(left.span, rhs.span))
+                continue
             prec = PRECEDENCE.get(tok.kind)
             if prec is None or prec < min_prec:
                 break
@@ -1769,6 +1812,8 @@ class Env:
         self.autoloads: dict[tuple[str, int], str] = {}
         self.loaded_files: set[str] = set()
         self.loading_files: set[str] = set()
+        self.loaded_modules: dict[str, "ModuleValue"] = {}
+        self.loading_modules: set[str] = set()
         self.debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS
         self.debug_mode: bool = False
 
@@ -1831,6 +1876,43 @@ class Env:
             return True
         finally:
             root.loading_files.remove(key)
+
+    def resolve_module_path(self, module_name: str, requester_filename: str | None = None) -> Path:
+        root = self.root()
+        candidates: list[Path] = []
+        if requester_filename and requester_filename not in {"<memory>", "<command>"}:
+            requester = Path(requester_filename)
+            candidates.append((requester.parent / f"{module_name}.genia").resolve())
+        candidates.append((BASE_DIR / f"{module_name}.genia").resolve())
+        candidates.append((BASE_DIR / "std" / "prelude" / f"{module_name}.genia").resolve())
+        for path in candidates:
+            if path.is_file():
+                return path
+        joined = ", ".join(str(p) for p in candidates)
+        raise FileNotFoundError(f"Module not found: {module_name} (searched: {joined})")
+
+    def load_module(self, module_name: str, requester_filename: str | None = None) -> "ModuleValue":
+        root = self.root()
+        if module_name in root.loaded_modules:
+            return root.loaded_modules[module_name]
+        if module_name in root.loading_modules:
+            raise RuntimeError(f"Module import cycle detected while loading {module_name}")
+
+        module_path = root.resolve_module_path(module_name, requester_filename)
+        key = str(module_path)
+        root.loading_modules.add(module_name)
+        try:
+            source = module_path.read_text(encoding="utf-8")
+            module_env = Env(root)
+            module_env.debug_hooks = root.debug_hooks
+            module_env.debug_mode = root.debug_mode
+            run_source(source, module_env, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
+            exports = dict(module_env.values)
+            module_value = ModuleValue(module_name, exports, key)
+            root.loaded_modules[module_name] = module_value
+            return module_value
+        finally:
+            root.loading_modules.remove(module_name)
 
 
 @dataclass
@@ -1990,6 +2072,21 @@ class GeniaMap:
 
     def __repr__(self) -> str:
         return f"<map {len(self._entries)}>"
+
+
+@dataclass(frozen=True)
+class ModuleValue:
+    name: str
+    exports: dict[str, Any]
+    path: str
+
+    def get_export(self, export_name: str) -> Any:
+        if export_name not in self.exports:
+            raise NameError(f"Module {self.name} has no export named {export_name}")
+        return self.exports[export_name]
+
+    def __repr__(self) -> str:
+        return f"<module {self.name}>"
 
 
 class GeniaProcess:
@@ -2463,6 +2560,11 @@ class Evaluator:
             )
             self.env.define_function(fn)
             return fn
+        if isinstance(node, IrImport):
+            requester = node.span.filename if node.span is not None else None
+            module_value = self.env.load_module(node.module_name, requester)
+            self.env.set(node.alias, module_value)
+            return module_value
         if isinstance(node, IrCase):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")
         if isinstance(node, IrListTraversalLoop):
@@ -2475,7 +2577,17 @@ class Evaluator:
             return left and self.eval(node.right)
         if node.op == "OR":
             return left or self.eval(node.right)
-        right = self.eval(node.right)
+        if node.op == "SLASH" and isinstance(node.right, IrVar) and isinstance(left, (GeniaMap, ModuleValue)):
+            key_name = node.right.name
+            if isinstance(left, GeniaMap):
+                return left.get(key_name)
+            return left.get_export(key_name)
+        try:
+            right = self.eval(node.right)
+        except NameError:
+            if node.op == "SLASH" and isinstance(node.right, IrVar):
+                raise TypeError("named accessor '/' is only supported for map and module values") from None
+            raise
         match node.op:
             case "PLUS":
                 return left + right
@@ -2484,6 +2596,8 @@ class Evaluator:
             case "STAR":
                 return left * right
             case "SLASH":
+                if isinstance(left, (GeniaMap, ModuleValue)):
+                    raise TypeError("named accessor '/' requires a bare identifier on the right-hand side")
                 return left / right
             case "PERCENT":
                 return left % right

@@ -31,6 +31,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 - block expressions: `{ ... }`
 - list literals: `[a, b, c]`
 - map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)
+- module import: `import mod`, `import mod as alias`
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
@@ -65,6 +66,12 @@ Pipeline (Phase 2) rewrite model:
 - resolution behavior:
   - exact fixed arity beats varargs
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
+- slash named accessor (phase 1):
+  - `lhs/name` uses narrow named access when RHS is a bare identifier
+  - supported LHS runtime kinds: module values, map values
+  - map missing key => `nil`
+  - module missing export => clear error
+  - this does not add general member/index access
 - callable data (phase 1):
   - maps are callable lookup values:
     - `m(key)` returns stored value or `nil`
@@ -211,6 +218,7 @@ Behavior:
 Behavior:
 
 - map values are opaque runtime values (`<map N>`) and do not expose host methods
+- module imports produce opaque module namespace values (`<module name>`)
 - `map_new` returns an empty map
 - `map_put` and `map_remove` are persistent (return a new map, do not mutate input map)
 - `map_get` returns stored value or `nil` when key is missing
@@ -310,8 +318,7 @@ Core IR shape currently includes:
 ## 9) Explicitly not implemented (current)
 
 - general host interop / FFI layer
-- module/import syntax
-- member access syntax
+- general member access syntax
 - index syntax
 - generalized flow runtime semantics (lazy sequences, multi-output stages, backpressure, cancellation)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)

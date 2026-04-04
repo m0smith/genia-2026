@@ -66,6 +66,7 @@ pytest -q
 - Host-backed persistent associative map (`map_new`, `map_put`, ...)
 - Host-backed bytes wrapper
 - Host-backed zip entry wrapper
+- Module value (`import mod`, `import mod as alias`)
 
 ### Functions and lambdas
 
@@ -144,6 +145,34 @@ empty = {}
 - identifier keys in literals are sugar for string keys
 - trailing commas are supported
 - duplicate keys are deterministic last-one-wins
+
+
+### Modules (Phase 1)
+
+```genia
+import math
+import math as m
+
+[math/pi, m/inc(2)]
+```
+
+- `import mod` binds a module value to `mod`
+- `import mod as alias` binds the same module value to `alias`
+- module exports are accessed with narrow slash access (`mod/name`)
+- modules are immutable runtime namespace values (distinct from maps)
+
+### Named slash access (`/`)
+
+```genia
+person = { name: "Matthew", age: 42 }
+[person/name, person/age, person/middle]
+```
+
+- map named access returns the value when present
+- missing map keys return `nil`
+- module named access returns exported bindings
+- missing module exports raise a clear error
+- `/` access is narrow: only `lhs/name` (bare identifier RHS), not general member/index access
 
 ### Pipeline operator (Phase 1)
 
@@ -275,8 +304,7 @@ rewrite_zip(in_path, out_path) =
 ## Not implemented yet
 
 - general host interop / FFI
-- module/import syntax
-- member access / indexing syntax
+- general member access / indexing syntax
 - generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/event loop for simulations

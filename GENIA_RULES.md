@@ -85,6 +85,17 @@ Required constraints:
 - lambdas do not support docstrings
 - docstring text is interpreted as Markdown for `help(...)` display with lightweight formatting only (no full Markdown engine)
 
+
+## 8.2) Module import + module value invariants (phase 1)
+
+- supported import forms are exactly:
+  - `import mod`
+  - `import mod as alias`
+- imports bind only the module value in the current environment (no export splatting)
+- module values are runtime namespace values distinct from maps
+- module resolution is file-based only in this phase
+- top-level named assignments/functions from the module file are exported
+
 ## 9) Operator model
 
 Implemented operators are limited to:
@@ -92,6 +103,7 @@ Implemented operators are limited to:
 - unary: `-`, `!`
 - binary: `+ - * / % < <= > >= == != && ||`
 - pipeline: `|>`
+- slash named accessor form: `lhs/name` (RHS bare identifier only)
 
 Pipeline rewrite invariant:
 
@@ -102,6 +114,16 @@ Pipeline rewrite invariant:
 - chaining is left-associative
 - rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
 - this is expression-level call rewriting only (no stream runtime semantics)
+
+
+Slash accessor invariants (phase 1):
+
+- `lhs/name` is narrow named access, not general member access
+- only module values and map values are valid LHS kinds
+- for maps: missing key returns `nil`
+- for modules: missing export raises a clear error
+- non-identifier RHS forms are invalid for named access
+- arithmetic division `/` remains available and unchanged for ordinary arithmetic contexts
 
 No additional member/index/flow operators should be introduced without explicitly updating state/rules docs and tests.
 
