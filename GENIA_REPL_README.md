@@ -46,7 +46,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
-- pipeline operator (phase 1): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`)
+- pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
+  - example: `record |> "name"` behaves like `"name"(record)`
   - lowering/desugaring happens in the AST→Core IR pass
 - function definitions with expression body, block body, or case body
 - optional named-function docstring metadata:

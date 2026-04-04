@@ -36,10 +36,12 @@ This file describes what is **actually implemented now** in the Python runtime.
 - lambdas: `(x) -> x + 1`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
 
-Pipeline (Phase 1) rewrite model:
+Pipeline (Phase 2) rewrite model:
 
 - `x |> f` rewrites to `f(x)`
 - `x |> f(y)` rewrites to `f(y, x)` (left value appended as the last argument)
+- `x |> expr` rewrites to `expr(x)` when `expr` is valid in ordinary call-callee position
+  - example: `record |> "name"` rewrites to `"name"(record)`
 - left associative: `a |> f |> g` rewrites to `g(f(a))`
 - rewrite is performed in the AST→Core IR lowering pass (not by runtime special-casing)
 - no stream runtime semantics are added in this phase
