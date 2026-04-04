@@ -318,6 +318,58 @@ Write `last` using pattern matching and recursion.
 
 ---
 
+## Pattern matching with Option values (phase 1)
+
+Option values can be matched in today’s pattern system with current minimal support.
+
+### Minimal example
+
+```genia
+fallback(opt) =
+  none -> "missing" |
+  _ -> "present"
+```
+
+`none` is a literal pattern and matches only the Option none value.
+
+### Edge case example
+
+```genia
+name_or(default, record) =
+  record |> get?("name") ? is_some?(record |> get?("name")) -> unwrap_or(default, record |> get?("name")) |
+  _ -> default
+```
+
+Current style for `some(...)` is guard-based (`is_some?`) plus `unwrap_or` because constructor-pattern destructuring is not implemented.
+
+### Failure case example
+
+```genia
+bad(opt) =
+  some(x) -> x
+```
+
+Expected behavior:
+
+- pattern parse/runtime mismatch (constructor-pattern syntax is not part of current pattern grammar)
+
+### Implementation status
+
+### ✅ Implemented
+
+- literal matching on `none`
+- guard-friendly Option checks (`is_some?`, `is_none?`) in existing case/function matching flow
+
+### ⚠️ Partial
+
+- destructuring `some(value)` requires helper calls (no direct constructor pattern)
+
+### ❌ Not implemented
+
+- `some(x)` pattern syntax
+
+---
+
 ## Implementation Status
 
 ### ✅ Implemented

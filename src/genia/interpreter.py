@@ -515,6 +515,11 @@ class Nil(Node):
 
 
 @dataclass
+class NoneOption(Node):
+    span: SourceSpan | None = None
+
+
+@dataclass
 class Var(Node):
     name: str
     span: SourceSpan | None = None
@@ -888,6 +893,8 @@ def lower_node(node: Node) -> IrNode:
         return IrLiteral(node.value, span=node.span)
     if isinstance(node, Nil):
         return IrLiteral(None, span=node.span)
+    if isinstance(node, NoneOption):
+        return IrLiteral(OPTION_NONE, span=node.span)
     if isinstance(node, Var):
         return IrVar(node.name, span=node.span)
     if isinstance(node, Unary):
@@ -950,6 +957,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatLiteral(pattern.value)
     if isinstance(pattern, Nil):
         return IrPatLiteral(None)
+    if isinstance(pattern, NoneOption):
+        return IrPatLiteral(OPTION_NONE)
     if isinstance(pattern, WildcardPattern):
         return IrPatWildcard()
     if isinstance(pattern, RestPattern):
@@ -1134,7 +1143,7 @@ PRECEDENCE = {
     "PERCENT": 60,
 }
 
-RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil"})
+RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil", "none"})
 
 
 class Parser:
@@ -1547,6 +1556,8 @@ class Parser:
                 return Boolean(False, span=self.span_for_tokens(tok, tok))
             if tok.text == "nil":
                 return Nil(span=self.span_for_tokens(tok, tok))
+            if tok.text == "none":
+                return NoneOption(span=self.span_for_tokens(tok, tok))
             if tok.text == "_":
                 return WildcardPattern(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
@@ -1605,6 +1616,8 @@ class Parser:
                 return Boolean(False, span=self.span_for_tokens(tok, tok))
             if tok.text == "nil":
                 return Nil(span=self.span_for_tokens(tok, tok))
+            if tok.text == "none":
+                return NoneOption(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind in ("MINUS", "BANG"):
             self.i += 1
@@ -2065,6 +2078,22 @@ class GeniaMap:
 
     def __repr__(self) -> str:
         return f"<map {len(self._entries)}>"
+
+
+class GeniaOptionNone:
+    def __repr__(self) -> str:
+        return "none"
+
+
+OPTION_NONE = GeniaOptionNone()
+
+
+@dataclass(frozen=True)
+class GeniaOptionSome:
+    value: Any
+
+    def __repr__(self) -> str:
+        return f"some({self.value!r})"
 
 
 @dataclass(frozen=True)
@@ -2908,6 +2937,14 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
   map_remove(map, key)
   map_count(map)
 
+Option builtins (phase 1):
+  none
+  some(value)
+  get?(key, target)
+  unwrap_or(default, option)
+  is_some?(option)
+  is_none?(option)
+
 Simulation primitives (host-backed builtins):
   rand()                float in [0, 1)
   rand_int(n)           integer in [0, n), n must be a positive integer
@@ -3156,6 +3193,33 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         genia_map = _ensure_map(map_value, "map_count")
         return genia_map.count()
 
+    def some_fn(value: Any) -> GeniaOptionSome:
+        return GeniaOptionSome(value)
+
+    def is_some_fn(value: Any) -> bool:
+        return isinstance(value, GeniaOptionSome)
+
+    def is_none_fn(value: Any) -> bool:
+        return value is OPTION_NONE
+
+    def unwrap_or_fn(default: Any, opt: Any) -> Any:
+        if isinstance(opt, GeniaOptionSome):
+            return opt.value
+        if opt is OPTION_NONE:
+            return default
+        raise TypeError("unwrap_or expected an option value")
+
+    def get_option_fn(key: Any, target: Any) -> Any:
+        if target is OPTION_NONE:
+            return OPTION_NONE
+        if isinstance(target, GeniaOptionSome):
+            return get_option_fn(key, target.value)
+        if isinstance(target, GeniaMap):
+            if target.has(key):
+                return GeniaOptionSome(target.get(key))
+            return OPTION_NONE
+        raise TypeError("get? expected a map, some(map), or none target")
+
     def rand_fn(*args: Any) -> float:
         if len(args) != 0:
             raise TypeError(f"rand expected 0 args, got {len(args)}")
@@ -3272,6 +3336,12 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("true", True)
     env.set("false", False)
     env.set("nil", None)
+    env.set("none", OPTION_NONE)
+    env.set("some", some_fn)
+    env.set("get?", get_option_fn)
+    env.set("unwrap_or", unwrap_or_fn)
+    env.set("is_some?", is_some_fn)
+    env.set("is_none?", is_none_fn)
     env.set("ref", ref_fn)
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)

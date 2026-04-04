@@ -59,6 +59,7 @@ pytest -q
 - String (UTF-8 safe helpers available through builtins)
 - Boolean (`true`, `false`)
 - Nil (`nil`)
+- Option none literal (`none`) and option wrappers (`some(value)`)
 - List
 - Function
 - Host-backed reference (`ref`)
@@ -207,6 +208,7 @@ agent_get(counter)
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
+- option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
 
 ### CLI args / options (runtime layer)
 

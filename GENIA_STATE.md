@@ -22,7 +22,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 ## 2) Implemented syntax and expression forms
 
-- literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`
+- literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
 - variables
 - function calls
 - unary operators: `-`, `!`
@@ -227,6 +227,31 @@ Behavior:
 - list keys are supported by stable structural key-freezing in runtime
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
+
+### Primitive Option model (Phase 1, runtime-backed)
+
+- option values:
+  - `none` (distinct from `nil`)
+  - `some(value)`
+- option/query builtins:
+  - `get?(key, target)`
+  - `unwrap_or(default, opt)`
+  - `is_some?(opt)`
+  - `is_none?(opt)`
+
+`get?` semantics:
+
+- `get?(key, none) -> none`
+- `get?(key, some(map)) -> get?(key, map)`
+- `get?(key, map) -> some(value)` when key exists (including `value = nil`)
+- `get?(key, map) -> none` when key is missing
+- unsupported target types raise clear `TypeError`
+
+Compatibility note:
+
+- existing callable-data map/string-projector behavior is unchanged:
+  - `m(key)`, `m(key, default)`
+  - `"key"(m)`, `"key"(m, default)`
 
 ### String builtins
 
