@@ -580,6 +580,7 @@ Expected behavior:
 - `unwrap_or(default, opt)` for defaulting on `none`
 - `is_some?` / `is_none?` predicates
 - pipeline-friendly lookup (`record |> get?("name")`)
+- callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
 
 ### ⚠️ Partial
 

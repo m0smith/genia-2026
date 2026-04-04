@@ -13,6 +13,21 @@ def test_none_value(run):
     assert run("is_none?(none)") is True
 
 
+
+
+def test_get_none_target_returns_none(run):
+    assert run('is_none?(get?("a", none))') is True
+
+
+def test_get_some_map_target_unwraps_and_queries(run):
+    assert run('unwrap_or(0, get?("a", some({a: 3})))') == 3
+
+
+def test_callable_map_and_string_projector_behavior_unchanged(run):
+    src = '[{a:nil}("a"), {a:nil}("b"), {a:nil}("b", 7), "a"({a:nil}), "b"({a:nil}), "b"({a:nil}, 7)]'
+    assert run(src) == [None, None, 7, None, None, 7]
+
+
 def test_get_present_key_returns_some(run):
     assert run('is_some?(get?("a", {a: 1}))') is True
     assert run('unwrap_or(0, get?("a", {a: 1}))') == 1
