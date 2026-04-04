@@ -59,6 +59,8 @@ pytest -q
 - String (UTF-8 safe helpers available through builtins)
 - Boolean (`true`, `false`)
 - Nil (`nil`)
+- Option none literal (`none`) and option wrappers (`some(value)`)
+- Option-aware pattern matching (`none`, `some(pattern)`)
 - List
 - Function
 - Host-backed reference (`ref`)
@@ -66,6 +68,7 @@ pytest -q
 - Host-backed persistent associative map (`map_new`, `map_put`, ...)
 - Host-backed bytes wrapper
 - Host-backed zip entry wrapper
+- Module value (`import mod`, `import mod as alias`)
 
 ### Functions and lambdas
 
@@ -145,6 +148,35 @@ empty = {}
 - trailing commas are supported
 - duplicate keys are deterministic last-one-wins
 
+
+### Modules (Phase 1)
+
+```genia
+import math
+import math as m
+
+[math/pi, m/inc(2)]
+```
+
+- `import mod` binds a module value to `mod`
+- `import mod as alias` binds the same module value to `alias`
+- module imports are cached by module name (`loaded_modules`) so duplicate imports are not re-evaluated
+- module exports are accessed with narrow slash access (`mod/name`)
+- modules are immutable runtime namespace values (distinct from maps)
+
+### Named slash access (`/`)
+
+```genia
+person = { name: "Matthew", age: 42 }
+[person/name, person/age, person/middle]
+```
+
+- map named access returns the value when present
+- missing map keys return `nil`
+- module named access returns exported bindings
+- missing module exports raise a clear error
+- `/` access is narrow: only `lhs/name` (bare identifier RHS), not general member/index access
+
 ### Pipeline operator (Phase 1)
 
 ```genia
@@ -178,6 +210,8 @@ agent_get(counter)
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
+- option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
+- flow runtime (Phase 1): `lines`, `map`/`filter` (flow-aware), `take`, `head`, `each`, `collect`, `run`
 
 ### CLI args / options (runtime layer)
 
@@ -275,9 +309,8 @@ rewrite_zip(in_path, out_path) =
 ## Not implemented yet
 
 - general host interop / FFI
-- module/import syntax
-- member access / indexing syntax
-- generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- general member access / indexing syntax
+- full flow system beyond Phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/event loop for simulations
 

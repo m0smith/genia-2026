@@ -130,6 +130,67 @@ Expected behavior:
 
 ---
 
+
+## Narrow named slash access on maps (phase 1)
+
+Map values support static named access with `/` when the right-hand side is a bare identifier.
+
+### Minimal example
+
+```genia
+person = { name: "Matthew", age: 42 }
+person/name
+```
+
+Expected result:
+
+```genia
+"Matthew"
+```
+
+### Edge case example
+
+```genia
+person = { name: "Matthew" }
+person/middle
+```
+
+Expected result:
+
+```genia
+nil
+```
+
+### Failure case example
+
+```genia
+{name: "Matthew"}/"name"
+```
+
+Expected behavior:
+
+- raises `TypeError` because slash named access requires a bare identifier RHS (`lhs/name`).
+
+### Implementation status
+
+### ✅ Implemented
+
+- map named access via `map/name`
+- missing map key via slash returns `nil`
+- callable map (`m("name")`) and string projector (`"name"(m)`) behavior remains unchanged
+
+### ⚠️ Partial
+
+- slash access is intentionally narrow in this phase (no expressions on RHS, no chaining semantics beyond repeated valid accesses)
+
+### ❌ Not implemented
+
+- general member access
+- index syntax
+- quoted/dynamic RHS slash access forms
+
+---
+
 ## Callable data (phase 1, map-centric)
 
 Only two callable-data forms are implemented in this phase.
@@ -159,6 +220,21 @@ Expected result:
 ```genia
 [nil, "?", "?"]
 ```
+
+Pipeline cross-reference (same callable semantics, pipeline lowering only):
+
+```genia
+person = { name: "Matthew" }
+person |> "name"
+```
+
+Expected result:
+
+```genia
+"Matthew"
+```
+
+This works because pipeline lowers to ordinary call form (`person |> "name"` -> `"name"(person)`), not because pipeline has separate lookup semantics.
 
 ### Failure case example
 
@@ -444,3 +520,72 @@ Expected behavior (demo grid wrapping):
 - actor/scheduler-based simulation runtime
 - native language abstractions for agents, ticks, or worlds
 - native map syntax for simulation state authoring
+
+---
+
+## Primitive Option values (phase 1)
+
+Genia now has a minimal Option model that is separate from `nil`.
+
+- `none`
+- `some(value)`
+
+And minimal helpers:
+
+- `get?(key, target)`
+- `unwrap_or(default, opt)`
+- `is_some?(opt)`
+- `is_none?(opt)`
+
+### Minimal example
+
+```genia
+person = { name: "Genia" }
+person |> get?("name") |> unwrap_or("unknown")
+```
+
+Expected result:
+
+```genia
+"Genia"
+```
+
+### Edge case example
+
+```genia
+[get?("a", {a:nil}), get?("b", {a:nil})]
+```
+
+Expected behavior:
+
+- first result is `some(nil)` (key exists)
+- second result is `none` (key missing)
+
+### Failure case example
+
+```genia
+get?("name", 42)
+```
+
+Expected behavior:
+
+- raises `TypeError` (`get?` supports map targets, `some(map)`, and `none`)
+
+### Implementation status
+
+### ✅ Implemented
+
+- primitive option values: `none`, `some(value)`
+- `get?` lookup semantics with key-presence distinction (`some(nil)` vs `none`)
+- `unwrap_or(default, opt)` for defaulting on `none`
+- `is_some?` / `is_none?` predicates
+- pipeline-friendly lookup (`record |> get?("name")`)
+- callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
+
+### ⚠️ Partial
+
+- `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
+
+### ❌ Not implemented
+
+- multi-argument option constructor pattern forms (e.g., `some(a, b)`)

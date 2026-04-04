@@ -22,7 +22,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 ## 2) Implemented syntax and expression forms
 
-- literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`
+- literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
 - variables
 - function calls
 - unary operators: `-`, `!`
@@ -31,15 +31,19 @@ This file describes what is **actually implemented now** in the Python runtime.
 - block expressions: `{ ... }`
 - list literals: `[a, b, c]`
 - map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)
+- module import: `import mod`, `import mod as alias`
+  - imports are cached by module name in `loaded_modules` (repeat imports/aliases reuse the same module instance)
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
 
-Pipeline (Phase 1) rewrite model:
+Pipeline (Phase 2) rewrite model:
 
 - `x |> f` rewrites to `f(x)`
 - `x |> f(y)` rewrites to `f(y, x)` (left value appended as the last argument)
+- `x |> expr` rewrites to `expr(x)` when `expr` is valid in ordinary call-callee position
+  - example: `record |> "name"` rewrites to `"name"(record)`
 - left associative: `a |> f |> g` rewrites to `g(f(a))`
 - rewrite is performed in the AST→Core IR lowering pass (not by runtime special-casing)
 - no stream runtime semantics are added in this phase
@@ -63,6 +67,13 @@ Pipeline (Phase 1) rewrite model:
 - resolution behavior:
   - exact fixed arity beats varargs
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
+- slash named accessor (phase 1):
+  - `lhs/name` uses narrow named access when RHS is a bare identifier
+  - supported LHS runtime kinds: module values, map values
+  - map missing key => `nil`
+  - module missing export => clear error
+  - non-identifier RHS (for example `lhs/(1 + 2)`) raises a clear `TypeError`
+  - this does not add general member/index access
 - callable data (phase 1):
   - maps are callable lookup values:
     - `m(key)` returns stored value or `nil`
@@ -87,6 +98,7 @@ Implemented pattern types:
 
 - literal patterns
 - glob string patterns (`glob"..."`) for whole-string matching
+- option constructor patterns (`some(pattern)`)
 - variable binding
 - wildcard `_`
 - tuple patterns
@@ -141,6 +153,26 @@ Case placement rules (enforced):
 - `log`, `print`, `input`, `stdin`, `help`
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, `nil`
+
+### Flow runtime (Phase 1)
+
+- `stdin` is a stream source value when used in pipelines (`stdin |> lines`)
+  - `stdin()` still returns cached full stdin lines list for compatibility
+- flow transforms:
+  - `lines(flow_or_source)`
+  - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
+  - `take(n, flow)` when second arg is a flow
+  - `head(flow)` and `head(n, flow)` via stdlib aliases over `take`
+- flow sinks/materialization:
+  - `each(f, flow)` (tap-style stage)
+  - `collect(flow)` (materialize to list)
+  - `run(flow)` (consume to completion)
+
+Flow semantics:
+
+- lazy, pull-based, single-use
+- consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
+- `take` performs early termination (stops upstream pulling as soon as limit is reached)
 
 ### CLI argument helpers (host-backed builtin layer)
 
@@ -209,6 +241,7 @@ Behavior:
 Behavior:
 
 - map values are opaque runtime values (`<map N>`) and do not expose host methods
+- module imports produce opaque module namespace values (`<module name>`)
 - `map_new` returns an empty map
 - `map_put` and `map_remove` are persistent (return a new map, do not mutate input map)
 - `map_get` returns stored value or `nil` when key is missing
@@ -217,6 +250,37 @@ Behavior:
 - list keys are supported by stable structural key-freezing in runtime
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
+
+### Primitive Option model (Phase 1, runtime-backed)
+
+- option values:
+  - `none` (distinct from `nil`)
+  - `some(value)`
+- option/query builtins:
+  - `get?(key, target)`
+  - `unwrap_or(default, opt)`
+  - `is_some?(opt)`
+  - `is_none?(opt)`
+
+`get?` semantics:
+
+- `get?(key, none) -> none`
+- `get?(key, some(map)) -> get?(key, map)`
+- `get?(key, map) -> some(value)` when key exists (including `value = nil`)
+- `get?(key, map) -> none` when key is missing
+- unsupported target types raise clear `TypeError`
+
+Compatibility note:
+
+- existing callable-data map/string-projector behavior is unchanged:
+  - `m(key)`, `m(key, default)`
+  - `"key"(m)`, `"key"(m, default)`
+
+Pattern matching note:
+
+- `none` matches as a literal pattern
+- `some(pattern)` destructures option values in function clauses and case arms
+- `some(...)` pattern form requires exactly one inner pattern
 
 ### String builtins
 
@@ -308,10 +372,9 @@ Core IR shape currently includes:
 ## 9) Explicitly not implemented (current)
 
 - general host interop / FFI layer
-- module/import syntax
-- member access syntax
+- general member access syntax
 - index syntax
-- generalized flow runtime semantics (lazy sequences, multi-output stages, backpressure, cancellation)
+- generalized flow runtime semantics beyond Phase 1 (multi-output stages, async scheduling, advanced backpressure/cancellation)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 

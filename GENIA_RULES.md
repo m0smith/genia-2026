@@ -43,6 +43,7 @@ Supported patterns:
 
 - literal
 - glob string pattern (`glob"..."`)
+- option constructor pattern (`some(pattern)`)
 - variable binding
 - wildcard `_`
 - tuple pattern
@@ -85,6 +86,19 @@ Required constraints:
 - lambdas do not support docstrings
 - docstring text is interpreted as Markdown for `help(...)` display with lightweight formatting only (no full Markdown engine)
 
+
+## 8.2) Module import + module value invariants (phase 1)
+
+- supported import forms are exactly:
+  - `import mod`
+  - `import mod as alias`
+- imports bind only the module value in the current environment (no export splatting)
+- module values are runtime namespace values distinct from maps
+- module resolution is file-based only in this phase
+- module loads are cached by module name (`loaded_modules`); duplicate imports/aliases must reuse the same module value instance
+- top-level named assignments/functions from the module file are exported
+- missing module files must raise a deterministic `FileNotFoundError("Module not found: <name>")`
+
 ## 9) Operator model
 
 Implemented operators are limited to:
@@ -92,14 +106,27 @@ Implemented operators are limited to:
 - unary: `-`, `!`
 - binary: `+ - * / % < <= > >= == != && ||`
 - pipeline: `|>`
+- slash named accessor form: `lhs/name` (RHS bare identifier only)
 
 Pipeline rewrite invariant:
 
 - `x |> f` is equivalent to `f(x)`
 - `x |> f(y)` is equivalent to `f(y, x)` (append source value as final arg)
+- `x |> expr` is equivalent to `expr(x)` when `expr` is valid in ordinary call-callee position
+  - example: `record |> "name"` is equivalent to `"name"(record)`
 - chaining is left-associative
 - rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
 - this is expression-level call rewriting only (no stream runtime semantics)
+
+
+Slash accessor invariants (phase 1):
+
+- `lhs/name` is narrow named access, not general member access
+- only module values and map values are valid LHS kinds
+- for maps: missing key returns `nil`
+- for modules: missing export raises a clear error
+- non-identifier RHS forms are invalid for named access
+- arithmetic division `/` remains available and unchanged for ordinary arithmetic contexts
 
 No additional member/index/flow operators should be introduced without explicitly updating state/rules docs and tests.
 
@@ -127,6 +154,21 @@ No additional member/index/flow operators should be introduced without explicitl
 - missing map keys return `nil` unless an explicit default is provided in arity-2 form
 - string projector with non-map target raises clear `TypeError`
 - this does not add parser syntax, call operators, or user-defined callable-data protocols
+
+## 11.2) Option invariants (phase 1)
+
+- primitive option values are `none` and `some(value)` (where `none` is distinct from `nil`)
+- `get?(key, target)` is defined exactly as:
+  - `get?(key, none) -> none`
+  - `get?(key, some(map)) -> get?(key, map)`
+  - `get?(key, map) -> some(value)` when key exists
+  - `get?(key, map) -> none` when key is missing
+- key presence, not value truthiness, determines `some(...)` vs `none`
+  - key mapped to `nil` still returns `some(nil)`
+- pattern matching supports constructor destructuring for `some(...)` with exactly one inner pattern
+- `unwrap_or(default, opt)` accepts option values only
+- `is_some?(opt)` and `is_none?(opt)` report option shape
+- pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
 
 ## 12) Error behavior
 
@@ -192,3 +234,17 @@ When changing syntax/semantics/runtime behavior, update together:
   - else use exact `main/0`
   - else do nothing
 - no partial matching/coercion is performed by the entrypoint selector
+
+## 19) Flow runtime invariants (phase 1)
+
+- pipeline operator semantics are unchanged (AST→Core IR call rewrite only)
+- flow behavior is runtime-level and value-based, with no parser/operator additions
+- `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
+- phase-1 flow builtins:
+  - sources/transforms: `lines`, `map`, `filter`, `take`, `head`
+  - sinks/materialization: `each`, `run`, `collect`
+- flows are single-use:
+  - first consumption succeeds
+  - second consumption must raise `RuntimeError("Flow has already been consumed")`
+- `take(n, flow)` must stop upstream pulling immediately after producing `n` items
+- reaching EOF or a `take`/`head` limit is normal completion (not an error)

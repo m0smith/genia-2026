@@ -515,6 +515,11 @@ class Nil(Node):
 
 
 @dataclass
+class NoneOption(Node):
+    span: SourceSpan | None = None
+
+
+@dataclass
 class Var(Node):
     name: str
     span: SourceSpan | None = None
@@ -608,6 +613,12 @@ class MapPattern(Node):
 
 
 @dataclass
+class SomePattern(Node):
+    inner: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
 class CaseClause(Node):
     pattern: Node
     guard: Optional[Node]
@@ -643,6 +654,13 @@ class FuncDef(Node):
     rest_param: str | None
     docstring: str | None
     body: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class ImportStmt(Node):
+    module_name: str
+    alias: str
     span: SourceSpan | None = None
 
 
@@ -799,6 +817,13 @@ class IrPatGlob(IrPattern):
 
 
 @dataclass
+class IrPatSome(IrPattern):
+    """Option constructor pattern that matches `some(value)` values."""
+
+    inner: IrPattern
+
+
+@dataclass
 class IrCaseClause(IrNode):
     """Single case arm with optional guard."""
 
@@ -848,6 +873,13 @@ class IrFuncDef(IrNode):
 
 
 @dataclass
+class IrImport(IrNode):
+    module_name: str
+    alias: str
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrListTraversalLoop(IrNode):
     """Optimized loop-like form for nth-style list traversal recursion."""
 
@@ -874,6 +906,8 @@ def lower_node(node: Node) -> IrNode:
         return IrLiteral(node.value, span=node.span)
     if isinstance(node, Nil):
         return IrLiteral(None, span=node.span)
+    if isinstance(node, NoneOption):
+        return IrLiteral(OPTION_NONE, span=node.span)
     if isinstance(node, Var):
         return IrVar(node.name, span=node.span)
     if isinstance(node, Unary):
@@ -922,6 +956,8 @@ def lower_node(node: Node) -> IrNode:
             lower_node(node.body),
             span=node.span,
         )
+    if isinstance(node, ImportStmt):
+        return IrImport(node.module_name, node.alias, span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -934,6 +970,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatLiteral(pattern.value)
     if isinstance(pattern, Nil):
         return IrPatLiteral(None)
+    if isinstance(pattern, NoneOption):
+        return IrPatLiteral(OPTION_NONE)
     if isinstance(pattern, WildcardPattern):
         return IrPatWildcard()
     if isinstance(pattern, RestPattern):
@@ -948,6 +986,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatMap([(key, lower_pattern(value)) for key, value in pattern.items])
     if isinstance(pattern, GlobPattern):
         return IrPatGlob(compile_glob_pattern(pattern.pattern))
+    if isinstance(pattern, SomePattern):
+        return IrPatSome(lower_pattern(pattern.inner))
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
 
 
@@ -1118,7 +1158,7 @@ PRECEDENCE = {
     "PERCENT": 60,
 }
 
-RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil"})
+RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil", "none"})
 
 
 class Parser:
@@ -1299,6 +1339,27 @@ class Parser:
             return None
 
     def parse_toplevel(self) -> Node:
+        if self.at("IDENT") and self.peek().text == "import":
+            import_tok = self.eat("IDENT")
+            self.skip_newlines()
+            if not self.at("IDENT"):
+                bad = self.peek()
+                raise SyntaxError(f"import expected a module name identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+            module_tok = self.eat("IDENT")
+            module_name = module_tok.text
+            alias = module_name
+            end_tok = module_tok
+            self.skip_newlines()
+            if self.at("IDENT") and self.peek().text == "as":
+                self.eat("IDENT")
+                self.skip_newlines()
+                if not self.at("IDENT"):
+                    bad = self.peek()
+                    raise SyntaxError(f"import as expected an alias identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+                end_tok = self.eat("IDENT")
+                alias = end_tok.text
+            return ImportStmt(module_name, alias, span=self.span_for_tokens(import_tok, end_tok))
+
         header = self.try_parse_function_header()
         if header is not None:
             name, params, rest_param, name_tok = header
@@ -1424,6 +1485,23 @@ class Parser:
         # single param shorthand cases: 0 ->, name ->, [x, y] ->, name ? ... ->
         # tuple case: ( ... ) ->
         # We only detect enough for v0.1.
+        if self.at("IDENT") and self.peek(1).kind == "LPAREN":
+            depth = 0
+            j = self.i + 1
+            while True:
+                tok = self.tokens[j]
+                if tok.kind == "LPAREN":
+                    depth += 1
+                elif tok.kind == "RPAREN":
+                    depth -= 1
+                    if depth == 0:
+                        j += 1
+                        while self.tokens[j].kind == "NEWLINE":
+                            j += 1
+                        return self.tokens[j].kind in {"ARROW", "QMARK"}
+                elif tok.kind == "EOF":
+                    return False
+                j += 1
         if self.at("NUMBER", "STRING", "IDENT", "GLOB"):
             j = self.i + 1
             while self.tokens[j].kind == "NEWLINE":
@@ -1510,6 +1588,18 @@ class Parser:
                 return Boolean(False, span=self.span_for_tokens(tok, tok))
             if tok.text == "nil":
                 return Nil(span=self.span_for_tokens(tok, tok))
+            if tok.text == "none":
+                return NoneOption(span=self.span_for_tokens(tok, tok))
+            if tok.text == "some" and self.at("LPAREN"):
+                start = self.eat("LPAREN")
+                self.skip_newlines()
+                inner = self.parse_pattern_atom()
+                self.skip_newlines()
+                if self.at("COMMA"):
+                    comma = self.eat("COMMA")
+                    raise SyntaxError(f"some(...) pattern expects exactly one inner pattern at {comma.pos}")
+                end = self.eat("RPAREN")
+                return SomePattern(inner, span=self.span_for_tokens(tok, end))
             if tok.text == "_":
                 return WildcardPattern(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
@@ -1568,6 +1658,8 @@ class Parser:
                 return Boolean(False, span=self.span_for_tokens(tok, tok))
             if tok.text == "nil":
                 return Nil(span=self.span_for_tokens(tok, tok))
+            if tok.text == "none":
+                return NoneOption(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind in ("MINUS", "BANG"):
             self.i += 1
@@ -1769,6 +1861,8 @@ class Env:
         self.autoloads: dict[tuple[str, int], str] = {}
         self.loaded_files: set[str] = set()
         self.loading_files: set[str] = set()
+        self.loaded_modules: dict[str, "ModuleValue"] = {}
+        self.loading_modules: set[str] = set()
         self.debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS
         self.debug_mode: bool = False
 
@@ -1832,6 +1926,41 @@ class Env:
         finally:
             root.loading_files.remove(key)
 
+    def resolve_module_path(self, module_name: str, requester_filename: str | None = None) -> Path:
+        candidates: list[Path] = []
+        if requester_filename and requester_filename not in {"<memory>", "<command>"}:
+            requester = Path(requester_filename)
+            candidates.append((requester.parent / f"{module_name}.genia").resolve())
+        candidates.append((BASE_DIR / f"{module_name}.genia").resolve())
+        candidates.append((BASE_DIR / "std" / "prelude" / f"{module_name}.genia").resolve())
+        for path in candidates:
+            if path.is_file():
+                return path
+        raise FileNotFoundError(f"Module not found: {module_name}")
+
+    def load_module(self, module_name: str, requester_filename: str | None = None) -> "ModuleValue":
+        root = self.root()
+        if module_name in root.loaded_modules:
+            return root.loaded_modules[module_name]
+        if module_name in root.loading_modules:
+            raise RuntimeError(f"Module import cycle detected while loading {module_name}")
+
+        module_path = root.resolve_module_path(module_name, requester_filename)
+        key = str(module_path)
+        root.loading_modules.add(module_name)
+        try:
+            source = module_path.read_text(encoding="utf-8")
+            module_env = Env(root)
+            module_env.debug_hooks = root.debug_hooks
+            module_env.debug_mode = root.debug_mode
+            run_source(source, module_env, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
+            exports = dict(module_env.values)
+            module_value = ModuleValue(module_name, exports, key)
+            root.loaded_modules[module_name] = module_value
+            return module_value
+        finally:
+            root.loading_modules.remove(module_name)
+
 
 @dataclass
 class GeniaFunctionGroup:
@@ -1871,6 +2000,29 @@ class GeniaFunctionGroup:
 
     def sorted_arities(self) -> list[int]:
         return sorted(self.functions)
+
+    def __call__(self, *args: Any) -> Any:
+        arity = len(args)
+        exact = self.get(arity)
+        if exact is not None:
+            return exact(*args)
+        vararg_matches = [
+            candidate
+            for candidate in self.values()
+            if isinstance(candidate, GeniaFunction)
+            and candidate.rest_param is not None
+            and arity >= candidate.arity
+        ]
+        if len(vararg_matches) == 1:
+            return vararg_matches[0](*args)
+        if len(vararg_matches) > 1:
+            candidates = ", ".join(
+                f"{self.name}/{candidate.arity}+"
+                for candidate in sorted(vararg_matches, key=lambda fn: fn.arity)
+            )
+            raise TypeError(f"Ambiguous function resolution: {self.name}/{arity}. Matching varargs: {candidates}")
+        available = ", ".join(f"{self.name}/{n}" for n in self.sorted_arities())
+        raise TypeError(f"No matching function: {self.name}/{arity}. Available: {available}")
 
 
 
@@ -1992,6 +2144,37 @@ class GeniaMap:
         return f"<map {len(self._entries)}>"
 
 
+class GeniaOptionNone:
+    def __repr__(self) -> str:
+        return "none"
+
+
+OPTION_NONE = GeniaOptionNone()
+
+
+@dataclass(frozen=True)
+class GeniaOptionSome:
+    value: Any
+
+    def __repr__(self) -> str:
+        return f"some({self.value!r})"
+
+
+@dataclass(frozen=True)
+class ModuleValue:
+    name: str
+    exports: dict[str, Any]
+    path: str
+
+    def get_export(self, export_name: str) -> Any:
+        if export_name not in self.exports:
+            raise NameError(f"Module {self.name} has no export named {export_name}")
+        return self.exports[export_name]
+
+    def __repr__(self) -> str:
+        return f"<module {self.name}>"
+
+
 class GeniaProcess:
     def __init__(self, handler: Callable[[Any], Any]):
         self._handler = handler
@@ -2030,6 +2213,23 @@ class GeniaZipEntry:
 
     def __repr__(self) -> str:
         return f"<zip-entry {self.name!r} {len(self.data.value)}>"
+
+
+class GeniaFlow:
+    def __init__(self, iterator_factory: Callable[[], Iterable[Any]], *, label: str = "flow"):
+        self._iterator_factory = iterator_factory
+        self._label = label
+        self._consumed = False
+
+    def consume(self) -> Iterable[Any]:
+        if self._consumed:
+            raise RuntimeError("Flow has already been consumed")
+        self._consumed = True
+        return self._iterator_factory()
+
+    def __repr__(self) -> str:
+        state = "consumed" if self._consumed else "ready"
+        return f"<flow {self._label} {state}>"
 
 
 def eval_with_tco(
@@ -2205,6 +2405,43 @@ class Evaluator:
     ) -> Any:
 
         if isinstance(fn, GeniaFunctionGroup):
+            if isinstance(callee_node, IrVar) and len(args) == 2 and isinstance(args[1], GeniaFlow):
+                if callee_node.name == "map":
+                    mapper = args[0]
+                    source = args[1]
+
+                    def iterator() -> Iterable[Any]:
+                        for item in source.consume():
+                            yield self.invoke_callable(mapper, [item], tail_position=False)
+
+                    return GeniaFlow(iterator, label="map")
+                if callee_node.name == "filter":
+                    predicate = args[0]
+                    source = args[1]
+
+                    def iterator() -> Iterable[Any]:
+                        for item in source.consume():
+                            if self.invoke_callable(predicate, [item], tail_position=False):
+                                yield item
+
+                    return GeniaFlow(iterator, label="filter")
+                if callee_node.name == "take":
+                    count = args[0]
+                    source = args[1]
+                    if not isinstance(count, int) or isinstance(count, bool):
+                        raise TypeError("take expected an integer count as first argument")
+
+                    def iterator() -> Iterable[Any]:
+                        if count <= 0:
+                            return
+                        remaining = count
+                        for item in source.consume():
+                            if remaining <= 0:
+                                break
+                            yield item
+                            remaining -= 1
+
+                    return GeniaFlow(iterator, label="take")
             arity = len(args)
 
             def resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any | None:
@@ -2307,6 +2544,10 @@ class Evaluator:
             if not isinstance(arg, str):
                 return None
             return {} if glob_match(pattern.matcher, arg) else None
+        if isinstance(pattern, IrPatSome):
+            if not isinstance(arg, GeniaOptionSome):
+                return None
+            return self.match_pattern_atom(pattern.inner, arg.value)
         if isinstance(pattern, IrPatList):
             if not isinstance(arg, list):
                 return None
@@ -2463,6 +2704,11 @@ class Evaluator:
             )
             self.env.define_function(fn)
             return fn
+        if isinstance(node, IrImport):
+            requester = node.span.filename if node.span is not None else None
+            module_value = self.env.load_module(node.module_name, requester)
+            self.env.set(node.alias, module_value)
+            return module_value
         if isinstance(node, IrCase):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")
         if isinstance(node, IrListTraversalLoop):
@@ -2475,7 +2721,35 @@ class Evaluator:
             return left and self.eval(node.right)
         if node.op == "OR":
             return left or self.eval(node.right)
-        right = self.eval(node.right)
+        if node.op == "SLASH" and isinstance(left, (GeniaMap, ModuleValue)):
+            if isinstance(node.right, IrVar):
+                key_name = node.right.name
+                if isinstance(left, GeniaMap):
+                    return left.get(key_name)
+                return left.get_export(key_name)
+            if isinstance(node.right, IrCall) and isinstance(node.right.fn, IrVar):
+                key_name = node.right.fn.name
+                if isinstance(left, GeniaMap):
+                    callee = left.get(key_name)
+                else:
+                    callee = left.get_export(key_name)
+                args: list[Any] = []
+                for arg_node in node.right.args:
+                    if isinstance(arg_node, IrSpread):
+                        value = self.eval(arg_node.expr)
+                        if not isinstance(value, list):
+                            raise TypeError("Cannot spread non-list into function arguments")
+                        args.extend(value)
+                    else:
+                        args.append(self.eval(arg_node))
+                return self.invoke_callable(callee, args, tail_position=False, callee_node=node.right.fn)
+            raise TypeError("named accessor '/' requires a bare identifier on the right-hand side")
+        try:
+            right = self.eval(node.right)
+        except NameError:
+            if node.op == "SLASH" and isinstance(node.right, IrVar):
+                raise TypeError("named accessor '/' is only supported for map and module values") from None
+            raise
         match node.op:
             case "PLUS":
                 return left + right
@@ -2654,8 +2928,122 @@ def make_global_env(
                 stdin_cache = sys.stdin.read().splitlines()
         return stdin_cache
 
+    setattr(stdin_fn, "_genia_stdin_source", True)
+
     def argv_fn() -> list[str]:
         return list(argv_cache)
+
+    def _ensure_flow(value: Any, name: str) -> GeniaFlow:
+        if not isinstance(value, GeniaFlow):
+            raise TypeError(f"{name} expected a flow")
+        return value
+
+    def _ensure_callable(value: Any, name: str) -> Callable[..., Any]:
+        if not callable(value):
+            raise TypeError(f"{name} expected a function")
+        return value
+
+    def lines_fn(source: Any) -> GeniaFlow:
+        if isinstance(source, GeniaFlow):
+            upstream = _ensure_flow(source, "lines")
+
+            def iterator() -> Iterable[Any]:
+                for item in upstream.consume():
+                    if not isinstance(item, str):
+                        raise TypeError("lines expected string input items")
+                    yield item
+
+            return GeniaFlow(iterator, label="lines")
+
+        if callable(source):
+            raw_lines = source()
+        else:
+            raw_lines = source
+
+        if not isinstance(raw_lines, list):
+            raise TypeError("lines expected stdin source, flow, or list of strings")
+        if not all(isinstance(item, str) for item in raw_lines):
+            raise TypeError("lines expected a list of strings")
+
+        def iterator() -> Iterable[str]:
+            for item in raw_lines:
+                yield item
+
+        return GeniaFlow(iterator, label="lines")
+
+    def map_flow_fn(fn_value: Any, source: Any) -> Any:
+        mapper = _ensure_callable(fn_value, "map")
+        if isinstance(source, GeniaFlow):
+            upstream = source
+
+            def iterator() -> Iterable[Any]:
+                for item in upstream.consume():
+                    yield mapper(item)
+
+            return GeniaFlow(iterator, label="map")
+        if not isinstance(source, list):
+            raise TypeError("map expected a flow or list")
+        return [mapper(item) for item in source]
+
+    def filter_flow_fn(predicate_value: Any, source: Any) -> Any:
+        predicate = _ensure_callable(predicate_value, "filter")
+        if isinstance(source, GeniaFlow):
+            upstream = source
+
+            def iterator() -> Iterable[Any]:
+                for item in upstream.consume():
+                    if predicate(item):
+                        yield item
+
+            return GeniaFlow(iterator, label="filter")
+        if not isinstance(source, list):
+            raise TypeError("filter expected a flow or list")
+        return [item for item in source if predicate(item)]
+
+    def take_fn(n: Any, source: Any) -> GeniaFlow:
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError("take expected an integer count as first argument")
+        upstream = _ensure_flow(source, "take")
+
+        def iterator() -> Iterable[Any]:
+            if n <= 0:
+                return
+            remaining = n
+            for item in upstream.consume():
+                if remaining <= 0:
+                    break
+                yield item
+                remaining -= 1
+
+        return GeniaFlow(iterator, label="take")
+
+    def head_fn(*args: Any) -> GeniaFlow:
+        if len(args) == 1:
+            return take_fn(1, args[0])
+        if len(args) == 2:
+            return take_fn(args[0], args[1])
+        raise TypeError(f"head expected 1 or 2 args, got {len(args)}")
+
+    def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
+        effect = _ensure_callable(fn_value, "each")
+        upstream = _ensure_flow(source, "each")
+
+        def iterator() -> Iterable[Any]:
+            for item in upstream.consume():
+                effect(item)
+                yield item
+
+        return GeniaFlow(iterator, label="each")
+
+    def collect_fn(source: Any) -> list[Any]:
+        flow = _ensure_flow(source, "collect")
+        return list(flow.consume())
+
+    def run_fn(source: Any) -> None:
+        flow = _ensure_flow(source, "run")
+        for _ in flow.consume():
+            pass
+        return None
 
     def _emit_help(text: str) -> None:
         output = text + "\n"
@@ -2784,6 +3172,14 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
   map_has?(map, key)
   map_remove(map, key)
   map_count(map)
+
+Option builtins (phase 1):
+  none
+  some(value)
+  get?(key, target)
+  unwrap_or(default, option)
+  is_some?(option)
+  is_none?(option)
 
 Simulation primitives (host-backed builtins):
   rand()                float in [0, 1)
@@ -3033,6 +3429,33 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         genia_map = _ensure_map(map_value, "map_count")
         return genia_map.count()
 
+    def some_fn(value: Any) -> GeniaOptionSome:
+        return GeniaOptionSome(value)
+
+    def is_some_fn(value: Any) -> bool:
+        return isinstance(value, GeniaOptionSome)
+
+    def is_none_fn(value: Any) -> bool:
+        return value is OPTION_NONE
+
+    def unwrap_or_fn(default: Any, opt: Any) -> Any:
+        if isinstance(opt, GeniaOptionSome):
+            return opt.value
+        if opt is OPTION_NONE:
+            return default
+        raise TypeError("unwrap_or expected an option value")
+
+    def get_option_fn(key: Any, target: Any) -> Any:
+        if target is OPTION_NONE:
+            return OPTION_NONE
+        if isinstance(target, GeniaOptionSome):
+            return get_option_fn(key, target.value)
+        if isinstance(target, GeniaMap):
+            if target.has(key):
+                return GeniaOptionSome(target.get(key))
+            return OPTION_NONE
+        raise TypeError("get? expected a map, some(map), or none target")
+
     def rand_fn(*args: Any) -> float:
         if len(args) != 0:
             raise TypeError(f"rand expected 0 args, got {len(args)}")
@@ -3142,6 +3565,10 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("print", print_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_fn)
+    env.set("lines", lines_fn)
+    env.set("each", each_fn)
+    env.set("run", run_fn)
+    env.set("collect", collect_fn)
     env.set("argv", argv_fn)
     env.set("help", help_fn)
     env.set("pi", math.pi)
@@ -3149,6 +3576,12 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("true", True)
     env.set("false", False)
     env.set("nil", None)
+    env.set("none", OPTION_NONE)
+    env.set("some", some_fn)
+    env.set("get?", get_option_fn)
+    env.set("unwrap_or", unwrap_or_fn)
+    env.set("is_some?", is_some_fn)
+    env.set("is_none?", is_none_fn)
     env.set("ref", ref_fn)
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)
@@ -3212,6 +3645,8 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("any?", 2, "std/prelude/list.genia")
     env.register_autoload("nth", 2, "std/prelude/list.genia")
     env.register_autoload("take", 2, "std/prelude/list.genia")
+    env.register_autoload("head", 1, "std/prelude/list.genia")
+    env.register_autoload("head", 2, "std/prelude/list.genia")
     env.register_autoload("drop", 2, "std/prelude/list.genia")
     env.register_autoload("range", 1, "std/prelude/list.genia")
     env.register_autoload("range", 2, "std/prelude/list.genia")

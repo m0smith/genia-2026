@@ -43,10 +43,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ## Implemented today
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
-- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`
+- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
-- pipeline operator (phase 1): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`)
+- pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
+  - example: `record |> "name"` behaves like `"name"(record)`
   - lowering/desugaring happens in the AST→Core IR pass
 - function definitions with expression body, block body, or case body
 - optional named-function docstring metadata:
@@ -59,6 +60,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
+- module import forms: `import mod`, `import mod as alias`
+  - imports are cached by module name; repeated imports/aliases reuse the same module value
+- phase-1 slash named accessor: `mod/name`, `map/name` (bare identifier RHS only)
 - callable data (phase 1 subset):
   - map lookup calls: `m(key)`, `m(key, default)`
   - string projector calls over maps: `"key"(m)`, `"key"(m, default)`
@@ -68,6 +72,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - list patterns
   - map patterns (`{name}`, `{name: n}`, `{"name": n}`)
   - glob string patterns (`glob"..."`) with whole-string matching only
+  - option constructor patterns (`some(pattern)`) and literal `none`
   - wildcard `_`
   - rest pattern `..rest` / `.._`
   - duplicate-binding equality semantics (`[x, x]`)
@@ -84,6 +89,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - phase-1 primitive option model: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
   - bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
@@ -92,6 +98,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
   - constants: `pi`, `e`, `true`, `false`, `nil`
+- flow runtime (phase 1):
+  - `stdin |> lines` creates a lazy single-use flow
+  - transforms: `lines`, `map`, `filter`, `take`, `head`
+  - sinks/materialization: `each`, `run`, `collect`
+  - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
+  - `take`/`head` perform early upstream termination (normal completion)
 
 ## REPL commands
 
@@ -105,11 +117,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - regex patterns / extglob operators
 - `$1` / `$2` / `ARGV`-style special CLI syntax
 - general host interop / FFI
-- module/import system
-- member access and indexing syntax
+- general member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
-- generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
-- full Flow runtime system (stages/sinks/backpressure/cancellation/multi-port stages)
+- full Flow runtime system beyond phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
 
 ## Conditionals in Genia
 
