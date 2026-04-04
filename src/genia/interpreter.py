@@ -1894,8 +1894,7 @@ class Env:
         for path in candidates:
             if path.is_file():
                 return path
-        joined = ", ".join(str(p) for p in candidates)
-        raise FileNotFoundError(f"Module not found: {module_name} (searched: {joined})")
+        raise FileNotFoundError(f"Module not found: {module_name}")
 
     def load_module(self, module_name: str, requester_filename: str | None = None) -> "ModuleValue":
         root = self.root()

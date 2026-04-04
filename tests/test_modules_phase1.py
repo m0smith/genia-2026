@@ -20,6 +20,19 @@ def test_import_module_with_alias_binds_same_module_value(run):
     assert run(src) == [True, 3]
 
 
+def test_duplicate_imports_reuse_loaded_module_instance():
+    env = make_global_env([])
+    run_source("import math\nimport math", env)
+    assert env.values["math"] is env.loaded_modules["math"]
+
+
+def test_multiple_aliases_reference_same_loaded_module_instance():
+    env = make_global_env([])
+    run_source("import math as m1\nimport math as m2", env)
+    assert env.values["m1"] is env.values["m2"]
+    assert env.values["m1"] is env.loaded_modules["math"]
+
+
 def test_module_missing_export_raises_clear_error(run):
     with pytest.raises(NameError, match="Module math has no export named missing"):
         run(
@@ -82,3 +95,62 @@ def test_file_based_module_resolution_relative_to_source(tmp_path):
         filename=str((tmp_path / "main.genia").resolve()),
     )
     assert result == [3, 3]
+
+
+def test_duplicate_import_does_not_re_evaluate_module(tmp_path):
+    module_file = tmp_path / "counter_mod.genia"
+    module_file.write_text(
+        """
+        _ = ref_update(counter, (n) -> n + 1)
+        value = 42
+        """,
+        encoding="utf-8",
+    )
+    env = make_global_env([])
+    counter = env.get("ref")(0)
+    env.set("counter", counter)
+    result = run_source(
+        """
+        import counter_mod
+        import counter_mod as c
+        [counter_mod/value, c/value]
+        """,
+        env,
+        filename=str((tmp_path / "main.genia").resolve()),
+    )
+    assert result == [42, 42]
+    assert env.get("ref_get")(counter) == 1
+
+
+def test_import_missing_module_raises_clear_error(run):
+    with pytest.raises(FileNotFoundError, match="^Module not found: definitely_not_a_real_module$"):
+        run("import definitely_not_a_real_module")
+
+
+def test_import_module_with_syntax_error_surfaces_cleanly(tmp_path):
+    module_file = tmp_path / "bad_syntax.genia"
+    module_file.write_text("broken = (", encoding="utf-8")
+    env = make_global_env([])
+    with pytest.raises(SyntaxError):
+        run_source(
+            "import bad_syntax",
+            env,
+            filename=str((tmp_path / "main.genia").resolve()),
+        )
+
+
+def test_import_module_runtime_failure_is_propagated(tmp_path):
+    module_file = tmp_path / "bad_eval.genia"
+    module_file.write_text("boom = missing_name", encoding="utf-8")
+    env = make_global_env([])
+    with pytest.raises(NameError, match="Undefined name: missing_name"):
+        run_source(
+            "import bad_eval",
+            env,
+            filename=str((tmp_path / "main.genia").resolve()),
+        )
+
+
+def test_named_accessor_invalid_rhs_expression_fails_clearly(run):
+    with pytest.raises(TypeError, match="requires a bare identifier"):
+        run("{name: \"Alice\"}/(1 + 2)")
