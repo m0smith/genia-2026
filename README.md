@@ -62,6 +62,8 @@ pytest -q
   - maps are callable lookup values
   - strings can act as callable map projectors
 - Runtime capability values:
+  - `stdout`
+  - `stderr`
   - Flow
   - Ref
   - Process handle
@@ -208,6 +210,22 @@ stdin |> lines |> take(2) |> each(print) |> run
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
 
+### Output sinks (Phase 1)
+
+```genia
+write(stdout, "a")
+writeln(stderr, "oops")
+flush(stdout)
+```
+
+- `stdout` and `stderr` are first-class host-backed sink values
+- `write(sink, value)` writes display-formatted output with no newline
+- `writeln(sink, value)` writes display-formatted output with a trailing newline
+- `flush(sink)` flushes a sink and returns `nil`
+- `print(...)` writes to `stdout`, and `log(...)` writes to `stderr`
+- `input()` remains independent of `stdin`
+- broken pipe on `stdout` output in Unix pipelines is treated as normal downstream termination
+
 ### Concurrency and agents
 
 ```genia
@@ -225,7 +243,7 @@ agent_get(counter)
 
 ### Core
 
-- `log`, `print`, `input`, `stdin`, `help`
+- `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`

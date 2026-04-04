@@ -251,3 +251,16 @@ When changing syntax/semantics/runtime behavior, update together:
 - `take(n, flow)` must stop upstream pulling immediately after producing `n` items
 - `stdin |> lines` must remain lazy; binding the source must not force a full stdin read up front
 - reaching EOF or a `take`/`head` limit is normal completion (not an error)
+
+## 20) Output sink invariants (host-backed phase 1)
+
+- `stdout` and `stderr` are runtime capability values, not parser syntax
+- required output builtins:
+  - `write(sink, value)`
+  - `writeln(sink, value)`
+  - `flush(sink)`
+- `print(...)` writes to `stdout`
+- `log(...)` writes to `stderr`
+- `input()` remains independent from `stdin` / Flow source behavior
+- broken pipe on `stdout` output in CLI/file/command execution is normal downstream termination and must not surface as a Python traceback
+- broken pipe on `stderr` should be handled best-effort without recursive noisy failures

@@ -66,6 +66,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
+- Stdout / Stderr
+  - `stdout` and `stderr` are first-class host-backed output sink values
+  - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
 - Flow
   - Flow is a real runtime value family (`<flow ...>`), not just pipeline syntax
   - flows are lazy, pull-based, source-bound, and single-use
@@ -90,7 +93,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - functions are callable as functions
   - maps are callable as lookup values
   - strings are callable as map projectors
-- Flow and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
+- Flow, stdout/stderr, and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
 - The current model is implemented and tested, but it is still piecemeal rather than a single fully unified type/protocol system.
 
 ## 3) Implemented syntax and expression forms
@@ -233,9 +236,20 @@ Case placement rules (enforced):
 
 ### Core I/O and utilities
 
-- `log`, `print`, `input`, `stdin`, `help`
+- `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, `nil`
+
+Output sink semantics:
+
+- `write(sink, value)` writes display-formatted output without a trailing newline and returns `value`
+- `writeln(sink, value)` writes display-formatted output with a trailing newline and returns `value`
+- `flush(sink)` flushes the sink and returns `nil`
+- `print(...)` writes to `stdout`
+- `log(...)` writes to `stderr`
+- `input()` remains interactive-only and does not consume the flow/stdin source path
+- broken pipe on `stdout` output is treated as normal downstream termination in CLI/file/command execution (no Python traceback)
+- broken pipe on `stderr` is handled best-effort and does not trigger recursive noisy failures
 
 ### Flow runtime (Phase 1)
 

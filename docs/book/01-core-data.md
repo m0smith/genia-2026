@@ -26,6 +26,8 @@ Genia's current runtime value model is broader than just "plain data".
 
 ### Runtime capability values
 
+- `stdout`
+- `stderr`
 - Flow
 - refs (`ref`)
 - process handles (`spawn`)
@@ -47,9 +49,78 @@ Genia's current runtime value model is broader than just "plain data".
 Current consistency note:
 
 - missing values are not represented by one fully unified model today
-- Flow and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
+- Flow, output sinks, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
+
+---
+
+## Output sinks (phase 1)
+
+Genia has minimal host-backed output sink values for Unix-style IO.
+
+- `stdout`
+- `stderr`
+- `write(sink, value)`
+- `writeln(sink, value)`
+- `flush(sink)`
+
+`print(...)` writes to `stdout`.
+
+`log(...)` writes to `stderr`.
+
+### Minimal example
+
+```genia
+write(stdout, "a")
+writeln(stdout, "b")
+```
+
+Expected behavior:
+
+- writes `ab` followed by a newline to standard output
+
+### Edge case example
+
+```genia
+flush(stdout)
+flush(stderr)
+```
+
+Expected behavior:
+
+- both calls succeed
+- each returns `nil`
+
+### Failure case example
+
+```genia
+write(42, "x")
+```
+
+Expected behavior:
+
+- raises `TypeError` because `write` expects a sink as its first argument
+
+### Implementation status
+
+### ✅ Implemented
+
+- first-class `stdout` and `stderr` runtime sink values
+- `write(sink, value)` and `writeln(sink, value)`
+- `flush(sink)`
+- `print(...)` routed to `stdout`
+- `log(...)` routed to `stderr`
+- quiet broken-pipe handling on `stdout` in CLI/file/command execution
+
+### ⚠️ Partial
+
+- broken-pipe handling is intentionally narrow and host-backed in this phase
+
+### ❌ Not implemented
+
+- generalized port APIs
+- configurable user-defined sink protocols
 
 ---
 

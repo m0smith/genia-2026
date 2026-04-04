@@ -47,7 +47,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - core values: Number, String, Boolean, List, Map, Function, Module
   - optionality / absence: `nil`, plus distinct Option values `none` and `some(value)`
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
-  - runtime capability values: Flow, Ref, Process handle, Bytes wrapper, Zip entry wrapper
+  - runtime capability values: `stdout`, `stderr`, Flow, Ref, Process handle, Bytes wrapper, Zip entry wrapper
   - current missing-value behavior is split: legacy lookup helpers return `nil`, while `get?` returns `none` / `some(value)`
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - variables and top-level assignment (`name = expr`)
@@ -90,7 +90,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, and `range`
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
-  - I/O: `log`, `print`, `input`, `stdin`, `help`
+  - I/O: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
   - CLI: `argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
@@ -114,6 +114,13 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - sinks/materialization: `each`, `run`, `collect`
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+- output routing:
+  - `print(...)` writes to `stdout`
+  - `log(...)` writes to `stderr`
+  - `write(sink, value)` / `writeln(sink, value)` write display-formatted output
+  - `flush(sink)` flushes a sink
+  - broken pipe on `stdout` output in command/file execution is treated as normal downstream termination without a Python traceback
+  - REPL results go to `stdout`; REPL and command/file diagnostics go to `stderr`
 
 ## REPL commands
 

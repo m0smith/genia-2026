@@ -2240,6 +2240,10 @@ class GeniaZipEntry:
         return f"<zip-entry {self.name!r} {len(self.data.value)}>"
 
 
+class GeniaQuietBrokenPipe(Exception):
+    pass
+
+
 class GeniaFlow:
     def __init__(self, iterator_factory: Callable[[], Iterable[Any]], *, label: str = "flow"):
         self._iterator_factory = iterator_factory
@@ -2255,6 +2259,46 @@ class GeniaFlow:
     def __repr__(self) -> str:
         state = "consumed" if self._consumed else "ready"
         return f"<flow {self._label} {state}>"
+
+
+class GeniaOutputSink:
+    def __init__(
+        self,
+        name: str,
+        *,
+        stream: Any | None = None,
+        writer: Callable[[str], Any] | None = None,
+        swallow_broken_pipe: bool = False,
+    ):
+        self.name = name
+        self._stream = stream
+        self._writer = writer
+        self._swallow_broken_pipe = swallow_broken_pipe
+
+    def write_text(self, text: str) -> None:
+        try:
+            if self._writer is not None:
+                self._writer(text)
+            elif self._stream is not None:
+                self._stream.write(text)
+            else:
+                raise RuntimeError(f"{self.name} sink is not configured")
+        except BrokenPipeError:
+            if self._swallow_broken_pipe:
+                return
+            raise GeniaQuietBrokenPipe() from None
+
+    def flush(self) -> None:
+        try:
+            if self._stream is not None and hasattr(self._stream, "flush"):
+                self._stream.flush()
+        except BrokenPipeError:
+            if self._swallow_broken_pipe:
+                return
+            raise GeniaQuietBrokenPipe() from None
+
+    def __repr__(self) -> str:
+        return f"<{self.name}>"
 
 
 class GeniaStdinSource:
@@ -2864,26 +2908,58 @@ def make_global_env(
     cli_args: Optional[list[str]] = None,
     debug_hooks: DebugHooks | None = None,
     debug_mode: bool = False,
+    stdout_stream: Any = None,
+    stderr_stream: Any = None,
     output_handler: Optional[Callable[[str], None]] = None,
 ) -> Env:
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
     env.debug_mode = debug_mode
 
+    stdout_sink = GeniaOutputSink(
+        "stdout",
+        stream=stdout_stream if stdout_stream is not None else sys.stdout,
+        writer=output_handler,
+    )
+    stderr_sink = GeniaOutputSink(
+        "stderr",
+        stream=stderr_stream if stderr_stream is not None else sys.stderr,
+        swallow_broken_pipe=True,
+    )
+
+    def _ensure_sink(value: Any, name: str) -> GeniaOutputSink:
+        if not isinstance(value, GeniaOutputSink):
+            raise TypeError(f"{name} expected a sink")
+        return value
+
+    def _sink_write_display(sink: GeniaOutputSink, value: Any, *, newline: bool) -> Any:
+        text = format_display(value)
+        if newline:
+            text += "\n"
+        sink.write_text(text)
+        return value
+
+    def write_fn(sink_value: Any, value: Any) -> Any:
+        sink = _ensure_sink(sink_value, "write")
+        return _sink_write_display(sink, value, newline=False)
+
+    def writeln_fn(sink_value: Any, value: Any) -> Any:
+        sink = _ensure_sink(sink_value, "writeln")
+        return _sink_write_display(sink, value, newline=True)
+
+    def flush_fn(sink_value: Any) -> None:
+        sink = _ensure_sink(sink_value, "flush")
+        sink.flush()
+        return None
+
     def log(*args: Any) -> Any:
-        output = " ".join(format_display(arg) for arg in args) + "\n"
-        if output_handler is None:
-            print(output, end="")
-        else:
-            output_handler(output)
+        output = " ".join(format_display(arg) for arg in args)
+        stderr_sink.write_text(output + "\n")
         return args[-1] if args else None
 
     def print_fn(*args: Any) -> Any:
-        output = " ".join(format_display(arg) for arg in args) + "\n"
-        if output_handler is None:
-            print(output, end="")
-        else:
-            output_handler(output)
+        output = " ".join(format_display(arg) for arg in args)
+        stdout_sink.write_text(output + "\n")
         return args[-1] if args else None
 
     def _ensure_string(value: Any, name: str) -> str:
@@ -3125,11 +3201,7 @@ def make_global_env(
         return None
 
     def _emit_help(text: str) -> None:
-        output = text + "\n"
-        if output_handler is None:
-            print(output, end="")
-        else:
-            output_handler(output)
+        stdout_sink.write_text(text + "\n")
 
     def _format_span(span: SourceSpan | None) -> str | None:
         if span is None:
@@ -3640,6 +3712,11 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
             raise OSError(f"zip_write could not write zip file: {out_path}") from exc
         return out_path
 
+    env.set("stdout", stdout_sink)
+    env.set("stderr", stderr_sink)
+    env.set("write", write_fn)
+    env.set("writeln", writeln_fn)
+    env.set("flush", flush_fn)
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -3810,16 +3887,41 @@ def run_source(
     return Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
 
 
+def _emit_result(env: Env, value: Any) -> None:
+    sink = env.get("stdout")
+    if not isinstance(sink, GeniaOutputSink):
+        raise RuntimeError("stdout sink is not configured")
+    sink.write_text(format_debug(value) + "\n")
+
+
+def _emit_error(env: Env, message: str) -> None:
+    sink = env.values.get("stderr")
+    if isinstance(sink, GeniaOutputSink):
+        sink.write_text(message + "\n")
+    else:
+        try:
+            sys.stderr.write(message + "\n")
+            sys.stderr.flush()
+        except BrokenPipeError:
+            return
+
+
 def repl() -> None:
     env = make_global_env([])
-    print("Genia prototype REPL. Type :help for examples, :quit to exit.")
+    try:
+        env.get("writeln")(env.get("stdout"), "Genia prototype REPL. Type :help for examples, :quit to exit.")
+    except GeniaQuietBrokenPipe:
+        return
     buf = ""
     while True:
         try:
             prompt = "... " if buf else ">>> "
             line = input(prompt)
         except EOFError:
-            print()
+            try:
+                env.get("writeln")(env.get("stdout"), "")
+            except GeniaQuietBrokenPipe:
+                return
             break
         if not buf and line.strip() == ":quit":
             break
@@ -3828,7 +3930,7 @@ def repl() -> None:
             continue
         if not buf and line.strip() == ":env":
             for k in sorted(env.values):
-                print(f"{k} = {format_debug(env.values[k])}")
+                env.get("writeln")(env.get("stdout"), f"{k} = {format_debug(env.values[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):
@@ -3840,9 +3942,11 @@ def repl() -> None:
         try:
             result = run_source(source, env)
             if result is not None:
-                print(format_debug(result))
+                _emit_result(env, result)
+        except GeniaQuietBrokenPipe:
+            return
         except Exception as e:  # noqa: BLE001
-            print(f"Error: {e}", file=sys.stderr)
+            _emit_error(env, f"Error: {e}")
 
 
 def run_debug_stdio(
@@ -3860,7 +3964,12 @@ def run_debug_stdio(
     resolved_path = str(Path(program_path).resolve())
     source = Path(program_path).read_text(encoding="utf-8")
     session = StdioDebugSession(command_stream, event_stream, filename=resolved_path)
-    env = make_global_env(debug_hooks=session, debug_mode=True, output_handler=session.emit_stdout_output)
+    env = make_global_env(
+        debug_hooks=session,
+        debug_mode=True,
+        output_handler=session.emit_stdout_output,
+        stderr_stream=error_stream,
+    )
     session.ensure_root_frame(env)
     return session.run(lambda: run_source(source, env, filename=resolved_path, debug_hooks=session, debug_mode=True), error_stream=error_stream)
 
@@ -3901,19 +4010,31 @@ def _main(argv: Optional[list[str]] = None) -> int:
 
     if args.command is not None:
         env = make_global_env(cli_args=script_args)
-        run_result = run_source(args.command, env, filename="<command>")
-        result = resolve_program_result(run_result, env)
-        if result is not None:
-            print(format_debug(result))
-        return 0
+        try:
+            run_result = run_source(args.command, env, filename="<command>")
+            result = resolve_program_result(run_result, env)
+            if result is not None:
+                _emit_result(env, result)
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
     if program_path is not None:
         env = make_global_env(cli_args=script_args)
-        with open(program_path, "r", encoding="utf-8") as f:
-            run_result = run_source(f.read(), env, filename=str(Path(program_path).resolve()))
-        result = resolve_program_result(run_result, env)
-        if result is not None:
-            print(format_debug(result))
-        return 0
+        try:
+            with open(program_path, "r", encoding="utf-8") as f:
+                run_result = run_source(f.read(), env, filename=str(Path(program_path).resolve()))
+            result = resolve_program_result(run_result, env)
+            if result is not None:
+                _emit_result(env, result)
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
 
     repl()
     return 0

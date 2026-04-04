@@ -68,6 +68,8 @@ These stop upstream pulling as soon as the limit is reached.
 - `stdin |> lines` binds lazily and reads incrementally
 - `stdin()` materializes the full remaining input into a cached list
 - `input()` remains interactive prompt input
+- `each(print)` writes flow output to `stdout`
+- quiet downstream `stdout` broken-pipe termination is treated as normal completion in command/file execution
 
 ## Implementation status
 
