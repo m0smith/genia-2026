@@ -43,6 +43,7 @@ Supported patterns:
 
 - literal
 - glob string pattern (`glob"..."`)
+- option constructor pattern (`some(pattern)`)
 - variable binding
 - wildcard `_`
 - tuple pattern
@@ -164,6 +165,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `get?(key, map) -> none` when key is missing
 - key presence, not value truthiness, determines `some(...)` vs `none`
   - key mapped to `nil` still returns `some(nil)`
+- pattern matching supports constructor destructuring for `some(...)` with exactly one inner pattern
 - `unwrap_or(default, opt)` accepts option values only
 - `is_some?(opt)` and `is_none?(opt)` report option shape
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
