@@ -12,6 +12,7 @@ This repository currently provides:
 - list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, agents)
+  - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
 - debug-stdio adapter support for editor integration
 - runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
 
@@ -37,6 +38,12 @@ Run inline source from the command line:
 
 ```bash
 genia -c "[1,2,3] |> count"
+```
+
+Run a pipeline stage expression:
+
+```bash
+printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
 ```
 
 Run the ants demo:
@@ -209,6 +216,9 @@ stdin |> lines |> take(2) |> each(print) |> run
 - `take` stops upstream pulling as soon as the limit is satisfied
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
+- `-p` / `--pipe` wrap a stage expression as `stdin |> lines |> <expr> |> run` for ergonomic Unix pipeline use
+- `-p` expects a stage expression only; omit explicit `stdin` and `run`
+- no `pipe(...)` helper function exists in this phase
 
 ### Output sinks (Phase 1)
 
@@ -266,6 +276,12 @@ In file mode (`genia path/to/program.genia`) and command mode (`genia -c "..."`)
 3. else → no implicit entrypoint call
 
 `main` is a runtime convention, not syntax.
+
+Pipe mode (`genia -p "..."` / `genia --pipe "..."`) is separate:
+
+1. it wraps the provided stage expression as `stdin |> lines |> <expr> |> run`
+2. it does not apply the `main` convention
+3. it rejects explicit `stdin` and explicit `run` inside the provided stage expression
 
 Example (`main/1` + list pattern matching):
 

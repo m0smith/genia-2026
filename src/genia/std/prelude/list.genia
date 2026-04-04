@@ -1,0 +1,277 @@
+list(..xs) = """
+# list
+
+Build a list from all provided arguments.
+
+## Params
+
+* `..xs`: values to include in order
+
+## Returns
+
+* list containing all provided values
+
+## Examples
+
+```genia
+list(1, 2, 3) -> [1, 2, 3]
+```
+""" xs
+
+first(xs) = """
+# first
+
+Return the first element of a non-empty list.
+
+## Params
+
+* `xs`: non-empty list
+
+## Returns
+
+* first element in `xs`
+
+## Examples
+
+```genia
+first([10, 20, 30]) -> 10
+```
+""" first_impl(xs)
+first_impl(xs) = [x, .._] -> x
+
+rest(xs) = """
+# rest
+
+Return all elements except the first.
+
+## Params
+
+* `xs`: non-empty list
+
+## Returns
+
+* tail of `xs`
+
+## Examples
+
+```genia
+rest([10, 20, 30]) -> [20, 30]
+```
+""" rest_impl(xs)
+rest_impl(xs) = [_, ..tail] -> tail
+
+empty?(xs) = """
+# empty?
+
+Check whether a list has no elements.
+
+## Params
+
+* `xs`: value to test
+
+## Returns
+
+* `true` for `[]`, otherwise `false`
+""" empty_impl(xs)
+empty_impl(xs) =
+  [] -> true |
+  _ -> false
+
+nil?(x) = """
+# nil?
+
+Check whether a value is `nil`.
+
+## Params
+
+* `x`: value to test
+
+## Returns
+
+* `true` when `x` is `nil`, otherwise `false`
+""" nil_impl(x)
+nil_impl(x) =
+  nil -> true |
+  _ -> false
+
+append() = """
+# append
+
+Concatenate zero or more lists.
+
+## Examples
+
+```genia
+append([1, 2], [3]) -> [1, 2, 3]
+```
+""" []
+append(xs) = """
+# append
+
+Concatenate zero or more lists.
+
+## Examples
+
+```genia
+append([1, 2], [3]) -> [1, 2, 3]
+```
+""" xs
+append(xs, ys) = """
+# append
+
+Concatenate zero or more lists.
+
+## Examples
+
+```genia
+append([1, 2], [3]) -> [1, 2, 3]
+```
+""" append2(xs, ys)
+append2(xs, ys) =
+  ([], ys) -> ys |
+  (xs, []) -> xs |
+  (xs, ys) -> [..xs, ..ys]
+
+length(xs) = """
+# length
+
+Count elements in a list.
+
+## Examples
+
+```genia
+length([]) -> 0
+```
+""" length_acc(xs, 0)
+length_acc(xs, acc) =
+  ([], acc) -> acc |
+  ([_, ..rest], acc) -> length_acc(rest, acc + 1)
+
+reverse(xs) = """
+# reverse
+
+Return a list with elements in reverse order.
+""" reverse_acc(xs, [])
+reverse_acc(xs, acc) =
+  ([], acc) -> acc |
+  ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
+
+reduce(f, acc, xs) = """
+# reduce
+
+Fold a list from left to right.
+""" reduce_impl(f, acc, xs)
+reduce_impl(f, acc, xs) =
+  (f, acc, []) -> acc |
+  (f, acc, [x, ..rest]) -> reduce_impl(f, f(acc, x), rest)
+
+map(f, xs) = """
+# map
+
+Apply a function to every list element.
+""" reduce((acc, x) -> [..acc, f(x)], [], xs)
+
+filter(predicate, xs) = """
+# filter
+
+Keep elements where `predicate(x)` is `true`.
+""" reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
+filter_keep(predicate, acc, x) =
+  (predicate, acc, x) ? predicate(x) == true -> [..acc, x] |
+  (_, acc, _) -> acc
+
+count(xs) = """
+# count
+
+Count elements in a list.
+""" reduce((acc, _) -> acc + 1, 0, xs)
+
+any?(predicate, xs) = """
+# any?
+
+Return `true` when any element satisfies a predicate.
+""" any_impl(predicate, xs)
+any_impl(predicate, xs) =
+  (predicate, []) -> false |
+  (predicate, [x, ..rest]) ? predicate(x) == true -> true |
+  (predicate, [_, ..rest]) -> any_impl(predicate, rest)
+
+nth(n, xs) = """
+# nth
+
+Return the element at zero-based index `n`, or `nil` when out of range.
+""" nth_impl(n, xs)
+nth_impl(n, xs) =
+  (_, []) -> nil |
+  (0, [x, .._]) -> x |
+  (n, [_, ..rest]) -> nth_impl(n - 1, rest)
+
+take(n, xs) = """
+# take
+
+Take the first `n` items from a list.
+""" take_impl(n, xs)
+take_impl(n, xs) =
+  (_, []) -> [] |
+  (0, _) -> [] |
+  (n, [x, ..rest]) -> [x] + take_impl(n - 1, rest)
+
+head(xs) = """
+# head
+
+Convenience alias for `take`.
+""" take(1, xs)
+head(n, xs) = """
+# head
+
+Convenience alias for `take`.
+""" take(n, xs)
+
+drop(n, xs) = """
+# drop
+
+Drop the first `n` items from a list.
+""" drop_impl(n, xs)
+drop_impl(n, xs) =
+  (_, []) -> [] |
+  (0, xs) -> xs |
+  (n, [_, ..rest]) -> drop_impl(n - 1, rest)
+
+range(stop) = """
+# range
+
+Build a numeric range.
+
+## Examples
+
+```genia
+range(5) -> [0, 1, 2, 3, 4]
+```
+""" range(0, stop - 1, 1)
+range(start, stop) = """
+# range
+
+Build a numeric range.
+
+## Examples
+
+```genia
+range(5) -> [0, 1, 2, 3, 4]
+```
+""" range(start, stop, 1)
+range(start, stop, step) = """
+# range
+
+Build a numeric range.
+
+## Examples
+
+```genia
+range(5) -> [0, 1, 2, 3, 4]
+```
+""" range_impl(start, stop, step)
+range_impl(start, stop, step) =
+  (_, _, 0) -> [] |
+  (start, stop, step) ? step > 0 && start > stop -> [] |
+  (start, stop, step) ? step < 0 && start < stop -> [] |
+  (start, stop, step) -> [start] + range_impl(start + step, stop, step)

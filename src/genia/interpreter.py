@@ -26,6 +26,7 @@ import queue
 import random
 import time
 import zipfile
+from importlib import resources as importlib_resources
 from pathlib import Path
 import argparse
 import re
@@ -53,6 +54,45 @@ else:
     )
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
+
+
+def _stdlib_resource(relative_path: str):
+    if not relative_path.startswith("std/"):
+        return None
+    try:
+        resource = importlib_resources.files("genia").joinpath(relative_path)
+    except ModuleNotFoundError:
+        return None
+    return resource if resource.is_file() else None
+
+
+def _load_source_from_path(path: str) -> tuple[str, str]:
+    resource = _stdlib_resource(path)
+    if resource is not None:
+        source = resource.read_text(encoding="utf-8")
+        with importlib_resources.as_file(resource) as resolved_resource_path:
+            return source, str(resolved_resource_path)
+
+    file_path = Path(path)
+    candidates: list[Path] = []
+    if file_path.is_absolute():
+        candidates.append(file_path)
+    else:
+        candidates.append((BASE_DIR / path).resolve())
+        candidates.append(file_path.resolve())
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.read_text(encoding="utf-8"), str(candidate.resolve())
+    raise FileNotFoundError(path)
+
+
+def _resolve_packaged_module(module_name: str) -> tuple[str, str] | None:
+    resource = _stdlib_resource(f"std/prelude/{module_name}.genia")
+    if resource is None:
+        return None
+    source = resource.read_text(encoding="utf-8")
+    with importlib_resources.as_file(resource) as resolved_resource_path:
+        return source, str(resolved_resource_path)
 
 
 # -----------------------------
@@ -1933,34 +1973,34 @@ class Env:
             if path is None:
                 return False
 
-        full_path = (BASE_DIR / path).resolve()
-        key = str(full_path)
+        source, key = _load_source_from_path(path)
 
         if key in root.loaded_files:
             return True
 
         if key in root.loading_files:
-            raise RuntimeError(f"Autoload cycle detected while loading {full_path}")
+            raise RuntimeError(f"Autoload cycle detected while loading {key}")
 
         root.loading_files.add(key)
         try:
-            source = full_path.read_text(encoding="utf-8")
             run_source(source, root, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
             root.loaded_files.add(key)
             return True
         finally:
             root.loading_files.remove(key)
 
-    def resolve_module_path(self, module_name: str, requester_filename: str | None = None) -> Path:
+    def resolve_module_source(self, module_name: str, requester_filename: str | None = None) -> tuple[str, str]:
         candidates: list[Path] = []
         if requester_filename and requester_filename not in {"<memory>", "<command>"}:
             requester = Path(requester_filename)
             candidates.append((requester.parent / f"{module_name}.genia").resolve())
         candidates.append((BASE_DIR / f"{module_name}.genia").resolve())
-        candidates.append((BASE_DIR / "std" / "prelude" / f"{module_name}.genia").resolve())
         for path in candidates:
             if path.is_file():
-                return path
+                return path.read_text(encoding="utf-8"), str(path)
+        packaged = _resolve_packaged_module(module_name)
+        if packaged is not None:
+            return packaged
         raise FileNotFoundError(f"Module not found: {module_name}")
 
     def load_module(self, module_name: str, requester_filename: str | None = None) -> "ModuleValue":
@@ -1970,11 +2010,9 @@ class Env:
         if module_name in root.loading_modules:
             raise RuntimeError(f"Module import cycle detected while loading {module_name}")
 
-        module_path = root.resolve_module_path(module_name, requester_filename)
-        key = str(module_path)
+        source, key = root.resolve_module_source(module_name, requester_filename)
         root.loading_modules.add(module_name)
         try:
-            source = module_path.read_text(encoding="utf-8")
             module_env = Env(root)
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
@@ -3887,6 +3925,27 @@ def run_source(
     return Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
 
 
+def _validate_pipe_mode_expr(source: str) -> None:
+    tokens = lex(source)
+    parser = Parser(tokens, source=source, filename="<pipe>")
+    ast_nodes = parser.parse_program()
+    if len(ast_nodes) != 1 or not isinstance(ast_nodes[0], ExprStmt):
+        raise ValueError("-p/--pipe expects a single stage expression")
+
+    for token in tokens:
+        if token.kind != "IDENT":
+            continue
+        if token.text == "stdin":
+            raise ValueError("-p/--pipe stage expression must omit stdin; it is added automatically")
+        if token.text == "run":
+            raise ValueError("-p/--pipe stage expression must omit run; it is added automatically")
+
+
+def _wrap_pipe_mode_expr(source: str) -> str:
+    _validate_pipe_mode_expr(source)
+    return f"stdin |> lines |> {source} |> run"
+
+
 def _emit_result(env: Env, value: Any) -> None:
     sink = env.get("stdout")
     if not isinstance(sink, GeniaOutputSink):
@@ -3976,13 +4035,15 @@ def run_debug_stdio(
 
 def _main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="genia.interpreter")
-    parser.add_argument("-c", "--command")
+    command_group = parser.add_mutually_exclusive_group()
+    command_group.add_argument("-c", "--command")
+    command_group.add_argument("-p", "--pipe")
     parser.add_argument("--debug-stdio", action="store_true")
     args, remaining_args = parser.parse_known_args(argv)
 
     program_path: Optional[str] = None
     script_args: list[str] = []
-    if args.command is not None:
+    if args.command is not None or args.pipe is not None:
         script_args = remaining_args
     elif remaining_args:
         program_path = remaining_args[0]
@@ -4007,6 +4068,18 @@ def _main(argv: Optional[list[str]] = None) -> int:
         if main_without_args is not None:
             return main_without_args()
         return run_result
+
+    if args.pipe is not None:
+        env = make_global_env(cli_args=script_args)
+        try:
+            wrapped_source = _wrap_pipe_mode_expr(args.pipe)
+            run_source(wrapped_source, env, filename="<pipe>")
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
 
     if args.command is not None:
         env = make_global_env(cli_args=script_args)

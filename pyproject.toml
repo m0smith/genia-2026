@@ -1,6 +1,6 @@
 [project]
 name = "genia"
-version = "0.1.0"
+version = "0.1.1"
 description = "Genia language prototype interpreter and regression tests"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,6 +15,24 @@ dev = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/genia"]
+include = [
+  "/src/genia/std/**/*.genia",
+]
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src/genia/**/*.py",
+  "/src/genia/std/**/*.genia",
+  "/tests/**/*.py",
+  "/README.md",
+  "/GENIA_STATE.md",
+  "/GENIA_RULES.md",
+  "/GENIA_REPL_README.md",
+  "/docs/book/**/*.md",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

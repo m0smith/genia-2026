@@ -12,13 +12,18 @@ This file describes what is **actually implemented now** in the Python runtime.
 - CLI entry points support three execution modes:
   - file mode: `genia path/to/file.genia`
   - command mode: `genia -c "expr_or_program_source"`
+  - pipe mode: `genia -p "stage_expr"` / `genia --pipe "stage_expr"`
   - REPL mode: `genia` (no file/command arguments)
-- in file/command mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
+- in file/command/pipe mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
   - command mode accepts both bare positionals (`a`) and option-like args (`--pretty`) as trailing args
+- pipe mode wraps the provided stage expression as `stdin |> lines |> <expr> |> run`
+  - pipe mode expects a single stage expression, not a full standalone program
+  - explicit `stdin` and explicit `run` are rejected in pipe mode with a clear error
 - after file/command source evaluation, runtime entrypoint convention is:
   - if `main/1` exists, call `main(argv())`
   - else if `main/0` exists, call `main()`
   - else keep existing result behavior (no implicit call)
+  - pipe mode bypasses the `main` convention and runs the wrapped flow directly
 
 ## 2) Implemented runtime value categories
 
@@ -271,6 +276,10 @@ Flow semantics:
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
+- explicit CLI pipe mode is implemented:
+  - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
+  - wraps as `stdin |> lines |> <stage_expr> |> run`
+  - no `pipe(...)` helper function exists in this phase
 
 ### CLI argument helpers (host-backed builtin layer)
 
@@ -425,13 +434,20 @@ Behavior:
 
 ## 7) Autoloaded stdlib
 
-Autoload is keyed by `(name, arity)` and currently registers functions from:
+Autoload is keyed by `(name, arity)` and currently registers functions from bundled stdlib sources:
 
 - `std/prelude/list.genia`
 - `std/prelude/fn.genia`
 - `std/prelude/math.genia`
 - `std/prelude/awk.genia`
 - `std/prelude/agent.genia`
+
+Loading behavior:
+
+- bundled stdlib `.genia` files are loaded via package resources
+- this works in both local repo execution and installed-package/tool execution
+- custom absolute filesystem autoload paths still work
+- file-relative module imports still resolve from the requesting source file's directory first
 
 Notable autoloaded functions include:
 

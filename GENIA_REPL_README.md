@@ -28,6 +28,12 @@ Run a command string:
 python3 -m genia.interpreter -c "[1,2,3] |> count"
 ```
 
+Run a pipeline stage expression:
+
+```bash
+python3 -m genia.interpreter -p 'head(1) |> each(print)'
+```
+
 Run the ants demo:
 
 ```bash
@@ -88,6 +94,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, and `range`
+  - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - I/O: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
@@ -114,6 +121,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - sinks/materialization: `each`, `run`, `collect`
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+- CLI pipe mode:
+  - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <expr> |> run`
+  - pipe mode expects a single stage expression, not a full standalone program
+  - explicit `stdin` and explicit `run` are rejected with a clear error
+  - pipe mode bypasses the `main` convention
+  - no `pipe(...)` helper function exists in this phase
 - output routing:
   - `print(...)` writes to `stdout`
   - `log(...)` writes to `stderr`
@@ -161,6 +174,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   1. If `main/1` exists, it runs `main(argv())`.
   2. Else if `main/0` exists, it runs `main()`.
   3. Else, no entrypoint call is made (existing behavior is preserved).
+- In **pipe mode** (`-p` / `--pipe`), Genia runs the wrapped flow directly and does not apply the `main` convention.
 - In **REPL mode**, no automatic `main` invocation is performed.
 - `main` remains a normal function name (not syntax).
 

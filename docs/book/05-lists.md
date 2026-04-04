@@ -2,7 +2,9 @@
 
 ## What list helpers are implemented today?
 
-Genia ships a small list-focused stdlib in `std/prelude/list.genia`.
+Genia ships a small list-focused stdlib in bundled `std/prelude/list.genia` source.
+
+The runtime loads this bundled prelude through package resources, so the same list stdlib works in both repo execution and installed-package/tool execution.
 
 Core helpers include:
 

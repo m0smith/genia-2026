@@ -379,6 +379,11 @@ Expected behavior:
   * `main/1` is preferred and called as `main(argv())`
   * fallback to `main/0` when `main/1` is absent
   * trailing CLI args in `-c` mode are passed through to `argv()` (including bare positional values)
+* Explicit pipe-mode CLI wrapper:
+  * `genia -p '<stage_expr>'` / `genia --pipe '<stage_expr>'`
+  * wraps as `stdin |> lines |> <stage_expr> |> run`
+  * bypasses `main`
+* Bundled stdlib/prelude `.genia` sources are loaded through package resources, so installed-tool execution does not depend on checkout-relative stdlib paths
 * Pipeline operator `|>` with expression-level call rewriting
 * Bare callable pipeline RHS forms that lower to ordinary call syntax (for example, string projector pipelines such as `record |> "name"`)
 * Named-function docstring metadata (`f(...) = "doc" ...`)
@@ -401,6 +406,7 @@ Expected behavior:
 * Separate docstring keywords or block syntax
 * Dedicated CLI syntax (`$1`, `$2`, special argument keywords)
 * Advanced Flow runtime features beyond Phase 1 (multi-output stages, async scheduling, richer backpressure/cancellation controls)
+* `pipe(...)` helper function
 
 ---
 
@@ -433,3 +439,5 @@ main() = "fallback"
 ```
 
 `main/1` has precedence, so this returns the argv list rather than `"fallback"`.
+
+Pipe mode does not use this `main` convention. It runs the wrapped flow directly.

@@ -71,6 +71,49 @@ These stop upstream pulling as soon as the limit is reached.
 - `each(print)` writes flow output to `stdout`
 - quiet downstream `stdout` broken-pipe termination is treated as normal completion in command/file execution
 
+## CLI pipe mode
+
+Pipe mode is an explicit CLI wrapper for common Unix-style flow usage.
+
+It does not change `|>` semantics.
+
+It only builds this runtime-level wrapper:
+
+```genia
+stdin |> lines |> <stage_expr> |> run
+```
+
+### Minimal example
+
+```bash
+printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
+```
+
+Expected behavior:
+
+- prints only `a`
+
+### Edge case example
+
+```bash
+genia --pipe 'head(1) |> each(print)'
+```
+
+Expected behavior:
+
+- exits normally
+- prints nothing when stdin is empty
+
+### Failure case example
+
+```bash
+genia -p 'head(1) |> each(print) |> run'
+```
+
+Expected behavior:
+
+- exits with a clear error because pipe mode expects a stage expression and adds `run` automatically
+
 ## Implementation status
 
 ### ✅ Implemented
@@ -82,10 +125,15 @@ These stop upstream pulling as soon as the limit is reached.
 - `head/1` and `head/2` aliases (stdlib)
 - `each`, `collect`, and `run`
 - early termination on `take`/`head`
+- `-p` / `--pipe` CLI wrapping for single stage expressions
 
 ### ⚠️ Partial
 
 - cancellation/backpressure is limited to downstream early-stop via `take`/`head`
+- pipe mode is intentionally narrow:
+  - it expects a single stage expression
+  - explicit `stdin` and explicit `run` are rejected
+  - no `pipe(...)` helper exists in this phase
 
 ### ❌ Not implemented
 

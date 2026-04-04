@@ -264,3 +264,13 @@ When changing syntax/semantics/runtime behavior, update together:
 - `input()` remains independent from `stdin` / Flow source behavior
 - broken pipe on `stdout` output in CLI/file/command execution is normal downstream termination and must not surface as a Python traceback
 - broken pipe on `stderr` should be handled best-effort without recursive noisy failures
+
+## 21) Pipe command mode invariants (runtime-only)
+
+- `-p` / `--pipe` are CLI-only runtime flags, not parser syntax
+- pipe mode wraps the provided source exactly as `stdin |> lines |> <expr> |> run`
+- the provided source must be a single stage expression
+- explicit `stdin` and explicit `run` in pipe mode are rejected with a clear error
+- ordinary `-c` command mode remains unchanged and evaluates exactly what the user wrote
+- pipe mode bypasses the `main` convention; file mode and `-c` mode keep existing `main/1` then `main/0` behavior
+- pipeline operator semantics are unchanged; this does not add a new operator or runtime meaning for `|>`

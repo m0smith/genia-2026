@@ -1,0 +1,68 @@
+pi = pi
+
+inc(x) = """
+# inc
+
+Increment a number by one.
+
+## Examples
+
+```genia
+inc(4) -> 5
+```
+""" x + 1
+
+dec(x) = """
+# dec
+
+Decrement a number by one.
+""" x - 1
+
+mod(a, b) = """
+# mod
+
+Return the remainder of `a / b`.
+""" a % b
+
+abs(x) = """
+# abs
+
+Return the absolute value of a number.
+""" abs_impl(x)
+abs_impl(x) =
+  (x) ? x < 0 -> 0 - x |
+  (x) -> x
+
+min(a, b) = """
+# min
+
+Return the smaller of two numbers.
+""" min_impl(a, b)
+min_impl(a, b) =
+  (a, b) ? a <= b -> a |
+  (a, b) -> b
+
+max(a, b) = """
+# max
+
+Return the larger of two numbers.
+""" max_impl(a, b)
+max_impl(a, b) =
+  (a, b) ? a >= b -> a |
+  (a, b) -> b
+
+sum_reduce(f, acc, xs) =
+  (f, acc, []) -> acc |
+  (f, acc, [x, ..rest]) -> sum_reduce(f, f(acc, x), rest)
+
+sum(xs) = """
+# sum
+
+Add all numeric elements of a list.
+
+## Examples
+
+```genia
+sum([1, 2, 3, 4]) -> 10
+```
+""" sum_reduce((acc, x) -> acc + x, 0, xs)
