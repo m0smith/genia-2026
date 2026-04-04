@@ -52,6 +52,7 @@ def test_named_accessor_invalid_rhs_forms_fail_clearly(run):
 
 def test_slash_division_behavior_still_works(run):
     assert run("8 / 2") == 4
+    assert run("8 / inc(2)") == 8 / 3
 
 
 def test_map_callable_and_string_projector_regression(run):

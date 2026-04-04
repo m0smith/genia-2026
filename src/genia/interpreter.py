@@ -1580,12 +1580,6 @@ class Parser:
             if tok.kind == "LPAREN":
                 left = self.finish_call(left)
                 continue
-            if tok.kind == "SLASH" and min_prec <= PRECEDENCE["SLASH"] and self.peek(1).kind == "IDENT":
-                self.i += 1
-                rhs_tok = self.eat("IDENT")
-                rhs = Var(rhs_tok.text, span=self.span_for_tokens(rhs_tok, rhs_tok))
-                left = Binary(left, "SLASH", rhs, span=self.merge_spans(left.span, rhs.span))
-                continue
             prec = PRECEDENCE.get(tok.kind)
             if prec is None or prec < min_prec:
                 break
@@ -2577,11 +2571,29 @@ class Evaluator:
             return left and self.eval(node.right)
         if node.op == "OR":
             return left or self.eval(node.right)
-        if node.op == "SLASH" and isinstance(node.right, IrVar) and isinstance(left, (GeniaMap, ModuleValue)):
-            key_name = node.right.name
-            if isinstance(left, GeniaMap):
-                return left.get(key_name)
-            return left.get_export(key_name)
+        if node.op == "SLASH" and isinstance(left, (GeniaMap, ModuleValue)):
+            if isinstance(node.right, IrVar):
+                key_name = node.right.name
+                if isinstance(left, GeniaMap):
+                    return left.get(key_name)
+                return left.get_export(key_name)
+            if isinstance(node.right, IrCall) and isinstance(node.right.fn, IrVar):
+                key_name = node.right.fn.name
+                if isinstance(left, GeniaMap):
+                    callee = left.get(key_name)
+                else:
+                    callee = left.get_export(key_name)
+                args: list[Any] = []
+                for arg_node in node.right.args:
+                    if isinstance(arg_node, IrSpread):
+                        value = self.eval(arg_node.expr)
+                        if not isinstance(value, list):
+                            raise TypeError("Cannot spread non-list into function arguments")
+                        args.extend(value)
+                    else:
+                        args.append(self.eval(arg_node))
+                return self.invoke_callable(callee, args, tail_position=False, callee_node=node.right.fn)
+            raise TypeError("named accessor '/' requires a bare identifier on the right-hand side")
         try:
             right = self.eval(node.right)
         except NameError:
@@ -2596,8 +2608,6 @@ class Evaluator:
             case "STAR":
                 return left * right
             case "SLASH":
-                if isinstance(left, (GeniaMap, ModuleValue)):
-                    raise TypeError("named accessor '/' requires a bare identifier on the right-hand side")
                 return left / right
             case "PERCENT":
                 return left % right
