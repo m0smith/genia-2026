@@ -211,7 +211,7 @@ Expected behavior:
 
 - lazy sequences
 - iterator protocol
-- flow-aware list pipelines (backpressure/cancellation/multi-output stages)
+- advanced flow/list interop (multi-output stages, async backpressure/cancellation controls)
 - built-in map/filter syntax (helpers exist only as stdlib functions)
 
 ---
