@@ -66,6 +66,46 @@ def test_pipeline_with_list_helpers(run):
     assert run(src) == [2, 3, 4]
 
 
+def test_pipeline_people_map_name_projector_call_form(run):
+    src = '''
+    people = [{name: "A"}, {name: "B"}]
+    people |> map("name")
+    '''
+    assert run(src) == ["A", "B"]
+
+
+def test_pipeline_with_string_projector_rhs(run):
+    src = '''
+    record = { name: "Matthew", age: 42 }
+    record |> "name"
+    '''
+    assert run(src) == "Matthew"
+
+
+def test_pipeline_with_missing_string_projector_key_returns_nil(run):
+    src = '''
+    record = { name: "Matthew", age: 42 }
+    record |> "missing"
+    '''
+    assert run(src) is None
+
+
+def test_pipeline_with_parenthesized_string_projector_rhs(run):
+    src = '''
+    record = { name: "Matthew" }
+    record |> ("name")
+    '''
+    assert run(src) == "Matthew"
+
+
+def test_pipeline_string_projector_chain(run):
+    src = '''
+    record = { user: { name: "Matthew" } }
+    record |> "user" |> "name"
+    '''
+    assert run(src) == "Matthew"
+
+
 def test_pipeline_with_case_expression_still_rejected_in_subexpression(run):
     src = """
     id(x) = x

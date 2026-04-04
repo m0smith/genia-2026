@@ -252,7 +252,7 @@ No documentation available.
 
 ---
 
-## Pipeline Operator (Phase 1)
+## Pipeline Operator (Phase 2)
 
 Genia now supports a minimal pipeline operator for left-to-right function composition:
 
@@ -262,33 +262,35 @@ Rewrite rules (implemented):
 
 * `x |> f` becomes `f(x)`
 * `x |> f(y)` becomes `f(y, x)` (the piped value is appended as the final argument)
+* `x |> expr` becomes `expr(x)` when `expr` is valid in ordinary call-callee position
+  * this includes callable data such as string projectors over maps (`record |> "name"` -> `"name"(record)`)
 * chaining is left-associative: `a |> f |> g` becomes `g(f(a))`
 * this rewrite happens in the AST→Core IR lowering pass
 
 ### Minimal example
 
 ```genia
-inc(x) = x + 1
-4 |> inc
+record = { name: "Matthew" }
+record |> "name"
 ```
 
 Result:
 
 ```genia
-5
+"Matthew"
 ```
 
 ### Edge case example
 
 ```genia
-pair(a, b) = [a, b]
-9 |> pair(1)
+record = { user: { name: "Matthew" } }
+record |> "user" |> "name"
 ```
 
 Result:
 
 ```genia
-[1, 9]
+"Matthew"
 ```
 
 Pipeline-friendly API design note:
@@ -306,6 +308,16 @@ Expected behavior:
 
 * runtime `TypeError` because `2` is not callable.
 
+Another failure case:
+
+```genia
+"name"(42)
+```
+
+Expected behavior:
+
+* runtime `TypeError` because string projectors require a map-like runtime map target.
+
 ---
 
 ## Implementation Status
@@ -319,6 +331,7 @@ Expected behavior:
   * fallback to `main/0` when `main/1` is absent
   * trailing CLI args in `-c` mode are passed through to `argv()` (including bare positional values)
 * Pipeline operator `|>` with expression-level call rewriting
+* Bare callable pipeline RHS forms that lower to ordinary call syntax (for example, string projector pipelines such as `record |> "name"`)
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:
   * signature header (`name/shape`)

@@ -97,6 +97,8 @@ Pipeline rewrite invariant:
 
 - `x |> f` is equivalent to `f(x)`
 - `x |> f(y)` is equivalent to `f(y, x)` (append source value as final arg)
+- `x |> expr` is equivalent to `expr(x)` when `expr` is valid in ordinary call-callee position
+  - example: `record |> "name"` is equivalent to `"name"(record)`
 - chaining is left-associative
 - rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
 - this is expression-level call rewriting only (no stream runtime semantics)

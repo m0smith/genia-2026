@@ -160,6 +160,21 @@ Expected result:
 [nil, "?", "?"]
 ```
 
+Pipeline cross-reference (same callable semantics, pipeline lowering only):
+
+```genia
+person = { name: "Matthew" }
+person |> "name"
+```
+
+Expected result:
+
+```genia
+"Matthew"
+```
+
+This works because pipeline lowers to ordinary call form (`person |> "name"` -> `"name"(person)`), not because pipeline has separate lookup semantics.
+
 ### Failure case example
 
 ```genia
