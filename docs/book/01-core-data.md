@@ -130,6 +130,67 @@ Expected behavior:
 
 ---
 
+
+## Narrow named slash access on maps (phase 1)
+
+Map values support static named access with `/` when the right-hand side is a bare identifier.
+
+### Minimal example
+
+```genia
+person = { name: "Matthew", age: 42 }
+person/name
+```
+
+Expected result:
+
+```genia
+"Matthew"
+```
+
+### Edge case example
+
+```genia
+person = { name: "Matthew" }
+person/middle
+```
+
+Expected result:
+
+```genia
+nil
+```
+
+### Failure case example
+
+```genia
+{name: "Matthew"}/"name"
+```
+
+Expected behavior:
+
+- raises `TypeError` because slash named access requires a bare identifier RHS (`lhs/name`).
+
+### Implementation status
+
+### ✅ Implemented
+
+- map named access via `map/name`
+- missing map key via slash returns `nil`
+- callable map (`m("name")`) and string projector (`"name"(m)`) behavior remains unchanged
+
+### ⚠️ Partial
+
+- slash access is intentionally narrow in this phase (no expressions on RHS, no chaining semantics beyond repeated valid accesses)
+
+### ❌ Not implemented
+
+- general member access
+- index syntax
+- quoted/dynamic RHS slash access forms
+
+---
+
 ## Callable data (phase 1, map-centric)
 
 Only two callable-data forms are implemented in this phase.

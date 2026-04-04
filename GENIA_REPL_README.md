@@ -60,6 +60,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
+- module import forms: `import mod`, `import mod as alias`
+- phase-1 slash named accessor: `mod/name`, `map/name` (bare identifier RHS only)
 - callable data (phase 1 subset):
   - map lookup calls: `m(key)`, `m(key, default)`
   - string projector calls over maps: `"key"(m)`, `"key"(m, default)`
@@ -106,8 +108,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - regex patterns / extglob operators
 - `$1` / `$2` / `ARGV`-style special CLI syntax
 - general host interop / FFI
-- module/import system
-- member access and indexing syntax
+- general member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - generalized flow semantics (lazy sequences, multi-output stages, backpressure, cancellation)
 - full Flow runtime system (stages/sinks/backpressure/cancellation/multi-port stages)
