@@ -1457,12 +1457,37 @@ class Parser:
         return None
 
     def parse_function_body_after_intro(self, param_count: int) -> Node:
+        parenthesized_case = self.try_parse_parenthesized_case_expr(param_count)
+        if parenthesized_case is not None:
+            return parenthesized_case
         if self.looks_like_case_start():
             leading_tuple_arity = self.leading_parenthesized_item_count_before_arrow()
             if leading_tuple_arity is not None and leading_tuple_arity != param_count:
                 return self.parse_expr()
             return self.parse_case_expr(single_param_shorthand_ok=True)
         return self.parse_expr()
+
+    def try_parse_parenthesized_case_expr(self, param_count: int) -> Node | None:
+        if not self.at("LPAREN"):
+            return None
+        save = self.i
+        try:
+            self.eat("LPAREN")
+            self.skip_separators()
+            if not self.looks_like_case_start():
+                self.i = save
+                return None
+            leading_tuple_arity = self.leading_parenthesized_item_count_before_arrow()
+            if leading_tuple_arity is not None and leading_tuple_arity != param_count:
+                self.i = save
+                return None
+            case_expr = self.parse_case_expr(single_param_shorthand_ok=True)
+            self.skip_separators()
+            self.eat("RPAREN")
+            return case_expr
+        except SyntaxError:
+            self.i = save
+            return None
 
     def parse_block(self, allow_final_case: bool) -> Block:
         start = self.eat("LBRACE")

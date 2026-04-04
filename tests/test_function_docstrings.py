@@ -103,3 +103,18 @@ def test_triple_quoted_multiline_docstring_source_is_supported():
     out = "".join(outputs)
     assert "# inc" in out
     assert "Increment by one." in out
+
+
+def test_docstring_function_body_supports_parenthesized_case_expression():
+    src = '''
+    wrap(n, size) = """
+    # wrap
+    """ (
+      (n, size) ? n < 0 -> size - 1 |
+      (n, size) ? n >= size -> 0 |
+      (n, _) -> n
+    )
+
+    [wrap(-1, 8), wrap(8, 8), wrap(3, 8)]
+    '''
+    assert run_source(src, make_global_env([]), filename="wrap.genia") == [7, 0, 3]

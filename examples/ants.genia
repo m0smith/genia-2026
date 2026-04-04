@@ -358,8 +358,8 @@ Print the full world grid.
 * `nil` after rendering rows
 """ render_rows(world, 0)
 
-run_after_step(step_result, steps_left, delay_ms) = """
-# run_after_step
+simulate_after_step(step_result, steps_left, delay_ms) = """
+# simulate_after_step
 
 Handle one computed step result, then recurse.
 
@@ -371,17 +371,17 @@ Handle one computed step result, then recurse.
 
 ## Returns
 
-* recursive result from `run`
+* recursive result from `simulate`
 """ (
   ([world2, ant2, event], steps_left, delay_ms) -> {
     print(event)
     sleep(delay_ms)
-    run(world2, ant2, steps_left - 1, delay_ms)
+    simulate(world2, ant2, steps_left - 1, delay_ms)
   }
 )
 
-run(world, ant_pos, steps_left, delay_ms) = """
-# run
+simulate(world, ant_pos, steps_left, delay_ms) = """
+# simulate
 
 Execute the simulation for a fixed number of steps.
 
@@ -400,7 +400,7 @@ Execute the simulation for a fixed number of steps.
   (world, ant_pos, steps_left, delay_ms) -> {
     print("-----")
     render(world)
-    run_after_step(step(world, ant_pos), steps_left, delay_ms)
+    simulate_after_step(step(world, ant_pos), steps_left, delay_ms)
   }
 )
 
@@ -411,11 +411,11 @@ Run the ants simulation example.
 
 ## Returns
 
-* final `run` result
+* final `simulate` result
 
 ## Examples
 
 ```genia
 main()
 ```
-""" run(seed_world(), ant_start(), 12, 80)
+""" simulate(seed_world(), ant_start(), 12, 80)

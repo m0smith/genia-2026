@@ -83,6 +83,7 @@ Required constraints:
 - parser may treat a string literal as function docstring metadata only for named function definitions after `=`
 - supported docstring string literals include ordinary quoted strings and triple-quoted multiline strings
 - the docstring is metadata, not a runtime expression
+- after docstring metadata, the function body may be either a normal expression or the same parenthesized case-expression form accepted for ordinary function bodies
 - lambdas do not support docstrings
 - docstring text is interpreted as Markdown for `help(...)` display with lightweight formatting only (no full Markdown engine)
 

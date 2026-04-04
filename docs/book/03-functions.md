@@ -67,6 +67,16 @@ Increment a number by one.
 The string is metadata for the named function group, not a normal runtime expression.
 Docstrings are rendered by `help(...)` as lightweight Markdown text.
 Docstrings are allowed for **named functions only** (not lambdas).
+After the docstring, the body can still be either a normal expression or a parenthesized multi-clause case body.
+
+```genia
+sign(n) = """
+# sign
+""" (
+  0 -> 0 |
+  _ -> 1
+)
+```
 
 You can inspect it with:
 

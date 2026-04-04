@@ -63,6 +63,16 @@ Pipeline (Phase 2) rewrite model:
     """ x + 1
     ```
   - docstrings are metadata, not runtime body expressions
+  - function bodies may still use the ordinary parenthesized case-expression style after a docstring
+    - example:
+      ```genia
+      sign(n) = """
+      # sign
+      """ (
+        0 -> 0 |
+        _ -> 1
+      )
+      ```
   - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
 - resolution behavior:
   - exact fixed arity beats varargs
