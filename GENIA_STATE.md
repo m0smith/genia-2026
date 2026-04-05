@@ -32,6 +32,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 ### Core values
 
 - Number
+- Promise
 - Symbol
 - String
 - Boolean
@@ -108,6 +109,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 - literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
 - quote special form: `quote(expr)`
+- delay special form: `delay(expr)`
 - variables
 - function calls
 - unary operators: `-`, `!`
@@ -225,6 +227,17 @@ Pipeline (Phase 2) rewrite model:
 - pair equality is structural
 - SICP-style lists can be represented as pair chains ending in `nil`
 - ordinary list literals remain separate List values in this phase
+
+## 4.3) Promises
+
+- Promise is a real runtime value family
+  - `delay(expr)` is a special form that does not evaluate `expr` immediately
+  - `delay(expr)` captures the lexical environment in the same way closures do
+  - `force(value)` forces promise values and returns non-promise values unchanged
+  - forcing is memoized after the first successful evaluation
+  - if forcing raises, the promise remains unforced and a later `force(...)` retries evaluation
+  - promises are ordinary delayed values and are separate from Flow
+  - promises are reusable and memoized; flows are source-bound, single-use, and pipeline-oriented
 
 ## 5) Case expressions and pattern matching
 

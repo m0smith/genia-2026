@@ -183,6 +183,17 @@ No additional member/index/flow operators should be introduced without explicitl
 - lists built from pairs are chains of pairs ending in `nil`
 - ordinary list literals remain list values in this phase; they do not lower to pairs
 
+## 9.4) Promises
+
+- `delay(expr)` is a special form, not an ordinary function call.
+- `delay(expr)` must not evaluate `expr` eagerly.
+- `delay(expr)` creates a promise value that captures the current lexical environment in the same way closures do.
+- `force(value)` forces a promise once and memoizes the successful result.
+- `force(value)` returns non-promise values unchanged.
+- If promise forcing raises, the promise remains unforced and later `force(...)` calls retry evaluation.
+- Promises are ordinary delayed values and are separate from Flow.
+- Promise forcing is explicit only; no automatic forcing is introduced in this phase.
+
 ## 10) Ref + concurrency runtime guarantees
 
 - refs are synchronized host objects

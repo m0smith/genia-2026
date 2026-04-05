@@ -93,3 +93,73 @@ Expected behavior:
 ### ❌ Not implemented
 
 - dedicated loop keywords beyond existing `repeat`
+
+---
+
+## Delayed recursion with promises
+
+Promises let recursive definitions produce delayed ordinary values.
+
+### Status
+
+✅ Implemented
+
+- delayed recursive pair tails with `delay(expr)`
+- explicit forcing with `force(x)`
+- memoized successful forcing
+
+⚠️ Partial
+
+- delayed recursion is explicit only
+- there is no dedicated stream stdlib in this phase
+
+❌ Not implemented
+
+- automatic forcing
+- lazy list literals
+
+### Minimal example
+
+```genia
+ones() = cons(1, delay(ones()))
+car(force(cdr(ones())))
+```
+
+Expected result:
+
+```genia
+1
+```
+
+### Edge case example
+
+```genia
+{
+  x = 10
+  p = delay(x + 1)
+  x = 20
+  force(p)
+}
+```
+
+Expected result:
+
+```genia
+21
+```
+
+The promise sees the same lexical rebinding model closures see.
+
+### Failure case example
+
+```genia
+{
+  p = delay(car(1))
+  force(p)
+}
+```
+
+Expected behavior:
+
+- forcing raises `TypeError`
+- the promise remains unforced, so a later `force(p)` retries evaluation

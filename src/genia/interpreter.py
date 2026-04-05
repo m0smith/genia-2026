@@ -572,6 +572,12 @@ class Quote(Node):
 
 
 @dataclass
+class Delay(Node):
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
 class Unary(Node):
     op: str
     expr: Node
@@ -739,6 +745,14 @@ class IrQuote(IrNode):
     """Quoted source expression preserved for syntax-to-data conversion."""
 
     expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrDelay(IrNode):
+    """Delayed expression preserved for promise creation."""
+
+    expr: IrNode
     span: SourceSpan | None = None
 
 
@@ -974,6 +988,8 @@ def lower_node(node: Node) -> IrNode:
         return IrVar(node.name, span=node.span)
     if isinstance(node, Quote):
         return IrQuote(node.expr, span=node.span)
+    if isinstance(node, Delay):
+        return IrDelay(lower_node(node.expr), span=node.span)
     if isinstance(node, Unary):
         return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
@@ -1108,6 +1124,8 @@ def quote_node(node: Node) -> Any:
         return symbol(node.name)
     if isinstance(node, Quote):
         return quoted_list([symbol("quote"), quote_node(node.expr)])
+    if isinstance(node, Delay):
+        return quoted_list([symbol("delay"), quote_node(node.expr)])
     if isinstance(node, Unary):
         return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)])
     if isinstance(node, Binary):
@@ -2012,6 +2030,12 @@ class Parser:
             if isinstance(args[0], Spread):
                 raise SyntaxError("quote(...) does not accept spread arguments")
             return Quote(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
+        if isinstance(fn, Var) and fn.name == "delay":
+            if len(args) != 1:
+                raise SyntaxError("delay(...) expects exactly one argument")
+            if isinstance(args[0], Spread):
+                raise SyntaxError("delay(...) does not accept spread arguments")
+            return Delay(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
         return Call(fn, args, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
 
 
@@ -2465,6 +2489,52 @@ class GeniaPair:
 
     def __repr__(self) -> str:
         return f"Pair({self.head!r}, {self.tail!r})"
+
+
+class GeniaPromise:
+    def __init__(
+        self,
+        expr: IrNode,
+        env: "Env",
+        debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS,
+        debug_mode: bool = False,
+    ):
+        self._expr = expr
+        self._env = env
+        self._debug_hooks = debug_hooks
+        self._debug_mode = debug_mode
+        self._forced = False
+        self._forcing = False
+        self._value: Any = None
+
+    def force(self) -> Any:
+        if self._forced:
+            return self._value
+        if self._forcing:
+            raise RuntimeError("Promise is already being forced")
+        self._forcing = True
+        try:
+            value = Evaluator(self._env, self._debug_hooks, self._debug_mode).eval(self._expr)
+        except Exception:
+            self._forcing = False
+            raise
+        self._value = value
+        self._forced = True
+        self._forcing = False
+        return value
+
+    def status(self) -> str:
+        if self._forcing:
+            return "forcing"
+        if self._forced:
+            return "forced"
+        return "delayed"
+
+    def __repr__(self) -> str:
+        return f"<promise {self.status()}>"
+
+    def __str__(self) -> str:
+        return repr(self)
 
 
 _SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
@@ -3122,6 +3192,8 @@ class Evaluator:
             return result
         if isinstance(node, IrQuote):
             return quote_node(node.expr)
+        if isinstance(node, IrDelay):
+            return GeniaPromise(node.expr, self.env, self.debug_hooks, self.debug_mode)
         if isinstance(node, IrVar):
             return self.env.get(node.name)
         if isinstance(node, IrUnary):
@@ -3717,6 +3789,10 @@ Option builtins (phase 1):
   is_some?(option)
   is_none?(option)
 
+Promises:
+  delay(expr)            promise special form (delays evaluation)
+  force(value)           force promise once, or return value unchanged
+
 Pairs:
   cons(x, y)
   car(pair)
@@ -3759,6 +3835,11 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         if len(args) == 1:
             return GeniaRef(args[0])
         raise TypeError(f"ref expected 0 or 1 args, got {len(args)}")
+
+    def force_fn(value: Any) -> Any:
+        if isinstance(value, GeniaPromise):
+            return value.force()
+        return value
 
     def cons_fn(head: Any, tail: Any) -> GeniaPair:
         return GeniaPair(head, tail)
@@ -4206,6 +4287,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("unwrap_or", unwrap_or_fn)
     env.set("is_some?", is_some_fn)
     env.set("is_none?", is_none_fn)
+    env.set("force", force_fn)
     env.set("cons", cons_fn)
     env.set("car", car_fn)
     env.set("cdr", cdr_fn)

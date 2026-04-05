@@ -7,6 +7,7 @@ Genia's current runtime value model is broader than just "plain data".
 ### Core values
 
 - numbers
+- promises
 - symbols
 - strings
 - booleans (`true`, `false`)
@@ -63,6 +64,7 @@ Naming rule today:
 Current consistency note:
 
 - missing values are not represented by one fully unified model today
+- promises are real runtime values but are separate from Flow
 - Flow, output sinks, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
@@ -204,6 +206,88 @@ Expected behavior:
 
 - mutable pairs
 - list literals lowering to pairs
+
+---
+
+## Promises (phase 1)
+
+Genia has explicit delayed values through `delay(expr)` and `force(x)`.
+
+Promises are not Flow values.
+
+- promises delay ordinary expression evaluation
+- successful forcing is memoized
+- forcing is explicit
+- non-promise values pass through `force(...)` unchanged
+
+### Minimal example
+
+```genia
+force(delay(1 + 2))
+```
+
+Expected result:
+
+```genia
+3
+```
+
+### Edge case example
+
+```genia
+{
+  x = 10
+  p = delay(x + 1)
+  x = 20
+  force(p)
+}
+```
+
+Expected result:
+
+```genia
+21
+```
+
+This shows the current lexical-capture rule:
+
+- promises capture the same lexical environment model that closures capture
+- rebinding before the first force is visible when the promise is forced
+
+### Failure case example
+
+```genia
+{
+  p = delay(car(1))
+  force(p)
+}
+```
+
+Expected behavior:
+
+- forcing raises `TypeError`
+- the promise remains unforced, so a later `force(p)` retries instead of returning a cached failure
+
+### Implementation status
+
+### ✅ Implemented
+
+- `delay(expr)` special form
+- `force(x)` builtin
+- memoized forcing after successful evaluation
+- non-promise passthrough in `force`
+- lexical environment capture for delayed expressions
+
+### ⚠️ Partial
+
+- promises are explicit only; Genia does not auto-force
+- promises are separate from Flow and do not provide stream helpers by themselves
+
+### ❌ Not implemented
+
+- quasiquote-driven lazy syntax
+- automatic forcing
+- promise-specific pattern matching
 
 ---
 

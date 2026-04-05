@@ -127,6 +127,7 @@ list = (..xs) -> xs
 
 - functions are dispatched by name + arity shape (fixed arity preferred over varargs)
 - varargs supported in named functions and lambdas via `..rest`
+- `delay(expr)` creates a delayed promise value; `force(x)` forces promises and returns non-promises unchanged
 - named functions may include optional docstring metadata:
   - example:
     ```genia
@@ -145,6 +146,9 @@ list = (..xs) -> xs
   - function parameters are assignable
   - assignment is limited to simple names in this phase
 - calls in tail position are guaranteed to run in constant stack space
+- promises are separate from Flow
+  - promises are memoized delayed ordinary values
+  - Flow remains the single-use pipeline/runtime stream model
 
 ### Pattern matching
 

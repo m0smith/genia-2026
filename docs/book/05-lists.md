@@ -105,6 +105,74 @@ Current note:
 
 ---
 
+## Delayed pair tails
+
+Promises make stream-like pair structures possible without using Flow.
+
+### Status
+
+✅ Implemented
+
+- promises can appear in pair tails
+- `force(cdr(pair))` works
+- successful forcing is memoized
+
+⚠️ Partial
+
+- there is no full stream stdlib in this phase
+- forcing is explicit; tails are not forced automatically
+
+❌ Missing
+
+- lazy list literals
+- stream-specific pattern matching
+
+### Minimal example
+
+```genia
+stream_head(s) = car(s)
+stream_tail(s) = force(cdr(s))
+
+s = cons(1, delay(cons(2, nil)))
+[stream_head(s), car(stream_tail(s))]
+```
+
+Expected result:
+
+```genia
+[1, 2]
+```
+
+### Edge case example
+
+```genia
+ones() = cons(1, delay(ones()))
+s = ones()
+[car(s), car(force(cdr(s))), car(force(cdr(force(cdr(s)))))]
+```
+
+Expected result:
+
+```genia
+[1, 1, 1]
+```
+
+### Failure case example
+
+```genia
+force(cdr(cons(1, 2)))
+```
+
+Expected result:
+
+```genia
+2
+```
+
+This is not an error because `force(x)` returns non-promise values unchanged.
+
+---
+
 ## Option-returning list helpers
 
 Genia now has explicit Option-returning list helpers for maybe-results.

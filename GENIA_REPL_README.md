@@ -50,7 +50,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
-  - core values: Number, Symbol, String, Boolean, `nil`, Pair, `none` / `some(value)`, List, Map
+  - core values: Number, Promise, Symbol, String, Boolean, `nil`, Pair, `none` / `some(value)`, List, Map
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
@@ -59,6 +59,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
+- delay special form: `delay(expr)` for delayed ordinary values
 - variables and lexical assignment (`name = expr`)
   - assignment defines a name in the current scope when none exists in the reachable lexical chain
   - otherwise it updates the nearest existing lexical binding
@@ -121,6 +122,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
   - phase-1 primitive option model: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
+  - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
   - bytes/json/zip bridge builtins (phase 1):
@@ -140,6 +142,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - sinks/materialization: `each`, `run`, `collect`
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+- promises:
+  - `delay(expr)` captures an unevaluated expression plus its lexical environment
+  - `force(promise)` evaluates once and memoizes the successful value
+  - `force(x)` returns non-promise values unchanged
+  - failed forcing leaves the promise unforced, so a later `force(...)` retries
+  - promises are ordinary delayed values and are separate from Flow
 - Option/list notes:
   - `first(list)` remains the legacy non-empty extractor and raises a normal match failure on `[]`
   - `first_opt(list)`, `last(list)`, and `find_opt(predicate, list)` return `none` / `some(value)`
@@ -247,6 +255,49 @@ Failure case:
 ```
 
 - raises `SyntaxError("Assignment target must be a simple name")`
+
+## Promises
+
+Promises support delayed evaluation without using the Flow runtime.
+
+```genia
+force(delay(1 + 2))
+```
+
+Current behavior:
+
+- this returns `3`
+- `delay(expr)` does not evaluate `expr` immediately
+- promises capture lexical scope the same way closures do
+- `force(x)` returns `x` unchanged when `x` is not a promise
+
+Memoization example:
+
+```genia
+{
+  n = 0
+  p = delay({
+    n = n + 1
+    n
+  })
+  [force(p), force(p), force(p)]
+}
+```
+
+- this returns `[1, 1, 1]`
+
+Pair-tail example:
+
+```genia
+ones() = cons(1, delay(ones()))
+car(force(cdr(ones())))
+```
+
+- this returns `1`
+
+Failure case:
+
+- if forcing raises, the promise remains unforced and a later `force(...)` retries evaluation
 
 ## Pairs
 
