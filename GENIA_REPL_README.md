@@ -50,11 +50,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
-  - core values: Number, String, Boolean, List, Map, Function, Module
-  - optionality / absence: `nil`, plus distinct Option values `none` and `some(value)`
+  - core values: Number, String, Boolean, `nil`, `none` / `some(value)`, List, Map
+  - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
-  - runtime capability values: `stdout`, `stderr`, Flow, Ref, Process handle, Bytes wrapper, Zip entry wrapper
+  - runtime capability values: `stdout`, `stderr`, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
   - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, string `find`, `nth`, and `first` remain non-Option, while `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
+  - Option pattern matching supports literal `none` and constructor pattern `some(pattern)`
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - variables and top-level assignment (`name = expr`)

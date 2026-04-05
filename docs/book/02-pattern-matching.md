@@ -324,6 +324,11 @@ Option values can be matched directly with literal and constructor patterns.
 
 These Option values are distinct from `nil`.
 
+Current scope:
+
+- Option constructors are supported in pattern matching (`some(pattern)`)
+- this does not imply general ADT constructor-pattern support in this phase
+
 ### Minimal example
 
 ```genia

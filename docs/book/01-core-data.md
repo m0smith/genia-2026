@@ -14,6 +14,9 @@ Genia's current runtime value model is broader than just "plain data".
 - lists
 - maps
   - map literals and `map_*` builtins produce the same runtime map value family
+
+### Function / module values
+
 - functions
 - modules (`import mod`)
 
@@ -28,7 +31,7 @@ Genia's current runtime value model is broader than just "plain data".
 
 - `stdout`
 - `stderr`
-- Flow
+- Flow (runtime Phase 1 is implemented)
 - refs (`ref`)
 - process handles (`spawn`)
 - **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
@@ -43,10 +46,11 @@ Genia's current runtime value model is broader than just "plain data".
   - callable map lookup (`m(key)`)
   - callable string projector lookup (`"key"(m)`)
   - `cli_option`
-- `string find("abc", "x")`
-- `nth(9, [1, 2])`
+  - `find("abc", "x")`
+  - `nth(9, [1, 2])`
 - `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)` instead
 - `some(nil)` is possible and means the key exists with value `nil`
+- Option pattern matching supports literal `none` and constructor pattern `some(pattern)`
 
 Naming rule today:
 

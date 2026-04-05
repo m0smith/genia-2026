@@ -62,8 +62,8 @@ pytest -q
 
 ### Runtime value categories
 
-- Core values: Number, String, Boolean, List, Map, Function, Module
-- Optionality / absence: `nil`, plus distinct Option values `none` and `some(value)`
+- Core values: Number, String, Boolean, `nil`, `none` / `some(value)`, List, Map
+- Function / module values: Function, Module
 - Callable behaviors:
   - functions/lambdas are callable values
   - maps are callable lookup values
@@ -71,7 +71,7 @@ pytest -q
 - Runtime capability values:
   - `stdout`
   - `stderr`
-  - Flow
+  - Flow (runtime Phase 1 is implemented)
   - Ref
   - Process handle
   - Bytes wrapper
@@ -82,6 +82,7 @@ Current consistency note:
 - maybe/absence behavior is not fully unified yet
 - map lookup, callable map/string lookup, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use non-Option behavior
 - `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
+- `some(pattern)` is supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - Flow and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
 

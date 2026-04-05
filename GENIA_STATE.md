@@ -34,28 +34,21 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Number
 - String
 - Boolean
+- Nil (`nil`)
+- None / Some (`none`, `some(value)`)
 - List
 - Map
   - map literals and `map_*` builtins produce the same runtime map value family
   - map values are persistent and opaque at runtime (`<map N>`)
+
+### Function / module values
+
 - Function
   - named functions are first-class values
   - lambdas evaluate to ordinary callable runtime values
 - Module
   - `import mod` / `import mod as alias` bind module namespace values
   - module values are distinct from maps and are accessed with narrow slash access (`mod/name`)
-
-### Optionality / absence values
-
-- Nil (`nil`)
-  - ordinary runtime null/empty result value
-  - currently also used by several missing-value APIs (`map_get`, map slash access, callable map lookup, callable string projector lookup, `cli_option`)
-- None / Some
-  - `none` is a distinct runtime value, not the same value as `nil`
-  - `some(value)` wraps a present value explicitly
-  - `get?` is the current builtin that returns `none` / `some(value)` instead of legacy `nil`-for-missing behavior
-  - current Option-returning list helpers are `first_opt`, `last`, and `find_opt`
-  - pattern matching supports literal `none` and constructor pattern `some(pattern)`
 
 ### Callable values / callable behaviors
 
@@ -76,9 +69,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `stdout` and `stderr` are first-class host-backed output sink values
   - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
 - Flow
-  - Flow is a real runtime value family (`<flow ...>`), not just pipeline syntax
+  - Flow is a real runtime value family (`<flow ...>`)
+  - Flow runtime (Phase 1) is implemented
   - flows are lazy, pull-based, source-bound, and single-use
-  - Phase 1 flow behavior is runtime-level and value-based; `|>` itself is still only call rewriting
+  - `|>` itself is still only call rewriting
 - Ref
   - refs are synchronized host-backed runtime cells
   - `ref_get` / `ref_update` may block until a value is present
@@ -95,6 +89,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`, string `find`, `nth`, and legacy `first`)
   - option-aware APIs use `none` / `some(value)` (`get?`, `first_opt`, `last`, `find_opt`)
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
+- `some(pattern)` is implemented for Option values in pattern matching.
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
