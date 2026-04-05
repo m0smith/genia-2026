@@ -2769,7 +2769,7 @@ class Evaluator:
                 callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
                 available = ", ".join(f"{callee}/{n}" for n in fn.sorted_arities())
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
-            if tail_position and not self.debug_mode:
+            if tail_position:
                 return TailCall(target, tuple(args))
             return target(*args)
 
@@ -2795,7 +2795,7 @@ class Evaluator:
                 return args[1]
             return target.get(fn)
 
-        if tail_position and not self.debug_mode:
+        if tail_position:
             return TailCall(fn, tuple(args))
         return fn(*args)
 

@@ -118,6 +118,7 @@ Pipeline rewrite invariant:
 - chaining is left-associative
 - rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
 - this is expression-level call rewriting only (no stream runtime semantics)
+- tail position propagates through the final pipeline stage because the lowered call expression inherits the surrounding tail position
 
 
 Slash accessor invariants (phase 1):
@@ -130,6 +131,18 @@ Slash accessor invariants (phase 1):
 - arithmetic division `/` remains available and unchanged for ordinary arithmetic contexts
 
 No additional member/index/flow operators should be introduced without explicitly updating state/rules docs and tests.
+
+## 9.1) Tail-call guarantee
+
+- Genia guarantees proper tail-call optimization for function calls in tail position.
+- A tail-position call must execute in constant stack space.
+- Current runtime implementation uses an explicit trampoline in the evaluator rather than relying on Python recursion.
+- Tail position currently includes:
+  - the direct result of a function body
+  - the result expression of a selected case arm
+  - the final expression in a block
+  - the final pipeline stage after `|>` lowering
+- Non-tail calls are unchanged and may still consume Python stack space.
 
 ## 10) Ref + concurrency runtime guarantees
 

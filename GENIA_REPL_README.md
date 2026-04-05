@@ -64,6 +64,10 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - example: `record |> "name"` behaves like `"name"(record)`
   - lowering/desugaring happens in the AST→Core IR pass
 - function definitions with expression body, block body, or case body
+- proper tail-call optimization for calls in tail position
+  - self tail recursion runs in constant stack space
+  - mutual tail recursion also works through the same trampoline path
+  - non-tail recursion is unchanged and can still hit Python recursion limits
 - optional named-function docstring metadata:
   - `f(x) = """ ... """ x + 1` (multi-line Markdown docstring literal)
   - docstring is attached to function metadata (not evaluated as runtime expression)
@@ -156,6 +160,30 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - `:env`
 - `:quit`
 - `help(name)` to inspect named-function metadata (`name/shape`, source location, rendered docstring, undocumented fallback)
+
+## Tail calls
+
+Tail-position calls are guaranteed to run in constant stack space.
+
+```genia
+sum_to(n, acc) =
+  (n, acc) ? n == 0 -> acc |
+  (n, acc) -> sum_to(n - 1, acc + n)
+
+sum_to(100000, 0)
+```
+
+This works in the current runtime without growing the Python call stack.
+
+Non-tail recursion is different:
+
+```genia
+bad(n) =
+  (n) ? n == 0 -> 0 |
+  (n) -> 1 + bad(n - 1)
+```
+
+This recursive shape is not in tail position and can still hit Python recursion limits.
 
 ## Not implemented (current)
 

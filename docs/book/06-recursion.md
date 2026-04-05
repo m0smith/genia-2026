@@ -32,17 +32,63 @@ Expected behavior:
 - main loop in `examples/tic-tac-toe.genia` (`play` / `playTurn`)
 - simulation stepping loop in `examples/ants.genia` (`run`)
 
+## Tail calls
+
+Genia guarantees proper tail-call optimization for calls in tail position.
+
+### Minimal tail-recursive example
+
+```genia
+sum_to(n, acc) =
+  (n, acc) ? n == 0 -> acc |
+  (n, acc) -> sum_to(n - 1, acc + n)
+```
+
+This shape runs in constant stack space.
+
+### Edge case example
+
+Tail position also includes the final expression in a block and the final stage after pipeline lowering:
+
+```genia
+sum_pipe(acc, n) = {
+  acc
+  |> (
+    n ? n == 0 -> acc |
+    _ -> sum_pipe(acc + n, n - 1)
+  )
+}
+```
+
+The final call to `sum_pipe(...)` is still in tail position.
+
+### Failure case example
+
+```genia
+bad(n) =
+  (n) ? n == 0 -> 0 |
+  (n) -> 1 + bad(n - 1)
+```
+
+Expected behavior:
+
+- this recursive call is not in tail position
+- it can still consume Python stack space and raise `RecursionError`
+
 ## Implementation status
 
 ### ✅ Implemented
 
 - direct recursive functions
 - recursion over list patterns
-- tail-call elimination for self tail recursion in recognized tail positions
+- proper tail-call optimization for calls in tail position
+- self tail recursion
+- mutual tail recursion
 
 ### ⚠️ Partial
 
-- optimization is targeted; not every recursive shape is rewritten to a low-level loop
+- non-tail recursion still uses Python stack space
+- specialized low-level loop rewrites remain targeted to a few narrow shapes such as `nth`
 
 ### ❌ Not implemented
 

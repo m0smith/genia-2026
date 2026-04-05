@@ -14,9 +14,48 @@ def test_self_tail_recursion_large_depth():
       (0, acc) -> acc |
       (n, acc) -> sum_to(n - 1, acc + n)
 
-    sum_to(5000, 0)
+    sum_to(100000, 0)
     """
-    assert run_with_env(src) == 12502500
+    assert run_with_env(src) == 5000050000
+
+
+def test_mutual_tail_recursion_large_depth():
+    src = """
+    even(n) =
+      0 -> true |
+      n -> odd(n - 1)
+
+    odd(n) =
+      0 -> false |
+      n -> even(n - 1)
+
+    even(100000)
+    """
+    assert run_with_env(src) is True
+
+
+def test_tail_call_in_final_pipeline_stage_uses_constant_stack():
+    src = """
+    sum_pipe(acc, n) =
+      (acc, 0) -> acc |
+      (acc, n) -> (n - 1) |> sum_pipe(acc + n)
+
+    sum_pipe(0, 50000)
+    """
+    assert run_with_env(src) == 1250025000
+
+
+def test_tail_call_in_final_block_expression_uses_constant_stack():
+    src = """
+    sum_block(n, acc) {
+      acc
+      (n, acc) ? n == 0 -> acc |
+      (n, acc) -> sum_block(n - 1, acc + n)
+    }
+
+    sum_block(50000, 0)
+    """
+    assert run_with_env(src) == 1250025000
 
 
 def test_non_tail_recursion_still_uses_stack():

@@ -15,6 +15,7 @@ This repository currently provides:
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
 - debug-stdio adapter support for editor integration
 - runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
+- proper tail-call optimization for calls in tail position
 
 ## Quick start
 
@@ -108,6 +109,7 @@ list = (..xs) -> xs
   - `help(name)` renders docstrings with lightweight Markdown-aware formatting
   - official style guide + templates: `docs/book/03-functions.md` ("Official Docstring Style Guide")
 - closures are supported
+- calls in tail position are guaranteed to run in constant stack space
 
 ### Pattern matching
 

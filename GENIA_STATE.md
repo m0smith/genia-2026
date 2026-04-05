@@ -504,11 +504,22 @@ Notable autoloaded functions include:
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
-## 8) Optimization behavior
+## 8) Tail calls and optimization behavior
 
-Implemented optimizations:
+Implemented tail-call/runtime behavior:
 
-- self tail-call elimination via trampoline for tail-position calls
+- proper tail-call optimization is implemented via trampoline evaluation
+- function calls in tail position execute in constant stack space
+- self tail recursion is implemented
+- mutual tail recursion is implemented
+- tail position currently includes:
+  - the direct result of a function body
+  - the selected branch result of a case expression
+  - the final expression in a block
+  - the final pipeline stage after `|>` lowering
+
+Other implemented optimizations:
+
 - specialized nth-style list traversal rewrite to `IrListTraversalLoop` for a narrow recognized recursion shape
 
 Core IR shape currently includes:
