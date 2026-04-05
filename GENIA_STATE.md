@@ -239,6 +239,24 @@ Pipeline (Phase 2) rewrite model:
   - promises are ordinary delayed values and are separate from Flow
   - promises are reusable and memoized; flows are source-bound, single-use, and pipeline-oriented
 
+## 4.4) Streams (stdlib)
+
+- Streams are implemented as a stdlib/prelude layer, not as a runtime value family
+  - a stream node is `cons(head, delay(tail_expr))`
+  - in prelude practice, stream construction is exposed as `stream_cons(head, tail_fn)`
+  - the tail is forced explicitly with `stream_tail(s)` / `force(cdr(s))`
+- current public stream helpers are:
+  - `stream_cons(head, tail_fn)`
+  - `stream_head(s)`
+  - `stream_tail(s)`
+  - `stream_map(f, s)`
+  - `stream_take(n, s)`
+  - `stream_filter(pred, s)`
+- `stream_take` materializes the requested prefix as an ordinary list
+- streams are distinct from Flow:
+  - streams are pure data built from Pair + Promise
+  - Flow is the runtime pipeline/IO model and remains separate
+
 ## 5) Case expressions and pattern matching
 
 Case arms support:

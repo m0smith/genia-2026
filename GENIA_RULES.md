@@ -194,6 +194,19 @@ No additional member/index/flow operators should be introduced without explicitl
 - Promises are ordinary delayed values and are separate from Flow.
 - Promise forcing is explicit only; no automatic forcing is introduced in this phase.
 
+## 9.5) Streams
+
+- Streams are a stdlib abstraction, not a runtime value family.
+- A stream node is built from Pair + Promise:
+  - `cons(head, delay(tail_expr))`
+  - prelude construction is exposed as `stream_cons(head, tail_fn)`
+- Stream tails are forced explicitly with `stream_tail(s)` / `force(cdr(s))`.
+- Current public stream helpers are `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, and `stream_filter`.
+- `stream_take(n, s)` materializes the first `n` items as an ordinary list.
+- Streams remain distinct from Flow:
+  - streams are pure delayed data
+  - Flow is the runtime pipeline/IO model
+
 ## 10) Ref + concurrency runtime guarantees
 
 - refs are synchronized host objects

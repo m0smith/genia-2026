@@ -149,6 +149,9 @@ list = (..xs) -> xs
 - promises are separate from Flow
   - promises are memoized delayed ordinary values
   - Flow remains the single-use pipeline/runtime stream model
+- stdlib streams are implemented on top of pairs + promises
+  - `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
+  - streams are pure delayed data and remain separate from Flow
 
 ### Pattern matching
 

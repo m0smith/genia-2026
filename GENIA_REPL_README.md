@@ -112,6 +112,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first_opt`, `last`, `find_opt`, and `range`
+  - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
@@ -148,6 +149,13 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `force(x)` returns non-promise values unchanged
   - failed forcing leaves the promise unforced, so a later `force(...)` retries
   - promises are ordinary delayed values and are separate from Flow
+- streams (stdlib layer):
+  - stream nodes are built from pairs plus delayed tails
+  - `stream_cons(head, tail_fn)` delays `tail_fn()`
+  - `stream_head` / `stream_tail` expose stream structure
+  - `stream_map` and `stream_filter` build lazy derived streams
+  - `stream_take` materializes a prefix as an ordinary list
+  - streams are distinct from Flow
 - Option/list notes:
   - `first(list)` remains the legacy non-empty extractor and raises a normal match failure on `[]`
   - `first_opt(list)`, `last(list)`, and `find_opt(predicate, list)` return `none` / `some(value)`
@@ -298,6 +306,49 @@ car(force(cdr(ones())))
 Failure case:
 
 - if forcing raises, the promise remains unforced and a later `force(...)` retries evaluation
+
+## Streams
+
+Streams are ordinary delayed data built in stdlib from pairs plus promises.
+
+```genia
+ones() =
+  stream_cons(1, () -> ones())
+
+stream_take(3, ones())
+```
+
+Current behavior:
+
+- this returns `[1, 1, 1]`
+- the stream tail stays delayed until `stream_tail(...)` / `force(...)`
+- streams are reusable pure data, not Flow values
+
+Natural numbers:
+
+```genia
+from(n) =
+  stream_cons(n, () -> from(n + 1))
+
+stream_take(5, from(1))
+```
+
+- this returns `[1, 2, 3, 4, 5]`
+
+Mapped stream:
+
+```genia
+from(n) =
+  stream_cons(n, () -> from(n + 1))
+
+stream_take(5, stream_map((x) -> x * 2, from(1)))
+```
+
+- this returns `[2, 4, 6, 8, 10]`
+
+Failure/edge note:
+
+- `stream_take(1, from(1))` returns `[1]` without trying to realize the rest of the infinite stream
 
 ## Pairs
 

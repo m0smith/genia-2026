@@ -4377,6 +4377,12 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("range", 3, "std/prelude/list.genia")
     env.register_autoload("apply", 2, "std/prelude/fn.genia")
     env.register_autoload("compose", 1, "std/prelude/fn.genia")
+    env.register_autoload("stream_cons", 2, "std/prelude/stream.genia")
+    env.register_autoload("stream_head", 1, "std/prelude/stream.genia")
+    env.register_autoload("stream_tail", 1, "std/prelude/stream.genia")
+    env.register_autoload("stream_map", 2, "std/prelude/stream.genia")
+    env.register_autoload("stream_take", 2, "std/prelude/stream.genia")
+    env.register_autoload("stream_filter", 2, "std/prelude/stream.genia")
 
     env.register_autoload("inc", 1, "std/prelude/math.genia")
     env.register_autoload("dec", 1, "std/prelude/math.genia")

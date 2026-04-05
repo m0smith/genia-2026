@@ -4,6 +4,9 @@ Genia now supports a minimal lazy Flow runtime model for stream-style pipelines.
 
 Flow is a runtime value family, not a parser feature and not a special meaning of `|>` by itself.
 
+This chapter is about runtime Flow values for pipelines and IO.
+It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
+
 ## Flow model
 
 A Flow is:
