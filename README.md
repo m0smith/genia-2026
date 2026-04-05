@@ -11,7 +11,7 @@ This repository currently provides:
 - refs (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
-- autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, cells)
+- autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
 - debug-stdio adapter support for editor integration
 - runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
@@ -72,6 +72,7 @@ pytest -q
 - Runtime capability values:
   - `stdout`
   - `stderr`
+  - MetaEnv
   - Flow (runtime Phase 1 is implemented)
   - Ref
   - Process handle
@@ -85,7 +86,7 @@ Current consistency note:
 - `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
 - `some(pattern)` is supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
-- Flow and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
+- Flow, MetaEnv, and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
 
 ### Programs as Data
 
@@ -133,6 +134,10 @@ list = (..xs) -> xs
 - quoted/quasiquoted data can now be inspected with the syntax helper prelude
   - `self_evaluating?`, `symbol_expr?`, `quoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
   - selectors include `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
+- Genia also now includes a minimal phase-1 metacircular evaluator over quoted expressions
+  - environment helpers: `empty_env`, `lookup`, `define`, `set`, `extend`
+  - evaluator entry: `eval(expr, env)`
+  - `apply(proc, args)` still applies ordinary callables and now also applies metacircular compound procedures
 - named functions may include optional docstring metadata:
   - example:
     ```genia

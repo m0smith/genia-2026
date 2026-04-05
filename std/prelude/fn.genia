@@ -1,8 +1,24 @@
-apply(f, args) = """
+apply(proc, args) = """
 # apply
 
-Call `f` with a list of positional arguments.
-""" f(..args)
+Call `proc` with a list of positional arguments.
+
+This applies ordinary callable values directly.
+
+If `proc` is a metacircular compound procedure produced by `eval`, this also evaluates its body in the captured lexical environment.
+""" apply_dispatch(proc, args)
+
+apply_dispatch(proc, args) =
+  (proc, args) ? _compound_procedure?(proc) == true -> eval(
+    _compound_body(proc),
+    extend(_compound_env(proc), _compound_params(proc), args)
+  ) |
+  (_, args) -> _meta_host_apply(proc, args)
+
+_compound_procedure?(proc) = tagged_list?(proc, quote(compound))
+_compound_params(proc) = car(cdr(proc))
+_compound_body(proc) = car(cdr(cdr(proc)))
+_compound_env(proc) = car(cdr(cdr(cdr(proc))))
 
 compose(..fns) = """
 # compose

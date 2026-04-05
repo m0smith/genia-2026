@@ -2800,6 +2800,73 @@ class GeniaPromise:
         return repr(self)
 
 
+class GeniaMetaEnv:
+    def __init__(self, env: Env):
+        self._env = env
+
+    @property
+    def env(self) -> Env:
+        return self._env
+
+    def lookup(self, name: str) -> Any:
+        try:
+            return self._env.get(name)
+        except NameError:
+            if self._env.try_autoload(name, 0):
+                return self._env.get(name)
+            raise
+
+    def define(self, name: str, value: Any) -> "GeniaMetaEnv":
+        self._env.set(name, value)
+        return self
+
+    def assign(self, name: str, value: Any) -> Any:
+        self._env.assign(name, value)
+        return value
+
+    def extend(self, params: Any, args: list[Any]) -> "GeniaMetaEnv":
+        required, rest = self._parse_params(params)
+        if rest is None:
+            if len(args) != len(required):
+                raise TypeError(f"extend expected {len(required)} args, got {len(args)}")
+        elif len(args) < len(required):
+            raise TypeError(f"extend expected at least {len(required)} args, got {len(args)}")
+
+        child = Env(self._env)
+        for index, name in enumerate(required):
+            child.set(name, args[index])
+        if rest is not None:
+            child.set(rest, args[len(required):])
+        return GeniaMetaEnv(child)
+
+    def _parse_params(self, params: Any) -> tuple[list[str], str | None]:
+        required: list[str] = []
+        rest_name: str | None = None
+        current = params
+        while isinstance(current, GeniaPair):
+            item = current.head
+            if isinstance(item, GeniaSymbol):
+                if rest_name is not None:
+                    raise TypeError("extend expected rest parameter to be final")
+                required.append(item.name)
+            elif _syntax_tagged_list(item, symbol("rest")):
+                if rest_name is not None or current.tail is not None:
+                    raise TypeError("extend expected at most one final rest parameter")
+                rest_value = _syntax_pair_nth(item, 1, "extend")
+                if not isinstance(rest_value, GeniaSymbol):
+                    raise TypeError("extend expected the rest parameter name to be a symbol")
+                rest_name = rest_value.name
+            else:
+                raise TypeError("extend expected lambda parameter data")
+            current = current.tail
+        if current is not None:
+            raise TypeError("extend expected lambda parameter data")
+        return required, rest_name
+
+    def __repr__(self) -> str:
+        return "<meta-env>"
+
+
 _SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
 
 
@@ -3673,6 +3740,77 @@ def make_global_env(
             raise TypeError(f"{name} expected a sink")
         return value
 
+    def _ensure_meta_env(value: Any, name: str) -> GeniaMetaEnv:
+        if not isinstance(value, GeniaMetaEnv):
+            raise TypeError(f"{name} expected a metacircular environment")
+        return value
+
+    def _meta_symbol_name(value: Any, name: str) -> str:
+        if isinstance(value, GeniaSymbol):
+            return value.name
+        if isinstance(value, str):
+            return value
+        raise TypeError(f"{name} expected a symbol or string name")
+
+    def _meta_operator_add(left: Any, right: Any) -> Any:
+        return left + right
+
+    def _meta_operator_sub(*args: Any) -> Any:
+        if len(args) == 1:
+            return -args[0]
+        if len(args) == 2:
+            return args[0] - args[1]
+        raise TypeError(f"- expected 1 or 2 args, got {len(args)}")
+
+    def _meta_operator_mul(left: Any, right: Any) -> Any:
+        return left * right
+
+    def _meta_operator_div(left: Any, right: Any) -> Any:
+        return left / right
+
+    def _meta_operator_mod(left: Any, right: Any) -> Any:
+        return left % right
+
+    def _meta_operator_lt(left: Any, right: Any) -> Any:
+        return left < right
+
+    def _meta_operator_le(left: Any, right: Any) -> Any:
+        return left <= right
+
+    def _meta_operator_gt(left: Any, right: Any) -> Any:
+        return left > right
+
+    def _meta_operator_ge(left: Any, right: Any) -> Any:
+        return left >= right
+
+    def _meta_operator_eq(left: Any, right: Any) -> Any:
+        return left == right
+
+    def _meta_operator_ne(left: Any, right: Any) -> Any:
+        return left != right
+
+    def _meta_operator_not(value: Any) -> Any:
+        return not value
+
+    def _make_meta_env() -> GeniaMetaEnv:
+        base = Env(env, rebind_parent=False)
+        for name, operator in {
+            "+": _meta_operator_add,
+            "-": _meta_operator_sub,
+            "*": _meta_operator_mul,
+            "/": _meta_operator_div,
+            "%": _meta_operator_mod,
+            "<": _meta_operator_lt,
+            "<=": _meta_operator_le,
+            ">": _meta_operator_gt,
+            ">=": _meta_operator_ge,
+            "==": _meta_operator_eq,
+            "!=": _meta_operator_ne,
+            "!": _meta_operator_not,
+        }.items():
+            base.set(name, operator, assignable=False)
+        return GeniaMetaEnv(base)
+
     def _sink_write_display(sink: GeniaOutputSink, value: Any, *, newline: bool) -> Any:
         text = format_display(value)
         if newline:
@@ -3692,6 +3830,41 @@ def make_global_env(
         sink = _ensure_sink(sink_value, "flush")
         sink.flush()
         return None
+
+    def meta_empty_env_fn() -> GeniaMetaEnv:
+        return _make_meta_env()
+
+    def meta_lookup_fn(meta_env_value: Any, name_value: Any) -> Any:
+        meta_env = _ensure_meta_env(meta_env_value, "lookup")
+        return meta_env.lookup(_meta_symbol_name(name_value, "lookup"))
+
+    def meta_define_fn(meta_env_value: Any, name_value: Any, value: Any) -> GeniaMetaEnv:
+        meta_env = _ensure_meta_env(meta_env_value, "define")
+        meta_env.define(_meta_symbol_name(name_value, "define"), value)
+        return meta_env
+
+    def meta_set_fn(meta_env_value: Any, name_value: Any, value: Any) -> Any:
+        meta_env = _ensure_meta_env(meta_env_value, "set")
+        return meta_env.assign(_meta_symbol_name(name_value, "set"), value)
+
+    def meta_extend_fn(meta_env_value: Any, params: Any, args: Any) -> GeniaMetaEnv:
+        meta_env = _ensure_meta_env(meta_env_value, "extend")
+        if not isinstance(args, list):
+            raise TypeError("extend expected a list of argument values")
+        return meta_env.extend(params, args)
+
+    def meta_host_apply_fn(proc: Any, args: Any) -> Any:
+        if not isinstance(args, list):
+            raise TypeError("apply expected a list of positional arguments")
+        return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
+            proc,
+            args,
+            tail_position=False,
+            callee_node=None,
+        )
+
+    def meta_eval_error_fn(expr: Any) -> Any:
+        raise RuntimeError(f"metacircular eval does not support expression: {format_debug(expr)}")
 
     def log(*args: Any) -> Any:
         output = " ".join(format_display(arg) for arg in args)
@@ -4679,6 +4852,13 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("is_some?", is_some_fn)
     env.set("is_none?", is_none_fn)
     env.set("force", force_fn)
+    env.set("_meta_empty_env", meta_empty_env_fn)
+    env.set("_meta_lookup", meta_lookup_fn)
+    env.set("_meta_define", meta_define_fn)
+    env.set("_meta_set", meta_set_fn)
+    env.set("_meta_extend", meta_extend_fn)
+    env.set("_meta_host_apply", meta_host_apply_fn)
+    env.set("_meta_eval_error", meta_eval_error_fn)
     env.set("_syntax_tagged_list", syntax_tagged_list_fn)
     env.set("_syntax_self_evaluating", syntax_self_evaluating_fn)
     env.set("_syntax_symbol_expr", syntax_symbol_expr_fn)
@@ -4810,6 +4990,12 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("operator", 1, "std/prelude/syntax.genia")
     env.register_autoload("operands", 1, "std/prelude/syntax.genia")
     env.register_autoload("block_expressions", 1, "std/prelude/syntax.genia")
+    env.register_autoload("empty_env", 0, "std/prelude/eval.genia")
+    env.register_autoload("lookup", 2, "std/prelude/eval.genia")
+    env.register_autoload("define", 3, "std/prelude/eval.genia")
+    env.register_autoload("set", 3, "std/prelude/eval.genia")
+    env.register_autoload("extend", 3, "std/prelude/eval.genia")
+    env.register_autoload("eval", 2, "std/prelude/eval.genia")
 
     env.register_autoload("inc", 1, "std/prelude/math.genia")
     env.register_autoload("dec", 1, "std/prelude/math.genia")

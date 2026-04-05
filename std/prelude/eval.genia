@@ -1,0 +1,115 @@
+empty_env() = """
+# empty_env
+
+Create a fresh metacircular evaluation environment.
+
+## Returns
+
+* host-backed metacircular environment value
+
+## Notes
+
+* the fresh environment can see current builtins and autoloaded stdlib names
+* ordinary lexical definitions remain local to that environment chain
+""" _meta_empty_env()
+
+lookup(env, name) = """
+# lookup
+
+Look up a symbol in a metacircular evaluation environment.
+
+## Params
+
+* `env`: metacircular environment
+* `name`: symbol or string name
+""" _meta_lookup(env, name)
+
+define(env, name, value) = """
+# define
+
+Define a name in the current metacircular environment frame.
+
+## Returns
+
+* the same environment value
+""" _meta_define(env, name, value)
+
+set(env, name, value) = """
+# set
+
+Rebind the nearest existing lexical name in a metacircular environment chain, or define it in the current frame when missing.
+
+## Returns
+
+* assigned value
+""" _meta_set(env, name, value)
+
+extend(env, params, args) = """
+# extend
+
+Create a child metacircular environment with lambda parameters bound to argument values.
+
+## Notes
+
+* `params` uses the quoted lambda parameter representation
+* `args` must be an ordinary list of evaluated argument values
+""" _meta_extend(env, params, args)
+
+eval(expr, env) = """
+# eval
+
+Evaluate a quoted Genia expression in a metacircular environment.
+
+## Implemented Phase 1 Forms
+
+* self-evaluating literals
+* symbols
+* quoted expressions
+* assignment
+* lambda
+* application
+* blocks
+""" eval_dispatch(expr, env)
+
+eval_dispatch(expr, env) =
+  (expr, env) ? self_evaluating?(expr) == true -> expr |
+  (expr, env) ? symbol_expr?(expr) == true -> lookup(env, expr) |
+  (expr, _) ? quoted_expr?(expr) == true -> text_of_quotation(expr) |
+  (expr, env) ? assignment_expr?(expr) == true -> eval_assignment(expr, env) |
+  (expr, env) ? lambda_expr?(expr) == true -> make_function(expr, env) |
+  (expr, env) ? block_expr?(expr) == true -> eval_block(expr, env) |
+  (expr, env) ? application_expr?(expr) == true -> apply(
+    eval(operator(expr), env),
+    eval_operands(operands(expr), env)
+  ) |
+  (expr, _) -> _meta_eval_error(expr)
+
+eval_assignment(expr, env) =
+  set(env, assignment_name(expr), eval(assignment_value(expr), env))
+
+make_function(expr, env) =
+  cons(
+    quote(compound),
+    cons(
+      lambda_params(expr),
+      cons(
+        lambda_body(expr),
+        cons(env, nil)
+      )
+    )
+  )
+
+eval_operands(ops, env) =
+  (ops, env) ? null?(ops) == true -> [] |
+  (ops, env) -> [eval(car(ops), env), ..eval_operands(cdr(ops), env)]
+
+eval_block(expr, env) =
+  eval_sequence(block_expressions(expr), extend(env, nil, []))
+
+eval_sequence(exprs, env) =
+  (exprs, env) ? null?(exprs) == true -> nil |
+  (exprs, env) ? null?(cdr(exprs)) == true -> eval(car(exprs), env) |
+  (exprs, env) -> {
+    eval(car(exprs), env)
+    eval_sequence(cdr(exprs), env)
+  }

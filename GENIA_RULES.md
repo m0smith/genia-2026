@@ -209,6 +209,37 @@ No additional member/index/flow operators should be introduced without explicitl
   - ordinary quoted pair/list data and application expressions can share the same raw pair shape
   - the helper layer therefore documents application detection as a best-fit rule over the current quoted representation rather than a full surface-syntax classifier
 
+## 9.2.3) Metacircular evaluation
+
+- Genia provides a minimal phase-1 metacircular evaluator over quoted expressions.
+- Public evaluator/environment names are:
+  - `empty_env`
+  - `lookup`
+  - `define`
+  - `set`
+  - `extend`
+  - `eval`
+  - `apply`
+- `eval(expr, env)` currently supports only:
+  - self-evaluating literals
+  - symbol expressions
+  - quoted expressions
+  - assignment expressions
+  - lambda expressions
+  - application expressions
+  - block expressions
+- `eval(expr, env)` must follow current lexical scoping rules through metacircular environments:
+  - `define` binds in the current frame
+  - `set` rebinds the nearest existing lexical name or creates in the current frame when missing
+  - `extend` creates a child lexical environment
+  - closures capture the defining environment
+- metacircular compound procedures are represented as tagged pair data:
+  - `(compound <params> <body> <env>)`
+- `apply(proc, args)` must preserve current ordinary callable behavior and additionally apply metacircular compound procedures.
+- current limitations:
+  - quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
+  - raw quoted pair/list data can still share application shape, so the evaluator is only defined for the supported expression families above
+
 ## 9.3) Pairs
 
 - pairs are immutable two-field runtime values created with `cons`

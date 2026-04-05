@@ -71,6 +71,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
   - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
+- MetaEnv
+  - `empty_env()` returns a host-backed metacircular environment value (`<meta-env>`)
+  - metacircular environments support lexical lookup/definition/rebinding for the phase-1 evaluator layer
 - Flow
   - Flow is a real runtime value family (`<flow ...>`)
   - Flow runtime (Phase 1) is implemented
@@ -101,7 +104,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - functions are callable as functions
   - maps are callable as lookup values
   - strings are callable as map projectors
-- Flow, stdout/stderr, and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
+- Flow, stdout/stderr, MetaEnv, and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
 - lexical assignment currently does not protect builtin/root names from rebinding inside the same root environment; that is real current behavior.
 - The current model is implemented and tested, but it is still piecemeal rather than a single fully unified type/protocol system.
 
@@ -312,6 +315,36 @@ Pipeline (Phase 2) rewrite model:
   - applications
   - blocks
   - match/case expressions
+
+## 4.6) Metacircular evaluator (stdlib)
+
+- Genia now ships a minimal metacircular evaluator layer in `std/prelude/eval.genia`
+- current public evaluator/environment names are:
+  - `empty_env`
+  - `lookup`
+  - `define`
+  - `set`
+  - `extend`
+  - `eval`
+  - `apply` (extended in `std/prelude/fn.genia` to handle metacircular compound procedures as well as ordinary callables)
+- `eval(expr, env)` currently supports these quoted expression families:
+  - self-evaluating literals
+  - symbol/variable expressions
+  - quoted expressions
+  - assignments
+  - lambdas
+  - applications
+  - blocks
+- metacircular environments follow current lexical scoping rules:
+  - `define` binds in the current frame
+  - `set` rebinds the nearest existing lexical name or defines in the current frame when missing
+  - `extend` creates a child lexical environment for lambda application
+  - closures capture the defining metacircular environment
+- metacircular compound procedures are represented as tagged pair data:
+  - `(compound <params> <body> <env>)`
+- current evaluator limitations:
+  - it is intentionally phase-1 only; quoted match/case forms are inspectable but not yet executable through metacircular `eval`
+  - raw quoted pair/list data can still share the same shape as applications, so `eval` is only defined for the supported expression families above
 
 ## 5) Case expressions and pattern matching
 
@@ -648,6 +681,7 @@ Notable autoloaded functions include:
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
 - option-returning list helpers: `first_opt`, `last`, `find_opt`
 - fn: `apply`, `compose`
+- metacircular evaluator: `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`

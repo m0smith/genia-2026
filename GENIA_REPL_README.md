@@ -53,7 +53,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - core values: Number, Promise, Symbol, String, Boolean, `nil`, Pair, `none` / `some(value)`, List, Map
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
-  - runtime capability values: `stdout`, `stderr`, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
+  - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
   - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, string `find`, `nth`, and `first` remain non-Option, while `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
   - Option pattern matching supports literal `none` and constructor pattern `some(pattern)`
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
@@ -115,6 +115,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first_opt`, `last`, `find_opt`, and `range`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
+  - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
   - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
@@ -280,6 +281,45 @@ Current note:
 
 - the helper layer reuses the existing quote/quasiquote representation
 - quoted pair/list data and application expressions can share the same raw pair shape, so `application_expr?` reflects the current stabilized representation rather than every surface-syntax distinction
+
+## Metacircular evaluation
+
+Genia now includes a minimal phase-1 metacircular evaluator over quoted expressions.
+
+Basic evaluation:
+
+```genia
+eval(quote(42), empty_env())
+```
+
+- this returns `42`
+
+Lambda / application example:
+
+```genia
+eval(quote(((x) -> x + 1)(5)), empty_env())
+```
+
+- this returns `6`
+
+Closure example:
+
+```genia
+expr = quote({
+  make_adder = (n) -> (x) -> x + n
+  add5 = make_adder(5)
+  add5(10)
+})
+eval(expr, empty_env())
+```
+
+- this returns `15`
+
+Current limits:
+
+- supported quoted forms are self-evaluating literals, symbols, quotes, assignments, lambdas, applications, and blocks
+- quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
+- raw quoted pair/list data can still share application shape, so `eval` is only defined for the supported expression families
 
 ## String parsing
 

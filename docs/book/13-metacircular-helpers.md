@@ -51,10 +51,8 @@ Selectors:
 
 ### ❌ Not implemented
 
-- the metacircular evaluator itself
-- `eval`
-- `apply`
 - a separate canonical evaluator language
+- perfect surface-form classification for every quoted pair/list shape
 
 ## Minimal example
 
@@ -118,3 +116,5 @@ Current stabilized quoted forms include:
 This layer is intentionally narrow.
 
 It exists to make later evaluator code readable without pretending the current quote model already distinguishes every surface form perfectly.
+
+The phase-1 evaluator now builds directly on these helpers in Chapter 14.

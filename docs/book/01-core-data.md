@@ -34,6 +34,7 @@ Genia's current runtime value model is broader than just "plain data".
 
 - `stdout`
 - `stderr`
+- MetaEnv (`empty_env()`)
 - Flow (runtime Phase 1 is implemented)
 - refs (`ref`)
 - process handles (`spawn`)
@@ -65,7 +66,7 @@ Current consistency note:
 
 - missing values are not represented by one fully unified model today
 - promises are real runtime values but are separate from Flow
-- Flow, output sinks, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
+- Flow, output sinks, MetaEnv values, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
 
@@ -288,8 +289,93 @@ Expected behavior:
 ### ❌ Not implemented
 
 - a separate canonical evaluator language
-- metacircular `eval`
-- metacircular `apply`
+
+---
+
+## Metacircular evaluation (phase 1)
+
+Genia now includes a minimal metacircular evaluator built on the quoted-data model.
+
+Public names:
+
+- `empty_env`
+- `lookup`
+- `define`
+- `set`
+- `extend`
+- `eval`
+- `apply`
+
+### Minimal example
+
+```genia
+eval(quote(42), empty_env())
+```
+
+Expected result:
+
+```genia
+42
+```
+
+### Edge case example
+
+```genia
+expr = quote({
+  make_adder = (n) -> (x) -> x + n
+  add5 = make_adder(5)
+  add5(10)
+})
+eval(expr, empty_env())
+```
+
+Expected result:
+
+```genia
+15
+```
+
+### Failure case example
+
+```genia
+eval(quote(0 -> 1 | _ -> 2), empty_env())
+```
+
+Expected behavior:
+
+- raises a clear runtime error because quoted match/case forms are not yet executable through phase-1 metacircular `eval`
+
+### Implementation status
+
+### ✅ Implemented
+
+- environment helpers:
+  - `empty_env`
+  - `lookup`
+  - `define`
+  - `set`
+  - `extend`
+- metacircular `eval(expr, env)` for:
+  - self-evaluating literals
+  - symbols
+  - quoted expressions
+  - assignments
+  - lambdas
+  - applications
+  - blocks
+- `apply(proc, args)` for:
+  - ordinary callable values
+  - metacircular compound procedures represented as `(compound <params> <body> <env>)`
+
+### ⚠️ Partial
+
+- quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
+- raw quoted pair/list data can still share application shape, so `eval` is only defined for the supported expression families
+
+### ❌ Not implemented
+
+- a full metacircular evaluator for every current surface form
+- metacircular `eval` support for quoted match/case execution
 
 ---
 
