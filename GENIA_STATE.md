@@ -109,6 +109,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 - literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
 - quote special form: `quote(expr)`
+- quasiquote special form: `quasiquote(expr)`
 - delay special form: `delay(expr)`
 - variables
 - function calls
@@ -215,6 +216,17 @@ Pipeline (Phase 2) rewrite model:
   - unary / binary / call forms -> pair chain headed by a symbol
   - quoted identifier map keys become symbols; quoted string map keys stay strings
 - there is no quote sugar (`'x`) in this phase
+- `quasiquote(expr)` is implemented as a special form
+  - it constructs the same runtime data shapes as `quote(expr)`
+  - `unquote(expr)` evaluates `expr` and inserts the result at the nearest active quasiquote depth
+  - nested `quasiquote(...)` forms are depth-sensitive; inner `unquote(...)` applies only to the nearest surrounding quasiquote
+  - `unquote_splicing(expr)` is implemented only for quasiquoted list literal contexts
+  - current `unquote_splicing` input families are:
+    - ordinary list values
+    - `nil`
+    - nil-terminated pair chains
+  - `unquote(...)` and `unquote_splicing(...)` outside quasiquote raise clear runtime errors
+  - `quasiquote(unquote_splicing(...))` is invalid because splicing requires a quasiquoted list context
 
 ## 4.2) Pairs
 

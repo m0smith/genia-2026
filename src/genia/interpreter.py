@@ -578,6 +578,24 @@ class Delay(Node):
 
 
 @dataclass
+class QuasiQuote(Node):
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class Unquote(Node):
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class UnquoteSplicing(Node):
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
 class Unary(Node):
     op: str
     expr: Node
@@ -751,6 +769,30 @@ class IrQuote(IrNode):
 @dataclass
 class IrDelay(IrNode):
     """Delayed expression preserved for promise creation."""
+
+    expr: IrNode
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrQuasiQuote(IrNode):
+    """Quasiquoted source expression preserved for syntax-to-data conversion."""
+
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrUnquote(IrNode):
+    """Unquote special form; only valid during quasiquote processing."""
+
+    expr: IrNode
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrUnquoteSplicing(IrNode):
+    """Unquote-splicing special form; only valid during quasiquote list processing."""
 
     expr: IrNode
     span: SourceSpan | None = None
@@ -990,6 +1032,12 @@ def lower_node(node: Node) -> IrNode:
         return IrQuote(node.expr, span=node.span)
     if isinstance(node, Delay):
         return IrDelay(lower_node(node.expr), span=node.span)
+    if isinstance(node, QuasiQuote):
+        return IrQuasiQuote(node.expr, span=node.span)
+    if isinstance(node, Unquote):
+        return IrUnquote(lower_node(node.expr), span=node.span)
+    if isinstance(node, UnquoteSplicing):
+        return IrUnquoteSplicing(lower_node(node.expr), span=node.span)
     if isinstance(node, Unary):
         return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
@@ -1126,6 +1174,12 @@ def quote_node(node: Node) -> Any:
         return quoted_list([symbol("quote"), quote_node(node.expr)])
     if isinstance(node, Delay):
         return quoted_list([symbol("delay"), quote_node(node.expr)])
+    if isinstance(node, QuasiQuote):
+        return quoted_list([symbol("quasiquote"), quote_node(node.expr)])
+    if isinstance(node, Unquote):
+        return quoted_list([symbol("unquote"), quote_node(node.expr)])
+    if isinstance(node, UnquoteSplicing):
+        return quoted_list([symbol("unquote_splicing"), quote_node(node.expr)])
     if isinstance(node, Unary):
         return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)])
     if isinstance(node, Binary):
@@ -1151,6 +1205,122 @@ def quote_node(node: Node) -> Any:
             header = quoted_list([*params, quoted_list([symbol("rest"), symbol(node.rest_param)])])
         return quoted_list([symbol("lambda"), header, quote_node(node.body)])
     raise TypeError(f"quote does not support node type {type(node).__name__}")
+
+
+@dataclass(frozen=True)
+class _QuasiquoteSplice:
+    items: tuple[Any, ...]
+
+
+def _quasiquote_splice_items(value: Any) -> tuple[Any, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, list):
+        return tuple(value)
+    if isinstance(value, GeniaPair):
+        items: list[Any] = []
+        current: Any = value
+        while isinstance(current, GeniaPair):
+            items.append(current.head)
+            current = current.tail
+        if current is not None:
+            raise TypeError("unquote_splicing expected a list or nil-terminated pair chain")
+        return tuple(items)
+    raise TypeError("unquote_splicing expected a list or nil-terminated pair chain")
+
+
+def quasiquote_node(
+    node: Node,
+    env: "Env",
+    debug_hooks: "DebugHooks | None" = None,
+    debug_mode: bool = False,
+) -> Any:
+    effective_debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
+
+    def quoted_list(items: list[Any]) -> Any:
+        result: Any = None
+        for item in reversed(items):
+            result = GeniaPair(item, result)
+        return result
+
+    def eval_unquoted(expr: Node) -> Any:
+        return Evaluator(env, effective_debug_hooks, debug_mode).eval(lower_node(expr))
+
+    def qq(current: Node, depth: int, *, list_context: bool = False) -> Any:
+        if isinstance(current, Number):
+            return current.value
+        if isinstance(current, String):
+            return current.value
+        if isinstance(current, Boolean):
+            return current.value
+        if isinstance(current, Nil):
+            return None
+        if isinstance(current, NoneOption):
+            return OPTION_NONE
+        if isinstance(current, Var):
+            return symbol(current.name)
+        if isinstance(current, Quote):
+            return quoted_list([symbol("quote"), quote_node(current.expr)])
+        if isinstance(current, Delay):
+            return quoted_list([symbol("delay"), qq(current.expr, depth)])
+        if isinstance(current, QuasiQuote):
+            return quoted_list([symbol("quasiquote"), qq(current.expr, depth + 1)])
+        if isinstance(current, Unquote):
+            if depth == 1:
+                return eval_unquoted(current.expr)
+            return quoted_list([symbol("unquote"), qq(current.expr, depth - 1)])
+        if isinstance(current, UnquoteSplicing):
+            if depth == 1:
+                if not list_context:
+                    raise RuntimeError("unquote_splicing(...) is only valid in quasiquote list context")
+                return _QuasiquoteSplice(_quasiquote_splice_items(eval_unquoted(current.expr)))
+            return quoted_list([symbol("unquote_splicing"), qq(current.expr, depth - 1)])
+        if isinstance(current, Unary):
+            return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[current.op]), qq(current.expr, depth)])
+        if isinstance(current, Binary):
+            return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[current.op]), qq(current.left, depth), qq(current.right, depth)])
+        if isinstance(current, Call):
+            return quoted_list([qq(current.fn, depth), *(qq(arg, depth) for arg in current.args)])
+        if isinstance(current, Block):
+            return quoted_list([symbol("block"), *(qq(expr, depth) for expr in current.exprs)])
+        if isinstance(current, ListLiteral):
+            items: list[Any] = []
+            for item in current.items:
+                if isinstance(item, UnquoteSplicing):
+                    resolved = qq(item, depth, list_context=True)
+                    if isinstance(resolved, _QuasiquoteSplice):
+                        items.extend(resolved.items)
+                    else:
+                        items.append(resolved)
+                    continue
+                if isinstance(item, Spread):
+                    items.append(quoted_list([symbol("spread"), qq(item.expr, depth)]))
+                    continue
+                resolved = qq(item, depth)
+                if isinstance(resolved, _QuasiquoteSplice):
+                    raise RuntimeError("unquote_splicing(...) is only valid in quasiquote list context")
+                items.append(resolved)
+            return quoted_list(items)
+        if isinstance(current, MapLiteral):
+            result = GeniaMap()
+            for key, value in current.items:
+                quoted_value = qq(value, depth)
+                if isinstance(quoted_value, _QuasiquoteSplice):
+                    raise RuntimeError("unquote_splicing(...) is only valid in quasiquote list context")
+                result = result.put(qq(key, depth), quoted_value)
+            return result
+        if isinstance(current, Spread):
+            return quoted_list([symbol("spread"), qq(current.expr, depth)])
+        if isinstance(current, Lambda):
+            params = [symbol(name) for name in current.params]
+            if current.rest_param is None:
+                header: Any = quoted_list(params)
+            else:
+                header = quoted_list([*params, quoted_list([symbol("rest"), symbol(current.rest_param)])])
+            return quoted_list([symbol("lambda"), header, qq(current.body, depth)])
+        raise TypeError(f"quasiquote does not support node type {type(current).__name__}")
+
+    return qq(node, 1)
 
 
 def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
@@ -2036,6 +2206,24 @@ class Parser:
             if isinstance(args[0], Spread):
                 raise SyntaxError("delay(...) does not accept spread arguments")
             return Delay(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
+        if isinstance(fn, Var) and fn.name == "quasiquote":
+            if len(args) != 1:
+                raise SyntaxError("quasiquote(...) expects exactly one argument")
+            if isinstance(args[0], Spread):
+                raise SyntaxError("quasiquote(...) does not accept spread arguments")
+            return QuasiQuote(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
+        if isinstance(fn, Var) and fn.name == "unquote":
+            if len(args) != 1:
+                raise SyntaxError("unquote(...) expects exactly one argument")
+            if isinstance(args[0], Spread):
+                raise SyntaxError("unquote(...) does not accept spread arguments")
+            return Unquote(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
+        if isinstance(fn, Var) and fn.name == "unquote_splicing":
+            if len(args) != 1:
+                raise SyntaxError("unquote_splicing(...) expects exactly one argument")
+            if isinstance(args[0], Spread):
+                raise SyntaxError("unquote_splicing(...) does not accept spread arguments")
+            return UnquoteSplicing(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
         return Call(fn, args, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
 
 
@@ -3192,8 +3380,14 @@ class Evaluator:
             return result
         if isinstance(node, IrQuote):
             return quote_node(node.expr)
+        if isinstance(node, IrQuasiQuote):
+            return quasiquote_node(node.expr, self.env, self.debug_hooks, self.debug_mode)
         if isinstance(node, IrDelay):
             return GeniaPromise(node.expr, self.env, self.debug_hooks, self.debug_mode)
+        if isinstance(node, IrUnquote):
+            raise RuntimeError("unquote(...) is only valid inside quasiquote")
+        if isinstance(node, IrUnquoteSplicing):
+            raise RuntimeError("unquote_splicing(...) is only valid inside quasiquote")
         if isinstance(node, IrVar):
             return self.env.get(node.name)
         if isinstance(node, IrUnary):
@@ -3718,6 +3912,7 @@ Examples:
   square(x) = x * x
   square(5)
   quote([a, b, c])
+  quasiquote([a, unquote(1 + 1), c])
 
   fact(n) =
     0 -> 1 |
@@ -3804,6 +3999,9 @@ Symbols / quote:
   quote(expr)            syntax-to-data special form
   quote(x)               symbol x
   quote([a, 1, "b"])     pair chain ending in nil
+  quasiquote(expr)       quote with selective unquote evaluation
+  unquote(expr)          valid only inside quasiquote
+  unquote_splicing(expr) valid only in quasiquote list literals
 
 String parsing:
   parse_int(string)

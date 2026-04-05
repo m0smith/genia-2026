@@ -128,6 +128,8 @@ list = (..xs) -> xs
 - functions are dispatched by name + arity shape (fixed arity preferred over varargs)
 - varargs supported in named functions and lambdas via `..rest`
 - `delay(expr)` creates a delayed promise value; `force(x)` forces promises and returns non-promises unchanged
+- `quasiquote(expr)` constructs quoted data with selective evaluation via `unquote(...)`
+  - `unquote_splicing(...)` is supported in quasiquoted list contexts
 - named functions may include optional docstring metadata:
   - example:
     ```genia

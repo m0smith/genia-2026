@@ -59,6 +59,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
+- quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
 - variables and lexical assignment (`name = expr`)
   - assignment defines a name in the current scope when none exists in the reachable lexical chain
@@ -203,6 +204,45 @@ Current behavior:
 - quoted list-like forms use pairs ending in `nil`
 - ordinary list literals remain ordinary list values
 - there is no `'x` shorthand in this phase
+
+## Quasiquote
+
+`quasiquote(expr)` constructs the same data representation as `quote(expr)`, but selected parts may be evaluated with `unquote(...)`.
+
+```genia
+x = 10
+quasiquote([a, unquote(x), c])
+```
+
+Current behavior:
+
+- this produces the data form `(a 10 c)`
+- non-unquoted identifiers still become symbols
+- plain subexpressions are not evaluated automatically
+
+Nested quasiquote example:
+
+```genia
+x = 7
+quasiquote([a, quasiquote([b, unquote(x)]), c])
+```
+
+- this produces `(a (quasiquote (b (unquote x))) c)`
+- inner `unquote(x)` belongs to the inner quasiquote, not the outer one
+
+Splicing example:
+
+```genia
+xs = [1, 2]
+quasiquote([a, unquote_splicing(xs), b])
+```
+
+- this produces `(a 1 2 b)`
+
+Failure cases:
+
+- `unquote(1)` outside quasiquote raises a clear runtime error
+- `quasiquote(unquote_splicing(xs))` raises a clear runtime error because splicing is only valid in quasiquoted list context
 
 ## String parsing
 

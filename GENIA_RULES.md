@@ -172,6 +172,23 @@ No additional member/index/flow operators should be introduced without explicitl
 - symbol values print as bare names and are stable map keys
 - there is no `'x` quote sugar in this phase
 
+## 9.2.1) Quasiquotation
+
+- `quasiquote(expr)` is a special form that constructs the same runtime data shapes as `quote(expr)`.
+- `quasiquote(expr)` must not eagerly evaluate ordinary subexpressions.
+- `unquote(expr)` evaluates `expr` and inserts the result at the nearest active quasiquote depth.
+- Nested quasiquote depth is significant:
+  - nested `quasiquote(...)` increases depth
+  - `unquote(...)` only activates at the nearest surrounding quasiquote
+- `unquote_splicing(expr)` is implemented only in quasiquoted list literal contexts.
+- `unquote_splicing(expr)` currently accepts:
+  - ordinary list values
+  - `nil`
+  - nil-terminated pair chains
+- invalid splice values must raise clear `TypeError`
+- `unquote(...)` and `unquote_splicing(...)` outside quasiquote must raise clear runtime errors
+- `quasiquote(unquote_splicing(...))` is invalid because splicing requires a quasiquoted list context
+
 ## 9.3) Pairs
 
 - pairs are immutable two-field runtime values created with `cons`

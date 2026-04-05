@@ -73,7 +73,12 @@ This chapter focuses on the currently implemented data-facing runtime values and
 
 ## Programs as data (phase 1)
 
-Genia has a minimal `quote(expr)` special form for syntax-as-data.
+Genia has:
+
+- `quote(expr)` for syntax-as-data
+- `quasiquote(expr)` for syntax-as-data with selective evaluation
+
+Both produce the same runtime data representation.
 
 - identifier -> symbol
 - number / string / boolean / `nil` / `none` -> literal runtime value
@@ -111,6 +116,49 @@ This shows the current quoted-map key rule:
 - identifier keys become symbol keys
 - string keys stay strings
 
+Quasiquote example:
+
+```genia
+x = 10
+quasiquote([a, unquote(x), c])
+```
+
+Expected result:
+
+```genia
+(a 10 c)
+```
+
+Nested quasiquote example:
+
+```genia
+x = 7
+quasiquote([a, quasiquote([b, unquote(x)]), c])
+```
+
+Expected result:
+
+```genia
+(a (quasiquote (b (unquote x))) c)
+```
+
+This shows the current depth rule:
+
+- `unquote(...)` only applies to the nearest surrounding quasiquote
+
+Splicing example:
+
+```genia
+xs = [1, 2]
+quasiquote([a, unquote_splicing(xs), b])
+```
+
+Expected result:
+
+```genia
+(a 1 2 b)
+```
+
 ### Failure case example
 
 ```genia
@@ -120,6 +168,8 @@ quote(a, b)
 Expected behavior:
 
 - syntax error because `quote(...)` expects exactly one argument
+- `unquote(1)` outside quasiquote raises a clear runtime error
+- `quasiquote(unquote_splicing(xs))` raises a clear runtime error because splicing is only valid in quasiquoted list context
 
 ### Implementation status
 
@@ -127,19 +177,24 @@ Expected behavior:
 
 - first-class symbol runtime values
 - `quote(expr)` special form
+- `quasiquote(expr)` special form
+- `unquote(expr)`
+- `unquote_splicing(expr)` in quasiquoted list literal contexts
 - symbol values distinct from strings
 - recursive quoting for lists and maps
 - operator/call quoting as pair data (`quote(1 + 2)` -> `(+ 1 2)`)
+- depth-sensitive nested quasiquote handling
 
 ### ⚠️ Partial
 
-- only `quote(expr)` is implemented in this phase
+- `unquote_splicing(expr)` is intentionally narrow:
+  - list context only
+  - accepts ordinary lists, `nil`, and nil-terminated pair chains
 
 ### ❌ Not implemented
 
 - `'x` quote sugar
-- quasiquote
-- unquote
+- reader shorthand for quasiquote / unquote / unquote-splicing
 - macros
 
 ---
