@@ -34,6 +34,28 @@ def test_pipeline_is_left_associative(run):
     assert run(src) == 8
 
 
+def test_pipeline_allows_newline_before_pipe_operator(run):
+    src = """
+    inc(x) = x + 1
+    double(x) = x * 2
+    3
+      |> inc
+      |> double
+    """
+    assert run(src) == 8
+
+
+def test_pipeline_allows_newline_after_pipe_operator(run):
+    src = """
+    inc(x) = x + 1
+    double(x) = x * 2
+    3 |>
+      inc |>
+      double
+    """
+    assert run(src) == 8
+
+
 def test_pipeline_nested_in_call_argument(run):
     src = """
     inc(x) = x + 1

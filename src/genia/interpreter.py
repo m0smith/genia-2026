@@ -1339,6 +1339,12 @@ class Parser:
             return self.eat(kind)
         return None
 
+    def next_non_newline_token(self) -> Token:
+        j = self.i
+        while self.tokens[j].kind == "NEWLINE":
+            j += 1
+        return self.tokens[j]
+
     def skip_separators(self) -> None:
         while self.at("NEWLINE", "SEMI"):
             self.i += 1
@@ -1786,6 +1792,13 @@ class Parser:
         left = self.parse_prefix()
         while True:
             tok = self.peek()
+            if tok.kind == "NEWLINE":
+                next_tok = self.next_non_newline_token()
+                if next_tok.kind == "PIPE_FWD":
+                    self.skip_newlines()
+                    tok = self.peek()
+                else:
+                    break
             if tok.kind == "LPAREN":
                 left = self.finish_call(left)
                 continue
@@ -1794,6 +1807,8 @@ class Parser:
                 break
             op = tok.kind
             self.i += 1
+            if op == "PIPE_FWD":
+                self.skip_newlines()
             right = self.parse_expr(prec + 1)
             left = Binary(left, op, right, span=self.merge_spans(left.span, right.span))
         return left

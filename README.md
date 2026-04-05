@@ -235,6 +235,12 @@ person = { name: "Matthew", age: 42 }
 - `x |> f` rewrites to `f(x)`
 - `x |> f(y)` rewrites to `f(y, x)` (append piped value as final argument)
 - left-associative chaining is supported (`a |> f |> g`)
+- multiline formatting around `|>` is supported:
+  ```genia
+  value
+    |> f
+    |> g
+  ```
 - rewrite occurs during AST→Core IR lowering (not as a special runtime node)
 - this rewrite is unchanged even when working with Flow values; streaming behavior is runtime-level, not parser-level
 

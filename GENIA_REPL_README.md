@@ -63,6 +63,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
   - example: `record |> "name"` behaves like `"name"(record)`
+  - multiline formatting is accepted around the operator:
+    ```genia
+    value
+      |> f
+      |> g
+    ```
   - lowering/desugaring happens in the AST→Core IR pass
 - function definitions with expression body, block body, or case body
 - proper tail-call optimization for calls in tail position

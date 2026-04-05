@@ -116,6 +116,7 @@ Pipeline rewrite invariant:
 - `x |> expr` is equivalent to `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` is equivalent to `"name"(record)`
 - chaining is left-associative
+- newlines may appear immediately before `|>` and immediately after `|>` in ordinary expression parsing
 - rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
 - this is expression-level call rewriting only (no stream runtime semantics)
 - tail position propagates through the final pipeline stage because the lowered call expression inherits the surrounding tail position

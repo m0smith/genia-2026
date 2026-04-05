@@ -314,6 +314,12 @@ Rewrite rules (implemented):
 * `x |> expr` becomes `expr(x)` when `expr` is valid in ordinary call-callee position
   * this includes callable data such as string projectors over maps (`record |> "name"` -> `"name"(record)`)
 * chaining is left-associative: `a |> f |> g` becomes `g(f(a))`
+* newlines may appear immediately before or after `|>`:
+  ```genia
+  value
+    |> f
+    |> g
+  ```
 * this rewrite happens in the AST→Core IR lowering pass
 
 ### Minimal example

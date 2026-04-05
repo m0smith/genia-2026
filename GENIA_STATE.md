@@ -129,6 +129,12 @@ Pipeline (Phase 2) rewrite model:
 - `x |> expr` rewrites to `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` rewrites to `"name"(record)`
 - left associative: `a |> f |> g` rewrites to `g(f(a))`
+- newline-separated pipeline formatting is accepted:
+  - `x`
+    `|> f`
+    `|> g`
+  - `x |> `
+    `f |> g`
 - rewrite is performed in the AST→Core IR lowering pass (not by runtime special-casing)
 - no stream runtime semantics are added in this phase
 

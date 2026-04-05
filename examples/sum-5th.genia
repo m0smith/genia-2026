@@ -1,9 +1,8 @@
-fields(row) = """
-# fields
-
-Split a row into whitespace-separated fields and keep the original row first.
-""" [row, ..split_whitespace(row)]
-
-not_nil?(x) = """# not_nil?Predicate for filtering out `nil` values.""" x != nil
-
-stdin |> lines |> map(fields) |> map((x) -> nth(5, x)) |> filter(not_nil?) |> map(parse_int) |> collect |> sum 
+stdin
+  |> lines
+  |> map((row) -> fields(row))
+  |> map((x) -> nth(5, x))
+  |> filter((x) -> !nil?(x))
+  |> map(parse_int)
+  |> collect
+  |> sum

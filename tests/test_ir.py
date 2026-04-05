@@ -117,6 +117,22 @@ def test_pipeline_lowers_to_ir_calls():
     assert inner.args[0].value == 3
 
 
+def test_multiline_pipeline_lowers_to_ir_calls():
+    src = """
+    3
+      |> inc
+      |> double
+    """
+    ast_nodes = Parser(lex(src)).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrCall)
+    assert isinstance(expr_stmt.expr.fn, IrVar)
+    assert expr_stmt.expr.fn.name == "double"
+
+
 def test_lowered_case_keeps_guard_tuple_and_list_patterns():
     src = """
     classify(xs) =
