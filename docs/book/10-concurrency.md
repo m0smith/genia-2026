@@ -1,38 +1,38 @@
 # Chapter 10: Concurrency
 
-Genia currently exposes host-backed concurrency primitives and a small agent helper layer in stdlib.
+Genia currently exposes host-backed concurrency primitives and a small cell helper layer in stdlib.
 
 ## Minimal example
 
 ```genia
-counter = agent(0)
-agent_send(counter, (n) -> n + 1)
-agent_get(counter)
+counter = cell(0)
+cell_send(counter, (n) -> n + 1)
+cell_get(counter)
 ```
 
 ## Edge case example
 
 ```genia
-a = agent("idle")
-agent_alive?(a) -> true
+a = cell("idle")
+cell_alive?(a) -> true
 ```
 
 ## Failure case example
 
 ```genia
-agent_send(["not", "an", "agent"], (x) -> x)
+cell_send(["not", "a", "cell"], (x) -> x)
 ```
 
 Expected behavior:
 
-- runtime pattern-match failure because the input does not match the agent tuple shape.
+- runtime pattern-match failure because the input does not match the cell tuple shape.
 
 ## Current model
 
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` checks worker liveness
-- stdlib agent helpers: `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
+- stdlib cell helpers: `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
 
 ## Implementation status
 
@@ -40,7 +40,7 @@ Expected behavior:
 
 - host-backed process handles and message sending
 - serialized handler execution per process
-- agent abstraction in stdlib
+- cell abstraction in stdlib
 
 ### ⚠️ Partial
 

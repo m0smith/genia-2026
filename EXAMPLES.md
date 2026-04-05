@@ -274,14 +274,14 @@ Characteristics:
 - recursive stepping with `sleep(ms)` pacing
 - plain text rendering only
 
-## 8.3 Simple Counter Agent
+## 8.3 Simple Counter Cell
 
 ```genia
-counter = agent(0)
-agent_send(counter, (n) -> n + 1)
-agent_send(counter, (n) -> n + 1)
-agent_send(counter, (n) -> n + 1)
-agent_get(counter)
+counter = cell(0)
+cell_send(counter, (n) -> n + 1)
+cell_send(counter, (n) -> n + 1)
+cell_send(counter, (n) -> n + 1)
+cell_get(counter)
 ```
 
 Result (after mailbox drains):
@@ -549,7 +549,7 @@ These examples demonstrate:
 * Pattern matching (including nested and duplicate bindings)
 * List destructuring with rest patterns
 * Lambda functions and closures
-* Processes, refs, and agents for host-backed concurrency
+* Processes, refs, and cells for host-backed concurrency
 * Blocks and evaluation order
 * Higher-order functions
 * Autoloaded standard library

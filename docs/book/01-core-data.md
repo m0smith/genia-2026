@@ -635,7 +635,7 @@ Expected behavior (demo grid wrapping):
 ### ❌ Not implemented
 
 - actor/scheduler-based simulation runtime
-- native language abstractions for agents, ticks, or worlds
+- native language abstractions for cells, ticks, or worlds
 - native map syntax for simulation state authoring
 
 ---

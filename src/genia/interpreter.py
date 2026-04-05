@@ -3863,11 +3863,11 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("awk_map", 2, "std/prelude/awk.genia")
     env.register_autoload("awk_count", 2, "std/prelude/awk.genia")
     env.register_autoload("fields", 1, "std/prelude/awk.genia")
-    env.register_autoload("agent", 1, "std/prelude/agent.genia")
-    env.register_autoload("agent_send", 2, "std/prelude/agent.genia")
-    env.register_autoload("agent_get", 1, "std/prelude/agent.genia")
-    env.register_autoload("agent_state", 1, "std/prelude/agent.genia")
-    env.register_autoload("agent_alive?", 1, "std/prelude/agent.genia")
+    env.register_autoload("cell", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_send", 2, "std/prelude/cell.genia")
+    env.register_autoload("cell_get", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_state", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_alive?", 1, "std/prelude/cell.genia")
     return env
 
 

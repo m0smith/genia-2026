@@ -23,10 +23,10 @@ To expose `receive()` safely, the runtime would need at least:
 That is additional complexity in core runtime semantics compared with the current single-message handler contract.
 
 ### 3. Current libraries already cover the main stateful-worker use case
-The prelude `agent` abstraction is already thin and effective:
-- agent state is held in a `ref`
+The prelude `cell` abstraction is already thin and effective:
+- cell state is held in a `ref`
 - worker is `spawn((update) -> ref_update(state, update))`
-- `agent_send` and `agent_get` compose well
+- `cell_send` and `cell_get` compose well
 
 This means common serialized-state workflows are already solved without a new primitive.
 

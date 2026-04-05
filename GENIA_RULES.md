@@ -137,6 +137,12 @@ No additional member/index/flow operators should be introduced without explicitl
 - process mailbox handling is FIFO per process
 - one handler invocation at a time per process
 - concurrency remains host-backed (threads), not language-scheduled
+- stdlib cell helpers are a library-level convention over these primitives:
+  - `cell(initial)` / `cell_with_state(ref_value)`
+  - `cell_send(cell, update)`
+  - `cell_get(cell)` / `cell_state(cell)`
+  - `cell_alive?(cell)`
+  - current tuple/tag shape is `["cell", state_ref, worker_process]`
 
 ## 11) Host-backed persistent map invariants
 

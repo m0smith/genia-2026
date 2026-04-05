@@ -11,7 +11,7 @@ This repository currently provides:
 - refs (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
-- autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, agents)
+- autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
 - debug-stdio adapter support for editor integration
 - runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
@@ -238,18 +238,18 @@ flush(stdout)
 - `input()` remains independent of `stdin`
 - broken pipe on `stdout` output in Unix pipelines is treated as normal downstream termination
 
-### Concurrency and agents
+### Concurrency and cells
 
 ```genia
-counter = agent(0)
-agent_send(counter, (n) -> n + 1)
-agent_get(counter)
+counter = cell(0)
+cell_send(counter, (n) -> n + 1)
+cell_get(counter)
 ```
 
 - `spawn(handler)` creates a host-thread worker with FIFO mailbox
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` reports worker liveness
-- prelude provides `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
+- prelude provides `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
 
 ## Builtins
 
@@ -361,7 +361,7 @@ rewrite_zip(in_path, out_path) =
 - fn helpers: `apply`, `compose`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
-- agents: `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
+- cells: `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
 
 ## Not implemented yet
 

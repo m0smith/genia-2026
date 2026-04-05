@@ -44,19 +44,19 @@ def test_example_ref_used_with_process():
     wait_for(env, "ref_get(total)", 13)
 
 
-def test_example_simple_counter_agent():
+def test_example_simple_counter_cell():
     env = make_global_env([])
     run_source(
         '''
-        counter = agent(0)
-        agent_send(counter, (n) -> n + 1)
-        agent_send(counter, (n) -> n + 1)
-        agent_send(counter, (n) -> n + 1)
+        counter = cell(0)
+        cell_send(counter, (n) -> n + 1)
+        cell_send(counter, (n) -> n + 1)
+        cell_send(counter, (n) -> n + 1)
         ''',
         env,
     )
 
-    wait_for(env, "agent_get(counter)", 3)
+    wait_for(env, "cell_get(counter)", 3)
 
 
 def test_example_logging_background_worker_pattern():

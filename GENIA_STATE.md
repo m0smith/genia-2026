@@ -451,7 +451,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 - `std/prelude/fn.genia`
 - `std/prelude/math.genia`
 - `std/prelude/awk.genia`
-- `std/prelude/agent.genia`
+- `std/prelude/cell.genia`
 
 Loading behavior:
 
@@ -467,7 +467,7 @@ Notable autoloaded functions include:
 - fn: `apply`, `compose`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
-- agent: `agent`, `agent_send`, `agent_get`, `agent_state`, `agent_alive?`
+- cell: `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Optimization behavior
