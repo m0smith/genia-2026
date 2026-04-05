@@ -348,6 +348,19 @@ main() = print("Hello world")
 - `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`
 - `find`, `split`, `split_whitespace`, `join`
 - `trim`, `trim_start`, `trim_end`, `lower`, `upper`
+- `parse_int`
+
+Examples:
+
+```genia
+parse_int("42")
+parse_int("ff", 16)
+```
+
+- base 10 by default
+- explicit base supported in `2..36`
+- surrounding whitespace is ignored
+- invalid text raises `ValueError`
 
 ### Concurrency
 

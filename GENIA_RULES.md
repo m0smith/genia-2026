@@ -232,12 +232,22 @@ No additional member/index/flow operators should be introduced without explicitl
 - current Option-returning list helpers are `first_opt`, `last`, and `find_opt`
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
 
+## 11.3) String builtin invariants
+
+- `parse_int(string)` parses base-10 integers from strings
+- `parse_int(string, base)` parses with explicit base in `2..36`
+- `parse_int` ignores surrounding whitespace and supports leading `+` / `-`
+- invalid integer text must raise clear `ValueError`
+- non-string input must raise clear `TypeError`
+- invalid base type must raise clear `TypeError`
+- out-of-range base must raise clear `ValueError`
+
 ## 12) Error behavior
 
 - unmatched function/case dispatch should raise deterministic runtime errors
 - invalid grammar forms should fail during parse with syntax errors
 - type-invalid builtins (e.g., non-list spread) should raise clear `TypeError`
-- value-invalid builtins should raise clear `ValueError` where appropriate (e.g., `rand_int(0)`, `sleep(-1)`)
+- value-invalid builtins should raise clear `ValueError` where appropriate (e.g., `rand_int(0)`, `sleep(-1)`, `parse_int("12x")`)
 
 ## 13) Simulation primitive builtins (host-backed only)
 

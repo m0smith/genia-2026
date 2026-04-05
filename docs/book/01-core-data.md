@@ -276,6 +276,56 @@ Expected behavior:
 
 ---
 
+## String parsing
+
+Genia includes a small explicit integer parser:
+
+- `parse_int(string)`
+- `parse_int(string, base)`
+
+### Minimal example
+
+```genia
+parse_int("42")
+```
+
+Expected result:
+
+```genia
+42
+```
+
+### Edge case example
+
+```genia
+[parse_int("  -17  "), parse_int("ff", 16), parse_int("101010", 2)]
+```
+
+Expected result:
+
+```genia
+[-17, 255, 42]
+```
+
+### Failure case example
+
+```genia
+parse_int("12x")
+```
+
+Expected behavior:
+
+- raises `ValueError` because the string is not a valid base-10 integer
+
+Additional current rules:
+
+- surrounding whitespace is ignored
+- leading `+` / `-` is supported
+- explicit base must be in `2..36`
+- non-string input raises `TypeError`
+
+---
+
 ## Phase 1 map bridge (what it is)
 
 Genia now has minimal map literals and map patterns, and still exposes the runtime/builtin bridge APIs directly.

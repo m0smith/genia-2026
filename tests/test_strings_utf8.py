@@ -81,6 +81,36 @@ def test_basic_case_conversion_ascii_only():
     assert _run('upper("abc")') == "ABC"
 
 
+def test_parse_int_decimal_and_signed_whitespace_cases():
+    assert _run('parse_int("42")') == 42
+    assert _run('parse_int("  -17  ")') == -17
+    assert _run('parse_int("+9")') == 9
+
+
+def test_parse_int_with_explicit_base():
+    assert _run('parse_int("ff", 16)') == 255
+    assert _run('parse_int("101010", 2)') == 42
+    assert _run('parse_int("z", 36)') == 35
+
+
+def test_parse_int_rejects_non_string_and_bad_base():
+    with pytest.raises(TypeError, match="parse_int expected a string"):
+        _run("parse_int(42)")
+    with pytest.raises(TypeError, match="parse_int expected an integer base"):
+        _run('parse_int("10", "2")')
+    with pytest.raises(ValueError, match="parse_int expected base in 2..36"):
+        _run('parse_int("10", 1)')
+
+
+def test_parse_int_rejects_empty_and_invalid_digits():
+    with pytest.raises(ValueError, match="parse_int expected a non-empty integer string"):
+        _run('parse_int("   ")')
+    with pytest.raises(ValueError, match=r"parse_int invalid integer: '12x'"):
+        _run('parse_int("12x")')
+    with pytest.raises(ValueError, match=r"parse_int invalid integer for base 2: '102'"):
+        _run('parse_int("102", 2)')
+
+
 def test_print_displays_string_content_without_quotes():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)

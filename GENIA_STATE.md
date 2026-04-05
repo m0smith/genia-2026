@@ -475,7 +475,18 @@ Pattern matching note:
 - `contains`, `starts_with`, `ends_with`, `find`
 - `split`, `split_whitespace`, `join`
 - `trim`, `trim_start`, `trim_end`
-- `lower`, `upper`
+- `lower`, `upper`, `parse_int`
+
+`parse_int` behavior:
+
+- `parse_int(string)` parses base-10 integers
+- `parse_int(string, base)` parses using explicit base `2..36`
+- surrounding whitespace is ignored
+- leading `+` / `-` is supported
+- invalid text raises clear `ValueError`
+- non-string input raises clear `TypeError`
+- invalid base type raises clear `TypeError`
+- out-of-range base raises clear `ValueError`
 
 ### Bytes / JSON / ZIP bridge builtins (Phase 1, host-backed)
 

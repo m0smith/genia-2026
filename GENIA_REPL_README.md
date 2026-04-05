@@ -118,7 +118,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `json_parse`, `json_pretty`
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
-  - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`
+  - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - constants: `pi`, `e`, `true`, `false`, `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
@@ -177,6 +177,25 @@ Current behavior:
 - quoted list-like forms use pairs ending in `nil`
 - ordinary list literals remain ordinary list values
 - there is no `'x` shorthand in this phase
+
+## String parsing
+
+`parse_int` turns strings into integers with explicit, predictable rules.
+
+```genia
+parse_int("42")
+parse_int("  -17  ")
+parse_int("ff", 16)
+```
+
+Current behavior:
+
+- `parse_int(string)` uses base 10
+- `parse_int(string, base)` accepts bases `2..36`
+- surrounding whitespace is ignored
+- leading `+` / `-` is supported
+- invalid text raises `ValueError`
+- non-string input raises `TypeError`
 
 ## Pairs
 

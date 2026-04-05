@@ -3367,6 +3367,28 @@ def make_global_env(
     def upper_fn(value: Any) -> str:
         return _ensure_string(value, "upper").upper()
 
+    def parse_int_fn(*args: Any) -> int:
+        if len(args) not in (1, 2):
+            raise TypeError(f"parse_int expected 1 or 2 args, got {len(args)}")
+        text = _ensure_string(args[0], "parse_int")
+        base = 10
+        if len(args) == 2:
+            base = args[1]
+            if not isinstance(base, int) or isinstance(base, bool):
+                raise TypeError("parse_int expected an integer base")
+            if base < 2 or base > 36:
+                raise ValueError("parse_int expected base in 2..36")
+
+        stripped = text.strip()
+        if stripped == "":
+            raise ValueError("parse_int expected a non-empty integer string")
+        try:
+            return int(stripped, base)
+        except ValueError as exc:
+            if len(args) == 1:
+                raise ValueError(f"parse_int invalid integer: {text!r}") from exc
+            raise ValueError(f"parse_int invalid integer for base {base}: {text!r}") from exc
+
     def input_fn(prompt: str = "") -> str:
         return input(prompt)
 
@@ -3652,6 +3674,10 @@ Symbols / quote:
   quote(expr)            syntax-to-data special form
   quote(x)               symbol x
   quote([a, 1, "b"])     pair chain ending in nil
+
+String parsing:
+  parse_int(string)
+  parse_int(string, base)
 
 Simulation primitives (host-backed builtins):
   rand()                float in [0, 1)
@@ -4172,6 +4198,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("trim_end", trim_end_fn)
     env.set("lower", lower_fn)
     env.set("upper", upper_fn)
+    env.set("parse_int", parse_int_fn)
     env.set("utf8_decode", utf8_decode_fn)
     env.set("utf8_encode", utf8_encode_fn)
     env.set("json_parse", json_parse_fn)
