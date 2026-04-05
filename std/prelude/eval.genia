@@ -60,13 +60,14 @@ eval(expr, env) = """
 
 Evaluate a quoted Genia expression in a metacircular environment.
 
-## Implemented Phase 1 Forms
+## Implemented Forms
 
 * self-evaluating literals
 * symbols
 * quoted expressions
 * assignment
 * lambda
+* match/case (as metacircular matcher procedures over argument tuples)
 * application
 * blocks
 """ eval_dispatch(expr, env)
@@ -77,6 +78,7 @@ eval_dispatch(expr, env) =
   (expr, _) ? quoted_expr?(expr) == true -> text_of_quotation(expr) |
   (expr, env) ? assignment_expr?(expr) == true -> eval_assignment(expr, env) |
   (expr, env) ? lambda_expr?(expr) == true -> make_function(expr, env) |
+  (expr, env) ? match_expr?(expr) == true -> make_matcher(expr, env) |
   (expr, env) ? block_expr?(expr) == true -> eval_block(expr, env) |
   (expr, env) ? application_expr?(expr) == true -> apply(
     eval(operator(expr), env),
@@ -96,6 +98,15 @@ make_function(expr, env) =
         lambda_body(expr),
         cons(env, nil)
       )
+    )
+  )
+
+make_matcher(expr, env) =
+  cons(
+    quote(matcher),
+    cons(
+      expr,
+      cons(env, nil)
     )
   )
 

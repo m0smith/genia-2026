@@ -9,16 +9,55 @@ If `proc` is a metacircular compound procedure produced by `eval`, this also eva
 """ apply_dispatch(proc, args)
 
 apply_dispatch(proc, args) =
+  (proc, args) ? _match_procedure?(proc) == true -> _apply_match_procedure(proc, args) |
   (proc, args) ? _compound_procedure?(proc) == true -> eval(
     _compound_body(proc),
     extend(_compound_env(proc), _compound_params(proc), args)
   ) |
   (_, args) -> _meta_host_apply(proc, args)
 
+_match_procedure?(proc) = tagged_list?(proc, quote(matcher))
+_match_expr(proc) = car(cdr(proc))
+_match_env(proc) = car(cdr(cdr(proc)))
+
 _compound_procedure?(proc) = tagged_list?(proc, quote(compound))
 _compound_params(proc) = car(cdr(proc))
 _compound_body(proc) = car(cdr(cdr(proc)))
 _compound_env(proc) = car(cdr(cdr(cdr(proc))))
+
+_apply_match_procedure(proc, args) =
+  _eval_match_branches(match_branches(_match_expr(proc)), args, _match_env(proc), _match_expr(proc))
+
+_eval_match_branches(branchs, args, env, expr) =
+  (branchs, _, _, expr) ? null?(branchs) == true -> _meta_match_error(expr, args) |
+  (branchs, args, env, expr) -> _eval_match_branch(car(branchs), cdr(branchs), args, env, expr)
+
+_eval_match_branch(branch, rest, args, env, expr) =
+  _eval_match_branch_result(
+    _meta_match_pattern_env(env, branch_pattern(branch), args),
+    branch,
+    rest,
+    args,
+    env,
+    expr
+  )
+
+_eval_match_branch_result(result, branch, rest, args, env, expr) =
+  (none, _, rest, args, env, expr) -> _eval_match_branches(rest, args, env, expr) |
+  (some(branch_env), branch, rest, args, env, expr) ? branch_has_guard?(branch) == true -> _eval_guarded_branch(
+    eval(branch_guard(branch), branch_env),
+    branch,
+    branch_env,
+    rest,
+    args,
+    env,
+    expr
+  ) |
+  (some(branch_env), branch, _, _, _, _) -> eval(branch_body(branch), branch_env)
+
+_eval_guarded_branch(guard_value, branch, branch_env, rest, args, env, expr) =
+  (true, branch, branch_env, _, _, _, _) -> eval(branch_body(branch), branch_env) |
+  (_, _, _, rest, args, env, expr) -> _eval_match_branches(rest, args, env, expr)
 
 compose(..fns) = """
 # compose

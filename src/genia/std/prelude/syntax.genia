@@ -67,6 +67,36 @@ match_expr?(expr) = """
 Check whether `expr` is a quoted pattern-match form `(match ...)`.
 """ _syntax_match_expr(expr)
 
+match_branches(expr) = """
+# match_branches
+
+Return the quoted branch sequence of a match expression.
+""" _syntax_match_branches(expr)
+
+branch_pattern(branch) = """
+# branch_pattern
+
+Return the quoted pattern of a match branch.
+""" _syntax_branch_pattern(branch)
+
+branch_has_guard?(branch) = """
+# branch_has_guard?
+
+Check whether a quoted match branch carries a guard expression.
+""" _syntax_branch_has_guard(branch)
+
+branch_guard(branch) = """
+# branch_guard
+
+Return the quoted guard of a guarded match branch.
+""" _syntax_branch_guard(branch)
+
+branch_body(branch) = """
+# branch_body
+
+Return the quoted result/body expression of a match branch.
+""" _syntax_branch_body(branch)
+
 text_of_quotation(expr) = """
 # text_of_quotation
 
