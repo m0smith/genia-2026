@@ -25,11 +25,11 @@ def test_quote_nested_lists_preserve_symbols_and_structure():
 
 def test_quote_does_not_evaluate_binary_expressions(run):
     assert run("quote(1 + 2) != 3") is True
-    assert format_debug(_run("quote(1 + 2)")) == "(+ 1 2)"
+    assert format_debug(_run("quote(1 + 2)")) == "(app + 1 2)"
 
 
 def test_quote_call_represents_program_as_data():
-    assert format_debug(_run("quote(add(1, x))")) == "(add 1 x)"
+    assert format_debug(_run("quote(add(1, x))")) == "(app add 1 x)"
 
 
 def test_quote_preserves_identifier_and_string_map_keys():

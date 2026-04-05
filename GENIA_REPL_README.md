@@ -199,11 +199,12 @@ Current behavior:
 
 - `quote(x)` returns a symbol value distinct from the string `"x"`
 - `quote([a, [b, c]])` returns nested pair chains of symbols
-- `quote(1 + 2)` returns the data form `(+ 1 2)`, not `3`
+- `quote(1 + 2)` returns the data form `(app + 1 2)`, not `3`
 - quoted maps preserve key shape:
   - `quote({a: 1})` uses symbol key `a`
   - `quote({"a": 1})` uses string key `"a"`
 - quoted list-like forms use pairs ending in `nil`
+- quoted source applications use the explicit tag form `(app operator operand1 operand2 ...)`
 - ordinary list literals remain ordinary list values
 - there is no `'x` shorthand in this phase
 
@@ -263,10 +264,12 @@ Application inspection:
 ```genia
 operator(quote(f(1, 2)))
 operands(quote(f(1, 2)))
+application_expr?(quote([f, 1, 2]))
 ```
 
 - `operator(...)` returns `f`
 - `operands(...)` returns `(1 2)` as the current quoted operand tail
+- `application_expr?(quote([f, 1, 2]))` returns `false`
 
 Assignment inspection:
 
@@ -280,7 +283,8 @@ assignment_value(quote(x = 10))
 Current note:
 
 - the helper layer reuses the existing quote/quasiquote representation
-- quoted pair/list data and application expressions can share the same raw pair shape, so `application_expr?` reflects the current stabilized representation rather than every surface-syntax distinction
+- quoted source applications use the explicit `(app ...)` tag
+- quoted pair/list data remain plain data and are not classified as applications
 
 ## Metacircular evaluation
 
@@ -319,7 +323,7 @@ Current limits:
 
 - supported quoted forms are self-evaluating literals, symbols, quotes, assignments, lambdas, applications, and blocks
 - quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
-- raw quoted pair/list data can still share application shape, so `eval` is only defined for the supported expression families
+- `eval` is only defined for the supported expression families
 
 ## String parsing
 

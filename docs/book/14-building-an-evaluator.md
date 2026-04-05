@@ -93,8 +93,8 @@ Expected behavior:
 
 - the evaluator operates only on the supported quoted expression families above
 - quoted match/case forms are inspectable but not executable yet
-- raw quoted pair/list data can still share the same raw shape as quoted applications
 - the evaluator relies on a host-backed metacircular environment capability instead of a pure-Genia environment implementation
+- `operands(...)` and `block_expressions(...)` still return pair-chain sequences rather than normalized ordinary lists
 
 ### ❌ Not implemented
 
@@ -104,6 +104,7 @@ Expected behavior:
 
 ## Notes
 
+- quoted source applications reach the evaluator as `(app <operator> <operand1> ...)`
 - `define` binds in the current metacircular environment frame
 - `set` follows current lexical rebinding rules: nearest existing binding first, otherwise current frame
 - `extend` creates a child lexical environment and is used by metacircular `apply`

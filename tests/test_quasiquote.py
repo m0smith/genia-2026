@@ -31,7 +31,7 @@ def test_quasiquote_nested_structure():
 
 def test_quasiquote_does_not_evaluate_plain_expression(run):
     assert run("quasiquote(1 + 2) != 3") is True
-    assert format_debug(_run("quasiquote(1 + 2)")) == "(+ 1 2)"
+    assert format_debug(_run("quasiquote(1 + 2)")) == "(app + 1 2)"
 
 
 def test_unquote_outside_quasiquote_fails(run):
@@ -90,3 +90,11 @@ def test_invalid_unquote_splicing_usage_fails(run):
 def test_invalid_unquote_splicing_value_type_fails(run):
     with pytest.raises(TypeError, match="unquote_splicing expected a list or nil-terminated pair chain"):
         run("quasiquote([a, unquote_splicing(1), b])")
+
+
+def test_quasiquote_application_uses_stable_app_tag():
+    src = """
+    x = 10
+    quasiquote(f(unquote(x), 2))
+    """
+    assert format_debug(_run(src)) == "(app f 10 2)"

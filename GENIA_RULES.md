@@ -167,7 +167,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - number / string / boolean / `nil` / `none` -> corresponding literal runtime value
   - list literal -> pair chain ending in `nil`
   - map literal -> map of quoted keys and quoted values
-  - unary / binary / call forms -> pair chain headed by a symbol
+  - unary / binary / call forms -> tagged application pair chain `(app <operator> <arg1> ...)`
 - quoted identifier map keys remain symbols; quoted string map keys remain strings
 - symbol values print as bare names and are stable map keys
 - there is no `'x` quote sugar in this phase
@@ -196,6 +196,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - Current stabilized quoted tags are:
   - `(quote <expr>)`
   - `(quasiquote <expr>)`
+  - `(app <operator> <operand1> <operand2> ...)`
   - `(assign <name-symbol> <value-expr>)`
   - `(lambda <params-structure> <body-expr>)`
   - `(block <expr1> <expr2> ...)`
@@ -205,9 +206,9 @@ No additional member/index/flow operators should be introduced without explicitl
   - predicates: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
   - selectors: `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
 - Selectors must raise clear `TypeError` when used on the wrong expression kind.
-- Current representation limitation:
-  - ordinary quoted pair/list data and application expressions can share the same raw pair shape
-  - the helper layer therefore documents application detection as a best-fit rule over the current quoted representation rather than a full surface-syntax classifier
+- Application expressions are represented explicitly as `(app ...)`.
+- Ordinary quoted pair/list data remain plain pair/list data and must not be classified as applications.
+- `operands(expr)` returns the operand tail of the tagged application as a pair-chain sequence.
 
 ## 9.2.3) Metacircular evaluation
 
@@ -238,7 +239,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - `apply(proc, args)` must preserve current ordinary callable behavior and additionally apply metacircular compound procedures.
 - current limitations:
   - quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
-  - raw quoted pair/list data can still share application shape, so the evaluator is only defined for the supported expression families above
+  - the evaluator is only defined for the supported expression families above
 
 ## 9.3) Pairs
 

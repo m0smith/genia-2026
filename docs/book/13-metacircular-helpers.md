@@ -38,21 +38,18 @@ Selectors:
 
 ### ✅ Implemented
 
-- stable quoted tags for assignment, lambda, block, and match/case
+- stable quoted tags for application, assignment, lambda, block, and match/case
 - syntax predicates for the current evaluator-facing expression families
 - syntax selectors for quotation, assignment, lambda, application, and block forms
 - clear selector failures on wrong expression kinds
 
 ### ⚠️ Partial
 
-- helpers operate on the current quoted representation exactly as implemented
-- quoted list/pair data can share the same raw pair shape as quoted applications
 - `operands(...)` and `block_expressions(...)` return raw pair-chain tails, not normalized ordinary lists
 
 ### ❌ Not implemented
 
 - a separate canonical evaluator language
-- perfect surface-form classification for every quoted pair/list shape
 
 ## Minimal example
 
@@ -76,45 +73,47 @@ Expected result:
 [
   lambda_expr?(quote((x) -> x + 1)),
   operator(quote(f(1, 2))),
-  operands(quote(f(1, 2)))
+  operands(quote(f(1, 2))),
+  application_expr?(quote([f, 1, 2]))
 ]
 ```
 
 Expected result:
 
 ```genia
-[true, f, (1 2)]
+[true, f, (1 2), false]
 ```
 
 This shows the current selector contract:
 
 - `operator(...)` returns the quoted operator value
 - `operands(...)` returns the raw quoted operand tail as a pair chain
+- quoted source application is represented explicitly as `(app f 1 2)`
 
 ## Failure case example
 
 ```genia
-lambda_body(quote(42))
+operator(quote([f, 1, 2]))
 ```
 
 Expected behavior:
 
-- raises `TypeError("lambda_body expected a lambda expression")`
+- raises `TypeError("operator expected an application expression")`
 
 ## Representation notes
 
 Current stabilized quoted forms include:
 
+- application: `(app <operator> <operand1> <operand2> ...)`
 - assignment: `(assign <name-symbol> <value-expr>)`
 - lambda: `(lambda <params-structure> <body-expr>)`
 - block: `(block <expr1> <expr2> ...)`
 - match/case:
   - `(match (clause <pattern> <result>) ...)`
   - `(match (clause <pattern> <guard> <result>) ...)`
-- application: `(operator operand1 operand2 ...)`
 
 This layer is intentionally narrow.
 
-It exists to make later evaluator code readable without pretending the current quote model already distinguishes every surface form perfectly.
+It exists to make later evaluator code readable while keeping ordinary quoted data as ordinary data.
 
 The phase-1 evaluator now builds directly on these helpers in Chapter 14.

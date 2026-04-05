@@ -1181,11 +1181,11 @@ def quote_node(node: Node) -> Any:
     if isinstance(node, UnquoteSplicing):
         return quoted_list([symbol("unquote_splicing"), quote_node(node.expr)])
     if isinstance(node, Unary):
-        return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)])
+        return quoted_list([symbol("app"), symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)])
     if isinstance(node, Binary):
-        return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.left), quote_node(node.right)])
+        return quoted_list([symbol("app"), symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.left), quote_node(node.right)])
     if isinstance(node, Call):
-        return quoted_list([quote_node(node.fn), *(quote_node(arg) for arg in node.args)])
+        return quoted_list([symbol("app"), quote_node(node.fn), *(quote_node(arg) for arg in node.args)])
     if isinstance(node, Block):
         return quoted_list([symbol("block"), *(quote_node(expr) for expr in node.exprs)])
     if isinstance(node, ListLiteral):
@@ -1336,11 +1336,11 @@ def quasiquote_node(
                 return _QuasiquoteSplice(_quasiquote_splice_items(eval_unquoted(current.expr)))
             return quoted_list([symbol("unquote_splicing"), qq(current.expr, depth - 1)])
         if isinstance(current, Unary):
-            return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[current.op]), qq(current.expr, depth)])
+            return quoted_list([symbol("app"), symbol(QUOTE_OPERATOR_SYMBOLS[current.op]), qq(current.expr, depth)])
         if isinstance(current, Binary):
-            return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[current.op]), qq(current.left, depth), qq(current.right, depth)])
+            return quoted_list([symbol("app"), symbol(QUOTE_OPERATOR_SYMBOLS[current.op]), qq(current.left, depth), qq(current.right, depth)])
         if isinstance(current, Call):
-            return quoted_list([qq(current.fn, depth), *(qq(arg, depth) for arg in current.args)])
+            return quoted_list([symbol("app"), qq(current.fn, depth), *(qq(arg, depth) for arg in current.args)])
         if isinstance(current, Block):
             return quoted_list([symbol("block"), *(qq(expr, depth) for expr in current.exprs)])
         if isinstance(current, ListLiteral):
@@ -3688,6 +3688,7 @@ def _syntax_reserved_tag_name(value: Any) -> str | None:
         if value.name in {
             "quote",
             "quasiquote",
+            "app",
             "assign",
             "lambda",
             "block",
@@ -4361,9 +4362,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         return _syntax_tagged_list(expr, symbol("match"))
 
     def syntax_application_expr_fn(expr: Any) -> bool:
-        if not isinstance(expr, GeniaPair):
-            return False
-        return _syntax_reserved_tag_name(expr.head) is None
+        return _syntax_tagged_list(expr, symbol("app"))
 
     def syntax_text_of_quotation_fn(expr: Any) -> Any:
         if not syntax_quoted_expr_fn(expr):
@@ -4393,12 +4392,15 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     def syntax_operator_fn(expr: Any) -> Any:
         if not syntax_application_expr_fn(expr):
             raise TypeError("operator expected an application expression")
-        return expr.head
+        return _syntax_pair_nth(expr, 1, "operator")
 
     def syntax_operands_fn(expr: Any) -> Any:
         if not syntax_application_expr_fn(expr):
             raise TypeError("operands expected an application expression")
-        return expr.tail
+        tail = expr.tail
+        if not isinstance(tail, GeniaPair):
+            raise TypeError("operands expected the quoted form to have enough parts")
+        return tail.tail
 
     def syntax_block_expressions_fn(expr: Any) -> Any:
         if not syntax_block_expr_fn(expr):

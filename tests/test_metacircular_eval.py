@@ -38,6 +38,15 @@ def test_eval_application(run):
     assert run("eval(quote(((x) -> x + 1)(5)), empty_env())") == 6
 
 
+def test_eval_named_application_after_assignment(run):
+    src = """
+    env = empty_env()
+    eval(quote(f = (x) -> x + 1), env)
+    eval(quote(f(5)), env)
+    """
+    assert run(src) == 6
+
+
 def test_eval_block(run):
     src = """
     eval(

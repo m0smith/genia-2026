@@ -100,7 +100,8 @@ quote(1 + 2)
 
 - `quote(x)` returns a symbol distinct from the string `"x"`
 - `quote([a, b, c])` returns a pair chain of symbols ending in `nil`
-- `quote(1 + 2)` returns `(+ 1 2)`, not `3`
+- `quote(1 + 2)` returns `(app + 1 2)`, not `3`
+- quoted source applications use `(app operator operand1 operand2 ...)`
 - there is no `'x` shorthand in this phase
 
 ### Pairs and Lists

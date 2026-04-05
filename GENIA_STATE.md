@@ -216,7 +216,7 @@ Pipeline (Phase 2) rewrite model:
   - number / string / boolean / `nil` / `none` -> corresponding literal runtime value
   - list literal -> pair chain ending in `nil`
   - map literal -> runtime map with quoted keys and values
-  - unary / binary / call forms -> pair chain headed by a symbol
+  - unary / binary / call forms -> tagged application pair chain `(app <operator> <arg1> ...)`
   - quoted identifier map keys become symbols; quoted string map keys stay strings
 - there is no quote sugar (`'x`) in this phase
 - `quasiquote(expr)` is implemented as a special form
@@ -235,10 +235,8 @@ Pipeline (Phase 2) rewrite model:
    - lambda -> `(lambda <params-structure> <body-expr>)`
    - block -> `(block <expr1> <expr2> ...)`
    - match/case -> `(match (clause <pattern> <result>) ...)` or `(match (clause <pattern> <guard> <result>) ...)`
-   - application -> ordinary pair chain `(operator operand1 operand2 ...)`
- - current representation limitation:
-   - quoted list literals and application expressions can share the same raw pair shape
-   - the metacircular helper layer therefore focuses on the currently stabilized evaluator-facing forms rather than distinguishing every surface form
+   - application -> `(app <operator> <operand1> <operand2> ...)`
+ - ordinary quoted list/pair data remain plain pair/list data and are distinct from tagged quoted applications
 
 ## 4.2) Pairs
 
@@ -315,6 +313,8 @@ Pipeline (Phase 2) rewrite model:
   - applications
   - blocks
   - match/case expressions
+- quoted source applications are now represented and detected with the stable `(app ...)` tag
+- `operands(expr)` returns the operand tail of `(app ...)` as a pair-chain sequence of operand expressions
 
 ## 4.6) Metacircular evaluator (stdlib)
 
@@ -344,7 +344,7 @@ Pipeline (Phase 2) rewrite model:
   - `(compound <params> <body> <env>)`
 - current evaluator limitations:
   - it is intentionally phase-1 only; quoted match/case forms are inspectable but not yet executable through metacircular `eval`
-  - raw quoted pair/list data can still share the same shape as applications, so `eval` is only defined for the supported expression families above
+  - `eval` is only defined for the supported expression families above
 
 ## 5) Case expressions and pattern matching
 

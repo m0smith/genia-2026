@@ -85,7 +85,7 @@ Both produce the same runtime data representation.
 - number / string / boolean / `nil` / `none` -> literal runtime value
 - list literal -> pair chain ending in `nil`
 - map literal -> map of quoted keys and quoted values
-- unary / binary / call forms -> pair chain headed by a symbol
+- unary / binary / call forms -> tagged application pair chain `(app <operator> <arg1> ...)`
 - assignment -> `(assign <name-symbol> <value-expr>)`
 - lambda -> `(lambda <params-structure> <body-expr>)`
 - block -> `(block <expr1> <expr2> ...)`
@@ -187,7 +187,9 @@ Expected behavior:
 - `unquote_splicing(expr)` in quasiquoted list literal contexts
 - symbol values distinct from strings
 - recursive quoting for lists and maps
-- operator/call quoting as pair data (`quote(1 + 2)` -> `(+ 1 2)`)
+- tagged quoted source applications:
+  - `quote(1 + 2)` -> `(app + 1 2)`
+  - `quote(f(1, 2))` -> `(app f 1 2)`
 - depth-sensitive nested quasiquote handling
 
 ### ⚠️ Partial
@@ -195,7 +197,6 @@ Expected behavior:
 - `unquote_splicing(expr)` is intentionally narrow:
   - list context only
   - accepts ordinary lists, `nil`, and nil-terminated pair chains
-- quoted pair/list data and quoted application expressions can share the same raw pair shape in the current model
 
 ### ❌ Not implemented
 
@@ -243,7 +244,8 @@ Expected result:
 
 Current note:
 
-- `operands(...)` returns the raw quoted operand tail as a pair chain
+- quoted source applications use the stable tag form `(app <operator> <operand1> ...)`
+- `operands(...)` returns the operand tail as a pair chain
 - this helper layer stays close to the existing quoted representation instead of inventing a second AST type family
 
 ### Failure case example
@@ -283,8 +285,7 @@ Expected behavior:
 
 ### ⚠️ Partial
 
-- `application_expr?` reflects the current quoted representation
-- quoted list/pair data can share the same raw pair shape as applications
+- `operands(...)` and `block_expressions(...)` return pair-chain sequences instead of normalized ordinary lists
 
 ### ❌ Not implemented
 
@@ -370,7 +371,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
-- raw quoted pair/list data can still share application shape, so `eval` is only defined for the supported expression families
+- `operands(...)` and `block_expressions(...)` still expose pair-chain sequences rather than normalized ordinary lists
 
 ### ❌ Not implemented
 

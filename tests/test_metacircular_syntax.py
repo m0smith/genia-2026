@@ -14,11 +14,11 @@ def test_representation_truth_for_assignment():
 
 
 def test_representation_truth_for_lambda():
-    assert format_debug(_run("quote((x) -> x + 1)")) == "(lambda (x) (+ x 1))"
+    assert format_debug(_run("quote((x) -> x + 1)")) == "(lambda (x) (app + x 1))"
 
 
 def test_representation_truth_for_application():
-    assert format_debug(_run("quote(f(1, 2))")) == "(f 1 2)"
+    assert format_debug(_run("quote(f(1, 2))")) == "(app f 1 2)"
 
 
 def test_representation_truth_for_block():
@@ -28,7 +28,7 @@ def test_representation_truth_for_block():
       x + 2
     })
     """
-    assert format_debug(_run(src)) == "(block (assign x 1) (+ x 2))"
+    assert format_debug(_run(src)) == "(block (assign x 1) (app + x 2))"
 
 
 def test_representation_truth_for_match_expression():
@@ -66,7 +66,7 @@ def test_assignment_helpers(run):
 def test_lambda_helpers():
     assert _run("lambda_expr?(quote((x) -> x + 1))") is True
     assert format_debug(_run("lambda_params(quote((x) -> x + 1))")) == "(x)"
-    assert format_debug(_run("lambda_body(quote((x) -> x + 1))")) == "(+ x 1)"
+    assert format_debug(_run("lambda_body(quote((x) -> x + 1))")) == "(app + x 1)"
 
 
 def test_application_helpers():
@@ -75,8 +75,16 @@ def test_application_helpers():
     assert format_debug(_run("operands(quote(f(1, 2)))")) == "(1 2)"
 
 
-def test_application_predicate_currently_matches_quoted_pair_data_too(run):
-    assert run("application_expr?(quote([a, b]))") is True
+def test_quoted_data_list_is_not_an_application(run):
+    assert run("application_expr?(quote([a, b]))") is False
+
+
+def test_characterization_for_quoted_data_list_shape():
+    assert format_debug(_run("quote([f, 1, 2])")) == "(f 1 2)"
+
+
+def test_nested_quoted_data_list_stays_data(run):
+    assert run("application_expr?(car(cdr(quote([outer, [f, 1, 2]]))))") is False
 
 
 def test_block_helpers():
@@ -89,7 +97,7 @@ def test_block_helpers():
     """
     result = _run(src)
     assert result[0] is True
-    assert format_debug(result[1]) == "((assign x 1) (+ x 2))"
+    assert format_debug(result[1]) == "((assign x 1) (app + x 2))"
 
 
 def test_match_expression_predicate(run):
@@ -103,3 +111,5 @@ def test_selector_failures_are_clear(run):
         run("lambda_body(quote(42))")
     with pytest.raises(TypeError, match="operator expected an application expression"):
         run("operator(quote(42))")
+    with pytest.raises(TypeError, match="operator expected an application expression"):
+        run("operator(quote([f, 1, 2]))")
