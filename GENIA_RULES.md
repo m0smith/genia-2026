@@ -189,6 +189,26 @@ No additional member/index/flow operators should be introduced without explicitl
 - `unquote(...)` and `unquote_splicing(...)` outside quasiquote must raise clear runtime errors
 - `quasiquote(unquote_splicing(...))` is invalid because splicing requires a quasiquoted list context
 
+## 9.2.2) Programs-as-data helpers
+
+- Genia provides a small stdlib helper layer for inspecting quoted expressions.
+- These helpers operate on the same runtime data representation produced by `quote(expr)` and `quasiquote(expr)`.
+- Current stabilized quoted tags are:
+  - `(quote <expr>)`
+  - `(quasiquote <expr>)`
+  - `(assign <name-symbol> <value-expr>)`
+  - `(lambda <params-structure> <body-expr>)`
+  - `(block <expr1> <expr2> ...)`
+  - `(match (clause <pattern> <result>) ...)`
+  - `(match (clause <pattern> <guard> <result>) ...)`
+- Current helper surface includes:
+  - predicates: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
+  - selectors: `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
+- Selectors must raise clear `TypeError` when used on the wrong expression kind.
+- Current representation limitation:
+  - ordinary quoted pair/list data and application expressions can share the same raw pair shape
+  - the helper layer therefore documents application detection as a best-fit rule over the current quoted representation rather than a full surface-syntax classifier
+
 ## 9.3) Pairs
 
 - pairs are immutable two-field runtime values created with `cons`

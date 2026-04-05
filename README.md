@@ -130,6 +130,9 @@ list = (..xs) -> xs
 - `delay(expr)` creates a delayed promise value; `force(x)` forces promises and returns non-promises unchanged
 - `quasiquote(expr)` constructs quoted data with selective evaluation via `unquote(...)`
   - `unquote_splicing(...)` is supported in quasiquoted list contexts
+- quoted/quasiquoted data can now be inspected with the syntax helper prelude
+  - `self_evaluating?`, `symbol_expr?`, `quoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
+  - selectors include `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
 - named functions may include optional docstring metadata:
   - example:
     ```genia

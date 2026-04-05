@@ -1195,6 +1195,8 @@ def quote_node(node: Node) -> Any:
         for key, value in node.items:
             result = result.put(quote_node(key), quote_node(value))
         return result
+    if isinstance(node, Assign):
+        return quoted_list([symbol("assign"), symbol(node.name), quote_node(node.expr)])
     if isinstance(node, Spread):
         return quoted_list([symbol("spread"), quote_node(node.expr)])
     if isinstance(node, Lambda):
@@ -1204,7 +1206,65 @@ def quote_node(node: Node) -> Any:
         else:
             header = quoted_list([*params, quoted_list([symbol("rest"), symbol(node.rest_param)])])
         return quoted_list([symbol("lambda"), header, quote_node(node.body)])
+    if isinstance(node, CaseExpr):
+        return quoted_list([symbol("match"), *(quote_case_clause(clause, quote_node) for clause in node.clauses)])
     raise TypeError(f"quote does not support node type {type(node).__name__}")
+
+
+def quote_pattern_node(pattern: Node) -> Any:
+    def quoted_list(items: list[Any]) -> Any:
+        result: Any = None
+        for item in reversed(items):
+            result = GeniaPair(item, result)
+        return result
+
+    if isinstance(pattern, Number):
+        return pattern.value
+    if isinstance(pattern, String):
+        return pattern.value
+    if isinstance(pattern, Boolean):
+        return pattern.value
+    if isinstance(pattern, Nil):
+        return None
+    if isinstance(pattern, NoneOption):
+        return OPTION_NONE
+    if isinstance(pattern, Var):
+        return symbol(pattern.name)
+    if isinstance(pattern, WildcardPattern):
+        return symbol("_")
+    if isinstance(pattern, RestPattern):
+        if pattern.name is None:
+            return quoted_list([symbol("rest")])
+        return quoted_list([symbol("rest"), symbol(pattern.name)])
+    if isinstance(pattern, TuplePattern):
+        return quoted_list([symbol("tuple"), *(quote_pattern_node(item) for item in pattern.items)])
+    if isinstance(pattern, ListPattern):
+        return quoted_list([quote_pattern_node(item) for item in pattern.items])
+    if isinstance(pattern, MapPattern):
+        result = GeniaMap()
+        for key, value in pattern.items:
+            result = result.put(key, quote_pattern_node(value))
+        return result
+    if isinstance(pattern, GlobPattern):
+        return quoted_list([symbol("glob"), pattern.pattern])
+    if isinstance(pattern, SomePattern):
+        return quoted_list([symbol("some"), quote_pattern_node(pattern.inner)])
+    raise TypeError(f"quote does not support pattern type {type(pattern).__name__}")
+
+
+def quote_case_clause(
+    clause: CaseClause,
+    quote_expr: Callable[[Node], Any],
+) -> Any:
+    def quoted_list(items: list[Any]) -> Any:
+        result: Any = None
+        for item in reversed(items):
+            result = GeniaPair(item, result)
+        return result
+
+    if clause.guard is None:
+        return quoted_list([symbol("clause"), quote_pattern_node(clause.pattern), quote_expr(clause.result)])
+    return quoted_list([symbol("clause"), quote_pattern_node(clause.pattern), quote_expr(clause.guard), quote_expr(clause.result)])
 
 
 @dataclass(frozen=True)
@@ -1309,6 +1369,8 @@ def quasiquote_node(
                     raise RuntimeError("unquote_splicing(...) is only valid in quasiquote list context")
                 result = result.put(qq(key, depth), quoted_value)
             return result
+        if isinstance(current, Assign):
+            return quoted_list([symbol("assign"), symbol(current.name), qq(current.expr, depth)])
         if isinstance(current, Spread):
             return quoted_list([symbol("spread"), qq(current.expr, depth)])
         if isinstance(current, Lambda):
@@ -1318,6 +1380,8 @@ def quasiquote_node(
             else:
                 header = quoted_list([*params, quoted_list([symbol("rest"), symbol(current.rest_param)])])
             return quoted_list([symbol("lambda"), header, qq(current.body, depth)])
+        if isinstance(current, CaseExpr):
+            return quoted_list([symbol("match"), *(quote_case_clause(clause, lambda expr: qq(expr, depth)) for clause in current.clauses)])
         raise TypeError(f"quasiquote does not support node type {type(current).__name__}")
 
     return qq(node, 1)
@@ -2172,9 +2236,32 @@ class Parser:
         end = self.eat("RBRACE")
         return MapPattern(items, span=self.span_for_tokens(start, end))
 
+    def parse_quoted_form(self) -> Node:
+        assign = self.try_parse_name_assignment()
+        if assign is not None:
+            return assign
+        if not self.at("LPAREN") and self.looks_like_case_start():
+            return self.parse_case_expr(single_param_shorthand_ok=True)
+        expr = self.parse_expr()
+        if self.at("ASSIGN"):
+            raise SyntaxError("Assignment target must be a simple name")
+        return expr
+
     def finish_call(self, fn: Node) -> Node:
         self.eat("LPAREN")
         self.skip_newlines()
+        if isinstance(fn, Var) and fn.name in {"quote", "quasiquote"}:
+            if self.at("RPAREN"):
+                raise SyntaxError(f"{fn.name}(...) expects exactly one argument")
+            expr = self.parse_quoted_form()
+            self.skip_separators()
+            if self.maybe("COMMA"):
+                raise SyntaxError(f"{fn.name}(...) expects exactly one argument")
+            self.skip_newlines()
+            end = self.eat("RPAREN")
+            if isinstance(fn, Var) and fn.name == "quote":
+                return Quote(expr, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
+            return QuasiQuote(expr, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
         args: list[Node] = []
         self.skip_separators()
         if not self.at("RPAREN"):
@@ -2194,24 +2281,12 @@ class Parser:
                 self.skip_newlines()
         self.skip_newlines()
         end = self.eat("RPAREN")
-        if isinstance(fn, Var) and fn.name == "quote":
-            if len(args) != 1:
-                raise SyntaxError("quote(...) expects exactly one argument")
-            if isinstance(args[0], Spread):
-                raise SyntaxError("quote(...) does not accept spread arguments")
-            return Quote(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
         if isinstance(fn, Var) and fn.name == "delay":
             if len(args) != 1:
                 raise SyntaxError("delay(...) expects exactly one argument")
             if isinstance(args[0], Spread):
                 raise SyntaxError("delay(...) does not accept spread arguments")
             return Delay(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
-        if isinstance(fn, Var) and fn.name == "quasiquote":
-            if len(args) != 1:
-                raise SyntaxError("quasiquote(...) expects exactly one argument")
-            if isinstance(args[0], Spread):
-                raise SyntaxError("quasiquote(...) does not accept spread arguments")
-            return QuasiQuote(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
         if isinstance(fn, Var) and fn.name == "unquote":
             if len(args) != 1:
                 raise SyntaxError("unquote(...) expects exactly one argument")
@@ -3526,6 +3601,44 @@ def truthy(value: Any) -> bool:
     return bool(value)
 
 
+def _syntax_tagged_list(value: Any, tag: Any) -> bool:
+    return isinstance(value, GeniaPair) and value.head == tag
+
+
+def _syntax_pair_nth(value: Any, index: int, name: str) -> Any:
+    current = value
+    for _ in range(index):
+        if not isinstance(current, GeniaPair):
+            raise TypeError(f"{name} expected the quoted form to have enough parts")
+        current = current.tail
+    if not isinstance(current, GeniaPair):
+        raise TypeError(f"{name} expected the quoted form to have enough parts")
+    return current.head
+
+
+def _syntax_reserved_tag_name(value: Any) -> str | None:
+    if isinstance(value, GeniaSymbol):
+        if value.name in {
+            "quote",
+            "quasiquote",
+            "assign",
+            "lambda",
+            "block",
+            "match",
+            "delay",
+            "unquote",
+            "unquote_splicing",
+            "spread",
+            "clause",
+            "tuple",
+            "rest",
+            "glob",
+            "some",
+        }:
+            return value.name
+    return None
+
+
 # -----------------------------
 # Builtins / REPL
 # -----------------------------
@@ -4039,6 +4152,86 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
             return value.force()
         return value
 
+    def syntax_tagged_list_fn(expr: Any, tag: Any) -> bool:
+        return _syntax_tagged_list(expr, tag)
+
+    def syntax_self_evaluating_fn(expr: Any) -> bool:
+        if expr is None or expr is OPTION_NONE:
+            return True
+        if isinstance(expr, bool):
+            return True
+        if isinstance(expr, (int, float)) and not isinstance(expr, bool):
+            return True
+        if isinstance(expr, str):
+            return True
+        return False
+
+    def syntax_symbol_expr_fn(expr: Any) -> bool:
+        return isinstance(expr, GeniaSymbol)
+
+    def syntax_quoted_expr_fn(expr: Any) -> bool:
+        return _syntax_tagged_list(expr, symbol("quote"))
+
+    def syntax_quasiquoted_expr_fn(expr: Any) -> bool:
+        return _syntax_tagged_list(expr, symbol("quasiquote"))
+
+    def syntax_assignment_expr_fn(expr: Any) -> bool:
+        return _syntax_tagged_list(expr, symbol("assign"))
+
+    def syntax_lambda_expr_fn(expr: Any) -> bool:
+        return _syntax_tagged_list(expr, symbol("lambda"))
+
+    def syntax_block_expr_fn(expr: Any) -> bool:
+        return _syntax_tagged_list(expr, symbol("block"))
+
+    def syntax_match_expr_fn(expr: Any) -> bool:
+        return _syntax_tagged_list(expr, symbol("match"))
+
+    def syntax_application_expr_fn(expr: Any) -> bool:
+        if not isinstance(expr, GeniaPair):
+            return False
+        return _syntax_reserved_tag_name(expr.head) is None
+
+    def syntax_text_of_quotation_fn(expr: Any) -> Any:
+        if not syntax_quoted_expr_fn(expr):
+            raise TypeError("text_of_quotation expected a quoted expression")
+        return _syntax_pair_nth(expr, 1, "text_of_quotation")
+
+    def syntax_assignment_name_fn(expr: Any) -> Any:
+        if not syntax_assignment_expr_fn(expr):
+            raise TypeError("assignment_name expected an assignment expression")
+        return _syntax_pair_nth(expr, 1, "assignment_name")
+
+    def syntax_assignment_value_fn(expr: Any) -> Any:
+        if not syntax_assignment_expr_fn(expr):
+            raise TypeError("assignment_value expected an assignment expression")
+        return _syntax_pair_nth(expr, 2, "assignment_value")
+
+    def syntax_lambda_params_fn(expr: Any) -> Any:
+        if not syntax_lambda_expr_fn(expr):
+            raise TypeError("lambda_params expected a lambda expression")
+        return _syntax_pair_nth(expr, 1, "lambda_params")
+
+    def syntax_lambda_body_fn(expr: Any) -> Any:
+        if not syntax_lambda_expr_fn(expr):
+            raise TypeError("lambda_body expected a lambda expression")
+        return _syntax_pair_nth(expr, 2, "lambda_body")
+
+    def syntax_operator_fn(expr: Any) -> Any:
+        if not syntax_application_expr_fn(expr):
+            raise TypeError("operator expected an application expression")
+        return expr.head
+
+    def syntax_operands_fn(expr: Any) -> Any:
+        if not syntax_application_expr_fn(expr):
+            raise TypeError("operands expected an application expression")
+        return expr.tail
+
+    def syntax_block_expressions_fn(expr: Any) -> Any:
+        if not syntax_block_expr_fn(expr):
+            raise TypeError("block_expressions expected a block expression")
+        return expr.tail
+
     def cons_fn(head: Any, tail: Any) -> GeniaPair:
         return GeniaPair(head, tail)
 
@@ -4486,6 +4679,24 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("is_some?", is_some_fn)
     env.set("is_none?", is_none_fn)
     env.set("force", force_fn)
+    env.set("_syntax_tagged_list", syntax_tagged_list_fn)
+    env.set("_syntax_self_evaluating", syntax_self_evaluating_fn)
+    env.set("_syntax_symbol_expr", syntax_symbol_expr_fn)
+    env.set("_syntax_quoted_expr", syntax_quoted_expr_fn)
+    env.set("_syntax_quasiquoted_expr", syntax_quasiquoted_expr_fn)
+    env.set("_syntax_assignment_expr", syntax_assignment_expr_fn)
+    env.set("_syntax_lambda_expr", syntax_lambda_expr_fn)
+    env.set("_syntax_application_expr", syntax_application_expr_fn)
+    env.set("_syntax_block_expr", syntax_block_expr_fn)
+    env.set("_syntax_match_expr", syntax_match_expr_fn)
+    env.set("_syntax_text_of_quotation", syntax_text_of_quotation_fn)
+    env.set("_syntax_assignment_name", syntax_assignment_name_fn)
+    env.set("_syntax_assignment_value", syntax_assignment_value_fn)
+    env.set("_syntax_lambda_params", syntax_lambda_params_fn)
+    env.set("_syntax_lambda_body", syntax_lambda_body_fn)
+    env.set("_syntax_operator", syntax_operator_fn)
+    env.set("_syntax_operands", syntax_operands_fn)
+    env.set("_syntax_block_expressions", syntax_block_expressions_fn)
     env.set("cons", cons_fn)
     env.set("car", car_fn)
     env.set("cdr", cdr_fn)
@@ -4581,6 +4792,24 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("stream_map", 2, "std/prelude/stream.genia")
     env.register_autoload("stream_take", 2, "std/prelude/stream.genia")
     env.register_autoload("stream_filter", 2, "std/prelude/stream.genia")
+    env.register_autoload("self_evaluating?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("symbol_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("tagged_list?", 2, "std/prelude/syntax.genia")
+    env.register_autoload("quoted_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("quasiquoted_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("assignment_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("lambda_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("application_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("block_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("match_expr?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("text_of_quotation", 1, "std/prelude/syntax.genia")
+    env.register_autoload("assignment_name", 1, "std/prelude/syntax.genia")
+    env.register_autoload("assignment_value", 1, "std/prelude/syntax.genia")
+    env.register_autoload("lambda_params", 1, "std/prelude/syntax.genia")
+    env.register_autoload("lambda_body", 1, "std/prelude/syntax.genia")
+    env.register_autoload("operator", 1, "std/prelude/syntax.genia")
+    env.register_autoload("operands", 1, "std/prelude/syntax.genia")
+    env.register_autoload("block_expressions", 1, "std/prelude/syntax.genia")
 
     env.register_autoload("inc", 1, "std/prelude/math.genia")
     env.register_autoload("dec", 1, "std/prelude/math.genia")

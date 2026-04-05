@@ -85,6 +85,10 @@ Both produce the same runtime data representation.
 - list literal -> pair chain ending in `nil`
 - map literal -> map of quoted keys and quoted values
 - unary / binary / call forms -> pair chain headed by a symbol
+- assignment -> `(assign <name-symbol> <value-expr>)`
+- lambda -> `(lambda <params-structure> <body-expr>)`
+- block -> `(block <expr1> <expr2> ...)`
+- match/case -> `(match (clause <pattern> <result>) ...)` or `(match (clause <pattern> <guard> <result>) ...)`
 
 ### Minimal example
 
@@ -190,12 +194,102 @@ Expected behavior:
 - `unquote_splicing(expr)` is intentionally narrow:
   - list context only
   - accepts ordinary lists, `nil`, and nil-terminated pair chains
+- quoted pair/list data and quoted application expressions can share the same raw pair shape in the current model
 
 ### ❌ Not implemented
 
 - `'x` quote sugar
 - reader shorthand for quasiquote / unquote / unquote-splicing
 - macros
+
+---
+
+## Metacircular expression helpers (phase 1)
+
+Genia now includes a small stdlib helper layer for inspecting quoted expressions.
+
+These helpers live in `std/prelude/syntax.genia` and reuse the existing `quote(expr)` / `quasiquote(expr)` data model.
+
+### Minimal example
+
+```genia
+assignment_name(quote(x = 10))
+assignment_value(quote(x = 10))
+```
+
+Expected result:
+
+```genia
+x
+10
+```
+
+### Edge case example
+
+```genia
+[
+  lambda_expr?(quote((x) -> x + 1)),
+  operator(quote(f(1, 2))),
+  operands(quote(f(1, 2)))
+]
+```
+
+Expected result:
+
+```genia
+[true, f, (1 2)]
+```
+
+Current note:
+
+- `operands(...)` returns the raw quoted operand tail as a pair chain
+- this helper layer stays close to the existing quoted representation instead of inventing a second AST type family
+
+### Failure case example
+
+```genia
+assignment_name(quote(42))
+```
+
+Expected behavior:
+
+- raises `TypeError("assignment_name expected an assignment expression")`
+
+### Implementation status
+
+### ✅ Implemented
+
+- predicates:
+  - `self_evaluating?`
+  - `symbol_expr?`
+  - `tagged_list?`
+  - `quoted_expr?`
+  - `quasiquoted_expr?`
+  - `assignment_expr?`
+  - `lambda_expr?`
+  - `application_expr?`
+  - `block_expr?`
+  - `match_expr?`
+- selectors:
+  - `text_of_quotation`
+  - `assignment_name`
+  - `assignment_value`
+  - `lambda_params`
+  - `lambda_body`
+  - `operator`
+  - `operands`
+  - `block_expressions`
+
+### ⚠️ Partial
+
+- `application_expr?` reflects the current quoted representation
+- quoted list/pair data can share the same raw pair shape as applications
+
+### ❌ Not implemented
+
+- a separate canonical evaluator language
+- metacircular `eval`
+- metacircular `apply`
 
 ---
 

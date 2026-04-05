@@ -1,0 +1,121 @@
+self_evaluating?(expr) = """
+# self_evaluating?
+
+Check whether a quoted expression is self-evaluating in the current metacircular helper layer.
+
+## Params
+
+* `expr`: quoted expression data
+
+## Returns
+
+* `true` for numbers, strings, booleans, `nil`, and `none`
+* `false` otherwise
+""" _syntax_self_evaluating(expr)
+
+symbol_expr?(expr) = """
+# symbol_expr?
+
+Check whether a quoted expression is a symbol/variable expression.
+""" _syntax_symbol_expr(expr)
+
+tagged_list?(expr, tag) = """
+# tagged_list?
+
+Check whether `expr` is a pair chain whose first item equals `tag`.
+""" _syntax_tagged_list(expr, tag)
+
+quoted_expr?(expr) = """
+# quoted_expr?
+
+Check whether `expr` is a quoted form `(quote ...)`.
+""" _syntax_quoted_expr(expr)
+
+quasiquoted_expr?(expr) = """
+# quasiquoted_expr?
+
+Check whether `expr` is a quasiquoted form `(quasiquote ...)`.
+""" _syntax_quasiquoted_expr(expr)
+
+assignment_expr?(expr) = """
+# assignment_expr?
+
+Check whether `expr` is an assignment form `(assign name value)`.
+""" _syntax_assignment_expr(expr)
+
+lambda_expr?(expr) = """
+# lambda_expr?
+
+Check whether `expr` is a lambda form.
+""" _syntax_lambda_expr(expr)
+
+application_expr?(expr) = """
+# application_expr?
+
+Check whether `expr` has the current quoted application shape.
+
+## Notes
+
+* This is based on the current quoted representation.
+* Ordinary quoted pair/list data may share the same raw pair shape.
+""" _syntax_application_expr(expr)
+
+block_expr?(expr) = """
+# block_expr?
+
+Check whether `expr` is a block form `(block ...)`.
+""" _syntax_block_expr(expr)
+
+match_expr?(expr) = """
+# match_expr?
+
+Check whether `expr` is a quoted pattern-match form `(match ...)`.
+""" _syntax_match_expr(expr)
+
+text_of_quotation(expr) = """
+# text_of_quotation
+
+Return the contents of a quoted form.
+""" _syntax_text_of_quotation(expr)
+
+assignment_name(expr) = """
+# assignment_name
+
+Return the assigned symbol from a quoted assignment expression.
+""" _syntax_assignment_name(expr)
+
+assignment_value(expr) = """
+# assignment_value
+
+Return the value expression from a quoted assignment expression.
+""" _syntax_assignment_value(expr)
+
+lambda_params(expr) = """
+# lambda_params
+
+Return the quoted lambda parameter structure.
+""" _syntax_lambda_params(expr)
+
+lambda_body(expr) = """
+# lambda_body
+
+Return the quoted lambda body.
+""" _syntax_lambda_body(expr)
+
+operator(expr) = """
+# operator
+
+Return the operator/callee part of a quoted application expression.
+""" _syntax_operator(expr)
+
+operands(expr) = """
+# operands
+
+Return the operand tail of a quoted application expression as the current pair-chain tail.
+""" _syntax_operands(expr)
+
+block_expressions(expr) = """
+# block_expressions
+
+Return the tail of a quoted block expression as the current pair-chain sequence of subexpressions.
+""" _syntax_block_expressions(expr)

@@ -227,6 +227,15 @@ Pipeline (Phase 2) rewrite model:
     - nil-terminated pair chains
   - `unquote(...)` and `unquote_splicing(...)` outside quasiquote raise clear runtime errors
   - `quasiquote(unquote_splicing(...))` is invalid because splicing requires a quasiquoted list context
+ - current quoted representation also supports these evaluator-facing tagged forms:
+   - assignment -> `(assign <name-symbol> <value-expr>)`
+   - lambda -> `(lambda <params-structure> <body-expr>)`
+   - block -> `(block <expr1> <expr2> ...)`
+   - match/case -> `(match (clause <pattern> <result>) ...)` or `(match (clause <pattern> <guard> <result>) ...)`
+   - application -> ordinary pair chain `(operator operand1 operand2 ...)`
+ - current representation limitation:
+   - quoted list literals and application expressions can share the same raw pair shape
+   - the metacircular helper layer therefore focuses on the currently stabilized evaluator-facing forms rather than distinguishing every surface form
 
 ## 4.2) Pairs
 
@@ -268,6 +277,41 @@ Pipeline (Phase 2) rewrite model:
 - streams are distinct from Flow:
   - streams are pure data built from Pair + Promise
   - Flow is the runtime pipeline/IO model and remains separate
+
+## 4.5) Programs-as-data helper layer (stdlib)
+
+- Genia now ships a minimal metacircular expression helper layer in `std/prelude/syntax.genia`
+- these helpers operate on the same quoted/quasiquoted data representation produced by `quote(expr)` and `quasiquote(expr)`
+- current public helpers are:
+  - predicates:
+    - `self_evaluating?`
+    - `symbol_expr?`
+    - `tagged_list?`
+    - `quoted_expr?`
+    - `quasiquoted_expr?`
+    - `assignment_expr?`
+    - `lambda_expr?`
+    - `application_expr?`
+    - `block_expr?`
+    - `match_expr?`
+  - selectors:
+    - `text_of_quotation`
+    - `assignment_name`
+    - `assignment_value`
+    - `lambda_params`
+    - `lambda_body`
+    - `operator`
+    - `operands`
+    - `block_expressions`
+- current supported expression families in the helper layer are:
+  - self-evaluating literals
+  - symbol/variable expressions
+  - quote / quasiquote forms
+  - assignments
+  - lambdas
+  - applications
+  - blocks
+  - match/case expressions
 
 ## 5) Case expressions and pattern matching
 

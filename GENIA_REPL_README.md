@@ -114,6 +114,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first_opt`, `last`, `find_opt`, and `range`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
+  - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
   - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
@@ -243,6 +244,42 @@ Failure cases:
 
 - `unquote(1)` outside quasiquote raises a clear runtime error
 - `quasiquote(unquote_splicing(xs))` raises a clear runtime error because splicing is only valid in quasiquoted list context
+
+## Programs-as-data helpers
+
+Genia now includes a small syntax helper layer for quoted expressions.
+
+Lambda detection:
+
+```genia
+lambda_expr?(quote((x) -> x + 1))
+```
+
+- this returns `true`
+
+Application inspection:
+
+```genia
+operator(quote(f(1, 2)))
+operands(quote(f(1, 2)))
+```
+
+- `operator(...)` returns `f`
+- `operands(...)` returns `(1 2)` as the current quoted operand tail
+
+Assignment inspection:
+
+```genia
+assignment_name(quote(x = 10))
+assignment_value(quote(x = 10))
+```
+
+- these return `x` and `10`
+
+Current note:
+
+- the helper layer reuses the existing quote/quasiquote representation
+- quoted pair/list data and application expressions can share the same raw pair shape, so `application_expr?` reflects the current stabilized representation rather than every surface-syntax distinction
 
 ## String parsing
 
