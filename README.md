@@ -249,7 +249,11 @@ cell_get(counter)
 - `spawn(handler)` creates a host-thread worker with FIFO mailbox
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` reports worker liveness
-- prelude provides `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
+- prelude provides `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
+- cells are fail-stop:
+  - failed updates preserve last successful state
+  - failed cells cache an error string and reject future `cell_send` / `cell_get`
+  - `restart_cell(cell, new_state)` clears failure and discards queued pre-restart updates in this phase
 
 ## Builtins
 
@@ -361,7 +365,7 @@ rewrite_zip(in_path, out_path) =
 - fn helpers: `apply`, `compose`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
-- cells: `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
+- cells: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
 
 ## Not implemented yet
 

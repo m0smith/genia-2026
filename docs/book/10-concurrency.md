@@ -1,6 +1,6 @@
 # Chapter 10: Concurrency
 
-Genia currently exposes host-backed concurrency primitives and a small cell helper layer in stdlib.
+Genia currently exposes host-backed concurrency primitives and a runtime-backed fail-stop cell helper layer in stdlib.
 
 ## Minimal example
 
@@ -10,29 +10,53 @@ cell_send(counter, (n) -> n + 1)
 cell_get(counter)
 ```
 
+Expected behavior:
+
+- update runs asynchronously
+- after the mailbox drains, `cell_get(counter)` returns `1`
+
 ## Edge case example
 
 ```genia
-a = cell("idle")
-cell_alive?(a) -> true
-```
-
-## Failure case example
-
-```genia
-cell_send(["not", "a", "cell"], (x) -> x)
+state = ref(1)
+a = cell_with_state(state)
+cell_send(a, (x) -> x + 1)
+cell_send(a, (_) -> map_get(1, "bad"))
 ```
 
 Expected behavior:
 
-- runtime pattern-match failure because the input does not match the cell tuple shape.
+- first update succeeds
+- second update fails
+- backing ref still holds `2`
+- `cell_failed?(a)` becomes `true`
+- `cell_error(a)` returns `some(error_string)`
+
+## Failure case example
+
+```genia
+cell_send(cell(0), 42)
+```
+
+Expected behavior:
+
+- raises `TypeError` because `cell_send` expects a callable update function.
 
 ## Current model
 
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` checks worker liveness
-- stdlib cell helpers: `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
+- stdlib cell helpers:
+  - `cell`, `cell_with_state`
+  - `cell_send`, `cell_get`, `cell_state`
+  - `cell_failed?`, `cell_error`
+  - `restart_cell`, `cell_status`, `cell_alive?`
+- cells process at most one queued update at a time
+- failed updates preserve last successful state
+- failed cells cache an error string and reject future `cell_send` / `cell_get`
+- `restart_cell` clears failure and discards queued pre-restart updates in this phase
+- nested `cell_send` calls made during an update are committed only if that update succeeds
 
 ## Implementation status
 
@@ -40,11 +64,14 @@ Expected behavior:
 
 - host-backed process handles and message sending
 - serialized handler execution per process
-- cell abstraction in stdlib
+- fail-stop cell abstraction with cached error state
+- restart semantics via `restart_cell`
 
 ### ⚠️ Partial
 
 - behavior depends on host-thread scheduling timing
+- restart discards queued pre-restart updates in this phase instead of draining them
+- cell errors are exposed as cached error strings (`some(error_string)`) rather than structured language error values
 
 ### ❌ Not implemented
 

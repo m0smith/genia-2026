@@ -336,6 +336,40 @@ Behavior:
 - one handler invocation at a time per process
 - implemented with host threads
 
+### Cell helpers (Phase 1, runtime-backed fail-stop)
+
+- public prelude helpers:
+  - `cell(initial)`
+  - `cell_with_state(state_ref)`
+  - `cell_send(cell, update_fn)`
+  - `cell_get(cell)`
+  - `cell_state(cell)`
+  - `cell_failed?(cell)`
+  - `cell_error(cell)`
+  - `restart_cell(cell, new_state)`
+  - `cell_status(cell)`
+  - `cell_alive?(cell)`
+
+Behavior:
+
+- cells process queued updates asynchronously and serialize them one at a time
+- successful updates replace cell state in order
+- failed updates do not change state
+- on update failure:
+  - the cell caches an error string
+  - `cell_status(cell)` becomes `"failed"`
+  - `cell_failed?(cell)` becomes `true`
+  - `cell_error(cell)` returns `some(error_string)`
+  - later queued updates are discarded
+  - future `cell_send` and `cell_get` raise `RuntimeError`
+- `cell_state(cell)` is an alias for `cell_get(cell)`
+- `restart_cell(cell, new_state)`:
+  - replaces state with `new_state`
+  - clears cached failure/error
+  - marks the cell ready again
+  - discards queued pre-restart updates in this phase
+- nested `cell_send` calls made during an update are staged and are committed only if that update succeeds
+
 ### Host-backed persistent associative maps (Phase 1 bridge)
 
 - `map_new()`
@@ -467,7 +501,7 @@ Notable autoloaded functions include:
 - fn: `apply`, `compose`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
-- cell: `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
+- cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Optimization behavior

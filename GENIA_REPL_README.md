@@ -96,7 +96,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first_opt`, `last`, `find_opt`, and `range`
-  - includes cell helpers `cell`, `cell_send`, `cell_get`, `cell_state`, `cell_alive?`
+  - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
@@ -129,6 +129,13 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `first_opt(list)`, `last(list)`, and `find_opt(predicate, list)` return `none` / `some(value)`
   - string `find(string, needle)` remains the legacy index-or-`nil` API
   - `some(nil)` is valid and distinct from `none`
+- cell semantics (phase 1 fail-stop):
+  - cells queue asynchronous updates and run them one at a time
+  - failed updates preserve prior state, cache an error string, and mark the cell failed
+  - failed cells reject future `cell_send` and `cell_get`
+  - `cell_error(cell)` returns `none` or `some(error_string)`
+  - `restart_cell(cell, new_state)` clears failure and discards queued pre-restart updates
+  - nested `cell_send` calls made during an update are committed only if that update succeeds
 - CLI pipe mode:
   - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program

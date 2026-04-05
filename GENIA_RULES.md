@@ -137,12 +137,22 @@ No additional member/index/flow operators should be introduced without explicitl
 - process mailbox handling is FIFO per process
 - one handler invocation at a time per process
 - concurrency remains host-backed (threads), not language-scheduled
-- stdlib cell helpers are a library-level convention over these primitives:
+- cell helpers are runtime-backed in this phase and expose these public names:
   - `cell(initial)` / `cell_with_state(ref_value)`
   - `cell_send(cell, update)`
   - `cell_get(cell)` / `cell_state(cell)`
-  - `cell_alive?(cell)`
-  - current tuple/tag shape is `["cell", state_ref, worker_process]`
+  - `cell_failed?(cell)` / `cell_error(cell)`
+  - `restart_cell(cell, new_state)`
+  - `cell_status(cell)` / `cell_alive?(cell)`
+- cell invariants:
+  - updates are asynchronous and serialized one at a time
+  - last successful state is preserved
+  - failed updates must not change state
+  - failed updates mark the cell failed and cache an error string
+  - failed cells reject future `cell_send` and `cell_get` with `RuntimeError`
+  - queued updates after a failure are discarded
+  - `restart_cell` clears failure, installs new state, and discards queued pre-restart updates in this phase
+  - nested `cell_send` calls issued during an update are staged and are committed only if that update succeeds
 
 ## 11) Host-backed persistent map invariants
 

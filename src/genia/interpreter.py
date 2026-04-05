@@ -2121,6 +2121,42 @@ class TailCall:
 
 
 _UNSET = object()
+_CELL_TX = threading.local()
+
+
+def _cell_tx_stack() -> list[list[tuple[str, Any, Any]]]:
+    stack = getattr(_CELL_TX, "stack", None)
+    if stack is None:
+        stack = []
+        _CELL_TX.stack = stack
+    return stack
+
+
+def _push_cell_tx() -> list[tuple[str, Any, Any]]:
+    actions: list[tuple[str, Any, Any]] = []
+    _cell_tx_stack().append(actions)
+    return actions
+
+
+def _pop_cell_tx() -> list[tuple[str, Any, Any]]:
+    stack = _cell_tx_stack()
+    if not stack:
+        return []
+    actions = stack.pop()
+    if not stack:
+        try:
+            delattr(_CELL_TX, "stack")
+        except AttributeError:
+            pass
+    return actions
+
+
+def _stage_cell_action(kind: str, first: Any, second: Any) -> bool:
+    stack = getattr(_CELL_TX, "stack", None)
+    if not stack:
+        return False
+    stack[-1].append((kind, first, second))
+    return True
 
 
 class GeniaRef:
@@ -2159,6 +2195,103 @@ class GeniaRef:
             if self._is_set:
                 return f"<ref {self._value!r}>"
             return "<ref <unset>>"
+
+
+class GeniaCell:
+    def __init__(self, state_ref: GeniaRef):
+        self._state_ref = state_ref
+        self._condition = threading.Condition()
+        self._failed = False
+        self._error: str | None = None
+        self._generation = 0
+        self._mailbox: queue.Queue[tuple[int, Any]] = queue.Queue()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def _error_text(self, exc: BaseException) -> str:
+        message = str(exc).strip()
+        name = type(exc).__name__
+        return f"{name}: {message}" if message else name
+
+    def _commit_actions(self, actions: list[tuple[str, Any, Any]]) -> None:
+        for kind, first, second in actions:
+            if kind == "cell_send":
+                first.send(second)
+                continue
+            if kind == "process_send":
+                first.send(second)
+                continue
+            raise RuntimeError(f"Unknown cell action kind: {kind}")
+
+    def _run(self) -> None:
+        while True:
+            generation, update_fn = self._mailbox.get()
+            with self._condition:
+                if generation != self._generation or self._failed:
+                    continue
+
+            try:
+                _push_cell_tx()
+                try:
+                    current_state = self._state_ref.get()
+                    next_state = update_fn(current_state)
+                finally:
+                    actions = _pop_cell_tx()
+
+                with self._condition:
+                    if generation != self._generation or self._failed:
+                        continue
+                    self._commit_actions(actions)
+                    self._state_ref.set(next_state)
+            except Exception as exc:
+                with self._condition:
+                    if generation != self._generation:
+                        continue
+                    self._failed = True
+                    self._error = self._error_text(exc)
+                    self._condition.notify_all()
+
+    def send(self, update_fn: Any) -> None:
+        with self._condition:
+            if self._failed:
+                raise RuntimeError(f"Cell has failed: {self._error}")
+            generation = self._generation
+        self._mailbox.put((generation, update_fn))
+
+    def get(self) -> Any:
+        with self._condition:
+            if self._failed:
+                raise RuntimeError(f"Cell has failed: {self._error}")
+        return self._state_ref.get()
+
+    def failed(self) -> bool:
+        with self._condition:
+            return self._failed
+
+    def error_option(self) -> Any:
+        with self._condition:
+            if self._failed and self._error is not None:
+                return GeniaOptionSome(self._error)
+            return OPTION_NONE
+
+    def restart(self, value: Any) -> "GeniaCell":
+        with self._condition:
+            self._generation += 1
+            self._failed = False
+            self._error = None
+            self._state_ref.set(value)
+            self._condition.notify_all()
+        return self
+
+    def status(self) -> str:
+        with self._condition:
+            return "failed" if self._failed else "ready"
+
+    def is_alive(self) -> bool:
+        return self._thread.is_alive()
+
+    def __repr__(self) -> str:
+        return f"<cell {self.status()}>"
 
 
 def _freeze_map_key(value: Any) -> Any:
@@ -3419,6 +3552,52 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
             raise TypeError("ref_update expected a function as second argument")
         return ref_value.update(updater)
 
+    def _ensure_cell(cell_value: Any, name: str) -> GeniaCell:
+        if not isinstance(cell_value, GeniaCell):
+            raise TypeError(f"{name} expected a cell as first argument")
+        return cell_value
+
+    def cell_new_fn(initial: Any) -> GeniaCell:
+        return GeniaCell(GeniaRef(initial))
+
+    def cell_with_state_fn(state_ref: Any) -> GeniaCell:
+        if not isinstance(state_ref, GeniaRef):
+            raise TypeError("cell_with_state expected a ref")
+        return GeniaCell(state_ref)
+
+    def cell_send_fn(cell_value: Any, update_fn: Any) -> None:
+        cell = _ensure_cell(cell_value, "cell_send")
+        if not callable(update_fn):
+            raise TypeError("cell_send expected a function as second argument")
+        if _stage_cell_action("cell_send", cell, update_fn):
+            return None
+        cell.send(update_fn)
+        return None
+
+    def cell_get_fn(cell_value: Any) -> Any:
+        cell = _ensure_cell(cell_value, "cell_get")
+        return cell.get()
+
+    def cell_failed_fn(cell_value: Any) -> bool:
+        cell = _ensure_cell(cell_value, "cell_failed?")
+        return cell.failed()
+
+    def cell_error_fn(cell_value: Any) -> Any:
+        cell = _ensure_cell(cell_value, "cell_error")
+        return cell.error_option()
+
+    def restart_cell_fn(cell_value: Any, new_state: Any) -> Any:
+        cell = _ensure_cell(cell_value, "restart_cell")
+        return cell.restart(new_state)
+
+    def cell_status_fn(cell_value: Any) -> str:
+        cell = _ensure_cell(cell_value, "cell_status")
+        return cell.status()
+
+    def cell_alive_fn(cell_value: Any) -> bool:
+        cell = _ensure_cell(cell_value, "cell_alive?")
+        return cell.is_alive()
+
     def spawn_fn(handler: Any) -> GeniaProcess:
         if not callable(handler):
             raise TypeError("spawn expected a function")
@@ -3427,6 +3606,8 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     def send_fn(process: Any, message: Any) -> None:
         if not isinstance(process, GeniaProcess):
             raise TypeError("send expected a process as first argument")
+        if _stage_cell_action("process_send", process, message):
+            return None
         process.send(message)
         return None
 
@@ -3781,6 +3962,15 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("ref_set", ref_set_fn)
     env.set("ref_is_set", ref_is_set_fn)
     env.set("ref_update", ref_update_fn)
+    env.set("_cell_new", cell_new_fn)
+    env.set("_cell_with_state", cell_with_state_fn)
+    env.set("_cell_send", cell_send_fn)
+    env.set("_cell_get", cell_get_fn)
+    env.set("_cell_failed?", cell_failed_fn)
+    env.set("_cell_error", cell_error_fn)
+    env.set("_restart_cell", restart_cell_fn)
+    env.set("_cell_status", cell_status_fn)
+    env.set("_cell_alive?", cell_alive_fn)
     env.set("spawn", spawn_fn)
     env.set("send", send_fn)
     env.set("process_alive?", process_alive_fn)
@@ -3864,9 +4054,14 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("awk_count", 2, "std/prelude/awk.genia")
     env.register_autoload("fields", 1, "std/prelude/awk.genia")
     env.register_autoload("cell", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_with_state", 1, "std/prelude/cell.genia")
     env.register_autoload("cell_send", 2, "std/prelude/cell.genia")
     env.register_autoload("cell_get", 1, "std/prelude/cell.genia")
     env.register_autoload("cell_state", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_failed?", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_error", 1, "std/prelude/cell.genia")
+    env.register_autoload("restart_cell", 2, "std/prelude/cell.genia")
+    env.register_autoload("cell_status", 1, "std/prelude/cell.genia")
     env.register_autoload("cell_alive?", 1, "std/prelude/cell.genia")
     return env
 
