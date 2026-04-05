@@ -50,7 +50,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
-  - core values: Number, Symbol, String, Boolean, `nil`, `none` / `some(value)`, List, Map
+  - core values: Number, Symbol, String, Boolean, `nil`, Pair, `none` / `some(value)`, List, Map
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
@@ -111,6 +111,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
   - phase-1 primitive option model: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
+  - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
   - bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
@@ -168,12 +169,32 @@ quote(1 + 2)
 Current behavior:
 
 - `quote(x)` returns a symbol value distinct from the string `"x"`
-- `quote([a, [b, c]])` returns nested lists of symbols
-- `quote(1 + 2)` returns the data form `[+, 1, 2]`, not `3`
+- `quote([a, [b, c]])` returns nested pair chains of symbols
+- `quote(1 + 2)` returns the data form `(+ 1 2)`, not `3`
 - quoted maps preserve key shape:
   - `quote({a: 1})` uses symbol key `a`
   - `quote({"a": 1})` uses string key `"a"`
+- quoted list-like forms use pairs ending in `nil`
+- ordinary list literals remain ordinary list values
 - there is no `'x` shorthand in this phase
+
+## Pairs
+
+Pairs are immutable two-field values.
+
+```genia
+cons(1, 2)
+cons(1, cons(2, nil))
+```
+
+Current behavior:
+
+- `car(cons(1, 2))` returns `1`
+- `cdr(cons(1, 2))` returns `2`
+- `pair?(cons(1, nil))` is `true`
+- `null?(nil)` is `true`
+- lists built from pairs end in `nil`
+- ordinary list literals such as `[1, 2, 3]` are still separate list values in this phase
 
 ## REPL commands
 
@@ -215,6 +236,7 @@ This recursive shape is not in tail position and can still hit Python recursion 
 - a language-level scheduler (concurrency is host-thread based)
 - full Flow runtime system beyond phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
 - quote sugar (`'x`), quasiquote, unquote, and macros
+- mutable pairs
 
 ## Conditionals in Genia
 

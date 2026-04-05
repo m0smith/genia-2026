@@ -11,6 +11,7 @@ Genia's current runtime value model is broader than just "plain data".
 - strings
 - booleans (`true`, `false`)
 - `nil`
+- pairs
 - Option values: `none`, `some(value)`
 - lists
 - maps
@@ -74,9 +75,9 @@ Genia has a minimal `quote(expr)` special form for syntax-as-data.
 
 - identifier -> symbol
 - number / string / boolean / `nil` / `none` -> literal runtime value
-- list literal -> list of quoted elements
+- list literal -> pair chain ending in `nil`
 - map literal -> map of quoted keys and quoted values
-- unary / binary / call forms -> explicit list structure headed by a symbol
+- unary / binary / call forms -> pair chain headed by a symbol
 
 ### Minimal example
 
@@ -87,7 +88,7 @@ quote([a, b, c])
 Expected result:
 
 ```genia
-[a, b, c]
+(a b c)
 ```
 
 ### Edge case example
@@ -126,7 +127,7 @@ Expected behavior:
 - `quote(expr)` special form
 - symbol values distinct from strings
 - recursive quoting for lists and maps
-- operator/call quoting as explicit list data (`quote(1 + 2)` -> `[+, 1, 2]`)
+- operator/call quoting as pair data (`quote(1 + 2)` -> `(+ 1 2)`)
 
 ### ⚠️ Partial
 
@@ -138,6 +139,71 @@ Expected behavior:
 - quasiquote
 - unquote
 - macros
+
+---
+
+## Pairs (phase 1)
+
+Genia has immutable pairs for SICP-style structural data.
+
+- `cons(x, y)`
+- `car(pair)`
+- `cdr(pair)`
+- `pair?(x)`
+- `null?(x)`
+
+### Minimal example
+
+```genia
+car(cons(1, 2))
+```
+
+Expected result:
+
+```genia
+1
+```
+
+### Edge case example
+
+```genia
+xs = cons(1, cons(2, cons(3, nil)))
+[car(xs), car(cdr(xs)), null?(cdr(cdr(cdr(xs))))]
+```
+
+Expected result:
+
+```genia
+[1, 2, true]
+```
+
+### Failure case example
+
+```genia
+car(1)
+```
+
+Expected behavior:
+
+- raises `TypeError` because `car` expects a pair
+
+### Implementation status
+
+### ✅ Implemented
+
+- immutable pair runtime values
+- `cons`, `car`, `cdr`, `pair?`, `null?`
+- structural pair equality
+- quoted lists as pair chains
+
+### ⚠️ Partial
+
+- ordinary list literals remain separate list values in this phase
+
+### ❌ Not implemented
+
+- mutable pairs
+- list literals lowering to pairs
 
 ---
 

@@ -20,16 +20,16 @@ def test_quote_symbol_is_distinct_from_string(run):
 
 def test_quote_nested_lists_preserve_symbols_and_structure():
     result = _run("quote([a, [b, c]])")
-    assert format_debug(result) == "[a, [b, c]]"
+    assert format_debug(result) == "(a (b c))"
 
 
 def test_quote_does_not_evaluate_binary_expressions(run):
     assert run("quote(1 + 2) != 3") is True
-    assert format_debug(_run("quote(1 + 2)")) == "[+, 1, 2]"
+    assert format_debug(_run("quote(1 + 2)")) == "(+ 1 2)"
 
 
 def test_quote_call_represents_program_as_data():
-    assert format_debug(_run("quote(add(1, x))")) == "[add, 1, x]"
+    assert format_debug(_run("quote(add(1, x))")) == "(add 1 x)"
 
 
 def test_quote_preserves_identifier_and_string_map_keys():
@@ -50,7 +50,7 @@ def test_quote_of_too_many_arguments_is_rejected():
 
 
 def test_quote_preserves_spread_syntax_as_data():
-    assert format_debug(_run("quote([..xs])")) == "[[spread, xs]]"
+    assert format_debug(_run("quote([..xs])")) == "((spread xs))"
 
 
 def test_command_mode_prints_symbols_without_string_quotes(capsys):

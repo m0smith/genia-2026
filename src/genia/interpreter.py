@@ -1088,6 +1088,12 @@ QUOTE_OPERATOR_SYMBOLS = {
 
 
 def quote_node(node: Node) -> Any:
+    def quoted_list(items: list[Any]) -> Any:
+        result: Any = None
+        for item in reversed(items):
+            result = GeniaPair(item, result)
+        return result
+
     if isinstance(node, Number):
         return node.value
     if isinstance(node, String):
@@ -1101,31 +1107,31 @@ def quote_node(node: Node) -> Any:
     if isinstance(node, Var):
         return symbol(node.name)
     if isinstance(node, Quote):
-        return [symbol("quote"), quote_node(node.expr)]
+        return quoted_list([symbol("quote"), quote_node(node.expr)])
     if isinstance(node, Unary):
-        return [symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)]
+        return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)])
     if isinstance(node, Binary):
-        return [symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.left), quote_node(node.right)]
+        return quoted_list([symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.left), quote_node(node.right)])
     if isinstance(node, Call):
-        return [quote_node(node.fn), *(quote_node(arg) for arg in node.args)]
+        return quoted_list([quote_node(node.fn), *(quote_node(arg) for arg in node.args)])
     if isinstance(node, Block):
-        return [symbol("block"), *(quote_node(expr) for expr in node.exprs)]
+        return quoted_list([symbol("block"), *(quote_node(expr) for expr in node.exprs)])
     if isinstance(node, ListLiteral):
-        return [quote_node(item) for item in node.items]
+        return quoted_list([quote_node(item) for item in node.items])
     if isinstance(node, MapLiteral):
         result = GeniaMap()
         for key, value in node.items:
             result = result.put(quote_node(key), quote_node(value))
         return result
     if isinstance(node, Spread):
-        return [symbol("spread"), quote_node(node.expr)]
+        return quoted_list([symbol("spread"), quote_node(node.expr)])
     if isinstance(node, Lambda):
         params = [symbol(name) for name in node.params]
         if node.rest_param is None:
-            header: Any = params
+            header: Any = quoted_list(params)
         else:
-            header = [*params, [symbol("rest"), symbol(node.rest_param)]]
-        return [symbol("lambda"), header, quote_node(node.body)]
+            header = quoted_list([*params, quoted_list([symbol("rest"), symbol(node.rest_param)])])
+        return quoted_list([symbol("lambda"), header, quote_node(node.body)])
     raise TypeError(f"quote does not support node type {type(node).__name__}")
 
 
@@ -2398,6 +2404,15 @@ class GeniaSymbol:
         return self.name
 
 
+@dataclass(frozen=True)
+class GeniaPair:
+    head: Any
+    tail: Any
+
+    def __repr__(self) -> str:
+        return f"Pair({self.head!r}, {self.tail!r})"
+
+
 _SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
 
 
@@ -2415,6 +2430,8 @@ def _freeze_map_key(value: Any) -> Any:
         return value
     if isinstance(value, GeniaSymbol):
         return ("symbol", value.name)
+    if isinstance(value, GeniaPair):
+        return ("pair", _freeze_map_key(value.head), _freeze_map_key(value.tail))
     if isinstance(value, list):
         return ("list", tuple(_freeze_map_key(item) for item in value))
     if isinstance(value, tuple):
@@ -3624,10 +3641,17 @@ Option builtins (phase 1):
   is_some?(option)
   is_none?(option)
 
+Pairs:
+  cons(x, y)
+  car(pair)
+  cdr(pair)
+  pair?(value)
+  null?(value)
+
 Symbols / quote:
   quote(expr)            syntax-to-data special form
   quote(x)               symbol x
-  quote([a, 1, "b"])     [a, 1, "b"]
+  quote([a, 1, "b"])     pair chain ending in nil
 
 Simulation primitives (host-backed builtins):
   rand()                float in [0, 1)
@@ -3655,6 +3679,25 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         if len(args) == 1:
             return GeniaRef(args[0])
         raise TypeError(f"ref expected 0 or 1 args, got {len(args)}")
+
+    def cons_fn(head: Any, tail: Any) -> GeniaPair:
+        return GeniaPair(head, tail)
+
+    def car_fn(value: Any) -> Any:
+        if not isinstance(value, GeniaPair):
+            raise TypeError("car expected a pair")
+        return value.head
+
+    def cdr_fn(value: Any) -> Any:
+        if not isinstance(value, GeniaPair):
+            raise TypeError("cdr expected a pair")
+        return value.tail
+
+    def pair_fn(value: Any) -> bool:
+        return isinstance(value, GeniaPair)
+
+    def null_fn(value: Any) -> bool:
+        return value is None
 
     def ref_get_fn(ref_value: Any) -> Any:
         if not isinstance(ref_value, GeniaRef):
@@ -4083,6 +4126,11 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("unwrap_or", unwrap_or_fn)
     env.set("is_some?", is_some_fn)
     env.set("is_none?", is_none_fn)
+    env.set("cons", cons_fn)
+    env.set("car", car_fn)
+    env.set("cdr", cdr_fn)
+    env.set("pair?", pair_fn)
+    env.set("null?", null_fn)
     env.set("ref", ref_fn)
     env.set("ref_get", ref_get_fn)
     env.set("ref_set", ref_set_fn)

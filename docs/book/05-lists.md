@@ -2,6 +2,17 @@
 
 ## What list helpers are implemented today?
 
+Genia currently has two list-like data families:
+
+- ordinary list values such as `[1, 2, 3]`
+- pair-built lists such as `cons(1, cons(2, nil))`
+
+These are distinct in the current runtime.
+
+- ordinary list literals stay ordinary list values
+- quoted lists use pair chains ending in `nil`
+- `pair?([1, 2])` is `false`
+
 Genia ships a small list-focused stdlib in bundled `std/prelude/list.genia` source.
 
 The runtime loads this bundled prelude through package resources, so the same list stdlib works in both repo execution and installed-package/tool execution.
@@ -36,6 +47,61 @@ Current compatibility note:
 - `first` remains the legacy non-empty extractor
 - `first_opt`, `last`, and `find_opt` are the Option-returning maybe-helpers for lists
 - string `find` remains a separate builtin and still returns index-or-`nil`
+
+---
+
+## Pairs and pair-built lists
+
+Pairs are the SICP-style list substrate in current Genia.
+
+Available primitives:
+
+- `cons`
+- `car`
+- `cdr`
+- `pair?`
+- `null?`
+
+### Minimal example
+
+```genia
+xs = cons(1, cons(2, cons(3, nil)))
+[car(xs), car(cdr(xs))]
+```
+
+Expected result:
+
+```genia
+[1, 2]
+```
+
+### Edge case example
+
+```genia
+[pair?(cons(1, nil)), null?(nil), pair?([1, 2])]
+```
+
+Expected result:
+
+```genia
+[true, true, false]
+```
+
+### Failure case example
+
+```genia
+cdr(42)
+```
+
+Expected behavior:
+
+- raises `TypeError` because `cdr` expects a pair
+
+Current note:
+
+- pair-built lists end in `nil`
+- ordinary list helpers such as `map`, `filter`, `take`, and `drop` still operate on ordinary list values in this phase
+- quoted list syntax uses pair chains, which makes `quote([a, b, c])` produce symbolic pair data
 
 ---
 

@@ -152,12 +152,23 @@ No additional member/index/flow operators should be introduced without explicitl
 - `quote(expr)` currently converts syntax to data with these core rules:
   - identifier -> symbol
   - number / string / boolean / `nil` / `none` -> corresponding literal runtime value
-  - list literal -> list of quoted elements
+  - list literal -> pair chain ending in `nil`
   - map literal -> map of quoted keys and quoted values
-  - unary / binary / call forms -> explicit list structure headed by a symbol
+  - unary / binary / call forms -> pair chain headed by a symbol
 - quoted identifier map keys remain symbols; quoted string map keys remain strings
 - symbol values print as bare names and are stable map keys
 - there is no `'x` quote sugar in this phase
+
+## 9.3) Pairs
+
+- pairs are immutable two-field runtime values created with `cons`
+- `car` returns the head field
+- `cdr` returns the tail field
+- `pair?(x)` reports whether a value is a pair
+- `null?(x)` reports whether a value is exactly `nil`
+- pair equality is structural
+- lists built from pairs are chains of pairs ending in `nil`
+- ordinary list literals remain list values in this phase; they do not lower to pairs
 
 ## 10) Ref + concurrency runtime guarantees
 

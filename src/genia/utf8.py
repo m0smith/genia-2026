@@ -31,6 +31,8 @@ def format_display(value: Any) -> str:
         return "true" if value else "false"
     if _is_symbol(value):
         return value.name
+    if _is_pair(value):
+        return _format_pair(value, format_display)
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -55,6 +57,8 @@ def format_debug(value: Any) -> str:
         return "true" if value else "false"
     if _is_symbol(value):
         return value.name
+    if _is_pair(value):
+        return _format_pair(value, format_debug)
     if isinstance(value, str):
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
@@ -64,3 +68,22 @@ def format_debug(value: Any) -> str:
 
 def _is_symbol(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaSymbol" and isinstance(getattr(value, "name", None), str)
+
+
+def _is_pair(value: Any) -> bool:
+    return (
+        value.__class__.__name__ == "GeniaPair"
+        and hasattr(value, "head")
+        and hasattr(value, "tail")
+    )
+
+
+def _format_pair(value: Any, formatter) -> str:
+    parts: list[str] = []
+    current = value
+    while _is_pair(current):
+        parts.append(formatter(current.head))
+        current = current.tail
+    if current is None:
+        return "(" + " ".join(parts) + ")"
+    return "(" + " ".join(parts + [".", formatter(current)]) + ")"

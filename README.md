@@ -63,7 +63,7 @@ pytest -q
 
 ### Runtime value categories
 
-- Core values: Number, Symbol, String, Boolean, `nil`, `none` / `some(value)`, List, Map
+- Core values: Number, Symbol, String, Boolean, `nil`, Pair, `none` / `some(value)`, List, Map
 - Function / module values: Function, Module
 - Callable behaviors:
   - functions/lambdas are callable values
@@ -98,9 +98,24 @@ quote(1 + 2)
 ```
 
 - `quote(x)` returns a symbol distinct from the string `"x"`
-- `quote([a, b, c])` returns a list of symbols
-- `quote(1 + 2)` returns `[+, 1, 2]`, not `3`
+- `quote([a, b, c])` returns a pair chain of symbols ending in `nil`
+- `quote(1 + 2)` returns `(+ 1 2)`, not `3`
 - there is no `'x` shorthand in this phase
+
+### Pairs and Lists
+
+Genia also has immutable pairs for SICP-style data.
+
+```genia
+cons(1, 2)
+cons(1, cons(2, nil))
+```
+
+- `car` and `cdr` access pair fields
+- `pair?(x)` checks for pairs
+- `null?(x)` checks for `nil`
+- pair-built lists end in `nil`
+- ordinary list literals remain separate list values in this phase
 
 ### Functions and lambdas
 
@@ -278,6 +293,7 @@ cell_get(counter)
 
 - `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
 - special form: `quote(expr)`
+- pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`

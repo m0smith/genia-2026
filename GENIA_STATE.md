@@ -36,6 +36,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - String
 - Boolean
 - Nil (`nil`)
+- Pair
 - None / Some (`none`, `some(value)`)
 - List
 - Map
@@ -191,11 +192,23 @@ Pipeline (Phase 2) rewrite model:
 - current quote conversion rules:
   - identifier -> symbol
   - number / string / boolean / `nil` / `none` -> corresponding literal runtime value
-  - list literal -> list of quoted elements
+  - list literal -> pair chain ending in `nil`
   - map literal -> runtime map with quoted keys and values
-  - unary / binary / call forms -> explicit list structure headed by a symbol
+  - unary / binary / call forms -> pair chain headed by a symbol
   - quoted identifier map keys become symbols; quoted string map keys stay strings
 - there is no quote sugar (`'x`) in this phase
+
+## 4.2) Pairs
+
+- Pair is a real immutable runtime value family
+  - `cons(x, y)` creates a pair
+  - `car(pair)` returns the head field
+  - `cdr(pair)` returns the tail field
+  - `pair?(x)` reports whether a value is a pair
+  - `null?(x)` reports whether a value is exactly `nil`
+- pair equality is structural
+- SICP-style lists can be represented as pair chains ending in `nil`
+- ordinary list literals remain separate List values in this phase
 
 ## 5) Case expressions and pattern matching
 
@@ -265,6 +278,7 @@ Case placement rules (enforced):
 - `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, `nil`
+- pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 
 Output sink semantics:
 
