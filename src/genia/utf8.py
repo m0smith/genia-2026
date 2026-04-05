@@ -29,6 +29,8 @@ def format_display(value: Any) -> str:
         return "nil"
     if isinstance(value, bool):
         return "true" if value else "false"
+    if _is_symbol(value):
+        return value.name
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -51,8 +53,14 @@ def format_debug(value: Any) -> str:
         return "nil"
     if isinstance(value, bool):
         return "true" if value else "false"
+    if _is_symbol(value):
+        return value.name
     if isinstance(value, str):
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
         return "[" + ", ".join(format_debug(item) for item in value) + "]"
     return repr(value)
+
+
+def _is_symbol(value: Any) -> bool:
+    return value.__class__.__name__ == "GeniaSymbol" and isinstance(getattr(value, "name", None), str)

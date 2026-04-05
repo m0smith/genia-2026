@@ -32,6 +32,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 ### Core values
 
 - Number
+- Symbol
 - String
 - Boolean
 - Nil (`nil`)
@@ -104,6 +105,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 ## 3) Implemented syntax and expression forms
 
 - literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
+- quote special form: `quote(expr)`
 - variables
 - function calls
 - unary operators: `-`, `!`
@@ -175,6 +177,25 @@ Pipeline (Phase 2) rewrite model:
     - `"key"(m, default)` returns stored value when key exists, otherwise `default`
     - first argument must be map-like (runtime map value); non-map targets raise clear `TypeError`
     - arity other than 1 or 2 raises `TypeError`
+
+## 4.1) Symbols and quote
+
+- Symbol is a real runtime value family
+  - symbols are distinct from strings
+  - symbols print as bare names (`x`, not `"x"`)
+  - symbols compare by value/name
+  - symbols are valid stable map keys
+- `quote(expr)` is implemented as a special form
+  - it does not evaluate `expr`
+  - it converts syntax to runtime data
+- current quote conversion rules:
+  - identifier -> symbol
+  - number / string / boolean / `nil` / `none` -> corresponding literal runtime value
+  - list literal -> list of quoted elements
+  - map literal -> runtime map with quoted keys and values
+  - unary / binary / call forms -> explicit list structure headed by a symbol
+  - quoted identifier map keys become symbols; quoted string map keys stay strings
+- there is no quote sugar (`'x`) in this phase
 
 ## 5) Case expressions and pattern matching
 

@@ -50,7 +50,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
-  - core values: Number, String, Boolean, `nil`, `none` / `some(value)`, List, Map
+  - core values: Number, Symbol, String, Boolean, `nil`, `none` / `some(value)`, List, Map
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
@@ -58,6 +58,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - Option pattern matching supports literal `none` and constructor pattern `some(pattern)`
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
+- quote special form: `quote(expr)` for syntax-as-data
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
@@ -154,6 +155,26 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - broken pipe on `stdout` output in command/file execution is treated as normal downstream termination without a Python traceback
   - REPL results go to `stdout`; REPL and command/file diagnostics go to `stderr`
 
+## Symbols and quote
+
+`quote(expr)` returns the unevaluated structure of `expr` as runtime data.
+
+```genia
+quote(x)
+quote([a, b, c])
+quote(1 + 2)
+```
+
+Current behavior:
+
+- `quote(x)` returns a symbol value distinct from the string `"x"`
+- `quote([a, [b, c]])` returns nested lists of symbols
+- `quote(1 + 2)` returns the data form `[+, 1, 2]`, not `3`
+- quoted maps preserve key shape:
+  - `quote({a: 1})` uses symbol key `a`
+  - `quote({"a": 1})` uses string key `"a"`
+- there is no `'x` shorthand in this phase
+
 ## REPL commands
 
 - `:help`
@@ -193,6 +214,7 @@ This recursive shape is not in tail position and can still hit Python recursion 
 - general member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - full Flow runtime system beyond phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
+- quote sugar (`'x`), quasiquote, unquote, and macros
 
 ## Conditionals in Genia
 

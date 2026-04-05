@@ -566,6 +566,12 @@ class Var(Node):
 
 
 @dataclass
+class Quote(Node):
+    expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
 class Unary(Node):
     op: str
     expr: Node
@@ -607,7 +613,7 @@ class ListLiteral(Node):
 
 @dataclass
 class MapLiteral(Node):
-    items: list[tuple[str, Node]]
+    items: list[tuple[Node, Node]]
     span: SourceSpan | None = None
 
 
@@ -725,6 +731,14 @@ class IrVar(IrNode):
     """Variable read by name (kept explicit for analysis and rewriting)."""
 
     name: str
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrQuote(IrNode):
+    """Quoted source expression preserved for syntax-to-data conversion."""
+
+    expr: Node
     span: SourceSpan | None = None
 
 
@@ -935,6 +949,14 @@ def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
     return [lower_node(node) for node in nodes]
 
 
+def _map_literal_key_name(key: Node) -> str:
+    if isinstance(key, Var):
+        return key.name
+    if isinstance(key, String):
+        return key.value
+    raise RuntimeError(f"Unsupported map literal key node: {key!r}")
+
+
 def lower_node(node: Node) -> IrNode:
     if isinstance(node, ExprStmt):
         return IrExprStmt(lower_node(node.expr), span=node.span)
@@ -950,6 +972,8 @@ def lower_node(node: Node) -> IrNode:
         return IrLiteral(OPTION_NONE, span=node.span)
     if isinstance(node, Var):
         return IrVar(node.name, span=node.span)
+    if isinstance(node, Quote):
+        return IrQuote(node.expr, span=node.span)
     if isinstance(node, Unary):
         return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
@@ -967,7 +991,7 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, ListLiteral):
         return IrList([lower_node(item) for item in node.items], span=node.span)
     if isinstance(node, MapLiteral):
-        return IrMap([(key, lower_node(value)) for key, value in node.items], span=node.span)
+        return IrMap([(_map_literal_key_name(key), lower_node(value)) for key, value in node.items], span=node.span)
     if isinstance(node, Spread):
         return IrSpread(lower_node(node.expr), span=node.span)
     if isinstance(node, CaseExpr):
@@ -1042,6 +1066,67 @@ def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list
         else:
             optimized.append(node)
     return optimized
+
+
+QUOTE_OPERATOR_SYMBOLS = {
+    "PLUS": "+",
+    "MINUS": "-",
+    "STAR": "*",
+    "SLASH": "/",
+    "PERCENT": "%",
+    "LT": "<",
+    "LE": "<=",
+    "GT": ">",
+    "GE": ">=",
+    "EQEQ": "==",
+    "NE": "!=",
+    "AND": "&&",
+    "OR": "||",
+    "PIPE_FWD": "|>",
+    "BANG": "!",
+}
+
+
+def quote_node(node: Node) -> Any:
+    if isinstance(node, Number):
+        return node.value
+    if isinstance(node, String):
+        return node.value
+    if isinstance(node, Boolean):
+        return node.value
+    if isinstance(node, Nil):
+        return None
+    if isinstance(node, NoneOption):
+        return OPTION_NONE
+    if isinstance(node, Var):
+        return symbol(node.name)
+    if isinstance(node, Quote):
+        return [symbol("quote"), quote_node(node.expr)]
+    if isinstance(node, Unary):
+        return [symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.expr)]
+    if isinstance(node, Binary):
+        return [symbol(QUOTE_OPERATOR_SYMBOLS[node.op]), quote_node(node.left), quote_node(node.right)]
+    if isinstance(node, Call):
+        return [quote_node(node.fn), *(quote_node(arg) for arg in node.args)]
+    if isinstance(node, Block):
+        return [symbol("block"), *(quote_node(expr) for expr in node.exprs)]
+    if isinstance(node, ListLiteral):
+        return [quote_node(item) for item in node.items]
+    if isinstance(node, MapLiteral):
+        result = GeniaMap()
+        for key, value in node.items:
+            result = result.put(quote_node(key), quote_node(value))
+        return result
+    if isinstance(node, Spread):
+        return [symbol("spread"), quote_node(node.expr)]
+    if isinstance(node, Lambda):
+        params = [symbol(name) for name in node.params]
+        if node.rest_param is None:
+            header: Any = params
+        else:
+            header = [*params, [symbol("rest"), symbol(node.rest_param)]]
+        return [symbol("lambda"), header, quote_node(node.body)]
+    raise TypeError(f"quote does not support node type {type(node).__name__}")
 
 
 def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
@@ -1793,18 +1878,20 @@ class Parser:
         end = self.eat("RBRACK")
         return ListLiteral(items, span=self.span_for_tokens(start, end))
 
-    def parse_map_literal_key(self) -> str:
+    def parse_map_literal_key(self) -> Node:
         if self.at("IDENT"):
-            return self.eat("IDENT").text
+            tok = self.eat("IDENT")
+            return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if self.at("STRING"):
-            return parse_string_literal(self.eat("STRING").text)
+            tok = self.eat("STRING")
+            return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
         tok = self.peek()
         raise SyntaxError(f"Invalid map key token {tok.text!r} ({tok.kind}) at {tok.pos}")
 
     def parse_map_literal(self) -> MapLiteral:
         start = self.eat("LBRACE")
         self.skip_newlines()
-        items: list[tuple[str, Node]] = []
+        items: list[tuple[Node, Node]] = []
         if not self.at("RBRACE"):
             while True:
                 key = self.parse_map_literal_key()
@@ -1883,6 +1970,12 @@ class Parser:
                 self.skip_newlines()
         self.skip_newlines()
         end = self.eat("RPAREN")
+        if isinstance(fn, Var) and fn.name == "quote":
+            if len(args) != 1:
+                raise SyntaxError("quote(...) expects exactly one argument")
+            if isinstance(args[0], Spread):
+                raise SyntaxError("quote(...) does not accept spread arguments")
+            return Quote(args[0], span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
         return Call(fn, args, span=self.merge_spans(fn.span, self.span_for_tokens(end, end)))
 
 
@@ -2294,9 +2387,34 @@ class GeniaCell:
         return f"<cell {self.status()}>"
 
 
+@dataclass(frozen=True)
+class GeniaSymbol:
+    name: str
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __str__(self) -> str:
+        return self.name
+
+
+_SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
+
+
+def symbol(name: str) -> GeniaSymbol:
+    existing = _SYMBOL_INTERN_TABLE.get(name)
+    if existing is not None:
+        return existing
+    created = GeniaSymbol(name)
+    _SYMBOL_INTERN_TABLE[name] = created
+    return created
+
+
 def _freeze_map_key(value: Any) -> Any:
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
+    if isinstance(value, GeniaSymbol):
+        return ("symbol", value.name)
     if isinstance(value, list):
         return ("list", tuple(_freeze_map_key(item) for item in value))
     if isinstance(value, tuple):
@@ -2931,6 +3049,8 @@ class Evaluator:
             for key, value_node in node.items:
                 result = result.put(key, self.eval(value_node))
             return result
+        if isinstance(node, IrQuote):
+            return quote_node(node.expr)
         if isinstance(node, IrVar):
             return self.env.get(node.name)
         if isinstance(node, IrUnary):
@@ -3432,6 +3552,7 @@ Examples:
   1 + 2 * 3
   square(x) = x * x
   square(5)
+  quote([a, b, c])
 
   fact(n) =
     0 -> 1 |
@@ -3502,6 +3623,11 @@ Option builtins (phase 1):
   unwrap_or(default, option)
   is_some?(option)
   is_none?(option)
+
+Symbols / quote:
+  quote(expr)            syntax-to-data special form
+  quote(x)               symbol x
+  quote([a, 1, "b"])     [a, 1, "b"]
 
 Simulation primitives (host-backed builtins):
   rand()                float in [0, 1)

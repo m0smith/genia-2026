@@ -63,7 +63,7 @@ pytest -q
 
 ### Runtime value categories
 
-- Core values: Number, String, Boolean, `nil`, `none` / `some(value)`, List, Map
+- Core values: Number, Symbol, String, Boolean, `nil`, `none` / `some(value)`, List, Map
 - Function / module values: Function, Module
 - Callable behaviors:
   - functions/lambdas are callable values
@@ -86,6 +86,21 @@ Current consistency note:
 - `some(pattern)` is supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - Flow and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
+
+### Programs as Data
+
+Genia has a minimal `quote(expr)` special form for syntax-as-data.
+
+```genia
+quote(x)
+quote([a, b, c])
+quote(1 + 2)
+```
+
+- `quote(x)` returns a symbol distinct from the string `"x"`
+- `quote([a, b, c])` returns a list of symbols
+- `quote(1 + 2)` returns `[+, 1, 2]`, not `3`
+- there is no `'x` shorthand in this phase
 
 ### Functions and lambdas
 
@@ -262,6 +277,7 @@ cell_get(counter)
 ### Core
 
 - `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
+- special form: `quote(expr)`
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
@@ -371,6 +387,9 @@ rewrite_zip(in_path, out_path) =
 
 ## Not implemented yet
 
+- quote sugar (`'x`)
+- quasiquote / unquote
+- macros
 - general host interop / FFI
 - general member access / indexing syntax
 - full flow system beyond Phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)

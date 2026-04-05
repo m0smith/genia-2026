@@ -144,6 +144,21 @@ No additional member/index/flow operators should be introduced without explicitl
   - the final pipeline stage after `|>` lowering
 - Non-tail calls are unchanged and may still consume Python stack space.
 
+## 9.2) Symbols and quote
+
+- symbols are runtime values distinct from strings
+- `quote(expr)` is a special form, not an ordinary function call
+- `quote(expr)` must not evaluate `expr`
+- `quote(expr)` currently converts syntax to data with these core rules:
+  - identifier -> symbol
+  - number / string / boolean / `nil` / `none` -> corresponding literal runtime value
+  - list literal -> list of quoted elements
+  - map literal -> map of quoted keys and quoted values
+  - unary / binary / call forms -> explicit list structure headed by a symbol
+- quoted identifier map keys remain symbols; quoted string map keys remain strings
+- symbol values print as bare names and are stable map keys
+- there is no `'x` quote sugar in this phase
+
 ## 10) Ref + concurrency runtime guarantees
 
 - refs are synchronized host objects

@@ -7,6 +7,7 @@ Genia's current runtime value model is broader than just "plain data".
 ### Core values
 
 - numbers
+- symbols
 - strings
 - booleans (`true`, `false`)
 - `nil`
@@ -64,6 +65,79 @@ Current consistency note:
 - Flow, output sinks, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
+
+---
+
+## Programs as data (phase 1)
+
+Genia has a minimal `quote(expr)` special form for syntax-as-data.
+
+- identifier -> symbol
+- number / string / boolean / `nil` / `none` -> literal runtime value
+- list literal -> list of quoted elements
+- map literal -> map of quoted keys and quoted values
+- unary / binary / call forms -> explicit list structure headed by a symbol
+
+### Minimal example
+
+```genia
+quote([a, b, c])
+```
+
+Expected result:
+
+```genia
+[a, b, c]
+```
+
+### Edge case example
+
+```genia
+q = quote({a: 1, "b": c})
+[map_get(q, quote(a)), map_get(q, "b")]
+```
+
+Expected result:
+
+```genia
+[1, c]
+```
+
+This shows the current quoted-map key rule:
+
+- identifier keys become symbol keys
+- string keys stay strings
+
+### Failure case example
+
+```genia
+quote(a, b)
+```
+
+Expected behavior:
+
+- syntax error because `quote(...)` expects exactly one argument
+
+### Implementation status
+
+### ✅ Implemented
+
+- first-class symbol runtime values
+- `quote(expr)` special form
+- symbol values distinct from strings
+- recursive quoting for lists and maps
+- operator/call quoting as explicit list data (`quote(1 + 2)` -> `[+, 1, 2]`)
+
+### ⚠️ Partial
+
+- only `quote(expr)` is implemented in this phase
+
+### ❌ Not implemented
+
+- `'x` quote sugar
+- quasiquote
+- unquote
+- macros
 
 ---
 
