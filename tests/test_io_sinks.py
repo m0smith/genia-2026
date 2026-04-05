@@ -1,6 +1,5 @@
 import io
 
-import pytest
 
 from genia import make_global_env, run_source
 from genia.interpreter import _main, repl

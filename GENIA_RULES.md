@@ -100,6 +100,18 @@ Required constraints:
 - top-level named assignments/functions from the module file are exported
 - missing module files must raise a deterministic `FileNotFoundError("Module not found: <name>")`
 
+## 8.3) Assignment invariants
+
+- `name = expr` defines or rebinds a lexical name.
+- If `name` already exists in the reachable lexical environment chain, assignment updates the nearest existing binding.
+- Otherwise assignment creates `name` in the current scope.
+- Function parameters are ordinary assignable lexical bindings.
+- Closures observe rebinding through captured lexical environments.
+- Assignment is limited to simple names in this phase.
+- Invalid targets such as `(a + b) = 3` must raise `SyntaxError("Assignment target must be a simple name")`.
+- Module evaluation keeps its own module environment boundary, so module top-level assignment must not rebind names in the importing root environment.
+- Builtin/root names are not protected from rebinding inside the same root environment in the current implementation.
+
 ## 9) Operator model
 
 Implemented operators are limited to:

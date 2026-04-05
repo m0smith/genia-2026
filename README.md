@@ -139,6 +139,11 @@ list = (..xs) -> xs
   - `help(name)` renders docstrings with lightweight Markdown-aware formatting
   - official style guide + templates: `docs/book/03-functions.md` ("Official Docstring Style Guide")
 - closures are supported
+- `name = expr` also works as lexical assignment in blocks
+  - it rebinds the nearest existing lexical name when present
+  - otherwise it defines a name in the current scope
+  - function parameters are assignable
+  - assignment is limited to simple names in this phase
 - calls in tail position are guaranteed to run in constant stack space
 
 ### Pattern matching

@@ -59,7 +59,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
-- variables and top-level assignment (`name = expr`)
+- variables and lexical assignment (`name = expr`)
+  - assignment defines a name in the current scope when none exists in the reachable lexical chain
+  - otherwise it updates the nearest existing lexical binding
+  - parameters are assignable
+  - assignment is limited to simple names in this phase
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
 - pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
   - example: `record |> "name"` behaves like `"name"(record)`
@@ -202,6 +206,47 @@ Current behavior:
 - leading `+` / `-` is supported
 - invalid text raises `ValueError`
 - non-string input raises `TypeError`
+
+## Lexical assignment
+
+Genia now supports lexical rebinding with the existing `name = expr` syntax.
+
+```genia
+{
+  x = 1
+  x = 2
+  x
+}
+```
+
+Current behavior:
+
+- the block returns `2`
+- assignment updates the nearest existing lexical binding when one exists
+- otherwise it creates a name in the current scope
+- function parameters are assignable lexical bindings
+
+Closures observe rebinding through their captured environment:
+
+```genia
+make_counter() = {
+  n = 0
+  () -> {
+    n = n + 1
+    n
+  }
+}
+```
+
+Failure case:
+
+```genia
+{
+  (1 + 2) = 3
+}
+```
+
+- raises `SyntaxError("Assignment target must be a simple name")`
 
 ## Pairs
 

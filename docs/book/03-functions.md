@@ -25,6 +25,90 @@ No other callable-data forms are implemented in this phase.
 
 ---
 
+## Lexical Assignment
+
+Assignment uses the existing `name = expr` surface syntax.
+
+### Status
+
+✅ Implemented
+
+- top-level assignment
+- lexical assignment inside blocks
+- nearest-binding rebinding through lexical scope chains
+- assignable function parameters
+- closure-visible rebinding
+
+⚠️ Partial
+
+- assignment is limited to simple names
+- lexical rebinding is most practical in blocks and block-bodied functions
+- builtin/root names are not protected from rebinding inside the same root environment
+
+❌ Missing
+
+- destructuring assignment
+- map/list/pair field assignment
+- pair mutation (`set-car!`, `set-cdr!`)
+
+### Minimal example
+
+```genia
+{
+  x = 1
+  x = 2
+  x
+}
+```
+
+This evaluates to `2`.
+
+### Edge case: closures see rebinding
+
+```genia
+make_counter() = {
+  n = 0
+  () -> {
+    n = n + 1
+    n
+  }
+}
+
+c = make_counter()
+[c(), c(), c()]
+```
+
+This evaluates to `[1, 2, 3]`.
+
+### Edge case: nested scopes update the nearest binding
+
+```genia
+{
+  x = 1
+  y = {
+    x = 2
+    x
+  }
+  [x, y]
+}
+```
+
+This evaluates to `[2, 2]`.
+
+### Failure case
+
+```genia
+{
+  (1 + 2) = 3
+}
+```
+
+This raises:
+
+- `SyntaxError("Assignment target must be a simple name")`
+
+---
+
 
 ## Calling module exports (Phase 1 modules)
 

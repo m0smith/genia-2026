@@ -1535,16 +1535,24 @@ class Parser:
 
             raise SyntaxError("Internal parser error: expected function body")
 
-        if self.at("IDENT") and self.peek(1).kind == "ASSIGN":
-            name_tok = self.eat("IDENT")
-            name = name_tok.text
-            self.eat("ASSIGN")
-            self.skip_separators()
-            expr = self.parse_expr()
-            return Assign(name, expr, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), expr.span))
+        assign = self.try_parse_name_assignment()
+        if assign is not None:
+            return assign
 
         expr = self.parse_expr()
+        if self.at("ASSIGN"):
+            raise SyntaxError("Assignment target must be a simple name")
         return ExprStmt(expr, span=expr.span)
+
+    def try_parse_name_assignment(self) -> Assign | None:
+        if not (self.at("IDENT") and self.peek(1).kind == "ASSIGN"):
+            return None
+        name_tok = self.eat("IDENT")
+        name = name_tok.text
+        self.eat("ASSIGN")
+        self.skip_separators()
+        expr = self.parse_expr()
+        return Assign(name, expr, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), expr.span))
 
     def at_expr_start(self) -> bool:
         return self.at("NUMBER", "STRING", "IDENT", "MINUS", "BANG", "LPAREN", "LBRACK", "LBRACE")
@@ -1638,7 +1646,14 @@ class Parser:
                 if not self.at("RBRACE"):
                     raise SyntaxError("Case expression must be final in a block")
                 break
-            exprs.append(self.parse_expr())
+            assign = self.try_parse_name_assignment()
+            if assign is not None:
+                exprs.append(assign)
+            else:
+                expr = self.parse_expr()
+                if self.at("ASSIGN"):
+                    raise SyntaxError("Assignment target must be a simple name")
+                exprs.append(expr)
             self.skip_separators()
         end = self.eat("RBRACE")
         return Block(exprs, span=self.span_for_tokens(start, end))
@@ -2034,9 +2049,11 @@ NOOP_DEBUG_HOOKS = DebugHooks()
 
 
 class Env:
-    def __init__(self, parent: Optional["Env"] = None):
+    def __init__(self, parent: Optional["Env"] = None, *, rebind_parent: bool | None = None):
         self.parent = parent
         self.values: dict[str, Any] = {}
+        self.assignable: set[str] = set()
+        self.rebind_parent = (parent is not None) if rebind_parent is None else rebind_parent
         self.autoloads: dict[tuple[str, int], str] = {}
         self.loaded_files: set[str] = set()
         self.loading_files: set[str] = set()
@@ -2058,15 +2075,37 @@ class Env:
             return self.parent.get(name)
         raise NameError(f"Undefined name: {name}")
 
-    def set(self, name: str, value: Any) -> None:
+    def set(self, name: str, value: Any, *, assignable: bool = True) -> None:
         self.values[name] = value
+        if assignable:
+            self.assignable.add(name)
+        else:
+            self.assignable.discard(name)
+
+    def assign(self, name: str, value: Any) -> None:
+        target_env = self.find_assign_target(name)
+        if target_env is None:
+            self.set(name, value, assignable=True)
+            return
+        target_env.values[name] = value
+
+    def find_assign_target(self, name: str) -> Optional["Env"]:
+        env: Env = self
+        while True:
+            if name in env.values:
+                if name in env.assignable:
+                    return env
+                raise NameError(f"Cannot assign to non-assignable name: {name}")
+            if env.parent is None or not env.rebind_parent:
+                return None
+            env = env.parent
 
     def define_function(self, fn: "GeniaFunction") -> None:
         existing = self.values.get(fn.name)
         if existing is None:
             group = GeniaFunctionGroup(fn.name)
             group.add_clause(fn)
-            self.values[fn.name] = group
+            self.set(fn.name, group, assignable=True)
             return
         if not isinstance(existing, GeniaFunctionGroup):
             raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
@@ -2127,7 +2166,7 @@ class Env:
         source, key = root.resolve_module_source(module_name, requester_filename)
         root.loading_modules.add(module_name)
         try:
-            module_env = Env(root)
+            module_env = Env(root, rebind_parent=False)
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
             run_source(source, module_env, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
@@ -3127,7 +3166,7 @@ class Evaluator:
 
         if isinstance(node, IrAssign):
             value = self.eval(node.expr)
-            self.env.set(node.name, value)
+            self.env.assign(node.name, value)
             return value
 
         if isinstance(node, IrFuncDef):

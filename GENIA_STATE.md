@@ -6,7 +6,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 - programs are expression sequences
 - parser AST stays close to surface syntax, then lowers into a tiny Core IR before evaluation
-- top-level assignment is supported (`name = expr`)
+- assignment is supported at top level and in lexical scopes (`name = expr`)
 - blocks evaluate expressions in order and return the last value
 - no statement/declaration split at runtime level
 - CLI entry points support three execution modes:
@@ -101,6 +101,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - maps are callable as lookup values
   - strings are callable as map projectors
 - Flow, stdout/stderr, and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
+- lexical assignment currently does not protect builtin/root names from rebinding inside the same root environment; that is real current behavior.
 - The current model is implemented and tested, but it is still piecemeal rather than a single fully unified type/protocol system.
 
 ## 3) Implemented syntax and expression forms
@@ -143,6 +144,15 @@ Pipeline (Phase 2) rewrite model:
 - named functions are first-class values
 - multiple definitions by arity shape are allowed
 - varargs named functions are supported (`f(a, ..rest) = ...`)
+- lexical assignment uses the same `name = expr` surface syntax
+  - if `name` already exists in the reachable lexical environment chain, assignment updates the nearest existing binding
+  - otherwise assignment creates `name` in the current scope
+  - blocks create lexical scopes
+  - function parameters are ordinary assignable lexical bindings
+  - closures capture lexical environments, so rebinding is visible across calls to the same closure
+  - assignment is limited to simple names in this phase
+  - invalid targets such as `(a + b) = 3` raise `SyntaxError("Assignment target must be a simple name")`
+  - module evaluation uses its own module environment, so module top-level assignment does not rebind names in the importing root environment
 - named function definitions may include an optional leading docstring string literal after `=`
   - example:
     ```genia
