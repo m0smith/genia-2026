@@ -107,6 +107,38 @@ def test_some_pattern_rejects_multiple_inner_patterns(run):
         run('f(x) = some(a, b) -> a')
 
 
+def test_option_list_helpers_work_with_pattern_matching(run):
+    src = '\n'.join([
+        'pick(opt) =',
+        '  some(x) -> x |',
+        '  none -> 0',
+        'pick(first_opt([1, 2, 3]))',
+    ])
+    assert run(src) == 1
+
+
+def test_option_list_helpers_empty_cases(run):
+    src = '\n'.join([
+        'pick(opt) =',
+        '  some(x) -> x |',
+        '  none -> 0',
+        '[pick(first_opt([])), pick(first_opt([nil])), unwrap_or(0, last([])), unwrap_or(0, last([1, 2, 3]))]',
+    ])
+    assert run(src) == [0, None, 0, 3]
+
+
+def test_find_opt_returns_none_some_and_some_nil(run):
+    assert run("is_none?(find_opt((x) -> x == 9, [1, 2, 3]))") is True
+    assert run("unwrap_or(0, find_opt((x) -> x % 2 == 0, [1, 2, 4]))") == 2
+    assert run("is_some?(find_opt((x) -> x == nil, [1, nil, 2]))") is True
+    assert run("unwrap_or(7, find_opt((x) -> x == nil, [1, nil, 2]))") is None
+
+
+def test_option_values_do_not_gain_boolean_predicate_coercion(run):
+    assert run("any?((_) -> some(1), [1])") is False
+    assert run("any?((_) -> none, [1])") is False
+
+
 def test_unwrap_or_requires_option(run):
     with pytest.raises(TypeError, match="unwrap_or expected an option value"):
         run('unwrap_or(0, 42)')

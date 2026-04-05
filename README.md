@@ -79,9 +79,10 @@ pytest -q
 
 Current consistency note:
 
-- missing-value behavior is not fully unified yet
-- map lookup, callable map/string lookup, slash map access, and `cli_option` return `nil` for missing values
-- `get?` returns `none` / `some(value)` instead
+- maybe/absence behavior is not fully unified yet
+- map lookup, callable map/string lookup, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use non-Option behavior
+- `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
+- new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - Flow and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
 
 ### Functions and lambdas
@@ -258,6 +259,7 @@ agent_get(counter)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
 - option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
+- option-returning list helpers: `first_opt`, `last`, `find_opt`
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `each`, `collect`, `run`, plus prelude `head` aliases over `take`
 
 ### CLI args / options (runtime layer)
@@ -354,6 +356,7 @@ rewrite_zip(in_path, out_path) =
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
+- Option-returning list helpers: `first_opt`, `last`, `find_opt`
 - fn helpers: `apply`, `compose`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`

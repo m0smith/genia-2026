@@ -54,7 +54,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - optionality / absence: `nil`, plus distinct Option values `none` and `some(value)`
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, Flow, Ref, Process handle, Bytes wrapper, Zip entry wrapper
-  - current missing-value behavior is split: legacy lookup helpers return `nil`, while `get?` returns `none` / `some(value)`
+  - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, string `find`, `nth`, and `first` remain non-Option, while `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
+  - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - variables and top-level assignment (`name = expr`)
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
@@ -93,7 +94,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - conditionals expressed only through pattern matching in function definitions/case expressions
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
-  - includes list transforms/helpers such as `reduce`, `map`, `filter`, and `range`
+  - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first_opt`, `last`, `find_opt`, and `range`
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
@@ -121,6 +122,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - sinks/materialization: `each`, `run`, `collect`
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+- Option/list notes:
+  - `first(list)` remains the legacy non-empty extractor and raises a normal match failure on `[]`
+  - `first_opt(list)`, `last(list)`, and `find_opt(predicate, list)` return `none` / `some(value)`
+  - string `find(string, needle)` remains the legacy index-or-`nil` API
+  - `some(nil)` is valid and distinct from `none`
 - CLI pipe mode:
   - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program

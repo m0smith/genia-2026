@@ -166,9 +166,15 @@ No additional member/index/flow operators should be introduced without explicitl
   - `get?(key, map) -> none` when key is missing
 - key presence, not value truthiness, determines `some(...)` vs `none`
   - key mapped to `nil` still returns `some(nil)`
+- `nil` and `none` remain distinct runtime values
+- `some(nil)` is valid and distinct from `none`
 - pattern matching supports constructor destructuring for `some(...)` with exactly one inner pattern
 - `unwrap_or(default, opt)` accepts option values only
 - `is_some?(opt)` and `is_none?(opt)` report option shape
+- new `?`-suffixed APIs must be boolean-returning
+- maybe-returning APIs should prefer Option values and should not use `?`
+- `get?` remains the current compatibility exception to that naming rule
+- current Option-returning list helpers are `first_opt`, `last`, and `find_opt`
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
 
 ## 12) Error behavior

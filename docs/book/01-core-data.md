@@ -43,8 +43,16 @@ Genia's current runtime value model is broader than just "plain data".
   - callable map lookup (`m(key)`)
   - callable string projector lookup (`"key"(m)`)
   - `cli_option`
-- `get?` returns `none` / `some(value)` instead
+- `string find("abc", "x")`
+- `nth(9, [1, 2])`
+- `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)` instead
 - `some(nil)` is possible and means the key exists with value `nil`
+
+Naming rule today:
+
+- new `?`-suffixed APIs are boolean-returning
+- maybe-returning APIs should use Option values without `?`
+- `get?` remains the current compatibility exception
 
 Current consistency note:
 
@@ -644,6 +652,12 @@ And minimal helpers:
 - `is_some?(opt)`
 - `is_none?(opt)`
 
+Option-returning list helpers implemented today:
+
+- `first_opt(list)`
+- `last(list)`
+- `find_opt(predicate, list)`
+
 ### Minimal example
 
 ```genia
@@ -660,23 +674,28 @@ Expected result:
 ### Edge case example
 
 ```genia
-[get?("a", {a:nil}), get?("b", {a:nil})]
+[
+  get?("a", {a:nil}),
+  first_opt([nil]),
+  find_opt((x) -> x == nil, [1, nil, 2]),
+]
 ```
 
 Expected behavior:
 
 - first result is `some(nil)` (key exists)
-- second result is `none` (key missing)
+- second result is `some(nil)` (first list item is present and is `nil`)
+- third result is `some(nil)` (matching item is present and is `nil`)
 
 ### Failure case example
 
 ```genia
-get?("name", 42)
+find_opt(42, [1, 2, 3])
 ```
 
 Expected behavior:
 
-- raises `TypeError` (`get?` supports map targets, `some(map)`, and `none`)
+- runtime failure because `find_opt` expects a callable predicate
 
 ### Implementation status
 
@@ -688,16 +707,21 @@ Expected behavior:
   - literal `none`
   - constructor pattern `some(pattern)`
 - `get?` lookup semantics with key-presence distinction (`some(nil)` vs `none`)
+- Option-returning list helpers: `first_opt`, `last`, `find_opt`
 - `unwrap_or(default, opt)` for defaulting on `none`
 - `is_some?` / `is_none?` predicates
 - pipeline-friendly lookup (`record |> get?("name")`)
 - callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
 - `cli_option` also remains in the legacy `value_or_nil` family
+- naming rule for current APIs:
+  - new `?`-suffixed APIs are boolean-returning
+  - maybe-returning APIs use Option values without `?`
+  - `get?` remains the existing compatibility exception
 
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
-- lookup consistency is still partial: `get?` uses Option values, while callable maps/string projectors, `map_get`, slash map access, and `cli_option` still use legacy `nil` semantics for missing values
+- lookup consistency is still partial: `get?`, `first_opt`, `last`, and `find_opt` use Option values, while callable maps/string projectors, `map_get`, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use legacy `nil`/match-failure behavior
 
 ### ❌ Not implemented
 

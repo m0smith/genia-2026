@@ -39,6 +39,57 @@ first([10, 20, 30]) -> 10
 """ first_impl(xs)
 first_impl(xs) = [x, .._] -> x
 
+first_opt(xs) = """
+# first_opt
+
+Return the first element as an Option.
+
+## Params
+
+* `xs`: list value
+
+## Returns
+
+* `some(value)` for the first element
+* `none` for `[]`
+
+## Examples
+
+```genia
+first_opt([10, 20, 30]) -> some(10)
+first_opt([]) -> none
+```
+""" first_opt_impl(xs)
+first_opt_impl(xs) =
+  [] -> none |
+  [x, .._] -> some(x)
+
+last(xs) = """
+# last
+
+Return the last element as an Option.
+
+## Params
+
+* `xs`: list value
+
+## Returns
+
+* `some(value)` for the last element
+* `none` for `[]`
+
+## Examples
+
+```genia
+last([10, 20, 30]) -> some(30)
+last([]) -> none
+```
+""" last_impl(xs)
+last_impl(xs) =
+  [] -> none |
+  [x] -> some(x) |
+  [_, ..rest] -> last_impl(rest)
+
 rest(xs) = """
 # rest
 
@@ -185,6 +236,26 @@ count(xs) = """
 
 Count elements in a list.
 """ reduce((acc, _) -> acc + 1, 0, xs)
+
+find_opt(predicate, xs) = """
+# find_opt
+
+Return the first matching list element as an Option.
+
+## Params
+
+* `predicate`: function returning `true` for a match
+* `xs`: list value
+
+## Returns
+
+* `some(value)` for the first matching element
+* `none` when no element matches
+""" find_opt_impl(predicate, xs)
+find_opt_impl(predicate, xs) =
+  (_, []) -> none |
+  (predicate, [x, .._]) ? predicate(x) == true -> some(x) |
+  (predicate, [_, ..rest]) -> find_opt_impl(predicate, rest)
 
 any?(predicate, xs) = """
 # any?

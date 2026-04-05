@@ -10,6 +10,9 @@ Core helpers include:
 
 - `list`
 - `first`
+- `first_opt`
+- `last`
+- `find_opt`
 - `rest`
 - `empty?`
 - `nil?`
@@ -27,6 +30,70 @@ Core helpers include:
 - `range`
 
 Each public helper includes a Markdown docstring readable through `help("name")`.
+
+Current compatibility note:
+
+- `first` remains the legacy non-empty extractor
+- `first_opt`, `last`, and `find_opt` are the Option-returning maybe-helpers for lists
+- string `find` remains a separate builtin and still returns index-or-`nil`
+
+---
+
+## Option-returning list helpers
+
+Genia now has explicit Option-returning list helpers for maybe-results.
+
+Implemented helpers:
+
+- `first_opt(list)`
+- `last(list)`
+- `find_opt(predicate, list)`
+
+These return `none` for empty/no-match and `some(value)` for present results, including `some(nil)`.
+
+### Minimal example
+
+```genia
+unwrap_or(0, first_opt([1, 2, 3]))
+```
+
+Expected result:
+
+```genia
+1
+```
+
+### Edge case example
+
+```genia
+pick(opt) =
+  some(x) -> x |
+  none -> "missing"
+
+[pick(first_opt([nil])), pick(last([])), pick(find_opt((x) -> x == nil, [1, nil, 2]))]
+```
+
+Expected result:
+
+```genia
+[nil, "missing", nil]
+```
+
+### Failure case example
+
+```genia
+find_opt(42, [1, 2, 3])
+```
+
+Expected behavior:
+
+- runtime failure because `find_opt` expects a callable predicate
+
+Naming note:
+
+- new `?`-suffixed APIs are boolean-returning
+- these maybe-returning helpers therefore do not use `?`
+- `get?` remains the current compatibility exception from the earlier Option phase
 
 ---
 
@@ -201,6 +268,7 @@ Expected behavior:
 - list literals and list spread
 - list-pattern matching with rest patterns
 - recursive list helpers in stdlib
+- Option-returning list helpers: `first_opt`, `last`, `find_opt`
 - `reduce`
 - `map` and `filter` as stdlib functions
 - `range` helpers for 1-, 2-, and 3-arity calls
@@ -208,6 +276,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - list performance is currently interpreter-level; optimizations are selective and pattern-dependent
+- maybe-result behavior is still mixed: `first_opt`, `last`, and `find_opt` return Option values, while `nth` still returns `nil` for out-of-range and legacy `first` still expects a non-empty list
 
 ### ❌ Not implemented
 

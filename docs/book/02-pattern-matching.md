@@ -337,10 +337,12 @@ fallback(opt) =
 ### Edge case example
 
 ```genia
-name_or(default, record) =
-  get?("name", record) ->
-    none -> default |
-    some(name) -> name
+pick_name(opt) =
+  none -> "unknown" |
+  some({name}) -> name |
+  some(_) -> "unknown"
+
+pick_name(get?("profile", {profile: {name: "Genia"}}))
 ```
 
 Constructor-pattern matching composes with existing map/list patterns.
@@ -362,11 +364,13 @@ Expected behavior:
 
 - literal matching on `none`
 - constructor matching on `some(pattern)`
+- Option-returning helpers such as `first_opt`, `last`, and `find_opt` can be matched the same way as `get?`
 - guard-friendly Option checks (`is_some?`, `is_none?`) remain available
 
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern
+- no general `value ? ...` expression form exists; Option matching still happens through ordinary function/case-pattern positions
 
 ### ❌ Not implemented
 

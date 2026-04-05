@@ -14,6 +14,23 @@ def test_first_and_rest(run):
     assert run("rest([1, 2, 3])") == [2, 3]
 
 
+def test_option_list_helpers(run):
+    assert run("is_none?(first_opt([]))") is True
+    assert run("is_some?(first_opt([nil]))") is True
+    assert run("unwrap_or(9, first_opt([nil]))") is None
+    assert run("unwrap_or(0, first_opt([1, 2, 3]))") == 1
+
+    assert run("is_none?(last([]))") is True
+    assert run("is_some?(last([1, nil]))") is True
+    assert run("unwrap_or(9, last([1, nil]))") is None
+    assert run("unwrap_or(0, last([1, 2, 3]))") == 3
+
+    assert run("is_none?(find_opt((x) -> x == 9, []))") is True
+    assert run("unwrap_or(0, find_opt((x) -> x % 2 == 0, [1, 2, 4]))") == 2
+    assert run("is_some?(find_opt((x) -> x == nil, [1, nil, 2]))") is True
+    assert run("unwrap_or(7, find_opt((x) -> x == nil, [1, nil, 2]))") is None
+
+
 def test_empty_and_nil_predicates(run):
     assert run("empty?([])") is True
     assert run("empty?([1])") is False
@@ -81,3 +98,6 @@ def test_direct_prelude_load_without_autoload():
     assert run_source("reverse([1, 2, 3])", env) == [3, 2, 1]
     assert run_source("map((x) -> x + 1, [1, 2, 3])", env) == [2, 3, 4]
     assert run_source("filter((x) -> x % 2 == 1, [1, 2, 3, 4])", env) == [1, 3]
+    assert run_source("unwrap_or(0, first_opt([4, 5]))", env) == 4
+    assert run_source("unwrap_or(0, last([4, 5]))", env) == 5
+    assert run_source("unwrap_or(0, find_opt((x) -> x == 5, [4, 5, 6]))", env) == 5

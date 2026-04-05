@@ -54,6 +54,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `none` is a distinct runtime value, not the same value as `nil`
   - `some(value)` wraps a present value explicitly
   - `get?` is the current builtin that returns `none` / `some(value)` instead of legacy `nil`-for-missing behavior
+  - current Option-returning list helpers are `first_opt`, `last`, and `find_opt`
   - pattern matching supports literal `none` and constructor pattern `some(pattern)`
 
 ### Callable values / callable behaviors
@@ -90,10 +91,14 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Current consistency notes
 
-- Missing-value behavior is currently split across two models:
-  - legacy lookup paths return `nil` for missing values (`map_get`, map slash access, callable map/string lookup, `cli_option`)
-  - option-aware lookup uses `none` / `some(value)` (`get?`)
+- Maybe/absence behavior is currently split across two models:
+  - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`, string `find`, `nth`, and legacy `first`)
+  - option-aware APIs use `none` / `some(value)` (`get?`, `first_opt`, `last`, `find_opt`)
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
+- naming discipline for current APIs:
+  - new `?`-suffixed APIs are boolean-returning
+  - maybe-returning APIs should use Option values without `?`
+  - `get?` remains as the current compatibility exception
 - Callable behavior currently crosses nominal value boundaries:
   - functions are callable as functions
   - maps are callable as lookup values
@@ -368,6 +373,10 @@ Behavior:
   - `unwrap_or(default, opt)`
   - `is_some?(opt)`
   - `is_none?(opt)`
+- option-returning stdlib helpers:
+  - `first_opt(list)`
+  - `last(list)`
+  - `find_opt(predicate, list)`
 
 `get?` semantics:
 
@@ -382,6 +391,13 @@ Compatibility note:
 - existing callable-data map/string-projector behavior is unchanged:
   - `m(key)`, `m(key, default)`
   - `"key"(m)`, `"key"(m, default)`
+- existing maybe-returning legacy APIs are also unchanged where compatibility required:
+  - `first(list)` still returns the first element directly and still expects a non-empty list
+  - string `find(string, needle)` still returns an index or `nil`
+- new naming rule in current docs/runtime surface:
+  - new `?`-suffixed APIs are boolean-returning
+  - maybe-returning APIs should use Option values without `?`
+  - `get?` remains the existing compatibility exception
 
 Pattern matching note:
 
@@ -452,6 +468,7 @@ Loading behavior:
 Notable autoloaded functions include:
 
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
+- option-returning list helpers: `first_opt`, `last`, `find_opt`
 - fn: `apply`, `compose`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`

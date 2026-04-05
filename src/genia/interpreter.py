@@ -3826,6 +3826,9 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
 
     env.register_autoload("list", 0, "std/prelude/list.genia")
     env.register_autoload("first", 1, "std/prelude/list.genia")
+    env.register_autoload("first_opt", 1, "std/prelude/list.genia")
+    env.register_autoload("last", 1, "std/prelude/list.genia")
+    env.register_autoload("find_opt", 2, "std/prelude/list.genia")
     env.register_autoload("rest", 1, "std/prelude/list.genia")
     env.register_autoload("empty?", 1, "std/prelude/list.genia")
     env.register_autoload("nil?", 1, "std/prelude/list.genia")
