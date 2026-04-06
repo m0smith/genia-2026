@@ -167,6 +167,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `find_opt(predicate, list)` returns `none(no_match)` when nothing matches
   - canonical maybe-aware lookup: `get(key, target)`; `get?(key, target)` remains as a compatibility alias
   - compatibility aliases: `first_opt` for `first`, `nth_opt` for `nth`
+  - prefer `get`, `first`, `last`, `nth`, string `find`, and `find_opt` in new examples; treat `map_get`, slash access, callable map/string lookup, and `cli_option` as compatibility surfaces
   - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - pipeline syntax is unchanged; maybe flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b") |> then_get("c")`
   - recovery helpers support both direct and pipeline-friendly order:

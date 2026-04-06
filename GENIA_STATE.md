@@ -713,6 +713,7 @@ Compatibility note:
   - `nth`
   - string `find`
   - `find_opt`
+  - helper-driven chaining with `then_get`, `then_first`, `then_nth`, `then_find`, and `or_else` where composition helps
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`

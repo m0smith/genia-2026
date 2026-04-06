@@ -15,6 +15,22 @@ Ordinary call syntax also supports a small callable-data subset:
 - in arity-2 forms, the second argument is used only when the key is missing
 - string projector calls raise a clear `TypeError` when the first argument is not a map-like runtime map value
 
+These callable lookup forms are still supported, but they are no longer the preferred teaching style for new code.
+
+Prefer:
+
+```genia
+get("name", person)
+```
+
+over:
+
+```genia
+person("name")
+"name"(person)
+person/name
+```
+
 This means Genia's current callable story is behavior-based, not one flat nominal "callable type":
 
 - functions and lambdas are ordinary callable values

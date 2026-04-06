@@ -22,8 +22,14 @@ Core helpers include:
 - `list`
 - `first`
 - `last`
-- `first_opt`
 - `find_opt`
+- `nth`
+- `take`
+- `drop`
+- `range`
+- compatibility aliases:
+  - `first_opt`
+  - `nth_opt`
 - `rest`
 - `empty?`
 - `nil?`
@@ -35,11 +41,6 @@ Core helpers include:
 - `filter`
 - `count`
 - `any?`
-- `nth`
-- `nth_opt`
-- `take`
-- `drop`
-- `range`
 
 Each public helper includes a Markdown docstring readable through `help("name")`.
 
@@ -257,8 +258,8 @@ Naming note:
 - canonical maybe-returning helpers therefore do not use `?`
 - `get?` remains the current compatibility exception from the earlier Option phase
 - compatibility aliases retained in this phase:
-- `first_opt` -> `first`
-- `nth_opt` -> `nth`
+  - `first_opt` -> `first`
+  - `nth_opt` -> `nth`
 - list predicate search remains canonically named `find_opt` in this phase
 
 Maybe-flow note:
@@ -377,7 +378,7 @@ Expected behavior:
 ### Minimal example
 
 ```genia
-nth(1, ["a", "b", "c"]) -> "b"
+unwrap_or("?", nth(1, ["a", "b", "c"]))
 take(2, [1, 2, 3, 4]) -> [1, 2]
 drop(2, [1, 2, 3, 4]) -> [3, 4]
 ```
@@ -385,12 +386,40 @@ drop(2, [1, 2, 3, 4]) -> [3, 4]
 ### Edge case example
 
 ```genia
-nth(9, [1, 2]) -> nil
-take(0, [1, 2]) -> []
-drop(0, [1, 2]) -> [1, 2]
+[nth(9, [1, 2]), take(0, [1, 2]), drop(0, [1, 2])]
 ```
 
+Expected result:
+
+```text
+[none(index_out_of_bounds, {index: 9, length: 2}), [], [1, 2]]
+```
+
+The important modern style point:
+
+```genia
+unwrap_or("missing", nth(9, [1, 2]))
+```
+
+Expected result:
+
+```text
+"missing"
+```
+
+Legacy `nil`-returning lookup forms still exist elsewhere in Genia for compatibility, but `nth` is no longer one of them.
+
 ### Failure case example
+
+```genia
+nth(1, 42)
+```
+
+Expected behavior:
+
+- runtime match failure (second argument is not a list).
+
+Another failure case:
 
 ```genia
 take(2, 42)

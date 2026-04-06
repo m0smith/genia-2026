@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from genia import make_global_env, run_source
+from genia.utf8 import format_debug
 
 
 def test_list_function(run):
@@ -42,6 +43,14 @@ def test_option_list_helpers(run):
     assert run("is_none?(nth(8, [10, 20]))") is True
     assert run("unwrap_or(0, nth_opt(2, [10, 20, 30]))") == 30
     assert run("is_none?(nth_opt(8, [10, 20]))") is True
+
+
+def test_book_nth_take_drop_examples_match_current_option_style(run):
+    assert run('unwrap_or("?", nth(1, ["a", "b", "c"]))') == "b"
+    assert run("take(2, [1, 2, 3, 4])") == [1, 2]
+    assert run("drop(2, [1, 2, 3, 4])") == [3, 4]
+    assert format_debug(run_source("nth(9, [1, 2])", make_global_env([]))) == 'none(index_out_of_bounds, {index: 9, length: 2})'
+    assert run('unwrap_or("missing", nth(9, [1, 2]))') == "missing"
 
 
 def test_empty_and_nil_predicates(run):

@@ -386,6 +386,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `compatibility alias`: thin wrapper/alias kept for migration stability
   - `deprecated-in-docs`: behavior still supported but discouraged in new code/examples
   - `legacy retained`: behavior still supported because no canonical replacement has fully taken over yet
+- book/readme/repl examples should prefer canonical maybe-aware access and helper-driven chaining over docs-deprecated `nil`-returning lookup forms
 - `get?` remains the current compatibility exception to that naming rule; `get` is preferred for new maybe-aware code
 - docs-deprecated `nil`-returning access forms retained in this phase:
   - `map_get`

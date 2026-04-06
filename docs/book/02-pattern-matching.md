@@ -324,6 +324,15 @@ Option values can be matched directly with literal and constructor patterns.
 
 These Option values are distinct from `nil`.
 
+Modern Genia code usually gets these Option values from canonical helpers such as:
+
+- `get`
+- `first`
+- `last`
+- `nth`
+- string `find`
+- `find_opt`
+
 Current scope:
 
 - Option constructors are supported in pattern matching (`some(pattern)`)

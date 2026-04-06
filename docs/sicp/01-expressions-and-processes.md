@@ -396,6 +396,79 @@ Write a function `sign(n)` that returns:
 
 Use pattern matching plus guards.
 
+## 1.3.5 Missing Data Is Still Data
+
+🤔 Think About It
+
+What should happen when a lookup or list access fails?
+
+In modern Genia, the preferred answer is not "smuggle back `nil` and hope people remember what it means."
+
+It is structured absence.
+
+```genia
+[first([]), first([nil])]
+```
+
+```text
+[none(empty_list), some(nil)]
+```
+
+💡 Aha!
+
+That result teaches two things at once:
+
+- `none(empty_list)` means "there is no first element"
+- `some(nil)` means "there is a first element, and its value is actually `nil`"
+
+Those are different facts.
+
+Genia keeps them different.
+
+🧠 Your Brain on Genia
+
+This is the place where a lot of readers instinctively think:
+
+"Come on, isn't missing basically the same as nil?"
+
+Not if you want your programs to stay honest.
+
+`nil` is a value.
+
+`none(...)` is absence.
+
+That distinction is what makes helpers like `get`, `first`, `nth`, and string `find` easier to chain and easier to debug.
+
+🧪 Try This
+
+Predict the result before you look:
+
+```genia
+label(opt) =
+  none(empty_list) -> "empty" |
+  some(x) -> x |
+  none(_) -> "missing"
+
+[label(first([])), label(first(["hi"]))]
+```
+
+```text
+["empty", "hi"]
+```
+
+⚠️ Common Trap
+
+Legacy compatibility paths still exist:
+
+- `map_get`
+- `person/name`
+- `person("name")`
+- `"name"(person)`
+
+But they are not the preferred modern teaching style.
+
+For new code, prefer canonical maybe-aware helpers such as `get`, `first`, and `nth`.
+
 ## 1.4 Blocks Let You Build a Process Step by Step
 
 🤔 Think About It

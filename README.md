@@ -262,6 +262,11 @@ person = { name: "Matthew", age: 42 }
 - module named access returns exported bindings
 - missing module exports raise a clear error
 - `/` access is narrow: only `lhs/name` (bare identifier RHS), not general member/index access
+- map slash access is still supported for compatibility, but new code should prefer canonical maybe-aware lookup:
+
+```genia
+get("name", person)
+```
 
 ### Pipeline operator (Phase 1)
 
