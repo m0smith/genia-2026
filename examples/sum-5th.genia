@@ -1,8 +1,6 @@
 stdin
   |> lines
-  |> map((row) -> fields(row))
-  |> map((x) -> nth(5, x))
+  |> map((row) -> fields(row) |> nth(5) |> parse_int )
   |> filter((x) -> !nil?(x))
-  |> map(parse_int)
   |> collect
   |> sum
