@@ -4266,6 +4266,88 @@ def make_global_env(
             return take_fn(args[0], args[1])
         raise TypeError(f"head expected 1 or 2 args, got {len(args)}")
 
+    def _rules_contract_error(rule_index: int, detail: str) -> RuntimeError:
+        return RuntimeError(f"invalid-rules-result: rule {rule_index} {detail}")
+
+    def _ensure_rule_values(rule_values: list[Any]) -> list[Any]:
+        for index, rule_value in enumerate(rule_values, start=1):
+            if not callable(rule_value):
+                raise TypeError(f"rules expected rule {index} to be a function")
+        return rule_values
+
+    def _rules_flow(rule_values: list[Any], source: Any) -> GeniaFlow:
+        upstream = _ensure_flow(source, "rules")
+        normalized_rules = _ensure_rule_values(list(rule_values))
+
+        def iterator() -> Iterable[Any]:
+            current_ctx: Any = GeniaMap()
+            if len(normalized_rules) == 0:
+                for item in upstream.consume():
+                    yield item
+                return
+
+            for item in upstream.consume():
+                current_record = item
+                for index, rule_value in enumerate(normalized_rules, start=1):
+                    result = _invoke_from_builtin(rule_value, [current_record, current_ctx])
+                    if isinstance(result, GeniaOptionNone):
+                        continue
+                    if not isinstance(result, GeniaOptionSome):
+                        raise _rules_contract_error(
+                            index,
+                            f"returned {format_debug(result)}; expected none(...) or some(result)",
+                        )
+
+                    result_map = result.value
+                    if not isinstance(result_map, GeniaMap):
+                        raise _rules_contract_error(
+                            index,
+                            f"returned some(result) with {format_debug(result_map)}; expected a map",
+                        )
+
+                    emitted: list[Any] = []
+                    if result_map.has("emit"):
+                        emitted = result_map.get("emit")
+                        if not isinstance(emitted, list):
+                            raise _rules_contract_error(
+                                index,
+                                f"returned emit = {format_debug(emitted)}; expected a list",
+                            )
+
+                    if result_map.has("record"):
+                        current_record = result_map.get("record")
+
+                    if result_map.has("ctx"):
+                        current_ctx = result_map.get("ctx")
+
+                    halt = False
+                    if result_map.has("halt"):
+                        halt = result_map.get("halt")
+                        if not isinstance(halt, bool):
+                            raise _rules_contract_error(
+                                index,
+                                f"returned halt = {format_debug(halt)}; expected a boolean",
+                            )
+
+                    for value in emitted:
+                        yield value
+
+                    if halt:
+                        break
+
+        return GeniaFlow(iterator, label="rules")
+
+    def rules_fn(*args: Any) -> Any:
+        if len(args) >= 1 and isinstance(args[-1], GeniaFlow):
+            return _rules_flow(list(args[:-1]), args[-1])
+
+        rule_values = _ensure_rule_values(list(args))
+
+        def stage(flow_value: Any) -> GeniaFlow:
+            return _rules_flow(rule_values, flow_value)
+
+        return stage
+
     def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
         effect = _ensure_callable(fn_value, "each")
         upstream = _ensure_flow(source, "each")
@@ -5160,6 +5242,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("stdin", stdin_source)
     env.set("lines", lines_fn)
     env.set("each", each_fn)
+    env.set("rules", rules_fn)
     env.set("run", run_fn)
     env.set("collect", collect_fn)
     env.set("argv", argv_fn)
@@ -5304,6 +5387,13 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("range", 3, "std/prelude/list.genia")
     env.register_autoload("apply", 2, "std/prelude/fn.genia")
     env.register_autoload("compose", 1, "std/prelude/fn.genia")
+    env.register_autoload("rule_skip", 0, "std/prelude/fn.genia")
+    env.register_autoload("rule_emit", 1, "std/prelude/fn.genia")
+    env.register_autoload("rule_emit_many", 1, "std/prelude/fn.genia")
+    env.register_autoload("rule_set", 1, "std/prelude/fn.genia")
+    env.register_autoload("rule_ctx", 1, "std/prelude/fn.genia")
+    env.register_autoload("rule_halt", 0, "std/prelude/fn.genia")
+    env.register_autoload("rule_step", 3, "std/prelude/fn.genia")
     env.register_autoload("stream_cons", 2, "std/prelude/stream.genia")
     env.register_autoload("stream_head", 1, "std/prelude/stream.genia")
     env.register_autoload("stream_tail", 1, "std/prelude/stream.genia")

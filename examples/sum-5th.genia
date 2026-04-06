@@ -1,3 +1,6 @@
+
+
+
 stdin
   |> lines
   |> map((row) -> fields(row) |> nth_opt(5))

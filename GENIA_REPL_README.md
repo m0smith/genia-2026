@@ -114,6 +114,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
+  - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
   - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
@@ -142,11 +143,16 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - Flow is a runtime value family; pipeline syntax itself is unchanged call rewriting
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
-  - transforms: `lines`, `map`, `filter`, `take`
+  - transforms: `lines`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+  - `rules(..fns)` is stateful:
+    - each rule runs as `(record, ctx)`
+    - running `ctx` starts as `{}` and persists across input items
+    - `rules()` is the identity stage
+    - contract violations raise runtime errors prefixed with `invalid-rules-result:`
 - promises:
   - `delay(expr)` captures an unevaluated expression plus its lexical environment
   - `force(promise)` evaluates once and memoizes the successful value
@@ -543,7 +549,7 @@ This recursive shape is not in tail position and can still hit Python recursion 
 - general member access and indexing syntax
 - a language-level scheduler (concurrency is host-thread based)
 - full Flow runtime system beyond phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
-- quote sugar (`'x`), quasiquote, unquote, and macros
+- quote sugar (`'x`) and macros
 - mutable pairs
 
 ## Conditionals in Genia

@@ -490,7 +490,7 @@ When changing syntax/semantics/runtime behavior, update together:
 - flow behavior is runtime-level and value-based, with no parser/operator additions
 - `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
 - phase-1 flow builtins:
-  - sources/transforms: `lines`, `map`, `filter`, `take`
+  - sources/transforms: `lines`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
 - flows are single-use:
@@ -499,6 +499,88 @@ When changing syntax/semantics/runtime behavior, update together:
 - `take(n, flow)` must stop upstream pulling immediately after producing `n` items
 - `stdin |> lines` must remain lazy; binding the source must not force a full stdin read up front
 - reaching EOF or a `take`/`head` limit is normal completion (not an error)
+
+## `rules(..fns)`
+
+`rules(..fns)` is a Flow-stage function that applies rule functions to each incoming flow item.
+
+It is a library/runtime abstraction, not special syntax.
+
+### Rule shape
+
+Each rule must be a function with the shape:
+
+```genia
+(record, ctx) -> none(...) | some(result)
+```
+
+Plain `none` is also valid and means the same no-effect result as `none(reason)` / `none(reason, context)`.
+
+Where `result` is a map that may contain:
+
+* `emit`: a list of values to emit to the output flow
+* `record`: a replacement current record for subsequent rules on the same input item
+* `ctx`: a replacement running context carried to later rules and later input items
+* `halt`: when true, stop evaluating remaining rules for the current input item
+
+### Defaults
+
+If a matching rule returns `some(result)` and a field is missing:
+
+* `emit` defaults to `[]`
+* `record` defaults to the current record unchanged
+* `ctx` defaults to the current ctx unchanged
+* `halt` defaults to `false`
+
+### Evaluation semantics
+
+The running `ctx` starts as `{}` before the first input item.
+
+For each input item:
+
+1. Initialize `record` to the current input item
+2. Reuse the current running `ctx`
+3. Evaluate rules from left to right
+4. If a rule returns `none(...)` (including plain `none`), it has no effect
+5. If a rule returns `some(result)`:
+
+   * append `result.emit` to the output stream
+   * replace `record` if `result.record` is present
+   * replace `ctx` if `result.ctx` is present
+   * stop evaluating later rules for this item if `result.halt` is true
+6. After the last applicable rule, continue to the next input item using the final `ctx`
+
+### Output semantics
+
+A single input item may produce:
+
+* zero output values
+* one output value
+* many output values
+
+`rules(..fns)` may therefore filter, transform, expand, or suppress items.
+
+### Identity case
+
+`rules()` with zero rules acts as an identity flow stage.
+
+### Errors
+
+It is a runtime error if:
+
+* a rule does not return `none(...)` or `some(...)`
+* a matching rule returns `some(result)` where `result` is not a map-like structure
+* `emit` is present but is not a list
+* `halt` is present but is not a boolean
+
+Rule-contract violations raise runtime errors prefixed with `invalid-rules-result:` so tooling can detect them reliably.
+
+### Notes
+
+* `rules(..fns)` works on any incoming flow, not only `stdin`
+* `rules(..fns)` does not change the semantics of `|>`
+* `record` is the current item being transformed
+* `ctx` is persistent rule-processing state across items
 
 ## 20) Output sink invariants (host-backed phase 1)
 

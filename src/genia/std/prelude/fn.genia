@@ -68,3 +68,45 @@ Compose functions right-to-left into one callable.
 compose_apply(fns, args) =
   ([f], args) -> apply(f, args) |
   ([f, ..rest], args) -> f(compose_apply(rest, args))
+
+rule_skip() = """
+# rule_skip
+
+Return `none` for a `rules(..fns)` rule with no effect.
+""" none
+
+rule_emit(x) = """
+# rule_emit
+
+Emit one output value from a `rules(..fns)` rule.
+""" some({ emit: [x] })
+
+rule_emit_many(xs) = """
+# rule_emit_many
+
+Emit a list of output values from a `rules(..fns)` rule.
+""" some({ emit: xs })
+
+rule_set(record) = """
+# rule_set
+
+Replace the current record for later `rules(..fns)` rules on the same input item.
+""" some({ record: record })
+
+rule_ctx(ctx) = """
+# rule_ctx
+
+Replace the running `ctx` for later `rules(..fns)` rules and later input items.
+""" some({ ctx: ctx })
+
+rule_halt() = """
+# rule_halt
+
+Stop later `rules(..fns)` rules for the current input item.
+""" some({ halt: true })
+
+rule_step(record, ctx, out) = """
+# rule_step
+
+Replace `record`, replace `ctx`, and emit `out` in one `rules(..fns)` step.
+""" some({ record: record, ctx: ctx, emit: out })

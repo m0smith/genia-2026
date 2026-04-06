@@ -441,17 +441,39 @@ Output sink semantics:
   - `lines(flow_or_source)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
   - `take(n, flow)` when second arg is a flow
+  - `rules(..fns, flow)` / `flow |> rules(..fns)` as a stateful rule-driven transform
   - `head(flow)` and `head(n, flow)` via stdlib aliases over `take`
 - flow sinks/materialization:
   - `each(f, flow)` (tap-style stage)
   - `collect(flow)` (materialize to list)
   - `run(flow)` (consume to completion)
+- stdlib rule helpers (autoloaded from `std/prelude/fn.genia`):
+  - `rule_skip()`
+  - `rule_emit(x)`
+  - `rule_emit_many(xs)`
+  - `rule_set(record)`
+  - `rule_ctx(ctx)`
+  - `rule_halt()`
+  - `rule_step(record, ctx, out)`
 
 Flow semantics:
 
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
+- `rules` semantics:
+  - each rule is called as `(record, ctx)`
+  - running `ctx` starts as `{}` for the first input item and persists across later items
+  - `none`, `none(reason)`, and `none(reason, context)` mean no effect
+  - `some(result)` expects a map result with optional fields:
+    - `emit` (default `[]`)
+    - `record` (default current record unchanged)
+    - `ctx` (default current ctx unchanged)
+    - `halt` (default `false`)
+  - emitted values become downstream flow items in rule order
+  - `halt: true` stops later rules for the current input item only
+  - `rules()` is the identity stage
+  - contract violations raise `RuntimeError` messages prefixed with `invalid-rules-result:`
 - explicit CLI pipe mode is implemented:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
   - wraps as `stdin |> lines |> <stage_expr> |> run`
@@ -852,7 +874,7 @@ Core IR shape currently includes:
 - general host interop / FFI layer
 - general member access syntax
 - index syntax
-- generalized flow runtime semantics beyond Phase 1 (multi-output stages, async scheduling, advanced backpressure/cancellation)
+- generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 

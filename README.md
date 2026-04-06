@@ -295,6 +295,10 @@ stdin |> lines |> take(2) |> each(print) |> run
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
+- `rules(..fns)` is a stateful rule-driven stage over any incoming Flow:
+  - each rule runs as `(record, ctx)`
+  - `ctx` starts as `{}` and persists across items
+  - `rules()` is the identity stage
 - `take` stops upstream pulling as soon as the limit is satisfied
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
@@ -348,7 +352,7 @@ cell_get(counter)
 - option builtins: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
-- flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `each`, `collect`, `run`, plus prelude `head` aliases over `take`
+- flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `rules`, `each`, `collect`, `run`, plus prelude `head` aliases and rule helper constructors `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
 
 ### CLI args / options (runtime layer)
 
