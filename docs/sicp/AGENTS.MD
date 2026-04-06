@@ -135,71 +135,144 @@ Never use ```genia for prose, pseudocode, JSON, markdown examples, shell snippet
 
 ---
 
-## Code Block Rules (CRITICAL)
+## Code Fence Policy (CRITICAL)
 
 This section is mandatory.
 
-### A. Runnable Genia code blocks
+The automated SICP book test suite depends on this format.
 
-Use ```genia for Genia code that is intended to be runnable/testable.
+### A. Runnable Genia blocks
 
-These blocks should:
+A runnable Genia example must:
 
-* be syntactically valid
-* match current implementation
-* be suitable for testing where practical
+* use ` ```genia `
+* be valid Genia source intended to execute
+* be immediately followed by an expected-output block
+* use a different fence type for the expected output
 
-When possible, prefer small, self-contained examples.
+The required pattern is:
 
-### B. Non-runnable Genia example blocks
+````md
+```genia
+square(x) = x * x
 
-Sometimes a chapter may need a Genia-shaped example that is:
+square(5)
+```
+
+```text
+25
+```
+````
+
+Strict rule:
+
+* the expected-output block must be the **next code block**
+* the expected-output block must use a non-Genia fence type
+* the standard fence type is `text`
+
+The test harness matches runnable `genia` blocks to the immediately following output block.
+
+Execution model for the test suite:
+
+* each runnable block is executed in a fresh Genia environment
+* runnable blocks should therefore be self-contained
+* non-runnable marked blocks are skipped entirely
+
+### B. Non-runnable Genia blocks
+
+Sometimes a chapter needs a Genia-shaped example that is:
 
 * partial
 * schematic
 * intentionally incomplete
 * illustrative only
 
-These may still use ```genia, **but only if they are clearly marked**.
+These may still use ` ```genia `, but only if they are visibly marked on the line immediately above the block.
 
-#### Required visible indicator
-
-Immediately above the block, include a clear label such as one of:
+Accepted markers:
 
 * **Example only — not runnable**
 * **Illustrative sketch — not runnable**
 * **Conceptual example — not directly runnable**
 
-This indicator is mandatory.
+Example:
 
-Never present a non-runnable Genia block without an explicit warning label.
+````md
+**Conceptual example — not directly runnable**
+```genia
+fact(n, acc) = ...
+```
+````
+
+These blocks are skipped by the automated test suite.
 
 ### C. Non-Genia blocks
 
-If the content is not Genia, do not use ```genia.
+If the content is not Genia, it must not use ` ```genia `.
+
+Use the correct fence type instead, such as:
+
+* `text`
+* `python`
+* `json`
+* `md`
+* `bash`
 
 Examples:
 
-* output samples → use `text`
-* AST/IR shapes → use `text` unless they are real Genia data
-* markdown examples → use `md`
-* shell commands → use `bash`
-* Python code → use `python`
+* output samples → `text`
+* AST/IR shapes that are explanatory rather than runnable Genia → `text`
+* shell commands → `bash`
+* Python snippets → `python`
+
+### D. Output blocks
+
+Expected output blocks must:
+
+* use a non-Genia fence type
+* normally use ` ```text `
+* contain the expected rendered output only
+* immediately follow the runnable `genia` block as the next code block
+
+The test suite normalizes newline style and trims trailing whitespace, but it does not ignore real output differences.
+
+### E. Invalid patterns that should fail
+
+This is invalid because the runnable `genia` block is not followed by a non-Genia output block:
+
+````md
+```genia
+1 + 2
+```
+
+```genia
+3
+```
+````
+
+This is also invalid because a runnable `genia` block has no adjacent expected-output block at all:
+
+````md
+```genia
+1 + 2
+```
+````
 
 ---
 
 ## Testability Expectations
 
-Genia blocks in the book should be **testable whenever practical**.
+Genia blocks in the SICP book are executable learning artifacts.
 
 When writing or revising a chapter:
 
 * prefer runnable examples over decorative examples
 * keep runnable examples small and self-contained
+* pair runnable `genia` blocks with adjacent `text` output blocks
 * avoid fake examples that cannot be validated
-* if a block is illustrative only, mark it explicitly as not runnable
+* mark illustrative-only Genia snippets explicitly as not runnable
 
-If you introduce or revise many runnable `genia` blocks, consider whether a corresponding test fixture or validation path should also be added or updated.
+If you add runnable examples, assume the automated test suite will execute them.
 
 ---
 

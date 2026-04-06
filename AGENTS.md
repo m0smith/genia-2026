@@ -120,6 +120,8 @@ Agents must:
 * Keep them aligned with real implementation
 * Update them alongside any change
 
+When `docs/sicp/` chapters are present, they follow the same executable-learning-artifact discipline and may be validated by automated tests.
+
 ---
 
 ## Chapter Mapping Responsibility

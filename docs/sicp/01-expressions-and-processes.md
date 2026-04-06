@@ -98,10 +98,11 @@ That consistency is the whole game.
 Run each of these and predict the result before you do:
 
 ```genia
-40 + 2
-10 - 3 * 2
-(10 - 3) * 2
-5 % 2
+[40 + 2, 10 - 3 * 2, (10 - 3) * 2, 5 % 2]
+```
+
+```text
+[42, 4, 14, 1]
 ```
 
 ⚠️ Common Trap
@@ -112,10 +113,18 @@ This:
 1 + 2 * 3
 ```
 
+```text
+7
+```
+
 is not the same as:
 
 ```genia
 (1 + 2) * 3
+```
+
+```text
+9
 ```
 
 If your brain says "eh, same ingredients," your brain is being a chaos goblin.
@@ -126,6 +135,10 @@ What does this return?
 
 ```genia
 1 + 2 + 3 * 4
+```
+
+```text
+15
 ```
 
 Write the answer down before you move on.
@@ -183,10 +196,20 @@ These two ideas are equivalent in spirit:
 3 * 3
 ```
 
+```text
+9
+```
+
 and:
 
 ```genia
+square(x) = x * x
+
 square(3)
+```
+
+```text
+9
 ```
 
 The second one is nicer because it says what you mean.
@@ -209,25 +232,26 @@ The value of that expression is the result.
 Predict these before running them:
 
 ```genia
-square(5)
-sum_of_squares(2, 5)
-square(square(2))
+square(x) = x * x
+
+sum_of_squares(a, b) = square(a) + square(b)
+
+[square(5), sum_of_squares(2, 5), square(square(2))]
+```
+
+```text
+[25, 29, 16]
 ```
 
 ⚠️ Common Trap
 
-This:
-
-```genia
-square = x * x
-```
-
-is not a function definition.
+This `square = x * x` is not a function definition.
 
 It tries to assign the value of `x * x`, but `x` is not bound there.
 
 Use:
 
+**Example only — not runnable**
 ```genia
 square(x) = x * x
 ```
@@ -266,11 +290,7 @@ Here is one honest answer:
 abs(n) =
   (n) ? n < 0 -> -n |
   _ -> n
-```
 
-Now try:
-
-```genia
 [abs(-3), abs(0), abs(7)]
 ```
 
@@ -294,6 +314,7 @@ Not by reaching for separate `if` syntax.
 
 Here is the same idea with structure instead of just numbers:
 
+**Example only — not runnable**
 ```genia
 head(xs) =
   [x, .._] -> x
@@ -334,6 +355,10 @@ describe(xs) =
   [x, y, .._] -> "many"
 
 [describe([]), describe([1]), describe([1, 2, 3])]
+```
+
+```text
+["empty", "one", "many"]
 ```
 
 ⚠️ Common Trap
@@ -442,10 +467,15 @@ Predict the result:
 }
 ```
 
+```text
+11
+```
+
 🔁 Let's Rewrite That
 
 Sometimes a block makes a process easier to read:
 
+**Example only — not runnable**
 ```genia
 hypotenuse(a, b) = {
   aa = a * a
@@ -467,6 +497,10 @@ So this returns `20`, not `10`:
   x = 10
   20
 }
+```
+
+```text
+20
 ```
 
 If the last expression is wrong, the result is wrong.
@@ -562,6 +596,10 @@ b = make_counter()
 [a(), a(), b(), a(), b()]
 ```
 
+```text
+[1, 2, 1, 3, 2]
+```
+
 If your answer is `[1, 2, 1, 3, 2]`, you are thinking like the language now.
 
 ⚠️ Common Trap
@@ -582,13 +620,7 @@ What does this compute?
 sum_to(n, acc) =
   (n, acc) ? n == 0 -> acc |
   (n, acc) -> sum_to(n - 1, acc + n)
-```
 
-🧪 Try This
-
-Try:
-
-```genia
 sum_to(10, 0)
 ```
 
@@ -622,6 +654,7 @@ It is part of the language behavior.
 
 This version:
 
+**Example only — not runnable**
 ```genia
 sum_to(n, acc) =
   (n, acc) ? n == 0 -> acc |
@@ -632,6 +665,7 @@ describes an iterative process.
 
 This version:
 
+**Example only — not runnable**
 ```genia
 sum_to_slow(n) =
   (n) ? n == 0 -> 0 |
@@ -685,7 +719,15 @@ fact(n, acc) = ...
 Then predict:
 
 ```genia
+fact(n, acc) =
+  (n, acc) ? n == 0 -> acc |
+  (n, acc) -> fact(n - 1, acc * n)
+
 fact(5, 1)
+```
+
+```text
+120
 ```
 
 ## 1.7 Tiny Teaser: Programs Can Become Data
@@ -755,12 +797,20 @@ square(x) = x * x
 square(9)
 ```
 
+```text
+81
+```
+
 ```genia
 abs(n) =
   (n) ? n < 0 -> -n |
   _ -> n
 
 abs(-42)
+```
+
+```text
+42
 ```
 
 ```genia
@@ -771,6 +821,10 @@ abs(-42)
 }
 ```
 
+```text
+14
+```
+
 ```genia
 sum_to(n, acc) =
   (n, acc) ? n == 0 -> acc |
@@ -779,8 +833,16 @@ sum_to(n, acc) =
 sum_to(100, 0)
 ```
 
+```text
+5050
+```
+
 ```genia
 quote(square(5))
+```
+
+```text
+(app square 5)
 ```
 
 If you can explain why each result is what it is, you are not just reading anymore.
@@ -806,10 +868,12 @@ sign(n) =
   (n) ? n < 0 -> -1 |
   (n) ? n == 0 -> 0 |
   _ -> 1
+
+[sign(-2), sign(0), sign(9)]
 ```
 
 ```text
-[sign(-2), sign(0), sign(9)] -> [-1, 0, 1]
+[-1, 0, 1]
 ```
 
 ### Tail-Recursive Factorial Puzzle
@@ -818,10 +882,12 @@ sign(n) =
 fact(n, acc) =
   (n, acc) ? n == 0 -> acc |
   (n, acc) -> fact(n - 1, acc * n)
+
+fact(5, 1)
 ```
 
 ```text
-fact(5, 1) -> 120
+120
 ```
 
 ### Playground Answers
