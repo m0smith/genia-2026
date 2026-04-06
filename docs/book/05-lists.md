@@ -240,6 +240,15 @@ Naming note:
   - `nth(index, list)` still returns `nil` when out of range
   - `first(list)` still expects a non-empty list
 
+Maybe-flow note:
+
+- list helpers often act as the first maybe-aware step in a chain
+- example:
+  ```genia
+  nth_opt(5, fields("a b c d 5 x")) |> map_some(parse_int) |> unwrap_or(0)
+  ```
+- this works because `map_some` is maybe-aware; `|>` itself is still only ordinary call rewriting
+
 ---
 
 ## `map` and `filter` (reduce-driven)

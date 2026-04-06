@@ -93,10 +93,11 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 - Maybe/absence behavior is currently split across two models:
   - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`, string `find`, `nth`, and legacy `first`)
-  - option-aware APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get?`, `first_opt`, `last`, `find_opt`, `nth_opt`)
+  - option-aware APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get`, `get?`, `first_opt`, `last`, `find_opt`, `nth_opt`)
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
+- maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, and `then_get`; pipeline syntax itself remains ordinary AST→Core IR call rewriting.
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -564,7 +565,7 @@ Behavior:
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
 
-### Primitive Option model (Phase 1, runtime-backed)
+### Primitive Option model (Phase 2 helper surface on runtime-backed values)
 
 - option values:
   - `none` (distinct from `nil`)
@@ -572,13 +573,19 @@ Behavior:
   - `none(reason, context)`
   - `some(value)`
 - option/query builtins:
+  - `get(key, target)`
   - `get?(key, target)`
   - `unwrap_or(default, opt)`
   - `is_some?(opt)` / `some?(opt)`
   - `is_none?(opt)` / `none?(opt)`
   - `or_else(opt, fallback)`
+  - `or_else_with(opt, thunk)`
   - `absence_reason(opt)`
   - `absence_context(opt)`
+- maybe-flow builtins:
+  - `map_some(f, opt)`
+  - `flat_map_some(f, opt)`
+  - `then_get(key, target)`
 - option-returning stdlib helpers:
   - `first_opt(list)`
   - `last(list)`
@@ -595,6 +602,8 @@ Absence semantics:
 
 `get?` semantics:
 
+- `get(key, target)` is the canonical maybe-aware lookup helper in this phase
+- `get?(key, target)` remains as a compatibility alias with the same runtime behavior
 - `get?(key, none) -> none`
 - `get?(key, none(reason)) -> none(reason)`
 - `get?(key, none(reason, context)) -> none(reason, context)`
@@ -602,6 +611,25 @@ Absence semantics:
 - `get?(key, map) -> some(value)` when key exists (including `value = nil`)
 - `get?(key, map) -> none(missing_key, { key: key })` when key is missing
 - unsupported target types raise clear `TypeError`
+
+Maybe-flow helper semantics:
+
+- `map_some(f, some(x)) -> some(f(x))`
+- `map_some(f, none(...)) -> none(...)` unchanged
+- `flat_map_some(f, some(x)) -> f(x)` and requires `f(x)` to be an Option value
+- `flat_map_some(f, none(...)) -> none(...)` unchanged
+- `then_get(key, target)` is a thin maybe-aware chaining helper:
+  - `then_get(key, some(map)) -> get(key, map)`
+  - `then_get(key, none(...)) -> none(...)` unchanged
+- `or_else_with(opt, thunk)` is recovery/defaulting:
+  - returns wrapped value for `some(value)`
+  - calls `thunk()` only for `none...`
+- these helpers preserve structured absence reason/context during propagation unless they are explicitly recovery/defaulting helpers
+
+Pipeline note:
+
+- pipeline semantics themselves are unchanged
+- absence flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b")`, not from a magical pipeline runtime
 
 Structured absence currently used in stdlib/runtime-backed helpers:
 
@@ -622,7 +650,7 @@ Compatibility note:
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
-  - `get?` remains the existing compatibility exception
+  - `get?` remains the existing compatibility exception; `get` is the canonical maybe-aware name in this phase
 
 Pattern matching note:
 

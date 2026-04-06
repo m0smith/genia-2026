@@ -52,7 +52,7 @@ Genia's current runtime value model is broader than just "plain data".
   - `cli_option`
   - `find("abc", "x")`
   - `nth(9, [1, 2])`
-- `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` return `none...` / `some(value)` instead
+- `get`, `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` return `none...` / `some(value)` instead
 - `some(nil)` is possible and means the key exists with value `nil`
 - `none`, `none(reason)`, and `none(reason, context)` all mean absence; reason/context are metadata
 - Option pattern matching supports literal `none`, structured `none(...)`, and constructor pattern `some(pattern)`
@@ -62,6 +62,7 @@ Naming rule today:
 - new `?`-suffixed APIs are boolean-returning
 - maybe-returning APIs should use Option values without `?`
 - `get?` remains the current compatibility exception
+- `get` is the preferred maybe-aware lookup name in this phase
 
 Current consistency note:
 
@@ -1164,13 +1165,18 @@ This is the current explicit presence/absence model, but it does not replace all
 
 And minimal helpers:
 
+ - `get(key, target)`
 - `get?(key, target)`
+- `map_some(f, opt)`
+- `flat_map_some(f, opt)`
+- `then_get(key, target)`
 - `unwrap_or(default, opt)`
 - `is_some?(opt)`
 - `is_none?(opt)`
 - `some?(opt)`
 - `none?(opt)`
 - `or_else(opt, fallback)`
+- `or_else_with(opt, thunk)`
 - `absence_reason(opt)`
 - `absence_context(opt)`
 
@@ -1185,7 +1191,7 @@ Option-returning list helpers implemented today:
 
 ```genia
 person = { name: "Genia" }
-person |> get?("name") |> unwrap_or("unknown")
+person |> get("name") |> unwrap_or("unknown")
 ```
 
 Expected result:
@@ -1198,7 +1204,7 @@ Expected result:
 
 ```genia
 [
-  get?("a", {a:nil}),
+  get("a", {a:nil}),
   first_opt([nil]),
   find_opt((x) -> x == nil, [1, nil, 2]),
   absence_reason(last([])),
@@ -1232,28 +1238,35 @@ Expected behavior:
   - literal `none`
   - structured `none(reason)` / `none(reason, context)`
   - constructor pattern `some(pattern)`
-- `get?` lookup semantics with key-presence distinction (`some(nil)` vs `none...`)
-- helper builtins: `some?`, `none?`, `or_else`, `absence_reason`, `absence_context`
+- canonical maybe-aware lookup via `get(key, target)` with key-presence distinction (`some(nil)` vs `none...`)
+- `get?(key, target)` remains as a compatibility alias
+- maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`
+- helper builtins: `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - Option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
 - `unwrap_or(default, opt)` for defaulting on `none`
 - `is_some?` / `is_none?` predicates
-- pipeline-friendly lookup (`record |> get?("name")`)
+- pipeline-friendly lookup (`record |> get("name")`)
 - callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
 - `cli_option` also remains in the legacy `value_or_nil` family
-- naming rule for current APIs:
-  - new `?`-suffixed APIs are boolean-returning
-  - maybe-returning APIs use Option values without `?`
-  - `get?` remains the existing compatibility exception
+ - naming rule for current APIs:
+   - new `?`-suffixed APIs are boolean-returning
+   - maybe-returning APIs use Option values without `?`
+   - `get?` remains the existing compatibility exception
+   - `get` is the preferred maybe-aware lookup name for new code
  - structured absence metadata:
    - `first_opt([]) -> none(empty_list)`
    - `last([]) -> none(empty_list)`
    - `find_opt(pred, xs)` can return `none(no_match)`
    - `nth_opt(i, xs)` can return `none(index_out_of_bounds, { index: i, length: n })`
+ - maybe flow:
+   - `map_some` and `flat_map_some` preserve structured absence unchanged
+   - `then_get` is a thin chaining helper over `get`
+   - pipeline syntax itself is unchanged; maybe flow is helper behavior layered on top of ordinary call rewriting
 
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
-- lookup consistency is still partial: `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use Option values, while callable maps/string projectors, `map_get`, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use legacy `nil`/match-failure behavior
+- lookup consistency is still partial: `get`, `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use Option values, while callable maps/string projectors, `map_get`, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use legacy `nil`/match-failure behavior
 
 ### ❌ Not implemented
 

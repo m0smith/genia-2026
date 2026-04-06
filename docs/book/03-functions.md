@@ -437,6 +437,52 @@ Pipeline-friendly API design note:
 - With current rewrite semantics (`x |> f(y)` => `f(y, x)`), functions that are commonly terminal pipeline steps often use destination/config args first.
 - Example: `entries |> zip_write("out.zip")` calls `zip_write("out.zip", entries)` in this phase.
 
+### Maybe Flow Is Helper-Driven, Not Pipeline Magic
+
+`|>` still only rewrites calls.
+
+Maybe-aware flow in this phase comes from helper functions whose argument order is chosen to fit that rewrite.
+
+### Minimal example
+
+```genia
+record = { profile: { name: "Genia" } }
+record |> get("profile") |> then_get("name") |> unwrap_or("?")
+```
+
+Result:
+
+```genia
+"Genia"
+```
+
+### Edge case example
+
+```genia
+record = {}
+result = record |> get("profile") |> then_get("name")
+[absence_reason(result), unwrap_or({}, absence_context(result))/key]
+```
+
+Result:
+
+```genia
+[some(missing_key), "profile"]
+```
+
+The original structured absence survives the whole chain unchanged.
+
+### Failure case example
+
+```genia
+none(empty_list) |> parse_int
+```
+
+Expected behavior:
+
+* runtime `TypeError` because pipeline rewriting is unchanged and `parse_int` still expects a string
+* there is no automatic absence propagation for arbitrary calls
+
 ### Failure case example
 
 ```genia
@@ -476,6 +522,11 @@ Expected behavior:
 * Bundled stdlib/prelude `.genia` sources are loaded through package resources, so installed-tool execution does not depend on checkout-relative stdlib paths
 * Pipeline operator `|>` with expression-level call rewriting
 * Bare callable pipeline RHS forms that lower to ordinary call syntax (for example, string projector pipelines such as `record |> "name"`)
+* Maybe-aware helper composition layered on top of the existing rewrite:
+  * `get`
+  * `then_get`
+  * `map_some`
+  * `flat_map_some`
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:
   * signature header (`name/shape`)
@@ -488,6 +539,9 @@ Expected behavior:
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
 * Pipeline syntax is only call composition; Flow runtime behavior is implemented separately in Phase 1 and does not change the `|>` rewrite rules
+* Recovery helpers are mixed:
+  * `unwrap_or(default, opt)` is pipeline-friendly with the current rewrite rule
+  * `or_else(opt, fallback)` and `or_else_with(opt, thunk)` keep ordinary Option-first order and are usually called directly rather than piped
 * `main` auto-invocation is only for file/`-c` execution modes (not REPL)
 
 ### ❌ Not implemented

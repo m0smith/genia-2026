@@ -4409,15 +4409,20 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
   map_remove(map, key)
   map_count(map)
 
-Option builtins (phase 1):
+Option builtins (phase 2):
   none
   none(reason)
   none(reason, context)
   some(value)
   none?(value)
   some?(value)
+  get(key, target)
   get?(key, target)
+  map_some(f, option)
+  flat_map_some(f, option)
+  then_get(key, target)
   or_else(option, fallback)
+  or_else_with(option, thunk)
   unwrap_or(default, option)
   absence_reason(none_value)
   absence_context(none_value)
@@ -4891,17 +4896,58 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
             return OPTION_NONE
         return GeniaOptionSome(value.context)
 
-    def get_option_fn(key: Any, target: Any) -> Any:
+    def _invoke_from_builtin(proc: Any, args: list[Any]) -> Any:
+        return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
+            proc,
+            args,
+            tail_position=False,
+            callee_node=None,
+        )
+
+    def _get_option_impl(name: str, key: Any, target: Any) -> Any:
         if isinstance(target, GeniaOptionNone):
             return target
         if isinstance(target, GeniaOptionSome):
-            return get_option_fn(key, target.value)
+            return _get_option_impl(name, key, target.value)
         if isinstance(target, GeniaMap):
             if target.has(key):
                 return GeniaOptionSome(target.get(key))
             context = GeniaMap().put("key", key)
             return GeniaOptionNone(symbol("missing_key"), context)
-        raise TypeError("get? expected a map, some(map), or none target")
+        raise TypeError(f"{name} expected a map, some(map), or none target")
+
+    def get_fn(key: Any, target: Any) -> Any:
+        return _get_option_impl("get", key, target)
+
+    def get_option_fn(key: Any, target: Any) -> Any:
+        return _get_option_impl("get?", key, target)
+
+    def map_some_fn(proc: Any, opt: Any) -> Any:
+        if isinstance(opt, GeniaOptionSome):
+            return GeniaOptionSome(_invoke_from_builtin(proc, [opt.value]))
+        if isinstance(opt, GeniaOptionNone):
+            return opt
+        raise TypeError("map_some expected an option value")
+
+    def flat_map_some_fn(proc: Any, opt: Any) -> Any:
+        if isinstance(opt, GeniaOptionSome):
+            result = _invoke_from_builtin(proc, [opt.value])
+            if isinstance(result, (GeniaOptionSome, GeniaOptionNone)):
+                return result
+            raise TypeError("flat_map_some expected function to return an option value")
+        if isinstance(opt, GeniaOptionNone):
+            return opt
+        raise TypeError("flat_map_some expected an option value")
+
+    def then_get_fn(key: Any, target: Any) -> Any:
+        return _get_option_impl("then_get", key, target)
+
+    def or_else_with_fn(opt: Any, thunk: Any) -> Any:
+        if isinstance(opt, GeniaOptionSome):
+            return opt.value
+        if isinstance(opt, GeniaOptionNone):
+            return _invoke_from_builtin(thunk, [])
+        raise TypeError("or_else_with expected an option value")
 
     def rand_fn(*args: Any) -> float:
         if len(args) != 0:
@@ -5032,8 +5078,13 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("some", some_fn)
     env.set("none?", none_predicate_fn)
     env.set("some?", some_predicate_fn)
+    env.set("get", get_fn)
     env.set("get?", get_option_fn)
+    env.set("map_some", map_some_fn)
+    env.set("flat_map_some", flat_map_some_fn)
+    env.set("then_get", then_get_fn)
     env.set("or_else", or_else_fn)
+    env.set("or_else_with", or_else_with_fn)
     env.set("unwrap_or", unwrap_or_fn)
     env.set("absence_reason", absence_reason_fn)
     env.set("absence_context", absence_context_fn)

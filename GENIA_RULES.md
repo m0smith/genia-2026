@@ -329,6 +329,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - `some(nil)` is valid and distinct from every `none...` form
 - key presence, not value truthiness, determines `some(...)` vs `none...`
   - key mapped to `nil` still returns `some(nil)`
+- `get(key, target)` is the canonical maybe-aware lookup helper in this phase
 - `get?(key, target)` is defined exactly as:
   - `get?(key, none) -> none`
   - `get?(key, none(reason)) -> none(reason)`
@@ -336,6 +337,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `get?(key, some(map)) -> get?(key, map)`
   - `get?(key, map) -> some(value)` when key exists
   - `get?(key, map) -> none(missing_key, { key: key })` when key is missing
+- `get(key, target)` has the same runtime behavior as `get?(key, target)`
 - pattern matching supports:
   - literal `none`
   - structured none patterns `none(reason)` and `none(reason, context)`
@@ -344,15 +346,26 @@ No additional member/index/flow operators should be introduced without explicitl
 - `unwrap_or(default, opt)` accepts option values only
 - `is_some?(opt)` / `some?(opt)` and `is_none?(opt)` / `none?(opt)` report option shape
 - `or_else(opt, fallback)` returns the wrapped value for `some(value)` and the fallback for any `none...` form
+- `or_else_with(opt, thunk)` returns the wrapped value for `some(value)` and calls `thunk()` only for `none...`
 - `absence_reason(opt)` returns `some(reason)` for structured absence and `none` for plain `none`
 - `absence_context(opt)` returns `some(context)` only when context metadata is present
+- `map_some(f, opt)`:
+  - returns `some(f(value))` for `some(value)`
+  - returns the original `none...` unchanged for any absence value
+- `flat_map_some(f, opt)`:
+  - returns `f(value)` for `some(value)`
+  - requires `f(value)` to be an Option value
+  - returns the original `none...` unchanged for any absence value
+- `then_get(key, target)` is a thin maybe-aware chaining helper over `get`
+- propagation helpers preserve the original structured `none(...)` unchanged unless they are explicit recovery/defaulting helpers
 - expected absence remains data, not an exception
 - runtime failures are not silently converted into `none(...)`
 - new `?`-suffixed APIs must be boolean-returning
 - maybe-returning APIs should prefer Option values and should not use `?`
-- `get?` remains the current compatibility exception to that naming rule
+- `get?` remains the current compatibility exception to that naming rule; `get` is preferred for new maybe-aware code
 - current Option-returning list helpers are `first_opt`, `last`, `find_opt`, and `nth_opt`
-- pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
+- pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get("name")` rewrites to `get("name", record)`)
+- maybe flow in pipelines is helper-driven, not a new pipeline runtime semantic
 
 ## 11.3) String builtin invariants
 

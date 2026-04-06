@@ -54,9 +54,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
-  - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, string `find`, `nth`, and `first` remain non-Option, while `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use `none...` / `some(value)`
+  - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, string `find`, `nth`, and `first` remain non-Option, while `get`, `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use `none...` / `some(value)`
   - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
-  - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
+  - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
@@ -125,7 +125,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
-  - phase-1 primitive option model: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `absence_reason`, `absence_context`
+  - phase-2 primitive option model: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
@@ -164,7 +164,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `first_opt([])` and `last([])` return `none(empty_list)`
   - `find_opt(predicate, list)` returns `none(no_match)` when nothing matches
   - `nth_opt(index, list)` returns `none(index_out_of_bounds, { index: i, length: n })` when out of range
-  - helper builtins: `none?`, `some?`, `or_else`, `absence_reason`, `absence_context`
+  - canonical maybe-aware lookup: `get(key, target)`; `get?(key, target)` remains as a compatibility alias
+  - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - pipeline syntax is unchanged; maybe flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b")`
   - string `find(string, needle)` remains the legacy index-or-`nil` API
   - `some(nil)` is valid and distinct from `none`
 - cell semantics (phase 1 fail-stop):
