@@ -54,7 +54,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
-  - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, callable map/string lookup, and slash map access remain non-Option, while `get`, `first`, `last`, `nth`, string `find`, and `find_opt` use `none...` / `some(value)`
+  - current maybe/absence behavior is split: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, and `find_opt` use `none...` / `some(value)`, while `map_get`, callable map/string lookup, and slash map access are docs-deprecated `nil` paths and `cli_option` remains legacy-retained `value_or_nil`
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
   - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name

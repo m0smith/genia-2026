@@ -92,9 +92,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 ### Current consistency notes
 
 - Maybe/absence behavior is currently split across two models:
-  - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`)
-  - canonical maybe-aware access/search APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get`, `first`, `last`, `nth`, string `find`)
+  - canonical APIs use the structured absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)`
   - compatibility aliases remain where migration was staged (`get?`, `first_opt`, `nth_opt`)
+  - some older `nil`-returning access paths are intentionally retained but now treated as docs-deprecated or legacy-retained migration surfaces (`map_get`, map slash access, callable map/string lookup, `cli_option`)
+  - canonical maybe-aware access/search APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get`, `first`, `last`, `nth`, string `find`)
   - list predicate search remains helper-shaped as `find_opt`
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
@@ -659,7 +660,7 @@ Structured absence currently used in canonical access/search helpers:
 - `find_opt(pred, xs) -> none(no_match)` when no element matches
 - `nth(i, xs) -> none(index_out_of_bounds, { index: i, length: n })` when out of range
 
-Canonical / compatibility / legacy status:
+Absence migration status:
 
 | API | Status | Present result | Missing result | Notes |
 | --- | --- | --- | --- | --- |
@@ -671,11 +672,16 @@ Canonical / compatibility / legacy status:
 | `nth` | canonical | `some(value)` | `none(index_out_of_bounds, { ... })` | zero-based list indexing |
 | `nth_opt` | compatibility alias | `some(value)` | `none(index_out_of_bounds, { ... })` | alias for `nth` |
 | `find` | canonical string search | `some(index)` | `none(not_found, { needle: needle })` | string search only |
-| `find_opt` | current predicate-search helper | `some(value)` | `none(no_match)` | list predicate search |
-| `map_get` / slash / callable map / string projector / `cli_option` | legacy | raw value | `nil` | retained compatibility paths |
+| `find_opt` | canonical predicate-search helper | `some(value)` | `none(no_match)` | list predicate search |
+| `map_get` | deprecated-in-docs | raw value | `nil` | use `get` in new code |
+| callable map lookup `m(key)` | deprecated-in-docs | raw value | `nil` | use `get` in new code |
+| string projector lookup `"key"(m)` | deprecated-in-docs | raw value | `nil` | use `get` in new code |
+| map slash access `m/name` | deprecated-in-docs | raw value | `nil` | keep for compatibility; prefer `get("name", m)` |
+| `cli_option` | legacy retained | raw value | `nil` | no canonical maybe-aware CLI option helper yet |
 
 Compatibility note:
 
+- `nil` remains a normal runtime value; the migration is about missing-result APIs, not removing `nil`
 - existing callable-data map/string-projector behavior is unchanged:
   - `m(key)`, `m(key, default)`
   - `"key"(m)`, `"key"(m, default)`
@@ -683,6 +689,13 @@ Compatibility note:
   - `get?` for `get`
   - `first_opt` for `first`
   - `nth_opt` for `nth`
+- docs and new examples should prefer canonical APIs:
+  - `get`
+  - `first`
+  - `last`
+  - `nth`
+  - string `find`
+  - `find_opt`
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`

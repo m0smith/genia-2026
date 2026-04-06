@@ -4397,7 +4397,7 @@ CLI builtins (list-first):
   cli_parse(args)            [opts_map, positionals]
   cli_parse(args, spec)      same with minimal spec map (flags/options/aliases)
   cli_flag?(opts, name)      boolean option check
-  cli_option(opts, name)     option value or nil
+  cli_option(opts, name)     option value or nil (legacy retained)
   cli_option_or(opts, name, default)
 
 Concurrency builtins (host-backed):
@@ -4407,7 +4407,7 @@ Concurrency builtins (host-backed):
 
 Persistent map builtins (phase 1, host-backed opaque wrapper):
   map_new()
-  map_get(map, key)
+  map_get(map, key)          raw value or nil (docs-deprecated)
   map_put(map, key, value)
   map_has?(map, key)
   map_remove(map, key)
@@ -4421,7 +4421,7 @@ Option builtins (phase 2):
   none?(value)
   some?(value)
   get(key, target)
-  get?(key, target)
+  get?(key, target)          compatibility alias for get
   map_some(f, option)
   flat_map_some(f, option)
   then_get(key, target)

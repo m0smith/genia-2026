@@ -344,7 +344,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `nth(index, list) -> some(value)` or `none(index_out_of_bounds, { index: i, length: n })`
 - canonical string search helper:
   - `find(string, needle) -> some(index)` or `none(not_found, { needle: needle })`
-- `find_opt(predicate, list)` remains the current maybe-aware predicate-search helper for lists
+- `find_opt(predicate, list)` is the canonical maybe-aware predicate-search helper for lists in this phase
 - pattern matching supports:
   - literal `none`
   - structured none patterns `none(reason)` and `none(reason, context)`
@@ -379,14 +379,27 @@ No additional member/index/flow operators should be introduced without explicitl
   - `get?` for `get`
   - `first_opt` for `first`
   - `nth_opt` for `nth`
+- compatibility aliases are expected to preserve the same outward behavior as their canonical target
+- migration status labels used in docs/book:
+  - `canonical`: preferred public API for new code
+  - `compatibility alias`: thin wrapper/alias kept for migration stability
+  - `deprecated-in-docs`: behavior still supported but discouraged in new code/examples
+  - `legacy retained`: behavior still supported because no canonical replacement has fully taken over yet
 - `get?` remains the current compatibility exception to that naming rule; `get` is preferred for new maybe-aware code
-- callable map lookup, string projector lookup, slash map access, `map_get`, and `cli_option` remain legacy `nil`-returning compatibility behavior
+- docs-deprecated `nil`-returning access forms retained in this phase:
+  - `map_get`
+  - callable map lookup
+  - callable string projector lookup
+  - slash map access
+- `cli_option` remains a legacy-retained `value_or_nil` helper in this phase
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get("name")` rewrites to `get("name", record)`)
 - maybe flow in pipelines is helper-driven, not a new pipeline runtime semantic
 - safe chaining is therefore helper-driven too:
   - `record |> get("user") |> then_get("address") |> then_get("zip")`
   - `data |> get("items") |> then_nth(0) |> then_get("name")`
   - the first structured `none(...)` is preserved unchanged until an explicit recovery/defaulting helper is called
+- `nil` remains a normal runtime value and is not removed by this migration
+- canonical missing-result behavior now means structured `none(...)`, not `nil`
 
 ## 11.3) String builtin invariants
 

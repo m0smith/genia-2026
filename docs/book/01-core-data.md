@@ -44,13 +44,23 @@ Genia's current runtime value model is broader than just "plain data".
 ## Current absence semantics
 
 - `nil` and `none` coexist today; they are distinct runtime values
-- these APIs return `nil` for missing values:
+- canonical missing-result APIs return structured absence:
+  - `get`
+  - `first`
+  - `last`
+  - `nth`
+  - string `find`
+  - `find_opt`
+- compatibility aliases remain:
+  - `get?`
+  - `first_opt`
+  - `nth_opt`
+- docs-deprecated legacy access paths still return `nil` for missing values:
   - `map_get`
   - map slash access (`map/name`)
   - callable map lookup (`m(key)`)
   - callable string projector lookup (`"key"(m)`)
-  - `cli_option`
-- `get`, `get?`, `first`, `last`, `nth`, string `find`, and `find_opt` return `none...` / `some(value)` instead
+- `cli_option` remains legacy-retained and still returns `value_or_nil`
 - `some(nil)` is possible and means the key exists with value `nil`
 - `none`, `none(reason)`, and `none(reason, context)` all mean absence; reason/context are metadata
 - Option pattern matching supports literal `none`, structured `none(...)`, and constructor pattern `some(pattern)`
@@ -62,6 +72,7 @@ Naming rule today:
 - `get?` remains the current compatibility exception
 - `get` is the preferred maybe-aware lookup name in this phase
 - `first_opt` and `nth_opt` remain compatibility aliases for canonical `first` and `nth`
+- docs and new examples should prefer canonical APIs over docs-deprecated `nil`-returning lookup forms
 
 Current consistency note:
 
@@ -70,6 +81,25 @@ Current consistency note:
 - Flow, output sinks, MetaEnv values, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
+
+### Absence migration matrix
+
+| API / form | Status | Present result | Missing result | Preferred in new code? |
+| --- | --- | --- | --- | --- |
+| `get` | Canonical | `some(value)` | `none(missing_key, { key: key })` | Yes |
+| `get?` | Compatibility alias | `some(value)` | `none(missing_key, { key: key })` | No |
+| `first` | Canonical | `some(value)` | `none(empty_list)` | Yes |
+| `first_opt` | Compatibility alias | `some(value)` | `none(empty_list)` | No |
+| `last` | Canonical | `some(value)` | `none(empty_list)` | Yes |
+| `nth` | Canonical | `some(value)` | `none(index_out_of_bounds, { ... })` | Yes |
+| `nth_opt` | Compatibility alias | `some(value)` | `none(index_out_of_bounds, { ... })` | No |
+| `find` | Canonical string search | `some(index)` | `none(not_found, { needle: needle })` | Yes |
+| `find_opt` | Canonical predicate-search helper | `some(value)` | `none(no_match)` | Yes |
+| `map_get` | Deprecated-in-docs | raw value | `nil` | No |
+| `m(key)` | Deprecated-in-docs | raw value | `nil` | No |
+| `"key"(m)` | Deprecated-in-docs | raw value | `nil` | No |
+| `m/name` | Deprecated-in-docs | raw value | `nil` | No |
+| `cli_option` | Legacy retained | raw value | `nil` | Usually no |
 
 ---
 

@@ -443,6 +443,8 @@ Pipeline-friendly API design note:
 
 Maybe-aware flow in this phase comes from helper functions whose argument order is chosen to fit that rewrite.
 
+For new code, prefer canonical maybe-returning helpers such as `get`, `first`, `nth`, string `find`, and the `then_*` chaining wrappers over older `nil`-returning lookup surfaces like `map_get`, callable map/string lookup, or slash access.
+
 ### Minimal example
 
 ```genia

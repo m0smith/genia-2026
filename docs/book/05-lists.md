@@ -47,7 +47,9 @@ Current compatibility note:
 
 - `first`, `last`, and `nth` are canonical maybe-returning list access helpers
 - `first_opt` and `nth_opt` remain compatibility aliases
+- `find_opt` is the canonical maybe-returning predicate-search helper for lists
 - string `find` is a separate canonical maybe-returning string-search builtin
+- new examples should prefer `first` / `last` / `nth` over `first_opt` / `nth_opt`
 
 ---
 
@@ -243,9 +245,9 @@ Naming note:
 - canonical maybe-returning helpers therefore do not use `?`
 - `get?` remains the current compatibility exception from the earlier Option phase
 - compatibility aliases retained in this phase:
-  - `first_opt` -> `first`
-  - `nth_opt` -> `nth`
-- list predicate search remains `find_opt` in this phase
+- `first_opt` -> `first`
+- `nth_opt` -> `nth`
+- list predicate search remains canonically named `find_opt` in this phase
 
 Maybe-flow note:
 
@@ -443,6 +445,7 @@ Expected behavior:
 - recursive list helpers in stdlib
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
+- docs-deprecated lookup forms such as `map_get`, slash access, and callable map/string lookup are covered in Chapter 01 and are not the preferred list/search style
 - `reduce`
 - `map` and `filter` as stdlib functions
 - `range` helpers for 1-, 2-, and 3-arity calls

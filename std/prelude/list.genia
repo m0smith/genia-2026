@@ -242,7 +242,7 @@ Count elements in a list.
 find_opt(predicate, xs) = """
 # find_opt
 
-Return the first matching list element as an Option.
+Canonical maybe-returning predicate-search helper for lists.
 
 ## Params
 
