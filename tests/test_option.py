@@ -139,6 +139,20 @@ def test_then_get_chain_preserves_original_absence(run):
     assert result[1] == "profile"
 
 
+def test_then_get_direct_and_pipeline_orders_both_work(run):
+    assert run('unwrap_or(0, then_get(some({b: 2}), "b"))') == 2
+    assert run('unwrap_or(0, some({b: 2}) |> then_get("b"))') == 2
+
+
+def test_then_get_missing_key_returns_structured_absence(run):
+    assert run('is_none?(then_get(some({a: 1}), "b"))') is True
+    assert format_debug(_run('absence_reason(then_get(some({a: 1}), "b"))')) == "some(missing_key)"
+
+
+def test_then_get_propagates_existing_absence_unchanged(run):
+    assert format_debug(_run('then_get(none(missing_key, { key: "a" }), "b")')) == 'none(missing_key, <map 1>)'
+
+
 def test_get_preserves_present_nil_vs_missing(run):
     src = '[is_some?(get?("a", {a:nil})), is_none?(get?("b", {a:nil})), unwrap_or("d", get?("a", {a:nil}))]'
     assert run(src) == [True, True, None]
@@ -147,6 +161,17 @@ def test_get_preserves_present_nil_vs_missing(run):
 def test_unwrap_or_some_and_none(run):
     assert run('unwrap_or(5, some(2))') == 2
     assert run('unwrap_or(5, none)') == 5
+
+
+def test_or_else_and_or_else_with_support_direct_and_pipeline_styles(run):
+    assert run("or_else(some(2), 5)") == 2
+    assert run("some(2) |> or_else(5)") == 2
+    assert run("or_else(none(empty_list), 5)") == 5
+    assert run("none(empty_list) |> or_else(5)") == 5
+    assert run("or_else_with(some(2), () -> 5)") == 2
+    assert run("some(2) |> or_else_with(() -> 5)") == 2
+    assert run("or_else_with(none(empty_list), () -> 5)") == 5
+    assert run("none(empty_list) |> or_else_with(() -> 5)") == 5
 
 
 def test_option_predicates(run):
@@ -260,6 +285,31 @@ def test_nth_opt_returns_structured_absence(run):
     ) == [8, 2]
 
 
+def test_then_nth_direct_and_pipeline_orders_both_work(run):
+    assert run("unwrap_or(0, then_nth(some([10, 20, 30]), 1))") == 20
+    assert run("unwrap_or(0, some([10, 20, 30]) |> then_nth(1))") == 20
+
+
+def test_then_nth_propagates_existing_absence_and_reports_oob(run):
+    assert format_debug(_run("then_nth(none(empty_list), 1)")) == "none(empty_list)"
+    assert run("is_none?(then_nth(some([10, 20]), 8))") is True
+    assert format_debug(_run("absence_reason(then_nth(some([10, 20]), 8))")) == "some(index_out_of_bounds)"
+
+
+def test_then_first_success_and_empty_list_absence(run):
+    assert run("unwrap_or(0, then_first(some([10, 20])))") == 10
+    assert run("is_none?(then_first(some([])))") is True
+    assert format_debug(_run("absence_reason(then_first(some([])))")) == "some(empty_list)"
+
+
+def test_then_find_success_and_propagation(run):
+    assert run('unwrap_or(-1, then_find(some("abc"), "b"))') == 1
+    assert run('unwrap_or(-1, some("abc") |> then_find("b"))') == 1
+    assert format_debug(_run('then_find(none(missing_key, { key: "name" }), "b")')) == 'none(missing_key, <map 1>)'
+    assert run('is_none?(then_find(some("abc"), "x"))') is True
+    assert format_debug(_run('absence_reason(then_find(some("abc"), "x"))')) == "some(not_found)"
+
+
 def test_map_some_and_flat_map_some_propagate_structured_absence(run):
     assert run("unwrap_or(0, map_some((x) -> x + 1, some(2)))") == 3
     assert format_debug(_run("map_some((x) -> x + 1, none(empty_list))")) == "none(empty_list)"
@@ -282,9 +332,50 @@ def test_or_else_with_is_lazy_and_recovers_from_none(run):
     assert run(src) == [3, 1, 1]
 
 
+def test_safe_chaining_pipeline_examples(run):
+    src = '\n'.join([
+        'record = { user: { address: { zip: "80302" } } }',
+        'record |> get("user") |> then_get("address") |> then_get("zip") |> or_else("unknown")',
+    ])
+    assert run(src) == "80302"
+
+    src = '\n'.join([
+        'data = { items: [{ name: "A" }, { name: "B" }] }',
+        'data |> get("items") |> then_nth(0) |> then_get("name") |> or_else("?")',
+    ])
+    assert run(src) == "A"
+
+    src = '\n'.join([
+        'data = { users: [] }',
+        'result = data |> get("users") |> then_first() |> then_get("email")',
+        '[absence_reason(result), is_none?(result)]',
+    ])
+    result = run(src)
+    assert format_debug(result[0]) == "some(empty_list)"
+    assert result[1] is True
+
+
 def test_pipeline_rewrite_is_unchanged_for_generic_calls(run):
     with pytest.raises(TypeError, match="parse_int expected a string"):
         run("none(empty_list) |> parse_int")
+
+
+def test_then_helpers_fail_clearly_on_wrong_targets(run):
+    with pytest.raises(TypeError, match="then_first expected a list, some\\(list\\), or none target"):
+        run("then_first(42)")
+    with pytest.raises(TypeError, match="then_nth expected a list, some\\(list\\), or none target"):
+        run("then_nth(0, 42)")
+    with pytest.raises(TypeError, match="then_nth expected an integer index"):
+        run('then_nth(some([1, 2]), "0")')
+    with pytest.raises(TypeError, match="then_find expected a string, some\\(string\\), or none target"):
+        run("then_find(42, \"a\")")
+
+
+def test_safe_chaining_does_not_change_ordinary_arithmetic_or_option_errors(run):
+    with pytest.raises(TypeError):
+        run("some(2) + 3")
+    with pytest.raises(TypeError):
+        run("none(empty_list) + 3")
 
 
 def test_legacy_slash_access_still_returns_nil_for_missing_keys(run):

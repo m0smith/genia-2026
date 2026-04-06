@@ -4425,6 +4425,9 @@ Option builtins (phase 2):
   map_some(f, option)
   flat_map_some(f, option)
   then_get(key, target)
+  then_first(target)
+  then_nth(index, target)
+  then_find(needle, target)
   or_else(option, fallback)
   or_else_with(option, thunk)
   unwrap_or(default, option)
@@ -4879,7 +4882,15 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     def none_predicate_fn(value: Any) -> bool:
         return is_none_fn(value)
 
-    def or_else_fn(opt: Any, fallback: Any) -> Any:
+    def _resolve_option_and_other(first: Any, second: Any) -> tuple[Any, Any]:
+        if isinstance(first, (GeniaOptionSome, GeniaOptionNone)):
+            return first, second
+        if isinstance(second, (GeniaOptionSome, GeniaOptionNone)):
+            return second, first
+        return first, second
+
+    def or_else_fn(first: Any, second: Any) -> Any:
+        opt, fallback = _resolve_option_and_other(first, second)
         if isinstance(opt, GeniaOptionSome):
             return opt.value
         if isinstance(opt, GeniaOptionNone):
@@ -4943,10 +4954,90 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
             return opt
         raise TypeError("flat_map_some expected an option value")
 
-    def then_get_fn(key: Any, target: Any) -> Any:
+    def _looks_like_get_target(value: Any) -> bool:
+        return isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaMap))
+
+    def _looks_like_list_target(value: Any) -> bool:
+        return isinstance(value, (GeniaOptionSome, GeniaOptionNone, list))
+
+    def _looks_like_find_target(value: Any) -> bool:
+        return isinstance(value, (GeniaOptionSome, GeniaOptionNone, str))
+
+    def _resolve_chain_binary_args(
+        name: str,
+        first: Any,
+        second: Any,
+        target_predicate: Callable[[Any], bool],
+    ) -> tuple[Any, Any]:
+        first_is_target = target_predicate(first)
+        second_is_target = target_predicate(second)
+        if first_is_target and not second_is_target:
+            return first, second
+        if second_is_target and not first_is_target:
+            return second, first
+        return second, first
+
+    def then_get_fn(first: Any, second: Any) -> Any:
+        target, key = _resolve_chain_binary_args("then_get", first, second, _looks_like_get_target)
         return _get_option_impl("then_get", key, target)
 
-    def or_else_with_fn(opt: Any, thunk: Any) -> Any:
+    def _first_option_impl(target: Any) -> Any:
+        if isinstance(target, GeniaOptionNone):
+            return target
+        if isinstance(target, GeniaOptionSome):
+            return _first_option_impl(target.value)
+        if isinstance(target, list):
+            if len(target) == 0:
+                return GeniaOptionNone(symbol("empty_list"))
+            return GeniaOptionSome(target[0])
+        raise TypeError("then_first expected a list, some(list), or none target")
+
+    def then_first_fn(target: Any) -> Any:
+        return _first_option_impl(target)
+
+    def _nth_option_impl(index: Any, target: Any) -> Any:
+        if not isinstance(index, int) or isinstance(index, bool):
+            raise TypeError("then_nth expected an integer index")
+        if isinstance(target, GeniaOptionNone):
+            return target
+        if isinstance(target, GeniaOptionSome):
+            return _nth_option_impl(index, target.value)
+        if isinstance(target, list):
+            size = len(target)
+            if index < 0 or index >= size:
+                context = GeniaMap().put("index", index).put("length", size)
+                return GeniaOptionNone(symbol("index_out_of_bounds"), context)
+            return GeniaOptionSome(target[index])
+        raise TypeError("then_nth expected a list, some(list), or none target")
+
+    def then_nth_fn(first: Any, second: Any) -> Any:
+        target, index = _resolve_chain_binary_args("then_nth", first, second, _looks_like_list_target)
+        return _nth_option_impl(index, target)
+
+    def _find_option_impl(needle: Any, target: Any) -> Any:
+        safe_needle = _ensure_string(needle, "then_find")
+        if isinstance(target, GeniaOptionNone):
+            return target
+        if isinstance(target, GeniaOptionSome):
+            return _find_option_impl(safe_needle, target.value)
+        if isinstance(target, str):
+            idx = target.find(safe_needle)
+            if idx < 0:
+                return GeniaOptionNone(symbol("not_found"), GeniaMap().put("needle", safe_needle))
+            return GeniaOptionSome(idx)
+        raise TypeError("then_find expected a string, some(string), or none target")
+
+    def then_find_fn(first: Any, second: Any) -> Any:
+        if isinstance(first, (GeniaOptionSome, GeniaOptionNone)):
+            target, needle = first, second
+        elif isinstance(second, (GeniaOptionSome, GeniaOptionNone)):
+            target, needle = second, first
+        else:
+            target, needle = first, second
+        return _find_option_impl(needle, target)
+
+    def or_else_with_fn(first: Any, second: Any) -> Any:
+        opt, thunk = _resolve_option_and_other(first, second)
         if isinstance(opt, GeniaOptionSome):
             return opt.value
         if isinstance(opt, GeniaOptionNone):
@@ -5087,6 +5178,9 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("map_some", map_some_fn)
     env.set("flat_map_some", flat_map_some_fn)
     env.set("then_get", then_get_fn)
+    env.set("then_first", then_first_fn)
+    env.set("then_nth", then_nth_fn)
+    env.set("then_find", then_find_fn)
     env.set("or_else", or_else_fn)
     env.set("or_else_with", or_else_with_fn)
     env.set("unwrap_or", unwrap_or_fn)

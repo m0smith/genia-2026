@@ -94,7 +94,7 @@ Current consistency note:
   - `get?`
   - `first_opt`
   - `nth_opt`
-- maybe-flow helpers such as `map_some`, `flat_map_some`, and `then_get` preserve structured absence unchanged
+- maybe-flow helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` preserve structured absence unchanged
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - Flow, MetaEnv, and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
@@ -337,7 +337,7 @@ cell_get(counter)
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
-- option builtins: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+- option builtins: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `each`, `collect`, `run`, plus prelude `head` aliases over `take`

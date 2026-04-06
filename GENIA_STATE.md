@@ -99,7 +99,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
-- maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, and `then_get`; pipeline syntax itself remains ordinary AST→Core IR call rewriting.
+- maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find`; pipeline syntax itself remains ordinary AST→Core IR call rewriting.
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -588,6 +588,9 @@ Behavior:
   - `map_some(f, opt)`
   - `flat_map_some(f, opt)`
   - `then_get(key, target)`
+  - `then_first(target)`
+  - `then_nth(index, target)`
+  - `then_find(needle, target)`
 - option-returning stdlib helpers:
   - `first(list)`
   - `first_opt(list)` (compatibility alias)
@@ -626,15 +629,27 @@ Maybe-flow helper semantics:
 - `then_get(key, target)` is a thin maybe-aware chaining helper:
   - `then_get(key, some(map)) -> get(key, map)`
   - `then_get(key, none(...)) -> none(...)` unchanged
+- `then_first(target)` is a thin maybe-aware chaining helper over `first`
+- `then_nth(index, target)` is a thin maybe-aware chaining helper over `nth`
+- `then_find(needle, target)` is a thin maybe-aware chaining helper over string `find`
 - `or_else_with(opt, thunk)` is recovery/defaulting:
   - returns wrapped value for `some(value)`
   - calls `thunk()` only for `none...`
+- `or_else(opt, fallback)` and `or_else_with(opt, thunk)` accept both direct style and pipeline-friendly style in this phase:
+  - `or_else(some(3), 0) -> 3`
+  - `some(3) |> or_else(0) -> 3`
+  - `or_else_with(none(empty_list), () -> 0) -> 0`
+  - `none(empty_list) |> or_else_with(() -> 0) -> 0`
 - these helpers preserve structured absence reason/context during propagation unless they are explicitly recovery/defaulting helpers
 
 Pipeline note:
 
 - pipeline semantics themselves are unchanged
-- absence flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b")`, not from a magical pipeline runtime
+- absence flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b") |> then_get("c")`, not from a magical pipeline runtime
+- safe-chaining helpers preserve the first structured `none(...)` unchanged:
+  - `record |> get("user") |> then_get("address") |> then_get("zip")`
+  - `data |> get("items") |> then_nth(0) |> then_get("name")`
+  - `data |> get("users") |> then_first() |> then_get("email") |> or_else("unknown")`
 
 Structured absence currently used in canonical access/search helpers:
 

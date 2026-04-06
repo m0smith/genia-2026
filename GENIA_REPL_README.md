@@ -126,7 +126,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - concurrency: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
-  - phase-2 primitive option model: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - phase-2 primitive option model: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
@@ -167,8 +167,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `find_opt(predicate, list)` returns `none(no_match)` when nothing matches
   - canonical maybe-aware lookup: `get(key, target)`; `get?(key, target)` remains as a compatibility alias
   - compatibility aliases: `first_opt` for `first`, `nth_opt` for `nth`
-  - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
-  - pipeline syntax is unchanged; maybe flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b")`
+  - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - pipeline syntax is unchanged; maybe flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b") |> then_get("c")`
+  - recovery helpers support both direct and pipeline-friendly order:
+    - `or_else(some(3), 0)` and `some(3) |> or_else(0)`
+    - `or_else_with(none(empty_list), () -> 0)` and `none(empty_list) |> or_else_with(() -> 0)`
   - `some(nil)` is valid and distinct from `none`
 - cell semantics (phase 1 fail-stop):
   - cells queue asynchronous updates and run them one at a time

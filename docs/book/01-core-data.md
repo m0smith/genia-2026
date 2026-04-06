@@ -1164,11 +1164,14 @@ This is the current explicit presence/absence model, but it does not replace all
 
 And minimal helpers:
 
- - `get(key, target)`
+- `get(key, target)`
 - `get?(key, target)`
 - `map_some(f, opt)`
 - `flat_map_some(f, opt)`
 - `then_get(key, target)`
+- `then_first(target)`
+- `then_nth(index, target)`
+- `then_find(needle, target)`
 - `unwrap_or(default, opt)`
 - `is_some?(opt)`
 - `is_none?(opt)`
@@ -1244,7 +1247,7 @@ Expected behavior:
   - constructor pattern `some(pattern)`
 - canonical maybe-aware lookup via `get(key, target)` with key-presence distinction (`some(nil)` vs `none...`)
 - `get?(key, target)` remains as a compatibility alias
-- maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`
+- maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`
 - helper builtins: `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
@@ -1253,21 +1256,25 @@ Expected behavior:
 - pipeline-friendly lookup (`record |> get("name")`)
 - callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
 - `cli_option` also remains in the legacy `value_or_nil` family
- - naming rule for current APIs:
-   - new `?`-suffixed APIs are boolean-returning
-   - maybe-returning APIs use Option values without `?`
-   - `get?` remains the existing compatibility exception
-   - `get` is the preferred maybe-aware lookup name for new code
- - structured absence metadata:
-   - `first([]) -> none(empty_list)`
-   - `last([]) -> none(empty_list)`
-   - `find("abc", "x") -> none(not_found, { needle: "x" })`
-   - `find_opt(pred, xs)` can return `none(no_match)`
-   - `nth(i, xs)` can return `none(index_out_of_bounds, { index: i, length: n })`
- - maybe flow:
-   - `map_some` and `flat_map_some` preserve structured absence unchanged
-   - `then_get` is a thin chaining helper over `get`
-   - pipeline syntax itself is unchanged; maybe flow is helper behavior layered on top of ordinary call rewriting
+- naming rule for current APIs:
+  - new `?`-suffixed APIs are boolean-returning
+  - maybe-returning APIs use Option values without `?`
+  - `get?` remains the existing compatibility exception
+  - `get` is the preferred maybe-aware lookup name for new code
+- structured absence metadata:
+  - `first([]) -> none(empty_list)`
+  - `last([]) -> none(empty_list)`
+  - `find("abc", "x") -> none(not_found, { needle: "x" })`
+  - `find_opt(pred, xs)` can return `none(no_match)`
+  - `nth(i, xs)` can return `none(index_out_of_bounds, { index: i, length: n })`
+- maybe flow:
+  - `map_some` and `flat_map_some` preserve structured absence unchanged
+  - `then_get` is a thin chaining helper over `get`
+  - `then_first` is a thin chaining helper over `first`
+  - `then_nth` is a thin chaining helper over `nth`
+  - `then_find` is a thin chaining helper over string `find`
+  - `or_else` and `or_else_with` support both direct and pipeline-friendly order
+  - pipeline syntax itself is unchanged; maybe flow is helper behavior layered on top of ordinary call rewriting
 
 ### ⚠️ Partial
 

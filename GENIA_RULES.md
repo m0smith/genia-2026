@@ -354,6 +354,9 @@ No additional member/index/flow operators should be introduced without explicitl
 - `is_some?(opt)` / `some?(opt)` and `is_none?(opt)` / `none?(opt)` report option shape
 - `or_else(opt, fallback)` returns the wrapped value for `some(value)` and the fallback for any `none...` form
 - `or_else_with(opt, thunk)` returns the wrapped value for `some(value)` and calls `thunk()` only for `none...`
+- `or_else` and `or_else_with` also support pipeline-friendly order in this phase:
+  - `some(3) |> or_else(0)`
+  - `none(empty_list) |> or_else_with(() -> 0)`
 - `absence_reason(opt)` returns `some(reason)` for structured absence and `none` for plain `none`
 - `absence_context(opt)` returns `some(context)` only when context metadata is present
 - `map_some(f, opt)`:
@@ -364,6 +367,9 @@ No additional member/index/flow operators should be introduced without explicitl
   - requires `f(value)` to be an Option value
   - returns the original `none...` unchanged for any absence value
 - `then_get(key, target)` is a thin maybe-aware chaining helper over `get`
+- `then_first(target)` is a thin maybe-aware chaining helper over `first`
+- `then_nth(index, target)` is a thin maybe-aware chaining helper over `nth`
+- `then_find(needle, target)` is a thin maybe-aware chaining helper over string `find`
 - propagation helpers preserve the original structured `none(...)` unchanged unless they are explicit recovery/defaulting helpers
 - expected absence remains data, not an exception
 - runtime failures are not silently converted into `none(...)`
@@ -377,6 +383,10 @@ No additional member/index/flow operators should be introduced without explicitl
 - callable map lookup, string projector lookup, slash map access, `map_get`, and `cli_option` remain legacy `nil`-returning compatibility behavior
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get("name")` rewrites to `get("name", record)`)
 - maybe flow in pipelines is helper-driven, not a new pipeline runtime semantic
+- safe chaining is therefore helper-driven too:
+  - `record |> get("user") |> then_get("address") |> then_get("zip")`
+  - `data |> get("items") |> then_nth(0) |> then_get("name")`
+  - the first structured `none(...)` is preserved unchanged until an explicit recovery/defaulting helper is called
 
 ## 11.3) String builtin invariants
 

@@ -186,6 +186,9 @@ Implemented helpers:
 - `nth(index, list)`
 - `nth_opt(index, list)` (compatibility alias)
 - `find_opt(predicate, list)`
+- chaining helpers over canonical access:
+  - `then_first(target)`
+  - `then_nth(index, target)`
 
 These return `none...` for empty/no-match/out-of-range and `some(value)` for present results, including `some(nil)`.
 
@@ -252,6 +255,18 @@ Maybe-flow note:
   nth(5, fields("a b c d 5 x")) |> map_some(parse_int) |> unwrap_or(0)
   ```
 - this works because `map_some` is maybe-aware; `|>` itself is still only ordinary call rewriting
+- safe-chaining helpers also compose directly with list results:
+  ```genia
+  data = { items: [{ name: "A" }, { name: "B" }] }
+  data |> get("items") |> then_nth(0) |> then_get("name") |> or_else("?")
+  ```
+- and:
+  ```genia
+  data = { users: [] }
+  result = data |> get("users") |> then_first() |> then_get("email")
+  [absence_reason(result), is_none?(result)]
+  ```
+- those helpers are thin wrappers over canonical `nth`, `first`, and `get`; they do not change the meaning of `|>`
 
 ---
 
