@@ -14,7 +14,7 @@ That turns out to be useful.
 
 ## Chapter Status
 
-Implemented in this chapter:
+✅ Implemented in this chapter:
 
 - `Number`, `String`, `Boolean`, `nil`
 - arithmetic and comparison
@@ -25,12 +25,12 @@ Implemented in this chapter:
 - closures
 - proper tail calls
 
-Partial in this chapter:
+⚠️ Partial in this chapter:
 
 - we mention lists briefly, but list-processing gets its own chapter
 - we mention code-as-data briefly, but `quote`, `quasiquote`, and metacircular evaluation come later
 
-Not in this chapter:
+❌ Future or not in this chapter:
 
 - `if`
 - `switch`
@@ -39,7 +39,7 @@ Not in this chapter:
 
 ## 1.1 Computation Is "Evaluate This"
 
-Think About It
+🤔 Think About It
 
 What does this do?
 
@@ -55,11 +55,11 @@ No fake guessing.
 
 The answer is:
 
-```genia
+```text
 7
 ```
 
-Aha!
+💡 Aha!
 
 Genia is expression-oriented.
 
@@ -76,7 +76,7 @@ value out
 
 Like a vending machine, except the snack is math.
 
-Your Brain on Genia
+🧠 Your Brain on Genia
 
 You might be thinking:
 
@@ -93,7 +93,7 @@ Pattern matches produce values.
 
 That consistency is the whole game.
 
-Try This
+🧪 Try This
 
 Run each of these and predict the result before you do:
 
@@ -104,7 +104,7 @@ Run each of these and predict the result before you do:
 5 % 2
 ```
 
-Common Trap
+⚠️ Common Trap
 
 This:
 
@@ -120,7 +120,7 @@ is not the same as:
 
 If your brain says "eh, same ingredients," your brain is being a chaos goblin.
 
-Puzzle
+🧩 Puzzle
 
 What does this return?
 
@@ -132,7 +132,7 @@ Write the answer down before you move on.
 
 ## 1.2 Names Let You Stop Repeating Yourself
 
-Think About It
+🤔 Think About It
 
 If you need "square something" more than once, do you really want to keep retyping `x * x` forever like a cursed spreadsheet?
 
@@ -148,11 +148,11 @@ square(12)
 
 Result:
 
-```genia
+```text
 144
 ```
 
-Aha!
+💡 Aha!
 
 A function gives a name to a process.
 
@@ -171,11 +171,11 @@ sum_of_squares(3, 4)
 
 That returns:
 
-```genia
+```text
 25
 ```
 
-Let's Rewrite That
+🔁 Let's Rewrite That
 
 These two ideas are equivalent in spirit:
 
@@ -193,7 +193,7 @@ The second one is nicer because it says what you mean.
 
 That matters once programs stop fitting inside your head all at once.
 
-Your Brain on Genia
+🧠 Your Brain on Genia
 
 You may feel a tiny urge to ask:
 
@@ -204,7 +204,7 @@ There aren't any here.
 The function body is an expression.
 The value of that expression is the result.
 
-Try This
+🧪 Try This
 
 Predict these before running them:
 
@@ -214,7 +214,7 @@ sum_of_squares(2, 5)
 square(square(2))
 ```
 
-Common Trap
+⚠️ Common Trap
 
 This:
 
@@ -234,6 +234,16 @@ square(x) = x * x
 
 instead.
 
+Failure case:
+
+```genia
+square = x * x
+```
+
+```text
+Error: Undefined name: x
+```
+
 ## 1.3 No `if`. Pattern Matching Does the Branching.
 
 Wait.
@@ -246,7 +256,7 @@ Genia is not being difficult.
 
 It is being specific.
 
-Think About It
+🤔 Think About It
 
 How would you write absolute value without `if`?
 
@@ -266,11 +276,11 @@ Now try:
 
 Result:
 
-```genia
+```text
 [3, 0, 7]
 ```
 
-Aha!
+💡 Aha!
 
 Pattern matching is Genia's conditional model.
 
@@ -301,7 +311,7 @@ ASCII Picture
  x
 ```
 
-Your Brain on Genia
+🧠 Your Brain on Genia
 
 This is usually the moment when people think:
 
@@ -313,7 +323,7 @@ It is the normal thing.
 
 The weird thing is languages that make you switch mental models every five minutes.
 
-Try This
+🧪 Try This
 
 What do you expect?
 
@@ -326,11 +336,11 @@ describe(xs) =
 [describe([]), describe([1]), describe([1, 2, 3])]
 ```
 
-Common Trap
+⚠️ Common Trap
 
 Do not write imaginary syntax from some other language:
 
-```genia
+```text
 if n < 0 then -n else n
 ```
 
@@ -338,7 +348,20 @@ That is not Genia.
 
 Use a case body or pattern-based function clauses instead.
 
-Puzzle
+Failure case:
+
+```genia
+head(xs) =
+  [x, .._] -> x
+
+head([])
+```
+
+```text
+Error: No matching case for function head/1 with arguments ([],)
+```
+
+🧩 Puzzle
 
 Write a function `sign(n)` that returns:
 
@@ -350,7 +373,7 @@ Use pattern matching plus guards.
 
 ## 1.4 Blocks Let You Build a Process Step by Step
 
-Think About It
+🤔 Think About It
 
 What if the computation is easier to explain in stages?
 
@@ -366,11 +389,11 @@ Use a block.
 
 Result:
 
-```genia
+```text
 15
 ```
 
-Aha!
+💡 Aha!
 
 A block evaluates expressions in order and returns the last one.
 
@@ -388,7 +411,7 @@ step 2: x = x + 5
 step 3: result is x
 ```
 
-Your Brain on Genia
+🧠 Your Brain on Genia
 
 You might be thinking:
 
@@ -406,7 +429,7 @@ That means:
 - maps do not become secretly mutable
 - names can point at a new value later in the same scope
 
-Try This
+🧪 Try This
 
 Predict the result:
 
@@ -419,7 +442,7 @@ Predict the result:
 }
 ```
 
-Let's Rewrite That
+🔁 Let's Rewrite That
 
 Sometimes a block makes a process easier to read:
 
@@ -433,7 +456,7 @@ hypotenuse(a, b) = {
 
 It is still just value computation.
 
-Common Trap
+⚠️ Common Trap
 
 A block returns its last expression.
 
@@ -450,7 +473,7 @@ If the last expression is wrong, the result is wrong.
 
 ## 1.5 Closures Remember Their Lexical World
 
-Think About It
+🤔 Think About It
 
 Can a function remember something from the place where it was created?
 
@@ -473,7 +496,7 @@ c = make_counter()
 
 Result:
 
-```genia
+```text
 [1, 2, 3]
 ```
 
@@ -481,7 +504,7 @@ Pause.
 
 That is a big deal.
 
-Aha!
+💡 Aha!
 
 The inner function closes over the lexical binding `n`.
 
@@ -505,7 +528,7 @@ call function <--------+
   return n
 ```
 
-Your Brain on Genia
+🧠 Your Brain on Genia
 
 This is usually where people say:
 
@@ -521,7 +544,7 @@ Different tool.
 
 Same "wow, it remembered" feeling.
 
-Try This
+🧪 Try This
 
 Predict this before running it:
 
@@ -541,7 +564,7 @@ b = make_counter()
 
 If your answer is `[1, 2, 1, 3, 2]`, you are thinking like the language now.
 
-Common Trap
+⚠️ Common Trap
 
 Do not assume every closure shares the same state.
 
@@ -551,7 +574,7 @@ That is why `a` and `b` do not stomp on each other.
 
 ## 1.6 Processes: Recursive Does Not Mean "Doomed"
 
-Think About It
+🤔 Think About It
 
 What does this compute?
 
@@ -561,6 +584,8 @@ sum_to(n, acc) =
   (n, acc) -> sum_to(n - 1, acc + n)
 ```
 
+🧪 Try This
+
 Try:
 
 ```genia
@@ -569,11 +594,11 @@ sum_to(10, 0)
 
 Result:
 
-```genia
+```text
 55
 ```
 
-Aha!
+💡 Aha!
 
 This is a recursive process, but it is in tail position.
 
@@ -593,7 +618,7 @@ That is not "maybe the compiler is smart today."
 
 It is part of the language behavior.
 
-Let's Rewrite That
+🔁 Let's Rewrite That
 
 This version:
 
@@ -617,7 +642,7 @@ still works for small inputs, but it is not tail-recursive.
 
 That means it still consumes stack.
 
-Your Brain on Genia
+🧠 Your Brain on Genia
 
 Many people learn recursion as:
 
@@ -631,11 +656,29 @@ The real lesson is:
 
 Tail-recursive descriptions can create iterative processes.
 
-Puzzle
+Mini challenge:
+
+What does this return?
+
+```genia
+fact(n, acc) =
+  (n, acc) ? n == 0 -> acc |
+  (n, acc) -> fact(n - 1, acc * n)
+
+fact(5, 1)
+```
+
+```text
+120
+```
+
+🧩 Puzzle
 
 Rewrite factorial in a tail-recursive style:
 
-```genia
+**Conceptual example — not directly runnable**
+
+```text
 fact(n, acc) = ...
 ```
 
@@ -651,7 +694,7 @@ You do not need this to survive chapter 1.
 
 But it is too fun not to mention.
 
-Think About It
+🤔 Think About It
 
 What should this return?
 
@@ -663,11 +706,11 @@ Not `3`.
 
 It returns:
 
-```genia
+```text
 (app + 1 2)
 ```
 
-Aha!
+💡 Aha!
 
 Genia can treat code as data.
 
@@ -683,7 +726,7 @@ quoted evaluation:
   quote(1 + 2) -> (app + 1 2)
 ```
 
-Common Trap
+⚠️ Common Trap
 
 `quote(...)` does not evaluate its argument.
 
@@ -743,3 +786,50 @@ quote(square(5))
 If you can explain why each result is what it is, you are not just reading anymore.
 
 You are driving.
+
+## Solutions
+
+Here are the answers to the chapter puzzles and playground.
+
+### Arithmetic Warm-Up Puzzle
+
+```text
+1 + 2 + 3 * 4 -> 15
+```
+
+### Sign Puzzle
+
+One valid answer:
+
+```genia
+sign(n) =
+  (n) ? n < 0 -> -1 |
+  (n) ? n == 0 -> 0 |
+  _ -> 1
+```
+
+```text
+[sign(-2), sign(0), sign(9)] -> [-1, 0, 1]
+```
+
+### Tail-Recursive Factorial Puzzle
+
+```genia
+fact(n, acc) =
+  (n, acc) ? n == 0 -> acc |
+  (n, acc) -> fact(n - 1, acc * n)
+```
+
+```text
+fact(5, 1) -> 120
+```
+
+### Playground Answers
+
+```text
+square(9) -> 81
+abs(-42) -> 42
+{ x = 3 x = x + 4 x * 2 } -> 14
+sum_to(100, 0) -> 5050
+quote(square(5)) -> (app square 5)
+```
