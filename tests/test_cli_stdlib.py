@@ -23,29 +23,29 @@ main(argv())
 
 def test_cli_parse_empty():
     env = make_global_env()
-    assert run_source("map_count(first(cli_parse([])))", env) == 0
+    assert run_source("map_count(unwrap_or({}, first(cli_parse([]))))", env) == 0
     assert run_source("rest(cli_parse([]))", env) == [[]]
 
 
 def test_cli_parse_long_boolean_flag():
     env = make_global_env()
-    assert run_source('cli_flag?(first(cli_parse(["--pretty"])), "pretty")', env) is True
+    assert run_source('cli_flag?(unwrap_or({}, first(cli_parse(["--pretty"]))), "pretty")', env) is True
 
 
 def test_cli_parse_long_option_equals():
     env = make_global_env()
-    assert run_source('cli_option(first(cli_parse(["--indent=4"])), "indent")', env) == "4"
+    assert run_source('cli_option(unwrap_or({}, first(cli_parse(["--indent=4"]))), "indent")', env) == "4"
 
 
 def test_cli_parse_long_option_with_next_value():
     env = make_global_env()
-    assert run_source('cli_option(first(cli_parse(["--indent", "2"])), "indent")', env) == "2"
+    assert run_source('cli_option(unwrap_or({}, first(cli_parse(["--indent", "2"]))), "indent")', env) == "2"
 
 
 def test_cli_parse_grouped_short_flags():
     env = make_global_env()
     source = """
-opts = first(cli_parse(["-abc"]))
+opts = unwrap_or({}, first(cli_parse(["-abc"])))
 [cli_flag?(opts, "a"), cli_flag?(opts, "b"), cli_flag?(opts, "c")]
 """
     assert run_source(source, env) == [True, True, True]
@@ -53,18 +53,18 @@ opts = first(cli_parse(["-abc"]))
 
 def test_cli_parse_short_option_value():
     env = make_global_env()
-    assert run_source('cli_option(first(cli_parse(["-o", "file.txt"])), "o")', env) == "file.txt"
+    assert run_source('cli_option(unwrap_or({}, first(cli_parse(["-o", "file.txt"]))), "o")', env) == "file.txt"
 
 
 def test_cli_parse_terminator():
     env = make_global_env()
-    assert run_source('cli_flag?(first(cli_parse(["--pretty", "--", "--raw", "input.txt"])), "pretty")', env) is True
+    assert run_source('cli_flag?(unwrap_or({}, first(cli_parse(["--pretty", "--", "--raw", "input.txt"]))), "pretty")', env) is True
     assert run_source('rest(cli_parse(["--pretty", "--", "--raw", "input.txt"]))', env) == [["--raw", "input.txt"]]
 
 
 def test_cli_parse_mixed_and_last_wins():
     env = make_global_env()
-    assert run_source('cli_option(first(cli_parse(["--indent=2", "in", "--indent", "4", "-p", "out"])), "indent")', env) == "4"
+    assert run_source('cli_option(unwrap_or({}, first(cli_parse(["--indent=2", "in", "--indent", "4", "-p", "out"]))), "indent")', env) == "4"
     assert run_source('rest(cli_parse(["--indent=2", "in", "--indent", "4", "-p", "out"]))', env) == [["in"]]
 
 
@@ -96,8 +96,8 @@ spec0 = map_put(map_new(), "flags", ["pretty"])
 spec1 = map_put(spec0, "options", ["indent"])
 spec = map_put(spec1, "aliases", aliases)
 parsed = cli_parse(["-p", "--indent", "2", "input.txt"], spec)
-opts = first(parsed)
-positionals = first(rest(parsed))
+opts = unwrap_or({}, first(parsed))
+positionals = unwrap_or([], first(rest(parsed)))
 [cli_flag?(opts, "pretty"), cli_option(opts, "indent"), positionals]
 """
     assert run_source(source, env) == [True, "2", ["input.txt"]]

@@ -39,10 +39,11 @@ def test_basic_string_predicates_and_search_for_ascii_and_unicode():
     assert _run('starts_with("漢字abc", "漢")') is True
     assert _run('ends_with("hi🙂", "🙂")') is True
 
-    # Minimal model expectation: `find` returns Unicode code-point positions.
-    assert _run('find("naïve", "ï")') == 2
-    assert _run('find("🙂a", "a")') == 1
-    assert _run('find("abc", "x")') is None
+    # Minimal model expectation: `find` returns maybe-aware Unicode code-point positions.
+    assert _run('unwrap_or(-1, find("naïve", "ï"))') == 2
+    assert _run('unwrap_or(-1, find("🙂a", "a"))') == 1
+    assert _run('is_none?(find("abc", "x"))') is True
+    assert format_debug(_run('absence_reason(find("abc", "x"))')) == "some(not_found)"
 
 
 def test_split_and_split_whitespace_for_ascii_and_unicode():

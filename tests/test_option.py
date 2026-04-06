@@ -217,7 +217,7 @@ def test_option_list_helpers_work_with_pattern_matching(run):
         'pick(opt) =',
         '  some(x) -> x |',
         '  none -> 0',
-        'pick(first_opt([1, 2, 3]))',
+        'pick(first([1, 2, 3]))',
     ])
     assert run(src) == 1
 
@@ -227,9 +227,10 @@ def test_option_list_helpers_empty_cases(run):
         'pick(opt) =',
         '  some(x) -> x |',
         '  none -> 0',
-        '[pick(first_opt([])), pick(first_opt([nil])), unwrap_or(0, last([])), unwrap_or(0, last([1, 2, 3]))]',
+        '[pick(first([])), pick(first([nil])), unwrap_or(0, last([])), unwrap_or(0, last([1, 2, 3]))]',
     ])
     assert run(src) == [0, None, 0, 3]
+    assert format_debug(_run("absence_reason(first([]))")) == "some(empty_list)"
     assert format_debug(_run("absence_reason(first_opt([]))")) == "some(empty_list)"
     assert format_debug(_run("absence_reason(last([]))")) == "some(empty_list)"
 
@@ -243,6 +244,9 @@ def test_find_opt_returns_none_some_and_some_nil(run):
 
 
 def test_nth_opt_returns_structured_absence(run):
+    assert run("unwrap_or(0, nth(1, [10, 20, 30]))") == 20
+    assert run("is_none?(nth(8, [10, 20]))") is True
+    assert format_debug(_run("absence_reason(nth(8, [10, 20]))")) == "some(index_out_of_bounds)"
     assert run("unwrap_or(0, nth_opt(1, [10, 20, 30]))") == 20
     assert run("is_none?(nth_opt(8, [10, 20]))") is True
     assert format_debug(_run("absence_reason(nth_opt(8, [10, 20]))")) == "some(index_out_of_bounds)"
@@ -289,6 +293,12 @@ def test_legacy_slash_access_still_returns_nil_for_missing_keys(run):
         'record/missing',
     ])
     assert run(src) is None
+
+
+def test_string_find_is_canonical_maybe_returning_search(run):
+    assert run('unwrap_or(-1, find("abc", "b"))') == 1
+    assert run('is_none?(find("abc", "x"))') is True
+    assert format_debug(_run('absence_reason(find("abc", "x"))')) == "some(not_found)"
 
 
 def test_option_values_do_not_gain_boolean_predicate_coercion(run):

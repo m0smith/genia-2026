@@ -20,7 +20,7 @@ def test_autoload_sum():
 
 def test_autoload_list_and_first():
     assert run_with_env("list(1, 2, 3)") == [1, 2, 3]
-    assert run_with_env("first([7, 8, 9])") == 7
+    assert run_with_env("unwrap_or(0, first([7, 8, 9]))") == 7
     assert run_with_env("unwrap_or(0, first_opt([7, 8, 9]))") == 7
     assert run_with_env("unwrap_or(0, last([7, 8, 9]))") == 9
     assert run_with_env("unwrap_or(0, find_opt((x) -> x == 8, [7, 8, 9]))") == 8

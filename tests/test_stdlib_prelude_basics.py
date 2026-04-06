@@ -10,11 +10,18 @@ def test_list_function(run):
 
 
 def test_first_and_rest(run):
-    assert run("first([1, 2, 3])") == 1
+    assert run("unwrap_or(0, first([1, 2, 3]))") == 1
+    assert run("is_none?(first([]))") is True
     assert run("rest([1, 2, 3])") == [2, 3]
 
 
 def test_option_list_helpers(run):
+    assert run("is_none?(first([]))") is True
+    assert run("is_some?(first([nil]))") is True
+    assert run("unwrap_or(9, first([nil]))") is None
+    assert run("unwrap_or(0, first([1, 2, 3]))") == 1
+    assert run("quote(empty_list) == unwrap_or(nil, absence_reason(first([])))") is True
+
     assert run("is_none?(first_opt([]))") is True
     assert run("is_some?(first_opt([nil]))") is True
     assert run("unwrap_or(9, first_opt([nil]))") is None
@@ -31,6 +38,8 @@ def test_option_list_helpers(run):
     assert run("is_some?(find_opt((x) -> x == nil, [1, nil, 2]))") is True
     assert run("unwrap_or(7, find_opt((x) -> x == nil, [1, nil, 2]))") is None
     assert run("quote(no_match) == unwrap_or(nil, absence_reason(find_opt((x) -> x == 9, [])))") is True
+    assert run("unwrap_or(0, nth(2, [10, 20, 30]))") == 30
+    assert run("is_none?(nth(8, [10, 20]))") is True
     assert run("unwrap_or(0, nth_opt(2, [10, 20, 30]))") == 30
     assert run("is_none?(nth_opt(8, [10, 20]))") is True
 
@@ -102,7 +111,9 @@ def test_direct_prelude_load_without_autoload():
     assert run_source("reverse([1, 2, 3])", env) == [3, 2, 1]
     assert run_source("map((x) -> x + 1, [1, 2, 3])", env) == [2, 3, 4]
     assert run_source("filter((x) -> x % 2 == 1, [1, 2, 3, 4])", env) == [1, 3]
+    assert run_source("unwrap_or(0, first([4, 5]))", env) == 4
     assert run_source("unwrap_or(0, first_opt([4, 5]))", env) == 4
     assert run_source("unwrap_or(0, last([4, 5]))", env) == 5
     assert run_source("unwrap_or(0, find_opt((x) -> x == 5, [4, 5, 6]))", env) == 5
+    assert run_source("unwrap_or(0, nth(1, [4, 5, 6]))", env) == 5
     assert run_source("unwrap_or(0, nth_opt(1, [4, 5, 6]))", env) == 5

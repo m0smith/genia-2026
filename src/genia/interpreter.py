@@ -4082,9 +4082,13 @@ def make_global_env(
     def ends_with_fn(value: Any, suffix: Any) -> bool:
         return _ensure_string(value, "ends_with").endswith(_ensure_string(suffix, "ends_with"))
 
-    def find_fn(value: Any, needle: Any) -> int | None:
-        idx = _ensure_string(value, "find").find(_ensure_string(needle, "find"))
-        return None if idx < 0 else idx
+    def find_fn(value: Any, needle: Any) -> Any:
+        safe_value = _ensure_string(value, "find")
+        safe_needle = _ensure_string(needle, "find")
+        idx = safe_value.find(safe_needle)
+        if idx < 0:
+            return GeniaOptionNone(symbol("not_found"), GeniaMap().put("needle", safe_needle))
+        return GeniaOptionSome(idx)
 
     def split_fn(value: Any, sep: Any) -> list[str]:
         parts = _ensure_string(value, "split").split(_ensure_string(sep, "split"))

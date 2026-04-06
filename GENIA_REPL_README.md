@@ -54,7 +54,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
-  - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, string `find`, `nth`, and `first` remain non-Option, while `get`, `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use `none...` / `some(value)`
+  - current maybe/absence behavior is split: legacy helpers such as `map_get`, `cli_option`, callable map/string lookup, and slash map access remain non-Option, while `get`, `first`, `last`, `nth`, string `find`, and `find_opt` use `none...` / `some(value)`
+  - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
   - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
@@ -112,7 +113,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - conditionals expressed only through pattern matching in function definitions/case expressions
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
-  - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first_opt`, `last`, `find_opt`, and `range`
+  - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
   - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
@@ -160,14 +161,14 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `stream_take` materializes a prefix as an ordinary list
   - streams are distinct from Flow
 - Option/list notes:
-  - `first(list)` remains the legacy non-empty extractor and raises a normal match failure on `[]`
-  - `first_opt([])` and `last([])` return `none(empty_list)`
+  - `first([])` and `last([])` return `none(empty_list)`
+  - `nth(index, list)` returns `none(index_out_of_bounds, { index: i, length: n })` when out of range
+  - `find(string, needle)` returns `some(index)` or `none(not_found, { needle: needle })`
   - `find_opt(predicate, list)` returns `none(no_match)` when nothing matches
-  - `nth_opt(index, list)` returns `none(index_out_of_bounds, { index: i, length: n })` when out of range
   - canonical maybe-aware lookup: `get(key, target)`; `get?(key, target)` remains as a compatibility alias
+  - compatibility aliases: `first_opt` for `first`, `nth_opt` for `nth`
   - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - pipeline syntax is unchanged; maybe flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b")`
-  - string `find(string, needle)` remains the legacy index-or-`nil` API
   - `some(nil)` is valid and distinct from `none`
 - cell semantics (phase 1 fail-stop):
   - cells queue asynchronous updates and run them one at a time

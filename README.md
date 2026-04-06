@@ -82,8 +82,18 @@ pytest -q
 Current consistency note:
 
 - maybe/absence behavior is not fully unified yet
-- map lookup, callable map/string lookup, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use non-Option behavior
-- `get`, `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)`
+- map lookup, callable map/string lookup, slash map access, and `cli_option` still use legacy non-Option behavior
+- canonical access/search APIs now use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)`:
+  - `get`
+  - `first`
+  - `last`
+  - `nth`
+  - string `find`
+  - list predicate-search helper `find_opt`
+- compatibility aliases retained:
+  - `get?`
+  - `first_opt`
+  - `nth_opt`
 - maybe-flow helpers such as `map_some`, `flat_map_some`, and `then_get` preserve structured absence unchanged
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
@@ -328,7 +338,8 @@ cell_get(counter)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
 - option builtins: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
-- option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
+- canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
+- compatibility aliases: `first_opt`, `nth_opt`
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `each`, `collect`, `run`, plus prelude `head` aliases over `take`
 
 ### CLI args / options (runtime layer)
@@ -438,7 +449,8 @@ rewrite_zip(in_path, out_path) =
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
-- Option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
+- canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
+- compatibility aliases: `first_opt`, `nth_opt`
 - fn helpers: `apply`, `compose`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`

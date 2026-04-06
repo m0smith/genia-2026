@@ -21,8 +21,8 @@ Core helpers include:
 
 - `list`
 - `first`
-- `first_opt`
 - `last`
+- `first_opt`
 - `find_opt`
 - `rest`
 - `empty?`
@@ -36,6 +36,7 @@ Core helpers include:
 - `count`
 - `any?`
 - `nth`
+- `nth_opt`
 - `take`
 - `drop`
 - `range`
@@ -44,9 +45,9 @@ Each public helper includes a Markdown docstring readable through `help("name")`
 
 Current compatibility note:
 
-- `first` remains the legacy non-empty extractor
-- `first_opt`, `last`, and `find_opt` are the Option-returning maybe-helpers for lists
-- string `find` remains a separate builtin and still returns index-or-`nil`
+- `first`, `last`, and `nth` are canonical maybe-returning list access helpers
+- `first_opt` and `nth_opt` remain compatibility aliases
+- string `find` is a separate canonical maybe-returning string-search builtin
 
 ---
 
@@ -173,29 +174,31 @@ This is not an error because `force(x)` returns non-promise values unchanged.
 
 ---
 
-## Option-returning list helpers
+## Canonical maybe-returning list access
 
-Genia now has explicit Option-returning list helpers for maybe-results.
+Genia now has a canonical maybe-returning list access surface for maybe-results.
 
 Implemented helpers:
 
-- `first_opt(list)`
+- `first(list)`
+- `first_opt(list)` (compatibility alias)
 - `last(list)`
+- `nth(index, list)`
+- `nth_opt(index, list)` (compatibility alias)
 - `find_opt(predicate, list)`
-- `nth_opt(index, list)`
 
 These return `none...` for empty/no-match/out-of-range and `some(value)` for present results, including `some(nil)`.
 
 Current structured absence reasons in this layer:
 
-- `first_opt([])` and `last([])` -> `none(empty_list)`
+- `first([])` and `last([])` -> `none(empty_list)`
 - `find_opt(pred, xs)` with no match -> `none(no_match)`
-- `nth_opt(i, xs)` out of range -> `none(index_out_of_bounds, { index: i, length: n })`
+- `nth(i, xs)` out of range -> `none(index_out_of_bounds, { index: i, length: n })`
 
 ### Minimal example
 
 ```genia
-unwrap_or(0, first_opt([1, 2, 3]))
+unwrap_or(0, first([1, 2, 3]))
 ```
 
 Expected result:
@@ -212,7 +215,7 @@ pick(opt) =
   none(empty_list) -> "empty" |
   none(_) -> "missing"
 
-[pick(first_opt([nil])), pick(last([])), pick(find_opt((x) -> x == nil, [1, nil, 2])), absence_reason(nth_opt(9, [1, 2]))]
+[pick(first([nil])), pick(last([])), pick(find_opt((x) -> x == nil, [1, nil, 2])), absence_reason(nth(9, [1, 2]))]
 ```
 
 Expected result:
@@ -234,18 +237,19 @@ Expected behavior:
 Naming note:
 
 - new `?`-suffixed APIs are boolean-returning
-- these maybe-returning helpers therefore do not use `?`
+- canonical maybe-returning helpers therefore do not use `?`
 - `get?` remains the current compatibility exception from the earlier Option phase
-- legacy compatibility remains:
-  - `nth(index, list)` still returns `nil` when out of range
-  - `first(list)` still expects a non-empty list
+- compatibility aliases retained in this phase:
+  - `first_opt` -> `first`
+  - `nth_opt` -> `nth`
+- list predicate search remains `find_opt` in this phase
 
 Maybe-flow note:
 
 - list helpers often act as the first maybe-aware step in a chain
 - example:
   ```genia
-  nth_opt(5, fields("a b c d 5 x")) |> map_some(parse_int) |> unwrap_or(0)
+  nth(5, fields("a b c d 5 x")) |> map_some(parse_int) |> unwrap_or(0)
   ```
 - this works because `map_some` is maybe-aware; `|>` itself is still only ordinary call rewriting
 
@@ -422,7 +426,8 @@ Expected behavior:
 - list literals and list spread
 - list-pattern matching with rest patterns
 - recursive list helpers in stdlib
-- Option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
+- canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find_opt`
+- compatibility aliases: `first_opt`, `nth_opt`
 - `reduce`
 - `map` and `filter` as stdlib functions
 - `range` helpers for 1-, 2-, and 3-arity calls
@@ -430,7 +435,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - list performance is currently interpreter-level; optimizations are selective and pattern-dependent
-- maybe-result behavior is still mixed: `first_opt`, `last`, `find_opt`, and `nth_opt` return Option values, while `nth` still returns `nil` for out-of-range and legacy `first` still expects a non-empty list
+- maybe-result behavior is still mixed overall: `first`, `last`, `nth`, string `find`, and `find_opt` now return Option values, while callable maps/string projectors, `map_get`, slash map access, and `cli_option` still use legacy `nil` behavior
 
 ### ❌ Not implemented
 

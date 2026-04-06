@@ -92,8 +92,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 ### Current consistency notes
 
 - Maybe/absence behavior is currently split across two models:
-  - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`, string `find`, `nth`, and legacy `first`)
-  - option-aware APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get`, `get?`, `first_opt`, `last`, `find_opt`, `nth_opt`)
+  - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`)
+  - canonical maybe-aware access/search APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get`, `first`, `last`, `nth`, string `find`)
+  - compatibility aliases remain where migration was staged (`get?`, `first_opt`, `nth_opt`)
+  - list predicate search remains helper-shaped as `find_opt`
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
@@ -565,7 +567,7 @@ Behavior:
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
 
-### Primitive Option model (Phase 2 helper surface on runtime-backed values)
+### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 
 - option values:
   - `none` (distinct from `nil`)
@@ -587,10 +589,13 @@ Behavior:
   - `flat_map_some(f, opt)`
   - `then_get(key, target)`
 - option-returning stdlib helpers:
-  - `first_opt(list)`
+  - `first(list)`
+  - `first_opt(list)` (compatibility alias)
   - `last(list)`
+  - `find(string, needle)`
   - `find_opt(predicate, list)`
-  - `nth_opt(index, list)`
+  - `nth(index, list)`
+  - `nth_opt(index, list)` (compatibility alias)
 
 Absence semantics:
 
@@ -631,22 +636,38 @@ Pipeline note:
 - pipeline semantics themselves are unchanged
 - absence flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b")`, not from a magical pipeline runtime
 
-Structured absence currently used in stdlib/runtime-backed helpers:
+Structured absence currently used in canonical access/search helpers:
 
-- `first_opt([]) -> none(empty_list)`
+- `first([]) -> none(empty_list)`
 - `last([]) -> none(empty_list)`
+- `find(string, needle) -> none(not_found, { needle: needle })` when missing
 - `find_opt(pred, xs) -> none(no_match)` when no element matches
-- `nth_opt(i, xs) -> none(index_out_of_bounds, { index: i, length: n })` when out of range
+- `nth(i, xs) -> none(index_out_of_bounds, { index: i, length: n })` when out of range
+
+Canonical / compatibility / legacy status:
+
+| API | Status | Present result | Missing result | Notes |
+| --- | --- | --- | --- | --- |
+| `get` | canonical | `some(value)` | `none(missing_key, { key: key })` | preferred map lookup |
+| `get?` | compatibility alias | `some(value)` | `none(missing_key, { key: key })` | retained naming exception |
+| `first` | canonical | `some(value)` | `none(empty_list)` | list head access |
+| `first_opt` | compatibility alias | `some(value)` | `none(empty_list)` | alias for `first` |
+| `last` | canonical | `some(value)` | `none(empty_list)` | list tail access |
+| `nth` | canonical | `some(value)` | `none(index_out_of_bounds, { ... })` | zero-based list indexing |
+| `nth_opt` | compatibility alias | `some(value)` | `none(index_out_of_bounds, { ... })` | alias for `nth` |
+| `find` | canonical string search | `some(index)` | `none(not_found, { needle: needle })` | string search only |
+| `find_opt` | current predicate-search helper | `some(value)` | `none(no_match)` | list predicate search |
+| `map_get` / slash / callable map / string projector / `cli_option` | legacy | raw value | `nil` | retained compatibility paths |
 
 Compatibility note:
 
 - existing callable-data map/string-projector behavior is unchanged:
   - `m(key)`, `m(key, default)`
   - `"key"(m)`, `"key"(m, default)`
-- existing maybe-returning legacy APIs are also unchanged where compatibility required:
-  - `first(list)` still returns the first element directly and still expects a non-empty list
-  - `nth(index, list)` still returns `nil` when out of range
-  - string `find(string, needle)` still returns an index or `nil`
+- compatibility aliases retained in this phase:
+  - `get?` for `get`
+  - `first_opt` for `first`
+  - `nth_opt` for `nth`
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -735,7 +756,8 @@ Loading behavior:
 Notable autoloaded functions include:
 
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
-- option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
+- canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
+- compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `compose`
 - metacircular evaluator: `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`

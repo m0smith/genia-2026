@@ -371,7 +371,7 @@ Expected behavior:
 - literal matching on `none`
 - structured matching on `none(reason)` and `none(reason, context)`
 - constructor matching on `some(pattern)`
-- Option-returning helpers such as `first_opt`, `last`, `find_opt`, and `nth_opt` can be matched the same way as `get?`
+- Option-returning helpers such as `first`, `last`, `nth`, string `find`, and `find_opt` can be matched the same way as `get`
 - guard-friendly Option checks (`is_some?`, `is_none?`, `some?`, `none?`) remain available
 
 ### ⚠️ Partial

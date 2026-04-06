@@ -317,7 +317,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - string projector with non-map target raises clear `TypeError`
 - this does not add parser syntax, call operators, or user-defined callable-data protocols
 
-## 11.2) Option invariants (phase 1)
+## 11.2) Option invariants (phase 3 canonical access)
 
 - primitive option values are:
   - `none`
@@ -338,6 +338,13 @@ No additional member/index/flow operators should be introduced without explicitl
   - `get?(key, map) -> some(value)` when key exists
   - `get?(key, map) -> none(missing_key, { key: key })` when key is missing
 - `get(key, target)` has the same runtime behavior as `get?(key, target)`
+- canonical list access helpers:
+  - `first(list) -> some(value)` or `none(empty_list)`
+  - `last(list) -> some(value)` or `none(empty_list)`
+  - `nth(index, list) -> some(value)` or `none(index_out_of_bounds, { index: i, length: n })`
+- canonical string search helper:
+  - `find(string, needle) -> some(index)` or `none(not_found, { needle: needle })`
+- `find_opt(predicate, list)` remains the current maybe-aware predicate-search helper for lists
 - pattern matching supports:
   - literal `none`
   - structured none patterns `none(reason)` and `none(reason, context)`
@@ -362,13 +369,20 @@ No additional member/index/flow operators should be introduced without explicitl
 - runtime failures are not silently converted into `none(...)`
 - new `?`-suffixed APIs must be boolean-returning
 - maybe-returning APIs should prefer Option values and should not use `?`
+- compatibility aliases retained in this phase:
+  - `get?` for `get`
+  - `first_opt` for `first`
+  - `nth_opt` for `nth`
 - `get?` remains the current compatibility exception to that naming rule; `get` is preferred for new maybe-aware code
-- current Option-returning list helpers are `first_opt`, `last`, `find_opt`, and `nth_opt`
+- callable map lookup, string projector lookup, slash map access, `map_get`, and `cli_option` remain legacy `nil`-returning compatibility behavior
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get("name")` rewrites to `get("name", record)`)
 - maybe flow in pipelines is helper-driven, not a new pipeline runtime semantic
 
 ## 11.3) String builtin invariants
 
+- `find(string, needle)` returns:
+  - `some(index)` when the substring exists
+  - `none(not_found, { needle: needle })` when the substring is missing
 - `parse_int(string)` parses base-10 integers from strings
 - `parse_int(string, base)` parses with explicit base in `2..36`
 - `parse_int` ignores surrounding whitespace and supports leading `+` / `-`

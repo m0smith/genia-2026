@@ -21,28 +21,32 @@ list(1, 2, 3) -> [1, 2, 3]
 first(xs) = """
 # first
 
-Return the first element of a non-empty list.
+Return the first element as structured absence-aware Option.
 
 ## Params
 
-* `xs`: non-empty list
+* `xs`: list value
 
 ## Returns
 
-* first element in `xs`
+* `some(value)` for the first element
+* `none(empty_list)` for `[]`
 
 ## Examples
 
 ```genia
-first([10, 20, 30]) -> 10
+first([10, 20, 30]) -> some(10)
+first([]) -> none(empty_list)
 ```
 """ first_impl(xs)
-first_impl(xs) = [x, .._] -> x
+first_impl(xs) =
+  [] -> none(empty_list) |
+  [x, .._] -> some(x)
 
 first_opt(xs) = """
 # first_opt
 
-Return the first element as an Option.
+Compatibility alias for `first(list)`.
 
 ## Params
 
@@ -59,10 +63,7 @@ Return the first element as an Option.
 first_opt([10, 20, 30]) -> some(10)
 first_opt([]) -> none(empty_list)
 ```
-""" first_opt_impl(xs)
-first_opt_impl(xs) =
-  [] -> none(empty_list) |
-  [x, .._] -> some(x)
+""" first(xs)
 
 last(xs) = """
 # last
@@ -271,17 +272,35 @@ any_impl(predicate, xs) =
 nth(n, xs) = """
 # nth
 
-Return the element at zero-based index `n`, or `nil` when out of range.
-""" nth_impl(n, xs)
-nth_impl(n, xs) =
-  (_, []) -> nil |
-  (0, [x, .._]) -> x |
-  (n, [_, ..rest]) -> nth_impl(n - 1, rest)
+Return the element at zero-based index `n` as structured absence-aware Option.
+
+## Params
+
+* `n`: zero-based index
+* `xs`: list value
+
+## Returns
+
+* `some(value)` when the index exists
+* `none(index_out_of_bounds, { index: n, length: length(xs) })` when the index is missing
+
+## Examples
+
+```genia
+nth(1, ["a", "b", "c"]) -> some("b")
+nth(8, [10, 20]) -> none(index_out_of_bounds, { index: 8, length: 2 })
+```
+""" nth_impl(n, xs, 0, length(xs))
+nth_impl(target, xs, current, size) =
+  (target, _, _, size) ? target < 0 -> none(index_out_of_bounds, { index: target, length: size }) |
+  (target, [], _, size) -> none(index_out_of_bounds, { index: target, length: size }) |
+  (target, [x, .._], current, _) ? target == current -> some(x) |
+  (target, [_, ..rest], current, size) -> nth_impl(target, rest, current + 1, size)
 
 nth_opt(n, xs) = """
 # nth_opt
 
-Return the element at zero-based index `n` as structured absence-aware Option.
+Compatibility alias for `nth(index, list)`.
 
 ## Params
 
@@ -299,12 +318,7 @@ Return the element at zero-based index `n` as structured absence-aware Option.
 nth_opt(1, ["a", "b", "c"]) -> some("b")
 nth_opt(8, [10, 20]) -> none(index_out_of_bounds, { index: 8, length: 2 })
 ```
-""" nth_opt_impl(n, xs, 0, length(xs))
-nth_opt_impl(target, xs, current, size) =
-  (target, _, _, size) ? target < 0 -> none(index_out_of_bounds, { index: target, length: size }) |
-  (target, [], _, size) -> none(index_out_of_bounds, { index: target, length: size }) |
-  (target, [x, .._], current, _) ? target == current -> some(x) |
-  (target, [_, ..rest], current, size) -> nth_opt_impl(target, rest, current + 1, size)
+""" nth(n, xs)
 
 take(n, xs) = """
 # take

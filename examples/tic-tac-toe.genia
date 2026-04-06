@@ -122,7 +122,7 @@ isLegalMove(board, move) = """
 # isLegalMove
 
 Check whether a requested move targets an empty square.
-""" nth(parseMove(move), board) == "_"
+""" unwrap_or(nil, nth(parseMove(move), board)) == "_"
 
 readMove(player) = """
 # readMove
