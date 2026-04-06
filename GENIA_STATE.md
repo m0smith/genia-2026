@@ -93,9 +93,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 - Maybe/absence behavior is currently split across two models:
   - legacy non-Option APIs remain in use (`map_get`, map slash access, callable map/string lookup, `cli_option`, string `find`, `nth`, and legacy `first`)
-  - option-aware APIs use `none` / `some(value)` (`get?`, `first_opt`, `last`, `find_opt`)
+  - option-aware APIs use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)` (`get?`, `first_opt`, `last`, `find_opt`, `nth_opt`)
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
-- `some(pattern)` is implemented for Option values in pattern matching.
+- structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
+- `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -567,24 +568,47 @@ Behavior:
 
 - option values:
   - `none` (distinct from `nil`)
+  - `none(reason)`
+  - `none(reason, context)`
   - `some(value)`
 - option/query builtins:
   - `get?(key, target)`
   - `unwrap_or(default, opt)`
-  - `is_some?(opt)`
-  - `is_none?(opt)`
+  - `is_some?(opt)` / `some?(opt)`
+  - `is_none?(opt)` / `none?(opt)`
+  - `or_else(opt, fallback)`
+  - `absence_reason(opt)`
+  - `absence_context(opt)`
 - option-returning stdlib helpers:
   - `first_opt(list)`
   - `last(list)`
   - `find_opt(predicate, list)`
+  - `nth_opt(index, list)`
+
+Absence semantics:
+
+- `some(value)` means present.
+- `none`, `none(reason)`, and `none(reason, context)` are one absence family.
+- reason/context metadata does not create a new success/failure category.
+- absence is not the same as a runtime error.
+- helpers treat all `none...` forms as absence.
 
 `get?` semantics:
 
 - `get?(key, none) -> none`
+- `get?(key, none(reason)) -> none(reason)`
+- `get?(key, none(reason, context)) -> none(reason, context)`
 - `get?(key, some(map)) -> get?(key, map)`
 - `get?(key, map) -> some(value)` when key exists (including `value = nil`)
-- `get?(key, map) -> none` when key is missing
+- `get?(key, map) -> none(missing_key, { key: key })` when key is missing
 - unsupported target types raise clear `TypeError`
+
+Structured absence currently used in stdlib/runtime-backed helpers:
+
+- `first_opt([]) -> none(empty_list)`
+- `last([]) -> none(empty_list)`
+- `find_opt(pred, xs) -> none(no_match)` when no element matches
+- `nth_opt(i, xs) -> none(index_out_of_bounds, { index: i, length: n })` when out of range
 
 Compatibility note:
 
@@ -593,6 +617,7 @@ Compatibility note:
   - `"key"(m)`, `"key"(m, default)`
 - existing maybe-returning legacy APIs are also unchanged where compatibility required:
   - `first(list)` still returns the first element directly and still expects a non-empty list
+  - `nth(index, list)` still returns `nil` when out of range
   - string `find(string, needle)` still returns an index or `nil`
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
@@ -602,8 +627,11 @@ Compatibility note:
 Pattern matching note:
 
 - `none` matches as a literal pattern
+- `none(reason)` matches structured absence by reason
+- `none(reason, context)` matches structured absence by reason and context
 - `some(pattern)` destructures option values in function clauses and case arms
 - `some(...)` pattern form requires exactly one inner pattern
+- in `none(reason)` and `none(reason, context)` patterns, the reason slot matches the quoted/literal reason value
 
 ### String builtins
 
@@ -679,7 +707,7 @@ Loading behavior:
 Notable autoloaded functions include:
 
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
-- option-returning list helpers: `first_opt`, `last`, `find_opt`
+- option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
 - fn: `apply`, `compose`
 - metacircular evaluator: `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`

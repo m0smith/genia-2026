@@ -63,7 +63,7 @@ pytest -q
 
 ### Runtime value categories
 
-- Core values: Number, Symbol, String, Boolean, `nil`, Pair, `none` / `some(value)`, List, Map
+- Core values: Number, Symbol, String, Boolean, `nil`, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
 - Function / module values: Function, Module
 - Callable behaviors:
   - functions/lambdas are callable values
@@ -83,8 +83,8 @@ Current consistency note:
 
 - maybe/absence behavior is not fully unified yet
 - map lookup, callable map/string lookup, slash map access, `cli_option`, string `find`, `nth`, and legacy `first` still use non-Option behavior
-- `get?`, `first_opt`, `last`, and `find_opt` return `none` / `some(value)`
-- `some(pattern)` is supported in pattern matching for Option values
+- `get?`, `first_opt`, `last`, `find_opt`, and `nth_opt` use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)`
+- `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception
 - Flow, MetaEnv, and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
 
@@ -326,8 +326,8 @@ cell_get(counter)
 - `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
-- option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`
-- option-returning list helpers: `first_opt`, `last`, `find_opt`
+- option builtins: `none`, `some`, `get?`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `absence_reason`, `absence_context`
+- option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `each`, `collect`, `run`, plus prelude `head` aliases over `take`
 
 ### CLI args / options (runtime layer)
@@ -437,7 +437,7 @@ rewrite_zip(in_path, out_path) =
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
-- Option-returning list helpers: `first_opt`, `last`, `find_opt`
+- Option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
 - fn helpers: `apply`, `compose`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`

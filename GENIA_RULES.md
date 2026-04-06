@@ -319,23 +319,39 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ## 11.2) Option invariants (phase 1)
 
-- primitive option values are `none` and `some(value)` (where `none` is distinct from `nil`)
+- primitive option values are:
+  - `none`
+  - `none(reason)`
+  - `none(reason, context)`
+  - `some(value)`
+- all `none...` forms belong to one absence family; reason/context are metadata, not a separate result kind
+- `nil` and `none` remain distinct runtime values
+- `some(nil)` is valid and distinct from every `none...` form
+- key presence, not value truthiness, determines `some(...)` vs `none...`
+  - key mapped to `nil` still returns `some(nil)`
 - `get?(key, target)` is defined exactly as:
   - `get?(key, none) -> none`
+  - `get?(key, none(reason)) -> none(reason)`
+  - `get?(key, none(reason, context)) -> none(reason, context)`
   - `get?(key, some(map)) -> get?(key, map)`
   - `get?(key, map) -> some(value)` when key exists
-  - `get?(key, map) -> none` when key is missing
-- key presence, not value truthiness, determines `some(...)` vs `none`
-  - key mapped to `nil` still returns `some(nil)`
-- `nil` and `none` remain distinct runtime values
-- `some(nil)` is valid and distinct from `none`
-- pattern matching supports constructor destructuring for `some(...)` with exactly one inner pattern
+  - `get?(key, map) -> none(missing_key, { key: key })` when key is missing
+- pattern matching supports:
+  - literal `none`
+  - structured none patterns `none(reason)` and `none(reason, context)`
+  - constructor destructuring for `some(...)` with exactly one inner pattern
+- in `none(reason)` and `none(reason, context)` patterns, the reason position matches the reason value directly; the context position uses normal pattern matching rules
 - `unwrap_or(default, opt)` accepts option values only
-- `is_some?(opt)` and `is_none?(opt)` report option shape
+- `is_some?(opt)` / `some?(opt)` and `is_none?(opt)` / `none?(opt)` report option shape
+- `or_else(opt, fallback)` returns the wrapped value for `some(value)` and the fallback for any `none...` form
+- `absence_reason(opt)` returns `some(reason)` for structured absence and `none` for plain `none`
+- `absence_context(opt)` returns `some(context)` only when context metadata is present
+- expected absence remains data, not an exception
+- runtime failures are not silently converted into `none(...)`
 - new `?`-suffixed APIs must be boolean-returning
 - maybe-returning APIs should prefer Option values and should not use `?`
 - `get?` remains the current compatibility exception to that naming rule
-- current Option-returning list helpers are `first_opt`, `last`, and `find_opt`
+- current Option-returning list helpers are `first_opt`, `last`, `find_opt`, and `nth_opt`
 - pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get?("name")` rewrites to `get?("name", record)`)
 
 ## 11.3) String builtin invariants

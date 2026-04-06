@@ -44,6 +44,10 @@ def test_quote_of_none_preserves_option_none_literal(run):
     assert run("quote(none) == none") is True
 
 
+def test_quote_of_structured_none_preserves_absence_metadata():
+    assert format_debug(_run("quote(none(empty_list))")) == "none(empty_list)"
+
+
 def test_quote_of_too_many_arguments_is_rejected():
     with pytest.raises(SyntaxError, match="quote\\(\\.\\.\\.\\) expects exactly one argument"):
         _run("quote(a, b)")

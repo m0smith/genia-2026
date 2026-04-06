@@ -556,6 +556,14 @@ class Nil(Node):
 
 @dataclass
 class NoneOption(Node):
+    reason: Node | None = None
+    context: Node | None = None
+    span: SourceSpan | None = None
+
+
+@dataclass
+class SymbolLiteral(Node):
+    name: str
     span: SourceSpan | None = None
 
 
@@ -751,6 +759,15 @@ class IrLiteral(IrNode):
 
 
 @dataclass
+class IrOptionNone(IrNode):
+    """Structured none value with optional quoted reason and evaluated context."""
+
+    reason: IrNode | None = None
+    context: IrNode | None = None
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrVar(IrNode):
     """Variable read by name (kept explicit for analysis and rewriting)."""
 
@@ -934,6 +951,14 @@ class IrPatSome(IrPattern):
 
 
 @dataclass
+class IrPatNone(IrPattern):
+    """Option none-family pattern with optional reason and context matching."""
+
+    reason: IrPattern | None = None
+    context: IrPattern | None = None
+
+
+@dataclass
 class IrCaseClause(IrNode):
     """Single case arm with optional guard."""
 
@@ -1025,7 +1050,11 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, Nil):
         return IrLiteral(None, span=node.span)
     if isinstance(node, NoneOption):
-        return IrLiteral(OPTION_NONE, span=node.span)
+        reason = IrQuote(node.reason, span=node.reason.span) if node.reason is not None else None
+        context = lower_node(node.context) if node.context is not None else None
+        return IrOptionNone(reason, context, span=node.span)
+    if isinstance(node, SymbolLiteral):
+        return IrLiteral(symbol(node.name), span=node.span)
     if isinstance(node, Var):
         return IrVar(node.name, span=node.span)
     if isinstance(node, Quote):
@@ -1099,7 +1128,12 @@ def lower_pattern(pattern: Node) -> IrPattern:
     if isinstance(pattern, Nil):
         return IrPatLiteral(None)
     if isinstance(pattern, NoneOption):
-        return IrPatLiteral(OPTION_NONE)
+        return IrPatNone(
+            lower_pattern(pattern.reason) if pattern.reason is not None else None,
+            lower_pattern(pattern.context) if pattern.context is not None else None,
+        )
+    if isinstance(pattern, SymbolLiteral):
+        return IrPatLiteral(symbol(pattern.name))
     if isinstance(pattern, WildcardPattern):
         return IrPatWildcard()
     if isinstance(pattern, RestPattern):
@@ -1167,7 +1201,12 @@ def quote_node(node: Node) -> Any:
     if isinstance(node, Nil):
         return None
     if isinstance(node, NoneOption):
-        return OPTION_NONE
+        return GeniaOptionNone(
+            quote_node(node.reason) if node.reason is not None else None,
+            quote_node(node.context) if node.context is not None else None,
+        )
+    if isinstance(node, SymbolLiteral):
+        return symbol(node.name)
     if isinstance(node, Var):
         return symbol(node.name)
     if isinstance(node, Quote):
@@ -1227,7 +1266,12 @@ def quote_pattern_node(pattern: Node) -> Any:
     if isinstance(pattern, Nil):
         return None
     if isinstance(pattern, NoneOption):
-        return OPTION_NONE
+        return GeniaOptionNone(
+            quote_pattern_node(pattern.reason) if pattern.reason is not None else None,
+            quote_pattern_node(pattern.context) if pattern.context is not None else None,
+        )
+    if isinstance(pattern, SymbolLiteral):
+        return symbol(pattern.name)
     if isinstance(pattern, Var):
         return symbol(pattern.name)
     if isinstance(pattern, WildcardPattern):
@@ -1316,8 +1360,13 @@ def quasiquote_node(
         if isinstance(current, Nil):
             return None
         if isinstance(current, NoneOption):
-            return OPTION_NONE
+            return GeniaOptionNone(
+                qq(current.reason, depth) if current.reason is not None else None,
+                qq(current.context, depth) if current.context is not None else None,
+            )
         if isinstance(current, Var):
+            return symbol(current.name)
+        if isinstance(current, SymbolLiteral):
             return symbol(current.name)
         if isinstance(current, Quote):
             return quoted_list([symbol("quote"), quote_node(current.expr)])
@@ -2018,6 +2067,8 @@ class Parser:
             if tok.text == "nil":
                 return Nil(span=self.span_for_tokens(tok, tok))
             if tok.text == "none":
+                if self.at("LPAREN"):
+                    return self.finish_none_pattern(tok)
                 return NoneOption(span=self.span_for_tokens(tok, tok))
             if tok.text == "some" and self.at("LPAREN"):
                 start = self.eat("LPAREN")
@@ -2054,6 +2105,67 @@ class Parser:
         if tok.kind == "LBRACE":
             return self.parse_map_pattern()
         raise SyntaxError(f"Invalid pattern token {tok.text!r} ({tok.kind}) at {tok.pos}")
+
+    def parse_none_reason_pattern_atom(self) -> Node:
+        tok = self.peek()
+        if tok.kind == "NUMBER":
+            self.i += 1
+            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+        if tok.kind == "STRING":
+            self.i += 1
+            return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
+        if tok.kind == "IDENT":
+            self.i += 1
+            if tok.text == "true":
+                return Boolean(True, span=self.span_for_tokens(tok, tok))
+            if tok.text == "false":
+                return Boolean(False, span=self.span_for_tokens(tok, tok))
+            if tok.text == "nil":
+                return Nil(span=self.span_for_tokens(tok, tok))
+            if tok.text == "none":
+                return NoneOption(span=self.span_for_tokens(tok, tok))
+            if tok.text == "_":
+                return WildcardPattern(span=self.span_for_tokens(tok, tok))
+            return SymbolLiteral(tok.text, span=self.span_for_tokens(tok, tok))
+        raise SyntaxError(f"none(...) reason pattern expects a literal, symbol label, or _ at {tok.pos}")
+
+    def finish_none_pattern(self, none_tok: Token) -> Node:
+        self.eat("LPAREN")
+        self.skip_newlines()
+        if self.at("RPAREN"):
+            raise SyntaxError(f"none(...) pattern expects 1 or 2 inner patterns at {self.peek().pos}")
+        reason = self.parse_none_reason_pattern_atom()
+        self.skip_newlines()
+        context: Node | None = None
+        if self.at("COMMA"):
+            self.eat("COMMA")
+            self.skip_newlines()
+            context = self.parse_pattern_atom()
+            self.skip_newlines()
+            if self.at("COMMA"):
+                comma = self.eat("COMMA")
+                raise SyntaxError(f"none(...) pattern expects at most 2 inner patterns at {comma.pos}")
+        end = self.eat("RPAREN")
+        return NoneOption(reason, context, span=self.span_for_tokens(none_tok, end))
+
+    def finish_none_expr(self, none_tok: Token) -> Node:
+        self.eat("LPAREN")
+        self.skip_newlines()
+        if self.at("RPAREN"):
+            raise SyntaxError(f"none(...) expects 1 or 2 arguments at {self.peek().pos}")
+        reason = self.parse_expr()
+        self.skip_newlines()
+        context: Node | None = None
+        if self.at("COMMA"):
+            self.eat("COMMA")
+            self.skip_newlines()
+            context = self.parse_expr()
+            self.skip_newlines()
+            if self.at("COMMA"):
+                comma = self.eat("COMMA")
+                raise SyntaxError(f"none(...) expects at most 2 arguments at {comma.pos}")
+        end = self.eat("RPAREN")
+        return NoneOption(reason, context, span=self.span_for_tokens(none_tok, end))
 
     def parse_expr(self, min_prec: int = 0) -> Node:
         left = self.parse_prefix()
@@ -2097,6 +2209,8 @@ class Parser:
             if tok.text == "nil":
                 return Nil(span=self.span_for_tokens(tok, tok))
             if tok.text == "none":
+                if self.at("LPAREN"):
+                    return self.finish_none_expr(tok)
                 return NoneOption(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind in ("MINUS", "BANG"):
@@ -2929,9 +3043,17 @@ class GeniaMap:
         return f"<map {len(self._entries)}>"
 
 
+@dataclass(frozen=True)
 class GeniaOptionNone:
+    reason: Any = None
+    context: Any = None
+
     def __repr__(self) -> str:
-        return "none"
+        if self.reason is None and self.context is None:
+            return "none"
+        if self.context is None:
+            return f"none({self.reason!r})"
+        return f"none({self.reason!r}, {self.context!r})"
 
 
 OPTION_NONE = GeniaOptionNone()
@@ -3421,6 +3543,24 @@ class Evaluator:
             if not isinstance(arg, str):
                 return None
             return {} if glob_match(pattern.matcher, arg) else None
+        if isinstance(pattern, IrPatNone):
+            if not isinstance(arg, GeniaOptionNone):
+                return None
+            env: dict[str, Any] = {}
+            if pattern.reason is not None:
+                reason_bindings = self.match_pattern_atom(pattern.reason, arg.reason)
+                if reason_bindings is None:
+                    return None
+                env.update(reason_bindings)
+            if pattern.context is not None:
+                context_bindings = self.match_pattern_atom(pattern.context, arg.context)
+                if context_bindings is None:
+                    return None
+                for k, v in context_bindings.items():
+                    if k in env and env[k] != v:
+                        return None
+                    env[k] = v
+            return env
         if isinstance(pattern, IrPatSome):
             if not isinstance(arg, GeniaOptionSome):
                 return None
@@ -3504,6 +3644,12 @@ class Evaluator:
             return self.eval(node.expr)
         if isinstance(node, IrLiteral):
             return node.value
+        if isinstance(node, IrOptionNone):
+            reason = self.eval(node.reason) if node.reason is not None else None
+            context = self.eval(node.context) if node.context is not None else None
+            if reason is None and context is None:
+                return OPTION_NONE
+            return GeniaOptionNone(reason, context)
         if isinstance(node, IrList):
             result: list[Any] = []
             for item in node.items:
@@ -4265,9 +4411,16 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
 
 Option builtins (phase 1):
   none
+  none(reason)
+  none(reason, context)
   some(value)
+  none?(value)
+  some?(value)
   get?(key, target)
+  or_else(option, fallback)
   unwrap_or(default, option)
+  absence_reason(none_value)
+  absence_context(none_value)
   is_some?(option)
   is_none?(option)
 
@@ -4330,7 +4483,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         return _syntax_tagged_list(expr, tag)
 
     def syntax_self_evaluating_fn(expr: Any) -> bool:
-        if expr is None or expr is OPTION_NONE:
+        if expr is None or isinstance(expr, GeniaOptionNone):
             return True
         if isinstance(expr, bool):
             return True
@@ -4702,24 +4855,52 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         return isinstance(value, GeniaOptionSome)
 
     def is_none_fn(value: Any) -> bool:
-        return value is OPTION_NONE
+        return isinstance(value, GeniaOptionNone)
 
     def unwrap_or_fn(default: Any, opt: Any) -> Any:
         if isinstance(opt, GeniaOptionSome):
             return opt.value
-        if opt is OPTION_NONE:
+        if isinstance(opt, GeniaOptionNone):
             return default
         raise TypeError("unwrap_or expected an option value")
 
-    def get_option_fn(key: Any, target: Any) -> Any:
-        if target is OPTION_NONE:
+    def some_predicate_fn(value: Any) -> bool:
+        return is_some_fn(value)
+
+    def none_predicate_fn(value: Any) -> bool:
+        return is_none_fn(value)
+
+    def or_else_fn(opt: Any, fallback: Any) -> Any:
+        if isinstance(opt, GeniaOptionSome):
+            return opt.value
+        if isinstance(opt, GeniaOptionNone):
+            return fallback
+        raise TypeError("or_else expected an option value")
+
+    def absence_reason_fn(value: Any) -> Any:
+        if not isinstance(value, GeniaOptionNone):
+            raise TypeError("absence_reason expected a none value")
+        if value.reason is None:
             return OPTION_NONE
+        return GeniaOptionSome(value.reason)
+
+    def absence_context_fn(value: Any) -> Any:
+        if not isinstance(value, GeniaOptionNone):
+            raise TypeError("absence_context expected a none value")
+        if value.context is None:
+            return OPTION_NONE
+        return GeniaOptionSome(value.context)
+
+    def get_option_fn(key: Any, target: Any) -> Any:
+        if isinstance(target, GeniaOptionNone):
+            return target
         if isinstance(target, GeniaOptionSome):
             return get_option_fn(key, target.value)
         if isinstance(target, GeniaMap):
             if target.has(key):
                 return GeniaOptionSome(target.get(key))
-            return OPTION_NONE
+            context = GeniaMap().put("key", key)
+            return GeniaOptionNone(symbol("missing_key"), context)
         raise TypeError("get? expected a map, some(map), or none target")
 
     def rand_fn(*args: Any) -> float:
@@ -4849,8 +5030,13 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("nil", None)
     env.set("none", OPTION_NONE)
     env.set("some", some_fn)
+    env.set("none?", none_predicate_fn)
+    env.set("some?", some_predicate_fn)
     env.set("get?", get_option_fn)
+    env.set("or_else", or_else_fn)
     env.set("unwrap_or", unwrap_or_fn)
+    env.set("absence_reason", absence_reason_fn)
+    env.set("absence_context", absence_context_fn)
     env.set("is_some?", is_some_fn)
     env.set("is_none?", is_none_fn)
     env.set("force", force_fn)
@@ -4959,6 +5145,7 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("count", 1, "std/prelude/list.genia")
     env.register_autoload("any?", 2, "std/prelude/list.genia")
     env.register_autoload("nth", 2, "std/prelude/list.genia")
+    env.register_autoload("nth_opt", 2, "std/prelude/list.genia")
     env.register_autoload("take", 2, "std/prelude/list.genia")
     env.register_autoload("head", 1, "std/prelude/list.genia")
     env.register_autoload("head", 2, "std/prelude/list.genia")

@@ -327,6 +327,7 @@ These Option values are distinct from `nil`.
 Current scope:
 
 - Option constructors are supported in pattern matching (`some(pattern)`)
+- structured absence patterns are supported (`none(reason)`, `none(reason, context)`)
 - this does not imply general ADT constructor-pattern support in this phase
 
 ### Minimal example
@@ -343,11 +344,11 @@ fallback(opt) =
 
 ```genia
 pick_name(opt) =
-  none -> "unknown" |
+  none(empty_list) -> "empty" |
   some({name}) -> name |
   some(_) -> "unknown"
 
-pick_name(get?("profile", {profile: {name: "Genia"}}))
+pick_name(last([]))
 ```
 
 Constructor-pattern matching composes with existing map/list patterns.
@@ -356,30 +357,32 @@ Constructor-pattern matching composes with existing map/list patterns.
 
 ```genia
 bad(opt) =
-  some(a, b) -> a
+  none(a, b, c) -> a
 ```
 
 Expected behavior:
 
-- syntax error (`some(...)` pattern expects exactly one inner pattern)
+- syntax error (`none(...)` pattern accepts at most reason and context)
 
 ### Implementation status
 
 ### ✅ Implemented
 
 - literal matching on `none`
+- structured matching on `none(reason)` and `none(reason, context)`
 - constructor matching on `some(pattern)`
-- Option-returning helpers such as `first_opt`, `last`, and `find_opt` can be matched the same way as `get?`
-- guard-friendly Option checks (`is_some?`, `is_none?`) remain available
+- Option-returning helpers such as `first_opt`, `last`, `find_opt`, and `nth_opt` can be matched the same way as `get?`
+- guard-friendly Option checks (`is_some?`, `is_none?`, `some?`, `none?`) remain available
 
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern
+- `none(reason)` and `none(reason, context)` match structured absence, but this is still limited to the Option family rather than general constructor-pattern matching
 - no general `value ? ...` expression form exists; Option matching still happens through ordinary function/case-pattern positions
 
 ### ❌ Not implemented
 
-- multi-argument option constructor patterns (`some(a, b)`)
+- multi-argument option constructor patterns beyond current Option forms (`some(a, b)`, `none(a, b, c)`)
 
 ---
 

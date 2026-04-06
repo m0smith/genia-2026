@@ -182,8 +182,15 @@ Implemented helpers:
 - `first_opt(list)`
 - `last(list)`
 - `find_opt(predicate, list)`
+- `nth_opt(index, list)`
 
-These return `none` for empty/no-match and `some(value)` for present results, including `some(nil)`.
+These return `none...` for empty/no-match/out-of-range and `some(value)` for present results, including `some(nil)`.
+
+Current structured absence reasons in this layer:
+
+- `first_opt([])` and `last([])` -> `none(empty_list)`
+- `find_opt(pred, xs)` with no match -> `none(no_match)`
+- `nth_opt(i, xs)` out of range -> `none(index_out_of_bounds, { index: i, length: n })`
 
 ### Minimal example
 
@@ -202,15 +209,16 @@ Expected result:
 ```genia
 pick(opt) =
   some(x) -> x |
-  none -> "missing"
+  none(empty_list) -> "empty" |
+  none(_) -> "missing"
 
-[pick(first_opt([nil])), pick(last([])), pick(find_opt((x) -> x == nil, [1, nil, 2]))]
+[pick(first_opt([nil])), pick(last([])), pick(find_opt((x) -> x == nil, [1, nil, 2])), absence_reason(nth_opt(9, [1, 2]))]
 ```
 
 Expected result:
 
-```genia
-[nil, "missing", nil]
+```text
+[nil, "empty", nil, some(index_out_of_bounds)]
 ```
 
 ### Failure case example
@@ -228,6 +236,9 @@ Naming note:
 - new `?`-suffixed APIs are boolean-returning
 - these maybe-returning helpers therefore do not use `?`
 - `get?` remains the current compatibility exception from the earlier Option phase
+- legacy compatibility remains:
+  - `nth(index, list)` still returns `nil` when out of range
+  - `first(list)` still expects a non-empty list
 
 ---
 
@@ -402,7 +413,7 @@ Expected behavior:
 - list literals and list spread
 - list-pattern matching with rest patterns
 - recursive list helpers in stdlib
-- Option-returning list helpers: `first_opt`, `last`, `find_opt`
+- Option-returning list helpers: `first_opt`, `last`, `find_opt`, `nth_opt`
 - `reduce`
 - `map` and `filter` as stdlib functions
 - `range` helpers for 1-, 2-, and 3-arity calls
@@ -410,7 +421,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - list performance is currently interpreter-level; optimizations are selective and pattern-dependent
-- maybe-result behavior is still mixed: `first_opt`, `last`, and `find_opt` return Option values, while `nth` still returns `nil` for out-of-range and legacy `first` still expects a non-empty list
+- maybe-result behavior is still mixed: `first_opt`, `last`, `find_opt`, and `nth_opt` return Option values, while `nth` still returns `nil` for out-of-range and legacy `first` still expects a non-empty list
 
 ### ❌ Not implemented
 
