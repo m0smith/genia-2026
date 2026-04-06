@@ -1,316 +1,420 @@
-# Codex Prompt: Write Genia SICP Book in Head First Learning Style
+# Codex Prompt: Write and Revise the Genia SICP Book in Head First Style
 
 ## Objective
 
-Write the Genia SICP book content in the **Head First learning style**, optimized for:
+Write and revise the Genia SICP book in `docs/sicp/` using a **Head First–style learning design** that is:
 
-* engagement
-* retention
-* intuitive understanding
-* “reptile brain” attention capture
+* engaging
+* interactive
+* memorable
+* brain-aware
+* accurate to the current Genia implementation
 
-This is NOT a traditional textbook.
+This is **not** a traditional textbook.
+It is a **high-engagement learning experience** designed to make the reader think, predict, laugh a little, and remember.
 
-This is an **interactive, brain-aware learning experience**.
+At the same time, it must remain **strictly truthful** to the current Genia implementation and repository documentation.
 
 ---
 
 ## Required Reading (MANDATORY)
 
-Before writing, you MUST understand:
+Before making any changes, you MUST read:
 
 * `AGENTS.md`
+* `docs/sicp/AGENTS.MD`
 * `GENIA_STATE.md`
 * `GENIA_RULES.md`
-* existing `docs/sicp/*` chapters
+* `GENIA_REPL_README.md`
+* relevant existing `docs/sicp/*` chapter files
 
-And you MUST follow the **Head First design philosophy**, which includes:
+Treat these as authoritative.
 
-* conversational tone
-* visual thinking
-* puzzles and interaction
-* humor and surprise
-* multiple learning modalities
+### Source-of-truth rule
 
-Head First books intentionally use:
+If these disagree:
 
-* stories
-* jokes
-* puzzles
-* diagrams
-* questions
-* unusual layouts
+* `GENIA_STATE.md` is the final authority for what is actually implemented
+* `GENIA_RULES.md` is the authority for language semantics
+* `docs/sicp/*` must be updated to match reality
 
-to activate different parts of the brain and improve learning. ([Wikipedia][1])
+Do not document imagined or planned behavior as if it already exists.
 
 ---
 
-## Cognitive Design Principles (CRITICAL)
+## Core Writing Style
 
-You MUST incorporate these in every section:
+Write in a **Head First–style** learning voice.
 
-### 1. Engage the “reptile brain”
+That means the chapter must feel:
 
-The human brain prioritizes:
+* conversational
+* energetic
+* interactive
+* slightly playful
+* easy to skim
+* easy to remember
 
-* novelty
-* emotion
-* surprise
-* relevance
+### Required cognitive style
 
-This is sometimes referred to as the “reptilian brain,” which responds to instinct and attention triggers. ([Alsi][2])
+Every major section should actively engage the reader using most of these:
 
-So:
+* **Think About It**
+* **Your Brain on Genia**
+* **Aha!**
+* **Try This**
+* **Common Trap**
+* **Let’s Rewrite That**
+* **Puzzle**
+* **Mini challenge**
+* **Prediction prompt**
 
-* Avoid long dry explanations
-* Break patterns frequently
-* Use unexpected phrasing, humor, or contrast
+Do not write long dry walls of text.
 
----
-
-### 2. Make the reader DO something
-
-Every section must include at least one:
-
-* question
-* prediction
-* mini-exercise
-* “what do you think happens?” moment
-
----
-
-### 3. Use conversation, not lecture
-
-Bad:
-
-> “A function is a mapping from inputs to outputs.”
-
-Good:
-
-> “What do you think this does?”
+Do not sound like a formal language specification unless the section is explicitly a reference note.
 
 ---
 
-### 4. Chunk aggressively
+## Non-Negotiable Truthfulness Rules
 
-* Small sections
-* Short paragraphs
-* Lots of whitespace
-* One idea at a time
+You MUST follow the repository documentation discipline.
 
----
+### Never do these:
 
-### 5. Use multiple representations
+* Document a feature as implemented unless it is actually implemented
+* Use syntax that does not work
+* Hand-wave over real limitations
+* Present future work as current behavior
 
-For the same idea, include:
+### Every chapter or major feature section must clearly label:
 
-* code
-* explanation
-* analogy
-* visual structure (ASCII if needed)
+* ✅ Implemented
+* ⚠️ Partial
+* ❌ Future / not implemented
 
----
+### Every feature explanation should include:
 
-### 6. Repeat—but differently
-
-Reinforce key ideas using:
-
-* slightly different examples
-* different wording
-* different contexts
+* a minimal example
+* an edge case example
+* a failure case example, where relevant
 
 ---
 
-## Required Structural Elements
+## Genia-Specific Language Rules
 
-Every section MUST include MOST of the following:
+### 1. Never introduce `if`
 
-### 🧠 “Your Brain on Genia”
+Genia uses pattern matching as its conditional model.
 
-Explain what the reader is *feeling confused about*
+Do not write:
 
-### 🤔 “Think About It”
+* `if`
+* `switch`
+* ternary
+* fake pseudocode conditionals pretending to be Genia
 
-Ask a question BEFORE explaining
+### 2. Use real Genia syntax
 
-### 💡 “Aha!”
+Use actual Genia syntax that matches the current implementation.
 
-Explain the concept simply after tension is built
+### 3. Keep examples aligned with reality
 
-### 🧪 “Try This”
+All Genia examples must reflect real parser/runtime behavior.
 
-Small interactive code snippet
+### 4. Do not use ```genia for non-Genia code
 
-### ⚠️ “Common Trap”
+If a code block is not Genia, use the correct fence, such as:
 
-Highlight a mistake
+* `text`
+* `python`
+* `json`
+* `md`
+* `bash`
 
-### 🔁 “Let’s Rewrite That”
+Never use ```genia for prose, pseudocode, JSON, markdown examples, shell snippets, or other languages.
 
-Show improvement/refactor
+---
 
-### 🧩 “Puzzle”
+## Code Block Rules (CRITICAL)
 
-Short challenge
+This section is mandatory.
+
+### A. Runnable Genia code blocks
+
+Use ```genia for Genia code that is intended to be runnable/testable.
+
+These blocks should:
+
+* be syntactically valid
+* match current implementation
+* be suitable for testing where practical
+
+When possible, prefer small, self-contained examples.
+
+### B. Non-runnable Genia example blocks
+
+Sometimes a chapter may need a Genia-shaped example that is:
+
+* partial
+* schematic
+* intentionally incomplete
+* illustrative only
+
+These may still use ```genia, **but only if they are clearly marked**.
+
+#### Required visible indicator
+
+Immediately above the block, include a clear label such as one of:
+
+* **Example only — not runnable**
+* **Illustrative sketch — not runnable**
+* **Conceptual example — not directly runnable**
+
+This indicator is mandatory.
+
+Never present a non-runnable Genia block without an explicit warning label.
+
+### C. Non-Genia blocks
+
+If the content is not Genia, do not use ```genia.
+
+Examples:
+
+* output samples → use `text`
+* AST/IR shapes → use `text` unless they are real Genia data
+* markdown examples → use `md`
+* shell commands → use `bash`
+* Python code → use `python`
+
+---
+
+## Testability Expectations
+
+Genia blocks in the book should be **testable whenever practical**.
+
+When writing or revising a chapter:
+
+* prefer runnable examples over decorative examples
+* keep runnable examples small and self-contained
+* avoid fake examples that cannot be validated
+* if a block is illustrative only, mark it explicitly as not runnable
+
+If you introduce or revise many runnable `genia` blocks, consider whether a corresponding test fixture or validation path should also be added or updated.
+
+---
+
+## Structural Requirements for Each Chapter
+
+Each chapter should generally include:
+
+1. **A strong opening hook**
+
+   * surprise
+   * curiosity
+   * tension
+   * a concrete question
+
+2. **Short sections with whitespace**
+
+   * no giant walls of text
+   * one idea at a time
+
+3. **Interactive learning moments**
+
+   * prediction questions
+   * fill-in-the-blank thinking
+   * “what happens next?” prompts
+   * tiny exercises
+
+4. **Code + explanation + analogy**
+
+   * not just code
+   * not just prose
+
+5. **A summary section**
+
+   * key ideas
+   * what the reader should now believe / understand
+
+6. **Exercises**
+
+   * a few basic
+   * at least one that requires thinking, not just copying
+
+7. **Solutions section**
+
+   * when appropriate, either in the same chapter or a companion section/file
+
+8. **Status markers**
+
+   * ✅ implemented
+   * ⚠️ partial
+   * ❌ future
+
+---
+
+## Preferred Section Components
+
+Use many of these throughout a chapter:
+
+### Think About It
+
+Ask the reader to predict before explaining.
+
+### Your Brain on Genia
+
+Name the confusion the reader is probably feeling.
+
+### Aha!
+
+Resolve the tension simply and clearly.
+
+### Try This
+
+Give a tiny runnable example.
+
+### Common Trap
+
+Show a likely mistake.
+
+### Let’s Rewrite That
+
+Show a cleaner or more idiomatic version.
+
+### Puzzle
+
+Add a small challenge that makes the reader stop and think.
 
 ---
 
 ## Tone Guidelines
 
-* Conversational
-* Slightly playful
-* Occasionally humorous
-* Directly address the reader (“you”)
-* Avoid academic tone
+Use:
+
+* direct address (“you”)
+* short paragraphs
+* occasional humor
+* high clarity
+* concrete examples
+
+Avoid:
+
+* academic stiffness
+* long abstract exposition
+* needless jargon
+* “spec voice” except where explicitly needed
 
 ---
 
-## Example Transformation
+## Output and File Placement
 
-### ❌ Traditional
+Write chapters into files such as:
 
-```text
-A recursive function calls itself.
-```
+* `docs/sicp/01-...`
+* `docs/sicp/02-...`
 
-### ✅ Head First Style
+When revising an existing chapter:
 
-```text
-Wait.
-
-Did that function just… call itself?
-
-Yes. It did.
-
-And that’s not a bug—it’s the entire point.
-```
+* preserve useful material
+* improve structure and engagement
+* keep it aligned with real implementation
+* update status markers if needed
 
 ---
 
-## Code Presentation Rules
+## Documentation Synchronization Rules
 
-* Keep examples small
-* Build complexity gradually
-* Always explain *why*, not just *what*
+If a chapter change reveals a mismatch with implementation or repo docs, update the relevant files too.
 
----
+When behavior or feature coverage changes, update as needed:
 
-## Genia-Specific Rules
+* `GENIA_STATE.md`
+* `GENIA_RULES.md`
+* `GENIA_REPL_README.md`
+* relevant `docs/sicp/*`
 
-### 1. NEVER introduce `if`
-
-Genia uses pattern matching only.
-
-### 2. Always use real Genia syntax
-
-No pseudocode unless explicitly labeled.
-
-### 3. Stay consistent with current implementation
-
-Do not describe features that are not implemented.
+Do not let the book drift away from the language.
 
 ---
 
-## Output Requirements
+## Anti-Patterns (STRICTLY FORBIDDEN)
 
-When writing a chapter:
+Do NOT:
 
-* Place in: `docs/sicp/01-...`, `02-...`, etc.
-* Use Markdown
-* Include section headers
-* Include all interactive elements
-* Include code blocks with `genia` language tag
-
----
-
-## Example Section Skeleton
-
-````md
-## 1.1 What Is a Computation?
-
-🤔 Think About It  
-What does this do?
-
-```genia
-1 + 2 * 3
-````
-
-Pause. Don’t scroll.
-
-...
-
-💡 Aha!
-Genia evaluates expressions by...
-
-🧠 Your Brain on Genia
-You might be thinking...
-
-🧪 Try This
-Change the numbers...
-
-⚠️ Common Trap
-Most people assume...
-
-```
-
----
-
-## Anti-Patterns (DO NOT DO)
-
-- Long walls of text
-- Formal academic tone
-- Explaining everything before engaging the reader
-- No interaction
-- No humor
-- Purely linear explanation
+* invent unsupported syntax
+* use `if` in Genia examples
+* write long passive textbook prose
+* use ```genia for non-Genia content
+* include non-runnable `genia` blocks without a visible warning label
+* describe future work as already implemented
+* leave feature status ambiguous
 
 ---
 
 ## Quality Bar
 
-The chapter is correct ONLY if:
+A chapter is only acceptable if it is:
 
-- it feels interactive
-- it pulls the reader forward
-- it forces thinking
-- it is fun to read
-- it still teaches accurately
+* accurate
+* engaging
+* interactive
+* skimmable
+* implementation-faithful
+* clearly labeled where behavior is partial
+* disciplined about code fences and runnable examples
+
+The reader should not be able to just glaze over and passively consume it.
+
+They should have to:
+
+* think
+* predict
+* try
+* compare
+* notice
+
+---
+
+## Example Code Fence Policy
+
+### Runnable Genia example
+
+```genia
+square(x) = x * x
+
+square(5)
+```
+
+### Non-runnable Genia example
+
+**Illustrative sketch — not runnable**
+
+```genia
+eval(expr, env) = ...
+```
+
+### Non-Genia output block
+
+```text
+25
+```
 
 ---
 
 ## Final Instruction
 
-Rewrite or generate content so that:
+Write the Genia SICP book so that:
 
-> The reader cannot passively consume it.
+* the reader’s attention stays engaged
+* learning feels active
+* examples are trustworthy
+* code fences are used correctly
+* runnable vs non-runnable Genia blocks are clearly distinguished
+* the book remains synchronized with the real language
 
-They must:
-- think
-- predict
-- interact
-- engage
+After writing or revising:
 
----
-
-## Standard Repository Reminder
-
-- Keep docs aligned with implementation
-- Update examples if behavior changes
-- Mark sections:
-  - ✅ implemented
-  - ⚠️ partial
-  - ❌ future
-
----
-
-## Philosophy Reminder
-
-This is not just documentation.
-
-This is:
-
-> **A guided experience of discovering computation.**
-```
-
-[1]: https://en.wikipedia.org/wiki/Head_First_%28book_series%29?utm_source=chatgpt.com "Head First (book series)"
-[2]: https://www.alsi.net/Learning/Styles.htm?utm_source=chatgpt.com "Learning With Style - Active Learning Systems, Inc."
+* verify syntax examples carefully
+* verify status labels
+* verify code fence correctness
+* verify that non-runnable `genia` blocks are clearly marked
