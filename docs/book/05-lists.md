@@ -229,6 +229,18 @@ Expected result:
 [nil, "empty", nil, some(index_out_of_bounds)]
 ```
 
+Rendered absence values keep their structure visible in tooling:
+
+```genia
+[first([]), nth(9, [1, 2])]
+```
+
+Expected rendered result:
+
+```text
+[none(empty_list), none(index_out_of_bounds, {index: 9, length: 2})]
+```
+
 ### Failure case example
 
 ```genia

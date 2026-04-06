@@ -1,7 +1,7 @@
 import pytest
 
 from genia import make_global_env, run_source
-from genia.utf8 import format_debug
+from genia.utf8 import format_debug, format_display
 
 
 def _run(src: str):
@@ -25,7 +25,22 @@ def test_structured_none_values_parse_compare_and_print(run):
     assert run("none(empty_list) == none(empty_list)") is True
     assert run("none(empty_list) != none(missing_key)") is True
     assert format_debug(_run("none(empty_list)")) == "none(empty_list)"
-    assert format_debug(_run("none(index_out_of_bounds, { index: 8, length: 2 })")) == 'none(index_out_of_bounds, <map 2>)'
+    assert format_debug(_run("none(index_out_of_bounds, { index: 8, length: 2 })")) == 'none(index_out_of_bounds, {index: 8, length: 2})'
+
+
+def test_option_display_and_debug_rendering_preserve_structure():
+    assert format_display(_run("none")) == "none"
+    assert format_display(_run("none(missing_key, { key: \"name\" })")) == "none(missing_key, {key: name})"
+    assert format_display(_run("some(nil)")) == "some(nil)"
+    assert format_debug(_run("some(nil)")) == "some(nil)"
+    assert format_debug(_run("none(missing_key, { key: \"name\" })")) == 'none(missing_key, {key: "name"})'
+
+
+def test_print_makes_none_and_nil_distinction_visible():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('print([nil, none, none(empty_list), some(nil)])', env)
+    assert outputs == ['[nil, none, none(empty_list), some(nil)]\n']
 
 
 def test_structured_none_predicates_and_recovery_helpers(run):
@@ -33,10 +48,13 @@ def test_structured_none_predicates_and_recovery_helpers(run):
     assert run("none?(some(3))") is False
     assert run("some?(some(3))") is True
     assert run("some?(none(empty_list))") is False
+    assert run("some?(some(3)) == is_some?(some(3))") is True
+    assert run("none?(none(empty_list)) == is_none?(none(empty_list))") is True
     assert run("or_else(none(empty_list), 42)") == 42
     assert run("or_else(some(9), 42)") == 9
     assert format_debug(_run("absence_reason(none(empty_list))")) == "some(empty_list)"
     assert format_debug(_run("absence_reason(none)")) == "none"
+    assert format_debug(_run("absence_context(none(empty_list))")) == "none"
     assert run(
         '\n'.join(
             [
@@ -76,6 +94,7 @@ def test_get_some_map_target_unwraps_and_queries(run):
 def test_get_is_canonical_alias_for_get_question(run):
     assert run('unwrap_or(0, get("a", {a: 3}))') == 3
     assert run('is_none?(get("b", {a: 3}))') is True
+    assert format_debug(_run('get("b", {a: 3})')) == 'none(missing_key, {key: "b"})'
     assert format_debug(_run('absence_reason(get("b", {a: 3}))')) == "some(missing_key)"
 
 
@@ -150,7 +169,7 @@ def test_then_get_missing_key_returns_structured_absence(run):
 
 
 def test_then_get_propagates_existing_absence_unchanged(run):
-    assert format_debug(_run('then_get(none(missing_key, { key: "a" }), "b")')) == 'none(missing_key, <map 1>)'
+    assert format_debug(_run('then_get(none(missing_key, { key: "a" }), "b")')) == 'none(missing_key, {key: "a"})'
 
 
 def test_get_preserves_present_nil_vs_missing(run):
@@ -305,7 +324,7 @@ def test_then_first_success_and_empty_list_absence(run):
 def test_then_find_success_and_propagation(run):
     assert run('unwrap_or(-1, then_find(some("abc"), "b"))') == 1
     assert run('unwrap_or(-1, some("abc") |> then_find("b"))') == 1
-    assert format_debug(_run('then_find(none(missing_key, { key: "name" }), "b")')) == 'none(missing_key, <map 1>)'
+    assert format_debug(_run('then_find(none(missing_key, { key: "name" }), "b")')) == 'none(missing_key, {key: "name"})'
     assert run('is_none?(then_find(some("abc"), "x"))') is True
     assert format_debug(_run('absence_reason(then_find(some("abc"), "x"))')) == "some(not_found)"
 
@@ -314,7 +333,7 @@ def test_map_some_and_flat_map_some_propagate_structured_absence(run):
     assert run("unwrap_or(0, map_some((x) -> x + 1, some(2)))") == 3
     assert format_debug(_run("map_some((x) -> x + 1, none(empty_list))")) == "none(empty_list)"
     assert run("unwrap_or(0, flat_map_some((x) -> some(x + 1), some(2)))") == 3
-    assert format_debug(_run("flat_map_some((x) -> some(x + 1), none(index_out_of_bounds, { index: 8, length: 2 }))")) == "none(index_out_of_bounds, <map 2>)"
+    assert format_debug(_run("flat_map_some((x) -> some(x + 1), none(index_out_of_bounds, { index: 8, length: 2 }))")) == 'none(index_out_of_bounds, {index: 8, length: 2})'
 
 
 def test_flat_map_some_requires_option_result(run):

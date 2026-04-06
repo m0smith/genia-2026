@@ -97,6 +97,7 @@ Current consistency note:
 - preferred modern absence style in new code:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
 - maybe-flow helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` preserve structured absence unchanged
+- REPL/debug output now renders structured absence with visible context metadata, for example `none(missing_key, {key: "name"})`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - Flow, MetaEnv, and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps

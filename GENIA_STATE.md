@@ -643,6 +643,23 @@ Maybe-flow helper semantics:
   - `none(empty_list) |> or_else_with(() -> 0) -> 0`
 - these helpers preserve structured absence reason/context during propagation unless they are explicitly recovery/defaulting helpers
 
+Developer-facing rendering and introspection:
+
+- REPL result display and debug-oriented formatting preserve structured absence syntax directly:
+  - `none`
+  - `none(empty_list)`
+  - `none(index_out_of_bounds, {index: 8, length: 2})`
+  - `none(missing_key, {key: "name"})`
+  - `some(3)`
+  - `some(nil)`
+- structured absence context is rendered structurally in debug/display output; it is no longer collapsed to `<map N>` in these tooling-facing paths
+- `some?` / `none?` are the short predicate names; `is_some?` / `is_none?` remain supported aliases with the same runtime behavior
+- `absence_reason(opt)` and `absence_context(opt)` are the canonical inspection helpers for structured absence metadata
+- `nil` and `none` remain visibly distinct in tooling output:
+  - `nil`
+  - `none`
+  - `some(nil)`
+
 Pipeline note:
 
 - pipeline semantics themselves are unchanged

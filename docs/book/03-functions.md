@@ -487,6 +487,18 @@ Result:
 "a@example.com"
 ```
 
+When a chain fails early, the rendered result keeps the structured absence visible:
+
+```genia
+{} |> get("profile") |> then_get("name")
+```
+
+Rendered result:
+
+```text
+none(missing_key, {key: "profile"})
+```
+
 ### Failure case example
 
 ```genia

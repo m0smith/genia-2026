@@ -359,6 +359,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `none(empty_list) |> or_else_with(() -> 0)`
 - `absence_reason(opt)` returns `some(reason)` for structured absence and `none` for plain `none`
 - `absence_context(opt)` returns `some(context)` only when context metadata is present
+- `some?` / `none?` and `is_some?` / `is_none?` have the same runtime truth values; the shorter `some?` / `none?` names are preferred in docs/examples
 - `map_some(f, opt)`:
   - returns `some(f(value))` for `some(value)`
   - returns the original `none...` unchanged for any absence value
@@ -400,6 +401,9 @@ No additional member/index/flow operators should be introduced without explicitl
   - the first structured `none(...)` is preserved unchanged until an explicit recovery/defaulting helper is called
 - `nil` remains a normal runtime value and is not removed by this migration
 - canonical missing-result behavior now means structured `none(...)`, not `nil`
+- developer-facing presentation is separate from semantics:
+  - REPL/debug output should preserve structured absence syntax and context metadata visibly
+  - clearer rendering does not change evaluation behavior, matching rules, or error behavior
 
 ## 11.3) String builtin invariants
 

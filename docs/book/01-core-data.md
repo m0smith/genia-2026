@@ -1255,6 +1255,24 @@ Expected behavior:
 - fourth result is `some(empty_list)` (absence metadata is inspectable without changing absence into success)
 - fifth result is `some(1)` (string search is also maybe-returning now)
 
+### Tooling example
+
+```genia
+[
+  get("name", {}),
+  none(index_out_of_bounds, { index: 8, length: 2 }),
+  some(nil),
+]
+```
+
+Expected rendered result:
+
+```text
+[none(missing_key, {key: "name"}), none(index_out_of_bounds, {index: 8, length: 2}), some(nil)]
+```
+
+This is still ordinary data. The tooling/rendering is just making the data easier to inspect.
+
 ### Failure case example
 
 ```genia
@@ -1282,7 +1300,8 @@ Expected behavior:
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - `unwrap_or(default, opt)` for defaulting on `none`
-- `is_some?` / `is_none?` predicates
+- `some?` / `none?` short predicates
+- `is_some?` / `is_none?` supported aliases
 - pipeline-friendly lookup (`record |> get("name")`)
 - callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
 - `cli_option` also remains in the legacy `value_or_nil` family
@@ -1305,6 +1324,10 @@ Expected behavior:
   - `then_find` is a thin chaining helper over string `find`
   - `or_else` and `or_else_with` support both direct and pipeline-friendly order
   - pipeline syntax itself is unchanged; maybe flow is helper behavior layered on top of ordinary call rewriting
+- developer-facing inspection:
+  - REPL/debug output preserves structured absence syntax and context visibly
+  - `absence_reason` / `absence_context` are the canonical metadata-inspection helpers
+  - `some?` / `none?` are the preferred predicate names in docs/examples
 
 ### ⚠️ Partial
 

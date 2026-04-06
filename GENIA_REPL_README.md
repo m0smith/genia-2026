@@ -173,6 +173,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `or_else(some(3), 0)` and `some(3) |> or_else(0)`
     - `or_else_with(none(empty_list), () -> 0)` and `none(empty_list) |> or_else_with(() -> 0)`
   - `some(nil)` is valid and distinct from `none`
+  - REPL/debug rendering preserves structured absence syntax directly:
+    - `none(missing_key, {key: "name"})`
+    - `none(index_out_of_bounds, {index: 8, length: 2})`
+    - `some(nil)`
+  - `some?` / `none?` are the preferred short predicate names; `is_some?` / `is_none?` remain supported aliases
 - cell semantics (phase 1 fail-stop):
   - cells queue asynchronous updates and run them one at a time
   - failed updates preserve prior state, cache an error string, and mark the cell failed
