@@ -108,6 +108,32 @@ Avoid:
 
 ---
 
+### 6. Keep the Host Bridge Small
+
+Public stdlib and library behavior should prefer implementation in Genia/prelude rather than host-language code whenever feasible.
+
+Host code should primarily provide:
+
+* Runtime primitives
+* Capability bridges
+* Unavoidable platform integration
+
+Agents must avoid growing the public language surface around Python-specific behavior.
+
+Minimizing host code matters because it improves:
+
+* Multi-host portability
+* Future native/direct compilation
+* Smaller runtime footprint
+* Easier reasoning about semantics
+
+When adding new public helpers:
+
+* Default to prelude wrappers, even when they are backed by host primitives
+* Avoid host-only convenience helpers unless there is a compelling runtime reason
+
+---
+
 ## Book-Driven Development (CRITICAL)
 
 The `docs/book/` directory is not documentation.

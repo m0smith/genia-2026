@@ -9,6 +9,22 @@ def test_apply_autoload_from_fn_stdlib(run):
     assert run(src) == 42
 
 
+def test_autoloaded_fn_helper_can_be_used_as_function_value(run):
+    src = """
+    unwrap_or([], unwrap_or(none, map_some(rule_emit, some(5))) |> then_get("emit"))
+    """
+    assert run(src) == [5]
+
+
+def test_autoloaded_rule_helper_composes_with_flat_map_some_in_rules(run):
+    src = """
+    rows() = ["a b c d 5 x", "1 2 3 4 6 y", "short"]
+
+    rows() |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> map_some(parse_int) |> flat_map_some(rule_emit)) |> collect
+    """
+    assert run(src) == [5, 6]
+
+
 def test_compose_varargs_chain(run):
     src = '''
     add(a, b) = a + b

@@ -119,6 +119,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
   - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
   - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
+  - autoloaded function names can be used as plain function values in higher-order positions, not only in direct call position
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:

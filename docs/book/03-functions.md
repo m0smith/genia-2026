@@ -158,6 +158,41 @@ math/missing
 
 - raises `NameError` for the missing export.
 
+## Autoloaded Function Values
+
+Bundled stdlib functions are not only callable by name.
+They can also be used as function values in higher-order positions, and name lookup may autoload the defining prelude file before the lookup succeeds.
+
+### Minimal example
+
+```genia
+apply(inc, [41])
+```
+
+This evaluates to `42`.
+
+### Edge case example
+
+```genia
+unwrap_or([], unwrap_or(none, map_some(rule_emit, some(5))) |> then_get("emit"))
+```
+
+This evaluates to `[5]`.
+
+That works because `rule_emit` is looked up as a function value, autoloaded from the prelude, and then passed into `map_some`.
+
+### Failure case example
+
+```genia
+apply(missing, [1])
+```
+
+This raises:
+
+- `NameError("Undefined name: missing")`
+
+Autoload only helps when a matching autoload registration exists.
+
 ## Function Docstrings (Implemented)
 
 A named function may include a leading docstring string literal after `=`:

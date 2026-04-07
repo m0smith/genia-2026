@@ -13,6 +13,7 @@ This repository currently provides:
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
+  - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
 - runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
 - proper tail-call optimization for calls in tail position

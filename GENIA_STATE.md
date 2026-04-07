@@ -820,6 +820,8 @@ Loading behavior:
 - this works in both local repo execution and installed-package/tool execution
 - custom absolute filesystem autoload paths still work
 - file-relative module imports still resolve from the requesting source file's directory first
+- autoload can be triggered both by calls and by plain name lookup for function values
+  - this means autoloaded functions can be passed to higher-order helpers such as `apply`, `compose`, `map_some`, and `flat_map_some`
 
 Notable autoloaded functions include:
 

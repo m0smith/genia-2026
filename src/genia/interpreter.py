@@ -3677,7 +3677,12 @@ class Evaluator:
         if isinstance(node, IrUnquoteSplicing):
             raise RuntimeError("unquote_splicing(...) is only valid inside quasiquote")
         if isinstance(node, IrVar):
-            return self.env.get(node.name)
+            try:
+                return self.env.get(node.name)
+            except NameError:
+                if self.env.try_autoload(node.name, 0):
+                    return self.env.get(node.name)
+                raise
         if isinstance(node, IrUnary):
             value = self.eval(node.expr)
             if node.op == "MINUS":
