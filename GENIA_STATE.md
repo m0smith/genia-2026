@@ -2,6 +2,25 @@
 
 This file describes what is **actually implemented now** in the Python runtime.
 
+## 0) Host architecture status
+
+- Python is the only implemented host today.
+- The working Python implementation still lives in:
+  - `src/genia/`
+  - `tests/`
+  - `std/prelude/`
+- Multi-host architecture scaffolding now exists in:
+  - `docs/host-interop/`
+  - `docs/architecture/core-ir-portability.md`
+  - `spec/`
+  - `tools/spec_runner/README.md`
+  - `hosts/`
+- Those new artifacts are documentation/manifest/layout scaffolding in this phase.
+- They do not add a second implemented host yet.
+- `hosts/python/` is currently a documentation placeholder for the intended future monorepo layout; it is not the live source location of the Python host today.
+- Node.js, Java, Rust, Go, and C++ hosts are planned only.
+- The shared spec runner contract and capability matrix are scaffolded now, but no generic multi-host runner implementation exists yet.
+
 ## 1) Execution model
 
 - programs are expression sequences

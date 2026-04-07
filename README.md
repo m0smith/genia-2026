@@ -17,6 +17,7 @@ This repository currently provides:
 - debug-stdio adapter support for editor integration
 - runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
 - proper tail-call optimization for calls in tail position
+- multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
 ## Quick start
 
@@ -59,6 +60,23 @@ Run tests:
 ```bash
 pytest -q
 ```
+
+## Multi-Host Direction
+
+Python is the only implemented host today, and it remains the current reference host.
+
+The repo now also includes shared portability scaffolding for future hosts:
+
+- host interop contract docs: `docs/host-interop/`
+- Core IR portability note: `docs/architecture/core-ir-portability.md`
+- shared spec scaffold + manifest: `spec/`
+- host layout/migration notes: `hosts/`
+
+Current rule:
+
+- future hosts may differ internally
+- they must preserve shared semantics, Core IR lowering meaning, and shared CLI/runtime behavior
+- planned hosts are not treated as implemented until code, tests, and capability status exist
 
 ## Language snapshot (implemented)
 

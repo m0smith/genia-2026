@@ -25,6 +25,17 @@ Agents **must treat the following as authoritative and synchronized**:
 
 📌 If these disagree, **GENIA_STATE.md is the final authority**
 
+For multi-host / portability work, agents must also treat these as synchronized contract artifacts:
+
+* `docs/host-interop/HOST_INTEROP.md`
+* `docs/host-interop/HOST_PORTING_GUIDE.md`
+* `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
+* `docs/architecture/core-ir-portability.md`
+* `spec/README.md`
+* `spec/manifest.json`
+* `tools/spec_runner/README.md`
+* `hosts/README.md`
+
 ---
 
 ## Non-Negotiable Rule (CRITICAL)
@@ -162,6 +173,22 @@ In particular:
   * prefer public-surface discovery derived from prelude docstrings and autoload registrations over hand-curated Python API narration
 * avoid duplicating public API inventories in host code when prelude/autoload metadata already provides the source of truth
 
+### 7. Shared Semantics Across Hosts
+
+Python is the current reference host.
+
+For multi-host work:
+
+* shared semantics come first
+* Core IR is the portability boundary
+* shared spec tests are authoritative across hosts
+* host-specific code must not redefine language behavior
+* capability additions or coverage changes must update `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
+* changes to the shared host contract must update `spec/manifest.json`
+* docs/book remains a truthful teaching interface and must distinguish implemented hosts from planned ones
+* agents must prefer portable/shared semantics over host-local convenience
+* future Codex prompts for host work must instruct the agent to keep shared docs/spec/tests/book content in sync
+
 ---
 
 ## Book-Driven Development (CRITICAL)
@@ -196,6 +223,7 @@ Agents must map features → chapters:
 | Protocols        | 08-protocols        |
 | Errors/retries   | 09-errors           |
 | Concurrency      | 10-concurrency      |
+| Host portability | 15-reference-host-and-portability |
 
 If a feature doesn’t fit → update closest chapter or create a new one.
 
@@ -210,6 +238,17 @@ Agents MUST read:
 * `GENIA_STATE.md`
 * `GENIA_RULES.md`
 * Relevant chapter(s) in `docs/book/`
+
+For host / portability work, agents MUST also read:
+
+* `docs/host-interop/HOST_INTEROP.md`
+* `docs/host-interop/HOST_PORTING_GUIDE.md`
+* `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
+* `docs/architecture/core-ir-portability.md`
+* `spec/README.md`
+* `spec/manifest.json`
+* `tools/spec_runner/README.md`
+* relevant `hosts/*/README.md` and `hosts/*/AGENTS.md`
 
 ---
 
@@ -235,6 +274,13 @@ Agents MUST update:
 * `GENIA_STATE.md`
 * Relevant chapter(s)
 * Examples if behavior changed
+
+For host / portability work, agents MUST also update the relevant shared contract files when they change:
+
+* `docs/host-interop/*`
+* `spec/manifest.json`
+* `tools/spec_runner/README.md`
+* `hosts/*`
 
 ---
 
@@ -398,6 +444,12 @@ Every Codex prompt must include:
   * `GENIA_RULES.md`
 * Instruction to update documentation
 * Clear constraints
+
+For host / portability work, prompts must also include:
+
+* instruction to read/update `docs/host-interop/*`
+* instruction to read/update `spec/manifest.json` and `tools/spec_runner/README.md`
+* instruction to keep `hosts/*`, root docs, and relevant `docs/book/*` content synchronized
 
 ---
 

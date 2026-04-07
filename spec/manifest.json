@@ -1,0 +1,60 @@
+{
+  "language_version": "0.1.8-prototype",
+  "core_ir_version": "0.1.0",
+  "required_capabilities": [
+    "parser",
+    "ast_lowering",
+    "core_ir_eval",
+    "cli_file_mode",
+    "cli_command_mode",
+    "prelude_autoload",
+    "doc_help",
+    "shared_spec_runner"
+  ],
+  "optional_capabilities": [
+    "cli_pipe_mode",
+    "repl",
+    "flow_phase_1",
+    "refs",
+    "process_primitives",
+    "bytes_json_zip",
+    "debugger_stdio"
+  ],
+  "shared_prelude_paths": [
+    "std/prelude",
+    "src/genia/std/prelude"
+  ],
+  "host_test_contract": {
+    "parse": {
+      "input": "source string",
+      "output": "AST JSON"
+    },
+    "lower": {
+      "input": "source string",
+      "output": "Core IR JSON"
+    },
+    "eval": {
+      "input": "source string",
+      "stdin": "optional string input",
+      "argv": "optional string list",
+      "output": "JSON with result, stdout, stderr, and normalized error data when present"
+    },
+    "cli": {
+      "input": "argv list plus optional stdin string",
+      "output": "JSON with stdout, stderr, exit_code, and normalized error data when present"
+    }
+  },
+  "canonical_docs": [
+    "AGENTS.md",
+    "GENIA_STATE.md",
+    "GENIA_RULES.md",
+    "GENIA_REPL_README.md",
+    "README.md",
+    "docs/book",
+    "docs/host-interop/HOST_INTEROP.md",
+    "docs/host-interop/HOST_PORTING_GUIDE.md",
+    "docs/host-interop/HOST_CAPABILITY_MATRIX.md",
+    "docs/architecture/core-ir-portability.md",
+    "tools/spec_runner/README.md"
+  ]
+}
