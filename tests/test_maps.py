@@ -5,6 +5,11 @@ def test_map_new_creates_empty_map(run):
     assert run("map_count(map_new())") == 0
 
 
+def test_map_public_wrappers_work_as_function_values(run):
+    assert run('apply(map_count, [map_new()])') == 0
+    assert run('apply(map_get, [apply(map_put, [map_new(), "k", 10]), "k"])') == 10
+
+
 def test_map_get_missing_returns_nil(run):
     assert run('map_get(map_new(), "missing")') is None
 

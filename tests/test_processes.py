@@ -6,11 +6,9 @@ import pytest
 from genia import make_global_env, run_source
 
 
-def test_process_builtins_are_available_in_global_env():
+def test_process_public_wrappers_work_as_function_values():
     env = make_global_env([])
-    assert callable(env.get("spawn"))
-    assert callable(env.get("send"))
-    assert callable(env.get("process_alive?"))
+    assert run_source("apply(process_alive?, [spawn((msg) -> msg)])", env) is True
 
 
 def test_spawn_returns_handle():

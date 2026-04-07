@@ -1,6 +1,7 @@
 # Chapter 10: Concurrency
 
 Genia currently exposes host-backed concurrency primitives and a runtime-backed fail-stop cell helper layer in stdlib.
+The public `ref`, `spawn`, `send`, and `process_alive?` names are thin prelude wrappers over that host-backed runtime layer.
 
 ## Minimal example
 
@@ -44,9 +45,13 @@ Expected behavior:
 
 ## Current model
 
+- public ref helpers from `std/prelude/ref.genia`:
+  - `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` checks worker liveness
+- public process helpers from `std/prelude/process.genia`:
+  - `spawn`, `send`, `process_alive?`
 - stdlib cell helpers:
   - `cell`, `cell_with_state`
   - `cell_send`, `cell_get`, `cell_state`
@@ -62,6 +67,7 @@ Expected behavior:
 
 ### ✅ Implemented
 
+- prelude-backed public ref/process helper surface with `help(...)` visibility
 - host-backed process handles and message sending
 - serialized handler execution per process
 - fail-stop cell abstraction with cached error state

@@ -87,6 +87,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - docstring is attached to function metadata (not evaluated as runtime expression)
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)
+  - `help()` prints a small overview centered on the public prelude-backed stdlib surface
+  - `help("name")` for raw host-backed names such as `print` falls back to a generic bridge note instead of a separate host-doc registry
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
   - official docstring style/templates live in `docs/book/03-functions.md`
 - lambda expressions, including varargs lambdas with `..rest`
@@ -114,21 +116,31 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
+  - includes public map helpers from `std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - includes public ref helpers from `std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+  - includes public process helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+  - includes public output sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
+  - includes public option helpers from `std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - includes public string helpers from `std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
-  - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
+  - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
   - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
   - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
   - autoloaded function names can be used as plain function values in higher-order positions, not only in direct call position
+  - `help("name")` can autoload a registered prelude function before rendering its docstring/help text
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
-  - I/O: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
+  - direct I/O/runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+  - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - CLI: `argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
-  - refs: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
-  - concurrency: `spawn`, `send`, `process_alive?`
-  - phase-1 persistent associative maps: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
-  - phase-2 primitive option model: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+  - process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
+  - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - phase-2 primitive option model runtime:
+    - `none` remains a runtime literal/value
+    - public helpers such as `some`, `get`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, and `absence_context` are prelude-backed wrappers over host-backed option primitives
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
@@ -137,7 +149,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `json_parse`, `json_pretty`
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
-  - strings: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
+  - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - constants: `pi`, `e`, `true`, `false`, `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
@@ -202,8 +214,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - output routing:
   - `print(...)` writes to `stdout`
   - `log(...)` writes to `stderr`
-  - `write(sink, value)` / `writeln(sink, value)` write display-formatted output
-  - `flush(sink)` flushes a sink
+  - `write(sink, value)` / `writeln(sink, value)` are public prelude-backed wrappers over the host sink bridge
+  - `flush(sink)` is a public prelude-backed wrapper over the host sink bridge
   - broken pipe on `stdout` output in command/file execution is treated as normal downstream termination without a Python traceback
   - REPL results go to `stdout`; REPL and command/file diagnostics go to `stderr`
 
@@ -293,6 +305,16 @@ application_expr?(quote([f, 1, 2]))
 - `operands(...)` returns `(1 2)` as the current quoted operand tail
 - `application_expr?(quote([f, 1, 2]))` returns `false`
 
+Match inspection:
+
+```genia
+branches = match_branches(quote(0 -> 1 | x ? x > 0 -> x))
+branch_has_guard?(car(branches))
+branch_has_guard?(car(cdr(branches)))
+```
+
+- this returns `false` and `true`
+
 Assignment inspection:
 
 ```genia
@@ -341,10 +363,18 @@ eval(expr, empty_env())
 
 - this returns `15`
 
+Quoted match example:
+
+```genia
+matcher = eval(quote(x ? x > 0 -> x | _ -> 0), empty_env())
+[apply(matcher, [5]), apply(matcher, [-1])]
+```
+
+- this returns `[5, 0]`
+
 Current limits:
 
-- supported quoted forms are self-evaluating literals, symbols, quotes, assignments, lambdas, applications, and blocks
-- quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
+- supported quoted forms are self-evaluating literals, symbols, quotes, assignments, lambdas, match/case expressions, applications, and blocks
 - `eval` is only defined for the supported expression families
 
 ## String parsing
@@ -516,7 +546,8 @@ Current behavior:
 - `:help`
 - `:env`
 - `:quit`
-- `help(name)` to inspect named-function metadata (`name/shape`, source location, rendered docstring, undocumented fallback)
+- `help()` for the public stdlib/help overview
+- `help(name)` to inspect named-function/prelude metadata or get a generic note for a host-backed runtime name
 
 ## Tail calls
 

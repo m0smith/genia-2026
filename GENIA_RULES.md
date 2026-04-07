@@ -205,10 +205,13 @@ No additional member/index/flow operators should be introduced without explicitl
 - Current helper surface includes:
   - predicates: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
   - selectors: `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
+  - match selectors: `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
 - Selectors must raise clear `TypeError` when used on the wrong expression kind.
 - Application expressions are represented explicitly as `(app ...)`.
 - Ordinary quoted pair/list data remain plain pair/list data and must not be classified as applications.
 - `operands(expr)` returns the operand tail of the tagged application as a pair-chain sequence.
+- `match_branches(expr)` returns the branch tail of `(match ...)` as a pair-chain sequence.
+- `branch_guard(branch)` raises a clear `TypeError` when the branch is not guarded.
 
 ## 9.2.3) Metacircular evaluation
 
@@ -227,6 +230,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - quoted expressions
   - assignment expressions
   - lambda expressions
+  - match/case expressions
   - application expressions
   - block expressions
 - `eval(expr, env)` must follow current lexical scoping rules through metacircular environments:
@@ -236,9 +240,10 @@ No additional member/index/flow operators should be introduced without explicitl
   - closures capture the defining environment
 - metacircular compound procedures are represented as tagged pair data:
   - `(compound <params> <body> <env>)`
-- `apply(proc, args)` must preserve current ordinary callable behavior and additionally apply metacircular compound procedures.
+- metacircular matcher procedures are represented as tagged pair data:
+  - `(matcher <match-expr> <env>)`
+- `apply(proc, args)` must preserve current ordinary callable behavior and additionally apply metacircular compound procedures and metacircular matcher procedures.
 - current limitations:
-  - quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
   - the evaluator is only defined for the supported expression families above
 
 ## 9.3) Pairs
@@ -279,6 +284,10 @@ No additional member/index/flow operators should be introduced without explicitl
 ## 10) Ref + concurrency runtime guarantees
 
 - refs are synchronized host objects
+- public ref helper names are exposed through thin prelude wrappers in `std/prelude/ref.genia`
+- public process helper names are exposed through thin prelude wrappers in `std/prelude/process.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying ref/process behavior remains host-backed in this phase; wrappering does not change semantics
 - process mailbox handling is FIFO per process
 - one handler invocation at a time per process
 - concurrency remains host-backed (threads), not language-scheduled
@@ -302,6 +311,9 @@ No additional member/index/flow operators should be introduced without explicitl
 ## 11) Host-backed persistent map invariants
 
 - persistent map runtime is shared by both map builtins and map literal/pattern syntax
+- public map helper names are exposed through thin prelude wrappers in `std/prelude/map.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying map behavior remains host-backed in this phase; wrappering does not change semantics
 - required builtins: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - map values are opaque runtime wrappers, not exposed host objects
 - `map_put` / `map_remove` must return new map values (no mutation of prior values)
@@ -324,6 +336,9 @@ No additional member/index/flow operators should be introduced without explicitl
   - `none(reason)`
   - `none(reason, context)`
   - `some(value)`
+- public option helper names are exposed through thin prelude wrappers in `std/prelude/option.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying option behavior remains host-backed in this phase; wrappering does not change semantics
 - all `none...` forms belong to one absence family; reason/context are metadata, not a separate result kind
 - `nil` and `none` remain distinct runtime values
 - `some(nil)` is valid and distinct from every `none...` form
@@ -408,6 +423,9 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ## 11.3) String builtin invariants
 
+- public string helper names are exposed through thin prelude wrappers in `std/prelude/string.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying string behavior remains host-backed in this phase; wrappering does not change semantics
 - `find(string, needle)` returns:
   - `some(index)` when the substring exists
   - `none(not_found, { needle: needle })` when the substring is missing
@@ -585,6 +603,9 @@ Rule-contract violations raise runtime errors prefixed with `invalid-rules-resul
 ## 20) Output sink invariants (host-backed phase 1)
 
 - `stdout` and `stderr` are runtime capability values, not parser syntax
+- public sink helper names are exposed through thin prelude wrappers in `std/prelude/io.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying sink behavior remains host-backed in this phase; wrappering does not change semantics
 - required output builtins:
   - `write(sink, value)`
   - `writeln(sink, value)`

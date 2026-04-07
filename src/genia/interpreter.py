@@ -2474,6 +2474,8 @@ class Env:
             return self.values[name]
         if self.parent is not None:
             return self.parent.get(name)
+        if self.try_autoload(name, 0) and name in self.values:
+            return self.values[name]
         raise NameError(f"Undefined name: {name}")
 
     def set(self, name: str, value: Any, *, assignable: bool = True) -> None:
@@ -4018,6 +4020,86 @@ def make_global_env(
     def meta_eval_error_fn(expr: Any) -> Any:
         raise RuntimeError(f"metacircular eval does not support expression: {format_debug(expr)}")
 
+    def _meta_lower_quoted_pattern(pattern: Any) -> IrPattern:
+        if pattern is None or isinstance(pattern, (bool, int, float, str)):
+            return IrPatLiteral(pattern)
+        if isinstance(pattern, GeniaOptionNone):
+            reason = _meta_lower_quoted_pattern(pattern.reason) if pattern.reason is not None else None
+            context = _meta_lower_quoted_pattern(pattern.context) if pattern.context is not None else None
+            return IrPatNone(reason, context)
+        if isinstance(pattern, GeniaSymbol):
+            if pattern.name == "_":
+                return IrPatWildcard()
+            return IrPatBind(pattern.name)
+        if isinstance(pattern, GeniaMap):
+            items: list[tuple[str, IrPattern]] = []
+            for _, (original_key, original_value) in pattern._entries.items():
+                if not isinstance(original_key, str):
+                    raise TypeError("metacircular quoted map patterns require string keys")
+                items.append((original_key, _meta_lower_quoted_pattern(original_value)))
+            return IrPatMap(items)
+        if isinstance(pattern, GeniaPair):
+            if _syntax_tagged_list(pattern, symbol("rest")):
+                if pattern.tail is None:
+                    return IrPatRest(None)
+                rest_name = _syntax_pair_nth(pattern, 1, "_meta_match_pattern_env")
+                if not isinstance(rest_name, GeniaSymbol):
+                    raise TypeError("metacircular rest patterns require a symbol name")
+                if pattern.tail.tail is not None:
+                    raise TypeError("metacircular rest patterns accept at most one symbol name")
+                return IrPatRest(rest_name.name)
+            if _syntax_tagged_list(pattern, symbol("tuple")):
+                items: list[IrPattern] = []
+                current = pattern.tail
+                while current is not None:
+                    if not isinstance(current, GeniaPair):
+                        raise TypeError("metacircular tuple patterns must be proper lists")
+                    items.append(_meta_lower_quoted_pattern(current.head))
+                    current = current.tail
+                return IrPatTuple(items)
+            if _syntax_tagged_list(pattern, symbol("glob")):
+                glob_text = _syntax_pair_nth(pattern, 1, "_meta_match_pattern_env")
+                if not isinstance(glob_text, str):
+                    raise TypeError("metacircular glob patterns require a string")
+                if pattern.tail.tail is not None:
+                    raise TypeError("metacircular glob patterns accept exactly one string")
+                return IrPatGlob(compile_glob_pattern(glob_text))
+            if _syntax_tagged_list(pattern, symbol("some")):
+                if pattern.tail is None or not isinstance(pattern.tail, GeniaPair):
+                    raise TypeError("metacircular some patterns require an inner pattern")
+                if pattern.tail.tail is not None:
+                    raise TypeError("metacircular some patterns accept exactly one inner pattern")
+                return IrPatSome(_meta_lower_quoted_pattern(pattern.tail.head))
+            items: list[IrPattern] = []
+            current = pattern
+            while current is not None:
+                if not isinstance(current, GeniaPair):
+                    raise TypeError("metacircular list patterns must be proper lists")
+                items.append(_meta_lower_quoted_pattern(current.head))
+                current = current.tail
+            return IrPatList(items)
+        raise TypeError(f"metacircular quoted match pattern is unsupported: {format_debug(pattern)}")
+
+    def meta_match_pattern_env_fn(meta_env_value: Any, pattern: Any, args: Any) -> Any:
+        meta_env = _ensure_meta_env(meta_env_value, "_meta_match_pattern_env")
+        if not isinstance(args, list):
+            raise TypeError("_meta_match_pattern_env expected a list of argument values")
+        bindings = Evaluator(meta_env.env, env.debug_hooks, env.debug_mode).match_pattern(
+            _meta_lower_quoted_pattern(pattern),
+            tuple(args),
+        )
+        if bindings is None:
+            return OPTION_NONE
+        child = Env(meta_env.env)
+        for name, value in bindings.items():
+            child.set(name, value)
+        return GeniaOptionSome(GeniaMetaEnv(child))
+
+    def meta_match_error_fn(expr: Any, args: Any) -> Any:
+        raise RuntimeError(
+            f"metacircular match failed for {format_debug(expr)} with args {format_debug(args)}"
+        )
+
     def log(*args: Any) -> Any:
         output = " ".join(format_display(arg) for arg in args)
         stderr_sink.write_text(output + "\n")
@@ -4411,19 +4493,41 @@ def make_global_env(
             lines.append("No documentation available.")
         return "\n".join(lines)
 
+    def _describe_runtime_name(name: str, value: Any) -> str:
+        kind = "host-backed runtime function" if callable(value) else "host-backed runtime value"
+        return "\n".join(
+            [
+                name,
+                "",
+                f"{name} is a {kind} in this phase.",
+                "Detailed docstrings are attached to public Genia/prelude functions instead of raw host bridge names.",
+                'Use `help()` for the surface overview and `help("name")` for documented public helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, `eval`, and `cell_send`.',
+            ]
+        )
+
     def help_fn(*args: Any) -> None:
         if len(args) > 1:
             raise TypeError(f"help expected 0 or 1 args, got {len(args)}")
         if len(args) == 1:
             target = args[0]
+            original_name: str | None = target if isinstance(target, str) else None
             if isinstance(target, str):
-                target = env.get(target)
+                try:
+                    target = env.get(target)
+                except NameError:
+                    if env.try_autoload(target, 0):
+                        target = env.get(target)
+                    else:
+                        raise
             if isinstance(target, GeniaFunctionGroup):
                 _emit_help(_describe_function_group(target))
                 return
             if isinstance(target, GeniaFunction):
                 singleton = GeniaFunctionGroup(target.name, functions={target.arity: target}, docstring=target.docstring)
                 _emit_help(_describe_function_group(singleton))
+                return
+            if original_name is not None:
+                _emit_help(_describe_runtime_name(original_name, target))
                 return
             raise TypeError("help expected a function name or named function")
 
@@ -4433,51 +4537,40 @@ Genia prototype help
 --------------------
 Examples:
   1 + 2 * 3
-  square(x) = x * x
-  square(5)
+  person = { name: "Maya" }
+  get("name", person)
+  [1, 2, 3] |> map((x) -> x + 1)
   quote([a, b, c])
-  quasiquote([a, unquote(1 + 1), c])
-
-  fact(n) =
-    0 -> 1 |
-    n -> n * fact(n - 1)
-
-  fact2(n) {
-    log(n)
-    0 -> 1 |
-    n -> n * fact2(n - 1)
-  }
-
-  add() = 0
-
-  add(x, y) =
-    (0, y) -> y |
-    (x, 0) -> x |
-    (x, y) -> x + y
-
-  print(stdin())
-  print(argv())
-  count([1, 2, 3])
-  print([1, 2, 3])
-
-  inbox = ref([])
-  p = spawn((msg) -> ref_update(inbox, (xs) -> append(xs, [msg])))
-  send(p, "hello")
-  process_alive?(p)
-
-  first_pair(xs) =
-    [a, b] -> a + b
-
-  describe(xs) =
-    [] -> "empty" |
-    [x] -> "one" |
-    [x, y] -> "two"
+  help("get")
+  help("map_put")
+  help("spawn")
+  help("eval")
 
 Commands:
   :quit   exit
   :env    show defined names
   :help   show this help
-  help(name)   show metadata for a named function
+  help(name)   show docs for a public helper or a note for a runtime name
+
+Public stdlib model:
+  Most user-facing helpers live in autoloaded prelude modules.
+  `help("name")` autoloads a documented public helper and renders its Markdown docstring.
+  Prefer canonical prelude-backed helpers over older raw lookup forms.
+  Example: `get(key, target)` is preferred over `map_get`, `map/name`, `map(key)`, or `"key"(map)`.
+
+Autoloaded public prelude families:
+  Lists / fns / math:
+    list, first, last, nth, find_opt, map, filter, reduce, apply, compose, sum
+  Option / string:
+    some, get, map_some, flat_map_some, then_get, unwrap_or, parse_int, split, trim, join
+  Map / ref / process / sinks:
+    map_put, map_has?, ref_update, spawn, send, write, writeln, flush
+  Streams / cells / rules:
+    stream_cons, stream_map, stream_take, cell, cell_send, cell_error, rule_emit, rule_step
+  Syntax / eval:
+    match_branches, branch_guard, empty_env, eval
+  AWK-style helpers:
+    fields, awkify, awk_filter, awk_map, awk_count
 
 CLI builtins (list-first):
   argv()                     trailing command-line args as [string]
@@ -4487,12 +4580,32 @@ CLI builtins (list-first):
   cli_option(opts, name)     option value or nil (legacy retained)
   cli_option_or(opts, name, default)
 
-Concurrency builtins (host-backed):
+Output capabilities:
+  stdout
+  stderr
+  print(...)
+  log(...)
+  input(prompt)
+
+Output sink helpers (public prelude wrappers over host-backed sink runtime):
+  write(sink, value)
+  writeln(sink, value)
+  flush(sink)
+
+Ref helpers (public prelude wrappers over host-backed ref runtime):
+  ref()
+  ref(initial)
+  ref_get(ref)
+  ref_set(ref, value)
+  ref_is_set(ref)
+  ref_update(ref, updater)
+
+Process helpers (public prelude wrappers over host-backed process runtime):
   spawn(handler)          create a process with a mailbox
   send(process, message)  enqueue a message for that process
   process_alive?(process) check whether process worker thread is alive
 
-Persistent map builtins (phase 1, host-backed opaque wrapper):
+Persistent map helpers (public prelude wrappers over host-backed opaque map runtime):
   map_new()
   map_get(map, key)          raw value or nil (docs-deprecated)
   map_put(map, key, value)
@@ -4500,7 +4613,7 @@ Persistent map builtins (phase 1, host-backed opaque wrapper):
   map_remove(map, key)
   map_count(map)
 
-Option builtins (phase 2):
+Option helpers (public prelude wrappers over host-backed option runtime):
   none
   none(reason)
   none(reason, context)
@@ -4542,7 +4655,22 @@ Symbols / quote:
   unquote(expr)          valid only inside quasiquote
   unquote_splicing(expr) valid only in quasiquote list literals
 
-String parsing:
+String helpers (public prelude wrappers over host-backed string runtime):
+  byte_length(string)
+  is_empty(string)
+  concat(left, right)
+  contains(string, needle)
+  starts_with(string, prefix)
+  ends_with(string, suffix)
+  find(string, needle)       some(index) or none(not_found, ...)
+  split(string, sep)
+  split_whitespace(string)
+  join(sep, strings)
+  trim(string)
+  trim_start(string)
+  trim_end(string)
+  lower(string)
+  upper(string)
   parse_int(string)
   parse_int(string, base)
 
@@ -4563,6 +4691,11 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
   set_entry_bytes(entry, bytes)
   update_entry_bytes(entry, updater)
   entry_json(entry)
+
+Intentional host bridge:
+  Raw host-backed names stay small and capability-oriented:
+  stdin, stdout, stderr, print, log, input, argv/cli_*, none, force,
+  cons/car/cdr/pair?/null?, rand/rand_int/sleep, utf8/json/zip helpers.
 """.strip()
         )
 
@@ -4616,6 +4749,26 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     def syntax_application_expr_fn(expr: Any) -> bool:
         return _syntax_tagged_list(expr, symbol("app"))
 
+    def _syntax_match_branch_size(branch: Any, name: str) -> int:
+        if not _syntax_tagged_list(branch, symbol("clause")):
+            raise TypeError(f"{name} expected a match branch")
+        size = 0
+        current = branch.tail
+        while current is not None:
+            if not isinstance(current, GeniaPair):
+                raise TypeError(
+                    f"{name} expected a match branch of the form "
+                    "(clause <pattern> <body>) or (clause <pattern> <guard> <body>)"
+                )
+            size += 1
+            current = current.tail
+        if size not in {2, 3}:
+            raise TypeError(
+                f"{name} expected a match branch of the form "
+                "(clause <pattern> <body>) or (clause <pattern> <guard> <body>)"
+            )
+        return size
+
     def syntax_text_of_quotation_fn(expr: Any) -> Any:
         if not syntax_quoted_expr_fn(expr):
             raise TypeError("text_of_quotation expected a quoted expression")
@@ -4658,6 +4811,29 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
         if not syntax_block_expr_fn(expr):
             raise TypeError("block_expressions expected a block expression")
         return expr.tail
+
+    def syntax_match_branches_fn(expr: Any) -> Any:
+        if not syntax_match_expr_fn(expr):
+            raise TypeError("match_branches expected a match expression")
+        return expr.tail
+
+    def syntax_branch_pattern_fn(branch: Any) -> Any:
+        _syntax_match_branch_size(branch, "branch_pattern")
+        return _syntax_pair_nth(branch, 1, "branch_pattern")
+
+    def syntax_branch_has_guard_fn(branch: Any) -> bool:
+        return _syntax_match_branch_size(branch, "branch_has_guard?") == 3
+
+    def syntax_branch_guard_fn(branch: Any) -> Any:
+        if _syntax_match_branch_size(branch, "branch_guard") != 3:
+            raise TypeError("branch_guard expected a guarded match branch")
+        return _syntax_pair_nth(branch, 2, "branch_guard")
+
+    def syntax_branch_body_fn(branch: Any) -> Any:
+        size = _syntax_match_branch_size(branch, "branch_body")
+        if size == 3:
+            return _syntax_pair_nth(branch, 3, "branch_body")
+        return _syntax_pair_nth(branch, 2, "branch_body")
 
     def cons_fn(head: Any, tail: Any) -> GeniaPair:
         return GeniaPair(head, tail)
@@ -5238,9 +5414,9 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
 
     env.set("stdout", stdout_sink)
     env.set("stderr", stderr_sink)
-    env.set("write", write_fn)
-    env.set("writeln", writeln_fn)
-    env.set("flush", flush_fn)
+    env.set("_write", write_fn)
+    env.set("_writeln", writeln_fn)
+    env.set("_flush", flush_fn)
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -5258,24 +5434,24 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("false", False)
     env.set("nil", None)
     env.set("none", OPTION_NONE)
-    env.set("some", some_fn)
-    env.set("none?", none_predicate_fn)
-    env.set("some?", some_predicate_fn)
-    env.set("get", get_fn)
-    env.set("get?", get_option_fn)
-    env.set("map_some", map_some_fn)
-    env.set("flat_map_some", flat_map_some_fn)
-    env.set("then_get", then_get_fn)
-    env.set("then_first", then_first_fn)
-    env.set("then_nth", then_nth_fn)
-    env.set("then_find", then_find_fn)
-    env.set("or_else", or_else_fn)
-    env.set("or_else_with", or_else_with_fn)
-    env.set("unwrap_or", unwrap_or_fn)
-    env.set("absence_reason", absence_reason_fn)
-    env.set("absence_context", absence_context_fn)
-    env.set("is_some?", is_some_fn)
-    env.set("is_none?", is_none_fn)
+    env.set("_some", some_fn)
+    env.set("_none?", none_predicate_fn)
+    env.set("_some?", some_predicate_fn)
+    env.set("_get", get_fn)
+    env.set("_get?", get_option_fn)
+    env.set("_map_some", map_some_fn)
+    env.set("_flat_map_some", flat_map_some_fn)
+    env.set("_then_get", then_get_fn)
+    env.set("_then_first", then_first_fn)
+    env.set("_then_nth", then_nth_fn)
+    env.set("_then_find", then_find_fn)
+    env.set("_or_else", or_else_fn)
+    env.set("_or_else_with", or_else_with_fn)
+    env.set("_unwrap_or", unwrap_or_fn)
+    env.set("_absence_reason", absence_reason_fn)
+    env.set("_absence_context", absence_context_fn)
+    env.set("_is_some?", is_some_fn)
+    env.set("_is_none?", is_none_fn)
     env.set("force", force_fn)
     env.set("_meta_empty_env", meta_empty_env_fn)
     env.set("_meta_lookup", meta_lookup_fn)
@@ -5284,6 +5460,8 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("_meta_extend", meta_extend_fn)
     env.set("_meta_host_apply", meta_host_apply_fn)
     env.set("_meta_eval_error", meta_eval_error_fn)
+    env.set("_meta_match_pattern_env", meta_match_pattern_env_fn)
+    env.set("_meta_match_error", meta_match_error_fn)
     env.set("_syntax_tagged_list", syntax_tagged_list_fn)
     env.set("_syntax_self_evaluating", syntax_self_evaluating_fn)
     env.set("_syntax_symbol_expr", syntax_symbol_expr_fn)
@@ -5302,16 +5480,21 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("_syntax_operator", syntax_operator_fn)
     env.set("_syntax_operands", syntax_operands_fn)
     env.set("_syntax_block_expressions", syntax_block_expressions_fn)
+    env.set("_syntax_match_branches", syntax_match_branches_fn)
+    env.set("_syntax_branch_pattern", syntax_branch_pattern_fn)
+    env.set("_syntax_branch_has_guard", syntax_branch_has_guard_fn)
+    env.set("_syntax_branch_guard", syntax_branch_guard_fn)
+    env.set("_syntax_branch_body", syntax_branch_body_fn)
     env.set("cons", cons_fn)
     env.set("car", car_fn)
     env.set("cdr", cdr_fn)
     env.set("pair?", pair_fn)
     env.set("null?", null_fn)
-    env.set("ref", ref_fn)
-    env.set("ref_get", ref_get_fn)
-    env.set("ref_set", ref_set_fn)
-    env.set("ref_is_set", ref_is_set_fn)
-    env.set("ref_update", ref_update_fn)
+    env.set("_ref", ref_fn)
+    env.set("_ref_get", ref_get_fn)
+    env.set("_ref_set", ref_set_fn)
+    env.set("_ref_is_set", ref_is_set_fn)
+    env.set("_ref_update", ref_update_fn)
     env.set("_cell_new", cell_new_fn)
     env.set("_cell_with_state", cell_with_state_fn)
     env.set("_cell_send", cell_send_fn)
@@ -5321,34 +5504,34 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.set("_restart_cell", restart_cell_fn)
     env.set("_cell_status", cell_status_fn)
     env.set("_cell_alive?", cell_alive_fn)
-    env.set("spawn", spawn_fn)
-    env.set("send", send_fn)
-    env.set("process_alive?", process_alive_fn)
-    env.set("map_new", map_new_fn)
-    env.set("map_get", map_get_fn)
-    env.set("map_put", map_put_fn)
-    env.set("map_has?", map_has_fn)
-    env.set("map_remove", map_remove_fn)
-    env.set("map_count", map_count_fn)
+    env.set("_spawn", spawn_fn)
+    env.set("_send", send_fn)
+    env.set("_process_alive?", process_alive_fn)
+    env.set("_map_new", map_new_fn)
+    env.set("_map_get", map_get_fn)
+    env.set("_map_put", map_put_fn)
+    env.set("_map_has?", map_has_fn)
+    env.set("_map_remove", map_remove_fn)
+    env.set("_map_count", map_count_fn)
     env.set("rand", rand_fn)
     env.set("rand_int", rand_int_fn)
     env.set("sleep", sleep_fn)
-    env.set("byte_length", byte_length_fn)
-    env.set("is_empty", is_empty_fn)
-    env.set("concat", concat_fn)
-    env.set("contains", contains_fn)
-    env.set("starts_with", starts_with_fn)
-    env.set("ends_with", ends_with_fn)
-    env.set("find", find_fn)
-    env.set("split", split_fn)
-    env.set("split_whitespace", split_whitespace_fn)
-    env.set("join", join_fn)
-    env.set("trim", trim_fn)
-    env.set("trim_start", trim_start_fn)
-    env.set("trim_end", trim_end_fn)
-    env.set("lower", lower_fn)
-    env.set("upper", upper_fn)
-    env.set("parse_int", parse_int_fn)
+    env.set("_byte_length", byte_length_fn)
+    env.set("_is_empty", is_empty_fn)
+    env.set("_concat", concat_fn)
+    env.set("_contains", contains_fn)
+    env.set("_starts_with", starts_with_fn)
+    env.set("_ends_with", ends_with_fn)
+    env.set("_find", find_fn)
+    env.set("_split", split_fn)
+    env.set("_split_whitespace", split_whitespace_fn)
+    env.set("_join", join_fn)
+    env.set("_trim", trim_fn)
+    env.set("_trim_start", trim_start_fn)
+    env.set("_trim_end", trim_end_fn)
+    env.set("_lower", lower_fn)
+    env.set("_upper", upper_fn)
+    env.set("_parse_int", parse_int_fn)
     env.set("utf8_decode", utf8_decode_fn)
     env.set("utf8_encode", utf8_encode_fn)
     env.set("json_parse", json_parse_fn)
@@ -5399,6 +5582,59 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("rule_ctx", 1, "std/prelude/fn.genia")
     env.register_autoload("rule_halt", 0, "std/prelude/fn.genia")
     env.register_autoload("rule_step", 3, "std/prelude/fn.genia")
+    env.register_autoload("map_new", 0, "std/prelude/map.genia")
+    env.register_autoload("map_get", 2, "std/prelude/map.genia")
+    env.register_autoload("map_put", 3, "std/prelude/map.genia")
+    env.register_autoload("map_has?", 2, "std/prelude/map.genia")
+    env.register_autoload("map_remove", 2, "std/prelude/map.genia")
+    env.register_autoload("map_count", 1, "std/prelude/map.genia")
+    env.register_autoload("ref", 0, "std/prelude/ref.genia")
+    env.register_autoload("ref", 1, "std/prelude/ref.genia")
+    env.register_autoload("ref_get", 1, "std/prelude/ref.genia")
+    env.register_autoload("ref_set", 2, "std/prelude/ref.genia")
+    env.register_autoload("ref_is_set", 1, "std/prelude/ref.genia")
+    env.register_autoload("ref_update", 2, "std/prelude/ref.genia")
+    env.register_autoload("spawn", 1, "std/prelude/process.genia")
+    env.register_autoload("send", 2, "std/prelude/process.genia")
+    env.register_autoload("process_alive?", 1, "std/prelude/process.genia")
+    env.register_autoload("write", 2, "std/prelude/io.genia")
+    env.register_autoload("writeln", 2, "std/prelude/io.genia")
+    env.register_autoload("flush", 1, "std/prelude/io.genia")
+    env.register_autoload("some", 1, "std/prelude/option.genia")
+    env.register_autoload("none?", 1, "std/prelude/option.genia")
+    env.register_autoload("some?", 1, "std/prelude/option.genia")
+    env.register_autoload("get", 2, "std/prelude/option.genia")
+    env.register_autoload("get?", 2, "std/prelude/option.genia")
+    env.register_autoload("map_some", 2, "std/prelude/option.genia")
+    env.register_autoload("flat_map_some", 2, "std/prelude/option.genia")
+    env.register_autoload("then_get", 2, "std/prelude/option.genia")
+    env.register_autoload("then_first", 1, "std/prelude/option.genia")
+    env.register_autoload("then_nth", 2, "std/prelude/option.genia")
+    env.register_autoload("then_find", 2, "std/prelude/option.genia")
+    env.register_autoload("or_else", 2, "std/prelude/option.genia")
+    env.register_autoload("or_else_with", 2, "std/prelude/option.genia")
+    env.register_autoload("unwrap_or", 2, "std/prelude/option.genia")
+    env.register_autoload("absence_reason", 1, "std/prelude/option.genia")
+    env.register_autoload("absence_context", 1, "std/prelude/option.genia")
+    env.register_autoload("is_some?", 1, "std/prelude/option.genia")
+    env.register_autoload("is_none?", 1, "std/prelude/option.genia")
+    env.register_autoload("byte_length", 1, "std/prelude/string.genia")
+    env.register_autoload("is_empty", 1, "std/prelude/string.genia")
+    env.register_autoload("concat", 2, "std/prelude/string.genia")
+    env.register_autoload("contains", 2, "std/prelude/string.genia")
+    env.register_autoload("starts_with", 2, "std/prelude/string.genia")
+    env.register_autoload("ends_with", 2, "std/prelude/string.genia")
+    env.register_autoload("find", 2, "std/prelude/string.genia")
+    env.register_autoload("split", 2, "std/prelude/string.genia")
+    env.register_autoload("split_whitespace", 1, "std/prelude/string.genia")
+    env.register_autoload("join", 2, "std/prelude/string.genia")
+    env.register_autoload("trim", 1, "std/prelude/string.genia")
+    env.register_autoload("trim_start", 1, "std/prelude/string.genia")
+    env.register_autoload("trim_end", 1, "std/prelude/string.genia")
+    env.register_autoload("lower", 1, "std/prelude/string.genia")
+    env.register_autoload("upper", 1, "std/prelude/string.genia")
+    env.register_autoload("parse_int", 1, "std/prelude/string.genia")
+    env.register_autoload("parse_int", 2, "std/prelude/string.genia")
     env.register_autoload("stream_cons", 2, "std/prelude/stream.genia")
     env.register_autoload("stream_head", 1, "std/prelude/stream.genia")
     env.register_autoload("stream_tail", 1, "std/prelude/stream.genia")
@@ -5423,6 +5659,11 @@ Bytes / JSON / ZIP builtins (host-backed runtime bridge):
     env.register_autoload("operator", 1, "std/prelude/syntax.genia")
     env.register_autoload("operands", 1, "std/prelude/syntax.genia")
     env.register_autoload("block_expressions", 1, "std/prelude/syntax.genia")
+    env.register_autoload("match_branches", 1, "std/prelude/syntax.genia")
+    env.register_autoload("branch_pattern", 1, "std/prelude/syntax.genia")
+    env.register_autoload("branch_has_guard?", 1, "std/prelude/syntax.genia")
+    env.register_autoload("branch_guard", 1, "std/prelude/syntax.genia")
+    env.register_autoload("branch_body", 1, "std/prelude/syntax.genia")
     env.register_autoload("empty_env", 0, "std/prelude/eval.genia")
     env.register_autoload("lookup", 2, "std/prelude/eval.genia")
     env.register_autoload("define", 3, "std/prelude/eval.genia")
@@ -5555,7 +5796,7 @@ def _emit_error(env: Env, message: str) -> None:
 def repl() -> None:
     env = make_global_env([])
     try:
-        env.get("writeln")(env.get("stdout"), "Genia prototype REPL. Type :help for examples, :quit to exit.")
+        env.get("_writeln")(env.get("stdout"), "Genia prototype REPL. Type :help for examples, :quit to exit.")
     except GeniaQuietBrokenPipe:
         return
     buf = ""
@@ -5565,7 +5806,7 @@ def repl() -> None:
             line = input(prompt)
         except EOFError:
             try:
-                env.get("writeln")(env.get("stdout"), "")
+                env.get("_writeln")(env.get("stdout"), "")
             except GeniaQuietBrokenPipe:
                 return
             break
@@ -5576,7 +5817,7 @@ def repl() -> None:
             continue
         if not buf and line.strip() == ":env":
             for k in sorted(env.values):
-                env.get("writeln")(env.get("stdout"), f"{k} = {format_debug(env.values[k])}")
+                env.get("_writeln")(env.get("stdout"), f"{k} = {format_debug(env.values[k])}")
             continue
         buf += line + "\n"
         if not is_complete(buf):

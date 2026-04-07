@@ -34,6 +34,11 @@ def test_byte_length_utf8_minimal_examples():
     assert _run('byte_length("🙂")') == 4
 
 
+def test_string_public_wrappers_work_as_function_values():
+    assert _run('apply(parse_int, ["42"])') == 42
+    assert _run('apply(trim, ["  hello  "])') == "hello"
+
+
 def test_basic_string_predicates_and_search_for_ascii_and_unicode():
     assert _run('contains("café", "fé")') is True
     assert _run('starts_with("漢字abc", "漢")') is True

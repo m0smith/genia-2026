@@ -12,6 +12,15 @@ def test_ref_holds_initial_value(run):
     assert run(src) == 41
 
 
+def test_ref_public_wrappers_work_as_function_values(run):
+    src = '''
+    r = apply(ref, [41])
+    apply(ref_update, [r, (x) -> x + 1])
+    apply(ref_get, [r])
+    '''
+    assert run(src) == 42
+
+
 def test_ref_update_is_atomic_function_application(run):
     src = '''
     r = ref(1)

@@ -75,6 +75,99 @@ def test_help_undocumented_function_fallback():
     assert "No documentation available." in out
 
 
+def test_help_overview_points_to_prelude_backed_public_surface():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source("help()\n", env, filename="help_overview.genia")
+    out = "".join(outputs)
+    assert "Most user-facing helpers live in autoloaded prelude modules." in out
+    assert '`help("name")` autoloads a documented public helper' in out
+    assert "`get(key, target)` is preferred over `map_get`" in out
+    assert "Map / ref / process / sinks:" in out
+    assert "Syntax / eval:" in out
+
+
+def test_help_autoloads_option_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("get")\n', env, filename="help_option.genia")
+    out = "".join(outputs)
+    assert "get/2" in out
+    assert "# get" in out
+    assert "Canonical maybe-aware lookup helper" in out
+
+
+def test_help_autoloads_string_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("parse_int")\n', env, filename="help_string.genia")
+    out = "".join(outputs)
+    assert "parse_int/1, 2" in out
+    assert "# parse_int" in out
+    assert "Parse an integer from a string" in out
+
+
+def test_help_autoloads_map_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("map_put")\n', env, filename="help_map.genia")
+    out = "".join(outputs)
+    assert "map_put/3" in out
+    assert "# map_put" in out
+    assert "Return a new map with `key` set to `value`." in out
+
+
+def test_help_autoloads_io_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("write")\n', env, filename="help_io.genia")
+    out = "".join(outputs)
+    assert "write/2" in out
+    assert "# write" in out
+    assert "without a trailing newline" in out
+
+
+def test_help_autoloads_process_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("spawn")\n', env, filename="help_process.genia")
+    out = "".join(outputs)
+    assert "spawn/1" in out
+    assert "# spawn" in out
+    assert "host-thread mailbox worker" in out
+
+
+def test_help_autoloads_eval_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("eval")\n', env, filename="help_eval.genia")
+    out = "".join(outputs)
+    assert "eval/2" in out
+    assert "# eval" in out
+    assert "Evaluate a quoted Genia expression in a metacircular environment." in out
+
+
+def test_help_autoloads_syntax_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("match_branches")\n', env, filename="help_syntax.genia")
+    out = "".join(outputs)
+    assert "match_branches/1" in out
+    assert "# match_branches" in out
+    assert "quoted branch sequence of a match expression" in out
+
+
+def test_help_for_host_primitive_name_points_back_to_public_surface():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("print")\n', env, filename="help_host.genia")
+    out = "".join(outputs)
+    assert "print" in out
+    assert "host-backed runtime function" in out
+    assert "public Genia/prelude functions" in out
+    assert '`help("name")` for documented public helpers such as `get`' in out
+
+
 def test_help_docstring_normalizes_triple_quote_wrappers_and_indentation():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)

@@ -59,6 +59,16 @@ def test_write_and_writeln_to_stdout():
     assert stderr.getvalue() == ""
 
 
+def test_io_public_wrappers_work_as_function_values():
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    env = make_global_env(stdout_stream=stdout, stderr_stream=stderr)
+
+    assert run_source('apply(write, [stdout, "a"])\napply(writeln, [stdout, "b"])', env) == "b"
+    assert stdout.getvalue() == "ab\n"
+    assert stderr.getvalue() == ""
+
+
 def test_flush_succeeds_for_stdout_and_stderr():
     stdout = RecordingStream()
     stderr = RecordingStream()

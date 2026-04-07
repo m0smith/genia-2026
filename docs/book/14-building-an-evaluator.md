@@ -57,15 +57,28 @@ Expected result:
 15
 ```
 
+## Edge case example
+
+```genia
+matcher = eval(quote(x ? x > 0 -> x | _ -> 0), empty_env())
+[apply(matcher, [5]), apply(matcher, [-1])]
+```
+
+Expected result:
+
+```genia
+[5, 0]
+```
+
 ## Failure case example
 
 ```genia
-eval(quote(0 -> 1 | _ -> 2), empty_env())
+apply(eval(quote(0 -> 1), empty_env()), [9])
 ```
 
 Expected behavior:
 
-- raises a clear runtime error because quoted match/case forms are not executable through phase-1 metacircular `eval`
+- raises a clear runtime error because no quoted match branch matched the argument list
 
 ## Implementation status
 
@@ -83,23 +96,23 @@ Expected behavior:
   - quoted expressions
   - assignment expressions
   - lambda expressions
+  - match/case expressions
   - application expressions
   - block expressions
 - `apply(proc, args)` for:
   - ordinary callable values
   - metacircular compound procedures represented as `(compound <params> <body> <env>)`
+  - metacircular matcher procedures represented as `(matcher <match-expr> <env>)`
 
 ### ⚠️ Partial
 
 - the evaluator operates only on the supported quoted expression families above
-- quoted match/case forms are inspectable but not executable yet
 - the evaluator relies on a host-backed metacircular environment capability instead of a pure-Genia environment implementation
 - `operands(...)` and `block_expressions(...)` still return pair-chain sequences rather than normalized ordinary lists
 
 ### ❌ Not implemented
 
 - metacircular evaluation for every current Genia surface form
-- metacircular execution of quoted match/case expressions
 - macro expansion or compiler/analyzer passes
 
 ## Notes

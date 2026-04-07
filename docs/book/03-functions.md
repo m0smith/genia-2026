@@ -162,6 +162,7 @@ math/missing
 
 Bundled stdlib functions are not only callable by name.
 They can also be used as function values in higher-order positions, and name lookup may autoload the defining prelude file before the lookup succeeds.
+This now includes the public Option, String, Map, Ref, Process, and sink helper surfaces, which are exposed as thin prelude wrappers over host-backed runtime behavior.
 
 ### Minimal example
 
@@ -225,6 +226,25 @@ You can inspect it with:
 help("inc")
 ```
 
+`help("name")` also autoloads registered prelude helpers before rendering their docstrings.
+For example, the public wrapper-backed helpers below are help-visible without being called first:
+
+```genia
+help()
+help("get")
+help("parse_int")
+help("map_put")
+help("spawn")
+help("eval")
+help("write")
+```
+
+Current help model:
+
+- `help()` gives a compact overview of the public prelude-backed stdlib families.
+- `help("name")` autoloads registered public helpers and shows their wrapper docstrings.
+- raw host-backed runtime names such as `print` or `stdout` intentionally do not grow a separate detailed docs registry in this phase; they show a small bridge note instead.
+
 ---
 
 ## Official Docstring Style Guide
@@ -270,6 +290,8 @@ For a single named function group (same name across clauses):
 1. function signature header (`name/shape`)
 2. source location (`Defined at file:line`) when available
 3. rendered docstring, or `No documentation available.`
+
+`help()` without arguments prints a surface overview that points users toward the canonical public prelude helpers.
 
 ---
 

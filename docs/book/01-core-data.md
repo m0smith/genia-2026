@@ -64,6 +64,12 @@ Genia's current runtime value model is broader than just "plain data".
 - `some(nil)` is possible and means the key exists with value `nil`
 - `none`, `none(reason)`, and `none(reason, context)` all mean absence; reason/context are metadata
 - Option pattern matching supports literal `none`, structured `none(...)`, and constructor pattern `some(pattern)`
+- the public Map helper names are thin prelude wrappers in `std/prelude/map.genia`, backed by the same host runtime behavior
+- the public Ref helper names are thin prelude wrappers in `std/prelude/ref.genia`, backed by the same host runtime behavior
+- the public output sink helper names are thin prelude wrappers in `std/prelude/io.genia`, backed by the same host runtime behavior
+- the public Option helper names are thin prelude wrappers in `std/prelude/option.genia`, backed by the same host runtime behavior
+- the public String helper names are thin prelude wrappers in `std/prelude/string.genia`, backed by the same host runtime behavior
+- `help()` now points users toward these public prelude-backed helper families; raw host bridge names remain intentionally generic in help output
 
 Naming rule today:
 
@@ -261,22 +267,23 @@ x
 
 ```genia
 [
-  lambda_expr?(quote((x) -> x + 1)),
-  operator(quote(f(1, 2))),
-  operands(quote(f(1, 2)))
+  branch_has_guard?(car(match_branches(quote(0 -> 1 | x ? x > 0 -> x)))),
+  branch_has_guard?(car(cdr(match_branches(quote(0 -> 1 | x ? x > 0 -> x))))),
+  branch_guard(car(cdr(match_branches(quote(0 -> 1 | x ? x > 0 -> x))))) == quote(x > 0)
 ]
 ```
 
 Expected result:
 
 ```genia
-[true, f, (1 2)]
+[false, true, true]
 ```
 
 Current note:
 
 - quoted source applications use the stable tag form `(app <operator> <operand1> ...)`
 - `operands(...)` returns the operand tail as a pair chain
+- `match_branches(...)` returns the branch tail of `(match ...)` as a pair chain
 - this helper layer stays close to the existing quoted representation instead of inventing a second AST type family
 
 ### Failure case example
@@ -313,10 +320,15 @@ Expected behavior:
   - `operator`
   - `operands`
   - `block_expressions`
+  - `match_branches`
+  - `branch_pattern`
+  - `branch_has_guard?`
+  - `branch_guard`
+  - `branch_body`
 
 ### ⚠️ Partial
 
-- `operands(...)` and `block_expressions(...)` return pair-chain sequences instead of normalized ordinary lists
+- `operands(...)`, `block_expressions(...)`, and `match_branches(...)` return pair-chain sequences instead of normalized ordinary lists
 
 ### ❌ Not implemented
 
@@ -370,12 +382,12 @@ Expected result:
 ### Failure case example
 
 ```genia
-eval(quote(0 -> 1 | _ -> 2), empty_env())
+apply(eval(quote(0 -> 1), empty_env()), [9])
 ```
 
 Expected behavior:
 
-- raises a clear runtime error because quoted match/case forms are not yet executable through phase-1 metacircular `eval`
+- raises a clear runtime error because no quoted match branch matched the argument list
 
 ### Implementation status
 
@@ -393,21 +405,21 @@ Expected behavior:
   - quoted expressions
   - assignments
   - lambdas
+  - match/case expressions
   - applications
   - blocks
 - `apply(proc, args)` for:
   - ordinary callable values
   - metacircular compound procedures represented as `(compound <params> <body> <env>)`
+  - metacircular matcher procedures represented as `(matcher <match-expr> <env>)`
 
 ### ⚠️ Partial
 
-- quoted match/case forms are inspectable but not executable through phase-1 metacircular `eval`
 - `operands(...)` and `block_expressions(...)` still expose pair-chain sequences rather than normalized ordinary lists
 
 ### ❌ Not implemented
 
 - a full metacircular evaluator for every current surface form
-- metacircular `eval` support for quoted match/case execution
 
 ---
 
@@ -561,6 +573,7 @@ Expected behavior:
 ## Output sinks (phase 1)
 
 Genia has minimal host-backed output sink values for Unix-style IO.
+The public `write`, `writeln`, and `flush` names are defined in `std/prelude/io.genia` as thin documented wrappers over the host-backed sink bridge.
 
 - `stdout`
 - `stderr`
@@ -610,6 +623,7 @@ Expected behavior:
 ### ✅ Implemented
 
 - first-class `stdout` and `stderr` runtime sink values
+- public `write`, `writeln`, and `flush` wrappers in `std/prelude/io.genia`
 - `write(sink, value)` and `writeln(sink, value)`
 - `flush(sink)`
 - `print(...)` routed to `stdout`
@@ -629,7 +643,8 @@ Expected behavior:
 
 ## String parsing
 
-Genia includes a small explicit integer parser:
+Genia includes a small explicit integer parser.
+The public `parse_int` name is defined in `std/prelude/string.genia` as a thin documented wrapper over the host-backed parser:
 
 - `parse_int(string)`
 - `parse_int(string, base)`
@@ -675,13 +690,28 @@ Additional current rules:
 - explicit base must be in `2..36`
 - non-string input raises `TypeError`
 
+### Implementation status
+
+### ✅ Implemented
+
+- `parse_int(string)` and `parse_int(string, base)`
+- public `parse_int` wrapper in `std/prelude/string.genia`
+- `help("parse_int")` visibility through the wrapper docstring
+
+### ⚠️ Partial
+
+- integer parsing only; there is no broader numeric parsing family in this phase
+
+### ❌ Not implemented
+
+- built-in float parsing helpers
+- Option-returning parse helpers
+
 ---
 
 ## Phase 1 map bridge (what it is)
 
-Genia now has minimal map literals and map patterns, and still exposes the runtime/builtin bridge APIs directly.
-
-Instead, Genia now exposes a minimal runtime/builtin bridge:
+Genia now has minimal map literals and map patterns, and the public map helper names are thin prelude wrappers over a minimal host-backed runtime bridge:
 
 - `map_new()`
 - `map_get(m, key)`
@@ -689,6 +719,8 @@ Instead, Genia now exposes a minimal runtime/builtin bridge:
 - `map_has?(m, key)`
 - `map_remove(m, key)`
 - `map_count(m)`
+
+These public helper names live in `std/prelude/map.genia` as thin documented wrappers over the same host-backed map runtime support.
 
 Implementation note: map values remain the same **Phase 1 host-backed opaque map runtime value** under both builtin and literal syntax.
 
@@ -765,7 +797,8 @@ Expected behavior:
 ### ✅ Implemented
 
 - opaque runtime map value wrapper
-- map builtins (`map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`)
+- public map helper surface in `std/prelude/map.genia`
+- map helpers (`map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`)
 - persistent behavior for `map_put` and `map_remove`
 - missing-key lookup returns `nil`
 - callable map lookup:
@@ -1212,6 +1245,9 @@ And minimal helpers:
 - `absence_reason(opt)`
 - `absence_context(opt)`
 
+These public helper names live in `std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
+`none` remains a runtime value/literal rather than a prelude wrapper.
+
 Canonical access/search helpers implemented today:
 
 - `first(list)`
@@ -1297,6 +1333,7 @@ Expected behavior:
 - `get?(key, target)` remains as a compatibility alias
 - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`
 - helper builtins: `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+- public Option helper surface is prelude-backed, so helpers such as `some`, `get`, `map_some`, and `or_else` are visible through `help("name")`
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - `unwrap_or(default, opt)` for defaulting on `none`

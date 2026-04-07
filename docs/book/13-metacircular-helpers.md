@@ -33,6 +33,11 @@ Selectors:
 - `operator`
 - `operands`
 - `block_expressions`
+- `match_branches`
+- `branch_pattern`
+- `branch_has_guard?`
+- `branch_guard`
+- `branch_body`
 
 ## Implementation status
 
@@ -40,12 +45,12 @@ Selectors:
 
 - stable quoted tags for application, assignment, lambda, block, and match/case
 - syntax predicates for the current evaluator-facing expression families
-- syntax selectors for quotation, assignment, lambda, application, and block forms
+- syntax selectors for quotation, assignment, lambda, application, block, and match-branch forms
 - clear selector failures on wrong expression kinds
 
 ### ⚠️ Partial
 
-- `operands(...)` and `block_expressions(...)` return raw pair-chain tails, not normalized ordinary lists
+- `operands(...)`, `block_expressions(...)`, and `match_branches(...)` return raw pair-chain tails, not normalized ordinary lists
 
 ### ❌ Not implemented
 
@@ -71,34 +76,35 @@ Expected result:
 
 ```genia
 [
-  lambda_expr?(quote((x) -> x + 1)),
-  operator(quote(f(1, 2))),
-  operands(quote(f(1, 2))),
-  application_expr?(quote([f, 1, 2]))
+  branch_pattern(car(match_branches(quote(0 -> 1 | x ? x > 0 -> x)))),
+  branch_has_guard?(car(match_branches(quote(0 -> 1 | x ? x > 0 -> x)))),
+  branch_has_guard?(car(cdr(match_branches(quote(0 -> 1 | x ? x > 0 -> x))))),
+  branch_guard(car(cdr(match_branches(quote(0 -> 1 | x ? x > 0 -> x)))))
 ]
 ```
 
 Expected result:
 
 ```genia
-[true, f, (1 2), false]
+[0, false, true, (app > x 0)]
 ```
 
 This shows the current selector contract:
 
-- `operator(...)` returns the quoted operator value
-- `operands(...)` returns the raw quoted operand tail as a pair chain
-- quoted source application is represented explicitly as `(app f 1 2)`
+- `branch_pattern(...)` returns the quoted branch pattern
+- `branch_has_guard?(...)` distinguishes guarded vs unguarded branches
+- `branch_guard(...)` returns the quoted guard expression for guarded branches
+- quoted match/case is represented explicitly as `(match (clause ...) ...)`
 
 ## Failure case example
 
 ```genia
-operator(quote([f, 1, 2]))
+branch_guard(car(match_branches(quote(_ -> 1))))
 ```
 
 Expected behavior:
 
-- raises `TypeError("operator expected an application expression")`
+- raises `TypeError("branch_guard expected a guarded match branch")`
 
 ## Representation notes
 

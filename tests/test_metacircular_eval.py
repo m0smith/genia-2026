@@ -86,3 +86,24 @@ def test_eval_block_scope_is_local(run):
     """
     with pytest.raises(NameError, match="Undefined name: x"):
         run(src)
+
+
+def test_eval_match_expression_returns_matcher(run):
+    src = """
+    matcher = eval(quote(0 -> 1 | _ -> 2), empty_env())
+    [apply(matcher, [0]), apply(matcher, [9])]
+    """
+    assert run(src) == [1, 2]
+
+
+def test_eval_guarded_match_expression(run):
+    src = """
+    matcher = eval(quote(x ? x > 0 -> x | _ -> 0), empty_env())
+    [apply(matcher, [5]), apply(matcher, [-1])]
+    """
+    assert run(src) == [5, 0]
+
+
+def test_eval_match_failure_is_clear(run):
+    with pytest.raises(RuntimeError, match="metacircular match failed"):
+        run("apply(eval(quote(0 -> 1), empty_env()), [9])")

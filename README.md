@@ -7,11 +7,11 @@ This repository currently provides:
 - a parser + evaluator (`src/genia/interpreter.py`)
 - a tiny Core IR + AST→IR lowering pass used before evaluation
 - a REPL and file runner (`python3 -m genia.interpreter`)
-- host-backed concurrency primitives (`spawn`, `send`, `process_alive?`)
-- refs (`ref`, `ref_get`, `ref_set`, `ref_update`)
+- host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`)
+- host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
-- autoloaded prelude libraries (lists, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
+- autoloaded prelude libraries (lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
@@ -98,10 +98,12 @@ Current consistency note:
 - preferred modern absence style in new code:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
 - maybe-flow helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` preserve structured absence unchanged
+- public Option, String, Map, Ref, Process, and sink helper names are now prelude-backed wrappers over host-backed runtime primitives, so they participate in `help("name")` doc output without changing runtime behavior
+- `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none(missing_key, {key: "name"})`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
-- Flow, MetaEnv, and Ref are runtime values, but they are not plain data in the same sense as numbers/lists/maps
+- Flow, MetaEnv, Ref, and Process handles are runtime values, but they are not plain data in the same sense as numbers/lists/maps
 
 ### Programs as Data
 
@@ -149,11 +151,11 @@ list = (..xs) -> xs
   - `unquote_splicing(...)` is supported in quasiquoted list contexts
 - quoted/quasiquoted data can now be inspected with the syntax helper prelude
   - `self_evaluating?`, `symbol_expr?`, `quoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
-  - selectors include `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`
+  - selectors include `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
 - Genia also now includes a minimal phase-1 metacircular evaluator over quoted expressions
   - environment helpers: `empty_env`, `lookup`, `define`, `set`, `extend`
   - evaluator entry: `eval(expr, env)`
-  - `apply(proc, args)` still applies ordinary callables and now also applies metacircular compound procedures
+  - `apply(proc, args)` still applies ordinary callables and now also applies metacircular compound procedures and metacircular matcher procedures
 - named functions may include optional docstring metadata:
   - example:
     ```genia
@@ -316,6 +318,7 @@ flush(stdout)
 ```
 
 - `stdout` and `stderr` are first-class host-backed sink values
+- public helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
 - `write(sink, value)` writes display-formatted output with no newline
 - `writeln(sink, value)` writes display-formatted output with a trailing newline
 - `flush(sink)` flushes a sink and returns `nil`
@@ -331,6 +334,7 @@ cell_send(counter, (n) -> n + 1)
 cell_get(counter)
 ```
 
+- public helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
 - `spawn(handler)` creates a host-thread worker with FIFO mailbox
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` reports worker liveness
@@ -344,13 +348,19 @@ cell_get(counter)
 
 ### Core
 
-- `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
+- direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+- public sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
-- `help(name)` prints named function metadata (`name/shape`, source if available, rendered docstring, or undocumented fallback)
+- `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
+- `help()` prints a compact overview of the public prelude-backed stdlib families and canonical helpers
+- `help("name")` can autoload registered prelude helpers before rendering their docstrings
+- `help("name")` for raw host-backed names prints a generic bridge note rather than a separate host-specific doc registry
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, `nil`
-- option builtins: `none`, `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+- option runtime + public helpers:
+  - `none` remains a runtime literal/value
+  - public helpers from `std/prelude/option.genia`: `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `rules`, `each`, `collect`, `run`, plus prelude `head` aliases and rule helper constructors `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
@@ -395,14 +405,15 @@ main() = print("Hello world")
 
 ### Refs
 
-- `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+- public helpers from `std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 
 ### Strings
 
-- `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`
+- public helpers from `std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`
 - `find`, `split`, `split_whitespace`, `join`
 - `trim`, `trim_start`, `trim_end`, `lower`, `upper`
 - `parse_int`
+- these remain thin wrappers over the same host-backed string runtime behavior
 
 Examples:
 
@@ -418,7 +429,7 @@ parse_int("ff", 16)
 
 ### Concurrency
 
-- `spawn`, `send`, `process_alive?`
+- public helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
 
 ### Simulation primitives (Phase 2)
 
@@ -455,7 +466,7 @@ rewrite_zip(in_path, out_path) =
 
 ### Phase 1 persistent associative maps
 
-- `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- public helpers from `std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - implemented as an opaque host-backed runtime wrapper (no map syntax added)
 - persistent semantics from Genia perspective (`map_put`/`map_remove` return new map values)
 
@@ -465,6 +476,10 @@ rewrite_zip(in_path, out_path) =
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn helpers: `apply`, `compose`
+- map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+- process helpers: `spawn`, `send`, `process_alive?`
+- sink helpers: `write`, `writeln`, `flush`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
 - cells: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`

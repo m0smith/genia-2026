@@ -16,6 +16,11 @@ def test_some_value(run):
     assert "some(2" in repr(result)
 
 
+def test_option_public_wrappers_work_as_function_values(run):
+    assert run('unwrap_or(0, apply(get, ["a", {a: 7}]))') == 7
+    assert run("apply(some?, [some(3)])") is True
+
+
 def test_none_value(run):
     assert run("none") == run("none")
     assert run("is_none?(none)") is True

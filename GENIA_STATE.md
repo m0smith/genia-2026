@@ -100,7 +100,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
-- maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find`; pipeline syntax itself remains ordinary AST→Core IR call rewriting.
+- maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find`; the public helper names are prelude-backed wrappers over host-backed runtime primitives, and pipeline syntax itself remains ordinary AST→Core IR call rewriting.
+- public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
+- `help()` now serves as a small public-surface overview that points users toward autoloaded prelude families and canonical helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, and `eval`
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -109,7 +111,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - functions are callable as functions
   - maps are callable as lookup values
   - strings are callable as map projectors
-- Flow, stdout/stderr, MetaEnv, and Ref are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
+- Flow, stdout/stderr, MetaEnv, Ref, and Process handles are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
 - lexical assignment currently does not protect builtin/root names from rebinding inside the same root environment; that is real current behavior.
 - The current model is implemented and tested, but it is still piecemeal rather than a single fully unified type/protocol system.
 
@@ -309,6 +311,12 @@ Pipeline (Phase 2) rewrite model:
     - `operator`
     - `operands`
     - `block_expressions`
+  - match selectors:
+    - `match_branches`
+    - `branch_pattern`
+    - `branch_has_guard?`
+    - `branch_guard`
+    - `branch_body`
 - current supported expression families in the helper layer are:
   - self-evaluating literals
   - symbol/variable expressions
@@ -320,6 +328,8 @@ Pipeline (Phase 2) rewrite model:
   - match/case expressions
 - quoted source applications are now represented and detected with the stable `(app ...)` tag
 - `operands(expr)` returns the operand tail of `(app ...)` as a pair-chain sequence of operand expressions
+- `match_branches(expr)` returns the branch tail of `(match ...)` as a pair-chain sequence of quoted branches
+- `branch_guard(branch)` raises a clear `TypeError` when used on an unguarded branch
 
 ## 4.6) Metacircular evaluator (stdlib)
 
@@ -338,6 +348,7 @@ Pipeline (Phase 2) rewrite model:
   - quoted expressions
   - assignments
   - lambdas
+  - match/case expressions
   - applications
   - blocks
 - metacircular environments follow current lexical scoping rules:
@@ -347,8 +358,9 @@ Pipeline (Phase 2) rewrite model:
   - closures capture the defining metacircular environment
 - metacircular compound procedures are represented as tagged pair data:
   - `(compound <params> <body> <env>)`
+- metacircular matcher procedures are represented as tagged pair data:
+  - `(matcher <match-expr> <env>)`
 - current evaluator limitations:
-  - it is intentionally phase-1 only; quoted match/case forms are inspectable but not yet executable through metacircular `eval`
   - `eval` is only defined for the supported expression families above
 
 ## 5) Case expressions and pattern matching
@@ -416,13 +428,19 @@ Case placement rules (enforced):
 
 ### Core I/O and utilities
 
-- `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `write`, `writeln`, `flush`, `help`
+- direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+- public sink helpers are thin prelude wrappers in `std/prelude/io.genia`:
+  - `write`
+  - `writeln`
+  - `flush`
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, `nil`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 
 Output sink semantics:
 
+- `write`, `writeln`, and `flush` are the canonical public sink helper names and carry Markdown docstrings for `help(...)`
+- the underlying sink behavior remains host-backed and unchanged in this phase
 - `write(sink, value)` writes display-formatted output without a trailing newline and returns `value`
 - `writeln(sink, value)` writes display-formatted output with a trailing newline and returns `value`
 - `flush(sink)` flushes the sink and returns `nil`
@@ -514,19 +532,25 @@ Behavior:
 
 ### Refs
 
-- `ref([initial])`
-- `ref_get(ref)`
-- `ref_set(ref, value)`
-- `ref_is_set(ref)`
-- `ref_update(ref, updater)`
+- public ref helpers are thin prelude wrappers in `std/prelude/ref.genia`
+  - `ref([initial])`
+  - `ref_get(ref)`
+  - `ref_set(ref, value)`
+  - `ref_is_set(ref)`
+  - `ref_update(ref, updater)`
+  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying ref behavior remains host-backed and unchanged in this phase
 
 Behavior: refs are synchronized host objects; `ref_get` / `ref_update` block until value is set when created via `ref()`.
 
 ### Host-backed concurrency
 
-- `spawn(handler)`
-- `send(process, message)`
-- `process_alive?(process)`
+- public process helpers are thin prelude wrappers in `std/prelude/process.genia`
+  - `spawn(handler)`
+  - `send(process, message)`
+  - `process_alive?(process)`
+  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying process behavior remains host-backed and unchanged in this phase
 
 Behavior:
 
@@ -570,12 +594,15 @@ Behavior:
 
 ### Host-backed persistent associative maps (Phase 1 bridge)
 
-- `map_new()`
-- `map_get(map, key)`
-- `map_put(map, key, value)`
-- `map_has?(map, key)`
-- `map_remove(map, key)`
-- `map_count(map)`
+- public map helpers are thin prelude wrappers in `std/prelude/map.genia`
+  - `map_new()`
+  - `map_get(map, key)`
+  - `map_put(map, key, value)`
+  - `map_has?(map, key)`
+  - `map_remove(map, key)`
+  - `map_count(map)`
+  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying map behavior remains host-backed and unchanged in this phase
 
 Behavior:
 
@@ -597,7 +624,11 @@ Behavior:
   - `none(reason)`
   - `none(reason, context)`
   - `some(value)`
-- option/query builtins:
+- public option helpers are thin prelude wrappers in `std/prelude/option.genia`
+  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying runtime behavior remains host-backed and unchanged in this phase
+  - `none` remains a runtime literal/value, not a prelude wrapper
+- option/query helpers:
   - `get(key, target)`
   - `get?(key, target)`
   - `unwrap_or(default, opt)`
@@ -607,7 +638,7 @@ Behavior:
   - `or_else_with(opt, thunk)`
   - `absence_reason(opt)`
   - `absence_context(opt)`
-- maybe-flow builtins:
+- maybe-flow helpers:
   - `map_some(f, opt)`
   - `flat_map_some(f, opt)`
   - `then_get(key, target)`
@@ -750,13 +781,16 @@ Pattern matching note:
 - `some(...)` pattern form requires exactly one inner pattern
 - in `none(reason)` and `none(reason, context)` patterns, the reason slot matches the quoted/literal reason value
 
-### String builtins
+### String helpers
 
 - `byte_length`, `is_empty`, `concat`
 - `contains`, `starts_with`, `ends_with`, `find`
 - `split`, `split_whitespace`, `join`
 - `trim`, `trim_start`, `trim_end`
 - `lower`, `upper`, `parse_int`
+- public string helpers are thin prelude wrappers in `std/prelude/string.genia`
+  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying runtime behavior remains host-backed and unchanged in this phase
 
 `parse_int` behavior:
 
@@ -810,6 +844,12 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 
 - `std/prelude/list.genia`
 - `std/prelude/fn.genia`
+- `std/prelude/map.genia`
+- `std/prelude/ref.genia`
+- `std/prelude/process.genia`
+- `std/prelude/io.genia`
+- `std/prelude/option.genia`
+- `std/prelude/string.genia`
 - `std/prelude/math.genia`
 - `std/prelude/awk.genia`
 - `std/prelude/cell.genia`
@@ -822,6 +862,7 @@ Loading behavior:
 - file-relative module imports still resolve from the requesting source file's directory first
 - autoload can be triggered both by calls and by plain name lookup for function values
   - this means autoloaded functions can be passed to higher-order helpers such as `apply`, `compose`, `map_some`, and `flat_map_some`
+  - `help("name")` also triggers autoload for registered public helpers before reporting an undefined name
 
 Notable autoloaded functions include:
 
@@ -829,6 +870,13 @@ Notable autoloaded functions include:
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `compose`
+- map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+- process: `spawn`, `send`, `process_alive?`
+- io: `write`, `writeln`, `flush`
+- option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
+- string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
+- syntax: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
 - metacircular evaluator: `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
@@ -870,6 +918,8 @@ Core IR shape currently includes:
   - Markdown-aware docstring rendering (headings, bullet lists, inline code, fenced code blocks, paragraph spacing)
   - docstring normalization (trim outer blank lines, dedent indentation, optional triple-quote wrapper stripping, collapse excessive blank lines)
   - undocumented fallback message (`No documentation available.`)
+- `help()` with no arguments prints a small overview centered on the public prelude-backed stdlib surface and calls out the intentionally small host bridge
+- `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
 
 ## 10) Explicitly not implemented (current)
 
@@ -887,7 +937,7 @@ Core IR shape currently includes:
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
-- host-backed map builtins for persistent world updates
+- public prelude-backed map helpers over the host-backed map runtime for persistent world updates
 - `rand_int` for random movement choice
 - recursion for stepping
 - `sleep` for blocking frame delay

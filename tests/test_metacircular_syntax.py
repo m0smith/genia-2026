@@ -104,6 +104,24 @@ def test_match_expression_predicate(run):
     assert run("match_expr?(quote(0 -> 1 | _ -> 2))") is True
 
 
+def test_match_branch_helpers(run):
+    src = """
+    branches = match_branches(quote(0 -> 1 | x ? x > 0 -> x))
+    first_branch = car(branches)
+    second_branch = car(cdr(branches))
+    [
+      branch_pattern(first_branch) == quote(0),
+      branch_has_guard?(first_branch),
+      branch_body(first_branch) == quote(1),
+      branch_pattern(second_branch) == quote(x),
+      branch_has_guard?(second_branch),
+      branch_guard(second_branch) == quote(x > 0),
+      branch_body(second_branch) == quote(x)
+    ]
+    """
+    assert run(src) == [True, False, True, True, True, True, True]
+
+
 def test_selector_failures_are_clear(run):
     with pytest.raises(TypeError, match="assignment_name expected an assignment expression"):
         run("assignment_name(quote(42))")
@@ -113,3 +131,9 @@ def test_selector_failures_are_clear(run):
         run("operator(quote(42))")
     with pytest.raises(TypeError, match="operator expected an application expression"):
         run("operator(quote([f, 1, 2]))")
+    with pytest.raises(TypeError, match="match_branches expected a match expression"):
+        run("match_branches(quote(42))")
+    with pytest.raises(TypeError, match="branch_pattern expected a match branch"):
+        run("branch_pattern(quote(42))")
+    with pytest.raises(TypeError, match="branch_guard expected a guarded match branch"):
+        run("branch_guard(car(match_branches(quote(_ -> 1))))")
