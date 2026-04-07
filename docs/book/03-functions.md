@@ -243,7 +243,7 @@ help("write")
 
 Current help model:
 
-- `help()` gives a compact overview of the public prelude-backed stdlib families.
+- `help()` gives a compact overview of the public prelude-backed stdlib families, with representative family samples derived from registered autoload metadata.
 - `help("name")` autoloads registered public helpers and shows their wrapper docstrings.
 - raw host-backed runtime names such as `print` or `stdout` intentionally do not grow a separate detailed docs registry in this phase; they show a small bridge note instead.
 

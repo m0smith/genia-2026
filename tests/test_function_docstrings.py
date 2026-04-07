@@ -82,7 +82,13 @@ def test_help_overview_points_to_prelude_backed_public_surface():
     out = "".join(outputs)
     assert "Most user-facing helpers live in autoloaded prelude modules." in out
     assert '`help("name")` autoloads a documented public helper' in out
+    assert "Public family samples below are derived from registered prelude autoloads." in out
     assert "`get(key, target)` is preferred over `map_get`" in out
+    assert "Public prelude families discovered from autoload registrations:" in out
+    assert "cli_parse, cli_flag?, cli_option, cli_option_or" in out
+    assert "lines, rules, each, collect, run" in out
+    assert "map_put, map_has?, ref_update, spawn, send, write, writeln, flush" in out
+    assert "match_branches, branch_guard, empty_env, eval" in out
     assert "Map / ref / process / sinks:" in out
     assert "Syntax / eval:" in out
 

@@ -4467,6 +4467,104 @@ def make_global_env(
             ]
         )
 
+    def _discover_public_family_names(paths: tuple[str, ...], preferred: tuple[str, ...]) -> list[str]:
+        discovered: list[str] = []
+        seen: set[str] = set()
+        for (name, _), path in env.root().autoloads.items():
+            if path not in paths or name in seen:
+                continue
+            seen.add(name)
+            discovered.append(name)
+
+        if not discovered:
+            return []
+
+        ordered = [name for name in preferred if name in seen]
+        extras = [name for name in discovered if name not in ordered]
+        return [*ordered, *extras]
+
+    def _help_public_families() -> list[tuple[str, list[str]]]:
+        specs = [
+            ("CLI", ("std/prelude/cli.genia",), ("cli_parse", "cli_flag?", "cli_option", "cli_option_or")),
+            ("Flow", ("std/prelude/flow.genia",), ("lines", "rules", "each", "collect", "run")),
+            (
+                "Lists / fns / math",
+                ("std/prelude/list.genia", "std/prelude/fn.genia", "std/prelude/math.genia"),
+                ("list", "first", "nth", "map", "filter", "reduce", "apply", "compose", "sum"),
+            ),
+            (
+                "Option / string",
+                ("std/prelude/option.genia", "std/prelude/string.genia"),
+                ("some", "get", "map_some", "flat_map_some", "then_get", "unwrap_or", "parse_int", "split", "trim", "join"),
+            ),
+            (
+                "Map / ref / process / sinks",
+                ("std/prelude/map.genia", "std/prelude/ref.genia", "std/prelude/process.genia", "std/prelude/io.genia"),
+                ("map_put", "map_has?", "ref_update", "spawn", "send", "write", "writeln", "flush"),
+            ),
+            (
+                "Streams / cells / rule helpers",
+                ("std/prelude/stream.genia", "std/prelude/cell.genia", "std/prelude/fn.genia"),
+                ("stream_cons", "stream_map", "stream_take", "cell", "cell_send", "cell_error", "rule_emit", "rule_step"),
+            ),
+            (
+                "Syntax / eval",
+                ("std/prelude/syntax.genia", "std/prelude/eval.genia"),
+                ("match_branches", "branch_guard", "empty_env", "eval"),
+            ),
+            ("AWK-style helpers", ("std/prelude/awk.genia",), ("fields", "awkify", "awk_filter", "awk_map", "awk_count")),
+        ]
+        families: list[tuple[str, list[str]]] = []
+        for label, paths, preferred in specs:
+            names = _discover_public_family_names(paths, preferred)
+            if names:
+                families.append((label, names))
+        return families
+
+    def _describe_help_overview() -> str:
+        lines = [
+            "Genia prototype help",
+            "--------------------",
+            "Examples:",
+            "  1 + 2 * 3",
+            '  person = { name: "Maya" }',
+            '  get("name", person)',
+            "  [1, 2, 3] |> map((x) -> x + 1)",
+            "  quote([a, b, c])",
+            '  help("get")',
+            '  help("map_put")',
+            '  help("spawn")',
+            '  help("eval")',
+            "",
+            "Commands:",
+            "  :quit   exit",
+            "  :env    show defined names",
+            "  :help   show this help",
+            "  help(name)   show docs for a public helper or a note for a runtime name",
+            "",
+            "Public stdlib model:",
+            "  Most user-facing helpers live in autoloaded prelude modules.",
+            '  `help("name")` autoloads a documented public helper and renders its Markdown docstring.',
+            "  Public family samples below are derived from registered prelude autoloads.",
+            '  Example: `get(key, target)` is preferred over `map_get`, `map/name`, `map(key)`, or `"key"(map)`.',
+            "",
+            "Public prelude families discovered from autoload registrations:",
+        ]
+        for label, names in _help_public_families():
+            lines.append(f"  {label}:")
+            lines.append(f"    {', '.join(names)}")
+        lines.extend(
+            [
+                "",
+                "Intentional host bridge:",
+                "  Raw host-backed names stay small and capability-oriented.",
+                "  `argv()` and values such as `stdin`, `stdout`, `stderr`, `print`, `log`, `input`, `none`, `force`,",
+                "  pair helpers, simulation primitives, and utf8/json/zip bridges remain host-backed in this phase.",
+                '  `help("print")` and similar raw bridge names show a small generic note instead of a second host-side docs registry.',
+            ]
+        )
+        return "\n".join(lines)
+
     def help_fn(*args: Any) -> None:
         if len(args) > 1:
             raise TypeError(f"help expected 0 or 1 args, got {len(args)}")
@@ -4493,179 +4591,7 @@ def make_global_env(
                 return
             raise TypeError("help expected a function name or named function")
 
-        _emit_help(
-            """
-Genia prototype help
---------------------
-Examples:
-  1 + 2 * 3
-  person = { name: "Maya" }
-  get("name", person)
-  [1, 2, 3] |> map((x) -> x + 1)
-  quote([a, b, c])
-  help("get")
-  help("map_put")
-  help("spawn")
-  help("eval")
-
-Commands:
-  :quit   exit
-  :env    show defined names
-  :help   show this help
-  help(name)   show docs for a public helper or a note for a runtime name
-
-Public stdlib model:
-  Most user-facing helpers live in autoloaded prelude modules.
-  `help("name")` autoloads a documented public helper and renders its Markdown docstring.
-  Prefer canonical prelude-backed helpers over older raw lookup forms.
-  Example: `get(key, target)` is preferred over `map_get`, `map/name`, `map(key)`, or `"key"(map)`.
-
-Autoloaded public prelude families:
-  CLI:
-    cli_parse, cli_flag?, cli_option, cli_option_or
-  Flow:
-    lines, rules, each, collect, run
-  Lists / fns / math:
-    list, first, last, nth, find_opt, map, filter, reduce, apply, compose, sum
-  Option / string:
-    some, get, map_some, flat_map_some, then_get, unwrap_or, parse_int, split, trim, join
-  Map / ref / process / sinks:
-    map_put, map_has?, ref_update, spawn, send, write, writeln, flush
-  Streams / cells / rule helpers:
-    stream_cons, stream_map, stream_take, cell, cell_send, cell_error, rule_emit, rule_step
-  Syntax / eval:
-    match_branches, branch_guard, empty_env, eval
-  AWK-style helpers:
-    fields, awkify, awk_filter, awk_map, awk_count
-
-CLI raw capability:
-  argv()                     trailing command-line args as [string]
-
-CLI helpers (public prelude wrappers over raw argv/list/string/map semantics):
-  cli_parse(args)            [opts_map, positionals]
-  cli_parse(args, spec)      same with minimal spec map (flags/options/aliases)
-  cli_flag?(opts, name)      boolean option check
-  cli_option(opts, name)     option value or nil (legacy retained)
-  cli_option_or(opts, name, default)
-
-Output capabilities:
-  stdout
-  stderr
-  print(...)
-  log(...)
-  input(prompt)
-
-Output sink helpers (public prelude wrappers over host-backed sink runtime):
-  write(sink, value)
-  writeln(sink, value)
-  flush(sink)
-
-Ref helpers (public prelude wrappers over host-backed ref runtime):
-  ref()
-  ref(initial)
-  ref_get(ref)
-  ref_set(ref, value)
-  ref_is_set(ref)
-  ref_update(ref, updater)
-
-Process helpers (public prelude wrappers over host-backed process runtime):
-  spawn(handler)          create a process with a mailbox
-  send(process, message)  enqueue a message for that process
-  process_alive?(process) check whether process worker thread is alive
-
-Persistent map helpers (public prelude wrappers over host-backed opaque map runtime):
-  map_new()
-  map_get(map, key)          raw value or nil (docs-deprecated)
-  map_put(map, key, value)
-  map_has?(map, key)
-  map_remove(map, key)
-  map_count(map)
-
-Option helpers (public prelude wrappers over host-backed option runtime):
-  none
-  none(reason)
-  none(reason, context)
-  some(value)
-  none?(value)
-  some?(value)
-  get(key, target)
-  get?(key, target)          compatibility alias for get
-  map_some(f, option)
-  flat_map_some(f, option)
-  then_get(key, target)
-  then_first(target)
-  then_nth(index, target)
-  then_find(needle, target)
-  or_else(option, fallback)
-  or_else_with(option, thunk)
-  unwrap_or(default, option)
-  absence_reason(none_value)
-  absence_context(none_value)
-  is_some?(option)
-  is_none?(option)
-
-Promises:
-  delay(expr)            promise special form (delays evaluation)
-  force(value)           force promise once, or return value unchanged
-
-Pairs:
-  cons(x, y)
-  car(pair)
-  cdr(pair)
-  pair?(value)
-  null?(value)
-
-Symbols / quote:
-  quote(expr)            syntax-to-data special form
-  quote(x)               symbol x
-  quote([a, 1, "b"])     pair chain ending in nil
-  quasiquote(expr)       quote with selective unquote evaluation
-  unquote(expr)          valid only inside quasiquote
-  unquote_splicing(expr) valid only in quasiquote list literals
-
-String helpers (public prelude wrappers over host-backed string runtime):
-  byte_length(string)
-  is_empty(string)
-  concat(left, right)
-  contains(string, needle)
-  starts_with(string, prefix)
-  ends_with(string, suffix)
-  find(string, needle)       some(index) or none(not_found, ...)
-  split(string, sep)
-  split_whitespace(string)
-  join(sep, strings)
-  trim(string)
-  trim_start(string)
-  trim_end(string)
-  lower(string)
-  upper(string)
-  parse_int(string)
-  parse_int(string, base)
-
-Simulation primitives (host-backed builtins):
-  rand()                float in [0, 1)
-  rand_int(n)           integer in [0, n), n must be a positive integer
-  sleep(ms)             block for ms milliseconds
-
-Bytes / JSON / ZIP builtins (host-backed runtime bridge):
-  utf8_encode(string)        bytes wrapper
-  utf8_decode(bytes)         string
-  json_parse(string)         runtime value (objects become map values)
-  json_pretty(value)         stable pretty JSON string
-  zip_entries(path)          list of zip entries
-  zip_write(entries, path)   writes zip and returns path
-  entry_name(entry)
-  entry_bytes(entry)
-  set_entry_bytes(entry, bytes)
-  update_entry_bytes(entry, updater)
-  entry_json(entry)
-
-Intentional host bridge:
-  Raw host-backed names stay small and capability-oriented:
-  stdin, stdout, stderr, print, log, input, argv/cli_*, none, force,
-  cons/car/cdr/pair?/null?, rand/rand_int/sleep, utf8/json/zip helpers.
-""".strip()
-        )
+        _emit_help(_describe_help_overview())
 
     def ref_fn(*args: Any) -> GeniaRef:
         if len(args) == 0:

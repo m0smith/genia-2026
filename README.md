@@ -363,7 +363,7 @@ cell_get(counter)
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 - `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
-- `help()` prints a compact overview of the public prelude-backed stdlib families and canonical helpers
+- `help()` prints a compact overview of the public prelude-backed stdlib families and canonical helpers, with representative family samples derived from autoload registrations
 - `help("name")` can autoload registered prelude helpers before rendering their docstrings
 - `help("name")` for raw host-backed names prints a generic bridge note rather than a separate host-specific doc registry
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`

@@ -953,6 +953,7 @@ Core IR shape currently includes:
   - docstring normalization (trim outer blank lines, dedent indentation, optional triple-quote wrapper stripping, collapse excessive blank lines)
   - undocumented fallback message (`No documentation available.`)
 - `help()` with no arguments prints a small overview centered on the public prelude-backed stdlib surface and calls out the intentionally small host bridge
+  - the overview keeps only a small host-written scaffold; representative public family samples are derived from registered prelude autoloads
 - `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
 
 ## 10) Explicitly not implemented (current)

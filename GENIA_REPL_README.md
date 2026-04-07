@@ -87,7 +87,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - docstring is attached to function metadata (not evaluated as runtime expression)
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)
-  - `help()` prints a small overview centered on the public prelude-backed stdlib surface
+  - `help()` prints a small overview centered on the public prelude-backed stdlib surface, with representative family samples derived from registered prelude autoloads
   - `help("name")` for raw host-backed names such as `print` falls back to a generic bridge note instead of a separate host-doc registry
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
   - official docstring style/templates live in `docs/book/03-functions.md`
