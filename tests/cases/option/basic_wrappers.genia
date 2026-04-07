@@ -1,0 +1,11 @@
+result = some(2)
+
+[
+  is_some?(result),
+  unwrap_or(0, result),
+  is_none?(none),
+  none?(none(empty_list)),
+  some?(some(3)),
+  unwrap_or(0, apply(get, ["a", {a: 7}])),
+  apply(some?, [some(3)])
+]

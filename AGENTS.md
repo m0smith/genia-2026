@@ -434,6 +434,11 @@ Agents must:
 * Add examples or tests
 * Cover edge cases
 * Validate pattern matching behavior
+* Prefer `tests/cases/` for black-box language-semantic behavior that should stay reusable across hosts
+* Keep host/runtime-substrate checks in host-specific pytest tests when moving them to cases would hide what is actually being validated
+* Split mixed tests when appropriate:
+  * reusable source/result/error behavior goes to semantic cases
+  * parser internals, debug protocols, package-resource loading, thread/race-sensitive behavior, and other host-specific checks stay in pytest
 
 ---
 

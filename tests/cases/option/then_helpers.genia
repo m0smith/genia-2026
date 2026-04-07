@@ -1,0 +1,12 @@
+[
+  unwrap_or(0, then_get(some({b: 2}), "b")),
+  unwrap_or(0, some({b: 2}) |> then_get("b")),
+  unwrap_or(0, then_first(some([10, 20]))),
+  unwrap_or(0, then_nth(some([10, 20, 30]), 1)),
+  unwrap_or(0, some([10, 20, 30]) |> then_nth(1)),
+  unwrap_or(-1, then_find(some("abc"), "b")),
+  unwrap_or(-1, some("abc") |> then_find("b")),
+  is_none?(then_first(some([]))),
+  is_none?(then_nth(some([10, 20]), 8)),
+  is_none?(then_find(some("abc"), "x"))
+]

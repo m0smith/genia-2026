@@ -1,0 +1,17 @@
+n = 0
+a = or_else_with(some(3), () -> { n = n + 1 n })
+b = or_else_with(none(empty_list), () -> { n = n + 1 n })
+record = {user: {address: {zip: "80302"}}}
+data = {items: [{name: "A"}, {name: "B"}]}
+
+[
+  unwrap_or(0, map_some((x) -> x + 1, some(2))),
+  unwrap_or(0, flat_map_some((x) -> some(x + 1), some(2))),
+  a,
+  b,
+  n,
+  record |> get("user") |> then_get("address") |> then_get("zip") |> or_else("unknown"),
+  data |> get("items") |> then_nth(0) |> then_get("name") |> or_else("?"),
+  any?((_) -> some(1), [1]),
+  any?((_) -> none, [1])
+]

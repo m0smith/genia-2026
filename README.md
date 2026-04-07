@@ -61,6 +61,11 @@ Run tests:
 pytest -q
 ```
 
+Test suite note:
+
+- `tests/cases/` holds reusable black-box language-semantic cases
+- pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
+
 ## Multi-Host Direction
 
 Python is the only implemented host today, and it remains the current reference host.

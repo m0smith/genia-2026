@@ -1,0 +1,15 @@
+[
+  byte_length(""),
+  byte_length("abc"),
+  byte_length("é"),
+  byte_length("漢"),
+  byte_length("🙂"),
+  contains("café", "fé"),
+  starts_with("漢字abc", "漢"),
+  ends_with("hi🙂", "🙂"),
+  unwrap_or(-1, find("naïve", "ï")),
+  unwrap_or(-1, find("🙂a", "a")),
+  is_none?(find("abc", "x")),
+  apply(parse_int, ["42"]),
+  apply(trim, ["  hello  "])
+]

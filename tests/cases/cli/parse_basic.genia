@@ -1,0 +1,11 @@
+opts0 = unwrap_or({}, first(cli_parse([])))
+pretty = unwrap_or({}, first(cli_parse(["--pretty"])))
+indent_eq = unwrap_or({}, first(cli_parse(["--indent=4"])))
+indent_next = unwrap_or({}, first(cli_parse(["--indent", "2"])))
+
+[
+  map_count(opts0),
+  cli_flag?(pretty, "pretty"),
+  cli_option(indent_eq, "indent"),
+  cli_option(indent_next, "indent")
+]

@@ -1,0 +1,11 @@
+opts = unwrap_or({}, first(cli_parse(["-abc"])))
+parsed = cli_parse(["--pretty", "--", "--raw", "input.txt"])
+mixed = cli_parse(["--indent=2", "in", "--indent", "4", "-p", "out"])
+
+[
+  [cli_flag?(opts, "a"), cli_flag?(opts, "b"), cli_flag?(opts, "c")],
+  rest(parsed),
+  cli_flag?(unwrap_or({}, first(parsed)), "pretty"),
+  cli_option(unwrap_or({}, first(mixed)), "indent"),
+  rest(mixed)
+]

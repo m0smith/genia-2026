@@ -1,0 +1,2 @@
+spec = map_put(map_new(), "options", ["a", "b"])
+cli_parse(["-ab"], spec)

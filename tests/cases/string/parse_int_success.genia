@@ -1,0 +1,8 @@
+[
+  parse_int("42"),
+  parse_int("  -17  "),
+  parse_int("+9"),
+  parse_int("ff", 16),
+  parse_int("101010", 2),
+  parse_int("z", 36)
+]

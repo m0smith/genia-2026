@@ -5,7 +5,11 @@ from genia import make_global_env, run_source
 CASES = Path(__file__).parent / "cases"
 
 
-@pytest.mark.parametrize("case", sorted(CASES.glob("*.genia")), ids=lambda p: p.stem)
+@pytest.mark.parametrize(
+    "case",
+    sorted(CASES.rglob("*.genia")),
+    ids=lambda p: str(p.relative_to(CASES).with_suffix("")),
+)
 def test_cases(case):
     env = make_global_env([])
     src = case.read_text(encoding="utf-8")
@@ -14,14 +18,14 @@ def test_cases(case):
     err_file = case.with_suffix(".err")
 
     try:
-        result = run_source(src, env)
+        result = run_source(src, env, filename=str(case.relative_to(CASES)))
 
         if err_file.exists():
             pytest.fail(f"{case.name}: expected error but got result {result!r}")
 
         if out_file.exists():
             expected = out_file.read_text(encoding="utf-8").strip()
-            assert repr(result).strip("'") if False else str(result).strip() == expected
+            assert str(result).strip() == expected
         else:
             pytest.fail(f"{case.name}: missing expected .out or .err file")
 

@@ -1,0 +1,22 @@
+opts = map_put(map_new(), "pretty", true)
+opts2 = map_put(opts, "indent", "3")
+parser = cli_parse
+aliases = map_put(map_new(), "p", "pretty")
+spec0 = map_put(map_new(), "flags", ["pretty"])
+spec1 = map_put(spec0, "options", ["indent"])
+spec = map_put(spec1, "aliases", aliases)
+parsed = cli_parse(["-p", "--indent", "2", "input.txt"], spec)
+opts3 = unwrap_or({}, first(parsed))
+positionals = unwrap_or([], first(rest(parsed)))
+
+run_parsed(parsed) =
+  ([opts, [input]]) -> [cli_flag?(opts, "pretty"), input] |
+  ([opts, [input, output]]) -> [cli_flag?(opts, "pretty"), input, output] |
+  _ -> "usage"
+
+[
+  [cli_flag?(opts2, "pretty"), cli_option(opts2, "indent"), cli_option_or(opts2, "missing", "2")],
+  cli_option(unwrap_or({}, first(parser(["--indent=4"]))), "indent"),
+  [cli_flag?(opts3, "pretty"), cli_option(opts3, "indent"), positionals],
+  run_parsed(cli_parse(["--pretty", "a.txt", "b.txt"], spec0))
+]

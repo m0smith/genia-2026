@@ -1,0 +1,16 @@
+[
+  split("a,b,c", ","),
+  split("é|漢|🙂", "|"),
+  split_whitespace("a  b\tc\nd"),
+  fields(""),
+  fields("abc"),
+  fields("a b c"),
+  join(",", ["a", "b", "c"]),
+  join(" ", ["🙂", "漢字"]),
+  trim("  hello  "),
+  trim_start("  hello"),
+  trim_end("hello  "),
+  trim("  漢字  "),
+  lower("ABC"),
+  upper("abc")
+]
