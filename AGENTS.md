@@ -22,6 +22,8 @@ Agents **must treat the following as authoritative and synchronized**:
 * `GENIA_REPL_README.md` → Runtime behavior
 * `README.md` → High-level overview
 * `docs/book/*` → Learning system (must reflect reality)
+* `docs/host-interop/*` → Shared cross-host portability contract for multi-host work
+* `spec/*` → Shared conformance scaffolding for multi-host work
 
 📌 If these disagree, **GENIA_STATE.md is the final authority**
 
@@ -175,19 +177,20 @@ In particular:
 
 ### 7. Shared Semantics Across Hosts
 
-Python is the current reference host.
+Python is the current implemented reference host unless `GENIA_STATE.md` says otherwise.
 
 For multi-host work:
 
 * shared semantics come first
 * Core IR is the portability boundary
-* shared spec tests are authoritative across hosts
+* shared spec tests under `spec/` are authoritative across hosts
 * host-specific code must not redefine language behavior
 * capability additions or coverage changes must update `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
 * changes to the shared host contract must update `spec/manifest.json`
-* docs/book remains a truthful teaching interface and must distinguish implemented hosts from planned ones
+* docs/book remains a truthful teaching interface and must distinguish implemented hosts from planned/scaffolded ones
 * agents must prefer portable/shared semantics over host-local convenience
 * future Codex prompts for host work must instruct the agent to keep shared docs/spec/tests/book content in sync
+* host-local tests and docs do not override the shared host contract once it is documented in the shared interop/spec artifacts
 
 ---
 

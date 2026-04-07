@@ -72,11 +72,19 @@ The repo now also includes shared portability scaffolding for future hosts:
 - shared spec scaffold + manifest: `spec/`
 - host layout/migration notes: `hosts/`
 
-Current rule:
+Alignment rule:
 
 - future hosts may differ internally
 - they must preserve shared semantics, Core IR lowering meaning, and shared CLI/runtime behavior
+- Core IR plus the shared spec infrastructure are the intended portability/alignment mechanisms
 - planned hosts are not treated as implemented until code, tests, and capability status exist
+
+Current host status:
+
+| Host | Status |
+| --- | --- |
+| Python | Implemented reference host |
+| Node.js / Java / Rust / Go / C++ | Planned / scaffolded only |
 
 ## Language snapshot (implemented)
 
