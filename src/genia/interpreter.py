@@ -4559,6 +4559,8 @@ Public stdlib model:
   Example: `get(key, target)` is preferred over `map_get`, `map/name`, `map(key)`, or `"key"(map)`.
 
 Autoloaded public prelude families:
+  CLI:
+    cli_parse, cli_flag?, cli_option, cli_option_or
   Flow:
     lines, rules, each, collect, run
   Lists / fns / math:
@@ -4574,8 +4576,10 @@ Autoloaded public prelude families:
   AWK-style helpers:
     fields, awkify, awk_filter, awk_map, awk_count
 
-CLI builtins (list-first):
+CLI raw capability:
   argv()                     trailing command-line args as [string]
+
+CLI helpers (public prelude wrappers over raw argv/list/string/map semantics):
   cli_parse(args)            [opts_map, positionals]
   cli_parse(args, spec)      same with minimal spec map (flags/options/aliases)
   cli_flag?(opts, name)      boolean option check
@@ -4954,135 +4958,51 @@ Intentional host bridge:
             raise TypeError(f"{name} expected a list of strings")
         return value
 
-    def _parse_cli_spec(spec: Any) -> tuple[set[str], set[str], dict[str, str]]:
+    def _map_from_string_names(names: list[str]) -> GeniaMap:
+        result = GeniaMap()
+        for name in names:
+            result = result.put(name, True)
+        return result
+
+    def cli_spec_fn(spec: Any) -> GeniaMap:
         if spec is None:
-            return set(), set(), {}
-        if not isinstance(spec, GeniaMap):
-            raise TypeError("cli_parse expected spec to be a map")
-
-        flags_raw = spec.get("flags")
-        options_raw = spec.get("options")
-        aliases_raw = spec.get("aliases")
-
-        flags = set(_ensure_list_of_strings(flags_raw, "cli_parse spec.flags")) if flags_raw is not None else set()
-        options = set(_ensure_list_of_strings(options_raw, "cli_parse spec.options")) if options_raw is not None else set()
-        aliases: dict[str, str] = {}
-
-        if aliases_raw is not None:
-            if not isinstance(aliases_raw, GeniaMap):
-                raise TypeError("cli_parse spec.aliases expected a map")
-            for _, (raw_key, raw_value) in aliases_raw._entries.items():
-                if not isinstance(raw_key, str) or not isinstance(raw_value, str):
-                    raise TypeError("cli_parse spec.aliases expected string keys and values")
-                aliases[raw_key] = raw_value
-
-        return flags, options, aliases
-
-    def _cli_option_like(token: str) -> bool:
-        return token != "-" and token.startswith("-")
-
-    def _cli_put(opts: GeniaMap, name: str, value: Any) -> GeniaMap:
-        if name == "":
-            raise ValueError("cli_parse encountered an empty option name")
-        return opts.put(name, value)
-
-    def cli_parse_fn(*args: Any) -> list[Any]:
-        if len(args) == 1:
-            raw_args = _ensure_list_of_strings(args[0], "cli_parse")
-            flags, options, aliases = set(), set(), {}
-        elif len(args) == 2:
-            raw_args = _ensure_list_of_strings(args[0], "cli_parse")
-            flags, options, aliases = _parse_cli_spec(args[1])
+            flags = GeniaMap()
+            options = GeniaMap()
+            aliases = GeniaMap()
         else:
-            raise TypeError(f"cli_parse expected 1 or 2 args, got {len(args)}")
+            if not isinstance(spec, GeniaMap):
+                raise TypeError("cli_parse expected spec to be a map")
 
-        opts = GeniaMap()
-        positionals: list[str] = []
-        parsing_options = True
-        i = 0
+            flags_raw = spec.get("flags")
+            options_raw = spec.get("options")
+            aliases_raw = spec.get("aliases")
 
-        while i < len(raw_args):
-            token = raw_args[i]
+            flags_list = _ensure_list_of_strings(flags_raw, "cli_parse spec.flags") if flags_raw is not None else []
+            options_list = _ensure_list_of_strings(options_raw, "cli_parse spec.options") if options_raw is not None else []
+            flags = _map_from_string_names(flags_list)
+            options = _map_from_string_names(options_list)
+            aliases = GeniaMap()
 
-            if not parsing_options:
-                positionals.append(token)
-                i += 1
-                continue
+            if aliases_raw is not None:
+                if not isinstance(aliases_raw, GeniaMap):
+                    raise TypeError("cli_parse spec.aliases expected a map")
+                for _, (raw_key, raw_value) in aliases_raw._entries.items():
+                    if not isinstance(raw_key, str) or not isinstance(raw_value, str):
+                        raise TypeError("cli_parse spec.aliases expected string keys and values")
+                    aliases = aliases.put(raw_key, raw_value)
 
-            if token == "--":
-                parsing_options = False
-                i += 1
-                continue
+        return GeniaMap().put("flags", flags).put("options", options).put("aliases", aliases)
 
-            if token.startswith("--") and len(token) > 2:
-                body = token[2:]
-                if "=" in body:
-                    name, value = body.split("=", 1)
-                    name = aliases.get(name, name)
-                    opts = _cli_put(opts, name, value)
-                    i += 1
-                    continue
+    def cli_chars_fn(value: Any) -> list[str]:
+        if not isinstance(value, str):
+            raise TypeError("cli_parse expected a list of strings")
+        return list(value)
 
-                name = aliases.get(body, body)
-                uses_explicit_option = name in options
-                has_value = i + 1 < len(raw_args)
-                next_token = raw_args[i + 1] if has_value else None
-                should_consume_next = has_value and (uses_explicit_option or (name not in flags and not _cli_option_like(next_token)))
-                if should_consume_next:
-                    opts = _cli_put(opts, name, next_token)
-                    i += 2
-                    continue
-                opts = _cli_put(opts, name, True)
-                i += 1
-                continue
+    def cli_type_error_fn(message: Any) -> Any:
+        raise TypeError(_ensure_string(message, "cli_parse"))
 
-            if token.startswith("-") and token != "-" and len(token) > 1:
-                body = token[1:]
-                if len(body) == 1:
-                    name = aliases.get(body, body)
-                    uses_explicit_option = name in options
-                    has_value = i + 1 < len(raw_args)
-                    next_token = raw_args[i + 1] if has_value else None
-                    should_consume_next = has_value and (uses_explicit_option or (name not in flags and not _cli_option_like(next_token)))
-                    if should_consume_next:
-                        opts = _cli_put(opts, name, next_token)
-                        i += 2
-                        continue
-                    opts = _cli_put(opts, name, True)
-                    i += 1
-                    continue
-
-                if options:
-                    option_chars = [ch for ch in body if aliases.get(ch, ch) in options]
-                    if len(option_chars) > 1:
-                        raise ValueError(f"cli_parse ambiguous short option group: -{body}")
-                    if len(option_chars) == 1:
-                        option_char = option_chars[0]
-                        option_idx = body.index(option_char)
-                        if option_idx != 0:
-                            raise ValueError(f"cli_parse ambiguous short option group: -{body}")
-                        name = aliases.get(option_char, option_char)
-                        inline_value = body[1:]
-                        if inline_value != "":
-                            opts = _cli_put(opts, name, inline_value)
-                            i += 1
-                            continue
-                        if i + 1 >= len(raw_args):
-                            raise ValueError(f"cli_parse missing value for -{option_char}")
-                        opts = _cli_put(opts, name, raw_args[i + 1])
-                        i += 2
-                        continue
-
-                for ch in body:
-                    name = aliases.get(ch, ch)
-                    opts = _cli_put(opts, name, True)
-                i += 1
-                continue
-
-            positionals.append(token)
-            i += 1
-
-        return [opts, positionals]
+    def cli_value_error_fn(message: Any) -> Any:
+        raise ValueError(_ensure_string(message, "cli_parse"))
 
     def cli_flag_fn(opts: Any, name: Any) -> bool:
         genia_map = _ensure_map(opts, "cli_flag?")
@@ -5545,11 +5465,19 @@ Intentional host bridge:
     env.set("set_entry_bytes", set_entry_bytes_fn)
     env.set("update_entry_bytes", update_entry_bytes_fn)
     env.set("entry_json", entry_json_fn)
-    env.set("cli_parse", cli_parse_fn)
-    env.set("cli_flag?", cli_flag_fn)
-    env.set("cli_option", cli_option_fn)
-    env.set("cli_option_or", cli_option_or_fn)
+    env.set("_cli_spec", cli_spec_fn)
+    env.set("_cli_chars", cli_chars_fn)
+    env.set("_cli_type_error", cli_type_error_fn)
+    env.set("_cli_value_error", cli_value_error_fn)
+    env.set("_cli_flag?", cli_flag_fn)
+    env.set("_cli_option", cli_option_fn)
+    env.set("_cli_option_or", cli_option_or_fn)
 
+    env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
+    env.register_autoload("cli_parse", 2, "std/prelude/cli.genia")
+    env.register_autoload("cli_flag?", 2, "std/prelude/cli.genia")
+    env.register_autoload("cli_option", 2, "std/prelude/cli.genia")
+    env.register_autoload("cli_option_or", 3, "std/prelude/cli.genia")
     env.register_autoload("lines", 1, "std/prelude/flow.genia")
     env.register_autoload("rules", 0, "std/prelude/flow.genia")
     env.register_autoload("each", 2, "std/prelude/flow.genia")

@@ -88,6 +88,16 @@ def test_cli_parse_type_errors_are_deterministic():
         run_source('cli_flag?([], "a")', env)
 
 
+def test_cli_parse_wrapper_autoloads_as_function_value():
+    env = make_global_env()
+    source = """
+parser = cli_parse
+opts = unwrap_or({}, first(parser(["--indent=4"])))
+cli_option(opts, "indent")
+"""
+    assert run_source(source, env) == "4"
+
+
 def test_cli_parse_with_minimal_spec_aliases_and_options():
     env = make_global_env()
     source = """
@@ -101,6 +111,16 @@ positionals = unwrap_or([], first(rest(parsed)))
 [cli_flag?(opts, "pretty"), cli_option(opts, "indent"), positionals]
 """
     assert run_source(source, env) == [True, "2", ["input.txt"]]
+
+
+def test_cli_parse_ambiguous_grouped_short_options_with_spec_errors():
+    env = make_global_env()
+    source = """
+spec = map_put(map_new(), "options", ["a", "b"])
+cli_parse(["-ab"], spec)
+"""
+    with pytest.raises(ValueError, match=r"cli_parse ambiguous short option group: -ab"):
+        run_source(source, env)
 
 
 def test_cli_parse_pattern_matching_over_positionals():

@@ -232,6 +232,7 @@ For example, the public wrapper-backed helpers below are help-visible without be
 ```genia
 help()
 help("get")
+help("cli_parse")
 help("lines")
 help("parse_int")
 help("map_put")

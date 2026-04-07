@@ -157,6 +157,26 @@ def test_help_autoloads_flow_wrapper_docstring():
     assert "Create a Flow from `stdin`" in out
 
 
+def test_help_autoloads_cli_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("cli_parse")\n', env, filename="help_cli.genia")
+    out = "".join(outputs)
+    assert "cli_parse/1, 2" in out
+    assert "# cli_parse" in out
+    assert "`argv()` remains the raw host-backed CLI primitive" in out
+
+
+def test_help_autoloads_cli_helper_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("cli_option_or")\n', env, filename="help_cli_helper.genia")
+    out = "".join(outputs)
+    assert "cli_option_or/3" in out
+    assert "# cli_option_or" in out
+    assert "Return a parsed option value or `default`" in out
+
+
 def test_help_autoloads_syntax_wrapper_docstring():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)

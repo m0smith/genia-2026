@@ -136,7 +136,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - direct I/O/runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
   - public flow helpers are prelude-backed wrappers: `lines`, `rules`, `each`, `collect`, `run`
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
-  - CLI: `argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
+  - raw CLI primitive: `argv`
+  - public CLI helpers from `std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
@@ -594,13 +595,20 @@ This recursive shape is not in tail position and can still hit Python recursion 
 
 ## CLI args model (list-first)
 
-- `argv()` returns raw trailing command-line args as a plain list of strings.
+- `argv()` remains the raw host-backed trailing command-line args primitive and returns a plain list of strings.
 - Positional-only CLI programs should pattern match directly on that list.
+- public CLI helper names are thin prelude wrappers in `std/prelude/cli.genia`.
 - `cli_parse(args)` returns `[opts, positionals]` where `opts` is a persistent map.
 - `cli_parse(args, spec)` supports minimal map spec keys:
   - `flags`: list of names forced to boolean
   - `options`: list of names forced to consume values
   - `aliases`: map alias->canonical name
+- the host bridge for CLI parsing is intentionally small:
+  - raw `argv()`
+  - spec normalization/validation
+  - token character decomposition
+  - deterministic CLI-specific error raising
+- the option-parsing walk itself now lives in prelude/Genia code
 - This layer does **not** add shell tokenization, dotted access syntax, or `$` positional variables.
 
 ## Program entrypoint behavior

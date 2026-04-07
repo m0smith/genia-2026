@@ -132,6 +132,23 @@ When adding new public helpers:
 * Default to prelude wrappers, even when they are backed by host primitives
 * Avoid host-only convenience helpers unless there is a compelling runtime reason
 
+Rule of thumb for placement:
+
+Keep a feature in Python/host code only when at least one of these is true:
+
+* it directly touches host resources or capabilities
+* it depends on threading, blocking, I/O, files, bytes, processes, or stream runtime primitives
+* it is core parser/compiler/evaluator/runtime substrate
+* moving it into Genia would materially harm correctness, portability, simplicity, or performance at the current phase
+
+Otherwise, prefer implementing it in Genia/prelude.
+
+In particular:
+
+* raw capability access such as `argv()` may remain host-backed
+* interpretation, transformation, and user-facing semantics over those raw values should prefer prelude
+* agents should actively look for chances to shrink Python-side pure transformation logic
+
 ---
 
 ## Book-Driven Development (CRITICAL)

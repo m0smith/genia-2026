@@ -484,7 +484,14 @@ When changing syntax/semantics/runtime behavior, update together:
 ## 17) CLI args + parsing invariants (runtime-only, list-first)
 
 - raw process args are exposed via `argv()` as a list of strings (no `$1`/`$2` syntax)
-- CLI parsing is runtime builtin behavior (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`), not parser syntax
+- public CLI helper names are exposed through thin prelude wrappers in `std/prelude/cli.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying host support is intentionally narrow in this phase:
+  - raw `argv()`
+  - spec normalization/validation
+  - token character decomposition
+  - deterministic CLI-specific error raising
+- CLI parsing remains runtime/library behavior, not parser syntax
 - `cli_parse` returns `[opts_map, positionals_list]` where `opts_map` is persistent (`map_put` semantics, last write wins)
 - `cli_parse(args, spec)` accepts minimal map spec keys only:
   - `flags` (list of strings)

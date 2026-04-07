@@ -435,7 +435,7 @@ Genia has no dedicated conditional keyword.
 
 Genia keeps CLI handling list-first:
 
-- raw args: `argv()` (list of strings)
+- raw args: `argv()` (host-backed list of strings)
 - parsed args: `cli_parse(args)` -> `[opts, positionals]`
 
 You can parse flags/options first, then pattern match the remaining positional list.
@@ -477,7 +477,7 @@ Expected behavior:
 ### ✅ Implemented
 
 * list-first raw args via `argv()`
-* `cli_parse(args)` and minimal `cli_parse(args, spec)`
+* prelude-backed `cli_parse(args)` and minimal `cli_parse(args, spec)`
 * helper readers: `cli_flag?`, `cli_option`, `cli_option_or`
 * no parser changes required for CLI support
 

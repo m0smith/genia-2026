@@ -9,7 +9,7 @@ This repository currently provides:
 - a REPL and file runner (`python3 -m genia.interpreter`)
 - host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`)
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
-- list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
+- raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
@@ -370,9 +370,11 @@ cell_get(counter)
 
 ### CLI args / options (runtime layer)
 
-- `argv()` exposes raw trailing CLI args as a plain list of strings
+- `argv()` is the raw host-backed CLI primitive and exposes trailing CLI args as a plain list of strings
+- public CLI helpers now live in `std/prelude/cli.genia`
 - `cli_parse(args)` and `cli_parse(args, spec)` return `[opts_map, positionals]`
 - `cli_flag?(opts, name)`, `cli_option(opts, name)`, `cli_option_or(opts, name, default)` help read options cleanly
+- host-side CLI support is intentionally small: raw `argv()`, spec normalization/validation, token character decomposition, and deterministic CLI-specific error raising
 - no `$1`/`$2` syntax is added; positional arguments are list-pattern friendly
 
 ## CLI Programs (`main` Entrypoint Convention)

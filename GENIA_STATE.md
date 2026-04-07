@@ -504,7 +504,7 @@ Flow semantics:
   - wraps as `stdin |> lines |> <stage_expr> |> run`
   - no `pipe(...)` helper function exists in this phase
 
-### CLI argument helpers (host-backed builtin layer)
+### CLI argument helpers (prelude-backed over raw argv + tiny host validation primitives)
 
 - `cli_parse(args) -> [opts, positionals]`
 - `cli_parse(args, spec) -> [opts, positionals]`
@@ -514,7 +514,8 @@ Flow semantics:
 
 Behavior:
 
-- raw args are list-first data (`argv()`), intended for normal list pattern matching
+- `argv()` remains the raw host-backed CLI primitive and returns list-first data intended for normal pattern matching
+- public CLI helper names are thin prelude wrappers in `std/prelude/cli.genia`
 - `cli_parse` returns a persistent map (`opts`) and remaining positional args list
 - default parsing:
   - `--name` => boolean `true` unless followed by a non-option token (then `--name value`)
@@ -528,6 +529,12 @@ Behavior:
   - `options`: list of names forced to value-taking behavior
   - `aliases`: map of alias name -> canonical name (string keys/values)
 - grouped short options with spec raise clear `ValueError` for ambiguous mixes
+- host-side CLI support is intentionally small in this phase:
+  - raw `argv()`
+  - spec normalization/validation
+  - token-to-char decomposition
+  - deterministic CLI-specific error raising
+- the actual option-parsing walk now lives in prelude/Genia code
 
 ### Program entrypoint convention (runtime, no syntax)
 
@@ -877,6 +884,7 @@ Notable autoloaded functions include:
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `compose`
+- cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`

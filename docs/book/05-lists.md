@@ -337,7 +337,7 @@ Expected behavior:
 
 ## CLI args as lists (implemented)
 
-Genia exposes raw CLI args with `argv()`, and that value is just a list of strings.
+Genia exposes raw CLI args with host-backed `argv()`, and that value is just a list of strings.
 This means optional positional arguments can use ordinary list patterns.
 
 ### Minimal example
@@ -370,6 +370,11 @@ cli_parse(1)
 Expected behavior:
 
 - raises `TypeError` (`cli_parse expected a list of strings`)
+
+Current note:
+
+- `argv()` is the raw host-backed capability boundary
+- public CLI parsing helpers such as `cli_parse` live in prelude/Genia code in this phase
 
 ---
 
