@@ -4679,9 +4679,6 @@ Intentional host bridge:
             return value.force()
         return value
 
-    def syntax_tagged_list_fn(expr: Any, tag: Any) -> bool:
-        return _syntax_tagged_list(expr, tag)
-
     def syntax_self_evaluating_fn(expr: Any) -> bool:
         if expr is None or isinstance(expr, GeniaOptionNone):
             return True
@@ -4696,112 +4693,8 @@ Intentional host bridge:
     def syntax_symbol_expr_fn(expr: Any) -> bool:
         return isinstance(expr, GeniaSymbol)
 
-    def syntax_quoted_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("quote"))
-
-    def syntax_quasiquoted_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("quasiquote"))
-
-    def syntax_assignment_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("assign"))
-
-    def syntax_lambda_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("lambda"))
-
-    def syntax_block_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("block"))
-
-    def syntax_match_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("match"))
-
-    def syntax_application_expr_fn(expr: Any) -> bool:
-        return _syntax_tagged_list(expr, symbol("app"))
-
-    def _syntax_match_branch_size(branch: Any, name: str) -> int:
-        if not _syntax_tagged_list(branch, symbol("clause")):
-            raise TypeError(f"{name} expected a match branch")
-        size = 0
-        current = branch.tail
-        while current is not None:
-            if not isinstance(current, GeniaPair):
-                raise TypeError(
-                    f"{name} expected a match branch of the form "
-                    "(clause <pattern> <body>) or (clause <pattern> <guard> <body>)"
-                )
-            size += 1
-            current = current.tail
-        if size not in {2, 3}:
-            raise TypeError(
-                f"{name} expected a match branch of the form "
-                "(clause <pattern> <body>) or (clause <pattern> <guard> <body>)"
-            )
-        return size
-
-    def syntax_text_of_quotation_fn(expr: Any) -> Any:
-        if not syntax_quoted_expr_fn(expr):
-            raise TypeError("text_of_quotation expected a quoted expression")
-        return _syntax_pair_nth(expr, 1, "text_of_quotation")
-
-    def syntax_assignment_name_fn(expr: Any) -> Any:
-        if not syntax_assignment_expr_fn(expr):
-            raise TypeError("assignment_name expected an assignment expression")
-        return _syntax_pair_nth(expr, 1, "assignment_name")
-
-    def syntax_assignment_value_fn(expr: Any) -> Any:
-        if not syntax_assignment_expr_fn(expr):
-            raise TypeError("assignment_value expected an assignment expression")
-        return _syntax_pair_nth(expr, 2, "assignment_value")
-
-    def syntax_lambda_params_fn(expr: Any) -> Any:
-        if not syntax_lambda_expr_fn(expr):
-            raise TypeError("lambda_params expected a lambda expression")
-        return _syntax_pair_nth(expr, 1, "lambda_params")
-
-    def syntax_lambda_body_fn(expr: Any) -> Any:
-        if not syntax_lambda_expr_fn(expr):
-            raise TypeError("lambda_body expected a lambda expression")
-        return _syntax_pair_nth(expr, 2, "lambda_body")
-
-    def syntax_operator_fn(expr: Any) -> Any:
-        if not syntax_application_expr_fn(expr):
-            raise TypeError("operator expected an application expression")
-        return _syntax_pair_nth(expr, 1, "operator")
-
-    def syntax_operands_fn(expr: Any) -> Any:
-        if not syntax_application_expr_fn(expr):
-            raise TypeError("operands expected an application expression")
-        tail = expr.tail
-        if not isinstance(tail, GeniaPair):
-            raise TypeError("operands expected the quoted form to have enough parts")
-        return tail.tail
-
-    def syntax_block_expressions_fn(expr: Any) -> Any:
-        if not syntax_block_expr_fn(expr):
-            raise TypeError("block_expressions expected a block expression")
-        return expr.tail
-
-    def syntax_match_branches_fn(expr: Any) -> Any:
-        if not syntax_match_expr_fn(expr):
-            raise TypeError("match_branches expected a match expression")
-        return expr.tail
-
-    def syntax_branch_pattern_fn(branch: Any) -> Any:
-        _syntax_match_branch_size(branch, "branch_pattern")
-        return _syntax_pair_nth(branch, 1, "branch_pattern")
-
-    def syntax_branch_has_guard_fn(branch: Any) -> bool:
-        return _syntax_match_branch_size(branch, "branch_has_guard?") == 3
-
-    def syntax_branch_guard_fn(branch: Any) -> Any:
-        if _syntax_match_branch_size(branch, "branch_guard") != 3:
-            raise TypeError("branch_guard expected a guarded match branch")
-        return _syntax_pair_nth(branch, 2, "branch_guard")
-
-    def syntax_branch_body_fn(branch: Any) -> Any:
-        size = _syntax_match_branch_size(branch, "branch_body")
-        if size == 3:
-            return _syntax_pair_nth(branch, 3, "branch_body")
-        return _syntax_pair_nth(branch, 2, "branch_body")
+    def syntax_error_fn(message: Any) -> Any:
+        raise TypeError(_ensure_string(message, "_syntax_error"))
 
     def cons_fn(head: Any, tail: Any) -> GeniaPair:
         return GeniaPair(head, tail)
@@ -5350,29 +5243,9 @@ Intentional host bridge:
     env.set("_meta_eval_error", meta_eval_error_fn)
     env.set("_meta_match_pattern_env", meta_match_pattern_env_fn)
     env.set("_meta_match_error", meta_match_error_fn)
-    env.set("_syntax_tagged_list", syntax_tagged_list_fn)
+    env.set("_syntax_error", syntax_error_fn)
     env.set("_syntax_self_evaluating", syntax_self_evaluating_fn)
     env.set("_syntax_symbol_expr", syntax_symbol_expr_fn)
-    env.set("_syntax_quoted_expr", syntax_quoted_expr_fn)
-    env.set("_syntax_quasiquoted_expr", syntax_quasiquoted_expr_fn)
-    env.set("_syntax_assignment_expr", syntax_assignment_expr_fn)
-    env.set("_syntax_lambda_expr", syntax_lambda_expr_fn)
-    env.set("_syntax_application_expr", syntax_application_expr_fn)
-    env.set("_syntax_block_expr", syntax_block_expr_fn)
-    env.set("_syntax_match_expr", syntax_match_expr_fn)
-    env.set("_syntax_text_of_quotation", syntax_text_of_quotation_fn)
-    env.set("_syntax_assignment_name", syntax_assignment_name_fn)
-    env.set("_syntax_assignment_value", syntax_assignment_value_fn)
-    env.set("_syntax_lambda_params", syntax_lambda_params_fn)
-    env.set("_syntax_lambda_body", syntax_lambda_body_fn)
-    env.set("_syntax_operator", syntax_operator_fn)
-    env.set("_syntax_operands", syntax_operands_fn)
-    env.set("_syntax_block_expressions", syntax_block_expressions_fn)
-    env.set("_syntax_match_branches", syntax_match_branches_fn)
-    env.set("_syntax_branch_pattern", syntax_branch_pattern_fn)
-    env.set("_syntax_branch_has_guard", syntax_branch_has_guard_fn)
-    env.set("_syntax_branch_guard", syntax_branch_guard_fn)
-    env.set("_syntax_branch_body", syntax_branch_body_fn)
     env.set("cons", cons_fn)
     env.set("car", car_fn)
     env.set("cdr", cdr_fn)

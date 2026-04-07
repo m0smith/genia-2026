@@ -291,6 +291,11 @@ Pipeline (Phase 2) rewrite model:
 
 - Genia now ships a minimal metacircular expression helper layer in `std/prelude/syntax.genia`
 - these helpers operate on the same quoted/quasiquoted data representation produced by `quote(expr)` and `quasiquote(expr)`
+- the host-backed substrate in this phase is intentionally small:
+  - parser/lowering/quote/quasiquote runtime representation
+  - symbol/self-evaluating runtime shape detection
+  - metacircular pattern-lowering support used by the evaluator
+- most user-facing quoted-form predicates, selectors, and branch/match structural helpers now live in prelude/Genia code
 - current public helpers are:
   - predicates:
     - `self_evaluating?`
@@ -335,6 +340,11 @@ Pipeline (Phase 2) rewrite model:
 ## 4.6) Metacircular evaluator (stdlib)
 
 - Genia now ships a minimal metacircular evaluator layer in `std/prelude/eval.genia`
+- the host-backed substrate in this phase remains:
+  - metacircular environment values and lexical mutation support
+  - metacircular pattern lowering/matching support
+  - ordinary evaluator/runtime substrate and `apply` fallback machinery
+- evaluator dispatch and most user-facing semantic glue live in prelude/Genia code
 - current public evaluator/environment names are:
   - `empty_env`
   - `lookup`
@@ -363,6 +373,7 @@ Pipeline (Phase 2) rewrite model:
   - `(matcher <match-expr> <env>)`
 - current evaluator limitations:
   - `eval` is only defined for the supported expression families above
+  - unsupported quoted forms raise a clear runtime error instead of silently expanding evaluator coverage
 
 ## 5) Case expressions and pattern matching
 

@@ -293,6 +293,11 @@ Failure cases:
 
 Genia now includes a small syntax helper layer for quoted expressions.
 
+Current note:
+
+- the parser/quote/quasiquote substrate remains host-backed
+- most user-facing selectors and structural helpers now live in `std/prelude/syntax.genia`
+
 Lambda detection:
 
 ```genia
@@ -341,6 +346,12 @@ Current note:
 ## Metacircular evaluation
 
 Genia now includes a minimal phase-1 metacircular evaluator over quoted expressions.
+
+Current note:
+
+- metacircular environment/runtime substrate remains host-backed
+- evaluator dispatch and helper glue live in `std/prelude/eval.genia`
+- unsupported quoted forms still fail clearly instead of widening evaluator coverage
 
 Basic evaluation:
 

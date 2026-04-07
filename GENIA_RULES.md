@@ -193,6 +193,11 @@ No additional member/index/flow operators should be introduced without explicitl
 
 - Genia provides a small stdlib helper layer for inspecting quoted expressions.
 - These helpers operate on the same runtime data representation produced by `quote(expr)` and `quasiquote(expr)`.
+- the host-backed substrate in this phase remains intentionally small:
+  - parser/lowering/quote representation
+  - symbol/self-evaluating runtime shape detection
+  - metacircular pattern-lowering support used by evaluator internals
+- language-visible selectors, structural helpers, and branch/match glue over quoted forms should prefer prelude/Genia code.
 - Current stabilized quoted tags are:
   - `(quote <expr>)`
   - `(quasiquote <expr>)`
@@ -216,6 +221,7 @@ No additional member/index/flow operators should be introduced without explicitl
 ## 9.2.3) Metacircular evaluation
 
 - Genia provides a minimal phase-1 metacircular evaluator over quoted expressions.
+- evaluator dispatch and helper glue are exposed through prelude in this phase, while host code keeps the metacircular environment/runtime substrate.
 - Public evaluator/environment names are:
   - `empty_env`
   - `lookup`
@@ -245,6 +251,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - `apply(proc, args)` must preserve current ordinary callable behavior and additionally apply metacircular compound procedures and metacircular matcher procedures.
 - current limitations:
   - the evaluator is only defined for the supported expression families above
+  - unsupported quoted forms must fail clearly instead of pretending broader evaluator coverage
 
 ## 9.3) Pairs
 

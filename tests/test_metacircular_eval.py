@@ -107,3 +107,8 @@ def test_eval_guarded_match_expression(run):
 def test_eval_match_failure_is_clear(run):
     with pytest.raises(RuntimeError, match="metacircular match failed"):
         run("apply(eval(quote(0 -> 1), empty_env()), [9])")
+
+
+def test_eval_unsupported_form_remains_clearly_limited(run):
+    with pytest.raises(RuntimeError, match="metacircular eval does not support expression"):
+        run("eval(quote(quasiquote([x])), empty_env())")

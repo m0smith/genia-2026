@@ -153,10 +153,12 @@ list = (..xs) -> xs
 - quoted/quasiquoted data can now be inspected with the syntax helper prelude
   - `self_evaluating?`, `symbol_expr?`, `quoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
   - selectors include `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
+  - parser/quote substrate stays host-backed, while most user-facing structural selectors now live in `std/prelude/syntax.genia`
 - Genia also now includes a minimal phase-1 metacircular evaluator over quoted expressions
   - environment helpers: `empty_env`, `lookup`, `define`, `set`, `extend`
   - evaluator entry: `eval(expr, env)`
   - `apply(proc, args)` still applies ordinary callables and now also applies metacircular compound procedures and metacircular matcher procedures
+  - metacircular env/runtime substrate stays host-backed, while dispatch/helper glue live in `std/prelude/eval.genia`
 - named functions may include optional docstring metadata:
   - example:
     ```genia

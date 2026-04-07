@@ -152,6 +152,11 @@ In particular:
 * Flow/rules are the model example in this phase:
   * keep lazy pull-based single-use flow mechanics in host code
   * prefer rule orchestration, defaulting, validation, and other language-visible semantics in Genia/prelude when feasible
+* parser/compiler/evaluator substrate may remain host-backed
+* syntax/programs-as-data helpers are the other model example in this phase:
+  * keep parsing, lowering, quoting substrate, and metacircular runtime substrate in host code
+  * prefer user-facing selectors, structural helpers, and semantic glue over quoted forms in Genia/prelude
+* agents should actively look for chances to shrink Python-side structural inspection and pure helper glue, not only business logic
 
 ---
 

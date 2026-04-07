@@ -341,6 +341,11 @@ Expected behavior:
 
 Genia now includes a minimal metacircular evaluator built on the quoted-data model.
 
+Current split:
+
+- parser/quote/quasiquote substrate and metacircular environments remain host-backed
+- public syntax selectors and most helper glue over quoted data live in prelude
+
 Public names:
 
 - `empty_env`

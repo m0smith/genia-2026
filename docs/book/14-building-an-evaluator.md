@@ -4,6 +4,11 @@ This chapter is the first small proof that Genia can evaluate Genia expressions 
 
 The evaluator works over quoted expressions, not raw source text.
 
+Implementation split in this phase:
+
+- parser/lowering, ordinary evaluator substrate, and metacircular environment capabilities remain host-backed
+- evaluator dispatch and most user-facing semantic glue live in `std/prelude/eval.genia`
+
 Public phase-1 names:
 
 - `empty_env`
@@ -109,6 +114,7 @@ Expected behavior:
 - the evaluator operates only on the supported quoted expression families above
 - the evaluator relies on a host-backed metacircular environment capability instead of a pure-Genia environment implementation
 - `operands(...)` and `block_expressions(...)` still return pair-chain sequences rather than normalized ordinary lists
+- unsupported quoted forms still fail with a clear runtime error instead of expanding evaluator coverage
 
 ### ❌ Not implemented
 
