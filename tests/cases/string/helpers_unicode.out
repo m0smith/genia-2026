@@ -1,1 +1,1 @@
-[0, 3, 2, 3, 4, True, True, True, 2, 1, True, 42, 'hello']
+[0, 3, 2, 3, 4, True, True, True, 2, 1, True, some(42), 'hello']

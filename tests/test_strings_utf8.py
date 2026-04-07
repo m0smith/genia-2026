@@ -20,11 +20,9 @@ def test_parse_int_rejects_non_string_and_bad_base():
         _run('parse_int("10", 1)')
 
 
-def test_parse_int_rejects_empty_and_invalid_digits():
-    with pytest.raises(ValueError, match="parse_int expected a non-empty integer string"):
-        _run('parse_int("   ")')
-    with pytest.raises(ValueError, match=r"parse_int invalid integer for base 2: '102'"):
-        _run('parse_int("102", 2)')
+def test_parse_int_returns_structured_absence_for_empty_and_invalid_digits():
+    assert format_debug(_run('parse_int("   ")')) == 'none(parse_failed, {source: "parse_int", expected: "integer_string", received: "   ", base: 10})'
+    assert format_debug(_run('parse_int("102", 2)')) == 'none(parse_failed, {source: "parse_int", expected: "integer_string", received: "102", base: 2})'
 
 
 def test_print_displays_string_content_without_quotes():

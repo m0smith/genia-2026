@@ -128,7 +128,7 @@ Current consistency note:
   - `nth_opt`
 - preferred modern absence style in new code:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
-- maybe-flow helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` preserve structured absence unchanged
+- direct Option-aware pipelines are now canonical, while helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for explicit Option values and higher-order code
 - public Option, String, Map, Ref, Process, and sink helper names are now prelude-backed wrappers over host-backed runtime primitives, so they participate in `help("name")` doc output without changing runtime behavior
 - public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting mostly live in prelude
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
@@ -311,8 +311,10 @@ get("name", person)
 [1, 2, 3] |> map(inc)
 ```
 
-- `x |> f` rewrites to `f(x)`
-- `x |> f(y)` rewrites to `f(y, x)` (append piped value as final argument)
+- `|>` now evaluates as an Option-aware pipeline stage operator
+- ordinary call shape is preserved:
+  - `x |> f` calls `f(x)`
+  - `x |> f(y)` calls `f(y, x)` (append piped value as final argument)
 - left-associative chaining is supported (`a |> f |> g`)
 - multiline formatting around `|>` is supported:
   ```genia
@@ -320,8 +322,20 @@ get("name", person)
     |> f
     |> g
   ```
-- rewrite occurs during AST→Core IR lowering (not as a special runtime node)
-- this rewrite is unchanged even when working with Flow values; streaming behavior is runtime-level, not parser-level
+- Option propagation is built into pipeline evaluation:
+  - if a stage input is `some(x)`, the next stage receives `x`
+  - if a stage input is `none(...)`, remaining stages do not execute and the same `none(...)` is returned
+  - if a stage returns `some(x)`, the next stage receives `x`
+  - if a stage returns `none(...)`, the rest of the pipeline is skipped
+- pipeline-visible function modes are now interpreted as:
+  - Value -> Value
+  - Flow -> Flow
+  - explicit Value <-> Flow bridge
+- recovery/defaulting should wrap the whole pipeline result:
+  - `unwrap_or("unknown", record |> get("user") |> get("name"))`
+- Flow is still explicit:
+  - Flow values move through pipelines only when explicit bridge/stage functions such as `lines`, `collect`, and `run` are used
+  - there is no implicit Value↔Flow conversion
 
 ### Flow runtime (Phase 1)
 
@@ -404,6 +418,8 @@ cell_get(counter)
   - public helpers from `std/prelude/option.genia`: `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
+- canonical pipeline style now prefers direct maybe-returning stages such as `get`, `first`, `nth`, `find`, and `parse_int`
+- explicit helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for direct Option values, higher-order code, and non-pipeline composition
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `rules`, `each`, `collect`, `run`, plus prelude `head` aliases and rule helper constructors `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
 
 ### CLI args / options (runtime layer)
@@ -465,9 +481,39 @@ parse_int("42")
 parse_int("ff", 16)
 ```
 
+- returns `some(int)` on success
+- returns `none(parse_failed, context)` for invalid integer text
 - base 10 by default
 - explicit base supported in `2..36`
 - surrounding whitespace is ignored
+
+### Pipeline migration note
+
+Old helper-heavy style:
+
+```genia
+record |> get("user") |> then_get("name") |> or_else("unknown")
+```
+
+New canonical style:
+
+```genia
+unwrap_or("unknown", record |> get("user") |> get("name"))
+```
+
+Old parse pipeline:
+
+```genia
+nth(5, fields(row)) |> map_some(parse_int) |> unwrap_or(0)
+```
+
+New canonical style:
+
+```genia
+unwrap_or(0, fields(row) |> nth(5) |> parse_int)
+```
+
+Short design note: [docs/architecture/pipeline-option-redesign.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-option-redesign.md)
 - invalid text raises `ValueError`
 
 ### Concurrency

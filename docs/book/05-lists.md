@@ -189,7 +189,7 @@ Implemented helpers:
 - `nth(index, list)`
 - `nth_opt(index, list)` (compatibility alias)
 - `find_opt(predicate, list)`
-- chaining helpers over canonical access:
+- explicit chaining helpers over canonical access:
   - `then_first(target)`
   - `then_nth(index, target)`
 
@@ -264,24 +264,24 @@ Naming note:
 
 Maybe-flow note:
 
-- list helpers often act as the first maybe-aware step in a chain
+- list helpers often act as the first maybe-aware step in an Option-aware pipeline
 - example:
   ```genia
-  nth(5, fields("a b c d 5 x")) |> map_some(parse_int) |> unwrap_or(0)
+  unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> parse_int)
   ```
-- this works because `map_some` is maybe-aware; `|>` itself is still only ordinary call rewriting
-- safe-chaining helpers also compose directly with list results:
+- this works because `nth` and `parse_int` return Option values and `|>` propagates them automatically
+- direct chaining also composes with list results:
   ```genia
   data = { items: [{ name: "A" }, { name: "B" }] }
-  data |> get("items") |> then_nth(0) |> then_get("name") |> or_else("?")
+  unwrap_or("?", data |> get("items") |> nth(0) |> get("name"))
   ```
 - and:
   ```genia
   data = { users: [] }
-  result = data |> get("users") |> then_first() |> then_get("email")
+  result = data |> get("users") |> first() |> get("email")
   [absence_reason(result), is_none?(result)]
   ```
-- those helpers are thin wrappers over canonical `nth`, `first`, and `get`; they do not change the meaning of `|>`
+- explicit helpers such as `then_first` and `then_nth` still exist for direct Option values, but they are no longer the canonical pipeline style
 
 ---
 

@@ -3,8 +3,6 @@
 
 stdin
   |> lines
-  |> map((row) -> fields(row) |> nth_opt(5))
-  |> filter((opt) -> some?(opt))
-  |> map((opt) -> parse_int(or_else(opt, "0")))
+  |> map((row) -> unwrap_or(0, fields(row) |> nth(5) |> parse_int))
   |> collect
   |> sum

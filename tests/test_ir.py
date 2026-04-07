@@ -6,6 +6,7 @@ from genia.interpreter import (
     IrFuncDef,
     IrLiteral,
     IrPatLiteral,
+    IrPipe,
     IrSpread,
     IrListTraversalLoop,
     IrPatBind,
@@ -97,27 +98,25 @@ def test_call_spread_lowers_to_ir_spread_arg():
     assert isinstance(expr_stmt.expr.args[0], IrSpread)
 
 
-def test_pipeline_lowers_to_ir_calls():
+def test_pipeline_lowers_to_ir_pipe_nodes():
     ast_nodes = Parser(lex("3 |> inc |> double")).parse_program()
     ir_nodes = lower_program(ast_nodes)
 
     expr_stmt = ir_nodes[0]
     assert isinstance(expr_stmt, IrExprStmt)
-    assert isinstance(expr_stmt.expr, IrCall)
-    assert isinstance(expr_stmt.expr.fn, IrVar)
-    assert expr_stmt.expr.fn.name == "double"
-    assert len(expr_stmt.expr.args) == 1
+    assert isinstance(expr_stmt.expr, IrPipe)
+    assert isinstance(expr_stmt.expr.right, IrVar)
+    assert expr_stmt.expr.right.name == "double"
 
-    inner = expr_stmt.expr.args[0]
-    assert isinstance(inner, IrCall)
-    assert isinstance(inner.fn, IrVar)
-    assert inner.fn.name == "inc"
-    assert len(inner.args) == 1
-    assert isinstance(inner.args[0], IrLiteral)
-    assert inner.args[0].value == 3
+    inner = expr_stmt.expr.left
+    assert isinstance(inner, IrPipe)
+    assert isinstance(inner.right, IrVar)
+    assert inner.right.name == "inc"
+    assert isinstance(inner.left, IrLiteral)
+    assert inner.left.value == 3
 
 
-def test_multiline_pipeline_lowers_to_ir_calls():
+def test_multiline_pipeline_lowers_to_ir_pipe_nodes():
     src = """
     3
       |> inc
@@ -128,9 +127,9 @@ def test_multiline_pipeline_lowers_to_ir_calls():
 
     expr_stmt = ir_nodes[0]
     assert isinstance(expr_stmt, IrExprStmt)
-    assert isinstance(expr_stmt.expr, IrCall)
-    assert isinstance(expr_stmt.expr.fn, IrVar)
-    assert expr_stmt.expr.fn.name == "double"
+    assert isinstance(expr_stmt.expr, IrPipe)
+    assert isinstance(expr_stmt.expr.right, IrVar)
+    assert expr_stmt.expr.right.name == "double"
 
 
 def test_lowered_case_keeps_guard_tuple_and_list_patterns():

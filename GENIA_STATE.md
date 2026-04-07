@@ -132,7 +132,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - `nil` and `none` therefore overlap in purpose today, but they are different runtime values with different APIs/patterns.
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
-- maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find`; the public helper names are prelude-backed wrappers over host-backed runtime primitives, and pipeline syntax itself remains ordinary AST→Core IR call rewriting.
+- Option-aware pipelines now compose canonical maybe-returning helpers directly; explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain available for direct Option values and higher-order/non-pipeline use.
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - `help()` now serves as a small public-surface overview that points users toward autoloaded prelude families and canonical helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, and `eval`
@@ -169,21 +169,35 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - lambdas: `(x) -> x + 1`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
 
-Pipeline (Phase 2) rewrite model:
+Pipeline (Phase 2) evaluation model:
 
-- `x |> f` rewrites to `f(x)`
-- `x |> f(y)` rewrites to `f(y, x)` (left value appended as the last argument)
-- `x |> expr` rewrites to `expr(x)` when `expr` is valid in ordinary call-callee position
-  - example: `record |> "name"` rewrites to `"name"(record)`
-- left associative: `a |> f |> g` rewrites to `g(f(a))`
+- `|>` is a dedicated pipeline stage form in Core IR/runtime in this phase
+- ordinary call shape is preserved:
+  - `x |> f` calls `f(x)`
+  - `x |> f(y)` calls `f(y, x)` (left value appended as the last argument)
+  - `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
+  - example: `record |> "name"` behaves like `"name"(record)`
+- left associative: `a |> f |> g`
 - newline-separated pipeline formatting is accepted:
   - `x`
     `|> f`
     `|> g`
   - `x |> `
     `f |> g`
-- rewrite is performed in the AST→Core IR lowering pass (not by runtime special-casing)
-- no stream runtime semantics are added in this phase
+- automatic Option propagation is part of pipeline evaluation:
+  - if a stage input is `some(x)`, the next stage receives `x`
+  - if a stage input is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
+  - if a stage result is `some(x)`, the next stage receives `x`
+  - if a stage result is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
+- pipeline-visible function modes are interpreted as:
+  - Value -> Value
+  - Flow -> Flow
+  - explicit Value <-> Flow bridge
+- recovery/defaulting wraps the whole pipeline result rather than living as a later pipeline stage:
+  - `unwrap_or("unknown", record |> get("user") |> get("name"))`
+- Flow remains explicit:
+  - Flow values still come only from explicit bridge/stage functions such as `lines`
+  - Value↔Flow conversion is not implicit
 
 ## 4) Functions and dispatch
 
@@ -717,6 +731,8 @@ Behavior:
   - `find_opt(predicate, list)`
   - `nth(index, list)`
   - `nth_opt(index, list)` (compatibility alias)
+  - `parse_int(string)`
+  - `parse_int(string, base)`
 
 Absence semantics:
 
@@ -725,6 +741,7 @@ Absence semantics:
 - reason/context metadata does not create a new success/failure category.
 - absence is not the same as a runtime error.
 - helpers treat all `none...` forms as absence.
+- `parse_int` uses `none(parse_failed, context)` for invalid integer text instead of raising for ordinary parse failure
 
 `get?` semantics:
 
@@ -753,11 +770,7 @@ Maybe-flow helper semantics:
 - `or_else_with(opt, thunk)` is recovery/defaulting:
   - returns wrapped value for `some(value)`
   - calls `thunk()` only for `none...`
-- `or_else(opt, fallback)` and `or_else_with(opt, thunk)` accept both direct style and pipeline-friendly style in this phase:
-  - `or_else(some(3), 0) -> 3`
-  - `some(3) |> or_else(0) -> 3`
-  - `or_else_with(none(empty_list), () -> 0) -> 0`
-  - `none(empty_list) |> or_else_with(() -> 0) -> 0`
+- `or_else(opt, fallback)` and `or_else_with(opt, thunk)` are direct recovery helpers over explicit Option values
 - these helpers preserve structured absence reason/context during propagation unless they are explicitly recovery/defaulting helpers
 
 Developer-facing rendering and introspection:
@@ -779,12 +792,15 @@ Developer-facing rendering and introspection:
 
 Pipeline note:
 
-- pipeline semantics themselves are unchanged
-- absence flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b") |> then_get("c")`, not from a magical pipeline runtime
-- safe-chaining helpers preserve the first structured `none(...)` unchanged:
-  - `record |> get("user") |> then_get("address") |> then_get("zip")`
-  - `data |> get("items") |> then_nth(0) |> then_get("name")`
-  - `data |> get("users") |> then_first() |> then_get("email") |> or_else("unknown")`
+- pipelines are now Option-aware directly
+- canonical safe-chaining style is now:
+  - `record |> get("user") |> get("address") |> get("zip")`
+  - `data |> get("items") |> nth(0) |> get("name")`
+  - `data |> get("users") |> first() |> get("email")`
+- canonical recovery wraps the pipeline result:
+  - `unwrap_or("unknown", record |> get("user") |> get("name"))`
+  - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
+- explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain available for direct Option values and higher-order/non-pipeline composition
 
 Structured absence currently used in canonical access/search helpers:
 
@@ -830,7 +846,8 @@ Compatibility note:
   - `nth`
   - string `find`
   - `find_opt`
-  - helper-driven chaining with `then_get`, `then_first`, `then_nth`, `then_find`, and `or_else` where composition helps
+  - direct Option-aware pipelines such as `record |> get("user") |> get("name")`
+  - outer recovery with `unwrap_or(...)` / `or_else(...)`
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -858,8 +875,8 @@ Pattern matching note:
 
 `parse_int` behavior:
 
-- `parse_int(string)` parses base-10 integers
-- `parse_int(string, base)` parses using explicit base `2..36`
+- `parse_int(string)` returns `some(int)` or `none(parse_failed, context)`
+- `parse_int(string, base)` does the same with explicit base `2..36`
 - surrounding whitespace is ignored
 - leading `+` / `-` is supported
 - invalid text raises clear `ValueError`

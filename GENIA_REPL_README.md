@@ -68,8 +68,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - parameters are assignable
   - assignment is limited to simple names in this phase
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
-- pipeline operator (phase 2): `|>` with call-rewrite semantics (`x |> f` → `f(x)`, `x |> f(y)` → `f(y, x)`, `x |> expr` → `expr(x)` when `expr` is valid in ordinary call-callee position)
+- pipeline operator (phase 2): `|>` with Option-aware stage semantics
+  - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` behaves like `"name"(record)`
+  - `some(x)` is unwrapped to `x` for the next stage
+  - `none(...)` short-circuits the rest of the pipeline and is returned unchanged
+  - pipeline-visible function modes are interpreted as Value -> Value, Flow -> Flow, or explicit Value <-> Flow bridge
   - multiline formatting is accepted around the operator:
     ```genia
     value
@@ -156,7 +160,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - constants: `pi`, `e`, `true`, `false`, `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
-  - Flow is a runtime value family; pipeline syntax itself is unchanged call rewriting
+  - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
   - transforms: `lines`, `map`, `filter`, `take`, `rules`
@@ -191,15 +195,18 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `first([])` and `last([])` return `none(empty_list)`
   - `nth(index, list)` returns `none(index_out_of_bounds, { index: i, length: n })` when out of range
   - `find(string, needle)` returns `some(index)` or `none(not_found, { needle: needle })`
+  - `parse_int(string)` returns `some(int)` or `none(parse_failed, context)`
   - `find_opt(predicate, list)` returns `none(no_match)` when nothing matches
   - canonical maybe-aware lookup: `get(key, target)`; `get?(key, target)` remains as a compatibility alias
   - compatibility aliases: `first_opt` for `first`, `nth_opt` for `nth`
   - prefer `get`, `first`, `last`, `nth`, string `find`, and `find_opt` in new examples; treat `map_get`, slash access, callable map/string lookup, and `cli_option` as compatibility surfaces
-  - maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
-  - pipeline syntax is unchanged; maybe flow in pipelines comes from helper behavior such as `record |> get("a") |> then_get("b") |> then_get("c")`
-  - recovery helpers support both direct and pipeline-friendly order:
-    - `or_else(some(3), 0)` and `some(3) |> or_else(0)`
-    - `or_else_with(none(empty_list), () -> 0)` and `none(empty_list) |> or_else_with(() -> 0)`
+  - explicit Option helpers still exist for direct Option values and higher-order use: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - canonical pipeline style is direct:
+    - `record |> get("a") |> get("b") |> get("c")`
+    - `data |> get("items") |> nth(0) |> get("name")`
+  - canonical recovery wraps the whole pipeline result:
+    - `unwrap_or("unknown", record |> get("profile") |> get("name"))`
+    - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
   - `some(nil)` is valid and distinct from `none`
   - REPL/debug rendering preserves structured absence syntax directly:
     - `none(missing_key, {key: "name"})`
@@ -408,11 +415,11 @@ parse_int("ff", 16)
 
 Current behavior:
 
-- `parse_int(string)` uses base 10
+- `parse_int(string)` returns `some(int)` on success
 - `parse_int(string, base)` accepts bases `2..36`
+- invalid integer text returns `none(parse_failed, context)`
 - surrounding whitespace is ignored
 - leading `+` / `-` is supported
-- invalid text raises `ValueError`
 - non-string input raises `TypeError`
 
 ## Lexical assignment
@@ -658,7 +665,7 @@ These are blocking builtins only; they do not introduce scheduler/async runtime 
 - `json_pretty(value)` renders deterministic pretty JSON (`indent=2`, sorted keys).
 - `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
 - `zip_write(entries, path)` writes entries in order and returns `path`.
-  - It also accepts `(path, entries)` to stay pipeline-friendly with current `|>` rewrite behavior.
+  - It also accepts `(path, entries)` to stay pipeline-friendly with the current `|>` call-shape rules.
 
 ## Demo note: ants simulation example
 

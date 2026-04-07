@@ -32,54 +32,64 @@ map_some(f, opt) = """
 # map_some
 
 Map `f` over `some(value)` and preserve `none...` unchanged.
+
+Use this for explicit Option values outside `|>` pipelines.
 """ _map_some(f, opt)
 
 flat_map_some(f, opt) = """
 # flat_map_some
 
 Map `f` over `some(value)` when `f` already returns an Option value.
+
+Use this for explicit Option values outside `|>` pipelines.
 """ _flat_map_some(f, opt)
 
 then_get(key, target) = """
 # then_get
 
-Chain maybe-aware lookup over `get`.
+Explicit maybe-aware lookup over `get` for non-pipeline Option targets.
 """ _then_get(key, target)
 
 then_first(target) = """
 # then_first
 
-Chain maybe-aware lookup over the first element of a list target.
+Explicit maybe-aware lookup over the first element of a list target.
 """ _then_first(target)
 
 then_nth(index, target) = """
 # then_nth
 
-Chain maybe-aware lookup over a list index.
+Explicit maybe-aware lookup over a list index.
 """ _then_nth(index, target)
 
 then_find(needle, target) = """
 # then_find
 
-Chain maybe-aware string search over a string target.
+Explicit maybe-aware string search for Option targets or pipeline-stage strings.
 """ _then_find(needle, target)
 
 or_else(opt, fallback) = """
 # or_else
 
 Return the wrapped value for `some(...)`, otherwise return `fallback`.
+
+For `|>` pipelines, recover by wrapping the whole pipeline result with `or_else(...)` or `unwrap_or(...)`.
 """ _or_else(opt, fallback)
 
 or_else_with(opt, thunk) = """
 # or_else_with
 
 Return the wrapped value for `some(...)`, otherwise call `thunk()`.
+
+For `|>` pipelines, recover by wrapping the whole pipeline result with `or_else_with(...)` or `unwrap_or(...)`.
 """ _or_else_with(opt, thunk)
 
 unwrap_or(default, opt) = """
 # unwrap_or
 
 Return the wrapped value for `some(...)`, otherwise return `default`.
+
+This is the canonical recovery helper around Option-aware pipelines.
 """ _unwrap_or(default, opt)
 
 absence_reason(opt) = """

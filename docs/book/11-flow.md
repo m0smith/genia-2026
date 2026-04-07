@@ -77,7 +77,8 @@ Expected behavior:
 
 `rules(..fns)` is a runtime/library Flow stage.
 
-It does not add syntax, and it does not change the meaning of `|>`.
+It does not add syntax.
+Flow stages still move Flow values explicitly; Option-aware `|>` semantics do not create implicit Value↔Flow bridges.
 
 Each rule runs as `(record, ctx) -> none(...) | some(result)`.
 The running `ctx` starts as `{}` and persists across input items.
@@ -105,7 +106,7 @@ Expected result:
 ```genia
 running_total(record, ctx) = {
   total = unwrap_or(0, get("sum", ctx))
-  value = parse_int(record)
+  value = unwrap_or(0, record |> parse_int)
   next = total + value
   rule_step(record, map_put(ctx, "sum", next), [next])
 }

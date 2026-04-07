@@ -664,7 +664,7 @@ parse_int("42")
 Expected result:
 
 ```genia
-42
+some(42)
 ```
 
 ### Edge case example
@@ -676,7 +676,7 @@ Expected result:
 Expected result:
 
 ```genia
-[-17, 255, 42]
+[some(-17), some(255), some(42)]
 ```
 
 ### Failure case example
@@ -687,7 +687,7 @@ parse_int("12x")
 
 Expected behavior:
 
-- raises `ValueError` because the string is not a valid base-10 integer
+- returns `none(parse_failed, context)` because the string is not a valid base-10 integer
 
 Additional current rules:
 
@@ -703,6 +703,7 @@ Additional current rules:
 - `parse_int(string)` and `parse_int(string, base)`
 - public `parse_int` wrapper in `std/prelude/string.genia`
 - `help("parse_int")` visibility through the wrapper docstring
+- parse failures return structured absence instead of raising for ordinary invalid text
 
 ### ⚠️ Partial
 
@@ -1267,8 +1268,8 @@ Canonical access/search helpers implemented today:
 ### Minimal example
 
 ```genia
-person = { name: "Genia" }
-person |> get("name") |> unwrap_or("unknown")
+person = { profile: { name: "Genia" } }
+unwrap_or("unknown", person |> get("profile") |> get("name"))
 ```
 
 Expected result:
@@ -1337,7 +1338,7 @@ Expected behavior:
   - constructor pattern `some(pattern)`
 - canonical maybe-aware lookup via `get(key, target)` with key-presence distinction (`some(nil)` vs `none...`)
 - `get?(key, target)` remains as a compatibility alias
-- maybe-flow helpers: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`
+- explicit Option helpers for non-pipeline and higher-order use: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`
 - helper builtins: `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - public Option helper surface is prelude-backed, so helpers such as `some`, `get`, `map_some`, and `or_else` are visible through `help("name")`
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
@@ -1359,14 +1360,14 @@ Expected behavior:
   - `find("abc", "x") -> none(not_found, { needle: "x" })`
   - `find_opt(pred, xs)` can return `none(no_match)`
   - `nth(i, xs)` can return `none(index_out_of_bounds, { index: i, length: n })`
-- maybe flow:
+- Option-aware pipelines:
+  - `record |> get("user") |> get("name")`
+  - `data |> get("items") |> nth(0) |> get("name")`
+  - `fields(row) |> nth(5) |> parse_int`
+  - recover by wrapping the whole pipeline result with `unwrap_or(...)` or `or_else(...)`
+- explicit helpers remain useful outside pipelines:
   - `map_some` and `flat_map_some` preserve structured absence unchanged
-  - `then_get` is a thin chaining helper over `get`
-  - `then_first` is a thin chaining helper over `first`
-  - `then_nth` is a thin chaining helper over `nth`
-  - `then_find` is a thin chaining helper over string `find`
-  - `or_else` and `or_else_with` support both direct and pipeline-friendly order
-  - pipeline syntax itself is unchanged; maybe flow is helper behavior layered on top of ordinary call rewriting
+  - `then_get`, `then_first`, `then_nth`, and `then_find` are thin explicit helpers for direct Option values
 - developer-facing inspection:
   - REPL/debug output preserves structured absence syntax and context visibly
   - `absence_reason` / `absence_context` are the canonical metadata-inspection helpers

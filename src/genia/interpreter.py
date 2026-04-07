@@ -835,6 +835,15 @@ class IrBinary(IrNode):
 
 
 @dataclass
+class IrPipe(IrNode):
+    """Pipeline stage application with Option-aware short-circuit semantics."""
+
+    left: IrNode
+    right: IrNode
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrCall(IrNode):
     """Function call where callee and args are already lowered."""
 
@@ -1071,11 +1080,7 @@ def lower_node(node: Node) -> IrNode:
         return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
         if node.op == "PIPE_FWD":
-            lowered_left = lower_node(node.left)
-            lowered_right = lower_node(node.right)
-            if isinstance(lowered_right, IrCall):
-                return IrCall(lowered_right.fn, [*lowered_right.args, lowered_left], span=node.span)
-            return IrCall(lowered_right, [lowered_left], span=node.span)
+            return IrPipe(lower_node(node.left), lower_node(node.right), span=node.span)
         return IrBinary(lower_node(node.left), node.op, lower_node(node.right), span=node.span)
     if isinstance(node, Call):
         return IrCall(lower_node(node.fn), [lower_node(arg) for arg in node.args], span=node.span)
@@ -1552,6 +1557,8 @@ def recursive_call_count(node: IrNode, fn_name: str) -> int:
     if isinstance(node, IrCall):
         own = 1 if isinstance(node.fn, IrVar) and node.fn.name == fn_name else 0
         return own + recursive_call_count(node.fn, fn_name) + sum(recursive_call_count(arg, fn_name) for arg in node.args)
+    if isinstance(node, IrPipe):
+        return recursive_call_count(node.left, fn_name) + recursive_call_count(node.right, fn_name)
     if isinstance(node, IrUnary):
         return recursive_call_count(node.expr, fn_name)
     if isinstance(node, IrBinary):
@@ -3358,6 +3365,8 @@ class Evaluator:
     def eval_tail(self, node: IrNode) -> Any:
         if isinstance(node, IrCall):
             return self.eval_call(node, tail_position=True)
+        if isinstance(node, IrPipe):
+            return self.eval_pipe(node, tail_position=True)
         if isinstance(node, IrBlock):
             local = Env(self.env)
             ev = Evaluator(local, self.debug_hooks, self.debug_mode)
@@ -3392,6 +3401,52 @@ class Evaluator:
             fn = self.eval(node.fn)
 
         return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
+
+    def eval_pipe(self, node: IrPipe, tail_position: bool) -> Any:
+        stage_value = self.eval(node.left)
+        if isinstance(stage_value, GeniaOptionNone):
+            return stage_value
+        if isinstance(stage_value, GeniaOptionSome):
+            stage_value = stage_value.value
+        return self.eval_pipe_stage(node.right, stage_value, tail_position=tail_position)
+
+    def eval_pipe_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
+        if isinstance(node, IrCall):
+            args: list[Any] = []
+            for arg_node in node.args:
+                if isinstance(arg_node, IrSpread):
+                    value = self.eval(arg_node.expr)
+                    if not isinstance(value, list):
+                        raise TypeError("Cannot spread non-list into function arguments")
+                    args.extend(value)
+                else:
+                    args.append(self.eval(arg_node))
+
+            if isinstance(node.fn, IrVar):
+                name = node.fn.name
+                try:
+                    fn = self.env.get(name)
+                except NameError:
+                    if self.env.try_autoload(name, len(args) + 1):
+                        fn = self.env.get(name)
+                    else:
+                        raise
+            else:
+                fn = self.eval(node.fn)
+
+            return self.invoke_callable(fn, [*args, stage_value], tail_position=tail_position, callee_node=node.fn)
+
+        if isinstance(node, IrVar):
+            try:
+                fn_value = self.env.get(node.name)
+            except NameError:
+                if self.env.try_autoload(node.name, 1):
+                    fn_value = self.env.get(node.name)
+                else:
+                    raise
+        else:
+            fn_value = self.eval(node)
+        return self.invoke_callable(fn_value, [stage_value], tail_position=tail_position, callee_node=node)
 
     def invoke_callable(
         self,
@@ -3692,6 +3747,8 @@ class Evaluator:
             if node.op == "BANG":
                 return not truthy(value)
             raise RuntimeError(f"Unknown unary operator {node.op}")
+        if isinstance(node, IrPipe):
+            return self.eval_pipe(node, tail_position=False)
         if isinstance(node, IrBinary):
             return self.eval_binary(node)
         if isinstance(node, IrCall):
@@ -3819,6 +3876,50 @@ class Evaluator:
 
 def truthy(value: Any) -> bool:
     return bool(value)
+
+
+def _runtime_type_name(value: Any) -> str:
+    if value is None:
+        return "nil"
+    if isinstance(value, GeniaOptionNone):
+        return "none"
+    if isinstance(value, GeniaOptionSome):
+        return "some"
+    if isinstance(value, bool):
+        return "bool"
+    if isinstance(value, int):
+        return "int"
+    if isinstance(value, float):
+        return "float"
+    if isinstance(value, str):
+        return "string"
+    if isinstance(value, list):
+        return "list"
+    if isinstance(value, GeniaMap):
+        return "map"
+    if isinstance(value, GeniaFlow):
+        return "flow"
+    if isinstance(value, GeniaRef):
+        return "ref"
+    if isinstance(value, GeniaProcess):
+        return "process"
+    if isinstance(value, GeniaOutputSink):
+        return "sink"
+    if isinstance(value, GeniaBytes):
+        return "bytes"
+    if isinstance(value, GeniaZipEntry):
+        return "zip_entry"
+    if isinstance(value, GeniaPair):
+        return "pair"
+    if isinstance(value, GeniaMetaEnv):
+        return "meta_env"
+    if isinstance(value, GeniaPromise):
+        return "promise"
+    if isinstance(value, GeniaFunctionGroup):
+        return "function"
+    if callable(value):
+        return "function"
+    return type(value).__name__
 
 
 def _syntax_tagged_list(value: Any, tag: Any) -> bool:
@@ -4112,17 +4213,17 @@ def make_global_env(
 
     def _ensure_string(value: Any, name: str) -> str:
         if not isinstance(value, str):
-            raise TypeError(f"{name} expected a string")
+            raise TypeError(f"{name} expected a string, received {_runtime_type_name(value)}")
         return value
 
     def _ensure_bytes(value: Any, name: str) -> GeniaBytes:
         if not isinstance(value, GeniaBytes):
-            raise TypeError(f"{name} expected bytes")
+            raise TypeError(f"{name} expected bytes, received {_runtime_type_name(value)}")
         return value
 
     def _ensure_zip_entry(value: Any, name: str) -> GeniaZipEntry:
         if not isinstance(value, GeniaZipEntry):
-            raise TypeError(f"{name} expected a zip entry")
+            raise TypeError(f"{name} expected a zip entry, received {_runtime_type_name(value)}")
         return value
 
     def _json_from_runtime(value: Any) -> Any:
@@ -4191,9 +4292,9 @@ def make_global_env(
     def join_fn(sep: Any, xs: Any) -> str:
         separator = _ensure_string(sep, "join")
         if not isinstance(xs, list):
-            raise TypeError("join expected a list as second argument")
+            raise TypeError(f"join expected a list as second argument, received {_runtime_type_name(xs)}")
         if not all(isinstance(item, str) for item in xs):
-            raise TypeError("join expected a list of strings")
+            raise TypeError("join expected a list of strings, received list")
         return separator.join(xs)
 
     def trim_fn(value: Any) -> str:
@@ -4211,7 +4312,7 @@ def make_global_env(
     def upper_fn(value: Any) -> str:
         return _ensure_string(value, "upper").upper()
 
-    def parse_int_fn(*args: Any) -> int:
+    def parse_int_fn(*args: Any) -> Any:
         if len(args) not in (1, 2):
             raise TypeError(f"parse_int expected 1 or 2 args, got {len(args)}")
         text = _ensure_string(args[0], "parse_int")
@@ -4225,13 +4326,25 @@ def make_global_env(
 
         stripped = text.strip()
         if stripped == "":
-            raise ValueError("parse_int expected a non-empty integer string")
+            return GeniaOptionNone(
+                symbol("parse_failed"),
+                GeniaMap()
+                .put("source", "parse_int")
+                .put("expected", "integer_string")
+                .put("received", text)
+                .put("base", base),
+            )
         try:
-            return int(stripped, base)
-        except ValueError as exc:
-            if len(args) == 1:
-                raise ValueError(f"parse_int invalid integer: {text!r}") from exc
-            raise ValueError(f"parse_int invalid integer for base {base}: {text!r}") from exc
+            return GeniaOptionSome(int(stripped, base))
+        except ValueError:
+            return GeniaOptionNone(
+                symbol("parse_failed"),
+                GeniaMap()
+                .put("source", "parse_int")
+                .put("expected", "integer_string")
+                .put("received", text)
+                .put("base", base),
+            )
 
     def input_fn(prompt: str = "") -> str:
         return input(prompt)
@@ -4258,7 +4371,7 @@ def make_global_env(
 
     def _ensure_flow(value: Any, name: str) -> GeniaFlow:
         if not isinstance(value, GeniaFlow):
-            raise TypeError(f"{name} expected a flow")
+            raise TypeError(f"{name} expected a flow, received {_runtime_type_name(value)}")
         return value
 
     def flow_predicate_fn(value: Any) -> bool:
@@ -4266,7 +4379,7 @@ def make_global_env(
 
     def _ensure_callable(value: Any, name: str) -> Callable[..., Any]:
         if not callable(value):
-            raise TypeError(f"{name} expected a function")
+            raise TypeError(f"{name} expected a function, received {_runtime_type_name(value)}")
         return value
 
     def lines_fn(source: Any) -> GeniaFlow:
@@ -4495,7 +4608,7 @@ def make_global_env(
             (
                 "Option / string",
                 ("std/prelude/option.genia", "std/prelude/string.genia"),
-                ("some", "get", "map_some", "flat_map_some", "then_get", "unwrap_or", "parse_int", "split", "trim", "join"),
+                ("some", "get", "unwrap_or", "absence_reason", "parse_int", "split", "trim", "join", "map_some", "then_get"),
             ),
             (
                 "Map / ref / process / sinks",
@@ -4528,8 +4641,9 @@ def make_global_env(
             "Examples:",
             "  1 + 2 * 3",
             '  person = { name: "Maya" }',
-            '  get("name", person)',
+            '  unwrap_or("unknown", person |> get("name"))',
             "  [1, 2, 3] |> map((x) -> x + 1)",
+            '  unwrap_or(0, "42" |> parse_int)',
             "  quote([a, b, c])",
             '  help("get")',
             '  help("map_put")',
@@ -4546,7 +4660,7 @@ def make_global_env(
             "  Most user-facing helpers live in autoloaded prelude modules.",
             '  `help("name")` autoloads a documented public helper and renders its Markdown docstring.',
             "  Public family samples below are derived from registered prelude autoloads.",
-            '  Example: `get(key, target)` is preferred over `map_get`, `map/name`, `map(key)`, or `"key"(map)`.',
+            '  Example: `unwrap_or("?", record |> get("user") |> get("name"))` is preferred over helper-heavy safe-chaining and legacy lookup forms.',
             "",
             "Public prelude families discovered from autoload registrations:",
         ]
@@ -4729,14 +4843,14 @@ def make_global_env(
 
     def _ensure_map(value: Any, name: str) -> GeniaMap:
         if not isinstance(value, GeniaMap):
-            raise TypeError(f"{name} expected a map as first argument")
+            raise TypeError(f"{name} expected a map as first argument, received {_runtime_type_name(value)}")
         return value
 
     def _ensure_list_of_strings(value: Any, name: str) -> list[str]:
         if not isinstance(value, list):
-            raise TypeError(f"{name} expected a list of strings")
+            raise TypeError(f"{name} expected a list of strings, received {_runtime_type_name(value)}")
         if not all(isinstance(item, str) for item in value):
-            raise TypeError(f"{name} expected a list of strings")
+            raise TypeError(f"{name} expected a list of strings, received list")
         return value
 
     def _map_from_string_names(names: list[str]) -> GeniaMap:
@@ -4895,7 +5009,7 @@ def make_global_env(
                 return GeniaOptionSome(target.get(key))
             context = GeniaMap().put("key", key)
             return GeniaOptionNone(symbol("missing_key"), context)
-        raise TypeError(f"{name} expected a map, some(map), or none target")
+        raise TypeError(f"{name} expected a map, some(map), or none target; received {_runtime_type_name(target)}")
 
     def get_fn(key: Any, target: Any) -> Any:
         return _get_option_impl("get", key, target)
@@ -4956,7 +5070,7 @@ def make_global_env(
             if len(target) == 0:
                 return GeniaOptionNone(symbol("empty_list"))
             return GeniaOptionSome(target[0])
-        raise TypeError("then_first expected a list, some(list), or none target")
+        raise TypeError(f"then_first expected a list, some(list), or none target; received {_runtime_type_name(target)}")
 
     def then_first_fn(target: Any) -> Any:
         return _first_option_impl(target)
@@ -4974,7 +5088,7 @@ def make_global_env(
                 context = GeniaMap().put("index", index).put("length", size)
                 return GeniaOptionNone(symbol("index_out_of_bounds"), context)
             return GeniaOptionSome(target[index])
-        raise TypeError("then_nth expected a list, some(list), or none target")
+        raise TypeError(f"then_nth expected a list, some(list), or none target; received {_runtime_type_name(target)}")
 
     def then_nth_fn(first: Any, second: Any) -> Any:
         target, index = _resolve_chain_binary_args("then_nth", first, second, _looks_like_list_target)
@@ -4991,12 +5105,14 @@ def make_global_env(
             if idx < 0:
                 return GeniaOptionNone(symbol("not_found"), GeniaMap().put("needle", safe_needle))
             return GeniaOptionSome(idx)
-        raise TypeError("then_find expected a string, some(string), or none target")
+        raise TypeError(f"then_find expected a string, some(string), or none target; received {_runtime_type_name(target)}")
 
     def then_find_fn(first: Any, second: Any) -> Any:
         if isinstance(first, (GeniaOptionSome, GeniaOptionNone)):
             target, needle = first, second
         elif isinstance(second, (GeniaOptionSome, GeniaOptionNone)):
+            target, needle = second, first
+        elif isinstance(second, str):
             target, needle = second, first
         else:
             target, needle = first, second

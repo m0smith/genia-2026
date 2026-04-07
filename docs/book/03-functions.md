@@ -175,12 +175,13 @@ This evaluates to `42`.
 ### Edge case example
 
 ```genia
-unwrap_or([], unwrap_or(none, map_some(rule_emit, some(5))) |> then_get("emit"))
+result = 5 |> rule_emit
+unwrap_or([], get("emit", result))
 ```
 
 This evaluates to `[5]`.
 
-That works because `rule_emit` is looked up as a function value, autoloaded from the prelude, and then passed into `map_some`.
+That works because `rule_emit` is looked up as a function value, autoloaded from the prelude, and then used as an ordinary pipeline stage.
 
 ### Failure case example
 
@@ -518,13 +519,13 @@ Pipeline-friendly API design note:
 
 Maybe-aware flow in this phase comes from helper functions whose argument order is chosen to fit that rewrite.
 
-For new code, prefer canonical maybe-returning helpers such as `get`, `first`, `nth`, string `find`, and the `then_*` chaining wrappers over older `nil`-returning lookup surfaces like `map_get`, callable map/string lookup, or slash access.
+For new code, prefer canonical maybe-returning helpers such as `get`, `first`, `nth`, string `find`, and `parse_int` directly in pipelines over older `nil`-returning lookup surfaces like `map_get`, callable map/string lookup, or slash access.
 
 ### Minimal example
 
 ```genia
 record = { profile: { name: "Genia" } }
-record |> get("profile") |> then_get("name") |> unwrap_or("?")
+unwrap_or("?", record |> get("profile") |> get("name"))
 ```
 
 Result:
@@ -537,7 +538,7 @@ Result:
 
 ```genia
 record = {}
-result = record |> get("profile") |> then_get("name")
+result = record |> get("profile") |> get("name")
 [absence_reason(result), unwrap_or({}, absence_context(result))/key]
 ```
 
@@ -553,7 +554,7 @@ Another useful chaining shape:
 
 ```genia
 data = { users: [{ email: "a@example.com" }] }
-data |> get("users") |> then_first() |> then_get("email") |> or_else("unknown")
+unwrap_or("unknown", data |> get("users") |> first() |> get("email"))
 ```
 
 Result:
@@ -565,7 +566,7 @@ Result:
 When a chain fails early, the rendered result keeps the structured absence visible:
 
 ```genia
-{} |> get("profile") |> then_get("name")
+{} |> get("profile") |> get("name")
 ```
 
 Rendered result:
@@ -622,17 +623,22 @@ Expected behavior:
   * wraps as `stdin |> lines |> <stage_expr> |> run`
   * bypasses `main`
 * Bundled stdlib/prelude `.genia` sources are loaded through package resources, so installed-tool execution does not depend on checkout-relative stdlib paths
-* Pipeline operator `|>` with expression-level call rewriting
+* Pipeline operator `|>` with Option-aware stage semantics while preserving ordinary call shape
 * Bare callable pipeline RHS forms that lower to ordinary call syntax (for example, string projector pipelines such as `record |> "name"`)
-* Maybe-aware helper composition layered on top of the existing rewrite:
+* Direct maybe-returning pipeline composition:
   * `get`
+  * `first`
+  * `nth`
+  * `find`
+  * `parse_int`
+  * `unwrap_or`
+* Explicit Option helpers still available for non-pipeline composition:
   * `then_get`
   * `then_first`
   * `then_nth`
   * `then_find`
   * `map_some`
   * `flat_map_some`
-  * `or_else` / `or_else_with` in both direct and pipeline-friendly order
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:
   * signature header (`name/shape`)
@@ -644,11 +650,12 @@ Expected behavior:
 
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
-* Pipeline syntax is only call composition; Flow runtime behavior is implemented separately in Phase 1 and does not change the `|>` rewrite rules
+* Flow runtime behavior is still implemented separately in Phase 1; pipeline evaluation is Option-aware, but Flow bridges remain explicit
 * public Flow helpers are help-visible through `std/prelude/flow.genia`; the lazy Flow kernel stays host-backed while `rules` orchestration/defaulting mostly live in prelude
-* Safe chaining is still library-driven rather than syntax-driven:
+* explicit Option helpers remain secondary:
   * `then_get`, `then_first`, `then_nth`, and `then_find` are thin wrappers over canonical maybe-returning access/search helpers
-  * `unwrap_or`, `or_else`, and `or_else_with` recover/default; they do not change the meaning of `|>`
+  * `map_some` / `flat_map_some` remain useful for direct Option values and higher-order code
+  * `unwrap_or`, `or_else`, and `or_else_with` recover/default by wrapping the final Option result
 * `main` auto-invocation is only for file/`-c` execution modes (not REPL)
 
 ### ❌ Not implemented

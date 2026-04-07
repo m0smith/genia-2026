@@ -92,10 +92,14 @@ parse_int(value) = """
 # parse_int
 
 Parse an integer from a string, with optional explicit base.
+
+Returns `some(int)` on success and `none(parse_failed, context)` for invalid integer text.
 """ _parse_int(value)
 
 parse_int(value, base) = """
 # parse_int
 
 Parse an integer from a string, with optional explicit base.
+
+Returns `some(int)` on success and `none(parse_failed, context)` for invalid integer text.
 """ _parse_int(value, base)

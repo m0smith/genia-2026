@@ -121,17 +121,29 @@ Implemented operators are limited to:
 - pipeline: `|>`
 - slash named accessor form: `lhs/name` (RHS bare identifier only)
 
-Pipeline rewrite invariant:
+Pipeline invariant:
 
-- `x |> f` is equivalent to `f(x)`
-- `x |> f(y)` is equivalent to `f(y, x)` (append source value as final arg)
-- `x |> expr` is equivalent to `expr(x)` when `expr` is valid in ordinary call-callee position
-  - example: `record |> "name"` is equivalent to `"name"(record)`
+- `|>` is a dedicated pipeline evaluation form in this phase
+- ordinary call shape is preserved:
+  - `x |> f` calls `f(x)`
+  - `x |> f(y)` calls `f(y, x)` (append source value as final arg)
+  - `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
+  - example: `record |> "name"` behaves like `"name"(record)`
 - chaining is left-associative
 - newlines may appear immediately before `|>` and immediately after `|>` in ordinary expression parsing
-- rewrite happens in lowering from parsed AST to Core IR; runtime does not treat pipeline as a separate IR/runtime primitive
-- this is expression-level call rewriting only (no stream runtime semantics)
-- tail position propagates through the final pipeline stage because the lowered call expression inherits the surrounding tail position
+- Option propagation is part of pipeline evaluation:
+  - if a stage input is `some(x)`, the next stage receives `x`
+  - if a stage input is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
+  - if a stage result is `some(x)`, the next stage receives `x`
+  - if a stage result is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
+- pipeline-visible function modes are interpreted as:
+  - Value -> Value
+  - Flow -> Flow
+  - explicit Value <-> Flow bridge
+- Flow remains explicit:
+  - pipeline evaluation does not create implicit Value↔Flow conversions
+  - flow values still come from explicit bridge/stage functions such as `lines`, `collect`, and `run`
+- tail position propagates through the final pipeline stage
 
 
 Slash accessor invariants (phase 1):
@@ -366,6 +378,9 @@ No additional member/index/flow operators should be introduced without explicitl
   - `nth(index, list) -> some(value)` or `none(index_out_of_bounds, { index: i, length: n })`
 - canonical string search helper:
   - `find(string, needle) -> some(index)` or `none(not_found, { needle: needle })`
+- canonical integer parsing helper:
+  - `parse_int(string) -> some(int)` or `none(parse_failed, context)`
+  - `parse_int(string, base) -> some(int)` or `none(parse_failed, context)`
 - `find_opt(predicate, list)` is the canonical maybe-aware predicate-search helper for lists in this phase
 - pattern matching supports:
   - literal `none`
@@ -376,9 +391,6 @@ No additional member/index/flow operators should be introduced without explicitl
 - `is_some?(opt)` / `some?(opt)` and `is_none?(opt)` / `none?(opt)` report option shape
 - `or_else(opt, fallback)` returns the wrapped value for `some(value)` and the fallback for any `none...` form
 - `or_else_with(opt, thunk)` returns the wrapped value for `some(value)` and calls `thunk()` only for `none...`
-- `or_else` and `or_else_with` also support pipeline-friendly order in this phase:
-  - `some(3) |> or_else(0)`
-  - `none(empty_list) |> or_else_with(() -> 0)`
 - `absence_reason(opt)` returns `some(reason)` for structured absence and `none` for plain `none`
 - `absence_context(opt)` returns `some(context)` only when context metadata is present
 - `some?` / `none?` and `is_some?` / `is_none?` have the same runtime truth values; the shorter `some?` / `none?` names are preferred in docs/examples
@@ -408,7 +420,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `compatibility alias`: thin wrapper/alias kept for migration stability
   - `deprecated-in-docs`: behavior still supported but discouraged in new code/examples
   - `legacy retained`: behavior still supported because no canonical replacement has fully taken over yet
-- book/readme/repl examples should prefer canonical maybe-aware access and helper-driven chaining over docs-deprecated `nil`-returning lookup forms
+- book/readme/repl examples should prefer canonical maybe-aware access and direct Option-aware pipelines over helper-heavy chaining and docs-deprecated `nil`-returning lookup forms
 - `get?` remains the current compatibility exception to that naming rule; `get` is preferred for new maybe-aware code
 - docs-deprecated `nil`-returning access forms retained in this phase:
   - `map_get`
@@ -416,12 +428,12 @@ No additional member/index/flow operators should be introduced without explicitl
   - callable string projector lookup
   - slash map access
 - `cli_option` remains a legacy-retained `value_or_nil` helper in this phase
-- pipeline behavior is unchanged and relies on existing rewrite rules (`record |> get("name")` rewrites to `get("name", record)`)
-- maybe flow in pipelines is helper-driven, not a new pipeline runtime semantic
-- safe chaining is therefore helper-driven too:
-  - `record |> get("user") |> then_get("address") |> then_get("zip")`
-  - `data |> get("items") |> then_nth(0) |> then_get("name")`
-  - the first structured `none(...)` is preserved unchanged until an explicit recovery/defaulting helper is called
+- pipeline behavior is now Option-aware directly
+- canonical safe-chaining is therefore direct:
+  - `record |> get("user") |> get("address") |> get("zip")`
+  - `data |> get("items") |> nth(0) |> get("name")`
+  - the first structured `none(...)` is preserved unchanged until an explicit recovery/defaulting helper wraps the final pipeline result
+- explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain useful for direct Option values, higher-order code, and non-pipeline composition
 - `nil` remains a normal runtime value and is not removed by this migration
 - canonical missing-result behavior now means structured `none(...)`, not `nil`
 - developer-facing presentation is separate from semantics:
@@ -436,10 +448,10 @@ No additional member/index/flow operators should be introduced without explicitl
 - `find(string, needle)` returns:
   - `some(index)` when the substring exists
   - `none(not_found, { needle: needle })` when the substring is missing
-- `parse_int(string)` parses base-10 integers from strings
-- `parse_int(string, base)` parses with explicit base in `2..36`
+- `parse_int(string)` returns `some(int)` or `none(parse_failed, context)`
+- `parse_int(string, base)` does the same with explicit base in `2..36`
 - `parse_int` ignores surrounding whitespace and supports leading `+` / `-`
-- invalid integer text must raise clear `ValueError`
+- invalid integer text must return `none(parse_failed, context)`
 - non-string input must raise clear `TypeError`
 - invalid base type must raise clear `TypeError`
 - out-of-range base must raise clear `ValueError`
@@ -449,7 +461,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - unmatched function/case dispatch should raise deterministic runtime errors
 - invalid grammar forms should fail during parse with syntax errors
 - type-invalid builtins (e.g., non-list spread) should raise clear `TypeError`
-- value-invalid builtins should raise clear `ValueError` where appropriate (e.g., `rand_int(0)`, `sleep(-1)`, `parse_int("12x")`)
+- value-invalid builtins should raise clear `ValueError` where appropriate (e.g., `rand_int(0)`, `sleep(-1)`, invalid parse bases)
 
 ## 13) Simulation primitive builtins (host-backed only)
 
@@ -518,8 +530,7 @@ When changing syntax/semantics/runtime behavior, update together:
 
 ## 19) Flow runtime invariants (phase 1)
 
-- pipeline operator semantics are unchanged (AST→Core IR call rewrite only)
-- flow behavior is runtime-level and value-based, with no parser/operator additions
+- pipeline operator semantics are Option-aware, but Flow remains explicit and runtime-level
 - `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
 - public flow helper names are exposed through thin prelude wrappers in `std/prelude/flow.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use

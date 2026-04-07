@@ -49,6 +49,12 @@ def test_collect_materializes_reusable_data():
     assert run_source(src, env) == [["a", "b"], ["a", "b"]]
 
 
+def test_flow_and_value_bridges_remain_explicit():
+    env = make_global_env(stdin_data=["a", "b"])
+    with pytest.raises(TypeError, match="each expected a flow, received list"):
+        run_source("stdin |> lines |> collect |> each(print) |> run", env)
+
+
 def test_take_and_head_aliases():
     env = make_global_env(stdin_data=["a", "b", "c", "d"])
     assert run_source("stdin |> lines |> take(2) |> collect", env) == ["a", "b"]

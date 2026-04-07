@@ -100,15 +100,14 @@ def test_then_get_propagates_existing_absence_unchanged(run):
     assert format_debug(_run('then_get(none(missing_key, { key: "a" }), "b")')) == 'none(missing_key, {key: "a"})'
 
 
-def test_or_else_and_or_else_with_support_direct_and_pipeline_styles(run):
+def test_or_else_and_or_else_with_support_direct_style_and_outer_pipeline_recovery(run):
     assert run("or_else(some(2), 5)") == 2
-    assert run("some(2) |> or_else(5)") == 2
     assert run("or_else(none(empty_list), 5)") == 5
-    assert run("none(empty_list) |> or_else(5)") == 5
     assert run("or_else_with(some(2), () -> 5)") == 2
-    assert run("some(2) |> or_else_with(() -> 5)") == 2
     assert run("or_else_with(none(empty_list), () -> 5)") == 5
-    assert run("none(empty_list) |> or_else_with(() -> 5)") == 5
+    assert run('unwrap_or("?", {profile: {name: "Genia"}} |> get("profile") |> get("name"))') == "Genia"
+    assert run('unwrap_or("?", {} |> get("profile") |> get("name"))') == "?"
+    assert run("unwrap_or(5, none(empty_list) |> parse_int)") == 5
 
 
 def test_none_pattern_rejects_too_many_inner_patterns(run):
@@ -184,6 +183,7 @@ def test_then_first_success_and_empty_list_absence(run):
 def test_then_find_success_and_propagation(run):
     assert run('unwrap_or(-1, then_find(some("abc"), "b"))') == 1
     assert run('unwrap_or(-1, some("abc") |> then_find("b"))') == 1
+    assert run('unwrap_or(-1, "abc" |> then_find("b"))') == 1
     assert format_debug(_run('then_find(none(missing_key, { key: "name" }), "b")')) == 'none(missing_key, {key: "name"})'
     assert run('is_none?(then_find(some("abc"), "x"))') is True
     assert format_debug(_run('absence_reason(then_find(some("abc"), "x"))')) == "some(not_found)"
@@ -199,19 +199,19 @@ def test_map_some_and_flat_map_some_propagate_structured_absence(run):
 def test_safe_chaining_pipeline_examples(run):
     src = '\n'.join([
         'record = { user: { address: { zip: "80302" } } }',
-        'record |> get("user") |> then_get("address") |> then_get("zip") |> or_else("unknown")',
+        'unwrap_or("unknown", record |> get("user") |> get("address") |> get("zip"))',
     ])
     assert run(src) == "80302"
 
     src = '\n'.join([
         'data = { items: [{ name: "A" }, { name: "B" }] }',
-        'data |> get("items") |> then_nth(0) |> then_get("name") |> or_else("?")',
+        'unwrap_or("?", data |> get("items") |> nth(0) |> get("name"))',
     ])
     assert run(src) == "A"
 
     src = '\n'.join([
         'data = { users: [] }',
-        'result = data |> get("users") |> then_first() |> then_get("email")',
+        'result = data |> get("users") |> first() |> get("email")',
         '[absence_reason(result), is_none?(result)]',
     ])
     result = run(src)
@@ -219,9 +219,8 @@ def test_safe_chaining_pipeline_examples(run):
     assert result[1] is True
 
 
-def test_pipeline_rewrite_is_unchanged_for_generic_calls(run):
-    with pytest.raises(TypeError, match="parse_int expected a string"):
-        run("none(empty_list) |> parse_int")
+def test_pipeline_short_circuits_none_for_generic_calls(run):
+    assert format_debug(_run("none(empty_list) |> parse_int")) == "none(empty_list)"
 
 
 def test_then_helpers_fail_clearly_on_wrong_targets(run):
@@ -229,7 +228,7 @@ def test_then_helpers_fail_clearly_on_wrong_targets(run):
         run("then_nth(0, 42)")
     with pytest.raises(TypeError, match="then_nth expected an integer index"):
         run('then_nth(some([1, 2]), "0")')
-    with pytest.raises(TypeError, match="then_find expected a string, some\\(string\\), or none target"):
+    with pytest.raises(TypeError, match="then_find expected a string"):
         run("then_find(42, \"a\")")
 
 

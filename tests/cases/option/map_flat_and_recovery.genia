@@ -10,8 +10,8 @@ data = {items: [{name: "A"}, {name: "B"}]}
   a,
   b,
   n,
-  record |> get("user") |> then_get("address") |> then_get("zip") |> or_else("unknown"),
-  data |> get("items") |> then_nth(0) |> then_get("name") |> or_else("?"),
+  unwrap_or("unknown", record |> get("user") |> get("address") |> get("zip")),
+  unwrap_or("?", data |> get("items") |> nth(0) |> get("name")),
   any?((_) -> some(1), [1]),
   any?((_) -> none, [1])
 ]
