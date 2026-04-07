@@ -1,0 +1,11 @@
+inc(x) = x + 1
+inc_opt(x) = some(x + 1)
+stop(x) = none(parse_failed, { source: "stop" })
+
+[
+  some(4) |> inc,
+  3 |> inc_opt |> inc,
+  none?(none(empty_list) |> parse_int),
+  none?(3 |> stop |> inc),
+  ((3 |> inc) |> inc)
+]

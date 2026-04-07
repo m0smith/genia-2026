@@ -23,6 +23,7 @@ The shared suite is intended to hold at least these categories:
 - Flow behavior
 - error normalization behavior
 - prelude behavior
+- capability-bridge behavior when a host implements optional allowlisted host interop
 
 ## Directory Layout
 
@@ -32,6 +33,7 @@ The shared suite is intended to hold at least these categories:
   - Core IR snapshots and lowering-focused cases
 - `eval/`:
   - runtime result behavior for lowered programs
+  - when a host supports allowlisted host interop, this also covers boundary cases such as host `None` -> Genia `none` and normalized explicit host errors
 - `cli/`:
   - file mode, `-c`, `-p`, REPL-adjacent CLI behavior, stdout/stderr, exit codes
 - `errors/`:

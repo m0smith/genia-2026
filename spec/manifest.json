@@ -15,6 +15,7 @@
     "cli_pipe_mode",
     "repl",
     "flow_phase_1",
+    "allowlisted_host_interop",
     "refs",
     "process_primitives",
     "bytes_json_zip",
@@ -55,6 +56,7 @@
     "docs/host-interop/HOST_PORTING_GUIDE.md",
     "docs/host-interop/HOST_CAPABILITY_MATRIX.md",
     "docs/architecture/core-ir-portability.md",
+    "docs/architecture/pipeline-ir-host-integration.md",
     "tools/spec_runner/README.md"
   ]
 }

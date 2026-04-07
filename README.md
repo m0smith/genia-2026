@@ -339,6 +339,7 @@ import python.json as pyjson
 - host imports are allowlisted; `import python.os` is rejected
 - host functions participate in ordinary calls and Option-aware pipelines
 - host `None` maps to Genia `none`
+- host exceptions remain explicit errors rather than turning into success values
 
 Working examples:
 
@@ -356,6 +357,15 @@ unwrap_or("fallback", "null" |> pyjson/loads)
 import python
 [1, 2, 3] |> python/len
 ```
+
+Failure example:
+
+```genia
+import python.json as pyjson
+"{" |> pyjson/loads
+```
+
+- raises `ValueError("python.json/loads invalid JSON: ...")`
 
 ### Named slash access (`/`)
 
@@ -585,6 +595,7 @@ unwrap_or(0, fields(row) |> nth(5) |> parse_int)
 ```
 
 Short design note: [docs/architecture/pipeline-option-redesign.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-option-redesign.md)
+Integration note: [docs/architecture/pipeline-ir-host-integration.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-ir-host-integration.md)
 - invalid text raises `ValueError`
 
 ### Concurrency

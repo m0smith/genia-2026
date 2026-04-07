@@ -41,6 +41,7 @@ These may arrive later for a new host, but they must be marked honestly:
 - `-p` / `--pipe`
 - REPL
 - Flow phase 1 runtime
+- allowlisted host interop bridge
 - refs
 - process primitives
 - bytes/json/zip bridge
@@ -88,6 +89,10 @@ Rule:
 - lowering preserves current explicit pipeline IR semantics (source + ordered stages)
 - Core IR remains the semantic boundary
 - runtime preserves current value families and callable behaviors
+- if the host implements allowlisted host interop, the bridge must preserve:
+  - host-null/host-None -> Genia `none`
+  - explicit host errors for exceptions
+  - no implicit Flow crossing at the bridge
 - public helpers prefer prelude-backed behavior where feasible
 - capability-backed builtins stay small and explicit
 

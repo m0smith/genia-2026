@@ -132,6 +132,25 @@ def test_multiline_pipeline_lowers_to_explicit_ir_pipeline():
     assert [stage.name for stage in expr_stmt.expr.stages if isinstance(stage, IrVar)] == ["inc", "double"]
 
 
+def test_host_module_stage_remains_explicit_inside_pipeline_ir():
+    src = """
+    import python.json as pyjson
+    "null" |> pyjson/loads
+    """
+    ast_nodes = Parser(lex(src)).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+
+    expr_stmt = ir_nodes[1]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrPipeline)
+    assert isinstance(expr_stmt.expr.source, IrLiteral)
+    assert expr_stmt.expr.source.value == "null"
+    assert len(expr_stmt.expr.stages) == 1
+    stage = expr_stmt.expr.stages[0]
+    assert isinstance(stage, IrBinary)
+    assert stage.op == "SLASH"
+
+
 def test_option_constructors_lower_to_explicit_option_ir_nodes():
     ast_nodes = Parser(lex("[some(1), none(parse_failed, {source: \"x\"})]")).parse_program()
     ir_nodes = lower_program(ast_nodes)

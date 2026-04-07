@@ -155,6 +155,28 @@ Rules:
   - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
   - `spec/manifest.json`
 
+## Allowlisted Host Interop Bridge
+
+Current host interop is a narrow capability bridge, not a second semantic runtime.
+
+Current Python-host contract:
+
+- host interop reuses ordinary `import` plus slash export access
+- current allowlisted modules are `python` and `python.json`
+- host exports participate in the same call and pipeline model as ordinary Genia callables
+- boundary normalization preserves shared Genia semantics:
+  - host `None` -> Genia `none`
+  - Genia `some(x)` crossing to the host -> converted `x`
+  - host exceptions remain explicit errors
+- current normalized bridge example:
+  - `python.json/loads("{")` raises `ValueError("python.json/loads invalid JSON: ...")`
+
+Important boundary rule:
+
+- Option-aware pipelines continue across the host bridge
+- Flow does not implicitly cross the host bridge
+- if a host export receives a Flow where it expects an ordinary host value, that remains a type error in the current model
+
 ## Flow Contract
 
 Flow semantics are shared language/runtime semantics, even if hosts implement them differently.

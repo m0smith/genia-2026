@@ -26,6 +26,38 @@ def test_host_none_maps_to_genia_none_and_short_circuits_pipeline(run):
     assert run(src) == "fallback"
 
 
+def test_host_none_short_circuits_later_pipeline_stage(run):
+    src = """
+    import python.json as pyjson
+    seen = ref(0)
+    bump(x) = {
+      ref_update(seen, (n) -> n + 1)
+      x + 1
+    }
+
+    result = "null" |> pyjson/loads |> bump
+    [none?(result), ref_get(seen)]
+    """
+    assert run(src) == [True, 0]
+
+
+def test_some_input_unwraps_before_host_stage_and_host_none_stays_plain_none(run):
+    src = """
+    import python.json as pyjson
+    none?(some("null") |> pyjson/loads)
+    """
+    assert run(src) is True
+
+
+def test_python_json_loads_invalid_json_raises_normalized_value_error(run):
+    src = """
+    import python.json as pyjson
+    "{" |> pyjson/loads
+    """
+    with pytest.raises(ValueError, match=r"^python\.json/loads invalid JSON:"):
+        run(src)
+
+
 def test_genia_map_converts_to_host_json_string(run):
     src = """
     import python.json as pyjson
@@ -50,6 +82,24 @@ def test_root_python_module_exposes_json_submodule(run):
     unwrap_or("fallback", "null" |> python/json/loads)
     """
     assert run(src) == "fallback"
+
+
+def test_host_and_user_defined_pipeline_stages_compose_without_special_cases(run):
+    src = """
+    import python
+    inc(x) = x + 1
+    [1, 2, 3] |> python/len |> inc
+    """
+    assert run(src) == 4
+
+
+def test_flow_values_remain_distinct_from_host_value_calls(run):
+    src = """
+    import python
+    stdin |> lines |> python/len
+    """
+    with pytest.raises(TypeError, match="python interop cannot convert flow to a host value"):
+        run(src)
 
 
 def test_disallowed_python_host_module_is_rejected(run):

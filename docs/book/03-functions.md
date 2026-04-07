@@ -208,6 +208,13 @@ math/missing
 - raises `NameError` for the missing export.
 
 ```genia
+import python.json as pyjson
+"{" |> pyjson/loads
+```
+
+- raises `ValueError("python.json/loads invalid JSON: ...")`.
+
+```genia
 import python.os
 ```
 
@@ -639,8 +646,9 @@ none(empty_list) |> parse_int
 
 Expected behavior:
 
-* runtime `TypeError` because pipeline rewriting is unchanged and `parse_int` still expects a string
-* there is no automatic absence propagation for arbitrary calls
+* renders as `none(empty_list)`
+* later stages do not execute
+* direct pipelines now propagate structured absence automatically
 
 ### Failure case example
 
@@ -695,6 +703,7 @@ Expected behavior:
   * `then_find`
   * `map_some`
   * `flat_map_some`
+  * these still matter when the value in hand is already an explicit Option, or when higher-order wrap-vs-flat-map behavior is the point
 * Named-function docstring metadata (`f(...) = "doc" ...`)
 * `help(name)` output with:
   * signature header (`name/shape`)

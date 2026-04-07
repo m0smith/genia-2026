@@ -3291,7 +3291,12 @@ def _python_str_impl(value: Any) -> str:
 def _python_json_loads_impl(text: Any) -> Any:
     if not isinstance(text, str):
         raise TypeError(f"python.json/loads expected a string, received {_runtime_type_name(text)}")
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ValueError(
+            f"python.json/loads invalid JSON: {exc.msg} at line {exc.lineno} column {exc.colno}"
+        ) from exc
 
 
 def _python_json_dumps_impl(value: Any) -> str:

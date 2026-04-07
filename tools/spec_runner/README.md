@@ -32,6 +32,9 @@ Suggested normalized shapes:
     - stdout string
     - stderr string
     - normalized error object when evaluation fails
+    - when a host implements allowlisted host interop, the same eval contract should expose normalized bridge behavior too:
+      - host `None` returning as Genia `none`
+      - explicit normalized host errors rather than silent success conversion
 - `cli(args, stdin?)`:
   - input:
     - argv-like argument list

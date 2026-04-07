@@ -11,6 +11,9 @@ Current reality in this phase:
 - the current runtime entrypoint is `src/genia/interpreter.py`
 - the package script entrypoint is `genia = genia.interpreter:_main`
 - `hosts/python/` is documentation scaffolding for the future monorepo layout, not the current source location
+- the current Python host also implements the allowlisted host interop bridge described in the shared docs:
+  - `import python`
+  - `import python.json`
 
 Rules:
 

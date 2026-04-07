@@ -35,6 +35,7 @@ A Flow is:
 
 `|>` lowers to an explicit pipeline node in Core IR.
 Flow behavior starts when those stages produce or consume Flow values at runtime.
+Option-aware pipeline semantics still apply to ordinary values, but they do not create implicit Value↔Flow conversion and they do not change the single-use Flow kernel contract.
 
 ## Reusable stages
 

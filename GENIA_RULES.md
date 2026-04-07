@@ -137,6 +137,12 @@ Required constraints:
 - host exceptions must not be silently converted to success values.
   - ordinary host failures currently propagate as explicit Python-host errors
   - host `None` results are the only automatic none-mapping path in this phase
+- current normalized bridge example:
+  - `python.json/loads` raises `ValueError("python.json/loads invalid JSON: ...")` for invalid JSON text
+- pipeline interaction at the bridge still uses ordinary pipeline semantics:
+  - `some(x) |> python/len` passes `x` into the host export
+  - `none(...) |> python/len` skips the host export and preserves the same `none(...)`
+  - Flow does not implicitly cross the bridge; passing a Flow to a host value export remains a type error unless an explicit Flow stage has already materialized ordinary values
 - unrestricted host import, arbitrary attribute access, and arbitrary code execution are not part of this phase.
 
 ## 8.3) Assignment invariants
@@ -442,6 +448,8 @@ No additional member/index/flow operators should be introduced without explicitl
   - returns `f(value)` for `some(value)`
   - requires `f(value)` to be an Option value
   - returns the original `none...` unchanged for any absence value
+- direct pipelines no longer need `map_some` / `flat_map_some` / `then_*` just to propagate absence through ordinary stage chains
+- those helpers remain distinct for explicit Option values, higher-order use, and places where wrapping vs flat-mapping is the real operation
 - `then_get(key, target)` is a thin maybe-aware chaining helper over `get`
 - `then_first(target)` is a thin maybe-aware chaining helper over `first`
 - `then_nth(index, target)` is a thin maybe-aware chaining helper over `nth`

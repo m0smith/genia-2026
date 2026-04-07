@@ -161,7 +161,12 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - strings are callable as map projectors
 - Flow, stdout/stderr, MetaEnv, Ref, and Process handles are runtime capability values, not plain data in quite the same sense as numbers, lists, or maps.
 - lexical assignment currently does not protect builtin/root names from rebinding inside the same root environment; that is real current behavior.
-- The current model is implemented and tested, but it is still piecemeal rather than a single fully unified type/protocol system.
+- The current model is implemented and tested as one integrated design in this phase:
+  - Core IR carries explicit pipeline and Option nodes
+  - pipeline evaluation owns automatic Option propagation
+  - Flow remains an explicit runtime value family rather than an implicit pipeline mode
+  - host interop is a narrow capability bridge layered onto the same call/pipeline semantics
+- This is still not a full static type/protocol system; the coherence is semantic rather than nominal.
 
 ## 3) Implemented syntax and expression forms
 
@@ -301,6 +306,7 @@ Pipeline (Phase 2) evaluation model:
 - current error behavior:
   - host exceptions remain explicit errors unless the host result is actually `None`
   - `None` maps to Genia `none` and therefore participates in ordinary Option-aware pipelines
+  - invalid JSON through `python.json/loads` raises `ValueError("python.json/loads invalid JSON: ...")`
 - callable data (phase 1):
   - maps are callable lookup values:
     - `m(key)` returns stored value or `nil`
@@ -814,6 +820,11 @@ Absence semantics:
 
 Maybe-flow helper semantics:
 
+- direct value pipelines no longer need these helpers for ordinary Option propagation
+- they remain useful for:
+  - explicit Option values outside pipeline position
+  - higher-order composition
+  - places where wrap-vs-flat-map behavior is the actual intent
 - `map_some(f, some(x)) -> some(f(x))`
 - `map_some(f, none(...)) -> none(...)` unchanged
 - `flat_map_some(f, some(x)) -> f(x)` and requires `f(x)` to be an Option value
