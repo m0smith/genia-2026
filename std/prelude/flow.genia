@@ -1,0 +1,29 @@
+lines(source) = """
+# lines
+
+Create a Flow from `stdin`, an incoming Flow, or a list of strings.
+""" _lines(source)
+
+rules(..fns) = """
+# rules
+
+Apply rule functions left-to-right to each incoming flow item.
+""" _rules(..fns)
+
+each(fn, flow) = """
+# each
+
+Run `fn` for each flow item and pass the original items through.
+""" _each(fn, flow)
+
+collect(flow) = """
+# collect
+
+Materialize a flow into an ordinary list.
+""" _collect(flow)
+
+run(flow) = """
+# run
+
+Consume a flow to completion for effects.
+""" _run(flow)
