@@ -147,6 +147,16 @@ def test_help_autoloads_eval_wrapper_docstring():
     assert "Evaluate a quoted Genia expression in a metacircular environment." in out
 
 
+def test_help_autoloads_flow_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("lines")\n', env, filename="help_flow.genia")
+    out = "".join(outputs)
+    assert "lines/1" in out
+    assert "# lines" in out
+    assert "Create a Flow from `stdin`" in out
+
+
 def test_help_autoloads_syntax_wrapper_docstring():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)

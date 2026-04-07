@@ -102,6 +102,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - maybe flow is now available through helper functions such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find`; the public helper names are prelude-backed wrappers over host-backed runtime primitives, and pipeline syntax itself remains ordinary AST→Core IR call rewriting.
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
+- public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - `help()` now serves as a small public-surface overview that points users toward autoloaded prelude families and canonical helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, and `eval`
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
@@ -455,6 +456,12 @@ Output sink semantics:
 - `stdin` is a lazy source value when used in pipelines (`stdin |> lines`)
   - `stdin |> lines` reads incrementally from the underlying source
   - `stdin()` still materializes and caches the full remaining input as a list for compatibility
+- public flow helpers are thin prelude wrappers in `std/prelude/flow.genia`:
+  - `lines`
+  - `rules`
+  - `each`
+  - `collect`
+  - `run`
 - flow transforms:
   - `lines(flow_or_source)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
@@ -874,6 +881,7 @@ Notable autoloaded functions include:
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`
+- flow: `lines`, `rules`, `each`, `collect`, `run`
 - option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
 - string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
 - syntax: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`

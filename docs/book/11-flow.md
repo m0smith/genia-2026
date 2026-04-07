@@ -7,6 +7,16 @@ Flow is a runtime value family, not a parser feature and not a special meaning o
 This chapter is about runtime Flow values for pipelines and IO.
 It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
 
+The canonical public Flow helper surface now lives in `std/prelude/flow.genia`:
+
+- `lines`
+- `rules`
+- `each`
+- `collect`
+- `run`
+
+These are thin prelude wrappers over the host Flow runtime, so they participate in `help("name")` and higher-order use without changing Flow semantics.
+
 ## Flow model
 
 A Flow is:
@@ -213,6 +223,7 @@ Expected behavior:
 - lazy single-use flow values
 - Flow as a first-class runtime value family (`<flow ...>`)
 - `stdin |> lines` source binding
+- public Flow helpers exposed through prelude wrappers in `std/prelude/flow.genia`
 - flow-aware `map`, `filter`, `take`, `rules`
 - `head/1` and `head/2` aliases (stdlib)
 - `each`, `collect`, and `run`

@@ -11,7 +11,7 @@ This repository currently provides:
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - list-first CLI args + parsing helpers (`argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
-- autoloaded prelude libraries (lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
+- autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
@@ -99,6 +99,7 @@ Current consistency note:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
 - maybe-flow helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` preserve structured absence unchanged
 - public Option, String, Map, Ref, Process, and sink helper names are now prelude-backed wrappers over host-backed runtime primitives, so they participate in `help("name")` doc output without changing runtime behavior
+- public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed wrappers over the host Flow runtime
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none(missing_key, {key: "name"})`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
@@ -297,6 +298,7 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
+- public flow helpers from `std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
 - `rules(..fns)` is a stateful rule-driven stage over any incoming Flow:
   - each rule runs as `(record, ctx)`
@@ -349,6 +351,7 @@ cell_get(counter)
 ### Core
 
 - direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+- public flow helpers from `std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
 - public sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`

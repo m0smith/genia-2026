@@ -120,6 +120,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - includes public ref helpers from `std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - includes public process helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
+  - includes public flow helpers from `std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
   - includes public option helpers from `std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - includes public string helpers from `std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
@@ -133,6 +134,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - direct I/O/runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+  - public flow helpers are prelude-backed wrappers: `lines`, `rules`, `each`, `collect`, `run`
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - CLI: `argv`, `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`

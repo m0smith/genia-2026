@@ -60,6 +60,16 @@ def test_take_and_head_aliases():
     assert run_source("stdin |> lines |> head(3) |> collect", env) == ["a", "b", "c"]
 
 
+def test_flow_wrappers_autoload_as_function_values():
+    env = make_global_env(stdin_data=["a", "b"])
+    src = """
+    source = lines
+    sink = collect
+    stdin |> source |> sink
+    """
+    assert run_source(src, env) == ["a", "b"]
+
+
 def test_take_zero_does_not_pull_upstream():
     env = make_global_env()
     state = {"pulled": 0}

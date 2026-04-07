@@ -507,6 +507,9 @@ When changing syntax/semantics/runtime behavior, update together:
 - pipeline operator semantics are unchanged (AST→Core IR call rewrite only)
 - flow behavior is runtime-level and value-based, with no parser/operator additions
 - `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
+- public flow helper names are exposed through thin prelude wrappers in `std/prelude/flow.genia`
+- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying Flow behavior remains host-backed in this phase; wrappering does not change semantics
 - phase-1 flow builtins:
   - sources/transforms: `lines`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`

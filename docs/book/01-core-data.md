@@ -69,6 +69,7 @@ Genia's current runtime value model is broader than just "plain data".
 - the public output sink helper names are thin prelude wrappers in `std/prelude/io.genia`, backed by the same host runtime behavior
 - the public Option helper names are thin prelude wrappers in `std/prelude/option.genia`, backed by the same host runtime behavior
 - the public String helper names are thin prelude wrappers in `std/prelude/string.genia`, backed by the same host runtime behavior
+- the public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are thin prelude wrappers in `std/prelude/flow.genia`, backed by the same host runtime behavior
 - `help()` now points users toward these public prelude-backed helper families; raw host bridge names remain intentionally generic in help output
 
 Naming rule today:

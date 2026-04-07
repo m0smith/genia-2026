@@ -162,7 +162,7 @@ math/missing
 
 Bundled stdlib functions are not only callable by name.
 They can also be used as function values in higher-order positions, and name lookup may autoload the defining prelude file before the lookup succeeds.
-This now includes the public Option, String, Map, Ref, Process, and sink helper surfaces, which are exposed as thin prelude wrappers over host-backed runtime behavior.
+This now includes the public Option, String, Map, Ref, Process, sink, and Flow helper surfaces, which are exposed as thin prelude wrappers over host-backed runtime behavior.
 
 ### Minimal example
 
@@ -232,6 +232,7 @@ For example, the public wrapper-backed helpers below are help-visible without be
 ```genia
 help()
 help("get")
+help("lines")
 help("parse_int")
 help("map_put")
 help("spawn")

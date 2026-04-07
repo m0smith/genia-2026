@@ -4559,13 +4559,15 @@ Public stdlib model:
   Example: `get(key, target)` is preferred over `map_get`, `map/name`, `map(key)`, or `"key"(map)`.
 
 Autoloaded public prelude families:
+  Flow:
+    lines, rules, each, collect, run
   Lists / fns / math:
     list, first, last, nth, find_opt, map, filter, reduce, apply, compose, sum
   Option / string:
     some, get, map_some, flat_map_some, then_get, unwrap_or, parse_int, split, trim, join
   Map / ref / process / sinks:
     map_put, map_has?, ref_update, spawn, send, write, writeln, flush
-  Streams / cells / rules:
+  Streams / cells / rule helpers:
     stream_cons, stream_map, stream_take, cell, cell_send, cell_error, rule_emit, rule_step
   Syntax / eval:
     match_branches, branch_guard, empty_env, eval
@@ -5421,11 +5423,11 @@ Intentional host bridge:
     env.set("print", print_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_source)
-    env.set("lines", lines_fn)
-    env.set("each", each_fn)
-    env.set("rules", rules_fn)
-    env.set("run", run_fn)
-    env.set("collect", collect_fn)
+    env.set("_lines", lines_fn)
+    env.set("_each", each_fn)
+    env.set("_rules", rules_fn)
+    env.set("_run", run_fn)
+    env.set("_collect", collect_fn)
     env.set("argv", argv_fn)
     env.set("help", help_fn)
     env.set("pi", math.pi)
@@ -5548,6 +5550,11 @@ Intentional host bridge:
     env.set("cli_option", cli_option_fn)
     env.set("cli_option_or", cli_option_or_fn)
 
+    env.register_autoload("lines", 1, "std/prelude/flow.genia")
+    env.register_autoload("rules", 0, "std/prelude/flow.genia")
+    env.register_autoload("each", 2, "std/prelude/flow.genia")
+    env.register_autoload("collect", 1, "std/prelude/flow.genia")
+    env.register_autoload("run", 1, "std/prelude/flow.genia")
     env.register_autoload("list", 0, "std/prelude/list.genia")
     env.register_autoload("first", 1, "std/prelude/list.genia")
     env.register_autoload("first_opt", 1, "std/prelude/list.genia")
