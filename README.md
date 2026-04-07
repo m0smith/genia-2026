@@ -12,6 +12,7 @@ This repository currently provides:
 - host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`)
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
+- a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
@@ -317,6 +318,45 @@ import math as m
 - module exports are accessed with narrow slash access (`mod/name`)
 - modules are immutable runtime namespace values (distinct from maps)
 
+### Python host interop (Phase 1, allowlisted)
+
+Genia currently reuses the existing module system for a minimal Python-only host bridge.
+There is no new member-access syntax for this.
+
+```genia
+import python
+import python.json as pyjson
+```
+
+- supported host modules in this phase:
+  - `python`
+  - `python.json`
+- supported root exports:
+  - `python/open`, `python/read`, `python/write`, `python/close`
+  - `python/read_text`, `python/write_text`
+  - `python/len`, `python/str`
+  - nested `python/json/loads`, `python/json/dumps`
+- host imports are allowlisted; `import python.os` is rejected
+- host functions participate in ordinary calls and Option-aware pipelines
+- host `None` maps to Genia `none`
+
+Working examples:
+
+```genia
+import python
+"file.txt" |> python/open |> python/read
+```
+
+```genia
+import python.json as pyjson
+unwrap_or("fallback", "null" |> pyjson/loads)
+```
+
+```genia
+import python
+[1, 2, 3] |> python/len
+```
+
 ### Named slash access (`/`)
 
 ```genia
@@ -607,9 +647,8 @@ rewrite_zip(in_path, out_path) =
 ## Not implemented yet
 
 - quote sugar (`'x`)
-- quasiquote / unquote
 - macros
-- general host interop / FFI
+- general unrestricted host interop / FFI
 - general member access / indexing syntax
 - full flow system beyond Phase 1 (async scheduling, multi-port stages, richer cancellation/backpressure controls)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)

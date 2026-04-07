@@ -95,10 +95,49 @@ Required constraints:
   - `import mod as alias`
 - imports bind only the module value in the current environment (no export splatting)
 - module values are runtime namespace values distinct from maps
-- module resolution is file-based only in this phase
+- module resolution is:
+  - file-based for ordinary modules
+  - allowlisted host-backed for the current Python host namespace (`python`, `python.json`)
 - module loads are cached by module name (`loaded_modules`); duplicate imports/aliases must reuse the same module value instance
 - top-level named assignments/functions from the module file are exported
 - missing module files must raise a deterministic `FileNotFoundError("Module not found: <name>")`
+- disallowed host module names must raise a deterministic `PermissionError("Host module not allowed: <name>")`
+
+## 8.2.1) Python host interop invariants (phase 1)
+
+- Python host interop reuses the existing module system and narrow slash export access.
+- There is no new member-access syntax for host interop in this phase.
+- supported host modules are currently allowlisted:
+  - `python`
+  - `python.json`
+- current Python root host exports are:
+  - `open`
+  - `read`
+  - `write`
+  - `close`
+  - `read_text`
+  - `write_text`
+  - `len`
+  - `str`
+  - nested `json` submodule
+- current `python.json` exports are:
+  - `loads`
+  - `dumps`
+- host module exports participate in ordinary calls and pipelines through the existing callable model.
+- boundary conversion rules in this phase are:
+  - Genia string/number/bool/`nil` -> Python scalar
+  - Genia list -> Python list (recursive)
+  - Genia map -> Python dict (recursive)
+  - Genia `some(x)` -> converted host value for `x`
+  - Genia `none(...)` -> Python `None`
+  - Python `None` -> Genia `none`
+  - Python list/tuple -> Genia list (recursive)
+  - Python dict -> Genia map (recursive)
+- host resource results that cannot be represented as plain Genia data may appear as opaque Python handle values.
+- host exceptions must not be silently converted to success values.
+  - ordinary host failures currently propagate as explicit Python-host errors
+  - host `None` results are the only automatic none-mapping path in this phase
+- unrestricted host import, arbitrary attribute access, and arbitrary code execution are not part of this phase.
 
 ## 8.3) Assignment invariants
 

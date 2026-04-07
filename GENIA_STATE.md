@@ -90,6 +90,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Module
   - `import mod` / `import mod as alias` bind module namespace values
   - module values are distinct from maps and are accessed with narrow slash access (`mod/name`)
+  - current Python host interop reuses this same module value model:
+    - `import python`
+    - `import python.json as pyjson`
 
 ### Callable values / callable behaviors
 
@@ -125,6 +128,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `utf8_encode` and ZIP helpers produce opaque bytes wrapper values
 - ZipEntry
   - `zip_entries` returns opaque zip entry wrapper values
+- Python host handles
+  - `python/open` returns opaque Python file-handle values (`<python file>`)
+  - these are capability-style values intended only for passing back to allowlisted Python host exports
 
 ### Current consistency notes
 
@@ -140,6 +146,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Option-aware pipelines now compose canonical maybe-returning helpers directly; explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain available for direct Option values and higher-order/non-pipeline use.
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
+- limited Python host interop is implemented in this phase:
+  - it uses the existing module/import model rather than new syntax
+  - supported host modules are currently allowlisted: `python`, `python.json`
+  - unsupported host module names fail clearly instead of falling through to arbitrary host import
 - `help()` now serves as a small public-surface overview that points users toward autoloaded prelude families and canonical helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, and `eval`
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
@@ -169,6 +179,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)
 - module import: `import mod`, `import mod as alias`
   - imports are cached by module name in `loaded_modules` (repeat imports/aliases reuse the same module instance)
+  - dotted host module names are supported through ordinary identifiers (for example `import python.json as pyjson`)
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
@@ -252,6 +263,44 @@ Pipeline (Phase 2) evaluation model:
   - module missing export => clear error
   - non-identifier RHS (for example `lhs/(1 + 2)`) raises a clear `TypeError`
   - this does not add general member/index access
+
+## 4.1) Python host interop layer (implemented, allowlisted)
+
+- Genia currently exposes a minimal Python-only host interop layer through the existing module system.
+- supported host imports in this phase:
+  - `import python`
+  - `import python.json`
+  - `import python.json as alias`
+- current allowlisted exports:
+  - `python/open`
+  - `python/read`
+  - `python/write`
+  - `python/close`
+  - `python/read_text`
+  - `python/write_text`
+  - `python/len`
+  - `python/str`
+  - `python/json/loads`
+  - `python/json/dumps`
+- host exports participate in ordinary calls and pipeline stages without special pipeline rules.
+- boundary conversion rules:
+  - Genia string/number/bool/`nil` -> Python scalar
+  - Genia list -> Python list recursively
+  - Genia map -> Python dict recursively
+  - Genia `some(x)` -> converted host value for `x`
+  - Genia `none(...)` -> Python `None`
+  - Python `None` -> Genia `none`
+  - Python list/tuple -> Genia list recursively
+  - Python dict -> Genia map recursively
+- host file objects cross the boundary only as opaque Python handle values.
+- current safety limits:
+  - no arbitrary host import
+  - no general member access syntax
+  - no unrestricted Python eval/exec surface
+  - disallowed host modules raise `PermissionError("Host module not allowed: <name>")`
+- current error behavior:
+  - host exceptions remain explicit errors unless the host result is actually `None`
+  - `None` maps to Genia `none` and therefore participates in ordinary Option-aware pipelines
 - callable data (phase 1):
   - maps are callable lookup values:
     - `m(key)` returns stored value or `nil`
@@ -1017,7 +1066,7 @@ Core IR shape currently includes:
 
 ## 10) Explicitly not implemented (current)
 
-- general host interop / FFI layer
+- general unrestricted host interop / FFI layer
 - general member access syntax
 - index syntax
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)

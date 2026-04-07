@@ -22,6 +22,7 @@ All other hosts below are placeholders for planned work.
 | refs | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed runtime primitive with prelude wrappers |
 | process primitives | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed runtime primitive with prelude wrappers |
 | bytes/json/zip | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed bridge helpers |
+| allowlisted Python host interop | Implemented | Planned | Planned | Planned | Planned | Planned | current Python host exposes only `python` / `python.json` with explicit conversion rules |
 | debugger stdio | Implemented | Planned | Planned | Planned | Planned | Planned | Python debug adapter mode documented today |
 | prelude autoload | Implemented | Planned | Planned | Planned | Planned | Planned | public stdlib surface is prelude-centered |
 | doc/help support | Implemented | Planned | Planned | Planned | Planned | Planned | `help()` / `help("name")` in Python host |

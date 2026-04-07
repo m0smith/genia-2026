@@ -78,6 +78,7 @@ Hosts may use different internal representations, but they must preserve the sam
 
 - named/lambda function values
 - module namespace values
+  - current Python host also includes allowlisted host-backed module namespace values (`python`, `python.json`)
 
 ### Runtime capability values
 
@@ -89,6 +90,7 @@ Hosts may use different internal representations, but they must preserve the sam
 - MetaEnv values used by the metacircular layer
 - Bytes wrapper values
 - Zip entry wrapper values
+- Python host handle values
 - debugger stdio bridge capabilities
 
 Contract:

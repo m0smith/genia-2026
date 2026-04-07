@@ -142,6 +142,55 @@ Notes:
 - repeated imports are cached by module name, so module files are evaluated once per root environment.
 - export access uses `module/name` (bare identifier RHS only).
 - module values are namespace-like and distinct from maps.
+- the same module model is also used for the current Python host bridge:
+  - `import python`
+  - `import python.json as pyjson`
+  - host exports still use slash access such as `python/open` and `pyjson/loads`
+
+### Python host interop (Phase 1, allowlisted)
+
+Genia now has a small Python-only host bridge.
+To keep the language minimal, it reuses the existing `import` + `module/name` model instead of adding new member-access syntax.
+
+Implemented host modules in this phase:
+
+- `python`
+- `python.json`
+
+Implemented host exports:
+
+- `python/open`
+- `python/read`
+- `python/write`
+- `python/close`
+- `python/read_text`
+- `python/write_text`
+- `python/len`
+- `python/str`
+- `python/json/loads`
+- `python/json/dumps`
+
+### Minimal example
+
+```genia
+import python
+"file.txt" |> python/open |> python/read
+```
+
+### Edge case example
+
+```genia
+import python.json as pyjson
+unwrap_or("fallback", "null" |> pyjson/loads)
+```
+
+Result:
+
+```genia
+"fallback"
+```
+
+This works because Python `None` maps to Genia `none`, and the ordinary Option-aware pipeline rules apply after the boundary conversion.
 
 Failure examples:
 
@@ -157,6 +206,12 @@ math/missing
 ```
 
 - raises `NameError` for the missing export.
+
+```genia
+import python.os
+```
+
+- raises `PermissionError("Host module not allowed: python.os")`.
 
 ## Autoloaded Function Values
 

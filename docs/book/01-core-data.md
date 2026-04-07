@@ -22,6 +22,7 @@ Genia's current runtime value model is broader than just "plain data".
 
 - functions
 - modules (`import mod`)
+  - current Python host bridge also reuses module values (`import python`, `import python.json`)
 
 ### Callable behaviors layered on values
 
@@ -40,6 +41,7 @@ Genia's current runtime value model is broader than just "plain data".
 - process handles (`spawn`)
 - **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
 - **phase-1 host-backed zip entry wrappers** (`zip_entries`, `entry_*`, `zip_write`)
+- **phase-1 Python host handles** returned by `python/open` (`<python file>`)
 
 ## Current absence semantics
 
@@ -823,7 +825,7 @@ Expected behavior:
 
 - member/index syntax for maps
 - callable data beyond maps and string projectors (no list-call, no string indexing, no callable protocol)
-- general host interop / FFI
+- general unrestricted host interop / FFI
 
 ---
 
