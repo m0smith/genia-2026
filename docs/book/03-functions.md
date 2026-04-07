@@ -645,6 +645,7 @@ Expected behavior:
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
 * Pipeline syntax is only call composition; Flow runtime behavior is implemented separately in Phase 1 and does not change the `|>` rewrite rules
+* public Flow helpers are help-visible through `std/prelude/flow.genia`; the lazy Flow kernel stays host-backed while `rules` orchestration/defaulting mostly live in prelude
 * Safe chaining is still library-driven rather than syntax-driven:
   * `then_get`, `then_first`, `then_nth`, and `then_find` are thin wrappers over canonical maybe-returning access/search helpers
   * `unwrap_or`, `or_else`, and `or_else_with` recover/default; they do not change the meaning of `|>`

@@ -162,12 +162,17 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - transforms: `lines`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
+  - the host Flow kernel remains intentionally small:
+    - lazy pull-based single-use flow mechanics
+    - source/runtime integration
+    - sink/materialization boundaries
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
   - `rules(..fns)` is stateful:
     - each rule runs as `(record, ctx)`
     - running `ctx` starts as `{}` and persists across input items
     - `rules()` is the identity stage
+    - orchestration/defaulting/most contract validation now live in `std/prelude/flow.genia`
     - contract violations raise runtime errors prefixed with `invalid-rules-result:`
 - promises:
   - `delay(expr)` captures an unevaluated expression plus its lexical environment

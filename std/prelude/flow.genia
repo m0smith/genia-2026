@@ -8,7 +8,125 @@ rules(..fns) = """
 # rules
 
 Apply rule functions left-to-right to each incoming flow item.
-""" _rules(..fns)
+
+Rule orchestration, defaulting, and contract validation live in prelude in this phase.
+""" rules_dispatch(fns)
+
+rules_dispatch(args) =
+  (args) ? rules_immediate_flow?(args) == true -> {
+    flow = rules_last_arg(args)
+    fns = rules_drop_last(args)
+    rules_stage(_rules_prepare(fns))(flow)
+  } |
+  (args) -> rules_stage(_rules_prepare(args))
+
+rules_immediate_flow?(args) =
+  ([]) -> false |
+  (args) -> _flow?(rules_last_arg(args))
+
+rules_last_arg(args) = unwrap_or(nil, last(args))
+rules_drop_last(args) = take(count(args) - 1, args)
+
+rules_stage(fns) =
+  ([]) -> (flow) -> flow |
+  (fns) -> (flow) -> _rules_kernel((record, ctx) -> rules_apply(fns, record, ctx, [], 1), flow)
+
+rules_apply(fns, record, ctx, out, rule_index) =
+  ([], _, ctx, out, _) -> { emit: out, ctx: ctx } |
+  ([rule, ..rest], record, ctx, out, rule_index) -> rules_apply_result(
+    apply(rule, [record, ctx]),
+    rest,
+    record,
+    ctx,
+    out,
+    rule_index
+  )
+
+rules_apply_result(result, rest, record, ctx, out, rule_index) =
+  (none, rest, record, ctx, out, rule_index) -> rules_apply(
+    rest,
+    record,
+    ctx,
+    out,
+    rule_index + 1
+  ) |
+  (some(result_map), rest, record, ctx, out, rule_index) -> rules_apply_some(
+    result_map,
+    rest,
+    record,
+    ctx,
+    out,
+    rule_index
+  ) |
+  (result, _, _, _, _, rule_index) -> _rules_error(
+    rule_index,
+    concat("returned ", concat(_flow_debug(result), "; expected none(...) or some(result)"))
+  )
+
+rules_apply_some(result_map, rest, record, ctx, out, rule_index) =
+  (result_map, rest, record, ctx, out, rule_index) ? rules_map?(result_map) == true -> {
+    next_record = rules_result_record(result_map, record)
+    next_ctx = rules_result_ctx(result_map, ctx)
+    emitted = rules_result_emit(result_map, rule_index)
+    halted = rules_result_halt(result_map, rule_index)
+    rules_apply_next(rest, next_record, next_ctx, [..out, ..emitted], halted, rule_index)
+  } |
+  (result_map, _, _, _, _, rule_index) -> _rules_error(
+    rule_index,
+    concat("returned some(result) with ", concat(_flow_debug(result_map), "; expected a map"))
+  )
+
+rules_apply_next(rest, record, ctx, out, halt, rule_index) =
+  (_, _, ctx, out, true, _) -> { emit: out, ctx: ctx } |
+  (rest, record, ctx, out, false, rule_index) -> rules_apply(
+    rest,
+    record,
+    ctx,
+    out,
+    rule_index + 1
+  )
+
+rules_result_emit(result_map, rule_index) =
+  rules_result_emit_value(map_has?(result_map, "emit"), map_get(result_map, "emit"), rule_index)
+
+rules_result_emit_value(has_emit, emit, rule_index) =
+  (false, _, _) -> [] |
+  (true, emit, _) ? rules_list?(emit) == true -> emit |
+  (_, emit, rule_index) -> _rules_error(
+    rule_index,
+    concat("returned emit = ", concat(_flow_debug(emit), "; expected a list"))
+  )
+
+rules_result_record(result_map, default) =
+  rules_optional_value(result_map, "record", default)
+
+rules_result_ctx(result_map, default) =
+  rules_optional_value(result_map, "ctx", default)
+
+rules_optional_value(result_map, key, default) =
+  (result_map, key, _) ? map_has?(result_map, key) == true -> map_get(result_map, key) |
+  (_, _, default) -> default
+
+rules_result_halt(result_map, rule_index) =
+  rules_result_halt_value(map_has?(result_map, "halt"), map_get(result_map, "halt"), rule_index)
+
+rules_result_halt_value(has_halt, halt, rule_index) =
+  (false, _, _) -> false |
+  (true, true, _) -> true |
+  (true, false, _) -> false |
+  (_, halt, rule_index) -> _rules_error(
+    rule_index,
+    concat("returned halt = ", concat(_flow_debug(halt), "; expected a boolean"))
+  )
+
+rules_map?(value) =
+  ({}) -> true |
+  (_) -> false
+
+rules_list?(value) =
+  ([]) -> true |
+  ([_, .._]) -> true |
+  (_) -> false
 
 each(fn, flow) = """
 # each

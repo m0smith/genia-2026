@@ -157,6 +157,16 @@ def test_help_autoloads_flow_wrapper_docstring():
     assert "Create a Flow from `stdin`" in out
 
 
+def test_help_autoloads_rules_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("rules")\n', env, filename="help_rules.genia")
+    out = "".join(outputs)
+    assert "rules/0+" in out
+    assert "# rules" in out
+    assert "Rule orchestration, defaulting, and contract validation live in prelude" in out
+
+
 def test_help_autoloads_cli_wrapper_docstring():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)

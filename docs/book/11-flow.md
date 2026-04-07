@@ -15,7 +15,13 @@ The canonical public Flow helper surface now lives in `std/prelude/flow.genia`:
 - `collect`
 - `run`
 
-These are thin prelude wrappers over the host Flow runtime, so they participate in `help("name")` and higher-order use without changing Flow semantics.
+The host runtime keeps the minimal Flow kernel in this phase:
+
+- lazy pull-based single-use flow mechanics
+- source-bound stdin/runtime integration
+- sink/materialization boundaries
+
+The public prelude layer carries the user-facing helper surface, and `rules(..fns)` orchestration/defaulting/validation now primarily live there.
 
 ## Flow model
 
@@ -76,6 +82,7 @@ It does not add syntax, and it does not change the meaning of `|>`.
 Each rule runs as `(record, ctx) -> none(...) | some(result)`.
 The running `ctx` starts as `{}` and persists across input items.
 Plain `none` is the no-effect result.
+In this phase, the lazy Flow kernel stays host-backed while the rule orchestration/defaulting/validation path is primarily implemented in `std/prelude/flow.genia`.
 
 ### Minimal example
 
@@ -228,6 +235,7 @@ Expected behavior:
 - `head/1` and `head/2` aliases (stdlib)
 - `each`, `collect`, and `run`
 - rule helper constructors in the prelude
+- host Flow kernel kept minimal while `rules` semantics mostly live in prelude
 - early termination on `take`/`head`
 - `-p` / `--pipe` CLI wrapping for single stage expressions
 

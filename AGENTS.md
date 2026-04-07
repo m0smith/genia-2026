@@ -148,6 +148,10 @@ In particular:
 * raw capability access such as `argv()` may remain host-backed
 * interpretation, transformation, and user-facing semantics over those raw values should prefer prelude
 * agents should actively look for chances to shrink Python-side pure transformation logic
+* prefer a minimal runtime kernel in the host language, with language-visible semantics layered in Genia/prelude
+* Flow/rules are the model example in this phase:
+  * keep lazy pull-based single-use flow mechanics in host code
+  * prefer rule orchestration, defaulting, validation, and other language-visible semantics in Genia/prelude when feasible
 
 ---
 

@@ -99,7 +99,7 @@ Current consistency note:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
 - maybe-flow helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` preserve structured absence unchanged
 - public Option, String, Map, Ref, Process, and sink helper names are now prelude-backed wrappers over host-backed runtime primitives, so they participate in `help("name")` doc output without changing runtime behavior
-- public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed wrappers over the host Flow runtime
+- public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting mostly live in prelude
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none(missing_key, {key: "name"})`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
@@ -299,11 +299,16 @@ stdin |> lines |> take(2) |> each(print) |> run
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
 - public flow helpers from `std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
+- the host Flow kernel stays intentionally small:
+  - lazy pull/consume and single-use enforcement
+  - source-bound stdin integration
+  - sink/materialization boundaries
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
 - `rules(..fns)` is a stateful rule-driven stage over any incoming Flow:
   - each rule runs as `(record, ctx)`
   - `ctx` starts as `{}` and persists across items
   - `rules()` is the identity stage
+  - orchestration, defaulting, and most contract validation now live in prelude/Genia code
 - `take` stops upstream pulling as soon as the limit is satisfied
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use

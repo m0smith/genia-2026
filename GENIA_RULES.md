@@ -516,7 +516,12 @@ When changing syntax/semantics/runtime behavior, update together:
 - `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
 - public flow helper names are exposed through thin prelude wrappers in `std/prelude/flow.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
-- underlying Flow behavior remains host-backed in this phase; wrappering does not change semantics
+- the host Flow kernel remains intentionally small in this phase:
+  - lazy pull-based consumption
+  - single-use enforcement
+  - source-bound stdin/runtime integration
+  - sink/materialization boundaries
+- language-visible `rules` orchestration, defaulting, and most contract validation now live in prelude/Genia code
 - phase-1 flow builtins:
   - sources/transforms: `lines`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
@@ -609,6 +614,7 @@ Rule-contract violations raise runtime errors prefixed with `invalid-rules-resul
 * `rules(..fns)` does not change the semantics of `|>`
 * `record` is the current item being transformed
 * `ctx` is persistent rule-processing state across items
+* in this phase, the host runtime keeps the lazy Flow kernel while `std/prelude/flow.genia` handles most user-visible rule semantics
 
 ## 20) Output sink invariants (host-backed phase 1)
 

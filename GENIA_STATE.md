@@ -462,6 +462,7 @@ Output sink semantics:
   - `each`
   - `collect`
   - `run`
+  - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
 - flow transforms:
   - `lines(flow_or_source)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
@@ -486,6 +487,11 @@ Flow semantics:
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
+- host-backed Flow kernel remains intentionally small in this phase:
+  - flow value creation and single-consumption enforcement
+  - lazy pull-based iteration over upstream sources
+  - source-bound stdin integration
+  - sink/materialization boundaries such as `each`, `collect`, and `run`
 - `rules` semantics:
   - each rule is called as `(record, ctx)`
   - running `ctx` starts as `{}` for the first input item and persists across later items
@@ -499,6 +505,7 @@ Flow semantics:
   - `halt: true` stops later rules for the current input item only
   - `rules()` is the identity stage
   - contract violations raise `RuntimeError` messages prefixed with `invalid-rules-result:`
+  - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `std/prelude/flow.genia` in this phase
 - explicit CLI pipe mode is implemented:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
   - wraps as `stdin |> lines |> <stage_expr> |> run`

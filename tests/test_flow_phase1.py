@@ -201,6 +201,36 @@ def test_rules_halt_stops_later_rules_for_current_record():
     assert run_source(src, env) == [1, 2, 3]
 
 
+def test_rules_none_with_reason_and_context_remains_no_effect():
+    env = make_number_flow_env([1, 2])
+    src = """
+    no_match(record, ctx) =
+      (record, ctx) ? record == 1 -> none(no_match) |
+      (_, _) -> none(no_match, { record: record })
+
+    emit(record, ctx) = rule_emit(record)
+
+    numbers() |> rules(no_match, emit) |> collect
+    """
+    assert run_source(src, env) == [1, 2]
+
+
+def test_rules_some_map_defaults_record_ctx_emit_and_halt():
+    env = make_number_flow_env([1, 2, 3])
+    src = """
+    remember(record, ctx) = some({ ctx: map_put(ctx, "last", record) })
+
+    rewrite(record, ctx) =
+      (record, ctx) ? record == 2 -> some({ record: 20 }) |
+      (_, _) -> some({})
+
+    emit(record, ctx) = rule_emit([record, unwrap_or(0, get("last", ctx))])
+
+    numbers() |> rules(remember, rewrite, emit) |> collect
+    """
+    assert run_source(src, env) == [[1, 1], [20, 2], [3, 3]]
+
+
 def test_rules_invalid_non_option_result_errors_clearly():
     env = make_number_flow_env([1])
     src = """
@@ -212,6 +242,17 @@ def test_rules_invalid_non_option_result_errors_clearly():
         run_source(src, env)
 
 
+def test_rules_invalid_some_non_map_result_errors_clearly():
+    env = make_number_flow_env([1])
+    src = """
+    bad(record, ctx) = some(42)
+
+    numbers() |> rules(bad) |> collect
+    """
+    with pytest.raises(RuntimeError, match=r"invalid-rules-result: rule 1 returned some\(result\) with 42; expected a map"):
+        run_source(src, env)
+
+
 def test_rules_invalid_emit_shape_errors_clearly():
     env = make_number_flow_env([1])
     src = """
@@ -220,6 +261,17 @@ def test_rules_invalid_emit_shape_errors_clearly():
     numbers() |> rules(bad) |> collect
     """
     with pytest.raises(RuntimeError, match=r"invalid-rules-result: rule 1 returned emit = 42; expected a list"):
+        run_source(src, env)
+
+
+def test_rules_invalid_halt_shape_errors_clearly():
+    env = make_number_flow_env([1])
+    src = """
+    bad(record, ctx) = some({ emit: [record], halt: 42 })
+
+    numbers() |> rules(bad) |> collect
+    """
+    with pytest.raises(RuntimeError, match=r"invalid-rules-result: rule 1 returned halt = 42; expected a boolean"):
         run_source(src, env)
 
 
