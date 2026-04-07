@@ -38,6 +38,12 @@ Clarifications:
 
 - programs are expression sequences
 - parser AST stays close to surface syntax, then lowers into a tiny Core IR before evaluation
+- Core IR is the current portability boundary
+  - lowering keeps pipelines explicit as ordered stage sequences rather than nested calls
+  - lowering keeps Option constructors explicit as `IrOptionSome(...)` / `IrOptionNone(...)`
+  - the minimal Core IR layer is descriptive only; it does not itself define an execution strategy
+- the current Python host may apply small post-lowering optimization rewrites such as `IrListTraversalLoop`
+  - those optimized nodes are Python-host implementation details, not the minimal shared Core IR contract
 - assignment is supported at top level and in lexical scopes (`name = expr`)
 - blocks evaluate expressions in order and return the last value
 - no statement/declaration split at runtime level
@@ -110,7 +116,6 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Flow is a real runtime value family (`<flow ...>`)
   - Flow runtime (Phase 1) is implemented
   - flows are lazy, pull-based, source-bound, and single-use
-  - `|>` itself is still only call rewriting
 - Ref
   - refs are synchronized host-backed runtime cells
   - `ref_get` / `ref_update` may block until a value is present
@@ -172,6 +177,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
 Pipeline (Phase 2) evaluation model:
 
 - `|>` is a dedicated pipeline stage form in Core IR/runtime in this phase
+- Core IR shape is explicit:
+  - `x |> f |> g` lowers to one pipeline node with a source plus ordered stages
+  - pipelines are not represented as nested call nodes
 - ordinary call shape is preserved:
   - `x |> f` calls `f(x)`
   - `x |> f(y)` calls `f(y, x)` (left value appended as the last argument)
@@ -987,9 +995,11 @@ Other implemented optimizations:
 Core IR shape currently includes:
 
 - program items: expression statement, assignment, named function definition
-- expressions: literal, variable, call, unary, binary, lambda, block, list, map, spread, case
+- expressions: literal, explicit Option some/none, variable, call, pipeline, unary, binary, lambda, block, list, map, spread, case
 - patterns: wildcard, variable, literal, tuple, list, map, final rest
 - function docstrings are carried as metadata on named-function definitions (not runtime expressions)
+- Python may add specialized optimized execution nodes after lowering for narrow cases such as `IrListTraversalLoop`
+  - these optimized nodes are not the minimal Core IR portability contract
 
 ## 9) Debug/runtime tooling
 

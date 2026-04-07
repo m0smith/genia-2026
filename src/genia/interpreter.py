@@ -768,6 +768,14 @@ class IrOptionNone(IrNode):
 
 
 @dataclass
+class IrOptionSome(IrNode):
+    """Structured some value with explicit lowered inner value."""
+
+    value: IrNode
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrVar(IrNode):
     """Variable read by name (kept explicit for analysis and rewriting)."""
 
@@ -835,11 +843,11 @@ class IrBinary(IrNode):
 
 
 @dataclass
-class IrPipe(IrNode):
-    """Pipeline stage application with Option-aware short-circuit semantics."""
+class IrPipeline(IrNode):
+    """Explicit pipeline source plus ordered stages for left-to-right evaluation."""
 
-    left: IrNode
-    right: IrNode
+    source: IrNode
+    stages: list[IrNode]
     span: SourceSpan | None = None
 
 
@@ -1047,6 +1055,13 @@ def _map_literal_key_name(key: Node) -> str:
     raise RuntimeError(f"Unsupported map literal key node: {key!r}")
 
 
+def _flatten_pipeline_ast(node: Node) -> tuple[Node, list[Node]]:
+    if isinstance(node, Binary) and node.op == "PIPE_FWD":
+        source, stages = _flatten_pipeline_ast(node.left)
+        return source, [*stages, node.right]
+    return node, []
+
+
 def lower_node(node: Node) -> IrNode:
     if isinstance(node, ExprStmt):
         return IrExprStmt(lower_node(node.expr), span=node.span)
@@ -1080,9 +1095,12 @@ def lower_node(node: Node) -> IrNode:
         return IrUnary(node.op, lower_node(node.expr), span=node.span)
     if isinstance(node, Binary):
         if node.op == "PIPE_FWD":
-            return IrPipe(lower_node(node.left), lower_node(node.right), span=node.span)
+            source, stages = _flatten_pipeline_ast(node)
+            return IrPipeline(lower_node(source), [lower_node(stage) for stage in stages], span=node.span)
         return IrBinary(lower_node(node.left), node.op, lower_node(node.right), span=node.span)
     if isinstance(node, Call):
+        if isinstance(node.fn, Var) and node.fn.name == "some" and len(node.args) == 1:
+            return IrOptionSome(lower_node(node.args[0]), span=node.span)
         return IrCall(lower_node(node.fn), [lower_node(arg) for arg in node.args], span=node.span)
     if isinstance(node, Block):
         return IrBlock([lower_node(expr) for expr in node.exprs], span=node.span)
@@ -1557,8 +1575,16 @@ def recursive_call_count(node: IrNode, fn_name: str) -> int:
     if isinstance(node, IrCall):
         own = 1 if isinstance(node.fn, IrVar) and node.fn.name == fn_name else 0
         return own + recursive_call_count(node.fn, fn_name) + sum(recursive_call_count(arg, fn_name) for arg in node.args)
-    if isinstance(node, IrPipe):
-        return recursive_call_count(node.left, fn_name) + recursive_call_count(node.right, fn_name)
+    if isinstance(node, IrPipeline):
+        return recursive_call_count(node.source, fn_name) + sum(recursive_call_count(stage, fn_name) for stage in node.stages)
+    if isinstance(node, IrOptionSome):
+        return recursive_call_count(node.value, fn_name)
+    if isinstance(node, IrOptionNone):
+        return (
+            recursive_call_count(node.reason, fn_name) if node.reason is not None else 0
+        ) + (
+            recursive_call_count(node.context, fn_name) if node.context is not None else 0
+        )
     if isinstance(node, IrUnary):
         return recursive_call_count(node.expr, fn_name)
     if isinstance(node, IrBinary):
@@ -3365,8 +3391,8 @@ class Evaluator:
     def eval_tail(self, node: IrNode) -> Any:
         if isinstance(node, IrCall):
             return self.eval_call(node, tail_position=True)
-        if isinstance(node, IrPipe):
-            return self.eval_pipe(node, tail_position=True)
+        if isinstance(node, IrPipeline):
+            return self.eval_pipeline(node, tail_position=True)
         if isinstance(node, IrBlock):
             local = Env(self.env)
             ev = Evaluator(local, self.debug_hooks, self.debug_mode)
@@ -3402,15 +3428,21 @@ class Evaluator:
 
         return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
 
-    def eval_pipe(self, node: IrPipe, tail_position: bool) -> Any:
-        stage_value = self.eval(node.left)
-        if isinstance(stage_value, GeniaOptionNone):
-            return stage_value
-        if isinstance(stage_value, GeniaOptionSome):
-            stage_value = stage_value.value
-        return self.eval_pipe_stage(node.right, stage_value, tail_position=tail_position)
+    def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:
+        stage_value = self.eval(node.source)
+        for index, stage in enumerate(node.stages):
+            if isinstance(stage_value, GeniaOptionNone):
+                return stage_value
+            if isinstance(stage_value, GeniaOptionSome):
+                stage_value = stage_value.value
+            stage_value = self.eval_pipeline_stage(
+                stage,
+                stage_value,
+                tail_position=tail_position and index == len(node.stages) - 1,
+            )
+        return stage_value
 
-    def eval_pipe_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
+    def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
         if isinstance(node, IrCall):
             args: list[Any] = []
             for arg_node in node.args:
@@ -3707,6 +3739,8 @@ class Evaluator:
             if reason is None and context is None:
                 return OPTION_NONE
             return GeniaOptionNone(reason, context)
+        if isinstance(node, IrOptionSome):
+            return GeniaOptionSome(self.eval(node.value))
         if isinstance(node, IrList):
             result: list[Any] = []
             for item in node.items:
@@ -3747,8 +3781,8 @@ class Evaluator:
             if node.op == "BANG":
                 return not truthy(value)
             raise RuntimeError(f"Unknown unary operator {node.op}")
-        if isinstance(node, IrPipe):
-            return self.eval_pipe(node, tail_position=False)
+        if isinstance(node, IrPipeline):
+            return self.eval_pipeline(node, tail_position=False)
         if isinstance(node, IrBinary):
             return self.eval_binary(node)
         if isinstance(node, IrCall):

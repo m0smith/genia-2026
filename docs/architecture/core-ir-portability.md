@@ -28,7 +28,8 @@ Genia already relies on lowering for important language behavior.
 
 Examples:
 
-- pipeline rewrite semantics
+- explicit pipeline stage sequencing
+- explicit Option constructor representation
 - case/body normalization
 - Core evaluator entry behavior
 

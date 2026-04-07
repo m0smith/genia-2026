@@ -124,6 +124,8 @@ Implemented operators are limited to:
 Pipeline invariant:
 
 - `|>` is a dedicated pipeline evaluation form in this phase
+- AST lowering keeps pipelines explicit in Core IR as one source plus an ordered stage list
+  - pipelines are not lowered into nested ordinary call nodes
 - ordinary call shape is preserved:
   - `x |> f` calls `f(x)`
   - `x |> f(y)` calls `f(y, x)` (append source value as final arg)

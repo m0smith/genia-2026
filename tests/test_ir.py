@@ -4,9 +4,12 @@ from genia.interpreter import (
     IrCase,
     IrExprStmt,
     IrFuncDef,
+    IrList,
     IrLiteral,
+    IrOptionNone,
+    IrOptionSome,
     IrPatLiteral,
-    IrPipe,
+    IrPipeline,
     IrSpread,
     IrListTraversalLoop,
     IrPatBind,
@@ -98,25 +101,23 @@ def test_call_spread_lowers_to_ir_spread_arg():
     assert isinstance(expr_stmt.expr.args[0], IrSpread)
 
 
-def test_pipeline_lowers_to_ir_pipe_nodes():
+def test_pipeline_lowers_to_explicit_ir_pipeline():
     ast_nodes = Parser(lex("3 |> inc |> double")).parse_program()
     ir_nodes = lower_program(ast_nodes)
 
     expr_stmt = ir_nodes[0]
     assert isinstance(expr_stmt, IrExprStmt)
-    assert isinstance(expr_stmt.expr, IrPipe)
-    assert isinstance(expr_stmt.expr.right, IrVar)
-    assert expr_stmt.expr.right.name == "double"
-
-    inner = expr_stmt.expr.left
-    assert isinstance(inner, IrPipe)
-    assert isinstance(inner.right, IrVar)
-    assert inner.right.name == "inc"
-    assert isinstance(inner.left, IrLiteral)
-    assert inner.left.value == 3
+    assert isinstance(expr_stmt.expr, IrPipeline)
+    assert isinstance(expr_stmt.expr.source, IrLiteral)
+    assert expr_stmt.expr.source.value == 3
+    assert len(expr_stmt.expr.stages) == 2
+    assert isinstance(expr_stmt.expr.stages[0], IrVar)
+    assert expr_stmt.expr.stages[0].name == "inc"
+    assert isinstance(expr_stmt.expr.stages[1], IrVar)
+    assert expr_stmt.expr.stages[1].name == "double"
 
 
-def test_multiline_pipeline_lowers_to_ir_pipe_nodes():
+def test_multiline_pipeline_lowers_to_explicit_ir_pipeline():
     src = """
     3
       |> inc
@@ -127,9 +128,21 @@ def test_multiline_pipeline_lowers_to_ir_pipe_nodes():
 
     expr_stmt = ir_nodes[0]
     assert isinstance(expr_stmt, IrExprStmt)
-    assert isinstance(expr_stmt.expr, IrPipe)
-    assert isinstance(expr_stmt.expr.right, IrVar)
-    assert expr_stmt.expr.right.name == "double"
+    assert isinstance(expr_stmt.expr, IrPipeline)
+    assert [stage.name for stage in expr_stmt.expr.stages if isinstance(stage, IrVar)] == ["inc", "double"]
+
+
+def test_option_constructors_lower_to_explicit_option_ir_nodes():
+    ast_nodes = Parser(lex("[some(1), none(parse_failed, {source: \"x\"})]")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrList)
+    assert isinstance(expr_stmt.expr.items[0], IrOptionSome)
+    assert isinstance(expr_stmt.expr.items[0].value, IrLiteral)
+    assert expr_stmt.expr.items[0].value.value == 1
+    assert isinstance(expr_stmt.expr.items[1], IrOptionNone)
 
 
 def test_lowered_case_keeps_guard_tuple_and_list_patterns():

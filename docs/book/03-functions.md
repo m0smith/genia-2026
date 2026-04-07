@@ -463,24 +463,25 @@ No documentation available.
 
 ## Pipeline Operator (Phase 2)
 
-Genia now supports a minimal pipeline operator for left-to-right function composition:
+Genia now supports a minimal pipeline operator for left-to-right stage composition:
 
 `left |> right`
 
-Rewrite rules (implemented):
+Stage rules (implemented):
 
-* `x |> f` becomes `f(x)`
-* `x |> f(y)` becomes `f(y, x)` (the piped value is appended as the final argument)
-* `x |> expr` becomes `expr(x)` when `expr` is valid in ordinary call-callee position
-  * this includes callable data such as string projectors over maps (`record |> "name"` -> `"name"(record)`)
-* chaining is left-associative: `a |> f |> g` becomes `g(f(a))`
+* pipelines lower into explicit Core IR as one source plus an ordered stage list
+* `x |> f` calls `f(x)`
+* `x |> f(y)` calls `f(y, x)` (the piped value is appended as the final argument)
+* `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
+  * this includes callable data such as string projectors over maps (`record |> "name"` behaves like `"name"(record)`)
+* chaining is left-associative: `a |> f |> g` evaluates stages left to right
 * newlines may appear immediately before or after `|>`:
   ```genia
   value
     |> f
     |> g
   ```
-* this rewrite happens in the AST→Core IR lowering pass
+* this explicit pipeline lowering happens in the AST→Core IR pass
 
 ### Minimal example
 
@@ -510,14 +511,14 @@ Result:
 
 Pipeline-friendly API design note:
 
-- With current rewrite semantics (`x |> f(y)` => `f(y, x)`), functions that are commonly terminal pipeline steps often use destination/config args first.
+- With current stage-call semantics (`x |> f(y)` => `f(y, x)`), functions that are commonly terminal pipeline steps often use destination/config args first.
 - Example: `entries |> zip_write("out.zip")` calls `zip_write("out.zip", entries)` in this phase.
 
 ### Maybe Flow Is Helper-Driven, Not Pipeline Magic
 
-`|>` still only rewrites calls.
+`|>` is now an explicit pipeline form, but it still does not create implicit Flow bridges.
 
-Maybe-aware flow in this phase comes from helper functions whose argument order is chosen to fit that rewrite.
+Maybe-aware flow in this phase comes from helper functions whose argument order fits the stage-call rules above.
 
 For new code, prefer canonical maybe-returning helpers such as `get`, `first`, `nth`, string `find`, and `parse_int` directly in pipelines over older `nil`-returning lookup surfaces like `map_get`, callable map/string lookup, or slash access.
 

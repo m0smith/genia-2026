@@ -67,7 +67,7 @@ Genia's current runtime value model is broader than just "plain data".
 - the public Map helper names are thin prelude wrappers in `std/prelude/map.genia`, backed by the same host runtime behavior
 - the public Ref helper names are thin prelude wrappers in `std/prelude/ref.genia`, backed by the same host runtime behavior
 - the public output sink helper names are thin prelude wrappers in `std/prelude/io.genia`, backed by the same host runtime behavior
-- the public Option helper names are thin prelude wrappers in `std/prelude/option.genia`, backed by the same host runtime behavior
+- the public Option helper surface is exposed through `std/prelude/option.genia`, and canonical `some(...)` / `none(...)` constructor forms lower explicitly in Core IR
 - the public String helper names are thin prelude wrappers in `std/prelude/string.genia`, backed by the same host runtime behavior
 - the public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are thin prelude wrappers in `std/prelude/flow.genia`, backed by the same host runtime behavior
 - `help()` now points users toward these public prelude-backed helper families; the family samples come from registered autoload metadata, while raw host bridge names remain intentionally generic in help output
@@ -918,7 +918,7 @@ Expected result:
 [nil, "?", "?"]
 ```
 
-Pipeline cross-reference (same callable semantics, pipeline lowering only):
+Pipeline cross-reference (same callable semantics, explicit pipeline stages):
 
 ```genia
 person = { name: "Matthew" }
@@ -931,7 +931,7 @@ Expected result:
 "Matthew"
 ```
 
-This works because pipeline lowers to ordinary call form (`person |> "name"` -> `"name"(person)`), not because pipeline has separate lookup semantics.
+This works because the pipeline stage still calls the string projector with the piped value as its final argument (`person |> "name"` behaves like `"name"(person)`), not because pipeline has separate lookup semantics.
 
 ### Failure case example
 
@@ -1040,7 +1040,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - `zip_entries` is eager list-based in this phase (not lazy sequences)
-- `zip_write` supports both `(entries, path)` and `(path, entries)` to stay compatible with current pipeline rewrite shape
+- `zip_write` supports both `(entries, path)` and `(path, entries)` to stay compatible with current pipeline stage-call shape
 
 ### ❌ Not implemented
 
@@ -1340,7 +1340,7 @@ Expected behavior:
 - `get?(key, target)` remains as a compatibility alias
 - explicit Option helpers for non-pipeline and higher-order use: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`
 - helper builtins: `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
-- public Option helper surface is prelude-backed, so helpers such as `some`, `get`, `map_some`, and `or_else` are visible through `help("name")`
+- public Option helper surface is help-visible through prelude/autoload metadata, so helpers such as `some`, `get`, `map_some`, and `or_else` are visible through `help("name")`
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - `unwrap_or(default, opt)` for defaulting on `none`

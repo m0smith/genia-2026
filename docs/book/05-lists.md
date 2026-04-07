@@ -321,7 +321,7 @@ Pipeline form (Phase 1):
 [1, 2, 3] |> map(inc)
 ```
 
-This works through the pipeline rewrite rule `x |> f(y)` → `f(y, x)`.
+This works through the pipeline stage-call rule `x |> f(y)` → `f(y, x)`.
 
 ### Failure case example
 

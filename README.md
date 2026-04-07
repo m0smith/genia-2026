@@ -6,6 +6,8 @@ This repository currently provides:
 
 - a parser + evaluator (`src/genia/interpreter.py`)
 - a tiny Core IR + AST→IR lowering pass used before evaluation
+  - pipelines lower to an explicit ordered-stage IR node rather than nested calls
+  - Option constructors lower explicitly as `some(...)` / `none(...)` IR values
 - a REPL and file runner (`python3 -m genia.interpreter`)
 - host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`)
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
@@ -65,6 +67,33 @@ Test suite note:
 
 - `tests/cases/` holds reusable black-box language-semantic cases
 - pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
+
+## Core IR Layer
+
+Genia lowers parsed source into a small host-neutral Core IR before evaluation.
+
+This IR is meant to be:
+
+- simple enough for future hosts to consume
+- explicit about semantic structure
+- separate from execution strategy
+
+Small schematic example:
+
+```text
+source: 3 |> inc |> double
+ast:    Binary(Binary(Number(3), PIPE_FWD, Var("inc")), PIPE_FWD, Var("double"))
+ir:     IrPipeline(source=IrLiteral(3), stages=[IrVar("inc"), IrVar("double")])
+```
+
+Option constructors are also explicit in the lowered IR:
+
+```text
+some(1)                  -> IrOptionSome(IrLiteral(1))
+none(parse_failed, ctx)  -> IrOptionNone(IrQuote(parse_failed), <lowered ctx>)
+```
+
+The current Python host may still apply small post-lowering optimizations such as `IrListTraversalLoop`, but those optimized nodes are not the minimal portability contract.
 
 ## Multi-Host Direction
 
@@ -129,7 +158,8 @@ Current consistency note:
 - preferred modern absence style in new code:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
 - direct Option-aware pipelines are now canonical, while helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for explicit Option values and higher-order code
-- public Option, String, Map, Ref, Process, and sink helper names are now prelude-backed wrappers over host-backed runtime primitives, so they participate in `help("name")` doc output without changing runtime behavior
+- public String, Map, Ref, Process, and sink helper names are prelude-backed wrappers over host-backed runtime primitives
+- the public Option helper surface remains help-visible through prelude/autoload metadata, while canonical `some(...)` / `none(...)` constructor forms also lower explicitly in Core IR
 - public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting mostly live in prelude
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none(missing_key, {key: "name"})`
@@ -305,14 +335,15 @@ person = { name: "Matthew", age: 42 }
 get("name", person)
 ```
 
-### Pipeline operator (Phase 1)
+### Pipeline operator (Phase 2)
 
 ```genia
 [1, 2, 3] |> map(inc)
 ```
 
 - `|>` now evaluates as an Option-aware pipeline stage operator
-- ordinary call shape is preserved:
+- AST lowering preserves pipelines explicitly in Core IR as `IrPipeline(source, stages)` rather than nested calls
+- ordinary stage call shape is preserved:
   - `x |> f` calls `f(x)`
   - `x |> f(y)` calls `f(y, x)` (append piped value as final argument)
 - left-associative chaining is supported (`a |> f |> g`)

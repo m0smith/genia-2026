@@ -85,7 +85,7 @@ Rule:
 
 - parser accepts current documented syntax only
 - parser rejects invalid case placement and invalid patterns as documented
-- lowering preserves current pipeline rewrite semantics
+- lowering preserves current explicit pipeline IR semantics (source + ordered stages)
 - Core IR remains the semantic boundary
 - runtime preserves current value families and callable behaviors
 - public helpers prefer prelude-backed behavior where feasible

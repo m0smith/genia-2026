@@ -161,7 +161,7 @@ Current contract:
 
 - Flow is a runtime value family
 - flows are lazy, pull-based, source-bound, and single-use
-- `|>` remains ordinary AST->Core IR call rewriting
+- `|>` lowers to an explicit Core IR pipeline node with one source plus ordered stages
 - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination without over-pulling
 - the public Flow helper surface is prelude-backed:

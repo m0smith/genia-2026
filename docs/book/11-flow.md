@@ -2,7 +2,8 @@
 
 Genia now supports a minimal lazy Flow runtime model for stream-style pipelines.
 
-Flow is a runtime value family, not a parser feature and not a special meaning of `|>` by itself.
+Flow is a runtime value family.
+It composes through the same explicit pipeline form as ordinary value pipelines, but Flow values still come only from explicit Flow helpers.
 
 This chapter is about runtime Flow values for pipelines and IO.
 It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
@@ -32,7 +33,8 @@ A Flow is:
 - source-bound
 - single-use (consumable)
 
-The pipeline operator is unchanged: `|>` still rewrites to ordinary calls in the AST→Core IR pass. Flow behavior starts at runtime when those calls produce or consume Flow values.
+`|>` lowers to an explicit pipeline node in Core IR.
+Flow behavior starts when those stages produce or consume Flow values at runtime.
 
 ## Reusable stages
 
