@@ -127,7 +127,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - includes public ref helpers from `std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - includes public process helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
-  - includes public flow helpers from `std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
+  - includes public flow helpers from `std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
   - includes public option helpers from `std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - includes public string helpers from `std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
@@ -141,7 +141,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - direct I/O/runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
-  - public flow helpers are prelude-backed wrappers: `lines`, `rules`, `each`, `collect`, `run`
+  - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
   - public CLI helpers from `std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
@@ -166,7 +166,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
-  - transforms: `lines`, `map`, `filter`, `take`, `rules`
+  - transforms: `lines`, `keep_some_else`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
   - the host Flow kernel remains intentionally small:
@@ -182,6 +182,11 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `rules()` is the identity stage
     - orchestration/defaulting/most contract validation now live in `std/prelude/flow.genia`
     - contract violations raise runtime errors prefixed with `invalid-rules-result:`
+  - `keep_some_else(stage, dead_handler, flow)` is explicit dead-letter routing for Option-returning per-item stages:
+    - `some(value)` continues on the main output flow as `value`
+    - `none(...)` drops that item from the main output flow and calls `dead_handler(original_item)`
+    - non-Option stage results raise a clear user-facing error
+    - this helper does not change ordinary `|>` semantics or introduce a second live flow output
 - promises:
   - `delay(expr)` captures an unevaluated expression plus its lexical environment
   - `force(promise)` evaluates once and memoizes the successful value

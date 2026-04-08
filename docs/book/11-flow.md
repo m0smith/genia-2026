@@ -11,6 +11,7 @@ It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
 The canonical public Flow helper surface now lives in `std/prelude/flow.genia`:
 
 - `lines`
+- `keep_some_else`
 - `rules`
 - `each`
 - `collect`
@@ -176,6 +177,70 @@ Expected behavior:
 
 These stop upstream pulling as soon as the limit is reached.
 
+## `keep_some_else`
+
+`keep_some_else(stage, dead_handler)` is an explicit Flow-stage helper for Option-returning per-item transforms.
+
+It keeps successful values on the main flow and routes rejected original inputs to a dead-letter handler.
+
+### Minimal example
+
+```genia
+bad = ref([])
+
+remember_dead(x) = ref_update(bad, (xs) -> append(xs, [x]))
+
+["10", "oops", "20"] |> lines |> keep_some_else(parse_int, remember_dead) |> collect
+```
+
+Expected result:
+
+```genia
+[10, 20]
+```
+
+And `ref_get(bad)` becomes:
+
+```genia
+["oops"]
+```
+
+### Edge case example
+
+```genia
+stage(x) =
+  ("a") -> none |
+  ("b") -> none("missing-key") |
+  ("c") -> none("missing-key", { key: "name" }) |
+  ("4") -> some(40)
+
+["a", "b", "c", "4"] |> lines |> keep_some_else(stage, log) |> collect
+```
+
+Expected behavior:
+
+- main output is `[40]`
+- `"a"`, `"b"`, and `"c"` are sent to `log`
+- all supported `none(...)` shapes count as dead-letter results
+
+### Failure case example
+
+```genia
+bad(x) = x + 1
+
+[1, 2, 3] |> lines |> keep_some_else(bad, log) |> collect
+```
+
+Expected behavior:
+
+- runtime error explaining that `keep_some_else` expected `some(...)` or `none(...)`
+
+### Notes
+
+- this helper is explicit local routing, not a change to `|>`
+- `some(...)` is unwrapped only inside this helper
+- `dead_handler` is a handler call, not a second live output flow in this phase
+
 ## `stdin` vs `input()`
 
 - `stdin` is stream input for flows
@@ -282,6 +347,25 @@ This is the current Option-aware shell style:
 - a top-level `none(...)` from a stage stops the rest of the pipeline
 - use `flat_map_some(...)`, `map_some(...)`, or `then_*` when the next step needs the inner value
 - use `unwrap_or(...)` inside the stage expression when you want to recover to an ordinary value and keep the flow moving
+
+### Dead-letter routing for bad rows
+
+```bash
+printf '10\noops\n20\n' | genia -p 'keep_some_else(parse_int, log) |> map((n) -> n * n) |> each(print)'
+```
+
+Expected output:
+
+```text
+100
+400
+```
+
+Expected stderr:
+
+```text
+oops
+```
 
 ### Sum a numeric column from whitespace-separated rows
 

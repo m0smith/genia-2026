@@ -581,6 +581,7 @@ Output sink semantics:
   - `stdin()` still materializes and caches the full remaining input as a list for compatibility
 - public flow helpers are thin prelude wrappers in `std/prelude/flow.genia`:
   - `lines`
+  - `keep_some_else`
   - `rules`
   - `each`
   - `collect`
@@ -588,6 +589,7 @@ Output sink semantics:
   - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
 - flow transforms:
   - `lines(flow_or_source)`
+  - `keep_some_else(stage, dead_handler, flow)` / `flow |> keep_some_else(stage, dead_handler)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
   - `take(n, flow)` when second arg is a flow
   - `rules(..fns, flow)` / `flow |> rules(..fns)` as a stateful rule-driven transform
@@ -630,6 +632,13 @@ Flow semantics:
   - `rules()` is the identity stage
   - contract violations raise `RuntimeError` messages prefixed with `invalid-rules-result:`
   - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `std/prelude/flow.genia` in this phase
+- `keep_some_else` semantics:
+  - it is an explicit Flow-stage helper for Option-returning per-item stages
+  - for each input item `x`, it evaluates `stage(x)`
+  - `some(v)` emits `v` on the main output flow
+  - `none(...)` emits nothing on the main flow for that item and calls `dead_handler(x)` with the original input item
+  - if `stage(x)` does not return `some(...)` or `none(...)`, it raises a clear user-facing error
+  - this helper is local dead-letter routing only; it does not change global `|>` semantics or create a second live output flow
 - explicit CLI pipe mode is implemented:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
   - wraps as `stdin |> lines |> <stage_expr> |> run`

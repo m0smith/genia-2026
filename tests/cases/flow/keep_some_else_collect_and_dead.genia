@@ -1,0 +1,9 @@
+dead = ref([])
+
+remember_dead(x) = ref_update(dead, (xs) -> append(xs, [x]))
+rows() = ["10", "oops", "20"]
+
+[
+  rows() |> lines |> keep_some_else(parse_int, remember_dead) |> collect,
+  ref_get(dead)
+]

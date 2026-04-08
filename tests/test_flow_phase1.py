@@ -338,3 +338,63 @@ def test_none_result_from_flow_stage_short_circuits_later_stages(capsys):
 
     assert format_debug(result) == 'none("stopped", {stage: "stop"})'
     assert captured == ""
+
+
+def test_keep_some_else_emits_unwrapped_successes_and_routes_original_failures():
+    src = """
+    dead = ref([])
+
+    remember_dead(x) = ref_update(dead, (xs) -> append(xs, [x]))
+
+    rows() = ["10", "oops", "20"]
+
+    [
+      rows() |> lines |> keep_some_else(parse_int, remember_dead) |> collect,
+      ref_get(dead)
+    ]
+    """
+    env = make_global_env([])
+    assert run_source(src, env) == [[10, 20], ["oops"]]
+
+
+def test_keep_some_else_accepts_structured_none_variants():
+    src = """
+    dead = ref([])
+
+    remember_dead(x) = ref_update(dead, (xs) -> append(xs, [x]))
+
+    stage(x) =
+      ("a") -> none |
+      ("b") -> none("missing-key") |
+      ("c") -> none("missing-key", { key: "name" }) |
+      ("4") -> some(40)
+
+    [
+      ["a", "b", "c", "4"] |> lines |> keep_some_else(stage, remember_dead) |> collect,
+      ref_get(dead)
+    ]
+    """
+    env = make_global_env([])
+    assert run_source(src, env) == [[40], ["a", "b", "c"]]
+
+
+def test_keep_some_else_rejects_non_option_stage_results_clearly():
+    src = """
+    bad(x) = 123
+    sink(x) = log(x)
+
+    ["a", "b", "c"] |> lines |> keep_some_else(bad, sink) |> collect
+    """
+    env = make_global_env([])
+    with pytest.raises(TypeError, match=r"keep_some_else expected stage\(item\) to return some\(\.\.\.\) or none\(\.\.\.\), received int"):
+        run_source(src, env)
+
+
+def test_keep_some_else_is_opt_in_and_does_not_change_ordinary_pipeline_option_behavior():
+    src = """
+    [some?("42" |> parse_int), "42" |> parse_int]
+    """
+    env = make_global_env([])
+    result = run_source(src, env)
+    assert result[0] is True
+    assert format_debug(result[1]) == "some(42)"

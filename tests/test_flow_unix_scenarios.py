@@ -89,6 +89,22 @@ def test_unix_pipe_empty_input_is_clean(monkeypatch, capsys):
     assert captured.err == ""
 
 
+def test_unix_pipe_keep_some_else_routes_bad_rows_to_stderr_and_keeps_good_rows(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["10\n", "oops\n", "20\n"]))
+
+    exit_code = _main(
+        [
+            "-p",
+            'keep_some_else(parse_int, log) |> map((n) -> n * n) |> each(print)',
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == "100\n400\n"
+    assert captured.err == "oops\n"
+
+
 def test_unix_pipe_collect_alone_explains_stage_only_model(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
 

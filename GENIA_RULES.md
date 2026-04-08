@@ -681,6 +681,33 @@ Rule-contract violations raise runtime errors prefixed with `invalid-rules-resul
 * `ctx` is persistent rule-processing state across items
 * in this phase, the host runtime keeps the lazy Flow kernel while `std/prelude/flow.genia` handles most user-visible rule semantics
 
+## `keep_some_else(stage, dead_handler[, flow])`
+
+`keep_some_else(...)` is an explicit Flow-stage helper for Option-returning stages.
+
+It is a library/runtime abstraction, not special syntax.
+
+### Evaluation semantics
+
+For each incoming flow item `x`:
+
+1. Evaluate `stage(x)`
+2. If the result is `some(v)`:
+   * emit `v` on the main output flow
+3. If the result is `none(...)`:
+   * emit nothing on the main output flow for that item
+   * call `dead_handler(x)` with the original input item
+4. If the result is not an Option:
+   * raise a clear user-facing error
+
+### Notes
+
+* this helper is explicit local dead-letter routing
+* it does not change the semantics of `|>`
+* it does not auto-unwrap `some(...)` in ordinary pipelines
+* `dead_handler` is a handler call, not a second live flow output in this phase
+* `none`, `none(reason)`, and `none(reason, meta)` are all treated as dead-letter results
+
 ## 20) Output sink invariants (host-backed phase 1)
 
 - `stdout` and `stderr` are runtime capability values, not parser syntax

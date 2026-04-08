@@ -86,7 +86,7 @@ def test_help_overview_points_to_prelude_backed_public_surface():
     assert '`unwrap_or("?", record |> get("user") |> get("name"))` is preferred' in out
     assert "Public prelude families discovered from autoload registrations:" in out
     assert "cli_parse, cli_flag?, cli_option, cli_option_or" in out
-    assert "lines, rules, each, collect, run" in out
+    assert "lines, keep_some_else, rules, each, collect, run" in out
     assert "map_put, map_has?, ref_update, spawn, send, write, writeln, flush" in out
     assert "match_branches, branch_guard, empty_env, eval" in out
     assert "Map / ref / process / sinks:" in out
@@ -161,6 +161,16 @@ def test_help_autoloads_flow_wrapper_docstring():
     assert "lines/1" in out
     assert "# lines" in out
     assert "Create a Flow from `stdin`" in out
+
+
+def test_help_autoloads_keep_some_else_flow_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("keep_some_else")\n', env, filename="help_keep_some_else.genia")
+    out = "".join(outputs)
+    assert "keep_some_else/2, 3" in out
+    assert "# keep_some_else" in out
+    assert "dead-letter routing for Flow pipelines" in out
 
 
 def test_help_autoloads_rules_wrapper_docstring():

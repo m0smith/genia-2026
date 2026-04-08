@@ -5015,6 +5015,27 @@ def make_global_env(
 
         return GeniaFlow(iterator, label="rules")
 
+    def keep_some_else_fn(stage_value: Any, dead_value: Any, source: Any) -> GeniaFlow:
+        stage = _ensure_callable(stage_value, "keep_some_else")
+        dead_handler = _ensure_callable(dead_value, "keep_some_else")
+        upstream = _ensure_flow(source, "keep_some_else")
+
+        def iterator() -> Iterable[Any]:
+            for item in upstream.consume():
+                result = _invoke_from_builtin(stage, [item])
+                if isinstance(result, GeniaOptionSome):
+                    yield result.value
+                    continue
+                if isinstance(result, GeniaOptionNone):
+                    _invoke_from_builtin(dead_handler, [item])
+                    continue
+                raise TypeError(
+                    "keep_some_else expected stage(item) to return some(...) or none(...), "
+                    f"received {_runtime_type_name(result)}"
+                )
+
+        return GeniaFlow(iterator, label="keep_some_else")
+
     def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
         effect = _ensure_callable(fn_value, "each")
         upstream = _ensure_flow(source, "each")
@@ -5104,7 +5125,7 @@ def make_global_env(
     def _help_public_families() -> list[tuple[str, list[str]]]:
         specs = [
             ("CLI", ("std/prelude/cli.genia",), ("cli_parse", "cli_flag?", "cli_option", "cli_option_or")),
-            ("Flow", ("std/prelude/flow.genia",), ("lines", "rules", "each", "collect", "run")),
+            ("Flow", ("std/prelude/flow.genia",), ("lines", "keep_some_else", "rules", "each", "collect", "run")),
             (
                 "Lists / fns / math",
                 ("std/prelude/list.genia", "std/prelude/fn.genia", "std/prelude/math.genia"),
@@ -5785,6 +5806,7 @@ def make_global_env(
     env.set("stdin", stdin_source)
     env.set("_flow?", flow_predicate_fn)
     env.set("_lines", lines_fn)
+    env.set("_keep_some_else", keep_some_else_fn)
     env.set("_each", each_fn)
     env.set("_rules_prepare", rules_prepare_fn)
     env.set("_rules_kernel", rules_kernel_fn)
@@ -5903,6 +5925,8 @@ def make_global_env(
     env.register_autoload("cli_option", 2, "std/prelude/cli.genia")
     env.register_autoload("cli_option_or", 3, "std/prelude/cli.genia")
     env.register_autoload("lines", 1, "std/prelude/flow.genia")
+    env.register_autoload("keep_some_else", 2, "std/prelude/flow.genia")
+    env.register_autoload("keep_some_else", 3, "std/prelude/flow.genia")
     env.register_autoload("rules", 0, "std/prelude/flow.genia")
     env.register_autoload("each", 2, "std/prelude/flow.genia")
     env.register_autoload("collect", 1, "std/prelude/flow.genia")

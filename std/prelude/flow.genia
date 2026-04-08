@@ -4,6 +4,32 @@ lines(source) = """
 Create a Flow from `stdin`, an incoming Flow, or a list of strings.
 """ _lines(source)
 
+keep_some_else(stage, dead_handler) = """
+# keep_some_else
+
+Apply an Option-returning `stage` to each flow item.
+
+`some(value)` continues on the main flow as `value`.
+`none(...)` drops that item from the main flow and calls `dead_handler`
+with the original input item.
+
+This helper is explicit dead-letter routing for Flow pipelines.
+It does not change ordinary `|>` semantics outside this helper.
+""" (flow) -> _keep_some_else(stage, dead_handler, flow)
+
+keep_some_else(stage, dead_handler, flow) = """
+# keep_some_else
+
+Apply an Option-returning `stage` to each flow item.
+
+`some(value)` continues on the main flow as `value`.
+`none(...)` drops that item from the main flow and calls `dead_handler`
+with the original input item.
+
+This helper is explicit dead-letter routing for Flow pipelines.
+It does not change ordinary `|>` semantics outside this helper.
+""" _keep_some_else(stage, dead_handler, flow)
+
 rules(..fns) = """
 # rules
 
