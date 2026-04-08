@@ -1,0 +1,8 @@
+rows() = ["10", "oops", "20"]
+
+[
+  some?("10" |> parse_int),
+  none?("oops" |> parse_int),
+  rows() |> lines |> map((row) -> unwrap_or(-1, row |> parse_int |> flat_map_some((n) -> some(n + 1)))) |> collect,
+  rows() |> lines |> rules((row, _) -> row |> parse_int |> flat_map_some((n) -> rule_emit(n + 1))) |> collect
+]

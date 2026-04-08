@@ -59,6 +59,17 @@ Pipe-mode mental model:
 - do not write explicit `stdin` or explicit `run`
 - if a stage needs the inner value of `some(...)`, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
 
+Unix-style examples:
+
+```bash
+printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'
+printf '10\noops\n20\n' | genia -p 'map((row) -> unwrap_or("bad", row |> parse_int |> flat_map_some((n) -> some(n + 1)))) |> each(print)'
+printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+```
+
+- use `-p` for stage expressions that still produce a flow
+- use `-c` or a script when you want a final collected value such as `sum`
+
 Run the ants demo:
 
 ```bash

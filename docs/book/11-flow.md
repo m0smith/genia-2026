@@ -243,6 +243,81 @@ Expected behavior:
 
 - exits with a clear error because the stage expression must still produce a flow for the automatic final `run`
 
+## Unix-style scenarios
+
+These examples are small on purpose.
+They are meant to feel like real shell work, not toy syntax demos.
+
+### Clean and print non-blank lines
+
+```bash
+printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'
+```
+
+Expected output:
+
+```text
+alpha
+beta
+```
+
+### Parse rows with explicit Option handling
+
+```bash
+printf '10\noops\n20\n' | genia -p 'map((row) -> unwrap_or("bad", row |> parse_int |> flat_map_some((n) -> some(n + 1)))) |> each(print)'
+```
+
+Expected output:
+
+```text
+11
+bad
+21
+```
+
+This is the current Option-aware shell style:
+
+- `parse_int` returns `some(int)` or `none("parse-error", ...)`
+- pipelines preserve explicit `some(...)`
+- a top-level `none(...)` from a stage stops the rest of the pipeline
+- use `flat_map_some(...)`, `map_some(...)`, or `then_*` when the next step needs the inner value
+- use `unwrap_or(...)` inside the stage expression when you want to recover to an ordinary value and keep the flow moving
+
+### Sum a numeric column from whitespace-separated rows
+
+Use `-c` or a script when you want a final value such as a sum.
+Pipe mode is only for middle stage expressions that still produce a flow.
+
+```bash
+printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+```
+
+Expected output:
+
+```text
+11
+```
+
+This example skips malformed rows naturally:
+
+- `split_whitespace(r) |> nth(4)` returns `none(...)` when the field is missing
+- `flat_map_some(parse_int)` only parses present fields
+- `flat_map_some(rule_emit)` only emits matching numeric values
+
+### Stop early
+
+```bash
+printf 'first\nsecond\nthird\n' | genia -p 'head(1) |> each(print)'
+```
+
+Expected output:
+
+```text
+first
+```
+
+This should stop upstream reading as soon as the first line is printed.
+
 ## Implementation status
 
 ### ✅ Implemented
