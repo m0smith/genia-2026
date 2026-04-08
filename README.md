@@ -173,6 +173,7 @@ Current consistency note:
 - public String, Map, Ref, Process, and sink helper names are prelude-backed wrappers over host-backed runtime primitives
 - the public Option helper surface remains help-visible through prelude/autoload metadata, while canonical `some(...)` / `none(...)` constructor forms also lower explicitly in Core IR
 - public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting mostly live in prelude
+- Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values

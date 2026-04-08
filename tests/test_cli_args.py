@@ -139,6 +139,19 @@ def test_pipe_mode_with_no_stdin_is_normal_completion(monkeypatch, capsys):
     assert captured.err == ""
 
 
+def test_pipe_mode_with_one_input_line_is_clean(monkeypatch, capsys):
+    stdin = CountingStdin(["solo\n"])
+    monkeypatch.setattr("sys.stdin", stdin)
+
+    exit_code = _main(["-p", "head(1) |> each(print)"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == "solo\n"
+    assert captured.err == ""
+    assert stdin.reads == 1
+
+
 def test_pipe_mode_preserves_early_termination(monkeypatch, capsys):
     stdin = CountingStdin(["a\n", "b\n", "c\n"])
     monkeypatch.setattr("sys.stdin", stdin)

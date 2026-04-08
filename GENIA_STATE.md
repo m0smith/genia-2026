@@ -610,6 +610,7 @@ Flow semantics:
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
+- invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors
 - host-backed Flow kernel remains intentionally small in this phase:
   - flow value creation and single-consumption enforcement
   - lazy pull-based iteration over upstream sources

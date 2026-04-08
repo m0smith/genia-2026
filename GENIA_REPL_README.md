@@ -175,6 +175,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - sink/materialization boundaries
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+  - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors
   - `rules(..fns)` is stateful:
     - each rule runs as `(record, ctx)`
     - running `ctx` starts as `{}` and persists across input items

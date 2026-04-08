@@ -2,6 +2,7 @@ import pytest
 
 from genia import make_global_env, run_source
 from genia.interpreter import GeniaFlow
+from genia.utf8 import format_debug
 
 
 def make_number_flow_env(values):
@@ -40,6 +41,18 @@ def test_flow_is_single_use():
         run_source(src, env)
 
 
+def test_partially_consumed_flow_cannot_be_reused():
+    src = """
+    x = stdin |> lines
+    first = x |> head(1) |> collect
+    again = x |> collect
+    [first, again]
+    """
+    env = make_global_env(stdin_data=["a", "b"])
+    with pytest.raises(RuntimeError, match="Flow has already been consumed"):
+        run_source(src, env)
+
+
 def test_collect_materializes_reusable_data():
     src = """
     xs = stdin |> lines |> collect
@@ -53,6 +66,13 @@ def test_flow_and_value_bridges_remain_explicit():
     env = make_global_env(stdin_data=["a", "b"])
     with pytest.raises(TypeError, match="each expected a flow, received list"):
         run_source("stdin |> lines |> collect |> each(print) |> run", env)
+
+
+def test_invalid_flow_source_reports_clear_runtime_error():
+    env = make_global_env()
+    env.set("badflow", lambda: GeniaFlow(lambda: None, label="badflow"))
+    with pytest.raises(TypeError, match="Flow source badflow did not produce an iterable"):
+        run_source("badflow() |> collect", env)
 
 
 def test_take_and_head_aliases():
@@ -293,3 +313,28 @@ def test_rules_compose_with_existing_flow_helpers_and_run(capsys):
 
     assert result == run_source("nil", make_global_env([]))
     assert captured == "A\nB\n"
+
+
+def test_none_input_short_circuits_before_flow_stage_execution(capsys):
+    src = """
+    none("missing-key", { key: "name" }) |> each(print) |> run
+    """
+    env = make_global_env(stdin_data=["a", "b"])
+    result = run_source(src, env)
+    captured = capsys.readouterr().out
+
+    assert format_debug(result) == 'none("missing-key", {key: "name"})'
+    assert captured == ""
+
+
+def test_none_result_from_flow_stage_short_circuits_later_stages(capsys):
+    src = """
+    stop(flow) = none("stopped", { stage: "stop" })
+    stdin |> lines |> stop |> each(print) |> run
+    """
+    env = make_global_env(stdin_data=["a", "b"])
+    result = run_source(src, env)
+    captured = capsys.readouterr().out
+
+    assert format_debug(result) == 'none("stopped", {stage: "stop"})'
+    assert captured == ""

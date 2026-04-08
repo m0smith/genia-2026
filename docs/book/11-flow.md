@@ -75,6 +75,7 @@ x |> run
 Expected behavior:
 
 - second consume raises `RuntimeError: Flow has already been consumed`
+- invalid flow-source misuse raises a clear Genia-facing runtime error instead of leaking a raw Python iterator error
 
 ## `rules(..fns)`
 
@@ -242,6 +243,7 @@ Expected behavior:
 - host Flow kernel kept minimal while `rules` semantics mostly live in prelude
 - early termination on `take`/`head`
 - `-p` / `--pipe` CLI wrapping for single stage expressions
+- clear runtime errors for invalid flow-source misuse instead of leaked Python iterator errors
 
 ### ⚠️ Partial
 

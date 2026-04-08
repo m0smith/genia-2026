@@ -3583,7 +3583,11 @@ class GeniaFlow:
         if self._consumed:
             raise RuntimeError("Flow has already been consumed")
         self._consumed = True
-        return self._iterator_factory()
+        produced = self._iterator_factory()
+        try:
+            return iter(produced)
+        except TypeError:
+            raise TypeError(f"Flow source {self._label} did not produce an iterable") from None
 
     def __repr__(self) -> str:
         state = "consumed" if self._consumed else "ready"
