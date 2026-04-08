@@ -207,6 +207,13 @@ Expected behavior:
 
 - prints only `a`
 
+Recommended mental model:
+
+- write the middle of the flow only
+- pipe mode provides `stdin |> lines` automatically
+- pipe mode runs the final flow automatically
+- if you need the inner value of `some(...)` inside a stage, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
+
 ### Edge case example
 
 ```bash
@@ -227,6 +234,14 @@ genia -p 'head(1) |> each(print) |> run'
 Expected behavior:
 
 - exits with a clear error because pipe mode expects a stage expression and adds `run` automatically
+
+```bash
+genia -p 'collect'
+```
+
+Expected behavior:
+
+- exits with a clear error because the stage expression must still produce a flow for the automatic final `run`
 
 ## Implementation status
 

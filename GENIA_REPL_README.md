@@ -229,6 +229,8 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit `stdin` and explicit `run` are rejected with a clear error
+  - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error
+  - common `some(...)` mismatch errors in pipe mode add a note pointing toward explicit Option helpers such as `flat_map_some(...)`, `map_some(...)`, and `then_*`
   - pipe mode bypasses the `main` convention
   - no `pipe(...)` helper function exists in this phase
 - output routing:

@@ -117,6 +117,17 @@ def test_pipe_mode_wraps_stage_expression_and_prints_first_line(monkeypatch, cap
     assert captured.err == ""
 
 
+def test_pipe_mode_each_print_happy_path(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
+
+    exit_code = _main(["-p", "each(print)"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == "a\nb\n"
+    assert captured.err == ""
+
+
 def test_pipe_long_flag_matches_short_flag(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", CountingStdin(["x\n", "y\n"]))
 
@@ -173,7 +184,7 @@ def test_pipe_mode_rejects_explicit_run(monkeypatch, capsys):
 
     assert exit_code == 1
     assert captured.out == ""
-    assert "omit run" in captured.err
+    assert captured.err.strip() == "Error: Do not use run in pipe mode; pipe mode runs the flow automatically"
 
 
 def test_pipe_mode_rejects_explicit_stdin(monkeypatch, capsys):
@@ -184,7 +195,67 @@ def test_pipe_mode_rejects_explicit_stdin(monkeypatch, capsys):
 
     assert exit_code == 1
     assert captured.out == ""
-    assert "omit stdin" in captured.err
+    assert captured.err.strip() == "Error: Do not use stdin in pipe mode; stdin is provided automatically"
+
+
+def test_pipe_mode_rejects_full_programs_with_clear_error(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
+
+    exit_code = _main(["-p", "x = 1\nx"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err.strip() == "Error: Pipe mode expression must be a single stage expression, not a full program"
+
+
+def test_pipe_mode_rejects_stage_expressions_that_do_not_produce_a_flow(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
+
+    exit_code = _main(["-p", "collect"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err.strip() == "Error: Pipe mode stage expression must produce a flow for the automatic final run; received list"
+
+
+def test_pipe_mode_invalid_non_callable_stage_is_reported_cleanly(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
+
+    exit_code = _main(["-p", "1 + 2"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert captured.err.strip() == "Error: pipeline stage expected a callable value, received int"
+
+
+def test_pipe_mode_some_mismatch_points_toward_explicit_helpers(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["42\n"]))
+
+    exit_code = _main(["-p", 'map((x) -> some(x)) |> each(parse_int)'])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "parse_int expected a string, received some" in captured.err
+    assert "Pipelines preserve explicit some(...)" in captured.err
+
+
+def test_pipe_mode_flow_reuse_error_is_translated_cleanly(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
+
+    exit_code = _main(
+        [
+            "-p",
+            '((flow) -> { x = flow |> head(1); x |> collect; x })',
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.err.strip() == "Error: Flow values are single-use and cannot be reused after consumption"
 
 
 def test_pipe_mode_realistic_unix_like_smoke(monkeypatch, capsys):

@@ -52,6 +52,13 @@ Run a pipeline stage expression:
 printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
 ```
 
+Pipe-mode mental model:
+
+- `genia -p 'stage_expr'` behaves like `stdin |> lines |> stage_expr |> run`
+- write one stage expression, not a full program
+- do not write explicit `stdin` or explicit `run`
+- if a stage needs the inner value of `some(...)`, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
+
 Run the ants demo:
 
 ```bash

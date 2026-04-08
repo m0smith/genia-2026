@@ -4012,6 +4012,9 @@ class Evaluator:
                 return args[1]
             return target.get(fn)
 
+        if not callable(fn):
+            raise TypeError(f"pipeline stage expected a callable value, received {_runtime_type_name(fn)}")
+
         if tail_position:
             return TailCall(fn, tuple(args))
         return _normalize_absence(fn(*args))
@@ -6131,6 +6134,27 @@ def _wrap_pipe_mode_expr(source: str) -> str:
     return f"stdin |> lines |> {source} |> run"
 
 
+def _format_pipe_mode_error(exc: Exception) -> str:
+    message = str(exc)
+    if message == "-p/--pipe expects a single stage expression":
+        return "Pipe mode expression must be a single stage expression, not a full program"
+    if message == "-p/--pipe stage expression must omit stdin; it is added automatically":
+        return "Do not use stdin in pipe mode; stdin is provided automatically"
+    if message == "-p/--pipe stage expression must omit run; it is added automatically":
+        return "Do not use run in pipe mode; pipe mode runs the flow automatically"
+    if message == "Flow has already been consumed":
+        return "Flow values are single-use and cannot be reused after consumption"
+    if message.startswith("run expected a flow, received "):
+        received = message.split("received ", 1)[1]
+        return f"Pipe mode stage expression must produce a flow for the automatic final run; received {received}"
+    if "received some" in message:
+        return (
+            f"{message}. "
+            "Pipelines preserve explicit some(...); use flat_map_some(...), map_some(...), or then_* when the next stage needs the inner value."
+        )
+    return message
+
+
 def _emit_result(env: Env, value: Any) -> None:
     sink = env.get("stdout")
     if not isinstance(sink, GeniaOutputSink):
@@ -6263,7 +6287,7 @@ def _main(argv: Optional[list[str]] = None) -> int:
         except GeniaQuietBrokenPipe:
             return 0
         except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {e}")
+            _emit_error(env, f"Error: {_format_pipe_mode_error(e)}")
             return 1
 
     if args.command is not None:

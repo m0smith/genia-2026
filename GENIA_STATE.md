@@ -634,6 +634,11 @@ Flow semantics:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
   - wraps as `stdin |> lines |> <stage_expr> |> run`
   - no `pipe(...)` helper function exists in this phase
+  - pipe mode expects one stage expression, not a full program
+  - explicit `stdin` is rejected because pipe mode provides it automatically
+  - explicit `run` is rejected because pipe mode runs the final flow automatically
+  - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error
+  - common `some(...)` pipeline mismatches in pipe mode keep the original type error but add a note pointing toward `flat_map_some(...)`, `map_some(...)`, or `then_*`
 
 ### CLI argument helpers (prelude-backed over raw argv + tiny host validation primitives)
 
