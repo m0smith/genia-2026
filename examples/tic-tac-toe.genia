@@ -90,7 +90,7 @@ setAt(board, index, value) = """
 # setAt
 
 Place a value at board index `0` through `8`.
-""" setAt_impl(board, as-int(index), value)
+""" setAt_impl(board, index, value)
 
 setAt_impl(board, index, value) = 
   [
@@ -104,25 +104,26 @@ parseMove(s) = """
 # parseMove
 
 Parse user input into board index value.
-""" as-int(s)
+""" parse_int(s)
 
-as-int(s) =
-  "0" -> 0 |
-  "1" -> 1 |
-  "2" -> 2 |
-  "3" -> 3 |
-  "4" -> 4 |
-  "5" -> 5 |
-  "6" -> 6 |
-  "7" -> 7 |
-  "8" -> 8 |
-  _   -> nil
+moveSquare(board, move) = """
+# moveSquare
+
+Resolve the square targeted by a move string.
+""" (
+  parseMove(move)
+  |> flat_map_some((index) -> nth(index, board))
+)
 
 isLegalMove(board, move) = """
 # isLegalMove
 
 Check whether a requested move targets an empty square.
-""" unwrap_or(nil, nth(parseMove(move), board)) == "_"
+""" (
+  moveSquare(board, move)
+  |> map_some((square) -> square == "_")
+  |> unwrap_or(false)
+)
 
 readMove(player) = """
 # readMove
@@ -134,10 +135,11 @@ playTurn(board, player, move) = """
 # playTurn
 
 Apply one move, or retry when the move is illegal.
-""" playTurn_impl(board, player, move)
-playTurn_impl(board, player, move) =
-  (b, p, m) ? isLegalMove(b, m) -> play(setAt(b, m, p), nextPlayer(p)) |
-  (b, p, _) -> retryTurn(b, p)
+""" playTurn_impl(board, player, move, parseMove(move))
+playTurn_impl(board, player, move, parsedMove) =
+  (b, p, m, some(index)) ? isLegalMove(b, m) == true -> play(setAt(b, index, p), nextPlayer(p)) |
+  (b, p, _, none) -> retryTurn(b, p) |
+  (b, p, _, _) -> retryTurn(b, p)
 
 retryTurn(board, player) = """
 # retryTurn
