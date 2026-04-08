@@ -862,6 +862,9 @@ Developer-facing rendering and introspection:
 - structured absence context is rendered structurally in debug/display output; it is no longer collapsed to `<map N>` in these tooling-facing paths
 - `some?` / `none?` are the short predicate names; `is_some?` / `is_none?` remain supported aliases with the same runtime behavior
 - `absence_reason(opt)` and `absence_context(opt)` are the canonical inspection helpers for structured absence metadata
+- because plain `none` normalizes to `none("nil")`, `absence_reason(none)` returns `some("nil")`
+- `absence_context(none)` returns `none("nil")`
+- public evaluator result boundaries normalize raw host `None` to `none("nil")`, including empty top-level program results returned through `run_source(...)`
 - both `none` and legacy `nil` render as `none("nil")`
 
 Pipeline note:

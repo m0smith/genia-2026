@@ -1,0 +1,8 @@
+[
+  absence_reason(none),
+  absence_context(none),
+  absence_reason(none("empty-list")),
+  absence_context(none("empty-list")),
+  absence_reason(none("missing-key", {key: "name"})),
+  absence_context(none("missing-key", {key: "name"}))
+]

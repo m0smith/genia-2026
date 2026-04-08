@@ -9,9 +9,10 @@
 ## New behavior
 
 - `|>` is now an Option-aware pipeline stage form.
-- If a stage input or result is `some(x)`, the next stage receives `x`.
 - If a stage input or result is `none(...)`, remaining stages do not execute and that same `none(...)` is returned.
-- `parse_int` now returns `some(int)` on success and `none(parse_failed, context)` for ordinary parse failure.
+- Otherwise the next stage receives the current value unchanged, including explicit `some(...)`.
+- Pipeline evaluation does not auto-unwrap `some(...)`.
+- `parse_int` now returns `some(int)` on success and `none("parse-error", context)` for ordinary parse failure.
 
 ## Why
 
@@ -42,7 +43,7 @@ nth(5, fields(row)) |> map_some(parse_int) |> unwrap_or(0)
 New:
 
 ```genia
-unwrap_or(0, fields(row) |> nth(5) |> parse_int)
+unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))
 ```
 
 ## Flow relationship

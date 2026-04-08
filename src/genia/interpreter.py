@@ -3120,10 +3120,14 @@ def _is_nil_none(value: Any) -> bool:
     return is_none(value) and value.reason == "nil" and value.context is None
 
 
-def _normalize_nil(value: Any) -> Any:
+def _normalize_absence(value: Any) -> Any:
     if value is None:
         return OPTION_NONE
     return value
+
+
+def _normalize_nil(value: Any) -> Any:
+    return _normalize_absence(value)
 
 
 OPTION_NONE = make_none("nil")
@@ -3238,7 +3242,7 @@ def _wrap_python_host_callable(
             raise
         except Exception as exc:  # pragma: no cover - defensive bridge fallback
             raise RuntimeError(f"{module_name}/{export_name} raised {type(exc).__name__}: {exc}") from exc
-        return _normalize_nil(_python_host_to_genia(result))
+        return _normalize_absence(_python_host_to_genia(result))
 
     return wrapped
 
@@ -3719,7 +3723,7 @@ class Evaluator:
         self.debug_mode = debug_mode
 
     def eval_program(self, nodes: Iterable[IrNode]) -> Any:
-        result = None
+        result = OPTION_NONE
         for node in nodes:
             result = self.eval(node)
         return result
@@ -3740,7 +3744,7 @@ class Evaluator:
             for expr in body.exprs[:-1]:
                 self.eval(expr)
             if not body.exprs:
-                return None
+                return OPTION_NONE
             last = body.exprs[-1]
             if isinstance(last, IrCase):
                 return self.eval_case_expr(args, last, fn_name)
@@ -3757,7 +3761,7 @@ class Evaluator:
             if not isinstance(xs_value, list) or len(xs_value) == 0:
                 match_env = self.match_pattern(body.empty_clause.pattern, current_args)
                 if match_env is None:
-                    return None
+                    return OPTION_NONE
                 local = Env(self.env)
                 for k, v in match_env.items():
                     local.set(k, v)
@@ -3766,16 +3770,16 @@ class Evaluator:
             if n_value == 0:
                 match_env = self.match_pattern(body.zero_clause.pattern, current_args)
                 if match_env is None:
-                    return None
+                    return OPTION_NONE
                 local = Env(self.env)
                 for k, v in match_env.items():
                     local.set(k, v)
                 return Evaluator(local, self.debug_hooks, self.debug_mode).eval_tail(body.zero_clause.result)
 
             if not isinstance(n_value, (int, float)):
-                return None
+                return OPTION_NONE
             if n_value < 0:
-                return None
+                return OPTION_NONE
             n_value = n_value - body.step_size
             xs_value = xs_value[body.step_size:]
 
@@ -3807,7 +3811,7 @@ class Evaluator:
             for expr in node.exprs[:-1]:
                 ev.eval(expr)
             if not node.exprs:
-                return None
+                return OPTION_NONE
             return ev.eval_tail(node.exprs[-1])
         return self.eval(node)
 
@@ -3980,7 +3984,7 @@ class Evaluator:
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             if tail_position:
                 return TailCall(target, tuple(args))
-            return _normalize_nil(target(*args))
+            return _normalize_absence(target(*args))
 
         if isinstance(fn, GeniaMap):
             arg_count = len(args)
@@ -4006,7 +4010,7 @@ class Evaluator:
 
         if tail_position:
             return TailCall(fn, tuple(args))
-        return _normalize_nil(fn(*args))
+        return _normalize_absence(fn(*args))
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         # full parameter tuple matching
@@ -6098,7 +6102,8 @@ def run_source(
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
     env.debug_hooks = effective_hooks
     env.debug_mode = effective_debug_mode
-    return Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+    return _normalize_absence(result)
 
 
 def _validate_pipe_mode_expr(source: str) -> None:
@@ -6239,10 +6244,10 @@ def _main(argv: Optional[list[str]] = None) -> int:
         main_with_args = main_group.get(1)
         if main_with_args is not None:
             cli_args = env.get("argv")()
-            return main_with_args(cli_args)
+            return _normalize_absence(main_with_args(cli_args))
         main_without_args = main_group.get(0)
         if main_without_args is not None:
-            return main_without_args()
+            return _normalize_absence(main_without_args())
         return run_result
 
     if args.pipe is not None:

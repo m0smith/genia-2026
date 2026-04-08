@@ -39,6 +39,7 @@ FORBIDDEN_PATTERNS = [
     re.compile(r"\bcopilot instructions take precedence\b", re.IGNORECASE),
     re.compile(r"\btool-specific instructions take precedence\b", re.IGNORECASE),
     re.compile(r"\bAGENTS\.md is the final authority\b", re.IGNORECASE),
+    re.compile(r"\bLLM_CONTRACT\.md is the final authority\b", re.IGNORECASE),
     re.compile(r"\bsemantics are defined here\b", re.IGNORECASE),
 ]
 
@@ -52,9 +53,22 @@ PROTECTED_TOPIC_PATTERNS = [
     re.compile(r"\|\>"),
     re.compile(r"\bpattern matching\b", re.IGNORECASE),
     re.compile(r"\bhost portability\b", re.IGNORECASE),
+    re.compile(r"\bcore ir\b", re.IGNORECASE),
 ]
 
 MAX_PROTECTED_TOPIC_HITS_IN_TOOL_FILE = 6
+
+DOC_REMINDER_PATTERNS = [
+    re.compile(r"update documentation", re.IGNORECASE),
+    re.compile(r"update docs", re.IGNORECASE),
+    re.compile(r"docs/book", re.IGNORECASE),
+]
+
+TEST_REMINDER_PATTERNS = [
+    re.compile(r"\btests\b", re.IGNORECASE),
+    re.compile(r"update .*tests", re.IGNORECASE),
+    re.compile(r"add .*tests", re.IGNORECASE),
+]
 
 
 def rel(path: Path) -> str:
@@ -107,6 +121,11 @@ def validate_contract_alignment(errors: list[str]) -> None:
             "docs/ai/LLM_CONTRACT.md must state that GENIA_STATE.md is the final authority for implemented behavior."
         )
 
+    if "tool-specific instruction files" not in contract_text.lower() or "must not redefine" not in contract_text.lower():
+        errors.append(
+            "docs/ai/LLM_CONTRACT.md must state that tool-specific instruction files must not redefine semantics."
+        )
+
 
 def validate_tool_file(path: Path, errors: list[str]) -> None:
     text = read_text(path)
@@ -127,12 +146,12 @@ def validate_tool_file(path: Path, errors: list[str]) -> None:
             f"{rel(path)} appears to duplicate protected semantic content instead of referencing canonical docs."
         )
 
-    if "update documentation" not in text.lower() and "update docs" not in text.lower():
+    if not any(pattern.search(text) for pattern in DOC_REMINDER_PATTERNS):
         errors.append(
             f"{rel(path)} should remind agents to update documentation with behavior/code changes."
         )
 
-    if "tests" not in text.lower():
+    if not any(pattern.search(text) for pattern in TEST_REMINDER_PATTERNS):
         errors.append(
             f"{rel(path)} should remind agents to update or add tests."
         )

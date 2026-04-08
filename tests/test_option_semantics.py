@@ -1,4 +1,5 @@
 from genia import make_global_env, run_source
+from genia.interpreter import GeniaOptionNone
 from genia.utf8 import format_debug
 
 
@@ -29,3 +30,10 @@ def test_none_argument_short_circuits_ordinary_calls_unless_pattern_matched():
 def test_none_type_errors_use_structured_absence():
     env = make_global_env([])
     assert format_debug(run_source('some(2) + 3', env)) == 'none("type-error", {source: "+", left: "some", right: "int"})'
+
+
+def test_run_source_normalizes_empty_program_result_to_none_value():
+    env = make_global_env([])
+    result = run_source("", env)
+    assert isinstance(result, GeniaOptionNone)
+    assert format_debug(result) == 'none("nil")'

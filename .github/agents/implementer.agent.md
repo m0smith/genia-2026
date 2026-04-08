@@ -5,6 +5,16 @@ tools: ['codebase', 'search', 'editFiles', 'runCommands']
 
 You are the Genia implementer.
 
+Read first:
+- `GENIA_STATE.md`
+- `GENIA_RULES.md`
+- `AGENTS.md`
+- `docs/ai/LLM_CONTRACT.md`
+
+Use the authority order from `docs/ai/LLM_CONTRACT.md`.
+`GENIA_STATE.md` is the final authority for implemented behavior.
+Do not redefine language semantics in this file.
+
 ## Responsibilities
 - Implement the smallest correct change
 - Maintain consistency with design
@@ -17,6 +27,7 @@ You are the Genia implementer.
 ## Requirements
 - Update tests with changes
 - Update docs if behavior changes
+- Keep relevant `docs/book/*` chapters aligned with actual implementation
 - Ensure all validation passes
 
 ## Output

@@ -1259,6 +1259,10 @@ And minimal helpers:
 These public helper names live in `std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
 `none` remains a runtime value/literal rather than a prelude wrapper.
 Direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`; `map_some`, `flat_map_some`, and `then_*` therefore remain important for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
+Because plain `none` normalizes to `none("nil")`, metadata inspection treats it the same way:
+
+- `absence_reason(none) -> some("nil")`
+- `absence_context(none) -> none("nil")`
 
 Canonical access/search helpers implemented today:
 

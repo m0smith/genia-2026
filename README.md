@@ -69,6 +69,12 @@ Test suite note:
 - `tests/cases/` holds reusable black-box language-semantic cases
 - pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
 
+LLM instruction sync note:
+
+- shared cross-tool LLM guidance lives in `docs/ai/LLM_CONTRACT.md`
+- tool-specific instruction files should stay thin and point back to `GENIA_STATE.md`, `GENIA_RULES.md`, and `AGENTS.md`
+- CI validates that these instruction files stay synchronized
+
 ## Core IR Layer
 
 Genia lowers parsed source into a small host-neutral Core IR before evaluation.

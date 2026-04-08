@@ -215,6 +215,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `none("missing-key", {key: "name"})`
     - `none("index-out-of-bounds", {index: 8, length: 2})`
     - `some(none("nil"))`
+  - public evaluator result boundaries normalize raw host `None` to `none("nil")`, including empty top-level program results returned through `run_source(...)`
   - `some?` / `none?` are the preferred short predicate names; `is_some?` / `is_none?` remain supported aliases
 - cell semantics (phase 1 fail-stop):
   - cells queue asynchronous updates and run them one at a time

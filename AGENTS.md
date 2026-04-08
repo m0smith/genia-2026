@@ -42,11 +42,13 @@ For multi-host / portability work, agents must also treat these as synchronized 
 ## Cross-Tool Instruction Sync
 
 Shared cross-tool LLM guidance lives in `docs/ai/LLM_CONTRACT.md`.
+Treat it as the shared cross-tool adapter contract below the main source-of-truth docs, not as a replacement for them.
 
 Tool-specific instruction files (for example GitHub Copilot or editor/task-specific agent files) must remain consistent with:
 - `GENIA_STATE.md`
 - `GENIA_RULES.md`
 - this file
+- `docs/ai/LLM_CONTRACT.md`
 - relevant shared docs
 
 They must not redefine language semantics or source-of-truth precedence.

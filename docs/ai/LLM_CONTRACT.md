@@ -1,125 +1,83 @@
-# LLM_CONTRACT.md
+# LLM Contract
 
-## Purpose
+This document is the shared cross-tool LLM contract for Genia.
 
-This file defines the shared contract that all coding assistants must follow in the Genia repository, including Codex, GitHub Copilot, ChatGPT, and other repository-aware agents.
+Its job is to keep Codex, GitHub Copilot, and other tool-specific instruction files aligned without creating a second semantic spec.
 
-It exists to prevent instruction drift across tool-specific files.
+## Precedence
 
-## Canonical hierarchy
+Instruction precedence for repository work is:
 
-Agents must interpret repository instructions in this order:
-
-1. Active system / developer / user instructions
+1. active system / developer / user instructions for the current tool/session
 2. `GENIA_STATE.md`
 3. `GENIA_RULES.md`
 4. `AGENTS.md`
-5. This file
-6. Tool-specific instruction files such as:
-   - `.github/copilot-instructions.md`
-   - `.github/instructions/*`
-   - other assistant-specific config files
+5. `docs/ai/LLM_CONTRACT.md`
+6. tool-specific instruction files
 
-If any repository instruction conflicts with implemented behavior, `GENIA_STATE.md` wins.
+If these disagree about implemented behavior, `GENIA_STATE.md` is the final authority.
 
-If any lower-level instruction conflicts with a higher-level one, the higher-level instruction wins.
+## What This Contract Does
 
-## Shared model of Genia
+- defines the shared cross-tool alignment rules
+- points tool-specific instruction files back to canonical docs
+- prevents tool-specific files from drifting into their own semantic constitution
 
-Genia is a minimal, expressive, pattern-matching-first language.
+This contract does not redefine Genia language semantics.
 
-Agents must preserve these principles:
+## Cross-Tool Rules
 
-- keep the language small and human-readable
-- prefer pattern matching over introducing alternate conditional models
-- avoid unnecessary syntax
-- favor immutable, functional design
-- keep host-specific behavior small and portable
-- preserve shared semantics across hosts
+All LLM-facing tool instruction files must:
 
-## Truthfulness rules
+- reference:
+  - `GENIA_STATE.md`
+  - `GENIA_RULES.md`
+  - `AGENTS.md`
+  - `docs/ai/LLM_CONTRACT.md`
+- treat `GENIA_STATE.md` as the final authority for implemented behavior
+- avoid redefining language semantics, runtime behavior, or source-of-truth precedence locally
+- prefer references over duplicated semantic rules
+- remind agents to update docs and tests with behavior/code changes
+- stay consistent with the book-driven-development rules in `AGENTS.md`
 
-Agents must not document or imply that a feature exists unless it is implemented and verified.
+## Semantic Scope
 
-Agents must:
-
-- describe only implemented behavior as implemented
-- mark partial behavior as partial
-- mark planned behavior as not implemented
-- keep examples aligned with real parser/runtime behavior
-
-## Synchronization rules
-
-Any change affecting language behavior, syntax, runtime semantics, parser behavior, examples, portability contracts, or public API expectations must update all relevant docs in the same change.
-
-At minimum, agents must update:
+Canonical semantic rules live in:
 
 - `GENIA_STATE.md`
-- `GENIA_RULES.md` when semantics change
+- `GENIA_RULES.md`
 - relevant `docs/book/*` chapters
-- relevant host portability docs
-- relevant specs and manifests
-- relevant tests
 
-## Prompt requirements for coding agents
+Tool-specific files may add workflow guidance, editor-specific reminders, or task-shaping advice, but they must not redefine protected topics such as:
 
-Before making changes, agents must read:
+- Option / absence semantics
+- pipeline semantics
+- pattern matching semantics
+- Core IR or portability boundaries
+- host/runtime behavior
 
-- `GENIA_STATE.md`
-- `GENIA_RULES.md`
-- `AGENTS.md`
+## Documentation And Example Discipline
 
-For host/portability work, agents must also read the shared host portability docs and spec files referenced by `AGENTS.md`.
+Tool-specific instruction files must reinforce the repository rule that:
 
-Prompts should explicitly require documentation updates and tests.
+- any change to language behavior, syntax, runtime semantics, parser rules, or examples must update the authoritative docs
+- book examples must stay truthful, runnable where appropriate, and synchronized with actual implementation
 
-When generating Codex prompts, include instructions to keep:
-- `GENIA_STATE.md`
-- `GENIA_RULES.md`
-- `AGENTS.md`
-- relevant `docs/book/*`
-- relevant host/spec docs
+## Prompting Rule
 
-up to date.
+When creating Codex or Copilot task prompts for repository work, include instructions to:
 
-## What tool-specific files may do
+- read the authoritative docs first
+- keep `GENIA_STATE.md` and relevant docs/book chapters up to date
+- keep tests synchronized with behavior changes
 
-Tool-specific instruction files may:
+## Validation
 
-- adapt wording to the tool
-- explain where to look first
-- define editor or PR workflow details
-- add task-specific reminders
+Repository tooling may validate tool-specific instruction files against this contract.
 
-Tool-specific instruction files must not:
+That validation should enforce:
 
-- redefine Genia semantics
-- redefine source-of-truth precedence
-- override implemented behavior
-- create new workflow obligations that conflict with `AGENTS.md`
-
-## Drift policy
-
-If a tool-specific instruction file contains a duplicated rule that has diverged from:
-- `GENIA_STATE.md`
-- `GENIA_RULES.md`
-- `AGENTS.md`
-
-the duplicated rule must be removed or replaced with a reference.
-
-Prefer references over duplicated semantic content.
-
-## Preferred reference wording
-
-Use wording like:
-
-“Follow `GENIA_STATE.md`, `GENIA_RULES.md`, `AGENTS.md`, and `docs/ai/LLM_CONTRACT.md`. Do not redefine semantics here.”
-
-## Enforcement expectation
-
-Repository automation should fail when tool-specific instruction files:
-
-- omit required references
-- claim conflicting authority
-- duplicate protected semantic sections
-- omit required synchronization reminders
+- required canonical references
+- no conflicting authority claims
+- no semantic redefinition in tool-local files
+- reminders to update docs and tests

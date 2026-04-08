@@ -443,7 +443,8 @@ No additional member/index/flow operators should be introduced without explicitl
 - `is_some?(opt)` / `some?(opt)` and `is_none?(opt)` / `none?(opt)` report option shape
 - `or_else(opt, fallback)` returns the wrapped value for `some(value)` and the fallback for any `none...` form
 - `or_else_with(opt, thunk)` returns the wrapped value for `some(value)` and calls `thunk()` only for `none...`
-- `absence_reason(opt)` returns `some(reason)` for structured absence and `none` for plain `none`
+- `absence_reason(opt)` returns `some(reason)` for any `none...` value
+  - because plain `none` normalizes to `none("nil")`, `absence_reason(none)` returns `some("nil")`
 - `absence_context(opt)` returns `some(context)` only when context metadata is present
 - `some?` / `none?` and `is_some?` / `is_none?` have the same runtime truth values; the shorter `some?` / `none?` names are preferred in docs/examples
 - `map_some(f, opt)`:

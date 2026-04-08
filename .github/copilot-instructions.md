@@ -7,16 +7,13 @@ Before making changes, read:
 - `AGENTS.md`
 - `docs/ai/LLM_CONTRACT.md`
 
-## Precedence
-
-Follow repository instructions according to the hierarchy defined in `docs/ai/LLM_CONTRACT.md`.
-
-If there is any conflict about implemented behavior, `GENIA_STATE.md` is the final authority.
-
 ## Copilot-specific guidance
 
+- Follow repository instruction precedence from `docs/ai/LLM_CONTRACT.md`.
+- `GENIA_STATE.md` is the final authority for implemented behavior.
 - Keep changes minimal and focused
 - Prefer existing patterns over invention
 - Update documentation and tests with code changes
-- Do not redefine language semantics in this file
+- Keep relevant `docs/book/*` chapters aligned with actual implementation
+- Do not redefine language semantics or source-of-truth precedence in this file
 - Refer back to the canonical docs instead of duplicating semantic rules
