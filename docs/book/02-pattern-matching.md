@@ -322,7 +322,8 @@ Write `last` using pattern matching and recursion.
 
 Option values can be matched directly with literal and constructor patterns.
 
-These Option values are distinct from `nil`.
+Legacy surface `nil` is still accepted, but it immediately normalizes to `none("nil")`.
+Pattern matching therefore sees one absence family at runtime.
 
 Modern Genia code usually gets these Option values from canonical helpers such as:
 
@@ -349,11 +350,17 @@ fallback(opt) =
 
 `none` is a literal pattern and matches only the Option none value, not `nil`.
 
+In current runtime terms, that means it matches normalized absence values such as:
+
+- `none("nil")`
+- `none("empty-list")`
+- `none("missing-key", {...})`
+
 ### Edge case example
 
 ```genia
 pick_name(opt) =
-  none(empty_list) -> "empty" |
+  none("empty-list") -> "empty" |
   some({name}) -> name |
   some(_) -> "unknown"
 

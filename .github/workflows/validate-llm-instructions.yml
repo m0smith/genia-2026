@@ -1,0 +1,21 @@
+name: Validate LLM instructions
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate-llm-instructions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate LLM instruction sync
+        run: python tools/validate_llm_instructions.py

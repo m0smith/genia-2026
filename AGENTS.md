@@ -39,6 +39,20 @@ For multi-host / portability work, agents must also treat these as synchronized 
 * `hosts/README.md`
 
 ---
+## Cross-Tool Instruction Sync
+
+Shared cross-tool LLM guidance lives in `docs/ai/LLM_CONTRACT.md`.
+
+Tool-specific instruction files (for example GitHub Copilot or editor/task-specific agent files) must remain consistent with:
+- `GENIA_STATE.md`
+- `GENIA_RULES.md`
+- this file
+- relevant shared docs
+
+They must not redefine language semantics or source-of-truth precedence.
+Prefer references over duplicated semantic rules.
+
+---
 
 ## Non-Negotiable Rule (CRITICAL)
 
