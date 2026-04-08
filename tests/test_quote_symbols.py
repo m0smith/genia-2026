@@ -45,7 +45,7 @@ def test_quote_of_none_preserves_option_none_literal(run):
 
 
 def test_quote_of_structured_none_preserves_absence_metadata():
-    assert format_debug(_run("quote(none(empty_list))")) == "none(empty_list)"
+    assert format_debug(_run('quote(none("empty-list"))')) == 'none("empty-list")'
 
 
 def test_quote_of_too_many_arguments_is_rejected():

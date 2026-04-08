@@ -13,7 +13,7 @@ def test_import_python_json_module_and_convert_host_data(run):
     src = """
     import python.json as pyjson
     obj = pyjson/loads("{\\"name\\": \\"Ada\\", \\"nums\\": [1, 2]}")
-    [unwrap_or("?", obj |> get("name")), unwrap_or(-1, obj |> get("nums") |> nth(1))]
+    [unwrap_or("?", obj |> get("name")), unwrap_or(-1, obj |> get("nums") |> then_nth(1))]
     """
     assert run(src) == ["Ada", 2]
 

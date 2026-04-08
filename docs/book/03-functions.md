@@ -576,13 +576,17 @@ Pipeline-friendly API design note:
 - With current stage-call semantics (`x |> f(y)` => `f(y, x)`), functions that are commonly terminal pipeline steps often use destination/config args first.
 - Example: `entries |> zip_write("out.zip")` calls `zip_write("out.zip", entries)` in this phase.
 
-### Maybe Flow Is Helper-Driven, Not Pipeline Magic
+### Absence propagation is explicit, not unwrap magic
 
 `|>` is now an explicit pipeline form, but it still does not create implicit Flow bridges.
 
-Maybe-aware flow in this phase comes from helper functions whose argument order fits the stage-call rules above.
+Absence-aware evaluation in this phase follows two simple rules:
 
-For new code, prefer canonical maybe-returning helpers such as `get`, `first`, `nth`, string `find`, and `parse_int` directly in pipelines over older `nil`-returning lookup surfaces like `map_get`, callable map/string lookup, or slash access.
+- if the current pipeline value is `none(...)`, later stages do not run and that same `none(...)` is returned
+- otherwise the next stage receives the current value unchanged, including explicit `some(...)`
+
+This means direct pipelines preserve `some(...)` rather than unwrapping it.
+Use `then_*` or `flat_map_some(...)` when the next stage expects the inner value of an Option.
 
 ### Minimal example
 
@@ -608,7 +612,7 @@ result = record |> get("profile") |> get("name")
 Result:
 
 ```genia
-[some(missing_key), "profile"]
+[some("missing-key"), "profile"]
 ```
 
 The original structured absence survives the whole chain unchanged.
@@ -617,7 +621,7 @@ Another useful chaining shape:
 
 ```genia
 data = { users: [{ email: "a@example.com" }] }
-unwrap_or("unknown", data |> get("users") |> first() |> get("email"))
+unwrap_or("unknown", data |> get("users") |> then_first() |> then_get("email"))
 ```
 
 Result:
@@ -635,20 +639,28 @@ When a chain fails early, the rendered result keeps the structured absence visib
 Rendered result:
 
 ```text
-none(missing_key, {key: "profile"})
+none("missing-key", {key: "profile"})
 ```
 
 ### Failure case example
 
 ```genia
-none(empty_list) |> parse_int
+none("empty-list") |> parse_int
 ```
 
 Expected behavior:
 
-* renders as `none(empty_list)`
+* renders as `none("empty-list")`
 * later stages do not execute
-* direct pipelines now propagate structured absence automatically
+* direct pipelines propagate structured absence automatically
+
+Another important edge:
+
+```genia
+unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int))
+```
+
+This uses `flat_map_some(parse_int)` because `nth(5)` returns `some("5")`, and pipelines preserve that explicit `some(...)` instead of auto-unwrapping it.
 
 ### Failure case example
 
@@ -691,9 +703,9 @@ Expected behavior:
 * Bare callable pipeline RHS forms that lower to ordinary call syntax (for example, string projector pipelines such as `record |> "name"`)
 * Direct maybe-returning pipeline composition:
   * `get`
-  * `first`
-  * `nth`
-  * `find`
+  * `then_first`
+  * `then_nth`
+  * `then_find`
   * `parse_int`
   * `unwrap_or`
 * Explicit Option helpers still available for non-pipeline composition:

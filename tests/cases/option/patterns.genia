@@ -4,11 +4,12 @@ status(opt) =
 
 extract_name(opt) =
   some({name}) -> name |
+  none -> "?" |
   _ -> "?"
 
 describe(opt) =
-  none(empty_list) -> "empty" |
-  none(index_out_of_bounds, info) -> info/index |
+  none("empty-list") -> "empty" |
+  none("index-out-of-bounds", info) -> info/index |
   none(_) -> "missing" |
   some(v) -> v
 
@@ -18,8 +19,8 @@ describe(opt) =
   extract_name(some({name: "Genia"})),
   extract_name(some({})),
   extract_name(none),
-  describe(none(empty_list)),
-  describe(none(index_out_of_bounds, {index: 8, length: 2})),
-  describe(none(missing_key, {key: "name"})),
+  describe(none("empty-list")),
+  describe(none("index-out-of-bounds", {index: 8, length: 2})),
+  describe(none("missing-key", {key: "name"})),
   describe(some(3))
 ]

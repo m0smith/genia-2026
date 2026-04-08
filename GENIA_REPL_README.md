@@ -50,15 +50,17 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
-  - core values: Number, Promise, Symbol, String, Boolean, `nil`, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
+  - core values: Number, Promise, Symbol, String, Boolean, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
+    - `none` is shorthand for `none("nil")`
+    - legacy surface `nil` also normalizes to `none("nil")`
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
-  - current maybe/absence behavior is split: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, and `find_opt` use `none...` / `some(value)`, while `map_get`, callable map/string lookup, and slash map access are docs-deprecated `nil` paths and `cli_option` remains legacy-retained `value_or_nil`
+  - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, slash map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
   - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
-- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, `nil`, `none`
+- literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
@@ -71,8 +73,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 - pipeline operator (phase 2): `|>` with Option-aware stage semantics
   - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` behaves like `"name"(record)`
-  - `some(x)` is unwrapped to `x` for the next stage
   - `none(...)` short-circuits the rest of the pipeline and is returned unchanged
+  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
+  - pipeline evaluation does not auto-unwrap `some(...)`
   - pipeline-visible function modes are interpreted as Value -> Value, Flow -> Flow, or explicit Value <-> Flow bridge
   - multiline formatting is accepted around the operator:
     ```genia
@@ -157,7 +160,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
-  - constants: `pi`, `e`, `true`, `false`, `nil`
+  - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
   - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
@@ -192,26 +195,26 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `stream_take` materializes a prefix as an ordinary list
   - streams are distinct from Flow
 - Option/list notes:
-  - `first([])` and `last([])` return `none(empty_list)`
-  - `nth(index, list)` returns `none(index_out_of_bounds, { index: i, length: n })` when out of range
-  - `find(string, needle)` returns `some(index)` or `none(not_found, { needle: needle })`
-  - `parse_int(string)` returns `some(int)` or `none(parse_failed, context)`
-  - `find_opt(predicate, list)` returns `none(no_match)` when nothing matches
+  - `first([])` and `last([])` return `none("empty-list")`
+  - `nth(index, list)` returns `none("index-out-of-bounds", { index: i, length: n })` when out of range
+  - `find(string, needle)` returns `some(index)` or `none("not-found", { needle: needle })`
+  - `parse_int(string)` returns `some(int)` or `none("parse-error", context)`
+  - `find_opt(predicate, list)` returns `none("no-match")` when nothing matches
   - canonical maybe-aware lookup: `get(key, target)`; `get?(key, target)` remains as a compatibility alias
   - compatibility aliases: `first_opt` for `first`, `nth_opt` for `nth`
-  - prefer `get`, `first`, `last`, `nth`, string `find`, and `find_opt` in new examples; treat `map_get`, slash access, callable map/string lookup, and `cli_option` as compatibility surfaces
+  - prefer `get`, `first`, `last`, `nth`, string `find`, and `find_opt` in new examples; compatibility surfaces now return the same structured absence family but are still secondary in docs
   - explicit Option helpers still exist for direct Option values and higher-order use: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `none?`, `some?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
-  - canonical pipeline style is direct:
+  - canonical direct pipeline style is:
     - `record |> get("a") |> get("b") |> get("c")`
-    - `data |> get("items") |> nth(0) |> get("name")`
+    - `data |> get("items") |> then_nth(0) |> then_get("name")`
   - canonical recovery wraps the whole pipeline result:
     - `unwrap_or("unknown", record |> get("profile") |> get("name"))`
-    - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
-  - `some(nil)` is valid and distinct from `none`
+    - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+  - `some(nil)` now renders as `some(none("nil"))`
   - REPL/debug rendering preserves structured absence syntax directly:
-    - `none(missing_key, {key: "name"})`
-    - `none(index_out_of_bounds, {index: 8, length: 2})`
-    - `some(nil)`
+    - `none("missing-key", {key: "name"})`
+    - `none("index-out-of-bounds", {index: 8, length: 2})`
+    - `some(none("nil"))`
   - `some?` / `none?` are the preferred short predicate names; `is_some?` / `is_none?` remain supported aliases
 - cell semantics (phase 1 fail-stop):
   - cells queue asynchronous updates and run them one at a time
@@ -417,7 +420,7 @@ Current behavior:
 
 - `parse_int(string)` returns `some(int)` on success
 - `parse_int(string, base)` accepts bases `2..36`
-- invalid integer text returns `none(parse_failed, context)`
+- invalid integer text returns `none("parse-error", context)`
 - surrounding whitespace is ignored
 - leading `+` / `-` is supported
 - non-string input raises `TypeError`

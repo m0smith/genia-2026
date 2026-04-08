@@ -10,7 +10,7 @@ def _run(src: str):
 
 
 def test_basic_string_find_absence_reason_remains_structured():
-    assert format_debug(_run('absence_reason(find("abc", "x"))')) == "some(not_found)"
+    assert format_debug(_run('absence_reason(find("abc", "x"))')) == 'some("not-found")'
 
 
 def test_parse_int_rejects_non_string_and_bad_base():
@@ -21,8 +21,8 @@ def test_parse_int_rejects_non_string_and_bad_base():
 
 
 def test_parse_int_returns_structured_absence_for_empty_and_invalid_digits():
-    assert format_debug(_run('parse_int("   ")')) == 'none(parse_failed, {source: "parse_int", expected: "integer_string", received: "   ", base: 10})'
-    assert format_debug(_run('parse_int("102", 2)')) == 'none(parse_failed, {source: "parse_int", expected: "integer_string", received: "102", base: 2})'
+    assert format_debug(_run('parse_int("   ")')) == 'none("parse-error", {source: "parse_int", expected: "integer_string", received: "   ", base: 10})'
+    assert format_debug(_run('parse_int("102", 2)')) == 'none("parse-error", {source: "parse_int", expected: "integer_string", received: "102", base: 2})'
 
 
 def test_print_displays_string_content_without_quotes():

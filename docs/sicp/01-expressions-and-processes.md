@@ -411,15 +411,15 @@ It is structured absence.
 ```
 
 ```text
-[none(empty_list), some(nil)]
+[none("empty-list"), some(none("nil"))]
 ```
 
 💡 Aha!
 
 That result teaches two things at once:
 
-- `none(empty_list)` means "there is no first element"
-- `some(nil)` means "there is a first element, and its value is actually `nil`"
+- `none("empty-list")` means "there is no first element"
+- `some(none("nil"))` means "there is a first element, and its value is actually `nil`"
 
 Those are different facts.
 
@@ -445,7 +445,7 @@ Predict the result before you look:
 
 ```genia
 label(opt) =
-  none(empty_list) -> "empty" |
+  none("empty-list") -> "empty" |
   some(x) -> x |
   none(_) -> "missing"
 

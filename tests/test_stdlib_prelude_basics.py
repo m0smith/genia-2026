@@ -19,26 +19,33 @@ def test_first_and_rest(run):
 def test_option_list_helpers(run):
     assert run("is_none?(first([]))") is True
     assert run("is_some?(first([nil]))") is True
-    assert run("unwrap_or(9, first([nil]))") is None
+    assert format_debug(run_source("unwrap_or(9, first([nil]))", make_global_env([]))) == 'none("nil")'
     assert run("unwrap_or(0, first([1, 2, 3]))") == 1
-    assert run("quote(empty_list) == unwrap_or(nil, absence_reason(first([])))") is True
+    assert run('unwrap_or("?", absence_reason(first([])))') == "empty-list"
 
     assert run("is_none?(first_opt([]))") is True
     assert run("is_some?(first_opt([nil]))") is True
-    assert run("unwrap_or(9, first_opt([nil]))") is None
+    assert format_debug(run_source("unwrap_or(9, first_opt([nil]))", make_global_env([]))) == 'none("nil")'
     assert run("unwrap_or(0, first_opt([1, 2, 3]))") == 1
-    assert run("quote(empty_list) == unwrap_or(nil, absence_reason(first_opt([])))") is True
+    assert run('unwrap_or("?", absence_reason(first_opt([])))') == "empty-list"
 
     assert run("is_none?(last([]))") is True
     assert run("is_some?(last([1, nil]))") is True
-    assert run("unwrap_or(9, last([1, nil]))") is None
+    assert format_debug(run_source("unwrap_or(9, last([1, nil]))", make_global_env([]))) == 'none("nil")'
     assert run("unwrap_or(0, last([1, 2, 3]))") == 3
 
     assert run("is_none?(find_opt((x) -> x == 9, []))") is True
     assert run("unwrap_or(0, find_opt((x) -> x % 2 == 0, [1, 2, 4]))") == 2
-    assert run("is_some?(find_opt((x) -> x == nil, [1, nil, 2]))") is True
-    assert run("unwrap_or(7, find_opt((x) -> x == nil, [1, nil, 2]))") is None
-    assert run("quote(no_match) == unwrap_or(nil, absence_reason(find_opt((x) -> x == 9, [])))") is True
+    src = '\n'.join([
+        'is_missing(x) =',
+        '  none -> true |',
+        '  _ -> false',
+        '[is_some?(find_opt(is_missing, [1, nil, 2])), unwrap_or(7, find_opt(is_missing, [1, nil, 2]))]',
+    ])
+    result = run(src)
+    assert result[0] is True
+    assert format_debug(result[1]) == 'none("nil")'
+    assert run('unwrap_or("?", absence_reason(find_opt((x) -> x == 9, [])))') == "no-match"
     assert run("unwrap_or(0, nth(2, [10, 20, 30]))") == 30
     assert run("is_none?(nth(8, [10, 20]))") is True
     assert run("unwrap_or(0, nth_opt(2, [10, 20, 30]))") == 30
@@ -49,7 +56,7 @@ def test_book_nth_take_drop_examples_match_current_option_style(run):
     assert run('unwrap_or("?", nth(1, ["a", "b", "c"]))') == "b"
     assert run("take(2, [1, 2, 3, 4])") == [1, 2]
     assert run("drop(2, [1, 2, 3, 4])") == [3, 4]
-    assert format_debug(run_source("nth(9, [1, 2])", make_global_env([]))) == 'none(index_out_of_bounds, {index: 9, length: 2})'
+    assert format_debug(run_source("nth(9, [1, 2])", make_global_env([]))) == 'none("index-out-of-bounds", {index: 9, length: 2})'
     assert run('unwrap_or("missing", nth(9, [1, 2]))') == "missing"
 
 

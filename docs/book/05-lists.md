@@ -193,13 +193,14 @@ Implemented helpers:
   - `then_first(target)`
   - `then_nth(index, target)`
 
-These return `none...` for empty/no-match/out-of-range and `some(value)` for present results, including `some(nil)`.
+These return `none...` for empty/no-match/out-of-range and `some(value)` for present results, including present legacy-`nil` values.
+In current runtime output, legacy `nil` normalizes to `none("nil")`, so a present `nil` element appears as `some(none("nil"))`.
 
 Current structured absence reasons in this layer:
 
-- `first([])` and `last([])` -> `none(empty_list)`
-- `find_opt(pred, xs)` with no match -> `none(no_match)`
-- `nth(i, xs)` out of range -> `none(index_out_of_bounds, { index: i, length: n })`
+- `first([])` and `last([])` -> `none("empty-list")`
+- `find_opt(pred, xs)` with no match -> `none("no-match")`
+- `nth(i, xs)` out of range -> `none("index-out-of-bounds", { index: i, length: n })`
 
 ### Minimal example
 
@@ -218,16 +219,16 @@ Expected result:
 ```genia
 pick(opt) =
   some(x) -> x |
-  none(empty_list) -> "empty" |
+  none("empty-list") -> "empty" |
   none(_) -> "missing"
 
-[pick(first([nil])), pick(last([])), pick(find_opt((x) -> x == nil, [1, nil, 2])), absence_reason(nth(9, [1, 2]))]
+[pick(first([nil])), pick(last([])), pick(find_opt((x) -> none?(x), [1, nil, 2])), absence_reason(nth(9, [1, 2]))]
 ```
 
 Expected result:
 
 ```text
-[nil, "empty", nil, some(index_out_of_bounds)]
+[none("nil"), "empty", none("nil"), some("index-out-of-bounds")]
 ```
 
 Rendered absence values keep their structure visible in tooling:
@@ -239,7 +240,7 @@ Rendered absence values keep their structure visible in tooling:
 Expected rendered result:
 
 ```text
-[none(empty_list), none(index_out_of_bounds, {index: 9, length: 2})]
+[none("empty-list"), none("index-out-of-bounds", {index: 9, length: 2})]
 ```
 
 ### Failure case example
@@ -267,21 +268,21 @@ Maybe-flow note:
 - list helpers often act as the first maybe-aware step in an Option-aware pipeline
 - example:
   ```genia
-  unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> parse_int)
+  unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int))
   ```
-- this works because `nth` and `parse_int` return Option values and `|>` propagates them automatically
+- this works because `nth` returns `some("5")`, pipelines preserve that explicit Option, and `flat_map_some(parse_int)` applies `parse_int` to the wrapped value
 - direct chaining also composes with list results:
   ```genia
   data = { items: [{ name: "A" }, { name: "B" }] }
-  unwrap_or("?", data |> get("items") |> nth(0) |> get("name"))
+  unwrap_or("?", data |> get("items") |> then_nth(0) |> then_get("name"))
   ```
 - and:
   ```genia
   data = { users: [] }
-  result = data |> get("users") |> first() |> get("email")
+  result = data |> get("users") |> then_first() |> then_get("email")
   [absence_reason(result), is_none?(result)]
   ```
-- explicit helpers such as `then_first` and `then_nth` still exist for direct Option values, but they are no longer the canonical pipeline style
+- explicit helpers such as `then_first` and `then_nth` are the canonical bridge when a prior stage has already produced an explicit Option value
 
 ---
 
@@ -397,7 +398,7 @@ drop(2, [1, 2, 3, 4]) -> [3, 4]
 Expected result:
 
 ```text
-[none(index_out_of_bounds, {index: 9, length: 2}), [], [1, 2]]
+[none("index-out-of-bounds", {index: 9, length: 2}), [], [1, 2]]
 ```
 
 The important modern style point:
@@ -412,7 +413,7 @@ Expected result:
 "missing"
 ```
 
-Legacy `nil`-returning lookup forms still exist elsewhere in Genia for compatibility, but `nth` is no longer one of them.
+Compatibility lookup forms still exist elsewhere in Genia, but `nth` is not one of them.
 
 ### Failure case example
 
@@ -499,7 +500,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - list performance is currently interpreter-level; optimizations are selective and pattern-dependent
-- maybe-result behavior is still mixed overall: `first`, `last`, `nth`, string `find`, and `find_opt` now return Option values, while callable maps/string projectors, `map_get`, slash map access, and `cli_option` still use legacy `nil` behavior
+- pipelines preserve explicit `some(...)` values rather than auto-unwrapping them, so some list/search chains still need `then_*` or `flat_map_some(...)`
 
 ### ❌ Not implemented
 
@@ -529,13 +530,13 @@ Expected result:
 
 ```genia
 zip_entries("in.zip")
-  |> map((e) -> e ? entry_json(e) -> entry_name(e) | _ -> nil)
+  |> map((e) -> e ? entry_json(e) -> entry_name(e) | _ -> none)
 ```
 
 Expected behavior:
 
 - preserves list ordering
-- emits `nil` for non-JSON entries
+- emits `none("nil")` for non-JSON entries
 
 ### Failure case example
 

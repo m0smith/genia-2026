@@ -7,7 +7,7 @@ Create an empty persistent map value.
 map_get(map, key) = """
 # map_get
 
-Return the stored value for `key`, or `nil` when the key is missing.
+Return the stored value for `key`, or `none("missing-key", {key: key})` when the key is missing.
 
 Prefer `get(key, map)` for maybe-aware lookup in new code.
 """ _map_get(map, key)

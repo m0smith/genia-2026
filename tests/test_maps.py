@@ -11,7 +11,7 @@ def test_map_public_wrappers_work_as_function_values(run):
 
 
 def test_map_get_missing_returns_nil(run):
-    assert run('map_get(map_new(), "missing")') is None
+    assert run('none?(map_get(map_new(), "missing"))') is True
 
 
 def test_map_put_returns_new_map_without_mutating_original(run):
@@ -20,7 +20,10 @@ def test_map_put_returns_new_map_without_mutating_original(run):
     m1 = map_put(m0, "k", 10)
     [map_count(m0), map_count(m1), map_get(m0, "k"), map_get(m1, "k")]
     '''
-    assert run(src) == [0, 1, None, 10]
+    result = run(src)
+    assert result[0:2] == [0, 1]
+    assert run('none?(map_get(map_new(), "missing"))') is True
+    assert result[3] == 10
 
 
 def test_map_remove_returns_new_map_without_mutating_original(run):

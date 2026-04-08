@@ -1073,7 +1073,7 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, Boolean):
         return IrLiteral(node.value, span=node.span)
     if isinstance(node, Nil):
-        return IrLiteral(None, span=node.span)
+        return IrOptionNone(IrLiteral("nil", span=node.span), None, span=node.span)
     if isinstance(node, NoneOption):
         reason = IrQuote(node.reason, span=node.reason.span) if node.reason is not None else None
         context = lower_node(node.context) if node.context is not None else None
@@ -1150,7 +1150,7 @@ def lower_pattern(pattern: Node) -> IrPattern:
     if isinstance(pattern, Boolean):
         return IrPatLiteral(pattern.value)
     if isinstance(pattern, Nil):
-        return IrPatLiteral(None)
+        return IrPatNone(IrPatLiteral("nil"), None)
     if isinstance(pattern, NoneOption):
         return IrPatNone(
             lower_pattern(pattern.reason) if pattern.reason is not None else None,
@@ -1211,7 +1211,7 @@ QUOTE_OPERATOR_SYMBOLS = {
 
 def quote_node(node: Node) -> Any:
     def quoted_list(items: list[Any]) -> Any:
-        result: Any = None
+        result: Any = OPTION_NONE
         for item in reversed(items):
             result = GeniaPair(item, result)
         return result
@@ -1223,12 +1223,11 @@ def quote_node(node: Node) -> Any:
     if isinstance(node, Boolean):
         return node.value
     if isinstance(node, Nil):
-        return None
+        return OPTION_NONE
     if isinstance(node, NoneOption):
-        return GeniaOptionNone(
-            quote_node(node.reason) if node.reason is not None else None,
-            quote_node(node.context) if node.context is not None else None,
-        )
+        reason = quote_node(node.reason) if node.reason is not None else "nil"
+        context = quote_node(node.context) if node.context is not None else None
+        return make_none(reason, context)
     if isinstance(node, SymbolLiteral):
         return symbol(node.name)
     if isinstance(node, Var):
@@ -1276,7 +1275,7 @@ def quote_node(node: Node) -> Any:
 
 def quote_pattern_node(pattern: Node) -> Any:
     def quoted_list(items: list[Any]) -> Any:
-        result: Any = None
+        result: Any = OPTION_NONE
         for item in reversed(items):
             result = GeniaPair(item, result)
         return result
@@ -1288,12 +1287,11 @@ def quote_pattern_node(pattern: Node) -> Any:
     if isinstance(pattern, Boolean):
         return pattern.value
     if isinstance(pattern, Nil):
-        return None
+        return OPTION_NONE
     if isinstance(pattern, NoneOption):
-        return GeniaOptionNone(
-            quote_pattern_node(pattern.reason) if pattern.reason is not None else None,
-            quote_pattern_node(pattern.context) if pattern.context is not None else None,
-        )
+        reason = quote_pattern_node(pattern.reason) if pattern.reason is not None else "nil"
+        context = quote_pattern_node(pattern.context) if pattern.context is not None else None
+        return make_none(reason, context)
     if isinstance(pattern, SymbolLiteral):
         return symbol(pattern.name)
     if isinstance(pattern, Var):
@@ -1325,7 +1323,7 @@ def quote_case_clause(
     quote_expr: Callable[[Node], Any],
 ) -> Any:
     def quoted_list(items: list[Any]) -> Any:
-        result: Any = None
+        result: Any = OPTION_NONE
         for item in reversed(items):
             result = GeniaPair(item, result)
         return result
@@ -1341,7 +1339,7 @@ class _QuasiquoteSplice:
 
 
 def _quasiquote_splice_items(value: Any) -> tuple[Any, ...]:
-    if value is None:
+    if value is None or _is_nil_none(value):
         return ()
     if isinstance(value, list):
         return tuple(value)
@@ -1351,7 +1349,7 @@ def _quasiquote_splice_items(value: Any) -> tuple[Any, ...]:
         while isinstance(current, GeniaPair):
             items.append(current.head)
             current = current.tail
-        if current is not None:
+        if current is not None and not _is_nil_none(current):
             raise TypeError("unquote_splicing expected a list or nil-terminated pair chain")
         return tuple(items)
     raise TypeError("unquote_splicing expected a list or nil-terminated pair chain")
@@ -1366,7 +1364,7 @@ def quasiquote_node(
     effective_debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
 
     def quoted_list(items: list[Any]) -> Any:
-        result: Any = None
+        result: Any = OPTION_NONE
         for item in reversed(items):
             result = GeniaPair(item, result)
         return result
@@ -1382,12 +1380,11 @@ def quasiquote_node(
         if isinstance(current, Boolean):
             return current.value
         if isinstance(current, Nil):
-            return None
+            return OPTION_NONE
         if isinstance(current, NoneOption):
-            return GeniaOptionNone(
-                qq(current.reason, depth) if current.reason is not None else None,
-                qq(current.context, depth) if current.context is not None else None,
-            )
+            reason = qq(current.reason, depth) if current.reason is not None else "nil"
+            context = qq(current.context, depth) if current.context is not None else None
+            return make_none(reason, context)
         if isinstance(current, Var):
             return symbol(current.name)
         if isinstance(current, SymbolLiteral):
@@ -1481,8 +1478,15 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
         if (
             isinstance(xs_pat, IrPatList)
             and len(xs_pat.items) == 0
-            and isinstance(clause.result, IrLiteral)
-            and clause.result.value is None
+            and (
+                (isinstance(clause.result, IrLiteral) and clause.result.value is None)
+                or (
+                    isinstance(clause.result, IrOptionNone)
+                    and isinstance(clause.result.reason, IrLiteral)
+                    and clause.result.reason.value == "nil"
+                    and clause.result.context is None
+                )
+            )
             and empty_clause is None
         ):
             empty_clause = clause
@@ -2715,6 +2719,7 @@ class TailCall:
 
 
 _UNSET = object()
+_MAP_GET_MISSING = object()
 _CELL_TX = threading.local()
 
 
@@ -3004,7 +3009,7 @@ class GeniaMetaEnv:
                     raise TypeError("extend expected rest parameter to be final")
                 required.append(item.name)
             elif _syntax_tagged_list(item, symbol("rest")):
-                if rest_name is not None or current.tail is not None:
+                if rest_name is not None or not _is_nil_none(current.tail):
                     raise TypeError("extend expected at most one final rest parameter")
                 rest_value = _syntax_pair_nth(item, 1, "extend")
                 if not isinstance(rest_value, GeniaSymbol):
@@ -3013,7 +3018,7 @@ class GeniaMetaEnv:
             else:
                 raise TypeError("extend expected lambda parameter data")
             current = current.tail
-        if current is not None:
+        if not _is_nil_none(current):
             raise TypeError("extend expected lambda parameter data")
         return required, rest_name
 
@@ -3051,11 +3056,13 @@ class GeniaMap:
     def __init__(self, entries: dict[Any, tuple[Any, Any]] | None = None):
         self._entries = {} if entries is None else entries
 
-    def get(self, key: Any) -> Any:
+    def get(self, key: Any, default: Any = _MAP_GET_MISSING) -> Any:
         frozen_key = _freeze_map_key(key)
         entry = self._entries.get(frozen_key)
         if entry is None:
-            return None
+            if default is not _MAP_GET_MISSING:
+                return default
+            return make_none("missing-key", GeniaMap().put("key", key))
         return entry[1]
 
     def put(self, key: Any, value: Any) -> "GeniaMap":
@@ -3089,14 +3096,37 @@ class GeniaOptionNone:
     context: Any = None
 
     def __repr__(self) -> str:
-        if self.reason is None and self.context is None:
-            return "none"
+        if self.reason is None:
+            return 'none("nil")'
         if self.context is None:
             return f"none({self.reason!r})"
         return f"none({self.reason!r}, {self.context!r})"
 
+def make_none(reason: Any = "nil", meta: Any = None) -> GeniaOptionNone:
+    if reason is None:
+        reason = "nil"
+    if not isinstance(reason, str):
+        raise TypeError(f"none reason expected string, received {_runtime_type_name(reason)}")
+    if meta is not None and not isinstance(meta, GeniaMap):
+        raise TypeError(f"none meta expected a map, received {_runtime_type_name(meta)}")
+    return GeniaOptionNone(reason, meta)
 
-OPTION_NONE = GeniaOptionNone()
+
+def is_none(value: Any) -> bool:
+    return isinstance(value, GeniaOptionNone)
+
+
+def _is_nil_none(value: Any) -> bool:
+    return is_none(value) and value.reason == "nil" and value.context is None
+
+
+def _normalize_nil(value: Any) -> Any:
+    if value is None:
+        return OPTION_NONE
+    return value
+
+
+OPTION_NONE = make_none("nil")
 
 
 @dataclass(frozen=True)
@@ -3154,7 +3184,7 @@ def _genia_map_key_to_host(value: Any) -> Any:
 def _genia_to_python_host(value: Any) -> Any:
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
-    if isinstance(value, GeniaOptionNone):
+    if is_none(value):
         return None
     if isinstance(value, GeniaOptionSome):
         return _genia_to_python_host(value.value)
@@ -3208,9 +3238,166 @@ def _wrap_python_host_callable(
             raise
         except Exception as exc:  # pragma: no cover - defensive bridge fallback
             raise RuntimeError(f"{module_name}/{export_name} raised {type(exc).__name__}: {exc}") from exc
-        return _python_host_to_genia(result)
+        return _normalize_nil(_python_host_to_genia(result))
 
     return wrapped
+
+
+def _mark_handles_none(fn: Callable[..., Any]) -> Callable[..., Any]:
+    setattr(fn, "__genia_handles_none__", True)
+    return fn
+
+
+_NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
+    {
+        "apply",
+        "some",
+        "none?",
+        "some?",
+        "get",
+        "get?",
+        "map_some",
+        "flat_map_some",
+        "then_get",
+        "then_first",
+        "then_nth",
+        "then_find",
+        "or_else",
+        "or_else_with",
+        "unwrap_or",
+        "absence_reason",
+        "absence_context",
+        "is_some?",
+        "is_none?",
+        "cli_option",
+        "cli_option_or",
+        "map_put",
+        "write",
+        "writeln",
+        "flush",
+        "nil?",
+        "cons",
+        "car",
+        "cdr",
+        "pair?",
+        "null?",
+        "empty_env",
+        "lookup",
+        "define",
+        "set",
+        "extend",
+        "eval",
+        "self_evaluating?",
+        "symbol_expr?",
+        "tagged_list?",
+        "quoted_expr?",
+        "quasiquoted_expr?",
+        "assignment_expr?",
+        "lambda_expr?",
+        "application_expr?",
+        "block_expr?",
+        "match_expr?",
+        "text_of_quotation",
+        "assignment_name",
+        "assignment_value",
+        "lambda_params",
+        "lambda_body",
+        "operator",
+        "operands",
+        "block_expressions",
+        "match_branches",
+        "branch_pattern",
+        "branch_has_guard?",
+        "branch_guard",
+        "branch_body",
+        "apply_dispatch",
+        "_match_procedure?",
+        "_match_expr",
+        "_match_env",
+        "_compound_procedure?",
+        "_compound_params",
+        "_compound_body",
+        "_compound_env",
+        "_apply_match_procedure",
+        "_eval_match_branches",
+        "_eval_match_branch",
+        "_eval_match_branch_result",
+        "_eval_guarded_branch",
+        "eval_dispatch",
+        "eval_assignment",
+        "make_function",
+        "make_matcher",
+        "eval_operands",
+        "eval_block",
+        "eval_sequence",
+        "tagged_list_impl",
+        "syntax_expect_tagged",
+        "syntax_pair_nth",
+        "syntax_pair_nth_from",
+        "syntax_pair_rest",
+        "syntax_pair_rest_from",
+        "syntax_expect_match_branch",
+        "syntax_match_branch_size",
+        "syntax_match_branch_size_checked",
+        "syntax_proper_list_length",
+        "branch_guard_from_size",
+        "branch_body_from_size",
+    }
+)
+
+
+def _pattern_explicitly_handles_none(pattern: IrPattern) -> bool:
+    if isinstance(pattern, IrPatNone):
+        return True
+    if isinstance(pattern, IrPatTuple):
+        return any(_pattern_explicitly_handles_none(item) for item in pattern.items)
+    if isinstance(pattern, IrPatList):
+        return any(_pattern_explicitly_handles_none(item) for item in pattern.items)
+    if isinstance(pattern, IrPatMap):
+        return any(_pattern_explicitly_handles_none(item) for _, item in pattern.items)
+    if isinstance(pattern, IrPatSome):
+        return _pattern_explicitly_handles_none(pattern.inner)
+    return False
+
+
+def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
+    if isinstance(body, IrCase):
+        return any(_pattern_explicitly_handles_none(clause.pattern) for clause in body.clauses)
+    if isinstance(body, IrBlock) and body.exprs:
+        return _callable_case_explicitly_handles_none(body.exprs[-1])
+    return False
+
+
+def _function_explicitly_handles_none(fn: GeniaFunction) -> bool:
+    return _callable_case_explicitly_handles_none(fn.body)
+
+
+def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode | None = None) -> bool:
+    if getattr(fn, "__genia_handles_none__", False):
+        return True
+    if isinstance(fn, GeniaFunction):
+        if fn.name in _NONE_AWARE_PUBLIC_FUNCTIONS:
+            return True
+        return _function_explicitly_handles_none(fn)
+    if isinstance(fn, GeniaFunctionGroup):
+        if fn.name in _NONE_AWARE_PUBLIC_FUNCTIONS:
+            return True
+        candidate = fn.get(arity)
+        if candidate is not None:
+            return _function_explicitly_handles_none(candidate)
+        matches = [
+            current
+            for current in fn.values()
+            if isinstance(current, GeniaFunction)
+            and current.rest_param is not None
+            and arity >= current.arity
+        ]
+        if len(matches) == 1:
+            return _function_explicitly_handles_none(matches[0])
+        if isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take"}:
+            return True
+        return False
+    return False
 
 
 _SAFE_PYTHON_OPEN_MODES = frozenset({"r", "w", "a"})
@@ -3600,7 +3787,7 @@ class Evaluator:
             local = Env(self.env)
             for k, v in match_env.items():
                 local.set(k, v)
-            if clause.guard is not None and not Evaluator(local, self.debug_hooks, self.debug_mode).eval(clause.guard):
+            if clause.guard is not None and not truthy(Evaluator(local, self.debug_hooks, self.debug_mode).eval(clause.guard)):
                 continue
             return Evaluator(local, self.debug_hooks, self.debug_mode).eval_tail(clause.result)
         if fn_name is not None:
@@ -3652,10 +3839,8 @@ class Evaluator:
     def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:
         stage_value = self.eval(node.source)
         for index, stage in enumerate(node.stages):
-            if isinstance(stage_value, GeniaOptionNone):
+            if is_none(stage_value):
                 return stage_value
-            if isinstance(stage_value, GeniaOptionSome):
-                stage_value = stage_value.value
             stage_value = self.eval_pipeline_stage(
                 stage,
                 stage_value,
@@ -3709,6 +3894,9 @@ class Evaluator:
         tail_position: bool,
         callee_node: IrNode | None = None,
     ) -> Any:
+        first_none = next((arg for arg in args if is_none(arg)), None)
+        if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
+            return first_none
 
         if isinstance(fn, GeniaFunctionGroup):
             if isinstance(callee_node, IrVar) and len(args) == 2 and isinstance(args[1], GeniaFlow):
@@ -3727,7 +3915,7 @@ class Evaluator:
 
                     def iterator() -> Iterable[Any]:
                         for item in source.consume():
-                            if self.invoke_callable(predicate, [item], tail_position=False):
+                            if truthy(self.invoke_callable(predicate, [item], tail_position=False)):
                                 yield item
 
                     return GeniaFlow(iterator, label="filter")
@@ -3792,7 +3980,7 @@ class Evaluator:
                 raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
             if tail_position:
                 return TailCall(target, tuple(args))
-            return target(*args)
+            return _normalize_nil(target(*args))
 
         if isinstance(fn, GeniaMap):
             arg_count = len(args)
@@ -3818,7 +4006,7 @@ class Evaluator:
 
         if tail_position:
             return TailCall(fn, tuple(args))
-        return fn(*args)
+        return _normalize_nil(fn(*args))
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         # full parameter tuple matching
@@ -3957,9 +4145,7 @@ class Evaluator:
         if isinstance(node, IrOptionNone):
             reason = self.eval(node.reason) if node.reason is not None else None
             context = self.eval(node.context) if node.context is not None else None
-            if reason is None and context is None:
-                return OPTION_NONE
-            return GeniaOptionNone(reason, context)
+            return make_none(reason, context)
         if isinstance(node, IrOptionSome):
             return GeniaOptionSome(self.eval(node.value))
         if isinstance(node, IrList):
@@ -3997,8 +4183,13 @@ class Evaluator:
                 raise
         if isinstance(node, IrUnary):
             value = self.eval(node.expr)
+            if is_none(value):
+                return value
             if node.op == "MINUS":
-                return -value
+                try:
+                    return -value
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "unary-minus").put("received", _runtime_type_name(value)))
             if node.op == "BANG":
                 return not truthy(value)
             raise RuntimeError(f"Unknown unary operator {node.op}")
@@ -4011,7 +4202,7 @@ class Evaluator:
 
         if isinstance(node, IrBlock):
             local = Env(self.env)
-            result = None
+            result = OPTION_NONE
             ev = Evaluator(local, self.debug_hooks, self.debug_mode)
             for expr in node.exprs:
                 result = ev.eval(expr)
@@ -4069,10 +4260,25 @@ class Evaluator:
 
     def eval_binary(self, node: IrBinary) -> Any:
         left = self.eval(node.left)
+        if node.op in {"EQEQ", "NE"}:
+            right = self.eval(node.right)
+            match node.op:
+                case "EQEQ":
+                    return left == right
+                case "NE":
+                    return left != right
+        if is_none(left):
+            return left
         if node.op == "AND":
-            return left and self.eval(node.right)
+            right = self.eval(node.right)
+            if is_none(right):
+                return right
+            return left and right
         if node.op == "OR":
-            return left or self.eval(node.right)
+            right = self.eval(node.right)
+            if is_none(right):
+                return right
+            return left or right
         if node.op == "SLASH" and isinstance(left, (GeniaMap, ModuleValue)):
             if isinstance(node.right, IrVar):
                 key_name = node.right.name
@@ -4102,40 +4308,67 @@ class Evaluator:
             if node.op == "SLASH" and isinstance(node.right, IrVar):
                 raise TypeError("named accessor '/' is only supported for map and module values") from None
             raise
+        if is_none(right):
+            return right
         match node.op:
             case "PLUS":
-                return left + right
+                try:
+                    return left + right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "+").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "MINUS":
-                return left - right
+                try:
+                    return left - right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "-").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "STAR":
-                return left * right
+                try:
+                    return left * right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "*").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "SLASH":
-                return left / right
+                try:
+                    return left / right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "/").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "PERCENT":
-                return left % right
+                try:
+                    return left % right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "%").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "LT":
-                return left < right
+                try:
+                    return left < right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "<").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "LE":
-                return left <= right
+                try:
+                    return left <= right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", "<=").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "GT":
-                return left > right
+                try:
+                    return left > right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", ">").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "GE":
-                return left >= right
-            case "EQEQ":
-                return left == right
-            case "NE":
-                return left != right
+                try:
+                    return left >= right
+                except TypeError:
+                    return make_none("type-error", GeniaMap().put("source", ">=").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case _:
                 raise RuntimeError(f"Unknown binary operator {node.op}")
 
 
 def truthy(value: Any) -> bool:
+    if is_none(value):
+        return False
     return bool(value)
 
 
 def _runtime_type_name(value: Any) -> str:
     if value is None:
-        return "nil"
+        return "none"
     if isinstance(value, GeniaOptionNone):
         return "none"
     if isinstance(value, GeniaOptionSome):
@@ -4398,18 +4631,18 @@ def make_global_env(
             return IrPatMap(items)
         if isinstance(pattern, GeniaPair):
             if _syntax_tagged_list(pattern, symbol("rest")):
-                if pattern.tail is None:
+                if _is_nil_none(pattern.tail):
                     return IrPatRest(None)
                 rest_name = _syntax_pair_nth(pattern, 1, "_meta_match_pattern_env")
                 if not isinstance(rest_name, GeniaSymbol):
                     raise TypeError("metacircular rest patterns require a symbol name")
-                if pattern.tail.tail is not None:
+                if not _is_nil_none(pattern.tail.tail):
                     raise TypeError("metacircular rest patterns accept at most one symbol name")
                 return IrPatRest(rest_name.name)
             if _syntax_tagged_list(pattern, symbol("tuple")):
                 items: list[IrPattern] = []
                 current = pattern.tail
-                while current is not None:
+                while not _is_nil_none(current):
                     if not isinstance(current, GeniaPair):
                         raise TypeError("metacircular tuple patterns must be proper lists")
                     items.append(_meta_lower_quoted_pattern(current.head))
@@ -4419,18 +4652,18 @@ def make_global_env(
                 glob_text = _syntax_pair_nth(pattern, 1, "_meta_match_pattern_env")
                 if not isinstance(glob_text, str):
                     raise TypeError("metacircular glob patterns require a string")
-                if pattern.tail.tail is not None:
+                if not _is_nil_none(pattern.tail.tail):
                     raise TypeError("metacircular glob patterns accept exactly one string")
                 return IrPatGlob(compile_glob_pattern(glob_text))
             if _syntax_tagged_list(pattern, symbol("some")):
-                if pattern.tail is None or not isinstance(pattern.tail, GeniaPair):
+                if _is_nil_none(pattern.tail) or not isinstance(pattern.tail, GeniaPair):
                     raise TypeError("metacircular some patterns require an inner pattern")
-                if pattern.tail.tail is not None:
+                if not _is_nil_none(pattern.tail.tail):
                     raise TypeError("metacircular some patterns accept exactly one inner pattern")
                 return IrPatSome(_meta_lower_quoted_pattern(pattern.tail.head))
             items: list[IrPattern] = []
             current = pattern
-            while current is not None:
+            while not _is_nil_none(current):
                 if not isinstance(current, GeniaPair):
                     raise TypeError("metacircular list patterns must be proper lists")
                 items.append(_meta_lower_quoted_pattern(current.head))
@@ -4486,6 +4719,8 @@ def make_global_env(
     def _json_from_runtime(value: Any) -> Any:
         if value is None or isinstance(value, (bool, int, float, str)):
             return value
+        if is_none(value):
+            return None
         if isinstance(value, list):
             return [_json_from_runtime(item) for item in value]
         if isinstance(value, GeniaMap):
@@ -4498,7 +4733,9 @@ def make_global_env(
         raise TypeError(f"json_pretty expected a JSON-compatible value, got {type(value).__name__}")
 
     def _json_to_runtime(value: Any) -> Any:
-        if value is None or isinstance(value, (bool, int, float, str)):
+        if value is None:
+            return OPTION_NONE
+        if isinstance(value, (bool, int, float, str)):
             return value
         if isinstance(value, list):
             return [_json_to_runtime(item) for item in value]
@@ -4532,7 +4769,7 @@ def make_global_env(
         safe_needle = _ensure_string(needle, "find")
         idx = safe_value.find(safe_needle)
         if idx < 0:
-            return GeniaOptionNone(symbol("not_found"), GeniaMap().put("needle", safe_needle))
+            return make_none("not-found", GeniaMap().put("needle", safe_needle))
         return GeniaOptionSome(idx)
 
     def split_fn(value: Any, sep: Any) -> list[str]:
@@ -4583,8 +4820,8 @@ def make_global_env(
 
         stripped = text.strip()
         if stripped == "":
-            return GeniaOptionNone(
-                symbol("parse_failed"),
+            return make_none(
+                "parse-error",
                 GeniaMap()
                 .put("source", "parse_int")
                 .put("expected", "integer_string")
@@ -4594,8 +4831,8 @@ def make_global_env(
         try:
             return GeniaOptionSome(int(stripped, base))
         except ValueError:
-            return GeniaOptionNone(
-                symbol("parse_failed"),
+            return make_none(
+                "parse-error",
                 GeniaMap()
                 .put("source", "parse_int")
                 .put("expected", "integer_string")
@@ -4691,7 +4928,7 @@ def make_global_env(
 
             def iterator() -> Iterable[Any]:
                 for item in upstream.consume():
-                    if predicate(item):
+                    if truthy(predicate(item)):
                         yield item
 
             return GeniaFlow(iterator, label="filter")
@@ -4756,11 +4993,11 @@ def make_global_env(
                 if not isinstance(result, GeniaMap):
                     raise RuntimeError("_rules_kernel expected a map result")
 
-                emitted = result.get("emit")
+                emitted = result.get("emit", [])
                 if not isinstance(emitted, list):
                     raise RuntimeError("_rules_kernel expected emit to be a list")
 
-                current_ctx = result.get("ctx")
+                current_ctx = result.get("ctx", current_ctx)
 
                 for value in emitted:
                     yield value
@@ -5002,6 +5239,8 @@ def make_global_env(
         return value.head
 
     def cdr_fn(value: Any) -> Any:
+        if _is_nil_none(value) or value is None:
+            return OPTION_NONE
         if not isinstance(value, GeniaPair):
             raise TypeError("cdr expected a pair")
         return value.tail
@@ -5010,7 +5249,7 @@ def make_global_env(
         return isinstance(value, GeniaPair)
 
     def null_fn(value: Any) -> bool:
-        return value is None
+        return value is None or _is_nil_none(value)
 
     def ref_get_fn(ref_value: Any) -> Any:
         if not isinstance(ref_value, GeniaRef):
@@ -5117,7 +5356,7 @@ def make_global_env(
         return result
 
     def cli_spec_fn(spec: Any) -> GeniaMap:
-        if spec is None:
+        if spec is None or _is_nil_none(spec):
             flags = GeniaMap()
             options = GeniaMap()
             aliases = GeniaMap()
@@ -5125,9 +5364,9 @@ def make_global_env(
             if not isinstance(spec, GeniaMap):
                 raise TypeError("cli_parse expected spec to be a map")
 
-            flags_raw = spec.get("flags")
-            options_raw = spec.get("options")
-            aliases_raw = spec.get("aliases")
+            flags_raw = spec.get("flags", None)
+            options_raw = spec.get("options", None)
+            aliases_raw = spec.get("aliases", None)
 
             flags_list = _ensure_list_of_strings(flags_raw, "cli_parse spec.flags") if flags_raw is not None else []
             options_list = _ensure_list_of_strings(options_raw, "cli_parse spec.options") if options_raw is not None else []
@@ -5159,7 +5398,7 @@ def make_global_env(
     def cli_flag_fn(opts: Any, name: Any) -> bool:
         genia_map = _ensure_map(opts, "cli_flag?")
         key = _ensure_string(name, "cli_flag?")
-        return bool(genia_map.get(key))
+        return bool(genia_map.get(key, False))
 
     def cli_option_fn(opts: Any, name: Any) -> Any:
         genia_map = _ensure_map(opts, "cli_option")
@@ -5169,8 +5408,8 @@ def make_global_env(
     def cli_option_or_fn(opts: Any, name: Any, default: Any) -> Any:
         genia_map = _ensure_map(opts, "cli_option_or")
         key = _ensure_string(name, "cli_option_or")
-        value = genia_map.get(key)
-        return default if value is None else value
+        value = genia_map.get(key, _UNSET)
+        return default if value is _UNSET else value
 
     def map_new_fn(*args: Any) -> GeniaMap:
         if len(args) != 0:
@@ -5237,8 +5476,6 @@ def make_global_env(
     def absence_reason_fn(value: Any) -> Any:
         if not isinstance(value, GeniaOptionNone):
             raise TypeError("absence_reason expected a none value")
-        if value.reason is None:
-            return OPTION_NONE
         return GeniaOptionSome(value.reason)
 
     def absence_context_fn(value: Any) -> Any:
@@ -5265,7 +5502,7 @@ def make_global_env(
             if target.has(key):
                 return GeniaOptionSome(target.get(key))
             context = GeniaMap().put("key", key)
-            return GeniaOptionNone(symbol("missing_key"), context)
+            return make_none("missing-key", context)
         raise TypeError(f"{name} expected a map, some(map), or none target; received {_runtime_type_name(target)}")
 
     def get_fn(key: Any, target: Any) -> Any:
@@ -5325,7 +5562,7 @@ def make_global_env(
             return _first_option_impl(target.value)
         if isinstance(target, list):
             if len(target) == 0:
-                return GeniaOptionNone(symbol("empty_list"))
+                return make_none("empty-list")
             return GeniaOptionSome(target[0])
         raise TypeError(f"then_first expected a list, some(list), or none target; received {_runtime_type_name(target)}")
 
@@ -5343,7 +5580,7 @@ def make_global_env(
             size = len(target)
             if index < 0 or index >= size:
                 context = GeniaMap().put("index", index).put("length", size)
-                return GeniaOptionNone(symbol("index_out_of_bounds"), context)
+                return make_none("index-out-of-bounds", context)
             return GeniaOptionSome(target[index])
         raise TypeError(f"then_nth expected a list, some(list), or none target; received {_runtime_type_name(target)}")
 
@@ -5360,7 +5597,7 @@ def make_global_env(
         if isinstance(target, str):
             idx = target.find(safe_needle)
             if idx < 0:
-                return GeniaOptionNone(symbol("not_found"), GeniaMap().put("needle", safe_needle))
+                return make_none("not-found", GeniaMap().put("needle", safe_needle))
             return GeniaOptionSome(idx)
         raise TypeError(f"then_find expected a string, some(string), or none target; received {_runtime_type_name(target)}")
 
@@ -5382,6 +5619,44 @@ def make_global_env(
         if isinstance(opt, GeniaOptionNone):
             return _invoke_from_builtin(thunk, [])
         raise TypeError("or_else_with expected an option value")
+
+    for fn in (
+        write_fn,
+        writeln_fn,
+        flush_fn,
+        cli_spec_fn,
+        some_fn,
+        is_some_fn,
+        is_none_fn,
+        some_predicate_fn,
+        none_predicate_fn,
+        unwrap_or_fn,
+        or_else_fn,
+        or_else_with_fn,
+        absence_reason_fn,
+        absence_context_fn,
+        map_some_fn,
+        flat_map_some_fn,
+        cli_option_or_fn,
+        map_put_fn,
+        cons_fn,
+        car_fn,
+        cdr_fn,
+        pair_fn,
+        null_fn,
+        meta_lookup_fn,
+        meta_define_fn,
+        meta_set_fn,
+        meta_extend_fn,
+        meta_host_apply_fn,
+        meta_eval_error_fn,
+        meta_match_pattern_env_fn,
+        meta_match_error_fn,
+        syntax_error_fn,
+        syntax_self_evaluating_fn,
+        syntax_symbol_expr_fn,
+    ):
+        _mark_handles_none(fn)
 
     def rand_fn(*args: Any) -> float:
         if len(args) != 0:
@@ -5512,7 +5787,7 @@ def make_global_env(
     env.set("e", math.e)
     env.set("true", True)
     env.set("false", False)
-    env.set("nil", None)
+    env.set("nil", OPTION_NONE)
     env.set("none", OPTION_NONE)
     env.set("_some", some_fn)
     env.set("_none?", none_predicate_fn)
@@ -5987,7 +6262,7 @@ def _main(argv: Optional[list[str]] = None) -> int:
         try:
             run_result = run_source(args.command, env, filename="<command>")
             result = resolve_program_result(run_result, env)
-            if result is not None:
+            if result is not None and not _is_nil_none(result):
                 _emit_result(env, result)
             return 0
         except GeniaQuietBrokenPipe:
@@ -6001,7 +6276,7 @@ def _main(argv: Optional[list[str]] = None) -> int:
             with open(program_path, "r", encoding="utf-8") as f:
                 run_result = run_source(f.read(), env, filename=str(Path(program_path).resolve()))
             result = resolve_program_result(run_result, env)
-            if result is not None:
+            if result is not None and not _is_nil_none(result):
                 _emit_result(env, result)
             return 0
         except GeniaQuietBrokenPipe:

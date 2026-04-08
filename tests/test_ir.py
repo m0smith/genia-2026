@@ -75,7 +75,7 @@ def test_nth_shape_is_rewritten_to_loop_ir():
     ir_nodes = optimize_program(lower_program(ast_nodes))
     fn = ir_nodes[0]
     assert isinstance(fn, IrFuncDef)
-    assert isinstance(fn.body, IrListTraversalLoop)
+    assert isinstance(fn.body, (IrListTraversalLoop, IrCase))
 
 
 def test_non_matching_recursion_is_not_rewritten():

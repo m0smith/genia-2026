@@ -1,6 +1,7 @@
 import time
 
 import pytest
+from genia.utf8 import format_debug
 
 
 def test_rand_values_are_in_unit_interval(run):
@@ -35,7 +36,7 @@ def test_sleep_accepts_small_values_and_returns_nil(run):
     started = time.perf_counter()
     result = run("sleep(5)")
     elapsed_ms = (time.perf_counter() - started) * 1000.0
-    assert result is None
+    assert format_debug(result) == 'none("nil")'
     assert elapsed_ms >= 1.0
 
 

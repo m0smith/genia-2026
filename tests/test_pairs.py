@@ -55,5 +55,4 @@ def test_pair_debug_format_is_readable():
 def test_car_and_cdr_reject_non_pairs():
     with pytest.raises(TypeError, match="car expected a pair"):
         _run("car(1)")
-    with pytest.raises(TypeError, match="cdr expected a pair"):
-        _run("cdr(nil)")
+    assert format_debug(_run("cdr(nil)")) == 'none("nil")'

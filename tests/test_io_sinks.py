@@ -3,6 +3,7 @@ import io
 
 from genia import make_global_env, run_source
 from genia.interpreter import _main, repl
+from genia.utf8 import format_debug
 
 
 class RecordingStream:
@@ -74,7 +75,7 @@ def test_flush_succeeds_for_stdout_and_stderr():
     stderr = RecordingStream()
     env = make_global_env(stdout_stream=stdout, stderr_stream=stderr)
 
-    assert run_source("flush(stdout)\nflush(stderr)", env) is None
+    assert format_debug(run_source("flush(stdout)\nflush(stderr)", env)) == 'none("nil")'
     assert stdout.flush_count == 1
     assert stderr.flush_count == 1
 
@@ -163,7 +164,7 @@ def test_flow_output_to_stdout_respects_take():
 
     result = run_source("stdin |> lines |> take(2) |> each(print) |> run", env)
 
-    assert result is None
+    assert format_debug(result) == 'none("nil")'
     assert stdout.getvalue() == "a\nb\n"
     assert stderr.getvalue() == ""
 

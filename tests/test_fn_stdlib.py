@@ -20,7 +20,7 @@ def test_autoloaded_rule_helper_composes_directly_with_option_aware_pipelines_in
     src = """
     rows() = ["a b c d 5 x", "1 2 3 4 6 y", "short"]
 
-    rows() |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> parse_int |> rule_emit) |> collect
+    rows() |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect
     """
     assert run(src) == [5, 6]
 

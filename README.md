@@ -91,7 +91,7 @@ Option constructors are also explicit in the lowered IR:
 
 ```text
 some(1)                  -> IrOptionSome(IrLiteral(1))
-none(parse_failed, ctx)  -> IrOptionNone(IrQuote(parse_failed), <lowered ctx>)
+none("parse-error", ctx) -> IrOptionNone(IrLiteral("parse-error"), <lowered ctx>)
 ```
 
 The current Python host may still apply small post-lowering optimizations such as `IrListTraversalLoop`, but those optimized nodes are not the minimal portability contract.
@@ -125,7 +125,9 @@ Current host status:
 
 ### Runtime value categories
 
-- Core values: Number, Symbol, String, Boolean, `nil`, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
+- Core values: Number, Symbol, String, Boolean, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
+  - `none` is shorthand for `none("nil")`
+  - legacy surface `nil` also normalizes to `none("nil")`
 - Function / module values: Function, Module
 - Callable behaviors:
   - functions/lambdas are callable values
@@ -143,27 +145,30 @@ Current host status:
 
 Current consistency note:
 
-- maybe/absence behavior is not fully unified yet
-- map lookup via `map_get`, callable map/string lookup, and slash map access are retained but docs-deprecated legacy non-Option paths; `cli_option` remains a legacy-retained non-Option CLI helper
-- canonical access/search APIs now use the absence family `none` / `none(reason)` / `none(reason, context)` and `some(value)`:
+- absence semantics are now unified around `some(value)` and structured `none(reason, meta?)`
+- plain `none` and legacy `nil` both evaluate to `none("nil")`
+- canonical access/search APIs use the absence family directly:
   - `get`
   - `first`
   - `last`
   - `nth`
   - string `find`
   - list predicate-search helper `find_opt`
+  - `parse_int`
+- compatibility lookup surfaces such as `map_get`, callable map/string lookup, slash access, and `cli_option` now also return structured `none(...)` on missing results
 - compatibility aliases retained:
   - `get?`
   - `first_opt`
   - `nth_opt`
 - preferred modern absence style in new code:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
-- direct Option-aware pipelines are now canonical, while helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for explicit Option values and higher-order code
+- direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`
+- helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for explicit Option values and higher-order code
 - public String, Map, Ref, Process, and sink helper names are prelude-backed wrappers over host-backed runtime primitives
 - the public Option helper surface remains help-visible through prelude/autoload metadata, while canonical `some(...)` / `none(...)` constructor forms also lower explicitly in Core IR
 - public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting mostly live in prelude
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
-- REPL/debug output now renders structured absence with visible context metadata, for example `none(missing_key, {key: "name"})`
+- REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - Flow, MetaEnv, Ref, and Process handles are runtime values, but they are not plain data in the same sense as numbers/lists/maps
@@ -255,7 +260,7 @@ head(xs) =
 
 Supported pattern forms:
 
-- literals (`0`, `"ok"`, `true`, `nil`)
+- literals (`0`, `"ok"`, `true`, legacy `nil`)
 - option patterns (`none`, `some(pattern)`)
 - glob string patterns (`glob"..."`) for whole-string string matching
 - variable bindings
@@ -375,7 +380,7 @@ person = { name: "Matthew", age: 42 }
 ```
 
 - map named access returns the value when present
-- missing map keys return `nil`
+- missing map keys return `none("missing-key", {key: "middle"})`
 - module named access returns exported bindings
 - missing module exports raise a clear error
 - `/` access is narrow: only `lhs/name` (bare identifier RHS), not general member/index access
@@ -404,16 +409,17 @@ get("name", person)
     |> g
   ```
 - Option propagation is built into pipeline evaluation:
-  - if a stage input is `some(x)`, the next stage receives `x`
   - if a stage input is `none(...)`, remaining stages do not execute and the same `none(...)` is returned
-  - if a stage returns `some(x)`, the next stage receives `x`
+  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
   - if a stage returns `none(...)`, the rest of the pipeline is skipped
+  - pipeline evaluation does not auto-unwrap `some(...)`
 - pipeline-visible function modes are now interpreted as:
   - Value -> Value
   - Flow -> Flow
   - explicit Value <-> Flow bridge
 - recovery/defaulting should wrap the whole pipeline result:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
+  - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
 - Flow is still explicit:
   - Flow values move through pipelines only when explicit bridge/stage functions such as `lines`, `collect`, and `run` are used
   - there is no implicit Value↔Flow conversion
@@ -456,7 +462,7 @@ flush(stdout)
 - public helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
 - `write(sink, value)` writes display-formatted output with no newline
 - `writeln(sink, value)` writes display-formatted output with a trailing newline
-- `flush(sink)` flushes a sink and returns `nil`
+- `flush(sink)` flushes a sink and returns `none("nil")`
 - `print(...)` writes to `stdout`, and `log(...)` writes to `stderr`
 - `input()` remains independent of `stdin`
 - broken pipe on `stdout` output in Unix pipelines is treated as normal downstream termination
@@ -493,13 +499,13 @@ cell_get(counter)
 - `help("name")` can autoload registered prelude helpers before rendering their docstrings
 - `help("name")` for raw host-backed names prints a generic bridge note rather than a separate host-specific doc registry
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
-- constants: `pi`, `e`, `true`, `false`, `nil`
+- constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - option runtime + public helpers:
   - `none` remains a runtime literal/value
   - public helpers from `std/prelude/option.genia`: `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
-- canonical pipeline style now prefers direct maybe-returning stages such as `get`, `first`, `nth`, `find`, and `parse_int`
+- canonical pipeline style now prefers direct absence-aware stages such as `get`, plus explicit chaining helpers like `then_first`, `then_nth`, `then_find`, and `flat_map_some(parse_int)` when the next stage needs the inner value of `some(...)`
 - explicit helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for direct Option values, higher-order code, and non-pipeline composition
 - flow runtime (Phase 1): `lines`, flow-aware `map`/`filter`, `take`, `rules`, `each`, `collect`, `run`, plus prelude `head` aliases and rule helper constructors `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
 
@@ -563,7 +569,7 @@ parse_int("ff", 16)
 ```
 
 - returns `some(int)` on success
-- returns `none(parse_failed, context)` for invalid integer text
+- returns `none("parse-error", context)` for invalid integer text
 - base 10 by default
 - explicit base supported in `2..36`
 - surrounding whitespace is ignored
@@ -591,12 +597,12 @@ nth(5, fields(row)) |> map_some(parse_int) |> unwrap_or(0)
 New canonical style:
 
 ```genia
-unwrap_or(0, fields(row) |> nth(5) |> parse_int)
+unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))
 ```
 
 Short design note: [docs/architecture/pipeline-option-redesign.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-option-redesign.md)
 Integration note: [docs/architecture/pipeline-ir-host-integration.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-ir-host-integration.md)
-- invalid text raises `ValueError`
+- non-string input and invalid bases still raise explicit errors
 
 ### Concurrency
 

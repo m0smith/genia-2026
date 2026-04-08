@@ -34,12 +34,12 @@ def test_pipeline_is_left_associative(run):
     assert run(src) == 8
 
 
-def test_pipeline_unwraps_some_input_before_stage(run):
+def test_pipeline_keeps_some_values_explicit(run):
     src = """
     inc(x) = x + 1
-    some(4) |> inc
+    none?(some(4) |> inc)
     """
-    assert run(src) == 5
+    assert run(src) is True
 
 
 def test_pipeline_short_circuits_none_input_before_stage(run):
@@ -50,26 +50,26 @@ def test_pipeline_short_circuits_none_input_before_stage(run):
       x + 1
     }
 
-    result = none(missing_key, { key: "name" }) |> bump
+    result = none("missing-key", { key: "name" }) |> bump
     [result, ref_get(seen)]
     """
     result = run(src)
     assert result[1] == 0
 
 
-def test_pipeline_unwraps_some_stage_results_for_later_stages(run):
+def test_pipeline_preserves_some_stage_results(run):
     src = """
     inc_opt(x) = some(x + 1)
     double(x) = x * 2
-    3 |> inc_opt |> double
+    none?(3 |> inc_opt |> double)
     """
-    assert run(src) == 8
+    assert run(src) is True
 
 
 def test_pipeline_short_circuits_when_a_stage_returns_none(run):
     src = """
     seen = ref(0)
-    stop(x) = none(parse_failed, { source: "stop" })
+    stop(x) = none("parse-error", { source: "stop" })
     bump(x) = {
       ref_update(seen, (n) -> n + 1)
       x + 1
@@ -152,12 +152,12 @@ def test_pipeline_with_string_projector_rhs(run):
     assert run(src) == "Matthew"
 
 
-def test_pipeline_with_missing_string_projector_key_returns_nil(run):
+def test_pipeline_with_missing_string_projector_key_returns_none(run):
     src = '''
     record = { name: "Matthew", age: 42 }
-    record |> "missing"
+    none?(record |> "missing")
     '''
-    assert run(src) is None
+    assert run(src) is True
 
 
 def test_pipeline_with_parenthesized_string_projector_rhs(run):

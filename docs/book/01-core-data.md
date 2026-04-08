@@ -11,9 +11,10 @@ Genia's current runtime value model is broader than just "plain data".
 - symbols
 - strings
 - booleans (`true`, `false`)
-- `nil`
 - pairs
 - Option values: `none`, `none(reason)`, `none(reason, context)`, `some(value)`
+  - plain `none` is shorthand for `none("nil")`
+  - legacy surface `nil` also normalizes to `none("nil")`
 - lists
 - maps
   - map literals and `map_*` builtins produce the same runtime map value family
@@ -45,7 +46,8 @@ Genia's current runtime value model is broader than just "plain data".
 
 ## Current absence semantics
 
-- `nil` and `none` coexist today; they are distinct runtime values
+- absence is now unified around `some(value)` and `none(reason, meta?)`
+- plain `none` and legacy `nil` both evaluate to `none("nil")`
 - canonical missing-result APIs return structured absence:
   - `get`
   - `first`
@@ -53,17 +55,18 @@ Genia's current runtime value model is broader than just "plain data".
   - `nth`
   - string `find`
   - `find_opt`
+  - `parse_int`
 - compatibility aliases remain:
   - `get?`
   - `first_opt`
   - `nth_opt`
-- docs-deprecated legacy access paths still return `nil` for missing values:
+- compatibility lookup surfaces now also return structured absence for missing values:
   - `map_get`
   - map slash access (`map/name`)
   - callable map lookup (`m(key)`)
   - callable string projector lookup (`"key"(m)`)
-- `cli_option` remains legacy-retained and still returns `value_or_nil`
-- `some(nil)` is possible and means the key exists with value `nil`
+- `cli_option`
+- `some(nil)` is possible and now means `some(none("nil"))`
 - `none`, `none(reason)`, and `none(reason, context)` all mean absence; reason/context are metadata
 - Option pattern matching supports literal `none`, structured `none(...)`, and constructor pattern `some(pattern)`
 - the public Map helper names are thin prelude wrappers in `std/prelude/map.genia`, backed by the same host runtime behavior
@@ -81,34 +84,34 @@ Naming rule today:
 - `get?` remains the current compatibility exception
 - `get` is the preferred maybe-aware lookup name in this phase
 - `first_opt` and `nth_opt` remain compatibility aliases for canonical `first` and `nth`
-- docs and new examples should prefer canonical APIs over docs-deprecated `nil`-returning lookup forms
+- docs and new examples should prefer canonical APIs over secondary compatibility lookup forms
 
 Current consistency note:
 
-- missing values are not represented by one fully unified model today
+- missing values are represented by one structured model today
 - promises are real runtime values but are separate from Flow
 - Flow, output sinks, MetaEnv values, and refs are real runtime values, but they are not plain data in the same sense as numbers, lists, or maps
 
 This chapter focuses on the currently implemented data-facing runtime values and bridges, starting with maps and the current Option model.
 
-### Absence migration matrix
+### Absence API matrix
 
 | API / form | Status | Present result | Missing result | Preferred in new code? |
 | --- | --- | --- | --- | --- |
-| `get` | Canonical | `some(value)` | `none(missing_key, { key: key })` | Yes |
-| `get?` | Compatibility alias | `some(value)` | `none(missing_key, { key: key })` | No |
-| `first` | Canonical | `some(value)` | `none(empty_list)` | Yes |
-| `first_opt` | Compatibility alias | `some(value)` | `none(empty_list)` | No |
-| `last` | Canonical | `some(value)` | `none(empty_list)` | Yes |
-| `nth` | Canonical | `some(value)` | `none(index_out_of_bounds, { ... })` | Yes |
-| `nth_opt` | Compatibility alias | `some(value)` | `none(index_out_of_bounds, { ... })` | No |
-| `find` | Canonical string search | `some(index)` | `none(not_found, { needle: needle })` | Yes |
-| `find_opt` | Canonical predicate-search helper | `some(value)` | `none(no_match)` | Yes |
-| `map_get` | Deprecated-in-docs | raw value | `nil` | No |
-| `m(key)` | Deprecated-in-docs | raw value | `nil` | No |
-| `"key"(m)` | Deprecated-in-docs | raw value | `nil` | No |
-| `m/name` | Deprecated-in-docs | raw value | `nil` | No |
-| `cli_option` | Legacy retained | raw value | `nil` | Usually no |
+| `get` | Canonical | `some(value)` | `none("missing-key", { key: key })` | Yes |
+| `get?` | Compatibility alias | `some(value)` | `none("missing-key", { key: key })` | No |
+| `first` | Canonical | `some(value)` | `none("empty-list")` | Yes |
+| `first_opt` | Compatibility alias | `some(value)` | `none("empty-list")` | No |
+| `last` | Canonical | `some(value)` | `none("empty-list")` | Yes |
+| `nth` | Canonical | `some(value)` | `none("index-out-of-bounds", { ... })` | Yes |
+| `nth_opt` | Compatibility alias | `some(value)` | `none("index-out-of-bounds", { ... })` | No |
+| `find` | Canonical string search | `some(index)` | `none("not-found", { needle: needle })` | Yes |
+| `find_opt` | Canonical predicate-search helper | `some(value)` | `none("no-match")` | Yes |
+| `map_get` | Compatibility surface | raw value | `none("missing-key", { key: key })` | No |
+| `m(key)` | Compatibility surface | raw value | `none("missing-key", { key: key })` | No |
+| `"key"(m)` | Compatibility surface | raw value | `none("missing-key", { key: key })` | No |
+| `m/name` | Compatibility surface | raw value | `none("missing-key", { key: key })` | No |
+| `cli_option` | Canonical CLI lookup | raw value | `none("missing-key", { key: name })` | Yes |
 
 ---
 
@@ -614,7 +617,7 @@ flush(stderr)
 Expected behavior:
 
 - both calls succeed
-- each returns `nil`
+- each returns `none("nil")`
 
 ### Failure case example
 
@@ -689,7 +692,7 @@ parse_int("12x")
 
 Expected behavior:
 
-- returns `none(parse_failed, context)` because the string is not a valid base-10 integer
+- returns `none("parse-error", context)` because the string is not a valid base-10 integer
 
 Additional current rules:
 
@@ -809,12 +812,12 @@ Expected behavior:
 - public map helper surface in `std/prelude/map.genia`
 - map helpers (`map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`)
 - persistent behavior for `map_put` and `map_remove`
-- missing-key lookup returns `nil`
+- missing-key lookup returns `none("missing-key", {key: key})`
 - callable map lookup:
-  - `m(key)` => value or `nil`
+  - `m(key)` => value or `none("missing-key", {key: key})`
   - `m(key, default)` => stored value when key exists, else `default`
 - callable string projectors for maps:
-  - `"key"(m)` => value or `nil`
+  - `"key"(m)` => value or `none("missing-key", {key: key})`
   - `"key"(m, default)` => stored value when key exists, else `default`
 
 ### ⚠️ Partial
@@ -857,7 +860,7 @@ person/middle
 Expected result:
 
 ```genia
-nil
+none("missing-key", {key: "missing"})
 ```
 
 ### Failure case example
@@ -875,7 +878,7 @@ Expected behavior:
 ### ✅ Implemented
 
 - map named access via `map/name`
-- missing map key via slash returns `nil`
+- missing map key via slash returns `none("missing-key", {key: name})`
 - callable map (`m("name")`) and string projector (`"name"(m)`) behavior remains unchanged
 
 ### ⚠️ Partial
@@ -917,7 +920,7 @@ person = { name: "Matthew" }
 Expected result:
 
 ```genia
-[nil, "?", "?"]
+[none("missing-key", {key: "missing"}), "?", "?"]
 ```
 
 Pipeline cross-reference (same callable semantics, explicit pipeline stages):
@@ -962,7 +965,7 @@ Expected behavior:
 - map callable lookup by key (`m(key)`) and key-with-default (`m(key, default)`)
 - string key projector lookup against maps (`"key"(m)` and `"key"(m, default)`)
 - maps stay map values when called; strings stay string values when used as projectors
-- missing-key result is `nil` (or provided default in arity-2 forms); existing keys mapped to `nil` still return `nil`
+- missing-key result is `none("missing-key", {key: key})` (or provided default in arity-2 forms); existing keys mapped to legacy `nil` still return the stored normalized value `none("nil")`
 
 ### ⚠️ Partial
 
@@ -1225,9 +1228,8 @@ Expected behavior (demo grid wrapping):
 
 ## Primitive Option values (phase 1)
 
-Genia now has a minimal Option model that is separate from `nil`.
-
-This is the current explicit presence/absence model, but it does not replace all legacy `nil`-for-missing behavior.
+Genia now has one explicit presence/absence model.
+Legacy surface `nil` remains accepted, but it immediately normalizes to `none("nil")`.
 
 - `none`
 - `none(reason)`
@@ -1256,7 +1258,7 @@ And minimal helpers:
 
 These public helper names live in `std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
 `none` remains a runtime value/literal rather than a prelude wrapper.
-Direct pipelines usually do not need `map_some`, `flat_map_some`, or `then_*` just to propagate absence anymore; those helpers remain for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
+Direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`; `map_some`, `flat_map_some`, and `then_*` therefore remain important for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
 
 Canonical access/search helpers implemented today:
 
@@ -1287,7 +1289,7 @@ Expected result:
 [
   get("a", {a:nil}),
   first([nil]),
-  find_opt((x) -> x == nil, [1, nil, 2]),
+  find_opt((x) -> none?(x), [1, nil, 2]),
   absence_reason(last([])),
   find("abc", "b"),
 ]
@@ -1295,10 +1297,10 @@ Expected result:
 
 Expected behavior:
 
-- first result is `some(nil)` (key exists)
-- second result is `some(nil)` (first list item is present and is `nil`)
-- third result is `some(nil)` (matching item is present and is `nil`)
-- fourth result is `some(empty_list)` (absence metadata is inspectable without changing absence into success)
+- first result is `some(none("nil"))` (key exists and stores legacy `nil`)
+- second result is `some(none("nil"))` (first list item is present and is `nil`)
+- third result is `some(none("nil"))` (matching item is present and is `nil`)
+- fourth result is `some("empty-list")` (absence metadata is inspectable without changing absence into success)
 - fifth result is `some(1)` (string search is also maybe-returning now)
 
 ### Tooling example
@@ -1306,7 +1308,7 @@ Expected behavior:
 ```genia
 [
   get("name", {}),
-  none(index_out_of_bounds, { index: 8, length: 2 }),
+  none("index-out-of-bounds", { index: 8, length: 2 }),
   some(nil),
 ]
 ```
@@ -1314,7 +1316,7 @@ Expected behavior:
 Expected rendered result:
 
 ```text
-[none(missing_key, {key: "name"}), none(index_out_of_bounds, {index: 8, length: 2}), some(nil)]
+[none("missing-key", {key: "name"}), none("index-out-of-bounds", {index: 8, length: 2}), some(none("nil"))]
 ```
 
 This is still ordinary data. The tooling/rendering is just making the data easier to inspect.
@@ -1334,12 +1336,13 @@ Expected behavior:
 ### ✅ Implemented
 
 - primitive option values: `none`, `none(reason)`, `none(reason, context)`, `some(value)`
-- `none` is distinct from `nil`
+- `none` is shorthand for `none("nil")`
+- legacy surface `nil` also normalizes to `none("nil")`
 - pattern matching on Option values:
   - literal `none`
   - structured `none(reason)` / `none(reason, context)`
   - constructor pattern `some(pattern)`
-- canonical maybe-aware lookup via `get(key, target)` with key-presence distinction (`some(nil)` vs `none...`)
+- canonical maybe-aware lookup via `get(key, target)` with key-presence distinction (`some(none("nil"))` vs `none...`)
 - `get?(key, target)` remains as a compatibility alias
 - explicit Option helpers for non-pipeline and higher-order use: `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`
 - helper builtins: `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
@@ -1350,23 +1353,23 @@ Expected behavior:
 - `some?` / `none?` short predicates
 - `is_some?` / `is_none?` supported aliases
 - pipeline-friendly lookup (`record |> get("name")`)
-- callable-data compatibility remains unchanged (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)` still return legacy `nil`/default semantics for missing keys)
-- `cli_option` also remains in the legacy `value_or_nil` family
+- callable-data compatibility remains unchanged in call shape (`m(key)`, `m(key, default)`, `"key"(m)`, `"key"(m, default)`), but missing lookup now returns structured `none(...)` instead of a separate runtime `nil`
+- `cli_option` also uses the structured absence family for missing options
 - naming rule for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs use Option values without `?`
   - `get?` remains the existing compatibility exception
   - `get` is the preferred maybe-aware lookup name for new code
 - structured absence metadata:
-  - `first([]) -> none(empty_list)`
-  - `last([]) -> none(empty_list)`
-  - `find("abc", "x") -> none(not_found, { needle: "x" })`
-  - `find_opt(pred, xs)` can return `none(no_match)`
-  - `nth(i, xs)` can return `none(index_out_of_bounds, { index: i, length: n })`
+  - `first([]) -> none("empty-list")`
+  - `last([]) -> none("empty-list")`
+  - `find("abc", "x") -> none("not-found", { needle: "x" })`
+  - `find_opt(pred, xs)` can return `none("no-match")`
+  - `nth(i, xs)` can return `none("index-out-of-bounds", { index: i, length: n })`
 - Option-aware pipelines:
   - `record |> get("user") |> get("name")`
-  - `data |> get("items") |> nth(0) |> get("name")`
-  - `fields(row) |> nth(5) |> parse_int`
+  - `data |> get("items") |> then_nth(0) |> then_get("name")`
+  - `fields(row) |> nth(5) |> flat_map_some(parse_int)`
   - recover by wrapping the whole pipeline result with `unwrap_or(...)` or `or_else(...)`
 - explicit helpers remain useful outside pipelines:
   - `map_some` and `flat_map_some` preserve structured absence unchanged
@@ -1379,7 +1382,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
-- lookup consistency is still partial: `get`, `get?`, `first`, `first_opt`, `last`, `nth`, `nth_opt`, string `find`, and `find_opt` use Option values, while callable maps/string projectors, `map_get`, slash map access, and `cli_option` still use legacy `nil`/match-failure behavior
+- pipelines preserve explicit `some(...)` values rather than auto-unwrapping them, so some chains still need `then_*` or `flat_map_some(...)`
 
 ### ❌ Not implemented
 

@@ -125,12 +125,12 @@ Required constraints:
   - `dumps`
 - host module exports participate in ordinary calls and pipelines through the existing callable model.
 - boundary conversion rules in this phase are:
-  - Genia string/number/bool/`nil` -> Python scalar
+  - Genia string/number/bool -> Python scalar
   - Genia list -> Python list (recursive)
   - Genia map -> Python dict (recursive)
   - Genia `some(x)` -> converted host value for `x`
   - Genia `none(...)` -> Python `None`
-  - Python `None` -> Genia `none`
+  - Python `None` -> Genia `none("nil")`
   - Python list/tuple -> Genia list (recursive)
   - Python dict -> Genia map (recursive)
 - host resource results that cannot be represented as plain Genia data may appear as opaque Python handle values.
@@ -140,7 +140,7 @@ Required constraints:
 - current normalized bridge example:
   - `python.json/loads` raises `ValueError("python.json/loads invalid JSON: ...")` for invalid JSON text
 - pipeline interaction at the bridge still uses ordinary pipeline semantics:
-  - `some(x) |> python/len` passes `x` into the host export
+  - `some(x) |> python/len` passes `x` into the host export through ordinary host-boundary conversion
   - `none(...) |> python/len` skips the host export and preserves the same `none(...)`
   - Flow does not implicitly cross the bridge; passing a Flow to a host value export remains a type error unless an explicit Flow stage has already materialized ordinary values
 - unrestricted host import, arbitrary attribute access, and arbitrary code execution are not part of this phase.
@@ -179,10 +179,10 @@ Pipeline invariant:
 - chaining is left-associative
 - newlines may appear immediately before `|>` and immediately after `|>` in ordinary expression parsing
 - Option propagation is part of pipeline evaluation:
-  - if a stage input is `some(x)`, the next stage receives `x`
   - if a stage input is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
-  - if a stage result is `some(x)`, the next stage receives `x`
+  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
   - if a stage result is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
+  - pipeline evaluation does not auto-unwrap `some(...)`
 - pipeline-visible function modes are interpreted as:
   - Value -> Value
   - Flow -> Flow
@@ -197,7 +197,7 @@ Slash accessor invariants (phase 1):
 
 - `lhs/name` is narrow named access, not general member access
 - only module values and map values are valid LHS kinds
-- for maps: missing key returns `nil`
+- for maps: missing key returns `none("missing-key", {key: <name>})`
 - for modules: missing export raises a clear error
 - non-identifier RHS forms are invalid for named access
 - arithmetic division `/` remains available and unchanged for ordinary arithmetic contexts
@@ -318,7 +318,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - `car` returns the head field
 - `cdr` returns the tail field
 - `pair?(x)` reports whether a value is a pair
-- `null?(x)` reports whether a value is exactly `nil`
+- `null?(x)` reports whether a value is the normalized empty-pair terminator (`none("nil")`, including legacy `nil`)
 - pair equality is structural
 - lists built from pairs are chains of pairs ending in `nil`
 - ordinary list literals remain list values in this phase; they do not lower to pairs
@@ -391,7 +391,7 @@ No additional member/index/flow operators should be introduced without explicitl
   - `m(key)` / `m(key, default)` where `m` is a map value
   - `"key"(m)` / `"key"(m, default)` where first arg is a map value
 - map-call and string-projector-call arity is restricted to 1 or 2; other arities raise clear `TypeError`
-- missing map keys return `nil` unless an explicit default is provided in arity-2 form
+- missing map keys return `none("missing-key", {key: key})` unless an explicit default is provided in arity-2 form
 - string projector with non-map target raises clear `TypeError`
 - this does not add parser syntax, call operators, or user-defined callable-data protocols
 
@@ -406,10 +406,12 @@ No additional member/index/flow operators should be introduced without explicitl
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying option behavior remains host-backed in this phase; wrappering does not change semantics
 - all `none...` forms belong to one absence family; reason/context are metadata, not a separate result kind
-- `nil` and `none` remain distinct runtime values
-- `some(nil)` is valid and distinct from every `none...` form
+- `none` is shorthand for `none("nil")`
+- legacy surface `nil` also evaluates to `none("nil")`; it is not a separate runtime absence value
+- `reason` must be a string
+- `context` must be a map when present
 - key presence, not value truthiness, determines `some(...)` vs `none...`
-  - key mapped to `nil` still returns `some(nil)`
+  - key mapped to legacy `nil` still returns `some(none("nil"))`
 - `get(key, target)` is the canonical maybe-aware lookup helper in this phase
 - `get?(key, target)` is defined exactly as:
   - `get?(key, none) -> none`
@@ -417,18 +419,21 @@ No additional member/index/flow operators should be introduced without explicitl
   - `get?(key, none(reason, context)) -> none(reason, context)`
   - `get?(key, some(map)) -> get?(key, map)`
   - `get?(key, map) -> some(value)` when key exists
-  - `get?(key, map) -> none(missing_key, { key: key })` when key is missing
+  - `get?(key, map) -> none("missing-key", { key: key })` when key is missing
 - `get(key, target)` has the same runtime behavior as `get?(key, target)`
 - canonical list access helpers:
-  - `first(list) -> some(value)` or `none(empty_list)`
-  - `last(list) -> some(value)` or `none(empty_list)`
-  - `nth(index, list) -> some(value)` or `none(index_out_of_bounds, { index: i, length: n })`
+  - `first(list) -> some(value)` or `none("empty-list")`
+  - `last(list) -> some(value)` or `none("empty-list")`
+  - `nth(index, list) -> some(value)` or `none("index-out-of-bounds", { index: i, length: n })`
 - canonical string search helper:
-  - `find(string, needle) -> some(index)` or `none(not_found, { needle: needle })`
+  - `find(string, needle) -> some(index)` or `none("not-found", { needle: needle })`
 - canonical integer parsing helper:
-  - `parse_int(string) -> some(int)` or `none(parse_failed, context)`
-  - `parse_int(string, base) -> some(int)` or `none(parse_failed, context)`
+  - `parse_int(string) -> some(int)` or `none("parse-error", context)`
+  - `parse_int(string, base) -> some(int)` or `none("parse-error", context)`
 - `find_opt(predicate, list)` is the canonical maybe-aware predicate-search helper for lists in this phase
+- ordinary function calls propagate structured absence directly:
+  - if any evaluated argument is `none(...)`, the call returns that same `none(...)`
+  - the callee body is not evaluated unless the callee explicitly handles absence
 - pattern matching supports:
   - literal `none`
   - structured none patterns `none(reason)` and `none(reason, context)`
@@ -448,8 +453,8 @@ No additional member/index/flow operators should be introduced without explicitl
   - returns `f(value)` for `some(value)`
   - requires `f(value)` to be an Option value
   - returns the original `none...` unchanged for any absence value
-- direct pipelines no longer need `map_some` / `flat_map_some` / `then_*` just to propagate absence through ordinary stage chains
-- those helpers remain distinct for explicit Option values, higher-order use, and places where wrapping vs flat-mapping is the real operation
+- direct pipelines propagate `none(...)` automatically, but they preserve explicit `some(...)`
+- those helpers therefore remain distinct for explicit Option values, higher-order use, and places where the next stage needs the inner value of `some(...)`
 - `then_get(key, target)` is a thin maybe-aware chaining helper over `get`
 - `then_first(target)` is a thin maybe-aware chaining helper over `first`
 - `then_nth(index, target)` is a thin maybe-aware chaining helper over `nth`
@@ -467,24 +472,16 @@ No additional member/index/flow operators should be introduced without explicitl
 - migration status labels used in docs/book:
   - `canonical`: preferred public API for new code
   - `compatibility alias`: thin wrapper/alias kept for migration stability
-  - `deprecated-in-docs`: behavior still supported but discouraged in new code/examples
-  - `legacy retained`: behavior still supported because no canonical replacement has fully taken over yet
-- book/readme/repl examples should prefer canonical maybe-aware access and direct Option-aware pipelines over helper-heavy chaining and docs-deprecated `nil`-returning lookup forms
+  - `compatibility surface`: behavior still supported but is no longer the preferred teaching path when a clearer helper exists
+- book/readme/repl examples should prefer canonical maybe-aware access and direct absence-aware pipelines over helper-heavy chaining and compatibility lookup surfaces
 - `get?` remains the current compatibility exception to that naming rule; `get` is preferred for new maybe-aware code
-- docs-deprecated `nil`-returning access forms retained in this phase:
-  - `map_get`
-  - callable map lookup
-  - callable string projector lookup
-  - slash map access
-- `cli_option` remains a legacy-retained `value_or_nil` helper in this phase
 - pipeline behavior is now Option-aware directly
 - canonical safe-chaining is therefore direct:
   - `record |> get("user") |> get("address") |> get("zip")`
-  - `data |> get("items") |> nth(0) |> get("name")`
+  - `data |> get("items") |> then_nth(0) |> then_get("name")`
   - the first structured `none(...)` is preserved unchanged until an explicit recovery/defaulting helper wraps the final pipeline result
 - explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain useful for direct Option values, higher-order code, and non-pipeline composition
-- `nil` remains a normal runtime value and is not removed by this migration
-- canonical missing-result behavior now means structured `none(...)`, not `nil`
+- compatibility lookup surfaces now also return structured `none(...)` for missing results
 - developer-facing presentation is separate from semantics:
   - REPL/debug output should preserve structured absence syntax and context metadata visibly
   - clearer rendering does not change evaluation behavior, matching rules, or error behavior
@@ -496,11 +493,11 @@ No additional member/index/flow operators should be introduced without explicitl
 - underlying string behavior remains host-backed in this phase; wrappering does not change semantics
 - `find(string, needle)` returns:
   - `some(index)` when the substring exists
-  - `none(not_found, { needle: needle })` when the substring is missing
-- `parse_int(string)` returns `some(int)` or `none(parse_failed, context)`
+- `none("not-found", { needle: needle })` when the substring is missing
+- `parse_int(string)` returns `some(int)` or `none("parse-error", context)`
 - `parse_int(string, base)` does the same with explicit base in `2..36`
 - `parse_int` ignores surrounding whitespace and supports leading `+` / `-`
-- invalid integer text must return `none(parse_failed, context)`
+- invalid integer text must return `none("parse-error", context)`
 - non-string input must raise clear `TypeError`
 - invalid base type must raise clear `TypeError`
 - out-of-range base must raise clear `ValueError`

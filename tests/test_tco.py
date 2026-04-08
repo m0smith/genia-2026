@@ -1,5 +1,7 @@
 import pytest
 
+from genia.utf8 import format_debug
+
 from genia import make_global_env, run_source
 
 
@@ -79,7 +81,7 @@ def test_nth_loop_optimization_correctness():
 
     [nth(0, [1, 2, 3]), nth(2, [1, 2, 3]), nth(5, [1, 2, 3])]
     """
-    assert run_with_env(src) == [1, 3, None]
+    assert format_debug(run_with_env(src)) == '[1, 3, none("nil")]'
 
 
 def test_nth_negative_index_returns_nil():
@@ -91,7 +93,7 @@ def test_nth_negative_index_returns_nil():
 
     nth(-1, [1, 2, 3])
     """
-    assert run_with_env(src) is None
+    assert format_debug(run_with_env(src)) == 'none("nil")'
 
 
 def test_debug_print_for_list_traversal_optimization(monkeypatch, capsys):

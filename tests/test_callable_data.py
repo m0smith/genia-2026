@@ -1,4 +1,5 @@
 import pytest
+from genia.utf8 import format_debug
 
 
 def test_map_callable_lookup_and_default(run):
@@ -6,7 +7,10 @@ def test_map_callable_lookup_and_default(run):
     person = { name: "Matthew", age: 42 }
     [person("name"), person("missing"), person("missing", "?")]
     '''
-    assert run(src) == ["Matthew", None, "?"]
+    result = run(src)
+    assert result[0] == "Matthew"
+    assert format_debug(result[1]) == 'none("missing-key", {key: "missing"})'
+    assert result[2] == "?"
 
 
 def test_map_callable_default_only_for_missing_keys(run):
@@ -14,7 +18,7 @@ def test_map_callable_default_only_for_missing_keys(run):
     person = { name: nil }
     person("name", "?")
     '''
-    assert run(src) is None
+    assert format_debug(run(src)) == 'none("nil")'
 
 
 def test_string_projector_lookup_and_default(run):
@@ -22,7 +26,10 @@ def test_string_projector_lookup_and_default(run):
     person = { name: "Matthew", age: 42 }
     ["name"(person), "missing"(person), "missing"(person, "?")]
     '''
-    assert run(src) == ["Matthew", None, "?"]
+    result = run(src)
+    assert result[0] == "Matthew"
+    assert format_debug(result[1]) == 'none("missing-key", {key: "missing"})'
+    assert result[2] == "?"
 
 
 def test_string_projector_default_only_for_missing_keys(run):
@@ -30,7 +37,7 @@ def test_string_projector_default_only_for_missing_keys(run):
     person = { name: nil }
     "name"(person, "?")
     '''
-    assert run(src) is None
+    assert format_debug(run(src)) == 'none("nil")'
 
 
 def test_map_callable_wrong_arity_raises_clear_error(run):
@@ -61,10 +68,10 @@ def test_ordinary_non_callable_values_still_fail_normally(run):
 
 def test_phase1_callable_data_required_matrix(run):
     assert run('{x: 1}("x")') == 1
-    assert run('{x: 1}("y")') is None
+    assert format_debug(run('{x: 1}("y")')) == 'none("missing-key", {key: "y"})'
     assert run('{x: 1}("y", 9)') == 9
     assert run('"x"({x: 1})') == 1
-    assert run('"y"({x: 1})') is None
+    assert format_debug(run('"y"({x: 1})')) == 'none("missing-key", {key: "y"})'
     assert run('"y"({x: 1}, 9)') == 9
 
 

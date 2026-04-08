@@ -1,0 +1,10 @@
+describe(x) =
+  none("missing-key", info) -> info/key |
+  none("empty-list") -> "empty" |
+  some(v) -> v
+
+[
+  describe(none("missing-key", {key: "name"})),
+  describe(none("empty-list")),
+  describe(some(3))
+]

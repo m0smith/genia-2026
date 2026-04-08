@@ -1,6 +1,7 @@
 import pytest
 
 from genia import make_global_env, run_source
+from genia.utf8 import format_debug
 
 
 def test_import_module_and_named_access_from_std_prelude(run):
@@ -48,7 +49,9 @@ def test_map_named_accessor_and_missing_returns_nil(run):
     person = { name: "Matthew", age: 42 }
     [person/name, person/age, person/middle]
     """
-    assert run(src) == ["Matthew", 42, None]
+    result = run(src)
+    assert result[0:2] == ["Matthew", 42]
+    assert format_debug(result[2]) == 'none("missing-key", {key: "middle"})'
 
 
 def test_named_accessor_invalid_lhs_type_errors(run):

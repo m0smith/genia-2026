@@ -25,7 +25,7 @@ def test_flow_reusable_stage_and_run(capsys):
     result = run_source(src, env)
     captured = capsys.readouterr().out
 
-    assert result is None
+    assert result == run_source("nil", make_global_env([]))
     assert captured == "a\nb\n"
 
 
@@ -211,8 +211,8 @@ def test_rules_none_with_reason_and_context_remains_no_effect():
     env = make_number_flow_env([1, 2])
     src = """
     no_match(record, ctx) =
-      (record, ctx) ? record == 1 -> none(no_match) |
-      (_, _) -> none(no_match, { record: record })
+      (record, ctx) ? record == 1 -> none("no-match") |
+      (_, _) -> none("no-match", { record: record })
 
     emit(record, ctx) = rule_emit(record)
 
@@ -291,5 +291,5 @@ def test_rules_compose_with_existing_flow_helpers_and_run(capsys):
     result = run_source(src, env)
     captured = capsys.readouterr().out
 
-    assert result is None
+    assert result == run_source("nil", make_global_env([]))
     assert captured == "A\nB\n"

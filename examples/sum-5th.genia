@@ -3,6 +3,6 @@
 
 stdin
   |> lines
-  |> map((row) -> unwrap_or(0, fields(row) |> nth(5) |> parse_int))
+  |> map((row) -> unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int)))
   |> collect
   |> sum

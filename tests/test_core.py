@@ -5,7 +5,7 @@ def test_arithmetic_precedence(run):
 def test_boolean_literals(run):
     assert run("true") is True
     assert run("false") is False
-    assert run("nil") is None
+    assert run('none?(nil)') is True
 
 
 def test_string_literal(run):

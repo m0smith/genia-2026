@@ -30,7 +30,7 @@ def utf8_safe_slice_by_codepoint(s: str, start: int | None, end: int | None) -> 
 
 def format_display(value: Any) -> str:
     if value is None:
-        return "nil"
+        return 'none("nil")'
     if isinstance(value, bool):
         return "true" if value else "false"
     if _is_symbol(value):
@@ -62,7 +62,7 @@ def _escape_for_debug(s: str) -> str:
 
 def format_debug(value: Any) -> str:
     if value is None:
-        return "nil"
+        return 'none("nil")'
     if isinstance(value, bool):
         return "true" if value else "false"
     if _is_symbol(value):
@@ -116,7 +116,7 @@ def _format_pair(value: Any, formatter) -> str:
     while _is_pair(current):
         parts.append(formatter(current.head))
         current = current.tail
-    if current is None:
+    if current is None or _is_nil_none_value(current):
         return "(" + " ".join(parts) + ")"
     return "(" + " ".join(parts + [".", formatter(current)]) + ")"
 
@@ -138,8 +138,17 @@ def _format_map_key(key: Any, formatter) -> str:
 def _format_option_none(value: Any, formatter) -> str:
     reason = getattr(value, "reason", None)
     context = getattr(value, "context", None)
-    if reason is None and context is None:
-        return "none"
+    reason_text = _format_option_part(reason, formatter)
     if context is None:
-        return f"none({formatter(reason)})"
-    return f"none({formatter(reason)}, {formatter(context)})"
+        return f"none({reason_text})"
+    return f"none({reason_text}, {_format_option_part(context, formatter)})"
+
+
+def _is_nil_none_value(value: Any) -> bool:
+    return _is_option_none(value) and getattr(value, "reason", None) == "nil" and getattr(value, "context", None) is None
+
+
+def _format_option_part(value: Any, formatter) -> str:
+    if isinstance(value, str):
+        return f'"{_escape_for_debug(value)}"'
+    return formatter(value)

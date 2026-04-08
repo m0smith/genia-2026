@@ -29,9 +29,7 @@ Check whether parsed options contain a truthy flag value.
 cli_option(opts, name) = """
 # cli_option
 
-Return a parsed option value or `nil` when the option is missing.
-
-This remains a legacy-retained `value_or_nil` helper in this phase.
+Return a parsed option value or `none("missing-key", {key: name})` when the option is missing.
 """ _cli_option(opts, name)
 
 cli_option_or(opts, name, default) = """
@@ -244,13 +242,10 @@ cli_put(opts, name, value) =
   (_, "", _) -> _cli_value_error("cli_parse encountered an empty option name") |
   (opts, name, value) -> map_put(opts, name, value)
 
-cli_alias(aliases, name) = cli_alias_value(map_get(aliases, name), name)
-cli_alias_value(found, name) =
-  (nil, name) -> name |
-  (value, _) -> value
+cli_alias(aliases, name) = unwrap_or(name, get(name, aliases))
 
 cli_strip_prefix(prefix, token) = join("", drop(length(_cli_chars(prefix)), _cli_chars(token)))
 
-cli_spec_flags(spec) = map_get(spec, "flags")
-cli_spec_options(spec) = map_get(spec, "options")
-cli_spec_aliases(spec) = map_get(spec, "aliases")
+cli_spec_flags(spec) = unwrap_or(map_new(), get("flags", spec))
+cli_spec_options(spec) = unwrap_or(map_new(), get("options", spec))
+cli_spec_aliases(spec) = unwrap_or(map_new(), get("aliases", spec))

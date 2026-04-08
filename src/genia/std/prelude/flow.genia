@@ -87,12 +87,12 @@ rules_apply_next(rest, record, ctx, out, halt, rule_index) =
   )
 
 rules_result_emit(result_map, rule_index) =
-  rules_result_emit_value(map_has?(result_map, "emit"), map_get(result_map, "emit"), rule_index)
+  rules_result_emit_value(get("emit", result_map), rule_index)
 
-rules_result_emit_value(has_emit, emit, rule_index) =
-  (false, _, _) -> [] |
-  (true, emit, _) ? rules_list?(emit) == true -> emit |
-  (_, emit, rule_index) -> _rules_error(
+rules_result_emit_value(found, rule_index) =
+  (none, _) -> [] |
+  (some(emit), _) ? rules_list?(emit) == true -> emit |
+  (some(emit), rule_index) -> _rules_error(
     rule_index,
     concat("returned emit = ", concat(_flow_debug(emit), "; expected a list"))
   )
@@ -104,17 +104,16 @@ rules_result_ctx(result_map, default) =
   rules_optional_value(result_map, "ctx", default)
 
 rules_optional_value(result_map, key, default) =
-  (result_map, key, _) ? map_has?(result_map, key) == true -> map_get(result_map, key) |
-  (_, _, default) -> default
+  unwrap_or(default, get(key, result_map))
 
 rules_result_halt(result_map, rule_index) =
-  rules_result_halt_value(map_has?(result_map, "halt"), map_get(result_map, "halt"), rule_index)
+  rules_result_halt_value(get("halt", result_map), rule_index)
 
-rules_result_halt_value(has_halt, halt, rule_index) =
-  (false, _, _) -> false |
-  (true, true, _) -> true |
-  (true, false, _) -> false |
-  (_, halt, rule_index) -> _rules_error(
+rules_result_halt_value(found, rule_index) =
+  (none, _) -> false |
+  (some(true), _) -> true |
+  (some(false), _) -> false |
+  (some(halt), rule_index) -> _rules_error(
     rule_index,
     concat("returned halt = ", concat(_flow_debug(halt), "; expected a boolean"))
   )
