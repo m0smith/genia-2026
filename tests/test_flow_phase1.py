@@ -157,6 +157,99 @@ def test_take_closes_generator_backed_upstream_on_early_stop():
     assert state["closed"] == 1
 
 
+def test_take_fast_path_closes_closable_upstream_on_early_stop():
+    env = make_global_env()
+    state = {"pulled": 0, "closed": 0}
+
+    class ClosableCounter:
+        def __init__(self):
+            self._next = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self._next >= 100:
+                raise StopIteration
+            value = self._next
+            self._next += 1
+            state["pulled"] += 1
+            return value
+
+        def close(self):
+            state["closed"] += 1
+
+    def ticks():
+        return GeniaFlow(lambda: ClosableCounter(), label="ticks")
+
+    env.set("ticks", ticks)
+    assert run_source("ticks() |> take(2) |> collect", env) == [0, 1]
+    assert state["pulled"] == 2
+    assert state["closed"] == 1
+
+
+def test_map_fast_path_propagates_early_close_to_upstream():
+    env = make_global_env()
+    state = {"pulled": 0, "closed": 0}
+
+    class ClosableCounter:
+        def __init__(self):
+            self._next = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self._next >= 100:
+                raise StopIteration
+            value = self._next
+            self._next += 1
+            state["pulled"] += 1
+            return value
+
+        def close(self):
+            state["closed"] += 1
+
+    def ticks():
+        return GeniaFlow(lambda: ClosableCounter(), label="ticks")
+
+    env.set("ticks", ticks)
+    assert run_source("ticks() |> map((x) -> x + 1) |> take(2) |> collect", env) == [1, 2]
+    assert state["pulled"] == 2
+    assert state["closed"] == 1
+
+
+def test_filter_fast_path_propagates_early_close_to_upstream():
+    env = make_global_env()
+    state = {"pulled": 0, "closed": 0}
+
+    class ClosableCounter:
+        def __init__(self):
+            self._next = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self._next >= 100:
+                raise StopIteration
+            value = self._next
+            self._next += 1
+            state["pulled"] += 1
+            return value
+
+        def close(self):
+            state["closed"] += 1
+
+    def ticks():
+        return GeniaFlow(lambda: ClosableCounter(), label="ticks")
+
+    env.set("ticks", ticks)
+    assert run_source("ticks() |> filter((x) -> x % 2 == 0) |> take(2) |> collect", env) == [0, 2]
+    assert state["pulled"] == 3
+    assert state["closed"] == 1
+
+
 def test_stdin_flow_binding_is_lazy_and_stops_on_take():
     calls = 0
     state = {"pulled": 0}
@@ -434,7 +527,7 @@ def test_keep_some_rejects_non_option_items_clearly():
     ["a", "b"] |> lines |> keep_some |> collect
     """
     env = make_global_env([])
-    with pytest.raises(TypeError, match=r"keep_some_else expected stage\(item\) to return some\(\.\.\.\) or none\(\.\.\.\), received string"):
+    with pytest.raises(TypeError, match=r"keep_some expected items to be some\(\.\.\.\) or none\(\.\.\.\), received string"):
         run_source(src, env)
 
 

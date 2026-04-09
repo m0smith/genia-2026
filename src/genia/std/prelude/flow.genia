@@ -16,7 +16,7 @@ Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
 `none(...)` is dropped.
 
 Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
-""" _keep_some_else((x) -> x, (_) -> nil, flow)
+""" _keep_some(flow)
 
 keep_some(stage, flow) = """
 # keep_some

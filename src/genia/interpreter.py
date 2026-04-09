@@ -4020,20 +4020,38 @@ class Evaluator:
                     source = args[1]
 
                     def iterator() -> Iterable[Any]:
-                        for item in source.consume():
-                            yield self.invoke_callable(mapper, [item], tail_position=False)
+                        items = source.consume()
+                        try:
+                            for item in items:
+                                yield self.invoke_callable(mapper, [item], tail_position=False)
+                        finally:
+                            if source.close_on_early_termination:
+                                close = getattr(items, "close", None)
+                                if callable(close):
+                                    close()
 
-                    return GeniaFlow(iterator, label="map")
+                    return GeniaFlow(iterator, label="map", close_on_early_termination=source.close_on_early_termination)
                 if callee_node.name == "filter":
                     predicate = args[0]
                     source = args[1]
 
                     def iterator() -> Iterable[Any]:
-                        for item in source.consume():
-                            if truthy(self.invoke_callable(predicate, [item], tail_position=False)):
-                                yield item
+                        items = source.consume()
+                        try:
+                            for item in items:
+                                if truthy(self.invoke_callable(predicate, [item], tail_position=False)):
+                                    yield item
+                        finally:
+                            if source.close_on_early_termination:
+                                close = getattr(items, "close", None)
+                                if callable(close):
+                                    close()
 
-                    return GeniaFlow(iterator, label="filter")
+                    return GeniaFlow(
+                        iterator,
+                        label="filter",
+                        close_on_early_termination=source.close_on_early_termination,
+                    )
                 if callee_node.name == "take":
                     count = args[0]
                     source = args[1]
@@ -4044,16 +4062,23 @@ class Evaluator:
                         if count <= 0:
                             return
                         remaining = count
-                        upstream = iter(source.consume())
-                        while remaining > 0:
-                            try:
-                                item = next(upstream)
-                            except StopIteration:
-                                return
-                            yield item
-                            remaining -= 1
+                        items = source.consume()
+                        upstream = iter(items)
+                        try:
+                            while remaining > 0:
+                                try:
+                                    item = next(upstream)
+                                except StopIteration:
+                                    return
+                                yield item
+                                remaining -= 1
+                        finally:
+                            if source.close_on_early_termination:
+                                close = getattr(items, "close", None)
+                                if callable(close):
+                                    close()
 
-                    return GeniaFlow(iterator, label="take")
+                    return GeniaFlow(iterator, label="take", close_on_early_termination=source.close_on_early_termination)
             arity = len(args)
 
             def resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any | None:
@@ -5177,6 +5202,28 @@ def make_global_env(
 
         return GeniaFlow(iterator, label="keep_some_else", close_on_early_termination=upstream.close_on_early_termination)
 
+    def keep_some_fn(source: Any) -> GeniaFlow:
+        upstream = _ensure_flow(source, "keep_some")
+
+        def iterator() -> Iterable[Any]:
+            items = upstream.consume()
+            try:
+                for item in items:
+                    if isinstance(item, GeniaOptionSome):
+                        yield item.value
+                        continue
+                    if isinstance(item, GeniaOptionNone):
+                        continue
+                    raise TypeError(
+                        "keep_some expected items to be some(...) or none(...), "
+                        f"received {_runtime_type_name(item)}"
+                    )
+            finally:
+                if upstream.close_on_early_termination:
+                    _maybe_close_iterable(items)
+
+        return GeniaFlow(iterator, label="keep_some", close_on_early_termination=upstream.close_on_early_termination)
+
     def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
         effect = _ensure_callable(fn_value, "each")
         upstream = _ensure_flow(source, "each")
@@ -5979,6 +6026,7 @@ def make_global_env(
     env.set("stdin", stdin_source)
     env.set("_flow?", flow_predicate_fn)
     env.set("_lines", lines_fn)
+    env.set("_keep_some", keep_some_fn)
     env.set("_keep_some_else", keep_some_else_fn)
     env.set("_each", each_fn)
     env.set("_rules_prepare", rules_prepare_fn)
