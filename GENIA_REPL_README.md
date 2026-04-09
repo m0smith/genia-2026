@@ -46,6 +46,19 @@ Run in stdio debug-adapter mode:
 python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ```
 
+CLI contract summary:
+
+- file mode: `genia path/to/file.genia [args ...]`
+- command mode: `genia -c 'source' [args ...]`
+- pipe mode: `genia -p 'stage_expr' [args ...]` wraps as `stdin |> lines |> <stage_expr> |> run`
+- REPL mode: `genia`
+- file/command dispatch: call `main(argv())` when `main/1` exists, otherwise call `main()` when `main/0` exists
+- pipe mode bypasses `main`
+- trailing args are exposed through `argv()` as plain strings (including option-like values)
+- in pipe mode, explicit unbound `stdin` and explicit unbound `run` are rejected with clear errors
+- when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literal args/paths)
+- `--debug-stdio` accepts exactly one program path and rejects `-c`/`-p` combinations with explicit parser errors
+
 ## Implemented today
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation

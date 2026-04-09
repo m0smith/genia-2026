@@ -123,6 +123,16 @@ genia -c '1 + 2'
 cat file.txt | genia -p 'head(5) |> each(print)'
 ```
 
+- file/`-c` mode dispatch: call `main(argv())` when `main/1` exists, else call `main()` when `main/0` exists
+- pipe mode bypasses `main` and wraps as `stdin |> lines |> <stage_expr> |> run`
+- when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
+
+[case: quick-cli-main-argv]
+```genia
+main(args) = args
+main(argv())
+```
+
 ## Operators
 
 - arithmetic: `+ - * / %`

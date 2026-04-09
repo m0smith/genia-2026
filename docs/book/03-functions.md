@@ -694,9 +694,11 @@ Expected behavior:
   * `main/1` is preferred and called as `main(argv())`
   * fallback to `main/0` when `main/1` is absent
   * trailing CLI args in `-c` mode are passed through to `argv()` (including bare positional values)
+  * when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` can be used to pass dash-prefixed literal args/paths)
 * Explicit pipe-mode CLI wrapper:
   * `genia -p '<stage_expr>'` / `genia --pipe '<stage_expr>'`
   * wraps as `stdin |> lines |> <stage_expr> |> run`
+  * explicit unbound `stdin` and explicit unbound `run` are rejected
   * bypasses `main`
 * Bundled stdlib/prelude `.genia` sources are loaded through package resources, so installed-tool execution does not depend on checkout-relative stdlib paths
 * Pipeline operator `|>` with Option-aware stage semantics while preserving ordinary call shape

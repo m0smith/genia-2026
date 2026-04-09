@@ -33,7 +33,7 @@ import argparse
 import re
 import sys
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields, is_dataclass
 from typing import Any, Callable, Iterable, Iterator, Optional
 
 if __package__ in (None, ""):
@@ -6313,6 +6313,64 @@ def run_source(
     return _normalize_absence(result)
 
 
+def _scan_pipe_mode_reserved_usage(node: Node, bound_names: set[str]) -> tuple[bool, bool]:
+    """Return whether unbound stdin/run identifiers appear in a pipe stage expression."""
+    if isinstance(node, Var):
+        return node.name == "stdin" and node.name not in bound_names, node.name == "run" and node.name not in bound_names
+
+    if isinstance(node, Lambda):
+        nested_bound = set(bound_names)
+        nested_bound.update(node.params)
+        if node.rest_param is not None:
+            nested_bound.add(node.rest_param)
+        return _scan_pipe_mode_reserved_usage(node.body, nested_bound)
+
+    if isinstance(node, Block):
+        local_bound = set(bound_names)
+        saw_stdin = False
+        saw_run = False
+        for expr in node.exprs:
+            uses_stdin, uses_run = _scan_pipe_mode_reserved_usage(expr, local_bound)
+            saw_stdin = saw_stdin or uses_stdin
+            saw_run = saw_run or uses_run
+            if isinstance(expr, Assign):
+                local_bound.add(expr.name)
+            if saw_stdin and saw_run:
+                break
+        return saw_stdin, saw_run
+
+    if not is_dataclass(node):
+        return False, False
+
+    saw_stdin = False
+    saw_run = False
+    for node_field in fields(node):
+        if node_field.name == "span":
+            continue
+        uses_stdin, uses_run = _scan_pipe_mode_reserved_usage_value(getattr(node, node_field.name), bound_names)
+        saw_stdin = saw_stdin or uses_stdin
+        saw_run = saw_run or uses_run
+        if saw_stdin and saw_run:
+            break
+    return saw_stdin, saw_run
+
+
+def _scan_pipe_mode_reserved_usage_value(value: Any, bound_names: set[str]) -> tuple[bool, bool]:
+    if isinstance(value, Node):
+        return _scan_pipe_mode_reserved_usage(value, bound_names)
+    if isinstance(value, (list, tuple)):
+        saw_stdin = False
+        saw_run = False
+        for item in value:
+            uses_stdin, uses_run = _scan_pipe_mode_reserved_usage_value(item, bound_names)
+            saw_stdin = saw_stdin or uses_stdin
+            saw_run = saw_run or uses_run
+            if saw_stdin and saw_run:
+                break
+        return saw_stdin, saw_run
+    return False, False
+
+
 def _validate_pipe_mode_expr(source: str) -> None:
     tokens = lex(source)
     parser = Parser(tokens, source=source, filename="<pipe>")
@@ -6320,13 +6378,11 @@ def _validate_pipe_mode_expr(source: str) -> None:
     if len(ast_nodes) != 1 or not isinstance(ast_nodes[0], ExprStmt):
         raise ValueError("-p/--pipe expects a single stage expression")
 
-    for token in tokens:
-        if token.kind != "IDENT":
-            continue
-        if token.text == "stdin":
-            raise ValueError("-p/--pipe stage expression must omit stdin; it is added automatically")
-        if token.text == "run":
-            raise ValueError("-p/--pipe stage expression must omit run; it is added automatically")
+    uses_stdin, uses_run = _scan_pipe_mode_reserved_usage(ast_nodes[0].expr, set())
+    if uses_stdin:
+        raise ValueError("-p/--pipe stage expression must omit stdin; it is added automatically")
+    if uses_run:
+        raise ValueError("-p/--pipe stage expression must omit run; it is added automatically")
 
 
 def _wrap_pipe_mode_expr(source: str) -> str:
@@ -6443,12 +6499,43 @@ def run_debug_stdio(
 
 
 def _main(argv: Optional[list[str]] = None) -> int:
-    parser = argparse.ArgumentParser(prog="genia.interpreter")
+    raw_argv = list(argv) if argv is not None else sys.argv[1:]
+    terminator_index: int | None = None
+    try:
+        terminator_index = raw_argv.index("--")
+    except ValueError:
+        terminator_index = None
+
+    parser = argparse.ArgumentParser(
+        prog="genia",
+        description="Genia CLI: file mode, command mode (-c), pipe mode (-p), or REPL.",
+        epilog=(
+            "Modes:\n"
+            "  genia path/to/file.genia [args ...]\n"
+            "  genia -c 'source' [args ...]\n"
+            "  genia -p 'stage_expr' [args ...]\n"
+            "  genia\n\n"
+            "Pipe mode wraps as: stdin |> lines |> <stage_expr> |> run\n"
+            "Use -- to stop option parsing and pass dash-prefixed literals as args/paths."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     command_group = parser.add_mutually_exclusive_group()
-    command_group.add_argument("-c", "--command")
-    command_group.add_argument("-p", "--pipe")
-    parser.add_argument("--debug-stdio", action="store_true")
-    args, remaining_args = parser.parse_known_args(argv)
+    command_group.add_argument("-c", "--command", help="Execute inline Genia source")
+    command_group.add_argument("-p", "--pipe", help="Execute a pipe-mode stage expression")
+    parser.add_argument("--debug-stdio", action="store_true", help="Run debug adapter over stdio for a program file")
+    args, remaining_args = parser.parse_known_args(raw_argv)
+    explicit_terminator_used = False
+    if remaining_args and remaining_args[0] == "--":
+        explicit_terminator_used = True
+        remaining_args = remaining_args[1:]
+
+    if args.command is None and args.pipe is None and remaining_args and remaining_args[0].startswith("-"):
+        if not explicit_terminator_used and terminator_index is None:
+            parser.error(
+                "expected a source file path when not using -c/--command or -p/--pipe; "
+                f"got option-like argument '{remaining_args[0]}'"
+            )
 
     program_path: Optional[str] = None
     script_args: list[str] = []
@@ -6459,10 +6546,16 @@ def _main(argv: Optional[list[str]] = None) -> int:
         script_args = remaining_args[1:]
 
     if args.debug_stdio:
-        if program_path is None:
-            parser.error("--debug-stdio requires a program path")
         if args.command is not None:
             parser.error("--debug-stdio cannot be used with --command")
+        if args.pipe is not None:
+            parser.error("--debug-stdio cannot be used with --pipe")
+        if program_path is None:
+            parser.error("--debug-stdio requires a program path")
+        if script_args:
+            parser.error("--debug-stdio accepts exactly one program path")
+        if not Path(program_path).is_file():
+            parser.error(f"--debug-stdio program path not found: {program_path}")
         return run_debug_stdio(program_path)
 
     def resolve_program_result(run_result: Any, env: Env) -> Any:

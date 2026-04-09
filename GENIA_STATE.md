@@ -81,11 +81,12 @@ Clarifications:
   - command mode: `genia -c "expr_or_program_source"`
   - pipe mode: `genia -p "stage_expr"` / `genia --pipe "stage_expr"`
   - REPL mode: `genia` (no file/command arguments)
+- when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (option-like tokens are treated as malformed mode/arg combinations unless passed after `--`)
 - in file/command/pipe mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
   - command mode accepts both bare positionals (`a`) and option-like args (`--pretty`) as trailing args
 - pipe mode wraps the provided stage expression as `stdin |> lines |> <expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program
-  - explicit `stdin` and explicit `run` are rejected in pipe mode with a clear error
+  - explicit unbound `stdin` and explicit unbound `run` are rejected in pipe mode with a clear error
 - after file/command source evaluation, runtime entrypoint convention is:
   - if `main/1` exists, call `main(argv())`
   - else if `main/0` exists, call `main()`

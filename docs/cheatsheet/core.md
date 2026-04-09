@@ -113,6 +113,12 @@ Flow values are lazy and single-use.
 | pipe | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <expr> |> run` |
 | repl | `genia` | interactive REPL |
 
+Dispatch and mode notes:
+
+- file/command mode dispatch: `main(argv())` first, then `main()` fallback
+- pipe mode bypasses `main`
+- when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
+
 ## Minimal Valid Snippets
 
 [case: core-min-unwrap-or]

@@ -84,3 +84,12 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 > Unix: text streams + tools
 > Genia: typed streams + functions
+
+---
+
+## CLI Mode Reminder
+
+- use `-p` for stage expressions that still produce a Flow (`stdin |> lines` and final `run` are injected)
+- use `-c` or file mode when you want final collected values (for example sums)
+- file/`-c` modes apply runtime `main` dispatch: `main(argv())` first, then `main()`
+- when no `-c`/`-p` is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)

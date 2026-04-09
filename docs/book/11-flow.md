@@ -386,6 +386,8 @@ Recommended mental model:
 - write the middle of the flow only
 - pipe mode provides `stdin |> lines` automatically
 - pipe mode runs the final flow automatically
+- unbound `stdin` and unbound `run` are reserved in pipe mode and rejected with clear errors
+- lambda/local bindings named `stdin` or `run` are allowed
 - if you need the inner value of `some(...)` inside a stage, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
 
 ### Edge case example

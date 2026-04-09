@@ -40,6 +40,36 @@ def test_command_flag_rejects_debug_stdio_combination():
         _main(["--debug-stdio", "-c", "1 + 1"])
 
 
+def test_debug_stdio_rejects_pipe_mode_combination(capsys):
+    with pytest.raises(SystemExit) as exc_info:
+        _main(["--debug-stdio", "-p", "each(print)"])
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 2
+    assert "--debug-stdio cannot be used with --pipe" in captured.err
+
+
+def test_debug_stdio_rejects_extra_trailing_args(tmp_path, capsys):
+    program = tmp_path / "debug_target.genia"
+    program.write_text("1 + 2", encoding="utf-8")
+
+    with pytest.raises(SystemExit) as exc_info:
+        _main(["--debug-stdio", str(program), "extra"])
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 2
+    assert "--debug-stdio accepts exactly one program path" in captured.err
+
+
+def test_debug_stdio_reports_missing_program_path_cleanly(capsys):
+    with pytest.raises(SystemExit) as exc_info:
+        _main(["--debug-stdio", "--", "--pretty"])
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 2
+    assert "--debug-stdio program path not found: --pretty" in captured.err
+
+
 def test_file_mode_passes_remaining_cli_args_into_argv(tmp_path, capsys):
     program = tmp_path / "argv_echo.genia"
     program.write_text("argv()", encoding="utf-8")
@@ -63,6 +93,20 @@ def test_command_mode_passes_bare_cli_args_into_main_1(capsys):
     assert captured.out.strip() == '["a"]'
 
 
+def test_command_mode_passes_option_like_cli_args_into_main_1(capsys):
+    exit_code = _main(["-c", "main(args) = args", "--pretty", "in.txt"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out.strip() == '["--pretty", "in.txt"]'
+
+
+def test_command_mode_treats_args_after_terminator_as_plain_args(capsys):
+    exit_code = _main(["-c", "main(args) = args", "--", "--pretty", "in.txt"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out.strip() == '["--pretty", "in.txt"]'
+
+
 def test_command_mode_invokes_main_0_when_main_1_missing(capsys):
     exit_code = _main(["-c", "main() = 42"])
     captured = capsys.readouterr()
@@ -83,6 +127,13 @@ main(args) = length(args)
 
 def test_command_mode_without_main_preserves_existing_behavior(capsys):
     exit_code = _main(["-c", "1 + 2"])
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out.strip() == "3"
+
+
+def test_command_mode_without_main_ignores_trailing_cli_args(capsys):
+    exit_code = _main(["-c", "1 + 2", "--pretty", "in.txt"])
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out.strip() == "3"
@@ -187,6 +238,17 @@ def test_pipe_mode_rejects_explicit_run(monkeypatch, capsys):
     assert captured.err.strip() == "Error: Do not use run in pipe mode; pipe mode runs the flow automatically"
 
 
+def test_pipe_mode_allows_lambda_param_named_run(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
+
+    exit_code = _main(["-p", "map((run) -> run) |> each(print)"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == "a\nb\n"
+    assert captured.err == ""
+
+
 def test_pipe_mode_rejects_explicit_stdin(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", CountingStdin(["a\n"]))
 
@@ -196,6 +258,40 @@ def test_pipe_mode_rejects_explicit_stdin(monkeypatch, capsys):
     assert exit_code == 1
     assert captured.out == ""
     assert captured.err.strip() == "Error: Do not use stdin in pipe mode; stdin is provided automatically"
+
+
+def test_pipe_mode_allows_lambda_param_named_stdin(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
+
+    exit_code = _main(["-p", "map((stdin) -> stdin) |> each(print)"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == "a\nb\n"
+    assert captured.err == ""
+
+
+def test_file_mode_rejects_option_like_program_path(capsys):
+    with pytest.raises(SystemExit) as exc_info:
+        _main(["--pretty", "in.txt"])
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 2
+    assert "expected a source file path" in captured.err
+    assert "-c/--command" in captured.err
+
+
+def test_file_mode_accepts_dash_prefixed_program_path_after_terminator(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    program = tmp_path / "-dash-script.genia"
+    program.write_text("1 + 2", encoding="utf-8")
+
+    exit_code = _main(["--", "-dash-script.genia"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out.strip() == "3"
+    assert captured.err == ""
 
 
 def test_pipe_mode_rejects_full_programs_with_clear_error(monkeypatch, capsys):
@@ -269,4 +365,15 @@ def test_pipe_mode_realistic_unix_like_smoke(monkeypatch, capsys):
 
     assert exit_code == 0
     assert captured.out == "a\nb\n"
+    assert captured.err == ""
+
+
+def test_pipe_mode_treats_args_after_terminator_as_plain_args(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin([]))
+
+    exit_code = _main(["-p", "each(print)", "--", "--pretty", "in.txt"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == ""
     assert captured.err == ""

@@ -12,9 +12,13 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | command mode | `genia -c 'source'` | run full source expression/program |
 | pipe mode | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <stage_expr> |> run` |
 | file mode | `genia path/to/file.genia` | run file source |
+| REPL mode | `genia` | interactive loop |
 
 Use `-c` for value-producing pipelines such as sums.
 Use `-p` for flow-stage pipelines ending in effects.
+In file/`-c` mode, runtime dispatch is `main(argv())` first, then `main()`.
+When no `-c` or `-p` is selected, the first non-mode argument must be a source file path.
+Use `--` to stop option parsing when a literal arg/path starts with `-`.
 
 ## Reliable Pipeline Building Blocks
 
@@ -96,6 +100,14 @@ Notes:
 - `nth(5, row)` targets the fifth whitespace field.
 - `keep_some_else` keeps good parsed ints and sends bad rows to `log`.
 - `sum` sees only plain numbers after the explicit keep/drop step.
+
+## Canonical daily tasks
+
+- line filtering: `genia -p 'filter((l) -> contains(l, "error")) |> each(print)'` (tested by case id `unix-power-grep`)
+- trim blank lines: `genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'` (covered in CLI regression tests)
+- extract a field: `genia -p 'map(split_whitespace) |> map((r) -> nth(4, r)) |> keep_some |> each(print)'` (tested by case id `unix-map-awk-print-5`)
+- parse/filter/sum: `genia -c 'stdin |> lines |> map(fields) |> keep_some_else((row) -> row |> nth(5) |> flat_map_some(parse_int), log) |> collect |> sum'` (tested by case id `unix-power-sum-5th`)
+- command/file mode with `main(argv())`: `genia -c 'main(args) = args' --pretty input.txt` and `genia script.genia --pretty input.txt` (covered by CLI regression tests)
 
 ## Common Pitfalls
 

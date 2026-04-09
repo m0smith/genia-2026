@@ -72,6 +72,63 @@ printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((
 - use `-p` for stage expressions that still produce a flow
 - use `-c` or a script when you want a final collected value such as `sum`
 
+## CLI behavior contract
+
+- mode selection:
+  - `genia path/to/file.genia [args ...]` -> file mode
+  - `genia -c 'source' [args ...]` -> command mode
+  - `genia -p 'stage_expr' [args ...]` -> pipe mode
+  - `genia` -> REPL mode
+
+### Choose `-p` vs `-c`
+
+| Goal | Use | Why |
+| --- | --- | --- |
+| Stream stdin rows through Flow stages and perform side effects | `-p` | `-p` injects `stdin |> lines` and final `run` |
+| Produce a final value (for example `count`, `sum`, map/list result) | `-c` or file mode | you control full program shape and final materialization |
+| Reuse file-based program logic with `main(argv())` dispatch | file mode | file mode supports trailing args and runtime `main` convention |
+| Quick one-off expression/program from shell | `-c` | inline source without creating a file |
+
+- mode boundaries:
+  - file/command mode evaluate source, then dispatch `main(argv())` if `main/1` exists, else `main()` if `main/0` exists, else preserve the evaluated result
+  - pipe mode never dispatches `main`; it always runs `stdin |> lines |> <stage_expr> |> run`
+  - pipe mode rejects explicit `stdin` and explicit `run` in unbound stage usage
+- args and errors:
+  - trailing CLI args are available through `argv()` in file/command/pipe modes
+  - option-like trailing args are preserved as plain strings (for example `--pretty`)
+  - when no `-c` or `-p` mode is selected, the first non-mode argument must be a file path
+  - use `--` to stop option parsing when a literal arg/path starts with `-`
+
+## Canonical CLI tasks
+
+```bash
+# 1) line filtering
+printf 'ok\nerror one\nwarn\nerror two\n' | genia -p 'filter((l) -> contains(l, "error")) |> each(print)'
+
+# 2) trimming blank lines
+printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'
+
+# 3) extracting a field
+printf 'a b c d five\n1 2 3 4 six\n' | genia -p 'map(split_whitespace) |> map((r) -> nth(4, r)) |> keep_some |> each(print)'
+
+# 4) parse/filter/sum pipeline
+printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+```
+
+```bash
+# 5) command mode with main(argv()) dispatch
+genia -c 'main(args) = args' --pretty input.txt
+```
+
+```genia
+# 5b) file mode with main(argv()) dispatch
+main(args) = args
+```
+
+```bash
+genia script.genia --pretty input.txt
+```
+
 Run the ants demo:
 
 ```bash

@@ -39,5 +39,10 @@
     "source": "stdin |> lines |> each(print) |> run",
     "stdin_data": ["a", "b"],
     "expected_stdout": "a\nb\n"
+  },
+  {
+    "id": "quick-cli-main-argv",
+    "source": "main(args) = args\nmain(argv())",
+    "expected_result": "[]"
   }
 ]
