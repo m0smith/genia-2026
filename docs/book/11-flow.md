@@ -11,6 +11,7 @@ It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
 The canonical public Flow helper surface now lives in `std/prelude/flow.genia`:
 
 - `lines`
+- `keep_some`
 - `keep_some_else`
 - `rules`
 - `each`
@@ -240,6 +241,48 @@ Expected behavior:
 - this helper is explicit local routing, not a change to `|>`
 - `some(...)` is unwrapped only inside this helper
 - `dead_handler` is a handler call, not a second live output flow in this phase
+
+## `keep_some`
+
+`keep_some` is the no-dead-letter convenience form built on top of `keep_some_else`.
+
+Use it when you want to keep successful Option values and silently drop `none(...)` items.
+
+### Minimal example
+
+```genia
+["10", "oops", "20"] |> lines |> map(parse_int) |> keep_some |> collect
+```
+
+Expected result:
+
+```genia
+[10, 20]
+```
+
+### Edge case example
+
+```genia
+["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
+```
+
+Expected result:
+
+```genia
+[10, 20]
+```
+
+This is equivalent to using `keep_some_else(parse_int, (_) -> nil)` for the same flow.
+
+### Failure case example
+
+```genia
+["a", "b"] |> lines |> keep_some |> collect
+```
+
+Expected behavior:
+
+- runtime error explaining that `keep_some` expected Option items (`some(...)` or `none(...)`)
 
 ## `stdin` vs `input()`
 

@@ -147,7 +147,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
 - pipelines short-circuit on `none(...)` but do not auto-unwrap `some(...)`; explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain important when the next stage expects the inner value of an Option.
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
+- public Flow helper names `lines`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`

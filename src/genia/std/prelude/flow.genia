@@ -4,6 +4,28 @@ lines(source) = """
 Create a Flow from `stdin`, an incoming Flow, or a list of strings.
 """ _lines(source)
 
+keep_some(flow) = """
+# keep_some
+
+Keep only successful Option values from a flow.
+
+Use `keep_some(flow)` when upstream already produced Option items.
+Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
+
+Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
+""" _keep_some_else((x) -> x, (_) -> nil, flow)
+
+keep_some(stage, flow) = """
+# keep_some
+
+Keep only successful Option values from a flow.
+
+Use `keep_some(flow)` when upstream already produced Option items.
+Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
+
+Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
+""" _keep_some_else(stage, (_) -> nil, flow)
+
 keep_some_else(stage, dead_handler) = """
 # keep_some_else
 

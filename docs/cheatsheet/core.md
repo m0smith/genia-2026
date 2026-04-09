@@ -82,6 +82,7 @@ Use explicit Option helpers when the next stage needs the wrapped inner value.
 | Helper | Shape |
 | --- | --- |
 | source bridge | `lines(source)` |
+| option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |
 | rule stage | `rules(..fns)` |
 | effects / sinks | `each(fn, flow)`, `collect(flow)`, `run(flow)` |
@@ -114,6 +115,10 @@ unwrap_or("unknown", {user: {name: "Genia"}} |> get("user") |> get("name"))
 
 ```genia
 fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
+```
+
+```genia
+["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
 ```
 
 ```genia

@@ -390,6 +390,31 @@ def test_keep_some_else_rejects_non_option_stage_results_clearly():
         run_source(src, env)
 
 
+def test_keep_some_keeps_unwrapped_some_values_only():
+    src = """
+    ["10", "oops", "20"] |> lines |> map(parse_int) |> keep_some |> collect
+    """
+    env = make_global_env([])
+    assert run_source(src, env) == [10, 20]
+
+
+def test_keep_some_with_stage_sugar_keeps_successes_only():
+    src = """
+    ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
+    """
+    env = make_global_env([])
+    assert run_source(src, env) == [10, 20]
+
+
+def test_keep_some_rejects_non_option_items_clearly():
+    src = """
+    ["a", "b"] |> lines |> keep_some |> collect
+    """
+    env = make_global_env([])
+    with pytest.raises(TypeError, match=r"keep_some_else expected stage\(item\) to return some\(\.\.\.\) or none\(\.\.\.\), received string"):
+        run_source(src, env)
+
+
 def test_keep_some_else_is_opt_in_and_does_not_change_ordinary_pipeline_option_behavior():
     src = """
     [some?("42" |> parse_int), "42" |> parse_int]

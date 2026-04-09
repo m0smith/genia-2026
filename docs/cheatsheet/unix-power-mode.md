@@ -86,8 +86,10 @@ Notes:
 | --- | --- | --- |
 | wrong `nth` arity | `nth(5)` | `nth(5, row)` |
 | assuming some auto-unwrap | `row |> nth(5) |> parse_int` | `row |> nth(5) |> flat_map_some(parse_int)` |
-| using non-existent helper | `keep_some` | `keep_some_else(stage, dead_handler)` |
+| wrong helper for dead rows | `keep_some(parse_int)` when you need dead-letter logging | `keep_some_else(parse_int, log)` |
 | forgetting flow sink | `stdin |> lines` | `stdin |> lines |> each(print) |> run` (or use `-p`) |
+
+When dead-row handling is not needed, `keep_some(parse_int)` is a concise keep-only option stage.
 
 ## Dead-Letter Pattern
 

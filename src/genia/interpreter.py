@@ -5925,6 +5925,8 @@ def make_global_env(
     env.register_autoload("cli_option", 2, "std/prelude/cli.genia")
     env.register_autoload("cli_option_or", 3, "std/prelude/cli.genia")
     env.register_autoload("lines", 1, "std/prelude/flow.genia")
+    env.register_autoload("keep_some", 1, "std/prelude/flow.genia")
+    env.register_autoload("keep_some", 2, "std/prelude/flow.genia")
     env.register_autoload("keep_some_else", 2, "std/prelude/flow.genia")
     env.register_autoload("keep_some_else", 3, "std/prelude/flow.genia")
     env.register_autoload("rules", 0, "std/prelude/flow.genia")
