@@ -1,0 +1,146 @@
+[
+  {
+    "id": "pfv-transform-map",
+    "source": "map((x) -> x + 1, [1, 2, 3])",
+    "expected_result": "[2, 3, 4]"
+  },
+  {
+    "id": "pfv-transform-chain",
+    "source": "[1, 2, 3] |> map((x) -> x + 1) |> map((x) -> x * 2)",
+    "expected_result": "[4, 6, 8]"
+  },
+  {
+    "id": "pfv-transform-rules",
+    "source": "[\"a\", \"b\"] |> lines |> rules((r, _) -> rule_emit(concat(r, \"!\"))) |> collect",
+    "expected_result": "[\"a!\", \"b!\"]"
+  },
+  {
+    "id": "pfv-filter-predicate",
+    "source": "[\"a\", \"\", \"b\"] |> lines |> filter((x) -> x != \"\") |> collect",
+    "expected_result": "[\"a\", \"b\"]"
+  },
+  {
+    "id": "pfv-filter-keep-some",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> map(parse_int) |> keep_some |> collect",
+    "expected_result": "[10, 20]"
+  },
+  {
+    "id": "pfv-filter-keep-some-stage",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some(parse_int) |> collect",
+    "expected_result": "[10, 20]"
+  },
+  {
+    "id": "pfv-filter-keep-some-else",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some_else(parse_int, (x) -> print(concat(\"dead:\", x))) |> collect",
+    "expected_result": "[10, 20]",
+    "expected_stdout": "dead:oops\n"
+  },
+  {
+    "id": "pfv-reduce",
+    "source": "[\"1\", \"2\", \"3\"] |> lines |> keep_some(parse_int) |> collect |> reduce((acc, x) -> acc + x, 0)",
+    "expected_result": "6"
+  },
+  {
+    "id": "pfv-sum",
+    "source": "[\"1\", \"2\", \"3\"] |> lines |> keep_some(parse_int) |> collect |> sum",
+    "expected_result": "6"
+  },
+  {
+    "id": "pfv-count",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> collect |> count",
+    "expected_result": "3"
+  },
+  {
+    "id": "pfv-first",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> head(1) |> collect |> first",
+    "expected_result": "some(\"a\")"
+  },
+  {
+    "id": "pfv-last",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> collect |> last",
+    "expected_result": "some(\"c\")"
+  },
+  {
+    "id": "pfv-nth",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> collect |> nth(1)",
+    "expected_result": "some(\"b\")"
+  },
+  {
+    "id": "pfv-take-head",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> head(2) |> collect",
+    "expected_result": "[\"a\", \"b\"]"
+  },
+  {
+    "id": "pfv-option-map-some",
+    "source": "map_some((x) -> x + 1, some(4))",
+    "expected_result": "some(5)"
+  },
+  {
+    "id": "pfv-option-flat-map-some",
+    "source": "flat_map_some((x) -> some(x + 1), some(4))",
+    "expected_result": "some(5)"
+  },
+  {
+    "id": "pfv-option-unwrap-or",
+    "source": "[\"10\", \"oops\"] |> lines |> map((x) -> unwrap_or(0, x |> parse_int)) |> collect",
+    "expected_result": "[10, 0]"
+  },
+  {
+    "id": "pfv-option-none-short-circuit",
+    "source": "none(\"stop\") |> ((x) -> x + 1)",
+    "expected_result": "none(\"stop\")"
+  },
+  {
+    "id": "pfv-sink-each-run",
+    "source": "[\"a\", \"b\"] |> lines |> each((x) -> print(concat(\"v:\", x))) |> run",
+    "expected_stdout": "v:a\nv:b\n"
+  },
+  {
+    "id": "pfv-sink-print",
+    "source": "[\"a\", \"b\"] |> lines |> each(print) |> run",
+    "expected_stdout": "a\nb\n"
+  },
+  {
+    "id": "pfv-bridge-collect",
+    "source": "[\"a\", \"b\"] |> lines |> collect",
+    "expected_result": "[\"a\", \"b\"]"
+  },
+  {
+    "id": "pfv-bridge-stdin-lines",
+    "source": "stdin |> lines |> collect",
+    "stdin_data": ["a\n", "b\n"],
+    "expected_result": "[\"a\", \"b\"]"
+  },
+  {
+    "id": "pfv-bridge-list-lines",
+    "source": "[\"a\", \"b\"] |> lines |> collect",
+    "expected_result": "[\"a\", \"b\"]"
+  },
+  {
+    "id": "pfv-bridge-run",
+    "source": "[\"a\", \"b\"] |> lines |> map((x) -> concat(x, \"!\")) |> each(print) |> run",
+    "expected_stdout": "a!\nb!\n"
+  },
+  {
+    "id": "pfv-bridge-collect-2",
+    "source": "[\"a\", \"b\"] |> lines |> map((x) -> concat(x, \"!\")) |> collect",
+    "expected_result": "[\"a!\", \"b!\"]"
+  },
+  {
+    "id": "pfv-shape-parse-aggregate",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some(parse_int) |> collect |> sum",
+    "expected_result": "30"
+  },
+  {
+    "id": "pfv-shape-column-sum",
+    "source": "stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum",
+    "stdin_data": ["a b c d 5 x\n", "1 2 3 4 6 y\n", "short\n"],
+    "expected_result": "11"
+  },
+  {
+    "id": "pfv-shape-stream-output",
+    "source": "stdin |> lines |> map((x) -> concat(x, \"!\")) |> each(print) |> run",
+    "stdin_data": ["a\n", "b\n"],
+    "expected_stdout": "a!\nb!\n"
+  }
+]
