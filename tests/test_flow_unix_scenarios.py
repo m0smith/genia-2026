@@ -19,6 +19,19 @@ class CountingStdin:
         return value
 
 
+class InfiniteCountingStdin:
+    def __init__(self, line: str):
+        self._line = line
+        self.reads = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.reads += 1
+        return self._line
+
+
 def test_unix_pipe_prints_trimmed_non_blank_lines(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", CountingStdin(["  alpha  \n", "\n", " beta\n"]))
 
@@ -74,6 +87,19 @@ def test_unix_pipe_head_stops_after_first_line(monkeypatch, capsys):
 
     assert exit_code == 0
     assert captured.out == "first\n"
+    assert captured.err == ""
+    assert stdin.reads == 1
+
+
+def test_unix_pipe_head_stops_promptly_on_unbounded_input(monkeypatch, capsys):
+    stdin = InfiniteCountingStdin("forever\n")
+    monkeypatch.setattr("sys.stdin", stdin)
+
+    exit_code = _main(["-p", "head(1) |> each(print)"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert captured.out == "forever\n"
     assert captured.err == ""
     assert stdin.reads == 1
 

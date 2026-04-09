@@ -92,6 +92,8 @@ Use explicit Option helpers when the next stage needs the wrapped inner value.
 | effects / sinks | `each(fn, flow)`, `collect(flow)`, `run(flow)` |
 
 Flow values are lazy and single-use.
+`head` / `take` stop upstream pulling promptly.
+`collect` and `run` are explicit Value/Flow bridge boundaries.
 
 ## Modules And Interop
 
@@ -137,4 +139,3 @@ fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect |> sum
 ```
-

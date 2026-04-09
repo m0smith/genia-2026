@@ -39,6 +39,22 @@ A Flow is:
 Flow behavior starts when those stages produce or consume Flow values at runtime.
 Option-aware pipeline semantics still apply to ordinary values, but they do not create implicit Value↔Flow conversion and they do not change the single-use Flow kernel contract.
 
+## Flow rules
+
+- Flows are lazy, pull-based, source-bound, and single-use.
+- Value/Flow crossing stays explicit:
+  - `lines` creates a Flow
+  - `collect` materializes to a value
+  - `run` consumes for effects
+- `take` and `head` are short-circuiting consumers:
+  - they stop upstream pulling as soon as the limit is satisfied
+  - generator-backed upstream work is closed promptly when downstream stops early
+- `run` consumes a Flow to completion unless downstream output terminates early through a quiet broken pipe
+- pipe mode is only a wrapper for the middle Flow stages:
+  - `genia -p 'stage_expr'` means `stdin |> lines |> stage_expr |> run`
+  - omit explicit `stdin`
+  - omit explicit `run`
+
 ## Reusable stages
 
 Any function of shape `(flow) -> flow` can be reused as a stage.
@@ -177,6 +193,7 @@ Expected behavior:
 - `head(n, flow)` is the prelude alias `take(n, flow)`
 
 These stop upstream pulling as soon as the limit is reached.
+Generator-backed upstream work is also closed promptly when the limit is satisfied.
 
 ## `keep_some_else`
 
@@ -340,6 +357,7 @@ Expected behavior:
 - `input()` remains interactive prompt input
 - `each(print)` writes flow output to `stdout`
 - quiet downstream `stdout` broken-pipe termination is treated as normal completion in command/file execution
+- that quiet broken-pipe path also stops generator-backed flow work promptly instead of continuing to pull upstream input
 
 ## CLI pipe mode
 
@@ -380,6 +398,7 @@ Expected behavior:
 
 - exits normally
 - prints nothing when stdin is empty
+- stops promptly when downstream stages such as `head(1)` have already produced enough output
 
 ### Failure case example
 

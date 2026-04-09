@@ -30,6 +30,19 @@ class BrokenStdout:
         raise BrokenPipeError()
 
 
+class InfiniteCountingStdin:
+    def __init__(self, line: str):
+        self._line = line
+        self.reads = 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.reads += 1
+        return self._line
+
+
 def test_print_writes_only_to_stdout():
     stdout = io.StringIO()
     stderr = io.StringIO()
@@ -155,6 +168,21 @@ def test_broken_pipe_on_stdout_path_is_quiet(monkeypatch):
 
     assert exit_code == 0
     assert stderr.getvalue() == ""
+
+
+def test_broken_pipe_on_flow_output_is_quiet_and_stops_after_first_pull(monkeypatch):
+    stderr = io.StringIO()
+    stdin = InfiniteCountingStdin("hello\n")
+
+    monkeypatch.setattr("sys.stdin", stdin)
+    monkeypatch.setattr("sys.stdout", BrokenStdout())
+    monkeypatch.setattr("sys.stderr", stderr)
+
+    exit_code = _main(["-p", "each(print)"])
+
+    assert exit_code == 0
+    assert stderr.getvalue() == ""
+    assert stdin.reads == 1
 
 
 def test_flow_output_to_stdout_respects_take():

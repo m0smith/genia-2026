@@ -506,6 +506,7 @@ stdin |> lines |> take(2) |> each(print) |> run
   - `rules()` is the identity stage
   - orchestration, defaulting, and most contract validation now live in prelude/Genia code
 - `take` stops upstream pulling as soon as the limit is satisfied
+- `take` / `head` and quiet broken-pipe termination stop generator-backed upstream work promptly
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
 - `-p` / `--pipe` wrap a stage expression as `stdin |> lines |> <expr> |> run` for ergonomic Unix pipeline use
@@ -528,6 +529,7 @@ flush(stdout)
 - `print(...)` writes to `stdout`, and `log(...)` writes to `stderr`
 - `input()` remains independent of `stdin`
 - broken pipe on `stdout` output in Unix pipelines is treated as normal downstream termination
+- flow-driven stdout writes use the same quiet broken-pipe path
 
 ### Concurrency and cells
 

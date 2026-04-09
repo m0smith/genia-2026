@@ -57,16 +57,6 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 | Unix        | Genia                                                    | Notes                 |
 | ----------- | -------------------------------------------------------- | --------------------- |
 | `head -n 5` | 🔴 `stdin \|> lines \|> head(5) \|> each(print) \|> run` | Short-circuits [case: unix-map-head-5]        |
-| `tail -n 5` | 🔴 `stdin \|> lines \|> tail(5) \|> each(print) \|> run` | May require buffering |
-
----
-
-## 🔀 Sort / Unique
-
-| Unix   | Genia                                                   | Notes                 |
-| ------ | ------------------------------------------------------- | --------------------- |
-| `sort` | 🟣 `stdin \|> lines \|> collect \|> sort`               | Requires Value        |
-| `uniq` | 🔴 `stdin \|> lines \|> unique \|> each(print) \|> run` | Assumes helper exists |
 
 ---
 
@@ -85,6 +75,7 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 * Pipelines are **functional**, not string-based
 * `none(...)` replaces missing/invalid data
 * Flow is **lazy and single-use**
+* `head` / `take` stop upstream pulling early
 * Must explicitly end with 🔴 `run` or 🟣 `collect`
 
 ---

@@ -101,6 +101,8 @@ Aggregation reminder:
 
 - `sum(xs)` expects plain numbers, not raw Option values
 - use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`
+- Flow values are single-use, and `head` / `take` stop upstream pulling promptly
+- `collect` and `run` are the explicit bridge points out of Flow
 
 Examples:
 

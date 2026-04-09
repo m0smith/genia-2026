@@ -134,6 +134,29 @@ def test_take_stops_without_overpulling_generator_backed_flow():
     assert state["pulled"] == 3
 
 
+def test_take_closes_generator_backed_upstream_on_early_stop():
+    env = make_global_env()
+    state = {"pulled": 0, "closed": 0}
+
+    def ticks():
+        def iterator():
+            try:
+                i = 0
+                while True:
+                    state["pulled"] += 1
+                    yield i
+                    i += 1
+            finally:
+                state["closed"] += 1
+
+        return GeniaFlow(iterator, label="ticks")
+
+    env.set("ticks", ticks)
+    assert run_source("ticks() |> take(3) |> collect", env) == [0, 1, 2]
+    assert state["pulled"] == 3
+    assert state["closed"] == 1
+
+
 def test_stdin_flow_binding_is_lazy_and_stops_on_take():
     calls = 0
     state = {"pulled": 0}

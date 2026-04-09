@@ -178,6 +178,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - sink/materialization boundaries
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
+  - short-circuiting flow consumers and downstream broken-pipe termination stop generator-backed upstream work promptly
   - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors
   - `rules(..fns)` is stateful:
     - each rule runs as `(record, ctx)`
@@ -254,6 +255,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - `write(sink, value)` / `writeln(sink, value)` are public prelude-backed wrappers over the host sink bridge
   - `flush(sink)` is a public prelude-backed wrapper over the host sink bridge
   - broken pipe on `stdout` output in command/file execution is treated as normal downstream termination without a Python traceback
+  - flow-driven stdout writes use the same quiet broken-pipe path
   - REPL results go to `stdout`; REPL and command/file diagnostics go to `stderr`
 
 ## Symbols and quote

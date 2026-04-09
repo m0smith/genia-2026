@@ -27,6 +27,12 @@ Use `-p` for flow-stage pipelines ending in effects.
 | maybe-safe parse | `parse_int`, `flat_map_some`, `unwrap_or` |
 | numeric aggregate | `keep_some(...) |> collect |> sum` or `map((x) -> unwrap_or(...)) |> collect |> sum` |
 
+Flow rules:
+- Flow stays lazy and single-use.
+- `head` / `take` stop upstream pulling as soon as they have enough items.
+- `collect` and `run` are the explicit Flow -> Value / Flow -> effect boundaries.
+- pipe mode is only for stage expressions that still produce a Flow.
+
 ## Working Commands
 
 ### Print stdin rows
@@ -100,6 +106,7 @@ Notes:
 | wrong helper for dead rows | `keep_some(parse_int)` when you need dead-letter logging | `keep_some_else(parse_int, log)` |
 | summing raw Option values | `map(parse_int) |> collect |> sum` | `keep_some(parse_int) |> collect |> sum` |
 | forgetting flow sink | `stdin |> lines` | `stdin |> lines |> each(print) |> run` (or use `-p`) |
+| reusing a consumed flow | bind once, then `collect` and `run` it again | materialize with `collect` if you need reusable data |
 
 When dead-row handling is not needed, `keep_some(parse_int)` is a concise keep-only option stage.
 
@@ -137,4 +144,3 @@ With just this cheatsheet, Genia can already replace:
 * safer (Option)
 * composable (pipelines)
 * readable (left → right)
-

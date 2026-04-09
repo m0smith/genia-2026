@@ -3574,10 +3574,17 @@ class GeniaQuietBrokenPipe(Exception):
 
 
 class GeniaFlow:
-    def __init__(self, iterator_factory: Callable[[], Iterable[Any]], *, label: str = "flow"):
+    def __init__(
+        self,
+        iterator_factory: Callable[[], Iterable[Any]],
+        *,
+        label: str = "flow",
+        close_on_early_termination: bool = True,
+    ):
         self._iterator_factory = iterator_factory
         self._label = label
         self._consumed = False
+        self._close_on_early_termination = close_on_early_termination
 
     def consume(self) -> Iterable[Any]:
         if self._consumed:
@@ -3592,6 +3599,10 @@ class GeniaFlow:
     def __repr__(self) -> str:
         state = "consumed" if self._consumed else "ready"
         return f"<flow {self._label} {state}>"
+
+    @property
+    def close_on_early_termination(self) -> bool:
+        return self._close_on_early_termination
 
 
 class GeniaOutputSink:
@@ -4983,20 +4994,30 @@ def make_global_env(
             raise TypeError(f"{name} expected a function, received {_runtime_type_name(value)}")
         return value
 
+    def _maybe_close_iterable(iterable: Any) -> None:
+        close = getattr(iterable, "close", None)
+        if callable(close):
+            close()
+
     def lines_fn(source: Any) -> GeniaFlow:
         if isinstance(source, GeniaFlow):
             upstream = _ensure_flow(source, "lines")
 
             def iterator() -> Iterable[Any]:
-                for item in upstream.consume():
-                    if not isinstance(item, str):
-                        raise TypeError("lines expected string input items")
-                    yield item
+                items = upstream.consume()
+                try:
+                    for item in items:
+                        if not isinstance(item, str):
+                            raise TypeError("lines expected string input items")
+                        yield item
+                finally:
+                    if upstream.close_on_early_termination:
+                        _maybe_close_iterable(items)
 
-            return GeniaFlow(iterator, label="lines")
+            return GeniaFlow(iterator, label="lines", close_on_early_termination=upstream.close_on_early_termination)
 
         if isinstance(source, GeniaStdinSource):
-            return GeniaFlow(source.iter_lines, label="lines")
+            return GeniaFlow(source.iter_lines, label="lines", close_on_early_termination=False)
 
         if callable(source):
             raw_lines = source()
@@ -5020,10 +5041,15 @@ def make_global_env(
             upstream = source
 
             def iterator() -> Iterable[Any]:
-                for item in upstream.consume():
-                    yield mapper(item)
+                items = upstream.consume()
+                try:
+                    for item in items:
+                        yield mapper(item)
+                finally:
+                    if upstream.close_on_early_termination:
+                        _maybe_close_iterable(items)
 
-            return GeniaFlow(iterator, label="map")
+            return GeniaFlow(iterator, label="map", close_on_early_termination=upstream.close_on_early_termination)
         if not isinstance(source, list):
             raise TypeError("map expected a flow or list")
         return [mapper(item) for item in source]
@@ -5034,11 +5060,16 @@ def make_global_env(
             upstream = source
 
             def iterator() -> Iterable[Any]:
-                for item in upstream.consume():
-                    if truthy(predicate(item)):
-                        yield item
+                items = upstream.consume()
+                try:
+                    for item in items:
+                        if truthy(predicate(item)):
+                            yield item
+                finally:
+                    if upstream.close_on_early_termination:
+                        _maybe_close_iterable(items)
 
-            return GeniaFlow(iterator, label="filter")
+            return GeniaFlow(iterator, label="filter", close_on_early_termination=upstream.close_on_early_termination)
         if not isinstance(source, list):
             raise TypeError("filter expected a flow or list")
         return [item for item in source if predicate(item)]
@@ -5053,15 +5084,19 @@ def make_global_env(
                 return
             remaining = n
             items = iter(upstream.consume())
-            while remaining > 0:
-                try:
-                    item = next(items)
-                except StopIteration:
-                    return
-                yield item
-                remaining -= 1
+            try:
+                while remaining > 0:
+                    try:
+                        item = next(items)
+                    except StopIteration:
+                        return
+                    yield item
+                    remaining -= 1
+            finally:
+                if upstream.close_on_early_termination:
+                    _maybe_close_iterable(items)
 
-        return GeniaFlow(iterator, label="take")
+        return GeniaFlow(iterator, label="take", close_on_early_termination=upstream.close_on_early_termination)
 
     def head_fn(*args: Any) -> GeniaFlow:
         if len(args) == 1:
@@ -5095,21 +5130,26 @@ def make_global_env(
 
         def iterator() -> Iterable[Any]:
             current_ctx: Any = GeniaMap()
-            for item in upstream.consume():
-                result = _invoke_from_builtin(step, [item, current_ctx])
-                if not isinstance(result, GeniaMap):
-                    raise RuntimeError("_rules_kernel expected a map result")
+            items = upstream.consume()
+            try:
+                for item in items:
+                    result = _invoke_from_builtin(step, [item, current_ctx])
+                    if not isinstance(result, GeniaMap):
+                        raise RuntimeError("_rules_kernel expected a map result")
 
-                emitted = result.get("emit", [])
-                if not isinstance(emitted, list):
-                    raise RuntimeError("_rules_kernel expected emit to be a list")
+                    emitted = result.get("emit", [])
+                    if not isinstance(emitted, list):
+                        raise RuntimeError("_rules_kernel expected emit to be a list")
 
-                current_ctx = result.get("ctx", current_ctx)
+                    current_ctx = result.get("ctx", current_ctx)
 
-                for value in emitted:
-                    yield value
+                    for value in emitted:
+                        yield value
+            finally:
+                if upstream.close_on_early_termination:
+                    _maybe_close_iterable(items)
 
-        return GeniaFlow(iterator, label="rules")
+        return GeniaFlow(iterator, label="rules", close_on_early_termination=upstream.close_on_early_termination)
 
     def keep_some_else_fn(stage_value: Any, dead_value: Any, source: Any) -> GeniaFlow:
         stage = _ensure_callable(stage_value, "keep_some_else")
@@ -5117,40 +5157,60 @@ def make_global_env(
         upstream = _ensure_flow(source, "keep_some_else")
 
         def iterator() -> Iterable[Any]:
-            for item in upstream.consume():
-                result = _invoke_from_builtin(stage, [item])
-                if isinstance(result, GeniaOptionSome):
-                    yield result.value
-                    continue
-                if isinstance(result, GeniaOptionNone):
-                    _invoke_from_builtin(dead_handler, [item])
-                    continue
-                raise TypeError(
-                    "keep_some_else expected stage(item) to return some(...) or none(...), "
-                    f"received {_runtime_type_name(result)}"
-                )
+            items = upstream.consume()
+            try:
+                for item in items:
+                    result = _invoke_from_builtin(stage, [item])
+                    if isinstance(result, GeniaOptionSome):
+                        yield result.value
+                        continue
+                    if isinstance(result, GeniaOptionNone):
+                        _invoke_from_builtin(dead_handler, [item])
+                        continue
+                    raise TypeError(
+                        "keep_some_else expected stage(item) to return some(...) or none(...), "
+                        f"received {_runtime_type_name(result)}"
+                    )
+            finally:
+                if upstream.close_on_early_termination:
+                    _maybe_close_iterable(items)
 
-        return GeniaFlow(iterator, label="keep_some_else")
+        return GeniaFlow(iterator, label="keep_some_else", close_on_early_termination=upstream.close_on_early_termination)
 
     def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
         effect = _ensure_callable(fn_value, "each")
         upstream = _ensure_flow(source, "each")
 
         def iterator() -> Iterable[Any]:
-            for item in upstream.consume():
-                effect(item)
-                yield item
+            items = upstream.consume()
+            try:
+                for item in items:
+                    effect(item)
+                    yield item
+            finally:
+                if upstream.close_on_early_termination:
+                    _maybe_close_iterable(items)
 
-        return GeniaFlow(iterator, label="each")
+        return GeniaFlow(iterator, label="each", close_on_early_termination=upstream.close_on_early_termination)
 
     def collect_fn(source: Any) -> list[Any]:
         flow = _ensure_flow(source, "collect")
-        return list(flow.consume())
+        items = flow.consume()
+        try:
+            return list(items)
+        finally:
+            if flow.close_on_early_termination:
+                _maybe_close_iterable(items)
 
     def run_fn(source: Any) -> None:
         flow = _ensure_flow(source, "run")
-        for _ in flow.consume():
-            pass
+        items = flow.consume()
+        try:
+            for _ in items:
+                pass
+        finally:
+            if flow.close_on_early_termination:
+                _maybe_close_iterable(items)
         return None
 
     def _emit_help(text: str) -> None:

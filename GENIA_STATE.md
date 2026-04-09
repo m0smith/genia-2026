@@ -609,6 +609,7 @@ Output sink semantics:
 - `log(...)` writes to `stderr`
 - `input()` remains interactive-only and does not consume the flow/stdin source path
 - broken pipe on `stdout` output is treated as normal downstream termination in CLI/file/command execution (no Python traceback)
+- flow-driven stdout writes use the same quiet broken-pipe path, so Unix pipelines can stop downstream early without noisy Python tracebacks
 - broken pipe on `stderr` is handled best-effort and does not trigger recursive noisy failures
 
 ### Flow runtime (Phase 1)
@@ -649,6 +650,7 @@ Flow semantics:
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
+- short-circuiting flow consumers such as `take`, `head`, and downstream broken-pipe termination stop generator-backed upstream work promptly
 - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors
 - host-backed Flow kernel remains intentionally small in this phase:
   - flow value creation and single-consumption enforcement
