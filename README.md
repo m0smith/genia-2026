@@ -87,6 +87,22 @@ Test suite note:
 - `tests/cases/` holds reusable black-box language-semantic cases
 - pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
 
+## Documentation
+
+Published documentation is deployed with GitHub Pages from the `main` branch at:
+
+- `https://m0smith.github.io/genia-2026/`
+
+To preview locally:
+
+```bash
+uv sync --dev
+uv run python tools/stage_docs_for_mkdocs.py
+uv run mkdocs serve --strict
+```
+
+The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives.
+
 LLM instruction sync note:
 
 - shared cross-tool LLM guidance lives in `docs/ai/LLM_CONTRACT.md`
@@ -629,8 +645,8 @@ New canonical style:
 unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))
 ```
 
-Short design note: [docs/architecture/pipeline-option-redesign.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-option-redesign.md)
-Integration note: [docs/architecture/pipeline-ir-host-integration.md](/Users/m0smith/projects/genia-2026/docs/architecture/pipeline-ir-host-integration.md)
+Short design note: [docs/architecture/pipeline-option-redesign.md](docs/architecture/pipeline-option-redesign.md)
+Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/architecture/pipeline-ir-host-integration.md)
 - non-string input and invalid bases still raise explicit errors
 
 ### Concurrency

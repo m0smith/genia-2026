@@ -77,3 +77,5 @@ vscode/genia-debugger/out/
 *.log
 *.tmp
 *.swp
+.tmp/
+site/
