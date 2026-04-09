@@ -18,6 +18,13 @@ Current shared portability artifacts:
 These files do **not** mean that a Node.js, Java, Rust, Go, or C++ host is already implemented.
 They define the shared contract and repository layout for future work.
 
+Browser playground status in this phase:
+
+- architecture and adapter-contract docs are scaffolded under `docs/browser/`
+- V1 browser execution is planned to use the Python reference host on a backend service
+- browser-native execution (JavaScript host or Rust/WASM host) is planned later behind the same adapter boundary
+- this does not add a second implemented host today
+
 ## Minimal example
 
 Today the Python reference host is still the real executable host:

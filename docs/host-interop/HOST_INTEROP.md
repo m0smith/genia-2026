@@ -57,6 +57,26 @@ Portable host work should therefore ask:
 - does this preserve the same runtime result/effect behavior?
 - would the shared spec suite observe the same outcome?
 
+## Browser Playground Adapter Scaffold
+
+Browser playground architecture/contract docs exist as scaffolding under:
+
+- `docs/browser/README.md`
+- `docs/browser/PLAYGROUND_ARCHITECTURE.md`
+- `docs/browser/RUNTIME_ADAPTER_CONTRACT.md`
+
+Current truth:
+
+- these docs do not mean a browser host is implemented
+- Python remains the only implemented host
+- V1 playground runtime is planned as backend Python execution
+- browser-native runtime (JavaScript host or Rust/WASM host) is planned later
+
+Interop rule:
+
+- browser adapter transport may vary by host/runtime placement
+- Genia source/Core IR/runtime semantics must remain aligned with shared docs/spec artifacts
+
 ## Portable Runtime Value Taxonomy
 
 Hosts may use different internal representations, but they must preserve the same runtime value families and observable behaviors.

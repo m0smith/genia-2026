@@ -5,6 +5,12 @@ This directory defines the minimal contract future Genia hosts should implement 
 This is a documentation scaffold in the current phase.
 There is no generic multi-host runner implementation in the repo yet.
 
+Browser playground note:
+
+- browser runtime adapter docs are scaffolded under `docs/browser/`
+- this does not add a second implemented host in the current phase
+- if adapter contract expectations change, update `spec/manifest.json` and relevant `docs/host-interop/*` docs in the same change
+
 ## Minimal Host Runner Interface
 
 Each host should eventually expose a small interface equivalent to:

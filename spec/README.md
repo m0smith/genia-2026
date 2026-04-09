@@ -8,6 +8,12 @@ Purpose:
 - validate behavior at the parse, Core IR, eval, and CLI boundaries
 - reduce semantic drift between hosts
 
+Browser playground adapter note:
+
+- browser runtime adapter docs are scaffolded under `docs/browser/`
+- this is currently a contract/planning surface, not a second implemented host
+- shared browser-adapter metadata is tracked in `spec/manifest.json`
+
 Python is the only implemented host today.
 The spec layout is being added now so future hosts can validate against the same contract instead of growing host-local behavior.
 

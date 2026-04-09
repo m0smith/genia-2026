@@ -9,6 +9,11 @@ Status legend:
 Python is the only implemented host today.
 All other hosts below are placeholders for planned work.
 
+Browser playground adapter note:
+
+- documentation scaffold exists under `docs/browser/`
+- this is not an implemented browser runtime host capability yet
+
 | Capability | Python | Node.js | Java | Rust | Go | C++ | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | parser | Implemented | Planned | Planned | Planned | Planned | Planned | Python parser/lowering live in `src/genia/interpreter.py` today |

@@ -34,7 +34,31 @@ Clarifications:
 - They do not add a second implemented host yet.
 - The shared spec runner contract and capability matrix are scaffolded now, but no generic multi-host runner implementation exists yet.
 
-## 0.1) Repository documentation publishing workflow
+## 0.1) Browser playground status
+
+Implemented today:
+
+- browser playground architecture and runtime-adapter documentation scaffolding exists under:
+  - `docs/browser/README.md`
+  - `docs/browser/PLAYGROUND_ARCHITECTURE.md`
+  - `docs/browser/RUNTIME_ADAPTER_CONTRACT.md`
+- app scaffold documentation exists under:
+  - `apps/playground/README.md`
+
+Planned, not implemented yet:
+
+- V1 browser playground app that runs Genia via a backend service using the current Python reference host
+- browser-native runtime backend for the playground using either:
+  - a JavaScript host, or
+  - a Rust/WASM host
+
+Clarifications:
+
+- no browser playground application runtime is implemented in this repository yet
+- browser work in this phase is architecture/contract scaffolding only
+- browser execution remains a host-capability adaptation concern and does not define a new Genia dialect
+
+## 0.2) Repository documentation publishing workflow
 
 Implemented today:
 

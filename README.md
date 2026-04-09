@@ -229,6 +229,30 @@ Current host status:
 | Python | Implemented reference host |
 | Node.js / Java / Rust / Go / C++ | Planned / scaffolded only |
 
+## Browser playground architecture
+
+Browser playground architecture docs are now scaffolded under:
+
+- docs/browser/README.md
+- docs/browser/PLAYGROUND_ARCHITECTURE.md
+- docs/browser/RUNTIME_ADAPTER_CONTRACT.md
+
+Truthful status:
+
+- implemented now: documentation and architecture/contract scaffolding only
+- planned V1 runtime path: browser UI backed by the current Python reference host on a backend service
+- planned later: browser-native runtime via a JavaScript host or Rust/WASM host behind the same runtime adapter boundary
+
+Related shared portability docs:
+
+- docs/host-interop/HOST_INTEROP.md
+- docs/host-interop/HOST_PORTING_GUIDE.md
+- docs/host-interop/HOST_CAPABILITY_MATRIX.md
+- docs/architecture/core-ir-portability.md
+- spec/README.md
+- spec/manifest.json
+- tools/spec_runner/README.md
+
 ## Language snapshot (implemented)
 
 ### Runtime value categories

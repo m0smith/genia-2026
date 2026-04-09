@@ -47,6 +47,12 @@ These may arrive later for a new host, but they must be marked honestly:
 - bytes/json/zip bridge
 - debugger stdio
 
+Browser-target note (planned path):
+
+- if a host targets browser playground execution, implement the browser runtime adapter contract scaffold documented in `docs/browser/RUNTIME_ADAPTER_CONTRACT.md`
+- keep adapter behavior aligned with shared host contract docs/specs
+- do not treat browser transport differences as language semantic differences
+
 If a capability is missing:
 
 - mark it missing in `HOST_CAPABILITY_MATRIX.md`

@@ -45,6 +45,22 @@
       "output": "JSON with stdout, stderr, exit_code, and normalized error data when present"
     }
   },
+  "browser_runtime_adapter": {
+    "status": "scaffolded",
+    "implemented_hosts": [
+      "python-backend-planned"
+    ],
+    "planned_hosts": [
+      "javascript-browser-native",
+      "rust-wasm-browser-native"
+    ],
+    "contract_docs": [
+      "docs/browser/README.md",
+      "docs/browser/PLAYGROUND_ARCHITECTURE.md",
+      "docs/browser/RUNTIME_ADAPTER_CONTRACT.md"
+    ],
+    "notes": "Scaffold contract only in this phase; not an implemented browser runtime host capability yet."
+  },
   "canonical_docs": [
     "AGENTS.md",
     "GENIA_STATE.md",
@@ -55,6 +71,9 @@
     "docs/host-interop/HOST_INTEROP.md",
     "docs/host-interop/HOST_PORTING_GUIDE.md",
     "docs/host-interop/HOST_CAPABILITY_MATRIX.md",
+    "docs/browser/README.md",
+    "docs/browser/PLAYGROUND_ARCHITECTURE.md",
+    "docs/browser/RUNTIME_ADAPTER_CONTRACT.md",
     "docs/architecture/core-ir-portability.md",
     "docs/architecture/pipeline-ir-host-integration.md",
     "tools/spec_runner/README.md"
