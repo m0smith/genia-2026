@@ -88,6 +88,33 @@ Cheatsheets must not include:
 
 If cheatsheet content conflicts with source-of-truth docs, `GENIA_STATE.md` remains final authority and cheatsheets must be corrected.
 
+### Cheatsheet Example Validation Rule
+
+Every runnable example added or changed in a cheatsheet **must** include a `[case: <id>]` marker and a matching entry in the sidecar JSON file under `tests/data/`:
+
+| Cheatsheet | Sidecar JSON | Test module |
+|---|---|---|
+| `docs/cheatsheet/piepline-flow-vs-value.md` | `tests/data/pipeline_flow_vs_value_cases.json` | `tests/test_cheatsheet_pipeline_flow_vs_value.py` |
+| `docs/cheatsheet/core.md` | `tests/data/cheatsheet_core_cases.json` | `tests/test_cheatsheet_core.py` |
+| `docs/cheatsheet/quick-reference.md` | `tests/data/cheatsheet_quick_reference_cases.json` | `tests/test_cheatsheet_quick_reference.py` |
+| `docs/cheatsheet/unix-power-mode.md` | `tests/data/cheatsheet_unix_power_mode_cases.json` | `tests/test_cheatsheet_unix_power_mode.py` |
+| `docs/cheatsheet/unix-to-genia.md` | `tests/data/cheatsheet_unix_to_genia_cases.json` | `tests/test_cheatsheet_unix_to_genia.py` |
+
+Marker placement: add `<!-- [case: <id>] -->` on the line immediately before the opening ` ``` ` fence of the runnable snippet.
+
+JSON case entry shape:
+```json
+{
+  "id": "<id>",
+  "source": "<genia source>",
+  "expected_result": "<display string>",
+  "expected_stdout": "<optional stdout string>",
+  "stdin_data": ["optional", "lines"]
+}
+```
+
+Agents must run `pytest tests/test_cheatsheet_*.py` after editing any cheatsheet to catch drift.
+
 ---
 
 ## Core Philosophy
