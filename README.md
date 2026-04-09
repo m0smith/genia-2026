@@ -770,8 +770,9 @@ Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/archi
 
 - `utf8_encode(string) -> bytes`
 - `utf8_decode(bytes) -> string`
-- `json_parse(string) -> value` (objects become runtime map values)
-- `json_pretty(value) -> string`
+- `json_parse(string) -> value | none("json-parse-error", context)`
+- `json_stringify(value) -> string | none("json-stringify-error", context)`
+- `json_pretty(value) -> string | none(...)` (compatibility alias for `json_stringify`)
 - `zip_entries(path) -> list of zip entries`
 - `zip_write(entries, path) -> path` (also accepts `(path, entries)` for pipeline style)
 - `entry_name(entry)`, `entry_bytes(entry)`, `set_entry_bytes(entry, bytes)`, `update_entry_bytes(entry, f)`, `entry_json(entry)`

@@ -118,6 +118,16 @@ def test_help_autoloads_string_wrapper_docstring():
     assert "Parse an integer from a string" in out
 
 
+def test_help_autoloads_json_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("json_parse")\n', env, filename="help_json.genia")
+    out = "".join(outputs)
+    assert "json_parse/1" in out
+    assert "# json_parse" in out
+    assert "Parse JSON text into Genia runtime data." in out
+
+
 def test_help_autoloads_map_wrapper_docstring():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)

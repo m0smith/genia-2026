@@ -57,24 +57,26 @@ def test_zip_rewrite_happy_path_with_pipeline_and_order(tmp_path):
         assert zf.read("b.json").decode("utf-8") == '{\n  "x": [\n    3,\n    2,\n    1\n  ]\n}'
 
 
-def test_invalid_json_failure_is_clear_and_deterministic(tmp_path):
-    in_zip = tmp_path / "bad_json.zip"
-    out_zip = tmp_path / "out.zip"
-    with zipfile.ZipFile(in_zip, "w") as zf:
-        zf.writestr("bad.json", '{"x":')
-
+def test_invalid_json_failure_returns_structured_none_metadata():
     env = make_global_env([])
-    env.set("in_path", str(in_zip))
-    env.set("out_path", str(out_zip))
     src = """
-    rewrite_entry(entry) =
-      entry ? entry_json(entry) -> update_entry_bytes(entry, compose(utf8_encode, json_pretty, json_parse, utf8_decode)) |
-      _ -> entry
-
-    zip_entries(in_path) |> map(rewrite_entry) |> zip_write(out_path)
+        parsed = json_parse('{"x":')
+    [
+      none?(parsed),
+      unwrap_or("?", absence_reason(parsed)),
+      unwrap_or("?", absence_context(parsed) |> then_get("source")),
+      unwrap_or("?", absence_context(parsed) |> then_get("message")),
+      unwrap_or(-1, absence_context(parsed) |> then_get("line")),
+      unwrap_or(-1, absence_context(parsed) |> then_get("column"))
+    ]
     """
-    with pytest.raises(ValueError, match=r"json_parse invalid JSON"):
-        run_source(src, env)
+    result = run_source(src, env)
+    assert result[0] is True
+    assert result[1] == "json-parse-error"
+    assert result[2] == "json_parse"
+    assert isinstance(result[3], str)
+    assert result[4] == 1
+    assert result[5] > 0
 
 
 def test_invalid_utf8_failure_is_clear_and_deterministic():

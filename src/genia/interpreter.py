@@ -4977,10 +4977,10 @@ def make_global_env(
             data: dict[str, Any] = {}
             for _, (original_key, original_value) in value._entries.items():
                 if not isinstance(original_key, str):
-                    raise TypeError("json_pretty expected object keys to be strings")
+                    raise TypeError("json_stringify expected object keys to be strings")
                 data[original_key] = _json_from_runtime(original_value)
             return data
-        raise TypeError(f"json_pretty expected a JSON-compatible value, got {type(value).__name__}")
+        raise TypeError(f"json_stringify expected a JSON-compatible value, got {type(value).__name__}")
 
     def _json_to_runtime(value: Any) -> Any:
         if value is None:
@@ -5445,6 +5445,11 @@ def make_global_env(
                 "Option / string",
                 ("std/prelude/option.genia", "std/prelude/string.genia"),
                 ("some", "get", "unwrap_or", "absence_reason", "parse_int", "split", "trim", "join", "map_some", "then_get"),
+            ),
+            (
+                "JSON",
+                ("std/prelude/json.genia",),
+                ("json_parse", "json_stringify", "json_pretty"),
             ),
             (
                 "Map / ref / process / sinks",
@@ -6049,15 +6054,40 @@ def make_global_env(
             raise ValueError(f"utf8_decode invalid UTF-8: {exc}") from exc
 
     def json_parse_fn(value: Any) -> Any:
-        text = _ensure_string(value, "json_parse")
+        if not isinstance(value, str):
+            context = (
+                GeniaMap()
+                .put("source", "json_parse")
+                .put("expected", "string")
+                .put("received", _runtime_type_name(value))
+            )
+            return make_none("json-parse-error", context)
+
+        text = value
         try:
             parsed = json.loads(text)
         except json.JSONDecodeError as exc:
-            raise ValueError(f"json_parse invalid JSON: {exc.msg} at line {exc.lineno} column {exc.colno}") from exc
+            context = (
+                GeniaMap()
+                .put("source", "json_parse")
+                .put("message", exc.msg)
+                .put("line", exc.lineno)
+                .put("column", exc.colno)
+            )
+            return make_none("json-parse-error", context)
         return _json_to_runtime(parsed)
 
-    def json_pretty_fn(value: Any) -> str:
-        return json.dumps(_json_from_runtime(value), indent=2, ensure_ascii=False, sort_keys=True)
+    def json_stringify_fn(value: Any) -> Any:
+        try:
+            return json.dumps(_json_from_runtime(value), indent=2, ensure_ascii=False, sort_keys=True)
+        except (TypeError, ValueError) as exc:
+            context = (
+                GeniaMap()
+                .put("source", "json_stringify")
+                .put("message", str(exc))
+                .put("received", _runtime_type_name(value))
+            )
+            return make_none("json-stringify-error", context)
 
     def zip_entries_fn(path: Any) -> list[GeniaZipEntry]:
         zip_path = _ensure_string(path, "zip_entries")
@@ -6230,8 +6260,8 @@ def make_global_env(
     env.set("_parse_int", parse_int_fn)
     env.set("utf8_decode", utf8_decode_fn)
     env.set("utf8_encode", utf8_encode_fn)
-    env.set("json_parse", json_parse_fn)
-    env.set("json_pretty", json_pretty_fn)
+    env.set("_json_parse", json_parse_fn)
+    env.set("_json_stringify", json_stringify_fn)
     env.set("zip_entries", zip_entries_fn)
     env.set("zip_write", zip_write_fn)
     env.set("entry_name", entry_name_fn)
@@ -6349,6 +6379,9 @@ def make_global_env(
     env.register_autoload("upper", 1, "std/prelude/string.genia")
     env.register_autoload("parse_int", 1, "std/prelude/string.genia")
     env.register_autoload("parse_int", 2, "std/prelude/string.genia")
+    env.register_autoload("json_parse", 1, "std/prelude/json.genia")
+    env.register_autoload("json_stringify", 1, "std/prelude/json.genia")
+    env.register_autoload("json_pretty", 1, "std/prelude/json.genia")
     env.register_autoload("stream_cons", 2, "std/prelude/stream.genia")
     env.register_autoload("stream_head", 1, "std/prelude/stream.genia")
     env.register_autoload("stream_tail", 1, "std/prelude/stream.genia")

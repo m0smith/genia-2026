@@ -1065,8 +1065,11 @@ Pattern matching note:
 
 - `utf8_decode(bytes) -> string`
 - `utf8_encode(string) -> bytes`
-- `json_parse(string) -> value`
-- `json_pretty(value) -> string`
+- internal JSON bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`
+- public JSON helpers from `std/prelude/json.genia`:
+  - `json_parse(string) -> value | none("json-parse-error", context)`
+  - `json_stringify(value) -> string | none("json-stringify-error", context)`
+  - `json_pretty(value) -> string | none(...)` (compatibility alias)
 - `zip_entries(path) -> list of zip entries`
 - `zip_write(entries, path) -> path` (also accepts `(path, entries)` for pipeline ergonomics)
 - `entry_name(entry) -> string`
@@ -1081,7 +1084,8 @@ Behavior:
 - zip entries are opaque runtime wrappers (`<zip-entry ...>`) containing entry name + bytes payload
 - `zip_entries` currently returns a strict list (Phase 1) and preserves entry order
 - JSON objects from `json_parse` are represented as persistent runtime map values (`map_*` bridge type)
-- `json_pretty` currently emits deterministic pretty JSON with 2-space indentation and sorted object keys
+- `json_stringify`/`json_pretty` emit deterministic pretty JSON with 2-space indentation and sorted object keys
+- JSON parse/stringify failures return structured `none(...)` metadata rather than raising parse/stringify exceptions
 - this is a minimal host-backed bridge and is **not** the full flow system
 
 ### Simulation primitives (Phase 2, host-backed builtins)
@@ -1108,6 +1112,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 - `std/prelude/io.genia`
 - `std/prelude/option.genia`
 - `std/prelude/string.genia`
+- `std/prelude/json.genia`
 - `std/prelude/math.genia`
 - `std/prelude/awk.genia`
 - `std/prelude/cell.genia`

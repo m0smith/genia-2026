@@ -985,8 +985,9 @@ Flat pipeline-friendly API (no member/dot syntax):
 
 - `utf8_encode(string) -> bytes`
 - `utf8_decode(bytes) -> string`
-- `json_parse(string) -> value`
-- `json_pretty(value) -> string`
+- `json_parse(string) -> value | none(...)`
+- `json_stringify(value) -> string | none(...)`
+- `json_pretty(value) -> string | none(...)` (compatibility alias)
 - `zip_entries(path) -> list of zip entries`
 - `zip_write(entries, path) -> path`
 - `entry_name(entry)`, `entry_bytes(entry)`, `set_entry_bytes(entry, bytes)`, `update_entry_bytes(entry, f)`, `entry_json(entry)`
@@ -995,7 +996,7 @@ Flat pipeline-friendly API (no member/dot syntax):
 
 ```genia
 format_json_bytes(bytes) =
-  compose(utf8_encode, json_pretty, json_parse, utf8_decode)(bytes)
+  compose(utf8_encode, json_stringify, json_parse, utf8_decode)(bytes)
 ```
 
 ### Edge case example
@@ -1029,7 +1030,7 @@ json_parse("{\"x\":")
 
 Expected behavior:
 
-- raises `ValueError` with parse location details
+- returns `none("json-parse-error", context)` with parse metadata (`line`, `column`, `message`, and source tag)
 
 ### Implementation status
 

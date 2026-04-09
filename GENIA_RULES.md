@@ -531,12 +531,19 @@ No additional member/index/flow operators should be introduced without explicitl
 - zip entries are runtime wrapper values with name + bytes payload
 - required builtins:
   - `utf8_decode`, `utf8_encode`
-  - `json_parse`, `json_pretty`
+  - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
   - `zip_entries`, `zip_write`
   - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
+- public JSON helpers are prelude-backed wrappers in `std/prelude/json.genia`:
+  - `json_parse(string)`
+  - `json_stringify(value)`
+  - `json_pretty(value)` compatibility alias for `json_stringify(value)`
 - `zip_entries(path)` returns an eager list in this phase (not lazy flow semantics)
 - `zip_write` preserves the order of entries it receives
 - `json_parse` returns runtime map values for JSON objects
+- JSON parse/stringify failures return structured `none(...)` values:
+  - parse failures: `none("json-parse-error", context)`
+  - stringify failures: `none("json-stringify-error", context)`
 - this bridge does not introduce a generalized Flow system
 
 ## 15) Documentation + tests as contract

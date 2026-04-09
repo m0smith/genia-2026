@@ -172,7 +172,8 @@ CLI contract summary:
   - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
   - bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
-    - `json_parse`, `json_pretty`
+    - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
+    - public JSON wrappers: `json_parse`, `json_stringify`, `json_pretty`
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
@@ -697,9 +698,10 @@ These are blocking builtins only; they do not introduce scheduler/async runtime 
 
 - `utf8_encode(string)` returns an opaque bytes wrapper value.
 - `utf8_decode(bytes)` decodes UTF-8 and raises `ValueError` for invalid byte sequences.
-- `json_parse(string)` parses JSON and raises `ValueError` for invalid JSON text.
+- `json_parse(string)` parses JSON and returns parsed value or `none("json-parse-error", context)`.
   - JSON objects become runtime map values (same family used by `map_new`/`map_put`).
-- `json_pretty(value)` renders deterministic pretty JSON (`indent=2`, sorted keys).
+- `json_stringify(value)` renders deterministic pretty JSON (`indent=2`, sorted keys) or returns `none("json-stringify-error", context)`.
+- `json_pretty(value)` remains a compatibility alias for `json_stringify(value)`.
 - `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
 - `zip_write(entries, path)` writes entries in order and returns `path`.
   - It also accepts `(path, entries)` to stay pipeline-friendly with the current `|>` call-shape rules.

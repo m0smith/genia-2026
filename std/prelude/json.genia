@@ -1,0 +1,23 @@
+json_parse(value) = """
+# json_parse
+
+Parse JSON text into Genia runtime data.
+
+Returns parsed value on success.
+Returns `none("json-parse-error", context)` on parse/type failures.
+""" _json_parse(value)
+
+json_stringify(value) = """
+# json_stringify
+
+Render a Genia value as deterministic pretty JSON.
+
+Object keys are sorted and output uses 2-space indentation.
+Returns `none("json-stringify-error", context)` when the value is not JSON-compatible.
+""" _json_stringify(value)
+
+json_pretty(value) = """
+# json_pretty
+
+Compatibility alias for `json_stringify(value)`.
+""" json_stringify(value)
