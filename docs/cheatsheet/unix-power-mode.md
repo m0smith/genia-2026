@@ -1,0 +1,126 @@
+
+# Genia CLI Cheatsheet: Unix Power Mode
+
+Only includes currently implemented Genia CLI and Flow behavior.
+
+## Core CLI Shapes
+
+| Mode | Command | Notes |
+| --- | --- | --- |
+| command mode | `genia -c 'source'` | run full source expression/program |
+| pipe mode | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <stage_expr> |> run` |
+| file mode | `genia path/to/file.genia` | run file source |
+
+Use `-c` for value-producing pipelines such as sums.
+Use `-p` for flow-stage pipelines ending in effects.
+
+## Reliable Pipeline Building Blocks
+
+| Goal | Building blocks |
+| --- | --- |
+| row source | `stdin |> lines` |
+| flow transform | `map`, `filter`, `head`, `keep_some_else` |
+| side effects | `each(print)`, `each(log)` |
+| materialize | `collect` |
+| maybe-safe parse | `parse_int`, `flat_map_some`, `unwrap_or` |
+
+## Working Commands
+
+### Print stdin rows
+
+```bash
+cat file.txt | genia -p 'each(print)'
+```
+
+### Keep first 5 rows
+
+```bash
+cat file.txt | genia -p 'head(5) |> each(print)'
+```
+
+### Count rows
+
+```bash
+cat file.txt | genia -c 'stdin |> lines |> collect |> count'
+```
+
+### Grep-style filter
+
+```bash
+cat file.txt | genia -p 'filter((l) -> contains(l, "error")) |> each(print)'
+```
+
+### Case-insensitive grep-style filter
+
+```bash
+cat file.txt | genia -p 'filter((l) -> contains(lower(l), "error")) |> each(print)'
+```
+
+### Uppercase all rows
+
+```bash
+cat file.txt | genia -p 'map(upper) |> each(print)'
+```
+
+### Sum the 5th column (AWK-style)
+
+```bash
+ls -l | genia -c '
+  stdin
+    |> lines
+    |> map(fields)
+    |> keep_some_else((row) -> row |> nth(5) |> flat_map_some(parse_int), log)
+    |> collect
+    |> sum
+'
+```
+
+Notes:
+- `fields(row)` keeps the original row at index `0`.
+- `nth(5, row)` targets the fifth whitespace field.
+- `keep_some_else` keeps good parsed ints and sends bad rows to `log`.
+
+## Common Pitfalls
+
+| Pitfall | Bad | Good |
+| --- | --- | --- |
+| wrong `nth` arity | `nth(5)` | `nth(5, row)` |
+| assuming some auto-unwrap | `row |> nth(5) |> parse_int` | `row |> nth(5) |> flat_map_some(parse_int)` |
+| using non-existent helper | `keep_some` | `keep_some_else(stage, dead_handler)` |
+| forgetting flow sink | `stdin |> lines` | `stdin |> lines |> each(print) |> run` (or use `-p`) |
+
+## Dead-Letter Pattern
+
+```genia
+rows
+  |> lines
+  |> keep_some_else(parse_int, log)
+  |> collect
+```
+
+`parse_int` returns `some(int)` or `none(...)`.
+`keep_some_else` unwraps `some(...)` into the main flow and routes `none(...)` items to `log`.
+
+# 🚀 One-Liner to Remember
+
+> “Treat stdin like a stream, pipe it through small functions, and only run when you’re ready.”
+
+---
+
+# 🔥 What This Unlocks
+
+With just this cheatsheet, Genia can already replace:
+
+* `awk`
+* `cut`
+* `grep`
+* `wc`
+* parts of `sed`
+
+…and do it in a way that’s:
+
+* safer (Option)
+* composable (pipelines)
+* readable (left → right)
+
+

@@ -1,8 +1,7 @@
-
-
-
 stdin
   |> lines
-  |> map((row) -> unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int)))
+  |> map(fields)
+  |> keep_some_else((xs) -> nth(5, xs), log)
+  |> keep_some_else(parse_int, log)
   |> collect
   |> sum

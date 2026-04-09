@@ -69,6 +69,27 @@ No exceptions.
 
 ---
 
+## Cheatsheet Sync Rule (CRITICAL)
+
+`docs/cheatsheet/*` must remain a truthful quick-reference surface for implemented behavior only.
+
+When language/runtime/API-facing behavior or user-facing examples change, agents must also update relevant cheatsheet pages.
+
+At minimum, review and update as needed:
+
+* `docs/cheatsheet/core.md`
+* `docs/cheatsheet/unix-power-mode.md`
+
+Cheatsheets must not include:
+
+* unimplemented helpers/operators
+* speculative or planned features presented as available
+* call shapes that do not match the current runtime
+
+If cheatsheet content conflicts with source-of-truth docs, `GENIA_STATE.md` remains final authority and cheatsheets must be corrected.
+
+---
+
 ## Core Philosophy
 
 ### 1. Preserve Simplicity
@@ -293,6 +314,7 @@ Agents MUST update:
 * `GENIA_STATE.md`
 * Relevant chapter(s)
 * Examples if behavior changed
+* Relevant `docs/cheatsheet/*` pages when public language/runtime/API examples or call shapes changed
 
 For host / portability work, agents MUST also update the relevant shared contract files when they change:
 
@@ -310,6 +332,7 @@ Before finishing, verify:
 * Docs match actual parser/runtime behavior
 * No feature is documented unless implemented
 * Partial features are labeled as partial
+* Cheatsheet entries match implemented behavior and current call shapes
 
 ---
 
