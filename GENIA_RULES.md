@@ -157,6 +157,13 @@ Required constraints:
 - Module evaluation keeps its own module environment boundary, so module top-level assignment must not rebind names in the importing root environment.
 - Builtin/root names are not protected from rebinding inside the same root environment in the current implementation.
 
+## 8.4) Core IR portability invariants
+
+- Core IR is the semantic portability boundary, while parser AST shape is host-local.
+- The frozen minimal portable Core IR contract is documented in `docs/architecture/core-ir-portability.md`.
+- AST->IR lowering output must stay inside the frozen portable `Ir*` node families.
+- Host-local post-lowering optimized nodes (for example `IrListTraversalLoop`) are allowed only after host-local optimization passes and are not part of the minimal shared Core IR contract.
+
 ## 9) Operator model
 
 Implemented operators are limited to:

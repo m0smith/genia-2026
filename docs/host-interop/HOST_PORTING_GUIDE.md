@@ -94,6 +94,8 @@ Rule:
 - parser rejects invalid case placement and invalid patterns as documented
 - lowering preserves current explicit pipeline IR semantics (source + ordered stages)
 - Core IR remains the semantic boundary
+- lowering output stays inside the frozen minimal portable Core IR node families defined in `docs/architecture/core-ir-portability.md`
+- host-local optimized/post-lowering IR nodes remain outside the minimal portable Core IR contract
 - runtime preserves current value families and callable behaviors
 - if the host implements allowlisted host interop, the bridge must preserve:
   - host-null/host-None -> Genia `none`
@@ -131,6 +133,7 @@ If you add a new public capability:
 Avoid these:
 
 - treating parser output as the portability boundary instead of Core IR meaning
+- leaking host-local optimized IR nodes into the shared minimal lowered Core IR contract
 - adding host-only convenience helpers that become de facto language features
 - changing error wording/prefixes that user code or shared tests rely on
 - keeping host-local docs more up to date than shared docs

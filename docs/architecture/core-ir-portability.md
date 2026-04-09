@@ -1,116 +1,118 @@
 # Core IR as the Portability Boundary
 
-Genia's portability story should center on Core IR, not on any one host's parser classes or runtime objects.
+This document freezes the minimal portable Core IR contract for Genia.
 
-Python is the current reference host.
-This note explains why future hosts should align at the Core IR boundary.
+Python is the current reference host and may use additional host-local optimized IR after lowering.
+Those host-local optimized nodes are explicitly outside the shared portability contract.
 
-## Why the Parser Is Not the Final Boundary
+## Layer Separation
 
-Different hosts may want different parser implementations:
+Hosts must keep these layers conceptually separate:
 
-- recursive descent
-- parser combinators
-- generated parser tooling
-- hand-written tokenizer plus Pratt/precedence parser
+1. Surface syntax
+2. Host parser AST (host-local shape)
+3. Minimal portable Core IR (shared contract)
+4. Host-local post-lowering optimized IR/execution strategy (host-local shape)
 
-Those internal choices are fine.
-What must not drift is the meaning of the lowered program.
+Only layer 3 is the shared Core IR portability boundary.
 
-If two hosts parse the same surface program but lower it differently, they no longer implement the same language.
+## Minimal Portable Core IR (Frozen Contract)
 
-That is why surface AST shape alone is not enough.
-The portable contract is the meaning after lowering into Genia's tiny Core IR.
+The minimal portable Core IR node families are:
 
-## Why Shared Lowering Matters
+- `IrLiteral`
+- `IrOptionNone`
+- `IrOptionSome`
+- `IrVar`
+- `IrQuote`
+- `IrDelay`
+- `IrQuasiQuote`
+- `IrUnquote`
+- `IrUnquoteSplicing`
+- `IrUnary`
+- `IrBinary`
+- `IrPipeline`
+- `IrCall`
+- `IrExprStmt`
+- `IrBlock`
+- `IrList`
+- `IrMap`
+- `IrSpread`
+- `IrCaseClause`
+- `IrCase`
+- `IrLambda`
+- `IrAssign`
+- `IrFuncDef`
+- `IrImport`
 
-Genia already relies on lowering for important language behavior.
+Pattern families in the portable contract are:
 
-Examples:
+- `IrPatLiteral`
+- `IrPatBind`
+- `IrPatWildcard`
+- `IrPatRest`
+- `IrPatTuple`
+- `IrPatList`
+- `IrPatMap`
+- `IrPatGlob`
+- `IrPatSome`
+- `IrPatNone`
 
-- explicit pipeline stage sequencing
-- explicit Option constructor representation
-- case/body normalization
-- Core evaluator entry behavior
+## Lowering Invariants Hosts Must Preserve
 
-If lowering drifts, then evaluation drifts even when the evaluator looks "mostly the same."
+Hosts must preserve these lowering invariants:
 
-Future hosts should therefore validate:
+- pipelines lower as one explicit `IrPipeline(source, stages=[...])` node with ordered stages
+- `some(x)` lowers as `IrOptionSome(...)`
+- `none(...)` lowers as `IrOptionNone(...)`
+- `nil` lowers to `IrOptionNone(IrLiteral("nil"), None, ...)`
+- case/function patterns lower into explicit `IrPat*` pattern families
+- lowering output uses only the minimal portable Core IR node families listed above
 
-- parse behavior
-- IR snapshots
-- evaluated behavior after lowering
+## Explicitly Not in the Portable Contract
 
-## Why Runtime Builtins Should Be Capability-Backed
+The following are not part of the minimal portable Core IR contract:
 
-Host resources are real, but they should stay at the edge.
+- parser AST class names/structures
+- evaluator execution strategy (interpreter vs VM vs compiler)
+- host runtime representation choices for values/capabilities
+- host-local optimization passes and host-local optimized IR nodes
+- debug-print formatting of internal host objects
 
-Examples:
+## Host-Local Post-Lowering IR (Current Python Host)
 
-- stdin/stdout/stderr
-- argv
-- process/thread/mailbox substrate
-- refs/synchronization
-- bytes/json/zip bridges
-- debugger transports
+Current known host-local post-lowering optimized node(s):
 
-These are host responsibilities.
-They should not become the place where public language semantics accumulate.
+- `IrListTraversalLoop`
 
-Instead:
+Contract:
 
-- host code provides a small capability bridge
-- public stdlib behavior prefers prelude/Genia code when feasible
-- shared semantics live above the capability layer
+- these nodes may appear only after host-local optimization passes
+- they must not appear in the minimal lowered Core IR output
+- they must preserve the same observable Genia semantics
 
-This keeps the language more portable and makes future direct/native compilation easier.
+## Validation and Drift Guard
 
-## Why Shared Evaluation Semantics Matter
+The Python reference host now includes a lightweight guard:
 
-Hosts may use different execution strategies:
+- lowered programs are validated against the minimal portable Core IR boundary before host-local optimization
+- this helps detect accidental host-local IR creep into the portable contract layer
 
-- direct interpreter
-- bytecode VM
-- compiled IR
-- trampolined evaluator
+Shared conformance work should continue to assert:
 
-Those choices are host-local.
-
-Shared semantics still need to match for:
-
-- value results
-- stdout/stderr output
-- CLI behavior
-- Flow behavior
-- normalized errors
-- public prelude helper behavior
-
-Core IR is the cleanest place to compare those behaviors.
-
-## What Should Remain Host-Neutral
-
-The following should stay host-neutral as Genia grows:
-
-- Core IR meaning
-- lowering semantics
-- public prelude helper semantics
-- shared error wording/prefixes relied on by docs/tests
-- CLI mode contract
-- Flow contract
-- capability names and their Genia-level observable behavior
+- lowering snapshots/shape
+- eval behavior after lowering
+- CLI/Flow/error contracts at observable boundaries
 
 ## Current Status
 
 Implemented today:
 
-- Python host/parser/lowering/evaluator
-- documented Core IR portability direction
-- shared spec scaffolding
+- frozen minimal portable Core IR contract (this document)
+- Python-host guard to detect host-local node leakage before optimization
+- tests that lock the boundary between lowered portable IR and host-local optimized IR
 
 Not implemented today:
 
 - second host implementation
 - generic multi-host spec runner implementation
-- direct/native host
-
-The portability boundary is therefore documented and scaffolded now, while Python remains the only working host.

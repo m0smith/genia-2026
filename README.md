@@ -187,6 +187,8 @@ This IR is meant to be:
 - explicit about semantic structure
 - separate from execution strategy
 
+The frozen minimal portable Core IR node/pattern families are documented in `docs/architecture/core-ir-portability.md`.
+
 Small schematic example:
 
 ```text
@@ -203,6 +205,10 @@ none("parse-error", ctx) -> IrOptionNone(IrLiteral("parse-error"), <lowered ctx>
 ```
 
 The current Python host may still apply small post-lowering optimizations such as `IrListTraversalLoop`, but those optimized nodes are not the minimal portability contract.
+
+Boundary validation note:
+
+- lowered programs are validated against the minimal portable Core IR contract before host-local optimization in the current Python reference host
 
 ## Multi-Host Direction
 

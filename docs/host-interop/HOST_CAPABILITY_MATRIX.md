@@ -18,6 +18,7 @@ Browser playground adapter note:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | parser | Implemented | Planned | Planned | Planned | Planned | Planned | Python parser/lowering live in `src/genia/interpreter.py` today |
 | AST lowering | Implemented | Planned | Planned | Planned | Planned | Planned | Core IR lowering is part of current Python host |
+| minimal portable Core IR contract | Implemented | Planned | Planned | Planned | Planned | Planned | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
 | Core IR eval | Implemented | Planned | Planned | Planned | Planned | Planned | Python is the current semantic reference host |
 | CLI file mode | Implemented | Planned | Planned | Planned | Planned | Planned | `genia path/to/file.genia` |
 | `-c` | Implemented | Planned | Planned | Planned | Planned | Planned | command mode |

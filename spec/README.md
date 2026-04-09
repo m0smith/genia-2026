@@ -8,6 +8,11 @@ Purpose:
 - validate behavior at the parse, Core IR, eval, and CLI boundaries
 - reduce semantic drift between hosts
 
+Core IR scope note:
+
+- shared IR snapshots target the minimal portable Core IR contract
+- host-local post-lowering optimized IR is intentionally out of scope for shared Core IR snapshots
+
 Browser playground adapter note:
 
 - browser runtime adapter docs are scaffolded under `docs/browser/`
@@ -36,7 +41,7 @@ The shared suite is intended to hold at least these categories:
 - `parser/`:
   - parse snapshots and parse acceptance/rejection cases
 - `ir/`:
-  - Core IR snapshots and lowering-focused cases
+  - minimal portable Core IR snapshots and lowering-focused cases
 - `eval/`:
   - runtime result behavior for lowered programs
   - when a host supports allowlisted host interop, this also covers boundary cases such as host `None` -> Genia `none` and normalized explicit host errors

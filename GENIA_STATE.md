@@ -94,7 +94,8 @@ Clarifications:
 - Core IR is the current portability boundary
   - lowering keeps pipelines explicit as ordered stage sequences rather than nested calls
   - lowering keeps Option constructors explicit as `IrOptionSome(...)` / `IrOptionNone(...)`
-  - the minimal Core IR layer is descriptive only; it does not itself define an execution strategy
+  - the minimal Core IR contract is explicitly frozen in `docs/architecture/core-ir-portability.md`
+  - lowered portable IR is validated before host-local optimization in the Python reference host
 - the current Python host may apply small post-lowering optimization rewrites such as `IrListTraversalLoop`
   - those optimized nodes are Python-host implementation details, not the minimal shared Core IR contract
 - assignment is supported at top level and in lexical scopes (`name = expr`)

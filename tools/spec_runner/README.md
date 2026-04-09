@@ -27,7 +27,8 @@ Suggested normalized shapes:
   - output: JSON representation of the host's parsed AST shape
 - `lower(source)`:
   - input: source string
-  - output: JSON representation of lowered Core IR
+  - output: JSON representation of lowered minimal portable Core IR
+  - optional host-local extension output may include a separate optimized IR payload, but it must not replace the minimal portable Core IR payload
 - `eval(source, stdin?, argv?)`:
   - input:
     - source string
@@ -56,6 +57,7 @@ Suggested normalized shapes:
 - host-local transport details may vary
 - JSON field naming should stay stable once shared fixtures depend on it
 - host-local convenience wrappers must not replace the shared contract
+- host-local optimized IR must be surfaced as host-local/optional metadata, not as the shared minimal Core IR payload
 - if the contract changes, update:
   - `spec/manifest.json`
   - `docs/host-interop/HOST_INTEROP.md`

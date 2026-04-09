@@ -1044,6 +1044,113 @@ class IrListTraversalLoop(IrNode):
     span: SourceSpan | None = None
 
 
+# Portable/shared Core IR node families produced by AST->IR lowering.
+PORTABLE_CORE_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
+    IrLiteral,
+    IrOptionNone,
+    IrOptionSome,
+    IrVar,
+    IrQuote,
+    IrDelay,
+    IrQuasiQuote,
+    IrUnquote,
+    IrUnquoteSplicing,
+    IrUnary,
+    IrBinary,
+    IrPipeline,
+    IrCall,
+    IrExprStmt,
+    IrBlock,
+    IrList,
+    IrMap,
+    IrSpread,
+    IrCaseClause,
+    IrCase,
+    IrLambda,
+    IrAssign,
+    IrFuncDef,
+    IrImport,
+)
+
+# Host-local post-lowering optimized nodes are intentionally outside the minimal portable contract.
+HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
+    IrListTraversalLoop,
+)
+
+
+def iter_ir_nodes(root: IrNode | Iterable[IrNode]) -> Iterator[IrNode]:
+    """Yield IR nodes in depth-first order for validation and tooling."""
+    if isinstance(root, IrNode):
+        stack: list[IrNode] = [root]
+    else:
+        stack = list(root)
+
+    while stack:
+        node = stack.pop()
+        yield node
+
+        children: list[IrNode] = []
+        if isinstance(node, IrOptionNone):
+            if node.reason is not None:
+                children.append(node.reason)
+            if node.context is not None:
+                children.append(node.context)
+        elif isinstance(node, IrOptionSome):
+            children.append(node.value)
+        elif isinstance(node, IrDelay):
+            children.append(node.expr)
+        elif isinstance(node, IrUnquote):
+            children.append(node.expr)
+        elif isinstance(node, IrUnquoteSplicing):
+            children.append(node.expr)
+        elif isinstance(node, IrUnary):
+            children.append(node.expr)
+        elif isinstance(node, IrBinary):
+            children.extend([node.left, node.right])
+        elif isinstance(node, IrPipeline):
+            children.append(node.source)
+            children.extend(node.stages)
+        elif isinstance(node, IrCall):
+            children.append(node.fn)
+            children.extend(node.args)
+        elif isinstance(node, IrExprStmt):
+            children.append(node.expr)
+        elif isinstance(node, IrBlock):
+            children.extend(node.exprs)
+        elif isinstance(node, IrList):
+            children.extend(node.items)
+        elif isinstance(node, IrMap):
+            children.extend(value for _, value in node.items)
+        elif isinstance(node, IrSpread):
+            children.append(node.expr)
+        elif isinstance(node, IrCaseClause):
+            if node.guard is not None:
+                children.append(node.guard)
+            children.append(node.result)
+        elif isinstance(node, IrCase):
+            children.extend(node.clauses)
+        elif isinstance(node, IrLambda):
+            children.append(node.body)
+        elif isinstance(node, IrAssign):
+            children.append(node.expr)
+        elif isinstance(node, IrFuncDef):
+            children.append(node.body)
+        elif isinstance(node, IrListTraversalLoop):
+            children.extend([node.empty_clause, node.zero_clause])
+
+        stack.extend(reversed(children))
+
+
+def assert_portable_core_ir(nodes: Iterable[IrNode]) -> None:
+    """Raise when host-local post-lowering IR appears in a portable/lowered program."""
+    for node in iter_ir_nodes(nodes):
+        if isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES):
+            raise RuntimeError(
+                "Portable Core IR validation failed: host-local post-lowering node "
+                f"{type(node).__name__} appeared before host-local optimization."
+            )
+
+
 def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
     return [lower_node(node) for node in nodes]
 
@@ -6354,6 +6461,7 @@ def run_source(
     parser = Parser(tokens, source=source, filename=filename)
     ast_nodes = parser.parse_program()
     ir_nodes = lower_program(ast_nodes)
+    assert_portable_core_ir(ir_nodes)
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
     env.debug_hooks = effective_hooks
     env.debug_mode = effective_debug_mode

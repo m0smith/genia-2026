@@ -44,6 +44,10 @@ They must still preserve the same lowered Core IR meaning and the same observabl
 
 Core IR is the portability boundary for Genia semantics in this phase.
 
+The frozen minimal Core IR contract is documented in:
+
+- `docs/architecture/core-ir-portability.md`
+
 That means:
 
 - surface parsing may vary internally by host
@@ -56,6 +60,12 @@ Portable host work should therefore ask:
 - does this preserve lowering into the same Core IR meaning?
 - does this preserve the same runtime result/effect behavior?
 - would the shared spec suite observe the same outcome?
+
+Boundary rule:
+
+- minimal lowered Core IR must contain only portable `Ir*` node families in the frozen contract
+- host-local post-lowering optimized nodes are allowed only after host-local optimization passes
+- host-local optimized nodes must preserve observable Genia semantics and must not be treated as shared contract nodes
 
 ## Browser Playground Adapter Scaffold
 
@@ -265,6 +275,11 @@ Current repository note:
 ## Shared Spec Rule
 
 The shared spec suite under `spec/` is the authoritative cross-host validation layer.
+
+For Core IR specifically:
+
+- lowering-facing shared checks should validate the minimal portable Core IR boundary
+- host-local optimized IR checks may exist as host-local tests, but they do not redefine the shared portable IR contract
 
 Hosts should eventually be able to run the same categories of cases for:
 

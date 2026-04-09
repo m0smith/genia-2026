@@ -1,6 +1,50 @@
 {
   "language_version": "0.1.8-prototype",
   "core_ir_version": "0.1.0",
+  "core_ir_contract": {
+    "minimal_portable_node_families": [
+      "IrLiteral",
+      "IrOptionNone",
+      "IrOptionSome",
+      "IrVar",
+      "IrQuote",
+      "IrDelay",
+      "IrQuasiQuote",
+      "IrUnquote",
+      "IrUnquoteSplicing",
+      "IrUnary",
+      "IrBinary",
+      "IrPipeline",
+      "IrCall",
+      "IrExprStmt",
+      "IrBlock",
+      "IrList",
+      "IrMap",
+      "IrSpread",
+      "IrCaseClause",
+      "IrCase",
+      "IrLambda",
+      "IrAssign",
+      "IrFuncDef",
+      "IrImport"
+    ],
+    "minimal_portable_pattern_families": [
+      "IrPatLiteral",
+      "IrPatBind",
+      "IrPatWildcard",
+      "IrPatRest",
+      "IrPatTuple",
+      "IrPatList",
+      "IrPatMap",
+      "IrPatGlob",
+      "IrPatSome",
+      "IrPatNone"
+    ],
+    "host_local_post_lowering_nodes": [
+      "IrListTraversalLoop"
+    ],
+    "contract_doc": "docs/architecture/core-ir-portability.md"
+  },
   "required_capabilities": [
     "parser",
     "ast_lowering",
@@ -32,7 +76,8 @@
     },
     "lower": {
       "input": "source string",
-      "output": "Core IR JSON"
+      "output": "minimal portable Core IR JSON",
+      "optional_host_local_output": "optional optimized host-local IR JSON payload"
     },
     "eval": {
       "input": "source string",

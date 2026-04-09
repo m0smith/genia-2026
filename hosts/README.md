@@ -38,6 +38,11 @@ Instead it adds:
 
 Future moves should happen only when they can preserve current Python behavior and keep the shared docs/specs synchronized.
 
+Portability boundary note:
+
+- hosts must target the frozen minimal portable Core IR contract in `docs/architecture/core-ir-portability.md`
+- host-local post-lowering optimized IR remains host-local and must not be treated as shared Core IR contract surface
+
 ## Host Status
 
 | Host | Status | Notes |

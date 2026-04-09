@@ -1,4 +1,5 @@
 from genia.interpreter import (
+  HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
     IrBinary,
     IrCall,
     IrCase,
@@ -18,6 +19,9 @@ from genia.interpreter import (
     IrPatTuple,
     IrVar,
     Parser,
+    PORTABLE_CORE_IR_NODE_TYPES,
+    assert_portable_core_ir,
+    iter_ir_nodes,
     lex,
     lower_program,
     optimize_program,
@@ -228,3 +232,33 @@ def test_case_literal_pattern_lowers_to_ir_literal_pattern():
     assert isinstance(first, IrPatTuple)
     assert isinstance(first.items[0], IrPatLiteral)
     assert first.items[0].value == 0
+
+
+def test_lowered_program_uses_only_portable_core_ir_nodes():
+    src = """
+    import python.json as pyjson
+    f(x) = x |> some |> map_some((n) -> n + 1)
+    [f(1), "null" |> pyjson/loads]
+    """
+    ast_nodes = Parser(lex(src)).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+
+    assert_portable_core_ir(ir_nodes)
+    for node in iter_ir_nodes(ir_nodes):
+        assert isinstance(node, PORTABLE_CORE_IR_NODE_TYPES)
+        assert not isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES)
+
+
+def test_host_local_optimized_ir_nodes_are_not_in_minimal_portable_contract():
+    src = """
+    nth(n, xs) =
+      (_, []) -> nil |
+      (0, [x, .._]) -> x |
+      (n, [_, ..rest]) -> nth(n - 1, rest)
+    """
+    ast_nodes = Parser(lex(src)).parse_program()
+    lowered = lower_program(ast_nodes)
+    optimized = optimize_program(lowered)
+
+    assert all(not isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES) for node in iter_ir_nodes(lowered))
+    assert any(isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES) for node in iter_ir_nodes(optimized))
