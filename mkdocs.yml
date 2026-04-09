@@ -1,0 +1,50 @@
+site_name: Genia
+repo_url: https://github.com/m0smith/genia-2026
+repo_name: m0smith/genia-2026
+docs_dir: .tmp/mkdocs-docs
+site_dir: site
+strict: true
+
+theme:
+  name: material
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - fenced_code
+  - tables
+
+nav:
+  - Home: index.md
+  - Reference:
+      - Current State: GENIA_STATE.md
+      - Language Rules: GENIA_RULES.md
+      - REPL Guide: GENIA_REPL_README.md
+  - Book:
+      - 01 Core Data: book/01-core-data.md
+      - 02 Pattern Matching: book/02-pattern-matching.md
+      - 03 Functions: book/03-functions.md
+      - 05 Lists: book/05-lists.md
+      - 06 Recursion: book/06-recursion.md
+      - 10 Concurrency: book/10-concurrency.md
+      - 11 Flow: book/11-flow.md
+      - 12 Streams: book/12-streams.md
+      - 13 Metacircular Helpers: book/13-metacircular-helpers.md
+      - 14 Building an Evaluator: book/14-building-an-evaluator.md
+      - 15 Reference Host and Portability: book/15-reference-host-and-portability.md
+  - Cheatsheets:
+      - Core: cheatsheet/core.md
+      - Quick Reference: cheatsheet/quick-reference.md
+      - Pipeline Flow vs Value: cheatsheet/piepline-flow-vs-value.md
+      - Unix Power Mode: cheatsheet/unix-power-mode.md
+      - Unix to Genia: cheatsheet/unix-to-genia.md
+  - Architecture:
+      - Core IR Portability: architecture/core-ir-portability.md
+      - Pipeline IR Host Integration: architecture/pipeline-ir-host-integration.md
+      - Pipeline Option Redesign: architecture/pipeline-option-redesign.md
+  - Host Interop:
+      - Overview: host-interop/README.md
+      - Host Interop Contract: host-interop/HOST_INTEROP.md
+      - Host Porting Guide: host-interop/HOST_PORTING_GUIDE.md
+      - Host Capability Matrix: host-interop/HOST_CAPABILITY_MATRIX.md
