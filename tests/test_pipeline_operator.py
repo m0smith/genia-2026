@@ -188,5 +188,21 @@ def test_pipeline_with_case_expression_still_rejected_in_subexpression(run):
 
 
 def test_pipeline_failure_when_rhs_is_not_callable(run):
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"pipeline stage 1 failed in Value mode at 2 .*stage received int; pipeline stage expected a callable value, received int"):
         run("1 |> 2")
+
+
+def test_pipeline_stage_error_reports_index_mode_stage_and_input_type(run):
+    with pytest.raises(
+        TypeError,
+        match=r'pipeline stage 1 failed in Value mode at parse_int .*stage received some; parse_int expected a string, received some',
+    ):
+        run('some("42") |> parse_int')
+
+
+def test_pipeline_explicit_bridge_error_reports_mode_and_stage(run):
+    with pytest.raises(
+        TypeError,
+        match=r"pipeline stage 1 failed in Explicit bridge mode at collect .*stage received int; collect expected a flow, received int",
+    ):
+        run("1 |> collect")

@@ -18,5 +18,10 @@
     "id": "core-min-keep-some-else",
     "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some_else(parse_int, log) |> collect",
     "expected_result": "[10, 20]"
+  },
+  {
+    "id": "core-min-sum-after-keep-some",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some(parse_int) |> collect |> sum",
+    "expected_result": "30"
   }
 ]

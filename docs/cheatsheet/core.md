@@ -42,6 +42,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | callable rhs | `record |> "name"` behaves like `"name"(record)` |
 | none short-circuit | `none(...)` skips remaining stages |
 | some preserved | pipelines do not auto-unwrap `some(...)` |
+| stage input | raw values stay raw; `some(...)` also stays explicit |
 
 Use explicit Option helpers when the next stage needs the wrapped inner value.
 
@@ -67,6 +68,7 @@ Use explicit Option helpers when the next stage needs the wrapped inner value.
 | transforms | `map(f, xs)`, `filter(pred, xs)`, `reduce(f, acc, xs)`, `reverse(xs)` |
 | queries | `count(xs)`, `length(xs)`, `any?(pred, xs)`, `find_opt(pred, xs)` |
 | ranges | `range(stop)`, `range(start, stop)`, `range(start, stop, step)` |
+| aggregate note | `sum(xs)` expects plain numbers; filter or recover Option values first |
 
 `nth` is `nth(index, xs)`.
 
@@ -131,4 +133,8 @@ fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
 ["10", "oops", "20"] |> lines |> keep_some_else(parse_int, log) |> collect
 ```
 
+[case: core-min-sum-after-keep-some]
+```genia
+["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect |> sum
+```
 

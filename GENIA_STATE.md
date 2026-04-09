@@ -241,9 +241,17 @@ Pipeline (Phase 2) evaluation model:
     `f |> g`
 - automatic Option propagation is part of pipeline evaluation:
   - if a stage input is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
-  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
+  - otherwise the next stage receives the current value unchanged:
+    - raw values stay raw values
+    - explicit `some(...)` stays `some(...)`
   - if a stage result is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
   - pipeline evaluation does not auto-unwrap `some(...)`
+- pipeline failure diagnostics now include:
+  - 1-based stage index
+  - stage rendering when available
+  - stage source span when available
+  - pipeline mode classification (`Value mode`, `Flow mode`, or `Explicit bridge mode`)
+  - received runtime type names
 - pipeline-visible function modes are interpreted as:
   - Value -> Value
   - Flow -> Flow
@@ -664,10 +672,16 @@ Flow semantics:
 - `keep_some_else` semantics:
   - it is an explicit Flow-stage helper for Option-returning per-item stages
   - for each input item `x`, it evaluates `stage(x)`
+  - `stage(x)` receives the original raw input item, not `some(x)`
   - `some(v)` emits `v` on the main output flow
   - `none(...)` emits nothing on the main flow for that item and calls `dead_handler(x)` with the original input item
   - if `stage(x)` does not return `some(...)` or `none(...)`, it raises a clear user-facing error
   - this helper is local dead-letter routing only; it does not change global `|>` semantics or create a second live output flow
+- `keep_some` semantics:
+  - `keep_some(flow)` expects upstream Option items
+  - `keep_some(stage, flow)` applies an Option-returning stage per item
+  - `some(v)` is unwrapped to `v` inside this helper
+  - `none(...)` is dropped inside this helper
 - explicit CLI pipe mode is implemented:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
   - wraps as `stdin |> lines |> <stage_expr> |> run`
@@ -880,14 +894,17 @@ Maybe-flow helper semantics:
   - pipeline stages that need the inner value of `some(...)`
 - `map_some(f, some(x)) -> some(f(x))`
 - `map_some(f, none(...)) -> none(...)` unchanged
+- `map_some(f, some(x))` calls `f(x)` with the inner raw value only at that explicit helper boundary
 - `flat_map_some(f, some(x)) -> f(x)` and requires `f(x)` to be an Option value
 - `flat_map_some(f, none(...)) -> none(...)` unchanged
+- `flat_map_some(f, some(x))` calls `f(x)` with the inner raw value only at that explicit helper boundary
 - `then_get(key, target)` is a thin maybe-aware chaining helper:
+  - `then_get(key, map) -> get(key, map)`
   - `then_get(key, some(map)) -> get(key, map)`
   - `then_get(key, none(...)) -> none(...)` unchanged
-- `then_first(target)` is a thin maybe-aware chaining helper over `first`
-- `then_nth(index, target)` is a thin maybe-aware chaining helper over `nth`
-- `then_find(needle, target)` is a thin maybe-aware chaining helper over string `find`
+- `then_first(target)` is a thin maybe-aware chaining helper over raw list / `some(list)` / `none(...)`
+- `then_nth(index, target)` is a thin maybe-aware chaining helper over raw list / `some(list)` / `none(...)`
+- `then_find(needle, target)` is a thin maybe-aware chaining helper over raw string / `some(string)` / `none(...)`
 - `or_else_with(opt, thunk)` is recovery/defaulting:
   - returns wrapped value for `some(value)`
   - calls `thunk()` only for `none...`
@@ -922,6 +939,10 @@ Pipeline note:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
   - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
 - pipelines preserve explicit `some(...)` values; use `then_*` or `flat_map_some(...)` when the next stage expects the wrapped value rather than an Option
+- reducers remain explicit:
+  - `sum(xs)` expects a plain list of numbers
+  - `sum` rejects raw Option items with a clear error instead of relying on accidental arithmetic with `some(...)` / `none(...)`
+  - flow/value parse pipelines should therefore use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`
 - explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain available for direct Option values and higher-order/non-pipeline composition
 
 Structured absence currently used in canonical access/search helpers:

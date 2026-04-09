@@ -58,6 +58,8 @@ Pipe-mode mental model:
 - write one stage expression, not a full program
 - do not write explicit `stdin` or explicit `run`
 - if a stage needs the inner value of `some(...)`, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
+- pipeline stages receive the current value unchanged: raw values stay raw, `some(...)` stays `some(...)`, and `none(...)` skips the remaining stages
+- reducers such as `sum` expect plain numbers after explicit filtering or recovery
 
 Unix-style examples:
 
@@ -470,6 +472,8 @@ get("name", person)
 - recovery/defaulting should wrap the whole pipeline result:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
   - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+- reducers stay explicit:
+  - `sum` expects plain numbers, so filter/recover Option values before `collect |> sum`
 - Flow is still explicit:
   - Flow values move through pipelines only when explicit bridge/stage functions such as `lines`, `collect`, and `run` are used
   - there is no implicit Value↔Flow conversion
@@ -489,9 +493,13 @@ stdin |> lines |> take(2) |> each(print) |> run
   - sink/materialization boundaries
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
 - `keep_some_else(stage, dead_handler)` is an explicit dead-letter Flow stage for Option-returning item transforms:
+  - `stage` receives the original raw item
   - `some(v)` continues on the main flow as `v`
   - `none(...)` drops that item from the main flow and calls `dead_handler(original_item)`
   - ordinary `|>` semantics stay unchanged outside this helper
+- `keep_some(flow)` / `keep_some(stage, flow)` are the keep-only forms:
+  - they unwrap `some(v)` to `v`
+  - they drop `none(...)`
 - `rules(..fns)` is a stateful rule-driven stage over any incoming Flow:
   - each rule runs as `(record, ctx)`
   - `ctx` starts as `{}` and persists across items

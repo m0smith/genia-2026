@@ -228,7 +228,10 @@ def test_pipe_mode_invalid_non_callable_stage_is_reported_cleanly(monkeypatch, c
 
     assert exit_code == 1
     assert captured.out == ""
-    assert captured.err.strip() == "Error: pipeline stage expected a callable value, received int"
+    assert (
+        captured.err.strip()
+        == "Error: pipeline stage 2 failed in Flow mode at 1 + 2 [<pipe>:1]: stage received flow; pipeline stage expected a callable value, received int"
+    )
 
 
 def test_pipe_mode_some_mismatch_points_toward_explicit_helpers(monkeypatch, capsys):

@@ -74,9 +74,12 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` behaves like `"name"(record)`
   - `none(...)` short-circuits the rest of the pipeline and is returned unchanged
-  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
+  - otherwise the next stage receives the current value unchanged:
+    - raw values stay raw values
+    - explicit `some(...)` stays `some(...)`
   - pipeline evaluation does not auto-unwrap `some(...)`
   - pipeline-visible function modes are interpreted as Value -> Value, Flow -> Flow, or explicit Value <-> Flow bridge
+  - stage failures now report stage index, stage rendering, mode classification, and received runtime type names when possible
   - multiline formatting is accepted around the operator:
     ```genia
     value
@@ -183,10 +186,14 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
     - orchestration/defaulting/most contract validation now live in `std/prelude/flow.genia`
     - contract violations raise runtime errors prefixed with `invalid-rules-result:`
   - `keep_some_else(stage, dead_handler, flow)` is explicit dead-letter routing for Option-returning per-item stages:
+    - `stage` receives the original raw item
     - `some(value)` continues on the main output flow as `value`
     - `none(...)` drops that item from the main output flow and calls `dead_handler(original_item)`
     - non-Option stage results raise a clear user-facing error
     - this helper does not change ordinary `|>` semantics or introduce a second live flow output
+  - `keep_some(flow)` / `keep_some(stage, flow)` are keep-only Flow helpers:
+    - they unwrap `some(value)` to `value`
+    - they drop `none(...)`
 - promises:
   - `delay(expr)` captures an unevaluated expression plus its lexical environment
   - `force(promise)` evaluates once and memoizes the successful value
@@ -216,6 +223,9 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
   - canonical recovery wraps the whole pipeline result:
     - `unwrap_or("unknown", record |> get("profile") |> get("name"))`
     - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+  - `map_some` / `flat_map_some` unwrap only at their explicit helper boundary
+  - `then_get`, `then_first`, `then_nth`, and `then_find` accept raw targets, `some(target)`, or `none(...)`
+  - `sum(xs)` expects a plain list of numbers; use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`
   - `some(nil)` now renders as `some(none("nil"))`
   - REPL/debug rendering preserves structured absence syntax directly:
     - `none("missing-key", {key: "name"})`

@@ -3844,16 +3844,112 @@ class Evaluator:
 
         return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
 
+    def _pipeline_stage_name(self, node: IrNode) -> str | None:
+        if isinstance(node, IrVar):
+            return node.name
+        if isinstance(node, IrCall) and isinstance(node.fn, IrVar):
+            return node.fn.name
+        return None
+
+    def _render_pipeline_stage(self, node: IrNode) -> str:
+        if isinstance(node, IrVar):
+            return node.name
+        if isinstance(node, IrLiteral):
+            return format_debug(node.value)
+        if isinstance(node, IrUnary):
+            op = "-" if node.op == "MINUS" else "!"
+            return f"{op}{self._render_pipeline_stage(node.expr)}"
+        if isinstance(node, IrBinary):
+            op_map = {
+                "PLUS": "+",
+                "MINUS": "-",
+                "STAR": "*",
+                "SLASH": "/",
+                "PERCENT": "%",
+                "LT": "<",
+                "LE": "<=",
+                "GT": ">",
+                "GE": ">=",
+                "EQEQ": "==",
+                "NE": "!=",
+                "AND": "&&",
+                "OR": "||",
+                "PIPE_FWD": "|>",
+            }
+            op = op_map.get(node.op, node.op)
+            return f"{self._render_pipeline_stage(node.left)} {op} {self._render_pipeline_stage(node.right)}"
+        if isinstance(node, IrCall):
+            fn_text = self._render_pipeline_stage(node.fn)
+            arg_texts: list[str] = []
+            for arg in node.args:
+                if isinstance(arg, IrSpread):
+                    arg_texts.append(f"..{self._render_pipeline_stage(arg.expr)}")
+                else:
+                    arg_texts.append(self._render_pipeline_stage(arg))
+            return f"{fn_text}({', '.join(arg_texts)})"
+        if isinstance(node, IrBlock):
+            return "{ ... }"
+        if isinstance(node, IrLambda):
+            params = ", ".join(node.params)
+            if node.rest_param is not None:
+                params = f"{params}, ..{node.rest_param}" if params else f"..{node.rest_param}"
+            return f"({params}) -> ..."
+        if isinstance(node, IrQuote):
+            return "quote(...)"
+        if isinstance(node, IrQuasiQuote):
+            return "quasiquote(...)"
+        return node.__class__.__name__
+
+    def _pipeline_stage_mode(self, node: IrNode, stage_input: Any) -> str:
+        stage_name = self._pipeline_stage_name(node)
+        if stage_name in {"lines", "collect"}:
+            return "Explicit bridge mode"
+        if isinstance(stage_input, GeniaFlow):
+            return "Flow mode"
+        return "Value mode"
+
+    def _format_pipeline_stage_span(self, node: IrNode) -> str | None:
+        span = getattr(node, "span", None)
+        if span is None:
+            return None
+        return f"{span.filename}:{span.line}"
+
+    def _wrap_pipeline_stage_error(self, exc: Exception, stage_index: int, node: IrNode, stage_input: Any) -> Exception:
+        message = str(exc)
+        if message.startswith("pipeline stage ") and " failed in " in message:
+            return exc
+        if isinstance(exc, ValueError) and message.startswith("python.json/loads invalid JSON:"):
+            return exc
+        stage_text = self._render_pipeline_stage(node)
+        mode_text = self._pipeline_stage_mode(node, stage_input)
+        span_text = self._format_pipeline_stage_span(node)
+        rendered = f"pipeline stage {stage_index + 1} failed in {mode_text} at {stage_text}"
+        if span_text is not None:
+            rendered += f" [{span_text}]"
+        rendered += f": stage received {_runtime_type_name(stage_input)}"
+        if message:
+            rendered += f"; {message}"
+        exc_type = exc.__class__
+        try:
+            return exc_type(rendered)
+        except Exception:  # pragma: no cover - defensive fallback
+            return RuntimeError(rendered)
+
     def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:
         stage_value = self.eval(node.source)
         for index, stage in enumerate(node.stages):
             if is_none(stage_value):
                 return stage_value
-            stage_value = self.eval_pipeline_stage(
-                stage,
-                stage_value,
-                tail_position=tail_position and index == len(node.stages) - 1,
-            )
+            try:
+                stage_value = self.eval_pipeline_stage(
+                    stage,
+                    stage_value,
+                    tail_position=tail_position and index == len(node.stages) - 1,
+                )
+            except GeniaQuietBrokenPipe:
+                raise
+            except Exception as exc:  # noqa: BLE001
+                raise self._wrap_pipeline_stage_error(exc, index, stage, stage_value) from exc
         return stage_value
 
     def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
@@ -5482,7 +5578,7 @@ def make_global_env(
             return opt.value
         if isinstance(opt, GeniaOptionNone):
             return default
-        raise TypeError("unwrap_or expected an option value")
+        raise TypeError(f"unwrap_or expected an option value, received {_runtime_type_name(opt)}")
 
     def some_predicate_fn(value: Any) -> bool:
         return is_some_fn(value)
@@ -5503,7 +5599,7 @@ def make_global_env(
             return opt.value
         if isinstance(opt, GeniaOptionNone):
             return fallback
-        raise TypeError("or_else expected an option value")
+        raise TypeError(f"or_else expected an option value, received {_runtime_type_name(opt)}")
 
     def absence_reason_fn(value: Any) -> Any:
         if not isinstance(value, GeniaOptionNone):
@@ -5548,17 +5644,20 @@ def make_global_env(
             return GeniaOptionSome(_invoke_from_builtin(proc, [opt.value]))
         if isinstance(opt, GeniaOptionNone):
             return opt
-        raise TypeError("map_some expected an option value")
+        raise TypeError(f"map_some expected an option value, received {_runtime_type_name(opt)}")
 
     def flat_map_some_fn(proc: Any, opt: Any) -> Any:
         if isinstance(opt, GeniaOptionSome):
             result = _invoke_from_builtin(proc, [opt.value])
             if isinstance(result, (GeniaOptionSome, GeniaOptionNone)):
                 return result
-            raise TypeError("flat_map_some expected function to return an option value")
+            raise TypeError(
+                "flat_map_some expected function to return an option value, "
+                f"received {_runtime_type_name(result)}"
+            )
         if isinstance(opt, GeniaOptionNone):
             return opt
-        raise TypeError("flat_map_some expected an option value")
+        raise TypeError(f"flat_map_some expected an option value, received {_runtime_type_name(opt)}")
 
     def _looks_like_get_target(value: Any) -> bool:
         return isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaMap))
@@ -5650,7 +5749,21 @@ def make_global_env(
             return opt.value
         if isinstance(opt, GeniaOptionNone):
             return _invoke_from_builtin(thunk, [])
-        raise TypeError("or_else_with expected an option value")
+        raise TypeError(f"or_else_with expected an option value, received {_runtime_type_name(opt)}")
+
+    def sum_fn(xs: Any) -> Any:
+        if not isinstance(xs, list):
+            raise TypeError(f"sum expected a list, received {_runtime_type_name(xs)}")
+        total: int | float = 0
+        for index, item in enumerate(xs, start=1):
+            if not isinstance(item, (int, float)) or isinstance(item, bool):
+                raise TypeError(
+                    "sum expected a list of numbers; "
+                    f"item {index} received {_runtime_type_name(item)}. "
+                    "Use keep_some(...), keep_some_else(...), flat_map_some(...), or unwrap_or(...) before sum."
+                )
+            total += item
+        return total
 
     for fn in (
         write_fn,
@@ -5918,6 +6031,7 @@ def make_global_env(
     env.set("_cli_flag?", cli_flag_fn)
     env.set("_cli_option", cli_option_fn)
     env.set("_cli_option_or", cli_option_or_fn)
+    env.set("_sum", sum_fn)
 
     env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
     env.register_autoload("cli_parse", 2, "std/prelude/cli.genia")
@@ -6168,10 +6282,10 @@ def _format_pipe_mode_error(exc: Exception) -> str:
         return "Do not use stdin in pipe mode; stdin is provided automatically"
     if message == "-p/--pipe stage expression must omit run; it is added automatically":
         return "Do not use run in pipe mode; pipe mode runs the flow automatically"
-    if message == "Flow has already been consumed":
+    if "Flow has already been consumed" in message:
         return "Flow values are single-use and cannot be reused after consumption"
-    if message.startswith("run expected a flow, received "):
-        received = message.split("received ", 1)[1]
+    if "run expected a flow, received " in message:
+        received = message.rsplit("received ", 1)[1]
         return f"Pipe mode stage expression must produce a flow for the automatic final run; received {received}"
     if "received some" in message:
         return (

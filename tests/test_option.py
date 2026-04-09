@@ -213,6 +213,17 @@ def test_map_some_and_flat_map_some_propagate_structured_absence(run):
     assert format_debug(_run('flat_map_some((x) -> some(x + 1), none("index-out-of-bounds", { index: 8, length: 2 }))')) == 'none("index-out-of-bounds", {index: 8, length: 2})'
 
 
+def test_option_helpers_report_received_runtime_types(run):
+    with pytest.raises(TypeError, match="unwrap_or expected an option value, received int"):
+        run("unwrap_or(0, 42)")
+    with pytest.raises(TypeError, match="map_some expected an option value, received int"):
+        run("map_some((x) -> x + 1, 42)")
+    with pytest.raises(TypeError, match="flat_map_some expected an option value, received int"):
+        run("flat_map_some((x) -> some(x + 1), 42)")
+    with pytest.raises(TypeError, match="flat_map_some expected function to return an option value, received int"):
+        run("flat_map_some((x) -> x + 1, some(2))")
+
+
 def test_safe_chaining_pipeline_examples(run):
     src = '\n'.join([
         'record = { user: { address: { zip: "80302" } } }',

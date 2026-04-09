@@ -274,6 +274,9 @@ Expected result:
 
 This is equivalent to using `keep_some_else(parse_int, (_) -> nil)` for the same flow.
 
+`keep_some(parse_int)` still calls `parse_int` with the original raw row.
+Only the helper itself unwraps `some(...)` on success.
+
 ### Failure case example
 
 ```genia
@@ -283,6 +286,51 @@ This is equivalent to using `keep_some_else(parse_int, (_) -> nil)` for the same
 Expected behavior:
 
 - runtime error explaining that `keep_some` expected Option items (`some(...)` or `none(...)`)
+
+## `collect |> sum`
+
+`collect` is the explicit bridge from Flow to an ordinary list.
+
+`sum` stays explicit too:
+
+- it expects a plain list of numbers
+- it does not auto-unwrap `some(...)`
+- it does not silently skip `none(...)`
+
+### Minimal example
+
+```genia
+["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect |> sum
+```
+
+Expected result:
+
+```genia
+30
+```
+
+### Edge case example
+
+```genia
+["10", "oops", "20"] |> lines |> map((row) -> unwrap_or(0, row |> parse_int)) |> collect |> sum
+```
+
+Expected result:
+
+```genia
+30
+```
+
+### Failure case example
+
+```genia
+["10", "oops", "20"] |> lines |> map(parse_int) |> collect |> sum
+```
+
+Expected behavior:
+
+- runtime error explaining that `sum` expected plain numbers
+- message points toward `keep_some(...)`, `keep_some_else(...)`, `flat_map_some(...)`, or `unwrap_or(...)`
 
 ## `stdin` vs `input()`
 

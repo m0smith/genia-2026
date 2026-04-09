@@ -1259,6 +1259,12 @@ And minimal helpers:
 These public helper names live in `std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
 `none` remains a runtime value/literal rather than a prelude wrapper.
 Direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`; `map_some`, `flat_map_some`, and `then_*` therefore remain important for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
+Those helpers are also the explicit unwrap points:
+
+- raw pipeline stages receive raw values unchanged
+- raw pipeline stages also receive explicit `some(...)` unchanged
+- `map_some` / `flat_map_some` unwrap only inside those helpers
+- `unwrap_or` unwraps only at the final recovery point
 Because plain `none` normalizes to `none("nil")`, metadata inspection treats it the same way:
 
 - `absence_reason(none) -> some("nil")`
@@ -1378,6 +1384,9 @@ Expected behavior:
 - explicit helpers remain useful outside pipelines:
   - `map_some` and `flat_map_some` preserve structured absence unchanged
   - `then_get`, `then_first`, `then_nth`, and `then_find` are thin explicit helpers for direct Option values
+- aggregators stay explicit too:
+  - `sum(xs)` expects a plain list of numbers
+  - use `keep_some(...)`, `keep_some_else(...)`, `flat_map_some(...)`, or `unwrap_or(...)` before `sum` when Option values are still present
 - developer-facing inspection:
   - REPL/debug output preserves structured absence syntax and context visibly
   - `absence_reason` / `absence_context` are the canonical metadata-inspection helpers

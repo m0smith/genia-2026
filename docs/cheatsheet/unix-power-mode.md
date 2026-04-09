@@ -25,6 +25,7 @@ Use `-p` for flow-stage pipelines ending in effects.
 | side effects | `each(print)`, `each(log)` |
 | materialize | `collect` |
 | maybe-safe parse | `parse_int`, `flat_map_some`, `unwrap_or` |
+| numeric aggregate | `keep_some(...) |> collect |> sum` or `map((x) -> unwrap_or(...)) |> collect |> sum` |
 
 ## Working Commands
 
@@ -88,6 +89,7 @@ Notes:
 - `fields(row)` keeps the original row at index `0`.
 - `nth(5, row)` targets the fifth whitespace field.
 - `keep_some_else` keeps good parsed ints and sends bad rows to `log`.
+- `sum` sees only plain numbers after the explicit keep/drop step.
 
 ## Common Pitfalls
 
@@ -96,6 +98,7 @@ Notes:
 | wrong `nth` arity | `nth(5)` | `nth(5, row)` |
 | assuming some auto-unwrap | `row |> nth(5) |> parse_int` | `row |> nth(5) |> flat_map_some(parse_int)` |
 | wrong helper for dead rows | `keep_some(parse_int)` when you need dead-letter logging | `keep_some_else(parse_int, log)` |
+| summing raw Option values | `map(parse_int) |> collect |> sum` | `keep_some(parse_int) |> collect |> sum` |
 | forgetting flow sink | `stdin |> lines` | `stdin |> lines |> each(print) |> run` (or use `-p`) |
 
 When dead-row handling is not needed, `keep_some(parse_int)` is a concise keep-only option stage.
@@ -134,5 +137,4 @@ With just this cheatsheet, Genia can already replace:
 * safer (Option)
 * composable (pipelines)
 * readable (left → right)
-
 

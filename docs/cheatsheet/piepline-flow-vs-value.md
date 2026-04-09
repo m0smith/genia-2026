@@ -28,7 +28,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 | Function description | Value function | Flow function | Comments |
 | --- | --- | --- | --- |
 | Reduce | 🟢 `reduce(f, acc, xs)` | 🟣 `flow \|> collect \|> reduce(f, acc)` | Flow reduction crosses boundary via `collect`. [case: pfv-reduce] |
-| Sum | 🟢 `sum(xs)` | 🟣 `flow \|> collect \|> sum` | Aggregate after intentional materialization. [case: pfv-sum] |
+| Sum | 🟢 `sum(xs)` | 🟣 `flow \|> collect \|> sum` | `sum` expects plain numbers after intentional filtering/recovery. [case: pfv-sum] |
 | Count | 🟢 `count(xs)` | 🟣 `flow \|> collect \|> count` | Same count after collecting flow to list. [case: pfv-count] |
 
 ## Positional / indexing / slicing
@@ -81,6 +81,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 - Cross from flow to value only when needed, with `collect`.
 - Treat `keep_some` and `keep_some_else` as flow-level Option routing tools.
 - Remember pipeline `none(...)` short-circuits while `some(...)` is preserved.
+- Treat `sum` as a plain-number reducer, not an Option-aware stage.
 - Prefer explicit Option helpers (`map_some`, `flat_map_some`, `unwrap_or`) over implicit assumptions.
 
 ## Gotchas

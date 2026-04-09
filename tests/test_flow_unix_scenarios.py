@@ -105,6 +105,24 @@ def test_unix_pipe_keep_some_else_routes_bad_rows_to_stderr_and_keeps_good_rows(
     assert captured.err == "oops\n"
 
 
+def test_unix_command_mode_sum_rejects_option_values_with_clear_guidance(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["10\n", "oops\n", "20\n"]))
+
+    exit_code = _main(
+        [
+            "-c",
+            'stdin |> lines |> map(parse_int) |> collect |> sum',
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "pipeline stage 4 failed in Value mode at sum" in captured.err
+    assert "sum expected a list of numbers; item 1 received some" in captured.err
+    assert "Use keep_some(...), keep_some_else(...), flat_map_some(...), or unwrap_or(...) before sum." in captured.err
+
+
 def test_unix_pipe_collect_alone_explains_stage_only_model(monkeypatch, capsys):
     monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
 

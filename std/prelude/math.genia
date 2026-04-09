@@ -60,9 +60,12 @@ sum(xs) = """
 
 Add all numeric elements of a list.
 
+`sum` expects plain numbers.
+Filter or recover Option values explicitly before calling it.
+
 ## Examples
 
 ```genia
 sum([1, 2, 3, 4]) -> 10
 ```
-""" sum_reduce((acc, x) -> acc + x, 0, xs)
+""" _sum(xs)

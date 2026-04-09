@@ -44,6 +44,7 @@ Pipeline rule reminder:
 
 - `none(...)` short-circuits
 - `some(...)` is preserved (not auto-unwrapped)
+- stages receive the current value unchanged unless a helper explicitly unwraps
 
 Common helpers:
 
@@ -95,6 +96,11 @@ Core helpers:
 - `each(fn, flow)`
 - `collect(flow)`
 - `run(flow)`
+
+Aggregation reminder:
+
+- `sum(xs)` expects plain numbers, not raw Option values
+- use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`
 
 Examples:
 
