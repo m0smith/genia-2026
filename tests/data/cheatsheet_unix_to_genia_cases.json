@@ -1,0 +1,61 @@
+[
+  {
+    "id": "unix-map-echo-text",
+    "source": "\"text\"",
+    "expected_result": "\"text\""
+  },
+  {
+    "id": "unix-map-wc-l",
+    "source": "stdin |> lines |> collect |> count",
+    "stdin_data": ["a", "b", "c"],
+    "expected_result": "3"
+  },
+  {
+    "id": "unix-map-grep",
+    "source": "stdin |> lines |> filter((l) -> contains(l, \"error\")) |> each(print) |> run",
+    "stdin_data": ["ok", "error: one", "warn", "error: two"],
+    "expected_stdout": "error: one\nerror: two\n"
+  },
+  {
+    "id": "unix-map-grep-i",
+    "source": "stdin |> lines |> filter((l) -> contains(lower(l), \"error\")) |> each(print) |> run",
+    "stdin_data": ["ok", "ERROR: one", "warn", "Error: two"],
+    "expected_stdout": "ERROR: one\nError: two\n"
+  },
+  {
+    "id": "unix-map-awk-print-5",
+    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r)) |> keep_some |> each(print) |> run",
+    "stdin_data": ["a b c d five", "1 2 3 4 six"],
+    "expected_stdout": "five\nsix\n"
+  },
+  {
+    "id": "unix-map-awk-sum-5",
+    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r) |> flat_map_some(parse_int)) |> keep_some |> collect |> sum",
+    "stdin_data": ["a b c d 5", "1 2 3 4 6", "short"],
+    "expected_result": "11"
+  },
+  {
+    "id": "unix-map-tr-upper",
+    "source": "stdin |> lines |> map(upper) |> each(print) |> run",
+    "stdin_data": ["ab", "cd"],
+    "expected_stdout": "AB\nCD\n"
+  },
+  {
+    "id": "unix-map-head-5",
+    "source": "stdin |> lines |> head(5) |> each(print) |> run",
+    "stdin_data": ["1", "2", "3", "4", "5", "6"],
+    "expected_stdout": "1\n2\n3\n4\n5\n"
+  },
+  {
+    "id": "unix-map-pattern-sum-column",
+    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r) |> flat_map_some(parse_int)) |> keep_some |> collect |> sum",
+    "stdin_data": ["a b c d 5", "1 2 3 4 6", "short"],
+    "expected_result": "11"
+  },
+  {
+    "id": "unix-map-pattern-count-matches",
+    "source": "stdin |> lines |> filter((l) -> contains(l, \"error\")) |> collect |> count",
+    "stdin_data": ["ok", "error: one", "warn", "error: two"],
+    "expected_result": "2"
+  }
+]

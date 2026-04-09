@@ -3,6 +3,8 @@
 
 Only includes currently implemented Genia CLI and Flow behavior.
 
+Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest.
+
 ## Core CLI Shapes
 
 | Mode | Command | Notes |
@@ -28,42 +30,49 @@ Use `-p` for flow-stage pipelines ending in effects.
 
 ### Print stdin rows
 
+[case: unix-power-print-stdin-rows]
 ```bash
 cat file.txt | genia -p 'each(print)'
 ```
 
 ### Keep first 5 rows
 
+[case: unix-power-head-5]
 ```bash
 cat file.txt | genia -p 'head(5) |> each(print)'
 ```
 
 ### Count rows
 
+[case: unix-power-count-rows]
 ```bash
 cat file.txt | genia -c 'stdin |> lines |> collect |> count'
 ```
 
 ### Grep-style filter
 
+[case: unix-power-grep]
 ```bash
 cat file.txt | genia -p 'filter((l) -> contains(l, "error")) |> each(print)'
 ```
 
 ### Case-insensitive grep-style filter
 
+[case: unix-power-grep-i]
 ```bash
 cat file.txt | genia -p 'filter((l) -> contains(lower(l), "error")) |> each(print)'
 ```
 
 ### Uppercase all rows
 
+[case: unix-power-upper]
 ```bash
 cat file.txt | genia -p 'map(upper) |> each(print)'
 ```
 
 ### Sum the 5th column (AWK-style)
 
+[case: unix-power-sum-5th]
 ```bash
 ls -l | genia -c '
   stdin
@@ -93,6 +102,7 @@ When dead-row handling is not needed, `keep_some(parse_int)` is a concise keep-o
 
 ## Dead-Letter Pattern
 
+[case: unix-power-dead-letter-pattern]
 ```genia
 rows
   |> lines

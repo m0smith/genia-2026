@@ -1,0 +1,43 @@
+[
+  {
+    "id": "quick-core-syntax",
+    "source": "inc(x) = x + 1\n(x) -> x + 1\nx = 10",
+    "expected_result": "10"
+  },
+  {
+    "id": "quick-option-constructors",
+    "source": "some(42)\nnone\nnone(\"missing-key\")\nnone(\"missing-key\", {key: \"name\"})",
+    "expected_result": "none(\"missing-key\", {key: \"name\"})"
+  },
+  {
+    "id": "quick-lists-nth",
+    "source": "nth(2, [10, 20, 30])",
+    "expected_result": "some(30)"
+  },
+  {
+    "id": "quick-maps-callable-projection",
+    "source": "{a: 1} |> \"a\"",
+    "expected_result": "1"
+  },
+  {
+    "id": "quick-flow-keep-some",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some(parse_int) |> collect",
+    "expected_result": "[10, 20]"
+  },
+  {
+    "id": "quick-flow-keep-some-else",
+    "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some_else(parse_int, log) |> collect",
+    "expected_result": "[10, 20]"
+  },
+  {
+    "id": "quick-code-as-data",
+    "source": "x = 9\nquote(x + 1)\nquasiquote([1, unquote(x)])",
+    "expected_result": "(1 9)"
+  },
+  {
+    "id": "quick-gotcha-consume-stdin",
+    "source": "stdin |> lines |> each(print) |> run",
+    "stdin_data": ["a", "b"],
+    "expected_stdout": "a\nb\n"
+  }
+]

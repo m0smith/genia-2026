@@ -4,6 +4,8 @@ Translate common Unix commands into Genia pipelines.
 
 Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
+Validation: runnable rows include `[case: <id>]` markers in Notes and are executed by pytest.
+
 ---
 
 ## 📄 Basic I/O
@@ -11,7 +13,7 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 | Unix          | Genia                | Notes                         |
 | ------------- | -------------------- | ----------------------------- |
 | `cat file`    | 🔵 `stdin \|> lines` | Genia assumes stdin as source |
-| `echo "text"` | 🟢 `"text"`          | Value expression              |
+| `echo "text"` | 🟢 `"text"`          | Value expression [case: unix-map-echo-text] |
 
 ---
 
@@ -19,7 +21,7 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
 | Unix    | Genia                                                                 | Notes        |
 | ------- | --------------------------------------------------------------------- | ------------ |
-| `wc -l` | 🟣 `stdin \|> lines \|> collect \|> count`                            | Flow → Value |
+| `wc -l` | 🟣 `stdin \|> lines \|> collect \|> count`                            | Flow → Value [case: unix-map-wc-l] |
 | `wc -w` | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map(count) \|> sum` | Word count   |
 
 ---
@@ -28,8 +30,8 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
 | Unix            | Genia                                                                                       | Notes            |
 | --------------- | ------------------------------------------------------------------------------------------- | ---------------- |
-| `grep error`    | 🔴 `stdin \|> lines \|> filter((l) -> contains(l, "error")) \|> each(print) \|> run`        | Basic filter     |
-| `grep -i error` | 🔴 `stdin \|> lines \|> filter((l) -> contains(lower(l), "error")) \|> each(print) \|> run` | Case-insensitive |
+| `grep error`    | 🔴 `stdin \|> lines \|> filter((l) -> contains(l, "error")) \|> each(print) \|> run`        | Basic filter [case: unix-map-grep]     |
+| `grep -i error` | 🔴 `stdin \|> lines \|> filter((l) -> contains(lower(l), "error")) \|> each(print) \|> run` | Case-insensitive [case: unix-map-grep-i] |
 
 ---
 
@@ -37,8 +39,8 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
 | Unix                | Genia                                                                                                             | Notes            |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `awk '{print $5}'`  | 🔴 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(r, 4)) \|> each(print) \|> run`                  | 0-based index    |
-| `awk '{sum += $5}'` | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(r, 4)) \|> map(parse_int) \|> keep_some \|> sum` | Safe numeric sum |
+| `awk '{print $5}'`  | 🔴 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r)) \|> keep_some \|> each(print) \|> run`                  | 0-based index [case: unix-map-awk-print-5]    |
+| `awk '{sum += $5}'` | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r) \|> flat_map_some(parse_int)) \|> keep_some \|> collect \|> sum` | Safe numeric sum [case: unix-map-awk-sum-5] |
 
 ---
 
@@ -46,7 +48,7 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
 | Unix             | Genia                                                       | Notes     |
 | ---------------- | ----------------------------------------------------------- | --------- |
-| `tr 'a-z' 'A-Z'` | 🔴 `stdin \|> lines \|> map(upper) \|> each(print) \|> run` | Uppercase |
+| `tr 'a-z' 'A-Z'` | 🔴 `stdin \|> lines \|> map(upper) \|> each(print) \|> run` | Uppercase [case: unix-map-tr-upper] |
 
 ---
 
@@ -54,7 +56,7 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
 | Unix        | Genia                                                    | Notes                 |
 | ----------- | -------------------------------------------------------- | --------------------- |
-| `head -n 5` | 🔴 `stdin \|> lines \|> head(5) \|> each(print) \|> run` | Short-circuits        |
+| `head -n 5` | 🔴 `stdin \|> lines \|> head(5) \|> each(print) \|> run` | Short-circuits [case: unix-map-head-5]        |
 | `tail -n 5` | 🔴 `stdin \|> lines \|> tail(5) \|> each(print) \|> run` | May require buffering |
 
 ---
@@ -72,8 +74,8 @@ Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
 | Pattern       | Genia                                                                                                             | Notes             |
 | ------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Sum column    | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(r, 4)) \|> map(parse_int) \|> keep_some \|> sum` | Classic pattern   |
-| Count matches | 🟣 `stdin \|> lines \|> filter((l) -> contains(l, "error")) \|> collect \|> count`                                | Filter then count |
+| Sum column    | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r) \|> flat_map_some(parse_int)) \|> keep_some \|> collect \|> sum` | Classic pattern [case: unix-map-pattern-sum-column]   |
+| Count matches | 🟣 `stdin \|> lines \|> filter((l) -> contains(l, "error")) \|> collect \|> count`                                | Filter then count [case: unix-map-pattern-count-matches] |
 
 ---
 

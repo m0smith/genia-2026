@@ -1,0 +1,49 @@
+[
+  {
+    "id": "unix-power-print-stdin-rows",
+    "source": "stdin |> lines |> each(print) |> run",
+    "stdin_data": ["alpha", "beta"],
+    "expected_stdout": "alpha\nbeta\n"
+  },
+  {
+    "id": "unix-power-head-5",
+    "source": "stdin |> lines |> head(5) |> each(print) |> run",
+    "stdin_data": ["1", "2", "3", "4", "5", "6"],
+    "expected_stdout": "1\n2\n3\n4\n5\n"
+  },
+  {
+    "id": "unix-power-count-rows",
+    "source": "stdin |> lines |> collect |> count",
+    "stdin_data": ["1", "2", "3", "4"],
+    "expected_result": "4"
+  },
+  {
+    "id": "unix-power-grep",
+    "source": "stdin |> lines |> filter((l) -> contains(l, \"error\")) |> each(print) |> run",
+    "stdin_data": ["ok", "error: bad", "warn", "error: down"],
+    "expected_stdout": "error: bad\nerror: down\n"
+  },
+  {
+    "id": "unix-power-grep-i",
+    "source": "stdin |> lines |> filter((l) -> contains(lower(l), \"error\")) |> each(print) |> run",
+    "stdin_data": ["ok", "ERROR: bad", "warn", "Error: down"],
+    "expected_stdout": "ERROR: bad\nError: down\n"
+  },
+  {
+    "id": "unix-power-upper",
+    "source": "stdin |> lines |> map(upper) |> each(print) |> run",
+    "stdin_data": ["a", "b"],
+    "expected_stdout": "A\nB\n"
+  },
+  {
+    "id": "unix-power-sum-5th",
+    "source": "stdin |> lines |> map(fields) |> keep_some_else((row) -> row |> nth(5) |> flat_map_some(parse_int), log) |> collect |> sum",
+    "stdin_data": ["a b c d 5 x", "1 2 3 4 6 y", "short"],
+    "expected_result": "11"
+  },
+  {
+    "id": "unix-power-dead-letter-pattern",
+    "source": "rows = [\"10\", \"oops\", \"20\"]\nrows |> lines |> keep_some_else(parse_int, log) |> collect",
+    "expected_result": "[10, 20]"
+  }
+]

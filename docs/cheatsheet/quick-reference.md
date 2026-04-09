@@ -2,6 +2,8 @@
 
 Implemented features only.
 
+Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest.
+
 ## Evaluation Model
 
 - expression-oriented
@@ -13,6 +15,7 @@ Implemented features only.
 
 ## Core Syntax
 
+[case: quick-core-syntax]
 ```genia
 inc(x) = x + 1
 (x) -> x + 1
@@ -29,6 +32,7 @@ head([x, .._]) = x
 
 ## Option / Absence
 
+[case: quick-option-constructors]
 ```genia
 some(42)
 none
@@ -58,6 +62,7 @@ Common helpers:
 
 Correct `nth` shape:
 
+[case: quick-lists-nth]
 ```genia
 nth(2, [10, 20, 30])
 ```
@@ -73,6 +78,7 @@ m/a           # slash named access
 
 Callable map projection:
 
+[case: quick-maps-callable-projection]
 ```genia
 {a: 1} |> "a"
 ```
@@ -92,10 +98,12 @@ Core helpers:
 
 Examples:
 
+[case: quick-flow-keep-some]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
 ```
 
+[case: quick-flow-keep-some-else]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some_else(parse_int, log) |> collect
 ```
@@ -116,6 +124,7 @@ cat file.txt | genia -p 'head(5) |> each(print)'
 
 ## Code-as-Data
 
+[case: quick-code-as-data]
 ```genia
 quote(x + 1)
 quasiquote([1, unquote(x)])
@@ -129,6 +138,7 @@ quasiquote([1, unquote(x)])
 
 Use:
 
+[case: quick-gotcha-consume-stdin]
 ```genia
 stdin |> lines |> each(print) |> run
 ```

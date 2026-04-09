@@ -4,6 +4,8 @@
 Dense reference of currently implemented features.
 If anything here disagrees with GENIA_STATE.md, GENIA_STATE.md wins.
 
+Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest.
+
 ## Language Forms
 
 | Category | Forms | Notes |
@@ -109,18 +111,22 @@ Flow values are lazy and single-use.
 
 ## Minimal Valid Snippets
 
+[case: core-min-unwrap-or]
 ```genia
 unwrap_or("unknown", {user: {name: "Genia"}} |> get("user") |> get("name"))
 ```
 
+[case: core-min-fields-nth-parse]
 ```genia
 fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
 ```
 
+[case: core-min-keep-some]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
 ```
 
+[case: core-min-keep-some-else]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some_else(parse_int, log) |> collect
 ```
