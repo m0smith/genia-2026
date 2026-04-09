@@ -93,6 +93,8 @@ Published documentation is deployed with GitHub Pages from the `main` branch at:
 
 - `https://m0smith.github.io/genia-2026/`
 
+The published site includes the repo homepage, current state/rules/runtime references, the book, the cheatsheets, host-interop docs, and a top-level `SICP with Genia` section sourced from `docs/sicp/`.
+
 To preview locally:
 
 ```bash
@@ -101,7 +103,14 @@ uv run python tools/stage_docs_for_mkdocs.py
 uv run mkdocs serve --strict
 ```
 
-The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives.
+To validate the published-learning-doc surfaces locally:
+
+```bash
+uv run pytest -q tests/test_cheatsheet_*.py tests/test_sicp_code_blocks.py tests/test_book_chapter_status_sections.py
+uv run mkdocs build --strict
+```
+
+The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives, including the SICP chapter sources under `docs/sicp/`.
 
 LLM instruction sync note:
 

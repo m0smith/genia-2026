@@ -273,6 +273,7 @@ When writing or revising a chapter:
 * mark illustrative-only Genia snippets explicitly as not runnable
 
 If you add runnable examples, assume the automated test suite will execute them.
+If you add, rename, or remove published SICP chapters, also update `docs/sicp/index.md`.
 
 ---
 

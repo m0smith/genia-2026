@@ -1,4 +1,5 @@
 site_name: Genia
+site_url: https://m0smith.github.io/genia-2026/
 repo_url: https://github.com/m0smith/genia-2026
 repo_name: m0smith/genia-2026
 docs_dir: .tmp/mkdocs-docs
@@ -33,6 +34,9 @@ nav:
       - 13 Metacircular Helpers: book/13-metacircular-helpers.md
       - 14 Building an Evaluator: book/14-building-an-evaluator.md
       - 15 Reference Host and Portability: book/15-reference-host-and-portability.md
+  - SICP with Genia:
+      - Overview: sicp/index.md
+      - 01 Expressions and Processes: sicp/01-expressions-and-processes.md
   - Cheatsheets:
       - Core: cheatsheet/core.md
       - Quick Reference: cheatsheet/quick-reference.md

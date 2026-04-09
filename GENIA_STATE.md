@@ -34,6 +34,35 @@ Clarifications:
 - They do not add a second implemented host yet.
 - The shared spec runner contract and capability matrix are scaffolded now, but no generic multi-host runner implementation exists yet.
 
+## 0.1) Repository documentation publishing workflow
+
+Implemented today:
+
+- repository docs are staged into a temporary MkDocs input tree by `tools/stage_docs_for_mkdocs.py`
+- the published docs site uses MkDocs with the Material theme
+- published sections include:
+  - `README.md` as the homepage
+  - `GENIA_STATE.md`
+  - `GENIA_RULES.md`
+  - `GENIA_REPL_README.md`
+  - `docs/book/*`
+  - `docs/sicp/*` chapter content
+  - `docs/cheatsheet/*`
+  - public-facing host interop docs under `docs/host-interop/`
+- GitHub Actions docs workflow behavior is:
+  - on pull requests: stage, validate, and build docs without deployment
+  - on pushes to `main`: stage, validate, build, and deploy to GitHub Pages
+- docs validation in this phase includes:
+  - strict MkDocs builds
+  - cheatsheet validation tests
+  - SICP runnable-block validation tests
+  - lightweight book chapter status-marker validation
+
+Clarifications:
+
+- the staging tree is a build artifact only; source-of-truth docs remain in their existing repository locations
+- the docs workflow is repository tooling, not part of the Genia language/runtime semantics
+
 ## 1) Execution model
 
 - programs are expression sequences

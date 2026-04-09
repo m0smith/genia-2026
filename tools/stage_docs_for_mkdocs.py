@@ -17,12 +17,15 @@ DOC_DIRS = [
     "docs/book",
     "docs/cheatsheet",
     "docs/host-interop",
+    "docs/sicp",
 ]
+SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
     "(docs/architecture/": "(architecture/",
     "(docs/book/": "(book/",
     "(docs/cheatsheet/": "(cheatsheet/",
     "(docs/host-interop/": "(host-interop/",
+    "(docs/sicp/": "(sicp/",
 }
 
 
@@ -47,7 +50,7 @@ def stage_doc_tree(directory: str) -> None:
     source_root = REPO_ROOT / directory
     target_root = STAGING_ROOT / source_root.name
     for source in source_root.rglob("*.md"):
-        if source.name == "CHAPTER_TEMPLATE.md":
+        if source.name in SKIP_FILENAMES:
             continue
         relative_path = source.relative_to(source_root)
         target = target_root / relative_path

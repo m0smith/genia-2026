@@ -22,6 +22,7 @@ Agents **must treat the following as authoritative and synchronized**:
 * `GENIA_REPL_README.md` → Runtime behavior
 * `README.md` → High-level overview
 * `docs/book/*` → Learning system (must reflect reality)
+* `docs/sicp/*` → SICP learning system when present (must reflect reality)
 * `docs/host-interop/*` → Shared cross-host portability contract for multi-host work
 * `spec/*` → Shared conformance scaffolding for multi-host work
 
@@ -114,6 +115,19 @@ JSON case entry shape:
 ```
 
 Agents must run `pytest tests/test_cheatsheet_*.py` after editing any cheatsheet to catch drift.
+
+---
+
+## SICP Validation Rule (CRITICAL)
+
+`docs/sicp/*` is an executable learning surface when present.
+
+Runnable Genia blocks in SICP chapters must follow the fence/expected-output contract in `docs/sicp/AGENTS.MD` and remain truthful to current implementation.
+
+When editing SICP chapters, agents must:
+
+* keep `docs/sicp/index.md` aligned with the published chapter set
+* run `pytest tests/test_sicp_code_blocks.py`
 
 ---
 

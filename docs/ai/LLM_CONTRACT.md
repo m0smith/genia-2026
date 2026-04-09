@@ -47,6 +47,7 @@ Canonical semantic rules live in:
 - `GENIA_STATE.md`
 - `GENIA_RULES.md`
 - relevant `docs/book/*` chapters
+- relevant `docs/sicp/*` chapters when present
 
 Tool-specific files may add workflow guidance, editor-specific reminders, or task-shaping advice, but they must not redefine protected topics such as:
 
@@ -61,7 +62,7 @@ Tool-specific files may add workflow guidance, editor-specific reminders, or tas
 Tool-specific instruction files must reinforce the repository rule that:
 
 - any change to language behavior, syntax, runtime semantics, parser rules, or examples must update the authoritative docs
-- book examples must stay truthful, runnable where appropriate, and synchronized with actual implementation
+- book and SICP examples must stay truthful, runnable where appropriate, and synchronized with actual implementation
 
 ## Prompting Rule
 
