@@ -55,6 +55,28 @@ Each output item is `[left, right]`, preserving lockstep order.
 The output stops when either input flow is exhausted.
 """ _zip(pair)
 
+scan(step, initial_state) = """
+# scan
+
+Stateful flow transform.
+
+`step(state, item)` must return `[next_state, output]`.
+`next_state` stays internal to this operator and is not exposed externally.
+
+Use this for running totals, buffering, and fixed-size windowing.
+""" (flow) -> _scan(step, initial_state, flow)
+
+scan(step, initial_state, flow) = """
+# scan
+
+Stateful flow transform.
+
+`step(state, item)` must return `[next_state, output]`.
+`next_state` stays internal to this operator and is not exposed externally.
+
+Use this for running totals, buffering, and fixed-size windowing.
+""" _scan(step, initial_state, flow)
+
 keep_some(flow) = """
 # keep_some
 

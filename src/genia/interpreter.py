@@ -3554,7 +3554,7 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode |
         ]
         if len(matches) == 1:
             return _function_explicitly_handles_none(matches[0])
-        if isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take"}:
+        if isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take", "scan"}:
             return True
         return False
     return False
@@ -5469,6 +5469,29 @@ def make_global_env(
             return take_fn(args[0], args[1])
         raise TypeError(f"head expected 1 or 2 args, got {len(args)}")
 
+    def scan_fn(step_value: Any, initial_state: Any, source: Any) -> GeniaFlow:
+        step = _ensure_callable(step_value, "scan")
+        upstream = _ensure_flow(source, "scan")
+
+        def iterator() -> Iterable[Any]:
+            state = initial_state
+            items = upstream.consume()
+            try:
+                for item in items:
+                    result = _invoke_from_builtin(step, [state, item])
+                    if not isinstance(result, list) or len(result) != 2:
+                        raise TypeError(
+                            "scan expected step(state, item) to return [next_state, output], "
+                            f"received {_runtime_type_name(result)}"
+                        )
+                    state = result[0]
+                    yield result[1]
+            finally:
+                if upstream.close_on_early_termination:
+                    _maybe_close_iterable(items)
+
+        return GeniaFlow(iterator, label="scan", close_on_early_termination=upstream.close_on_early_termination)
+
     def _ensure_rule_values(rule_values: list[Any]) -> list[Any]:
         for index, rule_value in enumerate(rule_values, start=1):
             if not callable(rule_value):
@@ -5667,7 +5690,11 @@ def make_global_env(
     def _help_public_families() -> list[tuple[str, list[str]]]:
         specs = [
             ("CLI", ("std/prelude/cli.genia",), ("cli_parse", "cli_flag?", "cli_option", "cli_option_or")),
-            ("Flow", ("std/prelude/flow.genia",), ("lines", "keep_some_else", "rules", "each", "collect", "run")),
+            (
+                "Flow",
+                ("std/prelude/flow.genia",),
+                ("lines", "scan", "keep_some_else", "rules", "each", "collect", "run"),
+            ),
             (
                 "Lists / fns / math",
                 ("std/prelude/list.genia", "std/prelude/fn.genia", "std/prelude/math.genia"),
@@ -6579,6 +6606,7 @@ def make_global_env(
     env.set("_tee", tee_fn)
     env.set("_merge", merge_flow_fn)
     env.set("_zip", zip_flow_fn)
+    env.set("_scan", scan_fn)
     env.set("_keep_some", keep_some_fn)
     env.set("_keep_some_else", keep_some_else_fn)
     env.set("_each", each_fn)
@@ -6709,6 +6737,8 @@ def make_global_env(
     env.register_autoload("merge", 2, "std/prelude/flow.genia")
     env.register_autoload("zip", 1, "std/prelude/flow.genia")
     env.register_autoload("zip", 2, "std/prelude/flow.genia")
+    env.register_autoload("scan", 2, "std/prelude/flow.genia")
+    env.register_autoload("scan", 3, "std/prelude/flow.genia")
     env.register_autoload("keep_some", 1, "std/prelude/flow.genia")
     env.register_autoload("keep_some", 2, "std/prelude/flow.genia")
     env.register_autoload("keep_some_else", 2, "std/prelude/flow.genia")

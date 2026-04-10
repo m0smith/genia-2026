@@ -274,6 +274,75 @@ def test_filter_fast_path_propagates_early_close_to_upstream():
     assert state["closed"] == 1
 
 
+def test_scan_running_sum_progression():
+    env = make_number_flow_env([1, 2, 3, 4])
+    src = """
+    numbers() |> scan((state, x) -> [state + x, state + x], 0) |> collect
+    """
+    assert run_source(src, env) == [1, 3, 6, 10]
+
+
+def test_scan_supports_windowing_with_internal_state():
+    env = make_number_flow_env([1, 2, 3, 4])
+    src = """
+        trim_to_2(xs) =
+            (xs) ? count(xs) > 2 -> drop(count(xs) - 2, xs) |
+            (xs) -> xs
+
+    window2(state, x) = {
+      next = [..state, x]
+            trimmed = trim_to_2(next)
+      [trimmed, trimmed]
+    }
+
+    numbers() |> scan(window2, []) |> collect
+    """
+    assert run_source(src, env) == [[1], [1, 2], [2, 3], [3, 4]]
+
+
+def test_scan_fast_path_propagates_early_close_to_upstream():
+    env = make_global_env()
+    state = {"pulled": 0, "closed": 0}
+
+    class ClosableCounter:
+        def __init__(self):
+            self._next = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            if self._next >= 100:
+                raise StopIteration
+            value = self._next
+            self._next += 1
+            state["pulled"] += 1
+            return value
+
+        def close(self):
+            state["closed"] += 1
+
+    def ticks():
+        return GeniaFlow(lambda: ClosableCounter(), label="ticks")
+
+    env.set("ticks", ticks)
+    src = """
+    ticks() |> scan((state, x) -> [state + x, state + x], 0) |> take(3) |> collect
+    """
+    assert run_source(src, env) == [0, 1, 3]
+    assert state["pulled"] == 3
+    assert state["closed"] == 1
+
+
+def test_scan_rejects_non_pair_step_results_clearly():
+    env = make_number_flow_env([1])
+    src = """
+    numbers() |> scan((state, x) -> state + x, 0) |> collect
+    """
+    with pytest.raises(TypeError, match=r"scan expected step\(state, item\) to return \[next_state, output\], received int"):
+        run_source(src, env)
+
+
 def test_stdin_flow_binding_is_lazy_and_stops_on_take():
     calls = 0
     state = {"pulled": 0}

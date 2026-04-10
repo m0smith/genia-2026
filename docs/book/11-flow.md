@@ -14,6 +14,7 @@ The canonical public Flow helper surface now lives in `src/genia/std/prelude/flo
 - `tee`
 - `merge`
 - `zip`
+- `scan`
 - `keep_some`
 - `keep_some_else`
 - `rules`
@@ -101,6 +102,59 @@ tee(["a", "b"])
 Expected behavior:
 
 - runtime `TypeError` explaining that `tee` expects a flow value
+
+## `scan`
+
+`scan(step, initial_state)` applies a stateful step function over a flow.
+
+For each input item, `step(state, item)` must return a two-item list:
+
+- `[next_state, output]`
+
+`next_state` is carried forward internally to the next item.
+Only `output` is emitted on the output flow.
+
+### Minimal example
+
+```genia
+[1, 2, 3, 4] |> lines |> scan((state, x) -> [state + x, state + x], 0) |> collect
+```
+
+Expected result:
+
+```genia
+[1, 3, 6, 10]
+```
+
+### Edge case example
+
+```genia
+window2(state, x) = {
+  next = [..state, x]
+  trimmed =
+    (next) ? count(next) > 2 -> drop(count(next) - 2, next) |
+    (next) -> next
+  [trimmed, trimmed]
+}
+
+[1, 2, 3, 4] |> lines |> scan(window2, []) |> collect
+```
+
+Expected result:
+
+```genia
+[[1], [1, 2], [2, 3], [3, 4]]
+```
+
+### Failure case example
+
+```genia
+[1] |> lines |> scan((state, x) -> state + x, 0) |> collect
+```
+
+Expected behavior:
+
+- runtime `TypeError` explaining that `scan` expected `[next_state, output]`
 
 ## Reusable stages
 
@@ -591,7 +645,7 @@ This should stop upstream reading as soon as the first line is printed.
 - Flow as a first-class runtime value family (`<flow ...>`)
 - `stdin |> lines` source binding
 - public Flow helpers exposed through prelude wrappers in `src/genia/std/prelude/flow.genia`
-- flow-aware `map`, `filter`, `take`, `rules`
+- flow-aware `map`, `filter`, `take`, `scan`, `rules`
 - `head/1` and `head/2` aliases (stdlib)
 - `each`, `collect`, and `run`
 - rule helper constructors in the prelude

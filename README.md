@@ -15,6 +15,7 @@ This repository currently provides:
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
+  - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
@@ -70,6 +71,7 @@ Unix-style examples:
 ```bash
 printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'
 printf '10\noops\n20\n' | genia -p 'map((row) -> unwrap_or("bad", row |> parse_int |> flat_map_some((n) -> some(n + 1)))) |> each(print)'
+printf '1\n2\n3\n4\n' | genia -c 'stdin |> lines |> scan((state, x) -> [state + x, state + x], 0) |> collect'
 printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
 printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> collect |> trace("after parse") |> sum'
 ```
