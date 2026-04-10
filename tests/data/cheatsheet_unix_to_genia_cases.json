@@ -64,6 +64,12 @@
     "expected_result": "[1, 2, 3, 4, 5]"
   },
   {
+    "id": "unix-map-terminal-game-loop",
+    "source": "grid_for(n) = (\n  0 -> [\"XO\", \"OX\"] |\n  _ -> [\"OX\", \"XO\"]\n)\n\nloop(i, max) = (\n  (i, max) ? i >= max -> none |\n  (i, max) -> {\n    clear_screen()\n    move_cursor(1, 1)\n    render_grid(grid_for(i))\n    loop(i + 1, max)\n  }\n)\n\nloop(0, 2)",
+    "expected_result": "none(\"nil\")",
+    "expected_stdout": "\u001b[2J\u001b[H\u001b[1;1HXO\nOX\u001b[2J\u001b[H\u001b[1;1HOX\nXO"
+  },
+  {
     "id": "unix-map-debug-absence-meta",
     "source": "absence_meta(none(\"missing_key\", { key: \"user\" }))",
     "expected_result": "some({reason: \"missing_key\", context: {key: \"user\"}})"

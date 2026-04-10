@@ -83,6 +83,29 @@ def test_io_public_wrappers_work_as_function_values():
     assert stderr.getvalue() == ""
 
 
+def test_terminal_helpers_write_expected_escape_sequences():
+    stdout = RecordingStream()
+    stderr = RecordingStream()
+    env = make_global_env(stdout_stream=stdout, stderr_stream=stderr)
+
+    assert format_debug(run_source("clear_screen()\nmove_cursor(4, 2)", env)) == 'none("nil")'
+    assert stdout.getvalue() == "\x1b[2J\x1b[H\x1b[2;4H"
+    assert stdout.flush_count == 1
+    assert stderr.getvalue() == ""
+
+
+def test_render_grid_writes_rows_to_stdout():
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    env = make_global_env(stdout_stream=stdout, stderr_stream=stderr)
+
+    result = run_source('render_grid(["abc", ["d", "e", "f"], [1, 2, 3]])', env)
+
+    assert result == ["abc", ["d", "e", "f"], [1, 2, 3]]
+    assert stdout.getvalue() == "abc\ndef\n123"
+    assert stderr.getvalue() == ""
+
+
 def test_flush_succeeds_for_stdout_and_stderr():
     stdout = RecordingStream()
     stderr = RecordingStream()

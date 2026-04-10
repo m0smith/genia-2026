@@ -4923,6 +4923,78 @@ def make_global_env(
         sink.flush()
         return None
 
+    def _enable_virtual_terminal_processing_if_needed(sink: GeniaOutputSink) -> None:
+        if os.name != "nt":
+            return
+        stream = getattr(sink, "_stream", None)
+        if stream is None or not hasattr(stream, "isatty") or not stream.isatty():
+            return
+        fileno_fn = getattr(stream, "fileno", None)
+        if not callable(fileno_fn):
+            return
+        try:
+            fileno = fileno_fn()
+        except (OSError, io.UnsupportedOperation, ValueError):
+            return
+        std_handle_map = {1: -11, 2: -12}
+        std_handle = std_handle_map.get(fileno)
+        if std_handle is None:
+            return
+        try:
+            import ctypes
+
+            kernel32 = ctypes.windll.kernel32
+            handle = kernel32.GetStdHandle(std_handle)
+            if handle in (0, -1):
+                return
+            mode = ctypes.c_uint32()
+            if kernel32.GetConsoleMode(handle, ctypes.byref(mode)) == 0:
+                return
+            enable_virtual_terminal_processing = 0x0004
+            if mode.value & enable_virtual_terminal_processing:
+                return
+            kernel32.SetConsoleMode(handle, mode.value | enable_virtual_terminal_processing)
+        except Exception:
+            return
+
+    def _ensure_positive_int(value: Any, name: str) -> int:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} expected an integer, received {_runtime_type_name(value)}")
+        if value < 1:
+            raise ValueError(f"{name} expected a positive integer")
+        return value
+
+    def clear_screen_fn() -> None:
+        _enable_virtual_terminal_processing_if_needed(stdout_sink)
+        stdout_sink.write_text("\x1b[2J\x1b[H")
+        stdout_sink.flush()
+        return None
+
+    def move_cursor_fn(x_value: Any, y_value: Any) -> None:
+        x = _ensure_positive_int(x_value, "move_cursor")
+        y = _ensure_positive_int(y_value, "move_cursor")
+        _enable_virtual_terminal_processing_if_needed(stdout_sink)
+        stdout_sink.write_text(f"\x1b[{y};{x}H")
+        return None
+
+    def render_grid_fn(grid_value: Any) -> Any:
+        if not isinstance(grid_value, list):
+            raise TypeError(f"render_grid expected a list, received {_runtime_type_name(grid_value)}")
+        lines: list[str] = []
+        for index, row in enumerate(grid_value):
+            if isinstance(row, str):
+                lines.append(row)
+                continue
+            if isinstance(row, list):
+                lines.append("".join(format_display(cell) for cell in row))
+                continue
+            raise TypeError(
+                "render_grid expected each row to be a string or list, "
+                f"row {index} was {_runtime_type_name(row)}"
+            )
+        stdout_sink.write_text("\n".join(lines))
+        return grid_value
+
     def meta_empty_env_fn() -> GeniaMetaEnv:
         return _make_meta_env()
 
@@ -6623,6 +6695,9 @@ def make_global_env(
     env.set("_write", write_fn)
     env.set("_writeln", writeln_fn)
     env.set("_flush", flush_fn)
+    env.set("_clear_screen", clear_screen_fn)
+    env.set("_move_cursor", move_cursor_fn)
+    env.set("_render_grid", render_grid_fn)
     env.set("log", log)
     env.set("print", print_fn)
     env.set("input", input_fn)
@@ -6831,6 +6906,9 @@ def make_global_env(
     env.register_autoload("write", 2, "std/prelude/io.genia")
     env.register_autoload("writeln", 2, "std/prelude/io.genia")
     env.register_autoload("flush", 1, "std/prelude/io.genia")
+    env.register_autoload("clear_screen", 0, "std/prelude/io.genia")
+    env.register_autoload("move_cursor", 2, "std/prelude/io.genia")
+    env.register_autoload("render_grid", 1, "std/prelude/io.genia")
     env.register_autoload("some", 1, "std/prelude/option.genia")
     env.register_autoload("none?", 1, "std/prelude/option.genia")
     env.register_autoload("some?", 1, "std/prelude/option.genia")

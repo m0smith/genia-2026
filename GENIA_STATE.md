@@ -631,6 +631,9 @@ Case placement rules (enforced):
   - `write`
   - `writeln`
   - `flush`
+  - `clear_screen`
+  - `move_cursor`
+  - `render_grid`
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
@@ -642,12 +645,20 @@ Output sink semantics:
 - `write(sink, value)` writes display-formatted output without a trailing newline and returns `value`
 - `writeln(sink, value)` writes display-formatted output with a trailing newline and returns `value`
 - `flush(sink)` flushes the sink and returns `none("nil")`
+- `clear_screen()` writes ANSI clear/home control codes to `stdout`, flushes, and returns `none("nil")`
+- `move_cursor(x, y)` writes an ANSI cursor-position control code to `stdout` and returns `none("nil")`
+  - `x` is terminal column, `y` is terminal row
+  - both coordinates must be positive integers
+- `render_grid(grid)` writes a text grid to `stdout` and returns `grid`
+  - `grid` must be a list
+  - each row must be either a string or a list of displayable values
 - `print(...)` writes to `stdout`
 - `log(...)` writes to `stderr`
 - `input()` remains interactive-only and does not consume the flow/stdin source path
 - broken pipe on `stdout` output is treated as normal downstream termination in CLI/file/command execution (no Python traceback)
 - flow-driven stdout writes use the same quiet broken-pipe path, so Unix pipelines can stop downstream early without noisy Python tracebacks
 - broken pipe on `stderr` is handled best-effort and does not trigger recursive noisy failures
+- on Windows console streams, `clear_screen` and `move_cursor` try to enable virtual terminal processing before writing ANSI control codes
 
 ### Flow runtime (Phase 1)
 
@@ -1176,7 +1187,7 @@ Notable autoloaded functions include:
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
-- io: `write`, `writeln`, `flush`
+- io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
 - flow: `lines`, `tee`, `merge`, `zip`, `scan`, `rules`, `each`, `collect`, `run`
 - option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
 - string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`

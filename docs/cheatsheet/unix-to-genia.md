@@ -77,6 +77,34 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 ---
 
+## 🎮 Terminal Rendering (Simple Game Loop)
+
+Use terminal helpers for lightweight frame rendering.
+
+[case: unix-map-terminal-game-loop]
+```genia
+grid_for(n) = (
+	0 -> ["XO", "OX"] |
+	_ -> ["OX", "XO"]
+)
+
+loop(i, max) = (
+	(i, max) ? i >= max -> none |
+	(i, max) -> {
+		clear_screen()
+		move_cursor(1, 1)
+		render_grid(grid_for(i))
+		loop(i + 1, max)
+	}
+)
+
+loop(0, 2)
+```
+
+Writes two frames using ANSI terminal control and returns `none("nil")`.
+
+---
+
 ## 🧭 Debugging Failures
 
 | Unix | Genia | Notes |

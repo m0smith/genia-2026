@@ -591,6 +591,9 @@ The public `write`, `writeln`, and `flush` names are defined in `src/genia/std/p
 - `write(sink, value)`
 - `writeln(sink, value)`
 - `flush(sink)`
+- `clear_screen()`
+- `move_cursor(x, y)`
+- `render_grid(grid)`
 
 `print(...)` writes to `stdout`.
 
@@ -619,6 +622,31 @@ Expected behavior:
 - both calls succeed
 - each returns `none("nil")`
 
+### Terminal rendering example
+
+```genia
+clear_screen()
+move_cursor(1, 1)
+render_grid([
+  ["X", "O", "X"],
+  ["-", "X", "-"],
+  ["O", "-", "O"],
+])
+```
+
+Expected behavior:
+
+- clears the terminal and homes the cursor
+- moves the cursor to column 1, row 1
+- writes:
+
+  ```text
+  XOX
+  -X-
+  O-O
+  ```
+- returns the original grid value
+
 ### Failure case example
 
 ```genia
@@ -629,6 +657,11 @@ Expected behavior:
 
 - raises `TypeError` because `write` expects a sink as its first argument
 
+Additional terminal helper failures:
+
+- `move_cursor(0, 1)` raises `ValueError` because coordinates must be positive integers
+- `render_grid("not-a-grid")` raises `TypeError` because `render_grid` expects a list
+
 ### Implementation status
 
 ### ✅ Implemented
@@ -637,6 +670,7 @@ Expected behavior:
 - public `write`, `writeln`, and `flush` wrappers in `src/genia/std/prelude/io.genia`
 - `write(sink, value)` and `writeln(sink, value)`
 - `flush(sink)`
+- `clear_screen()`, `move_cursor(x, y)`, and `render_grid(grid)` wrappers in `src/genia/std/prelude/io.genia`
 - `print(...)` routed to `stdout`
 - `log(...)` routed to `stderr`
 - quiet broken-pipe handling on `stdout` in CLI/file/command execution

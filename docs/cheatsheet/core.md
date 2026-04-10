@@ -107,6 +107,14 @@ Flow values are lazy and single-use.
 | host allowlist | `python`, `python.json` |
 | host examples | `python/len`, `python/str`, `python/json/loads`, `python/json/dumps` |
 
+## Output And Terminal Helpers
+
+| Helper | Shape |
+| --- | --- |
+| sink output | `write(sink, value)`, `writeln(sink, value)`, `flush(sink)` |
+| terminal control | `clear_screen()`, `move_cursor(x, y)` |
+| grid rendering | `render_grid(grid)` |
+
 ## CLI Entry Modes
 
 | Mode | Command | Behavior |

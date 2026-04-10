@@ -15,3 +15,25 @@ flush(sink) = """
 
 Flush an output sink.
 """ _flush(sink)
+
+clear_screen() = """
+# clear_screen
+
+Clear the terminal screen and move the cursor to the top-left corner.
+""" _clear_screen()
+
+move_cursor(x, y) = """
+# move_cursor
+
+Move the terminal cursor to column `x`, row `y`.
+
+Both values must be positive integers.
+""" _move_cursor(x, y)
+
+render_grid(grid) = """
+# render_grid
+
+Render a simple text grid to stdout.
+
+Each row may be a string or a list of displayable values.
+""" _render_grid(grid)
