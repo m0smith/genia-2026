@@ -65,6 +65,28 @@ compose(..fns) = """
 Compose functions right-to-left into one callable.
 """ (..args) -> compose_apply(fns, args)
 
+inspect(value) = """
+# inspect
+
+Log `value` for debugging and return it unchanged.
+Useful in `|>` pipelines as a non-transforming stage.
+""" log(value)
+
+trace(label, value) = """
+# trace
+
+Log `label` and `value` for pipeline debugging, then return `value` unchanged.
+""" log(label, value)
+
+tap(fn, value) = """
+# tap
+
+Call `fn(value)` for side effects and return `value` unchanged.
+""" {
+  fn(value)
+  value
+}
+
 compose_apply(fns, args) =
   ([f], args) -> apply(f, args) |
   ([f, ..rest], args) -> f(compose_apply(rest, args))

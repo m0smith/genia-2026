@@ -60,6 +60,10 @@ Pipe-mode mental model:
 - if a stage needs the inner value of `some(...)`, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
 - pipeline stages receive the current value unchanged: raw values stay raw, `some(...)` stays `some(...)`, and `none(...)` skips the remaining stages
 - reducers such as `sum` expect plain numbers after explicit filtering or recovery
+- pipeline debug helpers are available as identity stages:
+  - `inspect(value)` logs the current value and returns it unchanged
+  - `trace(label, value)` logs a label plus value and returns value unchanged
+  - `tap(fn, value)` runs `fn(value)` for side effects and returns value unchanged
 
 Unix-style examples:
 
@@ -67,6 +71,7 @@ Unix-style examples:
 printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'
 printf '10\noops\n20\n' | genia -p 'map((row) -> unwrap_or("bad", row |> parse_int |> flat_map_some((n) -> some(n + 1)))) |> each(print)'
 printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> collect |> trace("after parse") |> sum'
 ```
 
 - use `-p` for stage expressions that still produce a flow
@@ -773,6 +778,11 @@ Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/archi
 - `json_parse(string) -> value | none("json-parse-error", context)`
 - `json_stringify(value) -> string | none("json-stringify-error", context)`
 - `json_pretty(value) -> string | none(...)` (compatibility alias for `json_stringify`)
+- `read_file(path) -> string | none(...)`
+- `write_file(path, string) -> path | none(...)`
+- `zip_read(path) -> flow | none(...)`
+- `zip_write(path, flow_or_list) -> path | none(...)`
+- `zip_write(path) -> stage` (pipeline stage form)
 - `zip_entries(path) -> list of zip entries`
 - `zip_write(entries, path) -> path` (also accepts `(path, entries)` for pipeline style)
 - `entry_name(entry)`, `entry_bytes(entry)`, `set_entry_bytes(entry, bytes)`, `update_entry_bytes(entry, f)`, `entry_json(entry)`
@@ -791,6 +801,26 @@ rewrite_zip(in_path, out_path) =
   zip_entries(in_path)
     |> map(rewrite_entry)
     |> zip_write(out_path)
+```
+
+Flow-native zip pipeline example:
+
+```genia
+rewrite_item(item) =
+  ([name, content]) ? ends_with(name, ".json") -> [name, json_parse(utf8_decode(content)) |> json_stringify |> utf8_encode] |
+  ([name, content]) -> [name, content]
+
+zip_read("in.zip")
+  |> map(rewrite_item)
+  |> zip_write("out.zip")
+```
+
+File API example:
+
+```genia
+text = read_file("input.json")
+result = text |> json_parse |> json_stringify
+write_file("output.json", unwrap_or("{}", result))
 ```
 
 ### Phase 1 persistent associative maps

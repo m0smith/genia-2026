@@ -59,6 +59,28 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
 
 Any function of shape `(flow) -> flow` can be reused as a stage.
 
+## Pipeline debugging identity helpers
+
+The function prelude now includes three helpers for observing pipelines without changing values:
+
+- `inspect(value)` logs `value` and returns it unchanged
+- `trace(label, value)` logs `label` and `value`, then returns `value` unchanged
+- `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
+
+These helpers do not force Flow materialization by themselves.
+When they receive a Flow value, they log/forward the Flow handle and preserve lazy single-use behavior.
+
+### Minimal example
+
+```genia
+stdin |> lines |> map(parse_int) |> keep_some |> collect |> trace("after parse") |> sum
+```
+
+Expected behavior:
+
+- logs `after parse [..numbers..]`
+- returns the same sum as the pipeline without `trace`
+
 ### Minimal example
 
 ```genia

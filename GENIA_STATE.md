@@ -201,6 +201,11 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
 - pipelines short-circuit on `none(...)` but do not auto-unwrap `some(...)`; explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain important when the next stage expects the inner value of an Option.
+- pipeline debugging helpers are implemented as prelude-level identity stages:
+  - `inspect(value)` logs and returns `value` unchanged
+  - `trace(label, value)` logs `label` plus `value` and returns `value` unchanged
+  - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
+  - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public Flow helper names `lines`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - limited Python host interop is implemented in this phase:
@@ -1070,6 +1075,13 @@ Pattern matching note:
   - `json_parse(string) -> value | none("json-parse-error", context)`
   - `json_stringify(value) -> string | none("json-stringify-error", context)`
   - `json_pretty(value) -> string | none(...)` (compatibility alias)
+- internal file/zip bridge primitives: `_read_file(path)`, `_write_file(path, text)`, `_zip_read(path)`, `_zip_write(path, items)`
+- public file/zip helpers from `std/prelude/file.genia`:
+  - `read_file(path) -> string | none(...)`
+  - `write_file(path, string) -> path | none(...)`
+  - `zip_read(path) -> flow | none(...)`
+  - `zip_write(path, flow_or_list) -> path | none(...)`
+  - `zip_write(path)` stage form returns a pipeline stage `(items) -> zip_write(path, items)`
 - `zip_entries(path) -> list of zip entries`
 - `zip_write(entries, path) -> path` (also accepts `(path, entries)` for pipeline ergonomics)
 - `entry_name(entry) -> string`
@@ -1086,6 +1098,9 @@ Behavior:
 - JSON objects from `json_parse` are represented as persistent runtime map values (`map_*` bridge type)
 - `json_stringify`/`json_pretty` emit deterministic pretty JSON with 2-space indentation and sorted object keys
 - JSON parse/stringify failures return structured `none(...)` metadata rather than raising parse/stringify exceptions
+- `zip_read` is lazy and returns Flow items shaped as `[filename, bytes]`
+- `zip_write` consumes a Flow (or list) of `[filename, bytes|string]` items
+- file/zip parse/write/read failures return structured `none(...)` metadata for the new prelude API surface
 - this is a minimal host-backed bridge and is **not** the full flow system
 
 ### Simulation primitives (Phase 2, host-backed builtins)
@@ -1113,6 +1128,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 - `std/prelude/option.genia`
 - `std/prelude/string.genia`
 - `std/prelude/json.genia`
+- `std/prelude/file.genia`
 - `std/prelude/math.genia`
 - `std/prelude/awk.genia`
 - `std/prelude/cell.genia`

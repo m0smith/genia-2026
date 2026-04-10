@@ -3362,6 +3362,9 @@ def _mark_handles_none(fn: Callable[..., Any]) -> Callable[..., Any]:
 _NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
     {
         "apply",
+        "inspect",
+        "trace",
+        "tap",
         "some",
         "none?",
         "some?",
@@ -5439,7 +5442,7 @@ def make_global_env(
             (
                 "Lists / fns / math",
                 ("std/prelude/list.genia", "std/prelude/fn.genia", "std/prelude/math.genia"),
-                ("list", "first", "nth", "map", "filter", "reduce", "apply", "compose", "sum"),
+                ("list", "first", "nth", "map", "filter", "reduce", "apply", "compose", "inspect", "trace", "tap", "sum"),
             ),
             (
                 "Option / string",
@@ -5450,6 +5453,11 @@ def make_global_env(
                 "JSON",
                 ("std/prelude/json.genia",),
                 ("json_parse", "json_stringify", "json_pretty"),
+            ),
+            (
+                "File / zip",
+                ("std/prelude/file.genia",),
+                ("read_file", "write_file", "zip_read", "zip_write"),
             ),
             (
                 "Map / ref / process / sinks",
@@ -6089,6 +6097,163 @@ def make_global_env(
             )
             return make_none("json-stringify-error", context)
 
+    def read_file_fn(path: Any) -> Any:
+        if not isinstance(path, str):
+            context = (
+                GeniaMap()
+                .put("source", "read_file")
+                .put("expected", "string_path")
+                .put("received", _runtime_type_name(path))
+            )
+            return make_none("file-read-error", context)
+        try:
+            return Path(path).read_text(encoding="utf-8")
+        except FileNotFoundError:
+            context = GeniaMap().put("source", "read_file").put("path", path)
+            return make_none("file-not-found", context)
+        except OSError as exc:
+            context = GeniaMap().put("source", "read_file").put("path", path).put("message", str(exc))
+            return make_none("file-read-error", context)
+
+    def write_file_fn(path: Any, text: Any) -> Any:
+        if not isinstance(path, str):
+            context = (
+                GeniaMap()
+                .put("source", "write_file")
+                .put("expected", "string_path")
+                .put("received", _runtime_type_name(path))
+            )
+            return make_none("file-write-error", context)
+        if not isinstance(text, str):
+            context = (
+                GeniaMap()
+                .put("source", "write_file")
+                .put("path", path)
+                .put("expected", "string_content")
+                .put("received", _runtime_type_name(text))
+            )
+            return make_none("file-write-error", context)
+        try:
+            Path(path).write_text(text, encoding="utf-8")
+            return path
+        except OSError as exc:
+            context = GeniaMap().put("source", "write_file").put("path", path).put("message", str(exc))
+            return make_none("file-write-error", context)
+
+    def zip_read_fn(path: Any) -> Any:
+        if not isinstance(path, str):
+            context = (
+                GeniaMap()
+                .put("source", "zip_read")
+                .put("expected", "string_path")
+                .put("received", _runtime_type_name(path))
+            )
+            return make_none("zip-read-error", context)
+        if not Path(path).exists():
+            context = GeniaMap().put("source", "zip_read").put("path", path)
+            return make_none("file-not-found", context)
+
+        def iterator() -> Iterable[Any]:
+            with zipfile.ZipFile(path, "r") as archive:
+                for info in archive.infolist():
+                    if info.is_dir():
+                        continue
+                    yield [info.filename, GeniaBytes(archive.read(info.filename))]
+
+        try:
+            with zipfile.ZipFile(path, "r"):
+                pass
+        except zipfile.BadZipFile:
+            context = GeniaMap().put("source", "zip_read").put("path", path)
+            return make_none("zip-read-error", context)
+        except OSError as exc:
+            context = GeniaMap().put("source", "zip_read").put("path", path).put("message", str(exc))
+            return make_none("zip-read-error", context)
+
+        return GeniaFlow(iterator, label="zip_read")
+
+    def _zip_item_to_entry(item: Any, index: int) -> Any:
+        if isinstance(item, GeniaZipEntry):
+            return item
+        if not isinstance(item, list) or len(item) != 2:
+            context = (
+                GeniaMap()
+                .put("source", "zip_write")
+                .put("index", index)
+                .put("expected", "[filename, content]")
+                .put("received", _runtime_type_name(item))
+            )
+            return make_none("zip-write-error", context)
+
+        name = item[0]
+        content = item[1]
+        if not isinstance(name, str):
+            context = (
+                GeniaMap()
+                .put("source", "zip_write")
+                .put("index", index)
+                .put("expected", "string_filename")
+                .put("received", _runtime_type_name(name))
+            )
+            return make_none("zip-write-error", context)
+        if isinstance(content, str):
+            content_bytes = GeniaBytes(content.encode("utf-8"))
+        elif isinstance(content, GeniaBytes):
+            content_bytes = content
+        else:
+            context = (
+                GeniaMap()
+                .put("source", "zip_write")
+                .put("index", index)
+                .put("filename", name)
+                .put("expected", "bytes_or_string_content")
+                .put("received", _runtime_type_name(content))
+            )
+            return make_none("zip-write-error", context)
+        return GeniaZipEntry(name, content_bytes)
+
+    def zip_write_flow_fn(path: Any, source: Any) -> Any:
+        if not isinstance(path, str):
+            context = (
+                GeniaMap()
+                .put("source", "zip_write")
+                .put("expected", "string_path")
+                .put("received", _runtime_type_name(path))
+            )
+            return make_none("zip-write-error", context)
+
+        if isinstance(source, GeniaFlow):
+            items = source.consume()
+            close_items = source.close_on_early_termination
+        elif isinstance(source, list):
+            items = iter(source)
+            close_items = False
+        else:
+            context = (
+                GeniaMap()
+                .put("source", "zip_write")
+                .put("path", path)
+                .put("expected", "flow_or_list")
+                .put("received", _runtime_type_name(source))
+            )
+            return make_none("zip-write-error", context)
+
+        try:
+            try:
+                with zipfile.ZipFile(path, "w") as archive:
+                    for index, item in enumerate(items, start=1):
+                        entry = _zip_item_to_entry(item, index)
+                        if isinstance(entry, GeniaOptionNone):
+                            return entry
+                        archive.writestr(entry.name, entry.data.value)
+                return path
+            finally:
+                if close_items:
+                    _maybe_close_iterable(items)
+        except OSError as exc:
+            context = GeniaMap().put("source", "zip_write").put("path", path).put("message", str(exc))
+            return make_none("zip-write-error", context)
+
     def zip_entries_fn(path: Any) -> list[GeniaZipEntry]:
         zip_path = _ensure_string(path, "zip_entries")
         try:
@@ -6260,10 +6425,13 @@ def make_global_env(
     env.set("_parse_int", parse_int_fn)
     env.set("utf8_decode", utf8_decode_fn)
     env.set("utf8_encode", utf8_encode_fn)
+    env.set("_read_file", read_file_fn)
+    env.set("_write_file", write_file_fn)
     env.set("_json_parse", json_parse_fn)
     env.set("_json_stringify", json_stringify_fn)
+    env.set("_zip_read", zip_read_fn)
+    env.set("_zip_write", zip_write_flow_fn)
     env.set("zip_entries", zip_entries_fn)
-    env.set("zip_write", zip_write_fn)
     env.set("entry_name", entry_name_fn)
     env.set("entry_bytes", entry_bytes_fn)
     env.set("set_entry_bytes", set_entry_bytes_fn)
@@ -6319,6 +6487,9 @@ def make_global_env(
     env.register_autoload("range", 3, "std/prelude/list.genia")
     env.register_autoload("apply", 2, "std/prelude/fn.genia")
     env.register_autoload("compose", 1, "std/prelude/fn.genia")
+    env.register_autoload("inspect", 1, "std/prelude/fn.genia")
+    env.register_autoload("trace", 2, "std/prelude/fn.genia")
+    env.register_autoload("tap", 2, "std/prelude/fn.genia")
     env.register_autoload("rule_skip", 0, "std/prelude/fn.genia")
     env.register_autoload("rule_emit", 1, "std/prelude/fn.genia")
     env.register_autoload("rule_emit_many", 1, "std/prelude/fn.genia")
@@ -6382,6 +6553,11 @@ def make_global_env(
     env.register_autoload("json_parse", 1, "std/prelude/json.genia")
     env.register_autoload("json_stringify", 1, "std/prelude/json.genia")
     env.register_autoload("json_pretty", 1, "std/prelude/json.genia")
+    env.register_autoload("read_file", 1, "std/prelude/file.genia")
+    env.register_autoload("write_file", 2, "std/prelude/file.genia")
+    env.register_autoload("zip_read", 1, "std/prelude/file.genia")
+    env.register_autoload("zip_write", 1, "std/prelude/file.genia")
+    env.register_autoload("zip_write", 2, "std/prelude/file.genia")
     env.register_autoload("stream_cons", 2, "std/prelude/stream.genia")
     env.register_autoload("stream_head", 1, "std/prelude/stream.genia")
     env.register_autoload("stream_tail", 1, "std/prelude/stream.genia")
