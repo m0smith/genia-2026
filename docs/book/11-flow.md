@@ -11,6 +11,7 @@ It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
 The canonical public Flow helper surface now lives in `src/genia/std/prelude/flow.genia`:
 
 - `lines`
+- `tick` (experimental)
 - `tee`
 - `merge`
 - `zip`
@@ -48,6 +49,7 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
 - Flows are lazy, pull-based, source-bound, and single-use.
 - Value/Flow crossing stays explicit:
   - `lines` creates a Flow
+  - `tick` creates a tick Flow for discrete step progression (experimental)
   - `collect` materializes to a value
   - `run` consumes for effects
 - `take` and `head` are short-circuiting consumers:
@@ -58,6 +60,59 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
   - `genia -p 'stage_expr'` means `stdin |> lines |> stage_expr |> run`
   - omit explicit `stdin`
   - omit explicit `run`
+
+## Experimental tick-based execution
+
+Genia now includes an experimental tick source helper for discrete-time flow execution.
+
+- `tick()` emits `0, 1, 2, ...` (unbounded)
+- `tick(count)` emits `0..count-1` (bounded)
+
+This is intended for deterministic step-driven scenarios such as:
+
+- simulation loops
+- game update loops
+- automation polling/control loops
+
+The helper is intentionally minimal in this phase:
+
+- no scheduler is introduced
+- no new syntax is introduced
+- no implicit conversion between Value and Flow is introduced
+
+### Minimal example
+
+```genia
+tick(5) |> collect
+```
+
+Expected result:
+
+```genia
+[0, 1, 2, 3, 4]
+```
+
+### Edge case example
+
+```genia
+tick() |> head(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
+```
+
+Expected result:
+
+```genia
+[1, 2, 3, 4]
+```
+
+### Failure case example
+
+```genia
+tick("bad") |> collect
+```
+
+Expected behavior:
+
+- runtime `TypeError` explaining that `tick` expected an integer count
 
 ## Multi-flow helpers
 
@@ -646,6 +701,7 @@ This should stop upstream reading as soon as the first line is printed.
 - `stdin |> lines` source binding
 - public Flow helpers exposed through prelude wrappers in `src/genia/std/prelude/flow.genia`
 - flow-aware `map`, `filter`, `take`, `scan`, `rules`
+- experimental discrete tick source helper: `tick`, `tick(count)`
 - `head/1` and `head/2` aliases (stdlib)
 - `each`, `collect`, and `run`
 - rule helper constructors in the prelude

@@ -59,6 +59,11 @@
     "expected_result": "2"
   },
   {
+    "id": "unix-map-tick-simulation",
+    "source": "tick(5) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
+    "expected_result": "[1, 2, 3, 4, 5]"
+  },
+  {
     "id": "unix-map-debug-absence-meta",
     "source": "absence_meta(none(\"missing_key\", { key: \"user\" }))",
     "expected_result": "some({reason: \"missing_key\", context: {key: \"user\"}})"

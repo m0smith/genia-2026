@@ -214,7 +214,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public Flow helper names `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
+- public Flow helper names `lines`, `tick` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`
@@ -656,6 +656,7 @@ Output sink semantics:
   - `stdin()` still materializes and caches the full remaining input as a list for compatibility
 - public flow helpers are thin prelude wrappers in `src/genia/std/prelude/flow.genia`:
   - `lines`
+  - `tick` (experimental)
   - `tee`
   - `merge`
   - `zip`
@@ -668,6 +669,8 @@ Output sink semantics:
   - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
 - flow transforms:
   - `lines(flow_or_source)`
+  - `tick()` (unbounded integer tick flow starting at `0`)
+  - `tick(count)` (bounded integer tick flow from `0` to `count - 1`)
   - `tee(flow)`
   - `merge(flow1, flow2)` and `merge(pair)` where `pair` comes from `tee(flow)`
   - `zip(flow1, flow2)` and `zip(pair)` where `pair` comes from `tee(flow)`
@@ -698,6 +701,7 @@ Flow semantics:
 - `merge` preserves input ordering (`flow1` items, then `flow2` items)
 - `zip` emits lockstep `[left, right]` pairs and stops when either input flow is exhausted
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
+- `tick` provides deterministic discrete step progression for simulation-style pipelines while preserving the same explicit/lazy/single-use Flow contract
 - short-circuiting flow consumers such as `take`, `head`, and downstream broken-pipe termination stop generator-backed upstream work promptly
 - `scan` is a per-flow stateful transform where `step(state, item)` must return `[next_state, output]`
 - `scan` keeps state internal to the operator while emitting one output item per input item

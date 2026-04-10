@@ -4,6 +4,28 @@ lines(source) = """
 Create a Flow from `stdin`, an incoming Flow, or a list of strings.
 """ _lines(source)
 
+tick() = """
+# tick (experimental)
+
+Create a Flow of integer tick values starting at `0`.
+
+`tick()` is unbounded.
+`tick(count)` is bounded to `0..count - 1`.
+
+Use with `take`/`head` when you want explicit bounded simulation steps.
+""" _tick()
+
+tick(count) = """
+# tick (experimental)
+
+Create a Flow of integer tick values starting at `0`.
+
+`tick()` is unbounded.
+`tick(count)` is bounded to `0..count - 1`.
+
+Use with `take`/`head` when you want explicit bounded simulation steps.
+""" _tick(count)
+
 tee(flow) = """
 # tee
 

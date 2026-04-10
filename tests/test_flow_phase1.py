@@ -96,6 +96,30 @@ def test_flow_wrappers_autoload_as_function_values():
     assert run_source(src, env) == ["a", "b"]
 
 
+def test_tick_infinite_source_can_be_bounded_with_head():
+    env = make_global_env()
+    assert run_source("tick() |> head(4) |> collect", env) == [0, 1, 2, 3]
+
+
+def test_tick_bounded_source_is_deterministic():
+    env = make_global_env()
+    assert run_source("tick(5) |> collect", env) == [0, 1, 2, 3, 4]
+
+
+def test_tick_drives_discrete_time_progression_with_scan():
+    env = make_global_env()
+    src = """
+    tick(4) |> scan((state, _) -> [state + 10, state + 10], 0) |> collect
+    """
+    assert run_source(src, env) == [10, 20, 30, 40]
+
+
+def test_tick_requires_integer_count_when_bounded():
+    env = make_global_env()
+    with pytest.raises(TypeError, match="tick expected an integer count"):
+        run_source('tick("bad") |> collect', env)
+
+
 def test_tee_split_and_merge_recombines_without_data_loss():
         env = make_number_flow_env([1, 2, 3])
         src = """

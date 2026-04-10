@@ -196,7 +196,7 @@ Pipeline invariant:
   - explicit Value <-> Flow bridge
 - Flow remains explicit:
   - pipeline evaluation does not create implicit Value↔Flow conversions
-  - flow values still come from explicit bridge/stage functions such as `lines`, `collect`, and `run`
+  - flow values still come from explicit bridge/stage functions such as `lines`, `tick`, `collect`, and `run`
 - tail position propagates through the final pipeline stage
 
 
