@@ -618,6 +618,19 @@ Result:
 
 The original structured absence survives the whole chain unchanged.
 
+For debugging failure context, inspect full metadata directly:
+
+```genia
+result = {} |> get("profile") |> get("name")
+absence_meta(result)
+```
+
+Result:
+
+```genia
+some({reason: "missing-key", context: {key: "profile"}})
+```
+
 Another useful chaining shape:
 
 ```genia

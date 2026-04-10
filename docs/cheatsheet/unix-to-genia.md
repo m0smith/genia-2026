@@ -69,6 +69,14 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 ---
 
+## 🧭 Debugging Failures
+
+| Unix | Genia | Notes |
+| ---- | ----- | ----- |
+| `grep + context` | 🟢 `absence_meta(none("missing_key", { key: "user" }))` | Inspect structured absence metadata [case: unix-map-debug-absence-meta] |
+
+---
+
 ## ⚠️ Key Differences from Unix
 
 * Genia is **type-safe** (Option vs silent failure)

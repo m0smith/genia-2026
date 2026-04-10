@@ -367,6 +367,10 @@ There are exactly two Option forms:
   - bare `none` and legacy `nil` both normalize to `none("nil")`
   - `reason` is always a string
   - `context` is an optional map of metadata about the absence
+  - metadata inspection helpers are:
+    - `absence_reason(none(...))` -> `some(reason)`
+    - `absence_context(none(...))` -> `some(context)` when present, otherwise `none("nil")`
+    - `absence_meta(none(...))` -> `some({reason: ..., context: ...?})`
 
 ### 9.6.2) Option propagation in pipelines (invariants)
 
@@ -392,6 +396,22 @@ Agents and implementations must preserve structured none metadata:
   - at least one pattern arm matches `none(...)` or `none(reason, ctx)`, or
   - it is registered with `__genia_handles_none__ = True`
 - handlers such as `some?`, `none?`, `unwrap_or`, `or_else`, `map_some`, `flat_map_some`, and all `then_*` helpers are explicitly none-aware
+
+### 9.6.6) Debugging structured absence
+
+Use structured none metadata directly instead of exceptions.
+
+Examples:
+
+- parse failure with reason-only metadata:
+  - `none("parse_error")`
+  - `absence_meta(none("parse_error"))` -> `some({reason: "parse_error"})`
+- missing key with context metadata:
+  - `none("missing_key", { key: "user" })`
+  - `absence_meta(none("missing_key", { key: "user" }))` -> `some({reason: "missing_key", context: {key: "user"}})`
+- pipeline propagation keeps metadata unchanged:
+  - `none("index_out_of_bounds", { index: 9, length: 2 }) |> parse_int`
+  - result is the same `none("index_out_of_bounds", { index: 9, length: 2 })`
 
 ### 9.6.5) Applying functions to Option-wrapped values
 

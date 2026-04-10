@@ -43,6 +43,10 @@ def test_structured_none_predicates_and_recovery_helpers(run):
     assert format_debug(_run('absence_reason(none("empty-list"))')) == 'some("empty-list")'
     assert format_debug(_run("absence_reason(none)")) == 'some("nil")'
     assert format_debug(_run('absence_context(none("empty-list"))')) == 'none("nil")'
+    assert format_debug(_run('absence_meta(none("empty-list"))')) == 'some({reason: "empty-list"})'
+    assert format_debug(
+        _run('absence_meta(none("index-out-of-bounds", { index: 8, length: 2 }))')
+    ) == 'some({reason: "index-out-of-bounds", context: {index: 8, length: 2}})'
     assert run(
         '\n'.join(
             [
@@ -249,6 +253,16 @@ def test_safe_chaining_pipeline_examples(run):
 
 def test_pipeline_short_circuits_none_for_generic_calls(run):
     assert format_debug(_run('none("empty-list") |> parse_int')) == 'none("empty-list")'
+
+
+def test_pipeline_preserves_none_metadata_for_debug_inspection(run):
+    src = '\n'.join([
+        'result = none("parse_error", { source: "parser", input: "x" }) |> parse_int |> then_get("value")',
+        '[absence_reason(result), absence_meta(result)]',
+    ])
+    result = run(src)
+    assert format_debug(result[0]) == 'some("parse_error")'
+    assert format_debug(result[1]) == 'some({reason: "parse_error", context: {source: "parser", input: "x"}})'
 
 
 def test_then_helpers_fail_clearly_on_wrong_targets(run):

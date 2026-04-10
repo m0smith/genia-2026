@@ -3202,6 +3202,13 @@ class GeniaOptionNone:
     reason: Any = None
     context: Any = None
 
+    @property
+    def meta(self) -> "GeniaMap":
+        metadata = GeniaMap().put("reason", self.reason)
+        if self.context is not None:
+            metadata = metadata.put("context", self.context)
+        return metadata
+
     def __repr__(self) -> str:
         if self.reason is None:
             return 'none("nil")'
@@ -3386,6 +3393,7 @@ _NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
         "unwrap_or",
         "absence_reason",
         "absence_context",
+        "absence_meta",
         "is_some?",
         "is_none?",
         "cli_option",
@@ -5532,7 +5540,19 @@ def make_global_env(
             (
                 "Option / string",
                 ("std/prelude/option.genia", "std/prelude/string.genia"),
-                ("some", "get", "unwrap_or", "absence_reason", "parse_int", "split", "trim", "join", "map_some", "then_get"),
+                (
+                    "some",
+                    "get",
+                    "unwrap_or",
+                    "absence_reason",
+                    "absence_meta",
+                    "parse_int",
+                    "split",
+                    "trim",
+                    "join",
+                    "map_some",
+                    "then_get",
+                ),
             ),
             (
                 "JSON",
@@ -5925,6 +5945,11 @@ def make_global_env(
             return OPTION_NONE
         return GeniaOptionSome(value.context)
 
+    def absence_meta_fn(value: Any) -> Any:
+        if not isinstance(value, GeniaOptionNone):
+            raise TypeError("absence_meta expected a none value")
+        return GeniaOptionSome(value.meta)
+
     def _invoke_from_builtin(proc: Any, args: list[Any]) -> Any:
         return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
             proc,
@@ -6092,6 +6117,7 @@ def make_global_env(
         or_else_with_fn,
         absence_reason_fn,
         absence_context_fn,
+        absence_meta_fn,
         map_some_fn,
         flat_map_some_fn,
         cli_option_or_fn,
@@ -6447,6 +6473,7 @@ def make_global_env(
     env.set("_unwrap_or", unwrap_or_fn)
     env.set("_absence_reason", absence_reason_fn)
     env.set("_absence_context", absence_context_fn)
+    env.set("_absence_meta", absence_meta_fn)
     env.set("_is_some?", is_some_fn)
     env.set("_is_none?", is_none_fn)
     env.set("force", force_fn)
@@ -6617,6 +6644,7 @@ def make_global_env(
     env.register_autoload("unwrap_or", 2, "std/prelude/option.genia")
     env.register_autoload("absence_reason", 1, "std/prelude/option.genia")
     env.register_autoload("absence_context", 1, "std/prelude/option.genia")
+    env.register_autoload("absence_meta", 1, "std/prelude/option.genia")
     env.register_autoload("is_some?", 1, "std/prelude/option.genia")
     env.register_autoload("is_none?", 1, "std/prelude/option.genia")
     env.register_autoload("byte_length", 1, "std/prelude/string.genia")

@@ -57,5 +57,10 @@
     "source": "stdin |> lines |> filter((l) -> contains(l, \"error\")) |> collect |> count",
     "stdin_data": ["ok", "error: one", "warn", "error: two"],
     "expected_result": "2"
+  },
+  {
+    "id": "unix-map-debug-absence-meta",
+    "source": "absence_meta(none(\"missing_key\", { key: \"user\" }))",
+    "expected_result": "some({reason: \"missing_key\", context: {key: \"user\"}})"
   }
 ]

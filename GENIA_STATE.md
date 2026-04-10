@@ -198,6 +198,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - canonical maybe-aware access/search APIs use structured absence directly (`get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`)
   - compatibility surfaces such as `map_get`, slash access, callable map/string lookup, and `cli_option` now also return structured `none(...)` on missing results
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
+- absence metadata is inspectable through:
+  - `absence_reason(none(...))` -> `some(reason)`
+  - `absence_context(none(...))` -> `some(context)` when present, otherwise `none("nil")`
+  - `absence_meta(none(...))` -> `some({reason: ..., context: ...?})`
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
 - pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(...)`.

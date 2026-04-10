@@ -62,3 +62,11 @@ def test_trace_on_flow_does_not_force_full_evaluation(capsys):
 
     assert run_source(src, env) == [["a"], 1]
     assert "after map <flow map ready>" in capsys.readouterr().err
+
+
+def test_trace_can_display_structured_none_metadata(run, capsys):
+    src = 'trace("dead-letter", absence_meta(none("missing_key", { key: "user" })))'
+    result = run(src)
+    captured = capsys.readouterr()
+    assert "dead-letter some({reason: missing_key, context: {key: user}})" in captured.err
+    assert result.__class__.__name__ == "GeniaOptionSome"

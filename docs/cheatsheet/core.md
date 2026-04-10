@@ -57,7 +57,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | option chaining | `map_some(f, opt)`, `flat_map_some(f, opt)` |
 | chain helpers | `then_get(key, target)`, `then_first(target)`, `then_nth(index, target)`, `then_find(needle, target)` |
 | recovery | `unwrap_or(default, opt)`, `or_else(opt, fallback)`, `or_else_with(opt, thunk)` |
-| metadata | `absence_reason(opt)`, `absence_context(opt)` |
+| metadata | `absence_reason(opt)`, `absence_context(opt)`, `absence_meta(opt)` |
 
 ## List And Sequence Helpers
 

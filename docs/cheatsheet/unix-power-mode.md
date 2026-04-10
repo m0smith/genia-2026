@@ -134,6 +134,7 @@ rows
 
 `parse_int` returns `some(int)` or `none(...)`.
 `keep_some_else` unwraps `some(...)` into the main flow and routes `none(...)` items to `log`.
+Use `absence_meta(opt)` when dead-letter handlers need structured reason/context inspection.
 
 # 🚀 One-Liner to Remember
 
