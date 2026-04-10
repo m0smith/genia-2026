@@ -626,7 +626,7 @@ Case placement rules (enforced):
 
 ### Core I/O and utilities
 
-- direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+- direct runtime names: `log`, `print`, `input`, `stdin`, `stdin_keys`, `stdout`, `stderr`, `help`
 - public sink helpers are thin prelude wrappers in `src/genia/std/prelude/io.genia`:
   - `write`
   - `writeln`
@@ -665,6 +665,11 @@ Output sink semantics:
 - `stdin` is a lazy source value when used in pipelines (`stdin |> lines`)
   - `stdin |> lines` reads incrementally from the underlying source
   - `stdin()` still materializes and caches the full remaining input as a list for compatibility
+- `stdin_keys` is a lazy real-time keypress Flow source (`stdin_keys |> ...`)
+  - emits one keypress item at a time without waiting for newline in interactive terminal mode
+  - remains single-use like other Flow values
+  - in non-interactive stdin contexts, falls back to character-by-character input reads
+  - existing `stdin |> lines` behavior is unchanged
 - public flow helpers are thin prelude wrappers in `src/genia/std/prelude/flow.genia`:
   - `lines`
   - `tick` (experimental)

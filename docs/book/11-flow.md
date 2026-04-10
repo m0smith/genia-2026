@@ -61,6 +61,51 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
   - omit explicit `stdin`
   - omit explicit `run`
 
+## Real-time input (`stdin_keys`)
+
+Genia now exposes `stdin_keys` as a host-backed Flow source for key-by-key input.
+
+- `stdin` remains line-oriented through `stdin |> lines`
+- `stdin_keys` is key-oriented and does not require pressing Enter in interactive terminals
+- `stdin_keys` is still a single-use Flow source
+- runtime behavior is cross-platform:
+  - Windows uses console key reads
+  - POSIX terminals use raw mode and restore terminal settings on completion/early stop
+  - non-interactive stdin falls back to character-by-character reads
+
+### Minimal example
+
+```genia
+stdin_keys |> each(handle_input) |> run
+```
+
+Expected behavior:
+
+- `handle_input` is called once per key event
+
+### Edge case example
+
+```genia
+stdin_keys |> head(3) |> collect
+```
+
+Expected behavior:
+
+- returns exactly the first three key events
+- stops upstream key reads early
+
+### Failure case example
+
+```genia
+x = stdin_keys
+x |> collect
+x |> collect
+```
+
+Expected behavior:
+
+- second consume raises `RuntimeError: Flow has already been consumed`
+
 ## Experimental tick-based execution
 
 Genia now includes an experimental tick source helper for discrete-time flow execution.

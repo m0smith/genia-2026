@@ -120,6 +120,33 @@ def test_tick_requires_integer_count_when_bounded():
         run_source('tick("bad") |> collect', env)
 
 
+def test_stdin_keys_stream_can_feed_flow_stages_directly():
+    env = make_global_env(
+        stdin_keys_provider=lambda: iter(["a", "b", "\n", "q"]),
+    )
+    assert run_source("stdin_keys |> collect", env) == ["a", "b", "\n", "q"]
+
+
+def test_stdin_keys_is_single_use_flow_like_other_flow_sources():
+    src = """
+    keys = stdin_keys
+    first = keys |> head(2) |> collect
+    second = keys |> collect
+    [first, second]
+    """
+    env = make_global_env(stdin_keys_provider=lambda: iter(["x", "y", "z"]))
+    with pytest.raises(RuntimeError, match="Flow has already been consumed"):
+        run_source(src, env)
+
+
+def test_stdin_lines_behavior_remains_newline_normalized():
+    env = make_global_env(
+        stdin_provider=lambda: iter(["a\n", "b\r\n"]),
+        stdin_keys_provider=lambda: iter(["a", "b"]),
+    )
+    assert run_source("stdin |> lines |> collect", env) == ["a", "b"]
+
+
 def test_tee_split_and_merge_recombines_without_data_loss():
         env = make_number_flow_env([1, 2, 3])
         src = """

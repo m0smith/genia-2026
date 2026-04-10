@@ -4811,6 +4811,7 @@ def make_global_env(
     stdout_stream: Any = None,
     stderr_stream: Any = None,
     output_handler: Optional[Callable[[str], None]] = None,
+    stdin_keys_provider: Optional[Callable[[], Iterable[str]]] = None,
 ) -> Env:
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
@@ -5278,6 +5279,82 @@ def make_global_env(
 
     stdin_source = GeniaStdinSource(stdin_iterable)
     setattr(stdin_source, "_genia_stdin_source", True)
+
+    def stdin_keys_iterable() -> Iterable[str]:
+        if stdin_keys_provider is not None:
+            return stdin_keys_provider()
+
+        def host_stdin_keys() -> Iterable[str]:
+            if os.name == "nt":
+                try:
+                    import msvcrt
+                except ImportError:
+                    pass
+                else:
+                    while True:
+                        key = msvcrt.getwch()
+                        if key in ("\x00", "\xe0"):
+                            key += msvcrt.getwch()
+                        if key == "\r":
+                            yield "\n"
+                        else:
+                            yield key
+                    return
+
+            stdin_stream = sys.stdin
+            if not getattr(stdin_stream, "isatty", lambda: False)():
+                while True:
+                    chunk = stdin_stream.read(1)
+                    if chunk == "":
+                        return
+                    yield chunk
+                return
+
+            try:
+                import termios
+                import tty
+            except ImportError:
+                while True:
+                    chunk = stdin_stream.read(1)
+                    if chunk == "":
+                        return
+                    yield chunk
+                return
+
+            try:
+                fd = stdin_stream.fileno()
+            except (AttributeError, io.UnsupportedOperation):
+                while True:
+                    chunk = stdin_stream.read(1)
+                    if chunk == "":
+                        return
+                    yield chunk
+                return
+
+            import codecs
+
+            previous_attrs = termios.tcgetattr(fd)
+            decoder = codecs.getincrementaldecoder("utf-8")()
+            try:
+                tty.setraw(fd)
+                while True:
+                    raw_chunk = os.read(fd, 1)
+                    if raw_chunk == b"":
+                        remainder = decoder.decode(b"", final=True)
+                        if remainder != "":
+                            for ch in remainder:
+                                yield ch
+                        return
+                    text = decoder.decode(raw_chunk, final=False)
+                    if text != "":
+                        for ch in text:
+                            yield ch
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, previous_attrs)
+
+        return host_stdin_keys()
+
+    stdin_keys_flow = GeniaFlow(stdin_keys_iterable, label="stdin_keys", close_on_early_termination=True)
 
     def argv_fn() -> list[str]:
         return list(argv_cache)
@@ -5887,7 +5964,7 @@ def make_global_env(
                 "",
                 "Intentional host bridge:",
                 "  Raw host-backed names stay small and capability-oriented.",
-                "  `argv()` and values such as `stdin`, `stdout`, `stderr`, `print`, `log`, `input`, `none`, `force`,",
+                "  `argv()` and values such as `stdin`, `stdin_keys`, `stdout`, `stderr`, `print`, `log`, `input`, `none`, `force`,",
                 "  pair helpers, simulation primitives, and utf8/json/zip bridges remain host-backed in this phase.",
                 '  `help("print")` and similar raw bridge names show a small generic note instead of a second host-side docs registry.',
             ]
@@ -6702,6 +6779,7 @@ def make_global_env(
     env.set("print", print_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_source)
+    env.set("stdin_keys", stdin_keys_flow)
     env.set("_flow?", flow_predicate_fn)
     env.set("_lines", lines_fn)
     env.set("_tick", tick_fn)

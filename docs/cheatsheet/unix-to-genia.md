@@ -17,6 +17,14 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 ---
 
+## ⌨️ Real-Time Input
+
+| Use Case | Genia | Notes |
+| -------- | ----- | ----- |
+| keypress stream | 🔴 `stdin_keys \|> each(handle_input) \|> run` | Captures keypresses without waiting for newline; `stdin` line mode stays unchanged |
+
+---
+
 ## 🔢 Counting
 
 | Unix    | Genia                                                                 | Notes        |
