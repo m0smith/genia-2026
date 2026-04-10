@@ -11,6 +11,9 @@ It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
 The canonical public Flow helper surface now lives in `src/genia/std/prelude/flow.genia`:
 
 - `lines`
+- `tee`
+- `merge`
+- `zip`
 - `keep_some`
 - `keep_some_else`
 - `rules`
@@ -54,6 +57,50 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
   - `genia -p 'stage_expr'` means `stdin |> lines |> stage_expr |> run`
   - omit explicit `stdin`
   - omit explicit `run`
+
+## Multi-flow helpers
+
+Genia now includes small explicit fan-out/fan-in helpers for Flow values:
+
+- `tee(flow) -> (flow1, flow2)`
+- `merge(flow1, flow2) -> flow`
+- `zip(flow1, flow2) -> flow`
+
+These helpers preserve the same lazy pull-based flow model and do not materialize full lists.
+
+### Minimal example
+
+```genia
+["a", "b", "c"] |> lines |> tee |> merge |> collect
+```
+
+Expected result:
+
+```genia
+["a", "b", "c", "a", "b", "c"]
+```
+
+### Edge case example
+
+```genia
+["a", "b", "c"] |> lines |> tee |> zip |> collect
+```
+
+Expected result:
+
+```genia
+[["a", "a"], ["b", "b"], ["c", "c"]]
+```
+
+### Failure case example
+
+```genia
+tee(["a", "b"])
+```
+
+Expected behavior:
+
+- runtime `TypeError` explaining that `tee` expects a flow value
 
 ## Reusable stages
 

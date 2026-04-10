@@ -4,6 +4,57 @@ lines(source) = """
 Create a Flow from `stdin`, an incoming Flow, or a list of strings.
 """ _lines(source)
 
+tee(flow) = """
+# tee
+
+Split one input flow into two lazy branch flows.
+
+The source flow is still consumed once, and buffered only as needed
+when one branch lags behind the other.
+""" _tee(flow)
+
+merge(flow1, flow2) = """
+# merge
+
+Concatenate two flows into one output flow.
+
+`merge(flow1, flow2)` emits items from `flow1` first, then `flow2`.
+`merge(pair)` unpacks a pair from `tee(flow)` and combines them.
+""" _merge(flow1, flow2)
+
+merge(pair) = """
+# merge
+
+Concatenate two flows into one output flow.
+
+`merge(flow1, flow2)` emits items from `flow1` first, then `flow2`.
+`merge(pair)` unpacks a pair from `tee(flow)` and combines them.
+""" _merge(pair)
+
+zip(flow1, flow2) = """
+# zip
+
+Combine two flows into a flow of pairs.
+
+`zip(flow1, flow2)` pairs items from both flows at each step.
+`zip(pair)` unpacks a pair from `tee(flow)` and combines them.
+
+Each output item is `[left, right]`, preserving lockstep order.
+The output stops when either input flow is exhausted.
+""" _zip(flow1, flow2)
+
+zip(pair) = """
+# zip
+
+Combine two flows into a flow of pairs.
+
+`zip(flow1, flow2)` pairs items from both flows at each step.
+`zip(pair)` unpacks a pair from `tee(flow)` and combines them.
+
+Each output item is `[left, right]`, preserving lockstep order.
+The output stops when either input flow is exhausted.
+""" _zip(pair)
+
 keep_some(flow) = """
 # keep_some
 

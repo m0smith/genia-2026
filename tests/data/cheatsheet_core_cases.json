@@ -23,5 +23,10 @@
     "id": "core-min-sum-after-keep-some",
     "source": "[\"10\", \"oops\", \"20\"] |> lines |> keep_some(parse_int) |> collect |> sum",
     "expected_result": "30"
+  },
+  {
+    "id": "core-min-flow-tee-zip",
+    "source": "[\"a\", \"b\"] |> lines |> tee |> zip |> collect",
+    "expected_result": "[[\"a\", \"a\"], [\"b\", \"b\"]]"
   }
 ]

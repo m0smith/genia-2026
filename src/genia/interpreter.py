@@ -23,6 +23,7 @@ import os
 import bisect
 import io
 import json
+from collections import deque
 import queue
 import random
 import time
@@ -5227,6 +5228,48 @@ def make_global_env(
         if callable(close):
             close()
 
+    class _FlowTeeState:
+        def __init__(self, upstream: GeniaFlow):
+            self._upstream = upstream
+            self._iterator: Iterator[Any] | None = None
+            self._upstream_done = False
+            self._buffers = [deque(), deque()]
+            self._closed_branches: set[int] = set()
+
+        def _ensure_iterator(self) -> Iterator[Any] | None:
+            if self._upstream_done:
+                return None
+            if self._iterator is None:
+                self._iterator = iter(self._upstream.consume())
+            return self._iterator
+
+        def _fill_once(self) -> bool:
+            iterator = self._ensure_iterator()
+            if iterator is None:
+                return False
+            try:
+                item = next(iterator)
+            except StopIteration:
+                self._upstream_done = True
+                return False
+
+            self._buffers[0].append(item)
+            self._buffers[1].append(item)
+            return True
+
+        def next_item(self, branch_index: int) -> Any:
+            while not self._buffers[branch_index]:
+                if not self._fill_once():
+                    raise StopIteration
+            return self._buffers[branch_index].popleft()
+
+        def close_branch(self, branch_index: int) -> None:
+            self._closed_branches.add(branch_index)
+            if len(self._closed_branches) != 2:
+                return
+            if self._iterator is not None and self._upstream.close_on_early_termination:
+                _maybe_close_iterable(self._iterator)
+
     def lines_fn(source: Any) -> GeniaFlow:
         if isinstance(source, GeniaFlow):
             upstream = _ensure_flow(source, "lines")
@@ -5262,6 +5305,99 @@ def make_global_env(
                 yield item
 
         return GeniaFlow(iterator, label="lines")
+
+    def tee_fn(source: Any) -> tuple[GeniaFlow, GeniaFlow]:
+        upstream = _ensure_flow(source, "tee")
+        state = _FlowTeeState(upstream)
+
+        def branch_flow(branch_index: int) -> GeniaFlow:
+            def iterator() -> Iterable[Any]:
+                try:
+                    while True:
+                        try:
+                            yield state.next_item(branch_index)
+                        except StopIteration:
+                            return
+                finally:
+                    state.close_branch(branch_index)
+
+            return GeniaFlow(iterator, label=f"tee/{branch_index + 1}")
+
+        return (branch_flow(0), branch_flow(1))
+
+    def _split_flow_pair(value: Any, name: str) -> tuple[GeniaFlow, GeniaFlow]:
+        if isinstance(value, (tuple, list)) and len(value) == 2:
+            left = _ensure_flow(value[0], name)
+            right = _ensure_flow(value[1], name)
+            return left, right
+        raise TypeError(f"{name} expected (flow1, flow2) pair or two flow arguments")
+
+    def merge_flow_fn(*args: Any) -> GeniaFlow:
+        if len(args) == 1:
+            first_flow, second_flow = _split_flow_pair(args[0], "merge")
+        elif len(args) == 2:
+            first_flow = _ensure_flow(args[0], "merge")
+            second_flow = _ensure_flow(args[1], "merge")
+        else:
+            raise TypeError(f"merge expected 1 or 2 args, got {len(args)}")
+
+        def iterator() -> Iterable[Any]:
+            first_items = iter(first_flow.consume())
+            second_items: Iterator[Any] | None = None
+            try:
+                for item in first_items:
+                    yield item
+
+                second_items = iter(second_flow.consume())
+                for item in second_items:
+                    yield item
+            finally:
+                if first_flow.close_on_early_termination:
+                    _maybe_close_iterable(first_items)
+                if second_items is not None and second_flow.close_on_early_termination:
+                    _maybe_close_iterable(second_items)
+
+        return GeniaFlow(
+            iterator,
+            label="merge",
+            close_on_early_termination=(
+                first_flow.close_on_early_termination or second_flow.close_on_early_termination
+            ),
+        )
+
+    def zip_flow_fn(*args: Any) -> GeniaFlow:
+        if len(args) == 1:
+            first_flow, second_flow = _split_flow_pair(args[0], "zip")
+        elif len(args) == 2:
+            first_flow = _ensure_flow(args[0], "zip")
+            second_flow = _ensure_flow(args[1], "zip")
+        else:
+            raise TypeError(f"zip expected 1 or 2 args, got {len(args)}")
+
+        def iterator() -> Iterable[Any]:
+            first_items = iter(first_flow.consume())
+            second_items = iter(second_flow.consume())
+            try:
+                while True:
+                    try:
+                        left = next(first_items)
+                        right = next(second_items)
+                    except StopIteration:
+                        return
+                    yield [left, right]
+            finally:
+                if first_flow.close_on_early_termination:
+                    _maybe_close_iterable(first_items)
+                if second_flow.close_on_early_termination:
+                    _maybe_close_iterable(second_items)
+
+        return GeniaFlow(
+            iterator,
+            label="zip",
+            close_on_early_termination=(
+                first_flow.close_on_early_termination or second_flow.close_on_early_termination
+            ),
+        )
 
     def map_flow_fn(fn_value: Any, source: Any) -> Any:
         mapper = _ensure_callable(fn_value, "map")
@@ -6440,6 +6576,9 @@ def make_global_env(
     env.set("stdin", stdin_source)
     env.set("_flow?", flow_predicate_fn)
     env.set("_lines", lines_fn)
+    env.set("_tee", tee_fn)
+    env.set("_merge", merge_flow_fn)
+    env.set("_zip", zip_flow_fn)
     env.set("_keep_some", keep_some_fn)
     env.set("_keep_some_else", keep_some_else_fn)
     env.set("_each", each_fn)
@@ -6565,6 +6704,11 @@ def make_global_env(
     env.register_autoload("cli_option", 2, "std/prelude/cli.genia")
     env.register_autoload("cli_option_or", 3, "std/prelude/cli.genia")
     env.register_autoload("lines", 1, "std/prelude/flow.genia")
+    env.register_autoload("tee", 1, "std/prelude/flow.genia")
+    env.register_autoload("merge", 1, "std/prelude/flow.genia")
+    env.register_autoload("merge", 2, "std/prelude/flow.genia")
+    env.register_autoload("zip", 1, "std/prelude/flow.genia")
+    env.register_autoload("zip", 2, "std/prelude/flow.genia")
     env.register_autoload("keep_some", 1, "std/prelude/flow.genia")
     env.register_autoload("keep_some", 2, "std/prelude/flow.genia")
     env.register_autoload("keep_some_else", 2, "std/prelude/flow.genia")

@@ -87,6 +87,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | Helper | Shape |
 | --- | --- |
 | source bridge | `lines(source)` |
+| split / fan-in | `tee(flow)`, `merge(flow1, flow2)`, `zip(flow1, flow2)` |
 | option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |
 | rule stage | `rules(..fns)` |
@@ -145,4 +146,9 @@ fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
 [case: core-min-sum-after-keep-some]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect |> sum
+```
+
+[case: core-min-flow-tee-zip]
+```genia
+["a", "b"] |> lines |> tee |> zip |> collect
 ```

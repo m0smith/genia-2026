@@ -96,6 +96,30 @@ def test_flow_wrappers_autoload_as_function_values():
     assert run_source(src, env) == ["a", "b"]
 
 
+def test_tee_split_and_merge_recombines_without_data_loss():
+        env = make_number_flow_env([1, 2, 3])
+        src = """
+        numbers() |> tee |> merge |> collect
+        """
+        assert run_source(src, env) == [1, 2, 3, 1, 2, 3]
+
+
+def test_tee_zip_keeps_all_items_without_data_loss():
+        env = make_number_flow_env([1, 2, 3, 4])
+        src = """
+        numbers() |> tee |> zip |> collect
+        """
+        assert run_source(src, env) == [[1, 1], [2, 2], [3, 3], [4, 4]]
+
+
+def test_zip_preserves_lockstep_ordering():
+        env = make_number_flow_env([1, 2, 3])
+        src = """
+        numbers() |> tee |> zip |> collect
+        """
+        assert run_source(src, env) == [[1, 1], [2, 2], [3, 3]]
+
+
 def test_take_zero_does_not_pull_upstream():
     env = make_global_env()
     state = {"pulled": 0}

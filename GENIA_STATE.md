@@ -214,7 +214,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public Flow helper names `lines`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
+- public Flow helper names `lines`, `tee`, `merge`, `zip`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`
@@ -656,6 +656,9 @@ Output sink semantics:
   - `stdin()` still materializes and caches the full remaining input as a list for compatibility
 - public flow helpers are thin prelude wrappers in `src/genia/std/prelude/flow.genia`:
   - `lines`
+  - `tee`
+  - `merge`
+  - `zip`
   - `keep_some_else`
   - `rules`
   - `each`
@@ -664,6 +667,9 @@ Output sink semantics:
   - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
 - flow transforms:
   - `lines(flow_or_source)`
+  - `tee(flow)`
+  - `merge(flow1, flow2)` and `merge(pair)` where `pair` comes from `tee(flow)`
+  - `zip(flow1, flow2)` and `zip(pair)` where `pair` comes from `tee(flow)`
   - `keep_some_else(stage, dead_handler, flow)` / `flow |> keep_some_else(stage, dead_handler)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
   - `take(n, flow)` when second arg is a flow
@@ -686,6 +692,9 @@ Flow semantics:
 
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
+- `tee` keeps one shared upstream flow and only buffers as needed when branch consumption rates diverge
+- `merge` preserves input ordering (`flow1` items, then `flow2` items)
+- `zip` emits lockstep `[left, right]` pairs and stops when either input flow is exhausted
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
 - short-circuiting flow consumers such as `take`, `head`, and downstream broken-pipe termination stop generator-backed upstream work promptly
 - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors
@@ -1160,7 +1169,7 @@ Notable autoloaded functions include:
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`
-- flow: `lines`, `rules`, `each`, `collect`, `run`
+- flow: `lines`, `tee`, `merge`, `zip`, `rules`, `each`, `collect`, `run`
 - option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
 - string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
 - syntax: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
