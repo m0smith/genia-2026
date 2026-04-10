@@ -200,7 +200,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
-- pipelines short-circuit on `none(...)` but do not auto-unwrap `some(...)`; explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain important when the next stage expects the inner value of an Option.
+- pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(...)`.
+  - non-Option stage results are wrapped back into `some(...)`
+  - Option stage results (`some(...)` / `none(...)`) are preserved as-is
+  - explicitly Option-aware stages (for example `unwrap_or`, `map_some`, `flat_map_some`, and `then_*`) still receive Option values directly
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
   - `trace(label, value)` logs `label` plus `value` and returns `value` unchanged
@@ -272,11 +275,10 @@ Pipeline (Phase 2) evaluation model:
     `f |> g`
 - automatic Option propagation is part of pipeline evaluation:
   - if a stage input is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
-  - otherwise the next stage receives the current value unchanged:
-    - raw values stay raw values
-    - explicit `some(...)` stays `some(...)`
+  - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
+  - when a lifted stage returns non-Option `y`, the pipeline continues with `some(y)`
+  - when a lifted stage returns `some(...)` or `none(...)`, that Option result is preserved
   - if a stage result is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
-  - pipeline evaluation does not auto-unwrap `some(...)`
 - pipeline failure diagnostics now include:
   - 1-based stage index
   - stage rendering when available
@@ -971,7 +973,7 @@ Pipeline note:
 - canonical recovery wraps the pipeline result:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
   - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
-- pipelines preserve explicit `some(...)` values; use `then_*` or `flat_map_some(...)` when the next stage expects the wrapped value rather than an Option
+- pipelines now lift ordinary stages over `some(...)`; use `map_some` / `flat_map_some` when you need explicit wrap-vs-flat-map control
 - reducers remain explicit:
   - `sum(xs)` expects a plain list of numbers
   - `sum` rejects raw Option items with a clear error instead of relying on accidental arithmetic with `some(...)` / `none(...)`

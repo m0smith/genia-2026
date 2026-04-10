@@ -42,9 +42,10 @@ none("missing-key", {key: "name"})
 
 Pipeline rule reminder:
 
-- `none(...)` short-circuits
-- `some(...)` is preserved (not auto-unwrapped)
-- stages receive the current value unchanged unless a helper explicitly unwraps
+- `none(...)` short-circuits and preserves reason/context metadata
+- ordinary stages lift over `some(x)` automatically
+- lifted non-Option results are wrapped back into `some(...)`
+- explicitly Option-aware helpers (`unwrap_or`, `map_some`, `flat_map_some`, `then_*`) still receive Option values directly
 
 Common helpers:
 

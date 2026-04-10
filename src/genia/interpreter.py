@@ -3359,6 +3359,11 @@ def _mark_handles_none(fn: Callable[..., Any]) -> Callable[..., Any]:
     return fn
 
 
+def _mark_handles_some(fn: Callable[..., Any]) -> Callable[..., Any]:
+    setattr(fn, "__genia_handles_some__", True)
+    return fn
+
+
 _NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
     {
         "apply",
@@ -3460,6 +3465,9 @@ _NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
 )
 
 
+
+_SOME_AWARE_PUBLIC_FUNCTIONS = _NONE_AWARE_PUBLIC_FUNCTIONS
+
 def _pattern_explicitly_handles_none(pattern: IrPattern) -> bool:
     if isinstance(pattern, IrPatNone):
         return True
@@ -3474,6 +3482,23 @@ def _pattern_explicitly_handles_none(pattern: IrPattern) -> bool:
     return False
 
 
+def _pattern_explicitly_handles_some(pattern: IrPattern) -> bool:
+    if isinstance(pattern, IrPatSome):
+        return True
+    if isinstance(pattern, IrPatTuple):
+        return any(_pattern_explicitly_handles_some(item) for item in pattern.items)
+    if isinstance(pattern, IrPatList):
+        return any(_pattern_explicitly_handles_some(item) for item in pattern.items)
+    if isinstance(pattern, IrPatMap):
+        return any(_pattern_explicitly_handles_some(item) for _, item in pattern.items)
+    if isinstance(pattern, IrPatNone):
+        if pattern.reason is not None and _pattern_explicitly_handles_some(pattern.reason):
+            return True
+        if pattern.context is not None and _pattern_explicitly_handles_some(pattern.context):
+            return True
+    return False
+
+
 def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
     if isinstance(body, IrCase):
         return any(_pattern_explicitly_handles_none(clause.pattern) for clause in body.clauses)
@@ -3482,8 +3507,20 @@ def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
     return False
 
 
+def _callable_case_explicitly_handles_some(body: IrNode) -> bool:
+    if isinstance(body, IrCase):
+        return any(_pattern_explicitly_handles_some(clause.pattern) for clause in body.clauses)
+    if isinstance(body, IrBlock) and body.exprs:
+        return _callable_case_explicitly_handles_some(body.exprs[-1])
+    return False
+
+
 def _function_explicitly_handles_none(fn: GeniaFunction) -> bool:
     return _callable_case_explicitly_handles_none(fn.body)
+
+
+def _function_explicitly_handles_some(fn: GeniaFunction) -> bool:
+    return _callable_case_explicitly_handles_some(fn.body)
 
 
 def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode | None = None) -> bool:
@@ -3510,6 +3547,32 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode |
             return _function_explicitly_handles_none(matches[0])
         if isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take"}:
             return True
+        return False
+    return False
+
+
+def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: IrNode | None = None) -> bool:
+    if getattr(fn, "__genia_handles_some__", False):
+        return True
+    if isinstance(fn, GeniaFunction):
+        if fn.name in _SOME_AWARE_PUBLIC_FUNCTIONS:
+            return True
+        return _function_explicitly_handles_some(fn)
+    if isinstance(fn, GeniaFunctionGroup):
+        if fn.name in _SOME_AWARE_PUBLIC_FUNCTIONS:
+            return True
+        candidate = fn.get(arity)
+        if candidate is not None:
+            return _function_explicitly_handles_some(candidate)
+        matches = [
+            current
+            for current in fn.values()
+            if isinstance(current, GeniaFunction)
+            and current.rest_param is not None
+            and arity >= current.arity
+        ]
+        if len(matches) == 1:
+            return _function_explicitly_handles_some(matches[0])
         return False
     return False
 
@@ -4074,6 +4137,28 @@ class Evaluator:
         return stage_value
 
     def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
+        def invoke_with_pipeline_option_lifting(fn: Any, base_args: list[Any], callee_node: IrNode) -> Any:
+            # Lift `some(x)` through ordinary stages while preserving explicit Option-aware call sites.
+            if (
+                isinstance(stage_value, GeniaOptionSome)
+                and not _callable_explicitly_handles_some(fn, len(base_args) + 1, callee_node)
+            ):
+                result = self.invoke_callable(
+                    fn,
+                    [*base_args, stage_value.value],
+                    tail_position=tail_position,
+                    callee_node=callee_node,
+                )
+                if isinstance(result, (GeniaOptionSome, GeniaOptionNone)):
+                    return result
+                return GeniaOptionSome(result)
+            return self.invoke_callable(
+                fn,
+                [*base_args, stage_value],
+                tail_position=tail_position,
+                callee_node=callee_node,
+            )
+
         if isinstance(node, IrCall):
             args: list[Any] = []
             for arg_node in node.args:
@@ -4097,7 +4182,7 @@ class Evaluator:
             else:
                 fn = self.eval(node.fn)
 
-            return self.invoke_callable(fn, [*args, stage_value], tail_position=tail_position, callee_node=node.fn)
+            return invoke_with_pipeline_option_lifting(fn, args, node.fn)
 
         if isinstance(node, IrVar):
             try:
@@ -4109,7 +4194,7 @@ class Evaluator:
                     raise
         else:
             fn_value = self.eval(node)
-        return self.invoke_callable(fn_value, [stage_value], tail_position=tail_position, callee_node=node)
+        return invoke_with_pipeline_option_lifting(fn_value, [], node)
 
     def invoke_callable(
         self,
@@ -6029,6 +6114,7 @@ def make_global_env(
         syntax_symbol_expr_fn,
     ):
         _mark_handles_none(fn)
+        _mark_handles_some(fn)
 
     def rand_fn(*args: Any) -> float:
         if len(args) != 0:
@@ -6771,7 +6857,7 @@ def _format_pipe_mode_error(exc: Exception) -> str:
     if "received some" in message:
         return (
             f"{message}. "
-            "Pipelines preserve explicit some(...); use flat_map_some(...), map_some(...), or then_* when the next stage needs the inner value."
+            "If this stage is intentionally Option-aware, keep explicit helpers such as flat_map_some(...), map_some(...), or then_* in place."
         )
     return message
 

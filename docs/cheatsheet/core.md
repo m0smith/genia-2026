@@ -41,10 +41,11 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | `x |> f(y)` | `f(y, x)` |
 | callable rhs | `record |> "name"` behaves like `"name"(record)` |
 | none short-circuit | `none(...)` skips remaining stages |
-| some preserved | pipelines do not auto-unwrap `some(...)` |
-| stage input | raw values stay raw; `some(...)` also stays explicit |
+| some lifting | ordinary stages lift over `some(x)` automatically |
+| lifted result | non-Option `y` becomes `some(y)`; Option results are preserved |
+| explicit option stages | helpers such as `unwrap_or`, `map_some`, `flat_map_some`, and `then_*` still receive Option values directly |
 
-Use explicit Option helpers when the next stage needs the wrapped inner value.
+Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 
 ## Option And Absence
 

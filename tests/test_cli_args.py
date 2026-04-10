@@ -339,7 +339,7 @@ def test_pipe_mode_some_mismatch_points_toward_explicit_helpers(monkeypatch, cap
     assert exit_code == 1
     assert captured.out == ""
     assert "parse_int expected a string, received some" in captured.err
-    assert "Pipelines preserve explicit some(...)" in captured.err
+    assert "If this stage is intentionally Option-aware" in captured.err
 
 
 def test_pipe_mode_flow_reuse_error_is_translated_cleanly(monkeypatch, capsys):

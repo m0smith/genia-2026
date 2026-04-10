@@ -10,8 +10,8 @@
 
 - `|>` is now an Option-aware pipeline stage form.
 - If a stage input or result is `none(...)`, remaining stages do not execute and that same `none(...)` is returned.
-- Otherwise the next stage receives the current value unchanged, including explicit `some(...)`.
-- Pipeline evaluation does not auto-unwrap `some(...)`.
+- Otherwise `some(x)` is lifted into ordinary stages as `x` when the stage is not explicitly Option-aware.
+- Lifted non-Option results are wrapped back into `some(...)`, while Option results are preserved as-is.
 - `parse_int` now returns `some(int)` on success and `none("parse-error", context)` for ordinary parse failure.
 
 ## Why

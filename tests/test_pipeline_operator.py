@@ -34,12 +34,20 @@ def test_pipeline_is_left_associative(run):
     assert run(src) == 8
 
 
-def test_pipeline_keeps_some_values_explicit(run):
+def test_pipeline_lifts_some_input_for_ordinary_stages(run):
     src = """
     inc(x) = x + 1
-    none?(some(4) |> inc)
+    some?(some(4) |> inc)
     """
     assert run(src) is True
+
+
+def test_pipeline_lifted_stage_result_wraps_back_into_some(run):
+    src = """
+    inc(x) = x + 1
+    unwrap_or(-1, some(4) |> inc)
+    """
+    assert run(src) == 5
 
 
 def test_pipeline_short_circuits_none_input_before_stage(run):
@@ -61,9 +69,16 @@ def test_pipeline_preserves_some_stage_results(run):
     src = """
     inc_opt(x) = some(x + 1)
     double(x) = x * 2
-    none?(3 |> inc_opt |> double)
+    unwrap_or(-1, 3 |> inc_opt |> double)
     """
-    assert run(src) is True
+    assert run(src) == 8
+
+
+def test_pipeline_does_not_lift_for_explicit_option_aware_stage(run):
+    src = """
+    some(9) |> unwrap_or(0)
+    """
+    assert run(src) == 9
 
 
 def test_pipeline_short_circuits_when_a_stage_returns_none(run):
@@ -192,12 +207,8 @@ def test_pipeline_failure_when_rhs_is_not_callable(run):
         run("1 |> 2")
 
 
-def test_pipeline_stage_error_reports_index_mode_stage_and_input_type(run):
-    with pytest.raises(
-        TypeError,
-        match=r'pipeline stage 1 failed in Value mode at parse_int .*stage received some; parse_int expected a string, received some',
-    ):
-        run('some("42") |> parse_int')
+def test_pipeline_lifts_some_before_non_option_stage(run):
+    assert run('unwrap_or(-1, some("42") |> parse_int)') == 42
 
 
 def test_pipeline_explicit_bridge_error_reports_mode_and_stage(run):

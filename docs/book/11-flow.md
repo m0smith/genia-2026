@@ -333,7 +333,7 @@ Expected behavior:
 `sum` stays explicit too:
 
 - it expects a plain list of numbers
-- it does not auto-unwrap `some(...)`
+- it does not accept Option values as numeric items
 - it does not silently skip `none(...)`
 
 ### Minimal example
@@ -477,9 +477,9 @@ bad
 This is the current Option-aware shell style:
 
 - `parse_int` returns `some(int)` or `none("parse-error", ...)`
-- pipelines preserve explicit `some(...)`
+- ordinary pipeline stages lift over `some(...)` automatically
 - a top-level `none(...)` from a stage stops the rest of the pipeline
-- use `flat_map_some(...)`, `map_some(...)`, or `then_*` when the next step needs the inner value
+- use `flat_map_some(...)`, `map_some(...)`, or `then_*` when you need explicit Option-aware control
 - use `unwrap_or(...)` inside the stage expression when you want to recover to an ordinary value and keep the flow moving
 
 ### Dead-letter routing for bad rows

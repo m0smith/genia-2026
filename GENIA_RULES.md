@@ -187,10 +187,10 @@ Pipeline invariant:
 - newlines may appear immediately before `|>` and immediately after `|>` in ordinary expression parsing
 - Option propagation is part of pipeline evaluation:
   - if a stage input is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
-  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
-  - if a stage result is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
-  - pipeline evaluation does not auto-unwrap `some(...)`
-- pipeline-visible function modes are interpreted as:
+  - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
+  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
+  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
+  - if a stage result is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned- pipeline-visible function modes are interpreted as:
   - Value -> Value
   - Flow -> Flow
   - explicit Value <-> Flow bridge
@@ -371,10 +371,12 @@ There are exactly two Option forms:
 ### 9.6.2) Option propagation in pipelines (invariants)
 
 - if a stage input is `none(...)`, the stage does not execute and the same `none(...)` is returned
+- if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage is invoked with `x`
+- lifted stage results follow this rule:
+  - non-Option result `y` becomes `some(y)`
+  - Option results (`some(...)` / `none(...)`) are propagated unchanged
 - if a stage produces a `none(...)` result, remaining stages do not execute
-- pipeline evaluation does **not** auto-unwrap `some(...)`: the next stage receives `some(value)` unchanged
 - structured none metadata (reason string + context map) passes through every skipped stage unchanged
-
 ### 9.6.3) Structured-none metadata invariant
 
 Agents and implementations must preserve structured none metadata:
@@ -393,8 +395,9 @@ Agents and implementations must preserve structured none metadata:
 
 ### 9.6.5) Applying functions to Option-wrapped values
 
-Do **not** pass `some(x)` as an argument to a function expecting a plain value.  
-Use the explicit lifting helpers instead:
+In direct calls, `some(x)` is still a normal value and is passed explicitly.
+In pipelines, ordinary stages lift over `some(x)` automatically unless they are explicitly Option-aware.
+Use explicit helpers when you want exact wrap/flat-map control regardless of stage detection:
 
 | Goal | Helper |
 |---|---|
@@ -408,23 +411,31 @@ Use the explicit lifting helpers instead:
 | Recover with a fallback value | `or_else(opt, fallback)` |
 | Recover with a lazy thunk | `or_else_with(opt, thunk)` |
 
-Canonical pipeline pattern:
+Canonical pipeline patterns:
 
 ```
-record
-  |> get("user")
-  |> then_get("address")
-  |> then_get("zip")
-  |> unwrap_or("unknown")
+some("42") |> parse_int
 ```
 
-### 9.6.6) Agents must not introduce auto-unwrapping
+Result: `some(42)` (stage receives `"42"`, result is already Option so it is preserved).
 
-Pipeline evaluation must **never** silently unwrap `some(x)` before passing to the next stage.  
-Auto-unwrapping would break existing code that handles `some(...)` explicitly via pattern matching.
+```
+some(4) |> ((x) -> x + 1)
+```
 
-Allowed changes in future: explicit operator sugar for the explicit unwrapping pattern,
-documented and version-gated, with no effect on existing calling conventions.
+Result: `some(5)` (lifted stage result wraps back into `some(...)`).
+
+```
+some(4) |> unwrap_or(0)
+```
+
+Result: `4` (explicitly Option-aware stage receives the Option directly).
+
+### 9.6.6) Some-lifting safety invariant
+
+Automatic lifting applies only to pipeline stages that are not explicitly Option-aware.
+Stages that explicitly handle Option values keep receiving Option values unchanged.
+This protects helper-based and pattern-based Option handling from silent semantic drift.
 
 ## 10) Ref + concurrency runtime guarantees
 
@@ -533,8 +544,8 @@ documented and version-gated, with no effect on existing calling conventions.
   - returns `f(value)` for `some(value)`
   - requires `f(value)` to be an Option value
   - returns the original `none...` unchanged for any absence value
-- direct pipelines propagate `none(...)` automatically, but they preserve explicit `some(...)`
-- those helpers therefore remain distinct for explicit Option values, higher-order use, and places where the next stage needs the inner value of `some(...)`
+- direct pipelines propagate `none(...)` automatically and lift ordinary stages over `some(...)`
+- those helpers remain distinct for explicit wrap/flat-map control, higher-order use, and non-pipeline composition
 - `then_get(key, target)` is a thin maybe-aware chaining helper over `get`
 - `then_first(target)` is a thin maybe-aware chaining helper over `first`
 - `then_nth(index, target)` is a thin maybe-aware chaining helper over `nth`
@@ -790,7 +801,7 @@ For each incoming flow item `x`:
 
 * this helper is explicit local dead-letter routing
 * it does not change the semantics of `|>`
-* it does not auto-unwrap `some(...)` in ordinary pipelines
+* ordinary pipelines still preserve `none(...)` short-circuit and metadata
 * `dead_handler` is a handler call, not a second live flow output in this phase
 * `none`, `none(reason)`, and `none(reason, meta)` are all treated as dead-letter results
 

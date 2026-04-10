@@ -1259,13 +1259,13 @@ And minimal helpers:
 
 These public helper names live in `src/genia/std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
 `none` remains a runtime value/literal rather than a prelude wrapper.
-Direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`; `map_some`, `flat_map_some`, and `then_*` therefore remain important for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
-Those helpers are also the explicit unwrap points:
+Direct pipelines short-circuit on `none(...)` and lift ordinary stages over `some(...)`; `map_some`, `flat_map_some`, and `then_*` remain important for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
+Those helpers are also explicit control points:
 
-- raw pipeline stages receive raw values unchanged
-- raw pipeline stages also receive explicit `some(...)` unchanged
-- `map_some` / `flat_map_some` unwrap only inside those helpers
-- `unwrap_or` unwraps only at the final recovery point
+- lifted stages receive the inner value of `some(...)` when not explicitly Option-aware
+- non-Option lifted results are wrapped back into `some(...)`
+- `map_some` / `flat_map_some` provide explicit map-vs-flat-map behavior
+- `unwrap_or` remains the canonical final recovery point
 Because plain `none` normalizes to `none("nil")`, metadata inspection treats it the same way:
 
 - `absence_reason(none) -> some("nil")`
@@ -1396,7 +1396,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - `some(pattern)` supports exactly one inner pattern (multi-item constructor patterns are rejected)
-- pipelines preserve explicit `some(...)` values rather than auto-unwrapping them, so some chains still need `then_*` or `flat_map_some(...)`
+- pipelines lift ordinary stages over `some(...)`, while explicitly Option-aware stages still receive Option values
 
 ### ❌ Not implemented
 

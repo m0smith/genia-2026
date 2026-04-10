@@ -112,6 +112,22 @@ def test_flat_map_some_preserves_none_metadata_from_failed_parse():
     assert format_debug(result).startswith('none("parse-error"')
 
 
+def test_pipeline_auto_lifts_some_for_non_option_stages():
+    src = 'unwrap_or(-1, some("42") |> parse_int |> map_some((n) -> n + 1))'
+    assert _run(src) == 43
+
+
+def test_pipeline_keeps_option_visible_when_stage_explicitly_matches_some():
+    src = """
+    describe(opt) =
+      some(x) -> x + 1 |
+      none(_) -> -1
+
+    some(4) |> describe
+    """
+    assert _run(src) == 5
+
+
 # ---------------------------------------------------------------------------
 # Mixed valid and invalid data in flow pipelines
 # ---------------------------------------------------------------------------

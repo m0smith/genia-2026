@@ -580,13 +580,14 @@ Pipeline-friendly API design note:
 
 `|>` is now an explicit pipeline form, but it still does not create implicit Flow bridges.
 
-Absence-aware evaluation in this phase follows two simple rules:
+Absence-aware evaluation in this phase follows these rules:
 
 - if the current pipeline value is `none(...)`, later stages do not run and that same `none(...)` is returned
-- otherwise the next stage receives the current value unchanged, including explicit `some(...)`
+- if the current pipeline value is `some(x)` and the next stage is not explicitly Option-aware, the stage receives `x`
+- when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
+- when that lifted stage returns `some(...)` or `none(...)`, that Option result is preserved
 
-This means direct pipelines preserve `some(...)` rather than unwrapping it.
-Use `then_*` or `flat_map_some(...)` when the next stage expects the inner value of an Option.
+Use `map_some` / `flat_map_some` when you need explicit wrap-vs-flat-map control regardless of stage detection.
 
 ### Minimal example
 
@@ -657,10 +658,10 @@ Expected behavior:
 Another important edge:
 
 ```genia
-unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int))
+unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> parse_int)
 ```
 
-This uses `flat_map_some(parse_int)` because `nth(5)` returns `some("5")`, and pipelines preserve that explicit `some(...)` instead of auto-unwrapping it.
+This works because `nth(5)` returns `some("5")`, and pipeline lifting feeds `"5"` into `parse_int` while preserving structured `none(...)` short-circuit behavior.
 
 ### Failure case example
 

@@ -500,7 +500,7 @@ Expected behavior:
 ### ⚠️ Partial
 
 - list performance is currently interpreter-level; optimizations are selective and pattern-dependent
-- pipelines preserve explicit `some(...)` values rather than auto-unwrapping them, so some list/search chains still need `then_*` or `flat_map_some(...)`
+- pipelines lift ordinary stages over `some(...)`, while explicit helpers still provide predictable Option control for list/search chains
 
 ### ❌ Not implemented
 
