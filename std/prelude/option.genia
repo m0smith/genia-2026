@@ -31,19 +31,32 @@ Compatibility alias for `get(key, target)`.
 map_some(f, opt) = """
 # map_some
 
-Map `f` over `some(value)` and preserve `none...` unchanged.
+Apply `f` to the inner value of `some(value)` and return `some(result)`.
+Preserve `none(...)` unchanged.
 
-`f` receives the inner raw value only when `opt` is `some(value)`.
-Use this for explicit Option values outside `|>` pipelines.
+`f` receives the unwrapped inner value only when `opt` is `some(value)`.
+
+Useful in `|>` pipelines when the current value is an Option:
+
+    "42" |> parse_int |> map_some((n) -> n * 2)
+
+results in `some(84)`, and a parse failure gives `none("parse-error", ...)`.
 """ _map_some(f, opt)
 
 flat_map_some(f, opt) = """
 # flat_map_some
 
-Map `f` over `some(value)` when `f` already returns an Option value.
+Apply `f` to the inner value of `some(value)` when `f` itself returns an Option.
+Preserve `none(...)` unchanged.
 
-`f` receives the inner raw value only when `opt` is `some(value)`.
-Use this for explicit Option values outside `|>` pipelines.
+`f` receives the unwrapped inner value only when `opt` is `some(value)`,
+and `f` must return an Option value.
+
+Useful in `|>` pipelines for chaining Option-returning functions:
+
+    "42" |> parse_int |> flat_map_some(validate_positive)
+
+where `validate_positive` returns `some(n)` or `none("negative", ...)`.
 """ _flat_map_some(f, opt)
 
 then_get(key, target) = """

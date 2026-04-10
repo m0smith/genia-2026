@@ -354,6 +354,78 @@ No additional member/index/flow operators should be introduced without explicitl
   - streams are pure delayed data
   - Flow is the runtime pipeline/IO model
 
+## 9.6) Option / absence semantics
+
+This section is the complete contract for how absence values behave in Genia.
+
+### 9.6.1) The two Option forms
+
+There are exactly two Option forms:
+
+- `some(value)` — a present value
+- `none(reason)` / `none(reason, context)` — a structured absence
+  - bare `none` and legacy `nil` both normalize to `none("nil")`
+  - `reason` is always a string
+  - `context` is an optional map of metadata about the absence
+
+### 9.6.2) Option propagation in pipelines (invariants)
+
+- if a stage input is `none(...)`, the stage does not execute and the same `none(...)` is returned
+- if a stage produces a `none(...)` result, remaining stages do not execute
+- pipeline evaluation does **not** auto-unwrap `some(...)`: the next stage receives `some(value)` unchanged
+- structured none metadata (reason string + context map) passes through every skipped stage unchanged
+
+### 9.6.3) Structured-none metadata invariant
+
+Agents and implementations must preserve structured none metadata:
+
+- `none("missing-key", { key: "user" }) |> f` → `none("missing-key", { key: "user" })` (not `none("missing-key")`)
+- every stage skip must return the exact same `none(...)` value, not a new one
+
+### 9.6.4) None-awareness: when a function receives none
+
+- ordinary functions short-circuit on `none(...)` arguments (the call does not execute)
+- a function explicitly handles absence when:
+  - it is in `_NONE_AWARE_PUBLIC_FUNCTIONS`, or
+  - at least one pattern arm matches `none(...)` or `none(reason, ctx)`, or
+  - it is registered with `__genia_handles_none__ = True`
+- handlers such as `some?`, `none?`, `unwrap_or`, `or_else`, `map_some`, `flat_map_some`, and all `then_*` helpers are explicitly none-aware
+
+### 9.6.5) Applying functions to Option-wrapped values
+
+Do **not** pass `some(x)` as an argument to a function expecting a plain value.  
+Use the explicit lifting helpers instead:
+
+| Goal | Helper |
+|---|---|
+| Apply plain `f` to inner value | `map_some(f, opt)` |
+| Chain an Option-returning `f` | `flat_map_some(f, opt)` |
+| Get a key from a map-or-Option | `then_get(key, target)` |
+| Get first element of a list-or-Option | `then_first(target)` |
+| Get nth element of a list-or-Option | `then_nth(index, target)` |
+| Find substring in a string-or-Option | `then_find(needle, target)` |
+| Recover with a default at pipeline end | `unwrap_or(default, opt)` |
+| Recover with a fallback value | `or_else(opt, fallback)` |
+| Recover with a lazy thunk | `or_else_with(opt, thunk)` |
+
+Canonical pipeline pattern:
+
+```
+record
+  |> get("user")
+  |> then_get("address")
+  |> then_get("zip")
+  |> unwrap_or("unknown")
+```
+
+### 9.6.6) Agents must not introduce auto-unwrapping
+
+Pipeline evaluation must **never** silently unwrap `some(x)` before passing to the next stage.  
+Auto-unwrapping would break existing code that handles `some(...)` explicitly via pattern matching.
+
+Allowed changes in future: explicit operator sugar for the explicit unwrapping pattern,
+documented and version-gated, with no effect on existing calling conventions.
+
 ## 10) Ref + concurrency runtime guarantees
 
 - refs are synchronized host objects

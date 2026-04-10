@@ -128,6 +128,16 @@ def test_help_autoloads_json_wrapper_docstring():
     assert "Parse JSON text into Genia runtime data." in out
 
 
+def test_help_autoloads_file_zip_wrapper_docstring():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("zip_read")\n', env, filename="help_file_zip.genia")
+    out = "".join(outputs)
+    assert "zip_read/1" in out
+    assert "# zip_read" in out
+    assert "Create a lazy Flow of zip entries" in out
+
+
 def test_help_autoloads_map_wrapper_docstring():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)
