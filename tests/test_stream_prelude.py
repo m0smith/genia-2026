@@ -55,6 +55,6 @@ def test_stream_take_one_is_lazy_enough(run):
 
 def test_direct_stream_prelude_load_without_autoload():
     env = make_global_env([])
-    prelude_path = Path("std/prelude/stream.genia")
+    prelude_path = Path("src/genia/std/prelude/stream.genia")
     run_source(prelude_path.read_text(encoding="utf-8"), env, filename=str(prelude_path.resolve()))
     assert run_source("stream_take(3, stream_cons(1, () -> stream_cons(2, () -> stream_cons(3, () -> nil))))", env) == [1, 2, 3]

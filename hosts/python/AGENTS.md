@@ -12,7 +12,7 @@ Additional host-local rules:
   - `spec/manifest.json`
 - Python is the current reference host, so accidental semantic drift here is especially risky
 - host-local convenience must not override shared semantics
-- keep `src/genia/std/prelude/` and `std/prelude/` synchronized when changing shared prelude files
+- use `src/genia/std/prelude/` as the single canonical prelude source location
 
 Known local commands:
 

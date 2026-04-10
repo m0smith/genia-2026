@@ -66,7 +66,6 @@
     "debugger_stdio"
   ],
   "shared_prelude_paths": [
-    "std/prelude",
     "src/genia/std/prelude"
   ],
   "host_test_contract": {

@@ -7,7 +7,7 @@ The evaluator works over quoted expressions, not raw source text.
 Implementation split in this phase:
 
 - parser/lowering, ordinary evaluator substrate, and metacircular environment capabilities remain host-backed
-- evaluator dispatch and most user-facing semantic glue live in `std/prelude/eval.genia`
+- evaluator dispatch and most user-facing semantic glue live in `src/genia/std/prelude/eval.genia`
 
 Public phase-1 names:
 

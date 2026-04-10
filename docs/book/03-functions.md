@@ -730,7 +730,7 @@ Expected behavior:
 * Markdown rendering is intentionally minimal and terminal-first (no full Markdown engine, no syntax highlighting)
 * Docstring parsing requires the docstring and body expression to be part of the same definition expression sequence (no dedicated block-doc syntax)
 * Flow runtime behavior is still implemented separately in Phase 1; pipeline evaluation is Option-aware, but Flow bridges remain explicit
-* public Flow helpers are help-visible through `std/prelude/flow.genia`; the lazy Flow kernel stays host-backed while `rules` orchestration/defaulting mostly live in prelude
+* public Flow helpers are help-visible through `src/genia/std/prelude/flow.genia`; the lazy Flow kernel stays host-backed while `rules` orchestration/defaulting mostly live in prelude
 * explicit Option helpers remain secondary:
   * `then_get`, `then_first`, `then_nth`, and `then_find` are thin wrappers over canonical maybe-returning access/search helpers
   * `map_some` / `flat_map_some` remain useful for direct Option values and higher-order code

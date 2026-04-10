@@ -69,12 +69,12 @@ Genia's current runtime value model is broader than just "plain data".
 - `some(nil)` is possible and now means `some(none("nil"))`
 - `none`, `none(reason)`, and `none(reason, context)` all mean absence; reason/context are metadata
 - Option pattern matching supports literal `none`, structured `none(...)`, and constructor pattern `some(pattern)`
-- the public Map helper names are thin prelude wrappers in `std/prelude/map.genia`, backed by the same host runtime behavior
-- the public Ref helper names are thin prelude wrappers in `std/prelude/ref.genia`, backed by the same host runtime behavior
-- the public output sink helper names are thin prelude wrappers in `std/prelude/io.genia`, backed by the same host runtime behavior
-- the public Option helper surface is exposed through `std/prelude/option.genia`, and canonical `some(...)` / `none(...)` constructor forms lower explicitly in Core IR
-- the public String helper names are thin prelude wrappers in `std/prelude/string.genia`, backed by the same host runtime behavior
-- the public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are thin prelude wrappers in `std/prelude/flow.genia`, backed by the same host runtime behavior
+- the public Map helper names are thin prelude wrappers in `src/genia/std/prelude/map.genia`, backed by the same host runtime behavior
+- the public Ref helper names are thin prelude wrappers in `src/genia/std/prelude/ref.genia`, backed by the same host runtime behavior
+- the public output sink helper names are thin prelude wrappers in `src/genia/std/prelude/io.genia`, backed by the same host runtime behavior
+- the public Option helper surface is exposed through `src/genia/std/prelude/option.genia`, and canonical `some(...)` / `none(...)` constructor forms lower explicitly in Core IR
+- the public String helper names are thin prelude wrappers in `src/genia/std/prelude/string.genia`, backed by the same host runtime behavior
+- the public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are thin prelude wrappers in `src/genia/std/prelude/flow.genia`, backed by the same host runtime behavior
 - `help()` now points users toward these public prelude-backed helper families; the family samples come from registered autoload metadata, while raw host bridge names remain intentionally generic in help output
 
 Naming rule today:
@@ -253,7 +253,7 @@ Expected behavior:
 
 Genia now includes a small stdlib helper layer for inspecting quoted expressions.
 
-These helpers live in `std/prelude/syntax.genia` and reuse the existing `quote(expr)` / `quasiquote(expr)` data model.
+These helpers live in `src/genia/std/prelude/syntax.genia` and reuse the existing `quote(expr)` / `quasiquote(expr)` data model.
 
 ### Minimal example
 
@@ -584,7 +584,7 @@ Expected behavior:
 ## Output sinks (phase 1)
 
 Genia has minimal host-backed output sink values for Unix-style IO.
-The public `write`, `writeln`, and `flush` names are defined in `std/prelude/io.genia` as thin documented wrappers over the host-backed sink bridge.
+The public `write`, `writeln`, and `flush` names are defined in `src/genia/std/prelude/io.genia` as thin documented wrappers over the host-backed sink bridge.
 
 - `stdout`
 - `stderr`
@@ -634,7 +634,7 @@ Expected behavior:
 ### ✅ Implemented
 
 - first-class `stdout` and `stderr` runtime sink values
-- public `write`, `writeln`, and `flush` wrappers in `std/prelude/io.genia`
+- public `write`, `writeln`, and `flush` wrappers in `src/genia/std/prelude/io.genia`
 - `write(sink, value)` and `writeln(sink, value)`
 - `flush(sink)`
 - `print(...)` routed to `stdout`
@@ -655,7 +655,7 @@ Expected behavior:
 ## String parsing
 
 Genia includes a small explicit integer parser.
-The public `parse_int` name is defined in `std/prelude/string.genia` as a thin documented wrapper over the host-backed parser:
+The public `parse_int` name is defined in `src/genia/std/prelude/string.genia` as a thin documented wrapper over the host-backed parser:
 
 - `parse_int(string)`
 - `parse_int(string, base)`
@@ -706,7 +706,7 @@ Additional current rules:
 ### ✅ Implemented
 
 - `parse_int(string)` and `parse_int(string, base)`
-- public `parse_int` wrapper in `std/prelude/string.genia`
+- public `parse_int` wrapper in `src/genia/std/prelude/string.genia`
 - `help("parse_int")` visibility through the wrapper docstring
 - parse failures return structured absence instead of raising for ordinary invalid text
 
@@ -732,7 +732,7 @@ Genia now has minimal map literals and map patterns, and the public map helper n
 - `map_remove(m, key)`
 - `map_count(m)`
 
-These public helper names live in `std/prelude/map.genia` as thin documented wrappers over the same host-backed map runtime support.
+These public helper names live in `src/genia/std/prelude/map.genia` as thin documented wrappers over the same host-backed map runtime support.
 
 Implementation note: map values remain the same **Phase 1 host-backed opaque map runtime value** under both builtin and literal syntax.
 
@@ -809,7 +809,7 @@ Expected behavior:
 ### ✅ Implemented
 
 - opaque runtime map value wrapper
-- public map helper surface in `std/prelude/map.genia`
+- public map helper surface in `src/genia/std/prelude/map.genia`
 - map helpers (`map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`)
 - persistent behavior for `map_put` and `map_remove`
 - missing-key lookup returns `none("missing-key", {key: key})`
@@ -1257,7 +1257,7 @@ And minimal helpers:
 - `absence_reason(opt)`
 - `absence_context(opt)`
 
-These public helper names live in `std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
+These public helper names live in `src/genia/std/prelude/option.genia` as thin documented wrappers over the same host-backed Option runtime support.
 `none` remains a runtime value/literal rather than a prelude wrapper.
 Direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`; `map_some`, `flat_map_some`, and `then_*` therefore remain important for explicit Option values, higher-order composition, and wrap-vs-flat-map control.
 Those helpers are also the explicit unwrap points:

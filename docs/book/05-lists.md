@@ -13,7 +13,7 @@ These are distinct in the current runtime.
 - quoted lists use pair chains ending in `nil`
 - `pair?([1, 2])` is `false`
 
-Genia ships a small list-focused stdlib in bundled `std/prelude/list.genia` source.
+Genia ships a small list-focused stdlib in bundled `src/genia/std/prelude/list.genia` source.
 
 The runtime loads this bundled prelude through package resources, so the same list stdlib works in both repo execution and installed-package/tool execution.
 

@@ -449,7 +449,7 @@ count([1,2,3])
 Behavior:
 
 * `count` is not defined initially
-* runtime loads `std/prelude/list.genia`
+* runtime loads `src/genia/std/prelude/list.genia`
 * function becomes available
 * call is retried
 

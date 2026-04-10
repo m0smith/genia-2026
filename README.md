@@ -364,12 +364,12 @@ list = (..xs) -> xs
 - quoted/quasiquoted data can now be inspected with the syntax helper prelude
   - `self_evaluating?`, `symbol_expr?`, `quoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`
   - selectors include `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
-  - parser/quote substrate stays host-backed, while most user-facing structural selectors now live in `std/prelude/syntax.genia`
+  - parser/quote substrate stays host-backed, while most user-facing structural selectors now live in `src/genia/std/prelude/syntax.genia`
 - Genia also now includes a minimal phase-1 metacircular evaluator over quoted expressions
   - environment helpers: `empty_env`, `lookup`, `define`, `set`, `extend`
   - evaluator entry: `eval(expr, env)`
   - `apply(proc, args)` still applies ordinary callables and now also applies metacircular compound procedures and metacircular matcher procedures
-  - metacircular env/runtime substrate stays host-backed, while dispatch/helper glue live in `std/prelude/eval.genia`
+  - metacircular env/runtime substrate stays host-backed, while dispatch/helper glue live in `src/genia/std/prelude/eval.genia`
 - named functions may include optional docstring metadata:
   - example:
     ```genia
@@ -578,7 +578,7 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
-- public flow helpers from `std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
 - the host Flow kernel stays intentionally small:
   - lazy pull/consume and single-use enforcement
   - source-bound stdin integration
@@ -614,7 +614,7 @@ flush(stdout)
 ```
 
 - `stdout` and `stderr` are first-class host-backed sink values
-- public helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
+- public helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
 - `write(sink, value)` writes display-formatted output with no newline
 - `writeln(sink, value)` writes display-formatted output with a trailing newline
 - `flush(sink)` flushes a sink and returns `none("nil")`
@@ -631,7 +631,7 @@ cell_send(counter, (n) -> n + 1)
 cell_get(counter)
 ```
 
-- public helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+- public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
 - `spawn(handler)` creates a host-thread worker with FIFO mailbox
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` reports worker liveness
@@ -646,8 +646,8 @@ cell_get(counter)
 ### Core
 
 - direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
-- public flow helpers from `std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
-- public sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
+- public sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 - `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
@@ -658,7 +658,7 @@ cell_get(counter)
 - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - option runtime + public helpers:
   - `none` remains a runtime literal/value
-  - public helpers from `std/prelude/option.genia`: `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - public helpers from `src/genia/std/prelude/option.genia`: `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
 - canonical pipeline style now prefers direct absence-aware stages such as `get`, plus explicit chaining helpers like `then_first`, `then_nth`, `then_find`, and `flat_map_some(parse_int)` when the next stage needs the inner value of `some(...)`
@@ -668,7 +668,7 @@ cell_get(counter)
 ### CLI args / options (runtime layer)
 
 - `argv()` is the raw host-backed CLI primitive and exposes trailing CLI args as a plain list of strings
-- public CLI helpers now live in `std/prelude/cli.genia`
+- public CLI helpers now live in `src/genia/std/prelude/cli.genia`
 - `cli_parse(args)` and `cli_parse(args, spec)` return `[opts_map, positionals]`
 - `cli_flag?(opts, name)`, `cli_option(opts, name)`, `cli_option_or(opts, name, default)` help read options cleanly
 - host-side CLI support is intentionally small: raw `argv()`, spec normalization/validation, token character decomposition, and deterministic CLI-specific error raising
@@ -707,11 +707,11 @@ main() = print("Hello world")
 
 ### Refs
 
-- public helpers from `std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+- public helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 
 ### Strings
 
-- public helpers from `std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`
+- public helpers from `src/genia/std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`
 - `find`, `split`, `split_whitespace`, `join`
 - `trim`, `trim_start`, `trim_end`, `lower`, `upper`
 - `parse_int`
@@ -762,7 +762,7 @@ Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/archi
 
 ### Concurrency
 
-- public helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+- public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
 
 ### Simulation primitives (Phase 2)
 
@@ -825,7 +825,7 @@ write_file("output.json", unwrap_or("{}", result))
 
 ### Phase 1 persistent associative maps
 
-- public helpers from `std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- public helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - implemented as an opaque host-backed runtime wrapper (no map syntax added)
 - persistent semantics from Genia perspective (`map_put`/`map_remove` return new map values)
 

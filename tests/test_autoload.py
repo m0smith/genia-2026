@@ -80,7 +80,7 @@ def test_autoload_same_file_loads_helper_too():
 
 def test_autoload_missing_file():
     env = make_global_env([])
-    env.register_autoload("ghost", 1, "std/prelude/does_not_exist.genia")
+    env.register_autoload("ghost", 1, "src/genia/std/prelude/does_not_exist.genia")
     with pytest.raises(FileNotFoundError):
         run_source("ghost(1)", env)
 

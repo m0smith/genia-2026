@@ -429,8 +429,8 @@ documented and version-gated, with no effect on existing calling conventions.
 ## 10) Ref + concurrency runtime guarantees
 
 - refs are synchronized host objects
-- public ref helper names are exposed through thin prelude wrappers in `std/prelude/ref.genia`
-- public process helper names are exposed through thin prelude wrappers in `std/prelude/process.genia`
+- public ref helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/ref.genia`
+- public process helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/process.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying ref/process behavior remains host-backed in this phase; wrappering does not change semantics
 - process mailbox handling is FIFO per process
@@ -456,7 +456,7 @@ documented and version-gated, with no effect on existing calling conventions.
 ## 11) Host-backed persistent map invariants
 
 - persistent map runtime is shared by both map builtins and map literal/pattern syntax
-- public map helper names are exposed through thin prelude wrappers in `std/prelude/map.genia`
+- public map helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/map.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying map behavior remains host-backed in this phase; wrappering does not change semantics
 - required builtins: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
@@ -481,7 +481,7 @@ documented and version-gated, with no effect on existing calling conventions.
   - `none(reason)`
   - `none(reason, context)`
   - `some(value)`
-- public option helper names are exposed through thin prelude wrappers in `std/prelude/option.genia`
+- public option helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/option.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying option behavior remains host-backed in this phase; wrappering does not change semantics
 - all `none...` forms belong to one absence family; reason/context are metadata, not a separate result kind
@@ -568,7 +568,7 @@ documented and version-gated, with no effect on existing calling conventions.
 
 ## 11.3) String builtin invariants
 
-- public string helper names are exposed through thin prelude wrappers in `std/prelude/string.genia`
+- public string helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/string.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying string behavior remains host-backed in this phase; wrappering does not change semantics
 - `find(string, needle)` returns:
@@ -606,7 +606,7 @@ documented and version-gated, with no effect on existing calling conventions.
   - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
   - `zip_entries`, `zip_write`
   - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
-- public JSON helpers are prelude-backed wrappers in `std/prelude/json.genia`:
+- public JSON helpers are prelude-backed wrappers in `src/genia/std/prelude/json.genia`:
   - `json_parse(string)`
   - `json_stringify(value)`
   - `json_pretty(value)` compatibility alias for `json_stringify(value)`
@@ -636,7 +636,7 @@ When changing syntax/semantics/runtime behavior, update together:
 ## 17) CLI args + parsing invariants (runtime-only, list-first)
 
 - raw process args are exposed via `argv()` as a list of strings (no `$1`/`$2` syntax)
-- public CLI helper names are exposed through thin prelude wrappers in `std/prelude/cli.genia`
+- public CLI helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/cli.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying host support is intentionally narrow in this phase:
   - raw `argv()`
@@ -665,7 +665,7 @@ When changing syntax/semantics/runtime behavior, update together:
 
 - pipeline operator semantics are Option-aware, but Flow remains explicit and runtime-level
 - `stdin` may be used as a source value in pipelines; `input()` remains interactive-only
-- public flow helper names are exposed through thin prelude wrappers in `std/prelude/flow.genia`
+- public flow helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/flow.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - the host Flow kernel remains intentionally small in this phase:
   - lazy pull-based consumption
@@ -765,7 +765,7 @@ Rule-contract violations raise runtime errors prefixed with `invalid-rules-resul
 * `rules(..fns)` does not change the semantics of `|>`
 * `record` is the current item being transformed
 * `ctx` is persistent rule-processing state across items
-* in this phase, the host runtime keeps the lazy Flow kernel while `std/prelude/flow.genia` handles most user-visible rule semantics
+* in this phase, the host runtime keeps the lazy Flow kernel while `src/genia/std/prelude/flow.genia` handles most user-visible rule semantics
 
 ## `keep_some_else(stage, dead_handler[, flow])`
 
@@ -797,7 +797,7 @@ For each incoming flow item `x`:
 ## 20) Output sink invariants (host-backed phase 1)
 
 - `stdout` and `stderr` are runtime capability values, not parser syntax
-- public sink helper names are exposed through thin prelude wrappers in `std/prelude/io.genia`
+- public sink helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/io.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
 - underlying sink behavior remains host-backed in this phase; wrappering does not change semantics
 - required output builtins:

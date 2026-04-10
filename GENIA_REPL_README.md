@@ -139,13 +139,13 @@ CLI contract summary:
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
-  - includes public map helpers from `std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
-  - includes public ref helpers from `std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
-  - includes public process helpers from `std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
-  - includes public output sink helpers from `std/prelude/io.genia`: `write`, `writeln`, `flush`
-  - includes public flow helpers from `std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
-  - includes public option helpers from `std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
-  - includes public string helpers from `std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
+  - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - includes public ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+  - includes public process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+  - includes public output sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
+  - includes public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
+  - includes public option helpers from `src/genia/std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
+  - includes public string helpers from `src/genia/std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
@@ -160,7 +160,7 @@ CLI contract summary:
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
-  - public CLI helpers from `std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
+  - public CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
@@ -198,7 +198,7 @@ CLI contract summary:
     - each rule runs as `(record, ctx)`
     - running `ctx` starts as `{}` and persists across input items
     - `rules()` is the identity stage
-    - orchestration/defaulting/most contract validation now live in `std/prelude/flow.genia`
+    - orchestration/defaulting/most contract validation now live in `src/genia/std/prelude/flow.genia`
     - contract violations raise runtime errors prefixed with `invalid-rules-result:`
   - `keep_some_else(stage, dead_handler, flow)` is explicit dead-letter routing for Option-returning per-item stages:
     - `stage` receives the original raw item
@@ -341,7 +341,7 @@ Genia now includes a small syntax helper layer for quoted expressions.
 Current note:
 
 - the parser/quote/quasiquote substrate remains host-backed
-- most user-facing selectors and structural helpers now live in `std/prelude/syntax.genia`
+- most user-facing selectors and structural helpers now live in `src/genia/std/prelude/syntax.genia`
 
 Lambda detection:
 
@@ -395,7 +395,7 @@ Genia now includes a minimal phase-1 metacircular evaluator over quoted expressi
 Current note:
 
 - metacircular environment/runtime substrate remains host-backed
-- evaluator dispatch and helper glue live in `std/prelude/eval.genia`
+- evaluator dispatch and helper glue live in `src/genia/std/prelude/eval.genia`
 - unsupported quoted forms still fail clearly instead of widening evaluator coverage
 
 Basic evaluation:
@@ -658,7 +658,7 @@ This recursive shape is not in tail position and can still hit Python recursion 
 
 - `argv()` remains the raw host-backed trailing command-line args primitive and returns a plain list of strings.
 - Positional-only CLI programs should pattern match directly on that list.
-- public CLI helper names are thin prelude wrappers in `std/prelude/cli.genia`.
+- public CLI helper names are thin prelude wrappers in `src/genia/std/prelude/cli.genia`.
 - `cli_parse(args)` returns `[opts, positionals]` where `opts` is a persistent map.
 - `cli_parse(args, spec)` supports minimal map spec keys:
   - `flags`: list of names forced to boolean

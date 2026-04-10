@@ -8,7 +8,7 @@ Current status:
 - The working Python implementation still lives at the repo root in:
   - `src/genia/`
   - `tests/`
-  - `std/prelude/`
+  - `src/genia/std/prelude/`
 - The `hosts/*` directories are scaffold/placeholder directories in this phase.
 
 ## Target Layout
@@ -21,7 +21,7 @@ The intended long-term structure is:
 - `hosts/rust/`
 - `hosts/go/`
 - `hosts/cpp/`
-- `std/prelude/`
+- `src/genia/std/`
 - `spec/`
 - `tools/spec_runner/`
 

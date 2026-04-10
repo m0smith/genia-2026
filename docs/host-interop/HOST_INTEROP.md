@@ -268,9 +268,8 @@ That means:
 
 Current repository note:
 
-- `std/prelude/` is the shared checkout-visible prelude surface
-- the Python host also ships packaged copies under `src/genia/std/prelude/`
-- those two locations must stay synchronized while the repo remains transitional
+- `src/genia/std/prelude/` is the single canonical stdlib/prelude source tree in this repository
+- the Python host loads those bundled files via package resources from the `genia.std` package layout
 
 ## Shared Spec Rule
 

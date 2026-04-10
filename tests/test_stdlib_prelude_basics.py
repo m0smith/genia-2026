@@ -121,7 +121,7 @@ def test_numeric_helpers(run):
 
 def test_direct_prelude_load_without_autoload():
     env = make_global_env([])
-    prelude_path = Path("std/prelude/list.genia")
+    prelude_path = Path("src/genia/std/prelude/list.genia")
     run_source(prelude_path.read_text(encoding="utf-8"), env, filename=str(prelude_path.resolve()))
     assert run_source("append([1], [2, 3])", env) == [1, 2, 3]
     assert run_source("reverse([1, 2, 3])", env) == [3, 2, 1]

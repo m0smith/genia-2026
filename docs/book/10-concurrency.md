@@ -45,12 +45,12 @@ Expected behavior:
 
 ## Current model
 
-- public ref helpers from `std/prelude/ref.genia`:
+- public ref helpers from `src/genia/std/prelude/ref.genia`:
   - `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` checks worker liveness
-- public process helpers from `std/prelude/process.genia`:
+- public process helpers from `src/genia/std/prelude/process.genia`:
   - `spawn`, `send`, `process_alive?`
 - stdlib cell helpers:
   - `cell`, `cell_with_state`

@@ -12,7 +12,7 @@ Implementation split in this phase:
 
 - parser/lowering and quote/quasiquote runtime substrate remain host-backed
 - symbol/self-evaluating runtime shape detection remains host-backed
-- most user-facing selectors and structural helper glue now live in `std/prelude/syntax.genia`
+- most user-facing selectors and structural helper glue now live in `src/genia/std/prelude/syntax.genia`
 
 ## Current helper surface
 
@@ -52,7 +52,7 @@ Selectors:
 - stable quoted tags for application, assignment, lambda, block, and match/case
 - syntax predicates for the current evaluator-facing expression families
 - syntax selectors for quotation, assignment, lambda, application, block, and match-branch forms
-- pair-driven selector/branch helper logic in `std/prelude/syntax.genia`
+- pair-driven selector/branch helper logic in `src/genia/std/prelude/syntax.genia`
 - clear selector failures on wrong expression kinds
 
 ### ⚠️ Partial

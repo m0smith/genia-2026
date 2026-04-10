@@ -28,7 +28,7 @@ Expected behavior:
 
 ## Where recursion is used in stdlib/examples
 
-- `reduce`, `any?`, `nth`, `take`, `drop`, and `range` in `std/prelude/list.genia`
+- `reduce`, `any?`, `nth`, `take`, `drop`, and `range` in `src/genia/std/prelude/list.genia`
 - main loop in `examples/tic-tac-toe.genia` (`play` / `playTurn`)
 - simulation stepping loop in `examples/ants.genia` (`run`)
 

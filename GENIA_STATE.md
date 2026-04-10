@@ -10,7 +10,7 @@ Implemented today:
 - The working Python implementation still lives in:
   - `src/genia/`
   - `tests/`
-  - `std/prelude/`
+  - `src/genia/std/prelude/`
 - Multi-host documentation/spec scaffolding now exists in:
   - `docs/host-interop/`
   - `docs/architecture/core-ir-portability.md`
@@ -469,7 +469,7 @@ Pipeline (Phase 2) evaluation model:
 
 ## 4.5) Programs-as-data helper layer (stdlib)
 
-- Genia now ships a minimal metacircular expression helper layer in `std/prelude/syntax.genia`
+- Genia now ships a minimal metacircular expression helper layer in `src/genia/std/prelude/syntax.genia`
 - these helpers operate on the same quoted/quasiquoted data representation produced by `quote(expr)` and `quasiquote(expr)`
 - the host-backed substrate in this phase is intentionally small:
   - parser/lowering/quote/quasiquote runtime representation
@@ -519,7 +519,7 @@ Pipeline (Phase 2) evaluation model:
 
 ## 4.6) Metacircular evaluator (stdlib)
 
-- Genia now ships a minimal metacircular evaluator layer in `std/prelude/eval.genia`
+- Genia now ships a minimal metacircular evaluator layer in `src/genia/std/prelude/eval.genia`
 - the host-backed substrate in this phase remains:
   - metacircular environment values and lexical mutation support
   - metacircular pattern lowering/matching support
@@ -532,7 +532,7 @@ Pipeline (Phase 2) evaluation model:
   - `set`
   - `extend`
   - `eval`
-  - `apply` (extended in `std/prelude/fn.genia` to handle metacircular compound procedures as well as ordinary callables)
+  - `apply` (extended in `src/genia/std/prelude/fn.genia` to handle metacircular compound procedures as well as ordinary callables)
 - `eval(expr, env)` currently supports these quoted expression families:
   - self-evaluating literals
   - symbol/variable expressions
@@ -621,7 +621,7 @@ Case placement rules (enforced):
 ### Core I/O and utilities
 
 - direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
-- public sink helpers are thin prelude wrappers in `std/prelude/io.genia`:
+- public sink helpers are thin prelude wrappers in `src/genia/std/prelude/io.genia`:
   - `write`
   - `writeln`
   - `flush`
@@ -648,7 +648,7 @@ Output sink semantics:
 - `stdin` is a lazy source value when used in pipelines (`stdin |> lines`)
   - `stdin |> lines` reads incrementally from the underlying source
   - `stdin()` still materializes and caches the full remaining input as a list for compatibility
-- public flow helpers are thin prelude wrappers in `std/prelude/flow.genia`:
+- public flow helpers are thin prelude wrappers in `src/genia/std/prelude/flow.genia`:
   - `lines`
   - `keep_some_else`
   - `rules`
@@ -667,7 +667,7 @@ Output sink semantics:
   - `each(f, flow)` (tap-style stage)
   - `collect(flow)` (materialize to list)
   - `run(flow)` (consume to completion)
-- stdlib rule helpers (autoloaded from `std/prelude/fn.genia`):
+- stdlib rule helpers (autoloaded from `src/genia/std/prelude/fn.genia`):
   - `rule_skip()`
   - `rule_emit(x)`
   - `rule_emit_many(xs)`
@@ -701,7 +701,7 @@ Flow semantics:
   - `halt: true` stops later rules for the current input item only
   - `rules()` is the identity stage
   - contract violations raise `RuntimeError` messages prefixed with `invalid-rules-result:`
-  - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `std/prelude/flow.genia` in this phase
+  - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `src/genia/std/prelude/flow.genia` in this phase
 - `keep_some_else` semantics:
   - it is an explicit Flow-stage helper for Option-returning per-item stages
   - for each input item `x`, it evaluates `stage(x)`
@@ -736,7 +736,7 @@ Flow semantics:
 Behavior:
 
 - `argv()` remains the raw host-backed CLI primitive and returns list-first data intended for normal pattern matching
-- public CLI helper names are thin prelude wrappers in `std/prelude/cli.genia`
+- public CLI helper names are thin prelude wrappers in `src/genia/std/prelude/cli.genia`
 - `cli_parse` returns a persistent map (`opts`) and remaining positional args list
 - default parsing:
   - `--name` => boolean `true` unless followed by a non-option token (then `--name value`)
@@ -767,7 +767,7 @@ Behavior:
 
 ### Refs
 
-- public ref helpers are thin prelude wrappers in `std/prelude/ref.genia`
+- public ref helpers are thin prelude wrappers in `src/genia/std/prelude/ref.genia`
   - `ref([initial])`
   - `ref_get(ref)`
   - `ref_set(ref, value)`
@@ -780,7 +780,7 @@ Behavior: refs are synchronized host objects; `ref_get` / `ref_update` block unt
 
 ### Host-backed concurrency
 
-- public process helpers are thin prelude wrappers in `std/prelude/process.genia`
+- public process helpers are thin prelude wrappers in `src/genia/std/prelude/process.genia`
   - `spawn(handler)`
   - `send(process, message)`
   - `process_alive?(process)`
@@ -829,7 +829,7 @@ Behavior:
 
 ### Host-backed persistent associative maps (Phase 1 bridge)
 
-- public map helpers are thin prelude wrappers in `std/prelude/map.genia`
+- public map helpers are thin prelude wrappers in `src/genia/std/prelude/map.genia`
   - `map_new()`
   - `map_get(map, key)`
   - `map_put(map, key, value)`
@@ -859,7 +859,7 @@ Behavior:
   - `none(reason)`
   - `none(reason, context)`
   - `some(value)`
-- public option helpers are thin prelude wrappers in `std/prelude/option.genia`
+- public option helpers are thin prelude wrappers in `src/genia/std/prelude/option.genia`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
   - the underlying runtime behavior remains host-backed and unchanged in this phase
   - `none` remains a runtime literal/value, not a prelude wrapper
@@ -1048,7 +1048,7 @@ Pattern matching note:
 - `split`, `split_whitespace`, `join`
 - `trim`, `trim_start`, `trim_end`
 - `lower`, `upper`, `parse_int`
-- public string helpers are thin prelude wrappers in `std/prelude/string.genia`
+- public string helpers are thin prelude wrappers in `src/genia/std/prelude/string.genia`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
   - the underlying runtime behavior remains host-backed and unchanged in this phase
 
@@ -1071,12 +1071,12 @@ Pattern matching note:
 - `utf8_decode(bytes) -> string`
 - `utf8_encode(string) -> bytes`
 - internal JSON bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`
-- public JSON helpers from `std/prelude/json.genia`:
+- public JSON helpers from `src/genia/std/prelude/json.genia`:
   - `json_parse(string) -> value | none("json-parse-error", context)`
   - `json_stringify(value) -> string | none("json-stringify-error", context)`
   - `json_pretty(value) -> string | none(...)` (compatibility alias)
 - internal file/zip bridge primitives: `_read_file(path)`, `_write_file(path, text)`, `_zip_read(path)`, `_zip_write(path, items)`
-- public file/zip helpers from `std/prelude/file.genia`:
+- public file/zip helpers from `src/genia/std/prelude/file.genia`:
   - `read_file(path) -> string | none(...)`
   - `write_file(path, string) -> path | none(...)`
   - `zip_read(path) -> flow | none(...)`
@@ -1119,19 +1119,19 @@ Behavior:
 
 Autoload is keyed by `(name, arity)` and currently registers functions from bundled stdlib sources:
 
-- `std/prelude/list.genia`
-- `std/prelude/fn.genia`
-- `std/prelude/map.genia`
-- `std/prelude/ref.genia`
-- `std/prelude/process.genia`
-- `std/prelude/io.genia`
-- `std/prelude/option.genia`
-- `std/prelude/string.genia`
-- `std/prelude/json.genia`
-- `std/prelude/file.genia`
-- `std/prelude/math.genia`
-- `std/prelude/awk.genia`
-- `std/prelude/cell.genia`
+- `src/genia/std/prelude/list.genia`
+- `src/genia/std/prelude/fn.genia`
+- `src/genia/std/prelude/map.genia`
+- `src/genia/std/prelude/ref.genia`
+- `src/genia/std/prelude/process.genia`
+- `src/genia/std/prelude/io.genia`
+- `src/genia/std/prelude/option.genia`
+- `src/genia/std/prelude/string.genia`
+- `src/genia/std/prelude/json.genia`
+- `src/genia/std/prelude/file.genia`
+- `src/genia/std/prelude/math.genia`
+- `src/genia/std/prelude/awk.genia`
+- `src/genia/std/prelude/cell.genia`
 
 Loading behavior:
 

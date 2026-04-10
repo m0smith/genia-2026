@@ -8,7 +8,7 @@ It composes through the same explicit pipeline form as ordinary value pipelines,
 This chapter is about runtime Flow values for pipelines and IO.
 It is not the same thing as stdlib streams built from Pair + `delay` / `force`.
 
-The canonical public Flow helper surface now lives in `std/prelude/flow.genia`:
+The canonical public Flow helper surface now lives in `src/genia/std/prelude/flow.genia`:
 
 - `lines`
 - `keep_some`
@@ -127,7 +127,7 @@ Flow stages still move Flow values explicitly; Option-aware `|>` semantics do no
 Each rule runs as `(record, ctx) -> none(...) | some(result)`.
 The running `ctx` starts as `{}` and persists across input items.
 Plain `none` is the no-effect result.
-In this phase, the lazy Flow kernel stays host-backed while the rule orchestration/defaulting/validation path is primarily implemented in `std/prelude/flow.genia`.
+In this phase, the lazy Flow kernel stays host-backed while the rule orchestration/defaulting/validation path is primarily implemented in `src/genia/std/prelude/flow.genia`.
 
 ### Minimal example
 
@@ -543,7 +543,7 @@ This should stop upstream reading as soon as the first line is printed.
 - lazy single-use flow values
 - Flow as a first-class runtime value family (`<flow ...>`)
 - `stdin |> lines` source binding
-- public Flow helpers exposed through prelude wrappers in `std/prelude/flow.genia`
+- public Flow helpers exposed through prelude wrappers in `src/genia/std/prelude/flow.genia`
 - flow-aware `map`, `filter`, `take`, `rules`
 - `head/1` and `head/2` aliases (stdlib)
 - `each`, `collect`, and `run`

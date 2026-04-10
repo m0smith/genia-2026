@@ -1,5 +1,6 @@
 import importlib.resources as resources
 import io
+import os
 
 from genia import make_global_env, run_source
 from genia.interpreter import _load_source_from_path, _main
@@ -29,6 +30,15 @@ def test_internal_loader_reads_packaged_stdlib_source():
 
     assert "append(xs, ys)" in source
     assert "src/genia/std/prelude/list.genia" in filename or "genia/std/prelude/list.genia" in filename
+
+
+def test_single_std_location():
+    std_paths = []
+    for root, dirs, _ in os.walk("."):
+        if "std" in dirs:
+            std_paths.append(os.path.join(root, "std"))
+
+    assert len(std_paths) == 1, f"Multiple std dirs found: {std_paths}"
 
 
 def test_command_mode_flow_with_piped_stdin_head_regression(monkeypatch):
