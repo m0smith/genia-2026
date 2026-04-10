@@ -54,3 +54,17 @@ def test_tic_tac_toe_example_retries_invalid_move(monkeypatch):
 
     assert transcript.count("That square is not available. Try again.\n") == 1
     assert outputs[-1] == "X wins!\n"
+
+
+def test_ants_terminal_demo_parses_configurable_ant_count():
+    source_path = Path("examples/ants_terminal.genia")
+    source = source_path.read_text(encoding="utf-8")
+
+    env = make_global_env()
+    assert run_source(source + '\nant_count(["--ants", "3"])', env, filename=str(source_path.resolve())) == 3
+
+    env = make_global_env()
+    assert run_source(source + '\nant_count(["-a", "2"])', env, filename=str(source_path.resolve())) == 2
+
+    env = make_global_env()
+    assert run_source(source + '\nant_count(["--ants", "nope"])', env, filename=str(source_path.resolve())) == 6

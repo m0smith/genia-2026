@@ -1,0 +1,144 @@
+width() = 8
+height() = 5
+
+default_ant_count() = 6
+
+empty_cell() = "empty"
+food_cell() = "food"
+ant_cell() = "ant"
+
+wrap(n, size) = (
+  (n, size) ? n < 0 -> size - 1 |
+  (n, size) ? n >= size -> 0 |
+  (n, _) -> n
+)
+
+pos_add(pos, delta) = (
+  ([x, y], [dx, dy]) -> [
+    wrap(x + dx, width()),
+    wrap(y + dy, height())
+  ]
+)
+
+cell_get(world, pos) = (
+  (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
+  (_, _) -> empty_cell()
+)
+
+cell_put(world, pos, value) = map_put(world, pos, value)
+
+cell_char(cell) = (
+  "ant" -> "A" |
+  "food" -> "*" |
+  _ -> "."
+)
+
+seed_world() = map_put(
+    map_put(
+      map_put(map_new(), [0, 0], food_cell()),
+      [5, 1],
+      food_cell()
+    ),
+    [7, 4],
+    food_cell()
+  )
+
+random_pos() = [rand_int(width()), rand_int(height())]
+
+seed_ants(count) = (
+  (count) ? count <= 0 -> [] |
+  (count) -> [random_pos(), ..seed_ants(count - 1)]
+)
+
+dir_from_int(n) = (
+  0 -> [1, 0] |
+  1 -> [-1, 0] |
+  2 -> [0, 1] |
+  _ -> [0, -1]
+)
+
+random_dir() = dir_from_int(rand_int(4))
+
+step_ant(world, ant_pos) = step_target(world, ant_pos, pos_add(ant_pos, random_dir()))
+
+step_target(world, ant_pos, target) = step_cell(world, target, cell_get(world, target))
+
+step_cell(world, target, target_cell) = (
+  (world, target, "food") -> [cell_put(world, target, empty_cell()), target, "ate_food"] |
+  (world, target, _) -> [world, target, "moved"]
+)
+
+step_ants(world, ants) = step_ants_acc(world, ants, [])
+
+step_ants_acc(world, ants, moved_rev) = (
+  (world, [], moved_rev) -> [world, reverse(moved_rev)] |
+  (world, [ant, ..rest], moved_rev) -> step_ants_next(step_ant(world, ant), rest, moved_rev)
+)
+
+step_ants_next(step_result, rest, moved_rev) = (
+  ([world2, ant2, _], rest, moved_rev) -> step_ants_acc(world2, rest, [ant2, ..moved_rev])
+)
+
+contains_pos(ants, pos) = (
+  ([], _) -> false |
+  ([head, .._], pos) ? head == pos -> true |
+  ([_, ..rest], pos) -> contains_pos(rest, pos)
+)
+
+render_cell(world, ants, pos) = (
+  (world, ants, pos) ? contains_pos(ants, pos) == true -> cell_char(ant_cell()) |
+  (world, _, pos) -> cell_char(cell_get(world, pos))
+)
+
+render_row(world, ants, y, x) = (
+  (_, _, _, x) ? x >= width() -> "" |
+  (world, ants, y, x) -> render_cell(world, ants, [x, y]) + render_row(world, ants, y, x + 1)
+)
+
+render_rows(world, ants, y) = (
+  (_, _, y) ? y >= height() -> nil |
+  (world, ants, y) -> {
+    print(render_row(world, ants, y, 0))
+    render_rows(world, ants, y + 1)
+  }
+)
+
+render(world, ants) = render_rows(world, ants, 0)
+
+draw_frame(world, ants, steps_left) = {
+  clear_screen()
+  move_cursor(1, 1)
+  print(["ants", length(ants), "steps_left", steps_left, "use --ants N or -a N"])
+  render(world, ants)
+}
+
+simulate_after_step(step_result, steps_left, delay_ms) = (
+  ([world2, ants2], steps_left, delay_ms) -> simulate(world2, ants2, steps_left - 1, delay_ms)
+)
+
+simulate(world, ants, steps_left, delay_ms) = (
+  (_, _, steps_left, _) ? steps_left <= 0 -> "done" |
+  (world, ants, steps_left, delay_ms) -> {
+    draw_frame(world, ants, steps_left)
+    sleep(delay_ms)
+    simulate_after_step(step_ants(world, ants), steps_left, delay_ms)
+  }
+)
+
+ant_count_from_parsed(parsed) = (
+  ([opts, _]) -> normalize_ant_count(unwrap_or(default_ant_count(), parse_int(cli_option_or(opts, "ants", "6"))))
+)
+
+normalize_ant_count(n) = (
+  (n) ? n > 0 -> n |
+  (_) -> default_ant_count()
+)
+
+ant_count(args) = ant_count_from_parsed(
+  cli_parse(args, {
+    options: ["ants"],
+    aliases: {a: "ants"}
+  })
+)
+
+main(args) = simulate(seed_world(), seed_ants(ant_count(args)), 120, 80)
