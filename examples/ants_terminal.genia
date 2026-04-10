@@ -1,5 +1,12 @@
-width() = 8
-height() = 5
+min_grid_size() = 20
+
+grid_size(ant_total) = (
+  (ant_total) ? ant_total >= min_grid_size() -> ant_total |
+  (_) -> min_grid_size()
+)
+
+width(ant_total) = grid_size(ant_total)
+height(ant_total) = grid_size(ant_total)
 
 default_ant_count() = 6
 
@@ -13,10 +20,10 @@ wrap(n, size) = (
   (n, _) -> n
 )
 
-pos_add(pos, delta) = (
-  ([x, y], [dx, dy]) -> [
-    wrap(x + dx, width()),
-    wrap(y + dy, height())
+pos_add(pos, delta, size) = (
+  ([x, y], [dx, dy], size) -> [
+    wrap(x + dx, width(size)),
+    wrap(y + dy, height(size))
   ]
 )
 
@@ -43,11 +50,11 @@ seed_world() = map_put(
     food_cell()
   )
 
-random_pos() = [rand_int(width()), rand_int(height())]
+random_pos(size) = [rand_int(width(size)), rand_int(height(size))]
 
-seed_ants(count) = (
-  (count) ? count <= 0 -> [] |
-  (count) -> [random_pos(), ..seed_ants(count - 1)]
+seed_ants(count, size) = (
+  (count, _) ? count <= 0 -> [] |
+  (count, size) -> [random_pos(size), ..seed_ants(count - 1, size)]
 )
 
 dir_from_int(n) = (
@@ -59,7 +66,7 @@ dir_from_int(n) = (
 
 random_dir() = dir_from_int(rand_int(4))
 
-step_ant(world, ant_pos) = step_target(world, ant_pos, pos_add(ant_pos, random_dir()))
+step_ant(world, ant_pos, size) = step_target(world, ant_pos, pos_add(ant_pos, random_dir(), size))
 
 step_target(world, ant_pos, target) = step_cell(world, target, cell_get(world, target))
 
@@ -68,15 +75,15 @@ step_cell(world, target, target_cell) = (
   (world, target, _) -> [world, target, "moved"]
 )
 
-step_ants(world, ants) = step_ants_acc(world, ants, [])
+step_ants(world, ants, size) = step_ants_acc(world, ants, size, [])
 
-step_ants_acc(world, ants, moved_rev) = (
-  (world, [], moved_rev) -> [world, reverse(moved_rev)] |
-  (world, [ant, ..rest], moved_rev) -> step_ants_next(step_ant(world, ant), rest, moved_rev)
+step_ants_acc(world, ants, size, moved_rev) = (
+  (world, [], _, moved_rev) -> [world, reverse(moved_rev)] |
+  (world, [ant, ..rest], size, moved_rev) -> step_ants_next(step_ant(world, ant, size), rest, size, moved_rev)
 )
 
-step_ants_next(step_result, rest, moved_rev) = (
-  ([world2, ant2, _], rest, moved_rev) -> step_ants_acc(world2, rest, [ant2, ..moved_rev])
+step_ants_next(step_result, rest, size, moved_rev) = (
+  ([world2, ant2, _], rest, size, moved_rev) -> step_ants_acc(world2, rest, size, [ant2, ..moved_rev])
 )
 
 contains_pos(ants, pos) = (
@@ -90,38 +97,38 @@ render_cell(world, ants, pos) = (
   (world, _, pos) -> cell_char(cell_get(world, pos))
 )
 
-render_row(world, ants, y, x) = (
-  (_, _, _, x) ? x >= width() -> "" |
-  (world, ants, y, x) -> render_cell(world, ants, [x, y]) + render_row(world, ants, y, x + 1)
+render_row(world, ants, y, x, size) = (
+  (_, _, _, x, size) ? x >= width(size) -> "" |
+  (world, ants, y, x, size) -> render_cell(world, ants, [x, y]) + render_row(world, ants, y, x + 1, size)
 )
 
-render_rows(world, ants, y) = (
-  (_, _, y) ? y >= height() -> nil |
-  (world, ants, y) -> {
-    print(render_row(world, ants, y, 0))
-    render_rows(world, ants, y + 1)
+render_rows(world, ants, y, size) = (
+  (_, _, y, size) ? y >= height(size) -> nil |
+  (world, ants, y, size) -> {
+    print(render_row(world, ants, y, 0, size))
+    render_rows(world, ants, y + 1, size)
   }
 )
 
-render(world, ants) = render_rows(world, ants, 0)
+render(world, ants, size) = render_rows(world, ants, 0, size)
 
-draw_frame(world, ants, steps_left) = {
+draw_frame(world, ants, steps_left, size) = {
   clear_screen()
   move_cursor(1, 1)
-  print(["ants", length(ants), "steps_left", steps_left, "use --ants N or -a N"])
-  render(world, ants)
+  print(["ants", length(ants), "grid", size, "x", size, "steps_left", steps_left, "use --ants N or -a N"])
+  render(world, ants, size)
 }
 
-simulate_after_step(step_result, steps_left, delay_ms) = (
-  ([world2, ants2], steps_left, delay_ms) -> simulate(world2, ants2, steps_left - 1, delay_ms)
+simulate_after_step(step_result, steps_left, delay_ms, size) = (
+  ([world2, ants2], steps_left, delay_ms, size) -> simulate(world2, ants2, steps_left - 1, delay_ms, size)
 )
 
-simulate(world, ants, steps_left, delay_ms) = (
-  (_, _, steps_left, _) ? steps_left <= 0 -> "done" |
-  (world, ants, steps_left, delay_ms) -> {
-    draw_frame(world, ants, steps_left)
+simulate(world, ants, steps_left, delay_ms, size) = (
+  (_, _, steps_left, _, _) ? steps_left <= 0 -> "done" |
+  (world, ants, steps_left, delay_ms, size) -> {
+    draw_frame(world, ants, steps_left, size)
     sleep(delay_ms)
-    simulate_after_step(step_ants(world, ants), steps_left, delay_ms)
+    simulate_after_step(step_ants(world, ants, size), steps_left, delay_ms, size)
   }
 )
 
@@ -141,4 +148,8 @@ ant_count(args) = ant_count_from_parsed(
   })
 )
 
-main(args) = simulate(seed_world(), seed_ants(ant_count(args)), 120, 80)
+main(args) = {
+  ants_requested = ant_count(args)
+  size = grid_size(ants_requested)
+  simulate(seed_world(), seed_ants(ants_requested, size), 120, 80, size)
+}

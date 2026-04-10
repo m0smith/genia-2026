@@ -68,3 +68,9 @@ def test_ants_terminal_demo_parses_configurable_ant_count():
 
     env = make_global_env()
     assert run_source(source + '\nant_count(["--ants", "nope"])', env, filename=str(source_path.resolve())) == 6
+
+    env = make_global_env()
+    assert run_source(source + "\ngrid_size(3)", env, filename=str(source_path.resolve())) == 20
+
+    env = make_global_env()
+    assert run_source(source + "\ngrid_size(25)", env, filename=str(source_path.resolve())) == 25
