@@ -1,0 +1,270 @@
+stage_catalog() = [
+  "pick:<key>       lookup a key in the current map",
+  "field:<key>      pull a key from every map in the current list",
+  "trim_each        trim every string in the current list",
+  "upper_each       uppercase every string in the current list",
+  "lower_each       lowercase every string in the current list",
+  "drop_empty       remove empty strings from the current list",
+  "reverse          reverse the current list",
+  "count            count items in the current list"
+]
+
+usage() = join("\n", [
+  "Genia ZIP JSON Puzzle",
+  "Usage:",
+  "  genia examples/zip_json_puzzle.genia PUZZLE.zip --pipeline stage1,stage2,... [--trace] [--out solved.zip]",
+  "",
+  "Options:",
+  "  --pipeline       comma-separated stage names",
+  "  --trace          trace puzzle loading and each pipeline stage",
+  "  --out            write summary + actual result into a zip archive",
+  "  --stages         print the available pipeline stages"
+])
+
+stage_help() = join("\n", append(["Available stages:"], stage_catalog()))
+
+cli_spec() = {
+  flags: ["trace", "stages"],
+  options: ["pipeline", "out"],
+  aliases: {
+    o: "out",
+    t: "trace"
+  }
+}
+
+parse_pipeline(text) =
+  split(text, ",")
+    |> map(trim)
+    |> filter((stage) -> stage != "")
+
+stage_arg(token) = unwrap_or("", nth(1, split(token, ":")))
+
+value_or(result_box, default) = (
+  ([value], default) ? none?(value) == true -> default |
+  ([value], _) -> value
+)
+
+parse_json_item(item) = (
+  ([name, bytes]) -> [name, utf8_decode(bytes) |> json_parse]
+)
+
+json_files_to_map(items) = json_files_to_map_acc(items, {})
+
+json_files_to_map_acc(items, files) = (
+  ([], files) -> some(files) |
+  ([[name, parsed], ..rest], files) ? none?(parsed) == true -> parsed |
+  ([[name, parsed], ..rest], files) -> json_files_to_map_acc(rest, map_put(files, name, parsed))
+)
+
+load_json_files(path, debug) = {
+  items =
+    zip_read(path)
+      |> debug_value(debug, "zip source")
+      |> filter((item) -> ends_with(unwrap_or("", first(item)), ".json"))
+      |> map(parse_json_item)
+      |> collect
+
+  files = json_files_to_map(items)
+  debug_value(debug, "json files", files)
+}
+
+bundle_from_files(files) =
+  flat_map_some((puzzle) -> build_bundle(puzzle, files), get("puzzle.json", files))
+
+build_bundle(puzzle, files) =
+  flat_map_some(
+    (input_name) -> flat_map_some(
+      (expected) -> finish_bundle(puzzle, files, input_name, expected),
+      get("expected", puzzle)
+    ),
+    get("input", puzzle)
+  )
+
+finish_bundle(puzzle, files, input_name, expected) = {
+  input_opt = get(input_name, files)
+  flat_map_some(
+    (input) -> some({
+      title: unwrap_or("ZIP JSON Puzzle", get("title", puzzle)),
+      description: unwrap_or("Build a pipeline that turns the input JSON into the expected JSON.", get("description", puzzle)),
+      input_name: input_name,
+      input: input,
+      expected: expected
+    }),
+    input_opt
+  )
+}
+
+load_bundle(path, debug) = {
+  files = load_json_files(path, debug)
+  bundle = bundle_from_files(files)
+  debug_value(debug, "bundle", bundle)
+}
+
+field_each(key, items) = field_each_acc(key, items, [])
+
+field_each_acc(key, items, acc) = (
+  (_, [], acc) -> reverse(acc) |
+  (key, [item, ..rest], acc) -> field_each_next(key, rest, acc, get(key, item))
+)
+
+field_each_next(key, rest, acc, value) = (
+  (_, _, _, value) ? none?(value) == true -> value |
+  (key, rest, acc, value) -> field_each_acc(key, rest, [normalize_stage_result([value]), ..acc])
+)
+
+apply_stage(stage, current) = (
+  (stage, current) ? starts_with(stage, "pick:") == true -> get(stage_arg(stage), current) |
+  (stage, current) ? starts_with(stage, "field:") == true -> field_each(stage_arg(stage), current) |
+  ("trim_each", current) -> map(trim, current) |
+  ("upper_each", current) -> map(upper, current) |
+  ("lower_each", current) -> map(lower, current) |
+  ("drop_empty", current) -> filter((item) -> item != "", current) |
+  ("reverse", current) -> reverse(current) |
+  ("count", current) -> count(current) |
+  (stage, _) -> none("unknown-stage", {stage: stage})
+)
+
+debug_value(debug, label, value) = (
+  (debug, label, value) ? debug == true && none?(value) == true -> {
+    trace(concat(label, " failed"), unwrap_or({reason: "unknown"}, absence_meta(value)))
+    value
+  } |
+  (debug, label, value) ? debug == true -> trace(label, value) |
+  (_, _, value) -> value
+)
+
+normalize_stage_result(result_box) = (
+  ([result]) ? some?(result) == true -> unwrap_or(result, result) |
+  ([result]) -> result
+)
+
+apply_pipeline(stages, current, debug, history_ref) = (
+  ([], current, _, _) -> current |
+  ([stage, ..rest], current, debug, history_ref) -> {
+    ref_update(history_ref, (history) -> append(history, [stage]))
+    next = normalize_stage_result([apply_stage(stage, current)])
+    logged = debug_value(debug, concat("after ", stage), next)
+    apply_pipeline(rest, logged, debug, history_ref)
+  }
+)
+
+json_equal?(left, right) = json_stringify(left) == json_stringify(right)
+
+render_pipeline(stages) = (
+  ([]) -> "(empty pipeline)" |
+  (stages) -> join(" |> ", stages)
+)
+
+render_value(result_box) = (
+  ([value]) ? none?(value) == true -> join("", [
+    "none(",
+    unwrap_or("unknown", absence_reason(value)),
+    ") ",
+    value_or([json_stringify(value_or([absence_meta(value)], {}))], "{}")
+  ]) |
+  ([value]) -> value_or([json_stringify(value)], "<non-json>")
+)
+
+report_ok(result_box, expected) = (
+  ([actual], _) ? none?(actual) == true -> false |
+  ([actual], expected) -> json_equal?(actual, expected)
+)
+
+report_map(bundle, pipeline_text, stages, history, result_box) = {
+  ok: report_ok(result_box, unwrap_or([], get("expected", bundle))),
+  title: unwrap_or("ZIP JSON Puzzle", get("title", bundle)),
+  description: unwrap_or("", get("description", bundle)),
+  pipeline: pipeline_text,
+  stages: stages,
+  history: history,
+  actual: unwrap_or(none("missing-result"), first(result_box)),
+  expected: unwrap_or([], get("expected", bundle))
+}
+
+render_report(report) = (
+  (report) ? unwrap_or(false, get("ok", report)) == true -> join("\n", [
+    concat("PASS ", unwrap_or("ZIP JSON Puzzle", get("title", report))),
+    concat("pipeline: ", render_pipeline(unwrap_or([], get("history", report)))),
+    concat("actual: ", render_value([unwrap_or(none("missing-result"), get("actual", report))]))
+  ]) |
+  (report) -> join("\n", [
+    concat("FAIL ", unwrap_or("ZIP JSON Puzzle", get("title", report))),
+    concat("pipeline: ", render_pipeline(unwrap_or([], get("history", report)))),
+    concat("actual: ", render_value([unwrap_or(none("missing-result"), get("actual", report))])),
+    concat("expected: ", render_value([unwrap_or([], get("expected", report))]))
+  ])
+)
+
+archive_entries(report) = archive_entries_actual(report, [unwrap_or(none("missing-result"), get("actual", report))])
+
+archive_entries_actual(report, result_box) = (
+  (_, [actual]) ? none?(actual) == true -> [
+    ["summary.txt", render_report(report)],
+    ["expected.json", value_or([json_stringify(unwrap_or([], get("expected", report)))], "null")]
+  ] |
+  (report, [actual]) -> [
+    ["summary.txt", render_report(report)],
+    ["actual.json", value_or([json_stringify(actual)], "null")],
+    ["expected.json", value_or([json_stringify(unwrap_or([], get("expected", report)))], "null")]
+  ]
+)
+
+write_archive_if_requested(report, out_path) = (
+  (report, out_path) ? out_path == "" -> render_report(report) |
+  (report, out_path) -> {
+    zip_write(out_path, archive_entries(report))
+    join("\n", [
+      render_report(report),
+      concat("wrote archive: ", out_path)
+    ])
+  }
+)
+
+briefing(bundle) = join("\n", [
+  unwrap_or("ZIP JSON Puzzle", get("title", bundle)),
+  unwrap_or("", get("description", bundle)),
+  concat("input entry: ", unwrap_or("input.json", get("input_name", bundle))),
+  "",
+  "Use --pipeline with a comma-separated list of stages.",
+  stage_help()
+])
+
+solve_puzzle(bundle, pipeline_text, debug) = {
+  stages = parse_pipeline(pipeline_text)
+  history = ref([])
+  start = debug_value(debug, "input", unwrap_or(none("missing-input"), get("input", bundle)))
+  actual = apply_pipeline(stages, start, debug, history) |> debug_value(debug, "final")
+  report_map(bundle, pipeline_text, stages, ref_get(history), [actual])
+}
+
+run_args(parsed) = (
+  ([opts, _]) ? cli_flag?(opts, "stages") == true -> stage_help() |
+  ([_, ["--help"]]) -> usage() |
+  ([_, ["-h"]]) -> usage() |
+  ([_, ["--stages"]]) -> stage_help() |
+  ([_, []]) -> usage() |
+  ([opts, [zip_path]]) -> run_game(
+    zip_path,
+    cli_option_or(opts, "pipeline", ""),
+    cli_flag?(opts, "trace"),
+    cli_option_or(opts, "out", "")
+  ) |
+  ([_, _]) -> usage()
+)
+
+run_game(zip_path, pipeline_text, debug, out_path) = {
+  bundle = load_bundle(zip_path, debug)
+  pipeline_missing = pipeline_text == ""
+  run_loaded_bundle([bundle, pipeline_missing, pipeline_text, debug, out_path])
+}
+
+run_loaded_bundle(args) = (
+  ([bundle, _, _, _, _]) ? none?(bundle) == true -> render_value([bundle]) |
+  ([bundle, true, _, _, _]) -> briefing(unwrap_or({}, bundle)) |
+  ([bundle, false, pipeline_text, debug, out_path]) -> {
+    report = solve_puzzle(unwrap_or({}, bundle), pipeline_text, debug)
+    write_archive_if_requested(report, out_path)
+  }
+)
+
+main(args) = run_args(cli_parse(args, cli_spec()))

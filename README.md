@@ -147,6 +147,40 @@ python3 -m genia.interpreter examples/ants_terminal.genia --ants 10
 
 `examples/ants_terminal.genia` uses the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop.
 
+## Build a Game in Genia
+
+`examples/zip_json_puzzle.genia` shows how to build a small puzzle game around Genia’s JSON, ZIP, and pipeline helpers.
+
+The game reads a puzzle archive, lets the player provide a transformation pipeline, and validates the transformed JSON against the expected result stored in the puzzle metadata.
+
+Run the briefing for a puzzle zip:
+
+```bash
+python3 -m genia.interpreter examples/zip_json_puzzle.genia puzzle.zip
+```
+
+Play it with a pipeline:
+
+```bash
+python3 -m genia.interpreter examples/zip_json_puzzle.genia puzzle.zip --pipeline 'pick:rows,field:label,trim_each,drop_empty,upper_each'
+```
+
+Trace each stage and write a result archive:
+
+```bash
+python3 -m genia.interpreter examples/zip_json_puzzle.genia puzzle.zip --pipeline 'pick:rows,field:label,trim_each,drop_empty,upper_each' --trace --out solved.zip
+```
+
+The example uses:
+
+- `zip_read` to load `puzzle.json` and the input payload from the archive
+- `json_parse` / `json_stringify` to move between zip bytes and puzzle data
+- named stage application to build a player-defined pipeline
+- `trace` to debug puzzle loading and each pipeline stage
+- `zip_write` to emit `summary.txt`, `actual.json`, and `expected.json` when `--out` is provided
+
+Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.md`.
+
 Run tests:
 
 ```bash
