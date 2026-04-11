@@ -1257,6 +1257,7 @@ Core IR shape currently includes:
 
 - `examples/tic-tac-toe.genia`: interactive text game example
 - `examples/ants.genia`: first minimal ants-style stochastic grid simulation demo
+- `examples/ants_terminal.genia`: terminal-rendered ants demo with CLI-configurable ant count
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
@@ -1267,3 +1268,12 @@ Core IR shape currently includes:
 - text rendering via `print`
 
 It is intentionally minimal and single-ant first. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce new language syntax.
+
+`examples/ants_terminal.genia` intentionally stays within the same current runtime surface:
+
+- persistent map-based world state with ant occupancy stored in the world map
+- sequential multi-ant stepping with the same movement/blocking/food-consumption semantics as the tested ants core helpers
+- terminal rendering via `clear_screen()`, `move_cursor(x, y)`, and `render_grid(grid)`
+- CLI configuration via `main(argv())` plus `cli_parse`
+
+It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, and does **not** add new language/runtime features.

@@ -1184,17 +1184,19 @@ Expected behavior:
 
 ## First simulation demo: ants (minimal, text mode)
 
-Genia now ships a first working ants-style demo at:
+Genia now ships ants-style demos at:
 
 - `examples/ants.genia`
+- `examples/ants_terminal.genia`
 
-This demo is intentionally minimal and uses only currently implemented builtins and syntax:
+These demos intentionally use only currently implemented builtins and syntax:
 
 - host-backed persistent maps for world state (`map_new`, `map_get`, `map_put`, `map_has?`)
 - random direction selection (`rand_int(4)`)
 - recursive stepping (finite number of steps)
 - blocking frame pacing (`sleep(ms)`)
 - plain text rendering (`print`)
+- terminal rendering helpers (`clear_screen`, `move_cursor`, `render_grid`) in the terminal variant
 
 ### Minimal example (from the demo)
 
@@ -1232,8 +1234,10 @@ Expected behavior (demo grid wrapping):
 ### Failure / limitation notes
 
 - The demo is text-mode only (no graphics).
-- The first version is single-ant only.
+- `examples/ants.genia` is single-ant only.
+- `examples/ants_terminal.genia` supports multiple ants but is still blocking and CLI-driven.
 - Simulation timing is blocking (`sleep`) and host-dependent.
+- The terminal variant uses ANSI terminal helpers; it is not currently driven by `stdin_keys`.
 - Native map syntax is available for authoring state (`{}`, `{ key: value }`, map patterns like `{name}`).
 - There is still no scheduler/event loop or language-level simulation framework.
 
@@ -1242,16 +1246,20 @@ Expected behavior (demo grid wrapping):
 ### ✅ Implemented
 
 - runnable finite-step simulation in `examples/ants.genia`
+- terminal-rendered multi-ant demo in `examples/ants_terminal.genia`
 - random movement + wrapped grid movement
 - persistent map-based world updates
 - default-empty cell lookup via helper function
+- occupancy blocking and food consumption through world-state updates
 - recursive step loop with `sleep` timing
+- terminal helper rendering via `clear_screen`, `move_cursor`, and `render_grid`
 
 ### ⚠️ Partial
 
-- only one ant entity is modeled
+- the minimal demo remains single-ant first
+- the terminal demo is still blocking and non-interactive
 - randomness is non-deterministic host RNG (no seed API)
-- rendering is plain ASCII grid text
+- rendering is plain ASCII / terminal text
 
 ### ❌ Not implemented
 

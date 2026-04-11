@@ -14,12 +14,13 @@ This repository currently provides:
 - raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`)
 - simulation primitives (`rand`, `rand_int`, `sleep`)
+- terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
-- runnable demos under `examples/` (including `tic-tac-toe.genia` and `ants.genia`)
+- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, and `ants_terminal.genia`)
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
@@ -136,11 +137,14 @@ main(args) = args
 genia script.genia --pretty input.txt
 ```
 
-Run the ants demo:
+Run the ants demos:
 
 ```bash
 python3 -m genia.interpreter examples/ants.genia
+python3 -m genia.interpreter examples/ants_terminal.genia --ants 10
 ```
+
+`examples/ants_terminal.genia` uses the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop.
 
 Run tests:
 

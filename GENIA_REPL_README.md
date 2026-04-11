@@ -34,10 +34,11 @@ Run a pipeline stage expression:
 python3 -m genia.interpreter -p 'head(1) |> each(print)'
 ```
 
-Run the ants demo:
+Run the ants demos:
 
 ```bash
 python3 -m genia.interpreter examples/ants.genia
+python3 -m genia.interpreter examples/ants_terminal.genia --ants 10
 ```
 
 Run in stdio debug-adapter mode:
