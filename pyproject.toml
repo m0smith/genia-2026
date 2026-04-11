@@ -1,6 +1,6 @@
 [project]
 name = "genia"
-version = "0.1.10"
+version = "0.1.11"
 description = "Genia language prototype interpreter and regression tests"
 readme = "README.md"
 requires-python = ">=3.12"
