@@ -27,6 +27,8 @@ Before making any changes, you MUST read:
 * `GENIA_RULES.md`
 * `GENIA_REPL_README.md`
 * relevant existing `docs/sicp/*` chapter files
+* OUTLINE.md (structure)
+* WRITING_GUIDE.md (style)
 
 Treat these as authoritative.
 
