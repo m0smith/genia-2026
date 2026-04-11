@@ -1,0 +1,49 @@
+import web
+
+web_ok_text = web/ok_text
+web_json = web/json
+web_route_request = web/route_request
+web_get = web/get
+web_serve_http = web/serve_http
+
+health(_request) = web_ok_text("ok")
+
+info(_request) = web_json({
+  service: "genia",
+  status: "running"
+})
+
+app() = web_route_request([
+  web_get("/health", health),
+  web_get("/info", info)
+])
+
+config_with_max(host, port, max_requests) = (
+  (_, _, max_requests) ? max_requests > 0 -> {
+    host: host,
+    port: port,
+    max_requests: max_requests
+  } |
+  (host, port, _) -> {
+    host: host,
+    port: port
+  }
+)
+
+port_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(8080, parse_int(cli_option_or(opts, "port", "8080")))
+)
+
+max_requests_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
+)
+
+config_from_parsed(parsed) = config_with_max("127.0.0.1", port_from_parsed(parsed), max_requests_from_parsed(parsed))
+
+server_config(args) = config_from_parsed(
+  cli_parse(args, {
+    options: ["port", "max-requests"]
+  })
+)
+
+main(args) = web_serve_http(server_config(args), app())

@@ -134,6 +134,15 @@ main(args) = args
 main(argv())
 ```
 
+## Web
+
+- `import web` exposes the phase-1 HTTP helper surface
+- `web/serve_http(config, handler)` starts the current blocking phase-1 HTTP server bridge
+- `web/get(path, handler)` and `web/post(path, handler)` create exact-path routes
+- `web/route_request(routes)` builds a handler from those routes
+- `web/json(body)`, `web/text(body)`, `web/ok_text(text)`, `web/bad_request(message)`, and `web/not_found()` build response maps
+- request maps currently include `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`
+
 ## Operators
 
 - arithmetic: `+ - * / %`

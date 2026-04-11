@@ -184,6 +184,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `utf8_encode` and ZIP helpers produce opaque bytes wrapper values
 - ZipEntry
   - `zip_entries` returns opaque zip entry wrapper values
+- HTTP serving
+  - `import web` exposes module exports such as `web/serve_http(config, handler)` for the host-backed blocking HTTP capability
+  - requests and responses are represented as ordinary Genia maps at the language boundary
 - Python host handles
   - `python/open` returns opaque Python file-handle values (`<python file>`)
   - these are capability-style values intended only for passing back to allowlisted Python host exports
@@ -214,6 +217,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
+- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `tick` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
@@ -634,6 +638,18 @@ Case placement rules (enforced):
   - `clear_screen`
   - `move_cursor`
   - `render_grid`
+- public web helpers are thin prelude wrappers in `src/genia/std/prelude/web.genia`:
+  - `serve_http`
+  - `get`
+  - `post`
+  - `route_request`
+  - `response`
+  - `json`
+  - `text`
+  - `ok`
+  - `ok_text`
+  - `bad_request`
+  - `not_found`
 - `argv` (returns raw trailing CLI args as a list of strings)
 - constants in global env: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
@@ -652,6 +668,23 @@ Output sink semantics:
 - `render_grid(grid)` writes a text grid to `stdout` and returns `grid`
   - `grid` must be a list
   - each row must be either a string or a list of displayable values
+- `web/serve_http(config, handler)` runs a synchronous blocking HTTP server and returns `{host, port, handled_requests}` after the server stops
+  - `config.host` defaults to `"127.0.0.1"`
+  - `config.port` defaults to `8000`
+  - optional `config.max_requests` stops the server after a fixed number of handled requests
+  - request maps currently include:
+    - `method`
+    - `path`
+    - `query` (string-keyed map; repeated query keys keep the last value)
+    - `headers` (lowercased string-keyed map)
+    - `body` (parsed JSON when content type starts with `application/json`, otherwise decoded text)
+    - `raw_body` (decoded text body)
+    - `client` (`{host, port}`)
+  - response maps currently use:
+    - `status` (integer)
+    - `headers` (string-keyed map)
+    - `body` (string, bytes, or `none`)
+  - invalid handler return values or response-shape errors produce a `500 internal server error` response in this phase
 - `print(...)` writes to `stdout`
 - `log(...)` writes to `stderr`
 - `input()` remains interactive-only and does not consume the flow/stdin source path

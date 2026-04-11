@@ -59,6 +59,7 @@
     "cli_pipe_mode",
     "repl",
     "flow_phase_1",
+    "http_server",
     "allowlisted_host_interop",
     "refs",
     "process_primitives",

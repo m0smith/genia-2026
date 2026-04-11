@@ -25,6 +25,124 @@ Browser playground status in this phase:
 - browser-native execution (JavaScript host or Rust/WASM host) is planned later behind the same adapter boundary
 - this does not add a second implemented host today
 
+## HTTP service foundation
+
+The Python reference host now also includes a first usable synchronous HTTP service bridge.
+
+The host/runtime split in this phase is intentionally small:
+
+- host code owns socket and HTTP protocol integration
+- the Genia boundary uses ordinary request/response maps
+- public routing and response helpers live in prelude functions rather than host-only convenience APIs
+
+Current public helper surface (from `import web`):
+
+- `web/serve_http`
+- `web/get`
+- `web/post`
+- `web/route_request`
+- `web/response`
+- `web/json`
+- `web/text`
+- `web/ok`
+- `web/ok_text`
+- `web/bad_request`
+- `web/not_found`
+
+Current request map shape:
+
+- `method`
+- `path`
+- `query`
+- `headers`
+- `body`
+- `raw_body`
+- `client`
+
+Current response map shape:
+
+- `status`
+- `headers`
+- `body`
+
+### Minimal example
+
+```genia
+import web
+
+web_ok_text = web/ok_text
+web_json = web/json
+web_route_request = web/route_request
+web_get = web/get
+web_serve_http = web/serve_http
+
+health(_request) = web_ok_text("ok")
+
+info(_request) = web_json({
+  service: "genia",
+  status: "running"
+})
+
+app() = web_route_request([
+  web_get("/health", health),
+  web_get("/info", info)
+])
+
+main(args) = web_serve_http({host: "127.0.0.1", port: 8080}, app())
+```
+
+Expected behavior:
+
+- `GET /health` returns plain-text `ok`
+- `GET /info` returns JSON service metadata
+
+### Edge case example
+
+```genia
+import web
+
+web_json = web/json
+web_route_request = web/route_request
+web_post = web/post
+
+echo(request) = web_json({
+  path: request/path,
+  query: request/query,
+  body: request/body
+})
+
+app() = web_route_request([
+  web_post("/echo", echo)
+])
+```
+
+Expected behavior:
+
+- exact path matching only
+- request headers are lowercased in `request/headers`
+- JSON request bodies are parsed into ordinary Genia values in `request/body`
+- non-JSON request bodies stay as decoded text in `request/body`
+
+### Failure case example
+
+```genia
+import web
+
+web_route_request = web/route_request
+web_get = web/get
+
+broken(_request) = 42
+
+app() = web_route_request([
+  web_get("/broken", broken)
+])
+```
+
+Expected behavior:
+
+- the server returns `500 internal server error`
+- the current phase does not expose a larger web-framework exception model
+
 ## Minimal example
 
 Today the Python reference host is still the real executable host:
@@ -69,6 +187,7 @@ This matters for portability because future hosts must preserve the documented C
 ## ✅ Implemented
 
 - Python reference host
+- phase-1 synchronous HTTP serving with request/response maps
 - shared host-interop docs
 - shared spec manifest/scaffolding
 - placeholder host directories with status notes and local agent guidance
@@ -79,6 +198,10 @@ This matters for portability because future hosts must preserve the documented C
   - the working Python host still lives at the repo root rather than `hosts/python/`
 - shared spec runner support is documented, but not implemented as generic tooling yet
 - capability coverage for future hosts is planned and tracked, not implemented
+- HTTP service foundation is intentionally narrow:
+  - exact-path routing only
+  - blocking/synchronous only
+  - response bodies are string/bytes/none at the transport boundary
 
 ## ❌ Not implemented
 
@@ -89,6 +212,11 @@ This matters for portability because future hosts must preserve the documented C
 - C++ host
 - direct/native Genia host
 - generic multi-host spec runner implementation
+- path params
+- middleware
+- streaming request or response bodies
+- websockets
+- async support
 
 ## The Rule Going Forward
 

@@ -41,6 +41,7 @@ These may arrive later for a new host, but they must be marked honestly:
 - `-p` / `--pipe`
 - REPL
 - Flow phase 1 runtime
+- HTTP serving
 - allowlisted host interop bridge
 - refs
 - process primitives
@@ -101,6 +102,11 @@ Rule:
   - host-null/host-None -> Genia `none`
   - explicit host errors for exceptions
   - no implicit Flow crossing at the bridge
+- if the host implements HTTP serving, it must preserve:
+  - request/response map shapes documented in shared docs
+  - synchronous blocking phase-1 behavior
+  - prelude-first user-visible routing/response semantics
+  - exact-path routing only unless shared docs/specs are expanded
 - public helpers prefer prelude-backed behavior where feasible
 - capability-backed builtins stay small and explicit
 

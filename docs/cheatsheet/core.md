@@ -115,6 +115,20 @@ Flow values are lazy and single-use.
 | terminal control | `clear_screen()`, `move_cursor(x, y)` |
 | grid rendering | `render_grid(grid)` |
 
+## Web Helpers
+
+Use `import web` and call helpers through module exports.
+
+| Helper | Shape |
+| --- | --- |
+| host bridge | `web/serve_http(config, handler)` |
+| routes | `web/get(path, handler)`, `web/post(path, handler)`, `web/route_request(routes)` |
+| response maps | `web/response(status, headers, body)` |
+| response helpers | `web/json(body)`, `web/text(body)`, `web/ok(body)`, `web/ok_text(text)`, `web/bad_request(message)`, `web/not_found()` |
+
+Current request maps use `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`.
+Current response maps use `status`, `headers`, and `body`.
+
 ## CLI Entry Modes
 
 | Mode | Command | Behavior |

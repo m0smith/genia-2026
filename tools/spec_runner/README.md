@@ -52,6 +52,10 @@ Suggested normalized shapes:
     - integer exit code
     - normalized error object when applicable
 
+  Optional capability note:
+
+  - hosts that implement optional capability bridges such as HTTP serving may validate those behaviors through host-local orchestration around `eval(...)` / `cli(...)` until a shared capability-driver contract is added
+
 ## Rules
 
 - host-local transport details may vary

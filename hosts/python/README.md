@@ -14,6 +14,8 @@ Current reality in this phase:
 - the current Python host also implements the allowlisted host interop bridge described in the shared docs:
   - `import python`
   - `import python.json`
+- the current Python host also implements the phase-1 synchronous HTTP serving bridge described in the shared docs:
+  - `serve_http(config, handler)` via public prelude helpers in `src/genia/std/prelude/web.genia`
 
 Rules:
 

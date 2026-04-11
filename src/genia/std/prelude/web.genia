@@ -1,0 +1,135 @@
+serve_http(config, handler) = """
+# serve_http
+
+Start a minimal synchronous HTTP server using host-backed transport integration.
+
+## Params
+
+* `config`: map with optional `host`, `port`, and `max_requests`
+* `handler`: function that receives a request map and returns a response map
+
+## Returns
+
+* server info map after the server stops: `{host, port, handled_requests}`
+
+## Notes
+
+* `host` defaults to `"127.0.0.1"`
+* `port` defaults to `8000`
+* `max_requests` is optional and is mainly useful for tests and one-shot demos
+* request headers are lowercased string keys
+* request `body` is parsed JSON when the request content type starts with `application/json`; otherwise it is the decoded request text
+* request `raw_body` is always the decoded request text
+* invalid handler results produce a `500 internal server error` response in this phase
+""" _serve_http(config, handler)
+
+route(method, path, handler) = {
+  method: method,
+  path: path,
+  handler: handler
+}
+
+route_method(route) = route("method", "")
+route_path(route) = route("path", "")
+route_handler(route) = route("handler", (_) -> not_found())
+
+request_method(request) = request("method", "")
+request_path(request) = request("path", "")
+
+get = (path, handler) -> route("GET", path, handler)
+
+post = (path, handler) -> route("POST", path, handler)
+
+route_matches?(route, request) = route_method(route) == request_method(request) && route_path(route) == request_path(request)
+
+find_route_handler(routes, request) = (
+  ([], _) -> none |
+  ([route, .._], request) ? route_matches?(route, request) == true -> some(route_handler(route)) |
+  ([_, ..rest], request) -> find_route_handler(rest, request)
+)
+
+route_request(routes) = """
+# route_request
+
+Build a request handler from a list of exact-path route values.
+
+## Params
+
+* `routes`: list of route values created by `get(...)` or `post(...)`
+
+## Returns
+
+* handler function suitable for `serve_http(config, handler)`
+""" make_route_handler(routes)
+
+make_route_handler(routes) = {
+  handler = (request) -> route_request_eval(routes, request)
+  handler
+}
+
+route_request_eval(routes, request) = route_request_handler(find_route_handler(routes, request), request)
+
+route_request_handler(result, request) = (
+  (none, _) -> not_found() |
+  (some(handler), request) -> apply(handler, [request])
+)
+
+response(status, headers, body) = """
+# response
+
+Construct one HTTP response map.
+
+## Params
+
+* `status`: integer HTTP status code
+* `headers`: map of string header names to string values
+* `body`: string, bytes, or `none`
+""" {
+  status: status,
+  headers: headers,
+  body: body
+}
+
+json_headers() = {"content-type": "application/json; charset=utf-8"}
+text_headers() = {"content-type": "text/plain; charset=utf-8"}
+
+json(body) = """
+# json
+
+Return a `200` JSON response.
+
+Maps/lists/scalars are rendered with `json_stringify(...)`.
+JSON encoding failures currently surface as `500 internal server error` through the HTTP bridge.
+""" response(200, json_headers(), json_stringify(body))
+
+text(body) = """
+# text
+
+Return a `200` plain-text response.
+""" response(200, text_headers(), body)
+
+ok(body) = """
+# ok
+
+Return a `200` response without forcing a content type.
+
+Use `json(...)` for JSON payloads and `ok_text(...)` / `text(...)` for plain text.
+""" response(200, {}, body)
+
+ok_text(body) = """
+# ok_text
+
+Return a `200` plain-text response.
+""" text(body)
+
+bad_request(message) = """
+# bad_request
+
+Return a `400` plain-text response.
+""" response(400, text_headers(), message)
+
+not_found() = """
+# not_found
+
+Return a `404` plain-text response.
+""" response(404, text_headers(), "not found")

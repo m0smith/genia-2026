@@ -120,6 +120,7 @@ Hosts may use different internal representations, but they must preserve the sam
 - MetaEnv values used by the metacircular layer
 - Bytes wrapper values
 - Zip entry wrapper values
+- HTTP serving bridge capability
 - Python host handle values
 - debugger stdio bridge capabilities
 
@@ -173,6 +174,7 @@ Examples:
 - process/mailbox substrate
 - ref synchronization substrate
 - bytes/json/zip bridges
+- synchronous HTTP serving bridge
 - debugger stdio bridge
 
 Rules:
@@ -206,6 +208,42 @@ Important boundary rule:
 - Option-aware pipelines continue across the host bridge
 - Flow does not implicitly cross the host bridge
 - if a host export receives a Flow where it expects an ordinary host value, that remains a type error in the current model
+
+## HTTP Serving Contract (Phase 1)
+
+Current Python-host contract:
+
+- `import web` exposes `web/serve_http(config, handler)` as the minimal host primitive wrapper
+- the host bridge owns socket/protocol integration only
+- the language boundary uses ordinary Genia maps for both requests and responses
+- current request map fields are:
+  - `method`
+  - `path`
+  - `query`
+  - `headers`
+  - `body`
+  - `raw_body`
+  - `client`
+- current response map fields are:
+  - `status`
+  - `headers`
+  - `body`
+- current phase-1 routing/user-visible semantics live primarily in prelude helpers such as:
+  - `get`
+  - `post`
+  - `route_request`
+  - `json`
+  - `text`
+  - `ok_text`
+- current limitations:
+  - synchronous/blocking only
+  - exact-path routing only
+  - no middleware
+  - no path params
+  - no streaming request/response bodies
+  - no websockets
+  - no async support
+- current invalid handler return behavior is normalized to a `500 internal server error` response rather than a large host exception surface
 
 ## Flow Contract
 

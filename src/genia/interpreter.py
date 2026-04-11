@@ -23,10 +23,12 @@ import os
 import bisect
 import io
 import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import deque
 import queue
 import random
 import time
+from urllib.parse import parse_qsl, urlsplit
 import zipfile
 from importlib import resources as importlib_resources
 from pathlib import Path
@@ -5131,6 +5133,22 @@ def make_global_env(
             raise TypeError(f"{name} expected bytes, received {_runtime_type_name(value)}")
         return value
 
+    def _ensure_port_int(value: Any, name: str) -> int:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} expected an integer, received {_runtime_type_name(value)}")
+        if value < 0 or value > 65535:
+            raise ValueError(f"{name} expected an integer in [0, 65535]")
+        return value
+
+    def _ensure_optional_request_limit(value: Any, name: str) -> int | None:
+        if value is _UNSET or value is None or _is_nil_none(value):
+            return None
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise TypeError(f"{name} expected a positive integer, received {_runtime_type_name(value)}")
+        if value < 1:
+            raise ValueError(f"{name} expected a positive integer")
+        return value
+
     def _ensure_zip_entry(value: Any, name: str) -> GeniaZipEntry:
         if not isinstance(value, GeniaZipEntry):
             raise TypeError(f"{name} expected a zip entry, received {_runtime_type_name(value)}")
@@ -5898,6 +5916,11 @@ def make_global_env(
                 ("json_parse", "json_stringify", "json_pretty"),
             ),
             (
+                "Web",
+                ("std/prelude/web.genia",),
+                ("serve_http", "get", "post", "route_request", "response", "json", "text", "ok", "ok_text", "bad_request", "not_found"),
+            ),
+            (
                 "File / zip",
                 ("std/prelude/file.genia",),
                 ("read_file", "write_file", "zip_read", "zip_write"),
@@ -6547,6 +6570,182 @@ def make_global_env(
             )
             return make_none("json-stringify-error", context)
 
+    def _http_headers_to_runtime(headers: Iterable[tuple[str, str]]) -> GeniaMap:
+        result = GeniaMap()
+        for key, value in headers:
+            result = result.put(key.lower(), value)
+        return result
+
+    def _http_query_to_runtime(query_text: str) -> GeniaMap:
+        result = GeniaMap()
+        for key, value in parse_qsl(query_text, keep_blank_values=True):
+            result = result.put(key, value)
+        return result
+
+    def _http_request_map(request: BaseHTTPRequestHandler) -> GeniaMap:
+        parsed_path = urlsplit(request.path)
+        raw_body_bytes = b""
+        content_length_text = request.headers.get("Content-Length")
+        if content_length_text is not None:
+            try:
+                content_length = max(0, int(content_length_text))
+            except ValueError:
+                content_length = 0
+            if content_length > 0:
+                raw_body_bytes = request.rfile.read(content_length)
+
+        raw_body = raw_body_bytes.decode("utf-8", errors="replace")
+        content_type = request.headers.get("Content-Type", "")
+        body: Any = raw_body
+        if content_type.lower().startswith("application/json"):
+            body = json_parse_fn(raw_body)
+
+        client_host, client_port = request.client_address[:2]
+        return (
+            GeniaMap()
+            .put("method", request.command.upper())
+            .put("path", parsed_path.path or "/")
+            .put("query", _http_query_to_runtime(parsed_path.query))
+            .put("headers", _http_headers_to_runtime(request.headers.items()))
+            .put("body", body)
+            .put("raw_body", raw_body)
+            .put("client", GeniaMap().put("host", client_host).put("port", client_port))
+        )
+
+    def _http_response_headers(value: Any) -> dict[str, str]:
+        if value is None or _is_nil_none(value):
+            return {}
+        if not isinstance(value, GeniaMap):
+            raise TypeError(
+                "serve_http handler response.headers expected a map, "
+                f"received {_runtime_type_name(value)}"
+            )
+
+        headers: dict[str, str] = {}
+        for _, (raw_key, raw_value) in value._entries.items():
+            if not isinstance(raw_key, str) or not isinstance(raw_value, str):
+                raise TypeError("serve_http handler response.headers expected string keys and values")
+            headers[raw_key] = raw_value
+        return headers
+
+    def _http_response_triplet(value: Any) -> tuple[int, dict[str, str], bytes]:
+        if not isinstance(value, GeniaMap):
+            raise TypeError(
+                "serve_http handler must return a response map with status, headers, and body fields"
+            )
+
+        status = value.get("status", 200)
+        if isinstance(status, bool) or not isinstance(status, int):
+            raise TypeError(
+                "serve_http handler response.status expected an integer, "
+                f"received {_runtime_type_name(status)}"
+            )
+        if status < 100 or status > 999:
+            raise ValueError("serve_http handler response.status expected an integer in [100, 999]")
+
+        headers = _http_response_headers(value.get("headers", GeniaMap()))
+        header_names = {name.lower() for name in headers}
+        body = value.get("body", "")
+
+        if body is None or is_none(body):
+            payload = b""
+            if "content-type" not in header_names:
+                headers["content-type"] = "text/plain; charset=utf-8"
+        elif isinstance(body, str):
+            payload = body.encode("utf-8")
+            if "content-type" not in header_names:
+                headers["content-type"] = "text/plain; charset=utf-8"
+        elif isinstance(body, GeniaBytes):
+            payload = body.value
+            if "content-type" not in header_names:
+                headers["content-type"] = "application/octet-stream"
+        else:
+            raise TypeError(
+                "serve_http handler response.body expected a string, bytes, or none, "
+                f"received {_runtime_type_name(body)}"
+            )
+
+        if "content-length" not in header_names:
+            headers["content-length"] = str(len(payload))
+        return status, headers, payload
+
+    def serve_http_fn(config_value: Any, handler: Any) -> GeniaMap:
+        if not isinstance(config_value, GeniaMap):
+            raise TypeError("serve_http expected config to be a map")
+        if not callable(handler):
+            raise TypeError("serve_http expected a handler function")
+
+        host_value = config_value.get("host", "127.0.0.1")
+        if not isinstance(host_value, str):
+            raise TypeError(f"serve_http expected config.host to be a string, received {_runtime_type_name(host_value)}")
+
+        port = _ensure_port_int(config_value.get("port", 8000), "serve_http config.port")
+        max_requests = _ensure_optional_request_limit(
+            config_value.get("max_requests", _UNSET),
+            "serve_http config.max_requests",
+        )
+
+        class _GeniaHTTPServer(HTTPServer):
+            allow_reuse_address = True
+
+        class _GeniaRequestHandler(BaseHTTPRequestHandler):
+            def _serve(self) -> None:
+                try:
+                    request_value = _http_request_map(self)
+                    response_value = _invoke_from_builtin(handler, [request_value])
+                    status, headers, payload = _http_response_triplet(response_value)
+                except Exception as exc:  # pragma: no cover - exercised through HTTP 500 behavior
+                    stderr_sink.write_text(f"serve_http handler error: {exc}\n")
+                    status = 500
+                    headers = {
+                        "content-type": "text/plain; charset=utf-8",
+                        "content-length": str(len(b"internal server error")),
+                    }
+                    payload = b"internal server error"
+
+                self.send_response(status)
+                for header_name, header_value in headers.items():
+                    self.send_header(header_name, header_value)
+                self.end_headers()
+                if self.command != "HEAD":
+                    self.wfile.write(payload)
+
+            def do_GET(self) -> None:
+                self._serve()
+
+            def do_POST(self) -> None:
+                self._serve()
+
+            def do_PUT(self) -> None:
+                self._serve()
+
+            def do_DELETE(self) -> None:
+                self._serve()
+
+            def do_PATCH(self) -> None:
+                self._serve()
+
+            def do_OPTIONS(self) -> None:
+                self._serve()
+
+            def do_HEAD(self) -> None:
+                self._serve()
+
+            def log_message(self, format: str, *args: Any) -> None:
+                return
+
+        server = _GeniaHTTPServer((host_value, port), _GeniaRequestHandler)
+        handled_requests = 0
+        try:
+            while max_requests is None or handled_requests < max_requests:
+                server.handle_request()
+                handled_requests += 1
+        finally:
+            server.server_close()
+
+        bound_host, bound_port = server.server_address[:2]
+        return GeniaMap().put("host", bound_host).put("port", bound_port).put("handled_requests", handled_requests)
+
     def read_file_fn(path: Any) -> Any:
         if not isinstance(path, str):
             context = (
@@ -6889,6 +7088,7 @@ def make_global_env(
     env.set("_write_file", write_file_fn)
     env.set("_json_parse", json_parse_fn)
     env.set("_json_stringify", json_stringify_fn)
+    env.set("_serve_http", serve_http_fn)
     env.set("_zip_read", zip_read_fn)
     env.set("_zip_write", zip_write_flow_fn)
     env.set("zip_entries", zip_entries_fn)

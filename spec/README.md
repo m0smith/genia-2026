@@ -34,7 +34,7 @@ The shared suite is intended to hold at least these categories:
 - Flow behavior
 - error normalization behavior
 - prelude behavior
-- capability-bridge behavior when a host implements optional allowlisted host interop
+- capability-bridge behavior when a host implements optional allowlisted host interop or optional HTTP serving
 
 ## Directory Layout
 

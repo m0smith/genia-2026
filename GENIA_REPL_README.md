@@ -41,6 +41,12 @@ python3 -m genia.interpreter examples/ants.genia
 python3 -m genia.interpreter examples/ants_terminal.genia --ants 10
 ```
 
+Run the HTTP service example:
+
+```bash
+python3 -m genia.interpreter examples/http_service.genia --port 8080
+```
+
 Run in stdio debug-adapter mode:
 
 ```bash
@@ -69,7 +75,7 @@ CLI contract summary:
     - legacy surface `nil` also normalizes to `none("nil")`
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
-  - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper
+  - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, slash map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
   - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
@@ -148,6 +154,7 @@ CLI contract summary:
   - includes public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
   - includes public option helpers from `src/genia/std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - includes public string helpers from `src/genia/std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
+  - includes a public web module in `src/genia/std/prelude/web.genia` (import via `import web` and use exports such as `web/serve_http`, `web/get`, `web/post`, `web/route_request`, `web/json`, and `web/ok_text`)
   - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
@@ -178,6 +185,9 @@ CLI contract summary:
     - public JSON wrappers: `json_parse`, `json_stringify`, `json_pretty`
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
+  - HTTP serving bridge builtins (phase 1):
+    - internal primitive: `_serve_http`
+    - public web-module exports in `std/prelude/web.genia`: `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, `not_found`
   - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - flow runtime (phase 1):

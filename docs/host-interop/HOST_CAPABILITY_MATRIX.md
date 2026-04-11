@@ -25,6 +25,7 @@ Browser playground adapter note:
 | `-p` | Implemented | Planned | Planned | Planned | Planned | Planned | pipe mode |
 | REPL | Implemented | Planned | Planned | Planned | Planned | Planned | Python REPL only today |
 | Flow phase 1 | Implemented | Planned | Planned | Planned | Planned | Planned | lazy pull-based single-use Flow |
+| HTTP serving | Implemented | Planned | Planned | Planned | Planned | Planned | synchronous blocking HTTP server bridge with request/response maps |
 | refs | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed runtime primitive with prelude wrappers |
 | process primitives | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed runtime primitive with prelude wrappers |
 | bytes/json/zip | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed bridge helpers |
