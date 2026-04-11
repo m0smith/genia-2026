@@ -1,0 +1,73 @@
+import web
+
+web_bad_request = web/bad_request
+web_get = web/get
+web_json = web/json
+web_post = web/post
+web_route_request = web/route_request
+web_serve_http = web/serve_http
+
+stats = ref({})
+
+body_map(request) = unwrap_or({}, request |> get("body"))
+
+config_with_max(host, port, max_requests) = (
+  (_, _, max_requests) ? max_requests > 0 -> {
+    host: host,
+    port: port,
+    max_requests: max_requests
+  } |
+  (host, port, _) -> {
+    host: host,
+    port: port
+  }
+)
+
+port_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(8083, parse_int(cli_option_or(opts, "port", "8083")))
+)
+
+max_requests_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
+)
+
+server_config(args) = config_with_max(
+  "127.0.0.1",
+  port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
+  max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
+)
+
+track_metric(request) = track_metric_values(
+  unwrap_or("", body_map(request) |> get("name")),
+  unwrap_or(1, body_map(request) |> get("value"))
+)
+
+track_metric_values(name, value) = (
+  (name, _) ? trim(name) == "" -> web_bad_request("name is required") |
+  (name, value) -> {
+    ref_update(stats, (current) -> map_put(current, trim(name), next_metric(current, trim(name), value)))
+    web_json({
+      tracked: trim(name),
+      summary: unwrap_or({}, ref_get(stats) |> get(trim(name)))
+    })
+  }
+)
+
+next_metric(current, name, value) = {
+  previous = unwrap_or({count: 0, total: 0}, current |> get(name))
+  {
+    count: unwrap_or(0, previous |> get("count")) + 1,
+    total: unwrap_or(0, previous |> get("total")) + value
+  }
+}
+
+summary(_request) = web_json({
+  metrics: ref_get(stats)
+})
+
+app() = web_route_request([
+  web_post("/metrics/track", track_metric),
+  web_get("/metrics/summary", summary)
+])
+
+main(args) = web_serve_http(server_config(args), app())

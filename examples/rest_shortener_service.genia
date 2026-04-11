@@ -1,0 +1,83 @@
+import web
+
+web_bad_request = web/bad_request
+web_get = web/get
+web_json = web/json
+web_post = web/post
+web_route_request = web/route_request
+web_serve_http = web/serve_http
+
+links = ref({})
+
+body_map(request) = unwrap_or({}, request |> get("body"))
+query_map(request) = unwrap_or({}, request |> get("query"))
+
+config_with_max(host, port, max_requests) = (
+  (_, _, max_requests) ? max_requests > 0 -> {
+    host: host,
+    port: port,
+    max_requests: max_requests
+  } |
+  (host, port, _) -> {
+    host: host,
+    port: port
+  }
+)
+
+port_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(8085, parse_int(cli_option_or(opts, "port", "8085")))
+)
+
+max_requests_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
+)
+
+server_config(args) = config_with_max(
+  "127.0.0.1",
+  port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
+  max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
+)
+
+create_link(request) = create_link_values(
+  unwrap_or("", body_map(request) |> get("code")),
+  unwrap_or("", body_map(request) |> get("url"))
+)
+
+create_link_values(code, url) = (
+  (code, _) ? trim(code) == "" -> web_bad_request("code is required") |
+  (_, url) ? trim(url) == "" -> web_bad_request("url is required") |
+  (code, url) -> {
+    ref_update(links, (items) -> map_put(items, trim(code), trim(url)))
+    web_json({
+      code: trim(code),
+      url: trim(url)
+    })
+  }
+)
+
+resolve_link(request) = resolve_code(unwrap_or("", query_map(request) |> get("code")))
+
+resolve_code(code) = (
+  (code) ? trim(code) == "" -> web_bad_request("code is required") |
+  (code) -> resolve_lookup(trim(code), ref_get(links) |> get(trim(code)))
+)
+
+resolve_lookup(code, found) = (
+  (_, found) ? none?(found) == true -> web_bad_request("unknown code") |
+  (code, found) -> web_json({
+    code: code,
+    url: unwrap_or("", found)
+  })
+)
+
+list_links(_request) = web_json({
+  links: ref_get(links)
+})
+
+app() = web_route_request([
+  web_post("/links", create_link),
+  web_get("/links", list_links),
+  web_get("/resolve", resolve_link)
+])
+
+main(args) = web_serve_http(server_config(args), app())

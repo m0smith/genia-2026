@@ -1,0 +1,101 @@
+import web
+
+web_bad_request = web/bad_request
+web_get = web/get
+web_json = web/json
+web_post = web/post
+web_route_request = web/route_request
+web_serve_http = web/serve_http
+
+flags = ref({
+  beta_search: {enabled: true, users: ["alice", "dora"]},
+  checkout_redesign: {enabled: false, users: ["alice"]},
+  release_banner: {enabled: false, users: []}
+})
+
+body_map(request) = unwrap_or({}, request |> get("body"))
+query_map(request) = unwrap_or({}, request |> get("query"))
+
+config_with_max(host, port, max_requests) = (
+  (_, _, max_requests) ? max_requests > 0 -> {
+    host: host,
+    port: port,
+    max_requests: max_requests
+  } |
+  (host, port, _) -> {
+    host: host,
+    port: port
+  }
+)
+
+port_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(8084, parse_int(cli_option_or(opts, "port", "8084")))
+)
+
+max_requests_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
+)
+
+server_config(args) = config_with_max(
+  "127.0.0.1",
+  port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
+  max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
+)
+
+user_has_flag?(user, rule) = (
+  (_, rule) ? unwrap_or(false, rule |> get("enabled")) == true -> true |
+  (user, rule) -> any?((name) -> name == user, unwrap_or([], rule |> get("users")))
+)
+
+enabled_flags_for(user, items) = filter(
+  (entry) -> user_has_flag?(user, entry_value(entry)),
+  items
+)
+
+entry_key(entry) = unwrap_or("", nth(0, entry))
+entry_value(entry) = unwrap_or({}, nth(1, entry))
+
+flag_pairs(current) = [
+  ["beta_search", unwrap_or({}, current |> get("beta_search"))],
+  ["checkout_redesign", unwrap_or({}, current |> get("checkout_redesign"))],
+  ["release_banner", unwrap_or({}, current |> get("release_banner"))]
+]
+
+enabled_flag_names(user, current) = map(entry_key, enabled_flags_for(user, flag_pairs(current)))
+
+get_flags(request) = {
+  user = unwrap_or("anonymous", query_map(request) |> get("user"))
+  web_json({
+    user: user,
+    enabled: enabled_flag_names(user, ref_get(flags))
+  })
+}
+
+set_flag(request) = set_flag_values(
+  unwrap_or("", body_map(request) |> get("flag")),
+  unwrap_or(false, body_map(request) |> get("enabled"))
+)
+
+set_flag_values(flag, enabled) = (
+  (flag, _) ? trim(flag) == "" -> web_bad_request("flag is required") |
+  (flag, enabled) -> {
+    current = ref_get(flags)
+    previous = unwrap_or({enabled: false, users: []}, current |> get(trim(flag)))
+    updated = {
+      enabled: enabled,
+      users: unwrap_or([], previous |> get("users"))
+    }
+    ref_set(flags, map_put(current, trim(flag), updated))
+    web_json({
+      flag: trim(flag),
+      rule: updated
+    })
+  }
+)
+
+app() = web_route_request([
+  web_get("/flags", get_flags),
+  web_post("/flags/set", set_flag)
+])
+
+main(args) = web_serve_http(server_config(args), app())

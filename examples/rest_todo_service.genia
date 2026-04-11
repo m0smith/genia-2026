@@ -1,0 +1,91 @@
+import web
+
+web_bad_request = web/bad_request
+web_get = web/get
+web_json = web/json
+web_post = web/post
+web_route_request = web/route_request
+web_serve_http = web/serve_http
+
+todos = ref([])
+next_id = ref(1)
+
+body_map(request) = unwrap_or({}, request |> get("body"))
+
+config_with_max(host, port, max_requests) = (
+  (_, _, max_requests) ? max_requests > 0 -> {
+    host: host,
+    port: port,
+    max_requests: max_requests
+  } |
+  (host, port, _) -> {
+    host: host,
+    port: port
+  }
+)
+
+port_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(8081, parse_int(cli_option_or(opts, "port", "8081")))
+)
+
+max_requests_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
+)
+
+server_config(args) = config_with_max(
+  "127.0.0.1",
+  port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
+  max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
+)
+
+list_todos(_request) = web_json({
+  items: ref_get(todos),
+  count: length(ref_get(todos))
+})
+
+create_todo(request) = create_todo_from_title(unwrap_or("", body_map(request) |> get("title")))
+
+create_todo_from_title(title) = (
+  (title) ? trim(title) == "" -> web_bad_request("title is required") |
+  (title) -> {
+    id = ref_get(next_id)
+    todo = {
+      id: id,
+      title: trim(title),
+      done: false
+    }
+    ref_set(next_id, id + 1)
+    ref_update(todos, (items) -> append(items, [todo]))
+    web_json(todo)
+  }
+)
+
+complete_todo(request) = complete_todo_with_id(unwrap_or(-1, body_map(request) |> get("id")))
+
+complete_todo_with_id(id) = (
+  (id) ? id < 0 -> web_bad_request("id is required") |
+  (id) -> {
+    ref_update(todos, (items) -> map((todo) -> mark_done(todo, id), items))
+    web_json({
+      updated: id,
+      items: ref_get(todos)
+    })
+  }
+)
+
+mark_done(todo, id) = (
+  (todo, id) ? unwrap_or(-1, todo |> get("id")) == id -> {
+    id: unwrap_or(-1, todo |> get("id")),
+    title: unwrap_or("", todo |> get("title")),
+    done: true
+  } |
+  (todo, _) -> todo
+)
+
+app() = web_route_request([
+  web_get("/todos", list_todos),
+  web_post("/todos/create", create_todo),
+  web_post("/todos/complete", complete_todo)
+])
+
+main(args) = web_serve_http(server_config(args), app())
