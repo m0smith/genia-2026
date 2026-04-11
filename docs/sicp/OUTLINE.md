@@ -7,6 +7,7 @@ This document defines the **structure of the SICP with Genia book**.
 - This is the **source of truth for WHAT to write**
 - All chapters MUST align with this outline
 - AGENTS.md defines HOW to write, not WHAT to write
+- The original source for SICP in Scheme is at https://web.mit.edu/6.001/6.037/sicp.pdf
 
 ---
 
