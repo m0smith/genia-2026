@@ -34,6 +34,10 @@ def is_non_runnable_marker(line: str) -> bool:
     return line.strip() in NON_RUNNABLE_MARKERS
 
 
+def is_sicp_meta_doc(path: Path) -> bool:
+    return path.name in {"AGENTS.MD", "OUTLINE.md", "WRITING_GUIDE.md", "index.md"}
+
+
 def collect_markdown_code_blocks(path: Path) -> list[MarkdownBlock]:
     lines = path.read_text(encoding="utf-8").splitlines()
     blocks: list[MarkdownBlock] = []
@@ -91,6 +95,19 @@ def validate_sicp_chapter(path: Path) -> list[MarkdownBlock]:
     blocks = collect_markdown_code_blocks(path)
     runnable_blocks: list[MarkdownBlock] = []
 
+    if not blocks and not is_sicp_meta_doc(path):
+        raise AssertionError(f"{path}: chapter contains no code blocks at all")
+
+    raw_lines = path.read_text(encoding="utf-8").splitlines()
+    for lineno, line in enumerate(raw_lines, start=1):
+        if not is_non_runnable_marker(line):
+            continue
+        next_line = raw_lines[lineno] if lineno < len(raw_lines) else ""
+        if next_line.strip() != "```genia":
+            raise AssertionError(
+                f"{path}:{lineno}: non-runnable marker must be immediately followed by a genia code fence"
+            )
+
     for i, block in enumerate(blocks):
         if block.lang != "genia":
             continue
@@ -120,6 +137,9 @@ def validate_sicp_chapter(path: Path) -> list[MarkdownBlock]:
                 f"Actual:\n{actual}"
             )
         runnable_blocks.append(block)
+
+    if not runnable_blocks and not is_sicp_meta_doc(path):
+        raise AssertionError(f"{path}: chapter must contain at least one runnable genia example")
 
     return runnable_blocks
 
@@ -174,6 +194,32 @@ fact(n, acc) = ...
     blocks = validate_sicp_chapter(chapter)
 
     assert len(blocks) == 1
+
+
+def test_validate_sicp_chapter_fails_when_marker_is_not_followed_by_genia(tmp_path: Path):
+    chapter = tmp_path / "chapter.md"
+    chapter.write_text(
+        """# Demo
+
+**Example only — not runnable**
+
+```text
+still not genia
+```
+
+```genia
+1 + 2
+```
+
+```text
+3
+```
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(AssertionError, match="must be immediately followed by a genia code fence"):
+        validate_sicp_chapter(chapter)
 
 
 def test_validate_sicp_chapter_fails_when_output_block_is_missing(tmp_path: Path):
@@ -303,12 +349,29 @@ inc(10)
     assert len(blocks) == 2
 
 
+def test_validate_sicp_chapter_requires_a_runnable_example_for_chapters(tmp_path: Path):
+    chapter = tmp_path / "chapter.md"
+    chapter.write_text(
+        """# Demo
+
+**Conceptual example — not directly runnable**
+```genia
+f(x) = ...
+```
+""",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(AssertionError, match="must contain at least one runnable genia example"):
+        validate_sicp_chapter(chapter)
+
+
 @pytest.mark.parametrize(
     "path",
     sorted(
         p
         for p in Path("docs/sicp").iterdir()
-        if p.is_file() and p.suffix.lower() == ".md" and p.name != "AGENTS.MD"
+        if p.is_file() and p.suffix.lower() == ".md"
     ),
 )
 def test_sicp_chapters_have_valid_and_executable_genia_blocks(path: Path):

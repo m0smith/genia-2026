@@ -88,10 +88,11 @@ CLI contract summary:
   - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` behaves like `"name"(record)`
   - `none(...)` short-circuits the rest of the pipeline and is returned unchanged
-  - otherwise the next stage receives the current value unchanged:
-    - raw values stay raw values
-    - explicit `some(...)` stays `some(...)`
-  - pipeline evaluation does not auto-unwrap `some(...)`
+  - when the current value is `some(x)` and the next stage is not explicitly Option-aware, the stage receives `x`
+  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back into `some(y)`
+  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is preserved as-is
+  - raw non-Option values stay raw values through ordinary stages
+  - pipeline evaluation does not silently discard Option structure at the final result boundary
   - pipeline-visible function modes are interpreted as Value -> Value, Flow -> Flow, or explicit Value <-> Flow bridge
   - stage failures now report stage index, stage rendering, mode classification, and received runtime type names when possible
   - multiline formatting is accepted around the operator:
@@ -239,6 +240,8 @@ CLI contract summary:
   - canonical recovery wraps the whole pipeline result:
     - `unwrap_or("unknown", record |> get("profile") |> get("name"))`
     - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+  - plain stages lift over `some(...)` in pipelines:
+    - `some(3) |> inc` returns `some(4)` when `inc(x) = x + 1`
   - `map_some` / `flat_map_some` unwrap only at their explicit helper boundary
   - `then_get`, `then_first`, `then_nth`, and `then_find` accept raw targets, `some(target)`, or `none(...)`
   - `sum(xs)` expects a plain list of numbers; use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`

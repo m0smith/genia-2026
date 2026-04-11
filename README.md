@@ -59,8 +59,9 @@ Pipe-mode mental model:
 - `genia -p 'stage_expr'` behaves like `stdin |> lines |> stage_expr |> run`
 - write one stage expression, not a full program
 - do not write explicit `stdin` or explicit `run`
-- if a stage needs the inner value of `some(...)`, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
-- pipeline stages receive the current value unchanged: raw values stay raw, `some(...)` stays `some(...)`, and `none(...)` skips the remaining stages
+- plain stages lift over `some(...)` and wrap the result back into `some(...)`
+- use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*` when you want direct Option-aware control
+- raw values stay raw values, and `none(...)` skips the remaining stages
 - reducers such as `sum` expect plain numbers after explicit filtering or recovery
 - pipeline debug helpers are available as identity stages:
   - `inspect(value)` logs the current value and returns it unchanged

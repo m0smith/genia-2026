@@ -2,170 +2,166 @@
 
 ## Purpose
 
-This document defines **HOW to write the book**.
+This document defines HOW to write the SICP-with-Genia chapters well.
 
-- OUTLINE.md defines WHAT to write
-- This document defines HOW to write it well
-- AGENTS.md enforces rules
+- `OUTLINE.md` defines WHAT chapters exist
+- this file defines HOW those chapters should feel
+- `AGENTS.MD` defines the maintenance contract
 
----
+## Core Style: Reptile-Brain Learning
 
-## Core Style: Reptile Brain Learning
+Write for a tired, curious reader whose attention must be earned.
 
-The brain learns best when:
-- it is curious
-- it is slightly confused
-- it predicts before seeing answers
-- it sees patterns repeatedly
+That means:
 
-Your job is to **engage the reader’s survival brain**, not just their logic.
+- tension before theory
+- prediction before explanation
+- tiny wins before abstraction
+- repetition with variation
+- concrete examples before formal terms
 
----
+## Teaching Moves To Use Repeatedly
 
-## Writing Rules
+Favor these moves in every chapter:
 
-### 1. Start With Tension
+- `Think About It`
+- `Prediction Prompt`
+- `Aha!`
+- `Common Trap`
+- `Try This`
+- `Mini challenge`
+- `Reality Check`
 
-Never start with definitions.
+Not every label must appear every time, but the chapter should clearly use that rhythm.
 
-BAD:
-> A function is...
+## Start With Tension
 
-GOOD:
-> You wrote a program that works… until it doesn’t scale.
+Bad opening:
 
----
+```text
+A function is a reusable abstraction.
+```
 
-### 2. Force Prediction
+Better opening:
 
-Before showing results, ask:
+```text
+You copied the same calculation three times, changed one copy, and now the results disagree.
+```
 
-- “What do you think this returns?”
-- “Which one is faster?”
-- “Will this crash?”
+## Force Prediction
 
----
+Before showing output, ask a small question such as:
 
-### 3. Use Tiny Steps
+- What do you think this returns?
+- Which branch matches first?
+- Does this produce a value or a `none(...)`?
 
-Break concepts into:
-- 1 idea
-- 1 example
-- 1 takeaway
+Prediction makes the later explanation stick.
 
----
+## Use Tiny Steps
 
-### 4. Show Failure First
+Break ideas into:
 
-Teach through mistakes:
+- one idea
+- one example
+- one takeaway
 
-- wrong implementation
-- unexpected behavior
-- edge cases
+Avoid giant explanation dumps.
 
----
+## Show Failure, Not Just Success
 
-### 5. Use Visual Mental Models
+Readers trust a chapter more when it admits where the walls are.
 
-Repeat consistent metaphors:
+Include:
 
-| Concept        | Metaphor              |
-|----------------|----------------------|
-| pipeline       | conveyor belt        |
-| pattern match  | lock and key         |
-| none           | broken track         |
-| recursion      | stack of plates      |
-| tail call      | reusing same plate   |
-| IR             | stripped skeleton    |
+- a wrong version
+- an edge case
+- a failure mode
 
----
+## Mental Models To Reuse
 
-### 6. Avoid Abstract Language
+Keep these metaphors stable:
 
-BAD:
-> This demonstrates abstraction.
+| Concept | Metaphor |
+| --- | --- |
+| pipeline | conveyor belt |
+| pattern match | lock and key |
+| `none(...)` | broken track |
+| recursion | stack of plates |
+| tail call | reusing the same plate |
+| Core IR | stripped skeleton |
 
-GOOD:
-> You just stopped copying code three times.
+## Tone
 
----
+Write like:
 
-### 7. Keep Energy High
+- a mentor, not a lecturer
+- a guide, not a spec document
+- lightly playful, never goofy
+- clear, never condescending
 
-- short paragraphs
-- varied sentence length
-- occasional humor
-- conversational tone
+Use short paragraphs.
+Keep energy high.
+Let the reader breathe.
 
----
+## Runnable Example Rules
+
+Runnable Genia examples use a `genia` fence and must be followed immediately by a non-Genia output fence.
+
+Correct pattern:
+
+````md
+```genia
+1 + 2
+```
+
+```text
+3
+```
+````
+
+Illustrative-only Genia snippets must be marked on the line immediately above the fence with one of the approved labels from `AGENTS.MD`.
 
 ## Exercises
 
-Each section should include:
+Each chapter should include a small mix of:
 
-### Types of Exercises
+1. prediction
+2. fix-the-bug
+3. fill-in-the-blank
+4. rewrite-for-clarity
+5. tiny build task
 
-1. Prediction
-2. Fix the bug
-3. Fill in the blank
-4. Rewrite for clarity
-5. Small build task
+Keep exercises short enough that a reader can try one right away.
 
----
+## Reality Check
 
-## Code Block Rules
+Every chapter must include:
 
-### Runnable Genia Code
+- `### ✅ Implemented`
+- `### ⚠️ Partial`
+- `### ❌ Not Implemented`
 
-Use:
+This section prevents wishful teaching.
 
-```genia
-[1,2,3] |> map(inc)
-Expected Output
+## Anti-Patterns
 
-Use a separate block:
+Do not write:
 
-[2, 3, 4]
-Rules
-Every runnable example MUST have output
-Output MUST match exactly
-Non-runnable examples MUST be clearly labeled
-Reality Check Section (MANDATORY)
+- long walls of text
+- abstract definitions first
+- untested runnable examples
+- unmarked non-runnable Genia snippets
+- speculative features presented as current
+- dry academic ports of SICP phrasing
 
-Every chapter MUST include:
+## Golden Rule
 
-✅ Implemented in Genia
-⚠️ Partial support
-❌ Not implemented
+If a reader can:
 
-This prevents misleading readers.
+- read it quickly
+- predict something
+- run something
+- get a small win
 
-Tone Guidelines
-
-You are:
-
-a mentor, not a lecturer
-a guide, not a textbook
-slightly playful, never silly
-clear, never condescending
-Anti-Patterns (DO NOT DO)
-
-❌ Long walls of text
-❌ Abstract definitions first
-❌ No examples
-❌ No exercises
-❌ Teaching unimplemented features
-❌ Overly academic tone
-
-Golden Rule
-
-If a tired student can:
-
-read it
-understand it
-try it
-succeed
-
-Then you wrote it correctly.
-
-If not, simplify.
+then the chapter is doing its job.
