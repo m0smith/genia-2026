@@ -7,6 +7,8 @@ inc(x) = x + 1
 ```
 
 Named functions are values and dispatch by name + arity shape.
+Single-expression named functions may currently use either `=` or `->` bodies.
+Docstrings still use the `=` form only.
 
 Ordinary call syntax also supports a small callable-data subset:
 
@@ -122,6 +124,68 @@ This evaluates to `[2, 2]`.
 This raises:
 
 - `SyntaxError("Assignment target must be a simple name")`
+
+---
+
+## Prefix Annotations (Parse + AST Only)
+
+Prefix annotations are now parsed at top level and represented explicitly in the AST.
+This is currently a parser/AST feature only: annotations do not attach runtime metadata yet.
+
+### Status
+
+✅ Implemented
+
+- `@name value` prefix annotation syntax
+- stacked annotations before a top-level named function definition
+- stacked annotations before a top-level assignment
+- explicit AST nodes for annotations and annotated targets
+
+⚠️ Partial
+
+- attachment is syntactic only in this phase
+- supported targets are limited to top-level named functions and top-level assignments
+
+❌ Missing
+
+- runtime metadata attachment
+- `help(...)` integration
+- annotation support on lambdas, imports, or arbitrary expressions
+
+### Minimal example
+
+```genia
+@doc "Adds one"
+inc(x) -> x + 1
+```
+
+### Edge case: stacked annotations
+
+```genia
+@doc """
+Adds one.
+"""
+@category "math"
+inc(x) -> x + 1
+```
+
+### Edge case: assignment target
+
+```genia
+@meta {category: "math"}
+x = 10
+```
+
+### Failure case
+
+```genia
+@doc "Adds one"
+1 + 2
+```
+
+This raises:
+
+- `SyntaxError("Annotation must be followed by a top-level function definition or assignment")`
 
 ---
 

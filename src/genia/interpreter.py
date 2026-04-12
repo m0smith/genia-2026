@@ -108,7 +108,7 @@ def _resolve_packaged_module(module_name: str) -> tuple[str, str] | None:
 # - Clojure-style symbol punctuation that we allow in names is listed below.
 # - `name?` and `name!` are ordinary identifiers (no special lexer semantics).
 # - `/` is reserved for division and is not allowed inside identifier names.
-ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", ":", "(", ")", "{", "}", "[", "]"})
+ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", ":", "@", "(", ")", "{", "}", "[", "]"})
 ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", "$", "-"})
 IDENT_START_RE = re.compile(r"[A-Za-z_$]")
 IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
@@ -145,6 +145,7 @@ TOKEN_SPEC = [
     ("COMMA", r","),
     ("COLON", r":"),
     ("SEMI", r";"),
+    ("AT", r"@"),
     ("COMMENT", r"#[^\n]*"),
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
@@ -181,6 +182,7 @@ PUNCTUATION_TOKENS = [
     ("COMMA", ","),
     ("COLON", ":"),
     ("SEMI", ";"),
+    ("AT", "@"),
 ]
 def _is_identifier_start(ch: str) -> bool:
     if ch == "$":
@@ -726,6 +728,20 @@ class Lambda(Node):
 class Assign(Node):
     name: str
     expr: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class Annotation(Node):
+    name: str
+    value: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class AnnotatedNode(Node):
+    annotations: list[Annotation]
+    target: Node
     span: SourceSpan | None = None
 
 
@@ -1825,7 +1841,7 @@ class Parser:
                     j += 1
                     while j < len(self.tokens) and self.tokens[j].kind == "NEWLINE":
                         j += 1
-                    return j < len(self.tokens) and self.tokens[j].kind in {"ASSIGN", "LBRACE"}
+                    return j < len(self.tokens) and self.tokens[j].kind in {"ASSIGN", "ARROW", "LBRACE"}
             elif kind == "EOF":
                 return False
             j += 1
@@ -1913,7 +1929,7 @@ class Parser:
             self.eat("RPAREN")
             self.skip_newlines()
 
-            if self.at("ASSIGN", "LBRACE"):
+            if self.at("ASSIGN", "ARROW", "LBRACE"):
                 return name, params, rest_param, name_token
 
             self.i = save
@@ -1925,6 +1941,35 @@ class Parser:
             return None
 
     def parse_toplevel(self) -> Node:
+        if self.at("AT"):
+            annotations = self.parse_prefix_annotations()
+            target = self.try_parse_bindable_toplevel()
+            if target is None:
+                bad = self.peek()
+                raise SyntaxError(
+                    "Annotation must be followed by a top-level function definition or assignment"
+                    f" at {bad.pos}"
+                )
+            return AnnotatedNode(
+                annotations,
+                target,
+                span=self.merge_spans(annotations[0].span, target.span),
+            )
+
+        import_stmt = self.try_parse_import_stmt()
+        if import_stmt is not None:
+            return import_stmt
+
+        bindable = self.try_parse_bindable_toplevel()
+        if bindable is not None:
+            return bindable
+
+        expr = self.parse_expr()
+        if self.at("ASSIGN"):
+            raise SyntaxError("Assignment target must be a simple name")
+        return ExprStmt(expr, span=expr.span)
+
+    def try_parse_import_stmt(self) -> ImportStmt | None:
         if self.at("IDENT") and self.peek().text == "import":
             import_tok = self.eat("IDENT")
             self.skip_newlines()
@@ -1945,7 +1990,9 @@ class Parser:
                 end_tok = self.eat("IDENT")
                 alias = end_tok.text
             return ImportStmt(module_name, alias, span=self.span_for_tokens(import_tok, end_tok))
+        return None
 
+    def try_parse_bindable_toplevel(self) -> Node | None:
         header = self.try_parse_function_header()
         if header is not None:
             name, params, rest_param, name_tok = header
@@ -1982,16 +2029,53 @@ class Parser:
                     span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
                 )
 
+            if self.at("ARROW"):
+                self.eat("ARROW")
+                self.skip_separators()
+                body = self.parse_expr()
+                return FuncDef(
+                    name,
+                    params,
+                    rest_param,
+                    None,
+                    body,
+                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
+                )
+
             raise SyntaxError("Internal parser error: expected function body")
 
         assign = self.try_parse_name_assignment()
         if assign is not None:
             return assign
+        return None
 
-        expr = self.parse_expr()
-        if self.at("ASSIGN"):
-            raise SyntaxError("Assignment target must be a simple name")
-        return ExprStmt(expr, span=expr.span)
+    def parse_prefix_annotations(self) -> list[Annotation]:
+        annotations: list[Annotation] = []
+        while self.at("AT"):
+            start_tok = self.eat("AT")
+            if not self.at("IDENT"):
+                bad = self.peek()
+                raise SyntaxError(f"Annotation expected a name identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+            name_tok = self.eat("IDENT")
+            if not self.at_expr_start():
+                bad = self.peek()
+                raise SyntaxError(f"Annotation @{name_tok.text} expected a value expression, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+            value = self.parse_expr()
+            end_tok = self.peek(-1)
+            annotations.append(
+                Annotation(
+                    name_tok.text,
+                    value,
+                    span=self.span_for_tokens(start_tok, end_tok),
+                )
+            )
+            if not self.at("NEWLINE", "SEMI", "EOF"):
+                bad = self.peek()
+                raise SyntaxError(
+                    f"Annotation @{name_tok.text} must end at a newline before its target, got {bad.text!r} ({bad.kind}) at {bad.pos}"
+                )
+            self.skip_separators()
+        return annotations
 
     def try_parse_name_assignment(self) -> Assign | None:
         if not (self.at("IDENT") and self.peek(1).kind == "ASSIGN"):

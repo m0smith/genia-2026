@@ -262,6 +262,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
+- prefix annotations (parse + AST only): `@name value`
+  - one or more consecutive annotations attach to the next top-level function definition or simple-name assignment
+  - parsed annotations produce explicit AST nodes (`Annotation`, `AnnotatedNode`)
+  - metadata attachment/runtime behavior is not implemented yet
 
 Pipeline (Phase 2) evaluation model:
 
@@ -309,6 +313,7 @@ Pipeline (Phase 2) evaluation model:
 - named functions are first-class values
 - multiple definitions by arity shape are allowed
 - varargs named functions are supported (`f(a, ..rest) = ...`)
+- named functions may use either `=` or `->` for single-expression bodies, or `{ ... }` for block bodies
 - lexical assignment uses the same `name = expr` surface syntax
   - if `name` already exists in the reachable lexical environment chain, assignment updates the nearest existing binding
   - otherwise assignment creates `name` in the current scope
@@ -339,6 +344,8 @@ Pipeline (Phase 2) evaluation model:
       )
       ```
   - for multi-clause named functions: zero docstrings = undocumented; one docstring total = valid; repeated identical docstrings = valid; conflicting docstrings raise a clear `TypeError`
+- prefix annotations are implemented at parse + AST level only in this phase
+  - they currently do not attach metadata to functions, assignments, help output, or runtime values
 - resolution behavior:
   - exact fixed arity beats varargs
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`

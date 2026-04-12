@@ -87,6 +87,24 @@ Required constraints:
 - lambdas do not support docstrings
 - docstring text is interpreted as Markdown for `help(...)` display with lightweight formatting only (no full Markdown engine)
 
+## 8.1.1) Prefix annotation parse invariant
+
+- prefix annotation syntax is:
+  - `@name value`
+  - `@name "string"`
+  - `@name """multiline string"""`
+- annotation values are parsed as ordinary expressions in this phase
+- one or more consecutive top-level prefix annotation lines attach to the next bindable top-level form only
+- currently supported annotation targets are:
+  - named function definitions
+  - top-level simple-name assignments
+- annotations not followed by one of those bindable forms must raise a parse error
+- parser must not silently drop parsed annotations
+- parsed annotations are represented explicitly in the AST as:
+  - `Annotation(name, value)`
+  - `AnnotatedNode(annotations, target)`
+- annotation metadata behavior is not implemented yet in this phase; this invariant is parse + AST only
+
 
 ## 8.2) Module import + module value invariants (phase 1)
 
@@ -156,6 +174,14 @@ Required constraints:
 - Invalid targets such as `(a + b) = 3` must raise `SyntaxError("Assignment target must be a simple name")`.
 - Module evaluation keeps its own module environment boundary, so module top-level assignment must not rebind names in the importing root environment.
 - Builtin/root names are not protected from rebinding inside the same root environment in the current implementation.
+
+## 8.3.1) Named function definition surface forms
+
+- named function definitions currently accept:
+  - `name(args) = expr`
+  - `name(args) -> expr`
+  - `name(args) { ... }`
+- only the `=` form may carry named-function docstring metadata in this phase
 
 ## 8.4) Core IR portability invariants
 
