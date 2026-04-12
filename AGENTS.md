@@ -275,7 +275,7 @@ In particular:
 * agents should actively look for chances to shrink Python-side structural inspection and pure helper glue, not only business logic
 * public help/discovery is the third model example in this phase:
   * keep only the minimal host help substrate, rendering, and generic bridge fallback in host code
-  * prefer public-surface discovery derived from prelude docstrings and autoload registrations over hand-curated Python API narration
+  * prefer public-surface discovery derived from prelude `@doc` metadata and autoload registrations over hand-curated Python API narration
 * avoid duplicating public API inventories in host code when prelude/autoload metadata already provides the source of truth
 
 ### 7. Shared Semantics Across Hosts

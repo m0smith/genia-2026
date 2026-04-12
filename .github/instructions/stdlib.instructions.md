@@ -28,6 +28,7 @@ Do not redefine language semantics here.
 - Update docs and tests with behavior/code changes
 
 ## Documentation
+- Use `@doc` metadata for public functions (see `docs/style/doc-style.md`)
 - Every function must document:
   - purpose
   - inputs

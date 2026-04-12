@@ -60,15 +60,17 @@ genia examples/this_file.genia [args]
 """
 ```
 
-### 2. Function Docstrings
+### 2. Function Documentation (`@doc`)
 
-Public-facing or conceptually important functions should carry a docstring (`"""..."""` after `=`).
+Public-facing or conceptually important functions should carry `@doc` metadata before the definition.
 
-Keep docstrings short:
+Follow the canonical `@doc` style guide in `docs/style/doc-style.md`.
+
+Keep `@doc` content short:
 
 - purpose (one line)
 - parameters and return when non-obvious
-- omit docstrings on trivial one-liners whose name already says everything
+- omit `@doc` on trivial one-liners whose name already says everything
 
 ### 3. Inline Comments
 
@@ -155,7 +157,7 @@ Companion docs should include:
 
 ## Anti-Patterns
 
-- **undocumented examples** — every file needs a header and at least key docstrings
+- **undocumented examples** — every file needs a header and at least key `@doc` annotations on public functions
 - **dead code** — remove unused functions; examples should be clean
 - **host-specific tricks** — prefer portable Genia idioms
 - **speculative features** — never demonstrate syntax that does not work today
