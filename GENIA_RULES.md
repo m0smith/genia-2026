@@ -106,6 +106,9 @@ Required constraints:
 - annotation metadata behavior is currently implemented only for:
   - `@doc`
   - `@meta`
+  - `@since`
+  - `@deprecated`
+  - `@category`
 - no annotation introduces macros, compile-time transforms, or syntax rewriting in this phase
 
 ## 8.1.2) Prefix annotation runtime semantics
@@ -120,10 +123,23 @@ Required constraints:
   - evaluates its value expression after the target binding exists
   - the resulting value must be a map
   - merges all map entries into the binding metadata
+- `@since`:
+  - evaluates its value expression after the target binding exists
+  - the resulting value must be a string
+  - stores metadata under key `"since"`
+- `@deprecated`:
+  - evaluates its value expression after the target binding exists
+  - the resulting value must be a string
+  - stores metadata under key `"deprecated"`
+- `@category`:
+  - evaluates its value expression after the target binding exists
+  - the resulting value must be a string
+  - stores metadata under key `"category"`
 - multiple annotations merge from top to bottom
-- later keys override earlier keys
+- last annotation wins for duplicate metadata keys
 - rebinding without annotations preserves existing binding metadata
 - rebinding with annotations merges new metadata over existing metadata for that binding
+- `doc("name")` returns the current doc string for a bound name or `none("missing-doc", {name: ...})`
 - `meta("name")` returns the current metadata map for a bound name
 - unsupported annotations must fail clearly at runtime
 - annotation metadata is ordinary runtime metadata only in this phase:

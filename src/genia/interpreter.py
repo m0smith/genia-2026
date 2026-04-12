@@ -1983,8 +1983,8 @@ class Parser:
             if target is None:
                 bad = self.peek()
                 raise SyntaxError(
-                    "Annotation must be followed by a top-level function definition or assignment"
-                    f" at {bad.pos}"
+                    "Prefix annotations must be followed by a top-level function definition "
+                    f"or simple-name assignment, got {bad.text!r} ({bad.kind}) at {bad.pos}"
                 )
             return AnnotatedNode(
                 annotations,
@@ -4106,19 +4106,29 @@ class Evaluator:
 
     def eval_annotations(self, annotations: list[IrAnnotation]) -> GeniaMap:
         metadata = GeniaMap()
+        string_metadata_annotations = {
+            "doc": "doc",
+            "since": "since",
+            "deprecated": "deprecated",
+            "category": "category",
+        }
         for annotation in annotations:
             value = self.eval(annotation.value)
-            if annotation.name == "doc":
+            metadata_key = string_metadata_annotations.get(annotation.name)
+            if metadata_key is not None:
                 if not isinstance(value, str):
-                    raise _annotation_metadata_error("doc", value, "a string")
-                metadata = metadata.put("doc", value)
+                    raise _annotation_metadata_error(annotation.name, value, "a string")
+                metadata = metadata.put(metadata_key, value)
                 continue
             if annotation.name == "meta":
                 if not isinstance(value, GeniaMap):
                     raise _annotation_metadata_error("meta", value, "a map")
                 metadata = _merge_metadata_maps(metadata, value)
                 continue
-            raise RuntimeError(f"Unsupported annotation: @{annotation.name}")
+            raise RuntimeError(
+                "Unsupported annotation: "
+                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category"
+            )
         return metadata
 
     def eval_function_body(
@@ -4962,7 +4972,7 @@ def _runtime_type_name(value: Any) -> str:
 
 
 def _annotation_metadata_error(name: str, value: Any, expected: str) -> TypeError:
-    return TypeError(f"@{name} expected {expected}, received {_runtime_type_name(value)}")
+    return TypeError(f"@{name} annotation expected {expected}, received {_runtime_type_name(value)}")
 
 
 def _syntax_tagged_list(value: Any, tag: Any) -> bool:
@@ -6043,6 +6053,23 @@ def make_global_env(
             return None
         return min(spans, key=lambda s: (s.line, s.column, s.end_line, s.end_column))
 
+    def _metadata_doc(metadata: GeniaMap) -> str | None:
+        doc_value = metadata.get("doc")
+        return doc_value if isinstance(doc_value, str) else None
+
+    def _metadata_summary_lines(metadata: GeniaMap) -> list[str]:
+        labels = (
+            ("category", "Category"),
+            ("since", "Since"),
+            ("deprecated", "Deprecated"),
+        )
+        lines: list[str] = []
+        for key, label in labels:
+            value = metadata.get(key)
+            if isinstance(value, str):
+                lines.append(f"{label}: {value}")
+        return lines
+
     def _describe_function_group(group: GeniaFunctionGroup) -> str:
         shapes = _format_function_shapes(group)
         lines = [f"{group.name}/{shapes}"]
@@ -6050,27 +6077,42 @@ def make_global_env(
         if span_text is not None:
             lines.append(f"Defined at {span_text}")
         lines.append("")
-        metadata_doc = group.metadata.get("doc") if isinstance(group.metadata, GeniaMap) else OPTION_NONE
+        metadata_doc = _metadata_doc(group.metadata)
         effective_doc = group.docstring
-        if effective_doc is None and isinstance(metadata_doc, str):
+        if effective_doc is None and metadata_doc is not None:
             effective_doc = metadata_doc
         if effective_doc is not None:
             lines.append(render_markdown_docstring(effective_doc))
         else:
             lines.append("No documentation available.")
+        metadata_lines = _metadata_summary_lines(group.metadata)
+        if metadata_lines:
+            lines.append("")
+            lines.extend(metadata_lines)
         return "\n".join(lines)
 
-    def _describe_runtime_name(name: str, value: Any) -> str:
-        kind = "host-backed runtime function" if callable(value) else "host-backed runtime value"
-        return "\n".join(
+    def _describe_runtime_name(name: str, value: Any, metadata: GeniaMap | None = None) -> str:
+        kind = "host-backed runtime function" if callable(value) else "named value"
+        lines = [
+            name,
+            "",
+            f"{name} is a {kind} in this phase.",
+        ]
+        if metadata is not None:
+            doc_text = _metadata_doc(metadata)
+            if doc_text is not None:
+                lines.extend(["", render_markdown_docstring(doc_text)])
+            metadata_lines = _metadata_summary_lines(metadata)
+            if metadata_lines:
+                lines.extend(["", *metadata_lines])
+        lines.extend(
             [
-                name,
                 "",
-                f"{name} is a {kind} in this phase.",
                 "Detailed docstrings are attached to public Genia/prelude functions instead of raw host bridge names.",
                 'Use `help()` for the surface overview and `help("name")` for documented public helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, `eval`, and `cell_send`.',
             ]
         )
+        return "\n".join(lines)
 
     def _discover_public_family_names(paths: tuple[str, ...], preferred: tuple[str, ...]) -> list[str]:
         discovered: list[str] = []
@@ -6220,15 +6262,42 @@ def make_global_env(
                 _emit_help(_describe_function_group(target))
                 return
             if isinstance(target, GeniaFunction):
-                singleton = GeniaFunctionGroup(target.name, functions={target.arity: target}, docstring=target.docstring)
+                singleton = GeniaFunctionGroup(
+                    target.name,
+                    functions={target.arity: target},
+                    docstring=target.docstring,
+                    metadata=env.get_metadata(target.name),
+                )
                 _emit_help(_describe_function_group(singleton))
                 return
             if original_name is not None:
-                _emit_help(_describe_runtime_name(original_name, target))
+                _emit_help(_describe_runtime_name(original_name, target, env.get_metadata(original_name)))
                 return
             raise TypeError("help expected a function name or named function")
 
         _emit_help(_describe_help_overview())
+
+    def doc_fn(*args: Any) -> Any:
+        if len(args) != 1:
+            raise TypeError(f"doc expected 1 arg, got {len(args)}")
+        name = args[0]
+        if not isinstance(name, str):
+            raise TypeError(f"doc expected a string name, received {_runtime_type_name(name)}")
+        try:
+            env.get(name)
+        except NameError:
+            if env.try_autoload(name, 0):
+                env.get(name)
+            else:
+                return make_none("missing-doc", GeniaMap().put("name", name))
+        metadata = env.get_metadata(name)
+        doc_text = _metadata_doc(metadata)
+        if doc_text is not None:
+            return doc_text
+        target = env.get(name)
+        if isinstance(target, GeniaFunctionGroup) and target.docstring is not None:
+            return target.docstring
+        return make_none("missing-doc", GeniaMap().put("name", name))
 
     def meta_fn(*args: Any) -> GeniaMap:
         if len(args) != 1:
@@ -7220,6 +7289,7 @@ def make_global_env(
     env.set("_collect", collect_fn)
     env.set("argv", argv_fn)
     env.set("help", help_fn)
+    env.set("doc", doc_fn)
     env.set("meta", meta_fn)
     env.set("pi", math.pi)
     env.set("e", math.e)

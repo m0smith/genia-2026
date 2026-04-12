@@ -14,6 +14,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | function | `f(x) = expr` | named functions are first-class |
 | lambda | `(x) -> expr`, `(..xs) -> expr` | varargs lambda supported |
 | assignment | `name = expr` | lexical define/rebind |
+| annotations | `@doc "..."`, `@meta {...}`, `@since "..."`, `@deprecated "..."`, `@category "..."` | top-level function/assignment metadata |
 | block | `{ expr1 expr2 ... }` | returns final expression |
 | pipeline | `x |> f |> g` | explicit pipeline IR stage list |
 | quote | `quote(expr)`, `quasiquote(expr)` | programs-as-data helpers exist |
@@ -107,6 +108,14 @@ Flow values are lazy and single-use.
 | host allowlist | `python`, `python.json` |
 | host examples | `python/len`, `python/str`, `python/json/loads`, `python/json/dumps` |
 
+## Documentation And Metadata
+
+| Helper | Shape |
+| --- | --- |
+| doc lookup | `doc("name")` |
+| metadata lookup | `meta("name")` |
+| note | last annotation wins for duplicate metadata keys |
+
 ## Output And Terminal Helpers
 
 | Helper | Shape |
@@ -179,4 +188,11 @@ fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
 [case: core-min-flow-tick]
 ```genia
 tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
+```
+
+[case: core-min-annotation-doc]
+```genia
+@doc "Adds one"
+inc(x) -> x + 1
+doc("inc")
 ```

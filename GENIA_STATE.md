@@ -262,10 +262,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
-- prefix annotations: `@name value`
+- prefix annotations are now a usable binding-metadata surface: `@name value`
   - one or more consecutive annotations attach to the next top-level function definition or simple-name assignment
   - parsed annotations produce explicit AST nodes (`Annotation`, `AnnotatedNode`)
-  - metadata attachment to bindings is implemented for `@doc` and `@meta`
+  - metadata attachment to bindings is implemented for `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`
   - no macro behavior or compile-time transform behavior is implemented
 
 Pipeline (Phase 2) evaluation model:
@@ -316,6 +316,7 @@ Pipeline (Phase 2) evaluation model:
 - varargs named functions are supported (`f(a, ..rest) = ...`)
 - named functions may use either `=` or `->` for single-expression bodies, or `{ ... }` for block bodies
 - bindings may carry metadata maps discoverable through `meta("name")`
+- doc lookup is available through `doc("name")`
 - lexical assignment uses the same `name = expr` surface syntax
   - if `name` already exists in the reachable lexical environment chain, assignment updates the nearest existing binding
   - otherwise assignment creates `name` in the current scope
@@ -350,10 +351,14 @@ Pipeline (Phase 2) evaluation model:
   - supported built-in annotations are:
     - `@doc "text"` -> stores `{"doc": "text"}`
     - `@meta { ... }` -> merges map entries into binding metadata
+    - `@since "0.4"` -> stores `{"since": "0.4"}`
+    - `@deprecated "message"` -> stores `{"deprecated": "message"}`
+    - `@category "name"` -> stores `{"category": "name"}`
   - annotation metadata attaches to the binding name for top-level functions and top-level assignments
-  - unannotated rebinding preserves existing metadata
-  - annotated rebinding merges new metadata over existing metadata
-  - `help("name")` uses annotation doc text when no legacy function docstring is present
+  - unannotated rebinding preserves existing metadata on that binding
+  - annotated rebinding merges new metadata over existing metadata, with the last annotation winning for duplicate keys
+  - `doc("name")` returns the current doc string or `none("missing-doc", {name: ...})`
+  - `help("name")` uses annotation doc text when no legacy function docstring is present and also shows selected metadata fields such as category/since/deprecated
   - no macros, compile-time transforms, or annotation-driven evaluator rewrites are implemented
 - resolution behavior:
   - exact fixed arity beats varargs

@@ -140,13 +140,15 @@ They remain simple runtime metadata in this phase: no macros, no compile-time tr
 - stacked annotations before a top-level named function definition
 - stacked annotations before a top-level assignment
 - explicit AST nodes for annotations and annotated targets
-- binding metadata attachment for `@doc` and `@meta`
+- binding metadata attachment for `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`
+- `doc("name")` lookup for the current doc string
 - `meta("name")` introspection for current binding metadata
+- `help("name")` display of selected metadata fields
 
 ⚠️ Partial
 
 - supported targets are limited to top-level named functions and top-level assignments
-- supported built-in annotations are limited to `@doc` and `@meta`
+- supported built-in annotations are limited to `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`
 
 ❌ Missing
 
@@ -167,6 +169,12 @@ unwrap_or("missing", meta("inc") |> get("doc"))
 
 This evaluates to `"Adds one"`.
 
+```genia
+doc("inc")
+```
+
+This also evaluates to `"Adds one"`.
+
 ### Edge case: stacked annotations
 
 ```genia
@@ -174,6 +182,7 @@ This evaluates to `"Adds one"`.
 Adds one.
 """
 @meta {category: "math"}
+@since "0.4"
 inc(x) -> x + 1
 ```
 
@@ -204,6 +213,14 @@ x = 3
 
 This evaluates to `["math", false]`.
 
+### Best practices
+
+- use `@doc` for the main human-readable description
+- use `@category`, `@since`, and `@deprecated` for short discovery-oriented metadata
+- prefer `@meta { ... }` when you need multiple custom fields at once
+- when duplicate keys appear, the last annotation wins
+- keep deprecated messages actionable, for example `@deprecated "Use square2 instead."`
+
 ### Failure case
 
 ```genia
@@ -213,7 +230,18 @@ inc(x) -> x + 1
 
 This raises:
 
-- `TypeError("@doc expected a string, received map")`
+- `TypeError("@doc annotation expected a string, received map")`
+
+Another failure case:
+
+```genia
+@doc "Adds one"
+1 + 2
+```
+
+This raises:
+
+- `SyntaxError("Prefix annotations must be followed by a top-level function definition or simple-name assignment, got ...")`
 
 ---
 
@@ -232,6 +260,12 @@ The function binding metadata becomes:
 
 ```genia
 {doc: "Adds one"}
+```
+
+You can retrieve the rendered source text directly with:
+
+```genia
+doc("inc")
 ```
 
 ### Edge case: combine `@doc` and `@meta`
@@ -258,6 +292,24 @@ This evaluates to:
 ["# square\n\nMultiply a number by itself.\n", "math", true]
 ```
 
+### Edge case: help output includes selected metadata
+
+```genia
+@doc "Adds one"
+@category "math"
+@since "0.4"
+@deprecated "Use inc2 instead."
+inc(x) -> x + 1
+
+help("inc")
+```
+
+Current help output includes:
+
+- the function name/arity
+- the doc text
+- selected metadata lines such as `Category: math`, `Since: 0.4`, and `Deprecated: Use inc2 instead.`
+
 ### Failure case: `@meta` must produce a map
 
 ```genia
@@ -267,7 +319,7 @@ square(x) -> x * x
 
 This raises:
 
-- `TypeError("@meta expected a map, received string")`
+- `TypeError("@meta annotation expected a map, received string")`
 
 ---
 

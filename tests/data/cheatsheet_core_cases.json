@@ -33,5 +33,10 @@
     "id": "core-min-flow-tick",
     "source": "tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
     "expected_result": "[1, 2, 3, 4]"
+  },
+  {
+    "id": "core-min-annotation-doc",
+    "source": "@doc \"Adds one\"\ninc(x) -> x + 1\ndoc(\"inc\")",
+    "expected_result": "\"Adds one\""
   }
 ]

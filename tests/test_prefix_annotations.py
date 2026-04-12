@@ -65,6 +65,6 @@ def test_parser_captures_annotation_on_top_level_assignment():
 def test_parser_rejects_annotation_without_bindable_target():
     with pytest.raises(
         SyntaxError,
-        match="Annotation must be followed by a top-level function definition or assignment",
+        match="Prefix annotations must be followed by a top-level function definition or simple-name assignment",
     ):
         parse_program('@doc "Adds one"\n1 + 2\n')

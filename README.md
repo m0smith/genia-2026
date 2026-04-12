@@ -52,6 +52,29 @@ Result:
 {doc: "Adds one"}
 ```
 
+## Documentation & Metadata
+
+Genia annotations are runtime metadata for top-level bindings, not macros.
+
+Supported built-ins in this phase:
+
+- `@doc "text"`
+- `@meta { ... }`
+- `@since "0.4"`
+- `@deprecated "message"`
+- `@category "name"`
+
+Useful lookup helpers:
+
+```genia
+@doc "Adds one"
+@category "math"
+@since "0.4"
+inc(x) -> x + 1
+
+[doc("inc"), meta("inc")]
+```
+
 Pass raw trailing CLI args into the running program:
 
 ```bash
