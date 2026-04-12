@@ -3,9 +3,23 @@
 These examples are runnable against Genia's current host-backed HTTP surface:
 
 - exact-path routing with `web/get(...)` and `web/post(...)`
-- request maps with `method`, `path`, `query`, `headers`, `body`, and `raw_body`
+- request maps with `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`
 - response maps built with `web/json(...)`, `web/ok_text(...)`, `web/bad_request(...)`, or `web/response(...)`
 - in-memory state via `ref`, `ref_get`, `ref_set`, and `ref_update`
+- blocking/synchronous serving through `web/serve_http(...)`
+
+Request map notes:
+
+- `headers` uses lowercased string keys
+- `body` is parsed JSON when the request content type starts with `application/json`
+- non-JSON request bodies stay as decoded text in both `body` and `raw_body`
+- `client` is a map with `host` and `port`
+
+Response map notes:
+
+- `status`, `headers`, and `body` are the full phase-1 transport boundary
+- response bodies at the transport boundary are string, bytes, or `none`
+- invalid handler response shapes return `500 internal server error` in this phase
 
 ## Included examples
 

@@ -135,6 +135,56 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+def test_serve_http_request_map_includes_client_and_raw_text_body():
+    port = _free_port()
+    env = make_global_env([])
+    env.set("host", "127.0.0.1")
+    env.set("port", port)
+
+    source = """
+import web
+
+post = web/post
+json = web/json
+route_request = web/route_request
+serve_http = web/serve_http
+
+serve_http(
+  {host: host, port: port, max_requests: 1},
+    route_request([
+        post("/inspect", (request) -> json({
+      method: request/method,
+      path: request/path,
+      raw_body: request/raw_body,
+      body: request/body,
+      client_host: request/client/host,
+      client_port: request/client/port
+    }))
+  ])
+)
+"""
+
+    thread, outcome = _start_server(source, env, filename="<http-request-shape>")
+    status, headers, body = _request(
+        "POST",
+        f"http://127.0.0.1:{port}/inspect",
+        body="hello from text",
+        headers={"Content-Type": "text/plain"},
+    )
+    result = _finish_server(thread, outcome)
+    parsed = json.loads(body)
+
+    assert status == 200
+    assert headers["Content-Type"] == "application/json; charset=utf-8"
+    assert parsed["method"] == "POST"
+    assert parsed["path"] == "/inspect"
+    assert parsed["raw_body"] == "hello from text"
+    assert parsed["body"] == "hello from text"
+    assert parsed["client_host"] == "127.0.0.1"
+    assert isinstance(parsed["client_port"], int)
+    assert result.get("handled_requests") == 1
+
+
 def test_serve_http_route_request_returns_not_found_response():
     port = _free_port()
     env = make_global_env([])

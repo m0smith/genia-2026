@@ -59,11 +59,27 @@ Current request map shape:
 - `raw_body`
 - `client`
 
+Current request-map details:
+
+- `headers` uses lowercased string keys
+- `query` is a plain map of query-string keys to string values
+- `body` is parsed JSON when the request `content-type` starts with `application/json`
+- when JSON parsing fails, `body` is the ordinary Genia absence value returned by `json_parse(...)`
+- non-JSON request bodies remain decoded text in both `body` and `raw_body`
+- `client` is a map with `host` and `port`
+
 Current response map shape:
 
 - `status`
 - `headers`
 - `body`
+
+Current response-map details:
+
+- `status` must be an integer HTTP status code
+- `headers` must be a map with string header names and string header values
+- `body` must be string, bytes, or `none` at the transport boundary
+- invalid handler return values currently normalize to `500 internal server error`
 
 ### Minimal example
 
