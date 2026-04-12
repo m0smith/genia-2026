@@ -1,30 +1,48 @@
-newBoard() = """
-# newBoard
+# --------------------------------------------------------------------------
+# Tic-Tac-Toe — Two-Player Console Game
+# --------------------------------------------------------------------------
+#
+# A classic 3x3 tic-tac-toe game played at the terminal.
+# Two players (X and O) take turns entering board positions.
+# The game detects wins, draws, and illegal moves.
+#
+# Run:
+#   genia examples/tic-tac-toe.genia
+#
+# Features demonstrated:
+#   * case-expression pattern matching with literal and tuple patterns
+#   * duplicate-variable patterns for equality checks (winner detection)
+#   * guards (`?`) for conditional clause selection
+#   * list destructuring across all nine board cells
+#   * rest patterns (`..`) in list spreads
+#   * option/absence handling (`some`/`none`, `flat_map_some`, `map_some`, `unwrap_or`)
+#   * pipeline composition (`|>`)
+#   * blocks for sequencing side effects
+#   * tail-recursive game loop (play -> finishOrContinue -> playTurn -> play)
+# --------------------------------------------------------------------------
 
-Create a fresh 3x3 board.
-""" ["_", "_", "_", "_", "_", "_", "_", "_", "_"]
+# == Board =================================================================
+# The board is a flat list of nine strings: "X", "O", or "_" (empty).
 
-nextPlayer(player) = """
-# nextPlayer
+@doc "Create a fresh 3x3 board with all squares empty."
+newBoard() = ["_", "_", "_", "_", "_", "_", "_", "_", "_"]
 
-Switch from one player marker to the other.
-""" nextPlayer_impl(player)
-nextPlayer_impl(player) =
+# == Player turn ===========================================================
+# Case expression: match the single argument against literal strings.
+
+@doc "Switch the active player marker."
+nextPlayer(player) =
   "X" -> "O" |
   "O" -> "X"
 
-showSquare(square) = """
-# showSquare
+# == Display ===============================================================
 
-Render one square as display text.
-""" square
+@doc "Render one square as display text."
+showSquare(square) = square
 
-printBoard(board) = """
-# printBoard
-
-Print the board as three rows.
-""" printBoard_impl(board)
-printBoard_impl(board) =
+# Case expression with list destructuring: bind each cell by position.
+@doc "Print the board as three rows."
+printBoard(board) =
   [a, b, c, d, e, f, g, h, i] -> {
     print("")
     print(showSquare(a) + " " + showSquare(b) + " " + showSquare(c))
@@ -33,154 +51,139 @@ printBoard_impl(board) =
     print("")
   }
 
-winner(board) = """
-# winner
+# == Win detection =========================================================
+# Each clause checks one winning line.  Duplicate variable `p` in a pattern
+# means all matched positions must hold the same value.  The guard
+# `? p != "_"` prevents an all-empty line from being counted as a win.
 
-Detect whether `X` or `O` has a winning line.
-""" winner_impl(board)
-winner_impl(board) =
-  [p, p ,p, .._] -> p |
-  
-  [ 
-    _,   _,   _,       
-    p,   p,   p,     
-    _,   _,   _  
-  ] -> p |
-  
-  [
-    _,   _,   _,   
-    _,   _,   _,   
-    p,   p,   p
-  ] -> p |
-  
-  [
-    p, _,  _,   
-    p, _,  _,   
-    p, _,  _
-  ] -> p |
-  
-  [_,  p, _,   
-   _,  p, _,   
-   _,  p, _
-  ] -> p |
-  
-  [_,   _,   p, 
-   _,   _,   p, 
-   _,   _,   p
-   ] -> p |
-  
-   [p, _, _,   
-   _, p, _,   
-   _, _, p] -> p |
-  
-   [_, _, p,
-    _, p, _,
-    p, _, _
-  ] -> p |
-  
-  _ -> "_"
+@doc """
+Detect whether X or O has a winning line.
 
-containsEmpty?(board) = """
-# containsEmpty?
+## Returns
+- "X" or "O" when that player has three in a row
+- "_" when no winner exists yet
+"""
+winner(board) =
+  [p, p, p, .._]              ? p != "_" -> p |  # row 1
+  [_, _, _, p, p, p, _, _, _]  ? p != "_" -> p |  # row 2
+  [_, _, _, _, _, _, p, p, p]  ? p != "_" -> p |  # row 3
+  [p, _, _, p, _, _, p, _, _]  ? p != "_" -> p |  # col 1
+  [_, p, _, _, p, _, _, p, _]  ? p != "_" -> p |  # col 2
+  [_, _, p, _, _, p, _, _, p]  ? p != "_" -> p |  # col 3
+  [p, _, _, _, p, _, _, _, p]  ? p != "_" -> p |  # diagonal ↘
+  [_, _, p, _, p, _, p, _, _]  ? p != "_" -> p |  # diagonal ↙
+  _                                        -> "_"
 
-Check whether a board still has open squares.
-""" any?((c) -> c == "_", board)
+# == Board queries =========================================================
 
-setAt(board, index, value) = """
-# setAt
+@doc "Check whether the board still has open squares."
+containsEmpty?(board) = any?((c) -> c == "_", board)
 
-Place a value at board index `0` through `8`.
-""" setAt_impl(board, index, value)
+# == Board update ==========================================================
+# Builds a new list using spread (`..`) with take/drop — no mutation needed.
 
-setAt_impl(board, index, value) = 
-  [
-    ..take(index, board), 
-    value, 
-    ..drop(index + 1, board)]
+@doc """
+Place a value at board index 0 through 8.
 
+Builds a new list from the prefix, the new value, and the suffix.
+"""
+setAt(board, index, value) = [
+  ..take(index, board),
+  value,
+  ..drop(index + 1, board)
+]
 
+# == Move parsing and validation ===========================================
+# These three functions form a pipeline-style chain from raw input string
+# through option types to a boolean legality check.
 
-parseMove(s) = """
-# parseMove
+@doc "Parse user input into a board index (returns some/none)."
+parseMove(s) = parse_int(s)
 
-Parse user input into board index value.
-""" parse_int(s)
-
-moveSquare(board, move) = """
-# moveSquare
-
-Resolve the square targeted by a move string.
-""" (
+# Pipeline: parse → index lookup via flat_map_some.
+@doc "Resolve the square targeted by a move string."
+moveSquare(board, move) = (
   parseMove(move)
   |> flat_map_some((index) -> nth(index, board))
 )
 
-isLegalMove(board, move) = """
-# isLegalMove
-
+# Pipeline: square lookup → equality check → unwrap with default.
+@doc """
 Check whether a requested move targets an empty square.
-""" (
+
+## Returns
+- true when the move is valid and the target square is empty
+- false otherwise (occupied, out of range, or unparseable)
+"""
+isLegalMove(board, move) = (
   moveSquare(board, move)
   |> map_some((square) -> square == "_")
   |> unwrap_or(false)
 )
 
-readMove(player) = """
-# readMove
+# == Player input ==========================================================
 
-Prompt the active player for a move.
-""" input("Player " + player + ", enter a move from 0 to 8:")
+@doc "Prompt the active player for a move."
+readMove(player) = input("Player " + player + ", enter a move from 0 to 8:")
 
-playTurn(board, player, move) = """
-# playTurn
+# == Turn logic ============================================================
+# playTurn pre-computes parseMove, then dispatches via applyMove.
+# The two-function split lets us pattern-match on some(index) vs failure.
 
-Apply one move, or retry when the move is illegal.
-""" playTurn_impl(board, player, move, parseMove(move))
-playTurn_impl(board, player, move, parsedMove) =
+@doc "Apply one move, or retry when the move is illegal."
+playTurn(board, player, move) = applyMove(board, player, move, parseMove(move))
+
+# Tuple pattern matching: guard ensures the square is empty before placing.
+# NOTE: The explicit `none` clause is required — without it, Genia's
+# absence-propagation would short-circuit the call when parseMove returns
+# none, preventing the retry logic from running.
+applyMove(board, player, move, parsedMove) =
   (b, p, m, some(index)) ? isLegalMove(b, m) == true -> play(setAt(b, index, p), nextPlayer(p)) |
   (b, p, _, none) -> retryTurn(b, p) |
   (b, p, _, _) -> retryTurn(b, p)
 
-retryTurn(board, player) = """
-# retryTurn
-
-Print an error and continue the current player's turn.
-""" {
+@doc "Print an error and re-prompt the current player."
+retryTurn(board, player) = {
   print("That square is not available. Try again.")
   play(board, player)
 }
 
-play(board, player) = """
-# play
+# == Game loop =============================================================
+# Tail-recursive cycle: play → finishOrContinue → promptMove → playTurn → play
 
-Run one game loop iteration.
-""" {
+@doc "Run one game loop iteration: display board, then check for end or continue."
+play(board, player) = {
   printBoard(board)
   finishOrContinue(board, player, winner(board), containsEmpty?(board))
 }
 
-finishOrContinue(board, player, whoWon, hasEmpty) = """
-# finishOrContinue
-
+# Tuple pattern matching on (winner result, hasEmpty?) decides the outcome.
+@doc """
 End the game when finished, otherwise prompt for the next move.
-""" finishOrContinue_impl(board, player, whoWon, hasEmpty)
-finishOrContinue_impl(board, player, whoWon, hasEmpty) =
-  (_, _, "X", _) -> print("X wins!") |
-  (_, _, "O", _) -> print("O wins!") |
-  (_, _, "_", false) -> print("Draw!") |
-  (_, _, "_", true) -> promptMove(board, player)
 
-promptMove(board, player) = """
-# promptMove
+## Arguments
+- board: current board state
+- player: active player marker
+- whoWon: result of winner() — "X", "O", or "_"
+- hasEmpty: true when open squares remain
+"""
+finishOrContinue(board, player, whoWon, hasEmpty) =
+  (_, _, "X", _)            -> print("X wins!") |
+  (_, _, "O", _)            -> print("O wins!") |
+  (_, _, "_", false)        -> print("Draw!")    |
+  (_, _, "_", true)         -> promptMove(board, player)
 
-Read and apply the next move for the active player.
-""" playTurn(board, player, readMove(player))
+@doc "Read and apply the next move for the active player."
+promptMove(board, player) = playTurn(board, player, readMove(player))
 
-main() = """
-# main
+# == Entry point ===========================================================
 
-Run the Tic-Tac-Toe example.
-""" {
+@doc """
+Run the Tic-Tac-Toe game.
+
+Prints a position reference grid, then starts the game loop with X first.
+"""
+main() = {
   print("Tic-Tac-Toe")
   print("Use positions 0 through 8.")
   print("0 1 2")
