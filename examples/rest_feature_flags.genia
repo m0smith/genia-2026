@@ -2,8 +2,9 @@
 # Feature Flags Service
 # --------------------------------------------------------------------------
 #
-# A per-user feature flag system.  Flags have an `enabled` boolean and a
-# user allowlist.  Demonstrates filtering, `any?`, and `ref` state.
+# A per-user feature flag REST service.  Each flag has an `enabled` boolean
+# and a user allowlist.  Users see a flag when it is globally enabled or
+# when they appear in its allowlist.
 #
 # Run:
 #   genia examples/rest_feature_flags.genia
@@ -16,39 +17,108 @@
 #        http://127.0.0.1:8084/flags/set
 #
 # Features demonstrated:
-#   * `ref` with a pre-populated map of flag rules
+#   * `ref` + `ref_update` for atomic concurrent state (see design note below)
 #   * `filter` + `any?` for allowlist membership checks
-#   * `map` to extract keys from a filtered list
-#   * query-string parameter extraction (`query_map`)
-#   * guard-based input validation
+#   * `map` to extract keys from a filtered collection
+#   * pipeline (`|>`) chains for option-safe field access
+#   * guards (`?`) for input validation
+#   * `unwrap_or` for absence-safe defaults
+#   * query-string parameter extraction via `query_map`
+#   * CLI option parsing (`cli_parse`, `cli_option_or`)
+#   * web routing (`web_route_request`, `web_get`, `web_post`)
+#
+# Design note — why `ref`, not `cell`:
+#
+#   Both `ref` and `cell` provide thread-safe mutable state, but they
+#   differ in timing:
+#
+#   * `ref_update(r, f)` runs `f` **synchronously** under a lock and
+#     returns the new value.  The caller can read the result immediately.
+#
+#   * `cell_send(c, f)` queues `f` to a **background worker thread**.
+#     `cell_get` after `cell_send` may still return the *old* state
+#     because the update has not been processed yet.
+#
+#   This service needs to return the updated flag rule in the POST
+#   response, so synchronous `ref_update` is the correct choice.
+#   Use `cell` when you want fire-and-forget actor-style updates
+#   where the caller does not need the result immediately.
+#
+# Usage example — gating behavior on a flag:
+#
+#   The flag logic functions (`user_has_flag?`, `enabled_flag_names`) work
+#   directly against the ref state, so application code can check flags
+#   without going through HTTP:
+#
+#     # Read current state from the ref.
+#     current = ref_get(flags)
+#
+#     # Get flags visible to a specific user.
+#     enabled_flag_names("alice", current)
+#     # => ["beta_search", "checkout_redesign"]
+#
+#     # Gate a feature on a specific flag rule.
+#     search_rule = unwrap_or({enabled: false, users: []},
+#                             current |> get("beta_search"))
+#     user_has_flag?("bob", search_rule)
+#     # => false  (bob is not in the allowlist and the flag controls access)
+#
+#     # Toggle a flag atomically for all users.
+#     ref_update(flags, (state) ->
+#       map_put(state, "release_banner", {enabled: true, users: []}))
+#
+#     # Now every user sees release_banner.
+#     enabled_flag_names("guest", ref_get(flags))
+#     # => ["beta_search", "release_banner"]
+#
+#   The REST layer (`get_flags`, `set_flag`) is a thin HTTP skin over
+#   these same functions — the flag logic is fully reusable without a
+#   running server.
 # --------------------------------------------------------------------------
 
 import web
 
-web_bad_request = web/bad_request
-web_get = web/get
-web_json = web/json
-web_post = web/post
-web_route_request = web/route_request
-web_serve_http = web/serve_http
+# -- Module imports --------------------------------------------------------
+# Bind web module exports to short local names for readability.
 
-# -- Initial flag rules ----------------------------------------------------
-# Each flag has an `enabled` bool and a user allowlist.
+web_bad_request    = web/bad_request
+web_get            = web/get
+web_json           = web/json
+web_post           = web/post
+web_route_request  = web/route_request
+web_serve_http     = web/serve_http
 
+# == State =================================================================
+# A single `ref` holds the entire flag-rule map.  All mutations go through
+# `ref_update` so the read-modify-write is atomic — no race conditions.
+
+@doc "Shared mutable state holding all flag rules."
 flags = ref({
-  beta_search: {enabled: true, users: ["alice", "dora"]},
+  beta_search:       {enabled: true,  users: ["alice", "dora"]},
   checkout_redesign: {enabled: false, users: ["alice"]},
-  release_banner: {enabled: false, users: []}
+  release_banner:    {enabled: false, users: []}
 })
 
-# -- Request helpers -------------------------------------------------------
+# == Request helpers =======================================================
+# Pipeline-friendly extractors that default to empty values on absence.
 
+@doc "Extract the parsed body map from a request, defaulting to empty map."
 body_map(request) = unwrap_or({}, request |> get("body"))
+
+@doc "Extract the parsed query map from a request, defaulting to empty map."
 query_map(request) = unwrap_or({}, request |> get("query"))
 
-# -- Server configuration -------------------------------------------------
+# == Server configuration ==================================================
 
-config_with_max(host, port, max_requests) = (
+@doc """
+Build a server config map, including max_requests only when positive.
+
+## Arguments
+- host: bind address
+- port: listen port
+- max_requests: request limit (0 means unlimited)
+"""
+config_with_max(host, port, max_requests) =
   (_, _, max_requests) ? max_requests > 0 -> {
     host: host,
     port: port,
@@ -58,48 +128,62 @@ config_with_max(host, port, max_requests) = (
     host: host,
     port: port
   }
-)
 
-port_from_parsed(parsed) = (
+# List destructuring: cli_parse returns [opts, positional_args].
+@doc "Extract the port from parsed CLI options."
+port_from_parsed(parsed) =
   ([opts, _]) -> unwrap_or(8084, parse_int(cli_option_or(opts, "port", "8084")))
-)
 
-max_requests_from_parsed(parsed) = (
+@doc "Extract the max-requests limit from parsed CLI options."
+max_requests_from_parsed(parsed) =
   ([opts, _]) -> unwrap_or(0, parse_int(cli_option_or(opts, "max-requests", "0")))
-)
 
+@doc "Build server config from raw CLI args."
 server_config(args) = config_with_max(
   "127.0.0.1",
   port_from_parsed(cli_parse(args, {options: ["port", "max-requests"]})),
   max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
 )
 
-# -- Flag logic ------------------------------------------------------------
-# A user sees a flag if it is globally enabled OR the user is in its list.
+# == Flag logic ============================================================
+# A user sees a flag when it is globally enabled OR listed in its allowlist.
 
-user_has_flag?(user, rule) = (
+@doc """
+Check whether a user should see a given flag rule.
+
+## Returns
+- true when the flag is globally enabled or the user is allowlisted
+- false otherwise
+"""
+user_has_flag?(user, rule) =
+  # Guard: if globally enabled, every user sees it.
   (_, rule) ? unwrap_or(false, rule |> get("enabled")) == true -> true |
+  # Fallback: check the allowlist with any?.
   (user, rule) -> any?((name) -> name == user, unwrap_or([], rule |> get("users")))
-)
 
+@doc "Filter a list of [key, rule] pairs to those visible to the user."
 enabled_flags_for(user, items) = filter(
   (entry) -> user_has_flag?(user, entry_value(entry)),
   items
 )
 
+# Pair accessors for [key, value] entries.
 entry_key(entry) = unwrap_or("", nth(0, entry))
 entry_value(entry) = unwrap_or({}, nth(1, entry))
 
+@doc "Convert the flags map into a list of [name, rule] pairs."
 flag_pairs(current) = [
-  ["beta_search", unwrap_or({}, current |> get("beta_search"))],
+  ["beta_search",       unwrap_or({}, current |> get("beta_search"))],
   ["checkout_redesign", unwrap_or({}, current |> get("checkout_redesign"))],
-  ["release_banner", unwrap_or({}, current |> get("release_banner"))]
+  ["release_banner",    unwrap_or({}, current |> get("release_banner"))]
 ]
 
+@doc "Return the list of flag names visible to a user given current state."
 enabled_flag_names(user, current) = map(entry_key, enabled_flags_for(user, flag_pairs(current)))
 
-# -- Handlers --------------------------------------------------------------
+# == Handlers ==============================================================
 
+@doc "GET /flags — return the list of enabled flags for the queried user."
 get_flags(request) = {
   user = unwrap_or("anonymous", query_map(request) |> get("user"))
   web_json({
@@ -108,33 +192,48 @@ get_flags(request) = {
   })
 }
 
+@doc "POST /flags/set — toggle a flag's enabled state."
 set_flag(request) = set_flag_values(
   unwrap_or("", body_map(request) |> get("flag")),
   unwrap_or(false, body_map(request) |> get("enabled"))
 )
 
-set_flag_values(flag, enabled) = (
+@doc """
+Validate and apply a flag update.
+
+## Returns
+- 400 response when flag name is empty
+- 200 JSON response with the updated rule otherwise
+"""
+set_flag_values(flag, enabled) =
+  # Guard: reject empty flag name.
   (flag, _) ? trim(flag) == "" -> web_bad_request("flag is required") |
   (flag, enabled) -> {
-    current = ref_get(flags)
-    previous = unwrap_or({enabled: false, users: []}, current |> get(trim(flag)))
-    updated = {
-      enabled: enabled,
-      users: unwrap_or([], previous |> get("users"))
-    }
-    ref_set(flags, map_put(current, trim(flag), updated))
+    # ref_update is atomic: the updater runs under the ref's lock, so
+    # concurrent requests cannot interleave between read and write.
+    # This is why ref is preferred over cell here — the updated state
+    # is available immediately for the response below.
+    ref_update(flags, (current) -> {
+      previous = unwrap_or({enabled: false, users: []}, current |> get(trim(flag)))
+      map_put(current, trim(flag), {
+        enabled: enabled,
+        users: unwrap_or([], previous |> get("users"))
+      })
+    })
+    updated_rule = unwrap_or({}, ref_get(flags) |> get(trim(flag)))
     web_json({
       flag: trim(flag),
-      rule: updated
+      rule: updated_rule
     })
   }
-)
 
-# -- Routing & entry point -------------------------------------------------
+# == Routing & entry point =================================================
 
+@doc "Build the route table for the feature flags service."
 app() = web_route_request([
   web_get("/flags", get_flags),
   web_post("/flags/set", set_flag)
 ])
 
+@doc "Start the feature flags HTTP server."
 main(args) = web_serve_http(server_config(args), app())
