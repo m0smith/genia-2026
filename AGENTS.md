@@ -131,6 +131,31 @@ When editing SICP chapters, agents must:
 
 ---
 
+## `@doc` Style Validation Rule
+
+When editing any of these files:
+
+* `docs/style/doc-style.md`
+* `docs/cheatsheet/core.md` (the `@doc Quick Reference` section)
+* `docs/cheatsheet/quick-reference.md` (the `@doc Quick Reference` section)
+* `docs/book/03-functions.md` (the `Documenting Functions` or `@doc Style Guide` sections)
+
+agents must run:
+
+```
+pytest tests/test_doc_style_sync.py
+```
+
+This validates that:
+
+* the style guide retains its required sections and examples
+* cheatsheet `@doc` sections stay consistent with the style guide
+* book `@doc` content matches the style guide's allowed headers and Markdown subset
+* the linter's constants match the style guide
+* prelude `@doc` strings (when present) pass the linter
+
+---
+
 ## Core Philosophy
 
 ### 1. Preserve Simplicity

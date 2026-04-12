@@ -87,6 +87,61 @@ Clarifications:
 - the staging tree is a build artifact only; source-of-truth docs remain in their existing repository locations
 - the docs workflow is repository tooling, not part of the Genia language/runtime semantics
 
+## 0.3) `@doc` linter (`tools/lint_doc.py`)
+
+Implemented today:
+
+- deterministic linter for `@doc` content strings
+- located at `tools/lint_doc.py`; tests at `tests/test_lint_doc.py`
+- accepts a raw `@doc` text string via the `lint_doc()` API or CLI
+- returns structured `LintFinding` values with `rule_id`, `severity`, `message`, and optional `line`
+- CLI modes:
+  - inline: `python tools/lint_doc.py "doc string"`
+  - file: `python tools/lint_doc.py --file path.genia`
+  - directory scan: `python tools/lint_doc.py --scan-dir dir/`
+  - all modes support `--json` for machine-readable output
+- file/scan modes extract binding names and include them in output
+- `--scan-dir` prints a summary (files scanned, doc count, error/warning counts) to stderr
+
+Implemented lint rules (phase 1):
+
+| Rule | ID | Severity | Description |
+|---|---|---|---|
+| Summary required | DOC001 | error | Every `@doc` must have a non-empty first line |
+| Summary shape | DOC002 | warning | Summary should end with `.`/`!`/`?` and avoid boilerplate prefixes |
+| Allowed sections | DOC003 | error | Only `## Arguments`, `## Returns`, `## Errors`, `## Notes`, `## Examples` |
+| No HTML | DOC004 | error | Raw HTML tags forbidden outside fences |
+| No tables | DOC005 | error | Pipe-table markdown forbidden outside fences |
+| Behavior mention | DOC006 | warning | `none(`, `flow`, `lazy` should appear in prose, not only in fences |
+| Fence sanity | DOC007 | error | Fences must be balanced; `## Examples` fences allow only `genia`, `text`, or empty lang |
+
+Not implemented yet:
+
+- semantic NLP scoring or readability metrics
+- public/private marker enforcement (no such marker exists in the language yet)
+- cross-reference validation between `@doc` content and function signatures
+
+## 0.4) `@doc` style synchronization tests (`tests/test_doc_style_sync.py`)
+
+Implemented today:
+
+- style guide structure test: validates `docs/style/doc-style.md` has required sections, good/bad examples, and well-formed genia fences
+- cheatsheet sync test: validates `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections with case markers linking back to the style guide
+- book sync test: validates `docs/book/03-functions.md` has a `Documenting Functions` section whose allowed headers and Markdown subset are consistent with the style guide
+- linter-style guide alignment test: validates that the linter's `ALLOWED_SECTION_HEADERS`, `DISCOURAGED_PREFIXES`, and disallowed Markdown match the style guide
+- prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them (currently zero `@doc` strings exist in prelude)
+
+Not implemented yet:
+
+- CI-gate enforcement (tests exist but are not yet wired into a required CI check)
+- runnable example execution within the style guide itself (cheatsheet sidecar tests cover runnable examples separately)
+
+Clarifications:
+
+- these are repository tooling tests, not part of the Genia language/runtime semantics
+- the linter is repository tooling, not part of the Genia language/runtime semantics
+- rules are intentionally conservative and deterministic
+
 ## 1) Execution model
 
 - programs are expression sequences
