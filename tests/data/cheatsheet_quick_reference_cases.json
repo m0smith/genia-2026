@@ -44,5 +44,10 @@
     "id": "quick-cli-main-argv",
     "source": "main(args) = args\nmain(argv())",
     "expected_result": "[]"
+  },
+  {
+    "id": "quick-doc-single-line",
+    "source": "@doc \"Adds one to x.\"\ninc(x) -> x + 1\ndoc(\"inc\")",
+    "expected_result": "\"Adds one to x.\""
   }
 ]

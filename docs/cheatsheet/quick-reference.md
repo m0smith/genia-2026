@@ -145,6 +145,31 @@ main(argv())
 - request maps currently include `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`
 - response maps currently include `status`, `headers`, and `body`
 
+## `@doc` Quick Reference
+
+Use `@doc` for short binding contracts, not long essays.
+Canonical formatting rules live in `docs/style/doc-style.md`.
+
+[case: quick-doc-single-line]
+```genia
+@doc "Adds one to x."
+inc(x) -> x + 1
+doc("inc")
+```
+
+```genia
+@doc """
+Returns first item.
+
+## Returns
+- some(value) when `xs` is non-empty
+- none("empty-list") when `xs` is empty
+"""
+first_or_none(xs) =
+  [] -> none("empty-list") |
+  [x, .._] -> some(x)
+```
+
 ## Operators
 
 - arithmetic: `+ - * / %`

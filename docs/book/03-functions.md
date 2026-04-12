@@ -248,6 +248,11 @@ This raises:
 ## Documenting Functions
 
 `@doc` is the current annotation-based way to attach lightweight binding metadata for a documented function.
+It exists so a public binding can carry a readable contract directly in source without turning into a wall of prose.
+Unlike comments, `@doc` is structured metadata that can be surfaced through `help("name")` and `doc("name")`.
+
+For the canonical formatting rules, see [the `@doc` style guide](../style/doc-style.md).
+That guide is the single source of truth for formatting; this chapter just teaches the workflow.
 
 ### Minimal example
 
@@ -267,6 +272,9 @@ You can retrieve the rendered source text directly with:
 ```genia
 doc("inc")
 ```
+
+Use `@doc` when the contract matters to a caller.
+Skip it when the binding is trivial and the name already says enough.
 
 ### Edge case: combine `@doc` and `@meta`
 
@@ -309,6 +317,20 @@ Current help output includes:
 - the function name/arity
 - the doc text
 - selected metadata lines such as `Category: math`, `Since: 0.4`, and `Deprecated: Use inc2 instead.`
+
+### Markdown subset
+
+`@doc` supports a small terminal-friendly Markdown subset:
+
+- paragraphs
+- blank lines
+- `-` bullet lists
+- inline code
+- fenced code blocks
+- simple headings such as `## Arguments` and `## Returns`
+
+Avoid HTML, tables, images, and deeply nested formatting.
+Keep the body readable in source.
 
 ### Failure case: `@meta` must produce a map
 
@@ -510,214 +532,19 @@ Current help model:
 
 ---
 
-## Official Docstring Style Guide
+## `@doc` Style Guide
 
-Use this guide for new or updated public named functions.
+Formatting rules for `@doc` now live in one place:
+[docs/style/doc-style.md](../style/doc-style.md)
 
-### What a docstring is in Genia
+Use that guide for:
 
-* A string literal placed immediately after `=` in a named function definition.
-* Attached as metadata for `help(...)`.
-* Not evaluated as part of the function body expression.
+- allowed Markdown
+- required summary/section rules
+- good vs bad examples
+- when to document vs when to keep the source minimal
 
-### Where docstrings are allowed
-
-* ✅ Named functions
-* ❌ Lambdas
-
-### Markdown support (implemented subset)
-
-`help(...)` currently preserves and normalizes lightweight Markdown structure:
-
-* Headings (`#`, `##`)
-* Bullet lists (`-` or `*`)
-* Inline code (`` `like_this` ``)
-* Fenced code blocks (```genia ... ```)
-* Paragraph spacing (extra blank lines are collapsed)
-
-This is terminal-first formatting, not a full Markdown rendering engine.
-
-### Canonical multi-clause rule
-
-For a single named function group (same name across clauses):
-
-* no docstrings → undocumented function
-* one total docstring across clauses → documented function
-* repeated identical docstrings across clauses → valid
-* conflicting docstrings across clauses → runtime `TypeError`
-
-### How `help` displays docstrings
-
-`help("name")` prints:
-
-1. function signature header (`name/shape`)
-2. source location (`Defined at file:line`) when available
-3. rendered docstring, or `No documentation available.`
-
-`help()` without arguments prints a surface overview that points users toward the canonical public prelude helpers.
-
----
-
-## Official Templates
-
-### Minimal template
-
-```text
-"""
-One-line summary.
-"""
-```
-
-### Standard template
-
-```text
-"""
-# function-name
-
-One-line summary.
-
-Optional short description.
-
-## Params
-
-* `param`: description
-
-## Returns
-
-* description
-
-## Examples
-
-```genia
-example() -> result
-```
-
-## Edge cases
-
-* description
-
-## Failure
-
-* description
-"""
-```
-
-Use these templates as the **content** of the string literal docstring.
-
----
-
-## Usage Guidelines
-
-### When to use minimal vs standard
-
-* Use **minimal** for tiny helpers with obvious behavior.
-* Use **standard** for most public stdlib-style functions.
-
-### Keep docstrings concise
-
-* Lead with one clear summary sentence.
-* Add sections only when they improve understanding.
-
-### Avoid redundant documentation
-
-Avoid repeating things that are obvious from the function name/signature.
-
-### Include examples for public functions
-
-Most public functions should have at least one realistic example.
-
-### Include edge/failure sections when behavior is non-trivial
-
-Add `## Edge cases` and `## Failure` when:
-
-* behavior depends on special inputs, or
-* runtime errors are expected for invalid input.
-
-### Avoid overdocumentation
-
-If a section adds no new information, omit it.
-
----
-
-## Real Examples (Valid Genia Syntax)
-
-### 1) Simple function
-
-```genia
-inc(x) = "\"\"\"\n# inc\n\nIncrement `x` by one.\n\n## Params\n\n* `x`: number\n\n## Returns\n\n* number\n\n## Examples\n\n```genia\ninc(4) -> 5\n```\n\"\"\"" x + 1
-```
-
-### 2) Recursive function
-
-```genia
-fact(n) = "\"\"\"\n# fact\n\nCompute factorial recursively.\n\n## Params\n\n* `n`: non-negative integer\n\n## Returns\n\n* factorial of `n`\n\n## Examples\n\n```genia\nfact(5) -> 120\n```\n\n## Edge cases\n\n* `fact(0)` returns `1`\n\n## Failure\n\n* this version does not include an explicit negative-input guard\n\"\"\"" (
-  0 -> 1 |
-  n -> n * fact(n - 1)
-)
-```
-
-### 3) Pattern-matching multi-clause function
-
-All clauses must use the same canonical docstring text (or only one clause provides it):
-
-```genia
-sign(0) = "\"\"\"\n# sign\n\nClassify a number by sign.\n\"\"\"" 0
-sign(n) = "\"\"\"\n# sign\n\nClassify a number by sign.\n\"\"\"" (
-  n > 0 -> 1 |
-  _ -> -1
-)
-```
-
-### 4) Stdlib-style helper
-
-```genia
-sum(xs) = "\"\"\"\n# sum\n\nAdd all numbers in `xs`.\n\n## Params\n\n* `xs`: list of numbers\n\n## Returns\n\n* total as number\n\n## Examples\n\n```genia\nsum([1, 2, 3]) -> 6\nsum([]) -> 0\n```\n\"\"\"" (
-  [] -> 0 |
-  [x, ..rest] -> x + sum(rest)
-)
-```
-
----
-
-## `help` Output Examples
-
-### Documented function
-
-Given:
-
-```genia
-inc(x) = "\"\"\"\n# inc\n\nIncrement `x` by one.\n\"\"\"" x + 1
-help("inc")
-```
-
-Typical output:
-
-```text
-inc/1
-Defined at demo.genia:1
-
-# inc
-
-Increment `x` by one.
-```
-
-### Undocumented function
-
-Given:
-
-```genia
-plain(x) = x
-help("plain")
-```
-
-Typical output:
-
-```text
-plain/1
-Defined at demo.genia:1
-
-No documentation available.
-```
+This chapter intentionally stays practical and points back to the style guide instead of redefining it.
 
 ---
 

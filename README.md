@@ -56,6 +56,8 @@ Result:
 
 Genia annotations are runtime metadata for top-level bindings, not macros.
 
+The canonical `@doc` formatting guide lives in `docs/style/doc-style.md`.
+
 Supported built-ins in this phase:
 
 - `@doc "text"`
@@ -74,6 +76,11 @@ inc(x) -> x + 1
 
 [doc("inc"), meta("inc")]
 ```
+
+Style note:
+
+- keep `@doc` concise and source-friendly
+- use the Markdown subset defined in `docs/style/doc-style.md`
 
 Pass raw trailing CLI args into the running program:
 
@@ -471,7 +478,7 @@ list = (..xs) -> xs
     """ x + 1
     ```
   - `help(name)` renders docstrings with lightweight Markdown-aware formatting
-  - official style guide + templates: `docs/book/03-functions.md` ("Official Docstring Style Guide")
+  - official style guide: `docs/style/doc-style.md`
 - closures are supported
 - `name = expr` also works as lexical assignment in blocks
   - it rebinds the nearest existing lexical name when present

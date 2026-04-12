@@ -116,6 +116,31 @@ Flow values are lazy and single-use.
 | metadata lookup | `meta("name")` |
 | note | last annotation wins for duplicate metadata keys |
 
+### `@doc` Quick Reference
+
+Keep `@doc` short and source-readable.
+See `docs/style/doc-style.md` for the canonical style guide.
+
+[case: core-min-annotation-doc]
+```genia
+@doc "Adds one to x."
+inc(x) -> x + 1
+doc("inc")
+```
+
+```genia
+@doc """
+Returns first item.
+
+## Returns
+- some(value) when `xs` is non-empty
+- none("empty-list") when `xs` is empty
+"""
+first_or_none(xs) =
+  [] -> none("empty-list") |
+  [x, .._] -> some(x)
+```
+
 ## Output And Terminal Helpers
 
 | Helper | Shape |
@@ -188,11 +213,4 @@ fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
 [case: core-min-flow-tick]
 ```genia
 tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
-```
-
-[case: core-min-annotation-doc]
-```genia
-@doc "Adds one"
-inc(x) -> x + 1
-doc("inc")
 ```

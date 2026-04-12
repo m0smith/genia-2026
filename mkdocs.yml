@@ -60,6 +60,8 @@ nav:
       - Pipeline Flow vs Value: cheatsheet/piepline-flow-vs-value.md
       - Unix Power Mode: cheatsheet/unix-power-mode.md
       - Unix to Genia: cheatsheet/unix-to-genia.md
+  - Style:
+      - "@doc Style Guide": style/doc-style.md
   - Architecture:
       - Core IR Portability: architecture/core-ir-portability.md
       - Pipeline IR Host Integration: architecture/pipeline-ir-host-integration.md

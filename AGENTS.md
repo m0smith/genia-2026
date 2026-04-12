@@ -387,6 +387,27 @@ Docs must NOT describe:
 * Idealized behavior
 * Future syntax
 
+## Documentation Style (`@doc`)
+
+Public functions must follow the canonical `@doc` style guide in `docs/style/doc-style.md`.
+Keep this file small; put detailed formatting rules there, not here.
+
+Good:
+
+```genia
+@doc "Adds one to x."
+inc(x) -> x + 1
+```
+
+Bad:
+
+```genia
+@doc "This function adds one to x by using the implementation below."
+inc(x) -> x + 1
+```
+
+All public functions MUST follow the `@doc` style guide.
+
 ---
 
 ### 2. Every Feature Must Include

@@ -36,7 +36,7 @@
   },
   {
     "id": "core-min-annotation-doc",
-    "source": "@doc \"Adds one\"\ninc(x) -> x + 1\ndoc(\"inc\")",
-    "expected_result": "\"Adds one\""
+    "source": "@doc \"Adds one to x.\"\ninc(x) -> x + 1\ndoc(\"inc\")",
+    "expected_result": "\"Adds one to x.\""
   }
 ]
