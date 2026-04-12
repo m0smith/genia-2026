@@ -1,3 +1,40 @@
+# --------------------------------------------------------------------------
+# ZIP JSON Puzzle Game
+# --------------------------------------------------------------------------
+#
+# A command-line puzzle game: open a zip archive containing JSON, build a
+# pipeline of named stages to transform the input into the expected output.
+#
+# Run:
+#   genia examples/zip_json_puzzle.genia puzzle.zip \
+#     --pipeline 'pick:rows,field:label,trim_each,drop_empty,upper_each'
+#
+# Trace mode (prints each stage result):
+#   genia examples/zip_json_puzzle.genia puzzle.zip \
+#     --pipeline 'pick:rows,field:label' --trace
+#
+# Write result archive:
+#   genia examples/zip_json_puzzle.genia puzzle.zip \
+#     --pipeline 'pick:rows,field:label' --out solved.zip
+#
+# List available stages:
+#   genia examples/zip_json_puzzle.genia --stages
+#
+# Features demonstrated:
+#   * `zip_read` / `zip_write` for binary archive I/O
+#   * `json_parse` / `json_stringify` for data interchange
+#   * option/absence (`some`, `none`, `flat_map_some`, `map_some`)
+#   * tail-recursive accumulators (`field_each_acc`, `json_files_to_map_acc`)
+#   * pipeline-style stage application
+#   * `ref` for stage history tracking
+#   * CLI parsing with flags, options, and aliases
+#   * `starts_with`, `split`, `trim`, `join` for string manipulation
+#   * guard-based pattern matching for stage dispatch
+# --------------------------------------------------------------------------
+
+# -- Stage catalog ---------------------------------------------------------
+# Human-readable list of pipeline stages for --stages / --help output.
+
 stage_catalog() = [
   "pick:<key>       lookup a key in the current map",
   "field:<key>      pull a key from every map in the current list",
@@ -23,6 +60,8 @@ usage() = join("\n", [
 
 stage_help() = join("\n", append(["Available stages:"], stage_catalog()))
 
+# -- CLI specification -----------------------------------------------------
+
 cli_spec() = {
   flags: ["trace", "stages"],
   options: ["pipeline", "out"],
@@ -31,6 +70,8 @@ cli_spec() = {
     t: "trace"
   }
 }
+
+# -- Pipeline parsing ------------------------------------------------------
 
 parse_pipeline(text) =
   split(text, ",")
@@ -44,12 +85,16 @@ value_or(result_box, default) = (
   ([value], _) -> value
 )
 
+# -- ZIP / JSON loading ----------------------------------------------------
+# Read each .json file from the archive into a map keyed by filename.
+
 parse_json_item(item) = (
   ([name, bytes]) -> [name, utf8_decode(bytes) |> json_parse]
 )
 
 json_files_to_map(items) = json_files_to_map_acc(items, {})
 
+# Tail-recursive accumulator: build a map from filename -> parsed JSON.
 json_files_to_map_acc(items, files) = (
   ([], files) -> some(files) |
   ([[name, parsed], ..rest], files) ? none?(parsed) == true -> parsed |
@@ -67,6 +112,10 @@ load_json_files(path, debug) = {
   files = json_files_to_map(items)
   debug_value(debug, "json files", files)
 }
+
+# -- Bundle construction ---------------------------------------------------
+# The puzzle bundle is a map with title, description, input, and expected.
+# Several `flat_map_some` chains propagate absence if any piece is missing.
 
 bundle_from_files(files) =
   flat_map_some((puzzle) -> build_bundle(puzzle, files), get("puzzle.json", files))
@@ -100,6 +149,10 @@ load_bundle(path, debug) = {
   debug_value(debug, "bundle", bundle)
 }
 
+# -- Stage application -----------------------------------------------------
+# Each named stage transforms the current value.  Guard patterns dispatch
+# to the right operation; unknown stages produce `none("unknown-stage")`.
+
 field_each(key, items) = field_each_acc(key, items, [])
 
 field_each_acc(key, items, acc) = (
@@ -112,6 +165,8 @@ field_each_next(key, rest, acc, value) = (
   (key, rest, acc, value) -> field_each_acc(key, rest, [normalize_stage_result([value]), ..acc])
 )
 
+# Guard-based stage dispatch: `starts_with` checks route to parameterized
+# stages; literal matches handle the fixed stages.
 apply_stage(stage, current) = (
   (stage, current) ? starts_with(stage, "pick:") == true -> get(stage_arg(stage), current) |
   (stage, current) ? starts_with(stage, "field:") == true -> field_each(stage_arg(stage), current) |
@@ -138,6 +193,10 @@ normalize_stage_result(result_box) = (
   ([result]) -> result
 )
 
+# -- Pipeline runner -------------------------------------------------------
+# Walk through stages in order, applying each to the current value.
+# A `ref` records the history so the report knows which stages ran.
+
 apply_pipeline(stages, current, debug, history_ref) = (
   ([], current, _, _) -> current |
   ([stage, ..rest], current, debug, history_ref) -> {
@@ -147,6 +206,8 @@ apply_pipeline(stages, current, debug, history_ref) = (
     apply_pipeline(rest, logged, debug, history_ref)
   }
 )
+
+# -- Reporting -------------------------------------------------------------
 
 json_equal?(left, right) = json_stringify(left) == json_stringify(right)
 
@@ -195,6 +256,8 @@ render_report(report) = (
   ])
 )
 
+# -- Archive output --------------------------------------------------------
+
 archive_entries(report) = archive_entries_actual(report, [unwrap_or(none("missing-result"), get("actual", report))])
 
 archive_entries_actual(report, result_box) = (
@@ -219,6 +282,8 @@ write_archive_if_requested(report, out_path) = (
     ])
   }
 )
+
+# -- Main logic ------------------------------------------------------------
 
 briefing(bundle) = join("\n", [
   unwrap_or("ZIP JSON Puzzle", get("title", bundle)),
@@ -266,5 +331,7 @@ run_loaded_bundle(args) = (
     write_archive_if_requested(report, out_path)
   }
 )
+
+# -- Entry point -----------------------------------------------------------
 
 main(args) = run_args(cli_parse(args, cli_spec()))

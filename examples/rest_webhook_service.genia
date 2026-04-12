@@ -1,3 +1,29 @@
+# --------------------------------------------------------------------------
+# Webhook Receiver Service
+# --------------------------------------------------------------------------
+#
+# Accepts webhook events with a required `x-signature` header and stores
+# them in an in-memory log.  Demonstrates header inspection and input
+# validation.
+#
+# Run:
+#   genia examples/rest_webhook_service.genia
+#   genia examples/rest_webhook_service.genia --port 8082
+#
+# Test:
+#   curl -X POST -H 'Content-Type: application/json' \
+#        -H 'x-signature: abc123' \
+#        -d '{"type":"push","data":{"repo":"genia"}}' \
+#        http://127.0.0.1:8082/webhooks/events
+#   curl http://127.0.0.1:8082/webhooks/events
+#
+# Features demonstrated:
+#   * request header access via chained `get` with `then_get`
+#   * guard-based input validation (missing signature → 400)
+#   * `ref_update` with a lambda to append to a list
+#   * `length` for counting accumulated events
+# --------------------------------------------------------------------------
+
 import web
 
 web_bad_request = web/bad_request
@@ -7,10 +33,17 @@ web_post = web/post
 web_route_request = web/route_request
 web_serve_http = web/serve_http
 
+# -- State -----------------------------------------------------------------
+
 events = ref([])
 
+# -- Request helpers -------------------------------------------------------
+
 body_map(request) = unwrap_or({}, request |> get("body"))
+# Extract a header value; headers use lowercased keys.
 header_value(request, name) = unwrap_or("", request |> get("headers") |> then_get(name))
+
+# -- Server configuration -------------------------------------------------
 
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
@@ -38,6 +71,9 @@ server_config(args) = config_with_max(
   max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
 )
 
+# -- Handlers --------------------------------------------------------------
+# Reject events without a signature header; otherwise record the event.
+
 ingest_event(request) = (
   (request) ? header_value(request, "x-signature") == "" -> web_bad_request("missing x-signature header") |
   (request) -> {
@@ -60,6 +96,8 @@ list_events(_request) = web_json({
   total: length(ref_get(events)),
   items: ref_get(events)
 })
+
+# -- Routing & entry point -------------------------------------------------
 
 app() = web_route_request([
   web_post("/webhooks/events", ingest_event),

@@ -1,3 +1,28 @@
+# --------------------------------------------------------------------------
+# Ants Terminal — Multi-Ant Simulation
+# --------------------------------------------------------------------------
+#
+# A terminal-based multi-ant colony simulation on a toroidal grid.
+# Ants wander randomly; landing on food consumes it.  The grid wraps
+# around at the edges.
+#
+# Run:
+#   genia examples/ants_terminal.genia
+#   genia examples/ants_terminal.genia --ants 12
+#   genia examples/ants_terminal.genia -a 20
+#
+# Features demonstrated:
+#   * tail-recursive accumulators (`seed_ants_acc`, `step_ants_acc`)
+#   * pattern matching with guards and wildcards
+#   * rest patterns (`[ant, ..rest]`) for list decomposition
+#   * mutable-free world model via persistent maps
+#   * CLI argument parsing (`cli_parse`, `cli_option_or`, `cli_flag?`)
+#   * terminal control (`clear_screen`, `move_cursor`, `sleep`)
+#   * random numbers (`rand_int`)
+# --------------------------------------------------------------------------
+
+# -- Grid configuration ----------------------------------------------------
+
 min_grid_size() = 20
 
 grid_size(ant_total) = (
@@ -10,9 +35,14 @@ height(size) = size
 
 default_ant_count() = 6
 
+# -- Cell tags -------------------------------------------------------------
+
 empty_cell() = "empty"
 food_cell() = "food"
 ant_cell() = "ant"
+
+# -- Coordinate helpers ----------------------------------------------------
+# The grid is toroidal: coordinates wrap at the edges.
 
 wrap(n, size) = (
   (n, size) ? n < 0 -> size - 1 |
@@ -20,12 +50,16 @@ wrap(n, size) = (
   (n, _) -> n
 )
 
+# Add a movement delta to a position with toroidal wrapping.
 pos_add(pos, delta, size) = (
   ([x, y], [dx, dy], size) -> [
     wrap(x + dx, width(size)),
     wrap(y + dy, height(size))
   ]
 )
+
+# -- World helpers ---------------------------------------------------------
+# The world is a persistent map from [x, y] coordinates to cell tags.
 
 cell_get(world, pos) = (
   (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
@@ -44,6 +78,7 @@ cell_char(cell) = (
   _ -> "."
 )
 
+# Seed the initial world with a few food cells.
 seed_world() = map_put(
     map_put(
       map_put(map_new(), [0, 0], food_cell()),
@@ -56,6 +91,10 @@ seed_world() = map_put(
 
 random_pos(size) = [rand_int(width(size)), rand_int(height(size))]
 
+# -- Ant seeding -----------------------------------------------------------
+# Place `count` ants on random empty cells using a tail-recursive
+# accumulator.  Occupied or food cells are retried.
+
 seed_ants(count, size) = seed_ants_acc(seed_world(), count, size, [])
 
 seed_ants_acc(world, count, size, ants_rev) = (
@@ -65,19 +104,28 @@ seed_ants_acc(world, count, size, ants_rev) = (
 
 seed_ant_try(world, count, size, ants_rev, pos) = seed_ant_cell(world, count, size, ants_rev, pos, cell_get(world, pos))
 
+# Pattern match on what the cell already contains:  only place the
+# ant when the cell is empty; otherwise retry with the same count.
 seed_ant_cell(world, count, size, ants_rev, pos, target_cell) = (
   (world, count, size, ants_rev, pos, "empty") -> seed_ants_acc(place_ant(world, pos), count - 1, size, [pos, ..ants_rev]) |
   (world, count, size, ants_rev, _, _) -> seed_ants_acc(world, count, size, ants_rev)
 )
 
+# -- Movement directions ---------------------------------------------------
+# Four cardinal directions expressed as [dx, dy] deltas.
+
 dir_from_int(n) = (
   0 -> [1, 0] |
   1 -> [-1, 0] |
   2 -> [0, 1] |
-  _ -> [0, -1]
+  _ -> [0, -1]       # wildcard catches 3 and any other value
 )
 
 random_dir() = dir_from_int(rand_int(4))
+
+# -- Simulation step -------------------------------------------------------
+# Each ant picks a random direction.  The target cell determines what
+# happens: blocked by another ant, eats food, or moves into empty space.
 
 step_ant(world, ant_pos, size) = step_ant_with_dir(world, ant_pos, random_dir(), size)
 
@@ -85,12 +133,15 @@ step_ant_with_dir(world, ant_pos, dir, size) = step_target(world, ant_pos, pos_a
 
 step_target(world, ant_pos, target) = step_cell(world, ant_pos, target, cell_get(world, target))
 
+# Pattern match on the target cell tag to decide the outcome.
 step_cell(world, ant_pos, target, target_cell) = (
   (world, ant_pos, target, "ant") -> [world, ant_pos, "blocked"] |
   (world, ant_pos, target, "food") -> [move_ant(world, ant_pos, target), target, "ate_food"] |
   (world, ant_pos, target, _) -> [move_ant(world, ant_pos, target), target, "moved"]
 )
 
+# Step all ants in turn using a tail-recursive accumulator.
+# The rest pattern `[ant, ..rest]` peels off one ant per call.
 step_ants(world, ants, size) = step_ants_acc(world, ants, size, [])
 
 step_ants_acc(world, ants, size, moved_rev) = (
@@ -101,6 +152,9 @@ step_ants_acc(world, ants, size, moved_rev) = (
 step_ants_next(step_result, rest, size, moved_rev) = (
   ([world2, ant2, _], rest, size, moved_rev) -> step_ants_acc(world2, rest, size, [ant2, ..moved_rev])
 )
+
+# -- Rendering -------------------------------------------------------------
+# Build the grid display row-by-row using recursive string concatenation.
 
 render_cell(world, pos) = cell_char(cell_get(world, pos))
 
@@ -115,6 +169,9 @@ grid_rows(world, y, size) = (
 )
 
 render(world, size) = render_grid(grid_rows(world, 0, size))
+
+# -- Terminal animation ----------------------------------------------------
+# Each frame clears the screen, moves the cursor, and renders the grid.
 
 draw_frame(world, ants, steps_left, size) = {
   clear_screen()
@@ -136,6 +193,9 @@ simulate(world, ants, steps_left, delay_ms, size) = (
   }
 )
 
+# -- CLI argument handling -------------------------------------------------
+# Parse --ants / -a and normalize to a positive integer.
+
 ant_count_from_parsed(parsed) = (
   ([opts, _]) -> normalize_ant_count(unwrap_or(default_ant_count(), parse_int(cli_option_or(opts, "ants", "6"))))
 )
@@ -155,6 +215,8 @@ ant_count(args) = ant_count_from_parsed(
 simulate_seed(seed_result, size) = (
   ([world, ants], size) -> simulate(world, ants, 120, 80, size)
 )
+
+# -- Entry point -----------------------------------------------------------
 
 main(args) = {
   ants_requested = ant_count(args)

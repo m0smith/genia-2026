@@ -1,3 +1,27 @@
+# --------------------------------------------------------------------------
+# Metrics Tracking Service
+# --------------------------------------------------------------------------
+#
+# A simple metrics counter.  POST a metric name and optional value to
+# increment a running count and total.  GET the full summary.
+#
+# Run:
+#   genia examples/rest_metrics_service.genia
+#   genia examples/rest_metrics_service.genia --port 8083
+#
+# Test:
+#   curl -X POST -H 'Content-Type: application/json' \
+#        -d '{"name":"page_views","value":1}' \
+#        http://127.0.0.1:8083/metrics/track
+#   curl http://127.0.0.1:8083/metrics/summary
+#
+# Features demonstrated:
+#   * `ref_update` with a transform lambda for atomic state transitions
+#   * nested map construction for per-metric `{count, total}` records
+#   * `unwrap_or` chains for safe nested field extraction
+#   * input validation with guard patterns
+# --------------------------------------------------------------------------
+
 import web
 
 web_bad_request = web/bad_request
@@ -7,9 +31,15 @@ web_post = web/post
 web_route_request = web/route_request
 web_serve_http = web/serve_http
 
+# -- State -----------------------------------------------------------------
+
 stats = ref({})
 
+# -- Request helpers -------------------------------------------------------
+
 body_map(request) = unwrap_or({}, request |> get("body"))
+
+# -- Server configuration -------------------------------------------------
 
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
@@ -37,6 +67,8 @@ server_config(args) = config_with_max(
   max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
 )
 
+# -- Handlers --------------------------------------------------------------
+
 track_metric(request) = track_metric_values(
   unwrap_or("", body_map(request) |> get("name")),
   unwrap_or(1, body_map(request) |> get("value"))
@@ -53,6 +85,7 @@ track_metric_values(name, value) = (
   }
 )
 
+# Build the next `{count, total}` record from the previous one.
 next_metric(current, name, value) = {
   previous = unwrap_or({count: 0, total: 0}, current |> get(name))
   {
@@ -64,6 +97,8 @@ next_metric(current, name, value) = {
 summary(_request) = web_json({
   metrics: ref_get(stats)
 })
+
+# -- Routing & entry point -------------------------------------------------
 
 app() = web_route_request([
   web_post("/metrics/track", track_metric),

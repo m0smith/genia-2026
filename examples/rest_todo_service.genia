@@ -1,3 +1,30 @@
+# --------------------------------------------------------------------------
+# TODO REST Service
+# --------------------------------------------------------------------------
+#
+# An in-memory TODO list with create, list, and complete endpoints.
+# Demonstrates mutable state via `ref` and list manipulation.
+#
+# Run:
+#   genia examples/rest_todo_service.genia
+#   genia examples/rest_todo_service.genia --port 8081
+#
+# Test:
+#   curl http://127.0.0.1:8081/todos
+#   curl -X POST -H 'Content-Type: application/json' \
+#        -d '{"title":"buy milk"}' http://127.0.0.1:8081/todos/create
+#   curl -X POST -H 'Content-Type: application/json' \
+#        -d '{"id":1}' http://127.0.0.1:8081/todos/complete
+#
+# Features demonstrated:
+#   * `ref` / `ref_get` / `ref_set` / `ref_update` for in-memory state
+#   * option-aware field extraction with `unwrap_or` and `get`
+#   * input validation via pattern matching with guards
+#   * `map` over a list to transform items
+#   * `append` for list growth
+#   * `main(args)` CLI entry point
+# --------------------------------------------------------------------------
+
 import web
 
 web_bad_request = web/bad_request
@@ -7,10 +34,17 @@ web_post = web/post
 web_route_request = web/route_request
 web_serve_http = web/serve_http
 
+# -- State -----------------------------------------------------------------
+# Two refs: the list of todos and a counter for the next id.
+
 todos = ref([])
 next_id = ref(1)
 
+# -- Request helpers -------------------------------------------------------
+
 body_map(request) = unwrap_or({}, request |> get("body"))
+
+# -- Server configuration -------------------------------------------------
 
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
@@ -38,11 +72,14 @@ server_config(args) = config_with_max(
   max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
 )
 
+# -- Handlers --------------------------------------------------------------
+
 list_todos(_request) = web_json({
   items: ref_get(todos),
   count: length(ref_get(todos))
 })
 
+# Validate that a title is provided before creating a todo.
 create_todo(request) = create_todo_from_title(unwrap_or("", body_map(request) |> get("title")))
 
 create_todo_from_title(title) = (
@@ -73,6 +110,7 @@ complete_todo_with_id(id) = (
   }
 )
 
+# Use `map` to transform each todo, marking the matching one done.
 mark_done(todo, id) = (
   (todo, id) ? unwrap_or(-1, todo |> get("id")) == id -> {
     id: unwrap_or(-1, todo |> get("id")),
@@ -81,6 +119,8 @@ mark_done(todo, id) = (
   } |
   (todo, _) -> todo
 )
+
+# -- Routing & entry point -------------------------------------------------
 
 app() = web_route_request([
   web_get("/todos", list_todos),

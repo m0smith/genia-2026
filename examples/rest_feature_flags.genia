@@ -1,3 +1,28 @@
+# --------------------------------------------------------------------------
+# Feature Flags Service
+# --------------------------------------------------------------------------
+#
+# A per-user feature flag system.  Flags have an `enabled` boolean and a
+# user allowlist.  Demonstrates filtering, `any?`, and `ref` state.
+#
+# Run:
+#   genia examples/rest_feature_flags.genia
+#   genia examples/rest_feature_flags.genia --port 8084
+#
+# Test:
+#   curl 'http://127.0.0.1:8084/flags?user=alice'
+#   curl -X POST -H 'Content-Type: application/json' \
+#        -d '{"flag":"beta_search","enabled":false}' \
+#        http://127.0.0.1:8084/flags/set
+#
+# Features demonstrated:
+#   * `ref` with a pre-populated map of flag rules
+#   * `filter` + `any?` for allowlist membership checks
+#   * `map` to extract keys from a filtered list
+#   * query-string parameter extraction (`query_map`)
+#   * guard-based input validation
+# --------------------------------------------------------------------------
+
 import web
 
 web_bad_request = web/bad_request
@@ -7,14 +32,21 @@ web_post = web/post
 web_route_request = web/route_request
 web_serve_http = web/serve_http
 
+# -- Initial flag rules ----------------------------------------------------
+# Each flag has an `enabled` bool and a user allowlist.
+
 flags = ref({
   beta_search: {enabled: true, users: ["alice", "dora"]},
   checkout_redesign: {enabled: false, users: ["alice"]},
   release_banner: {enabled: false, users: []}
 })
 
+# -- Request helpers -------------------------------------------------------
+
 body_map(request) = unwrap_or({}, request |> get("body"))
 query_map(request) = unwrap_or({}, request |> get("query"))
+
+# -- Server configuration -------------------------------------------------
 
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
@@ -42,6 +74,9 @@ server_config(args) = config_with_max(
   max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
 )
 
+# -- Flag logic ------------------------------------------------------------
+# A user sees a flag if it is globally enabled OR the user is in its list.
+
 user_has_flag?(user, rule) = (
   (_, rule) ? unwrap_or(false, rule |> get("enabled")) == true -> true |
   (user, rule) -> any?((name) -> name == user, unwrap_or([], rule |> get("users")))
@@ -62,6 +97,8 @@ flag_pairs(current) = [
 ]
 
 enabled_flag_names(user, current) = map(entry_key, enabled_flags_for(user, flag_pairs(current)))
+
+# -- Handlers --------------------------------------------------------------
 
 get_flags(request) = {
   user = unwrap_or("anonymous", query_map(request) |> get("user"))
@@ -92,6 +129,8 @@ set_flag_values(flag, enabled) = (
     })
   }
 )
+
+# -- Routing & entry point -------------------------------------------------
 
 app() = web_route_request([
   web_get("/flags", get_flags),

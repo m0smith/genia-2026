@@ -1,3 +1,28 @@
+# --------------------------------------------------------------------------
+# URL Shortener Service
+# --------------------------------------------------------------------------
+#
+# Create short-code → URL mappings, resolve them, and list all links.
+# Demonstrates option-aware lookup with `none?` and `unwrap_or`.
+#
+# Run:
+#   genia examples/rest_shortener_service.genia
+#   genia examples/rest_shortener_service.genia --port 8085
+#
+# Test:
+#   curl -X POST -H 'Content-Type: application/json' \
+#        -d '{"code":"docs","url":"https://m0smith.github.io/genia-2026/"}' \
+#        http://127.0.0.1:8085/links
+#   curl 'http://127.0.0.1:8085/resolve?code=docs'
+#   curl http://127.0.0.1:8085/links
+#
+# Features demonstrated:
+#   * `none?` / `unwrap_or` for option-aware map lookup
+#   * `ref_update` with a lambda for atomic map insertion
+#   * chained guard validation (empty code, empty url)
+#   * query-string parameter extraction
+# --------------------------------------------------------------------------
+
 import web
 
 web_bad_request = web/bad_request
@@ -7,10 +32,16 @@ web_post = web/post
 web_route_request = web/route_request
 web_serve_http = web/serve_http
 
+# -- State -----------------------------------------------------------------
+
 links = ref({})
+
+# -- Request helpers -------------------------------------------------------
 
 body_map(request) = unwrap_or({}, request |> get("body"))
 query_map(request) = unwrap_or({}, request |> get("query"))
+
+# -- Server configuration -------------------------------------------------
 
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
@@ -38,6 +69,8 @@ server_config(args) = config_with_max(
   max_requests_from_parsed(cli_parse(args, {options: ["port", "max-requests"]}))
 )
 
+# -- Handlers --------------------------------------------------------------
+
 create_link(request) = create_link_values(
   unwrap_or("", body_map(request) |> get("code")),
   unwrap_or("", body_map(request) |> get("url"))
@@ -57,6 +90,7 @@ create_link_values(code, url) = (
 
 resolve_link(request) = resolve_code(unwrap_or("", query_map(request) |> get("code")))
 
+# Lookup a code in the map; use `none?` to detect missing entries.
 resolve_code(code) = (
   (code) ? trim(code) == "" -> web_bad_request("code is required") |
   (code) -> resolve_lookup(trim(code), ref_get(links) |> get(trim(code)))
@@ -73,6 +107,8 @@ resolve_lookup(code, found) = (
 list_links(_request) = web_json({
   links: ref_get(links)
 })
+
+# -- Routing & entry point -------------------------------------------------
 
 app() = web_route_request([
   web_post("/links", create_link),

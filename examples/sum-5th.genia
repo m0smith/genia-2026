@@ -1,7 +1,25 @@
+# --------------------------------------------------------------------------
+# Sum 5th Column
+# --------------------------------------------------------------------------
+#
+# Read whitespace-delimited tabular data from stdin, extract the 6th field
+# (index 5) of each line, parse it as an integer, and print the total.
+#
+# Run:
+#   echo "a b c d e 10\na b c d e 20" | genia examples/sum-5th.genia
+#
+# Features demonstrated:
+#   * pipe-mode pipeline (`stdin |> ... |> collect |> sum`)
+#   * `lines` and `fields` for text parsing
+#   * `keep_some_else` for option-aware filtering with error logging
+#   * `parse_int` for safe string-to-number conversion
+#   * `collect` to materialize a flow into a list
+# --------------------------------------------------------------------------
+
 stdin
-  |> lines
-  |> map(fields)
-  |> keep_some_else((xs) -> nth(5, xs), log)
-  |> keep_some_else(parse_int, log)
-  |> collect
-  |> sum
+  |> lines                                       # split stdin into lines
+  |> map(fields)                                 # split each line on whitespace
+  |> keep_some_else((xs) -> nth(5, xs), log)     # extract 6th field (index 5); log failures
+  |> keep_some_else(parse_int, log)              # parse as integer; log non-numeric values
+  |> collect                                     # materialize the flow into a list
+  |> sum                                         # total the collected integers

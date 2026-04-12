@@ -1,10 +1,38 @@
+# --------------------------------------------------------------------------
+# Minimal HTTP Service
+# --------------------------------------------------------------------------
+#
+# The simplest possible Genia web service: a health check and an info
+# endpoint.  Use this as the starting template for any new REST service.
+#
+# Run:
+#   genia examples/http_service.genia
+#   genia examples/http_service.genia --port 9000
+#   genia examples/http_service.genia --max-requests 1   # serve one request then exit
+#
+# Test:
+#   curl http://127.0.0.1:8080/health
+#   curl http://127.0.0.1:8080/info
+#
+# Features demonstrated:
+#   * module import and slash-export binding (`web/ok_text`, `web/json`)
+#   * route definition with `web/get`
+#   * JSON and plain-text responses
+#   * CLI argument parsing for `--port` and `--max-requests`
+#   * pattern matching with guards for config construction
+#   * `main(args)` entry-point convention
+# --------------------------------------------------------------------------
+
 import web
 
+# Bind module exports to short local names for clarity.
 web_ok_text = web/ok_text
 web_json = web/json
 web_route_request = web/route_request
 web_get = web/get
 web_serve_http = web/serve_http
+
+# -- Handlers --------------------------------------------------------------
 
 health(_request) = web_ok_text("ok")
 
@@ -13,10 +41,15 @@ info(_request) = web_json({
   status: "running"
 })
 
+# -- Routing ---------------------------------------------------------------
+
 app() = web_route_request([
   web_get("/health", health),
   web_get("/info", info)
 ])
+
+# -- Server configuration -------------------------------------------------
+# Guard pattern: include `max_requests` in the config map only when > 0.
 
 config_with_max(host, port, max_requests) = (
   (_, _, max_requests) ? max_requests > 0 -> {
@@ -30,6 +63,7 @@ config_with_max(host, port, max_requests) = (
   }
 )
 
+# Parse CLI options into typed values with safe defaults.
 port_from_parsed(parsed) = (
   ([opts, _]) -> unwrap_or(8080, parse_int(cli_option_or(opts, "port", "8080")))
 )
@@ -45,5 +79,7 @@ server_config(args) = config_from_parsed(
     options: ["port", "max-requests"]
   })
 )
+
+# -- Entry point -----------------------------------------------------------
 
 main(args) = web_serve_http(server_config(args), app())
