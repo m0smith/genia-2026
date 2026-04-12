@@ -103,7 +103,33 @@ Required constraints:
 - parsed annotations are represented explicitly in the AST as:
   - `Annotation(name, value)`
   - `AnnotatedNode(annotations, target)`
-- annotation metadata behavior is not implemented yet in this phase; this invariant is parse + AST only
+- annotation metadata behavior is currently implemented only for:
+  - `@doc`
+  - `@meta`
+- no annotation introduces macros, compile-time transforms, or syntax rewriting in this phase
+
+## 8.1.2) Prefix annotation runtime semantics
+
+- annotations attach to the binding name, not to an anonymous raw value detached from that binding
+- annotated targets still evaluate normally first; annotation metadata is attached after the binding is created or updated
+- `@doc`:
+  - evaluates its value expression after the target binding exists
+  - the resulting value must be a string
+  - stores metadata under key `"doc"`
+- `@meta`:
+  - evaluates its value expression after the target binding exists
+  - the resulting value must be a map
+  - merges all map entries into the binding metadata
+- multiple annotations merge from top to bottom
+- later keys override earlier keys
+- rebinding without annotations preserves existing binding metadata
+- rebinding with annotations merges new metadata over existing metadata for that binding
+- `meta("name")` returns the current metadata map for a bound name
+- unsupported annotations must fail clearly at runtime
+- annotation metadata is ordinary runtime metadata only in this phase:
+  - no macros
+  - no compile-time transforms
+  - no evaluator special forms beyond metadata attachment
 
 
 ## 8.2) Module import + module value invariants (phase 1)

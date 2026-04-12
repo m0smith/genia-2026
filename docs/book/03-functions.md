@@ -127,10 +127,10 @@ This raises:
 
 ---
 
-## Prefix Annotations (Parse + AST Only)
+## Prefix Annotations
 
-Prefix annotations are now parsed at top level and represented explicitly in the AST.
-This is currently a parser/AST feature only: annotations do not attach runtime metadata yet.
+Prefix annotations now attach runtime metadata to top-level bindings.
+They remain simple runtime metadata in this phase: no macros, no compile-time transforms, and no syntax rewriting.
 
 ### Status
 
@@ -140,17 +140,19 @@ This is currently a parser/AST feature only: annotations do not attach runtime m
 - stacked annotations before a top-level named function definition
 - stacked annotations before a top-level assignment
 - explicit AST nodes for annotations and annotated targets
+- binding metadata attachment for `@doc` and `@meta`
+- `meta("name")` introspection for current binding metadata
 
 ⚠️ Partial
 
-- attachment is syntactic only in this phase
 - supported targets are limited to top-level named functions and top-level assignments
+- supported built-in annotations are limited to `@doc` and `@meta`
 
 ❌ Missing
 
-- runtime metadata attachment
-- `help(...)` integration
 - annotation support on lambdas, imports, or arbitrary expressions
+- macro-style annotation behavior
+- compile-time transforms
 
 ### Minimal example
 
@@ -159,13 +161,19 @@ This is currently a parser/AST feature only: annotations do not attach runtime m
 inc(x) -> x + 1
 ```
 
+```genia
+unwrap_or("missing", meta("inc") |> get("doc"))
+```
+
+This evaluates to `"Adds one"`.
+
 ### Edge case: stacked annotations
 
 ```genia
 @doc """
 Adds one.
 """
-@category "math"
+@meta {category: "math"}
 inc(x) -> x + 1
 ```
 
@@ -176,16 +184,90 @@ inc(x) -> x + 1
 x = 10
 ```
 
+```genia
+unwrap_or("missing", meta("x") |> get("category"))
+```
+
+This evaluates to `"math"`.
+
+### Edge case: rebinding preserves metadata unless new keys override it
+
+```genia
+@meta {category: "math", stable: true}
+x = 1
+x = 2
+@meta {stable: false}
+x = 3
+
+[unwrap_or("missing", meta("x") |> get("category")), unwrap_or(true, meta("x") |> get("stable"))]
+```
+
+This evaluates to `["math", false]`.
+
 ### Failure case
 
 ```genia
-@doc "Adds one"
-1 + 2
+@doc {text: "bad"}
+inc(x) -> x + 1
 ```
 
 This raises:
 
-- `SyntaxError("Annotation must be followed by a top-level function definition or assignment")`
+- `TypeError("@doc expected a string, received map")`
+
+---
+
+## Documenting Functions
+
+`@doc` is the current annotation-based way to attach lightweight binding metadata for a documented function.
+
+### Minimal example
+
+```genia
+@doc "Adds one"
+inc(x) -> x + 1
+```
+
+The function binding metadata becomes:
+
+```genia
+{doc: "Adds one"}
+```
+
+### Edge case: combine `@doc` and `@meta`
+
+```genia
+@doc """
+# square
+
+Multiply a number by itself.
+"""
+@meta {category: "math", stable: true}
+square(x) -> x * x
+
+[
+  unwrap_or("missing", meta("square") |> get("doc")),
+  unwrap_or("missing", meta("square") |> get("category")),
+  unwrap_or(false, meta("square") |> get("stable"))
+]
+```
+
+This evaluates to:
+
+```genia
+["# square\n\nMultiply a number by itself.\n", "math", true]
+```
+
+### Failure case: `@meta` must produce a map
+
+```genia
+@meta "math"
+square(x) -> x * x
+```
+
+This raises:
+
+- `TypeError("@meta expected a map, received string")`
 
 ---
 

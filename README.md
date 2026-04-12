@@ -37,6 +37,21 @@ Run a program:
 python3 -m genia.interpreter path/to/program.genia
 ```
 
+Small annotation example:
+
+```genia
+@doc "Adds one"
+inc(x) -> x + 1
+
+meta("inc")
+```
+
+Result:
+
+```genia
+{doc: "Adds one"}
+```
+
 Pass raw trailing CLI args into the running program:
 
 ```bash

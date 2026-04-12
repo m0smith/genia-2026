@@ -771,6 +771,15 @@ class IrNode:
 
 
 @dataclass
+class IrAnnotation(IrNode):
+    """Lowered annotation payload for a bindable definition."""
+
+    name: str
+    value: IrNode
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrLiteral(IrNode):
     """Normalized constant value (number/string/bool/nil)."""
 
@@ -1029,6 +1038,7 @@ class IrAssign(IrNode):
 
     name: str
     expr: IrNode
+    annotations: list[IrAnnotation] = field(default_factory=list)
     span: SourceSpan | None = None
 
 
@@ -1041,6 +1051,7 @@ class IrFuncDef(IrNode):
     rest_param: str | None
     docstring: str | None
     body: IrNode
+    annotations: list[IrAnnotation] = field(default_factory=list)
     span: SourceSpan | None = None
 
 
@@ -1065,6 +1076,7 @@ class IrListTraversalLoop(IrNode):
 
 # Portable/shared Core IR node families produced by AST->IR lowering.
 PORTABLE_CORE_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
+    IrAnnotation,
     IrLiteral,
     IrOptionNone,
     IrOptionSome,
@@ -1151,8 +1163,10 @@ def iter_ir_nodes(root: IrNode | Iterable[IrNode]) -> Iterator[IrNode]:
         elif isinstance(node, IrLambda):
             children.append(node.body)
         elif isinstance(node, IrAssign):
+            children.extend(annotation.value for annotation in node.annotations)
             children.append(node.expr)
         elif isinstance(node, IrFuncDef):
+            children.extend(annotation.value for annotation in node.annotations)
             children.append(node.body)
         elif isinstance(node, IrListTraversalLoop):
             children.extend([node.empty_clause, node.zero_clause])
@@ -1174,6 +1188,10 @@ def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
     return [lower_node(node) for node in nodes]
 
 
+def _lower_annotations(annotations: list[Annotation]) -> list[IrAnnotation]:
+    return [IrAnnotation(annotation.name, lower_node(annotation.value), span=annotation.span) for annotation in annotations]
+
+
 def _map_literal_key_name(key: Node) -> str:
     if isinstance(key, Var):
         return key.name
@@ -1190,6 +1208,22 @@ def _flatten_pipeline_ast(node: Node) -> tuple[Node, list[Node]]:
 
 
 def lower_node(node: Node) -> IrNode:
+    if isinstance(node, AnnotatedNode):
+        lowered_annotations = _lower_annotations(node.annotations)
+        target = node.target
+        if isinstance(target, Assign):
+            return IrAssign(target.name, lower_node(target.expr), annotations=lowered_annotations, span=node.span)
+        if isinstance(target, FuncDef):
+            return IrFuncDef(
+                target.name,
+                target.params,
+                target.rest_param,
+                target.docstring,
+                lower_node(target.body),
+                annotations=lowered_annotations,
+                span=node.span,
+            )
+        raise RuntimeError(f"Annotated target is not bindable during lowering: {target!r}")
     if isinstance(node, ExprStmt):
         return IrExprStmt(lower_node(node.expr), span=node.span)
     if isinstance(node, Number):
@@ -1261,6 +1295,7 @@ def lower_node(node: Node) -> IrNode:
             node.rest_param,
             node.docstring,
             lower_node(node.body),
+            annotations=[],
             span=node.span,
         )
     if isinstance(node, ImportStmt):
@@ -1683,6 +1718,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
             zero_clause=zero_clause,
             span=fn.span,
         ),
+        annotations=fn.annotations,
         span=fn.span,
     )
 
@@ -2685,6 +2721,7 @@ class Env:
     def __init__(self, parent: Optional["Env"] = None, *, rebind_parent: bool | None = None):
         self.parent = parent
         self.values: dict[str, Any] = {}
+        self.binding_metadata: dict[str, GeniaMap] = {}
         self.assignable: set[str] = set()
         self.rebind_parent = (parent is not None) if rebind_parent is None else rebind_parent
         self.autoloads: dict[tuple[str, int], str] = {}
@@ -2710,19 +2747,33 @@ class Env:
             return self.values[name]
         raise NameError(f"Undefined name: {name}")
 
-    def set(self, name: str, value: Any, *, assignable: bool = True) -> None:
+    def set(
+        self,
+        name: str,
+        value: Any,
+        *,
+        assignable: bool = True,
+        metadata: GeniaMap | None = None,
+        preserve_metadata: bool = False,
+    ) -> None:
         self.values[name] = value
+        if metadata is not None:
+            self.binding_metadata[name] = metadata
+        elif not preserve_metadata:
+            self.binding_metadata.pop(name, None)
         if assignable:
             self.assignable.add(name)
         else:
             self.assignable.discard(name)
 
-    def assign(self, name: str, value: Any) -> None:
+    def assign(self, name: str, value: Any, *, metadata: GeniaMap | None = None) -> None:
         target_env = self.find_assign_target(name)
         if target_env is None:
-            self.set(name, value, assignable=True)
+            self.set(name, value, assignable=True, metadata=metadata, preserve_metadata=metadata is None)
             return
         target_env.values[name] = value
+        if metadata is not None:
+            target_env.binding_metadata[name] = _merge_metadata_maps(target_env.binding_metadata.get(name), metadata)
 
     def find_assign_target(self, name: str) -> Optional["Env"]:
         env: Env = self
@@ -2735,16 +2786,42 @@ class Env:
                 return None
             env = env.parent
 
-    def define_function(self, fn: "GeniaFunction") -> None:
+    def define_function(self, fn: "GeniaFunction", *, metadata: GeniaMap | None = None) -> None:
         existing = self.values.get(fn.name)
         if existing is None:
             group = GeniaFunctionGroup(fn.name)
+            if metadata is not None:
+                group.merge_metadata(metadata)
             group.add_clause(fn)
-            self.set(fn.name, group, assignable=True)
+            self.set(fn.name, group, assignable=True, metadata=group.metadata)
             return
         if not isinstance(existing, GeniaFunctionGroup):
             raise TypeError(f"Cannot define function {fn.name}/{fn.arity}: name already bound to non-function value")
+        if metadata is not None:
+            existing.merge_metadata(metadata)
+            self.binding_metadata[fn.name] = existing.metadata
         existing.add_clause(fn)
+
+    def get_metadata(self, name: str) -> "GeniaMap":
+        if name in self.values:
+            return self.binding_metadata.get(name, GeniaMap())
+        if self.parent is not None:
+            return self.parent.get_metadata(name)
+        raise NameError(f"Undefined name: {name}")
+
+    def merge_binding_metadata(self, name: str, metadata: "GeniaMap") -> None:
+        env: Env = self
+        while True:
+            if name in env.values:
+                merged = _merge_metadata_maps(env.binding_metadata.get(name), metadata)
+                env.binding_metadata[name] = merged
+                value = env.values[name]
+                if isinstance(value, GeniaFunctionGroup):
+                    value.metadata = merged
+                return
+            if env.parent is None:
+                raise NameError(f"Undefined name: {name}")
+            env = env.parent
 
     def register_autoload(self, name: str, arity: int, path: str) -> None:
         root = self.root()
@@ -2822,6 +2899,7 @@ class GeniaFunctionGroup:
     name: str
     functions: dict[int, "GeniaFunction"] = field(default_factory=dict)
     docstring: str | None = None
+    metadata: "GeniaMap" = field(default_factory=lambda: GeniaMap())
 
     def add_clause(self, fn: "GeniaFunction") -> None:
         existing = self.functions.get(fn.arity)
@@ -2840,6 +2918,9 @@ class GeniaFunctionGroup:
             raise TypeError(
                 f"Conflicting docstrings for function {self.name}: got {candidate!r}, expected {self.docstring!r}"
             )
+
+    def merge_metadata(self, metadata: "GeniaMap") -> None:
+        self.metadata = _merge_metadata_maps(self.metadata, metadata)
 
     def __iter__(self):
         return iter(self.functions)
@@ -3280,8 +3361,20 @@ class GeniaMap:
     def count(self) -> int:
         return len(self._entries)
 
+    def items(self) -> list[tuple[Any, Any]]:
+        return [(raw_key, raw_value) for raw_key, raw_value in self._entries.values()]
+
     def __repr__(self) -> str:
         return f"<map {len(self._entries)}>"
+
+
+def _merge_metadata_maps(base: GeniaMap | None, override: GeniaMap | None) -> GeniaMap:
+    result = base if base is not None else GeniaMap()
+    if override is None:
+        return result
+    for key, value in override.items():
+        result = result.put(key, value)
+    return result
 
 
 @dataclass(frozen=True)
@@ -4011,6 +4104,23 @@ class Evaluator:
             result = self.eval(node)
         return result
 
+    def eval_annotations(self, annotations: list[IrAnnotation]) -> GeniaMap:
+        metadata = GeniaMap()
+        for annotation in annotations:
+            value = self.eval(annotation.value)
+            if annotation.name == "doc":
+                if not isinstance(value, str):
+                    raise _annotation_metadata_error("doc", value, "a string")
+                metadata = metadata.put("doc", value)
+                continue
+            if annotation.name == "meta":
+                if not isinstance(value, GeniaMap):
+                    raise _annotation_metadata_error("meta", value, "a map")
+                metadata = _merge_metadata_maps(metadata, value)
+                continue
+            raise RuntimeError(f"Unsupported annotation: @{annotation.name}")
+        return metadata
+
     def eval_function_body(
         self,
         params: list[str],
@@ -4664,6 +4774,9 @@ class Evaluator:
         if isinstance(node, IrAssign):
             value = self.eval(node.expr)
             self.env.assign(node.name, value)
+            if node.annotations:
+                metadata = self.eval_annotations(node.annotations)
+                self.env.merge_binding_metadata(node.name, metadata)
             return value
 
         if isinstance(node, IrFuncDef):
@@ -4679,6 +4792,9 @@ class Evaluator:
                 debug_mode=self.debug_mode,
             )
             self.env.define_function(fn)
+            if node.annotations:
+                metadata = self.eval_annotations(node.annotations)
+                self.env.merge_binding_metadata(node.name, metadata)
             return fn
         if isinstance(node, IrImport):
             requester = node.span.filename if node.span is not None else None
@@ -4843,6 +4959,10 @@ def _runtime_type_name(value: Any) -> str:
     if callable(value):
         return "function"
     return type(value).__name__
+
+
+def _annotation_metadata_error(name: str, value: Any, expected: str) -> TypeError:
+    return TypeError(f"@{name} expected {expected}, received {_runtime_type_name(value)}")
 
 
 def _syntax_tagged_list(value: Any, tag: Any) -> bool:
@@ -5930,8 +6050,12 @@ def make_global_env(
         if span_text is not None:
             lines.append(f"Defined at {span_text}")
         lines.append("")
-        if group.docstring is not None:
-            lines.append(render_markdown_docstring(group.docstring))
+        metadata_doc = group.metadata.get("doc") if isinstance(group.metadata, GeniaMap) else OPTION_NONE
+        effective_doc = group.docstring
+        if effective_doc is None and isinstance(metadata_doc, str):
+            effective_doc = metadata_doc
+        if effective_doc is not None:
+            lines.append(render_markdown_docstring(effective_doc))
         else:
             lines.append("No documentation available.")
         return "\n".join(lines)
@@ -6105,6 +6229,21 @@ def make_global_env(
             raise TypeError("help expected a function name or named function")
 
         _emit_help(_describe_help_overview())
+
+    def meta_fn(*args: Any) -> GeniaMap:
+        if len(args) != 1:
+            raise TypeError(f"meta expected 1 arg, got {len(args)}")
+        name = args[0]
+        if not isinstance(name, str):
+            raise TypeError(f"meta expected a string name, received {_runtime_type_name(name)}")
+        try:
+            env.get(name)
+        except NameError:
+            if env.try_autoload(name, 0):
+                env.get(name)
+            else:
+                raise
+        return env.get_metadata(name)
 
     def ref_fn(*args: Any) -> GeniaRef:
         if len(args) == 0:
@@ -7081,6 +7220,7 @@ def make_global_env(
     env.set("_collect", collect_fn)
     env.set("argv", argv_fn)
     env.set("help", help_fn)
+    env.set("meta", meta_fn)
     env.set("pi", math.pi)
     env.set("e", math.e)
     env.set("true", True)
