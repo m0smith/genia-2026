@@ -275,7 +275,7 @@ class TestPreludeDocLintSweep:
     """
 
     DOC_RE = re.compile(r'@doc\s+"""(.*?)"""', re.DOTALL)
-    SINGLE_DOC_RE = re.compile(r'@doc\s+"([^"]*)"')
+    SINGLE_DOC_RE = re.compile(r'@doc\s+"([^"]*)"(?!")')
 
     @staticmethod
     def _extract_docs(path: Path) -> list[tuple[int, str]]:
