@@ -102,10 +102,10 @@ printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
 
 Pipe-mode mental model:
 
-- `genia -p 'stage_expr'` behaves like `stdin |> lines |> stage_expr |> run`
+- `genia -p 'stage_expr'` behaves like `stdin |> lines |> <stage_expr> |> run`
 - write one stage expression, not a full program
 - do not write explicit `stdin` or explicit `run`
-- plain stages lift over `some(...)` and wrap the result back into `some(...)`
+- ordinary stages lift over `some(x)` automatically, and lifted non-Option results are wrapped back into `some(...)`
 - use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*` when you want direct Option-aware control
 - raw values stay raw values, and `none(...)` skips the remaining stages
 - reducers such as `sum` expect plain numbers after explicit filtering or recovery
@@ -120,7 +120,7 @@ Unix-style examples:
 printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'
 printf '10\noops\n20\n' | genia -p 'map((row) -> unwrap_or("bad", row |> parse_int |> flat_map_some((n) -> some(n + 1)))) |> each(print)'
 printf '1\n2\n3\n4\n' | genia -c 'stdin |> lines |> scan((state, x) -> [state + x, state + x], 0) |> collect'
-printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> parse_int |> flat_map_some(rule_emit)) |> collect |> sum'
 printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> collect |> trace("after parse") |> sum'
 ```
 
@@ -167,7 +167,7 @@ printf '  alpha  \n\n beta\n' | genia -p 'map(trim) |> filter((line) -> line != 
 printf 'a b c d five\n1 2 3 4 six\n' | genia -p 'map(split_whitespace) |> map((r) -> nth(4, r)) |> keep_some |> each(print)'
 
 # 4) parse/filter/sum pipeline
-printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> parse_int |> flat_map_some(rule_emit)) |> collect |> sum'
 ```
 
 ```bash
@@ -652,16 +652,16 @@ get("name", person)
   ```
 - Option propagation is built into pipeline evaluation:
   - if a stage input is `none(...)`, remaining stages do not execute and the same `none(...)` is returned
-  - otherwise the next stage receives the current value unchanged, including explicit `some(...)`
-  - if a stage returns `none(...)`, the rest of the pipeline is skipped
-  - pipeline evaluation does not auto-unwrap `some(...)`
+  - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
+  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back into `some(y)`
+  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is preserved as-is
 - pipeline-visible function modes are now interpreted as:
   - Value -> Value
   - Flow -> Flow
   - explicit Value <-> Flow bridge
 - recovery/defaulting should wrap the whole pipeline result:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
-  - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+  - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
 - reducers stay explicit:
   - `sum` expects plain numbers, so filter/recover Option values before `collect |> sum`
 - Flow is still explicit:
@@ -699,7 +699,7 @@ stdin |> lines |> take(2) |> each(print) |> run
 - `take` / `head` and quiet broken-pipe termination stop generator-backed upstream work promptly
 - `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
-- `-p` / `--pipe` wrap a stage expression as `stdin |> lines |> <expr> |> run` for ergonomic Unix pipeline use
+- `-p` / `--pipe` wrap a stage expression as `stdin |> lines |> <stage_expr> |> run` for ergonomic Unix pipeline use
 - `-p` expects a stage expression only; omit explicit `stdin` and `run`
 - no `pipe(...)` helper function exists in this phase
 
@@ -759,7 +759,7 @@ cell_get(counter)
   - public helpers from `src/genia/std/prelude/option.genia`: `some`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
-- canonical pipeline style now prefers direct absence-aware stages such as `get`, plus explicit chaining helpers like `then_first`, `then_nth`, `then_find`, and `flat_map_some(parse_int)` when the next stage needs the inner value of `some(...)`
+- canonical pipeline style now prefers direct absence-aware stages such as `get`, plus explicit chaining helpers like `then_first`, `then_nth`, `then_find`, and `flat_map_some(...)` when the next stage needs the inner value of `some(...)`
 - explicit helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for direct Option values, higher-order code, and non-pipeline composition
 - flow runtime (Phase 1): `lines`, `keep_some_else`, flow-aware `map`/`filter`, `take`, `rules`, `each`, `collect`, `run`, plus prelude `head` aliases and rule helper constructors `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
 
@@ -784,7 +784,7 @@ In file mode (`genia path/to/program.genia`) and command mode (`genia -c "..."`)
 
 Pipe mode (`genia -p "..."` / `genia --pipe "..."`) is separate:
 
-1. it wraps the provided stage expression as `stdin |> lines |> <expr> |> run`
+1. it wraps the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
 2. it does not apply the `main` convention
 3. it rejects explicit `stdin` and explicit `run` inside the provided stage expression
 
@@ -851,7 +851,7 @@ nth(5, fields(row)) |> map_some(parse_int) |> unwrap_or(0)
 New canonical style:
 
 ```genia
-unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))
+unwrap_or(0, fields(row) |> nth(5) |> parse_int)
 ```
 
 Short design note: [docs/architecture/pipeline-option-redesign.md](docs/architecture/pipeline-option-redesign.md)

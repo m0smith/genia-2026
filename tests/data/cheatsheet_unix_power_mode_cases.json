@@ -37,7 +37,7 @@
   },
   {
     "id": "unix-power-sum-5th",
-    "source": "stdin |> lines |> map(fields) |> keep_some_else((row) -> row |> nth(5) |> flat_map_some(parse_int), log) |> collect |> sum",
+    "source": "stdin |> lines |> map(fields) |> keep_some_else((row) -> row |> nth(5) |> parse_int, log) |> collect |> sum",
     "stdin_data": ["a b c d 5 x", "1 2 3 4 6 y", "short"],
     "expected_result": "11"
   },

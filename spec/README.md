@@ -21,6 +21,7 @@ Browser playground adapter note:
 
 Python is the only implemented host today.
 The spec layout is being added now so future hosts can validate against the same contract instead of growing host-local behavior.
+The shared spec runner layout is still scaffolded/planned in this phase, not implemented as generic multi-host execution tooling.
 
 ## Spec Categories
 

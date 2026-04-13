@@ -6,7 +6,7 @@
   },
   {
     "id": "core-min-fields-nth-parse",
-    "source": "fields(\"a b c d 5 x\") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)",
+    "source": "fields(\"a b c d 5 x\") |> nth(5) |> parse_int |> unwrap_or(0)",
     "expected_result": "5"
   },
   {

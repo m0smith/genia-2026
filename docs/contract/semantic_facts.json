@@ -1,0 +1,15 @@
+{
+  "pipeline_none_short_circuit": "`none(...)` short-circuits the remaining pipeline stages.",
+  "pipeline_some_lifts": "ordinary stages lift over `some(x)` automatically.",
+  "pipeline_wrap_back": "lifted non-Option results are wrapped back into `some(...)`.",
+  "pipeline_option_results_preserved": "Option results are preserved as-is.",
+  "direct_call_option_behavior": "In direct calls, `some(x)` is still a normal value and is passed explicitly.",
+  "pipe_wrapper": "stdin |> lines |> <stage_expr> |> run",
+  "main_dispatch": "call `main(argv())` when `main/1` exists, otherwise call `main()` when `main/0` exists",
+  "pipe_bypasses_main": "pipe mode bypasses `main`",
+  "flow_single_use": "Flow values are lazy, pull-based, source-bound, and single-use.",
+  "flow_early_termination": "`head` / `take` stop upstream pulling promptly.",
+  "host_status": "Python is the only implemented host today.",
+  "naming_rule": "new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.",
+  "annotation_builtins": "`@doc`, `@meta`, `@since`, `@deprecated`, and `@category`"
+}

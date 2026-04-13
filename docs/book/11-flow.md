@@ -57,7 +57,7 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
   - generator-backed upstream work is closed promptly when downstream stops early
 - `run` consumes a Flow to completion unless downstream output terminates early through a quiet broken pipe
 - pipe mode is only a wrapper for the middle Flow stages:
-  - `genia -p 'stage_expr'` means `stdin |> lines |> stage_expr |> run`
+  - `genia -p 'stage_expr'` means `stdin |> lines |> <stage_expr> |> run`
   - omit explicit `stdin`
   - omit explicit `run`
 
@@ -708,7 +708,7 @@ Use `-c` or a script when you want a final value such as a sum.
 Pipe mode is only for middle stage expressions that still produce a flow.
 
 ```bash
-printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum'
+printf 'a b c d 5 x\n1 2 3 4 6 y\nshort\n' | genia -c 'stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> parse_int |> flat_map_some(rule_emit)) |> collect |> sum'
 ```
 
 Expected output:
@@ -720,7 +720,7 @@ Expected output:
 This example skips malformed rows naturally:
 
 - `split_whitespace(r) |> nth(4)` returns `none(...)` when the field is missing
-- `flat_map_some(parse_int)` only parses present fields
+- `parse_int` is an ordinary stage, so the pipeline lifts it over `some(field)` automatically
 - `flat_map_some(rule_emit)` only emits matching numeric values
 
 ### Stop early

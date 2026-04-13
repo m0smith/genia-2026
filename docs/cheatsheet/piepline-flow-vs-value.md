@@ -71,7 +71,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 | Pattern | Value | Flow | Comments |
 | --- | --- | --- | --- |
 | Parse and aggregate | 🟢 `rows \|> map(parse_int) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `rows \|> lines \|> keep_some(parse_int) \|> collect \|> sum` | Flow form naturally drops failed parses. [case: pfv-shape-parse-aggregate] |
-| Column extraction and sum | 🟢 `rows \|> map((r) -> split_whitespace(r) \|> nth(4) \|> flat_map_some(parse_int)) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `stdin \|> lines \|> rules((r, _) -> split_whitespace(r) \|> nth(4) \|> flat_map_some(parse_int) \|> flat_map_some(rule_emit)) \|> collect \|> sum` | Mirrors current unix-style rules pattern. [case: pfv-shape-column-sum] |
+| Column extraction and sum | 🟢 `rows \|> map((r) -> split_whitespace(r) \|> nth(4) \|> parse_int) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `stdin \|> lines \|> rules((r, _) -> split_whitespace(r) \|> nth(4) \|> parse_int \|> flat_map_some(rule_emit)) \|> collect \|> sum` | Mirrors current unix-style rules pattern. [case: pfv-shape-column-sum] |
 | Stream to output | 🟢 `xs \|> map(f) \|> map(print)` plus consumption | 🔴 `stdin \|> lines \|> map(f) \|> each(print) \|> run` | Flow path is direct for CLI streaming. [case: pfv-shape-stream-output] |
 
 ## Rules of thumb
@@ -80,7 +80,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 - Use value pipelines for in-memory list transforms and direct indexing helpers.
 - Cross from flow to value only when needed, with `collect`.
 - Treat `keep_some` and `keep_some_else` as flow-level Option routing tools.
-- Remember pipeline `none(...)` short-circuits while `some(...)` is preserved.
+- Remember pipeline `none(...)` short-circuits while ordinary stages lift over `some(...)`.
 - Treat `sum` as a plain-number reducer, not an Option-aware stage.
 - Prefer explicit Option helpers (`map_some`, `flat_map_some`, `unwrap_or`) over implicit assumptions.
 

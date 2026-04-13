@@ -10,6 +10,7 @@ Current status:
   - `tests/`
   - `src/genia/std/prelude/`
 - The `hosts/*` directories are scaffold/placeholder directories in this phase.
+- Node.js, Java, Rust, Go, and C++ remain planned placeholder surfaces only.
 
 ## Target Layout
 

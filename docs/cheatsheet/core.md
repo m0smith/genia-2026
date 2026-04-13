@@ -43,7 +43,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | callable rhs | `record |> "name"` behaves like `"name"(record)` |
 | none short-circuit | `none(...)` skips remaining stages |
 | some lifting | ordinary stages lift over `some(x)` automatically |
-| lifted result | non-Option `y` becomes `some(y)`; Option results are preserved |
+| lifted result | non-Option `y` becomes `some(y)`; Option results are preserved as-is |
 | explicit option stages | helpers such as `unwrap_or`, `map_some`, `flat_map_some`, and `then_*` still receive Option values directly |
 
 Use explicit Option helpers when you need exact wrap-vs-flat-map control.
@@ -169,7 +169,7 @@ Current response maps use `status`, `headers`, and `body`.
 | --- | --- | --- |
 | file | `genia path/to/file.genia` | run source file |
 | command | `genia -c 'source'` | run inline source |
-| pipe | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <expr> |> run` |
+| pipe | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <stage_expr> |> run` |
 | repl | `genia` | interactive REPL |
 
 Dispatch and mode notes:
@@ -187,7 +187,7 @@ unwrap_or("unknown", {user: {name: "Genia"}} |> get("user") |> get("name"))
 
 [case: core-min-fields-nth-parse]
 ```genia
-fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int) |> unwrap_or(0)
+fields("a b c d 5 x") |> nth(5) |> parse_int |> unwrap_or(0)
 ```
 
 [case: core-min-keep-some]

@@ -268,9 +268,9 @@ Maybe-flow note:
 - list helpers often act as the first maybe-aware step in an Option-aware pipeline
 - example:
   ```genia
-  unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> flat_map_some(parse_int))
+  unwrap_or(0, fields("a b c d 5 x") |> nth(5) |> parse_int)
   ```
-- this works because `nth` returns `some("5")`, pipelines preserve that explicit Option, and `flat_map_some(parse_int)` applies `parse_int` to the wrapped value
+- this works because `nth` returns `some("5")`, ordinary pipeline stages lift over `some(...)`, and `parse_int` therefore receives `"5"`
 - direct chaining also composes with list results:
   ```genia
   data = { items: [{ name: "A" }, { name: "B" }] }

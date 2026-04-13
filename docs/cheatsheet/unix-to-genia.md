@@ -48,7 +48,7 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 | Unix                | Genia                                                                                                             | Notes            |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------- |
 | `awk '{print $5}'`  | 🔴 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r)) \|> keep_some \|> each(print) \|> run`                  | 0-based index [case: unix-map-awk-print-5]    |
-| `awk '{sum += $5}'` | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r) \|> flat_map_some(parse_int)) \|> keep_some \|> collect \|> sum` | Safe numeric sum [case: unix-map-awk-sum-5] |
+| `awk '{sum += $5}'` | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r) \|> parse_int) \|> keep_some \|> collect \|> sum` | Safe numeric sum [case: unix-map-awk-sum-5] |
 
 ---
 
@@ -72,7 +72,7 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 | Pattern       | Genia                                                                                                             | Notes             |
 | ------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------- |
-| Sum column    | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r) \|> flat_map_some(parse_int)) \|> keep_some \|> collect \|> sum` | Classic pattern [case: unix-map-pattern-sum-column]   |
+| Sum column    | 🟣 `stdin \|> lines \|> map(split_whitespace) \|> map((r) -> nth(4, r) \|> parse_int) \|> keep_some \|> collect \|> sum` | Classic pattern [case: unix-map-pattern-sum-column]   |
 | Count matches | 🟣 `stdin \|> lines \|> filter((l) -> contains(l, "error")) \|> collect \|> count`                                | Filter then count [case: unix-map-pattern-count-matches] |
 
 ---

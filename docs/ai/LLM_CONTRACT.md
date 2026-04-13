@@ -57,6 +57,8 @@ Tool-specific files may add workflow guidance, editor-specific reminders, or tas
 - Core IR or portability boundaries
 - host/runtime behavior
 
+When a protected semantic fact already has short canonical wording in the authoritative docs, prefer referencing that wording instead of restating it in tool-local instructions.
+
 ## Documentation And Example Discipline
 
 Tool-specific instruction files must reinforce the repository rule that:
@@ -75,6 +77,7 @@ When creating Codex or Copilot task prompts for repository work, include instruc
 ## Validation
 
 Repository tooling may validate tool-specific instruction files against this contract.
+Repository tooling may also validate a small machine-readable semantic-facts surface against the authoritative docs.
 
 That validation should enforce:
 

@@ -78,6 +78,7 @@ Implemented today:
   - on pushes to `main`: stage, validate, build, and deploy to GitHub Pages
 - docs validation in this phase includes:
   - strict MkDocs builds
+  - semantic doc sync tests for protected cross-doc semantic facts
   - cheatsheet validation tests
   - SICP runnable-block validation tests
   - lightweight book chapter status-marker validation
@@ -164,7 +165,7 @@ Clarifications:
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (option-like tokens are treated as malformed mode/arg combinations unless passed after `--`)
 - in file/command/pipe mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
   - command mode accepts both bare positionals (`a`) and option-like args (`--pretty`) as trailing args
-- pipe mode wraps the provided stage expression as `stdin |> lines |> <expr> |> run`
+- pipe mode wraps the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit unbound `stdin` and explicit unbound `run` are rejected in pipe mode with a clear error
 - after file/command source evaluation, runtime entrypoint convention is:
@@ -359,7 +360,7 @@ Pipeline (Phase 2) evaluation model:
   - explicit Value <-> Flow bridge
 - recovery/defaulting wraps the whole pipeline result rather than living as a later pipeline stage:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
-  - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+  - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
 - Flow remains explicit:
   - Flow values still come only from explicit bridge/stage functions such as `lines`
   - Value↔Flow conversion is not implicit
@@ -1118,7 +1119,7 @@ Pipeline note:
   - `data |> get("users") |> then_first() |> then_get("email")`
 - canonical recovery wraps the pipeline result:
   - `unwrap_or("unknown", record |> get("user") |> get("name"))`
-  - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+  - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
 - pipelines now lift ordinary stages over `some(...)`; use `map_some` / `flat_map_some` when you need explicit wrap-vs-flat-map control
 - reducers remain explicit:
   - `sum(xs)` expects a plain list of numbers
@@ -1173,7 +1174,7 @@ Compatibility note:
   - string `find`
   - `find_opt`
   - direct Option-aware pipelines such as `record |> get("user") |> get("name")`
-  - explicit chaining helpers such as `then_first`, `then_nth`, and `flat_map_some(parse_int)` when the next stage expects the inner value of `some(...)`
+  - explicit chaining helpers such as `then_first`, `then_nth`, and `flat_map_some(...)` when the next stage expects the inner value of `some(...)`
   - outer recovery with `unwrap_or(...)` / `or_else(...)`
 - new naming rule in current docs/runtime surface:
   - new `?`-suffixed APIs are boolean-returning

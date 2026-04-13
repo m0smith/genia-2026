@@ -912,7 +912,7 @@ For each incoming flow item `x`:
 ## 21) Pipe command mode invariants (runtime-only)
 
 - `-p` / `--pipe` are CLI-only runtime flags, not parser syntax
-- pipe mode wraps the provided source exactly as `stdin |> lines |> <expr> |> run`
+- pipe mode wraps the provided source exactly as `stdin |> lines |> <stage_expr> |> run`
 - the provided source must be a single stage expression
 - explicit `stdin` and explicit `run` in pipe mode are rejected with a clear error
 - ordinary `-c` command mode remains unchanged and evaluates exactly what the user wrote

@@ -1422,7 +1422,7 @@ Expected behavior:
 - Option-aware pipelines:
   - `record |> get("user") |> get("name")`
   - `data |> get("items") |> then_nth(0) |> then_get("name")`
-  - `fields(row) |> nth(5) |> flat_map_some(parse_int)`
+  - `fields(row) |> nth(5) |> parse_int`
   - recover by wrapping the whole pipeline result with `unwrap_or(...)` or `or_else(...)`
 - explicit helpers remain useful outside pipelines:
   - `map_some` and `flat_map_some` preserve structured absence unchanged

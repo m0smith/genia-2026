@@ -133,7 +133,7 @@
   },
   {
     "id": "pfv-shape-column-sum",
-    "source": "stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> flat_map_some(parse_int) |> flat_map_some(rule_emit)) |> collect |> sum",
+    "source": "stdin |> lines |> rules((r, _) -> split_whitespace(r) |> nth(4) |> parse_int |> flat_map_some(rule_emit)) |> collect |> sum",
     "stdin_data": ["a b c d 5 x\n", "1 2 3 4 6 y\n", "short\n"],
     "expected_result": "11"
   },

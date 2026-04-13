@@ -4,6 +4,7 @@ This directory is a scaffold for a future browser playground app.
 
 Current status:
 
+- Python is the only implemented host today.
 - documentation scaffold only
 - no production browser app implementation yet
 

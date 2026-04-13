@@ -30,7 +30,7 @@
   },
   {
     "id": "unix-map-awk-sum-5",
-    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r) |> flat_map_some(parse_int)) |> keep_some |> collect |> sum",
+    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r) |> parse_int) |> keep_some |> collect |> sum",
     "stdin_data": ["a b c d 5", "1 2 3 4 6", "short"],
     "expected_result": "11"
   },
@@ -48,7 +48,7 @@
   },
   {
     "id": "unix-map-pattern-sum-column",
-    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r) |> flat_map_some(parse_int)) |> keep_some |> collect |> sum",
+    "source": "stdin |> lines |> map(split_whitespace) |> map((r) -> nth(4, r) |> parse_int) |> keep_some |> collect |> sum",
     "stdin_data": ["a b c d 5", "1 2 3 4 6", "short"],
     "expected_result": "11"
   },

@@ -249,7 +249,7 @@ CLI contract summary:
     - `data |> get("items") |> then_nth(0) |> then_get("name")`
   - canonical recovery wraps the whole pipeline result:
     - `unwrap_or("unknown", record |> get("profile") |> get("name"))`
-    - `unwrap_or(0, fields(row) |> nth(5) |> flat_map_some(parse_int))`
+    - `unwrap_or(0, fields(row) |> nth(5) |> parse_int)`
   - plain stages lift over `some(...)` in pipelines:
     - `some(3) |> inc` returns `some(4)` when `inc(x) = x + 1`
   - `map_some` / `flat_map_some` unwrap only at their explicit helper boundary
@@ -270,7 +270,7 @@ CLI contract summary:
   - `restart_cell(cell, new_state)` clears failure and discards queued pre-restart updates
   - nested `cell_send` calls made during an update are committed only if that update succeeds
 - CLI pipe mode:
-  - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <expr> |> run`
+  - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit `stdin` and explicit `run` are rejected with a clear error
   - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error

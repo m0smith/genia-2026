@@ -89,7 +89,7 @@ ls -l | genia -c '
   stdin
     |> lines
     |> map(fields)
-    |> keep_some_else((row) -> row |> nth(5) |> flat_map_some(parse_int), log)
+    |> keep_some_else((row) -> row |> nth(5) |> parse_int, log)
     |> collect
     |> sum
 '
@@ -106,7 +106,7 @@ Notes:
 - line filtering: `genia -p 'filter((l) -> contains(l, "error")) |> each(print)'` (tested by case id `unix-power-grep`)
 - trim blank lines: `genia -p 'map(trim) |> filter((line) -> line != "") |> each(print)'` (covered in CLI regression tests)
 - extract a field: `genia -p 'map(split_whitespace) |> map((r) -> nth(4, r)) |> keep_some |> each(print)'` (tested by case id `unix-map-awk-print-5`)
-- parse/filter/sum: `genia -c 'stdin |> lines |> map(fields) |> keep_some_else((row) -> row |> nth(5) |> flat_map_some(parse_int), log) |> collect |> sum'` (tested by case id `unix-power-sum-5th`)
+- parse/filter/sum: `genia -c 'stdin |> lines |> map(fields) |> keep_some_else((row) -> row |> nth(5) |> parse_int, log) |> collect |> sum'` (tested by case id `unix-power-sum-5th`)
 - command/file mode with `main(argv())`: `genia -c 'main(args) = args' --pretty input.txt` and `genia script.genia --pretty input.txt` (covered by CLI regression tests)
 
 ## Common Pitfalls
@@ -114,7 +114,7 @@ Notes:
 | Pitfall | Bad | Good |
 | --- | --- | --- |
 | wrong `nth` arity | `nth(5)` | `nth(5, row)` |
-| assuming some auto-unwrap | `row |> nth(5) |> parse_int` | `row |> nth(5) |> flat_map_some(parse_int)` |
+| forcing explicit Option helpers when plain stage lifting already works | `row |> nth(5) |> flat_map_some(parse_int)` | `row |> nth(5) |> parse_int` |
 | wrong helper for dead rows | `keep_some(parse_int)` when you need dead-letter logging | `keep_some_else(parse_int, log)` |
 | summing raw Option values | `map(parse_int) |> collect |> sum` | `keep_some(parse_int) |> collect |> sum` |
 | forgetting flow sink | `stdin |> lines` | `stdin |> lines |> each(print) |> run` (or use `-p`) |
