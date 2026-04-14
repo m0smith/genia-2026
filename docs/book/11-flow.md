@@ -124,7 +124,7 @@ The helper is intentionally minimal in this phase:
 - no scheduler is introduced
 - no new syntax is introduced
 - no implicit conversion between Value and Flow is introduced
-- the reproducible ants demos use explicit `rng(seed)` state threading; they do not depend on `tick` and they do not add a simulation framework
+- the reproducible ants demos use explicit `rng(seed)` state threading inside a pure `step(world) -> world2` model; they do not depend on `tick` and they do not add a simulation framework
 
 ### Minimal example
 

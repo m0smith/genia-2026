@@ -732,7 +732,9 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 
 ## Demo note: ants simulation example
 
-- `examples/ants.genia` is the first in-repo stochastic grid simulation demo.
-- It is text-only, single-ant, recursive, finite-step, and now accepts `--seed N` / `-s N` for reproducible runs.
-- It uses builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`) with no new syntax.
-- It is not actor-based and does not provide a scheduler/event loop abstraction.
+- `examples/ants.genia` is now a deterministic pure colony simulation demo.
+- It threads an explicit world value through `step(world) -> world2`, keeps RNG state in that world, and uses seeded `rand_int(rng_state, n)` only for weighted movement choice.
+- The implemented colony behavior includes nest/home region handling, food pickup and return, pheromone deposit, pheromone evaporation, and direction-aware movement bias.
+- `examples/ants_terminal.genia` reuses the same pure simulation model with terminal rendering and CLI configuration.
+- These demos use builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`, terminal helpers) with no new syntax.
+- They are not actor-based and do not provide a scheduler/event loop abstraction.

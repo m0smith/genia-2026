@@ -1,445 +1,519 @@
-width() = """
-# width
+default_width() = 13
+default_height() = 9
+default_ant_count() = 5
+default_steps() = 18
+default_delay_ms() = 80
+default_seed() = 0
 
-Grid width used by the ants demo.
+pheromone_deposit() = 6
+pheromone_evaporation() = 1
 
-## Returns
+pair_left(pair) = ([x, _]) -> x
+pair_right(pair) = ([_, x]) -> x
 
-* grid width as number
-""" 8
-height() = """
-# height
+field(record, key, default) = unwrap_or(default, record |> get(key))
 
-Grid height used by the ants demo.
+half(n) = half_acc(n, 0)
+half_acc(n, acc) =
+  (n, acc) ? n <= 1 -> acc |
+  (n, acc) -> half_acc(n - 2, acc + 1)
 
-## Returns
+home_capacity(radius) = {
+  side = radius * 2 + 1
+  side * side
+}
 
-* grid height as number
-""" 5
+nest_radius_for(ant_total) = nest_radius_search(0, ant_total)
+nest_radius_search(radius, ant_total) =
+  (radius, ant_total) ? home_capacity(radius) >= ant_total -> radius |
+  (radius, ant_total) -> nest_radius_search(radius + 1, ant_total)
 
-empty_cell() = """
-# empty_cell
-
-Cell tag for empty space.
-
-## Returns
-
-* `"empty"`
-""" "empty"
-food_cell() = """
-# food_cell
-
-Cell tag for food.
-
-## Returns
-
-* `"food"`
-""" "food"
-ant_cell() = """
-# ant_cell
-
-Cell tag for ant position.
-
-## Returns
-
-* `"ant"`
-""" "ant"
-
-ant_start() = """
-# ant_start
-
-Return the initial ant position.
-
-## Returns
-
-* `[x, y]` starting coordinate
-
-## Examples
-
-```genia
-ant_start() -> [2, 2]
-```
-""" [2, 2]
-
-wrap(n, size) = """
-# wrap
-
-Wrap one coordinate into `[0, size)`.
-
-## Params
-
-* `n`: coordinate
-* `size`: grid dimension
-
-## Returns
-
-* wrapped coordinate
-""" (
+wrap(n, size) =
   (n, size) ? n < 0 -> size - 1 |
   (n, size) ? n >= size -> 0 |
   (n, _) -> n
+
+world_width(world) = field(world, "width", default_width())
+world_height(world) = field(world, "height", default_height())
+world_nest(world) = field(world, "nest", [0, 0])
+world_nest_radius(world) = field(world, "nest_radius", 0)
+world_rng(world) = field(world, "rng", rng(default_seed()))
+world_ants(world) = field(world, "ants", [])
+world_cells(world) = field(world, "cells", map_new())
+world_delivered(world) = field(world, "delivered", 0)
+world_tick(world) = field(world, "tick", 0)
+
+world_set(world, key, value) = map_put(world, key, value)
+set_rng(world, rng_state) = world_set(world, "rng", rng_state)
+set_ants(world, ants) = world_set(world, "ants", ants)
+set_delivered(world, delivered) = world_set(world, "delivered", delivered)
+set_tick(world, tick_value) = world_set(world, "tick", tick_value)
+
+empty_cell() = {food: 0, pheromone: 0}
+
+cell_food(cell) = field(cell, "food", 0)
+cell_pheromone(cell) = field(cell, "pheromone", 0)
+
+set_cell_food(cell, amount) = map_put(cell, "food", amount)
+set_cell_pheromone(cell, amount) = map_put(cell, "pheromone", amount)
+
+cell_at(world, pos) = unwrap_or(empty_cell(), get(pos, world_cells(world)))
+
+set_cell(world, pos, cell) = world_set(
+  world,
+  "cells",
+  map_put(world_cells(world), pos, cell)
 )
 
-pos_add(pos, delta) = """
-# pos_add
+food_at(world, pos) = cell_food(cell_at(world, pos))
+pheromone_at(world, pos) = cell_pheromone(cell_at(world, pos))
 
-Add a movement delta to a position with toroidal wrapping.
+set_food(world, pos, amount) = set_cell(
+  world,
+  pos,
+  set_cell_food(cell_at(world, pos), amount)
+)
 
-## Params
+set_pheromone(world, pos, amount) = set_cell(
+  world,
+  pos,
+  set_cell_pheromone(cell_at(world, pos), amount)
+)
 
-* `pos`: current position `[x, y]`
-* `delta`: movement `[dx, dy]`
+add_pheromone(world, pos, amount) = set_pheromone(
+  world,
+  pos,
+  pheromone_at(world, pos) + amount
+)
 
-## Returns
+take_food(world, pos) = set_food(world, pos, max(0, food_at(world, pos) - 1))
 
-* wrapped next position
-""" (
-  ([x, y], [dx, dy]) -> [
-    wrap(x + dx, width()),
-    wrap(y + dy, height())
+pos_x(pos) = ([x, _]) -> x
+pos_y(pos) = ([_, y]) -> y
+
+pos_add(world, pos, dir) =
+  (world, [x, y], [dx, dy]) -> [
+    wrap(x + dx, world_width(world)),
+    wrap(y + dy, world_height(world))
   ]
+
+world_nest_x(world) = pos_x(world_nest(world))
+world_nest_y(world) = pos_y(world_nest(world))
+
+in_nest(world, pos) =
+  (world, pos) ? abs(pos_x(pos) - world_nest_x(world)) <= world_nest_radius(world) && abs(pos_y(pos) - world_nest_y(world)) <= world_nest_radius(world) -> true |
+  (_, _) -> false
+
+distance_to_nest(world, pos) =
+  abs(pos_x(pos) - world_nest_x(world)) + abs(pos_y(pos) - world_nest_y(world))
+
+default_food_sources(width, height) = [
+  [[1, 1], 6],
+  [[width - 2, 1], 6],
+  [[1, height - 2], 6],
+  [[width - 2, height - 2], 6]
+]
+
+empty_world(seed_value, ant_total, width, height) = {
+  nest = [half(width), half(height)]
+  {
+    width: width,
+    height: height,
+    nest: nest,
+    nest_radius: nest_radius_for(ant_total),
+    ants: [],
+    cells: map_new(),
+    rng: rng(seed_value),
+    delivered: 0,
+    tick: 0
+  }
+}
+
+seed_food(world) = seed_food_specs(
+  world,
+  default_food_sources(world_width(world), world_height(world))
 )
 
-cell_get(world, pos) = """
-# cell_get
+seed_food_specs(world, specs) =
+  (world, []) -> world |
+  (world, [[pos, amount], ..rest]) -> seed_food_specs(set_food(world, pos, amount), rest)
 
-Read a world cell, defaulting to empty.
+random_dir(rng_state) = random_dir_after(rand_int(rng_state, 4))
+random_dir_after(roll) =
+  [next_rng_state, 0] -> [next_rng_state, [1, 0]] |
+  [next_rng_state, 1] -> [next_rng_state, [0, -1]] |
+  [next_rng_state, 2] -> [next_rng_state, [0, 1]] |
+  [next_rng_state, _] -> [next_rng_state, [-1, 0]]
 
-## Params
+ant(pos, dir) = ant(pos, dir, false)
+ant(pos, dir, carrying) = {
+  pos: pos,
+  dir: dir,
+  carrying: carrying
+}
 
-* `world`: persistent map world
-* `pos`: coordinate `[x, y]`
+ant_pos(a) = field(a, "pos", [0, 0])
+ant_dir(a) = field(a, "dir", [1, 0])
+ant_carrying?(a) = field(a, "carrying", false)
 
-## Returns
+set_ant_pos(a, pos) = map_put(a, "pos", pos)
+set_ant_dir(a, dir) = map_put(a, "dir", dir)
+set_ant_carrying(a, carrying) = map_put(a, "carrying", carrying)
 
-* stored cell tag or `empty_cell()`
-""" (
-  (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
-  (_, _) -> empty_cell()
+nest_positions(world) = nest_positions_y(world, world_nest_y(world) - world_nest_radius(world))
+
+nest_positions_y(world, y) =
+  (world, y) ? y > world_nest_y(world) + world_nest_radius(world) -> [] |
+  (world, y) -> [
+    ..nest_positions_x(world, y, world_nest_x(world) - world_nest_radius(world)),
+    ..nest_positions_y(world, y + 1)
+  ]
+
+nest_positions_x(world, y, x) =
+  (world, y, x) ? x > world_nest_x(world) + world_nest_radius(world) -> [] |
+  (world, y, x) -> [
+    [wrap(x, world_width(world)), wrap(y, world_height(world))],
+    ..nest_positions_x(world, y, x + 1)
+  ]
+
+seed_ants(world, ant_total) = seed_ant_dirs(
+  world_rng(world),
+  take(ant_total, nest_positions(world)),
+  []
 )
 
-cell_put(world, pos, value) = """
-# cell_put
+seed_ant_dirs(rng_state, positions, ants_rev) =
+  (rng_state, [], ants_rev) -> [rng_state, reverse(ants_rev)] |
+  (rng_state, [pos, ..rest], ants_rev) -> seed_ant_dirs_step(random_dir(rng_state), pos, rest, ants_rev)
 
-Write a cell value in the persistent world map.
-
-## Params
-
-* `world`: persistent map world
-* `pos`: coordinate
-* `value`: cell tag
-
-## Returns
-
-* new world map
-""" map_put(world, pos, value)
-
-cell_char(cell) = """
-# cell_char
-
-Render a cell tag as one printable character.
-
-## Params
-
-* `cell`: cell tag
-
-## Returns
-
-* display character
-""" (
-  "ant" -> "A" |
-  "food" -> "*" |
-  _ -> "."
-)
-
-seed_world() = """
-# seed_world
-
-Create the initial world with one ant and several food cells.
-
-## Returns
-
-* world map containing initial entities
-""" map_put(
-    map_put(
-      map_put(
-        map_put(map_new(), ant_start(), ant_cell()),
-        [0, 0],
-        food_cell()
-      ),
-      [5, 1],
-      food_cell()
-    ),
-    [7, 4],
-    food_cell()
+seed_ant_dirs_step(dir_result, pos, rest, ants_rev) =
+  ([next_rng_state, dir], pos, rest, ants_rev) -> seed_ant_dirs(
+    next_rng_state,
+    rest,
+    [ant(pos, dir), ..ants_rev]
   )
 
-move_ant(world, from, to) = """
-# move_ant
+seed_ant_list(world, ant_total) = {
+  seeded = seed_ants(world, ant_total)
+  set_ants(set_rng(world, pair_left(seeded)), pair_right(seeded))
+}
 
-Move the ant from one coordinate to another.
-
-## Params
-
-* `world`: current world map
-* `from`: source coordinate
-* `to`: destination coordinate
-
-## Returns
-
-* new world map with updated ant position
-""" cell_put(cell_put(world, from, empty_cell()), to, ant_cell())
-
-dir_from_int(n) = """
-# dir_from_int
-
-Map a random integer to one cardinal direction.
-
-## Params
-
-* `n`: integer from `0` to `3`
-
-## Returns
-
-* direction delta `[dx, dy]`
-""" (
-  0 -> [1, 0] |
-  1 -> [-1, 0] |
-  2 -> [0, 1] |
-  _ -> [0, -1]
+new_world(seed_value) = new_world(seed_value, default_ant_count(), default_width(), default_height())
+new_world(seed_value, ant_total) = new_world(seed_value, ant_total, default_width(), default_height())
+new_world(seed_value, ant_total, width, height) = seed_ant_list(
+  seed_food(empty_world(seed_value, ant_total, width, height)),
+  ant_total
 )
 
-random_dir() = """
-# random_dir
+turn_left(dir) =
+  (dir) ? dir == [1, 0] -> [0, -1] |
+  (dir) ? dir == [0, -1] -> [-1, 0] |
+  (dir) ? dir == [-1, 0] -> [0, 1] |
+  (dir) -> [1, 0]
 
-Choose one random movement direction.
+turn_right(dir) =
+  (dir) ? dir == [1, 0] -> [0, 1] |
+  (dir) ? dir == [0, 1] -> [-1, 0] |
+  (dir) ? dir == [-1, 0] -> [0, -1] |
+  (dir) -> [1, 0]
 
-## Returns
+turn_back(dir) =
+  (dir) ? dir == [1, 0] -> [-1, 0] |
+  (dir) ? dir == [-1, 0] -> [1, 0] |
+  (dir) ? dir == [0, 1] -> [0, -1] |
+  (dir) -> [0, 1]
 
-* direction delta `[dx, dy]`
-""" dir_from_int(rand_int(4))
+move_choice(kind, pos, dir) = {kind: kind, pos: pos, dir: dir}
+move_kind(move) = field(move, "kind", "stay")
+move_pos(move) = field(move, "pos", [0, 0])
+move_dir(move) = field(move, "dir", [1, 0])
 
-random_dir(rng_state) = random_dir_from_roll(rand_int(rng_state, 4))
+candidate_moves(world, ant_value) = {
+  dir = ant_dir(ant_value)
+  left = turn_left(dir)
+  right = turn_right(dir)
+  back = turn_back(dir)
+  pos = ant_pos(ant_value)
+  [
+    move_choice("forward", pos_add(world, pos, dir), dir),
+    move_choice("left", pos_add(world, pos, left), left),
+    move_choice("right", pos_add(world, pos, right), right),
+    move_choice("back", pos_add(world, pos, back), back),
+    move_choice("stay", pos, dir)
+  ]
+}
 
-random_dir_from_roll(roll) = (
-  ([next_rng_state, n]) -> [next_rng_state, dir_from_int(n)]
+occupied?(positions, pos) = any?((item) -> item == pos, positions)
+
+blocked_move?(ant_value, occupied_positions, move) =
+  (ant_value, occupied_positions, move) ? move_kind(move) == "stay" -> false |
+  (ant_value, occupied_positions, move) -> occupied?(occupied_positions, move_pos(move))
+
+base_move_score(kind) =
+  "forward" -> 5 |
+  "left" -> 3 |
+  "right" -> 3 |
+  "back" -> 1 |
+  _ -> 1
+
+food_bonus(world, move) = food_at(world, move_pos(move)) * 20
+
+pheromone_bonus(world, move) = pheromone_at(world, move_pos(move))
+
+nest_exit_bonus(world, ant_value, move) =
+  (world, ant_value, move) ? in_nest(world, ant_pos(ant_value)) == true && in_nest(world, move_pos(move)) == false -> 6 |
+  (_, _, _) -> 0
+
+nest_progress_bonus(world, ant_value, move) = {
+  current_distance = distance_to_nest(world, ant_pos(ant_value))
+  next_distance = distance_to_nest(world, move_pos(move))
+  max(0, current_distance - next_distance) * 8
+}
+
+nest_home_bonus(world, move) =
+  (world, move) ? in_nest(world, move_pos(move)) == true -> 30 |
+  (_, _) -> 0
+
+foraging_score(world, ant_value, move) = base_move_score(move_kind(move)) + food_bonus(world, move) + pheromone_bonus(world, move) + nest_exit_bonus(world, ant_value, move)
+
+return_score(world, ant_value, move) = base_move_score(move_kind(move)) + nest_progress_bonus(world, ant_value, move) + nest_home_bonus(world, move)
+
+score_move(world, ant_value, occupied_positions, move) =
+  (world, ant_value, occupied_positions, move) ? blocked_move?(ant_value, occupied_positions, move) == true -> 0 |
+  (world, ant_value, occupied_positions, move) ? ant_carrying?(ant_value) == true -> return_score(world, ant_value, move) |
+  (world, ant_value, occupied_positions, move) -> foraging_score(world, ant_value, move)
+
+weighted_candidates(world, ant_value, occupied_positions) = map(
+  (move) -> [score_move(world, ant_value, occupied_positions, move), move],
+  candidate_moves(world, ant_value)
 )
 
-step(world, ant_pos) = """
-# step
+sum_weights(weighted) =
+  ([]) -> 0 |
+  ([[weight, _], ..rest]) -> weight + sum_weights(rest)
 
-Advance the simulation by one random movement attempt.
+first_choice(weighted) =
+  ([[_, move], .._]) -> move |
+  ([]) -> move_choice("stay", [0, 0], [1, 0])
 
-## Params
-
-* `world`: current world map
-* `ant_pos`: current ant position
-
-## Returns
-
-* `[world2, ant_pos2, event]`
-""" step_with_dir(world, ant_pos, random_dir())
-
-step(rng_state, world, ant_pos) = step_with_rng_dir(world, ant_pos, random_dir(rng_state))
-
-step_with_rng_dir(world, ant_pos, dir_result) = (
-  (world, ant_pos, [next_rng_state, dir]) -> [next_rng_state, ..step_with_dir(world, ant_pos, dir)]
+pick_weighted(rng_state, weighted) = pick_weighted_total(
+  rng_state,
+  weighted,
+  sum_weights(weighted)
 )
 
-step_with_dir(world, ant_pos, dir) = """
-# step_with_dir
+pick_weighted_total(rng_state, weighted, total_weight) =
+  (rng_state, weighted, total_weight) ? total_weight <= 0 -> [rng_state, first_choice(weighted)] |
+  (rng_state, weighted, total_weight) -> pick_weighted_roll(weighted, rand_int(rng_state, total_weight))
 
-Advance one step using an explicit direction.
+pick_weighted_roll(weighted, roll_result) =
+  (weighted, [next_rng_state, roll]) -> [next_rng_state, choose_weighted(roll, weighted)]
 
-## Params
+choose_weighted(roll, weighted) =
+  (roll, [[weight, move], .._]) ? roll < weight -> move |
+  (roll, [[weight, _], ..rest]) -> choose_weighted(roll - weight, rest) |
+  (_, []) -> move_choice("stay", [0, 0], [1, 0])
 
-* `world`: current world map
-* `ant_pos`: current ant position
-* `dir`: movement delta
-
-## Returns
-
-* `[world2, ant_pos2, event]`
-""" step_target(world, ant_pos, pos_add(ant_pos, dir))
-
-step_target(world, ant_pos, target) = """
-# step_target
-
-Resolve a step against a computed target coordinate.
-
-## Params
-
-* `world`: current world map
-* `ant_pos`: current ant position
-* `target`: destination coordinate
-
-## Returns
-
-* `[world2, ant_pos2, event]`
-""" step_cell(world, ant_pos, target, cell_get(world, target))
-
-step_cell(world, ant_pos, target, target_cell) = """
-# step_cell
-
-Update world state based on the target cell contents.
-
-## Params
-
-* `world`: current world map
-* `ant_pos`: current ant position
-* `target`: destination coordinate
-* `target_cell`: cell value at destination
-
-## Returns
-
-* `[world2, ant_pos2, event]` where event is `"blocked"`, `"ate_food"`, or `"moved"`
-""" (
-  (world, ant_pos, target, "ant") -> [world, ant_pos, "blocked"] |
-  (world, ant_pos, target, "food") -> [move_ant(world, ant_pos, target), target, "ate_food"] |
-  (world, ant_pos, target, _) -> [move_ant(world, ant_pos, target), target, "moved"]
+deposit_pheromone(world, pos) = set_pheromone(
+  world,
+  pos,
+  pheromone_at(world, pos) + pheromone_deposit()
 )
 
-render_cell(world, pos) = """
-# render_cell
+deliver_food(world) = set_delivered(world, world_delivered(world) + 1)
 
-Render one world position to a character.
+apply_move(world, ant_value, move) =
+  (world, ant_value, move) ? ant_carrying?(ant_value) == true && in_nest(world, move_pos(move)) == true -> [
+    deliver_food(world),
+    set_ant_carrying(set_ant_dir(set_ant_pos(ant_value, move_pos(move)), move_dir(move)), false),
+    "delivered_food"
+  ] |
+  (world, ant_value, move) ? ant_carrying?(ant_value) == true -> [
+    deposit_pheromone(world, move_pos(move)),
+    set_ant_dir(set_ant_pos(ant_value, move_pos(move)), move_dir(move)),
+    "returning"
+  ] |
+  (world, ant_value, move) ? food_at(world, move_pos(move)) > 0 -> [
+    take_food(world, move_pos(move)),
+    set_ant_carrying(set_ant_dir(set_ant_pos(ant_value, move_pos(move)), move_dir(move)), true),
+    "picked_food"
+  ] |
+  (world, ant_value, move) -> [
+    world,
+    set_ant_dir(set_ant_pos(ant_value, move_pos(move)), move_dir(move)),
+    "moved"
+  ]
 
-## Params
+move_ant(world, ant_value, occupied_positions) = {
+  picked = pick_weighted(world_rng(world), weighted_candidates(world, ant_value, occupied_positions))
+  apply_move(set_rng(world, pair_left(picked)), ant_value, pair_right(picked))
+}
 
-* `world`: world map
-* `pos`: coordinate
+ant_positions(ants) = map(ant_pos, ants)
 
-## Returns
+step_ants(world) = step_ants_acc(world, [], world_ants(world))
 
-* display character for that cell
-""" (
-  (world, [x, y]) -> cell_char(cell_get(world, [x, y]))
+step_ants_acc(world, moved_rev, remaining) =
+  (world, moved_rev, []) -> set_ants(world, reverse(moved_rev)) |
+  (world, moved_rev, [ant_value, ..rest]) -> step_ants_next(
+    move_ant(world, ant_value, append(ant_positions(moved_rev), ant_positions(rest))),
+    moved_rev,
+    rest
+  )
+
+step_ants_next(step_result, moved_rev, rest) =
+  ([world2, ant2, _], moved_rev, rest) -> step_ants_acc(world2, [ant2, ..moved_rev], rest)
+
+evaporate(world) = evaporate_y(world, 0)
+
+evaporate_y(world, y) =
+  (world, y) ? y >= world_height(world) -> world |
+  (world, y) -> evaporate_y(evaporate_x(world, y, 0), y + 1)
+
+evaporate_x(world, y, x) =
+  (world, y, x) ? x >= world_width(world) -> world |
+  (world, y, x) -> evaporate_x(
+    set_pheromone(
+      world,
+      [x, y],
+      max(0, pheromone_at(world, [x, y]) - pheromone_evaporation())
+    ),
+    y,
+    x + 1
+  )
+
+step(world) = {
+  advanced = step_ants(evaporate(world))
+  set_tick(advanced, world_tick(advanced) + 1)
+}
+
+first_ant(world) = unwrap_or(ant([0, 0], [1, 0], false), first(world_ants(world)))
+
+food_entries(world) = reverse(food_entries_y(world, 0, []))
+
+food_entries_y(world, y, acc) =
+  (world, y, acc) ? y >= world_height(world) -> acc |
+  (world, y, acc) -> food_entries_y(world, y + 1, food_entries_x(world, y, 0, acc))
+
+food_entries_x(world, y, x, acc) =
+  (world, y, x, acc) ? x >= world_width(world) -> acc |
+  (world, y, x, acc) ? food_at(world, [x, y]) > 0 -> food_entries_x(
+    world,
+    y,
+    x + 1,
+    [[[x, y], food_at(world, [x, y])], ..acc]
+  ) |
+  (world, y, x, acc) -> food_entries_x(world, y, x + 1, acc)
+
+pheromone_entries(world) = reverse(pheromone_entries_y(world, 0, []))
+
+pheromone_entries_y(world, y, acc) =
+  (world, y, acc) ? y >= world_height(world) -> acc |
+  (world, y, acc) -> pheromone_entries_y(world, y + 1, pheromone_entries_x(world, y, 0, acc))
+
+pheromone_entries_x(world, y, x, acc) =
+  (world, y, x, acc) ? x >= world_width(world) -> acc |
+  (world, y, x, acc) ? pheromone_at(world, [x, y]) > 0 -> pheromone_entries_x(
+    world,
+    y,
+    x + 1,
+    [[[x, y], pheromone_at(world, [x, y])], ..acc]
+  ) |
+  (world, y, x, acc) -> pheromone_entries_x(world, y, x + 1, acc)
+
+sum_entry_amounts(entries, acc) =
+  ([], acc) -> acc |
+  ([[_, amount], ..rest], acc) -> sum_entry_amounts(rest, acc + amount)
+
+total_food(world) = sum_entry_amounts(food_entries(world), 0)
+
+ant_view(ant_value) = [ant_pos(ant_value), ant_dir(ant_value), ant_carrying?(ant_value)]
+weighted_view_entry(weighted_entry) =
+  [weight, move] -> [move_kind(move), move_pos(move), weight]
+
+world_signature(world) = [
+  world_tick(world),
+  world_delivered(world),
+  map(ant_view, world_ants(world)),
+  food_entries(world),
+  pheromone_entries(world)
+]
+
+weighted_move_view(world, ant_value, occupied_positions) = map(
+  weighted_view_entry,
+  weighted_candidates(world, ant_value, occupied_positions)
 )
 
-render_row(world, y, x) = """
-# render_row
-
-Render one row recursively from column `x` to row end.
-
-## Params
-
-* `world`: world map
-* `y`: row index
-* `x`: column index
-
-## Returns
-
-* string for one row
-""" (
-  (world, y, x) ? x >= width() -> "" |
-  (world, y, x) -> render_cell(world, [x, y]) + render_row(world, y, x + 1)
+collect_signatures(seed_value, steps_left) = collect_world_signatures(
+  new_world(seed_value),
+  steps_left,
+  []
 )
 
-render_rows(world, y) = """
-# render_rows
+collect_signatures(seed_value, ant_total, steps_left) = collect_world_signatures(
+  new_world(seed_value, ant_total),
+  steps_left,
+  []
+)
 
-Print rows from index `y` to the bottom of the grid.
+collect_world_signatures(world, steps_left, signatures_rev) =
+  (world, steps_left, signatures_rev) ? steps_left <= 0 -> reverse([world_signature(world), ..signatures_rev]) |
+  (world, steps_left, signatures_rev) -> collect_world_signatures(
+    step(world),
+    steps_left - 1,
+    [world_signature(world), ..signatures_rev]
+  )
 
-## Params
+ant_at_pos(ants, pos) = find_opt((ant_value) -> ant_pos(ant_value) == pos, ants)
 
-* `world`: world map
-* `y`: starting row index
+cell_char(world, pos) = cell_char_ant(ant_at_pos(world_ants(world), pos), world, pos)
 
-## Returns
+cell_char_ant(opt_ant, world, pos) =
+  (some(ant_value), _, _) ? ant_carrying?(ant_value) == true -> "H" |
+  (some(_), _, _) -> "a" |
+  (none(_), world, pos) ? in_nest(world, pos) == true -> "N" |
+  (none(_), world, pos) ? food_at(world, pos) > 0 -> "*" |
+  (none(_), world, pos) ? pheromone_at(world, pos) >= pheromone_deposit() -> "+" |
+  (none(_), world, pos) ? pheromone_at(world, pos) > 0 -> ":" |
+  (_, _, _) -> "."
 
-* `nil` after printing all rows
-""" (
-  (world, y) ? y >= height() -> nil |
-  (world, y) -> {
-    print(render_row(world, y, 0))
-    render_rows(world, y + 1)
+render_row(world, y, x) =
+  (world, y, x) ? x >= world_width(world) -> "" |
+  (world, y, x) -> cell_char(world, [x, y]) + render_row(world, y, x + 1)
+
+render_rows(world) = render_rows_y(world, 0)
+render_rows_y(world, y) =
+  (world, y) ? y >= world_height(world) -> [] |
+  (world, y) -> [render_row(world, y, 0), ..render_rows_y(world, y + 1)]
+
+print_rows(rows) =
+  ([]) -> none |
+  ([row, ..rest]) -> {
+    print(row)
+    print_rows(rest)
   }
-)
 
-render(world) = """
-# render
+draw_frame(world, steps_left) = {
+  print(["tick", world_tick(world), "delivered", world_delivered(world), "food_left", total_food(world), "steps_left", steps_left])
+  print_rows(render_rows(world))
+}
 
-Print the full world grid.
-
-## Params
-
-* `world`: world map
-
-## Returns
-
-* `nil` after rendering rows
-""" render_rows(world, 0)
-
-simulate_after_step(step_result, steps_left, delay_ms) = """
-# simulate_after_step
-
-Handle one computed step result, then recurse.
-
-## Params
-
-* `step_result`: `[world2, ant2, event]`
-* `steps_left`: remaining steps
-* `delay_ms`: frame delay in milliseconds
-
-## Returns
-
-* recursive result from `simulate`
-""" (
-  ([world2, ant2, event], steps_left, delay_ms) -> {
-    print(event)
-    sleep(delay_ms)
-    simulate(world2, ant2, steps_left - 1, delay_ms)
-  } |
-  ([next_rng_state, world2, ant2, event], steps_left, delay_ms) -> {
-    print(event)
-    sleep(delay_ms)
-    simulate(next_rng_state, world2, ant2, steps_left - 1, delay_ms)
-  }
-)
-
-simulate(world, ant_pos, steps_left, delay_ms) = """
-# simulate
-
-Execute the simulation for a fixed number of steps.
-
-## Params
-
-* `world`: current world map
-* `ant_pos`: current ant position
-* `steps_left`: remaining step count
-* `delay_ms`: frame delay in milliseconds
-
-## Returns
-
-* `"done"` when steps are exhausted
-""" (
-  (_, _, steps_left, _) ? steps_left <= 0 -> "done" |
-  (world, ant_pos, steps_left, delay_ms) -> {
+simulate(world, steps_left, delay_ms) =
+  (_, steps_left, _) ? steps_left <= 0 -> "done" |
+  (world, steps_left, delay_ms) -> {
     print("-----")
-    render(world)
-    simulate_after_step(step(world, ant_pos), steps_left, delay_ms)
+    draw_frame(world, steps_left)
+    sleep(delay_ms)
+    simulate(step(world), steps_left - 1, delay_ms)
   }
-)
-
-simulate(rng_state, world, ant_pos, steps_left, delay_ms) = (
-  (_, _, _, steps_left, _) ? steps_left <= 0 -> "done" |
-  (rng_state, world, ant_pos, steps_left, delay_ms) -> {
-    print("-----")
-    render(world)
-    simulate_after_step(step(rng_state, world, ant_pos), steps_left, delay_ms)
-  }
-)
-
-default_seed() = 0
 
 seed_from_parsed(parsed) = (
   ([opts, _]) -> normalize_seed(unwrap_or(default_seed(), parse_int(cli_option_or(opts, "seed", "0"))))
 )
 
-normalize_seed(seed_value) = (
+normalize_seed(seed_value) =
   (seed_value) ? seed_value >= 0 -> seed_value |
   (_) -> default_seed()
-)
 
 seed_arg(args) = seed_from_parsed(
   cli_parse(args, {
@@ -448,49 +522,5 @@ seed_arg(args) = seed_from_parsed(
   })
 )
 
-event_step(event_result) = (
-  ([_, _, _, event]) -> event
-)
-
-position_step(position_result) = (
-  ([_, _, ant_pos2, _]) -> ant_pos2
-)
-
-collect_events(seed_value, steps_left) = collect_events_rng(
-  rng(seed_value),
-  seed_world(),
-  ant_start(),
-  steps_left,
-  []
-)
-
-collect_events_rng(rng_state, world, ant_pos, steps_left, events_rev) = (
-  (_, _, _, steps_left, events_rev) ? steps_left <= 0 -> reverse(events_rev) |
-  (rng_state, world, ant_pos, steps_left, events_rev) -> collect_events_step(
-    step(rng_state, world, ant_pos),
-    steps_left,
-    events_rev
-  )
-)
-
-collect_events_step(step_result, steps_left, events_rev) = (
-  ([next_rng_state, world2, ant_pos2, event], steps_left, events_rev) -> collect_events_rng(
-    next_rng_state,
-    world2,
-    ant_pos2,
-    steps_left - 1,
-    [[ant_pos2, event], ..events_rev]
-  )
-)
-
 main() = main([])
-
-main(args) = """
-# main
-
-Run the ants simulation example with optional `--seed N` / `-s N`.
-
-## Returns
-
-* final `simulate` result
-""" simulate(rng(seed_arg(args)), seed_world(), ant_start(), 12, 80)
+main(args) = simulate(new_world(seed_arg(args)), default_steps(), default_delay_ms())

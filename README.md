@@ -218,7 +218,7 @@ The demo serves:
 - `GET /health` -> plain-text `ok`
 - `GET /info` -> JSON service metadata
 
-Both ants demos now accept an explicit seed for reproducible runs. `examples/ants_terminal.genia` uses the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop.
+Both ants demos now accept an explicit seed for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` reuses that same pure model with the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop or actor/scheduler system.
 
 ## Build a Game in Genia
 

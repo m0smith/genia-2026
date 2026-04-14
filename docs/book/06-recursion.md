@@ -30,7 +30,7 @@ Expected behavior:
 
 - `reduce`, `any?`, `nth`, `take`, `drop`, and `range` in `src/genia/std/prelude/list.genia`
 - main loop in `examples/tic-tac-toe.genia` (`play` / `playTurn`)
-- simulation stepping loop in `examples/ants.genia` (`run`)
+- simulation stepping/collection loops in `examples/ants.genia` (`step`, `step_ants_acc`, `collect_world_signatures`)
 
 ## Tail calls
 

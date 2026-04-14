@@ -1201,21 +1201,20 @@ These demos intentionally use only currently implemented builtins and syntax:
 ### Minimal example (from the demo)
 
 ```genia
-cell_get(world, pos) =
-  (world, pos) ? map_has?(world, pos) -> map_get(world, pos) |
-  (_, _) -> "empty"
+cell_at(world, pos) = unwrap_or({food: 0, pheromone: 0}, get(pos, world_cells(world)))
 
-step_cell(world, ant_pos, target, target_cell) =
-  (world, ant_pos, target, "ant") -> [world, ant_pos, "blocked"] |
-  (world, ant_pos, target, "food") -> [move_ant(world, ant_pos, target), target, "ate_food"] |
-  (world, ant_pos, target, _) -> [move_ant(world, ant_pos, target), target, "moved"]
+step(world) = {
+  advanced = step_ants(evaporate(world))
+  set_tick(advanced, world_tick(advanced) + 1)
+}
 ```
 
 This shows the central simulation shape:
 
-- world is a persistent map keyed by `[x, y]`
-- missing cell defaults to `"empty"`
-- each step returns `[next_world, next_ant_pos, event]`
+- world is an ordinary persistent map value
+- cells carry food and pheromone data
+- ants are ordinary values stored in the world
+- the simulation advances by explicit value transformation (`step(world) -> world2`)
 
 ### Edge case example
 
@@ -1233,13 +1232,12 @@ Expected behavior (demo grid wrapping):
 
 ### Failure / limitation notes
 
-- The demo is text-mode only (no graphics).
-- `examples/ants.genia` is single-ant only.
-- `examples/ants_terminal.genia` supports multiple ants but is still blocking and CLI-driven.
+- The demos are text-mode only (no graphics).
 - Simulation timing is blocking (`sleep`) and host-dependent.
+- The terminal variant is still blocking and CLI-driven.
 - The terminal variant uses ANSI terminal helpers; it is not currently driven by `stdin_keys`.
 - Native map syntax is available for authoring state (`{}`, `{ key: value }`, map patterns like `{name}`).
-- There is still no scheduler/event loop or language-level simulation framework.
+- There is still no scheduler/event loop, actor runtime, or language-level simulation framework.
 
 ### Implementation status for the ants demo
 
@@ -1247,25 +1245,27 @@ Expected behavior (demo grid wrapping):
 
 - runnable finite-step simulation in `examples/ants.genia`
 - terminal-rendered multi-ant demo in `examples/ants_terminal.genia`
-- random movement + wrapped grid movement
-- persistent map-based world updates
-- default-empty cell lookup via helper function
-- occupancy blocking and food consumption through world-state updates
+- persistent map/list-based world updates
+- explicit seeded RNG state threaded through the world
+- wrapped grid movement
+- nest/home region tracking
+- food pickup and return-to-nest delivery
+- pheromone deposit and evaporation
+- direction-aware weighted movement
 - recursive step loop with `sleep` timing
 - terminal helper rendering via `clear_screen`, `move_cursor`, and `render_grid`
 
 ### ⚠️ Partial
 
-- the minimal demo remains single-ant first
 - the terminal demo is still blocking and non-interactive
-- randomness is non-deterministic host RNG (no seed API)
 - rendering is plain ASCII / terminal text
+- weighted movement is intentionally local and heuristic, not pathfinding
 
 ### ❌ Not implemented
 
 - actor/scheduler-based simulation runtime
 - native language abstractions for cells, ticks, or worlds
-- native map syntax for simulation state authoring
+- pathfinding or learned colony rules
 
 ---
 

@@ -1384,26 +1384,35 @@ Core IR shape currently includes:
 ## 11) Example demos shipped in-repo
 
 - `examples/tic-tac-toe.genia`: interactive text game example
-- `examples/ants.genia`: first minimal ants-style stochastic grid simulation demo, now with optional CLI seed for reproducible runs
-- `examples/ants_terminal.genia`: terminal-rendered ants demo with CLI-configurable ant count and optional CLI seed
+- `examples/ants.genia`: pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
+- `examples/ants_terminal.genia`: terminal-rendered wrapper over the same colony simulation with CLI-configurable ant count and optional CLI seed
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
-- public prelude-backed map helpers over the host-backed map runtime for persistent world updates
-- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible movement choice
-- `rand_int(n)` remains available as a convenience surface, but the demo now uses the explicit seeded path
-- recursion for stepping
+- ordinary persistent maps/lists for explicit world, cell, and ant state
+- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible weighted movement choice
+- world-owned RNG threading through `step(world) -> world2`
+- recursive stepping over ants and simulation ticks
 - `sleep` for blocking frame delay
 - text rendering via `print`
 
-It is intentionally minimal and single-ant first. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce new language syntax.
+Implemented colony behavior in this phase:
+
+- nest/home region tracking
+- food pickup with decremented food quantity
+- return-to-nest delivery with delivered-food counting
+- pheromone deposit on return paths
+- pheromone evaporation each tick
+- direction-aware candidate moves with weighted seeded choice
+
+It is intentionally pure and explicit. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce hidden mutable runtime state or new language syntax.
 
 `examples/ants_terminal.genia` intentionally stays within the same current runtime surface:
 
-- persistent map-based world state with ant occupancy stored in the world map
-- sequential multi-ant stepping with the same movement/blocking/food-consumption semantics as the tested ants core helpers
+- imports and renders the same pure colony simulation helpers from `examples/ants.genia`
+- sequential multi-ant stepping with the same nest/food/pheromone/weighted-movement semantics as the tested ants helpers
 - terminal rendering via `clear_screen()`, `move_cursor(x, y)`, and `render_grid(grid)`
 - CLI configuration via `main(argv())` plus `cli_parse`
-- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible seeding and movement
+- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible setup and movement
 
 It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, and does **not** add new language/runtime features.
