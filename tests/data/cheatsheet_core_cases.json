@@ -35,6 +35,11 @@
     "expected_result": "[1, 2, 3, 4]"
   },
   {
+    "id": "core-min-seeded-rand-int",
+    "source": "pair_left(pair) = ([x, _]) -> x\npair_right(pair) = ([_, x]) -> x\n\nr0 = rng(7)\ns1 = rand_int(r0, 10)\nr1 = pair_left(s1)\nv1 = pair_right(s1)\ns2 = rand_int(r1, 10)\n[v1, pair_right(s2)]",
+    "expected_result": "[8, 7]"
+  },
+  {
     "id": "core-min-annotation-doc",
     "source": "@doc \"Adds one to x.\"\ninc(x) -> x + 1\ndoc(\"inc\")",
     "expected_result": "\"Adds one to x.\""

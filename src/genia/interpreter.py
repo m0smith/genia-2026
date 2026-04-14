@@ -3425,6 +3425,9 @@ def _normalize_nil(value: Any) -> Any:
 
 
 OPTION_NONE = make_none("nil")
+_RNG_MODULUS = 2**32
+_RNG_MULTIPLIER = 1664525
+_RNG_INCREMENT = 1013904223
 
 
 @dataclass(frozen=True)
@@ -3433,6 +3436,14 @@ class GeniaOptionSome:
 
     def __repr__(self) -> str:
         return f"some({self.value!r})"
+
+
+@dataclass(frozen=True)
+class GeniaRng:
+    state: int
+
+    def __repr__(self) -> str:
+        return "<rng>"
 
 
 @dataclass(frozen=True)
@@ -4972,6 +4983,8 @@ def _runtime_type_name(value: Any) -> str:
         return "map"
     if isinstance(value, GeniaFlow):
         return "flow"
+    if isinstance(value, GeniaRng):
+        return "rng"
     if isinstance(value, GeniaRef):
         return "ref"
     if isinstance(value, GeniaProcess):
@@ -6186,6 +6199,7 @@ def make_global_env(
                     "then_get",
                 ),
             ),
+            ("Randomness", ("std/prelude/random.genia",), ("rng", "rand", "rand_int")),
             (
                 "JSON",
                 ("std/prelude/json.genia",),
@@ -6826,12 +6840,42 @@ def make_global_env(
             raise TypeError(f"rand expected 0 args, got {len(args)}")
         return random.random()
 
-    def rand_int_fn(n: Any) -> int:
+    def rng_fn(seed: Any) -> GeniaRng:
+        if not isinstance(seed, int) or isinstance(seed, bool):
+            raise TypeError("rng expected an integer seed")
+        if seed < 0:
+            raise ValueError("rng expected seed >= 0")
+        return GeniaRng(seed % _RNG_MODULUS)
+
+    def _ensure_rng(value: Any, name: str) -> GeniaRng:
+        if not isinstance(value, GeniaRng):
+            raise TypeError(f"{name} expected an rng state")
+        return value
+
+    def _ensure_rand_int_bound(n: Any) -> int:
         if not isinstance(n, int) or isinstance(n, bool):
             raise TypeError("rand_int expected a positive integer")
         if n <= 0:
             raise ValueError("rand_int expected n > 0")
-        return random.randrange(n)
+        return n
+
+    def _rng_next_state(state: int) -> int:
+        return (_RNG_MULTIPLIER * state + _RNG_INCREMENT) % _RNG_MODULUS
+
+    def seeded_rand_fn(rng_value: Any) -> list[Any]:
+        rng_state = _ensure_rng(rng_value, "rand")
+        next_state = _rng_next_state(rng_state.state)
+        return [GeniaRng(next_state), next_state / _RNG_MODULUS]
+
+    def rand_int_fn(n: Any) -> int:
+        upper = _ensure_rand_int_bound(n)
+        return random.randrange(upper)
+
+    def seeded_rand_int_fn(rng_value: Any, n: Any) -> list[Any]:
+        rng_state = _ensure_rng(rng_value, "rand_int")
+        upper = _ensure_rand_int_bound(n)
+        next_state = _rng_next_state(rng_state.state)
+        return [GeniaRng(next_state), next_state % upper]
 
     def sleep_fn(ms: Any) -> None:
         if not isinstance(ms, (int, float)) or isinstance(ms, bool):
@@ -7383,8 +7427,11 @@ def make_global_env(
     env.set("_map_has?", map_has_fn)
     env.set("_map_remove", map_remove_fn)
     env.set("_map_count", map_count_fn)
-    env.set("rand", rand_fn)
-    env.set("rand_int", rand_int_fn)
+    env.set("_rng", rng_fn)
+    env.set("_rand", rand_fn)
+    env.set("_rand_seeded", seeded_rand_fn)
+    env.set("_rand_int", rand_int_fn)
+    env.set("_rand_int_seeded", seeded_rand_int_fn)
     env.set("sleep", sleep_fn)
     env.set("_byte_length", byte_length_fn)
     env.set("_is_empty", is_empty_fn)
@@ -7492,6 +7539,11 @@ def make_global_env(
     env.register_autoload("map_has?", 2, "std/prelude/map.genia")
     env.register_autoload("map_remove", 2, "std/prelude/map.genia")
     env.register_autoload("map_count", 1, "std/prelude/map.genia")
+    env.register_autoload("rng", 1, "std/prelude/random.genia")
+    env.register_autoload("rand", 0, "std/prelude/random.genia")
+    env.register_autoload("rand", 1, "std/prelude/random.genia")
+    env.register_autoload("rand_int", 1, "std/prelude/random.genia")
+    env.register_autoload("rand_int", 2, "std/prelude/random.genia")
     env.register_autoload("ref", 0, "std/prelude/ref.genia")
     env.register_autoload("ref", 1, "std/prelude/ref.genia")
     env.register_autoload("ref_get", 1, "std/prelude/ref.genia")

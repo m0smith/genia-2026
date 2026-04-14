@@ -1,0 +1,29 @@
+@doc """Create an explicit deterministic RNG state from `seed`.
+
+Use this when you want reproducible random sequences in tests or demos.
+"""
+rng(seed) = _rng(seed)
+
+@doc """Return a convenience host-backed random float in `[0, 1)`.
+
+Use `rand(rng_state)` when you need reproducible seeded randomness.
+"""
+rand() = _rand()
+
+@doc """Advance an explicit RNG state and return `[next_rng_state, float]`.
+
+The float is deterministic for a given seed and is always in `[0, 1)`.
+"""
+rand(rng_state) = _rand_seeded(rng_state)
+
+@doc """Return a convenience host-backed random integer in `[0, n)`.
+
+Use `rand_int(rng_state, n)` when you need reproducible seeded randomness.
+"""
+rand_int(n) = _rand_int(n)
+
+@doc """Advance an explicit RNG state and return `[next_rng_state, int]`.
+
+The integer is deterministic for a given seed and is always in `[0, n)`.
+"""
+rand_int(rng_state, n) = _rand_int_seeded(rng_state, n)

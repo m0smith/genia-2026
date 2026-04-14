@@ -99,3 +99,15 @@ def test_terminal_draw_frame_uses_terminal_helpers_and_world_rendering():
         "....\n"
         "...."
     )
+
+
+def test_terminal_ants_collect_positions_is_seeded_and_reproducible():
+    result = run_terminal_demo("collect_positions(7, 3, 4)")
+
+    assert result == [
+        [[18, 17], [16, 11], [14, 9]],
+        [[19, 17], [16, 10], [14, 10]],
+        [[18, 17], [17, 10], [14, 9]],
+        [[18, 18], [16, 10], [15, 9]],
+        [[18, 17], [16, 11], [14, 9]],
+    ]

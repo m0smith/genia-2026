@@ -219,6 +219,12 @@ Choose one random movement direction.
 * direction delta `[dx, dy]`
 """ dir_from_int(rand_int(4))
 
+random_dir(rng_state) = random_dir_from_roll(rand_int(rng_state, 4))
+
+random_dir_from_roll(roll) = (
+  ([next_rng_state, n]) -> [next_rng_state, dir_from_int(n)]
+)
+
 step(world, ant_pos) = """
 # step
 
@@ -233,6 +239,12 @@ Advance the simulation by one random movement attempt.
 
 * `[world2, ant_pos2, event]`
 """ step_with_dir(world, ant_pos, random_dir())
+
+step(rng_state, world, ant_pos) = step_with_rng_dir(world, ant_pos, random_dir(rng_state))
+
+step_with_rng_dir(world, ant_pos, dir_result) = (
+  (world, ant_pos, [next_rng_state, dir]) -> [next_rng_state, ..step_with_dir(world, ant_pos, dir)]
+)
 
 step_with_dir(world, ant_pos, dir) = """
 # step_with_dir
@@ -377,6 +389,11 @@ Handle one computed step result, then recurse.
     print(event)
     sleep(delay_ms)
     simulate(world2, ant2, steps_left - 1, delay_ms)
+  } |
+  ([next_rng_state, world2, ant2, event], steps_left, delay_ms) -> {
+    print(event)
+    sleep(delay_ms)
+    simulate(next_rng_state, world2, ant2, steps_left - 1, delay_ms)
   }
 )
 
@@ -404,18 +421,76 @@ Execute the simulation for a fixed number of steps.
   }
 )
 
-main() = """
+simulate(rng_state, world, ant_pos, steps_left, delay_ms) = (
+  (_, _, _, steps_left, _) ? steps_left <= 0 -> "done" |
+  (rng_state, world, ant_pos, steps_left, delay_ms) -> {
+    print("-----")
+    render(world)
+    simulate_after_step(step(rng_state, world, ant_pos), steps_left, delay_ms)
+  }
+)
+
+default_seed() = 0
+
+seed_from_parsed(parsed) = (
+  ([opts, _]) -> normalize_seed(unwrap_or(default_seed(), parse_int(cli_option_or(opts, "seed", "0"))))
+)
+
+normalize_seed(seed_value) = (
+  (seed_value) ? seed_value >= 0 -> seed_value |
+  (_) -> default_seed()
+)
+
+seed_arg(args) = seed_from_parsed(
+  cli_parse(args, {
+    options: ["seed"],
+    aliases: {s: "seed"}
+  })
+)
+
+event_step(event_result) = (
+  ([_, _, _, event]) -> event
+)
+
+position_step(position_result) = (
+  ([_, _, ant_pos2, _]) -> ant_pos2
+)
+
+collect_events(seed_value, steps_left) = collect_events_rng(
+  rng(seed_value),
+  seed_world(),
+  ant_start(),
+  steps_left,
+  []
+)
+
+collect_events_rng(rng_state, world, ant_pos, steps_left, events_rev) = (
+  (_, _, _, steps_left, events_rev) ? steps_left <= 0 -> reverse(events_rev) |
+  (rng_state, world, ant_pos, steps_left, events_rev) -> collect_events_step(
+    step(rng_state, world, ant_pos),
+    steps_left,
+    events_rev
+  )
+)
+
+collect_events_step(step_result, steps_left, events_rev) = (
+  ([next_rng_state, world2, ant_pos2, event], steps_left, events_rev) -> collect_events_rng(
+    next_rng_state,
+    world2,
+    ant_pos2,
+    steps_left - 1,
+    [[ant_pos2, event], ..events_rev]
+  )
+)
+
+main() = main([])
+
+main(args) = """
 # main
 
-Run the ants simulation example.
+Run the ants simulation example with optional `--seed N` / `-s N`.
 
 ## Returns
 
 * final `simulate` result
-
-## Examples
-
-```genia
-main()
-```
-""" simulate(seed_world(), ant_start(), 12, 80)
+""" simulate(rng(seed_arg(args)), seed_world(), ant_start(), 12, 80)

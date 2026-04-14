@@ -13,7 +13,7 @@ This repository currently provides:
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`)
-- simulation primitives (`rand`, `rand_int`, `sleep`)
+- simulation primitives (`rng`, `rand`, `rand_int`, `sleep`)
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`)
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
@@ -203,8 +203,8 @@ genia script.genia --pretty input.txt
 Run the ants demos:
 
 ```bash
-python3 -m genia.interpreter examples/ants.genia
-python3 -m genia.interpreter examples/ants_terminal.genia --ants 10
+python3 -m genia.interpreter examples/ants.genia --seed 7
+python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --seed 7
 ```
 
 Run the HTTP service demo:
@@ -218,7 +218,7 @@ The demo serves:
 - `GET /health` -> plain-text `ok`
 - `GET /info` -> JSON service metadata
 
-`examples/ants_terminal.genia` uses the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop.
+Both ants demos now accept an explicit seed for reproducible runs. `examples/ants_terminal.genia` uses the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop.
 
 ## Build a Game in Genia
 
@@ -881,8 +881,11 @@ Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/archi
 
 ### Simulation primitives (Phase 2)
 
-- `rand()` returns a float in `[0, 1)`
-- `rand_int(n)` returns an integer in `[0, n)` for positive integer `n`
+- `rng(seed)` returns an explicit deterministic RNG state
+- `rand()` returns a convenience host-RNG float in `[0, 1)`
+- `rand(rng_state)` returns `[next_rng_state, float]`
+- `rand_int(n)` returns a convenience host-RNG integer in `[0, n)` for positive integer `n`
+- `rand_int(rng_state, n)` returns `[next_rng_state, int]` deterministically in `[0, n)`
 - `sleep(ms)` blocks for `ms` milliseconds
 - intentionally simple: no scheduler, no async/await, no event loop
 

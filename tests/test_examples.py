@@ -74,3 +74,17 @@ def test_ants_terminal_demo_parses_configurable_ant_count():
 
     env = make_global_env()
     assert run_source(source + "\ngrid_size(25)", env, filename=str(source_path.resolve())) == 25
+
+
+def test_ants_terminal_demo_parses_seed_option():
+    source_path = Path("examples/ants_terminal.genia")
+    source = source_path.read_text(encoding="utf-8")
+
+    env = make_global_env()
+    assert run_source(source + '\nseed_arg(["--seed", "7"])', env, filename=str(source_path.resolve())) == 7
+
+    env = make_global_env()
+    assert run_source(source + '\nseed_arg(["-s", "5"])', env, filename=str(source_path.resolve())) == 5
+
+    env = make_global_env()
+    assert run_source(source + '\nseed_arg(["--seed", "oops"])', env, filename=str(source_path.resolve())) == 0

@@ -74,3 +74,24 @@ def test_ants_step_target_result_shape_and_event(run):
     assert len(result) == 3
     assert result[1] == [3, 2]
     assert result[2] == "moved"
+
+
+def test_ants_example_collect_events_is_seeded_and_reproducible():
+    from pathlib import Path
+
+    from genia import make_global_env, run_source
+
+    source_path = Path("examples/ants.genia")
+    source = source_path.read_text(encoding="utf-8")
+    env = make_global_env()
+
+    result = run_source(source + "\ncollect_events(7, 6)", env, filename=str(source_path.resolve()))
+
+    assert result == [
+        [[2, 3], "moved"],
+        [[1, 3], "moved"],
+        [[2, 3], "moved"],
+        [[2, 2], "moved"],
+        [[2, 3], "moved"],
+        [[1, 3], "moved"],
+    ]

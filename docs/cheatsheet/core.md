@@ -83,6 +83,20 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | split / join | `split(s, sep)`, `split_whitespace(s)`, `join(sep, xs)` |
 | option-returning | `find(s, needle)`, `parse_int(text)`, `parse_int(text, base)` |
 
+## Randomness
+
+| Helper | Shape |
+| --- | --- |
+| explicit seeded state | `rng(seed)` |
+| convenience float | `rand()` |
+| seeded float | `rand(rng_state)` |
+| convenience int | `rand_int(n)` |
+| seeded int | `rand_int(rng_state, n)` |
+| delay | `sleep(ms)` |
+
+Use `rng(seed)` plus the seeded overloads when you need reproducible tests or demos.
+Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fine.
+
 ## Flow (Runtime Value Family)
 
 | Helper | Shape |
@@ -218,4 +232,17 @@ fields("a b c d 5 x") |> nth(5) |> parse_int |> unwrap_or(0)
 [case: core-min-flow-tick]
 ```genia
 tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
+```
+
+[case: core-min-seeded-rand-int]
+```genia
+pair_left(pair) = ([x, _]) -> x
+pair_right(pair) = ([_, x]) -> x
+
+r0 = rng(7)
+s1 = rand_int(r0, 10)
+r1 = pair_left(s1)
+v1 = pair_right(s1)
+s2 = rand_int(r1, 10)
+[v1, pair_right(s2)]
 ```

@@ -10,6 +10,7 @@
 #   genia examples/ants_terminal.genia
 #   genia examples/ants_terminal.genia --ants 12
 #   genia examples/ants_terminal.genia -a 20
+#   genia examples/ants_terminal.genia --ants 12 --seed 7
 #
 # Features demonstrated:
 #   * tail-recursive accumulators (`seed_ants_acc`, `step_ants_acc`)
@@ -18,7 +19,7 @@
 #   * mutable-free world model via persistent maps
 #   * CLI argument parsing (`cli_parse`, `cli_option_or`, `cli_flag?`)
 #   * terminal control (`clear_screen`, `move_cursor`, `sleep`)
-#   * random numbers (`rand_int`)
+#   * convenience random numbers (`rand_int`) and explicit seeded randomness (`rng`, `rand_int(rng, n)`)
 # --------------------------------------------------------------------------
 
 # -- Grid configuration ----------------------------------------------------
@@ -34,6 +35,7 @@ width(size) = size
 height(size) = size
 
 default_ant_count() = 6
+default_seed() = 0
 
 # -- Cell tags -------------------------------------------------------------
 
@@ -91,11 +93,23 @@ seed_world() = map_put(
 
 random_pos(size) = [rand_int(width(size)), rand_int(height(size))]
 
+random_pos(rng_state, size) = random_pos_x(rand_int(rng_state, width(size)), size)
+
+random_pos_x(x_result, size) = (
+  ([rng_after_x, x], size) -> random_pos_y(rng_after_x, x, rand_int(rng_after_x, height(size)))
+)
+
+random_pos_y(rng_after_x, x, y_result) = (
+  (_, x, [rng_after_y, y]) -> [rng_after_y, [x, y]]
+)
+
 # -- Ant seeding -----------------------------------------------------------
 # Place `count` ants on random empty cells using a tail-recursive
 # accumulator.  Occupied or food cells are retried.
 
 seed_ants(count, size) = seed_ants_acc(seed_world(), count, size, [])
+
+seed_ants(rng_state, count, size) = seed_ants_acc_rng(rng_state, seed_world(), count, size, [])
 
 seed_ants_acc(world, count, size, ants_rev) = (
   (world, count, _, ants_rev) ? count <= 0 -> [world, reverse(ants_rev)] |
@@ -111,6 +125,40 @@ seed_ant_cell(world, count, size, ants_rev, pos, target_cell) = (
   (world, count, size, ants_rev, _, _) -> seed_ants_acc(world, count, size, ants_rev)
 )
 
+seed_ants_acc_rng(rng_state, world, count, size, ants_rev) = (
+  (rng_state, world, count, _, ants_rev) ? count <= 0 -> [rng_state, world, reverse(ants_rev)] |
+  (rng_state, world, count, size, ants_rev) -> seed_ant_try_rng(
+    world,
+    count,
+    size,
+    ants_rev,
+    random_pos(rng_state, size)
+  )
+)
+
+seed_ant_try_rng(world, count, size, ants_rev, pos_result) = (
+  (world, count, size, ants_rev, [rng_state, pos]) -> seed_ant_cell_rng(
+    rng_state,
+    world,
+    count,
+    size,
+    ants_rev,
+    pos,
+    cell_get(world, pos)
+  )
+)
+
+seed_ant_cell_rng(rng_state, world, count, size, ants_rev, pos, target_cell) = (
+  (rng_state, world, count, size, ants_rev, pos, "empty") -> seed_ants_acc_rng(
+    rng_state,
+    place_ant(world, pos),
+    count - 1,
+    size,
+    [pos, ..ants_rev]
+  ) |
+  (rng_state, world, count, size, ants_rev, _, _) -> seed_ants_acc_rng(rng_state, world, count, size, ants_rev)
+)
+
 # -- Movement directions ---------------------------------------------------
 # Four cardinal directions expressed as [dx, dy] deltas.
 
@@ -123,11 +171,23 @@ dir_from_int(n) = (
 
 random_dir() = dir_from_int(rand_int(4))
 
+random_dir(rng_state) = random_dir_from_roll(rand_int(rng_state, 4))
+
+random_dir_from_roll(roll) = (
+  ([next_rng_state, n]) -> [next_rng_state, dir_from_int(n)]
+)
+
 # -- Simulation step -------------------------------------------------------
 # Each ant picks a random direction.  The target cell determines what
 # happens: blocked by another ant, eats food, or moves into empty space.
 
 step_ant(world, ant_pos, size) = step_ant_with_dir(world, ant_pos, random_dir(), size)
+
+step_ant(rng_state, world, ant_pos, size) = step_ant_with_rng_dir(world, ant_pos, random_dir(rng_state), size)
+
+step_ant_with_rng_dir(world, ant_pos, dir_result, size) = (
+  (world, ant_pos, [next_rng_state, dir], size) -> [next_rng_state, ..step_ant_with_dir(world, ant_pos, dir, size)]
+)
 
 step_ant_with_dir(world, ant_pos, dir, size) = step_target(world, ant_pos, pos_add(ant_pos, dir, size))
 
@@ -144,6 +204,8 @@ step_cell(world, ant_pos, target, target_cell) = (
 # The rest pattern `[ant, ..rest]` peels off one ant per call.
 step_ants(world, ants, size) = step_ants_acc(world, ants, size, [])
 
+step_ants(rng_state, world, ants, size) = step_ants_acc_rng(rng_state, world, ants, size, [])
+
 step_ants_acc(world, ants, size, moved_rev) = (
   (world, [], _, moved_rev) -> [world, reverse(moved_rev)] |
   (world, [ant, ..rest], size, moved_rev) -> step_ants_next(step_ant(world, ant, size), rest, size, moved_rev)
@@ -151,6 +213,26 @@ step_ants_acc(world, ants, size, moved_rev) = (
 
 step_ants_next(step_result, rest, size, moved_rev) = (
   ([world2, ant2, _], rest, size, moved_rev) -> step_ants_acc(world2, rest, size, [ant2, ..moved_rev])
+)
+
+step_ants_acc_rng(rng_state, world, ants, size, moved_rev) = (
+  (rng_state, world, [], _, moved_rev) -> [rng_state, world, reverse(moved_rev)] |
+  (rng_state, world, [ant, ..rest], size, moved_rev) -> step_ants_next_rng(
+    step_ant(rng_state, world, ant, size),
+    rest,
+    size,
+    moved_rev
+  )
+)
+
+step_ants_next_rng(step_result, rest, size, moved_rev) = (
+  ([next_rng_state, world2, ant2, _], rest, size, moved_rev) -> step_ants_acc_rng(
+    next_rng_state,
+    world2,
+    rest,
+    size,
+    [ant2, ..moved_rev]
+  )
 )
 
 # -- Rendering -------------------------------------------------------------
@@ -181,6 +263,14 @@ draw_frame(world, ants, steps_left, size) = {
 }
 
 simulate_after_step(step_result, steps_left, delay_ms, size) = (
+  ([next_rng_state, world2, ants2], steps_left, delay_ms, size) -> simulate(
+    next_rng_state,
+    world2,
+    ants2,
+    steps_left - 1,
+    delay_ms,
+    size
+  ) |
   ([world2, ants2], steps_left, delay_ms, size) -> simulate(world2, ants2, steps_left - 1, delay_ms, size)
 )
 
@@ -193,6 +283,15 @@ simulate(world, ants, steps_left, delay_ms, size) = (
   }
 )
 
+simulate(rng_state, world, ants, steps_left, delay_ms, size) = (
+  (_, _, _, steps_left, _, _) ? steps_left <= 0 -> "done" |
+  (rng_state, world, ants, steps_left, delay_ms, size) -> {
+    draw_frame(world, ants, steps_left, size)
+    sleep(delay_ms)
+    simulate_after_step(step_ants(rng_state, world, ants, size), steps_left, delay_ms, size)
+  }
+)
+
 # -- CLI argument handling -------------------------------------------------
 # Parse --ants / -a and normalize to a positive integer.
 
@@ -200,26 +299,81 @@ ant_count_from_parsed(parsed) = (
   ([opts, _]) -> normalize_ant_count(unwrap_or(default_ant_count(), parse_int(cli_option_or(opts, "ants", "6"))))
 )
 
+seed_from_parsed(parsed) = (
+  ([opts, _]) -> normalize_seed(unwrap_or(default_seed(), parse_int(cli_option_or(opts, "seed", "0"))))
+)
+
 normalize_ant_count(n) = (
   (n) ? n > 0 -> n |
   (_) -> default_ant_count()
 )
 
+normalize_seed(seed_value) = (
+  (seed_value) ? seed_value >= 0 -> seed_value |
+  (_) -> default_seed()
+)
+
 ant_count(args) = ant_count_from_parsed(
   cli_parse(args, {
-    options: ["ants"],
-    aliases: {a: "ants"}
+    options: ["ants", "seed"],
+    aliases: {a: "ants", s: "seed"}
+  })
+)
+
+seed_arg(args) = seed_from_parsed(
+  cli_parse(args, {
+    options: ["ants", "seed"],
+    aliases: {a: "ants", s: "seed"}
   })
 )
 
 simulate_seed(seed_result, size) = (
+  ([rng_state, world, ants], size) -> simulate(rng_state, world, ants, 120, 80, size) |
   ([world, ants], size) -> simulate(world, ants, 120, 80, size)
+)
+
+collect_positions(seed_value, ant_total, steps_left) = {
+  size = grid_size(ant_total)
+  collect_positions_after_seed(seed_ants(rng(seed_value), ant_total, size), size, steps_left)
+}
+
+collect_positions_after_seed(seed_result, size, steps_left) = (
+  ([rng_state, world, ants], size, steps_left) -> collect_positions_rng(
+    rng_state,
+    world,
+    ants,
+    size,
+    steps_left,
+    [ants]
+  )
+)
+
+collect_positions_rng(rng_state, world, ants, size, steps_left, positions_rev) = (
+  (_, _, ants, _, steps_left, positions_rev) ? steps_left <= 0 -> reverse(positions_rev) |
+  (rng_state, world, ants, size, steps_left, positions_rev) -> collect_positions_step(
+    step_ants(rng_state, world, ants, size),
+    size,
+    steps_left,
+    positions_rev
+  )
+)
+
+collect_positions_step(step_result, size, steps_left, positions_rev) = (
+  ([next_rng_state, world2, ants2], size, steps_left, positions_rev) -> collect_positions_rng(
+    next_rng_state,
+    world2,
+    ants2,
+    size,
+    steps_left - 1,
+    [ants2, ..positions_rev]
+  )
 )
 
 # -- Entry point -----------------------------------------------------------
 
 main(args) = {
   ants_requested = ant_count(args)
+  seed_value = seed_arg(args)
   size = grid_size(ants_requested)
-  simulate_seed(seed_ants(ants_requested, size), size)
+  simulate_seed(seed_ants(rng(seed_value), ants_requested, size), size)
 }

@@ -688,13 +688,23 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - type-invalid builtins (e.g., non-list spread) should raise clear `TypeError`
 - value-invalid builtins should raise clear `ValueError` where appropriate (e.g., `rand_int(0)`, `sleep(-1)`, invalid parse bases)
 
-## 13) Simulation primitive builtins (host-backed only)
+## 13) Simulation primitive builtins
 
-- supported builtins: `rand`, `rand_int`, `sleep`
-- `rand()` returns a float in `[0, 1)`
-- `rand_int(n)` requires a positive integer `n`, returns integer in `[0, n)`
-- `sleep(ms)` requires a non-negative number and blocks current execution for `ms` milliseconds
-- these are simple runtime builtins only: no scheduler, no async/await, no event loop, no new syntax
+- supported public randomness surface:
+  - `rng(seed)`
+  - `rand()`
+  - `rand(rng_state)`
+  - `rand_int(n)`
+  - `rand_int(rng_state, n)`
+- `sleep(ms)` remains a host-backed blocking builtin
+- `rng(seed)` requires a non-negative integer seed and returns an explicit RNG state value
+- `rand()` returns a host-RNG float in `[0, 1)` for convenience use
+- `rand(rng_state)` returns `[next_rng_state, float]` deterministically from the explicit RNG state
+- `rand_int(n)` requires a positive integer `n`, returns an integer in `[0, n)` for convenience use
+- `rand_int(rng_state, n)` requires a valid RNG state and positive integer `n`, returns `[next_rng_state, int]` with the integer in `[0, n)`
+- explicit seeded randomness is state-threaded and deterministic; the same seed must yield the same sequence
+- the current Python host uses a simple fixed 32-bit LCG for the explicit seeded RNG
+- these are intentionally small runtime primitives only: no scheduler, no async/await, no event loop, no new syntax
 
 ## 14) Bytes / JSON / ZIP bridge invariants (host-backed only)
 

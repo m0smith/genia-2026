@@ -37,8 +37,8 @@ python3 -m genia.interpreter -p 'head(1) |> each(print)'
 Run the ants demos:
 
 ```bash
-python3 -m genia.interpreter examples/ants.genia
-python3 -m genia.interpreter examples/ants_terminal.genia --ants 10
+python3 -m genia.interpreter examples/ants.genia --seed 7
+python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --seed 7
 ```
 
 Run the HTTP service example:
@@ -178,7 +178,7 @@ CLI contract summary:
     - public helpers such as `some`, `get`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, and `absence_context` are prelude-backed wrappers over host-backed option primitives
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
-  - simulation primitives (phase 2): `rand`, `rand_int`, `sleep`
+  - simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`
   - bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
     - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
@@ -699,15 +699,24 @@ This recursive shape is not in tail position and can still hit Python recursion 
 
 ## Simulation primitive semantics
 
+- `rng(seed)` returns an explicit RNG state and raises:
+  - `TypeError` when `seed` is not an integer
+  - `ValueError` when `seed < 0`
 - `rand()` returns a host-RNG float in `[0, 1)`.
+- `rand(rng_state)` returns `[next_rng_state, float]` using a deterministic explicit RNG sequence.
 - `rand_int(n)` returns an integer in `[0, n)` and raises:
+  - `TypeError` when `n` is not an integer
+  - `ValueError` when `n <= 0`
+- `rand_int(rng_state, n)` returns `[next_rng_state, int]` using the same deterministic explicit RNG sequence and raises:
+  - `TypeError` when `rng_state` is not an explicit RNG value
   - `TypeError` when `n` is not an integer
   - `ValueError` when `n <= 0`
 - `sleep(ms)` blocks execution for `ms` milliseconds and raises:
   - `TypeError` when `ms` is not numeric
   - `ValueError` when `ms < 0`
 
-These are blocking builtins only; they do not introduce scheduler/async runtime behavior.
+The explicit seeded RNG is reproducible: the same seed yields the same sequence on the current Python host.
+These are blocking/runtime primitives only; they do not introduce scheduler/async runtime behavior.
 
 ## Bytes / JSON / ZIP bridge semantics
 
@@ -724,6 +733,6 @@ These are blocking builtins only; they do not introduce scheduler/async runtime 
 ## Demo note: ants simulation example
 
 - `examples/ants.genia` is the first in-repo stochastic grid simulation demo.
-- It is text-only, single-ant, recursive, and finite-step.
-- It uses builtins only (`map_*`, `rand_int`, `sleep`, `print`) with no new syntax.
+- It is text-only, single-ant, recursive, finite-step, and now accepts `--seed N` / `-s N` for reproducible runs.
+- It uses builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`) with no new syntax.
 - It is not actor-based and does not provide a scheduler/event loop abstraction.

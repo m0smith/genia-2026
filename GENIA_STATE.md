@@ -1259,16 +1259,25 @@ Behavior:
 - file/zip parse/write/read failures return structured `none(...)` metadata for the new prelude API surface
 - this is a minimal host-backed bridge and is **not** the full flow system
 
-### Simulation primitives (Phase 2, host-backed builtins)
+### Simulation primitives (Phase 2)
 
-- `rand()`
-- `rand_int(n)`
+- public prelude-backed randomness helpers:
+  - `rng(seed)`
+  - `rand()`
+  - `rand(rng_state)`
+  - `rand_int(n)`
+  - `rand_int(rng_state, n)`
 - `sleep(ms)`
 
 Behavior:
 
-- `rand()` returns a float in `[0, 1)` using host RNG
-- `rand_int(n)` returns an integer in `[0, n)`; raises clear `TypeError` for non-integer `n` and `ValueError` for `n <= 0`
+- `rng(seed)` returns an opaque explicit RNG value; seed must be a non-negative integer
+- `rand()` returns a float in `[0, 1)` using host RNG convenience randomness
+- `rand(rng_state)` returns `[next_rng_state, float]` using a deterministic explicit RNG sequence
+- `rand_int(n)` returns an integer in `[0, n)` using host RNG convenience randomness
+- `rand_int(rng_state, n)` returns `[next_rng_state, int]` using the same deterministic explicit RNG sequence; the integer is always in `[0, n)`
+- the explicit seeded RNG uses a simple 32-bit LCG so the same seed yields the same sequence on the current Python host
+- `rand_int(...)` raises clear `TypeError` for non-integer `n` and `ValueError` for `n <= 0` in both convenience and seeded forms
 - `sleep(ms)` blocks current execution for `ms` milliseconds; raises clear `TypeError` for non-numeric values and `ValueError` for negative values
 
 ## 7) Autoloaded stdlib
@@ -1281,6 +1290,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 - `src/genia/std/prelude/ref.genia`
 - `src/genia/std/prelude/process.genia`
 - `src/genia/std/prelude/io.genia`
+- `src/genia/std/prelude/random.genia`
 - `src/genia/std/prelude/option.genia`
 - `src/genia/std/prelude/string.genia`
 - `src/genia/std/prelude/json.genia`
@@ -1310,6 +1320,7 @@ Notable autoloaded functions include:
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
+- randomness: `rng`, `rand`, `rand_int`
 - flow: `lines`, `tee`, `merge`, `zip`, `scan`, `rules`, `each`, `collect`, `run`
 - option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
 - string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
@@ -1373,13 +1384,14 @@ Core IR shape currently includes:
 ## 11) Example demos shipped in-repo
 
 - `examples/tic-tac-toe.genia`: interactive text game example
-- `examples/ants.genia`: first minimal ants-style stochastic grid simulation demo
-- `examples/ants_terminal.genia`: terminal-rendered ants demo with CLI-configurable ant count
+- `examples/ants.genia`: first minimal ants-style stochastic grid simulation demo, now with optional CLI seed for reproducible runs
+- `examples/ants_terminal.genia`: terminal-rendered ants demo with CLI-configurable ant count and optional CLI seed
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
 - public prelude-backed map helpers over the host-backed map runtime for persistent world updates
-- `rand_int` for random movement choice
+- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible movement choice
+- `rand_int(n)` remains available as a convenience surface, but the demo now uses the explicit seeded path
 - recursion for stepping
 - `sleep` for blocking frame delay
 - text rendering via `print`
@@ -1392,5 +1404,6 @@ It is intentionally minimal and single-ant first. It is **not** actor-based, doe
 - sequential multi-ant stepping with the same movement/blocking/food-consumption semantics as the tested ants core helpers
 - terminal rendering via `clear_screen()`, `move_cursor(x, y)`, and `render_grid(grid)`
 - CLI configuration via `main(argv())` plus `cli_parse`
+- explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible seeding and movement
 
 It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, and does **not** add new language/runtime features.

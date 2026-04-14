@@ -45,6 +45,7 @@ Expected behavior:
 
 ## Current model
 
+- the seeded ants demos now use explicit RNG state threading for reproducibility; this does not change the concurrency model and does not use process/cell scheduling
 - public ref helpers from `src/genia/std/prelude/ref.genia`:
   - `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
