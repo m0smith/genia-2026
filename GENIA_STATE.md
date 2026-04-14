@@ -874,7 +874,8 @@ Flow semantics:
   - explicit `stdin` is rejected because pipe mode provides it automatically
   - explicit `run` is rejected because pipe mode runs the final flow automatically
   - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error
-  - common `some(...)` pipeline mismatches in pipe mode keep the original type error but add a note pointing toward `flat_map_some(...)`, `map_some(...)`, or `then_*`
+  - if a pipe-mode stage helper receives the whole Flow when it expected per-item values, pipe mode reports clear guidance to use Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or to switch to `-c` / `--command` for reducers such as `sum`
+  - common `some(...)` pipeline mismatches in pipe mode keep the original type error but use Genia-facing stage rendering (for example `some(1)`) instead of leaking internal IR node names
 
 ### CLI argument helpers (prelude-backed over raw argv + tiny host validation primitives)
 

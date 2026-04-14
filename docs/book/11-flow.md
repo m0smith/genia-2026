@@ -611,6 +611,8 @@ Recommended mental model:
 - pipe mode runs the final flow automatically
 - unbound `stdin` and unbound `run` are reserved in pipe mode and rejected with clear errors
 - lambda/local bindings named `stdin` or `run` are allowed
+- pipe-mode stages still receive the current Flow; use `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)` when you want per-item work
+- value reducers such as `sum` and `count` belong in `-c` / file mode after an explicit `collect`
 - if you need the inner value of `some(...)` inside a stage, use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*`
 
 ### Edge case example
@@ -642,6 +644,7 @@ genia -p 'collect'
 Expected behavior:
 
 - exits with a clear error because the stage expression must still produce a flow for the automatic final `run`
+- the error points you toward `-c` when you tried to finish with a value such as `collect |> sum`
 
 ## Unix-style scenarios
 

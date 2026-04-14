@@ -274,7 +274,8 @@ CLI contract summary:
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit `stdin` and explicit `run` are rejected with a clear error
   - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error
-  - common `some(...)` mismatch errors in pipe mode add a note pointing toward explicit Option helpers such as `flat_map_some(...)`, `map_some(...)`, and `then_*`
+  - if a pipe-mode stage receives the whole Flow where it expected one item, the error points toward Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or toward `-c` / file mode for reducers such as `sum`
+  - common `some(...)` mismatch errors in pipe mode add a note pointing toward explicit Option helpers such as `flat_map_some(...)`, `map_some(...)`, and `then_*`, while keeping the stage text Genia-facing
   - pipe mode bypasses the `main` convention
   - no `pipe(...)` helper function exists in this phase
 - output routing:

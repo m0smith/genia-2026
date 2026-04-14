@@ -157,7 +157,44 @@ def test_unix_pipe_collect_alone_explains_stage_only_model(monkeypatch, capsys):
 
     assert exit_code == 1
     assert captured.out == ""
-    assert (
-        captured.err.strip()
-        == "Error: Pipe mode stage expression must produce a flow for the automatic final run; received list"
-    )
+    assert "Pipe mode stage expression must produce a flow for the automatic final run; received list" in captured.err
+    assert "Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`." in captured.err
+
+
+def test_unix_pipe_sum_explains_reducers_belong_in_command_mode(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["10\n", "20\n"]))
+
+    exit_code = _main(["-p", "sum"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "stage received flow; sum expected a list, received flow" in captured.err
+    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
+    assert "use -c/--command for reducers such as sum or count" in captured.err
+
+
+def test_unix_pipe_literal_some_stage_explains_pipe_mode_expects_flow_stage(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["10\n", "20\n"]))
+
+    exit_code = _main(["-p", "some(1)"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "at some(1)" in captured.err
+    assert "pipeline stage expected a callable value, received some" in captured.err
+    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
+
+
+def test_unix_pipe_parse_int_explains_per_item_stage_shape(monkeypatch, capsys):
+    monkeypatch.setattr("sys.stdin", CountingStdin(["10\n", "oops\n"]))
+
+    exit_code = _main(["-p", "parse_int"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "stage received flow; parse_int expected a string, received flow" in captured.err
+    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
+    assert "Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...)" in captured.err

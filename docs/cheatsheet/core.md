@@ -179,6 +179,8 @@ Dispatch and mode notes:
 - file/command mode dispatch: `main(argv())` first, then `main()` fallback
 - runtime entrypoint order is `main/1` first, then `main/0`
 - pipe mode bypasses `main`
+- in pipe mode, stage helpers still receive a Flow; use `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)` for per-item work
+- use `-c` or file mode for final value reducers such as `collect |> sum` or `collect |> count`
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
 
 ## Minimal Valid Snippets

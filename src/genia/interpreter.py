@@ -4255,6 +4255,29 @@ class Evaluator:
             return node.name
         if isinstance(node, IrLiteral):
             return format_debug(node.value)
+        if isinstance(node, IrOptionSome):
+            return f"some({self._render_pipeline_stage(node.value)})"
+        if isinstance(node, IrOptionNone):
+            if node.reason is None:
+                return "none"
+            reason_text = self._render_pipeline_stage(node.reason)
+            if node.context is None:
+                return f"none({reason_text})"
+            return f"none({reason_text}, {self._render_pipeline_stage(node.context)})"
+        if isinstance(node, IrList):
+            item_texts: list[str] = []
+            for item in node.items:
+                if isinstance(item, IrSpread):
+                    item_texts.append(f"..{self._render_pipeline_stage(item.expr)}")
+                else:
+                    item_texts.append(self._render_pipeline_stage(item))
+            return f"[{', '.join(item_texts)}]"
+        if isinstance(node, IrMap):
+            entry_texts = [
+                f"{key}: {self._render_pipeline_stage(value)}"
+                for key, value in node.entries
+            ]
+            return f"{{{', '.join(entry_texts)}}}"
         if isinstance(node, IrUnary):
             op = "-" if node.op == "MINUS" else "!"
             return f"{op}{self._render_pipeline_stage(node.expr)}"
@@ -4297,6 +4320,9 @@ class Evaluator:
             return "quote(...)"
         if isinstance(node, IrQuasiQuote):
             return "quasiquote(...)"
+        if isinstance(node, IrPipeline):
+            stage_text = " |> ".join(self._render_pipeline_stage(stage) for stage in node.stages)
+            return f"{self._render_pipeline_stage(node.source)} |> {stage_text}"
         return node.__class__.__name__
 
     def _pipeline_stage_mode(self, node: IrNode, stage_input: Any) -> str:
@@ -7734,7 +7760,21 @@ def _format_pipe_mode_error(exc: Exception) -> str:
         return "Flow values are single-use and cannot be reused after consumption"
     if "run expected a flow, received " in message:
         received = message.rsplit("received ", 1)[1]
-        return f"Pipe mode stage expression must produce a flow for the automatic final run; received {received}"
+        detail = f"Pipe mode stage expression must produce a flow for the automatic final run; received {received}"
+        if received in {"int", "float", "bool", "string", "list", "map"}:
+            return f"{detail}. Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`."
+        if received in {"some", "none"}:
+            return (
+                f"{detail}. Pipe mode expects a Flow stage, not a final Option value. "
+                "Use keep_some(...), keep_some_else(...), per-item unwrap_or(...), or switch to -c/--command."
+            )
+        return detail
+    if "stage received flow;" in message:
+        return (
+            f"{message}. Pipe mode stages receive a Flow, not one row at a time. "
+            "Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...); "
+            "use -c/--command for reducers such as sum or count."
+        )
     if "received some" in message:
         return (
             f"{message}. "

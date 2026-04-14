@@ -19,6 +19,7 @@ Use `-p` for flow-stage pipelines ending in effects.
 In file/`-c` mode, runtime dispatch is `main(argv())` first, then `main()`.
 When no `-c` or `-p` is selected, the first non-mode argument must be a source file path.
 Use `--` to stop option parsing when a literal arg/path starts with `-`.
+In `-p`, stage helpers still receive a Flow, so per-row work should go through `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)`.
 
 ## Reliable Pipeline Building Blocks
 
@@ -117,6 +118,7 @@ Notes:
 | forcing explicit Option helpers when plain stage lifting already works | `row |> nth(5) |> flat_map_some(parse_int)` | `row |> nth(5) |> parse_int` |
 | wrong helper for dead rows | `keep_some(parse_int)` when you need dead-letter logging | `keep_some_else(parse_int, log)` |
 | summing raw Option values | `map(parse_int) |> collect |> sum` | `keep_some(parse_int) |> collect |> sum` |
+| using a reducer directly in `-p` | `genia -p 'sum'` | `genia -c 'stdin |> lines |> ... |> collect |> sum'` |
 | forgetting flow sink | `stdin |> lines` | `stdin |> lines |> each(print) |> run` (or use `-p`) |
 | reusing a consumed flow | bind once, then `collect` and `run` it again | materialize with `collect` if you need reusable data |
 

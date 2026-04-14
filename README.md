@@ -113,12 +113,14 @@ Pipe-mode mental model:
 - `genia -p 'stage_expr'` behaves like `stdin |> lines |> <stage_expr> |> run`
 - write one stage expression, not a full program
 - do not write explicit `stdin` or explicit `run`
+- in `-p`, each stage still receives the current Flow unless you introduce a per-item Flow stage such as `map(...)`, `filter(...)`, `each(...)`, or `keep_some(...)`
 - ordinary stages lift over `some(x)` automatically, and lifted non-Option results are wrapped back into `some(...)`
 - stages that already return `some(...)` or `none(...)` preserve that Option result as-is
 - direct calls still receive explicit `some(...)` values unchanged; automatic lifting is pipeline-only
 - use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*` when you want direct Option-aware control
 - raw values stay raw values, and `none(...)` skips the remaining stages
 - reducers such as `sum` expect plain numbers after explicit filtering or recovery
+- if you want a final collected value such as `sum` or `count`, use `-c` or file mode instead of `-p`
 - pipeline debug helpers are available as identity stages:
   - `inspect(value)` logs the current value and returns it unchanged
   - `trace(label, value)` logs a label plus value and returns value unchanged

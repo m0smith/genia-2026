@@ -1,8 +1,9 @@
 import io
 
+import pytest
 
 from genia import make_global_env, run_source
-from genia.interpreter import _main, repl
+from genia.interpreter import GeniaFlow, GeniaQuietBrokenPipe, _main, repl
 from genia.utf8 import format_debug
 
 
@@ -206,6 +207,32 @@ def test_broken_pipe_on_flow_output_is_quiet_and_stops_after_first_pull(monkeypa
     assert exit_code == 0
     assert stderr.getvalue() == ""
     assert stdin.reads == 1
+
+
+def test_broken_pipe_from_flow_effect_closes_generator_backed_upstream():
+    state = {"pulled": 0, "closed": 0}
+
+    def ticks():
+        def iterator():
+            try:
+                i = 0
+                while True:
+                    state["pulled"] += 1
+                    yield i
+                    i += 1
+            finally:
+                state["closed"] += 1
+
+        return GeniaFlow(iterator, label="ticks")
+
+    env = make_global_env(stdout_stream=BrokenStdout(), stderr_stream=io.StringIO())
+    env.set("ticks", ticks)
+
+    with pytest.raises(GeniaQuietBrokenPipe):
+        run_source("ticks() |> each(print) |> run", env)
+
+    assert state["pulled"] == 1
+    assert state["closed"] == 1
 
 
 def test_flow_output_to_stdout_respects_take():

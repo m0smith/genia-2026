@@ -313,7 +313,8 @@ def test_pipe_mode_rejects_stage_expressions_that_do_not_produce_a_flow(monkeypa
 
     assert exit_code == 1
     assert captured.out == ""
-    assert captured.err.strip() == "Error: Pipe mode stage expression must produce a flow for the automatic final run; received list"
+    assert "Pipe mode stage expression must produce a flow for the automatic final run; received list" in captured.err
+    assert "Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`." in captured.err
 
 
 def test_pipe_mode_invalid_non_callable_stage_is_reported_cleanly(monkeypatch, capsys):
@@ -324,10 +325,8 @@ def test_pipe_mode_invalid_non_callable_stage_is_reported_cleanly(monkeypatch, c
 
     assert exit_code == 1
     assert captured.out == ""
-    assert (
-        captured.err.strip()
-        == "Error: pipeline stage 2 failed in Flow mode at 1 + 2 [<pipe>:1]: stage received flow; pipeline stage expected a callable value, received int"
-    )
+    assert "pipeline stage 2 failed in Flow mode at 1 + 2 [<pipe>:1]: stage received flow; pipeline stage expected a callable value, received int" in captured.err
+    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
 
 
 def test_pipe_mode_some_mismatch_points_toward_explicit_helpers(monkeypatch, capsys):
@@ -339,7 +338,7 @@ def test_pipe_mode_some_mismatch_points_toward_explicit_helpers(monkeypatch, cap
     assert exit_code == 1
     assert captured.out == ""
     assert "parse_int expected a string, received some" in captured.err
-    assert "If this stage is intentionally Option-aware" in captured.err
+    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
 
 
 def test_pipe_mode_flow_reuse_error_is_translated_cleanly(monkeypatch, capsys):

@@ -127,6 +127,8 @@ cat file.txt | genia -p 'head(5) |> each(print)'
 
 - file/`-c` mode dispatch: call `main(argv())` when `main/1` exists, else call `main()` when `main/0` exists
 - pipe mode bypasses `main` and wraps as `stdin |> lines |> <stage_expr> |> run`
+- in `-p`, use Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)` for per-item work
+- use `-c` or file mode for final collected values such as `sum` or `count`
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
 
 [case: quick-cli-main-argv]

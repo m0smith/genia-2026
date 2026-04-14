@@ -915,6 +915,8 @@ For each incoming flow item `x`:
 - pipe mode wraps the provided source exactly as `stdin |> lines |> <stage_expr> |> run`
 - the provided source must be a single stage expression
 - explicit `stdin` and explicit `run` in pipe mode are rejected with a clear error
+- pipe mode diagnostics should stay Genia-facing rather than exposing internal IR/runtime node names
+- if a user gives a value helper or reducer where a Flow stage is expected, the error should point toward Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or toward `-c` / file mode for final value reducers such as `sum` / `count`
 - ordinary `-c` command mode remains unchanged and evaluates exactly what the user wrote
 - pipe mode bypasses the `main` convention; file mode and `-c` mode keep existing `main/1` then `main/0` behavior
 - pipeline operator semantics are unchanged; this does not add a new operator or runtime meaning for `|>`
