@@ -333,16 +333,13 @@ class TestStderrRobustness:
         assert exit_code == 1
 
     def test_broken_stderr_with_log_in_flow_no_crash(self, monkeypatch):
-        """log() writes to stderr. If stderr is broken, the flow
-        should still terminate cleanly."""
-        stderr = BrokenStream()
+        """log() writes to stderr via a sink with swallow_broken_pipe=True.
+        If stderr is broken, the flow should still terminate cleanly."""
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
         monkeypatch.setattr("sys.stdout", io.StringIO())
-        monkeypatch.setattr("sys.stderr", stderr)
+        monkeypatch.setattr("sys.stderr", BrokenStream())
 
-        # tee(log) would try to write to stderr; stderr with swallow_broken_pipe
-        # should absorb the error
-        exit_code = _main(["-p", "each(print)"])
+        exit_code = _main(["-p", "map((x) -> { log(x); x }) |> each(print)"])
 
         assert exit_code == 0
 
