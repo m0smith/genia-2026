@@ -160,7 +160,7 @@ CLI contract summary:
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
   - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
   - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
-  - includes actor helpers `actor`, `actor_send`, `actor_alive?`
+  - includes actor helpers `actor`, `actor_send`, `actor_call`, `actor_alive?`
   - autoloaded function names can be used as plain function values in higher-order positions, not only in direct call position
   - `help("name")` can autoload a registered prelude function before rendering its docstring/help text
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths

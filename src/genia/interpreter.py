@@ -6491,11 +6491,35 @@ def make_global_env(
         return process.is_alive()
 
     def actor_validate_effect_fn(result: Any) -> Any:
-        if isinstance(result, list) and len(result) == 2 and result[0] == "ok":
-            return result[1]
+        if isinstance(result, list):
+            if len(result) == 2 and result[0] == "ok":
+                return result[1]
+            if len(result) == 3 and result[0] == "reply":
+                return result[1]  # discard response for fire-and-forget
         raise TypeError(
-            f'actor handler must return ["ok", new_state], got: {_runtime_type_name(result)}'
+            f'actor handler must return ["ok", new_state] or ["reply", new_state, response], got: {_runtime_type_name(result)}'
         )
+
+    def actor_call_update_fn(handler: Any, msg: Any, reply_ref: Any, state: Any) -> Any:
+        if not isinstance(reply_ref, GeniaRef):
+            raise TypeError("_actor_call_update expected a ref for reply")
+        try:
+            ctx = GeniaMap({"reply_to": reply_ref})
+            result = handler(state, msg, ctx)
+            if isinstance(result, list):
+                if len(result) == 3 and result[0] == "reply":
+                    reply_ref.set(result[2])
+                    return result[1]
+                if len(result) == 2 and result[0] == "ok":
+                    reply_ref.set(result[1])
+                    return result[1]
+            raise TypeError(
+                f'actor handler must return ["ok", new_state] or ["reply", new_state, response], got: {_runtime_type_name(result)}'
+            )
+        except BaseException:
+            if not reply_ref.is_set():
+                reply_ref.set(make_none("actor-error"))
+            raise
 
     def _ensure_map(value: Any, name: str) -> GeniaMap:
         if not isinstance(value, GeniaMap):
@@ -7429,6 +7453,7 @@ def make_global_env(
     env.set("_send", send_fn)
     env.set("_process_alive?", process_alive_fn)
     env.set("_actor_validate_effect", actor_validate_effect_fn)
+    env.set("_actor_call_update", actor_call_update_fn)
     env.set("_map_new", map_new_fn)
     env.set("_map_get", map_get_fn)
     env.set("_map_put", map_put_fn)
@@ -7671,6 +7696,7 @@ def make_global_env(
     env.register_autoload("cell_alive?", 1, "std/prelude/cell.genia")
     env.register_autoload("actor", 2, "std/prelude/actor.genia")
     env.register_autoload("actor_send", 2, "std/prelude/actor.genia")
+    env.register_autoload("actor_call", 2, "std/prelude/actor.genia")
     env.register_autoload("actor_alive?", 1, "std/prelude/actor.genia")
     return env
 

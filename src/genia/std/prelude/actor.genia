@@ -24,6 +24,8 @@ actor(initial_state, handler) = {
 @doc """Send a message to an actor for asynchronous processing.
 
 The message is enqueued and processed by the actor's handler.
+The handler may return `["ok", new_state]` or `["reply", new_state, response]`.
+For fire-and-forget sends, any reply value is discarded.
 
 ## Arguments
 
@@ -38,6 +40,33 @@ actor_send(a, msg) = {
   h = a("_handler")
   c = a("_cell")
   cell_send(c, (state) -> _actor_validate_effect(h(state, msg, {})))
+}
+
+@doc """Send a message and wait for a reply (synchronous request-reply).
+
+The handler receives `ctx` with a `reply_to` ref.
+Return `["reply", new_state, response]` to deliver a response.
+Return `["ok", new_state]` to reply with the new state as the response.
+
+If the handler fails, `actor_call` returns `none("actor-error")` and the
+actor enters failed state.
+
+## Arguments
+
+- `a` — the actor
+- `msg` — the message value
+
+## Returns
+
+The response value from the handler's `["reply", new_state, response]` effect,
+or the new state from `["ok", new_state]`.
+"""
+actor_call(a, msg) = {
+  h = a("_handler")
+  c = a("_cell")
+  reply = ref()
+  cell_send(c, (state) -> _actor_call_update(h, msg, reply, state))
+  ref_get(reply)
 }
 
 @doc """Check whether an actor's worker thread is alive.

@@ -988,32 +988,44 @@ Behavior:
 - public prelude helpers in `src/genia/std/prelude/actor.genia`:
   - `actor(initial_state, handler)`
   - `actor_send(actor, msg)`
+  - `actor_call(actor, msg)`
   - `actor_alive?(actor)`
-- one host-backed helper: `_actor_validate_effect` validates the handler effect shape
+- host-backed helpers:
+  - `_actor_validate_effect` validates the handler effect shape for fire-and-forget sends
+  - `_actor_call_update` handles handler invocation, effect validation, reply delivery, and error recovery for synchronous calls
 
 Behavior:
 
 - `actor(initial_state, handler)` creates an actor backed by a cell
-  - the handler shape is `handler(state, msg, ctx) -> ["ok", new_state]`
-  - `ctx` is an empty map `{}` in this phase
+  - the handler shape is `handler(state, msg, ctx) -> effect`
   - the actor is represented as a map with internal `_cell` and `_handler` keys
+- supported effect shapes:
+  - `["ok", new_state]` — update state only
+  - `["reply", new_state, response]` — update state and deliver a response value
 - `actor_send(actor, msg)` enqueues the message for asynchronous processing
   - the handler is called with `(current_state, msg, {})` inside a cell update
-  - the handler must return `["ok", new_state]`; invalid return shapes cause actor failure
+  - the handler may return either `["ok", new_state]` or `["reply", new_state, response]`
+  - for `actor_send`, any response value from a `["reply", ...]` effect is discarded
   - messages are processed one at a time in FIFO order
+- `actor_call(actor, msg)` sends a message and blocks until the handler replies
+  - a one-shot ref is created and passed in `ctx` as `reply_to`
+  - the handler is called with `(current_state, msg, {reply_to: <ref>})`
+  - for `["reply", new_state, response]`: the caller receives `response`
+  - for `["ok", new_state]`: the caller receives `new_state` as the reply
+  - if the handler throws, the caller receives `none("actor-error")` and the actor enters failed state
+  - the same handler works correctly with both `actor_send` and `actor_call`
 - `actor_alive?(actor)` reports whether the backing cell worker thread is alive
 - failure semantics are inherited from the backing cell:
   - handler exceptions or invalid effect shapes mark the actor as failed
   - subsequent `actor_send` raises `RuntimeError` after failure
+  - `actor_call` on a failing handler returns `none("actor-error")` instead of blocking
   - failed state is preserved until the backing cell is restarted (no public restart API for actors in this phase)
 - actors are a thin convenience layer; internal cell state is accessible through the actor map for advanced use in this phase
 
 Not implemented yet:
 
-- `actor_call` (synchronous request-reply)
 - `actor_stop` (graceful shutdown)
 - supervision / links / monitors
-- effect protocol extensions beyond `["ok", new_state]`
 - actor-specific syntax
 
 ### Host-backed persistent associative maps (Phase 1 bridge)
@@ -1363,7 +1375,7 @@ Notable autoloaded functions include:
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
-- actor: `actor`, `actor_send`, `actor_alive?`
+- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior

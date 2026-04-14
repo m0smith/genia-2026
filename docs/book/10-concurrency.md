@@ -79,10 +79,26 @@ actor_send(a, 10)
 
 Expected behavior:
 
-- the handler receives `(state, msg, ctx)` and must return `["ok", new_state]`
-- `ctx` is an empty map `{}` in this phase
+- the handler receives `(state, msg, ctx)` and must return an effect: `["ok", new_state]` or `["reply", new_state, response]`
+- for `actor_send`, any response in a `["reply", ...]` effect is discarded
 - messages are processed one at a time in FIFO order
 - after both messages drain, state is `15`
+
+### Synchronous request-reply
+
+```genia
+handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
+a = actor(0, handler)
+actor_call(a, 5)
+```
+
+Expected behavior:
+
+- `actor_call(a, 5)` sends the message and blocks until the handler returns
+- the handler returns `["reply", new_state, response]`
+- `actor_call` returns the `response` value (`5` in this example)
+- if the handler returns `["ok", new_state]` during an `actor_call`, the reply value is `new_state`
+- if the handler throws, the reply is `none("actor-error")` and the actor enters failed state
 
 ### Edge case example
 
@@ -106,9 +122,23 @@ actor_send(a, 1)
 
 Expected behavior:
 
-- the handler returns an invalid effect shape (not `["ok", new_state]`)
+- the handler returns an invalid effect shape (not `["ok", new_state]` or `["reply", new_state, response]`)
 - the actor's backing cell enters failed state
 - subsequent `actor_send` calls raise `RuntimeError`
+
+### actor_call failure case
+
+```genia
+failing(state, msg, _ctx) = 1 / 0
+a = actor(0, failing)
+actor_call(a, 1)
+```
+
+Expected behavior:
+
+- the handler throws during `actor_call`
+- the reply ref is set to `none("actor-error")` before the cell enters failed state
+- `actor_call` returns `none("actor-error")` instead of blocking forever
 
 ### Actor API
 
@@ -116,18 +146,25 @@ Expected behavior:
 | --- | --- |
 | `actor(initial_state, handler)` | Create an actor backed by a cell |
 | `actor_send(actor, msg)` | Send a message for async processing |
+| `actor_call(actor, msg)` | Send a message and block for the reply |
 | `actor_alive?(actor)` | Check whether the worker thread is alive |
 
-Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`
+Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `handler(state, msg, ctx) -> ["reply", new_state, response]`
+
+Effect protocol:
+
+- `["ok", new_state]` — update state only (for `actor_send`; for `actor_call` the reply is `new_state`)
+- `["reply", new_state, response]` — update state and deliver `response` to the caller
+- both shapes are accepted by both `actor_send` and `actor_call`
 
 ### Current actor limitations
 
 - actors are a thin prelude layer over cells
-- no `actor_call` (synchronous request-reply) yet
 - no `actor_stop` (graceful shutdown) yet
 - no supervision, links, or monitors
 - failure semantics are inherited from cell fail-stop behavior
-- `ctx` is always `{}` in this phase
+- `ctx` is `{}` for `actor_send`; `{reply_to: <ref>}` for `actor_call`
+- if a handler throws during `actor_call`, the reply is `none("actor-error")` and the actor enters failed state
 
 ## Implementation status
 
@@ -138,21 +175,20 @@ Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`
 - serialized handler execution per process
 - fail-stop cell abstraction with cached error state
 - restart semantics via `restart_cell`
-- actor helpers: `actor`, `actor_send`, `actor_alive?`
+- actor helpers: `actor`, `actor_send`, `actor_call`, `actor_alive?`
 
 ### ⚠️ Partial
 
 - behavior depends on host-thread scheduling timing
 - restart discards queued pre-restart updates in this phase instead of draining them
 - cell errors are exposed as cached error strings (`some(error_string)`) rather than structured language error values
-- actors are a thin prelude layer over cells; no public actor restart, stop, or call API yet
+- actors are a thin prelude layer over cells; no public actor restart or stop API yet
 
 ### ❌ Not implemented
 
 - language-level scheduler
 - selective receive
 - timeouts in message receive syntax
-- `actor_call` (synchronous request-reply)
 - `actor_stop` (graceful shutdown)
 - supervision / links / monitors
 - generalized flow runtime semantics (`|>` is expression-level composition only in Phase 1)

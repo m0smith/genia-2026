@@ -765,10 +765,11 @@ actor_send(a, 5)
 actor_send(a, 10)
 ```
 
-- public helpers from `src/genia/std/prelude/actor.genia`: `actor`, `actor_send`, `actor_alive?`
+- public helpers from `src/genia/std/prelude/actor.genia`: `actor`, `actor_send`, `actor_call`, `actor_alive?`
 - `actor(initial_state, handler)` creates a message-passing stateful actor backed by a cell
-- handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`
+- handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `["reply", new_state, response]`
 - `actor_send(actor, msg)` enqueues a message for asynchronous processing
+- `actor_call(actor, msg)` sends a message and blocks until the handler replies
 - `actor_alive?(actor)` reports worker liveness
 - failure semantics are inherited from the backing cell (fail-stop)
 
