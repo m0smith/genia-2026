@@ -763,8 +763,11 @@ handler(state, msg, _ctx) = ["ok", state + msg]
 a = actor(0, handler)
 actor_send(a, 5)
 actor_send(a, 10)
+actor_call(a, 3)
 ```
 
+- `actor_call` with `["ok", new_state]` replies with `new_state` (`18` above)
+- `actor_call` with `["reply", new_state, response]` replies with `response`
 - public helpers from `src/genia/std/prelude/actor.genia`: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
 - `actor(initial_state, handler)` creates a message-passing stateful actor backed by a cell
 - handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `["reply", new_state, response]`

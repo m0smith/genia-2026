@@ -137,6 +137,23 @@ main(args) = args
 main(argv())
 ```
 
+## Actors
+
+- `actor(initial_state, handler)` — create a message-passing actor
+- `actor_send(actor, msg)` — fire-and-forget
+- `actor_call(actor, msg)` — synchronous request-reply
+- `actor_stop(actor)`, `actor_restart(actor, new_state)` — lifecycle
+- `actor_state`, `actor_status`, `actor_alive?`, `actor_failed?`, `actor_error` — inspection
+
+Handler returns `["ok", new_state]` or `["reply", new_state, response]`.
+
+[case: quick-actor-call]
+```genia
+handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
+a = actor(0, handler)
+actor_call(a, 5)
+```
+
 ## Web
 
 - `import web` exposes the phase-1 HTTP helper surface

@@ -49,5 +49,10 @@
     "id": "quick-doc-single-line",
     "source": "@doc \"Adds one to x.\"\ninc(x) -> x + 1\ndoc(\"inc\")",
     "expected_result": "\"Adds one to x.\""
+  },
+  {
+    "id": "quick-actor-call",
+    "source": "handler(state, msg, _ctx) = [\"reply\", state + msg, state + msg]\na = actor(0, handler)\nactor_call(a, 5)",
+    "expected_result": "5"
   }
 ]

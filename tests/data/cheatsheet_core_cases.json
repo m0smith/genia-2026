@@ -43,5 +43,20 @@
     "id": "core-min-annotation-doc",
     "source": "@doc \"Adds one to x.\"\ninc(x) -> x + 1\ndoc(\"inc\")",
     "expected_result": "\"Adds one to x.\""
+  },
+  {
+    "id": "core-actor-call-reply",
+    "source": "handler(state, msg, _ctx) = [\"reply\", state + msg, state + msg]\na = actor(0, handler)\nactor_call(a, 5)",
+    "expected_result": "5"
+  },
+  {
+    "id": "core-actor-call-ok",
+    "source": "handler(state, msg, _ctx) = [\"ok\", state + msg]\na = actor(0, handler)\nactor_call(a, 3)",
+    "expected_result": "3"
+  },
+  {
+    "id": "core-actor-status",
+    "source": "handler(state, _msg, _ctx) = [\"ok\", state]\na = actor(0, handler)\nactor_status(a)",
+    "expected_result": "\"ready\""
   }
 ]

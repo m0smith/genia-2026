@@ -98,8 +98,21 @@ Expected behavior:
 - `actor_call(a, 5)` sends the message and blocks until the handler returns
 - the handler returns `["reply", new_state, response]`
 - `actor_call` returns the `response` value (`5` in this example)
-- if the handler returns `["ok", new_state]` during an `actor_call`, the reply value is `new_state`
 - if the handler throws, the reply is `none("actor-error")` and the actor enters failed state
+
+### actor_call with `["ok", new_state]`
+
+```genia
+handler(state, msg, _ctx) = ["ok", state + msg]
+a = actor(0, handler)
+actor_call(a, 3)
+```
+
+Expected behavior:
+
+- the handler returns `["ok", new_state]` instead of `["reply", ...]`
+- `actor_call` replies with `new_state` (`3` in this example)
+- the same handler works with both `actor_send` and `actor_call`
 
 ### Edge case example
 

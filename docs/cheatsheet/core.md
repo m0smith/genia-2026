@@ -113,6 +113,57 @@ Flow values are lazy and single-use.
 `head` / `take` stop upstream pulling promptly.
 `collect` and `run` are explicit Value/Flow bridge boundaries.
 
+## Cells
+
+| Helper | Shape |
+| --- | --- |
+| create | `cell(initial)`, `cell_with_state(ref)` |
+| update / read | `cell_send(cell, update_fn)`, `cell_get(cell)`, `cell_state(cell)` |
+| lifecycle | `cell_stop(cell)`, `restart_cell(cell, new_state)` |
+| inspection | `cell_status(cell)`, `cell_alive?(cell)`, `cell_failed?(cell)`, `cell_error(cell)` |
+
+Cells are serialized mutable state backed by a worker thread.
+`cell_send` enqueues an update function `(state) -> new_state`.
+`cell_stop` drains queued updates then exits the worker.
+
+## Actors
+
+| Helper | Shape |
+| --- | --- |
+| create | `actor(initial_state, handler)` |
+| fire-and-forget | `actor_send(actor, msg)` |
+| request-reply | `actor_call(actor, msg)` |
+| lifecycle | `actor_stop(actor)`, `actor_restart(actor, new_state)` |
+| inspection | `actor_state(actor)`, `actor_status(actor)`, `actor_alive?(actor)` |
+| health | `actor_failed?(actor)`, `actor_error(actor)` |
+
+Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `["reply", new_state, response]`.
+Both shapes work with both `actor_send` and `actor_call`.
+`actor_call` with `["ok", new_state]` replies with `new_state`.
+`actor_call` with `["reply", new_state, response]` replies with `response`.
+If the handler throws during `actor_call`, the result is `none("actor-error")`.
+
+<!-- [case: core-actor-call-reply] -->
+```genia
+handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
+a = actor(0, handler)
+actor_call(a, 5)
+```
+
+<!-- [case: core-actor-call-ok] -->
+```genia
+handler(state, msg, _ctx) = ["ok", state + msg]
+a = actor(0, handler)
+actor_call(a, 3)
+```
+
+<!-- [case: core-actor-status] -->
+```genia
+handler(state, _msg, _ctx) = ["ok", state]
+a = actor(0, handler)
+actor_status(a)
+```
+
 ## Modules And Interop
 
 | Feature | Notes |
