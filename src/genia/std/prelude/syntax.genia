@@ -1,181 +1,112 @@
-self_evaluating?(expr) = """
-# self_evaluating?
+@doc """Check whether a quoted expression is self-evaluating.
 
-Check whether a quoted expression is self-evaluating in the current metacircular helper layer.
-
-## Params
+## Arguments
 
 * `expr`: quoted expression data
 
 ## Returns
 
 * `true` for numbers, strings, booleans, `nil`, and `none`
-* `false` otherwise
-""" _syntax_self_evaluating(expr)
+* `false` otherwise"""
+self_evaluating?(expr) = _syntax_self_evaluating(expr)
 
-symbol_expr?(expr) = """
-# symbol_expr?
+@doc "Check whether a quoted expression is a symbol/variable expression."
+symbol_expr?(expr) = _syntax_symbol_expr(expr)
 
-Check whether a quoted expression is a symbol/variable expression.
-""" _syntax_symbol_expr(expr)
-
-tagged_list?(expr, tag) = """
-# tagged_list?
-
-Check whether `expr` is a pair chain whose first item equals `tag`.
-""" tagged_list_impl(expr, tag)
+@doc "Check whether `expr` is a pair chain whose first item equals `tag`."
+tagged_list?(expr, tag) = tagged_list_impl(expr, tag)
 
 tagged_list_impl(expr, tag) =
   (expr, tag) ? pair?(expr) == true -> car(expr) == tag |
   (_, _) -> false
 
-quoted_expr?(expr) = """
-# quoted_expr?
+@doc "Check whether `expr` is a quoted form `(quote ...)`."
+quoted_expr?(expr) = tagged_list?(expr, quote(quote))
 
-Check whether `expr` is a quoted form `(quote ...)`.
-""" tagged_list?(expr, quote(quote))
+@doc "Check whether `expr` is a quasiquoted form `(quasiquote ...)`."
+quasiquoted_expr?(expr) = tagged_list?(expr, quote(quasiquote))
 
-quasiquoted_expr?(expr) = """
-# quasiquoted_expr?
+@doc "Check whether `expr` is an assignment form `(assign name value)`."
+assignment_expr?(expr) = tagged_list?(expr, quote(assign))
 
-Check whether `expr` is a quasiquoted form `(quasiquote ...)`.
-""" tagged_list?(expr, quote(quasiquote))
+@doc "Check whether `expr` is a lambda form."
+lambda_expr?(expr) = tagged_list?(expr, quote(lambda))
 
-assignment_expr?(expr) = """
-# assignment_expr?
+@doc "Check whether `expr` is a quoted application form `(app operator operand1 operand2 ...)`."
+application_expr?(expr) = tagged_list?(expr, quote(app))
 
-Check whether `expr` is an assignment form `(assign name value)`.
-""" tagged_list?(expr, quote(assign))
+@doc "Check whether `expr` is a block form `(block ...)`."
+block_expr?(expr) = tagged_list?(expr, quote(block))
 
-lambda_expr?(expr) = """
-# lambda_expr?
+@doc "Check whether `expr` is a quoted pattern-match form `(match ...)`."
+match_expr?(expr) = tagged_list?(expr, quote(match))
 
-Check whether `expr` is a lambda form.
-""" tagged_list?(expr, quote(lambda))
+@doc "Return the quoted branch sequence of a match expression."
+match_branches(expr) = cdr(syntax_expect_tagged(expr, quote(match), "match_branches", "a match expression"))
 
-application_expr?(expr) = """
-# application_expr?
+@doc "Return the quoted pattern of a match branch."
+branch_pattern(branch) = syntax_pair_nth(syntax_expect_match_branch(branch, "branch_pattern"), 1, "branch_pattern")
 
-Check whether `expr` is a quoted application form `(app operator operand1 operand2 ...)`.
-""" tagged_list?(expr, quote(app))
+@doc "Check whether a quoted match branch carries a guard expression."
+branch_has_guard?(branch) = syntax_match_branch_size(branch, "branch_has_guard?") == 3
 
-block_expr?(expr) = """
-# block_expr?
+@doc "Return the quoted guard of a guarded match branch."
+branch_guard(branch) = branch_guard_from_size(syntax_match_branch_size(branch, "branch_guard"), branch)
 
-Check whether `expr` is a block form `(block ...)`.
-""" tagged_list?(expr, quote(block))
+@doc "Return the quoted result/body expression of a match branch."
+branch_body(branch) = branch_body_from_size(syntax_match_branch_size(branch, "branch_body"), branch)
 
-match_expr?(expr) = """
-# match_expr?
-
-Check whether `expr` is a quoted pattern-match form `(match ...)`.
-""" tagged_list?(expr, quote(match))
-
-match_branches(expr) = """
-# match_branches
-
-Return the quoted branch sequence of a match expression.
-""" cdr(syntax_expect_tagged(expr, quote(match), "match_branches", "a match expression"))
-
-branch_pattern(branch) = """
-# branch_pattern
-
-Return the quoted pattern of a match branch.
-""" syntax_pair_nth(syntax_expect_match_branch(branch, "branch_pattern"), 1, "branch_pattern")
-
-branch_has_guard?(branch) = """
-# branch_has_guard?
-
-Check whether a quoted match branch carries a guard expression.
-""" syntax_match_branch_size(branch, "branch_has_guard?") == 3
-
-branch_guard(branch) = """
-# branch_guard
-
-Return the quoted guard of a guarded match branch.
-""" branch_guard_from_size(syntax_match_branch_size(branch, "branch_guard"), branch)
-
-branch_body(branch) = """
-# branch_body
-
-Return the quoted result/body expression of a match branch.
-""" branch_body_from_size(syntax_match_branch_size(branch, "branch_body"), branch)
-
-text_of_quotation(expr) = """
-# text_of_quotation
-
-Return the contents of a quoted form.
-""" syntax_pair_nth(
+@doc "Return the contents of a quoted form."
+text_of_quotation(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(quote), "text_of_quotation", "a quoted expression"),
   1,
   "text_of_quotation"
 )
 
-assignment_name(expr) = """
-# assignment_name
-
-Return the assigned symbol from a quoted assignment expression.
-""" syntax_pair_nth(
+@doc "Return the assigned symbol from a quoted assignment expression."
+assignment_name(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(assign), "assignment_name", "an assignment expression"),
   1,
   "assignment_name"
 )
 
-assignment_value(expr) = """
-# assignment_value
-
-Return the value expression from a quoted assignment expression.
-""" syntax_pair_nth(
+@doc "Return the value expression from a quoted assignment expression."
+assignment_value(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(assign), "assignment_value", "an assignment expression"),
   2,
   "assignment_value"
 )
 
-lambda_params(expr) = """
-# lambda_params
-
-Return the quoted lambda parameter structure.
-""" syntax_pair_nth(
+@doc "Return the quoted lambda parameter structure."
+lambda_params(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(lambda), "lambda_params", "a lambda expression"),
   1,
   "lambda_params"
 )
 
-lambda_body(expr) = """
-# lambda_body
-
-Return the quoted lambda body.
-""" syntax_pair_nth(
+@doc "Return the quoted lambda body."
+lambda_body(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(lambda), "lambda_body", "a lambda expression"),
   2,
   "lambda_body"
 )
 
-operator(expr) = """
-# operator
-
-Return the operator/callee part of a quoted application expression.
-""" syntax_pair_nth(
+@doc "Return the operator/callee part of a quoted application expression."
+operator(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(app), "operator", "an application expression"),
   1,
   "operator"
 )
 
-operands(expr) = """
-# operands
-
-Return the operand tail of a quoted application expression as a pair-chain sequence of operands.
-""" syntax_pair_rest(
+@doc "Return the operand tail of a quoted application expression as a pair-chain sequence."
+operands(expr) = syntax_pair_rest(
   syntax_expect_tagged(expr, quote(app), "operands", "an application expression"),
   1,
   "operands"
 )
 
-block_expressions(expr) = """
-# block_expressions
-
-Return the tail of a quoted block expression as the current pair-chain sequence of subexpressions.
-""" cdr(syntax_expect_tagged(expr, quote(block), "block_expressions", "a block expression"))
+@doc "Return the tail of a quoted block expression as a pair-chain sequence of subexpressions."
+block_expressions(expr) = cdr(syntax_expect_tagged(expr, quote(block), "block_expressions", "a block expression"))
 
 syntax_expect_tagged(expr, tag, name, expected) =
   (expr, tag, _, _) ? tagged_list?(expr, tag) == true -> expr |

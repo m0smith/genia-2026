@@ -79,6 +79,8 @@ Implemented today:
 - docs validation in this phase includes:
   - strict MkDocs builds
   - semantic doc sync tests for protected cross-doc semantic facts
+    - the protected facts surface is intentionally small and lives in `docs/contract/semantic_facts.json`
+    - validation covers both public docs and LLM-instruction surfaces
   - cheatsheet validation tests
   - SICP runnable-block validation tests
   - lightweight book chapter status-marker validation

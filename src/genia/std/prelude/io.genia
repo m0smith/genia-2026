@@ -1,39 +1,20 @@
-write(sink, value) = """
-# write
+@doc "Write the display form of `value` to `sink` without a trailing newline."
+write(sink, value) = _write(sink, value)
 
-Write the display form of `value` to `sink` without a trailing newline.
-""" _write(sink, value)
+@doc "Write the display form of `value` to `sink` followed by a newline."
+writeln(sink, value) = _writeln(sink, value)
 
-writeln(sink, value) = """
-# writeln
+@doc "Flush an output sink."
+flush(sink) = _flush(sink)
 
-Write the display form of `value` to `sink` followed by a newline.
-""" _writeln(sink, value)
+@doc "Clear the terminal screen and move the cursor to the top-left corner."
+clear_screen() = _clear_screen()
 
-flush(sink) = """
-# flush
+@doc "Move the terminal cursor to column `x`, row `y`."
+move_cursor(x, y) = _move_cursor(x, y)
 
-Flush an output sink.
-""" _flush(sink)
-
-clear_screen() = """
-# clear_screen
-
-Clear the terminal screen and move the cursor to the top-left corner.
-""" _clear_screen()
-
-move_cursor(x, y) = """
-# move_cursor
-
-Move the terminal cursor to column `x`, row `y`.
-
-Both values must be positive integers.
-""" _move_cursor(x, y)
-
-render_grid(grid) = """
-# render_grid
-
-Render a simple text grid to stdout.
+@doc """Render a simple text grid to stdout.
 
 Each row may be a string or a list of displayable values.
-""" _render_grid(grid)
+"""
+render_grid(grid) = _render_grid(grid)

@@ -47,7 +47,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 | Map inside Option | 🟢 `map_some(f, opt)` | 🔵 `flow \|> map(stage) \|> keep_some` | Value side is one Option; flow side is stream of Options. [case: pfv-option-map-some] |
 | Flat-map Option | 🟢 `flat_map_some(f, opt)` | 🔵 `flow \|> keep_some(stage)` | `stage` should return Option per item. [case: pfv-option-flat-map-some] |
 | Provide fallback | 🟢 `unwrap_or(default, opt)` | 🔵 `flow \|> map((x) -> unwrap_or(default, x \|> stage))` | Fallback is explicit per item. [case: pfv-option-unwrap-or] |
-| Pipeline behavior on `none(...)` | 🟢 `none(...) \|> f` short-circuits | 🔵 use `keep_some` or `keep_some_else` | Pipelines preserve `some(...)`; no implicit unwrapping. [case: pfv-option-none-short-circuit] |
+| Pipeline behavior on `none(...)` / `some(...)` | 🟢 `none(...) \|> f` short-circuits; `some(x) \|> f` lifts over `some(x)` | 🔵 use `keep_some` or `keep_some_else` | Ordinary stages lift over `some(x)` automatically, lifted non-Option results become `some(...)`, and Option results are preserved as-is. [case: pfv-option-none-short-circuit] |
 
 ## Side effects / sinks
 
@@ -81,6 +81,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 - Cross from flow to value only when needed, with `collect`.
 - Treat `keep_some` and `keep_some_else` as flow-level Option routing tools.
 - Remember pipeline `none(...)` short-circuits while ordinary stages lift over `some(...)`.
+- Remember direct calls still receive explicit `some(...)` values unchanged; lifting is specific to `|>`.
 - Treat `sum` as a plain-number reducer, not an Option-aware stage.
 - Prefer explicit Option helpers (`map_some`, `flat_map_some`, `unwrap_or`) over implicit assumptions.
 

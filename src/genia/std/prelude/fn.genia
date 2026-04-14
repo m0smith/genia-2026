@@ -1,12 +1,10 @@
-apply(proc, args) = """
-# apply
-
-Call `proc` with a list of positional arguments.
+@doc """Call `proc` with a list of positional arguments.
 
 This applies ordinary callable values directly.
 
 If `proc` is a metacircular compound procedure produced by `eval`, this also evaluates its body in the captured lexical environment.
-""" apply_dispatch(proc, args)
+"""
+apply(proc, args) = apply_dispatch(proc, args)
 
 apply_dispatch(proc, args) =
   (proc, args) ? _match_procedure?(proc) == true -> _apply_match_procedure(proc, args) |
@@ -59,30 +57,20 @@ _eval_guarded_branch(guard_value, branch, branch_env, rest, args, env, expr) =
   (true, branch, branch_env, _, _, _, _) -> eval(branch_body(branch), branch_env) |
   (_, _, _, rest, args, env, expr) -> _eval_match_branches(rest, args, env, expr)
 
-compose(..fns) = """
-# compose
+@doc "Compose functions right-to-left into one callable."
+compose(..fns) = (..args) -> compose_apply(fns, args)
 
-Compose functions right-to-left into one callable.
-""" (..args) -> compose_apply(fns, args)
+@doc """Log `value` for debugging and return it unchanged.
 
-inspect(value) = """
-# inspect
-
-Log `value` for debugging and return it unchanged.
 Useful in `|>` pipelines as a non-transforming stage.
-""" log(value)
+"""
+inspect(value) = log(value)
 
-trace(label, value) = """
-# trace
+@doc "Log `label` and `value` for pipeline debugging, then return `value` unchanged."
+trace(label, value) = log(label, value)
 
-Log `label` and `value` for pipeline debugging, then return `value` unchanged.
-""" log(label, value)
-
-tap(fn, value) = """
-# tap
-
-Call `fn(value)` for side effects and return `value` unchanged.
-""" {
+@doc "Call `fn(value)` for side effects and return `value` unchanged."
+tap(fn, value) = {
   fn(value)
   value
 }
@@ -91,44 +79,23 @@ compose_apply(fns, args) =
   ([f], args) -> apply(f, args) |
   ([f, ..rest], args) -> f(compose_apply(rest, args))
 
-rule_skip() = """
-# rule_skip
+@doc "Return `none` for a `rules(..fns)` rule with no effect."
+rule_skip() = none
 
-Return `none` for a `rules(..fns)` rule with no effect.
-""" none
+@doc "Emit one output value from a `rules(..fns)` rule."
+rule_emit(x) = some({ emit: [x] })
 
-rule_emit(x) = """
-# rule_emit
+@doc "Emit a list of output values from a `rules(..fns)` rule."
+rule_emit_many(xs) = some({ emit: xs })
 
-Emit one output value from a `rules(..fns)` rule.
-""" some({ emit: [x] })
+@doc "Replace the current record for later `rules(..fns)` rules on the same input item."
+rule_set(record) = some({ record: record })
 
-rule_emit_many(xs) = """
-# rule_emit_many
+@doc "Replace the running `ctx` for later `rules(..fns)` rules and later input items."
+rule_ctx(ctx) = some({ ctx: ctx })
 
-Emit a list of output values from a `rules(..fns)` rule.
-""" some({ emit: xs })
+@doc "Stop later `rules(..fns)` rules for the current input item."
+rule_halt() = some({ halt: true })
 
-rule_set(record) = """
-# rule_set
-
-Replace the current record for later `rules(..fns)` rules on the same input item.
-""" some({ record: record })
-
-rule_ctx(ctx) = """
-# rule_ctx
-
-Replace the running `ctx` for later `rules(..fns)` rules and later input items.
-""" some({ ctx: ctx })
-
-rule_halt() = """
-# rule_halt
-
-Stop later `rules(..fns)` rules for the current input item.
-""" some({ halt: true })
-
-rule_step(record, ctx, out) = """
-# rule_step
-
-Replace `record`, replace `ctx`, and emit `out` in one `rules(..fns)` step.
-""" some({ record: record, ctx: ctx, emit: out })
+@doc "Replace `record`, replace `ctx`, and emit `out` in one `rules(..fns)` step."
+rule_step(record, ctx, out) = some({ record: record, ctx: ctx, emit: out })

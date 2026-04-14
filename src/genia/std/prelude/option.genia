@@ -1,37 +1,19 @@
-some(value) = """
-# some
+@doc "Wrap a present value in the Option success form."
+some(value) = _some(value)
 
-Wrap a present value in the Option success form.
-""" _some(value)
+@doc "Check whether a value is any `none...` Option form."
+none?(value) = _none?(value)
 
-none?(value) = """
-# none?
+@doc "Check whether a value is `some(...)`."
+some?(value) = _some?(value)
 
-Check whether a value is any `none...` Option form.
-""" _none?(value)
+@doc "Canonical maybe-aware lookup helper for maps and nested Option targets."
+get(key, target) = _get(key, target)
 
-some?(value) = """
-# some?
+@doc "Compatibility alias for `get(key, target)`."
+get?(key, target) = _get?(key, target)
 
-Check whether a value is `some(...)`.
-""" _some?(value)
-
-get(key, target) = """
-# get
-
-Canonical maybe-aware lookup helper for maps and nested Option targets.
-""" _get(key, target)
-
-get?(key, target) = """
-# get?
-
-Compatibility alias for `get(key, target)`.
-""" _get?(key, target)
-
-map_some(f, opt) = """
-# map_some
-
-Apply `f` to the inner value of `some(value)` and return `some(result)`.
+@doc """Apply `f` to the inner value of `some(value)` and return `some(result)`.
 Preserve `none(...)` unchanged.
 
 `f` receives the unwrapped inner value only when `opt` is `some(value)`.
@@ -41,12 +23,10 @@ Useful in `|>` pipelines when the current value is an Option:
     "42" |> parse_int |> map_some((n) -> n * 2)
 
 results in `some(84)`, and a parse failure gives `none("parse-error", ...)`.
-""" _map_some(f, opt)
+"""
+map_some(f, opt) = _map_some(f, opt)
 
-flat_map_some(f, opt) = """
-# flat_map_some
-
-Apply `f` to the inner value of `some(value)` when `f` itself returns an Option.
+@doc """Apply `f` to the inner value of `some(value)` when `f` itself returns an Option.
 Preserve `none(...)` unchanged.
 
 `f` receives the unwrapped inner value only when `opt` is `some(value)`,
@@ -57,84 +37,54 @@ Useful in `|>` pipelines for chaining Option-returning functions:
     "42" |> parse_int |> flat_map_some(validate_positive)
 
 where `validate_positive` returns `some(n)` or `none("negative", ...)`.
-""" _flat_map_some(f, opt)
+"""
+flat_map_some(f, opt) = _flat_map_some(f, opt)
 
-then_get(key, target) = """
-# then_get
+@doc "Explicit maybe-aware lookup over `get` for raw map targets, `some(map)`, or `none(...)`."
+then_get(key, target) = _then_get(key, target)
 
-Explicit maybe-aware lookup over `get` for raw map targets, `some(map)`, or `none(...)`.
-""" _then_get(key, target)
+@doc "Explicit maybe-aware lookup over the first element of a raw list target, `some(list)`, or `none(...)`."
+then_first(target) = _then_first(target)
 
-then_first(target) = """
-# then_first
+@doc "Explicit maybe-aware lookup over a raw list target, `some(list)`, or `none(...)`."
+then_nth(index, target) = _then_nth(index, target)
 
-Explicit maybe-aware lookup over the first element of a raw list target, `some(list)`, or `none(...)`.
-""" _then_first(target)
+@doc "Explicit maybe-aware string search for raw string targets, `some(string)`, or `none(...)`."
+then_find(needle, target) = _then_find(needle, target)
 
-then_nth(index, target) = """
-# then_nth
-
-Explicit maybe-aware lookup over a raw list target, `some(list)`, or `none(...)`.
-""" _then_nth(index, target)
-
-then_find(needle, target) = """
-# then_find
-
-Explicit maybe-aware string search for raw string targets, `some(string)`, or `none(...)`.
-""" _then_find(needle, target)
-
-or_else(opt, fallback) = """
-# or_else
-
-Return the wrapped value for `some(...)`, otherwise return `fallback`.
+@doc """Return the wrapped value for `some(...)`, otherwise return `fallback`.
 
 For `|>` pipelines, recover by wrapping the whole pipeline result with `or_else(...)` or `unwrap_or(...)`.
-""" _or_else(opt, fallback)
+"""
+or_else(opt, fallback) = _or_else(opt, fallback)
 
-or_else_with(opt, thunk) = """
-# or_else_with
-
-Return the wrapped value for `some(...)`, otherwise call `thunk()`.
+@doc """Return the wrapped value for `some(...)`, otherwise call `thunk()`.
 
 For `|>` pipelines, recover by wrapping the whole pipeline result with `or_else_with(...)` or `unwrap_or(...)`.
-""" _or_else_with(opt, thunk)
+"""
+or_else_with(opt, thunk) = _or_else_with(opt, thunk)
 
-unwrap_or(default, opt) = """
-# unwrap_or
-
-Return the wrapped value for `some(...)`, otherwise return `default`.
+@doc """Return the wrapped value for `some(...)`, otherwise return `default`.
 
 This is the canonical recovery helper around Option-aware pipelines.
 It unwraps only at this explicit recovery point.
-""" _unwrap_or(default, opt)
+"""
+unwrap_or(default, opt) = _unwrap_or(default, opt)
 
-absence_reason(opt) = """
-# absence_reason
+@doc "Inspect the reason metadata of a structured `none(...)` value."
+absence_reason(opt) = _absence_reason(opt)
 
-Inspect the reason metadata of a structured `none(...)` value.
-""" _absence_reason(opt)
+@doc "Inspect the context metadata of a structured `none(...)` value."
+absence_context(opt) = _absence_context(opt)
 
-absence_context(opt) = """
-# absence_context
+@doc """Inspect complete metadata for a structured `none(...)` value as a map.
 
-Inspect the context metadata of a structured `none(...)` value.
-""" _absence_context(opt)
-
-absence_meta(opt) = """
-# absence_meta
-
-Inspect complete metadata for a structured `none(...)` value as a map.
 The map always includes `reason`, and includes `context` when present.
-""" _absence_meta(opt)
+"""
+absence_meta(opt) = _absence_meta(opt)
 
-is_some?(opt) = """
-# is_some?
+@doc "Alias for `some?(opt)`."
+is_some?(opt) = _is_some?(opt)
 
-Alias for `some?(opt)`.
-""" _is_some?(opt)
-
-is_none?(opt) = """
-# is_none?
-
-Alias for `none?(opt)`.
-""" _is_none?(opt)
+@doc "Alias for `none?(opt)`."
+is_none?(opt) = _is_none?(opt)

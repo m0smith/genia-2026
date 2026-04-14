@@ -25,6 +25,11 @@ This repository currently provides:
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
+Current host status:
+
+- Python is the only implemented host today.
+- `hosts/*`, `spec/`, `docs/browser/`, and `apps/playground/` are scaffolded contract/documentation surfaces in this phase, not additional implemented hosts or runtimes.
+
 ## Quick start
 
 ```bash
@@ -66,6 +71,9 @@ Supported built-ins in this phase:
 - `@deprecated "message"`
 - `@category "name"`
 
+Supported built-in annotations are `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`.
+Naming rule reminder: new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.
+
 Useful lookup helpers:
 
 ```genia
@@ -106,6 +114,8 @@ Pipe-mode mental model:
 - write one stage expression, not a full program
 - do not write explicit `stdin` or explicit `run`
 - ordinary stages lift over `some(x)` automatically, and lifted non-Option results are wrapped back into `some(...)`
+- stages that already return `some(...)` or `none(...)` preserve that Option result as-is
+- direct calls still receive explicit `some(...)` values unchanged; automatic lifting is pipeline-only
 - use explicit helpers such as `flat_map_some(...)`, `map_some(...)`, or `then_*` when you want direct Option-aware control
 - raw values stay raw values, and `none(...)` skips the remaining stages
 - reducers such as `sum` expect plain numbers after explicit filtering or recovery

@@ -116,6 +116,8 @@ Flow values are lazy and single-use.
 | metadata lookup | `meta("name")` |
 | note | last annotation wins for duplicate metadata keys |
 
+Supported built-in annotations are `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`.
+
 ### `@doc` Quick Reference
 
 Keep `@doc` short and source-readable.
@@ -175,6 +177,7 @@ Current response maps use `status`, `headers`, and `body`.
 Dispatch and mode notes:
 
 - file/command mode dispatch: `main(argv())` first, then `main()` fallback
+- runtime entrypoint order is `main/1` first, then `main/0`
 - pipe mode bypasses `main`
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
 

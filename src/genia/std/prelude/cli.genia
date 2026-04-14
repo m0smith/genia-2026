@@ -1,42 +1,27 @@
-cli_parse(args) = """
-# cli_parse
-
-Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
+@doc """Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
 
 ## Notes
+- `argv()` remains the raw host-backed CLI primitive
+- parsing semantics live in prelude in this phase
+"""
+cli_parse(args) = cli_parse_from(args, _cli_spec(nil), map_new(), [], true)
 
-* `argv()` remains the raw host-backed CLI primitive
-* parsing semantics live in prelude in this phase
-""" cli_parse_from(args, _cli_spec(nil), map_new(), [], true)
-
-cli_parse(args, spec) = """
-# cli_parse
-
-Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
+@doc """Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
 
 ## Notes
+- `argv()` remains the raw host-backed CLI primitive
+- parsing semantics live in prelude in this phase
+"""
+cli_parse(args, spec) = cli_parse_from(args, _cli_spec(spec), map_new(), [], true)
 
-* `argv()` remains the raw host-backed CLI primitive
-* parsing semantics live in prelude in this phase
-""" cli_parse_from(args, _cli_spec(spec), map_new(), [], true)
+@doc "Check whether parsed options contain a truthy flag value."
+cli_flag?(opts, name) = _cli_flag?(opts, name)
 
-cli_flag?(opts, name) = """
-# cli_flag?
+@doc """Return a parsed option value or `none("missing-key", {key: name})` when absent."""
+cli_option(opts, name) = _cli_option(opts, name)
 
-Check whether parsed options contain a truthy flag value.
-""" _cli_flag?(opts, name)
-
-cli_option(opts, name) = """
-# cli_option
-
-Return a parsed option value or `none("missing-key", {key: name})` when the option is missing.
-""" _cli_option(opts, name)
-
-cli_option_or(opts, name, default) = """
-# cli_option_or
-
-Return a parsed option value or `default` when the option is missing.
-""" _cli_option_or(opts, name, default)
+@doc "Return a parsed option value or `default` when the option is missing."
+cli_option_or(opts, name, default) = _cli_option_or(opts, name, default)
 
 cli_parse_from(args, spec, opts, positionals_rev, parsing_options) =
   ([], _, opts, positionals_rev, _) -> [opts, reverse(positionals_rev)] |

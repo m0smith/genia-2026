@@ -1,76 +1,51 @@
-empty_env() = """
-# empty_env
-
-Create a fresh metacircular evaluation environment.
+@doc """Create a fresh metacircular evaluation environment.
 
 ## Returns
-
-* host-backed metacircular environment value
+- host-backed metacircular environment value
 
 ## Notes
+- the fresh environment can see current builtins and autoloaded stdlib names
+- ordinary lexical definitions remain local to that environment chain
+"""
+empty_env() = _meta_empty_env()
 
-* the fresh environment can see current builtins and autoloaded stdlib names
-* ordinary lexical definitions remain local to that environment chain
-""" _meta_empty_env()
+@doc """Look up a symbol in a metacircular evaluation environment.
 
-lookup(env, name) = """
-# lookup
+## Arguments
+- `env`: metacircular environment
+- `name`: symbol or string name
+"""
+lookup(env, name) = _meta_lookup(env, name)
 
-Look up a symbol in a metacircular evaluation environment.
-
-## Params
-
-* `env`: metacircular environment
-* `name`: symbol or string name
-""" _meta_lookup(env, name)
-
-define(env, name, value) = """
-# define
-
-Define a name in the current metacircular environment frame.
+@doc """Define a name in the current metacircular environment frame.
 
 ## Returns
+- the same environment value
+"""
+define(env, name, value) = _meta_define(env, name, value)
 
-* the same environment value
-""" _meta_define(env, name, value)
-
-set(env, name, value) = """
-# set
-
-Rebind the nearest existing lexical name in a metacircular environment chain, or define it in the current frame when missing.
+@doc """Rebind the nearest existing lexical name in a metacircular environment chain, or define it in the current frame when missing.
 
 ## Returns
+- assigned value
+"""
+set(env, name, value) = _meta_set(env, name, value)
 
-* assigned value
-""" _meta_set(env, name, value)
-
-extend(env, params, args) = """
-# extend
-
-Create a child metacircular environment with lambda parameters bound to argument values.
+@doc """Create a child metacircular environment with lambda parameters bound to argument values.
 
 ## Notes
+- `params` uses the quoted lambda parameter representation
+- `args` must be an ordinary list of evaluated argument values
+"""
+extend(env, params, args) = _meta_extend(env, params, args)
 
-* `params` uses the quoted lambda parameter representation
-* `args` must be an ordinary list of evaluated argument values
-""" _meta_extend(env, params, args)
+@doc """Evaluate a quoted Genia expression in a metacircular environment.
 
-eval(expr, env) = """
-# eval
-
-Evaluate a quoted Genia expression in a metacircular environment.
-
-## Implemented Forms
-
-* self-evaluating literals
-* symbols
-* quoted expressions
-* assignment
-* lambda
-* match/case (as metacircular matcher procedures over argument tuples)
-* application
-* blocks
-""" eval_dispatch(expr, env)
+## Notes
+Implemented forms: self-evaluating literals, symbols, quoted expressions,
+assignment, lambda, match/case, application, and blocks.
+"""
+eval(expr, env) = eval_dispatch(expr, env)
 
 eval_dispatch(expr, env) =
   (expr, env) ? self_evaluating?(expr) == true -> expr |

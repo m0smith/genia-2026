@@ -1,249 +1,141 @@
-list(..xs) = """
-# list
+@doc """Build a list from all provided arguments.
 
-Build a list from all provided arguments.
-
-## Params
+## Arguments
 
 * `..xs`: values to include in order
 
 ## Returns
 
-* list containing all provided values
+* list containing all provided values"""
+list(..xs) = xs
 
-## Examples
+@doc """Return the first element as structured absence-aware Option.
 
-```genia
-list(1, 2, 3) -> [1, 2, 3]
-```
-""" xs
-
-first(xs) = """
-# first
-
-Return the first element as structured absence-aware Option.
-
-## Params
+## Arguments
 
 * `xs`: list value
 
 ## Returns
 
 * `some(value)` for the first element
-* `none("empty-list")` for `[]`
-
-## Examples
-
-```genia
-first([10, 20, 30]) -> some(10)
-first([]) -> none("empty-list")
-``` 
-""" first_impl(xs)
+* `none("empty-list")` for `[]`"""
+first(xs) = first_impl(xs)
 first_impl(xs) =
   [] -> none("empty-list") |
   [x, .._] -> some(x)
 
-first_opt(xs) = """
-# first_opt
+@doc """Compatibility alias for `first(list)`.
 
-Compatibility alias for `first(list)`.
-
-## Params
+## Arguments
 
 * `xs`: list value
 
 ## Returns
 
 * `some(value)` for the first element
-* `none("empty-list")` for `[]`
+* `none("empty-list")` for `[]`"""
+first_opt(xs) = first(xs)
 
-## Examples
+@doc """Return the last element as an Option.
 
-```genia
-first_opt([10, 20, 30]) -> some(10)
-first_opt([]) -> none("empty-list")
-```
-""" first(xs)
-
-last(xs) = """
-# last
-
-Return the last element as an Option.
-
-## Params
+## Arguments
 
 * `xs`: list value
 
 ## Returns
 
 * `some(value)` for the last element
-* `none("empty-list")` for `[]`
-
-## Examples
-
-```genia
-last([10, 20, 30]) -> some(30)
-last([]) -> none("empty-list")
-``` 
-""" last_impl(xs)
+* `none("empty-list")` for `[]`"""
+last(xs) = last_impl(xs)
 last_impl(xs) =
   [] -> none("empty-list") |
   [x] -> some(x) |
   [_, ..rest] -> last_impl(rest)
 
-rest(xs) = """
-# rest
+@doc """Return all elements except the first.
 
-Return all elements except the first.
-
-## Params
+## Arguments
 
 * `xs`: non-empty list
 
 ## Returns
 
-* tail of `xs`
-
-## Examples
-
-```genia
-rest([10, 20, 30]) -> [20, 30]
-```
-""" rest_impl(xs)
+* tail of `xs`"""
+rest(xs) = rest_impl(xs)
 rest_impl(xs) = [_, ..tail] -> tail
 
-empty?(xs) = """
-# empty?
+@doc """Check whether a list has no elements.
 
-Check whether a list has no elements.
-
-## Params
+## Arguments
 
 * `xs`: value to test
 
 ## Returns
 
-* `true` for `[]`, otherwise `false`
-""" empty_impl(xs)
+* `true` for `[]`, otherwise `false`"""
+empty?(xs) = empty_impl(xs)
 empty_impl(xs) =
   [] -> true |
   _ -> false
 
-nil?(x) = """
-# nil?
+@doc """Check whether a value is `nil`.
 
-Check whether a value is `nil`.
-
-## Params
+## Arguments
 
 * `x`: value to test
 
 ## Returns
 
-* `true` when `x` is `nil`, otherwise `false`
-""" nil_impl(x)
+* `true` when `x` is `nil`, otherwise `false`"""
+nil?(x) = nil_impl(x)
 nil_impl(x) =
   nil -> true |
   _ -> false
 
-append() = """
-# append
-
-Concatenate zero or more lists.
-
-## Examples
-
-```genia
-append([1, 2], [3]) -> [1, 2, 3]
-```
-""" []
-append(xs) = """
-# append
-
-Concatenate zero or more lists.
-
-## Examples
-
-```genia
-append([1, 2], [3]) -> [1, 2, 3]
-```
-""" xs
-append(xs, ys) = """
-# append
-
-Concatenate zero or more lists.
-
-## Examples
-
-```genia
-append([1, 2], [3]) -> [1, 2, 3]
-```
-""" append2(xs, ys)
+@doc "Concatenate zero or more lists."
+append() = []
+@doc "Concatenate zero or more lists."
+append(xs) = xs
+@doc "Concatenate zero or more lists."
+append(xs, ys) = append2(xs, ys)
 append2(xs, ys) =
   ([], ys) -> ys |
   (xs, []) -> xs |
   (xs, ys) -> [..xs, ..ys]
 
-length(xs) = """
-# length
-
-Count elements in a list.
-
-## Examples
-
-```genia
-length([]) -> 0
-```
-""" length_acc(xs, 0)
+@doc "Count elements in a list."
+length(xs) = length_acc(xs, 0)
 length_acc(xs, acc) =
   ([], acc) -> acc |
   ([_, ..rest], acc) -> length_acc(rest, acc + 1)
 
-reverse(xs) = """
-# reverse
-
-Return a list with elements in reverse order.
-""" reverse_acc(xs, [])
+@doc "Return a list with elements in reverse order."
+reverse(xs) = reverse_acc(xs, [])
 reverse_acc(xs, acc) =
   ([], acc) -> acc |
   ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
 
-reduce(f, acc, xs) = """
-# reduce
-
-Fold a list from left to right.
-""" reduce_impl(f, acc, xs)
+@doc "Fold a list from left to right."
+reduce(f, acc, xs) = reduce_impl(f, acc, xs)
 reduce_impl(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce_impl(f, f(acc, x), rest)
 
-map(f, xs) = """
-# map
+@doc "Apply a function to every list element."
+map(f, xs) = reduce((acc, x) -> [..acc, f(x)], [], xs)
 
-Apply a function to every list element.
-""" reduce((acc, x) -> [..acc, f(x)], [], xs)
-
-filter(predicate, xs) = """
-# filter
-
-Keep elements where `predicate(x)` is `true`.
-""" reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
+@doc "Keep elements where `predicate(x)` is `true`."
+filter(predicate, xs) = reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
 filter_keep(predicate, acc, x) =
   (predicate, acc, x) ? predicate(x) == true -> [..acc, x] |
   (_, acc, _) -> acc
 
-count(xs) = """
-# count
+@doc "Count elements in a list."
+count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
 
-Count elements in a list.
-""" reduce((acc, _) -> acc + 1, 0, xs)
+@doc """Canonical maybe-returning predicate-search helper for lists.
 
-find_opt(predicate, xs) = """
-# find_opt
-
-Canonical maybe-returning predicate-search helper for lists.
-
-## Params
+## Arguments
 
 * `predicate`: function returning `true` for a match
 * `xs`: list value
@@ -251,29 +143,23 @@ Canonical maybe-returning predicate-search helper for lists.
 ## Returns
 
 * `some(value)` for the first matching element
-* `none("no-match")` when no element matches
-""" find_opt_impl(predicate, xs)
+* `none("no-match")` when no element matches"""
+find_opt(predicate, xs) = find_opt_impl(predicate, xs)
 find_opt_impl(predicate, xs) =
   (_, []) -> none("no-match") |
   (predicate, [x, .._]) ? predicate(x) == true -> some(x) |
   (predicate, [_, ..rest]) -> find_opt_impl(predicate, rest)
 
-any?(predicate, xs) = """
-# any?
-
-Return `true` when any element satisfies a predicate.
-""" any_impl(predicate, xs)
+@doc "Return `true` when any element satisfies a predicate."
+any?(predicate, xs) = any_impl(predicate, xs)
 any_impl(predicate, xs) =
   (predicate, []) -> false |
   (predicate, [x, ..rest]) ? predicate(x) == true -> true |
   (predicate, [_, ..rest]) -> any_impl(predicate, rest)
 
-nth(n, xs) = """
-# nth
+@doc """Return the element at zero-based index `n` as structured absence-aware Option.
 
-Return the element at zero-based index `n` as structured absence-aware Option.
-
-## Params
+## Arguments
 
 * `n`: zero-based index
 * `xs`: list value
@@ -281,27 +167,17 @@ Return the element at zero-based index `n` as structured absence-aware Option.
 ## Returns
 
 * `some(value)` when the index exists
-* `none("index-out-of-bounds", { index: n, length: length(xs) })` when the index is missing
-
-## Examples
-
-```genia
-nth(1, ["a", "b", "c"]) -> some("b")
-nth(8, [10, 20]) -> none("index-out-of-bounds", { index: 8, length: 2 })
-```
-""" nth_impl(n, xs, 0, length(xs))
+* `none("index-out-of-bounds")` when the index is missing"""
+nth(n, xs) = nth_impl(n, xs, 0, length(xs))
 nth_impl(target, xs, current, size) =
   (target, _, _, size) ? target < 0 -> none("index-out-of-bounds", { index: target, length: size }) |
   (target, [], _, size) -> none("index-out-of-bounds", { index: target, length: size }) |
   (target, [x, .._], current, _) ? target == current -> some(x) |
   (target, [_, ..rest], current, size) -> nth_impl(target, rest, current + 1, size)
 
-nth_opt(n, xs) = """
-# nth_opt
+@doc """Compatibility alias for `nth(index, list)`.
 
-Compatibility alias for `nth(index, list)`.
-
-## Params
+## Arguments
 
 * `n`: zero-based index
 * `xs`: list value
@@ -309,80 +185,34 @@ Compatibility alias for `nth(index, list)`.
 ## Returns
 
 * `some(value)` when the index exists
-* `none("index-out-of-bounds", { index: n, length: length(xs) })` when the index is missing
+* `none("index-out-of-bounds")` when the index is missing"""
+nth_opt(n, xs) = nth(n, xs)
 
-## Examples
-
-```genia
-nth_opt(1, ["a", "b", "c"]) -> some("b")
-nth_opt(8, [10, 20]) -> none("index-out-of-bounds", { index: 8, length: 2 })
-```
-""" nth(n, xs)
-
-take(n, xs) = """
-# take
-
-Take the first `n` items from a list.
-""" take_impl(n, xs)
+@doc "Take the first `n` items from a list."
+take(n, xs) = take_impl(n, xs)
 take_impl(n, xs) =
   (_, []) -> [] |
   (0, _) -> [] |
   (n, [x, ..rest]) -> [x] + take_impl(n - 1, rest)
 
-head(xs) = """
-# head
+@doc "Convenience alias for `take`."
+head(xs) = take(1, xs)
+@doc "Convenience alias for `take`."
+head(n, xs) = take(n, xs)
 
-Convenience alias for `take`.
-""" take(1, xs)
-head(n, xs) = """
-# head
-
-Convenience alias for `take`.
-""" take(n, xs)
-
-drop(n, xs) = """
-# drop
-
-Drop the first `n` items from a list.
-""" drop_impl(n, xs)
+@doc "Drop the first `n` items from a list."
+drop(n, xs) = drop_impl(n, xs)
 drop_impl(n, xs) =
   (_, []) -> [] |
   (0, xs) -> xs |
   (n, [_, ..rest]) -> drop_impl(n - 1, rest)
 
-range(stop) = """
-# range
-
-Build a numeric range.
-
-## Examples
-
-```genia
-range(5) -> [0, 1, 2, 3, 4]
-```
-""" range(0, stop - 1, 1)
-range(start, stop) = """
-# range
-
-Build a numeric range.
-
-## Examples
-
-```genia
-range(5) -> [0, 1, 2, 3, 4]
-```
-""" range(start, stop, 1)
-range(start, stop, step) = """
-# range
-
-Build a numeric range.
-
-## Examples
-
-```genia
-range(5) -> [0, 1, 2, 3, 4]
-```
-""" range_impl(start, stop, step)
+@doc "Build a numeric range."
+range(stop) = range(0, stop - 1, 1)
+@doc "Build a numeric range."
+range(start, stop) = range(start, stop, 1)
+@doc "Build a numeric range."
+range(start, stop, step) = range_impl(start, stop, step)
 range_impl(start, stop, step) =
   (_, _, 0) -> [] |
   (start, stop, step) ? step > 0 && start > stop -> [] |

@@ -104,7 +104,6 @@ def test_help_autoloads_option_wrapper_docstring():
     run_source('help("get")\n', env, filename="help_option.genia")
     out = "".join(outputs)
     assert "get/2" in out
-    assert "# get" in out
     assert "Canonical maybe-aware lookup helper" in out
 
 
@@ -114,7 +113,6 @@ def test_help_autoloads_string_wrapper_docstring():
     run_source('help("parse_int")\n', env, filename="help_string.genia")
     out = "".join(outputs)
     assert "parse_int/1, 2" in out
-    assert "# parse_int" in out
     assert "Parse an integer from a string" in out
 
 
@@ -124,7 +122,6 @@ def test_help_autoloads_json_wrapper_docstring():
     run_source('help("json_parse")\n', env, filename="help_json.genia")
     out = "".join(outputs)
     assert "json_parse/1" in out
-    assert "# json_parse" in out
     assert "Parse JSON text into Genia runtime data." in out
 
 
@@ -134,7 +131,6 @@ def test_help_autoloads_file_zip_wrapper_docstring():
     run_source('help("zip_read")\n', env, filename="help_file_zip.genia")
     out = "".join(outputs)
     assert "zip_read/1" in out
-    assert "# zip_read" in out
     assert "Create a lazy Flow of zip entries" in out
 
 
@@ -144,7 +140,6 @@ def test_help_autoloads_map_wrapper_docstring():
     run_source('help("map_put")\n', env, filename="help_map.genia")
     out = "".join(outputs)
     assert "map_put/3" in out
-    assert "# map_put" in out
     assert "Return a new map with `key` set to `value`." in out
 
 
@@ -154,7 +149,6 @@ def test_help_autoloads_io_wrapper_docstring():
     run_source('help("write")\n', env, filename="help_io.genia")
     out = "".join(outputs)
     assert "write/2" in out
-    assert "# write" in out
     assert "without a trailing newline" in out
 
 
@@ -164,7 +158,6 @@ def test_help_autoloads_process_wrapper_docstring():
     run_source('help("spawn")\n', env, filename="help_process.genia")
     out = "".join(outputs)
     assert "spawn/1" in out
-    assert "# spawn" in out
     assert "host-thread mailbox worker" in out
 
 
@@ -174,7 +167,6 @@ def test_help_autoloads_eval_wrapper_docstring():
     run_source('help("eval")\n', env, filename="help_eval.genia")
     out = "".join(outputs)
     assert "eval/2" in out
-    assert "# eval" in out
     assert "Evaluate a quoted Genia expression in a metacircular environment." in out
 
 
@@ -184,7 +176,6 @@ def test_help_autoloads_flow_wrapper_docstring():
     run_source('help("lines")\n', env, filename="help_flow.genia")
     out = "".join(outputs)
     assert "lines/1" in out
-    assert "# lines" in out
     assert "Create a Flow from `stdin`" in out
 
 
@@ -194,7 +185,6 @@ def test_help_autoloads_keep_some_else_flow_wrapper_docstring():
     run_source('help("keep_some_else")\n', env, filename="help_keep_some_else.genia")
     out = "".join(outputs)
     assert "keep_some_else/2, 3" in out
-    assert "# keep_some_else" in out
     assert "dead-letter routing for Flow pipelines" in out
 
 
@@ -204,7 +194,6 @@ def test_help_autoloads_keep_some_flow_wrapper_docstring():
     run_source('help("keep_some")\n', env, filename="help_keep_some.genia")
     out = "".join(outputs)
     assert "keep_some/1, 2" in out
-    assert "# keep_some" in out
     assert "Keep only successful Option values from a flow." in out
 
 
@@ -214,7 +203,6 @@ def test_help_autoloads_rules_wrapper_docstring():
     run_source('help("rules")\n', env, filename="help_rules.genia")
     out = "".join(outputs)
     assert "rules/0+" in out
-    assert "# rules" in out
     assert "Rule orchestration, defaulting, and contract validation live in prelude" in out
 
 
@@ -224,7 +212,6 @@ def test_help_autoloads_cli_wrapper_docstring():
     run_source('help("cli_parse")\n', env, filename="help_cli.genia")
     out = "".join(outputs)
     assert "cli_parse/1, 2" in out
-    assert "# cli_parse" in out
     assert "`argv()` remains the raw host-backed CLI primitive" in out
 
 
@@ -234,7 +221,6 @@ def test_help_autoloads_cli_helper_wrapper_docstring():
     run_source('help("cli_option_or")\n', env, filename="help_cli_helper.genia")
     out = "".join(outputs)
     assert "cli_option_or/3" in out
-    assert "# cli_option_or" in out
     assert "Return a parsed option value or `default`" in out
 
 
@@ -244,7 +230,6 @@ def test_help_autoloads_syntax_wrapper_docstring():
     run_source('help("match_branches")\n', env, filename="help_syntax.genia")
     out = "".join(outputs)
     assert "match_branches/1" in out
-    assert "# match_branches" in out
     assert "quoted branch sequence of a match expression" in out
 
 

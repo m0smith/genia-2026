@@ -18,3 +18,4 @@ Before making changes, read:
 - For browser/runtime-host work, keep `docs/browser/*`, `docs/host-interop/*`, `spec/manifest.json`, and `tools/spec_runner/README.md` synchronized with implemented-vs-planned status
 - Do not redefine language semantics or source-of-truth precedence in this file
 - Refer back to the canonical docs instead of duplicating semantic rules
+- Keep protected semantic facts aligned with `docs/contract/semantic_facts.json` and `tests/test_semantic_doc_sync.py`

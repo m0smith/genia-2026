@@ -1,16 +1,13 @@
-serve_http(config, handler) = """
-# serve_http
+@doc """Start a minimal synchronous HTTP server.
 
-Start a minimal synchronous HTTP server using host-backed transport integration.
-
-## Params
+## Arguments
 
 * `config`: map with optional `host`, `port`, and `max_requests`
 * `handler`: function that receives a request map and returns a response map
 
 ## Returns
 
-* server info map after the server stops: `{host, port, handled_requests}`
+* server info map after the server stops
 
 ## Notes
 
@@ -18,11 +15,18 @@ Start a minimal synchronous HTTP server using host-backed transport integration.
 * `port` defaults to `8000`
 * `max_requests` is optional and is mainly useful for tests and one-shot demos
 * request headers are lowercased string keys
-* request `body` is parsed JSON when the request content type starts with `application/json`; otherwise it is the decoded request text
+* request `body` is parsed JSON when the content type starts with `application/json`; otherwise decoded text
 * request `raw_body` is always the decoded request text
-* invalid handler results produce a `500 internal server error` response in this phase
-""" _serve_http(config, handler)
+* invalid handler results produce a `500 internal server error` response"""
+serve_http(config, handler) = _serve_http(config, handler)
 
+@doc """Build a route value from method, path, and handler.
+
+## Arguments
+
+* `method`: HTTP method string
+* `path`: URL path string
+* `handler`: function receiving a request map"""
 route(method, path, handler) = {
   method: method,
   path: path,
@@ -36,8 +40,10 @@ route_handler(route) = route("handler", (_) -> not_found())
 request_method(request) = request("method", "")
 request_path(request) = request("path", "")
 
+@doc "Create a GET route."
 get = (path, handler) -> route("GET", path, handler)
 
+@doc "Create a POST route."
 post = (path, handler) -> route("POST", path, handler)
 
 route_matches?(route, request) = route_method(route) == request_method(request) && route_path(route) == request_path(request)
@@ -48,19 +54,16 @@ find_route_handler(routes, request) = (
   ([_, ..rest], request) -> find_route_handler(rest, request)
 )
 
-route_request(routes) = """
-# route_request
+@doc """Build a request handler from a list of exact-path route values.
 
-Build a request handler from a list of exact-path route values.
-
-## Params
+## Arguments
 
 * `routes`: list of route values created by `get(...)` or `post(...)`
 
 ## Returns
 
-* handler function suitable for `serve_http(config, handler)`
-""" make_route_handler(routes)
+* handler function suitable for `serve_http(config, handler)`"""
+route_request(routes) = make_route_handler(routes)
 
 make_route_handler(routes) = {
   handler = (request) -> route_request_eval(routes, request)
@@ -74,17 +77,14 @@ route_request_handler(result, request) = (
   (some(handler), request) -> apply(handler, [request])
 )
 
-response(status, headers, body) = """
-# response
+@doc """Construct one HTTP response map.
 
-Construct one HTTP response map.
-
-## Params
+## Arguments
 
 * `status`: integer HTTP status code
 * `headers`: map of string header names to string values
-* `body`: string, bytes, or `none`
-""" {
+* `body`: string, bytes, or `none`"""
+response(status, headers, body) = {
   status: status,
   headers: headers,
   body: body
@@ -93,43 +93,20 @@ Construct one HTTP response map.
 json_headers() = {"content-type": "application/json; charset=utf-8"}
 text_headers() = {"content-type": "text/plain; charset=utf-8"}
 
-json(body) = """
-# json
+@doc "Return a `200` JSON response."
+json(body) = response(200, json_headers(), json_stringify(body))
 
-Return a `200` JSON response.
+@doc "Return a `200` plain-text response."
+text(body) = response(200, text_headers(), body)
 
-Maps/lists/scalars are rendered with `json_stringify(...)`.
-JSON encoding failures currently surface as `500 internal server error` through the HTTP bridge.
-""" response(200, json_headers(), json_stringify(body))
+@doc "Return a `200` response without forcing a content type."
+ok(body) = response(200, {}, body)
 
-text(body) = """
-# text
+@doc "Return a `200` plain-text response."
+ok_text(body) = text(body)
 
-Return a `200` plain-text response.
-""" response(200, text_headers(), body)
+@doc "Return a `400` plain-text response."
+bad_request(message) = response(400, text_headers(), message)
 
-ok(body) = """
-# ok
-
-Return a `200` response without forcing a content type.
-
-Use `json(...)` for JSON payloads and `ok_text(...)` / `text(...)` for plain text.
-""" response(200, {}, body)
-
-ok_text(body) = """
-# ok_text
-
-Return a `200` plain-text response.
-""" text(body)
-
-bad_request(message) = """
-# bad_request
-
-Return a `400` plain-text response.
-""" response(400, text_headers(), message)
-
-not_found() = """
-# not_found
-
-Return a `404` plain-text response.
-""" response(404, text_headers(), "not found")
+@doc "Return a `404` plain-text response."
+not_found() = response(404, text_headers(), "not found")

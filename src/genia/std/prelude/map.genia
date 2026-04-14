@@ -1,37 +1,20 @@
-map_new(..xs) = """
-# map_new
+@doc "Create an empty persistent map value."
+map_new(..xs) = _map_new(..xs)
 
-Create an empty persistent map value.
-""" _map_new(..xs)
-
-map_get(map, key) = """
-# map_get
-
-Return the stored value for `key`, or `none("missing-key", {key: key})` when the key is missing.
+@doc """Return the stored value for `key`, or `none("missing-key", {key: key})` when absent.
 
 Prefer `get(key, map)` for maybe-aware lookup in new code.
-""" _map_get(map, key)
+"""
+map_get(map, key) = _map_get(map, key)
 
-map_put(map, key, value) = """
-# map_put
+@doc "Return a new map with `key` set to `value`."
+map_put(map, key, value) = _map_put(map, key, value)
 
-Return a new map with `key` set to `value`.
-""" _map_put(map, key, value)
+@doc "Check whether a map contains `key`."
+map_has?(map, key) = _map_has?(map, key)
 
-map_has?(map, key) = """
-# map_has?
+@doc "Return a new map with `key` removed."
+map_remove(map, key) = _map_remove(map, key)
 
-Check whether a map contains `key`.
-""" _map_has?(map, key)
-
-map_remove(map, key) = """
-# map_remove
-
-Return a new map with `key` removed.
-""" _map_remove(map, key)
-
-map_count(map) = """
-# map_count
-
-Return the number of entries in a map.
-""" _map_count(map)
+@doc "Return the number of entries in a map."
+map_count(map) = _map_count(map)

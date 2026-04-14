@@ -1,35 +1,17 @@
-ref() = """
-# ref
+@doc "Create a synchronized ref, optionally with an initial value."
+ref() = _ref()
 
-Create a synchronized ref, optionally with an initial value.
-""" _ref()
+@doc "Create a synchronized ref, optionally with an initial value."
+ref(initial) = _ref(initial)
 
-ref(initial) = """
-# ref
+@doc "Read the current value from a ref."
+ref_get(ref_value) = _ref_get(ref_value)
 
-Create a synchronized ref, optionally with an initial value.
-""" _ref(initial)
+@doc "Set a ref to `value` and return `value`."
+ref_set(ref_value, value) = _ref_set(ref_value, value)
 
-ref_get(ref_value) = """
-# ref_get
+@doc "Check whether a ref currently holds a value."
+ref_is_set(ref_value) = _ref_is_set(ref_value)
 
-Read the current value from a ref.
-""" _ref_get(ref_value)
-
-ref_set(ref_value, value) = """
-# ref_set
-
-Set a ref to `value` and return `value`.
-""" _ref_set(ref_value, value)
-
-ref_is_set(ref_value) = """
-# ref_is_set
-
-Check whether a ref currently holds a value.
-""" _ref_is_set(ref_value)
-
-ref_update(ref_value, updater) = """
-# ref_update
-
-Apply `updater` to the current ref value atomically and store the result.
-""" _ref_update(ref_value, updater)
+@doc "Apply `updater` to the current ref value atomically and store the result."
+ref_update(ref_value, updater) = _ref_update(ref_value, updater)

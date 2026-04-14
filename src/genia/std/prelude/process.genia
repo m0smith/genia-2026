@@ -1,17 +1,8 @@
-spawn(handler) = """
-# spawn
+@doc "Create a process handle backed by a host-thread mailbox worker."
+spawn(handler) = _spawn(handler)
 
-Create a process handle backed by a host-thread mailbox worker.
-""" _spawn(handler)
+@doc "Enqueue `message` for a process mailbox."
+send(process, message) = _send(process, message)
 
-send(process, message) = """
-# send
-
-Enqueue `message` for a process mailbox.
-""" _send(process, message)
-
-process_alive?(process) = """
-# process_alive?
-
-Check whether a process worker is still alive.
-""" _process_alive?(process)
+@doc "Check whether a process worker is still alive."
+process_alive?(process) = _process_alive?(process)

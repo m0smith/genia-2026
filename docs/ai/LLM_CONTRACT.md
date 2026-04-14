@@ -79,6 +79,11 @@ When creating Codex or Copilot task prompts for repository work, include instruc
 Repository tooling may validate tool-specific instruction files against this contract.
 Repository tooling may also validate a small machine-readable semantic-facts surface against the authoritative docs.
 
+Protected semantic facts currently live in:
+
+- `docs/contract/semantic_facts.json`
+- `tests/test_semantic_doc_sync.py`
+
 That validation should enforce:
 
 - required canonical references

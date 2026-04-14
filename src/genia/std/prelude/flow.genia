@@ -1,108 +1,84 @@
-lines(source) = """
-# lines
+@doc "Create a Flow from `stdin`, an incoming Flow, or a list of strings."
+lines(source) = _lines(source)
 
-Create a Flow from `stdin`, an incoming Flow, or a list of strings.
-""" _lines(source)
-
-tick() = """
-# tick (experimental)
-
-Create a Flow of integer tick values starting at `0`.
+@doc """Create a Flow of integer tick values starting at `0`.
 
 `tick()` is unbounded.
 `tick(count)` is bounded to `0..count - 1`.
 
 Use with `take`/`head` when you want explicit bounded simulation steps.
-""" _tick()
+"""
+tick() = _tick()
 
-tick(count) = """
-# tick (experimental)
-
-Create a Flow of integer tick values starting at `0`.
+@doc """Create a Flow of integer tick values starting at `0`.
 
 `tick()` is unbounded.
 `tick(count)` is bounded to `0..count - 1`.
 
 Use with `take`/`head` when you want explicit bounded simulation steps.
-""" _tick(count)
+"""
+tick(count) = _tick(count)
 
-tee(flow) = """
-# tee
-
-Split one input flow into two lazy branch flows.
+@doc """Split one input flow into two lazy branch flows.
 
 The source flow is still consumed once, and buffered only as needed
 when one branch lags behind the other.
-""" _tee(flow)
+"""
+tee(flow) = _tee(flow)
 
-merge(flow1, flow2) = """
-# merge
-
-Concatenate two flows into one output flow.
+@doc """Concatenate two flows into one output flow.
 
 `merge(flow1, flow2)` emits items from `flow1` first, then `flow2`.
 `merge(pair)` unpacks a pair from `tee(flow)` and combines them.
-""" _merge(flow1, flow2)
+"""
+merge(flow1, flow2) = _merge(flow1, flow2)
 
-merge(pair) = """
-# merge
-
-Concatenate two flows into one output flow.
+@doc """Concatenate two flows into one output flow.
 
 `merge(flow1, flow2)` emits items from `flow1` first, then `flow2`.
 `merge(pair)` unpacks a pair from `tee(flow)` and combines them.
-""" _merge(pair)
+"""
+merge(pair) = _merge(pair)
 
-zip(flow1, flow2) = """
-# zip
-
-Combine two flows into a flow of pairs.
+@doc """Combine two flows into a flow of pairs.
 
 `zip(flow1, flow2)` pairs items from both flows at each step.
 `zip(pair)` unpacks a pair from `tee(flow)` and combines them.
 
 Each output item is `[left, right]`, preserving lockstep order.
 The output stops when either input flow is exhausted.
-""" _zip(flow1, flow2)
+"""
+zip(flow1, flow2) = _zip(flow1, flow2)
 
-zip(pair) = """
-# zip
-
-Combine two flows into a flow of pairs.
+@doc """Combine two flows into a flow of pairs.
 
 `zip(flow1, flow2)` pairs items from both flows at each step.
 `zip(pair)` unpacks a pair from `tee(flow)` and combines them.
 
 Each output item is `[left, right]`, preserving lockstep order.
 The output stops when either input flow is exhausted.
-""" _zip(pair)
+"""
+zip(pair) = _zip(pair)
 
-scan(step, initial_state) = """
-# scan
-
-Stateful flow transform.
+@doc """Stateful flow transform.
 
 `step(state, item)` must return `[next_state, output]`.
 `next_state` stays internal to this operator and is not exposed externally.
 
 Use this for running totals, buffering, and fixed-size windowing.
-""" (flow) -> _scan(step, initial_state, flow)
+"""
+scan(step, initial_state) = (flow) -> _scan(step, initial_state, flow)
 
-scan(step, initial_state, flow) = """
-# scan
-
-Stateful flow transform.
+@doc """Stateful flow transform.
 
 `step(state, item)` must return `[next_state, output]`.
 `next_state` stays internal to this operator and is not exposed externally.
 
 Use this for running totals, buffering, and fixed-size windowing.
-""" _scan(step, initial_state, flow)
+"""
+scan(step, initial_state, flow) = _scan(step, initial_state, flow)
 
-keep_some(flow) = """
-# keep_some
-
-Keep only successful Option values from a flow.
+@doc """Keep only successful Option values from a flow.
 
 Use `keep_some(flow)` when upstream already produced Option items.
 Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
@@ -111,12 +87,10 @@ Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
 `none(...)` is dropped.
 
 Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
-""" _keep_some(flow)
+"""
+keep_some(flow) = _keep_some(flow)
 
-keep_some(stage, flow) = """
-# keep_some
-
-Keep only successful Option values from a flow.
+@doc """Keep only successful Option values from a flow.
 
 Use `keep_some(flow)` when upstream already produced Option items.
 Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
@@ -125,12 +99,10 @@ Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
 `none(...)` is dropped.
 
 Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
-""" _keep_some_else(stage, (_) -> nil, flow)
+"""
+keep_some(stage, flow) = _keep_some_else(stage, (_) -> nil, flow)
 
-keep_some_else(stage, dead_handler) = """
-# keep_some_else
-
-Apply an Option-returning `stage` to each flow item.
+@doc """Apply an Option-returning `stage` to each flow item.
 
 `some(value)` continues on the main flow as `value`.
 `none(...)` drops that item from the main flow and calls `dead_handler`
@@ -140,12 +112,10 @@ with the original input item.
 
 This helper is explicit dead-letter routing for Flow pipelines.
 It does not change ordinary `|>` semantics outside this helper.
-""" (flow) -> _keep_some_else(stage, dead_handler, flow)
+"""
+keep_some_else(stage, dead_handler) = (flow) -> _keep_some_else(stage, dead_handler, flow)
 
-keep_some_else(stage, dead_handler, flow) = """
-# keep_some_else
-
-Apply an Option-returning `stage` to each flow item.
+@doc """Apply an Option-returning `stage` to each flow item.
 
 `some(value)` continues on the main flow as `value`.
 `none(...)` drops that item from the main flow and calls `dead_handler`
@@ -155,15 +125,14 @@ with the original input item.
 
 This helper is explicit dead-letter routing for Flow pipelines.
 It does not change ordinary `|>` semantics outside this helper.
-""" _keep_some_else(stage, dead_handler, flow)
+"""
+keep_some_else(stage, dead_handler, flow) = _keep_some_else(stage, dead_handler, flow)
 
-rules(..fns) = """
-# rules
-
-Apply rule functions left-to-right to each incoming flow item.
+@doc """Apply rule functions left-to-right to each incoming flow item.
 
 Rule orchestration, defaulting, and contract validation live in prelude in this phase.
-""" rules_dispatch(fns)
+"""
+rules(..fns) = rules_dispatch(fns)
 
 rules_dispatch(args) =
   (args) ? rules_immediate_flow?(args) == true -> {
@@ -280,20 +249,11 @@ rules_list?(value) =
   ([_, .._]) -> true |
   (_) -> false
 
-each(fn, flow) = """
-# each
+@doc "Run `fn` for each flow item and pass the original items through."
+each(fn, flow) = _each(fn, flow)
 
-Run `fn` for each flow item and pass the original items through.
-""" _each(fn, flow)
+@doc "Materialize a flow into an ordinary list."
+collect(flow) = _collect(flow)
 
-collect(flow) = """
-# collect
-
-Materialize a flow into an ordinary list.
-""" _collect(flow)
-
-run(flow) = """
-# run
-
-Consume a flow to completion for effects.
-""" _run(flow)
+@doc "Consume a flow to completion for effects."
+run(flow) = _run(flow)

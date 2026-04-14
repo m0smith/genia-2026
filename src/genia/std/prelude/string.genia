@@ -1,105 +1,56 @@
-byte_length(value) = """
-# byte_length
+@doc "Return the UTF-8 byte length of a string."
+byte_length(value) = _byte_length(value)
 
-Return the UTF-8 byte length of a string.
-""" _byte_length(value)
+@doc "Check whether a string is empty."
+is_empty(value) = _is_empty(value)
 
-is_empty(value) = """
-# is_empty
+@doc "Concatenate two strings."
+concat(left, right) = _concat(left, right)
 
-Check whether a string is empty.
-""" _is_empty(value)
+@doc "Check whether `needle` occurs inside `haystack`."
+contains(haystack, needle) = _contains(haystack, needle)
 
-concat(left, right) = """
-# concat
+@doc "Check whether a string starts with a prefix."
+starts_with(value, prefix) = _starts_with(value, prefix)
 
-Concatenate two strings.
-""" _concat(left, right)
+@doc "Check whether a string ends with a suffix."
+ends_with(value, suffix) = _ends_with(value, suffix)
 
-contains(haystack, needle) = """
-# contains
+@doc "Canonical maybe-aware string search helper."
+find(value, needle) = _find(value, needle)
 
-Check whether `needle` occurs inside `haystack`.
-""" _contains(haystack, needle)
+@doc "Split a string on an explicit separator."
+split(value, sep) = _split(value, sep)
 
-starts_with(value, prefix) = """
-# starts_with
+@doc "Split a string on runs of whitespace."
+split_whitespace(value) = _split_whitespace(value)
 
-Check whether a string starts with a prefix.
-""" _starts_with(value, prefix)
+@doc "Join a list of strings with a separator."
+join(sep, xs) = _join(sep, xs)
 
-ends_with(value, suffix) = """
-# ends_with
+@doc "Trim leading and trailing whitespace."
+trim(value) = _trim(value)
 
-Check whether a string ends with a suffix.
-""" _ends_with(value, suffix)
+@doc "Trim leading whitespace."
+trim_start(value) = _trim_start(value)
 
-find(value, needle) = """
-# find
+@doc "Trim trailing whitespace."
+trim_end(value) = _trim_end(value)
 
-Canonical maybe-aware string search helper.
-""" _find(value, needle)
+@doc "Convert a string to lowercase."
+lower(value) = _lower(value)
 
-split(value, sep) = """
-# split
+@doc "Convert a string to uppercase."
+upper(value) = _upper(value)
 
-Split a string on an explicit separator.
-""" _split(value, sep)
-
-split_whitespace(value) = """
-# split_whitespace
-
-Split a string on runs of whitespace.
-""" _split_whitespace(value)
-
-join(sep, xs) = """
-# join
-
-Join a list of strings with a separator.
-""" _join(sep, xs)
-
-trim(value) = """
-# trim
-
-Trim leading and trailing whitespace.
-""" _trim(value)
-
-trim_start(value) = """
-# trim_start
-
-Trim leading whitespace.
-""" _trim_start(value)
-
-trim_end(value) = """
-# trim_end
-
-Trim trailing whitespace.
-""" _trim_end(value)
-
-lower(value) = """
-# lower
-
-Convert a string to lowercase.
-""" _lower(value)
-
-upper(value) = """
-# upper
-
-Convert a string to uppercase.
-""" _upper(value)
-
-parse_int(value) = """
-# parse_int
-
-Parse an integer from a string, with optional explicit base.
+@doc """Parse an integer from a string, with optional explicit base.
 
 Returns `some(int)` on success and `none("parse-error", context)` for invalid integer text.
-""" _parse_int(value)
+"""
+parse_int(value) = _parse_int(value)
 
-parse_int(value, base) = """
-# parse_int
-
-Parse an integer from a string, with optional explicit base.
+@doc """Parse an integer from a string, with optional explicit base.
 
 Returns `some(int)` on success and `none("parse-error", context)` for invalid integer text.
-""" _parse_int(value, base)
+"""
+parse_int(value, base) = _parse_int(value, base)
