@@ -84,3 +84,23 @@ After stop, `actor_send` and `actor_call` raise.
 `cell_get` on the backing cell still returns the last state.
 """
 actor_stop(a) = cell_stop(a("_cell"))
+
+@doc """Restart a failed or stopped actor with a new initial state.
+
+Clears failure, resets state, and resumes message processing.
+Works after both failure and `actor_stop`.
+The handler is preserved.
+
+## Arguments
+
+- `a` — the actor
+- `new_state` — the new initial state value
+
+## Returns
+
+The actor (unchanged reference).
+"""
+actor_restart(a, new_state) = {
+  restart_cell(a("_cell"), new_state)
+  a
+}

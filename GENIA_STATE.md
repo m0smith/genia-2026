@@ -979,8 +979,9 @@ Behavior:
 - `cell_state(cell)` is an alias for `cell_get(cell)`
 - `restart_cell(cell, new_state)`:
   - replaces state with `new_state`
-  - clears cached failure/error
+  - clears cached failure/error and stopped state
   - marks the cell ready again
+  - relaunches the worker thread if it has exited (e.g. after `cell_stop`)
   - discards queued pre-restart updates in this phase
 - nested `cell_send` calls made during an update are staged and are committed only if that update succeeds
 - `cell_stop(cell)` gracefully stops the cell:
@@ -999,6 +1000,7 @@ Behavior:
   - `actor_call(actor, msg)`
   - `actor_alive?(actor)`
   - `actor_stop(actor)`
+  - `actor_restart(actor, new_state)`
 - host-backed helpers:
   - `_actor_validate_effect` validates the handler effect shape for fire-and-forget sends
   - `_actor_call_update` handles handler invocation, effect validation, reply delivery, and error recovery for synchronous calls
@@ -1030,11 +1032,15 @@ Behavior:
   - `cell_get` on the backing cell still returns the last state
   - `actor_alive?` returns `false` after the worker exits
   - calling `actor_stop` on a stopped or failed actor is a no-op
+- `actor_restart(actor, new_state)` restarts a failed or stopped actor:
+  - resets state to `new_state` and clears failure/stopped status
+  - relaunches the worker thread if it has exited (e.g. after `actor_stop`)
+  - the handler is preserved
+  - returns the actor reference
 - failure semantics are inherited from the backing cell:
   - handler exceptions or invalid effect shapes mark the actor as failed
   - subsequent `actor_send` raises `RuntimeError` after failure
   - `actor_call` on a failing handler returns `none("actor-error")` instead of blocking
-  - failed state is preserved until the backing cell is restarted (no public restart API for actors in this phase)
 - actors are a thin convenience layer; internal cell state is accessible through the actor map for advanced use in this phase
 
 Not implemented yet:
@@ -1389,7 +1395,7 @@ Notable autoloaded functions include:
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`, `cell_stop`
-- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`
+- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior

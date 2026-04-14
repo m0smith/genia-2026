@@ -62,7 +62,7 @@ Expected behavior:
 - cells process at most one queued update at a time
 - failed updates preserve last successful state
 - failed cells cache an error string and reject future `cell_send` / `cell_get`
-- `restart_cell` clears failure and discards queued pre-restart updates in this phase
+- `restart_cell` clears failure/stopped state, discards queued pre-restart updates, and relaunches the worker thread if it has exited
 - nested `cell_send` calls made during an update are committed only if that update succeeds
 
 ## Actors
@@ -150,6 +150,7 @@ Expected behavior:
 | `actor_call(actor, msg)` | Send a message and block for the reply |
 | `actor_alive?(actor)` | Check whether the worker thread is alive |
 | `actor_stop(actor)` | Gracefully stop after draining the mailbox |
+| `actor_restart(actor, new_state)` | Restart a failed or stopped actor with new state |
 
 Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `handler(state, msg, ctx) -> ["reply", new_state, response]`
 
@@ -166,7 +167,6 @@ Effect protocol:
 - failure semantics are inherited from cell fail-stop behavior
 - `ctx` is `{}` for `actor_send`; `{reply_to: <ref>}` for `actor_call`
 - if a handler throws during `actor_call`, the reply is `none("actor-error")` and the actor enters failed state
-- no public actor restart API yet
 
 ## Implementation status
 
@@ -177,15 +177,16 @@ Effect protocol:
 - serialized handler execution per process
 - fail-stop cell abstraction with cached error state
 - restart semantics via `restart_cell`
-- actor helpers: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`
+- actor helpers: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`
 - cell graceful stop via `cell_stop`
+- restart semantics work after both failure and stop (worker thread relaunched if exited)
 
 ### ⚠️ Partial
 
 - behavior depends on host-thread scheduling timing
 - restart discards queued pre-restart updates in this phase instead of draining them
 - cell errors are exposed as cached error strings (`some(error_string)`) rather than structured language error values
-- actors are a thin prelude layer over cells; no public actor restart API yet
+- actors are a thin prelude layer over cells
 
 ### ❌ Not implemented
 

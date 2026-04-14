@@ -260,3 +260,83 @@ def test_actor_alive_false_after_stop():
         env,
     )
     wait_for(env, "actor_alive?(a)", False)
+
+
+# --- actor_restart tests ---
+
+
+def test_actor_restart_after_failure_resumes_sends():
+    """after restart from failure, actor_send works again"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state + msg]
+        a = actor(0, handler)
+        actor_send(a, 5)
+        """,
+        env,
+    )
+    wait_for(env, 'cell_get(a("_cell"))', 5)
+
+    # Force failure
+    run_source(
+        'cell_send(a("_cell"), (_) -> 1 / 0)',
+        env,
+    )
+    wait_for(env, 'cell_failed?(a("_cell"))', True)
+
+    # Restart with fresh state — original handler is preserved
+    run_source("actor_restart(a, 0)", env)
+    run_source("actor_send(a, 10)", env)
+    wait_for(env, 'cell_get(a("_cell"))', 10)
+
+
+def test_actor_restart_after_stop():
+    """actor_restart after actor_stop resumes message processing"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state + msg]
+        a = actor(0, handler)
+        actor_send(a, 5)
+        actor_stop(a)
+        """,
+        env,
+    )
+    wait_for(env, "actor_alive?(a)", False)
+
+    # Restart after stop — worker thread relaunched
+    run_source("actor_restart(a, 0)", env)
+    assert run_source("actor_alive?(a)", env) is True
+    run_source("actor_send(a, 7)", env)
+    wait_for(env, 'cell_get(a("_cell"))', 7)
+
+
+def test_actor_restart_preserves_handler():
+    """actor_restart preserves the original handler for actor_call"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
+        a = actor(0, handler)
+        """,
+        env,
+    )
+    assert run_source("actor_call(a, 5)", env) == 5
+    run_source("actor_restart(a, 100)", env)
+    assert run_source("actor_call(a, 1)", env) == 101
+
+
+def test_actor_restart_returns_actor():
+    """actor_restart returns the actor reference"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state]
+        a = actor(0, handler)
+        result = actor_restart(a, 42)
+        """,
+        env,
+    )
+    # result should be the actor map (has _handler key)
+    assert run_source('result("_handler")', env) is not None

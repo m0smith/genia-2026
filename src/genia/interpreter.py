@@ -3159,9 +3159,13 @@ class GeniaCell:
         with self._condition:
             self._generation += 1
             self._failed = False
+            self._stopped = False
             self._error = None
             self._state_ref.set(value)
             self._condition.notify_all()
+        if not self._thread.is_alive():
+            self._thread = threading.Thread(target=self._run, daemon=True)
+            self._thread.start()
         return self
 
     def stop(self) -> None:
@@ -7729,6 +7733,7 @@ def make_global_env(
     env.register_autoload("actor_call", 2, "std/prelude/actor.genia")
     env.register_autoload("actor_alive?", 1, "std/prelude/actor.genia")
     env.register_autoload("actor_stop", 1, "std/prelude/actor.genia")
+    env.register_autoload("actor_restart", 2, "std/prelude/actor.genia")
     return env
 
 
