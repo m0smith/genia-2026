@@ -151,6 +151,10 @@ Expected behavior:
 | `actor_alive?(actor)` | Check whether the worker thread is alive |
 | `actor_stop(actor)` | Gracefully stop after draining the mailbox |
 | `actor_restart(actor, new_state)` | Restart a failed or stopped actor with new state |
+| `actor_state(actor)` | Read current state without sending a message |
+| `actor_failed?(actor)` | Check whether the actor has failed |
+| `actor_error(actor)` | Return `none` or `some(error_string)` |
+| `actor_status(actor)` | Return `"ready"`, `"failed"`, or `"stopped"` |
 
 Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `handler(state, msg, ctx) -> ["reply", new_state, response]`
 
@@ -177,7 +181,7 @@ Effect protocol:
 - serialized handler execution per process
 - fail-stop cell abstraction with cached error state
 - restart semantics via `restart_cell`
-- actor helpers: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`
+- actor helpers: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
 - cell graceful stop via `cell_stop`
 - restart semantics work after both failure and stop (worker thread relaunched if exited)
 

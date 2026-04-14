@@ -104,3 +104,33 @@ actor_restart(a, new_state) = {
   restart_cell(a("_cell"), new_state)
   a
 }
+
+@doc """Read the current actor state without sending a message.
+
+Returns the last committed state. Raises if the actor has failed.
+"""
+actor_state(a) = cell_get(a("_cell"))
+
+@doc """Check whether an actor has failed.
+
+## Returns
+
+`true` if the backing cell is in failed state, `false` otherwise.
+"""
+actor_failed?(a) = cell_failed?(a("_cell"))
+
+@doc """Return the actor error option.
+
+## Returns
+
+`none` when the actor is healthy, or `some(error_string)` when failed.
+"""
+actor_error(a) = cell_error(a("_cell"))
+
+@doc """Return the actor status string.
+
+## Returns
+
+`"ready"`, `"failed"`, or `"stopped"`.
+"""
+actor_status(a) = cell_status(a("_cell"))

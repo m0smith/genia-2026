@@ -340,3 +340,92 @@ def test_actor_restart_returns_actor():
     )
     # result should be the actor map (has _handler key)
     assert run_source('result("_handler")', env) is not None
+
+
+# --- actor inspection tests ---
+
+
+def test_actor_state_reads_current_state():
+    """actor_state returns the current state without sending a message"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state + msg]
+        a = actor(0, handler)
+        actor_send(a, 5)
+        """,
+        env,
+    )
+    wait_for(env, "actor_state(a)", 5)
+    run_source("actor_send(a, 3)", env)
+    wait_for(env, "actor_state(a)", 8)
+
+
+def test_actor_state_raises_on_failed_actor():
+    """actor_state raises RuntimeError on a failed actor"""
+    env = make_global_env([])
+    run_source(
+        """
+        bad(_s, _m, _c) = 1 / 0
+        a = actor(0, bad)
+        actor_send(a, 1)
+        """,
+        env,
+    )
+    wait_for(env, "actor_failed?(a)", True)
+    with pytest.raises(RuntimeError, match="Cell has failed"):
+        run_source("actor_state(a)", env)
+
+
+def test_actor_failed_and_error_on_healthy_actor():
+    """actor_failed? is false and actor_error is none on healthy actor"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state]
+        a = actor(0, handler)
+        """,
+        env,
+    )
+    assert run_source("actor_failed?(a)", env) is False
+    from genia.interpreter import OPTION_NONE
+    assert run_source("actor_error(a)", env) is OPTION_NONE
+
+
+def test_actor_failed_and_error_on_crashed_actor():
+    """actor_failed? is true and actor_error is some after failure"""
+    env = make_global_env([])
+    run_source(
+        """
+        bad(_s, _m, _c) = 1 / 0
+        a = actor(0, bad)
+        actor_send(a, 1)
+        """,
+        env,
+    )
+    wait_for(env, "actor_failed?(a)", True)
+    from genia.interpreter import GeniaOptionSome
+    error = run_source("actor_error(a)", env)
+    assert isinstance(error, GeniaOptionSome)
+    assert "ZeroDivisionError" in error.value
+
+
+def test_actor_status_lifecycle():
+    """actor_status reflects ready, failed, and stopped states"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state]
+        a = actor(0, handler)
+        """,
+        env,
+    )
+    assert run_source("actor_status(a)", env) == "ready"
+
+    # Stop and check
+    run_source("actor_stop(a)", env)
+    assert run_source("actor_status(a)", env) == "stopped"
+
+    # Restart and check
+    run_source("actor_restart(a, 0)", env)
+    assert run_source("actor_status(a)", env) == "ready"

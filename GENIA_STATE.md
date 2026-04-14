@@ -1001,6 +1001,10 @@ Behavior:
   - `actor_alive?(actor)`
   - `actor_stop(actor)`
   - `actor_restart(actor, new_state)`
+  - `actor_state(actor)`
+  - `actor_failed?(actor)`
+  - `actor_error(actor)`
+  - `actor_status(actor)`
 - host-backed helpers:
   - `_actor_validate_effect` validates the handler effect shape for fire-and-forget sends
   - `_actor_call_update` handles handler invocation, effect validation, reply delivery, and error recovery for synchronous calls
@@ -1037,6 +1041,12 @@ Behavior:
   - relaunches the worker thread if it has exited (e.g. after `actor_stop`)
   - the handler is preserved
   - returns the actor reference
+- `actor_state(actor)` reads the current state without sending a message
+  - equivalent to `cell_get` on the backing cell
+  - raises `RuntimeError` if the actor has failed
+- `actor_failed?(actor)` returns `true` if the actor has failed
+- `actor_error(actor)` returns `none` when healthy, or `some(error_string)` when failed
+- `actor_status(actor)` returns `"ready"`, `"failed"`, or `"stopped"`
 - failure semantics are inherited from the backing cell:
   - handler exceptions or invalid effect shapes mark the actor as failed
   - subsequent `actor_send` raises `RuntimeError` after failure
@@ -1395,7 +1405,7 @@ Notable autoloaded functions include:
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`, `cell_stop`
-- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`
+- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior

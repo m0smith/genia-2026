@@ -7734,6 +7734,10 @@ def make_global_env(
     env.register_autoload("actor_alive?", 1, "std/prelude/actor.genia")
     env.register_autoload("actor_stop", 1, "std/prelude/actor.genia")
     env.register_autoload("actor_restart", 2, "std/prelude/actor.genia")
+    env.register_autoload("actor_state", 1, "std/prelude/actor.genia")
+    env.register_autoload("actor_failed?", 1, "std/prelude/actor.genia")
+    env.register_autoload("actor_error", 1, "std/prelude/actor.genia")
+    env.register_autoload("actor_status", 1, "std/prelude/actor.genia")
     return env
 
 
