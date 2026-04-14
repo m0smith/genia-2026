@@ -16,7 +16,7 @@ This repository currently provides:
 - simulation primitives (`rng`, `rand`, `rand_int`, `sleep`)
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`)
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`)
-- autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells)
+- autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
@@ -755,6 +755,22 @@ cell_get(counter)
   - failed updates preserve last successful state
   - failed cells cache an error string and reject future `cell_send` / `cell_get`
   - `restart_cell(cell, new_state)` clears failure and discards queued pre-restart updates in this phase
+
+### Actors
+
+```genia
+handler(state, msg, _ctx) = ["ok", state + msg]
+a = actor(0, handler)
+actor_send(a, 5)
+actor_send(a, 10)
+```
+
+- public helpers from `src/genia/std/prelude/actor.genia`: `actor`, `actor_send`, `actor_alive?`
+- `actor(initial_state, handler)` creates a message-passing stateful actor backed by a cell
+- handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`
+- `actor_send(actor, msg)` enqueues a message for asynchronous processing
+- `actor_alive?(actor)` reports worker liveness
+- failure semantics are inherited from the backing cell (fail-stop)
 
 ## Builtins
 

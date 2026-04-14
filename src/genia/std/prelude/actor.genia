@@ -1,0 +1,49 @@
+@doc """Create an actor with initial state and a message handler.
+
+The handler shape is `handler(state, msg, ctx) -> ["ok", new_state]`.
+The actor processes messages one at a time via a backing cell.
+
+## Arguments
+
+- `initial_state` — the starting state value
+- `handler` — a function `(state, msg, ctx) -> ["ok", new_state]`
+
+## Returns
+
+An actor value (a map with internal `_cell` and `_handler` keys).
+
+## Errors
+
+Handler failures or invalid return shapes mark the actor as failed.
+"""
+actor(initial_state, handler) = {
+  _cell: cell(initial_state),
+  _handler: handler
+}
+
+@doc """Send a message to an actor for asynchronous processing.
+
+The message is enqueued and processed by the actor's handler.
+
+## Arguments
+
+- `a` — the actor
+- `msg` — the message value
+
+## Errors
+
+Raises if the actor has already failed.
+"""
+actor_send(a, msg) = {
+  h = a("_handler")
+  c = a("_cell")
+  cell_send(c, (state) -> _actor_validate_effect(h(state, msg, {})))
+}
+
+@doc """Check whether an actor's worker thread is alive.
+
+## Returns
+
+`true` if the backing cell worker is alive, `false` otherwise.
+"""
+actor_alive?(a) = cell_alive?(a("_cell"))

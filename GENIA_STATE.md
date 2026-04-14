@@ -983,6 +983,39 @@ Behavior:
   - discards queued pre-restart updates in this phase
 - nested `cell_send` calls made during an update are staged and are committed only if that update succeeds
 
+### Actor helpers (Phase 1, prelude-backed over cells)
+
+- public prelude helpers in `src/genia/std/prelude/actor.genia`:
+  - `actor(initial_state, handler)`
+  - `actor_send(actor, msg)`
+  - `actor_alive?(actor)`
+- one host-backed helper: `_actor_validate_effect` validates the handler effect shape
+
+Behavior:
+
+- `actor(initial_state, handler)` creates an actor backed by a cell
+  - the handler shape is `handler(state, msg, ctx) -> ["ok", new_state]`
+  - `ctx` is an empty map `{}` in this phase
+  - the actor is represented as a map with internal `_cell` and `_handler` keys
+- `actor_send(actor, msg)` enqueues the message for asynchronous processing
+  - the handler is called with `(current_state, msg, {})` inside a cell update
+  - the handler must return `["ok", new_state]`; invalid return shapes cause actor failure
+  - messages are processed one at a time in FIFO order
+- `actor_alive?(actor)` reports whether the backing cell worker thread is alive
+- failure semantics are inherited from the backing cell:
+  - handler exceptions or invalid effect shapes mark the actor as failed
+  - subsequent `actor_send` raises `RuntimeError` after failure
+  - failed state is preserved until the backing cell is restarted (no public restart API for actors in this phase)
+- actors are a thin convenience layer; internal cell state is accessible through the actor map for advanced use in this phase
+
+Not implemented yet:
+
+- `actor_call` (synchronous request-reply)
+- `actor_stop` (graceful shutdown)
+- supervision / links / monitors
+- effect protocol extensions beyond `["ok", new_state]`
+- actor-specific syntax
+
 ### Host-backed persistent associative maps (Phase 1 bridge)
 
 - public map helpers are thin prelude wrappers in `src/genia/std/prelude/map.genia`
@@ -1298,6 +1331,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 - `src/genia/std/prelude/math.genia`
 - `src/genia/std/prelude/awk.genia`
 - `src/genia/std/prelude/cell.genia`
+- `src/genia/std/prelude/actor.genia`
 
 Loading behavior:
 
@@ -1329,6 +1363,7 @@ Notable autoloaded functions include:
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
 - cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
+- actor: `actor`, `actor_send`, `actor_alive?`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior

@@ -6490,6 +6490,13 @@ def make_global_env(
             raise TypeError("process_alive? expected a process")
         return process.is_alive()
 
+    def actor_validate_effect_fn(result: Any) -> Any:
+        if isinstance(result, list) and len(result) == 2 and result[0] == "ok":
+            return result[1]
+        raise TypeError(
+            f'actor handler must return ["ok", new_state], got: {_runtime_type_name(result)}'
+        )
+
     def _ensure_map(value: Any, name: str) -> GeniaMap:
         if not isinstance(value, GeniaMap):
             raise TypeError(f"{name} expected a map as first argument, received {_runtime_type_name(value)}")
@@ -7421,6 +7428,7 @@ def make_global_env(
     env.set("_spawn", spawn_fn)
     env.set("_send", send_fn)
     env.set("_process_alive?", process_alive_fn)
+    env.set("_actor_validate_effect", actor_validate_effect_fn)
     env.set("_map_new", map_new_fn)
     env.set("_map_get", map_get_fn)
     env.set("_map_put", map_put_fn)
@@ -7661,6 +7669,9 @@ def make_global_env(
     env.register_autoload("restart_cell", 2, "std/prelude/cell.genia")
     env.register_autoload("cell_status", 1, "std/prelude/cell.genia")
     env.register_autoload("cell_alive?", 1, "std/prelude/cell.genia")
+    env.register_autoload("actor", 2, "std/prelude/actor.genia")
+    env.register_autoload("actor_send", 2, "std/prelude/actor.genia")
+    env.register_autoload("actor_alive?", 1, "std/prelude/actor.genia")
     return env
 
 
