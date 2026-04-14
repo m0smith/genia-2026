@@ -155,6 +155,30 @@ def test_public_docs_drop_old_pipeline_wording(relpath: str) -> None:
     assert "explicit `some(...)` values are preserved unchanged for the next stage" not in text
 
 
+def test_readme_consistency_note_section_includes_option_preservation() -> None:
+    """The README 'Current consistency note' section must mention that Option
+    stage results are preserved as-is whenever it describes non-Option wrapping.
+    This catches the exact contradiction where the section describes wrapping
+    but omits preservation, implying double-wrapping."""
+    text = read_text("README.md")
+    marker = "Current consistency note:"
+    idx = text.find(marker)
+    assert idx != -1, "README.md must contain a 'Current consistency note:' section"
+    section = text[idx:]
+    # section ends at the next ## heading
+    next_heading = section.find("\n## ")
+    if next_heading > 0:
+        section = section[:next_heading]
+    norm = normalize(section)
+    assert "non-option" in norm and "wrapped back" in norm, (
+        "README.md consistency-note section should describe non-Option wrapping"
+    )
+    assert "option" in norm and "preserved as-is" in norm, (
+        "README.md consistency-note section mentions non-Option wrapping "
+        "but does not mention that Option stage results are preserved as-is"
+    )
+
+
 def test_pipeline_flow_vs_value_cheatsheet_uses_current_option_wording() -> None:
     text = read_text("docs/cheatsheet/piepline-flow-vs-value.md")
     normalized = normalize(text)
@@ -162,6 +186,37 @@ def test_pipeline_flow_vs_value_cheatsheet_uses_current_option_wording() -> None
     assert normalize("ordinary stages lift over `some(x)` automatically") in normalized
     assert normalize("Option results are preserved as-is") in normalized
     assert normalize("direct calls still receive explicit `some(...)` values unchanged") in normalized
+
+
+@pytest.mark.parametrize(
+    "relpath",
+    [
+        "README.md",
+        "docs/cheatsheet/quick-reference.md",
+        "docs/book/01-core-data.md",
+        "docs/book/11-flow.md",
+    ],
+)
+def test_docs_that_mention_non_option_wrapping_also_mention_option_preservation(
+    relpath: str,
+) -> None:
+    """If a doc mentions that lifted non-Option results are wrapped back into
+    some(...), it must also mention that Option stage results are preserved
+    as-is.  This catches the exact contradiction where a section describes
+    wrapping but omits preservation, implying double-wrapping."""
+    text = normalize(read_text(relpath))
+    wrapping_phrase = normalize("non-Option")
+    preservation_phrases = [
+        normalize("Option results are preserved as-is"),
+        normalize("Option result is preserved as-is"),
+        normalize("preserve that Option result as-is"),
+        normalize("Option stage results"),
+    ]
+    if wrapping_phrase in text:
+        assert any(p in text for p in preservation_phrases), (
+            f"{relpath} mentions non-Option wrapping but does not mention "
+            f"that Option stage results are preserved as-is"
+        )
 
 
 @pytest.mark.parametrize("relpath", INSTRUCTION_SURFACES)

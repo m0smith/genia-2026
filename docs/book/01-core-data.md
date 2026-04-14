@@ -1305,7 +1305,7 @@ Direct pipelines short-circuit on `none(...)` and lift ordinary stages over `som
 Those helpers are also explicit control points:
 
 - lifted stages receive the inner value of `some(...)` when not explicitly Option-aware
-- non-Option lifted results are wrapped back into `some(...)`
+- non-Option lifted results are wrapped back into `some(...)`; Option stage results (`some(...)` / `none(...)`) are preserved as-is
 - `map_some` / `flat_map_some` provide explicit map-vs-flat-map behavior
 - `unwrap_or` remains the canonical final recovery point
 Because plain `none` normalizes to `none("nil")`, metadata inspection treats it the same way:

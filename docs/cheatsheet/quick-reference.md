@@ -44,7 +44,7 @@ Pipeline rule reminder:
 
 - `none(...)` short-circuits and preserves reason/context metadata
 - ordinary stages lift over `some(x)` automatically
-- lifted non-Option results are wrapped back into `some(...)`
+- lifted non-Option results are wrapped back into `some(...)`; Option stage results are preserved as-is
 - direct calls still receive explicit `some(...)` values unchanged
 - explicitly Option-aware helpers (`unwrap_or`, `map_some`, `flat_map_some`, `then_*`) still receive Option values directly
 

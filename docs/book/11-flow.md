@@ -681,7 +681,7 @@ bad
 This is the current Option-aware shell style:
 
 - `parse_int` returns `some(int)` or `none("parse-error", ...)`
-- ordinary pipeline stages lift over `some(...)` automatically
+- ordinary pipeline stages lift over `some(...)` automatically; lifted non-Option results are wrapped back into `some(...)`, and Option stage results are preserved as-is
 - a top-level `none(...)` from a stage stops the rest of the pipeline
 - use `flat_map_some(...)`, `map_some(...)`, or `then_*` when you need explicit Option-aware control
 - use `unwrap_or(...)` inside the stage expression when you want to recover to an ordinary value and keep the flow moving
