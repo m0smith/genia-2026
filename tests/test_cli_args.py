@@ -235,7 +235,7 @@ def test_pipe_mode_rejects_explicit_run(monkeypatch, capsys):
 
     assert exit_code == 1
     assert captured.out == ""
-    assert captured.err.strip() == "Error: Do not use run in pipe mode; pipe mode runs the flow automatically"
+    assert captured.err.strip() == "Error: Do not use run in pipe mode; run is implicit in pipe mode"
 
 
 def test_pipe_mode_allows_lambda_param_named_run(monkeypatch, capsys):
@@ -313,7 +313,7 @@ def test_pipe_mode_rejects_stage_expressions_that_do_not_produce_a_flow(monkeypa
 
     assert exit_code == 1
     assert captured.out == ""
-    assert "Pipe mode stage expression must produce a flow for the automatic final run; received list" in captured.err
+    assert "Pipe mode stage must produce a flow; received list" in captured.err
     assert "Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`." in captured.err
 
 

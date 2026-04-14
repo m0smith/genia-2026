@@ -157,7 +157,7 @@ def test_unix_pipe_collect_alone_explains_stage_only_model(monkeypatch, capsys):
 
     assert exit_code == 1
     assert captured.out == ""
-    assert "Pipe mode stage expression must produce a flow for the automatic final run; received list" in captured.err
+    assert "Pipe mode stage must produce a flow; received list" in captured.err
     assert "Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`." in captured.err
 
 
@@ -170,8 +170,9 @@ def test_unix_pipe_sum_explains_reducers_belong_in_command_mode(monkeypatch, cap
     assert exit_code == 1
     assert captured.out == ""
     assert "stage received flow; sum expected a list, received flow" in captured.err
-    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
-    assert "use -c/--command for reducers such as sum or count" in captured.err
+    assert "Pipe mode passes a Flow, not a materialized list." in captured.err
+    assert "Did you mean: collect |> sum" in captured.err
+    assert "-c/--command" in captured.err
 
 
 def test_unix_pipe_literal_some_stage_explains_pipe_mode_expects_flow_stage(monkeypatch, capsys):
@@ -196,5 +197,5 @@ def test_unix_pipe_parse_int_explains_per_item_stage_shape(monkeypatch, capsys):
     assert exit_code == 1
     assert captured.out == ""
     assert "stage received flow; parse_int expected a string, received flow" in captured.err
-    assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
-    assert "Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...)" in captured.err
+    assert "Pipe mode passes a Flow through each stage, not one item at a time." in captured.err
+    assert "Did you mean: map(parse_int) or keep_some(parse_int)" in captured.err

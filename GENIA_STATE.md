@@ -170,6 +170,10 @@ Clarifications:
 - pipe mode wraps the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit unbound `stdin` and explicit unbound `run` are rejected in pipe mode with a clear error
+  - per-item functions used as bare stages (e.g. `parse_int`) are diagnosed with targeted suggestions (`map(parse_int)` or `keep_some(parse_int)`)
+  - reducers used as bare stages (e.g. `sum`) are diagnosed with `collect |> sum` or `-c/--command` guidance
+  - non-flow final results (e.g. from `collect`) are reported with `-c/--command` guidance
+  - broken pipe on stdout exits cleanly with no traceback or stderr noise
 - after file/command source evaluation, runtime entrypoint convention is:
   - if `main/1` exists, call `main(argv())`
   - else if `main/0` exists, call `main()`

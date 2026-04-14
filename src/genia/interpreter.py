@@ -7748,6 +7748,12 @@ def _wrap_pipe_mode_expr(source: str) -> str:
     return f"stdin |> lines |> {source} |> run"
 
 
+def _extract_pipe_stage_name(message: str) -> str | None:
+    """Extract the stage expression name from a pipeline error message."""
+    match = re.search(r" at (.+?) \[", message)
+    return match.group(1) if match else None
+
+
 def _format_pipe_mode_error(exc: Exception) -> str:
     message = str(exc)
     if message == "-p/--pipe expects a single stage expression":
@@ -7755,12 +7761,12 @@ def _format_pipe_mode_error(exc: Exception) -> str:
     if message == "-p/--pipe stage expression must omit stdin; it is added automatically":
         return "Do not use stdin in pipe mode; stdin is provided automatically"
     if message == "-p/--pipe stage expression must omit run; it is added automatically":
-        return "Do not use run in pipe mode; pipe mode runs the flow automatically"
+        return "Do not use run in pipe mode; run is implicit in pipe mode"
     if "Flow has already been consumed" in message:
         return "Flow values are single-use and cannot be reused after consumption"
     if "run expected a flow, received " in message:
         received = message.rsplit("received ", 1)[1]
-        detail = f"Pipe mode stage expression must produce a flow for the automatic final run; received {received}"
+        detail = f"Pipe mode stage must produce a flow; received {received}"
         if received in {"int", "float", "bool", "string", "list", "map"}:
             return f"{detail}. Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`."
         if received in {"some", "none"}:
@@ -7770,6 +7776,25 @@ def _format_pipe_mode_error(exc: Exception) -> str:
             )
         return detail
     if "stage received flow;" in message:
+        stage_name = _extract_pipe_stage_name(message)
+        # Per-item function receiving a flow directly (e.g. parse_int gets flow instead of string)
+        if re.search(r"expected a (string|number|integer|bool), received flow\b", message):
+            parts = [message]
+            parts.append("Pipe mode passes a Flow through each stage, not one item at a time.")
+            if stage_name:
+                parts.append(f"Did you mean: map({stage_name}) or keep_some({stage_name})")
+            else:
+                parts.append("Wrap per-item functions with map(...) or keep_some(...).")
+            return "\n".join(parts)
+        # Reducer receiving a flow directly (e.g. sum expects a list)
+        if "expected a list, received flow" in message:
+            parts = [message]
+            parts.append("Pipe mode passes a Flow, not a materialized list.")
+            if stage_name:
+                parts.append(f"Did you mean: collect |> {stage_name}")
+            parts.append("Or use -c/--command for the full pipeline.")
+            return "\n".join(parts)
+        # Generic fallback for other flow-stage mismatches
         return (
             f"{message}. Pipe mode stages receive a Flow, not one row at a time. "
             "Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...); "

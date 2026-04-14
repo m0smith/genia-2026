@@ -125,6 +125,10 @@ Pipe-mode mental model:
   - `inspect(value)` logs the current value and returns it unchanged
   - `trace(label, value)` logs a label plus value and returns value unchanged
   - `tap(fn, value)` runs `fn(value)` for side effects and returns value unchanged
+- common mistakes in `-p`:
+  - `genia -p 'parse_int'` — per-item functions receive the whole Flow; use `map(parse_int)` or `keep_some(parse_int)`
+  - `genia -p 'sum'` — reducers expect a list, not a Flow; use `-c` with `collect |> sum`
+  - `genia -p 'collect'` — `collect` materializes a list; the final `run` expects a Flow; use `-c` instead
 
 Unix-style examples:
 
