@@ -78,6 +78,7 @@ def test_authoritative_docs_capture_pipeline_option_contract() -> None:
                     FACTS["pipeline_some_lifts"].rstrip("."),
                     "preserve that Option result as-is",
                     "direct calls still receive explicit `some(...)` values unchanged",
+                    "automatic lifting is pipeline-only",
                     FACTS["pipe_wrapper"],
                     FACTS["host_status"].replace(" today.", ""),
                     "new `?`-suffixed APIs are boolean-returning",
@@ -142,12 +143,16 @@ def test_public_docs_keep_protected_semantic_facts_in_sync(
         "docs/cheatsheet/quick-reference.md",
         "docs/cheatsheet/unix-power-mode.md",
         "docs/cheatsheet/piepline-flow-vs-value.md",
+        "docs/architecture/pipeline-ir-host-integration.md",
     ],
 )
 def test_public_docs_drop_old_pipeline_wording(relpath: str) -> None:
     text = read_text(relpath)
     assert "pipeline evaluation does not auto-unwrap `some(...)`" not in text
     assert "Pipelines preserve `some(...)`; no implicit unwrapping." not in text
+    assert "but they preserve explicit `some(`" not in text
+    assert "preserve `some(...)`, and do not auto-lift" not in text
+    assert "explicit `some(...)` values are preserved unchanged for the next stage" not in text
 
 
 def test_pipeline_flow_vs_value_cheatsheet_uses_current_option_wording() -> None:

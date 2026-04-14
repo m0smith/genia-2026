@@ -413,7 +413,8 @@ Current consistency note:
   - `nth_opt`
 - preferred modern absence style in new code:
   - `get`, `first`, `last`, `nth`, string `find`, `find_opt`
-- direct pipelines short-circuit on `none(...)`, but they preserve explicit `some(...)`
+- pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(x)`; lifted non-Option results are wrapped back into `some(...)`
+- direct calls still receive explicit `some(...)` values unchanged; automatic lifting is pipeline-only
 - helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for explicit Option values and higher-order code
 - public String, Map, Ref, Process, and sink helper names are prelude-backed wrappers over host-backed runtime primitives
 - the public Option helper surface remains help-visible through prelude/autoload metadata, while canonical `some(...)` / `none(...)` constructor forms also lower explicitly in Core IR

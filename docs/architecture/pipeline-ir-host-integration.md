@@ -11,8 +11,9 @@
 - `|>` lowers into explicit Core IR as `IrPipeline(source, stages)`
 - pipeline evaluation owns automatic Option propagation:
   - `none(...)` short-circuits the rest of the pipeline unchanged
-  - explicit `some(...)` values are preserved unchanged for the next stage
-  - when a later stage needs the inner value of `some(...)`, explicit helpers such as `flat_map_some(...)` or `then_*` still matter
+  - when the current value is `some(x)` and the next stage is not explicitly Option-aware, the stage receives `x`
+  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back into `some(y)`
+  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is preserved as-is
 - Flow is still explicit:
   - Flow values use the same pipeline syntax
   - Value↔Flow crossing still happens only through explicit Flow helpers
