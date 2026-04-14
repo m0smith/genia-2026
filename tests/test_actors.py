@@ -177,3 +177,86 @@ def test_actor_call_on_failing_handler_returns_error_none():
     from genia.interpreter import GeniaOptionNone
     assert isinstance(result, GeniaOptionNone)
     assert result.reason == "actor-error"
+
+
+# --- actor_stop tests ---
+
+
+def test_actor_stop_drains_mailbox():
+    """actor_stop processes remaining messages before stopping"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state + msg]
+        a = actor(0, handler)
+        actor_send(a, 1)
+        actor_send(a, 2)
+        actor_stop(a)
+        """,
+        env,
+    )
+    # Wait for worker to finish
+    wait_for(env, "actor_alive?(a)", False)
+    # All messages should have been processed before stop
+    assert run_source('cell_get(a("_cell"))', env) == 3
+
+
+def test_actor_stop_rejects_subsequent_sends():
+    """actor_send raises after actor_stop"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state + msg]
+        a = actor(0, handler)
+        actor_stop(a)
+        """,
+        env,
+    )
+    wait_for(env, "actor_alive?(a)", False)
+    with pytest.raises(RuntimeError, match="stopped"):
+        run_source("actor_send(a, 1)", env)
+
+
+def test_actor_stop_rejects_subsequent_calls():
+    """actor_call raises after actor_stop"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
+        a = actor(0, handler)
+        actor_stop(a)
+        """,
+        env,
+    )
+    wait_for(env, "actor_alive?(a)", False)
+    with pytest.raises(RuntimeError, match="stopped"):
+        run_source("actor_call(a, 1)", env)
+
+
+def test_actor_stop_is_idempotent():
+    """calling actor_stop multiple times is a no-op"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state]
+        a = actor(0, handler)
+        actor_stop(a)
+        actor_stop(a)
+        """,
+        env,
+    )
+    wait_for(env, "actor_alive?(a)", False)
+
+
+def test_actor_alive_false_after_stop():
+    """actor_alive? returns false after stop completes"""
+    env = make_global_env([])
+    run_source(
+        """
+        handler(state, msg, _ctx) = ["ok", state]
+        a = actor(0, handler)
+        actor_stop(a)
+        """,
+        env,
+    )
+    wait_for(env, "actor_alive?(a)", False)

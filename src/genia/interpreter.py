@@ -3072,10 +3072,13 @@ class GeniaRef:
 
 
 class GeniaCell:
+    _STOP = object()
+
     def __init__(self, state_ref: GeniaRef):
         self._state_ref = state_ref
         self._condition = threading.Condition()
         self._failed = False
+        self._stopped = False
         self._error: str | None = None
         self._generation = 0
         self._mailbox: queue.Queue[tuple[int, Any]] = queue.Queue()
@@ -3100,6 +3103,8 @@ class GeniaCell:
     def _run(self) -> None:
         while True:
             generation, update_fn = self._mailbox.get()
+            if update_fn is GeniaCell._STOP:
+                return
             with self._condition:
                 if generation != self._generation or self._failed:
                     continue
@@ -3129,6 +3134,8 @@ class GeniaCell:
         with self._condition:
             if self._failed:
                 raise RuntimeError(f"Cell has failed: {self._error}")
+            if self._stopped:
+                raise RuntimeError("Cell has been stopped")
             generation = self._generation
         self._mailbox.put((generation, update_fn))
 
@@ -3157,9 +3164,25 @@ class GeniaCell:
             self._condition.notify_all()
         return self
 
+    def stop(self) -> None:
+        with self._condition:
+            if self._stopped or self._failed:
+                return
+            self._stopped = True
+            generation = self._generation
+        self._mailbox.put((generation, GeniaCell._STOP))
+
+    def stopped(self) -> bool:
+        with self._condition:
+            return self._stopped
+
     def status(self) -> str:
         with self._condition:
-            return "failed" if self._failed else "ready"
+            if self._failed:
+                return "failed"
+            if self._stopped:
+                return "stopped"
+            return "ready"
 
     def is_alive(self) -> bool:
         return self._thread.is_alive()
@@ -6472,6 +6495,11 @@ def make_global_env(
         cell = _ensure_cell(cell_value, "cell_alive?")
         return cell.is_alive()
 
+    def cell_stop_fn(cell_value: Any) -> None:
+        cell = _ensure_cell(cell_value, "cell_stop")
+        cell.stop()
+        return None
+
     def spawn_fn(handler: Any) -> GeniaProcess:
         if not callable(handler):
             raise TypeError("spawn expected a function")
@@ -7449,6 +7477,7 @@ def make_global_env(
     env.set("_restart_cell", restart_cell_fn)
     env.set("_cell_status", cell_status_fn)
     env.set("_cell_alive?", cell_alive_fn)
+    env.set("_cell_stop", cell_stop_fn)
     env.set("_spawn", spawn_fn)
     env.set("_send", send_fn)
     env.set("_process_alive?", process_alive_fn)
@@ -7694,10 +7723,12 @@ def make_global_env(
     env.register_autoload("restart_cell", 2, "std/prelude/cell.genia")
     env.register_autoload("cell_status", 1, "std/prelude/cell.genia")
     env.register_autoload("cell_alive?", 1, "std/prelude/cell.genia")
+    env.register_autoload("cell_stop", 1, "std/prelude/cell.genia")
     env.register_autoload("actor", 2, "std/prelude/actor.genia")
     env.register_autoload("actor_send", 2, "std/prelude/actor.genia")
     env.register_autoload("actor_call", 2, "std/prelude/actor.genia")
     env.register_autoload("actor_alive?", 1, "std/prelude/actor.genia")
+    env.register_autoload("actor_stop", 1, "std/prelude/actor.genia")
     return env
 
 

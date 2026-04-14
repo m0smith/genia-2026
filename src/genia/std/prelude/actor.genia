@@ -76,3 +76,11 @@ actor_call(a, msg) = {
 `true` if the backing cell worker is alive, `false` otherwise.
 """
 actor_alive?(a) = cell_alive?(a("_cell"))
+
+@doc """Gracefully stop an actor after draining its mailbox.
+
+Queued messages are processed before the worker exits.
+After stop, `actor_send` and `actor_call` raise.
+`cell_get` on the backing cell still returns the last state.
+"""
+actor_stop(a) = cell_stop(a("_cell"))

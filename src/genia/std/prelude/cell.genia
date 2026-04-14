@@ -36,3 +36,11 @@ cell_status(cell) = _cell_status(cell)
 
 @doc "Check whether the cell worker thread is alive."
 cell_alive?(cell) = _cell_alive?(cell)
+
+@doc """Gracefully stop a cell after draining its mailbox.
+
+Queued updates are processed before the worker exits.
+After stop, `cell_send` raises and `cell_status` returns `"stopped"`.
+`cell_get` still returns the last state.
+"""
+cell_stop(cell) = _cell_stop(cell)

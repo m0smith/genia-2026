@@ -962,6 +962,7 @@ Behavior:
   - `restart_cell(cell, new_state)`
   - `cell_status(cell)`
   - `cell_alive?(cell)`
+  - `cell_stop(cell)`
 
 Behavior:
 
@@ -982,6 +983,13 @@ Behavior:
   - marks the cell ready again
   - discards queued pre-restart updates in this phase
 - nested `cell_send` calls made during an update are staged and are committed only if that update succeeds
+- `cell_stop(cell)` gracefully stops the cell:
+  - queued updates already in the mailbox are processed before the worker exits
+  - `cell_status(cell)` becomes `"stopped"` immediately
+  - `cell_send` raises `RuntimeError` after stop
+  - `cell_get` still returns the last state
+  - calling `cell_stop` on a stopped or failed cell is a no-op
+  - `cell_alive?` returns `false` after the worker exits
 
 ### Actor helpers (Phase 1, prelude-backed over cells)
 
@@ -990,6 +998,7 @@ Behavior:
   - `actor_send(actor, msg)`
   - `actor_call(actor, msg)`
   - `actor_alive?(actor)`
+  - `actor_stop(actor)`
 - host-backed helpers:
   - `_actor_validate_effect` validates the handler effect shape for fire-and-forget sends
   - `_actor_call_update` handles handler invocation, effect validation, reply delivery, and error recovery for synchronous calls
@@ -1015,6 +1024,12 @@ Behavior:
   - if the handler throws, the caller receives `none("actor-error")` and the actor enters failed state
   - the same handler works correctly with both `actor_send` and `actor_call`
 - `actor_alive?(actor)` reports whether the backing cell worker thread is alive
+- `actor_stop(actor)` gracefully stops the actor:
+  - queued messages already in the mailbox are processed before the worker exits
+  - after stop, `actor_send` and `actor_call` raise `RuntimeError`
+  - `cell_get` on the backing cell still returns the last state
+  - `actor_alive?` returns `false` after the worker exits
+  - calling `actor_stop` on a stopped or failed actor is a no-op
 - failure semantics are inherited from the backing cell:
   - handler exceptions or invalid effect shapes mark the actor as failed
   - subsequent `actor_send` raises `RuntimeError` after failure
@@ -1024,7 +1039,6 @@ Behavior:
 
 Not implemented yet:
 
-- `actor_stop` (graceful shutdown)
 - supervision / links / monitors
 - actor-specific syntax
 
@@ -1374,8 +1388,8 @@ Notable autoloaded functions include:
 - metacircular evaluator: `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
 - math: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk: `fields`, `awkify`, `awk_filter`, `awk_map`, `awk_count`
-- cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
-- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`
+- cell: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`, `cell_stop`
+- actor: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior
