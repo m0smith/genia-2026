@@ -850,6 +850,16 @@ Flow semantics:
   - lazy pull-based iteration over upstream sources
   - source-bound stdin integration
   - sink/materialization boundaries such as `each`, `collect`, and `run`
+- Flow vs Value classification model:
+  - the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary
+  - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `take`, `drop`, `reverse`
+  - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `scan`, `rules`, `each`, `tee`, `merge`, `zip`, `head`
+  - Polymorphic functions (work on both lists and flows): `map`, `filter`
+  - Bridge: source (value → flow): `lines`, `tick`, `stdin_keys`
+  - Bridge: materialize (flow → value): `collect`
+  - Bridge: consume (flow → effect): `run`
+  - Option behavior (`some`/`none` auto-lifting in pipelines) composes with the Flow vs Value distinction but does not erase it
+  - this classification is documented across `docs/book/11-flow.md`, `docs/cheatsheet/piepline-flow-vs-value.md`, and this file
 - `rules` semantics:
   - each rule is called as `(record, ctx)`
   - running `ctx` starts as `{}` for the first input item and persists across later items

@@ -39,7 +39,10 @@ Flow rules:
 - Flow stays lazy and single-use.
 - `head` / `take` stop upstream pulling as soon as they have enough items.
 - `collect` and `run` are the explicit Flow -> Value / Flow -> effect boundaries.
-- pipe mode is only for stage expressions that still produce a Flow.
+- `map` and `filter` are polymorphic: they work on both lists and flows.
+- Pipe mode is only for stage expressions that still produce a Flow.
+- Raw values stay values, flows stay flows, only explicit bridges cross.
+- See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matrix.
 
 ## Working Commands
 

@@ -1,0 +1,1 @@
+["10", "oops", "20"] |> lines |> map(parse_int) |> keep_some |> collect |> sum

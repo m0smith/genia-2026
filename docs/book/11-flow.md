@@ -61,6 +61,76 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
   - omit explicit `stdin`
   - omit explicit `run`
 
+## Flow vs Value: the one rule
+
+> Raw values stay values.  Flows stay flows.  Only explicit bridges cross the boundary.
+
+Option behavior (`some` / `none`) composes with this rule but does not erase it.
+
+### Helper classification
+
+Every pipeline-visible function fits one of these categories:
+
+| Category | Direction | Examples |
+| --- | --- | --- |
+| Value function | list → value | `reduce`, `sum`, `count`, `first`, `last`, `nth` |
+| Flow function | flow → flow | `keep_some`, `keep_some_else`, `scan`, `rules`, `each`, `tee`, `merge`, `zip`, `head` |
+| Polymorphic | list → list or flow → flow | `map`, `filter` |
+| Bridge: source | value → flow | `lines`, `tick` |
+| Bridge: materialize | flow → value | `collect` |
+| Bridge: consume | flow → effect | `run` |
+
+There are exactly three bridge shapes and nothing else crosses the boundary:
+
+- `lines(source)` / `tick()` / `tick(count)` — **create** a flow
+- `collect(flow)` — **materialize** a flow into a list
+- `run(flow)` — **consume** a flow for side effects
+
+### Minimal value-only pipeline
+
+```genia
+[3, 1, 4, 1, 5] |> filter((x) -> x > 2) |> map((x) -> x * 10) |> sum
+```
+
+Expected result: `120`
+
+No flow is created. `filter` and `map` work on the list directly. `sum` reduces the list.
+
+### Minimal flow-only pipeline
+
+```genia
+["hello", "world"] |> lines |> map(upper) |> each(print) |> run
+```
+
+Expected output:
+
+```
+HELLO
+WORLD
+```
+
+`lines` creates a flow. `map(upper)` transforms each item lazily. `each(print)` adds side effects. `run` consumes the flow.
+
+### Explicit bridge pipeline
+
+```genia
+["3", "bad", "7"] |> lines |> keep_some(parse_int) |> collect |> sum
+```
+
+Expected result: `10`
+
+`lines` bridges value → flow. `keep_some(parse_int)` filters in the flow world. `collect` bridges flow → value. `sum` reduces the resulting list.
+
+### Option + Flow composition
+
+```genia
+["10", "oops", "20"] |> lines |> map(parse_int) |> keep_some |> collect |> sum
+```
+
+Expected result: `30`
+
+`parse_int` returns `some(int)` or `none(...)`. `keep_some` unwraps `some(v)` items and drops `none(...)` items. This happens in the flow world. `collect` and `sum` happen in the value world.
+
 ## Real-time input (`stdin_keys`)
 
 Genia now exposes `stdin_keys` as a host-backed Flow source for key-by-key input.

@@ -183,9 +183,9 @@ def test_pipeline_flow_vs_value_cheatsheet_uses_current_option_wording() -> None
     text = read_text("docs/cheatsheet/piepline-flow-vs-value.md")
     normalized = normalize(text)
 
-    assert normalize("ordinary stages lift over `some(x)` automatically") in normalized
-    assert normalize("Option results are preserved as-is") in normalized
-    assert normalize("direct calls still receive explicit `some(...)` values unchanged") in normalized
+    assert normalize("auto-lift ordinary stages over `some(x)`") in normalized
+    assert normalize("Pipeline `some`/`none` lifting works the same in both worlds") in normalized
+    assert normalize("Direct `f(some(x))` short-circuits") in normalized
 
 
 @pytest.mark.parametrize(

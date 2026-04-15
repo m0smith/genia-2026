@@ -112,6 +112,10 @@ Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fi
 Flow values are lazy and single-use.
 `head` / `take` stop upstream pulling promptly.
 `collect` and `run` are explicit Value/Flow bridge boundaries.
+`map` and `filter` are polymorphic: they work on both lists and flows.
+
+The one rule: raw values stay values, flows stay flows, only explicit bridges cross.
+See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matrix.
 
 ## Cells
 
