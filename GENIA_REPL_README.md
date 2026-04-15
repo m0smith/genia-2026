@@ -38,7 +38,8 @@ Run the ants demos:
 
 ```bash
 python3 -m genia.interpreter examples/ants.genia --seed 7
-python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --seed 7
+python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --steps 120 --delay 80 --seed 7
+python3 -m genia.interpreter examples/ants_terminal.genia --mode actor --ants 10 --steps 120 --delay 80 --seed 7
 ```
 
 Run the HTTP service example:
@@ -736,6 +737,9 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - `examples/ants.genia` is now a deterministic pure colony simulation demo.
 - It threads an explicit world value through `step(world) -> world2`, keeps RNG state in that world, and uses seeded `rand_int(rng_state, n)` only for weighted movement choice.
 - The implemented colony behavior includes nest/home region handling, food pickup and return, pheromone deposit, pheromone evaporation, and direction-aware movement bias.
-- `examples/ants_terminal.genia` reuses the same pure simulation model with terminal rendering and CLI configuration.
+- `examples/ants_terminal.genia` is a blocking terminal developer UI over the same colony model. It renders nest, food, ants, carrying ants, and pheromone heat, plus a stats panel with seed, mode, tick, remaining steps, ants, carrying count, delivered food, remaining food, pheromone total, active trail count, and delay.
+- Terminal UI flags: `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`.
+- Same seed plus same config gives the same progression for a given mode.
 - These demos use builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`, terminal helpers) with no new syntax.
-- They are not actor-based and do not provide a scheduler/event loop abstraction.
+- The terminal UI does not use `stdin_keys` and does not provide pause/step/quit key controls; speed and length are controlled by CLI flags.
+- `examples/ants_actor.genia` provides the actor/coordinator mode for comparison; it does not provide a scheduler/event loop abstraction.

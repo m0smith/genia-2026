@@ -1469,7 +1469,7 @@ Core IR shape currently includes:
 
 - `examples/tic-tac-toe.genia`: interactive text game example
 - `examples/ants.genia`: pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
-- `examples/ants_terminal.genia`: terminal-rendered wrapper over the same colony simulation with CLI-configurable ant count and optional CLI seed
+- `examples/ants_terminal.genia`: blocking terminal developer UI over the same colony simulation with CLI-configurable seed, ant count, step count, delay, world size, and pure/actor mode selection
 - `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
 
 `examples/ants.genia` intentionally uses only currently implemented features:
@@ -1499,14 +1499,21 @@ It is intentionally pure and explicit. It is **not** actor-based, does **not** a
 - terminal rendering via `clear_screen()`, `move_cursor(x, y)`, and `render_grid(grid)`
 - CLI configuration via `main(argv())` plus `cli_parse`
 - explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible setup and movement
+- visible text UI for development/teaching:
+  - deterministic rendering priority: carrying ant `H`, ant `a`, nest `N`, food `*`, pheromone heat `#`/`+`/`:`, empty `.`
+  - stats panel with mode, seed, tick, remaining steps, ant/carrying counts, delivered food, remaining food, pheromone total, active trail count, and delay
+  - CLI flags: `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`
+- pure mode steps the imported pure `ants/step(world)` model
+- actor mode uses a coordinator actor session from `examples/ants_actor.genia` so the same terminal UI can compare the actor/coordinator execution structure
 
-It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, and does **not** add new language/runtime features.
+It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, does **not** provide pause/step/quit key controls, and does **not** add new language/runtime features. Same seed plus same config gives the same progression for a given mode.
 
 `examples/ants_actor.genia` demonstrates actor-based concurrency using the same colony rules from `examples/ants.genia`:
 
 - coordinator actor owns the authoritative world state
 - ant workers request sense data via `actor_call` and submit move intents back to the coordinator
 - explicit coordinator-driven tick loop for deterministic reproducibility
+- reusable actor session helpers for the terminal UI: `actor_session`, `actor_session_world`, `actor_session_step`, and `actor_session_stop`
 - imports and reuses the pure scoring/movement logic from `ants.genia` via `import ants`
 - per-ant RNG splitting via `rng(seed)` / `rand_int` for seeded randomness
 - string-tagged messages: `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["tick"]`, `["snapshot"]`, `["stop"]`

@@ -1,10 +1,12 @@
 import ants
+import ants_actor
 
 min_grid_size() = 20
 default_ant_count() = 6
 default_steps() = 120
 default_delay_ms() = 80
 default_seed() = 0
+default_mode() = "pure"
 
 grid_size(ant_total) =
   (ant_total) ? ant_total >= min_grid_size() -> ant_total |
@@ -18,61 +20,211 @@ normalize_seed(seed_value) =
   (seed_value) ? seed_value >= 0 -> seed_value |
   (_) -> default_seed()
 
+normalize_steps(n) =
+  (n) ? n >= 0 -> n |
+  (_) -> default_steps()
+
+normalize_delay(n) =
+  (n) ? n >= 0 -> n |
+  (_) -> default_delay_ms()
+
+normalize_size(n, ant_total) =
+  (n, _) ? n >= min_grid_size() -> n |
+  (_, ant_total) -> grid_size(ant_total)
+
+normalize_mode(mode) =
+  "actor" -> "actor" |
+  _ -> default_mode()
+
+parsed_opts(parsed) = ([opts, _]) -> opts
+
+option_int(opts, name, default) = option_int_value(cli_option(opts, name), default)
+option_int_value(value, default) =
+  (true, default) -> default |
+  (false, default) -> default |
+  (text, default) ? none?(text) == false -> unwrap_or(default, parse_int(text)) |
+  (none(_), default) -> default
+
+config_from_parsed(parsed) = {
+  opts = parsed_opts(parsed)
+  ant_total = normalize_ant_count(option_int(opts, "ants", default_ant_count()))
+  {
+    ants: ant_total,
+    seed: normalize_seed(option_int(opts, "seed", default_seed())),
+    steps: normalize_steps(option_int(opts, "steps", default_steps())),
+    delay: normalize_delay(option_int(opts, "delay", default_delay_ms())),
+    size: normalize_size(option_int(opts, "size", grid_size(ant_total)), ant_total),
+    mode: normalize_mode(cli_option_or(opts, "mode", default_mode()))
+  }
+}
+
+terminal_cli_spec() = {
+  options: ["ants", "seed", "steps", "delay", "size", "mode"],
+  aliases: {a: "ants", s: "seed", n: "steps", d: "delay", m: "mode"}
+}
+
+terminal_config(args) = config_from_parsed(cli_parse(args, terminal_cli_spec()))
+
+config_ant_count(config) = unwrap_or(default_ant_count(), get("ants", config))
+config_seed(config) = unwrap_or(default_seed(), get("seed", config))
+config_steps(config) = unwrap_or(default_steps(), get("steps", config))
+config_delay(config) = unwrap_or(default_delay_ms(), get("delay", config))
+config_size(config) = unwrap_or(grid_size(config_ant_count(config)), get("size", config))
+config_mode(config) = unwrap_or(default_mode(), get("mode", config))
+
 ant_count_from_parsed(parsed) = (
-  ([opts, _]) -> normalize_ant_count(unwrap_or(default_ant_count(), parse_int(cli_option_or(opts, "ants", "6"))))
+  (_) -> config_ant_count(config_from_parsed(parsed))
 )
 
 seed_from_parsed(parsed) = (
-  ([opts, _]) -> normalize_seed(unwrap_or(default_seed(), parse_int(cli_option_or(opts, "seed", "0"))))
+  (_) -> config_seed(config_from_parsed(parsed))
 )
 
 ant_count(args) = ant_count_from_parsed(
-  cli_parse(args, {
-    options: ["ants", "seed"],
-    aliases: {a: "ants", s: "seed"}
-  })
+  cli_parse(args, terminal_cli_spec())
 )
 
 seed_arg(args) = seed_from_parsed(
-  cli_parse(args, {
-    options: ["ants", "seed"],
-    aliases: {a: "ants", s: "seed"}
-  })
+  cli_parse(args, terminal_cli_spec())
 )
 
-new_terminal_world(seed_value, ant_total) = {
-  size = grid_size(ant_total)
+new_terminal_world(seed_value, ant_total) = new_terminal_world(seed_value, ant_total, grid_size(ant_total))
+new_terminal_world(seed_value, ant_total, size) = {
   ants/new_world(seed_value, ant_total, size, size)
 }
 
-draw_frame(world, steps_left, size) = {
+pheromone_heat(value) =
+  (value) ? value >= ants/pheromone_deposit() * 2 -> "#" |
+  (value) ? value >= ants/pheromone_deposit() -> "+" |
+  (value) ? value > 0 -> ":" |
+  (_) -> "."
+
+terminal_cell_char(world, pos) = terminal_cell_char_ant(ants/ant_at_pos(ants/world_ants(world), pos), world, pos)
+
+terminal_cell_char_ant(opt_ant, world, pos) =
+  (some(ant_value), _, _) ? ants/ant_carrying?(ant_value) == true -> "H" |
+  (some(_), _, _) -> "a" |
+  (none(_), world, pos) ? ants/in_nest(world, pos) == true -> "N" |
+  (none(_), world, pos) ? ants/food_at(world, pos) > 0 -> "*" |
+  (none(_), world, pos) -> pheromone_heat(ants/pheromone_at(world, pos))
+
+terminal_render_row(world, y, x) =
+  (world, y, x) ? x >= ants/world_width(world) -> "" |
+  (world, y, x) -> terminal_cell_char(world, [x, y]) + terminal_render_row(world, y, x + 1)
+
+terminal_render_rows(world) = terminal_render_rows_y(world, 0)
+terminal_render_rows_y(world, y) =
+  (world, y) ? y >= ants/world_height(world) -> [] |
+  (world, y) -> [terminal_render_row(world, y, 0), ..terminal_render_rows_y(world, y + 1)]
+
+carrying_count(world) = length(filter((ant_value) -> ants/ant_carrying?(ant_value), ants/world_ants(world)))
+pheromone_total(world) = ants/sum_entry_amounts(ants/pheromone_entries(world), 0)
+active_trails(world) = length(ants/pheromone_entries(world))
+
+stats_panel(world, config, steps_left) = [
+  "Genia ants terminal UI",
+  ["mode", config_mode(config), "seed", config_seed(config), "tick", ants/world_tick(world), "steps_left", steps_left],
+  ["ants", length(ants/world_ants(world)), "carrying", carrying_count(world), "delivered", ants/world_delivered(world), "food_left", ants/total_food(world)],
+  ["pheromone_total", pheromone_total(world), "active_trails", active_trails(world), "delay_ms", config_delay(config)],
+  "legend: H carrying ant | a ant | N nest | * food | # + : pheromone high/med/low | . empty",
+  "controls: CLI only (--seed --ants --steps --delay --size --mode pure|actor); no pause/step keys"
+]
+
+draw_panel(rows) =
+  ([]) -> none |
+  ([row, ..rest]) -> {
+    print(row)
+    draw_panel(rest)
+  }
+
+draw_frame(world, steps_left, size) = draw_frame_config(world, steps_left, {
+  ants: length(ants/world_ants(world)),
+  seed: default_seed(),
+  steps: default_steps(),
+  delay: default_delay_ms(),
+  size: size,
+  mode: default_mode()
+})
+
+draw_frame_config(world, steps_left, config) = {
   clear_screen()
   move_cursor(1, 1)
-  print([
-    "ants",
-    length(ants/world_ants(world)),
-    "grid",
-    size,
-    "x",
-    size,
-    "tick",
-    ants/world_tick(world),
-    "delivered",
-    ants/world_delivered(world),
-    "steps_left",
-    steps_left,
-    "use --ants N --seed S"
-  ])
-  render_grid(ants/render_rows(world))
+  draw_panel(stats_panel(world, config, steps_left))
+  render_grid(terminal_render_rows(world))
 }
 
-simulate(world, steps_left, delay_ms, size) =
-  (_, steps_left, _, _) ? steps_left <= 0 -> "done" |
-  (world, steps_left, delay_ms, size) -> {
-    draw_frame(world, steps_left, size)
-    sleep(delay_ms)
-    simulate(ants/step(world), steps_left - 1, delay_ms, size)
+pure_session(world) = {world: world}
+pure_session_world(session) = unwrap_or(none("missing-world"), get("world", session))
+pure_session_step(session) = map_put(session, "world", ants/step(pure_session_world(session)))
+pure_session_stop(session) = "done"
+
+start_session(mode, world) =
+  ("actor", world) -> ants_actor/actor_session(world) |
+  (_, world) -> pure_session(world)
+
+session_world(mode, session) =
+  ("actor", session) -> ants_actor/actor_session_world(session) |
+  (_, session) -> pure_session_world(session)
+
+session_step(mode, session) =
+  ("actor", session) -> ants_actor/actor_session_step(session) |
+  (_, session) -> pure_session_step(session)
+
+session_stop(mode, session) =
+  ("actor", session) -> ants_actor/actor_session_stop(session) |
+  (_, session) -> pure_session_stop(session)
+
+simulate_session(mode, session, steps_left, config) =
+  (_, session, steps_left, _) ? steps_left <= 0 -> session |
+  (mode, session, steps_left, config) -> {
+    world = session_world(mode, session)
+    draw_frame_config(world, steps_left, config)
+    sleep(config_delay(config))
+    simulate_session(mode, session_step(mode, session), steps_left - 1, config)
   }
+
+simulate(world, steps_left, delay_ms, size) =
+  (_, steps_left, _, size) -> simulate_with_config({
+    ants: length(ants/world_ants(world)),
+    seed: default_seed(),
+    steps: steps_left,
+    delay: delay_ms,
+    size: size,
+    mode: default_mode()
+  })
+
+simulate_with_config(config) = {
+  mode = config_mode(config)
+  world = new_terminal_world(config_seed(config), config_ant_count(config), config_size(config))
+  session = start_session(mode, world)
+  final_session = simulate_session(mode, session, config_steps(config), config)
+  session_stop(mode, final_session)
+}
+
+collect_summaries(seed_value, ant_total, steps_left) = collect_summaries_world(
+  new_terminal_world(seed_value, ant_total),
+  steps_left,
+  []
+)
+
+world_summary(world) = [
+  ants/world_tick(world),
+  ants/world_delivered(world),
+  ants/total_food(world),
+  pheromone_total(world),
+  active_trails(world),
+  carrying_count(world)
+]
+
+collect_summaries_world(world, steps_left, summaries_rev) =
+  (world, steps_left, summaries_rev) ? steps_left <= 0 -> reverse([world_summary(world), ..summaries_rev]) |
+  (world, steps_left, summaries_rev) -> collect_summaries_world(
+    ants/step(world),
+    steps_left - 1,
+    [world_summary(world), ..summaries_rev]
+  )
+
+main(args) = simulate_with_config(terminal_config(args))
 
 collect_positions(seed_value, ant_total, steps_left) = collect_positions_world(
   new_terminal_world(seed_value, ant_total),
@@ -87,9 +239,3 @@ collect_positions_world(world, steps_left, positions_rev) =
     steps_left - 1,
     [map(ants/ant_pos, ants/world_ants(world)), ..positions_rev]
   )
-
-main(args) = {
-  ant_total = ant_count(args)
-  size = grid_size(ant_total)
-  simulate(new_terminal_world(seed_arg(args), ant_total), default_steps(), default_delay_ms(), size)
-}

@@ -216,6 +216,9 @@ first_or_none(xs) =
 | terminal control | `clear_screen()`, `move_cursor(x, y)` |
 | grid rendering | `render_grid(grid)` |
 
+Terminal demos can stay simple and deterministic with ordinary CLI flags plus `sleep`.
+The ants terminal UI accepts `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`; it is blocking and does not use `stdin_keys` for pause/step controls.
+
 ## Web Helpers
 
 Use `import web` and call helpers through module exports.

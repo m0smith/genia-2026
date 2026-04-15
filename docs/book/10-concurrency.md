@@ -45,7 +45,8 @@ Expected behavior:
 
 ## Current model
 
-- the ants demos are now pure deterministic simulations with explicit world + RNG state threading; this does not change the concurrency model and does not use process/cell scheduling
+- the pure ants demo uses explicit world + RNG state threading; this does not change the concurrency model and does not use process/cell scheduling
+- `examples/ants_terminal.genia --mode actor` uses the actor/coordinator ants session from `examples/ants_actor.genia` as a teaching comparison while staying inside the current actor helper model
 - public ref helpers from `src/genia/std/prelude/ref.genia`:
   - `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
@@ -209,12 +210,14 @@ Effect protocol:
 - failure semantics are inherited from cell fail-stop behavior
 - `ctx` is `{}` for `actor_send`; `{reply_to: <ref>}` for `actor_call`
 - if a handler throws during `actor_call`, the reply is `none("actor-error")` and the actor enters failed state
+- the ants terminal UI actor mode is still an explicit blocking tick loop, not a scheduler, selective receive system, or real-time event loop
 
 ### Actor demo: ants colony (`examples/ants_actor.genia`)
 
 This demo runs the same colony simulation from `examples/ants.genia` using the actor model.
 A coordinator actor owns the authoritative world state.
 Ant workers request sense data and submit move intents through `actor_call`.
+The terminal developer UI can select this execution structure with `--mode actor`.
 
 Architecture:
 

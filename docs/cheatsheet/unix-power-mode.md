@@ -21,6 +21,9 @@ When no `-c` or `-p` is selected, the first non-mode argument must be a source f
 Use `--` to stop option parsing when a literal arg/path starts with `-`.
 In `-p`, stage helpers still receive a Flow, so per-row work should go through `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)`.
 
+For file-based terminal demos, keep controls as ordinary trailing args parsed by `main(argv())`.
+For example, `examples/ants_terminal.genia` accepts `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`; it is a blocking text UI, not a `stdin_keys` pause/step loop.
+
 ## Reliable Pipeline Building Blocks
 
 | Goal | Building blocks |

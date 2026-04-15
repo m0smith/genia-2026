@@ -204,7 +204,8 @@ Run the ants demos:
 
 ```bash
 python3 -m genia.interpreter examples/ants.genia --seed 7
-python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --seed 7
+python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --steps 120 --delay 80 --seed 7
+python3 -m genia.interpreter examples/ants_terminal.genia --mode actor --ants 10 --steps 120 --delay 80 --seed 7
 python3 -m genia.interpreter examples/ants_actor.genia --seed 7
 ```
 
@@ -219,7 +220,7 @@ The demo serves:
 - `GET /health` -> plain-text `ok`
 - `GET /info` -> JSON service metadata
 
-Both ants demos now accept an explicit seed for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` reuses that same pure model with the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop or actor/scheduler system. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency — a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`.
+The ants demos accept explicit seeds for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` is the text developer UI for that model: it shows ants, nest, food, pheromone heat, run stats, and a legend, with CLI controls `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`. Same seed plus same config gives the same progression for a given mode. It is still a blocking text demo built on `clear_screen`, `move_cursor`, `render_grid`, `sleep`, and `cli_parse`; it does not use `stdin_keys` and has no pause/step key controls. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency — a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`.
 
 ## Build a Game in Genia
 

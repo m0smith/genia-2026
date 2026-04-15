@@ -145,6 +145,29 @@ run_actor_loop(coord, ant_rngs, master_rng, ticks_left) =
 snapshot_world(reply) =
   ["snapshot_reply", world] -> world
 
+actor_session(world) = {
+  coord = actor(world, coordinator_handler)
+  rng_split = split_rng(ants/world_rng(world), length(ants/world_ants(world)))
+  {coord: coord, ant_rngs: snd(rng_split)}
+}
+
+actor_session_coord(session) = unwrap_or(none("missing-coord"), get("coord", session))
+actor_session_rngs(session) = unwrap_or([], get("ant_rngs", session))
+
+actor_session_world(session) = snapshot_world(actor_call(actor_session_coord(session), ["snapshot"]))
+
+actor_session_step(session) = {
+  coord = actor_session_coord(session)
+  new_ant_rngs = run_tick_ants(coord, actor_session_rngs(session))
+  actor_call(coord, ["tick"])
+  map_put(session, "ant_rngs", new_ant_rngs)
+}
+
+actor_session_stop(session) = {
+  actor_call(actor_session_coord(session), ["stop"])
+  "done"
+}
+
 # ─────────────────────────────────────────────
 # Summaries for testing and comparison
 # ─────────────────────────────────────────────
