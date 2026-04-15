@@ -47,6 +47,7 @@ Expected behavior:
 
 - the pure ants demo uses explicit world + RNG state threading; this does not change the concurrency model and does not use process/cell scheduling
 - `examples/ants_terminal.genia --mode actor` uses the actor/coordinator ants session from `examples/ants_actor.genia` as a teaching comparison while staying inside the current actor helper model
+- `examples/ants_web.genia` can select pure or actor mode through its reset JSON/config UI, but it remains an HTTP/browser viewer over the same session helpers rather than a browser scheduler or browser-native Genia runtime
 - public ref helpers from `src/genia/std/prelude/ref.genia`:
   - `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - `spawn(handler)` creates a host-thread process with FIFO mailbox semantics
@@ -211,6 +212,7 @@ Effect protocol:
 - `ctx` is `{}` for `actor_send`; `{reply_to: <ref>}` for `actor_call`
 - if a handler throws during `actor_call`, the reply is `none("actor-error")` and the actor enters failed state
 - the ants terminal UI actor mode is still an explicit blocking tick loop, not a scheduler, selective receive system, or real-time event loop
+- the ants browser viewer actor mode uses ordinary HTTP requests and JSON snapshots over that same coordinator session; browser run/pause is implemented by repeated `/step` calls from JavaScript
 
 ### Actor demo: ants colony (`examples/ants_actor.genia`)
 
@@ -218,6 +220,7 @@ This demo runs the same colony simulation from `examples/ants.genia` using the a
 A coordinator actor owns the authoritative world state.
 Ant workers request sense data and submit move intents through `actor_call`.
 The terminal developer UI can select this execution structure with `--mode actor`.
+The browser viewer can select it with reset config/UI mode `actor`.
 
 Architecture:
 
@@ -241,6 +244,18 @@ Expected behavior:
 - returns the final world; `world_tick(w)` is `3`
 
 This demo does **not** add new language syntax, does **not** introduce a scheduler, and does **not** require selective receive or timeouts.
+
+### Browser viewer: ants colony (`examples/ants_web.genia`)
+
+The browser viewer serves HTML, CSS, JavaScript, and JSON through the current host-backed HTTP helper.
+It keeps one current simulation session in server memory and exposes small endpoints:
+
+- `GET /state` returns a JSON snapshot of tick, seed, mode, grid size, ants, nest cells, food cells, pheromones, delivered food, remaining food, and stats
+- `POST /reset` rebuilds the current pure or actor session from JSON config
+- `POST /step` advances one tick and returns a fresh snapshot
+
+The browser renders the grid with Canvas and implements run/pause by repeatedly calling `/step`.
+This is a demo/viewer layer only: it does **not** add a browser-native Genia runtime, WebSockets, SSE, a language scheduler, or a generalized server event loop.
 
 ## Implementation status
 

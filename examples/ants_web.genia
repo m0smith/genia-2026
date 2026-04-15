@@ -1,0 +1,529 @@
+# --------------------------------------------------------------------------
+# Browser Ants Viewer
+# --------------------------------------------------------------------------
+#
+# A small browser visualization over the existing ants simulation.
+# Genia owns the simulation/session state and serves HTML, CSS, JS, and JSON.
+# The browser renders snapshots on a canvas and uses ordinary HTTP polling.
+#
+# Run:
+#   genia examples/ants_web.genia
+#   genia examples/ants_web.genia --port 8082
+#
+# Open:
+#   http://127.0.0.1:8082/
+#
+# Endpoints:
+#   GET  /          -> HTML
+#   GET  /app.js    -> browser logic
+#   GET  /style.css -> styling
+#   GET  /state     -> JSON world snapshot
+#   POST /reset     -> reset current session from JSON config
+#   POST /step      -> advance one simulation tick
+# --------------------------------------------------------------------------
+
+import web
+import ants
+import ants_terminal
+
+web_get = web/get
+web_json = web/json
+web_post = web/post
+web_response = web/response
+web_route_request = web/route_request
+web_serve_http = web/serve_http
+
+default_port() = 8082
+default_max_requests() = 0
+default_seed() = 7
+default_ant_count() = 10
+default_size() = 24
+default_delay_ms() = 120
+default_mode() = "pure"
+min_size() = 8
+
+normalize_non_negative(value, default) =
+  (value, default) ? value >= 0 -> value |
+  (_, default) -> default
+
+normalize_positive(value, default) =
+  (value, default) ? value > 0 -> value |
+  (_, default) -> default
+
+normalize_size(value) =
+  (value) ? value >= min_size() -> value |
+  (_) -> default_size()
+
+normalize_mode(mode) =
+  "actor" -> "actor" |
+  _ -> default_mode()
+
+default_config() = {
+  seed: default_seed(),
+  ants: default_ant_count(),
+  size: default_size(),
+  delay: default_delay_ms(),
+  mode: default_mode()
+}
+
+config_seed(config) = unwrap_or(default_seed(), config |> get("seed"))
+config_ant_count(config) = unwrap_or(default_ant_count(), config |> get("ants"))
+config_size(config) = unwrap_or(default_size(), config |> get("size"))
+config_delay(config) = unwrap_or(default_delay_ms(), config |> get("delay"))
+config_mode(config) = unwrap_or(default_mode(), config |> get("mode"))
+
+config_value(body, key, fallback) = unwrap_or(fallback, body |> get(key))
+
+config_from_body(body, fallback) = {
+  ant_total = normalize_positive(config_value(body, "ants", config_ant_count(fallback)), config_ant_count(fallback))
+  {
+    seed: normalize_non_negative(config_value(body, "seed", config_seed(fallback)), config_seed(fallback)),
+    ants: ant_total,
+    size: normalize_size(config_value(body, "size", config_size(fallback))),
+    delay: normalize_non_negative(config_value(body, "delay", config_delay(fallback)), config_delay(fallback)),
+    mode: normalize_mode(config_value(body, "mode", config_mode(fallback)))
+  }
+}
+
+new_world_for_config(config) = ants/new_world(
+  config_seed(config),
+  config_ant_count(config),
+  config_size(config),
+  config_size(config)
+)
+
+make_state(config) = {
+  mode = config_mode(config)
+  world = new_world_for_config(config)
+  {
+    config: config,
+    session: ants_terminal/start_session(mode, world)
+  }
+}
+
+state_config(state) = unwrap_or(default_config(), state |> get("config"))
+state_session(state) = unwrap_or({}, state |> get("session"))
+state_mode(state) = config_mode(state_config(state))
+state_world(state) = ants_terminal/session_world(state_mode(state), state_session(state))
+
+state_step(state) = map_put(
+  state,
+  "session",
+  ants_terminal/session_step(state_mode(state), state_session(state))
+)
+
+state_stop(state) = ants_terminal/session_stop(state_mode(state), state_session(state))
+
+current_state = ref(make_state(default_config()))
+
+body_map(request) = body_map_value(unwrap_or({}, request |> get("body")))
+body_map_value(value) =
+  "" -> {} |
+  value -> value
+
+point_snapshot(pos) = {
+  x: ants/pos_x(pos),
+  y: ants/pos_y(pos)
+}
+
+ant_snapshot(ant_value) = {
+  pos = ants/ant_pos(ant_value)
+  {
+    x: ants/pos_x(pos),
+    y: ants/pos_y(pos),
+    carrying: ants/ant_carrying?(ant_value)
+  }
+}
+
+amount_entry_snapshot(entry) =
+  [[x, y], amount] -> {
+    x: x,
+    y: y,
+    amount: amount
+  }
+
+carrying_count(world) = length(filter((ant_value) -> ants/ant_carrying?(ant_value), ants/world_ants(world)))
+pheromone_total(world) = ants/sum_entry_amounts(ants/pheromone_entries(world), 0)
+
+snapshot_state(state) = snapshot_world(state_config(state), state_world(state))
+
+snapshot_world(config, world) = {
+  food = ants/food_entries(world)
+  pheromones = ants/pheromone_entries(world)
+  {
+    tick: ants/world_tick(world),
+    seed: config_seed(config),
+    mode: config_mode(config),
+    width: ants/world_width(world),
+    height: ants/world_height(world),
+    ants: map(ant_snapshot, ants/world_ants(world)),
+    nest: {
+      center: point_snapshot(ants/world_nest(world)),
+      radius: ants/world_nest_radius(world),
+      cells: map(point_snapshot, ants/nest_positions(world))
+    },
+    food: map(amount_entry_snapshot, food),
+    pheromones: map(amount_entry_snapshot, pheromones),
+    delivered: ants/world_delivered(world),
+    remaining_food: ants/total_food(world),
+    stats: {
+      ants: length(ants/world_ants(world)),
+      carrying: carrying_count(world),
+      active_trails: length(pheromones),
+      pheromone_total: pheromone_total(world),
+      delay: config_delay(config)
+    }
+  }
+}
+
+state_handler(_request) = web_json(snapshot_state(ref_get(current_state)))
+
+step_handler(_request) = {
+  next_state = state_step(ref_get(current_state))
+  ref_set(current_state, next_state)
+  web_json(snapshot_state(next_state))
+}
+
+reset_state(config) = {
+  old_state = ref_get(current_state)
+  state_stop(old_state)
+  next_state = make_state(config)
+  ref_set(current_state, next_state)
+  next_state
+}
+
+reset_handler(request) = {
+  config = config_from_body(body_map(request), state_config(ref_get(current_state)))
+  web_json(snapshot_state(reset_state(config)))
+}
+
+html_page() = """
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Genia Ants</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="stage">
+      <canvas id="world" width="720" height="720" aria-label="Ant colony grid"></canvas>
+    </section>
+    <aside class="panel">
+      <h1>Genia Ants</h1>
+      <dl id="stats"></dl>
+      <form id="controls">
+        <label>Seed <input id="seed" name="seed" type="number" min="0" value="7"></label>
+        <label>Ants <input id="ants" name="ants" type="number" min="1" value="10"></label>
+        <label>Size <input id="size" name="size" type="number" min="8" value="24"></label>
+        <label>Delay <input id="delay" name="delay" type="number" min="0" value="120"></label>
+        <label>Mode
+          <select id="mode" name="mode">
+            <option value="pure">pure</option>
+            <option value="actor">actor</option>
+          </select>
+        </label>
+        <div class="buttons">
+          <button type="button" id="reset">Reset</button>
+          <button type="button" id="step">Step</button>
+          <button type="button" id="run">Run</button>
+          <button type="button" id="pause">Pause</button>
+        </div>
+      </form>
+    </aside>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
+"""
+
+style_css() = """
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f6f7fb;
+  color: #172033;
+}
+
+body {
+  margin: 0;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) 320px;
+}
+
+.stage {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #e5eaf2;
+}
+
+canvas {
+  width: min(76vmin, 760px);
+  height: min(76vmin, 760px);
+  background: #ffffff;
+  border: 1px solid #95a3b7;
+}
+
+.panel {
+  padding: 24px;
+  border-left: 1px solid #c7d0dd;
+  background: #ffffff;
+}
+
+h1 {
+  margin: 0 0 18px;
+  font-size: 28px;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+  margin: 0 0 22px;
+}
+
+dt {
+  color: #586578;
+}
+
+dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+form {
+  display: grid;
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+  color: #334155;
+}
+
+input,
+select,
+button {
+  min-height: 36px;
+  border: 1px solid #a9b4c4;
+  background: white;
+  color: #172033;
+  font: inherit;
+  padding: 6px 8px;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+button {
+  cursor: pointer;
+  background: #e8eef8;
+}
+
+button:hover {
+  background: #dbe8fb;
+}
+
+@media (max-width: 760px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    border-left: 0;
+    border-top: 1px solid #c7d0dd;
+  }
+}
+"""
+
+app_js() = """
+const canvas = document.querySelector("#world");
+const ctx = canvas.getContext("2d");
+const stats = document.querySelector("#stats");
+const controls = document.querySelector("#controls");
+let running = null;
+let latest = null;
+
+function numberField(name) {
+  return Number(controls.elements[name].value);
+}
+
+function config() {
+  return {
+    seed: numberField("seed"),
+    ants: numberField("ants"),
+    size: numberField("size"),
+    delay: numberField("delay"),
+    mode: controls.elements.mode.value
+  };
+}
+
+async function getState() {
+  const response = await fetch("/state");
+  latest = await response.json();
+  syncControls(latest);
+  render(latest);
+}
+
+async function postJson(path, body) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(body || {})
+  });
+  latest = await response.json();
+  syncControls(latest);
+  render(latest);
+}
+
+function syncControls(state) {
+  controls.elements.seed.value = state.seed;
+  controls.elements.ants.value = state.stats.ants;
+  controls.elements.size.value = state.width;
+  controls.elements.delay.value = state.stats.delay;
+  controls.elements.mode.value = state.mode;
+}
+
+function byCell(items) {
+  const map = new Map();
+  for (const item of items) {
+    map.set(`${item.x},${item.y}`, item.amount);
+  }
+  return map;
+}
+
+function antMap(ants) {
+  const map = new Map();
+  for (const ant of ants) {
+    map.set(`${ant.x},${ant.y}`, ant);
+  }
+  return map;
+}
+
+function render(state) {
+  const w = canvas.width;
+  const h = canvas.height;
+  const cell = Math.floor(Math.min(w / state.width, h / state.height));
+  const left = Math.floor((w - cell * state.width) / 2);
+  const top = Math.floor((h - cell * state.height) / 2);
+  const food = byCell(state.food);
+  const pheromones = byCell(state.pheromones);
+  const ants = antMap(state.ants);
+  const nestCells = new Set(state.nest.cells.map((p) => `${p.x},${p.y}`));
+  const maxPheromone = Math.max(1, ...state.pheromones.map((p) => p.amount));
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, w, h);
+
+  for (let y = 0; y < state.height; y += 1) {
+    for (let x = 0; x < state.width; x += 1) {
+      const key = `${x},${y}`;
+      const px = left + x * cell;
+      const py = top + y * cell;
+      ctx.fillStyle = "#f7f8fb";
+      if (nestCells.has(key)) ctx.fillStyle = "#d6ead7";
+      if (pheromones.has(key)) {
+        const alpha = Math.min(0.62, 0.15 + pheromones.get(key) / maxPheromone * 0.48);
+        ctx.fillStyle = `rgba(73, 125, 185, ${alpha})`;
+      }
+      if (food.has(key)) ctx.fillStyle = "#f0cf63";
+      ctx.fillRect(px, py, cell, cell);
+      ctx.strokeStyle = "rgba(50, 65, 55, 0.12)";
+      ctx.strokeRect(px, py, cell, cell);
+
+      if (ants.has(key)) {
+        const ant = ants.get(key);
+        ctx.beginPath();
+        ctx.fillStyle = ant.carrying ? "#d7472f" : "#26312a";
+        ctx.arc(px + cell / 2, py + cell / 2, Math.max(3, cell * 0.32), 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  stats.innerHTML = "";
+  addStat("mode", state.mode);
+  addStat("seed", state.seed);
+  addStat("tick", state.tick);
+  addStat("ants", state.stats.ants);
+  addStat("carrying", state.stats.carrying);
+  addStat("delivered", state.delivered);
+  addStat("food left", state.remaining_food);
+  addStat("trails", state.stats.active_trails);
+}
+
+function addStat(label, value) {
+  const dt = document.createElement("dt");
+  const dd = document.createElement("dd");
+  dt.textContent = label;
+  dd.textContent = value;
+  stats.append(dt, dd);
+}
+
+document.querySelector("#reset").addEventListener("click", () => postJson("/reset", config()));
+document.querySelector("#step").addEventListener("click", () => postJson("/step", {}));
+document.querySelector("#run").addEventListener("click", () => {
+  if (running) return;
+  const delay = Math.max(20, numberField("delay"));
+  running = setInterval(() => postJson("/step", {}), delay);
+});
+document.querySelector("#pause").addEventListener("click", () => {
+  clearInterval(running);
+  running = null;
+});
+
+getState();
+"""
+
+html_handler(_request) = web_response(200, {"content-type": "text/html; charset=utf-8"}, html_page())
+css_handler(_request) = web_response(200, {"content-type": "text/css; charset=utf-8"}, style_css())
+js_handler(_request) = web_response(200, {"content-type": "application/javascript; charset=utf-8"}, app_js())
+
+app() = web_route_request([
+  web_get("/", html_handler),
+  web_get("/app.js", js_handler),
+  web_get("/style.css", css_handler),
+  web_get("/state", state_handler),
+  web_post("/reset", reset_handler),
+  web_post("/step", step_handler)
+])
+
+config_with_max(host, port, max_requests) = (
+  (_, _, max_requests) ? max_requests > 0 -> {
+    host: host,
+    port: port,
+    max_requests: max_requests
+  } |
+  (host, port, _) -> {
+    host: host,
+    port: port
+  }
+)
+
+port_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(default_port(), parse_int(cli_option_or(opts, "port", "8082")))
+)
+
+max_requests_from_parsed(parsed) = (
+  ([opts, _]) -> unwrap_or(default_max_requests(), parse_int(cli_option_or(opts, "max-requests", "0")))
+)
+
+server_config(args) = {
+  parsed = cli_parse(args, {options: ["port", "max-requests"]})
+  config_with_max("127.0.0.1", port_from_parsed(parsed), max_requests_from_parsed(parsed))
+}
+
+main(args) = web_serve_http(server_config(args), app())

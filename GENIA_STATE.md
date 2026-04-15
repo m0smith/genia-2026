@@ -57,6 +57,7 @@ Clarifications:
 - no browser playground application runtime is implemented in this repository yet
 - browser work in this phase is architecture/contract scaffolding only
 - browser execution remains a host-capability adaptation concern and does not define a new Genia dialect
+- `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
 
 ## 0.2) Repository documentation publishing workflow
 
@@ -768,6 +769,7 @@ Output sink semantics:
     - `headers` (string-keyed map)
     - `body` (string, bytes, or `none`)
   - invalid handler return values or response-shape errors produce a `500 internal server error` response in this phase
+  - the ants browser viewer uses this same HTTP surface with static HTML/CSS/JS responses, JSON state snapshots, and POST endpoints for reset/step; it does not add WebSockets, SSE, or a richer server runtime
 - `print(...)` writes to `stdout`
 - `log(...)` writes to `stderr`
 - `input()` remains interactive-only and does not consume the flow/stdin source path
@@ -1471,6 +1473,7 @@ Core IR shape currently includes:
 - `examples/ants.genia`: pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
 - `examples/ants_terminal.genia`: blocking terminal developer UI over the same colony simulation with CLI-configurable seed, ant count, step count, delay, world size, and pure/actor mode selection
 - `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
+- `examples/ants_web.genia`: browser visualization over the same ants simulation using the current blocking HTTP helper, JSON endpoints, and a Canvas renderer in plain browser JavaScript
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
@@ -1519,3 +1522,15 @@ It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **n
 - string-tagged messages: `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["tick"]`, `["snapshot"]`, `["stop"]`
 
 It is a teaching architecture layer — same colony behavior, different execution structure. It does **not** add new language syntax, does **not** introduce a scheduler, and does **not** require selective receive or timeouts.
+
+`examples/ants_web.genia` is an application/demo layer over the existing HTTP surface:
+
+- serves `GET /`, `GET /app.js`, and `GET /style.css` as static browser assets
+- serves `GET /state` as a JSON-friendly snapshot with tick, seed, mode, world size, ant positions/carrying status, nest cells, food cells, pheromone cells, delivered food, remaining food, and small stats
+- accepts `POST /reset` with JSON config (`seed`, `ants`, `size`, `delay`, `mode`) and `POST /step` to advance one tick
+- keeps one explicit server-memory session in a `ref`
+- pure mode reuses `ants_terminal/start_session` over the pure `ants/step(world)` model
+- actor mode reuses the coordinator session from `examples/ants_actor.genia`
+- the browser uses Canvas drawing and client-side repeated `/step` calls for run/pause controls
+
+It is a viewer over the current simulation/session logic. It does **not** implement browser-native Genia execution, a browser playground runtime, WebSockets, SSE, a generalized event loop, or a new server framework. Terminal ants remains the developer UI.

@@ -40,6 +40,7 @@ Run the ants demos:
 python3 -m genia.interpreter examples/ants.genia --seed 7
 python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --steps 120 --delay 80 --seed 7
 python3 -m genia.interpreter examples/ants_terminal.genia --mode actor --ants 10 --steps 120 --delay 80 --seed 7
+python3 -m genia.interpreter examples/ants_web.genia --port 8082
 ```
 
 Run the HTTP service example:
@@ -743,3 +744,5 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - These demos use builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`, terminal helpers) with no new syntax.
 - The terminal UI does not use `stdin_keys` and does not provide pause/step/quit key controls; speed and length are controlled by CLI flags.
 - `examples/ants_actor.genia` provides the actor/coordinator mode for comparison; it does not provide a scheduler/event loop abstraction.
+- `examples/ants_web.genia` is a browser viewer over the same simulation using the current host-backed `web/serve_http` helper. It serves static HTML/CSS/JS plus JSON endpoints: `GET /state`, `POST /reset`, and `POST /step`.
+- The browser uses Canvas rendering and client-side repeated `/step` calls for run/pause controls. It is not a browser-native Genia runtime, a browser playground runtime, WebSockets, SSE, or a richer server runtime.

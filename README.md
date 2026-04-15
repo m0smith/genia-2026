@@ -21,7 +21,7 @@ This repository currently provides:
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
-- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, and `http_service.genia`)
+- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, `ants_web.genia`, and `http_service.genia`)
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
@@ -207,6 +207,7 @@ python3 -m genia.interpreter examples/ants.genia --seed 7
 python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --steps 120 --delay 80 --seed 7
 python3 -m genia.interpreter examples/ants_terminal.genia --mode actor --ants 10 --steps 120 --delay 80 --seed 7
 python3 -m genia.interpreter examples/ants_actor.genia --seed 7
+python3 -m genia.interpreter examples/ants_web.genia --port 8082
 ```
 
 Run the HTTP service demo:
@@ -220,7 +221,9 @@ The demo serves:
 - `GET /health` -> plain-text `ok`
 - `GET /info` -> JSON service metadata
 
-The ants demos accept explicit seeds for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` is the text developer UI for that model: it shows ants, nest, food, pheromone heat, run stats, and a legend, with CLI controls `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`. Same seed plus same config gives the same progression for a given mode. It is still a blocking text demo built on `clear_screen`, `move_cursor`, `render_grid`, `sleep`, and `cli_parse`; it does not use `stdin_keys` and has no pause/step key controls. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency — a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`.
+The ants demos accept explicit seeds for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` is the text developer UI for that model: it shows ants, nest, food, pheromone heat, run stats, and a legend, with CLI controls `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`. Same seed plus same config gives the same progression for a given mode. It is still a blocking text demo built on `clear_screen`, `move_cursor`, `render_grid`, `sleep`, and `cli_parse`; it does not use `stdin_keys` and has no pause/step key controls. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency: a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`.
+
+`examples/ants_web.genia` is a browser viewer over that same simulation, served through the current minimal HTTP helper. Run it with `python3 -m genia.interpreter examples/ants_web.genia --port 8082` and open `http://127.0.0.1:8082/`. It serves `GET /`, `/app.js`, `/style.css`, and `/state`, plus `POST /reset` and `/step`. The browser renders JSON snapshots with Canvas and implements run/pause by repeatedly calling `/step`; this is not a browser-native Genia runtime, a playground runtime, WebSockets, or SSE.
 
 ## Build a Game in Genia
 
