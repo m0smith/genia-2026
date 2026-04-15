@@ -1,0 +1,231 @@
+import ants
+
+# Actor/coordinator ants simulation demo.
+#
+# Demonstrates Genia's current concurrency model by running the ants
+# colony simulation using actors.  The coordinator actor owns the
+# authoritative world state.  Ant workers request sense data, compute
+# moves using the same pure scoring logic from the ants module, and
+# submit move intents back to the coordinator.
+#
+# This is a teaching architecture layer — same colony rules, different
+# execution structure.
+#
+# Current limitations:
+# - no selective receive
+# - no timeouts
+# - host scheduling order is not deterministic
+# - coordinator serialises intents so the demo is reproducible under
+#   an explicit tick-driven loop
+
+default_tick_count() = 18
+default_ant_count() = 5
+default_seed() = 0
+default_delay_ms() = 80
+default_width() = 13
+default_height() = 9
+
+# List element accessors via pattern matching (avoid some(...) wrapping)
+fst(list) = ([x, .._]) -> x
+snd(list) = ([_, x, .._]) -> x
+thd(list) = ([_, _, x, .._]) -> x
+
+# ─────────────────────────────────────────────
+# Coordinator handler — owns the authoritative world state.
+#
+# Messages (tagged lists):
+#   ["sense", ant_id]              -> replies with sense data
+#   ["move_intent", ant_id, move]  -> applies move, replies with result
+#   ["tick"]                       -> runs evaporation, increments tick
+#   ["snapshot"]                   -> replies with full world
+#   ["stop"]                       -> stops the coordinator
+# ─────────────────────────────────────────────
+
+coordinator_handler(world, msg, _ctx) =
+  (world, ["sense", ant_id], _) -> {
+    ant_value = unwrap_or(ants/ant([0,0],[1,0]), nth(ant_id, ants/world_ants(world)))
+    all_ants = ants/world_ants(world)
+    other_positions = map(ants/ant_pos, append(take(ant_id, all_ants), drop(ant_id + 1, all_ants)))
+    weighted = ants/weighted_candidates(world, ant_value, other_positions)
+    ["reply", world, ["sense_reply", ant_id, ant_value, weighted]]
+  } |
+  (world, ["move_intent", ant_id, chosen_move], _) -> {
+    ant_value = unwrap_or(ants/ant([0,0],[1,0]), nth(ant_id, ants/world_ants(world)))
+    result = ants/apply_move(world, ant_value, chosen_move)
+    world2 = fst(result)
+    ant2 = snd(result)
+    tag = thd(result)
+    old_ants = ants/world_ants(world2)
+    new_ants = append(take(ant_id, old_ants), [ant2, ..drop(ant_id + 1, old_ants)])
+    world3 = ants/set_ants(world2, new_ants)
+    ["reply", world3, ["move_result", ant_id, tag]]
+  } |
+  (world, ["tick"], _) -> {
+    evaporated = ants/evaporate(world)
+    world2 = ants/set_tick(evaporated, ants/world_tick(evaporated) + 1)
+    ["ok", world2]
+  } |
+  (world, ["snapshot"], _) -> ["reply", world, ["snapshot_reply", world]] |
+  (world, ["stop"], _) -> ["stop", "done", world]
+
+# ─────────────────────────────────────────────
+# Ant decision: stateless, reuses pure scoring logic
+# ─────────────────────────────────────────────
+
+ant_pick_move(rng_state, weighted) = ants/pick_weighted(rng_state, weighted)
+
+# Run one ant's sense-then-move cycle through the coordinator.
+ant_turn(ant_id, coord, rng_state) = {
+  sense_reply = actor_call(coord, ["sense", ant_id])
+  ant_turn_with_sense(ant_id, coord, rng_state, sense_reply)
+}
+
+ant_turn_with_sense(ant_id, coord, rng_state, sense_reply) =
+  (ant_id, coord, rng_state, ["sense_reply", _, _, weighted]) -> {
+    pick_result = ant_pick_move(rng_state, weighted)
+    next_rng = fst(pick_result)
+    chosen_move = snd(pick_result)
+    actor_call(coord, ["move_intent", ant_id, chosen_move])
+    next_rng
+  }
+
+# ─────────────────────────────────────────────
+# RNG splitting — one child RNG per ant
+# ─────────────────────────────────────────────
+
+split_rng(rng_state, n) = split_rng_acc(rng_state, n, 0, [])
+split_rng_acc(rng_state, n, i, acc) =
+  (rng_state, n, i, acc) ? i >= n -> [rng_state, reverse(acc)] |
+  (rng_state, n, i, acc) -> {
+    pair = rand_int(rng_state, 1000000)
+    next_rng = fst(pair)
+    child_seed = snd(pair)
+    child_rng = rng(child_seed)
+    split_rng_acc(next_rng, n, i + 1, [child_rng, ..acc])
+  }
+
+# ─────────────────────────────────────────────
+# Tick loop — coordinator-driven, explicit ant ordering
+# ─────────────────────────────────────────────
+
+run_tick_ants(coord, ant_rngs) = run_tick_ant(coord, ant_rngs, 0, [])
+
+run_tick_ant(coord, ant_rngs, i, new_rngs_rev) =
+  (coord, ant_rngs, i, new_rngs_rev) ? i >= length(ant_rngs) -> reverse(new_rngs_rev) |
+  (coord, ant_rngs, i, new_rngs_rev) -> {
+    ant_rng = unwrap_or(rng(0), nth(i, ant_rngs))
+    next_rng = ant_turn(i, coord, ant_rng)
+    run_tick_ant(coord, ant_rngs, i + 1, [next_rng, ..new_rngs_rev])
+  }
+
+# ─────────────────────────────────────────────
+# Full actor-mode simulation
+# ─────────────────────────────────────────────
+
+run_actor_sim(world, tick_count) = {
+  coord = actor(world, coordinator_handler)
+  rng_split = split_rng(ants/world_rng(world), length(ants/world_ants(world)))
+  master_rng = fst(rng_split)
+  ant_rngs = snd(rng_split)
+  run_actor_loop(coord, ant_rngs, master_rng, tick_count)
+}
+
+run_actor_loop(coord, ant_rngs, master_rng, ticks_left) =
+  (coord, _, _, ticks_left) ? ticks_left <= 0 -> {
+    snapshot = actor_call(coord, ["snapshot"])
+    actor_call(coord, ["stop"])
+    snapshot_world(snapshot)
+  } |
+  (coord, ant_rngs, master_rng, ticks_left) -> {
+    new_ant_rngs = run_tick_ants(coord, ant_rngs)
+    actor_call(coord, ["tick"])
+    run_actor_loop(coord, new_ant_rngs, master_rng, ticks_left - 1)
+  }
+
+snapshot_world(reply) =
+  ["snapshot_reply", world] -> world
+
+# ─────────────────────────────────────────────
+# Summaries for testing and comparison
+# ─────────────────────────────────────────────
+
+world_summary(world) = [
+  ants/world_tick(world),
+  ants/world_delivered(world),
+  ants/total_food(world),
+  length(ants/world_ants(world))
+]
+
+collect_actor_summaries(seed_value, ant_total, tick_count) = {
+  world = ants/new_world(seed_value, ant_total, default_width(), default_height())
+  coord = actor(world, coordinator_handler)
+  rng_split = split_rng(ants/world_rng(world), ant_total)
+  master_rng = fst(rng_split)
+  ant_rngs = snd(rng_split)
+  collect_loop(coord, ant_rngs, master_rng, tick_count, [])
+}
+
+collect_loop(coord, ant_rngs, master_rng, ticks_left, summaries_rev) =
+  (coord, _, _, ticks_left, summaries_rev) ? ticks_left <= 0 -> {
+    snap = actor_call(coord, ["snapshot"])
+    w = snapshot_world(snap)
+    result = reverse([world_summary(w), ..summaries_rev])
+    actor_call(coord, ["stop"])
+    result
+  } |
+  (coord, ant_rngs, master_rng, ticks_left, summaries_rev) -> {
+    snap_before = actor_call(coord, ["snapshot"])
+    w_before = snapshot_world(snap_before)
+    new_ant_rngs = run_tick_ants(coord, ant_rngs)
+    actor_call(coord, ["tick"])
+    collect_loop(coord, new_ant_rngs, master_rng, ticks_left - 1, [world_summary(w_before), ..summaries_rev])
+  }
+
+# ─────────────────────────────────────────────
+# Print-based simulation with frame rendering
+# ─────────────────────────────────────────────
+
+simulate_actor(world, ticks_left, delay_ms) = {
+  coord = actor(world, coordinator_handler)
+  rng_split = split_rng(ants/world_rng(world), length(ants/world_ants(world)))
+  ant_rngs = snd(rng_split)
+  sim_loop(coord, ant_rngs, ticks_left, delay_ms)
+}
+
+sim_loop(coord, ant_rngs, ticks_left, delay_ms) =
+  (coord, _, ticks_left, _) ? ticks_left <= 0 -> {
+    actor_call(coord, ["stop"])
+    "done"
+  } |
+  (coord, ant_rngs, ticks_left, delay_ms) -> {
+    snap = actor_call(coord, ["snapshot"])
+    w = snapshot_world(snap)
+    print("-----")
+    ants/draw_frame(w, ticks_left)
+    sleep(delay_ms)
+    new_ant_rngs = run_tick_ants(coord, ant_rngs)
+    actor_call(coord, ["tick"])
+    sim_loop(coord, new_ant_rngs, ticks_left - 1, delay_ms)
+  }
+
+normalize_seed(seed_value) =
+  (seed_value) ? seed_value >= 0 -> seed_value |
+  (_) -> default_seed()
+
+seed_from_parsed(parsed) = (
+  ([opts, _]) -> normalize_seed(unwrap_or(default_seed(), parse_int(cli_option_or(opts, "seed", "0"))))
+)
+
+seed_arg(args) = seed_from_parsed(
+  cli_parse(args, {
+    options: ["seed"],
+    aliases: {s: "seed"}
+  })
+)
+
+main() = main([])
+main(args) = simulate_actor(
+  ants/new_world(seed_arg(args), default_ant_count(), default_width(), default_height()),
+  default_tick_count(),
+  default_delay_ms()
+)

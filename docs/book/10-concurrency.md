@@ -210,6 +210,35 @@ Effect protocol:
 - `ctx` is `{}` for `actor_send`; `{reply_to: <ref>}` for `actor_call`
 - if a handler throws during `actor_call`, the reply is `none("actor-error")` and the actor enters failed state
 
+### Actor demo: ants colony (`examples/ants_actor.genia`)
+
+This demo runs the same colony simulation from `examples/ants.genia` using the actor model.
+A coordinator actor owns the authoritative world state.
+Ant workers request sense data and submit move intents through `actor_call`.
+
+Architecture:
+
+- **Coordinator**: single actor holding the world map; processes `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["tick"]`, `["snapshot"]`, and `["stop"]` messages
+- **Tick loop**: explicit coordinator-driven ant ordering for deterministic reproducibility
+- **Reuse**: imports and calls the pure scoring/movement logic from `ants.genia` via `import ants`
+
+Minimal example:
+
+```genia
+import ants_actor
+world = ants/new_world(7, 2, 5, 5)
+w = ants_actor/run_actor_sim(world, 3)
+ants/world_tick(w)
+```
+
+Expected behavior:
+
+- creates a 5×5 world with 2 ants seeded at 7
+- runs 3 actor-driven ticks (sense → intent → apply → evaporate per tick)
+- returns the final world; `world_tick(w)` is `3`
+
+This demo does **not** add new language syntax, does **not** introduce a scheduler, and does **not** require selective receive or timeouts.
+
 ## Implementation status
 
 ### ✅ Implemented

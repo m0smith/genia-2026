@@ -21,7 +21,7 @@ This repository currently provides:
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration
-- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, and `http_service.genia`)
+- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, and `http_service.genia`)
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
@@ -205,6 +205,7 @@ Run the ants demos:
 ```bash
 python3 -m genia.interpreter examples/ants.genia --seed 7
 python3 -m genia.interpreter examples/ants_terminal.genia --ants 10 --seed 7
+python3 -m genia.interpreter examples/ants_actor.genia --seed 7
 ```
 
 Run the HTTP service demo:
@@ -218,7 +219,7 @@ The demo serves:
 - `GET /health` -> plain-text `ok`
 - `GET /info` -> JSON service metadata
 
-Both ants demos now accept an explicit seed for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` reuses that same pure model with the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop or actor/scheduler system.
+Both ants demos now accept an explicit seed for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` reuses that same pure model with the current terminal helper surface (`clear_screen`, `move_cursor`, `render_grid`) plus ordinary CLI args. It is still a blocking text demo, not a `stdin_keys`-driven real-time game loop or actor/scheduler system. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency — a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`.
 
 ## Build a Game in Genia
 

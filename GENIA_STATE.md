@@ -1470,6 +1470,7 @@ Core IR shape currently includes:
 - `examples/tic-tac-toe.genia`: interactive text game example
 - `examples/ants.genia`: pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
 - `examples/ants_terminal.genia`: terminal-rendered wrapper over the same colony simulation with CLI-configurable ant count and optional CLI seed
+- `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
@@ -1500,3 +1501,14 @@ It is intentionally pure and explicit. It is **not** actor-based, does **not** a
 - explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible setup and movement
 
 It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, and does **not** add new language/runtime features.
+
+`examples/ants_actor.genia` demonstrates actor-based concurrency using the same colony rules from `examples/ants.genia`:
+
+- coordinator actor owns the authoritative world state
+- ant workers request sense data via `actor_call` and submit move intents back to the coordinator
+- explicit coordinator-driven tick loop for deterministic reproducibility
+- imports and reuses the pure scoring/movement logic from `ants.genia` via `import ants`
+- per-ant RNG splitting via `rng(seed)` / `rand_int` for seeded randomness
+- string-tagged messages: `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["tick"]`, `["snapshot"]`, `["stop"]`
+
+It is a teaching architecture layer — same colony behavior, different execution structure. It does **not** add new language syntax, does **not** introduce a scheduler, and does **not** require selective receive or timeouts.
