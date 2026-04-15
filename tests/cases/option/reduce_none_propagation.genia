@@ -1,0 +1,18 @@
+# Regression: lambda body delegation to option-aware functions.
+# A lambda whose body delegates to unwrap_or should not short-circuit on none.
+direct = ((o) -> unwrap_or(0, o))(none("x"))
+
+# Regression: map with option-handling lambda over list containing none.
+# Previously, reduce's internal callback short-circuited on none elements.
+mapped = map((o) -> unwrap_or(0, o), [none("a"), some(2), none("b")])
+
+# Two-step pipeline: parse then unwrap.
+two_step = ["3", "bad", "1"] |> map(parse_int) |> map((o) -> unwrap_or(0, o)) |> sum
+
+# filter with option elements (filter callback should see the elements)
+filtered = filter((o) -> some?(o), [some(1), none("x"), some(3)])
+
+# reduce with option elements
+reduced = reduce((acc, o) -> acc + unwrap_or(0, o), 0, [some(1), none("x"), some(3)])
+
+[direct, mapped, two_step, filtered, reduced]

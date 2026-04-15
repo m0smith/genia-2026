@@ -35,7 +35,7 @@ def test_none_argument_short_circuits_ordinary_calls_unless_pattern_matched():
 
 
 def test_none_type_errors_use_structured_absence():
-    assert format_debug(_run('some(2) + 3')) == 'none("type-error", {source: "+", left: "some", right: "int"})'
+    assert format_debug(_run('some(2) + 3')) == 'none("type-error", {source: "+", left: "some(int)", right: "int"})'
 
 
 def test_run_source_normalizes_empty_program_result_to_none_value():

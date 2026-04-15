@@ -1,0 +1,12 @@
+# none(...) short-circuits the rest of the pipeline.
+add1(x) = x + 1
+double(x) = x * 2
+
+[
+  none("empty") |> add1,
+  none("empty") |> add1 |> double,
+  none("parse-error") |> sum,
+  "abc" |> parse_int |> add1 |> double,
+  none?("abc" |> parse_int |> add1),
+  absence_reason("abc" |> parse_int |> add1)
+]

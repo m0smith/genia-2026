@@ -337,7 +337,7 @@ def test_pipe_mode_some_mismatch_points_toward_explicit_helpers(monkeypatch, cap
 
     assert exit_code == 1
     assert captured.out == ""
-    assert "parse_int expected a string, received some" in captured.err
+    assert "parse_int expected a string, received some(string)" in captured.err
     assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
 
 

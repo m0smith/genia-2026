@@ -145,7 +145,7 @@ def test_unix_command_mode_sum_rejects_option_values_with_clear_guidance(monkeyp
     assert exit_code == 1
     assert captured.out == ""
     assert "pipeline stage 4 failed in Value mode at sum" in captured.err
-    assert "sum expected a list of numbers; item 1 received some" in captured.err
+    assert "sum expected a list of numbers; item 1 received some(int)" in captured.err
     assert "Use keep_some(...), keep_some_else(...), flat_map_some(...), or unwrap_or(...) before sum." in captured.err
 
 
@@ -184,7 +184,7 @@ def test_unix_pipe_literal_some_stage_explains_pipe_mode_expects_flow_stage(monk
     assert exit_code == 1
     assert captured.out == ""
     assert "at some(1)" in captured.err
-    assert "pipeline stage expected a callable value, received some" in captured.err
+    assert "pipeline stage expected a callable value, received some(int)" in captured.err
     assert "Pipe mode stages receive a Flow, not one row at a time." in captured.err
 
 

@@ -1,0 +1,20 @@
+# Mixed map/filter/reduce/sum with Option values.
+
+# map(parse_int) produces a list of Options (not usable by sum directly)
+parsed = ["1", "oops", "3"] |> map(parse_int)
+
+# map + unwrap_or for recovery
+recovered = ["1", "oops", "3"] |> map(parse_int) |> map((o) -> unwrap_or(0, o)) |> sum
+
+# filter keeps raw values
+filtered = [1, 2, 3, 4, 5] |> filter((x) -> x > 2) |> sum
+
+# reduce on raw values
+reduced = [1, 2, 3, 4] |> reduce((acc, x) -> acc + x, 0)
+
+[
+  parsed,
+  recovered,
+  filtered,
+  reduced
+]

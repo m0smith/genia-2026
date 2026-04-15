@@ -270,6 +270,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `absence_meta(none(...))` -> `some({reason: ..., context: ...?})`
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
+  - lambda expressions whose body delegates to a known Option-aware function (for example `(o) -> unwrap_or(0, o)`) are recognized as absence-aware and bypass short-circuiting
+- list higher-order functions (`reduce`, `map`, `filter`) are host-backed and call their callbacks without none-propagation, so list elements that are `none(...)` are passed to the callback rather than short-circuiting it
+  - this means `map((o) -> unwrap_or(0, o), [none("a"), some(2)])` correctly returns `[0, 2]` instead of propagating `none`
+  - `filter((o) -> some?(o), [some(1), none("x"), some(3)])` correctly returns `[some(1), some(3)]`
 - pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(...)`.
   - non-Option stage results are wrapped back into `some(...)`
   - Option stage results (`some(...)` / `none(...)`) are preserved as-is
@@ -360,7 +364,8 @@ Pipeline (Phase 2) evaluation model:
   - stage rendering when available
   - stage source span when available
   - pipeline mode classification (`Value mode`, `Flow mode`, or `Explicit bridge mode`)
-  - received runtime type names
+  - received runtime type names (Option values display as `some(inner_type)` recursively)
+  - when the pipeline input is `some(x)`, errors distinguish the auto-unwrapped value from the original: "pipeline value was some(int) (auto-unwrapped)" vs "stage received int"
 - pipeline-visible function modes are interpreted as:
   - Value -> Value
   - Flow -> Flow
@@ -1144,6 +1149,7 @@ Absence semantics:
 - helpers treat all `none...` forms as absence.
 - `parse_int` uses `none("parse-error", context)` for invalid integer text instead of raising for ordinary parse failure
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence
+- list higher-order functions (`reduce`, `map`, `filter`) skip none-propagation for their callbacks so list elements that are `none(...)` are delivered to the callback
 - a present key whose stored value is legacy `nil` now appears as `some(none("nil"))`
 
 `get?` semantics:
@@ -1216,6 +1222,7 @@ Pipeline note:
   - `sum(xs)` expects a plain list of numbers
   - `sum` rejects raw Option items with a clear error instead of relying on accidental arithmetic with `some(...)` / `none(...)`
   - flow/value parse pipelines should therefore use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`
+  - value-mode parse pipelines can now also use `map(parse_int) |> map((o) -> unwrap_or(0, o)) |> sum` because host-backed `map` delivers `none(...)` elements to the callback
 - explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain available for direct Option values and higher-order/non-pipeline composition
 
 Structured absence currently used in canonical access/search helpers:
@@ -1397,6 +1404,7 @@ Loading behavior:
 Notable autoloaded functions include:
 
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
+  - `reduce`, `map`, and `filter` are prelude wrappers over host-backed primitives that skip none-propagation for callbacks, so list elements which are `none(...)` are delivered to the callback
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `compose`

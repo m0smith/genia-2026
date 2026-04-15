@@ -1,0 +1,11 @@
+# Raw (non-Option) values flow through pipelines unchanged.
+add1(x) = x + 1
+double(x) = x * 2
+
+[
+  5 |> add1,
+  5 |> add1 |> double,
+  [1, 2, 3] |> sum,
+  [1, 2, 3] |> map((x) -> x + 1) |> sum,
+  "hello" |> upper
+]

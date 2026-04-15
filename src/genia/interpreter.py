@@ -3731,7 +3731,10 @@ def _pattern_explicitly_handles_some(pattern: IrPattern) -> bool:
 
 def _callable_case_explicitly_handles_none(body: IrNode) -> bool:
     if isinstance(body, IrCase):
-        return any(_pattern_explicitly_handles_none(clause.pattern) for clause in body.clauses)
+        return any(
+            _pattern_explicitly_handles_none(clause.pattern) or _pattern_explicitly_handles_some(clause.pattern)
+            for clause in body.clauses
+        )
     if isinstance(body, IrBlock) and body.exprs:
         return _callable_case_explicitly_handles_none(body.exprs[-1])
     return False
@@ -3745,12 +3748,21 @@ def _callable_case_explicitly_handles_some(body: IrNode) -> bool:
     return False
 
 
+def _body_delegates_to_option_aware(body: IrNode) -> bool:
+    """Return True when the body's final expression delegates to a known Option-aware function."""
+    if isinstance(body, IrCall) and isinstance(body.fn, IrVar):
+        return body.fn.name in _NONE_AWARE_PUBLIC_FUNCTIONS
+    if isinstance(body, IrBlock) and body.exprs:
+        return _body_delegates_to_option_aware(body.exprs[-1])
+    return False
+
+
 def _function_explicitly_handles_none(fn: GeniaFunction) -> bool:
-    return _callable_case_explicitly_handles_none(fn.body)
+    return _callable_case_explicitly_handles_none(fn.body) or _body_delegates_to_option_aware(fn.body)
 
 
 def _function_explicitly_handles_some(fn: GeniaFunction) -> bool:
-    return _callable_case_explicitly_handles_some(fn.body)
+    return _callable_case_explicitly_handles_some(fn.body) or _body_delegates_to_option_aware(fn.body)
 
 
 def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode | None = None) -> bool:
@@ -3778,6 +3790,9 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode |
         if isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take", "scan"}:
             return True
         return False
+    genia_body = getattr(fn, "__genia_body__", None)
+    if genia_body is not None:
+        return _callable_case_explicitly_handles_none(genia_body) or _body_delegates_to_option_aware(genia_body)
     return False
 
 
@@ -3804,6 +3819,9 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: IrNode |
         if len(matches) == 1:
             return _function_explicitly_handles_some(matches[0])
         return False
+    genia_body = getattr(fn, "__genia_body__", None)
+    if genia_body is not None:
+        return _callable_case_explicitly_handles_some(genia_body) or _body_delegates_to_option_aware(genia_body)
     return False
 
 
@@ -4393,7 +4411,13 @@ class Evaluator:
         rendered = f"pipeline stage {stage_index + 1} failed in {mode_text} at {stage_text}"
         if span_text is not None:
             rendered += f" [{span_text}]"
-        rendered += f": stage received {_runtime_type_name(stage_input)}"
+        input_type = _runtime_type_name(stage_input)
+        if isinstance(stage_input, GeniaOptionSome):
+            rendered += f": pipeline value was {input_type} (auto-unwrapped)"
+        elif isinstance(stage_input, GeniaOptionNone):
+            rendered += f": pipeline value was {input_type}"
+        else:
+            rendered += f": stage received {input_type}"
         if message:
             rendered += f"; {message}"
         exc_type = exc.__class__
@@ -4486,10 +4510,12 @@ class Evaluator:
         *,
         tail_position: bool,
         callee_node: IrNode | None = None,
+        skip_none_propagation: bool = False,
     ) -> Any:
-        first_none = next((arg for arg in args if is_none(arg)), None)
-        if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
-            return first_none
+        if not skip_none_propagation:
+            first_none = next((arg for arg in args if is_none(arg)), None)
+            if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
+                return first_none
 
         if isinstance(fn, GeniaFunctionGroup):
             if isinstance(callee_node, IrVar) and len(args) == 2 and isinstance(args[1], GeniaFlow):
@@ -4847,6 +4873,7 @@ class Evaluator:
                     frame.set(rest_param, list(args[len(params):]))
                 return Evaluator(frame, self.debug_hooks, self.debug_mode).eval(body)
 
+            fn.__genia_body__ = body
             return fn
 
         if isinstance(node, IrAssign):
@@ -4999,7 +5026,7 @@ def _runtime_type_name(value: Any) -> str:
     if isinstance(value, GeniaOptionNone):
         return "none"
     if isinstance(value, GeniaOptionSome):
-        return "some"
+        return f"some({_runtime_type_name(value.value)})"
     if isinstance(value, bool):
         return "bool"
     if isinstance(value, int):
@@ -6731,6 +6758,17 @@ def make_global_env(
             callee_node=None,
         )
 
+    def _invoke_raw_from_builtin(proc: Any, args: list[Any]) -> Any:
+        """Like _invoke_from_builtin but skips none-propagation.
+        Used by host-backed HOFs (map/filter/reduce) processing list elements."""
+        return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
+            proc,
+            args,
+            tail_position=False,
+            callee_node=None,
+            skip_none_propagation=True,
+        )
+
     def _get_option_impl(name: str, key: Any, target: Any) -> Any:
         if isinstance(target, GeniaOptionNone):
             return target
@@ -6860,6 +6898,33 @@ def make_global_env(
         if isinstance(opt, GeniaOptionNone):
             return _invoke_from_builtin(thunk, [])
         raise TypeError(f"or_else_with expected an option value, received {_runtime_type_name(opt)}")
+
+    def reduce_fn(f: Any, acc: Any, xs: Any) -> Any:
+        """Host-backed reduce that calls the callback via invoke_callable with
+        skip_none_propagation, so that list elements which are none(...)
+        are passed to the callback rather than short-circuiting it."""
+        if not isinstance(xs, list):
+            raise TypeError(f"reduce expected a list as third argument, received {_runtime_type_name(xs)}")
+        result = acc
+        for x in xs:
+            result = _invoke_raw_from_builtin(f, [result, x])
+        return result
+
+    def map_fn(f: Any, xs: Any) -> Any:
+        """Host-backed map that calls the callback via invoke_callable with
+        skip_none_propagation, so that list elements which are none(...)
+        are passed to the callback rather than short-circuiting it."""
+        if not isinstance(xs, list):
+            raise TypeError(f"map expected a list as second argument, received {_runtime_type_name(xs)}")
+        return [_invoke_raw_from_builtin(f, [x]) for x in xs]
+
+    def filter_fn(predicate: Any, xs: Any) -> Any:
+        """Host-backed filter that calls the callback via invoke_callable with
+        skip_none_propagation, so that list elements which are none(...)
+        are passed to the callback rather than short-circuiting it."""
+        if not isinstance(xs, list):
+            raise TypeError(f"filter expected a list as second argument, received {_runtime_type_name(xs)}")
+        return [x for x in xs if truthy(_invoke_raw_from_builtin(predicate, [x]))]
 
     def sum_fn(xs: Any) -> Any:
         if not isinstance(xs, list):
@@ -7555,6 +7620,9 @@ def make_global_env(
     env.set("_cli_option", cli_option_fn)
     env.set("_cli_option_or", cli_option_or_fn)
     env.set("_sum", sum_fn)
+    env.set("_reduce", reduce_fn)
+    env.set("_map", map_fn)
+    env.set("_filter", filter_fn)
 
     env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
     env.register_autoload("cli_parse", 2, "std/prelude/cli.genia")

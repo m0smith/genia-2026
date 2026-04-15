@@ -70,7 +70,7 @@ Validation: runnable rows include `[case: <id>]` in comments and are executed by
 
 | Pattern | Value | Flow | Comments |
 | --- | --- | --- | --- |
-| Parse and aggregate | 🟢 `rows \|> map(parse_int) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `rows \|> lines \|> keep_some(parse_int) \|> collect \|> sum` | Flow form naturally drops failed parses. [case: pfv-shape-parse-aggregate] |
+| Parse and aggregate | 🟢 `rows \|> map(parse_int) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `rows \|> lines \|> keep_some(parse_int) \|> collect \|> sum` | Flow form naturally drops failed parses; value form recovers with `unwrap_or`. [case: pfv-shape-parse-aggregate] [case: pfv-shape-parse-aggregate-value] |
 | Column extraction and sum | 🟢 `rows \|> map((r) -> split_whitespace(r) \|> nth(4) \|> parse_int) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `stdin \|> lines \|> rules((r, _) -> split_whitespace(r) \|> nth(4) \|> parse_int \|> flat_map_some(rule_emit)) \|> collect \|> sum` | Mirrors current unix-style rules pattern. [case: pfv-shape-column-sum] |
 | Stream to output | 🟢 `xs \|> map(f) \|> map(print)` plus consumption | 🔴 `stdin \|> lines \|> map(f) \|> each(print) \|> run` | Flow path is direct for CLI streaming. [case: pfv-shape-stream-output] |
 

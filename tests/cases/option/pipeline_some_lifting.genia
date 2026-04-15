@@ -1,0 +1,11 @@
+# some(x) passes through ordinary stages; result is re-wrapped in some.
+add1(x) = x + 1
+double(x) = x * 2
+
+[
+  some(5) |> add1,
+  some(5) |> add1 |> double,
+  some([1, 2, 3]) |> sum,
+  "42" |> parse_int |> add1,
+  "42" |> parse_int |> add1 |> double
+]

@@ -275,7 +275,7 @@ def test_then_helpers_fail_clearly_on_wrong_targets(run):
 
 
 def test_safe_chaining_does_not_change_ordinary_arithmetic_or_option_errors(run):
-    assert format_debug(_run("some(2) + 3")) == 'none("type-error", {source: "+", left: "some", right: "int"})'
+    assert format_debug(_run("some(2) + 3")) == 'none("type-error", {source: "+", left: "some(int)", right: "int"})'
     assert format_debug(_run('none("empty-list") + 3')) == 'none("empty-list")'
 
 

@@ -110,18 +110,13 @@ reverse_acc(xs, acc) =
   ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
 
 @doc "Fold a list from left to right."
-reduce(f, acc, xs) =
-  (f, acc, []) -> acc |
-  (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
+reduce(f, acc, xs) = _reduce(f, acc, xs)
 
 @doc "Apply a function to every list element."
-map(f, xs) = reduce((acc, x) -> [..acc, f(x)], [], xs)
+map(f, xs) = _map(f, xs)
 
 @doc "Keep elements where `predicate(x)` is `true`."
-filter(predicate, xs) = reduce((acc, x) -> filter_keep(predicate, acc, x), [], xs)
-filter_keep(predicate, acc, x) =
-  (predicate, acc, x) ? predicate(x) == true -> [..acc, x] |
-  (_, acc, _) -> acc
+filter(predicate, xs) = _filter(predicate, xs)
 
 @doc "Count elements in a list."
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
