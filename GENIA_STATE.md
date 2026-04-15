@@ -1478,6 +1478,7 @@ Core IR shape currently includes:
 `examples/ants.genia` intentionally uses only currently implemented features:
 
 - ordinary persistent maps/lists for explicit world, cell, and ant state
+- world-owned active food/pheromone position lists plus food/pheromone totals for compact evaporation and summary calculation
 - explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible weighted movement choice
 - world-owned RNG threading through `step(world) -> world2`
 - recursive stepping over ants and simulation ticks

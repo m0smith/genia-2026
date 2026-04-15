@@ -81,6 +81,80 @@ def test_ants_pheromone_evaporates_toward_zero():
     assert result == [3, 2]
 
 
+def test_ants_active_pheromone_tracking_removes_zeroed_trails():
+    result = run_ants(
+        """
+        world = set_pheromone(empty_world(7, 1, 5, 5), [1, 1], 1)
+        world1 = evaporate(world)
+        [
+          pheromone_at(world1, [1, 1]),
+          pheromone_entries(world1),
+          total_pheromone(world1),
+          active_trail_count(world1),
+          world_pheromone_positions(world1)
+        ]
+        """
+    )
+
+    assert result == [0, [], 0, 0, []]
+
+
+def test_ants_pheromone_stats_track_active_cells_without_grid_scan():
+    result = run_ants(
+        """
+        world0 = empty_world(7, 1, 20, 20)
+        world1 = set_pheromone(world0, [18, 18], 4)
+        world2 = set_pheromone(world1, [1, 1], 2)
+        world3 = evaporate(world2)
+        [
+          pheromone_entries(world2),
+          total_pheromone(world2),
+          active_trail_count(world2),
+          pheromone_entries(world3),
+          total_pheromone(world3),
+          active_trail_count(world3),
+          length(world_pheromone_positions(world3))
+        ]
+        """
+    )
+
+    assert result == [
+        [[[1, 1], 2], [[18, 18], 4]],
+        6,
+        2,
+        [[[1, 1], 1], [[18, 18], 3]],
+        4,
+        2,
+        2,
+    ]
+
+
+def test_ants_food_totals_and_entries_track_updates():
+    result = run_ants(
+        """
+        world0 = empty_world(7, 1, 10, 10)
+        world1 = set_food(world0, [8, 8], 3)
+        world2 = set_food(world1, [1, 1], 2)
+        world3 = take_food(take_food(world2, [1, 1]), [1, 1])
+        [
+          food_entries(world2),
+          total_food(world2),
+          food_entries(world3),
+          total_food(world3),
+          world_food_positions(world3)
+        ]
+        """
+    )
+
+    assert result == [
+        [[[1, 1], 2], [[8, 8], 3]],
+        5,
+        [[[8, 8], 3]],
+        3,
+        [[8, 8]],
+    ]
+
+
 def test_ants_weighted_movement_prefers_food_and_forward_motion():
     result = run_ants(
         """

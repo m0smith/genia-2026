@@ -40,6 +40,10 @@ world_nest_radius(world) = field(world, "nest_radius", 0)
 world_rng(world) = field(world, "rng", rng(default_seed()))
 world_ants(world) = field(world, "ants", [])
 world_cells(world) = field(world, "cells", map_new())
+world_food_positions(world) = field(world, "food_positions", [])
+world_pheromone_positions(world) = field(world, "pheromone_positions", [])
+world_food_total(world) = field(world, "food_total", 0)
+world_pheromone_total(world) = field(world, "pheromone_total", 0)
 world_delivered(world) = field(world, "delivered", 0)
 world_tick(world) = field(world, "tick", 0)
 
@@ -59,25 +63,79 @@ set_cell_pheromone(cell, amount) = map_put(cell, "pheromone", amount)
 
 cell_at(world, pos) = unwrap_or(empty_cell(), get(pos, world_cells(world)))
 
-set_cell(world, pos, cell) = world_set(
+raw_set_cell(world, pos, cell) = world_set(
   world,
   "cells",
   map_put(world_cells(world), pos, cell)
 )
 
+entry_amount(amount) =
+  (amount) ? amount > 0 -> amount |
+  (_) -> 0
+
+amount_delta(old_amount, new_amount) = entry_amount(new_amount) - entry_amount(old_amount)
+
+pos_index(world, pos) = pos_y(pos) * world_width(world) + pos_x(pos)
+pos_before?(world, left, right) = pos_index(world, left) < pos_index(world, right)
+
+insert_position(world, pos, positions) =
+  (_, pos, []) -> [pos] |
+  (_, pos, [pos, ..rest]) -> [pos, ..rest] |
+  (world, pos, [head, ..rest]) ? pos_before?(world, pos, head) == true -> [pos, head, ..rest] |
+  (world, pos, [head, ..rest]) -> [head, ..insert_position(world, pos, rest)]
+
+remove_position(pos, positions) =
+  (pos, []) -> [] |
+  (pos, [pos, ..rest]) -> rest |
+  (pos, [head, ..rest]) -> [head, ..remove_position(pos, rest)]
+
+positions_with_amount(world, positions, pos, amount) =
+  (_, positions, pos, amount) ? amount > 0 -> insert_position(world, pos, positions) |
+  (_, positions, pos, _) -> remove_position(pos, positions)
+
+set_food_positions(world, pos, amount) = world_set(
+  world,
+  "food_positions",
+  positions_with_amount(world, world_food_positions(world), pos, amount)
+)
+
+set_pheromone_positions(world, pos, amount) = world_set(
+  world,
+  "pheromone_positions",
+  positions_with_amount(world, world_pheromone_positions(world), pos, amount)
+)
+
+set_cell(world, pos, cell) = set_pheromone(
+  set_food(world, pos, cell_food(cell)),
+  pos,
+  cell_pheromone(cell)
+)
+
 food_at(world, pos) = cell_food(cell_at(world, pos))
 pheromone_at(world, pos) = cell_pheromone(cell_at(world, pos))
 
-set_food(world, pos, amount) = set_cell(
-  world,
-  pos,
-  set_cell_food(cell_at(world, pos), amount)
+set_food(world, pos, amount) = set_food_with_old(world, pos, amount, food_at(world, pos))
+
+set_food_with_old(world, pos, amount, old_amount) = world_set(
+  set_food_positions(
+    raw_set_cell(world, pos, set_cell_food(cell_at(world, pos), amount)),
+    pos,
+    amount
+  ),
+  "food_total",
+  world_food_total(world) + amount_delta(old_amount, amount)
 )
 
-set_pheromone(world, pos, amount) = set_cell(
-  world,
-  pos,
-  set_cell_pheromone(cell_at(world, pos), amount)
+set_pheromone(world, pos, amount) = set_pheromone_with_old(world, pos, amount, pheromone_at(world, pos))
+
+set_pheromone_with_old(world, pos, amount, old_amount) = world_set(
+  set_pheromone_positions(
+    raw_set_cell(world, pos, set_cell_pheromone(cell_at(world, pos), amount)),
+    pos,
+    amount
+  ),
+  "pheromone_total",
+  world_pheromone_total(world) + amount_delta(old_amount, amount)
 )
 
 add_pheromone(world, pos, amount) = set_pheromone(
@@ -123,6 +181,10 @@ empty_world(seed_value, ant_total, width, height) = {
     nest_radius: nest_radius_for(ant_total),
     ants: [],
     cells: map_new(),
+    food_positions: [],
+    pheromone_positions: [],
+    food_total: 0,
+    pheromone_total: 0,
     rng: rng(seed_value),
     delivered: 0,
     tick: 0
@@ -364,22 +426,17 @@ step_ants_acc(world, moved_rev, remaining) =
 step_ants_next(step_result, moved_rev, rest) =
   ([world2, ant2, _], moved_rev, rest) -> step_ants_acc(world2, [ant2, ..moved_rev], rest)
 
-evaporate(world) = evaporate_y(world, 0)
+evaporate(world) = evaporate_positions(world, world_pheromone_positions(world))
 
-evaporate_y(world, y) =
-  (world, y) ? y >= world_height(world) -> world |
-  (world, y) -> evaporate_y(evaporate_x(world, y, 0), y + 1)
-
-evaporate_x(world, y, x) =
-  (world, y, x) ? x >= world_width(world) -> world |
-  (world, y, x) -> evaporate_x(
+evaporate_positions(world, positions) =
+  (world, []) -> world |
+  (world, [pos, ..rest]) -> evaporate_positions(
     set_pheromone(
       world,
-      [x, y],
-      max(0, pheromone_at(world, [x, y]) - pheromone_evaporation())
+      pos,
+      max(0, pheromone_at(world, pos) - pheromone_evaporation())
     ),
-    y,
-    x + 1
+    rest
   )
 
 step(world) = {
@@ -389,43 +446,37 @@ step(world) = {
 
 first_ant(world) = unwrap_or(ant([0, 0], [1, 0], false), first(world_ants(world)))
 
-food_entries(world) = reverse(food_entries_y(world, 0, []))
+food_entries(world) = amount_entries(world, world_food_positions(world), food_at, [])
 
-food_entries_y(world, y, acc) =
-  (world, y, acc) ? y >= world_height(world) -> acc |
-  (world, y, acc) -> food_entries_y(world, y + 1, food_entries_x(world, y, 0, acc))
+pheromone_entries(world) = amount_entries(world, world_pheromone_positions(world), pheromone_at, [])
 
-food_entries_x(world, y, x, acc) =
-  (world, y, x, acc) ? x >= world_width(world) -> acc |
-  (world, y, x, acc) ? food_at(world, [x, y]) > 0 -> food_entries_x(
+amount_entries(world, positions, amount_fn, acc) =
+  (world, [], _, acc) -> reverse(acc) |
+  (world, [pos, ..rest], amount_fn, acc) -> amount_entries_add(
     world,
-    y,
-    x + 1,
-    [[[x, y], food_at(world, [x, y])], ..acc]
-  ) |
-  (world, y, x, acc) -> food_entries_x(world, y, x + 1, acc)
+    pos,
+    rest,
+    amount_fn,
+    amount_fn(world, pos),
+    acc
+  )
 
-pheromone_entries(world) = reverse(pheromone_entries_y(world, 0, []))
-
-pheromone_entries_y(world, y, acc) =
-  (world, y, acc) ? y >= world_height(world) -> acc |
-  (world, y, acc) -> pheromone_entries_y(world, y + 1, pheromone_entries_x(world, y, 0, acc))
-
-pheromone_entries_x(world, y, x, acc) =
-  (world, y, x, acc) ? x >= world_width(world) -> acc |
-  (world, y, x, acc) ? pheromone_at(world, [x, y]) > 0 -> pheromone_entries_x(
+amount_entries_add(world, pos, rest, amount_fn, amount, acc) =
+  (world, pos, rest, amount_fn, amount, acc) ? amount > 0 -> amount_entries(
     world,
-    y,
-    x + 1,
-    [[[x, y], pheromone_at(world, [x, y])], ..acc]
+    rest,
+    amount_fn,
+    [[pos, amount], ..acc]
   ) |
-  (world, y, x, acc) -> pheromone_entries_x(world, y, x + 1, acc)
+  (world, _, rest, amount_fn, _, acc) -> amount_entries(world, rest, amount_fn, acc)
 
 sum_entry_amounts(entries, acc) =
   ([], acc) -> acc |
   ([[_, amount], ..rest], acc) -> sum_entry_amounts(rest, acc + amount)
 
-total_food(world) = sum_entry_amounts(food_entries(world), 0)
+total_food(world) = world_food_total(world)
+total_pheromone(world) = world_pheromone_total(world)
+active_trail_count(world) = length(world_pheromone_positions(world))
 
 ant_view(ant_value) = [ant_pos(ant_value), ant_dir(ant_value), ant_carrying?(ant_value)]
 weighted_view_entry(weighted_entry) =

@@ -118,8 +118,8 @@ terminal_render_rows_y(world, y) =
   (world, y) -> [terminal_render_row(world, y, 0), ..terminal_render_rows_y(world, y + 1)]
 
 carrying_count(world) = length(filter((ant_value) -> ants/ant_carrying?(ant_value), ants/world_ants(world)))
-pheromone_total(world) = ants/sum_entry_amounts(ants/pheromone_entries(world), 0)
-active_trails(world) = length(ants/pheromone_entries(world))
+pheromone_total(world) = ants/total_pheromone(world)
+active_trails(world) = ants/active_trail_count(world)
 
 stats_panel(world, config, steps_left) = [
   "Genia ants terminal UI",

@@ -87,6 +87,27 @@ def test_ants_web_snapshot_is_json_friendly_and_uses_ants_logic():
     assert snapshot["stats"]["ants"] == 3
 
 
+def test_ants_web_snapshot_stats_use_tracked_food_and_pheromones():
+    result = json.loads(run_web(
+        """
+        config = {seed: 7, ants: 1, size: 8, delay: 0, mode: "pure"}
+        world0 = ants/empty_world(7, 1, 8, 8)
+        world1 = ants/set_food(world0, [1, 1], 2)
+        world2 = ants/set_pheromone(world1, [2, 2], 3)
+        snap = snapshot_world(config, world2)
+        json_stringify([snap/remaining_food, snap/stats/pheromone_total, snap/stats/active_trails, snap/food, snap/pheromones])
+        """
+    ))
+
+    assert result == [
+        2,
+        3,
+        1,
+        [{"x": 1, "y": 1, "amount": 2}],
+        [{"x": 2, "y": 2, "amount": 3}],
+    ]
+
+
 def test_ants_web_reset_and_step_are_seeded_and_deterministic():
     program = """
     reset_state({seed: 9, ants: 4, size: 8, delay: 0, mode: "pure"})

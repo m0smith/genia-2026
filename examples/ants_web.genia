@@ -143,7 +143,7 @@ amount_entry_snapshot(entry) =
   }
 
 carrying_count(world) = length(filter((ant_value) -> ants/ant_carrying?(ant_value), ants/world_ants(world)))
-pheromone_total(world) = ants/sum_entry_amounts(ants/pheromone_entries(world), 0)
+pheromone_total(world) = ants/total_pheromone(world)
 
 snapshot_state(state) = snapshot_world(state_config(state), state_world(state))
 
@@ -169,7 +169,7 @@ snapshot_world(config, world) = {
     stats: {
       ants: length(ants/world_ants(world)),
       carrying: carrying_count(world),
-      active_trails: length(pheromones),
+      active_trails: ants/active_trail_count(world),
       pheromone_total: pheromone_total(world),
       delay: config_delay(config)
     }
