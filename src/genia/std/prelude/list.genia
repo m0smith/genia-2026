@@ -19,8 +19,7 @@ list(..xs) = xs
 
 * `some(value)` for the first element
 * `none("empty-list")` for `[]`"""
-first(xs) = first_impl(xs)
-first_impl(xs) =
+first(xs) =
   [] -> none("empty-list") |
   [x, .._] -> some(x)
 
@@ -46,11 +45,10 @@ first_opt(xs) = first(xs)
 
 * `some(value)` for the last element
 * `none("empty-list")` for `[]`"""
-last(xs) = last_impl(xs)
-last_impl(xs) =
+last(xs) =
   [] -> none("empty-list") |
   [x] -> some(x) |
-  [_, ..rest] -> last_impl(rest)
+  [_, ..rest] -> last(rest)
 
 @doc """Return all elements except the first.
 
@@ -61,8 +59,7 @@ last_impl(xs) =
 ## Returns
 
 * tail of `xs`"""
-rest(xs) = rest_impl(xs)
-rest_impl(xs) = [_, ..tail] -> tail
+rest(xs) = [_, ..tail] -> tail
 
 @doc """Check whether a list has no elements.
 
@@ -73,8 +70,7 @@ rest_impl(xs) = [_, ..tail] -> tail
 ## Returns
 
 * `true` for `[]`, otherwise `false`"""
-empty?(xs) = empty_impl(xs)
-empty_impl(xs) =
+empty?(xs) =
   [] -> true |
   _ -> false
 
@@ -87,8 +83,7 @@ empty_impl(xs) =
 ## Returns
 
 * `true` when `x` is `nil`, otherwise `false`"""
-nil?(x) = nil_impl(x)
-nil_impl(x) =
+nil?(x) =
   nil -> true |
   _ -> false
 
@@ -97,8 +92,7 @@ append() = []
 @doc "Concatenate zero or more lists."
 append(xs) = xs
 @doc "Concatenate zero or more lists."
-append(xs, ys) = append2(xs, ys)
-append2(xs, ys) =
+append(xs, ys) =
   ([], ys) -> ys |
   (xs, []) -> xs |
   (xs, ys) -> [..xs, ..ys]
@@ -116,10 +110,9 @@ reverse_acc(xs, acc) =
   ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
 
 @doc "Fold a list from left to right."
-reduce(f, acc, xs) = reduce_impl(f, acc, xs)
-reduce_impl(f, acc, xs) =
+reduce(f, acc, xs) =
   (f, acc, []) -> acc |
-  (f, acc, [x, ..rest]) -> reduce_impl(f, f(acc, x), rest)
+  (f, acc, [x, ..rest]) -> reduce(f, f(acc, x), rest)
 
 @doc "Apply a function to every list element."
 map(f, xs) = reduce((acc, x) -> [..acc, f(x)], [], xs)
@@ -144,18 +137,16 @@ count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
 
 * `some(value)` for the first matching element
 * `none("no-match")` when no element matches"""
-find_opt(predicate, xs) = find_opt_impl(predicate, xs)
-find_opt_impl(predicate, xs) =
+find_opt(predicate, xs) =
   (_, []) -> none("no-match") |
   (predicate, [x, .._]) ? predicate(x) == true -> some(x) |
-  (predicate, [_, ..rest]) -> find_opt_impl(predicate, rest)
+  (predicate, [_, ..rest]) -> find_opt(predicate, rest)
 
 @doc "Return `true` when any element satisfies a predicate."
-any?(predicate, xs) = any_impl(predicate, xs)
-any_impl(predicate, xs) =
+any?(predicate, xs) =
   (predicate, []) -> false |
   (predicate, [x, ..rest]) ? predicate(x) == true -> true |
-  (predicate, [_, ..rest]) -> any_impl(predicate, rest)
+  (predicate, [_, ..rest]) -> any?(predicate, rest)
 
 @doc """Return the element at zero-based index `n` as structured absence-aware Option.
 
@@ -201,20 +192,19 @@ head(xs) = take(1, xs)
 head(n, xs) = take(n, xs)
 
 @doc "Drop the first `n` items from a list."
-drop(n, xs) = drop_impl(n, xs)
-drop_impl(n, xs) =
+drop(n, xs) =
   (_, []) -> [] |
   (0, xs) -> xs |
-  (n, [_, ..rest]) -> drop_impl(n - 1, rest)
+  (n, [_, ..rest]) -> drop(n - 1, rest)
 
 @doc "Build a numeric range."
 range(stop) = range(0, stop - 1, 1)
 @doc "Build a numeric range."
 range(start, stop) = range(start, stop, 1)
 @doc "Build a numeric range."
-range(start, stop, step) = range_impl(start, stop, step)
-range_impl(start, stop, step) =
-  (_, _, 0) -> [] |
-  (start, stop, step) ? step > 0 && start > stop -> [] |
-  (start, stop, step) ? step < 0 && start < stop -> [] |
-  (start, stop, step) -> [start] + range_impl(start + step, stop, step)
+range(start, stop, step) = range_acc(start, stop, step, [])
+range_acc(start, stop, step, acc) =
+  (_, _, 0, acc) -> acc |
+  (start, stop, step, acc) ? step > 0 && start > stop -> acc |
+  (start, stop, step, acc) ? step < 0 && start < stop -> acc |
+  (start, stop, step, acc) -> range_acc(start + step, stop, step, [..acc, start])
