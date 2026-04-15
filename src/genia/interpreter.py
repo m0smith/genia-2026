@@ -3098,6 +3098,10 @@ class GeniaCell:
             if kind == "process_send":
                 first.send(second)
                 continue
+            if kind == "cell_stop":
+                first._stopped = True
+                first._mailbox.put((first._generation, GeniaCell._STOP))
+                continue
             raise RuntimeError(f"Unknown cell action kind: {kind}")
 
     def _run(self) -> None:
@@ -6522,17 +6526,26 @@ def make_global_env(
             raise TypeError("process_alive? expected a process")
         return process.is_alive()
 
-    def actor_validate_effect_fn(result: Any) -> Any:
+    _ACTOR_EFFECT_ERROR = (
+        'actor handler must return ["ok", new_state], '
+        '["reply", new_state, response], or ["stop", reason, new_state], '
+        "got: {value}"
+    )
+
+    def actor_validate_effect_fn(result: Any, cell: Any) -> Any:
         if isinstance(result, list):
             if len(result) == 2 and result[0] == "ok":
                 return result[1]
             if len(result) == 3 and result[0] == "reply":
                 return result[1]  # discard response for fire-and-forget
+            if len(result) == 3 and result[0] == "stop":
+                _stage_cell_action("cell_stop", cell, None)
+                return result[2]
         raise TypeError(
-            f'actor handler must return ["ok", new_state] or ["reply", new_state, response], got: {_runtime_type_name(result)}'
+            _ACTOR_EFFECT_ERROR.format(value=format_debug(result))
         )
 
-    def actor_call_update_fn(handler: Any, msg: Any, reply_ref: Any, state: Any) -> Any:
+    def actor_call_update_fn(handler: Any, msg: Any, reply_ref: Any, state: Any, cell: Any) -> Any:
         if not isinstance(reply_ref, GeniaRef):
             raise TypeError("_actor_call_update expected a ref for reply")
         try:
@@ -6545,8 +6558,12 @@ def make_global_env(
                 if len(result) == 2 and result[0] == "ok":
                     reply_ref.set(result[1])
                     return result[1]
+                if len(result) == 3 and result[0] == "stop":
+                    reply_ref.set(make_none("actor-stopped"))
+                    _stage_cell_action("cell_stop", cell, None)
+                    return result[2]
             raise TypeError(
-                f'actor handler must return ["ok", new_state] or ["reply", new_state, response], got: {_runtime_type_name(result)}'
+                _ACTOR_EFFECT_ERROR.format(value=format_debug(result))
             )
         except BaseException:
             if not reply_ref.is_set():

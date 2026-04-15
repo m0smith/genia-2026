@@ -1017,16 +1017,20 @@ Behavior:
 - supported effect shapes:
   - `["ok", new_state]` — update state only
   - `["reply", new_state, response]` — update state and deliver a response value
+  - `["stop", reason, new_state]` — commit final state and stop the actor
+- invalid handler return shapes (not matching any supported effect) mark the actor as failed with a clear error showing the received value and expected shapes
 - `actor_send(actor, msg)` enqueues the message for asynchronous processing
   - the handler is called with `(current_state, msg, {})` inside a cell update
-  - the handler may return either `["ok", new_state]` or `["reply", new_state, response]`
+  - the handler may return `["ok", new_state]`, `["reply", new_state, response]`, or `["stop", reason, new_state]`
   - for `actor_send`, any response value from a `["reply", ...]` effect is discarded
+  - for `["stop", ...]`, the final state is committed and the actor stops after the current message
   - messages are processed one at a time in FIFO order
 - `actor_call(actor, msg)` sends a message and blocks until the handler replies
   - a one-shot ref is created and passed in `ctx` as `reply_to`
   - the handler is called with `(current_state, msg, {reply_to: <ref>})`
   - for `["reply", new_state, response]`: the caller receives `response`
   - for `["ok", new_state]`: the caller receives `new_state` as the reply
+  - for `["stop", reason, new_state]`: the caller receives `none("actor-stopped")`
   - if the handler throws, the caller receives `none("actor-error")` and the actor enters failed state
   - the same handler works correctly with both `actor_send` and `actor_call`
 - `actor_alive?(actor)` reports whether the backing cell worker thread is alive
@@ -1055,6 +1059,9 @@ Behavior:
 
 Not implemented yet:
 
+- selective receive
+- timeouts in message receive
+- deterministic scheduling
 - supervision / links / monitors
 - actor-specific syntax
 

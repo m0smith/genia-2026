@@ -80,7 +80,8 @@ actor_send(a, 10)
 
 Expected behavior:
 
-- the handler receives `(state, msg, ctx)` and must return an effect: `["ok", new_state]` or `["reply", new_state, response]`
+- the handler receives `(state, msg, ctx)` and must return a tagged effect
+- supported effects: `["ok", new_state]`, `["reply", new_state, response]`, `["stop", reason, new_state]`
 - for `actor_send`, any response in a `["reply", ...]` effect is discarded
 - messages are processed one at a time in FIFO order
 - after both messages drain, state is `15`
@@ -136,9 +137,27 @@ actor_send(a, 1)
 
 Expected behavior:
 
-- the handler returns an invalid effect shape (not `["ok", new_state]` or `["reply", new_state, response]`)
-- the actor's backing cell enters failed state
+- the handler returns an invalid effect shape (not `["ok", ...]`, `["reply", ...]`, or `["stop", ...]`)
+- the actor's backing cell enters failed state with an error showing the received value and expected shapes
 - subsequent `actor_send` calls raise `RuntimeError`
+
+### Handler-initiated stop
+
+```genia
+handler(state, msg, _ctx) = ["stop", "done", state + msg]
+a = actor(0, handler)
+actor_send(a, 42)
+```
+
+Expected behavior:
+
+- the handler returns `["stop", reason, new_state]`
+- the final state (`42`) is committed
+- the actor stops after processing the current message
+- `actor_status(a)` returns `"stopped"` after the worker exits
+- subsequent `actor_send` calls raise `RuntimeError`
+
+When `actor_call` receives a `["stop", ...]` effect, the reply is `none("actor-stopped")`.
 
 ### actor_call failure case
 
@@ -169,17 +188,23 @@ Expected behavior:
 | `actor_error(actor)` | Return `none` or `some(error_string)` |
 | `actor_status(actor)` | Return `"ready"`, `"failed"`, or `"stopped"` |
 
-Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `handler(state, msg, ctx) -> ["reply", new_state, response]`
+Handler shape: `handler(state, msg, ctx) -> effect`
 
 Effect protocol:
 
 - `["ok", new_state]` — update state only (for `actor_send`; for `actor_call` the reply is `new_state`)
 - `["reply", new_state, response]` — update state and deliver `response` to the caller
-- both shapes are accepted by both `actor_send` and `actor_call`
+- `["stop", reason, new_state]` — commit final state and stop the actor (for `actor_call` the reply is `none("actor-stopped")`)
+- all three shapes are accepted by both `actor_send` and `actor_call`
+- any other return shape is rejected with a clear error showing the received value and expected shapes
 
 ### Current actor limitations
 
+- actors are implemented on top of host-backed processes (cells with worker threads)
 - actors are a thin prelude layer over cells
+- no selective receive
+- no timeouts in message receive
+- no deterministic scheduling
 - no supervision, links, or monitors
 - failure semantics are inherited from cell fail-stop behavior
 - `ctx` is `{}` for `actor_send`; `{reply_to: <ref>}` for `actor_call`
@@ -195,6 +220,8 @@ Effect protocol:
 - fail-stop cell abstraction with cached error state
 - restart semantics via `restart_cell`
 - actor helpers: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
+- standardized actor handler effect protocol: `["ok", ...]`, `["reply", ...]`, `["stop", ...]`
+- clear error messages for invalid handler return shapes (shows received value)
 - cell graceful stop via `cell_stop`
 - restart semantics work after both failure and stop (worker thread relaunched if exited)
 
@@ -210,6 +237,9 @@ Effect protocol:
 - language-level scheduler
 - selective receive
 - timeouts in message receive syntax
+- selective receive
+- timeouts in message receive syntax
+- deterministic scheduling
 - supervision / links / monitors
 - generalized flow runtime semantics (`|>` is expression-level composition only in Phase 1)
 - lazy sequences

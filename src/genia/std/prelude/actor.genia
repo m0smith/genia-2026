@@ -1,18 +1,23 @@
 @doc """Create an actor with initial state and a message handler.
 
-The handler shape is `handler(state, msg, ctx) -> ["ok", new_state]`.
+The handler shape is `handler(state, msg, ctx) -> effect`.
 The actor processes messages one at a time via a backing cell.
 
 ## Arguments
 
 - `initial_state` — the starting state value
-- `handler` — a function `(state, msg, ctx) -> ["ok", new_state]`
+- `handler` — a function `(state, msg, ctx) -> effect`
 
 ## Returns
 
 An actor value (a map with internal `_cell` and `_handler` keys).
 
-## Errors
+## Notes
+
+Supported effect shapes:
+- `["ok", new_state]` — update state only
+- `["reply", new_state, response]` — update state and deliver response
+- `["stop", reason, new_state]` — commit final state and stop the actor
 
 Handler failures or invalid return shapes mark the actor as failed.
 """
@@ -24,7 +29,8 @@ actor(initial_state, handler) = {
 @doc """Send a message to an actor for asynchronous processing.
 
 The message is enqueued and processed by the actor's handler.
-The handler may return `["ok", new_state]` or `["reply", new_state, response]`.
+The handler may return `["ok", new_state]`, `["reply", new_state, response]`,
+or `["stop", reason, new_state]`.
 For fire-and-forget sends, any reply value is discarded.
 
 ## Arguments
@@ -34,12 +40,12 @@ For fire-and-forget sends, any reply value is discarded.
 
 ## Errors
 
-Raises if the actor has already failed.
+Raises if the actor has already failed or stopped.
 """
 actor_send(a, msg) = {
   h = a("_handler")
   c = a("_cell")
-  cell_send(c, (state) -> _actor_validate_effect(h(state, msg, {})))
+  cell_send(c, (state) -> _actor_validate_effect(h(state, msg, {}), c))
 }
 
 @doc """Send a message and wait for a reply (synchronous request-reply).
@@ -47,6 +53,7 @@ actor_send(a, msg) = {
 The handler receives `ctx` with a `reply_to` ref.
 Return `["reply", new_state, response]` to deliver a response.
 Return `["ok", new_state]` to reply with the new state as the response.
+Return `["stop", reason, new_state]` to stop the actor; the reply is `none("actor-stopped")`.
 
 If the handler fails, `actor_call` returns `none("actor-error")` and the
 actor enters failed state.
@@ -65,7 +72,7 @@ actor_call(a, msg) = {
   h = a("_handler")
   c = a("_cell")
   reply = ref()
-  cell_send(c, (state) -> _actor_call_update(h, msg, reply, state))
+  cell_send(c, (state) -> _actor_call_update(h, msg, reply, state, c))
   ref_get(reply)
 }
 
