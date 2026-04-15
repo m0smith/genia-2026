@@ -7,6 +7,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 Implemented today:
 
 - Python is the current implemented reference host.
+- Python is the only implemented host today.
 - The working Python implementation still lives in:
   - `src/genia/`
   - `tests/`
@@ -33,6 +34,7 @@ Clarifications:
 - The new multi-host artifacts are documentation/manifest/layout scaffolding in this phase.
 - They do not add a second implemented host yet.
 - The shared spec runner contract and capability matrix are scaffolded now, but no generic multi-host runner implementation exists yet.
+- `spec/manifest.json` records Python as the only implemented host, records `hosts/python/` as scaffolded, and records no implemented browser runtime adapter hosts in this phase.
 
 ## 0.1) Browser playground status
 
@@ -133,7 +135,7 @@ Implemented today:
 - cheatsheet sync test: validates `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections with case markers linking back to the style guide
 - book sync test: validates `docs/book/03-functions.md` has a `Documenting Functions` section whose allowed headers and Markdown subset are consistent with the style guide
 - linter-style guide alignment test: validates that the linter's `ALLOWED_SECTION_HEADERS`, `DISCOURAGED_PREFIXES`, and disallowed Markdown match the style guide
-- prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them (currently zero `@doc` strings exist in prelude)
+- prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them
 
 Not implemented yet:
 
@@ -300,7 +302,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`
   - unsupported host module names fail clearly instead of falling through to arbitrary host import
-- `help()` now serves as a small public-surface overview that points users toward autoloaded prelude families and canonical helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, and `eval`
+- `help()` now serves as a small public-surface overview that points users toward registered autoloaded prelude families rather than a hand-maintained API inventory
 - naming discipline for current APIs:
   - new `?`-suffixed APIs are boolean-returning
   - maybe-returning APIs should use Option values without `?`
@@ -1443,7 +1445,7 @@ Loading behavior:
 - file-relative module imports still resolve from the requesting source file's directory first
 - autoload can be triggered both by calls and by plain name lookup for function values
   - this means autoloaded functions can be passed to higher-order helpers such as `apply`, `compose`, `map_some`, and `flat_map_some`
-  - `help("name")` also triggers autoload for registered public helpers before reporting an undefined name
+  - `help("name")` also triggers autoload for registered public helpers and prints a short missing-name note when no public helper or runtime name exists
 
 Notable autoloaded functions include:
 
@@ -1507,8 +1509,9 @@ Core IR shape currently includes:
   - docstring normalization (trim outer blank lines, dedent indentation, optional triple-quote wrapper stripping, collapse excessive blank lines)
   - undocumented fallback message (`No documentation available.`)
 - `help()` with no arguments prints a small overview centered on the public prelude-backed stdlib surface and calls out the intentionally small host bridge
-  - the overview keeps only a small host-written scaffold; representative public family samples are derived from registered prelude autoloads
+  - the overview keeps only a small host-written scaffold; public family names are grouped from registered prelude autoloads
 - `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
+- `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
 
 ## 10) Explicitly not implemented (current)
 
@@ -1522,7 +1525,7 @@ Core IR shape currently includes:
 ## 11) Example demos shipped in-repo
 
 - `examples/tic-tac-toe.genia`: interactive text game example
-- `examples/ants.genia`: pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
+- `examples/ants.genia`: canonical pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
 - `examples/ants_terminal.genia`: blocking terminal developer UI over the same colony simulation with CLI-configurable seed, ant count, step count, delay, world size, and pure/actor mode selection
 - `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
 - `examples/ants_web.genia`: browser visualization over the same ants simulation using the current blocking HTTP helper, JSON endpoints, and a Canvas renderer in plain browser JavaScript
@@ -1547,6 +1550,7 @@ Implemented colony behavior in this phase:
 - direction-aware candidate moves with weighted seeded choice
 
 It is intentionally pure and explicit. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce hidden mutable runtime state or new language syntax.
+This is the canonical simulation teaching pattern in this phase: ordinary world value, deterministic `step(world) -> world2`, seeded RNG threaded through the world, and rendering from snapshots in outer shells.
 
 `examples/ants_terminal.genia` intentionally stays within the same current runtime surface:
 

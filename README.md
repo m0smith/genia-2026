@@ -221,7 +221,7 @@ The demo serves:
 - `GET /health` -> plain-text `ok`
 - `GET /info` -> JSON service metadata
 
-The ants demos accept explicit seeds for reproducible runs. `examples/ants.genia` is a pure deterministic colony simulation that threads RNG state through an explicit world value and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` is the text developer UI for that model: it shows ants, nest, food, pheromone heat, run stats, and a legend, with CLI controls `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`. Same seed plus same config gives the same progression for a given mode. It is still a blocking text demo built on `clear_screen`, `move_cursor`, `render_grid`, `sleep`, and `cli_parse`; it does not use `stdin_keys` and has no pause/step key controls. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency: a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`.
+The ants demos accept explicit seeds for reproducible runs. `examples/ants.genia` is the canonical pure simulation teaching surface: it threads RNG state through an explicit world value, advances with `step(world) -> world2`, and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` is the text developer UI for that model: it shows ants, nest, food, pheromone heat, run stats, and a legend, with CLI controls `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`. Same seed plus same config gives the same progression for a given mode. It is still a blocking text demo built on `clear_screen`, `move_cursor`, `render_grid`, `sleep`, and `cli_parse`; it does not use `stdin_keys` and has no pause/step key controls. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency: a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`. That actor mode is an optional coordination comparison, not the first simulation model.
 
 `examples/ants_web.genia` is a browser viewer over that same simulation, served through the current minimal HTTP helper. Run it with `python3 -m genia.interpreter examples/ants_web.genia --port 8082` and open `http://127.0.0.1:8082/`. It serves `GET /`, `/app.js`, `/style.css`, and `/state`, plus `POST /reset` and `/step`. The browser renders JSON snapshots with Canvas and implements run/pause by repeatedly calling `/step`; this is not a browser-native Genia runtime, a playground runtime, WebSockets, or SSE.
 
@@ -796,9 +796,10 @@ actor_call(a, 3)
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 - `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
-- `help()` prints a compact overview of the public prelude-backed stdlib families and canonical helpers, with representative family samples derived from autoload registrations
+- `help()` prints a compact overview of the public prelude-backed stdlib families, with public family names grouped from registered prelude autoloads
 - `help("name")` can autoload registered prelude helpers before rendering their docstrings
 - `help("name")` for raw host-backed names prints a generic bridge note rather than a separate host-specific doc registry
+- `help("missing")` prints a short missing-name note rather than an undefined-name traceback
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - option runtime + public helpers:

@@ -6234,95 +6234,64 @@ def make_global_env(
             [
                 "",
                 "Detailed docstrings are attached to public Genia/prelude functions instead of raw host bridge names.",
-                'Use `help()` for the surface overview and `help("name")` for documented public helpers such as `get`, `map_put`, `ref_update`, `spawn`, `write`, `parse_int`, `match_branches`, `eval`, and `cell_send`.',
+                'Use `help()` for the public surface overview and `help("name")` for documented prelude helpers.',
             ]
         )
         return "\n".join(lines)
 
-    def _discover_public_family_names(paths: tuple[str, ...], preferred: tuple[str, ...]) -> list[str]:
-        discovered: list[str] = []
+    def _public_autoload_paths() -> list[str]:
+        paths: list[str] = []
         seen: set[str] = set()
-        for (name, _), path in env.root().autoloads.items():
-            if path not in paths or name in seen:
+        for _, path in env.root().autoloads.items():
+            if not path.startswith("std/prelude/") or path in seen:
+                continue
+            seen.add(path)
+            paths.append(path)
+        return paths
+
+    def _prelude_family_label(path: str) -> str:
+        filename = path.rsplit("/", 1)[-1]
+        basename = filename[:-6] if filename.endswith(".genia") else filename
+        labels = {
+            "awk": "AWK",
+            "cell": "Cell",
+            "cli": "CLI",
+            "eval": "Eval",
+            "file": "File / zip",
+            "flow": "Flow",
+            "fn": "Function helpers",
+            "io": "I/O",
+            "json": "JSON",
+            "list": "List",
+            "map": "Map",
+            "math": "Math",
+            "option": "Option",
+            "process": "Process",
+            "random": "Random",
+            "ref": "Ref",
+            "stream": "Stream",
+            "string": "String",
+            "syntax": "Syntax",
+            "web": "Web",
+        }
+        return labels.get(basename, basename)
+
+    def _discover_public_family_names(path: str) -> list[str]:
+        names: list[str] = []
+        seen: set[str] = set()
+        for (name, _), candidate_path in env.root().autoloads.items():
+            if candidate_path != path or name in seen:
                 continue
             seen.add(name)
-            discovered.append(name)
-
-        if not discovered:
-            return []
-
-        ordered = [name for name in preferred if name in seen]
-        extras = [name for name in discovered if name not in ordered]
-        return [*ordered, *extras]
+            names.append(name)
+        return names
 
     def _help_public_families() -> list[tuple[str, list[str]]]:
-        specs = [
-            ("CLI", ("std/prelude/cli.genia",), ("cli_parse", "cli_flag?", "cli_option", "cli_option_or")),
-            (
-                "Flow",
-                ("std/prelude/flow.genia",),
-                ("lines", "scan", "keep_some_else", "rules", "each", "collect", "run"),
-            ),
-            (
-                "Lists / fns / math",
-                ("std/prelude/list.genia", "std/prelude/fn.genia", "std/prelude/math.genia"),
-                ("list", "first", "nth", "map", "filter", "reduce", "apply", "compose", "inspect", "trace", "tap", "sum"),
-            ),
-            (
-                "Option / string",
-                ("std/prelude/option.genia", "std/prelude/string.genia"),
-                (
-                    "some",
-                    "get",
-                    "unwrap_or",
-                    "absence_reason",
-                    "absence_meta",
-                    "parse_int",
-                    "split",
-                    "trim",
-                    "join",
-                    "map_some",
-                    "then_get",
-                ),
-            ),
-            ("Randomness", ("std/prelude/random.genia",), ("rng", "rand", "rand_int")),
-            (
-                "JSON",
-                ("std/prelude/json.genia",),
-                ("json_parse", "json_stringify", "json_pretty"),
-            ),
-            (
-                "Web",
-                ("std/prelude/web.genia",),
-                ("serve_http", "get", "post", "route_request", "response", "json", "text", "ok", "ok_text", "bad_request", "not_found"),
-            ),
-            (
-                "File / zip",
-                ("std/prelude/file.genia",),
-                ("read_file", "write_file", "zip_read", "zip_write"),
-            ),
-            (
-                "Map / ref / process / sinks",
-                ("std/prelude/map.genia", "std/prelude/ref.genia", "std/prelude/process.genia", "std/prelude/io.genia"),
-                ("map_put", "map_has?", "ref_update", "spawn", "send", "write", "writeln", "flush"),
-            ),
-            (
-                "Streams / cells / rule helpers",
-                ("std/prelude/stream.genia", "std/prelude/cell.genia", "std/prelude/fn.genia"),
-                ("stream_cons", "stream_map", "stream_take", "cell", "cell_send", "cell_error", "rule_emit", "rule_step"),
-            ),
-            (
-                "Syntax / eval",
-                ("std/prelude/syntax.genia", "std/prelude/eval.genia"),
-                ("match_branches", "branch_guard", "empty_env", "eval"),
-            ),
-            ("AWK-style helpers", ("std/prelude/awk.genia",), ("fields", "awkify", "awk_filter", "awk_map", "awk_count")),
-        ]
         families: list[tuple[str, list[str]]] = []
-        for label, paths, preferred in specs:
-            names = _discover_public_family_names(paths, preferred)
+        for path in _public_autoload_paths():
+            names = _discover_public_family_names(path)
             if names:
-                families.append((label, names))
+                families.append((_prelude_family_label(path), names))
         return families
 
     def _describe_help_overview() -> str:
@@ -6350,7 +6319,7 @@ def make_global_env(
             "Public stdlib model:",
             "  Most user-facing helpers live in autoloaded prelude modules.",
             '  `help("name")` autoloads a documented public helper and renders its Markdown docstring.',
-            "  Public family samples below are derived from registered prelude autoloads.",
+            "  Public family names below are derived from registered prelude autoloads.",
             '  Example: `unwrap_or("?", record |> get("user") |> get("name"))` is preferred over helper-heavy safe-chaining and legacy lookup forms.',
             "",
             "Public prelude families discovered from autoload registrations:",
@@ -6365,10 +6334,20 @@ def make_global_env(
                 "  Raw host-backed names stay small and capability-oriented.",
                 "  `argv()` and values such as `stdin`, `stdin_keys`, `stdout`, `stderr`, `print`, `log`, `input`, `none`, `force`,",
                 "  pair helpers, simulation primitives, and utf8/json/zip bridges remain host-backed in this phase.",
-                '  `help("print")` and similar raw bridge names show a small generic note instead of a second host-side docs registry.',
+                '  `help("print")` and similar raw bridge names show a generic note instead of a second host-side docs registry.',
             ]
         )
         return "\n".join(lines)
+
+    def _describe_missing_help_name(name: str) -> str:
+        return "\n".join(
+            [
+                f"No public helper or runtime name found: {name}",
+                "",
+                "Use `help()` for the public surface overview.",
+                '`doc("name")` returns none("missing-doc", {name: name}) when a bound name has no doc metadata.',
+            ]
+        )
 
     def help_fn(*args: Any) -> None:
         if len(args) > 1:
@@ -6383,7 +6362,8 @@ def make_global_env(
                     if env.try_autoload(target, 0):
                         target = env.get(target)
                     else:
-                        raise
+                        _emit_help(_describe_missing_help_name(target))
+                        return
             if isinstance(target, GeniaFunctionGroup):
                 _emit_help(_describe_function_group(target))
                 return

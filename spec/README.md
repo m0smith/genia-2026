@@ -18,8 +18,10 @@ Browser playground adapter note:
 - browser runtime adapter docs are scaffolded under `docs/browser/`
 - this is currently a contract/planning surface, not a second implemented host
 - shared browser-adapter metadata is tracked in `spec/manifest.json`
+- `browser_runtime_adapter.implemented_hosts` is empty in this phase; there are no implemented browser runtime adapter hosts
 
 Python is the only implemented host today.
+The live Python implementation is still under `src/genia/`; `hosts/python/` is a future-layout documentation scaffold.
 The spec layout is being added now so future hosts can validate against the same contract instead of growing host-local behavior.
 The shared spec runner layout is still scaffolded/planned in this phase, not implemented as generic multi-host execution tooling.
 

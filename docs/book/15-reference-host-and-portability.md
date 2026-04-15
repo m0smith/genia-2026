@@ -1,6 +1,7 @@
 # Chapter 15: Reference Host and Portability
 
 Genia currently has one implemented host: Python.
+Python is the only implemented host today.
 
 This repository now also includes shared portability scaffolding so future hosts can stay aligned with the same language semantics instead of inventing host-local behavior.
 
@@ -23,7 +24,15 @@ Browser playground status in this phase:
 - architecture and adapter-contract docs are scaffolded under `docs/browser/`
 - V1 browser execution is planned to use the Python reference host on a backend service
 - browser-native execution (JavaScript host or Rust/WASM host) is planned later behind the same adapter boundary
+- `spec/manifest.json` records no implemented browser runtime adapter hosts
 - this does not add a second implemented host today
+
+Manifest status guardrails:
+
+- `spec/manifest.json` records Python as the only implemented host
+- the live Python source remains under `src/genia/`
+- `hosts/python/` is recorded as scaffolded future-layout documentation
+- the generic shared spec runner is recorded as scaffolded, not implemented
 
 ## HTTP service foundation
 

@@ -120,8 +120,9 @@ CLI contract summary:
   - docstring is attached to function metadata (not evaluated as runtime expression)
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)
-  - `help()` prints a small overview centered on the public prelude-backed stdlib surface, with representative family samples derived from registered prelude autoloads
+  - `help()` prints a small overview centered on the public prelude-backed stdlib surface, with family names grouped from registered prelude autoloads
   - `help("name")` for raw host-backed names such as `print` falls back to a generic bridge note instead of a separate host-doc registry
+  - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
   - official docstring style/templates live in `docs/book/03-functions.md`
 - lambda expressions, including varargs lambdas with `..rest`
@@ -735,7 +736,7 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 
 ## Demo note: ants simulation example
 
-- `examples/ants.genia` is now a deterministic pure colony simulation demo.
+- `examples/ants.genia` is the canonical deterministic pure colony simulation demo.
 - It threads an explicit world value through `step(world) -> world2`, keeps RNG state in that world, and uses seeded `rand_int(rng_state, n)` only for weighted movement choice.
 - The implemented colony behavior includes nest/home region handling, food pickup and return, pheromone deposit, pheromone evaporation, and direction-aware movement bias.
 - `examples/ants_terminal.genia` is a blocking terminal developer UI over the same colony model. It renders nest, food, ants, carrying ants, and pheromone heat, plus a stats panel with seed, mode, tick, remaining steps, ants, carrying count, delivered food, remaining food, pheromone total, active trail count, and delay.
@@ -743,6 +744,6 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - Same seed plus same config gives the same progression for a given mode.
 - These demos use builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`, terminal helpers) with no new syntax.
 - The terminal UI does not use `stdin_keys` and does not provide pause/step/quit key controls; speed and length are controlled by CLI flags.
-- `examples/ants_actor.genia` provides the actor/coordinator mode for comparison; it does not provide a scheduler/event loop abstraction.
+- `examples/ants_actor.genia` provides the actor/coordinator mode for comparison; it is an optional coordination layer over the pure world-step model and does not provide a scheduler/event loop abstraction.
 - `examples/ants_web.genia` is a browser viewer over the same simulation using the current host-backed `web/serve_http` helper. It serves static HTML/CSS/JS plus JSON endpoints: `GET /state`, `POST /reset`, and `POST /step`.
 - The browser uses Canvas rendering and client-side repeated `/step` calls for run/pause controls. It is not a browser-native Genia runtime, a browser playground runtime, WebSockets, SSE, or a richer server runtime.

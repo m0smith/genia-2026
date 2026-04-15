@@ -1,3 +1,23 @@
+"""
+# Ants Pure Simulation
+
+Deterministic colony simulation that threads an explicit world value through
+pure tick steps.
+
+## Run
+
+```bash
+genia examples/ants.genia --seed 7
+```
+
+## Features Demonstrated
+
+* explicit world-state values
+* seeded RNG threaded through the world
+* pattern-matching movement rules
+* rendering from world snapshots
+"""
+
 default_width() = 13
 default_height() = 9
 default_ant_count() = 5

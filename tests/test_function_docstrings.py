@@ -82,7 +82,7 @@ def test_help_overview_points_to_prelude_backed_public_surface():
     out = "".join(outputs)
     assert "Most user-facing helpers live in autoloaded prelude modules." in out
     assert '`help("name")` autoloads a documented public helper' in out
-    assert "Public family samples below are derived from registered prelude autoloads." in out
+    assert "Public family names below are derived from registered prelude autoloads." in out
     assert '`unwrap_or("?", record |> get("user") |> get("name"))` is preferred' in out
     assert "Public prelude families discovered from autoload registrations:" in out
     assert "cli_parse, cli_flag?, cli_option, cli_option_or" in out
@@ -92,10 +92,19 @@ def test_help_overview_points_to_prelude_backed_public_surface():
     assert "lines" in out
     assert "collect" in out
     assert "run" in out
-    assert "map_put, map_has?, ref_update, spawn, send, write, writeln, flush" in out
-    assert "match_branches, branch_guard, empty_env, eval" in out
-    assert "Map / ref / process / sinks:" in out
-    assert "Syntax / eval:" in out
+    assert "Map:" in out
+    assert "map_put" in out
+    assert "Ref:" in out
+    assert "ref_update" in out
+    assert "Process:" in out
+    assert "spawn" in out
+    assert "I/O:" in out
+    assert "write, writeln, flush" in out
+    assert "Syntax:" in out
+    assert "match_branches" in out
+    assert "Eval:" in out
+    assert "empty_env, lookup, define, set, extend, eval" in out
+    assert "\n    _map" not in out
 
 
 def test_help_autoloads_option_wrapper_docstring():
@@ -241,7 +250,17 @@ def test_help_for_host_primitive_name_points_back_to_public_surface():
     assert "print" in out
     assert "host-backed runtime function" in out
     assert "public Genia/prelude functions" in out
-    assert '`help("name")` for documented public helpers such as `get`' in out
+    assert '`help("name")` for documented prelude helpers' in out
+
+
+def test_help_for_missing_name_fails_gracefully():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source('help("definitely_missing_helper")\n', env, filename="help_missing.genia")
+    out = "".join(outputs)
+
+    assert "No public helper or runtime name found: definitely_missing_helper" in out
+    assert "Use `help()` for the public surface overview." in out
 
 
 def test_help_docstring_normalizes_triple_quote_wrappers_and_indentation():

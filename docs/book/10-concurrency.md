@@ -360,6 +360,66 @@ cell_get(world)
 
 This is the simplest safe pattern for shared mutable state.
 
+---
+
+## Simulation Pattern: Pure Tick First
+
+For simulations, the canonical Genia pattern today is:
+
+1. model the world as an ordinary value
+2. write deterministic `step(world) -> next_world` logic
+3. keep seeded RNG state inside that world when randomness matters
+4. render from snapshots of the world
+5. add refs/cells/actors only as an outer coordination layer
+
+The ants demos use this split:
+
+- `examples/ants.genia` is the pure simulation core
+- `examples/ants_terminal.genia` is the blocking terminal render/timing shell
+- `examples/ants_actor.genia` is the optional actor/coordinator comparison
+- `examples/ants_web.genia` is an HTTP/browser snapshot viewer
+
+Minimal shape:
+
+```genia
+import ants
+
+world0 = ants/new_world(7, 3, 7, 7)
+world1 = ants/step(world0)
+ants/world_tick(world1)
+```
+
+Expected behavior:
+
+- the world value is replaced by a new world value
+- RNG state is threaded through the world
+- same seed plus same config gives the same progression for the same mode
+- no scheduler, transaction system, or hidden mutable simulation state is introduced
+
+### Rendering shell
+
+Rendering should consume a snapshot and produce output. In the terminal ants demo,
+`draw_frame_config(world, steps_left, config)` reads the world and renders rows;
+`simulate_session(...)` owns the blocking `sleep(...)` delay and repeated stepping.
+
+This keeps simulation behavior testable without terminal timing.
+
+### Coordinator layer
+
+The actor ants demo keeps a single coordinator actor as the authoritative world owner.
+Ant workers request sense data and submit move intents, but the coordinator serializes
+the actual world update order.
+
+This is a comparison layer over the pure model, not a new concurrency guarantee.
+
+### Browser snapshot layer
+
+The browser ants demo keeps one current session in a server-side `ref` and serves JSON
+snapshots. `POST /step` advances one tick and returns a fresh snapshot.
+
+The browser run/pause control is repeated HTTP requests from JavaScript. It is not a
+browser-native Genia runtime, WebSocket loop, or language scheduler.
+
 ### Pattern 2: Fire-and-forget process messaging
 
 Use processes for side effects that don't need acknowledgment.

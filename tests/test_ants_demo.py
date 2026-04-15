@@ -21,6 +21,20 @@ def test_ants_same_seed_is_reproducible():
     assert result == run_ants("collect_signatures(7, 3)")
 
 
+def test_ants_pure_world_step_preserves_food_accounting():
+    result = run_ants(
+        """
+        world0 = new_world(7, 3, 7, 7)
+        initial_food = total_food(world0)
+        world1 = step(step(step(step(world0))))
+        carried = length(filter((ant_value) -> ant_carrying?(ant_value), world_ants(world1)))
+        [world_tick(world1), initial_food, total_food(world1) + world_delivered(world1) + carried]
+        """
+    )
+
+    assert result == [4, 24, 24]
+
+
 def test_ants_pick_up_food_and_reduce_cell_quantity():
     result = run_ants(
         """

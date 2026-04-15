@@ -8,11 +8,13 @@ Status legend:
 
 Python is the only implemented host today.
 All other hosts below are placeholders for planned work.
+`hosts/python/` is also a placeholder directory for the future monorepo layout; the live Python implementation remains in `src/genia/`.
 
 Browser playground adapter note:
 
 - documentation scaffold exists under `docs/browser/`
 - this is not an implemented browser runtime host capability yet
+- `spec/manifest.json` records no implemented browser runtime adapter hosts in this phase
 
 | Capability | Python | Node.js | Java | Rust | Go | C++ | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |

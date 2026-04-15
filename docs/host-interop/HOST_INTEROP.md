@@ -2,8 +2,24 @@
 
 This document defines the shared portability contract for Genia hosts.
 
-Python is the current reference host and the only implemented host today.
+Python is the current reference host.
+Python is the only implemented host today.
 Future hosts may differ internally, but they must preserve the same observable Genia semantics at the source/Core IR/runtime boundary.
+
+## Status Terms
+
+- **Implemented host**: runnable host code exists in this repository with tests.
+- **Reference host**: the implemented host used as the current semantic baseline.
+- **Scaffolded surface**: docs, manifests, placeholders, or layout exist, but no runnable host implementation exists there yet.
+- **Planned host**: intended future host work only.
+
+Current status:
+
+- Python is the only implemented reference host.
+- The live Python source remains in `src/genia/`, with tests under `tests/` and prelude sources under `src/genia/std/prelude/`.
+- `hosts/python/` is a scaffolded future-layout directory, not the live source location.
+- Node.js, Java, Rust, Go, and C++ are planned hosts only.
+- `spec/` and `tools/spec_runner/` define shared contract scaffolding; they are not a generic multi-host runner implementation yet.
 
 ## Authority Order
 

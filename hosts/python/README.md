@@ -1,9 +1,16 @@
 # Python Host
 
-Status:
+Python is the only implemented host today.
+
+Python host status:
 
 - implemented
 - current reference host/prototype
+
+This directory status:
+
+- scaffolded documentation placeholder for the future monorepo layout
+- not the live source location in this phase
 
 Current reality in this phase:
 

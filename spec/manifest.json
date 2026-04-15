@@ -69,6 +69,27 @@
   "shared_prelude_paths": [
     "src/genia/std/prelude"
   ],
+  "host_status": {
+    "implemented_hosts": [
+      "python"
+    ],
+    "live_python_source": [
+      "src/genia",
+      "tests",
+      "src/genia/std/prelude"
+    ],
+    "scaffolded_host_directories": [
+      "hosts/python"
+    ],
+    "planned_hosts": [
+      "node",
+      "java",
+      "rust",
+      "go",
+      "cpp"
+    ],
+    "generic_spec_runner": "scaffolded"
+  },
   "host_test_contract": {
     "parse": {
       "input": "source string",
@@ -92,10 +113,9 @@
   },
   "browser_runtime_adapter": {
     "status": "scaffolded",
-    "implemented_hosts": [
-      "python-backend-planned"
-    ],
+    "implemented_hosts": [],
     "planned_hosts": [
+      "python-backend-service",
       "javascript-browser-native",
       "rust-wasm-browser-native"
     ],

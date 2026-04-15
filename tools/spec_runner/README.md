@@ -9,6 +9,7 @@ Browser playground note:
 
 - browser runtime adapter docs are scaffolded under `docs/browser/`
 - this does not add a second implemented host in the current phase
+- `spec/manifest.json` records no implemented browser runtime adapter hosts in this phase
 - if adapter contract expectations change, update `spec/manifest.json` and relevant `docs/host-interop/*` docs in the same change
 
 ## Minimal Host Runner Interface
