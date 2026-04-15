@@ -189,11 +189,11 @@ nth_impl(target, xs, current, size) =
 nth_opt(n, xs) = nth(n, xs)
 
 @doc "Take the first `n` items from a list."
-take(n, xs) = take_impl(n, xs)
-take_impl(n, xs) =
-  (_, []) -> [] |
-  (0, _) -> [] |
-  (n, [x, ..rest]) -> [x] + take_impl(n - 1, rest)
+take(n, xs) = take_acc(n, xs, [])
+take_acc(n, xs, acc) =
+  (_, [], acc) -> acc |
+  (0, _, acc) -> acc |
+  (n, [x, ..rest], acc) -> take_acc(n - 1, rest, [..acc, x])
 
 @doc "Convenience alias for `take`."
 head(xs) = take(1, xs)
