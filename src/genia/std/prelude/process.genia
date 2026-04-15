@@ -6,3 +6,14 @@ send(process, message) = _send(process, message)
 
 @doc "Check whether a process worker is still alive."
 process_alive?(process) = _process_alive?(process)
+
+@doc "Check whether a process has failed due to a handler exception."
+process_failed?(process) = _process_failed?(process)
+
+@doc """Return the process error option.
+
+## Returns
+
+`none` when the process is healthy, or `some(error_string)` when failed.
+"""
+process_error(process) = _process_error(process)

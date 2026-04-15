@@ -9,7 +9,7 @@ This repository currently provides:
   - pipelines lower to an explicit ordered-stage IR node rather than nested calls
   - Option constructors lower explicitly as `some(...)` / `none(...)` IR values
 - a REPL and file runner (`python3 -m genia.interpreter`)
-- host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`)
+- host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`)
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
 - raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`)
@@ -751,10 +751,12 @@ cell_send(counter, (n) -> n + 1)
 cell_get(counter)
 ```
 
-- public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+- public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - `spawn(handler)` creates a host-thread worker with FIFO mailbox
 - `send(process, message)` enqueues messages
 - `process_alive?(process)` reports worker liveness
+- processes are fail-stop: handler exceptions cache an error string, exit the worker, and cause future `send` calls to raise
+- `process_failed?(process)` and `process_error(process)` inspect the failure state
 - prelude provides `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
 - cells are fail-stop:
   - failed updates preserve last successful state
@@ -905,7 +907,8 @@ Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/archi
 
 ### Concurrency
 
-- public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+- public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
+- processes are fail-stop: handler exceptions are cached and queryable
 
 ### Simulation primitives (Phase 2)
 
@@ -983,7 +986,7 @@ write_file("output.json", unwrap_or("{}", result))
 - fn helpers: `apply`, `compose`
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
-- process helpers: `spawn`, `send`, `process_alive?`
+- process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`

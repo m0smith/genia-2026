@@ -949,7 +949,14 @@ Behavior:
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
   - the underlying ref behavior remains host-backed and unchanged in this phase
 
-Behavior: refs are synchronized host objects; `ref_get` / `ref_update` block until value is set when created via `ref()`.
+Behavior:
+
+- refs are synchronized host objects backed by a Python `threading.Condition`
+- `ref_get` / `ref_update` on an unset ref **block the calling thread indefinitely** until another thread calls `ref_set`
+- there is no timeout — a ref that is never set will block forever
+- `ref_update` holds the internal lock while calling the updater function, so the updater should be fast and must not re-enter the same ref
+- `ref_set` wakes all blocked `ref_get` / `ref_update` waiters
+- reads and writes are serialized through a single condition variable per ref
 
 ### Host-backed concurrency
 
@@ -957,14 +964,25 @@ Behavior: refs are synchronized host objects; `ref_get` / `ref_update` block unt
   - `spawn(handler)`
   - `send(process, message)`
   - `process_alive?(process)`
+  - `process_failed?(process)`
+  - `process_error(process)`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
   - the underlying process behavior remains host-backed and unchanged in this phase
 
 Behavior:
 
-- each process has FIFO mailbox
+- each process has FIFO mailbox (backed by Python `queue.Queue`)
 - one handler invocation at a time per process
-- implemented with host threads
+- implemented with host daemon threads
+- if the handler throws an exception on any message:
+  - the process enters fail-stop state
+  - the error is cached as a string
+  - the worker thread exits
+  - future `send` calls raise `RuntimeError`
+  - `process_failed?` returns `true`
+  - `process_error` returns `some(error_string)`
+- there is no restart mechanism for processes (use cells/actors for restartable workers)
+- there is no graceful shutdown — the daemon thread runs until it fails or the program exits
 
 ### Cell helpers (Phase 1, runtime-backed fail-stop)
 

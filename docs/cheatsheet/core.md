@@ -117,6 +117,27 @@ Flow values are lazy and single-use.
 The one rule: raw values stay values, flows stay flows, only explicit bridges cross.
 See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matrix.
 
+## Refs
+
+| Helper | Shape |
+| --- | --- |
+| create | `ref()`, `ref(initial)` |
+| read / write | `ref_get(r)`, `ref_set(r, value)` |
+| atomic update | `ref_update(r, fn)` |
+| check | `ref_is_set(r)` |
+
+`ref_get` and `ref_update` **block** until value is set. No timeout.
+
+## Processes
+
+| Helper | Shape |
+| --- | --- |
+| create | `spawn(handler)` |
+| send | `send(process, message)` |
+| inspection | `process_alive?(process)`, `process_failed?(process)`, `process_error(process)` |
+
+FIFO mailbox, one handler call at a time. Handler exceptions enter fail-stop state.
+
 ## Cells
 
 | Helper | Shape |
@@ -141,11 +162,13 @@ Cells are serialized mutable state backed by a worker thread.
 | inspection | `actor_state(actor)`, `actor_status(actor)`, `actor_alive?(actor)` |
 | health | `actor_failed?(actor)`, `actor_error(actor)` |
 
-Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `["reply", new_state, response]`.
-Both shapes work with both `actor_send` and `actor_call`.
+Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`, `["reply", new_state, response]`, or `["stop", reason, new_state]`.
+All three shapes work with both `actor_send` and `actor_call`.
 `actor_call` with `["ok", new_state]` replies with `new_state`.
 `actor_call` with `["reply", new_state, response]` replies with `response`.
+`actor_call` with `["stop", ...]` replies with `none("actor-stopped")`.
 If the handler throws during `actor_call`, the result is `none("actor-error")`.
+Actors are a thin prelude layer over cells, not a BEAM-style actor system.
 
 <!-- [case: core-actor-call-reply] -->
 ```genia

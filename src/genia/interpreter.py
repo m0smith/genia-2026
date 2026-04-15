@@ -3954,21 +3954,49 @@ class GeniaProcess:
     def __init__(self, handler: Callable[[Any], Any]):
         self._handler = handler
         self._mailbox: queue.Queue[Any] = queue.Queue()
+        self._failed = False
+        self._error: str | None = None
+        self._lock = threading.Lock()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+
+    def _error_text(self, exc: BaseException) -> str:
+        message = str(exc).strip()
+        name = type(exc).__name__
+        return f"{name}: {message}" if message else name
 
     def _run(self) -> None:
         while True:
             message = self._mailbox.get()
-            self._handler(message)
+            try:
+                self._handler(message)
+            except Exception as exc:
+                with self._lock:
+                    self._failed = True
+                    self._error = self._error_text(exc)
+                return
 
     def send(self, message: Any) -> None:
+        with self._lock:
+            if self._failed:
+                raise RuntimeError(f"Process has failed: {self._error}")
         self._mailbox.put(message)
 
     def is_alive(self) -> bool:
         return self._thread.is_alive()
 
+    def failed(self) -> bool:
+        with self._lock:
+            return self._failed
+
+    def error(self) -> str | None:
+        with self._lock:
+            return self._error
+
     def __repr__(self) -> str:
+        with self._lock:
+            if self._failed:
+                return "<process failed>"
         status = "alive" if self.is_alive() else "dead"
         return f"<process {status}>"
 
@@ -6553,6 +6581,19 @@ def make_global_env(
             raise TypeError("process_alive? expected a process")
         return process.is_alive()
 
+    def process_failed_fn(process: Any) -> bool:
+        if not isinstance(process, GeniaProcess):
+            raise TypeError("process_failed? expected a process")
+        return process.failed()
+
+    def process_error_fn(process: Any) -> Any:
+        if not isinstance(process, GeniaProcess):
+            raise TypeError("process_error expected a process")
+        err = process.error()
+        if err is not None:
+            return GeniaOptionSome(err)
+        return OPTION_NONE
+
     _ACTOR_EFFECT_ERROR = (
         'actor handler must return ["ok", new_state], '
         '["reply", new_state, response], or ["stop", reason, new_state], '
@@ -7567,6 +7608,8 @@ def make_global_env(
     env.set("_spawn", spawn_fn)
     env.set("_send", send_fn)
     env.set("_process_alive?", process_alive_fn)
+    env.set("_process_failed?", process_failed_fn)
+    env.set("_process_error", process_error_fn)
     env.set("_actor_validate_effect", actor_validate_effect_fn)
     env.set("_actor_call_update", actor_call_update_fn)
     env.set("_map_new", map_new_fn)

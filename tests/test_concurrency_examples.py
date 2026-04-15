@@ -78,3 +78,96 @@ def test_example_logging_background_worker_pattern():
     )
 
     wait_for(env, "ref_get(logs)", ["boot", "request", "done"])
+
+
+# ---------------------------------------------------------------------------
+# Process fail-stop behaviour
+# ---------------------------------------------------------------------------
+
+
+def test_process_fail_stop_marks_failed():
+    """Handler exception sets process_failed? to true."""
+    env = make_global_env([])
+    run_source(
+        '''
+        boom = spawn((msg) -> 1 / 0)
+        send(boom, "trigger")
+        ''',
+        env,
+    )
+    wait_for(env, "process_failed?(boom)", True)
+    wait_for(env, "process_alive?(boom)", False)
+
+
+def test_process_fail_stop_error_message():
+    """process_error returns Some(message) after failure."""
+    env = make_global_env([])
+    run_source(
+        '''
+        bad = spawn((msg) -> 1 / 0)
+        send(bad, "x")
+        ''',
+        env,
+    )
+    wait_for(env, "process_failed?(bad)", True)
+    result = run_source("process_error(bad)", env)
+    # GeniaOptionSome wraps the error string
+    assert hasattr(result, "value"), f"expected Some(...), got {result!r}"
+    assert "ZeroDivisionError" in result.value
+
+
+def test_process_error_none_when_healthy():
+    """process_error returns none on a healthy process."""
+    env = make_global_env([])
+    run_source(
+        '''
+        ok_proc = spawn((msg) -> msg)
+        send(ok_proc, "hello")
+        ''',
+        env,
+    )
+    # Give process time to consume message
+    import time
+    time.sleep(0.05)
+    result = run_source("process_error(ok_proc)", env)
+    # Should be OPTION_NONE (no .value attribute)
+    assert not hasattr(result, "value"), f"expected none, got {result!r}"
+
+
+def test_process_send_after_failure_raises():
+    """Sending to a failed process raises a runtime error."""
+    import pytest as _pytest
+
+    env = make_global_env([])
+    run_source(
+        '''
+        doomed = spawn((msg) -> 1 / 0)
+        send(doomed, "first")
+        ''',
+        env,
+    )
+    wait_for(env, "process_failed?(doomed)", True)
+    with _pytest.raises(Exception, match="Process has failed"):
+        run_source('send(doomed, "second")', env)
+
+
+def test_process_processes_messages_before_failure():
+    """A process handles messages in order; earlier ones complete before a later one fails."""
+    env = make_global_env([])
+    run_source(
+        '''
+        log = ref([])
+        handle(msg) {
+            ref_update(log, (xs) -> append(xs, [msg]))
+            1 / msg
+        }
+        fragile = spawn(handle)
+        send(fragile, 2)
+        send(fragile, 1)
+        send(fragile, 0)
+        ''',
+        env,
+    )
+    wait_for(env, "process_failed?(fragile)", True)
+    # Messages 2 and 1 succeed (1/2, 1/1 ok). Message 0 triggers div-by-zero after updating log.
+    wait_for(env, "ref_get(log)", [2, 1, 0])
