@@ -1,0 +1,27 @@
+# Invariant: values stay values through pipeline stages.
+# A list never becomes a flow implicitly.
+# Polymorphic helpers (map, filter) operate on lists and return lists.
+
+# List through map returns list
+a = [1, 2, 3] |> map((x) -> x + 1)
+
+# List through filter returns list
+b = [1, 2, 3, 4, 5] |> filter((x) -> x > 2)
+
+# List through map + filter + reduce stays value
+c = [1, 2, 3, 4] |> map((x) -> x * 2) |> filter((x) -> x > 4) |> sum
+
+# List through take returns list
+d = [10, 20, 30, 40] |> take(2)
+
+# List through first/last returns Option value (not flow)
+e = [1, 2, 3] |> first
+f = [1, 2, 3] |> last
+
+# Empty list through value stages
+g = [] |> map((x) -> x + 1) |> sum
+
+# Nested pipeline within map (value stays value)
+h = [1, 2, 3] |> map((x) -> x |> ((y) -> y + 10) |> ((y) -> y * 2))
+
+[a, b, c, d, e, f, g, h]

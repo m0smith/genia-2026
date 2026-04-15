@@ -1,0 +1,23 @@
+# Invariant: flows stay flows through pipeline stages.
+# Flow-to-value crossing requires explicit collect.
+# Flow-to-effect crossing requires explicit run.
+
+# Flow through map stays flow (must collect to see list)
+a = ["a", "b"] |> lines |> map(upper) |> collect
+
+# Flow through filter stays flow
+b = ["a", "", "b"] |> lines |> filter((x) -> x != "") |> collect
+
+# Flow through map + filter (chained) stays flow
+c = ["1", "2", "3"] |> lines |> map((x) -> concat(x, "!")) |> filter((x) -> contains(x, "2")) |> collect
+
+# Flow through head stays flow
+d = ["a", "b", "c", "d"] |> lines |> head(2) |> collect
+
+# Flow through keep_some stays flow
+e = ["10", "bad", "20"] |> lines |> keep_some(parse_int) |> collect
+
+# Explicit bridge: collect turns flow into list, then value operations work
+f = ["1", "2", "3"] |> lines |> keep_some(parse_int) |> collect |> sum
+
+[a, b, c, d, e, f]

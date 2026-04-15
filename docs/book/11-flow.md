@@ -67,6 +67,59 @@ Option-aware pipeline semantics still apply to ordinary values, but they do not 
 
 Option behavior (`some` / `none`) composes with this rule but does not erase it.
 
+## Pipeline + Option invariants (canonical)
+
+These are the exact invariants enforced by the pipeline evaluator.
+They apply in all modes (file, `-c`, `-p`).
+
+### Raw values stay raw
+
+A non-Option value entering a pipeline stays non-Option through all stages:
+
+- `5 |> add1 |> double` returns `12` (a raw number, never wrapped in `some`)
+- `[1,2,3] |> map(f) |> sum` returns a raw number
+- No implicit Option promotion occurs
+
+### `some(x)` auto-lifts through ordinary stages
+
+When the pipeline carries `some(x)` and the next stage is not explicitly Option-aware:
+
+1. The stage receives `x` (unwrapped)
+2. If the stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
+3. If the stage returns `some(...)` or `none(...)`, that result is preserved as-is
+
+Example: `some(5) |> add1 |> double` returns `some(12)`.
+
+### `none(...)` short-circuits absolutely
+
+When the pipeline carries `none(...)`, all remaining stages are skipped — including Option-aware stages:
+
+- `none("stop") |> add1 |> unwrap_or(0)` returns `none("stop")` (not `0`)
+- Recovery must wrap the whole pipeline: `unwrap_or(0, expr |> stages)`
+
+### `none(...)` metadata is preserved exactly
+
+Short-circuited `none(reason, context)` values pass through unchanged:
+
+- Reason string is preserved
+- Context map is preserved (no fields dropped)
+- The returned value is the same `none(...)`, not a new one
+
+### Final result preserves Option structure
+
+The pipeline does not strip or add Option wrappers at the boundary:
+
+- `5 |> add1` returns `6` (raw)
+- `some(5) |> add1` returns `some(6)` (Option preserved)
+- `none("x") |> add1` returns `none("x")` (Option preserved)
+
+### Flow vs Value is orthogonal to Option
+
+Option propagation works the same in both value and flow worlds:
+
+- Value world: `some(x) |> f` auto-lifts; `none(...) |> f` short-circuits
+- Flow world: per-item Options use `keep_some` / `keep_some_else`; pipeline-level short-circuit applies to the pipeline value itself
+
 ### Helper classification
 
 Every pipeline-visible function fits one of these categories:

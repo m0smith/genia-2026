@@ -278,6 +278,16 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - non-Option stage results are wrapped back into `some(...)`
   - Option stage results (`some(...)` / `none(...)`) are preserved as-is
   - explicitly Option-aware stages (for example `unwrap_or`, `map_some`, `flat_map_some`, and `then_*`) still receive Option values directly
+- Pipeline + Option invariants are locked by black-box tests under `tests/cases/option/invariant_*.genia`:
+  - raw values stay raw through all stages (no implicit Option promotion)
+  - `some(x)` auto-lifts through ordinary stages; Option-returning stages are preserved as-is
+  - `none(...)` short-circuits absolutely — all remaining stages skipped, including Option-aware ones
+  - `none(...)` reason and context metadata preserved exactly through short-circuit
+  - recovery must wrap the whole pipeline: `unwrap_or(default, expr |> stages)`, not `expr |> stages |> unwrap_or(default)`
+- Flow vs Value invariants are locked by black-box tests under `tests/cases/flow/invariant_*.genia`:
+  - lists through value-only stages stay lists (no implicit flow promotion)
+  - flows through flow-only stages stay flows (must `collect` to see a list)
+  - Option composes orthogonally: per-item Options use `keep_some` in flows; pipeline-level `some`/`none` propagation works the same in both worlds
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
   - `trace(label, value)` logs `label` plus `value` and returns `value` unchanged
@@ -1091,6 +1101,12 @@ Behavior:
   - subsequent `actor_send` raises `RuntimeError` after failure
   - `actor_call` on a failing handler returns `none("actor-error")` instead of blocking
 - actors are a thin convenience layer; internal cell state is accessible through the actor map for advanced use in this phase
+- Concurrency invariants are locked by `tests/test_invariant_concurrency.py`:
+  - Ref: `ref_set` visible to all threads; `ref_update` serialized; `ref_get` blocks until set
+  - Process: FIFO message ordering; serialized handler execution; permanent fail-stop on exception
+  - Cell: FIFO update ordering; failure preserves last good state; `restart_cell` clears failure and discards stale; nested `cell_send` rolls back on failure
+  - Actor: message ordering (via cell); `actor_call` blocks until reply; `["stop", ...]` rejects subsequent sends; invalid effect marks failed
+  - Not guaranteed: no cross-actor ordering, no timeout on `ref_get`, no deterministic scheduling, no supervision, no selective receive, no backpressure
 
 Not implemented yet:
 

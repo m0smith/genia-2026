@@ -459,3 +459,28 @@ This demo does **not** add new language syntax, does **not** introduce a schedul
 - supervision / links / monitors
 - backpressure and cancellation
 - process restart (use cells/actors for restartable workers)
+
+---
+
+## Concurrency invariants (canonical)
+
+These are the exact guarantees the current Python host provides.
+They are locked by tests in `tests/test_invariant_concurrency.py`.
+
+### What we guarantee
+
+| Primitive | Guarantee |
+|-----------|-----------|
+| **Ref** | `ref_set` makes a value visible to all threads; `ref_update` serializes through a lock; `ref_get` blocks until a value is set |
+| **Process** | Messages are handled in FIFO order; handlers run one at a time (serialized); a handler exception causes permanent fail-stop |
+| **Cell** | Updates are applied in FIFO order; failure preserves the last successfully committed state; `restart_cell` clears the failure and discards stale queued updates; nested `cell_send` rolls back on failure |
+| **Actor** | Messages are ordered (cells underneath); `actor_call` blocks until a reply arrives; `["ok", state]` returns state to caller; `["stop", state]` rejects subsequent sends; invalid handler return marks the actor failed |
+
+### What we do NOT guarantee
+
+- **No cross-actor ordering.** Two actors that each send to a third provide no interleaving guarantee.
+- **No timeout on `ref_get`.** An unset ref blocks the calling thread indefinitely.
+- **No deterministic scheduling.** Thread scheduling is host-dependent; tests must not rely on precise timing.
+- **No supervision.** A failed process/cell stays failed until explicit `restart_cell`. There are no links, monitors, or supervisors.
+- **No selective receive.** Every message is handled in arrival order. There is no pattern-based mailbox scan.
+- **No backpressure.** Senders are never blocked by a slow consumer.

@@ -37,6 +37,28 @@ Three bridge shapes exist and nothing else crosses the boundary:
 
 ---
 
+## Pipeline invariant contract
+
+These invariants are enforced by the pipeline evaluator and locked by tests under `tests/cases/option/` and `tests/cases/flow/`.
+
+| # | Invariant | Key implication |
+|---|-----------|-----------------|
+| 1 | **Raw values stay raw.** Non-Option values pass through stages without gaining Option wrappers. | `5 \|> add1 \|> double` → `12`, never `some(12)` |
+| 2 | **`some(x)` auto-lifts through ordinary stages.** Non-Option-aware stages receive `x`, return wrapped as `some(y)`. | `some(5) \|> add1` → `some(6)` |
+| 3 | **`none(...)` short-circuits absolutely.** All remaining stages are skipped — including Option-aware stages like `unwrap_or`. | `none("x") \|> unwrap_or(0)` → `none("x")` |
+| 4 | **`none(...)` metadata is preserved exactly.** Reason and context survive short-circuit unchanged. | `none("timeout", {retry: 3}) \|> f \|> g` keeps both fields |
+| 5 | **Final result preserves Option structure.** The pipeline boundary does not strip or add wrappers. | `some(5) \|> add1` → `some(6)`, not `6` |
+| 6 | **Flow vs Value is orthogonal to Option.** Option propagation works the same in both worlds. | Use `keep_some` for per-item Option filtering in flows |
+
+Recovery pattern: wrap the pipeline, not a single stage.
+
+```text
+✗  value |> stages |> unwrap_or(default)     ← short-circuit skips unwrap_or
+✓  unwrap_or(default, value |> stages)       ← recovery is outside the pipeline
+```
+
+---
+
 ## Explicit function classification
 
 ### 🟢 Value functions (list in, value out)

@@ -1,0 +1,34 @@
+# Invariant: raw (non-Option) values pass through pipelines unchanged.
+# They are never wrapped in some(...) or promoted to Option.
+add1(x) = x + 1
+double(x) = x * 2
+negate(x) = 0 - x
+to_str(x) = concat("v:", x)
+
+# 5-stage chain: raw int stays raw int
+five_stages = 10 |> add1 |> double |> add1 |> negate |> add1
+
+# Verify intermediate results are also raw
+two_stages = 7 |> add1 |> double
+three_stages = 7 |> add1 |> double |> add1
+
+# String through stages stays raw string
+str_chain = "hello" |> upper |> concat("!")
+
+# List through value stages stays raw list
+list_chain = [3, 1, 2] |> map((x) -> x * 2) |> filter((x) -> x > 3) |> sum
+
+# Boolean stays raw
+bool_result = true |> ((x) -> !x) |> ((x) -> !x)
+
+# none? on raw values is false
+[
+  five_stages,
+  none?(five_stages),
+  some?(five_stages),
+  two_stages,
+  three_stages,
+  str_chain,
+  list_chain,
+  bool_result
+]

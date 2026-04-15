@@ -1,0 +1,39 @@
+# Invariant: some(x) auto-unwraps through non-Option-aware stages,
+# and non-Option results are re-wrapped in some(...).
+# Multi-stage chains preserve the some(...) wrapper throughout.
+add1(x) = x + 1
+double(x) = x * 2
+negate(x) = 0 - x
+
+# 3-stage chain: some stays some
+three_chain = some(5) |> add1 |> double |> negate
+
+# some wrapping is preserved even through string stages
+str_chain = some("hello") |> upper
+
+# some(x) through parse_int (Option-returning) preserves naturally
+parse_chain = some("42") |> parse_int
+
+# When a lifted stage itself returns some/none, the result is kept as-is
+# parse_int returns some(42), not some(some(42))
+double_option = some("42") |> parse_int |> add1
+
+# When the lifted stage returns none, that propagates
+fail_chain = some("bad") |> parse_int |> add1
+
+# Explicit Option-aware stages receive the Option directly
+unwrap_chain = some(99) |> unwrap_or(0)
+
+# none through unwrap_or
+none_unwrap = none("x") |> unwrap_or(0)
+
+[
+  three_chain,
+  str_chain,
+  parse_chain,
+  double_option,
+  fail_chain,
+  none?(fail_chain),
+  unwrap_chain,
+  none_unwrap
+]

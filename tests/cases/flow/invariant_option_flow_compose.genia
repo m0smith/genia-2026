@@ -1,0 +1,27 @@
+# Invariant: Option behavior composes with Flow/Value classification
+# but does not erase it.
+# - In Flow pipelines, per-item Options are handled by flow helpers
+#   (keep_some, keep_some_else), not by pipeline-level short-circuit
+# - Pipeline-level some/none behavior applies to the Flow value itself
+#   (which is never some/none, so it passes through unchanged)
+
+# Flow items that are Options: use keep_some to filter
+a = ["10", "bad", "20"] |> lines |> map(parse_int) |> keep_some |> collect
+
+# Flow items with dead-letter routing
+b = ["5", "x", "15"] |> lines |> keep_some(parse_int) |> collect
+
+# Value pipeline: map(parse_int) produces list of Options
+c = ["10", "bad", "20"] |> map(parse_int)
+
+# Value pipeline: recover with unwrap_or per-item
+d = ["10", "bad", "20"] |> map(parse_int) |> map((o) -> unwrap_or(0, o)) |> sum
+
+# Option + Value: some(list) through value stages
+e = some([1, 2, 3]) |> map((x) -> x + 1)
+
+# Option + Flow: some(list_of_strings) through lines + flow stages
+# some(x) auto-unwraps x for the lines bridge
+f = some(["a", "b"]) |> lines |> map(upper) |> collect
+
+[a, b, c, d, e, f]

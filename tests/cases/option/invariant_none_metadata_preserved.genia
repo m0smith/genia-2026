@@ -1,0 +1,35 @@
+# Invariant: none(...) metadata (reason + context) is preserved exactly
+# through pipeline short-circuit. No fields are lost or altered.
+add1(x) = x + 1
+double(x) = x * 2
+to_str(x) = concat("v:", x)
+
+# Reason-only none preserves reason through all stages
+r = none("stop") |> add1 |> double |> to_str
+r1 = absence_reason(r)
+
+# Reason+context none preserves both
+ctx_none = none("missing-key", {key: "user", source: "db"})
+c = ctx_none |> add1 |> double |> to_str
+c1 = absence_reason(c)
+c2 = absence_context(c)
+
+# Deep pipeline: 5 stages, metadata preserved exactly
+deep = none("timeout", {ms: 3000}) |> add1 |> double |> add1 |> double |> to_str
+d1 = absence_reason(deep)
+d2 = absence_context(deep)
+
+# Recovery wrapping (outside pipeline)
+recovered = unwrap_or("default", none("x") |> add1 |> double)
+
+[
+  r,
+  r1,
+  c,
+  c1,
+  c2,
+  deep,
+  d1,
+  d2,
+  recovered
+]
