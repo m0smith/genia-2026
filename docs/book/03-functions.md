@@ -141,9 +141,9 @@ They remain simple runtime metadata in this phase: no macros, no compile-time tr
 - stacked annotations before a top-level assignment
 - explicit AST nodes for annotations and annotated targets
 - binding metadata attachment for `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`
-- `doc("name")` lookup for the current doc string
-- `meta("name")` introspection for current binding metadata
-- `help("name")` display of selected metadata fields
+- `doc("name")` lookup for the current doc string; `@doc` metadata takes priority over legacy inline docstrings
+- `meta("name")` introspection for current binding metadata; returns `none("missing-meta", {name: ...})` for undefined names
+- `help("name")` display of selected metadata fields; prefers `@doc` metadata over legacy inline docstrings
 
 ⚠️ Partial
 

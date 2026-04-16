@@ -197,3 +197,48 @@ def test_last_annotation_wins_for_duplicate_lightweight_metadata_keys():
 def test_doc_builtin_falls_back_to_legacy_function_docstring():
     src = 'inc(x) = "legacy doc" x + 1\ndoc("inc")\n'
     assert run_source(src, make_global_env([]), filename="legacy_doc_lookup.genia") == "legacy doc"
+
+
+def test_meta_returns_none_for_missing_name():
+    """meta() returns none('missing-meta', {name: ...}) for undefined names."""
+    src = 'unwrap_or("missing", absence_reason(meta("definitely_not_defined")))'
+    assert run_source(src, make_global_env([]), filename="meta_missing.genia") == "missing-meta"
+
+
+def test_meta_missing_name_carries_name_context():
+    """meta() none carries the name in absence context."""
+    src = """
+    result = meta("no_such_fn")
+    unwrap_or("?", absence_context(result) |> get("name"))
+    """
+    assert run_source(src, make_global_env([]), filename="meta_missing_ctx.genia") == "no_such_fn"
+
+
+def test_doc_metadata_takes_priority_over_legacy_docstring_in_help():
+    """When both @doc and legacy inline docstring exist, help() renders @doc."""
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    src = """
+    @doc "Metadata doc wins."
+    inc(x) = "legacy doc" x + 1
+    help("inc")
+    """
+    run_source(src, env, filename="doc_priority.genia")
+    out = "".join(outputs)
+    assert "Metadata doc wins." in out
+    assert "legacy doc" not in out
+
+
+def test_doc_autoloads_prelude_function():
+    """doc() triggers autoload for prelude functions and returns @doc text."""
+    result = run_source('doc("inc")', make_global_env([]), filename="doc_autoload.genia")
+    assert isinstance(result, str)
+    assert len(result) > 0
+
+
+def test_meta_autoloads_prelude_function():
+    """meta() triggers autoload and returns metadata map for prelude functions."""
+    src = 'unwrap_or("missing", meta("inc") |> get("doc"))'
+    result = run_source(src, make_global_env([]), filename="meta_autoload.genia")
+    assert isinstance(result, str)
+    assert len(result) > 0

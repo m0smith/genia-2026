@@ -204,9 +204,9 @@ actor_status(a)
 
 | Helper | Shape |
 | --- | --- |
-| doc lookup | `doc("name")` |
-| metadata lookup | `meta("name")` |
-| note | last annotation wins for duplicate metadata keys |
+| doc lookup | `doc("name")` → string or `none("missing-doc", {name: ...})` |
+| metadata lookup | `meta("name")` → map or `none("missing-meta", {name: ...})` |
+| note | `@doc` metadata takes priority over legacy inline docstrings; last annotation wins for duplicate metadata keys |
 
 Supported built-in annotations are `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`.
 

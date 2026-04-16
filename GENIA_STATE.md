@@ -437,8 +437,9 @@ Pipeline (Phase 2) evaluation model:
   - annotation metadata attaches to the binding name for top-level functions and top-level assignments
   - unannotated rebinding preserves existing metadata on that binding
   - annotated rebinding merges new metadata over existing metadata, with the last annotation winning for duplicate keys
-  - `doc("name")` returns the current doc string or `none("missing-doc", {name: ...})`
-  - `help("name")` uses annotation doc text when no legacy function docstring is present and also shows selected metadata fields such as category/since/deprecated
+  - `doc("name")` returns the current doc string or `none("missing-doc", {name: ...})`; `@doc` metadata takes priority over legacy inline docstrings
+  - `meta("name")` returns the metadata map or `none("missing-meta", {name: ...})` for undefined names
+  - `help("name")` prefers `@doc` metadata text over legacy function docstrings and also shows selected metadata fields such as category/since/deprecated
   - no macros, compile-time transforms, or annotation-driven evaluator rewrites are implemented
 - resolution behavior:
   - exact fixed arity beats varargs
@@ -1510,6 +1511,8 @@ Core IR shape currently includes:
   - undocumented fallback message (`No documentation available.`)
 - `help()` with no arguments prints a small overview centered on the public prelude-backed stdlib surface and calls out the intentionally small host bridge
   - the overview keeps only a small host-written scaffold; public family names are grouped from registered prelude autoloads
+  - all autoloaded prelude families (including Actor) are discovered dynamically from the autoload registry
+  - `@doc` metadata is the primary source of truth for help content; legacy inline docstrings serve as fallback only
 - `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
 - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
 

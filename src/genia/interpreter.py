@@ -6203,9 +6203,7 @@ def make_global_env(
             lines.append(f"Defined at {span_text}")
         lines.append("")
         metadata_doc = _metadata_doc(group.metadata)
-        effective_doc = group.docstring
-        if effective_doc is None and metadata_doc is not None:
-            effective_doc = metadata_doc
+        effective_doc = metadata_doc if metadata_doc is not None else group.docstring
         if effective_doc is not None:
             lines.append(render_markdown_docstring(effective_doc))
         else:
@@ -6253,6 +6251,7 @@ def make_global_env(
         filename = path.rsplit("/", 1)[-1]
         basename = filename[:-6] if filename.endswith(".genia") else filename
         labels = {
+            "actor": "Actor",
             "awk": "AWK",
             "cell": "Cell",
             "cli": "CLI",
@@ -6405,7 +6404,7 @@ def make_global_env(
             return target.docstring
         return make_none("missing-doc", GeniaMap().put("name", name))
 
-    def meta_fn(*args: Any) -> GeniaMap:
+    def meta_fn(*args: Any) -> Any:
         if len(args) != 1:
             raise TypeError(f"meta expected 1 arg, got {len(args)}")
         name = args[0]
@@ -6417,7 +6416,7 @@ def make_global_env(
             if env.try_autoload(name, 0):
                 env.get(name)
             else:
-                raise
+                return make_none("missing-meta", GeniaMap().put("name", name))
         return env.get_metadata(name)
 
     def ref_fn(*args: Any) -> GeniaRef:

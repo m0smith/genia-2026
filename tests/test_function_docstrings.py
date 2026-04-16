@@ -306,3 +306,28 @@ def test_docstring_function_body_supports_parenthesized_case_expression():
     [wrap(-1, 8), wrap(8, 8), wrap(3, 8)]
     '''
     assert run_source(src, make_global_env([]), filename="wrap.genia") == [7, 0, 3]
+
+
+def test_help_overview_includes_actor_family():
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source("help()\n", env, filename="help_actor_family.genia")
+    out = "".join(outputs)
+    assert "Actor:" in out
+    assert "actor_send" in out
+
+
+def test_help_overview_all_prelude_families_discovered():
+    """Every prelude module produces a labeled family in help() overview."""
+    outputs: list[str] = []
+    env = make_global_env([], output_handler=outputs.append)
+    run_source("help()\n", env, filename="help_all_families.genia")
+    out = "".join(outputs)
+    expected_families = [
+        "Actor:", "AWK:", "Cell:", "CLI:", "Eval:", "File / zip:", "Flow:",
+        "Function helpers:", "I/O:", "JSON:", "List:", "Map:", "Math:",
+        "Option:", "Process:", "Random:", "Ref:", "Stream:", "String:",
+        "Syntax:",
+    ]
+    for family in expected_families:
+        assert family in out, f"Missing family: {family}"
