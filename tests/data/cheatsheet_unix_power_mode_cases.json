@@ -45,5 +45,15 @@
     "id": "unix-power-dead-letter-pattern",
     "source": "rows = [\"10\", \"oops\", \"20\"]\nrows |> lines |> keep_some_else(parse_int, log) |> collect",
     "expected_result": "[10, 20]"
+  },
+  {
+    "id": "unix-power-shell-upper",
+    "source": "\"hello\" |> $(tr a-z A-Z)",
+    "expected_result": "\"HELLO\""
+  },
+  {
+    "id": "unix-power-shell-cat",
+    "source": "\"hello world\" |> $(cat)",
+    "expected_result": "\"hello world\""
   }
 ]

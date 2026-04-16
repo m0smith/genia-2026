@@ -144,7 +144,38 @@ rows
 `keep_some_else` unwraps `some(...)` into the main flow and routes `none(...)` items to `log`.
 Use `absence_meta(opt)` when dead-letter handlers need structured reason/context inspection.
 
-# 🚀 One-Liner to Remember
+# � Shell Pipeline Stage (Experimental)
+
+> **⚠️ EXPERIMENTAL, Python-host-only** — `$(command)` executes a host shell command inside a pipeline.
+
+| Pattern | Genia | Notes |
+| --- | --- | --- |
+| Pipe string to shell | `"hello" \|> $(tr a-z A-Z)` | stdout captured as string |
+| Shell in flow pipeline | `stdin \|> lines \|> collect \|> join("\n") \|> $(sort)` | Materializes first |
+| Empty shell output | `"x" \|> $(tr -d x)` | Returns `none("empty-shell-output")` |
+| Non-zero exit | `"hello" \|> $(false)` | RuntimeError |
+
+<!-- [case: unix-power-shell-upper] -->
+```bash
+genia -c '"hello" |> $(tr a-z A-Z)'
+```
+
+Expected result: the string is uppercased by the host `tr` command.
+
+<!-- [case: unix-power-shell-cat] -->
+```bash
+genia -c '"hello world" |> $(cat)'
+```
+
+Expected result: the string round-trips through `cat` unchanged.
+
+Limitations:
+
+* Python-host-only; not part of portable Core IR
+* `$(...)` is only valid inside a pipeline
+* Non-zero exit raises `RuntimeError`
+
+# �🚀 One-Liner to Remember
 
 > “Treat stdin like a stream, pipe it through small functions, and only run when you’re ready.”
 
@@ -159,6 +190,7 @@ With just this cheatsheet, Genia can already replace:
 * `grep`
 * `wc`
 * parts of `sed`
+* host shell commands via `$(...)` (experimental)
 
 …and do it in a way that’s:
 

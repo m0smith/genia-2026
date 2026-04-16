@@ -225,6 +225,15 @@ CLI contract summary:
   - `keep_some(flow)` / `keep_some(stage, flow)` are keep-only Flow helpers:
     - they unwrap `some(value)` to `value`
     - they drop `none(...)`
+- shell pipeline stage (experimental, Python-host-only):
+  - `$(command)` executes a shell command as a pipeline stage
+  - pipeline value is materialized to stdin bytes: strings→UTF-8, lists/flows→newline-joined display, numbers/bools→display
+  - stdout captured as UTF-8 string; single trailing newline stripped
+  - empty stdout → `none("empty-shell-output")`
+  - non-zero exit → `RuntimeError("shell stage: command failed (exit <code>): <command>")`
+  - Option propagation: `none(...)` short-circuits; `some(x)` unwraps, result re-wrapped
+  - `$(...)` outside a pipeline is a `SyntaxError`
+  - not part of portable Core IR; Python-host-only in this phase
 - promises:
   - `delay(expr)` captures an unevaluated expression plus its lexical environment
   - `force(promise)` evaluates once and memoizes the successful value

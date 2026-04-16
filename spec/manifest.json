@@ -65,7 +65,8 @@
     "refs",
     "process_primitives",
     "bytes_json_zip",
-    "debugger_stdio"
+    "debugger_stdio",
+    "shell_stage"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"

@@ -156,6 +156,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "prelude autoload": "prelude_autoload",
         "doc/help support": "doc_help",
         "shared spec runner support": "shared_spec_runner",
+        "shell pipeline stage `$(...)`": "shell_stage",
     }
 
     for display_name in matrix_caps:

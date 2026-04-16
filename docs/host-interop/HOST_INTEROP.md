@@ -104,6 +104,17 @@ Interop rule:
 - browser adapter transport may vary by host/runtime placement
 - Genia source/Core IR/runtime semantics must remain aligned with shared docs/spec artifacts
 
+## Shell Pipeline Stage (Python-Host-Only)
+
+`$(command)` is an experimental pipeline stage that executes a host shell command.
+
+- it is a Python-host-only capability in this phase
+- it is **not** part of portable Core IR
+- it is listed in `spec/manifest.json` under `optional_capabilities`
+- future hosts that support shell execution may implement it behind the same `shell_stage` capability flag
+- hosts that do not support it must reject `$(...)` at parse or lower time with a clear capability error
+- the stage follows the same Option propagation contract as other pipeline stages
+
 ## Portable Runtime Value Taxonomy
 
 Hosts may use different internal representations, but they must preserve the same runtime value families and observable behaviors.

@@ -881,6 +881,7 @@ This should stop upstream reading as soon as the first line is printed.
 - early termination on `take`/`head`
 - `-p` / `--pipe` CLI wrapping for single stage expressions
 - clear runtime errors for invalid flow-source misuse instead of leaked Python iterator errors
+- experimental shell pipeline stage `$(command)` (Python-host-only; see [Chapter 15](15-reference-host-and-portability.md))
 
 ### ⚠️ Partial
 

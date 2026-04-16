@@ -23,6 +23,7 @@ import os
 import bisect
 import io
 import json
+import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import deque
 import queue
@@ -281,6 +282,29 @@ def lex(source: str) -> list[Token]:
                 text = string_match.group()
                 tokens.append(Token("STRING", text, pos))
                 pos += len(text)
+            continue
+
+        if ch == "$" and pos + 1 < length and source[pos + 1] == "(":
+            cmd_start = pos + 2
+            depth = 1
+            i = cmd_start
+            while i < length and depth > 0:
+                c = source[i]
+                if c == "$" and i + 1 < length and source[i + 1] == "(":
+                    raise SyntaxError(f"nested shell stages are not supported at {i}")
+                if c == "(":
+                    depth += 1
+                elif c == ")":
+                    depth -= 1
+                if depth > 0:
+                    i += 1
+            if depth != 0:
+                raise SyntaxError(f"Unterminated shell stage $(...) at {pos}")
+            command = source[cmd_start:i].strip()
+            if not command:
+                raise SyntaxError(f"shell stage: empty command at {pos}")
+            tokens.append(Token("SHELL_STAGE", command, pos))
+            pos = i + 1
             continue
 
         if _is_identifier_start(ch):
@@ -762,6 +786,12 @@ class ImportStmt(Node):
     span: SourceSpan | None = None
 
 
+@dataclass
+class ShellStage(Node):
+    command: str
+    span: SourceSpan | None = None
+
+
 # -----------------------------
 # Tiny IR
 # -----------------------------
@@ -1063,6 +1093,14 @@ class IrImport(IrNode):
 
 
 @dataclass
+class IrShellStage(IrNode):
+    """Shell pipeline stage — host-backed subprocess execution (experimental, Python-only)."""
+
+    command: str
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrListTraversalLoop(IrNode):
     """Optimized loop-like form for nth-style list traversal recursion."""
 
@@ -1300,6 +1338,8 @@ def lower_node(node: Node) -> IrNode:
         )
     if isinstance(node, ImportStmt):
         return IrImport(node.module_name, node.alias, span=node.span)
+    if isinstance(node, ShellStage):
+        return IrShellStage(node.command, span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
 
 
@@ -2468,6 +2508,9 @@ class Parser:
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
+        if tok.kind == "SHELL_STAGE":
+            self.i += 1
+            return ShellStage(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind == "IDENT":
             self.i += 1
             if tok.text == "true":
@@ -4332,6 +4375,8 @@ class Evaluator:
         return self.invoke_callable(fn, args, tail_position=tail_position, callee_node=node.fn)
 
     def _pipeline_stage_name(self, node: IrNode) -> str | None:
+        if isinstance(node, IrShellStage):
+            return f"$({node.command})"
         if isinstance(node, IrVar):
             return node.name
         if isinstance(node, IrCall) and isinstance(node.fn, IrVar):
@@ -4408,6 +4453,8 @@ class Evaluator:
             return "quote(...)"
         if isinstance(node, IrQuasiQuote):
             return "quasiquote(...)"
+        if isinstance(node, IrShellStage):
+            return f"$({node.command})"
         if isinstance(node, IrPipeline):
             stage_text = " |> ".join(self._render_pipeline_stage(stage) for stage in node.stages)
             return f"{self._render_pipeline_stage(node.source)} |> {stage_text}"
@@ -4472,6 +4519,9 @@ class Evaluator:
         return stage_value
 
     def eval_pipeline_stage(self, node: IrNode, stage_value: Any, *, tail_position: bool) -> Any:
+        if isinstance(node, IrShellStage):
+            return self._eval_shell_stage(node, stage_value)
+
         def invoke_with_pipeline_option_lifting(fn: Any, base_args: list[Any], callee_node: IrNode) -> Any:
             # Lift `some(x)` through ordinary stages while preserving explicit Option-aware call sites.
             if (
@@ -4530,6 +4580,59 @@ class Evaluator:
         else:
             fn_value = self.eval(node)
         return invoke_with_pipeline_option_lifting(fn_value, [], node)
+
+    def _shell_stage_input_to_bytes(self, value: Any) -> bytes:
+        if isinstance(value, str):
+            return value.encode("utf-8")
+        if isinstance(value, bool):
+            return format_display(value).encode("utf-8")
+        if isinstance(value, (int, float)):
+            return format_display(value).encode("utf-8")
+        if isinstance(value, list):
+            return "\n".join(format_display(item) for item in value).encode("utf-8")
+        if isinstance(value, GeniaFlow):
+            items = value.consume()
+            return "\n".join(format_display(item) for item in items).encode("utf-8")
+        raise TypeError(f"shell stage: cannot convert {type(value).__name__} to stdin bytes")
+
+    def _eval_shell_stage(self, node: IrShellStage, stage_value: Any) -> Any:
+        # Option lifting: unwrap some, propagate none
+        unwrapped = stage_value
+        was_some = False
+        if isinstance(stage_value, GeniaOptionNone):
+            return stage_value
+        if isinstance(stage_value, GeniaOptionSome):
+            unwrapped = stage_value.value
+            was_some = True
+
+        stdin_bytes = self._shell_stage_input_to_bytes(unwrapped)
+        try:
+            result = subprocess.run(
+                node.command,
+                shell=True,
+                input=stdin_bytes,
+                capture_output=True,
+            )
+        except Exception as exc:
+            raise RuntimeError(f"shell stage: failed to execute: {node.command}") from exc
+
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"shell stage: command failed (exit {result.returncode}): {node.command}"
+            )
+
+        stdout_text = result.stdout.decode("utf-8", errors="replace")
+        if stdout_text.endswith("\n"):
+            stdout_text = stdout_text[:-1]
+
+        if stdout_text == "":
+            out: Any = make_none("empty-shell-output")
+        else:
+            out = stdout_text
+
+        if was_some and not isinstance(out, (GeniaOptionSome, GeniaOptionNone)):
+            out = GeniaOptionSome(out)
+        return out
 
     def invoke_callable(
         self,
@@ -4813,6 +4916,8 @@ class Evaluator:
         return result
 
     def _eval_impl(self, node: IrNode) -> Any:
+        if isinstance(node, IrShellStage):
+            raise SyntaxError("shell stage $(...) is only valid as a pipeline stage")
         if isinstance(node, IrExprStmt):
             return self.eval(node.expr)
         if isinstance(node, IrLiteral):

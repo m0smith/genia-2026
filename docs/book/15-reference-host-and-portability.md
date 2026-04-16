@@ -211,10 +211,88 @@ Expected behavior:
 
 This matters for portability because future hosts must preserve the documented CLI contract, not reinterpret it.
 
+## Shell Pipeline Stage (Experimental, Python-Host-Only)
+
+The `$(command)` pipeline stage executes a host shell command as part of a pipeline.
+
+> **⚠️ EXPERIMENTAL** — This feature is Python-host-only and not part of portable Core IR.
+
+### Minimal example
+
+```bash
+genia -c '"hello world" |> $(tr a-z A-Z)'
+```
+
+Expected result:
+
+```text
+"HELLO WORLD"
+```
+
+The pipeline value is materialized to the command's stdin. Stdout is captured and returned as a string (single trailing newline stripped).
+
+### Stdin materialization
+
+| Pipeline value | Stdin bytes |
+| --- | --- |
+| string | UTF-8 encoded |
+| list / flow | newline-joined display of each element |
+| number / bool | display representation |
+
+### Edge case: empty output
+
+```bash
+genia -c '"x" |> $(tr -d x)'
+```
+
+Expected result:
+
+```text
+none("empty-shell-output")
+```
+
+When the command exits successfully (exit 0) but produces no stdout, the result is `none("empty-shell-output")`.
+
+### Failure case: non-zero exit
+
+```bash
+genia -c '"hello" |> $(false)'
+```
+
+Expected behavior:
+
+- `RuntimeError` with message `"shell stage: command failed (exit 1): false"`
+
+### Option propagation
+
+```bash
+genia -c 'some("hello") |> $(cat)'
+```
+
+Expected result:
+
+```text
+some("hello")
+```
+
+`some(x)` unwraps before execution and the result is re-wrapped. `none(...)` short-circuits without executing the command.
+
+### Syntax restriction
+
+`$(...)` is only valid inside a pipeline. Using it outside a pipeline is a `SyntaxError`.
+
+### Limitations
+
+- Python-host-only; not part of portable Core IR
+- listed in `spec/manifest.json` under `optional_capabilities` as `shell_stage`
+- future hosts may implement it behind the same capability flag
+- hosts without shell support must reject `$(...)` at parse or lower time
+
 ## ✅ Implemented
 
 - Python reference host
 - phase-1 synchronous HTTP serving with request/response maps
+- experimental shell pipeline stage `$(command)` (Python-host-only)
 - shared host-interop docs
 - shared spec manifest/scaffolding
 - placeholder host directories with status notes and local agent guidance

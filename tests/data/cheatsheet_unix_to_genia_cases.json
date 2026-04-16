@@ -73,5 +73,15 @@
     "id": "unix-map-debug-absence-meta",
     "source": "absence_meta(none(\"missing_key\", { key: \"user\" }))",
     "expected_result": "some({reason: \"missing_key\", context: {key: \"user\"}})"
+  },
+  {
+    "id": "unix-map-shell-upper",
+    "source": "\"hello\" |> $(tr a-z A-Z)",
+    "expected_result": "\"HELLO\""
+  },
+  {
+    "id": "unix-map-shell-cat",
+    "source": "\"hello\" |> $(cat)",
+    "expected_result": "\"hello\""
   }
 ]

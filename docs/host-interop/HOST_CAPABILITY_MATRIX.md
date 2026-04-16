@@ -36,3 +36,4 @@ Browser playground adapter note:
 | prelude autoload | Implemented | Planned | Planned | Planned | Planned | Planned | public stdlib surface is prelude-centered |
 | doc/help support | Implemented | Planned | Planned | Planned | Planned | Planned | `help()` / `help("name")` in Python host |
 | shared spec runner support | Scaffolded | Planned | Planned | Planned | Planned | Planned | contract docs/manifests exist; generic runner implementations do not yet |
+| shell pipeline stage `$(...)` | Experimental | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |

@@ -132,7 +132,18 @@ Writes two frames using ANSI terminal control and returns `none("nil")`.
 
 ---
 
-## 🚀 One-Liner
+## � Shell Pipeline Stage (Experimental, Python-Host-Only)
+
+| Unix | Genia | Notes |
+| ---- | ----- | ----- |
+| `echo hello \| tr a-z A-Z` | 🟢 `"hello" \|> $(tr a-z A-Z)` | Shell stage in pipeline [case: unix-map-shell-upper] |
+| `echo hello \| cat` | 🟢 `"hello" \|> $(cat)` | Round-trip through shell [case: unix-map-shell-cat] |
+
+`$(command)` is only valid inside a pipeline. Not part of portable Core IR.
+
+---
+
+## �🚀 One-Liner
 
 > Unix: text streams + tools
 > Genia: typed streams + functions
