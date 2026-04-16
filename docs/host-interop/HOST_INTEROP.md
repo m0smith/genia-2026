@@ -40,8 +40,22 @@ Notes:
 - The shared spec suite is the authoritative cross-host conformance target as it grows.
 - Hosts must not treat host-local convenience as stronger than the shared docs/spec contract.
 
-## End-to-End Pipeline
 
+## Phase 2 Strictness, Normalization, and Error Contract
+
+**The Python reference host enforces strict, deterministic, and unambiguous conformance as of Phase 2.**
+
+- All observable outputs (runtime, CLI, errors) must be strictly normalized to canonical forms; no host-local or Python-specific leakage is allowed.
+- Error objects must include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
+- Malformed, missing, or unsupported cases must fail validation with explicit normalized errors; nothing is silently skipped.
+- Output ordering and structure must be deterministic and stable.
+- Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
+- CLI and flow behaviors must be strictly validated for output, error, and exit code normalization.
+- GENIA_STATE.md is the final authority for implemented behavior; all specs and docs must align with it.
+
+---
+
+## End-to-End Pipeline
 Every host must preserve this model:
 
 1. Source text
@@ -49,10 +63,10 @@ Every host must preserve this model:
 3. Lower the surface AST into Genia Core IR
 4. Evaluate Core IR against a runtime environment plus host capabilities
 5. Produce:
-   - a Genia result value
-   - stdout/stderr side effects where applicable
-   - CLI exit behavior where applicable
-   - capability-level effects for Flow, Ref, Process, Bytes/ZIP, debugger stdio, and related runtime bridges
+  - a Genia result value
+  - stdout/stderr side effects where applicable
+  - CLI exit behavior where applicable
+  - capability-level effects for Flow, Ref, Process, Bytes/ZIP, debugger stdio, and related runtime bridges
 
 Hosts may use different parser implementations, IR data structures, or execution engines internally.
 They must still preserve the same lowered Core IR meaning and the same observable runtime/CLI behavior.

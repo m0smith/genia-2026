@@ -57,11 +57,18 @@ The shared suite is intended to hold at least these categories:
 
 Prelude behavior may live in the most relevant category for now, usually `eval/`, `cli/`, or `flows/`.
 
-## Contract
 
-Shared specs are the cross-host authority for conformance as they are added.
+## Phase 2 Strictness, Normalization, and Error Contract
 
-Hosts may keep additional host-local tests, but they should not redefine behavior that shared specs already cover.
+**The Python reference host enforces strict, deterministic, and unambiguous conformance as of Phase 2.**
+
+- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no host-local or Python-specific leakage is allowed.
+- Error objects must include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
+- Malformed, missing, or unsupported cases must fail validation with explicit normalized errors; nothing is silently skipped.
+- Output ordering and structure must be deterministic and stable.
+- Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
+- CLI and flow behaviors must be strictly validated for output, error, and exit code normalization.
+- GENIA_STATE.md is the final authority for implemented behavior; all specs and docs must align with it.
 
 See also:
 

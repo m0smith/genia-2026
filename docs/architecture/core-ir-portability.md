@@ -70,8 +70,18 @@ Hosts must preserve these lowering invariants:
 - case/function patterns lower into explicit `IrPat*` pattern families
 - lowering output uses only the minimal portable Core IR node families listed above
 
-## Explicitly Not in the Portable Contract
 
+## Strict Error Normalization and Category Boundaries
+
+**As of Phase 2, all errors at the Core IR boundary must be strictly normalized:**
+
+- Error objects must include required fields: category, message, and span (when applicable).
+- Error categories are strictly separated: parse, runtime, and CLI errors are distinct and never conflated.
+- No host-local or Python-specific error leakage is allowed in normalized output.
+
+---
+
+## Explicitly Not in the Portable Contract
 The following are not part of the minimal portable Core IR contract:
 
 - parser AST class names/structures

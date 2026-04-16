@@ -57,7 +57,20 @@ Suggested normalized shapes:
 
   - hosts that implement optional capability bridges such as HTTP serving may validate those behaviors through host-local orchestration around `eval(...)` / `cli(...)` until a shared capability-driver contract is added
 
-## Rules
+
+## Phase 2 Strictness, Normalization, and Error Contract
+
+**The Python reference host enforces strict, deterministic, and unambiguous conformance as of Phase 2.**
+
+- All observable outputs (runtime, CLI, errors) must be strictly normalized to canonical forms; no host-local or Python-specific leakage is allowed.
+- Error objects must include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
+- Malformed, missing, or unsupported cases must fail validation with explicit normalized errors; nothing is silently skipped.
+- Output ordering and structure must be deterministic and stable.
+- Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
+- CLI and flow behaviors must be strictly validated for output, error, and exit code normalization.
+- GENIA_STATE.md is the final authority for implemented behavior; all specs and docs must align with it.
+
+---
 
 - host-local transport details may vary
 - JSON field naming should stay stable once shared fixtures depend on it

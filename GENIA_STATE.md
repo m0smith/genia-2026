@@ -63,8 +63,45 @@ Clarifications:
 - browser execution remains a host-capability adaptation concern and does not define a new Genia dialect
 - `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
 
-## 0.2) Repository documentation publishing workflow
 
+## 1) Shared Conformance — Phase 2 (Reference Host Hardening)
+
+**This section documents the strict, deterministic, and unambiguous conformance contract enforced in the Python reference host as of Phase 2.**
+
+### Strictness and Normalization
+
+- All observable runtime, CLI, and error outputs are strictly normalized to canonical forms.
+- No Python-specific value, error, or structure leaks into normalized outputs.
+- Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
+- Output ordering and structure are deterministic and stable.
+
+### Error Contract
+
+- All errors are normalized with required fields: category, message, and span (when applicable).
+- Error categories are strictly separated: parse, runtime, and CLI errors are distinct and never conflated.
+- No silent error swallowing; all malformed or unsupported cases fail with explicit normalized errors.
+
+### Case Validation
+
+- Malformed, missing, or unsupported test cases fail validation and are never silently skipped.
+- Only supported categories are accepted; unsupported or incomplete cases are rejected with explicit errors.
+
+### CLI and Flow Behavior
+
+- CLI and flow behaviors are validated for strict output, error, and exit code normalization.
+- No host-local convenience or extra behavior is surfaced in the shared contract.
+
+### Limitations and Explicit Absence
+
+- Only the Python host is implemented; all other hosts and runners are scaffolds or planned only.
+- No browser runtime or playground is implemented; browser artifacts are documentation only.
+- No generic multi-host runner exists; all conformance is validated against the Python reference host.
+
+**GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
+
+---
+
+## 0.2) Repository documentation publishing workflow
 Implemented today:
 
 - repository docs are staged into a temporary MkDocs input tree by `tools/stage_docs_for_mkdocs.py`
