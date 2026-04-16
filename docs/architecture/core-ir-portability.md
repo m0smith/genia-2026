@@ -20,6 +20,7 @@ Only layer 3 is the shared Core IR portability boundary.
 
 The minimal portable Core IR node families are:
 
+- `IrAnnotation`
 - `IrLiteral`
 - `IrOptionNone`
 - `IrOptionSome`

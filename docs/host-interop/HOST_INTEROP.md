@@ -12,6 +12,7 @@ Future hosts may differ internally, but they must preserve the same observable G
 - **Reference host**: the implemented host used as the current semantic baseline.
 - **Scaffolded surface**: docs, manifests, placeholders, or layout exist, but no runnable host implementation exists there yet.
 - **Planned host**: intended future host work only.
+- **Contract**: the observable semantics that all hosts must preserve, defined by Core IR + spec + `GENIA_RULES.md`.
 
 Current status:
 

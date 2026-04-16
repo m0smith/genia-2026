@@ -19,6 +19,8 @@ Current shared portability artifacts:
 These files do **not** mean that a Node.js, Java, Rust, Go, or C++ host is already implemented.
 They define the shared contract and repository layout for future work.
 
+For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
+
 Browser playground status in this phase:
 
 - architecture and adapter-contract docs are scaffolded under `docs/browser/`
@@ -222,6 +224,7 @@ This matters for portability because future hosts must preserve the documented C
 - repository layout is transitional:
   - the working Python host still lives at the repo root rather than `hosts/python/`
 - shared spec runner support is documented, but not implemented as generic tooling yet
+- `spec/` category directories contain scaffold READMEs only — zero shared test-case files exist in this phase
 - capability coverage for future hosts is planned and tracked, not implemented
 - HTTP service foundation is intentionally narrow:
   - exact-path routing only

@@ -2,7 +2,7 @@
 
 This directory documents Genia's intended multi-host monorepo layout.
 
-Current status:
+Current status (for formal term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms):
 
 - Python is the only implemented host today.
 - The working Python implementation still lives at the repo root in:

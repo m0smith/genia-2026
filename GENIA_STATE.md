@@ -35,6 +35,8 @@ Clarifications:
 - They do not add a second implemented host yet.
 - The shared spec runner contract and capability matrix are scaffolded now, but no generic multi-host runner implementation exists yet.
 - `spec/manifest.json` records Python as the only implemented host, records `hosts/python/` as scaffolded, and records no implemented browser runtime adapter hosts in this phase.
+- For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
+- `spec/` category directories (`cli/`, `errors/`, `eval/`, `flows/`, `ir/`, `parser/`) contain scaffold READMEs only — zero shared test-case files exist in this phase.
 
 ## 0.1) Browser playground status
 

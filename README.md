@@ -359,6 +359,9 @@ Current host status:
 | Python | Implemented reference host |
 | Node.js / Java / Rust / Go / C++ | Planned / scaffolded only |
 
+For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
+`spec/` category directories contain scaffold READMEs only — zero shared test-case files exist in this phase.
+
 ## Browser playground architecture
 
 Browser playground architecture docs are now scaffolded under:

@@ -3,6 +3,7 @@
   "core_ir_version": "0.1.0",
   "core_ir_contract": {
     "minimal_portable_node_families": [
+      "IrAnnotation",
       "IrLiteral",
       "IrOptionNone",
       "IrOptionSome",
