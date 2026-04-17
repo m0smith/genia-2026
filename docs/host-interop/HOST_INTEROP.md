@@ -2,9 +2,19 @@
 
 This document defines the shared portability contract for Genia hosts.
 
-Python is the current reference host.
-Python is the only implemented host today.
-Future hosts may differ internally, but they must preserve the same observable Genia semantics at the source/Core IR/runtime boundary.
+
+**Python is the only implemented host and is the reference host.**
+The Python host adapter implements the shared host contract for these spec categories:
+  - parse
+  - ir
+  - eval
+  - cli
+  - flow
+  - error
+All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
+Other hosts are not implemented yet.
+
+Future hosts may differ internally, but must preserve the same observable Genia semantics at the source/Core IR/runtime boundary.
 
 ## Status Terms
 
@@ -14,13 +24,13 @@ Future hosts may differ internally, but they must preserve the same observable G
 - **Planned host**: intended future host work only.
 - **Contract**: the observable semantics that all hosts must preserve, defined by Core IR + spec + `GENIA_RULES.md`.
 
+
 Current status:
 
 - Python is the only implemented reference host.
-- The live Python source remains in `src/genia/`, with tests under `tests/` and prelude sources under `src/genia/std/prelude/`.
-- `hosts/python/` is a scaffolded future-layout directory, not the live source location.
+- The Python host adapter in `hosts/python/` implements the shared host contract for the categories above, using the core runtime in `src/genia/`.
 - Node.js, Java, Rust, Go, and C++ are planned hosts only.
-- `spec/` and `tools/spec_runner/` define shared contract scaffolding; they are not a generic multi-host runner implementation yet.
+- `spec/` and `tools/spec_runner/` define shared contract scaffolding; no generic multi-host runner implementation exists yet.
 
 ## Authority Order
 
@@ -41,93 +51,48 @@ Notes:
 - Hosts must not treat host-local convenience as stronger than the shared docs/spec contract.
 
 
+
 ## Phase 2 Strictness, Normalization, and Error Contract
 
 **The Python reference host enforces strict, deterministic, and unambiguous conformance as of Phase 2.**
 
-- All observable outputs (runtime, CLI, errors) must be strictly normalized to canonical forms; no host-local or Python-specific leakage is allowed.
-- Error objects must include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
-- Malformed, missing, or unsupported cases must fail validation with explicit normalized errors; nothing is silently skipped.
-- Output ordering and structure must be deterministic and stable.
+- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
+- Error objects include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
+- Malformed, missing, or unsupported cases fail validation with explicit normalized errors; nothing is silently skipped.
+- Output ordering and structure are deterministic and stable.
 - Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
-- CLI and flow behaviors must be strictly validated for output, error, and exit code normalization.
+- CLI and flow behaviors are strictly validated for output, error, and exit code normalization.
 - GENIA_STATE.md is the final authority for implemented behavior; all specs and docs must align with it.
 
 ---
 
-## End-to-End Pipeline
-Every host must preserve this model:
 
-1. Source text
-2. Lex/parse into a surface AST
-3. Lower the surface AST into Genia Core IR
-4. Evaluate Core IR against a runtime environment plus host capabilities
-5. Produce:
-  - a Genia result value
-  - stdout/stderr side effects where applicable
-  - CLI exit behavior where applicable
-  - capability-level effects for Flow, Ref, Process, Bytes/ZIP, debugger stdio, and related runtime bridges
+## Host Adapter and Spec Runner Model
 
-Hosts may use different parser implementations, IR data structures, or execution engines internally.
-They must still preserve the same lowered Core IR meaning and the same observable runtime/CLI behavior.
+The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint, dispatching to category-specific execution modules for parse, ir, eval, cli, flow, and error. All results are normalized before comparison.
 
-## Core IR Boundary
+The shared spec runner loads cases, dispatches them to the adapter, and compares normalized results. Failures are reported with full diff and error context.
 
-Core IR is the portability boundary for Genia semantics in this phase.
+Normalization ensures no Python-specific value, error, or structure leaks into outputs. Only the minimal portable Core IR node families are used in the contract.
 
-The frozen minimal Core IR contract is documented in:
+Other hosts are not implemented yet. "Portable" means: any future host must pass the same contract and normalization rules, but only Python is enforced today.
 
-- `docs/architecture/core-ir-portability.md`
 
-That means:
+## Normalization Concept
 
-- surface parsing may vary internally by host
-- AST node classes may vary internally by host
-- Core IR meaning must not vary by host
-- evaluation behavior after lowering must stay semantically aligned across hosts
+Normalization means all observable outputs (values, errors, IR, CLI, flow) are converted to canonical, host-neutral forms. No Python-specific details are allowed in normalized outputs. Only the minimal portable Core IR node families are used in the contract. Error objects are normalized with required fields and strict category separation.
 
-Portable host work should therefore ask:
 
-- does this preserve lowering into the same Core IR meaning?
-- does this preserve the same runtime result/effect behavior?
-- would the shared spec suite observe the same outcome?
+## Not Implemented
 
-Boundary rule:
+- No other hosts are implemented yet.
+- No browser runtime or playground is implemented; browser artifacts are documentation only.
+- No generic multi-host runner exists; all conformance is validated against the Python reference host.
 
-- minimal lowered Core IR must contain only portable `Ir*` node families in the frozen contract
-- host-local post-lowering optimized nodes are allowed only after host-local optimization passes
-- host-local optimized nodes must preserve observable Genia semantics and must not be treated as shared contract nodes
-
-## Browser Playground Adapter Scaffold
-
-Browser playground architecture/contract docs exist as scaffolding under:
-
-- `docs/browser/README.md`
-- `docs/browser/PLAYGROUND_ARCHITECTURE.md`
-- `docs/browser/RUNTIME_ADAPTER_CONTRACT.md`
-
-Current truth:
-
-- these docs do not mean a browser host is implemented
-- Python remains the only implemented host
-- V1 playground runtime is planned as backend Python execution
-- browser-native runtime (JavaScript host or Rust/WASM host) is planned later
-
-Interop rule:
-
-- browser adapter transport may vary by host/runtime placement
-- Genia source/Core IR/runtime semantics must remain aligned with shared docs/spec artifacts
 
 ## Shell Pipeline Stage (Python-Host-Only)
 
-`$(command)` is an experimental pipeline stage that executes a host shell command.
-
-- it is a Python-host-only capability in this phase
-- it is **not** part of portable Core IR
-- it is listed in `spec/manifest.json` under `optional_capabilities`
-- future hosts that support shell execution may implement it behind the same `shell_stage` capability flag
-- hosts that do not support it must reject `$(...)` at parse or lower time with a clear capability error
-- the stage follows the same Option propagation contract as other pipeline stages
+`$(command)` is an experimental pipeline stage that executes a host shell command. It is Python-host-only and not part of the portable Core IR contract. Other hosts must reject it unless they implement the same capability.
 
 ## Portable Runtime Value Taxonomy
 
@@ -351,38 +316,12 @@ Current repository note:
 - `src/genia/std/prelude/` is the single canonical stdlib/prelude source tree in this repository
 - the Python host loads those bundled files via package resources from the `genia.std` package layout
 
-## Shared Spec Rule
 
-The shared spec suite under `spec/` is the authoritative cross-host validation layer.
+## Shared Spec Contract
 
-For Core IR specifically:
+The shared spec suite under `spec/` is the authoritative cross-host validation layer. The Python host adapter currently implements the contract for parse, ir, eval, cli, flow, and error categories. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
 
-- lowering-facing shared checks should validate the minimal portable Core IR boundary
-- host-local optimized IR checks may exist as host-local tests, but they do not redefine the shared portable IR contract
-
-Hosts should eventually be able to run the same categories of cases for:
-
-- parse snapshots
-- IR snapshots
-- eval behavior
-- stdout/stderr/exit-code behavior
-- CLI behavior
-- Flow behavior
-- error normalization behavior
-- prelude behavior
-
-Host-local tests are valuable, but they do not override shared spec results.
 
 ## Documentation Rule
 
-Semantic changes are not complete until the shared docs and learning materials are updated.
-
-At minimum, changes to language/runtime/public behavior must update:
-
-- `GENIA_STATE.md`
-- relevant `docs/book/*`
-- relevant `docs/host-interop/*`
-- `spec/manifest.json` when the shared host contract changes
-- `HOST_CAPABILITY_MATRIX.md` when capability coverage changes
-
-Do not document planned host behavior as implemented.
+All documentation must reflect the actual, implemented reality. Do not document planned host behavior as implemented. GENIA_STATE.md is the final authority.

@@ -4,15 +4,24 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 ## 0) Multi-host status
 
+
 Implemented today:
 
-- Python is the current implemented reference host.
-- Python is the only implemented host today.
-- The working Python implementation still lives in:
+- **Python is the only implemented host and is the reference host.**
+- The Python host adapter implements the shared host contract for these spec categories:
+  - parse
+  - ir
+  - eval
+  - cli
+  - flow
+  - error
+- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
+- The working Python implementation lives in:
   - `src/genia/`
   - `tests/`
   - `src/genia/std/prelude/`
-- Multi-host documentation/spec scaffolding now exists in:
+  - `hosts/python/` (adapter, normalization, and category execution modules)
+- Multi-host documentation/spec scaffolding exists in:
   - `docs/host-interop/`
   - `docs/architecture/core-ir-portability.md`
   - `spec/`
@@ -21,22 +30,28 @@ Implemented today:
 
 Scaffolded or planned, not implemented as hosts:
 
-- `hosts/python/` is currently a documentation placeholder for the intended future monorepo layout; it is not the live source location of the Python host today.
-- Node.js host
-- Java host
-- Rust host
-- Go host
-- C++ host
-- generic shared spec runner implementation
+- Node.js, Java, Rust, Go, C++: planned only, not implemented
+- `hosts/python/` is now the adapter location, but the core runtime remains in `src/genia/`
+- No generic multi-host runner exists; all conformance is validated against the Python reference host
 
-Clarifications:
+**Maturity:**
 
-- The new multi-host artifacts are documentation/manifest/layout scaffolding in this phase.
-- They do not add a second implemented host yet.
-- The shared spec runner contract and capability matrix are scaffolded now, but no generic multi-host runner implementation exists yet.
-- `spec/manifest.json` records Python as the only implemented host, records `hosts/python/` as scaffolded, and records no implemented browser runtime adapter hosts in this phase.
-- For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
-- `spec/` category directories (`cli/`, `errors/`, `eval/`, `flows/`, `ir/`, `parser/`) contain scaffold READMEs only — zero shared test-case files exist in this phase.
+- Shared host contract is **Partial**: all listed categories above are enforced and tested, but only for Python. Other hosts are not implemented.
+- Flow and CLI behavior are validated for normalization, but advanced/async/multi-port flow and richer CLI features are **not implemented**.
+- Error normalization is enforced, but only for the categories and shapes present in the Python host.
+- IR stability: only the minimal portable Core IR contract is enforced; host-local optimized nodes are excluded from the contract.
+
+**Explicit limitations:**
+
+- Only Python is implemented; all other hosts are planned or scaffolded only.
+- No browser runtime or playground is implemented; browser artifacts are documentation only.
+- No generic multi-host runner exists; all conformance is validated against the Python reference host.
+- Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
+- CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
+- Error normalization is enforced for parse, runtime, and CLI errors; other error categories are not present.
+- Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
+
+**GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
 ## 0.1) Browser playground status
 

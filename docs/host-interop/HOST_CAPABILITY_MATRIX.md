@@ -18,22 +18,22 @@ Browser playground adapter note:
 
 | Capability | Python | Node.js | Java | Rust | Go | C++ | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| parser | Implemented | Planned | Planned | Planned | Planned | Planned | Python parser/lowering live in `src/genia/interpreter.py` today |
-| AST lowering | Implemented | Planned | Planned | Planned | Planned | Planned | Core IR lowering is part of current Python host |
-| minimal portable Core IR contract | Implemented | Planned | Planned | Planned | Planned | Planned | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
-| Core IR eval | Implemented | Planned | Planned | Planned | Planned | Planned | Python is the current semantic reference host |
-| CLI file mode | Implemented | Planned | Planned | Planned | Planned | Planned | `genia path/to/file.genia` |
-| `-c` | Implemented | Planned | Planned | Planned | Planned | Planned | command mode |
-| `-p` | Implemented | Planned | Planned | Planned | Planned | Planned | pipe mode |
-| REPL | Implemented | Planned | Planned | Planned | Planned | Planned | Python REPL only today |
-| Flow phase 1 | Implemented | Planned | Planned | Planned | Planned | Planned | lazy pull-based single-use Flow |
-| HTTP serving | Implemented | Planned | Planned | Planned | Planned | Planned | synchronous blocking HTTP server bridge with request/response maps |
-| refs | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed runtime primitive with prelude wrappers |
-| process primitives | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed runtime primitive with prelude wrappers |
-| bytes/json/zip | Implemented | Planned | Planned | Planned | Planned | Planned | host-backed bridge helpers |
-| allowlisted host interop | Implemented | Planned | Planned | Planned | Planned | Planned | current Python host exposes only `python` / `python.json` with explicit conversion rules |
-| debugger stdio | Implemented | Planned | Planned | Planned | Planned | Planned | Python debug adapter mode documented today |
-| prelude autoload | Implemented | Planned | Planned | Planned | Planned | Planned | public stdlib surface is prelude-centered |
-| doc/help support | Implemented | Planned | Planned | Planned | Planned | Planned | `help()` / `help("name")` in Python host |
-| shared spec runner support | Scaffolded | Planned | Planned | Planned | Planned | Planned | contract docs/manifests exist; generic runner implementations do not yet |
+| parser | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python parser/lowering live in `src/genia/interpreter.py` today |
+| AST lowering | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Core IR lowering is part of current Python host |
+| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
+| Core IR eval | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python is the current semantic reference host |
+| CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `genia path/to/file.genia` |
+| `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | command mode |
+| `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | pipe mode |
+| REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python REPL only today |
+| Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | lazy pull-based single-use Flow |
+| HTTP serving | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | synchronous blocking HTTP server bridge with request/response maps |
+| refs | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
+| process primitives | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
+| bytes/json/zip | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed bridge helpers |
+| allowlisted host interop | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | current Python host exposes only `python` / `python.json` with explicit conversion rules |
+| debugger stdio | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python debug adapter mode documented today |
+| prelude autoload | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | public stdlib surface is prelude-centered |
+| doc/help support | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `help()` / `help("name")` in Python host |
+| shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python host adapter implements contract for parse, ir, eval, cli, flow, error; no generic multi-host runner exists |
 | shell pipeline stage `$(...)` | Experimental | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |

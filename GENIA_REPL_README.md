@@ -55,7 +55,8 @@ Run in stdio debug-adapter mode:
 python3 -m genia.interpreter --debug-stdio path/to/file.genia
 ```
 
-CLI contract summary:
+
+CLI contract summary (actual behavior):
 
 - file mode: `genia path/to/file.genia [args ...]`
 - command mode: `genia -c 'source' [args ...]`
@@ -67,6 +68,11 @@ CLI contract summary:
 - in pipe mode, explicit unbound `stdin` and explicit unbound `run` are rejected with clear errors
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literal args/paths)
 - `--debug-stdio` accepts exactly one program path and rejects `-c`/`-p` combinations with explicit parser errors
+
+**Limitations:**
+- Only the Python host is implemented; all CLI, REPL, and pipe behavior is enforced and tested only for Python.
+- No browser, Node.js, or other host runtimes are implemented.
+- No undocumented modes or advanced CLI features exist; only the modes above are supported.
 
 ## Implemented today
 

@@ -26,10 +26,24 @@ This repository currently provides:
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
-Current host status:
 
-- Python is the only implemented host today.
-- `hosts/*`, `spec/`, `docs/browser/`, and `apps/playground/` are scaffolded contract/documentation surfaces in this phase, not additional implemented hosts or runtimes.
+## Host Portability & Spec Contract
+
+**Python is the only implemented host and is the reference host.**
+
+- The Python host adapter implements the shared host contract for these spec categories:
+  - parse
+  - ir
+  - eval
+  - cli
+  - flow
+  - error
+- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
+- The shared spec contract is enforced by the Python host adapter and spec runner.
+- Future hosts must pass the same contract and normalization rules.
+- See `docs/host-interop/` and `spec/` for details.
+
+Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
 
 ## Quick start
 
