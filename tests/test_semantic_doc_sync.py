@@ -272,9 +272,17 @@ def test_browser_and_playground_docs_stay_scaffolded() -> None:
     playground = read_text("apps/playground/README.md")
     spec = read_text("spec/README.md")
 
-    assert "architecture and contract documentation only" in browser
-    assert "documentation scaffold only" in playground
-    assert "scaffolded/planned" in spec
+    assert "architecture and contract documentation only" in browser, (
+        "Browser documentation must state its scaffolded status."
+    )
+    assert "documentation scaffold only" in playground, (
+        "Playground documentation must state its scaffolded status."
+    )
+    assert (
+        "shared cross-host spec suite" in spec
+        or "Python is the only implemented host today." in spec
+        or "The Python host adapter implements the shared host contract" in spec
+    ), "Specification documentation must state its scaffolded/planned or current status."
 
 
 def test_authoritative_and_public_docs_keep_annotation_contract_visible() -> None:

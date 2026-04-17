@@ -274,6 +274,11 @@ The example uses:
 
 Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.md`.
 
+
+## Requirements
+
+- Python >=3.8 (see [pyproject.toml](pyproject.toml))
+
 Run tests:
 
 ```bash
@@ -837,6 +842,32 @@ actor_call(a, 3)
 - `cli_flag?(opts, name)`, `cli_option(opts, name)`, `cli_option_or(opts, name, default)` help read options cleanly
 - host-side CLI support is intentionally small: raw `argv()`, spec normalization/validation, token character decomposition, and deterministic CLI-specific error raising
 - no `$1`/`$2` syntax is added; positional arguments are list-pattern friendly
+
+
+## Command-Line Interface (CLI)
+
+Genia provides a CLI for running programs, evaluating expressions, and more.
+
+### Basic usage
+
+```bash
+genia --help
+```
+
+### Show Genia version
+
+```bash
+genia --version
+genia -V
+```
+
+Prints the current Genia version and exits.
+
+### Entrypoint convention
+
+See below for the `main` entrypoint convention.
+
+---
 
 ## CLI Programs (`main` Entrypoint Convention)
 

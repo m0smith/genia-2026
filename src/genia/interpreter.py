@@ -8258,11 +8258,20 @@ def _main(argv: Optional[list[str]] = None) -> int:
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    parser.add_argument("-V", "--version", action="store_true", help="Show Genia version and exit")
     command_group = parser.add_mutually_exclusive_group()
     command_group.add_argument("-c", "--command", help="Execute inline Genia source")
     command_group.add_argument("-p", "--pipe", help="Execute a pipe-mode stage expression")
     parser.add_argument("--debug-stdio", action="store_true", help="Run debug adapter over stdio for a program file")
     args, remaining_args = parser.parse_known_args(raw_argv)
+    if getattr(args, "version", False):
+        import importlib.metadata
+        try:
+            version = importlib.metadata.version("genia")
+        except Exception:
+            version = "unknown"
+        print(f"genia {version}")
+        return 0
     explicit_terminator_used = False
     if remaining_args and remaining_args[0] == "--":
         explicit_terminator_used = True

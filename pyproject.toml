@@ -3,7 +3,7 @@ name = "genia"
 version = "0.1.12"
 description = "Genia language prototype interpreter and regression tests"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.8"
 dependencies = []
 
 [dependency-groups]
@@ -39,7 +39,7 @@ include = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 
 [tool.ruff]
 line-length = 100
