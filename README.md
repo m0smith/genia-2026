@@ -1041,6 +1041,9 @@ write_file("output.json", unwrap_or("{}", result))
 - math helpers: `inc`, `dec`, `mod`, `abs`, `min`, `max`, `sum`
 - awk-ish helpers: `awkify`, `awk_filter`, `awk_map`, `awk_count`, `fields`
 - cells: `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
+## Design Notes
+
+See docs/design for in-progress ideas and future directions.
 
 ## Not implemented yet
 
