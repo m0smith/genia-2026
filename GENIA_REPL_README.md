@@ -198,6 +198,7 @@ CLI contract summary (actual behavior):
   - HTTP serving bridge builtins (phase 1):
     - internal primitive: `_serve_http`
     - public web-module exports in `std/prelude/web.genia`: `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, `not_found`
+    - this public HTTP helper surface is Python-host public behavior in this phase, not a shared cross-host contract category
   - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - flow runtime (phase 1):
@@ -760,5 +761,6 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - These demos use builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`, terminal helpers) with no new syntax.
 - The terminal UI does not use `stdin_keys` and does not provide pause/step/quit key controls; speed and length are controlled by CLI flags.
 - `examples/ants_actor.genia` provides the actor/coordinator mode for comparison; it is an optional coordination layer over the pure world-step model and does not provide a scheduler/event loop abstraction.
+- actor helpers remain public Python-host behavior in this phase; they are not promoted to a shared cross-host contract here.
 - `examples/ants_web.genia` is a browser viewer over the same simulation using the current host-backed `web/serve_http` helper. It serves static HTML/CSS/JS plus JSON endpoints: `GET /state`, `POST /reset`, and `POST /step`.
 - The browser uses Canvas rendering and client-side repeated `/step` calls for run/pause controls. It is not a browser-native Genia runtime, a browser playground runtime, WebSockets, SSE, or a richer server runtime.

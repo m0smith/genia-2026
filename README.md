@@ -799,9 +799,10 @@ actor_call(a, 3)
 
 - `actor_call` with `["ok", new_state]` replies with `new_state` (`18` above)
 - `actor_call` with `["reply", new_state, response]` replies with `response`
+- `actor_call` with `["stop", reason, new_state]` replies with `none("actor-stopped")`
 - public helpers from `src/genia/std/prelude/actor.genia`: `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
 - `actor(initial_state, handler)` creates a message-passing stateful actor backed by a cell
-- handler shape: `handler(state, msg, ctx) -> ["ok", new_state]` or `["reply", new_state, response]`
+- handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`, `["reply", new_state, response]`, or `["stop", reason, new_state]`
 - `actor_send(actor, msg)` enqueues a message for asynchronous processing
 - `actor_call(actor, msg)` sends a message and blocks until the handler replies
 - `actor_alive?(actor)` reports worker liveness
@@ -809,6 +810,7 @@ actor_call(a, 3)
 - `actor_restart(actor, new_state)` restarts a failed or stopped actor with new state
 - `actor_state(actor)` reads the current state; `actor_failed?`, `actor_error`, `actor_status` inspect health
 - failure semantics are inherited from the backing cell (fail-stop)
+- actors are public Python-host behavior in this phase, not a shared-host contract surface
 
 ## Builtins
 
