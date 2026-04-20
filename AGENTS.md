@@ -93,6 +93,23 @@ Only `PYTHON REFERENCE HOST:` may appear for purely host-backed operational note
 Use `Python reference host` consistently.
 Use `Python-host-only` consistently for non-portable public behavior.
 
+## Development Workflow
+
+All changes MUST follow:
+
+1. Pre-flight
+2. Branch creation
+3. Spec
+4. Design
+5. Implementation
+6. Test
+7. Docs sync
+8. Audit
+
+Do not skip steps.
+Do not combine steps.
+Each step must be completed before moving to the next.
+
 ---
 ## Maturity System
 
