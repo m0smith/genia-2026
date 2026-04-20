@@ -37,4 +37,4 @@ Browser playground adapter note:
 | prelude autoload | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | public stdlib surface is prelude-centered |
 | doc/help support | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `help()` / `help("name")` in Python host |
 | shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python host adapter implements contract for parse, ir, eval, cli, flow, error; no generic multi-host runner exists |
-| shell pipeline stage `$(...)` | Experimental | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |
+| shell pipeline stage `$(...)` | Implemented (Python-only) | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |

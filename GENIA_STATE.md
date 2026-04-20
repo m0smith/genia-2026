@@ -444,7 +444,7 @@ Pipeline (Phase 2) evaluation model:
   - Flow values still come only from explicit bridge/stage functions such as `lines`
   - Value↔Flow conversion is not implicit
 
-### Shell pipeline stage (experimental, Python-host-only)
+### Shell pipeline stage (`$(...)`, Python-host-only, implemented)
 
 - `$(command)` is a pipeline stage that executes `command` via the host shell
 - the pipeline value is converted to stdin bytes: strings→UTF-8, lists/flows→newline-joined display, numbers/bools→display
@@ -453,7 +453,8 @@ Pipeline (Phase 2) evaluation model:
 - non-zero exit code raises `RuntimeError("shell stage: command failed (exit <code>): <command>")`
 - Option propagation: `none(...)` short-circuits (command not executed); `some(x)` unwraps, result re-wrapped
 - `$(...)` outside a pipeline raises `SyntaxError`
-- ⚠️ experimental: Python-host-only, not part of portable Core IR
+- **Implemented and supported on Python host only.**
+- **Not part of portable Core IR or shared multi-host contract.**
 
 ## 4) Functions and dispatch
 

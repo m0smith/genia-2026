@@ -16,7 +16,7 @@ This repository currently provides:
 - simulation primitives (`rng`, `rand`, `rand_int`, `sleep`)
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`)
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`)
-- experimental shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (Python-host-only)
+- shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (Python-host-only, implemented)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
@@ -25,6 +25,7 @@ This repository currently provides:
 - runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, `ants_web.genia`, and `http_service.genia`)
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
+
 
 
 ## Host Portability & Spec Contract
@@ -42,6 +43,7 @@ This repository currently provides:
 - The shared spec contract is enforced by the Python host adapter and spec runner.
 - Future hosts must pass the same contract and normalization rules.
 - CLI pipe mode and Flow are part of that current shared public behavior; the HTTP helper surface and actor surface remain Python-host public behavior in this phase and are not yet shared-host contract categories.
+- The shell pipeline stage `$(...)` is a **blessed Python-host-only feature**: it is implemented and supported on Python, but is not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
