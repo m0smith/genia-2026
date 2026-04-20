@@ -151,7 +151,7 @@ def rule_summary_shape(doc: ParsedDoc) -> List[LintFinding]:
         return findings
 
     # Check trailing punctuation
-    if not doc.summary_text[-1] in ".!?":
+    if doc.summary_text[-1] not in ".!?":
         findings.append(LintFinding(
             rule_id="DOC002",
             severity=Severity.WARNING,
@@ -467,7 +467,7 @@ def _scan_dir(dirpath: str, json_mode: bool) -> int:
     else:
         # Summary line
         total_docs = sum(len(_extract_docs_from_file(f)) for f in files)
-        print(f"\n--- Scan summary ---", file=sys.stderr)
+        print("\n--- Scan summary ---", file=sys.stderr)
         print(f"Files scanned: {len(files)}", file=sys.stderr)
         print(f"@doc strings found: {total_docs}", file=sys.stderr)
         print(f"Errors: {error_count}  Warnings: {warning_count}", file=sys.stderr)

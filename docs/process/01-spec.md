@@ -177,7 +177,7 @@ Before finishing:
 
 * No implementation details included
 * No scope expansion
-* Fully aligned with GENIA_STATE.md
+* Consistent with GENIA_STATE.md
 * Behavior is precise and testable
 
 ---

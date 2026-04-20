@@ -1,7 +1,5 @@
 import pytest
 from tools.spec_runner import loader
-import os
-import tempfile
 import json
 
 # --- Malformed manifest test ---
