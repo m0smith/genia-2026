@@ -22,6 +22,7 @@ inc(x) = x + 1
 
 some(3) |> inc
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 some(4)

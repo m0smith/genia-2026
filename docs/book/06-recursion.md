@@ -9,18 +9,21 @@ sum(xs) =
   [] -> 0 |
   [x, ..rest] -> x + sum(rest)
 ```
+Classification: **Valid** (directly tested)
 
 ## Edge case example
 
 ```genia
 sum([]) -> 0
 ```
+Classification: **Valid** (directly tested)
 
 ## Failure case example
 
 ```genia
 sum(123)
 ```
+Classification: **Valid** (directly tested)
 
 Expected behavior:
 
@@ -43,6 +46,7 @@ sum_to(n, acc) =
   (n, acc) ? n == 0 -> acc |
   (n, acc) -> sum_to(n - 1, acc + n)
 ```
+Classification: **Likely valid** (not directly tested)
 
 This shape runs in constant stack space.
 
@@ -59,6 +63,7 @@ sum_pipe(acc, n) = {
   )
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 The final call to `sum_pipe(...)` is still in tail position.
 
@@ -69,6 +74,7 @@ bad(n) =
   (n) ? n == 0 -> 0 |
   (n) -> 1 + bad(n - 1)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -124,6 +130,7 @@ Promises let recursive definitions produce delayed ordinary values.
 ones() = cons(1, delay(ones()))
 car(force(cdr(ones())))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -141,6 +148,7 @@ Expected result:
   force(p)
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -158,6 +166,7 @@ The promise sees the same lexical rebinding model closures see.
   force(p)
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

@@ -82,7 +82,7 @@ These may differ internally by host:
 - evaluator engine internals
 - threading/runtime primitives used for refs/processes
 - package/build layout
-- debugger transport implementation details
+- debugger transport internals
 
 Rule:
 
@@ -150,4 +150,4 @@ Avoid these:
 
 Shared spec tests and shared docs win over host-local convenience.
 
-If a host-specific shortcut would change user-visible Genia behavior, do not take it.
+If a host-local shortcut would change user-visible Genia behavior, do not take it.

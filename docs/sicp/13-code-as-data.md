@@ -18,6 +18,7 @@ Prediction prompt: what operator is hiding inside this quoted call?
 ```genia
 operator(quote(add(1, 2)))
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 add

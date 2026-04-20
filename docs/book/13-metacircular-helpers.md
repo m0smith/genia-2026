@@ -72,6 +72,7 @@ Selectors:
   assignment_value(quote(x = 10))
 ]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -89,6 +90,7 @@ Expected result:
   branch_guard(car(cdr(match_branches(quote(0 -> 1 | x ? x > 0 -> x)))))
 ]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -108,6 +110,7 @@ This shows the current selector contract:
 ```genia
 branch_guard(car(match_branches(quote(_ -> 1))))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

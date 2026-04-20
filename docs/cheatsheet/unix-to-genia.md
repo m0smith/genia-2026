@@ -4,7 +4,7 @@ Translate common Unix commands into Genia pipelines.
 
 Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
-Validation: runnable rows include `[case: <id>]` markers in Notes and are executed by pytest.
+Validation: runnable rows include `[case: <id>]` markers in Notes and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
 ---
 
@@ -21,7 +21,7 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 | Use Case | Genia | Notes |
 | -------- | ----- | ----- |
-| keypress stream | 🔴 `stdin_keys \|> each(handle_input) \|> run` | Captures keypresses without waiting for newline; `stdin` line mode stays unchanged |
+| keypress stream | 🔴 `stdin_keys \|> each(handle_input) \|> run` | Python-host-only; captures keypresses without waiting for newline; `stdin` line mode stays unchanged |
 
 ---
 
@@ -108,6 +108,7 @@ loop(i, max) = (
 
 loop(0, 2)
 ```
+Classification: **Valid** (directly tested)
 
 Writes two frames using ANSI terminal control and returns `none("nil")`.
 
@@ -132,14 +133,14 @@ Writes two frames using ANSI terminal control and returns `none("nil")`.
 
 ---
 
-## � Shell Pipeline Stage (Experimental, Python-Host-Only)
+## 🐚 Shell Pipeline Stage (Python-host-only, experimental)
 
 | Unix | Genia | Notes |
 | ---- | ----- | ----- |
-| `echo hello \| tr a-z A-Z` | 🟢 `"hello" \|> $(tr a-z A-Z)` | Shell stage in pipeline [case: unix-map-shell-upper] |
-| `echo hello \| cat` | 🟢 `"hello" \|> $(cat)` | Round-trip through shell [case: unix-map-shell-cat] |
+| `echo hello | tr a-z A-Z` | 🟢 `"hello" |> $(tr a-z A-Z)` | Shell stage in pipeline [case: unix-map-shell-upper] (**Valid**) |
+| `echo hello | cat` | 🟢 `"hello" |> $(cat)` | Round-trip through shell [case: unix-map-shell-cat] (**Valid**) |
 
-`$(command)` is only valid inside a pipeline. Not part of portable Core IR.
+`$(command)` is only valid inside a pipeline. **Python-host-only**; not part of portable Core IR contract.
 
 ---
 

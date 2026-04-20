@@ -7,8 +7,13 @@ Genia provides host-backed concurrency primitives layered as:
 3. **Cells** — serialized stateful workers with fail-stop error handling
 4. **Actors** — a thin prelude layer over cells adding a message/effect protocol
 
-All concurrency is backed by Python host threads in this phase.
-The actor surface here is public Python-reference-host behavior in this phase, not a shared cross-host portability contract.
+**LANGUAGE CONTRACT:**
+- concurrency semantics are not a shared cross-host contract surface in this phase
+
+**PYTHON REFERENCE HOST:**
+- all concurrency here is backed by Python host threads
+- the actor surface is Python reference host behavior (**Python-host-only**)
+
 There is no language-level scheduler, no deterministic timing, and no Erlang-style guarantees.
 
 ## Minimal example
@@ -18,6 +23,7 @@ counter = cell(0)
 cell_send(counter, (n) -> n + 1)
 cell_get(counter)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -32,6 +38,7 @@ a = cell_with_state(state)
 cell_send(a, (x) -> x + 1)
 cell_send(a, (_) -> map_get(1, "bad"))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -46,6 +53,7 @@ Expected behavior:
 ```genia
 cell_send(cell(0), 42)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -81,6 +89,8 @@ r = ref(0)
 ref_update(r, (n) -> n + 1)
 ref_get(r)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Result: `1`
 
@@ -90,6 +100,8 @@ Result: `1`
 r = ref()
 ref_is_set(r)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Result: `false`
 
@@ -132,6 +144,8 @@ p = spawn((msg) -> ref_update(inbox, (xs) -> append(xs, [msg])))
 send(p, "hello")
 send(p, "world")
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 After the mailbox drains, `ref_get(inbox)` returns `["hello", "world"]`.
 
@@ -141,6 +155,7 @@ After the mailbox drains, `ref_get(inbox)` returns `["hello", "world"]`.
 p = spawn((_) -> 1 / 0)
 send(p, "boom")
 ```
+Classification: **Likely valid** (not directly tested)
 
 After the handler throws:
 
@@ -198,6 +213,7 @@ a = cell(1)
 cell_send(a, (x) -> x + 1)
 cell_send(a, (_) -> 1 / 0)
 ```
+Classification: **Likely valid** (not directly tested)
 
 After the second update fails:
 
@@ -274,6 +290,7 @@ a = actor(0, handler)
 actor_send(a, 5)
 actor_send(a, 10)
 ```
+Classification: **Likely valid** (not directly tested)
 
 After both messages drain, `actor_state(a)` returns `15`.
 
@@ -347,7 +364,7 @@ Returns `none("actor-error")` instead of blocking forever.
 
 ## Canonical Concurrency Patterns
 
-These patterns use only what is actually implemented today.
+These patterns use only behavior implemented in the current Python reference host.
 
 ### Pattern 1: Authoritative world ref + coordinator
 

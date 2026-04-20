@@ -1,9 +1,9 @@
 
 # Genia CLI Cheatsheet: Unix Power Mode
 
-Only includes currently implemented Genia CLI and Flow behavior.
+Only includes currently implemented Genia CLI and Flow behavior. All shell pipeline stage features described below are implemented only in the Python reference host, not in the portable language contract.
 
-Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest.
+Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
 ## Core CLI Shapes
 
@@ -38,7 +38,7 @@ For example, `examples/ants_terminal.genia` accepts `--seed`, `--ants`, `--steps
 Flow rules:
 - Flow stays lazy and single-use.
 - `head` / `take` stop upstream pulling as soon as they have enough items.
-- `collect` and `run` are the explicit Flow -> Value / Flow -> effect boundaries.
+- `collect` and `run` are the explicit Flow → Value / Flow → effect boundaries.
 - `map` and `filter` are polymorphic: they work on both lists and flows.
 - Pipe mode is only for stage expressions that still produce a Flow.
 - Raw values stay values, flows stay flows, only explicit bridges cross.
@@ -52,6 +52,7 @@ Flow rules:
 ```bash
 cat file.txt | genia -p 'each(print)'
 ```
+Classification: **Valid** (directly tested)
 
 ### Keep first 5 rows
 
@@ -59,6 +60,7 @@ cat file.txt | genia -p 'each(print)'
 ```bash
 cat file.txt | genia -p 'head(5) |> each(print)'
 ```
+Classification: **Valid** (directly tested)
 
 ### Count rows
 
@@ -66,6 +68,7 @@ cat file.txt | genia -p 'head(5) |> each(print)'
 ```bash
 cat file.txt | genia -c 'stdin |> lines |> collect |> count'
 ```
+Classification: **Valid** (directly tested)
 
 ### Grep-style filter
 
@@ -73,6 +76,7 @@ cat file.txt | genia -c 'stdin |> lines |> collect |> count'
 ```bash
 cat file.txt | genia -p 'filter((l) -> contains(l, "error")) |> each(print)'
 ```
+Classification: **Valid** (directly tested)
 
 ### Case-insensitive grep-style filter
 
@@ -80,6 +84,7 @@ cat file.txt | genia -p 'filter((l) -> contains(l, "error")) |> each(print)'
 ```bash
 cat file.txt | genia -p 'filter((l) -> contains(lower(l), "error")) |> each(print)'
 ```
+Classification: **Valid** (directly tested)
 
 ### Uppercase all rows
 
@@ -87,6 +92,7 @@ cat file.txt | genia -p 'filter((l) -> contains(lower(l), "error")) |> each(prin
 ```bash
 cat file.txt | genia -p 'map(upper) |> each(print)'
 ```
+Classification: **Valid** (directly tested)
 
 ### Sum the 5th column (AWK-style)
 
@@ -101,6 +107,7 @@ ls -l | genia -c '
     |> sum
 '
 ```
+Classification: **Valid** (directly tested)
 
 Notes:
 - `fields(row)` keeps the original row at index `0`.
@@ -139,14 +146,16 @@ rows
   |> keep_some_else(parse_int, log)
   |> collect
 ```
+Classification: **Valid** (directly tested)
 
 `parse_int` returns `some(int)` or `none(...)`.
 `keep_some_else` unwraps `some(...)` into the main flow and routes `none(...)` items to `log`.
 Use `absence_meta(opt)` when dead-letter handlers need structured reason/context inspection.
 
-# � Shell Pipeline Stage (Experimental)
+# � Shell Pipeline Stage (Python-host-only)
 
-> **⚠️ EXPERIMENTAL, Python-host-only** — `$(command)` executes a host shell command inside a pipeline.
+
+> **Python-host-only** — `$(command)` executes a host shell command inside a pipeline. This is not part of the portable language contract; it is only available in the Python reference host.
 
 | Pattern | Genia | Notes |
 | --- | --- | --- |
@@ -160,18 +169,20 @@ Use `absence_meta(opt)` when dead-letter handlers need structured reason/context
 genia -c '"hello" |> $(tr a-z A-Z)'
 ```
 
-Expected result: the string is uppercased by the host `tr` command.
+Classification: **Valid** (directly tested)
 
 [case: unix-power-shell-cat]
 ```bash
 genia -c '"hello world" |> $(cat)'
 ```
 
-Expected result: the string round-trips through `cat` unchanged.
+Classification: **Valid** (directly tested)
+
+Expected result: the string is uppercased by the host `tr` command (first example), or round-trips through `cat` unchanged (second example).
 
 Limitations:
 
-* Python-host-only; not part of portable Core IR
+* Python-host-only; not part of portable Core IR or portable language contract
 * `$(...)` is only valid inside a pipeline
 * Non-zero exit raises `RuntimeError`
 
@@ -190,7 +201,7 @@ With just this cheatsheet, Genia can already replace:
 * `grep`
 * `wc`
 * parts of `sed`
-* host shell commands via `$(...)` (experimental)
+* host shell commands via `$(...)` (Python-host-only)
 
 …and do it in a way that’s:
 

@@ -120,7 +120,7 @@ Correct pattern:
 ```
 ````
 
-Illustrative-only Genia snippets must be marked on the line immediately above the fence with one of the approved labels from `AGENTS.MD`.
+Illustrative-only Genia snippets must be marked on the line immediately above the fence with the approved label from `AGENTS.MD`: `**Illustrative** — not runnable`.
 
 ## Exercises
 

@@ -4,7 +4,7 @@
 Dense reference of currently implemented features.
 If anything here disagrees with GENIA_STATE.md, GENIA_STATE.md wins.
 
-Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest.
+Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
 ## Language Forms
 
@@ -85,6 +85,8 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 
 ## Randomness
 
+Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
+
 | Helper | Shape |
 | --- | --- |
 | explicit seeded state | `rng(seed)` |
@@ -119,7 +121,7 @@ See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matr
 
 ## Shell Stage
 
-Experimental, Python-host-only pipeline stage:
+**Python-host-only pipeline stage** (not part of portable contract):
 
 | Rule | Meaning |
 | --- | --- |
@@ -133,8 +135,11 @@ Experimental, Python-host-only pipeline stage:
 ```genia
 "hello" |> $(tr a-z A-Z)
 ```
+Classification: **Valid** (directly tested)
 
 ## Refs
+
+Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
 
 | Helper | Shape |
 | --- | --- |
@@ -147,6 +152,8 @@ Experimental, Python-host-only pipeline stage:
 
 ## Processes
 
+Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
+
 | Helper | Shape |
 | --- | --- |
 | create | `spawn(handler)` |
@@ -156,6 +163,8 @@ Experimental, Python-host-only pipeline stage:
 FIFO mailbox, one handler call at a time. Handler exceptions enter fail-stop state.
 
 ## Cells
+
+Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
 
 | Helper | Shape |
 | --- | --- |
@@ -169,6 +178,8 @@ Cells are serialized mutable state backed by a worker thread.
 `cell_stop` drains queued updates then exits the worker.
 
 ## Actors
+
+Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
 
 | Helper | Shape |
 | --- | --- |
@@ -194,6 +205,7 @@ handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
 a = actor(0, handler)
 actor_call(a, 5)
 ```
+Classification: **Valid** (directly tested)
 
 <!-- [case: core-actor-call-ok] -->
 ```genia
@@ -201,6 +213,7 @@ handler(state, msg, _ctx) = ["ok", state + msg]
 a = actor(0, handler)
 actor_call(a, 3)
 ```
+Classification: **Valid** (directly tested)
 
 <!-- [case: core-actor-status] -->
 ```genia
@@ -208,6 +221,7 @@ handler(state, _msg, _ctx) = ["ok", state]
 a = actor(0, handler)
 actor_status(a)
 ```
+Classification: **Valid** (directly tested)
 
 ## Modules And Interop
 
@@ -239,6 +253,7 @@ See `docs/style/doc-style.md` for the canonical style guide.
 inc(x) -> x + 1
 doc("inc")
 ```
+Classification: **Valid** (directly tested)
 
 ```genia
 @doc """
@@ -266,8 +281,8 @@ The ants terminal UI accepts `--seed`, `--ants`, `--steps`, `--delay`, `--size`,
 
 ## Web Helpers
 
-Use `import web` and call helpers through module exports.
-These helpers are public Python-host behavior in this phase, not a shared cross-host contract surface.
+**LANGUAGE CONTRACT:** `import web` and these HTTP helpers are not part of the shared cross-host contract surface.
+**PYTHON REFERENCE HOST:** use `import web` and call helpers through module exports. These helpers are Python reference host behavior (**Python-host-only**) in this phase.
 
 | Helper | Shape |
 | --- | --- |
@@ -303,36 +318,43 @@ Dispatch and mode notes:
 ```genia
 unwrap_or("unknown", {user: {name: "Genia"}} |> get("user") |> get("name"))
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-fields-nth-parse]
 ```genia
 fields("a b c d 5 x") |> nth(5) |> parse_int |> unwrap_or(0)
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-keep-some]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-keep-some-else]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some_else(parse_int, log) |> collect
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-sum-after-keep-some]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect |> sum
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-flow-tee-zip]
 ```genia
 ["a", "b"] |> lines |> tee |> zip |> collect
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-flow-tick]
 ```genia
 tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
 ```
+Classification: **Valid** (directly tested)
 
 [case: core-min-seeded-rand-int]
 ```genia
@@ -346,3 +368,4 @@ v1 = pair_right(s1)
 s2 = rand_int(r1, 10)
 [v1, pair_right(s2)]
 ```
+Classification: **Valid** (directly tested)

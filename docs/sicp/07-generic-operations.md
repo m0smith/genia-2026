@@ -22,6 +22,7 @@ y_of(p) = p/y
 
 [x_of(point(3, 4)), y_of(point(3, 4))]
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 [3, 4]

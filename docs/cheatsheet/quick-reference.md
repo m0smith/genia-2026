@@ -2,7 +2,7 @@
 
 Implemented features only.
 
-Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest.
+Validation: runnable snippets include `[case: <id>]` markers and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
 ## Evaluation Model
 
@@ -21,6 +21,7 @@ inc(x) = x + 1
 (x) -> x + 1
 x = 10
 ```
+Classification: **Valid** (directly tested)
 
 Pattern examples:
 
@@ -39,6 +40,7 @@ none
 none("missing-key")
 none("missing-key", {key: "name"})
 ```
+Classification: **Valid** (directly tested)
 
 Pipeline rule reminder:
 
@@ -69,6 +71,7 @@ Correct `nth` shape:
 ```genia
 nth(2, [10, 20, 30])
 ```
+Classification: **Valid** (directly tested)
 
 ## Maps
 
@@ -85,6 +88,7 @@ Callable map projection:
 ```genia
 {a: 1} |> "a"
 ```
+Classification: **Valid** (directly tested)
 
 ## Flow
 
@@ -112,11 +116,14 @@ Examples:
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
 ```
+Classification: **Valid** (directly tested)
 
 [case: quick-flow-keep-some-else]
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some_else(parse_int, log) |> collect
 ```
+Classification: **Valid** (directly tested)
+
 
 ## CLI
 
@@ -136,6 +143,7 @@ cat file.txt | genia -p 'head(5) |> each(print)'
 main(args) = args
 main(argv())
 ```
+Classification: **Valid** (directly tested)
 
 ## Actors
 
@@ -153,11 +161,12 @@ handler(state, msg, _ctx) = ["reply", state + msg, state + msg]
 a = actor(0, handler)
 actor_call(a, 5)
 ```
+Classification: **Valid** (directly tested)
 
 ## Web
 
-- `import web` exposes the phase-1 HTTP helper surface
-- `web/serve_http(config, handler)` starts the current blocking phase-1 HTTP server bridge
+**LANGUAGE CONTRACT:** `import web` and the HTTP helper surface are not part of the shared portability contract.
+**PYTHON REFERENCE HOST:** `import web` exposes the current phase-1 HTTP helper surface, and `web/serve_http(config, handler)` starts the current blocking phase-1 HTTP server bridge (**Python-host-only**).
 - `web/get(path, handler)` and `web/post(path, handler)` create exact-path routes
 - `web/route_request(routes)` builds a handler from those routes
 - `web/response(status, headers, body)` builds a response map directly
@@ -176,6 +185,7 @@ Canonical formatting rules live in `docs/style/doc-style.md`.
 inc(x) -> x + 1
 doc("inc")
 ```
+Classification: **Valid** (directly tested)
 
 ```genia
 @doc """
@@ -197,6 +207,11 @@ first_or_none(xs) =
 - boolean: `&& || !`
 - pipeline: `|>`
 
+## Shell Stage (Python-host-only)
+
+**LANGUAGE CONTRACT:** `$(...)` is not part of the portable Core IR contract.
+**PYTHON REFERENCE HOST:** `value |> $(command)` executes a shell command in a pipeline. This is **Python-host-only** and only valid inside a pipeline.
+
 ## Code-as-Data
 
 [case: quick-code-as-data]
@@ -204,6 +219,7 @@ first_or_none(xs) =
 quote(x + 1)
 quasiquote([1, unquote(x)])
 ```
+Classification: **Valid** (directly tested)
 
 ## Common Gotchas
 
@@ -217,3 +233,4 @@ Use:
 ```genia
 stdin |> lines |> each(print) |> run
 ```
+Classification: **Valid** (directly tested)

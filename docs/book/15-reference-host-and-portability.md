@@ -38,8 +38,11 @@ Manifest status guardrails:
 
 ## HTTP service foundation
 
-The Python reference host now also includes a first usable synchronous HTTP service bridge.
-This is a public Python-reference-host surface in the current phase, not a shared cross-host contract category.
+**LANGUAGE CONTRACT:**
+- the HTTP service bridge is not part of the shared cross-host contract category in this phase
+
+**PYTHON REFERENCE HOST:**
+- the Python reference host includes a first usable synchronous HTTP service bridge (**Python-host-only**)
 
 The host/runtime split in this phase is intentionally small:
 
@@ -118,6 +121,7 @@ app() = web_route_request([
 
 main(args) = web_serve_http({host: "127.0.0.1", port: 8080}, app())
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -143,6 +147,7 @@ app() = web_route_request([
   web_post("/echo", echo)
 ])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -165,6 +170,7 @@ app() = web_route_request([
   web_get("/broken", broken)
 ])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -178,6 +184,7 @@ Today the Python reference host is still the real executable host:
 ```bash
 python3 -m genia.interpreter -c '1 + 2'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -191,6 +198,7 @@ The shared host contract includes current CLI pipe behavior, not just expression
 ```bash
 printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -205,6 +213,7 @@ The pipe-mode wrapper contract is part of the shared host contract:
 ```bash
 genia -p 'head(1) |> each(print) |> run'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -223,6 +232,7 @@ The `$(command)` pipeline stage executes a host shell command as part of a pipel
 ```bash
 genia -c '"hello world" |> $(tr a-z A-Z)'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -245,6 +255,7 @@ The pipeline value is materialized to the command's stdin. Stdout is captured an
 ```bash
 genia -c '"x" |> $(tr -d x)'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -259,6 +270,7 @@ When the command exits successfully (exit 0) but produces no stdout, the result 
 ```bash
 genia -c '"hello" |> $(false)'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

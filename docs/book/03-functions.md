@@ -5,6 +5,7 @@
 ```genia
 inc(x) = x + 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 Named functions are values and dispatch by name + arity shape.
 Single-expression named functions may currently use either `=` or `->` bodies.
@@ -78,6 +79,7 @@ Assignment uses the existing `name = expr` surface syntax.
   x
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to `2`.
 
@@ -95,6 +97,7 @@ make_counter() = {
 c = make_counter()
 [c(), c(), c()]
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to `[1, 2, 3]`.
 
@@ -110,6 +113,7 @@ This evaluates to `[1, 2, 3]`.
   [x, y]
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to `[2, 2]`.
 
@@ -120,6 +124,7 @@ This evaluates to `[2, 2]`.
   (1 + 2) = 3
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 This raises:
 
@@ -162,6 +167,7 @@ They remain simple runtime metadata in this phase: no macros, no compile-time tr
 @doc "Adds one"
 inc(x) -> x + 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```genia
 unwrap_or("missing", meta("inc") |> get("doc"))
@@ -185,6 +191,7 @@ Adds one.
 @since "0.4"
 inc(x) -> x + 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Edge case: assignment target
 
@@ -192,6 +199,7 @@ inc(x) -> x + 1
 @meta {category: "math"}
 x = 10
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```genia
 unwrap_or("missing", meta("x") |> get("category"))
@@ -210,6 +218,7 @@ x = 3
 
 [unwrap_or("missing", meta("x") |> get("category")), unwrap_or(true, meta("x") |> get("stable"))]
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to `["math", false]`.
 
@@ -227,6 +236,7 @@ This evaluates to `["math", false]`.
 @doc {text: "bad"}
 inc(x) -> x + 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 This raises:
 
@@ -260,6 +270,7 @@ That guide is the single source of truth for formatting; this chapter just teach
 @doc "Adds one"
 inc(x) -> x + 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 The function binding metadata becomes:
 
@@ -293,6 +304,7 @@ square(x) -> x * x
   unwrap_or(false, meta("square") |> get("stable"))
 ]
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to:
 
@@ -311,6 +323,7 @@ inc(x) -> x + 1
 
 help("inc")
 ```
+Classification: **Likely valid** (not directly tested)
 
 Current help output includes:
 
@@ -338,6 +351,7 @@ Keep the body readable in source.
 @meta "math"
 square(x) -> x * x
 ```
+Classification: **Likely valid** (not directly tested)
 
 This raises:
 
@@ -369,7 +383,8 @@ Notes:
 
 ### Python host interop (Phase 1, allowlisted)
 
-Genia now has a small Python-only host bridge.
+Genia now has a small Python-host-only host bridge.
+This section describes the current Python reference host surface, not a shared cross-host contract.
 To keep the language minimal, it reuses the existing `import` + `module/name` model instead of adding new member-access syntax.
 
 Implemented host modules in this phase:
@@ -396,6 +411,7 @@ Implemented host exports:
 import python
 "file.txt" |> python/open |> python/read
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Edge case example
 
@@ -403,6 +419,7 @@ import python
 import python.json as pyjson
 unwrap_or("fallback", "null" |> pyjson/loads)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Result:
 
@@ -451,6 +468,7 @@ This now includes the public Option, String, Map, Ref, Process, sink, and Flow h
 ```genia
 apply(inc, [41])
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to `42`.
 
@@ -460,6 +478,7 @@ This evaluates to `42`.
 result = 5 |> rule_emit
 unwrap_or([], get("emit", result))
 ```
+Classification: **Likely valid** (not directly tested)
 
 This evaluates to `[5]`.
 
@@ -470,6 +489,7 @@ That works because `rule_emit` is looked up as a function value, autoloaded from
 ```genia
 apply(missing, [1])
 ```
+Classification: **Likely valid** (not directly tested)
 
 This raises:
 
@@ -577,6 +597,7 @@ Stage rules (implemented):
 record = { name: "Matthew" }
 record |> "name"
 ```
+Classification: **Likely valid** (not directly tested)
 
 Result:
 
@@ -590,6 +611,7 @@ Result:
 record = { user: { name: "Matthew" } }
 record |> "user" |> "name"
 ```
+Classification: **Likely valid** (not directly tested)
 
 Result:
 
@@ -621,6 +643,7 @@ Use `map_some` / `flat_map_some` when you need explicit wrap-vs-flat-map control
 record = { profile: { name: "Genia" } }
 unwrap_or("?", record |> get("profile") |> get("name"))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Result:
 
@@ -635,6 +658,7 @@ record = {}
 result = record |> get("profile") |> get("name")
 [absence_reason(result), unwrap_or({}, absence_context(result))/key]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Result:
 
@@ -687,6 +711,7 @@ none("missing-key", {key: "profile"})
 ```genia
 none("empty-list") |> parse_int
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -707,6 +732,7 @@ This works because `nth(5)` returns `some("5")`, and pipeline lifting feeds `"5"
 ```genia
 1 |> 2
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -797,6 +823,7 @@ No parser syntax is added.
 ```genia
 main(args) = length(args)
 ```
+Classification: **Likely valid** (not directly tested)
 
 When run with two trailing args, this returns `2`.
 
@@ -805,6 +832,7 @@ When run with two trailing args, this returns `2`.
 ```genia
 main() = "ok"
 ```
+Classification: **Likely valid** (not directly tested)
 
 If `main/1` is absent, `main/0` is called automatically.
 
@@ -814,6 +842,7 @@ If `main/1` is absent, `main/0` is called automatically.
 main(args) = args
 main() = "fallback"
 ```
+Classification: **Likely valid** (not directly tested)
 
 `main/1` has precedence, so this returns the argv list rather than `"fallback"`.
 

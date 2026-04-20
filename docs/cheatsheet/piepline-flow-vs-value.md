@@ -10,7 +10,7 @@ regardless of whether the pipeline carries values or flows.
 
 Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
-Validation: runnable rows include `[case: <id>]` markers and are executed by pytest.
+Validation: runnable rows include `[case: <id>]` markers and are executed by pytest. Examples are classified as **Valid** if directly tested, **Likely valid** if not directly tested, **Illustrative** if not runnable, or **Invalid** if contradicted by implementation.
 
 ---
 
@@ -39,7 +39,7 @@ Three bridge shapes exist and nothing else crosses the boundary:
 
 ## Pipeline invariant contract
 
-These invariants are enforced by the pipeline evaluator and locked by tests under `tests/cases/option/` and `tests/cases/flow/`.
+These invariants are enforced by the pipeline evaluator and locked by tests under `tests/cases/option/` and `tests/cases/flow/`. Only examples with `[case: <id>]` markers are **Valid**; others are **Likely valid** unless contradicted.
 
 | # | Invariant | Key implication |
 |---|-----------|-----------------|
@@ -199,6 +199,7 @@ For reducers like `sum` or `count`, use `-c`.
 ```genia
 [3, 1, 4, 1, 5] |> filter((x) -> x > 2) |> map((x) -> x * 10) |> sum
 ```
+Classification: **Valid** (directly tested)
 
 ## Flow-only pipeline example
 
@@ -206,6 +207,7 @@ For reducers like `sum` or `count`, use `-c`.
 ```genia
 ["hello", "world"] |> lines |> map(upper) |> each(print) |> run
 ```
+Classification: **Valid** (directly tested)
 
 ## Explicit bridge example
 
@@ -213,6 +215,7 @@ For reducers like `sum` or `count`, use `-c`.
 ```genia
 ["3", "bad", "7"] |> lines |> keep_some(parse_int) |> collect |> sum
 ```
+Classification: **Valid** (directly tested)
 
 ## Option + Flow interaction example
 
@@ -220,6 +223,7 @@ For reducers like `sum` or `count`, use `-c`.
 ```genia
 ["10", "oops", "20"] |> lines |> map(parse_int) |> keep_some |> collect |> sum
 ```
+Classification: **Valid** (directly tested)
 
 ---
 

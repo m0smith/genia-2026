@@ -22,6 +22,7 @@ p = spawn((msg) -> msg)
 
 process_alive?(p)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 true
@@ -43,7 +44,7 @@ You do not reach inside the other room.
 
 ## Genia Implementation
 
-- `spawn`, `send`, and `process_alive?` are implemented
+- `spawn`, `send`, and `process_alive?` are Python-host-only implemented helpers in the current reference host
 - process handles are runtime capability values
 
 ## Common Mistakes

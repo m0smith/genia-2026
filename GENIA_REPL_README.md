@@ -1,6 +1,6 @@
 # Genia Prototype REPL
 
-This document describes the **actual current behavior** of the Python prototype in `src/genia/interpreter.py`.
+This document describes the **actual current behavior** of the Python reference host prototype in `src/genia/interpreter.py`.
 
 ## Run
 
@@ -76,6 +76,12 @@ CLI contract summary (actual behavior):
 
 ## Implemented today
 
+**LANGUAGE CONTRACT:**
+- the shared portable contract is documented in `GENIA_STATE.md`, `README.md`, and `docs/host-interop/*`
+
+**PYTHON REFERENCE HOST:**
+- Python-host-only capabilities below are labeled explicitly where they are not part of that shared contract
+
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
   - core values: Number, Promise, Symbol, String, Boolean, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
@@ -83,7 +89,9 @@ CLI contract summary (actual behavior):
     - legacy surface `nil` also normalizes to `none("nil")`
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
-  - runtime capability values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented), Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
+  - runtime capability values:
+    - shared/runtime-surface values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented)
+    - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, slash map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
   - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
@@ -157,19 +165,19 @@ CLI contract summary (actual behavior):
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
   - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
-  - includes public ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
-  - includes public process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
+  - includes public Python-host-only ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+  - includes public Python-host-only process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
   - includes public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
   - includes public option helpers from `src/genia/std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - includes public string helpers from `src/genia/std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
-  - includes a public web module in `src/genia/std/prelude/web.genia` (import via `import web` and use exports such as `web/serve_http`, `web/get`, `web/post`, `web/route_request`, `web/json`, and `web/ok_text`)
+  - includes a public Python-host-only web module in `src/genia/std/prelude/web.genia` (import via `import web` and use exports such as `web/serve_http`, `web/get`, `web/post`, `web/route_request`, `web/json`, and `web/ok_text`)
   - includes rule helpers `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
   - includes metacircular evaluator helpers `empty_env`, `lookup`, `define`, `set`, `extend`, `eval`
-  - includes cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
-  - includes actor helpers `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
+  - includes Python-host-only cell helpers `cell`, `cell_with_state`, `cell_send`, `cell_get`, `cell_state`, `cell_failed?`, `cell_error`, `restart_cell`, `cell_status`, `cell_alive?`
+  - includes Python-host-only actor helpers `actor`, `actor_send`, `actor_call`, `actor_alive?`, `actor_stop`, `actor_restart`, `actor_state`, `actor_failed?`, `actor_error`, `actor_status`
   - autoloaded function names can be used as plain function values in higher-order positions, not only in direct call position
   - `help("name")` can autoload a registered prelude function before rendering its docstring/help text
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
@@ -179,26 +187,26 @@ CLI contract summary (actual behavior):
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
-  - public CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
-  - ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
-  - process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
+  - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
+  - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+  - Python-host-only process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
   - phase-2 primitive option model runtime:
     - `none` remains a runtime literal/value
     - public helpers such as `some`, `get`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, and `absence_context` are prelude-backed wrappers over host-backed option primitives
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
-  - simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`
-  - bytes/json/zip bridge builtins (phase 1):
+  - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`
+  - Python-host-only bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
     - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
     - public JSON wrappers: `json_parse`, `json_stringify`, `json_pretty`
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
-  - HTTP serving bridge builtins (phase 1):
+  - Python-host-only HTTP serving bridge builtins (phase 1):
     - internal primitive: `_serve_http`
     - public web-module exports in `std/prelude/web.genia`: `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, `not_found`
-    - this public HTTP helper surface is Python-host public behavior in this phase, not a shared cross-host contract category
+    - this public HTTP helper surface is Python reference host behavior in this phase (**Python-host-only**), not a shared cross-host contract category
   - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - flow runtime (phase 1):
@@ -232,7 +240,7 @@ CLI contract summary (actual behavior):
   - `keep_some(flow)` / `keep_some(stage, flow)` are keep-only Flow helpers:
     - they unwrap `some(value)` to `value`
     - they drop `none(...)`
-- shell pipeline stage (experimental, Python-host-only):
+- shell pipeline stage (Python-host-only, experimental):
   - `$(command)` executes a shell command as a pipeline stage
   - pipeline value is materialized to stdin bytes: strings→UTF-8, lists/flows→newline-joined display, numbers/bools→display
   - stdout captured as UTF-8 string; single trailing newline stripped

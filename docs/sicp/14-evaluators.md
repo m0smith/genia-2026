@@ -20,6 +20,7 @@ Prediction prompt: can the evaluator layer really evaluate quoted code?
 ```genia
 eval(quote(1 + 2), empty_env())
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 3

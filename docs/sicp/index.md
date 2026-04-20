@@ -50,7 +50,7 @@ If any chapter disagrees with implemented behavior, `GENIA_STATE.md` is the fina
 
 - runnable `genia` blocks are validated by `tests/test_sicp_code_blocks.py`
 - every runnable block must be followed immediately by an expected-output block
-- illustrative-only Genia snippets must use an approved non-runnable marker
+- illustrative-only Genia snippets must use the approved marker `**Illustrative** — not runnable`
 - each runnable block executes in a fresh environment, so examples must be self-contained
 
 ## Current Scope
@@ -69,4 +69,4 @@ If any chapter disagrees with implemented behavior, `GENIA_STATE.md` is the fina
 
 - imaginary syntax
 - alternative conditionals such as `if`
-- host-specific behavior taught as if it were portable Genia law
+- Python-host-only behavior taught as if it were portable Genia law

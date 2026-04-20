@@ -22,6 +22,7 @@ r = ref(10)
 ref_update(r, (n) -> n + 5)
 ref_get(r)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 15
@@ -45,8 +46,8 @@ The contents can change.
 
 ## Genia Implementation
 
-- refs are implemented as host-backed runtime cells
-- `ref`, `ref_get`, `ref_set`, `ref_is_set`, and `ref_update` are implemented public helpers
+- refs are Python-host-only host-backed runtime cells in the current reference host
+- `ref`, `ref_get`, `ref_set`, `ref_is_set`, and `ref_update` are Python-host-only public helpers in the current reference host
 
 ## Common Mistakes
 

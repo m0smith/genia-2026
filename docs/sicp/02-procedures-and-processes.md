@@ -25,6 +25,7 @@ sum_to(n, acc) =
 
 sum_to(5, 0)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 15
@@ -59,12 +60,13 @@ Tail recursion is reusing the same plate.
 - writing recursion that does extra work after the recursive call
 - assuming every recursive function is automatically tail-recursive
 
-**Conceptual example — not directly runnable**
+**Illustrative** — not runnable
 ```genia
 fact(n) =
   0 -> 1 |
   n -> n * fact(n - 1)
 ```
+Classification: **Illustrative** (not directly runnable)
 
 That is recursive, but the multiplication happens after the call returns.
 

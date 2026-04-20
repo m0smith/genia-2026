@@ -21,6 +21,7 @@ Prediction prompt: what does the interpreter hand back here?
 ```genia
 quote([a, b, c])
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 (a b c)

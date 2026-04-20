@@ -97,9 +97,7 @@ Rules:
 Use a `genia` fence only when the snippet is Genia-shaped.
 If it is illustrative only, mark the line immediately above the fence with one of:
 
-- `**Example only — not runnable**`
-- `**Illustrative sketch — not runnable**`
-- `**Conceptual example — not directly runnable**`
+- `**Illustrative** — not runnable`
 
 These blocks are skipped by the validator.
 

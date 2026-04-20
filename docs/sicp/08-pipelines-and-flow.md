@@ -24,6 +24,7 @@ double(x) = x * 2
 
 3 |> inc |> double
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 8
@@ -57,10 +58,11 @@ Each station changes, filters, or consumes the item moving past it.
 - confusing value pipelines with Flow pipelines
 - forgetting that `-p` mode already injects `stdin |> lines |> ... |> run`
 
-**Conceptual example — not directly runnable**
+**Illustrative** — not runnable
 ```genia
 stdin |> lines |> map(trim) |> filter((line) -> line != "") |> each(print)
 ```
+Classification: **Illustrative** (not directly runnable)
 
 ## Failure Case
 

@@ -12,9 +12,7 @@ from genia.utf8 import format_debug
 
 
 NON_RUNNABLE_MARKERS = {
-    "**Example only — not runnable**",
-    "**Illustrative sketch — not runnable**",
-    "**Conceptual example — not directly runnable**",
+    "**Illustrative** — not runnable",
 }
 OUTPUT_FENCE_TYPES = {"text"}
 FENCE_RE = re.compile(r"^```([A-Za-z0-9_-]*)\s*$")
@@ -175,7 +173,7 @@ def test_validate_sicp_chapter_skips_marked_non_runnable_block(tmp_path: Path):
     chapter.write_text(
         """# Demo
 
-**Conceptual example — not directly runnable**
+**Illustrative** — not runnable
 ```genia
 fact(n, acc) = ...
 ```
@@ -201,7 +199,7 @@ def test_validate_sicp_chapter_fails_when_marker_is_not_followed_by_genia(tmp_pa
     chapter.write_text(
         """# Demo
 
-**Example only — not runnable**
+**Illustrative** — not runnable
 
 ```text
 still not genia
@@ -326,7 +324,7 @@ inc(4)
 5
 ```
 
-**Example only — not runnable**
+**Illustrative** — not runnable
 ```genia
 inc(x) = ...
 ```
@@ -354,7 +352,7 @@ def test_validate_sicp_chapter_requires_a_runnable_example_for_chapters(tmp_path
     chapter.write_text(
         """# Demo
 
-**Conceptual example — not directly runnable**
+**Illustrative** — not runnable
 ```genia
 f(x) = ...
 ```

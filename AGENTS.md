@@ -40,6 +40,132 @@ For multi-host / portability work, agents must also treat these as synchronized 
 * `hosts/README.md`
 
 ---
+## Documentation Truth Model
+
+Documentation layers have different jobs and must not blur them.
+
+Truth hierarchy:
+
+* `GENIA_STATE.md` → implementation truth (final authority)
+* `GENIA_RULES.md` → semantic rule truth
+* `docs/host-interop/*` and `docs/architecture/core-ir-portability.md` → portability/host-contract truth
+* `README.md` → entry-level truth
+* `GENIA_REPL_README.md` → runtime/CLI truth
+* `docs/book/*` → explanatory truth
+* `docs/cheatsheet/*` → operational truth
+* `docs/sicp/*` → executable teaching truth
+* runnable examples/tests/spec cases → executable truth
+
+Allowed claims by layer:
+
+* `GENIA_STATE.md` may state what exists now, what is partial, and what is missing
+* `GENIA_RULES.md` may state semantic constraints and invariants
+* host/interop docs may state the portable language contract and Python reference host coverage
+* `README.md` may summarize implemented behavior, but only with scoped host qualifiers where needed
+* `GENIA_REPL_README.md` may describe actual Python reference host runtime behavior
+* book/cheatsheet/SICP docs may explain and teach only what current docs/tests support
+
+Forbidden claims by all layers:
+
+* claiming more than `GENIA_STATE.md`
+* presenting Python-host-only behavior as portable language law
+* presenting planned/scaffolded work as implemented
+* using absolute certainty language without evidence
+* marking examples as directly trustworthy without classification
+
+---
+## Contract vs Implementation Model
+
+Use these exact labels when a doc discusses host-dependent behavior:
+
+* `LANGUAGE CONTRACT:` → portable guarantees or explicit non-guarantees
+* `PYTHON REFERENCE HOST:` → what Python implements today
+
+Both labels must appear when:
+
+* a feature is Python-host-only
+* a page discusses portability or host behavior
+* a reader could otherwise confuse Python behavior with language semantics
+
+Only `LANGUAGE CONTRACT:` may appear for purely portable semantic rules.
+Only `PYTHON REFERENCE HOST:` may appear for purely host-backed operational notes with no portable guarantee.
+
+Use `Python reference host` consistently.
+Use `Python-host-only` consistently for non-portable public behavior.
+
+---
+## Maturity System
+
+Use only these maturity terms:
+
+* `Experimental` → implemented, but shape/coverage may still change materially
+* `Partial` → implemented, but limited in scope, host coverage, or validation
+* `Stable` → implemented and treated as current expected behavior in the reviewed surfaces
+
+Rules:
+
+* use maturity labels only for feature-level clarity, not every subsection
+* when a feature is `Experimental` or `Partial`, say what is missing or unstable
+* do not invent extra maturity categories
+
+---
+## Example Classification System
+
+Every example section in `docs/book/*`, `docs/cheatsheet/*`, and `docs/sicp/*` must include one of:
+
+* `Classification: **Valid** ...`
+* `Classification: **Likely valid** ...`
+* `Classification: **Illustrative** ...`
+* `Classification: **Invalid** ...`
+
+Meaning:
+
+* `Valid` → directly tested
+* `Likely valid` → consistent with current implementation, but not directly tested
+* `Illustrative` → not intended to run as a verified example
+* `Invalid` → intentionally wrong, outdated, or contradicted by implementation
+
+Rules:
+
+* classification must appear immediately after the example fence when practical
+* mixed examples default to `Likely valid` unless directly tested end-to-end
+* non-runnable examples must not be presented without `Illustrative`
+
+---
+## Host-Boundary Rules
+
+Use `Python-host-only` when behavior depends on:
+
+* Python threads/process/runtime objects
+* blocking I/O, sockets, files, bytes, debugger stdio, or shell execution
+* Python-only public bridges such as `import python`, `import web`, `stdin_keys`, refs/processes/cells/actors, or host RNG convenience helpers
+
+Forbidden host-boundary patterns:
+
+* `implemented` alone where portability could be inferred
+* `available` alone for host-only surfaces
+* implying that Python convenience behavior is part of the portable language contract
+
+---
+## Drift-Prevention Rules
+
+Agents must enforce these rules:
+
+* no doc may claim more than `GENIA_STATE.md`
+* examples must include classification
+* host-only behavior must be labeled
+* contract vs Python reference host wording must be explicit when relevant
+* avoid absolute claims without evidence
+* test coverage must be described honestly
+
+Banned certainty phrases in docs unless narrowly evidenced:
+
+* `all examples`
+* `complete coverage`
+* `fully aligned`
+* `no drift`
+
+---
 ## Cross-Tool Instruction Sync
 
 Shared cross-tool LLM guidance lives in `docs/ai/LLM_CONTRACT.md`.
@@ -341,6 +467,14 @@ If a feature doesn’t fit → update closest chapter or create a new one.
 
 ## Required Workflow for Any Change
 
+Short required change workflow:
+
+1. update `GENIA_STATE.md`
+2. update docs
+3. update examples
+4. update tests/spec sidecars
+5. run the relevant audit/validation
+
 ### Step 1: Read First
 
 Agents MUST read:
@@ -402,6 +536,9 @@ Before finishing, verify:
 * Docs match actual parser/runtime behavior
 * No feature is documented unless implemented
 * Partial features are labeled as partial
+* Experimental and stable labels are used consistently when present
+* Example sections include approved classification labels
+* Python-host-only behavior is labeled clearly
 * Cheatsheet entries match implemented behavior and current call shapes
 
 ---

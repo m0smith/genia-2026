@@ -72,30 +72,37 @@ Available primitives:
 xs = cons(1, cons(2, cons(3, nil)))
 [car(xs), car(cdr(xs))]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
 ```genia
 [1, 2]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Edge case example
 
 ```genia
 [pair?(cons(1, nil)), null?(nil), pair?([1, 2])]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
 ```genia
 [true, true, false]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Failure case example
 
 ```genia
 cdr(42)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -140,12 +147,16 @@ stream_tail(s) = force(cdr(s))
 s = cons(1, delay(cons(2, nil)))
 [stream_head(s), car(stream_tail(s))]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
 ```genia
 [1, 2]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Edge case example
 
@@ -154,6 +165,8 @@ ones() = cons(1, delay(ones()))
 s = ones()
 [car(s), car(force(cdr(s))), car(force(cdr(force(cdr(s)))))]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -166,6 +179,8 @@ Expected result:
 ```genia
 force(cdr(cons(1, 2)))
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -207,6 +222,8 @@ Current structured absence reasons in this layer:
 ```genia
 unwrap_or(0, first([1, 2, 3]))
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -224,6 +241,8 @@ pick(opt) =
 
 [pick(first([nil])), pick(last([])), pick(find_opt((x) -> none?(x), [1, nil, 2])), absence_reason(nth(9, [1, 2]))]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -248,6 +267,8 @@ Expected rendered result:
 ```genia
 find_opt(42, [1, 2, 3])
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -295,6 +316,8 @@ Maybe-flow note:
 ```genia
 map((x) -> x + 1, [1, 2, 3])
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -307,6 +330,8 @@ Expected result:
 ```genia
 filter((x) -> x % 2 == 0, [1, 2, 3, 4, 5])
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -329,6 +354,8 @@ This works through the pipeline stage-call rule `x |> f(y)` → `f(y, x)`.
 ```genia
 map((x) -> x + 1, 123)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -351,6 +378,8 @@ main(args) =
 
 main(argv())
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Edge case example
 
@@ -359,6 +388,8 @@ main(args) =
   [] -> "no args" |
   [first, ..rest] -> [first, length(rest)]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 This stays pure list matching with no special CLI variable syntax.
 
@@ -367,6 +398,8 @@ This stays pure list matching with no special CLI variable syntax.
 ```genia
 cli_parse(1)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -388,12 +421,16 @@ unwrap_or("?", nth(1, ["a", "b", "c"]))
 take(2, [1, 2, 3, 4]) -> [1, 2]
 drop(2, [1, 2, 3, 4]) -> [3, 4]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Edge case example
 
 ```genia
 [nth(9, [1, 2]), take(0, [1, 2]), drop(0, [1, 2])]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -420,6 +457,8 @@ Compatibility lookup forms still exist elsewhere in Genia, but `nth` is not one 
 ```genia
 nth(1, 42)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -452,6 +491,8 @@ Implemented arities:
 ```genia
 range(5)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -464,6 +505,8 @@ Expected result:
 ```genia
 range(5, 1, -2)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -476,6 +519,8 @@ Expected result:
 ```genia
 range(1, 5, 0)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -521,6 +566,8 @@ Expected behavior:
 zip_entries("in.zip")
   |> map(entry_name)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -532,6 +579,8 @@ Expected result:
 zip_entries("in.zip")
   |> map((e) -> e ? entry_json(e) -> entry_name(e) | _ -> none)
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -543,6 +592,8 @@ Expected behavior:
 ```genia
 zip_entries("missing.zip")
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 

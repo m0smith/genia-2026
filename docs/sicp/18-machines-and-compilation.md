@@ -21,6 +21,7 @@ inc(x) = x + 1
 
 41 |> inc
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 42

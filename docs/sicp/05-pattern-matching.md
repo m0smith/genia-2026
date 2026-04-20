@@ -25,6 +25,7 @@ describe(xs) =
 
 [describe([]), describe([5, 6])]
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 [0, 5]
@@ -59,11 +60,12 @@ Not "write an `if` ladder."
 - putting the catch-all branch too early
 - trying to use rest patterns in the middle of a list pattern
 
-**Example only — not runnable**
+**Illustrative** — not runnable
 ```genia
 bad(xs) =
   [first, ..rest, last] -> first
 ```
+Classification: **Illustrative** (not directly runnable)
 
 ## Failure Case
 

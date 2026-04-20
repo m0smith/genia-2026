@@ -23,6 +23,7 @@ square(x) = x * x
 
 [1 + 2, square(4), some(7), none]
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 [3, 16, some(7), none("nil")]
@@ -61,10 +62,11 @@ Sometimes the machine honestly says `none("nil")`.
 - forgetting that a function body is just an expression
 - expecting `none` to be magic emptiness instead of an actual value
 
-**Example only — not runnable**
+**Illustrative** — not runnable
 ```genia
 square = x * x
 ```
+Classification: **Illustrative** (not directly runnable)
 
 That is assignment, not a function definition.
 

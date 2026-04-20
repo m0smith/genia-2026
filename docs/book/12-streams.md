@@ -55,6 +55,7 @@ ones() =
 
 stream_take(3, ones())
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -70,6 +71,7 @@ from(n) =
 
 stream_take(5, stream_filter((x) -> x % 2 == 0, from(1)))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -84,6 +86,7 @@ This works because the delayed tail is forced only as far as `stream_take` needs
 ```genia
 stream_head(nil)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

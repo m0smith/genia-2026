@@ -23,6 +23,7 @@ double(x) = x * 2
 
 3 |> inc |> double
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 8

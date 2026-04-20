@@ -21,6 +21,7 @@ person = {name: "Ada", pets: ["ant", "bee"]}
 
 [person/name, nth(1, person/pets)]
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 ["Ada", some("bee")]
@@ -54,7 +55,7 @@ Lists are the ordered items stuffed inside those pockets.
 - expecting every lookup to succeed
 - forgetting that `nth` returns an Option value
 
-**Illustrative sketch — not runnable**
+**Illustrative** — not runnable
 ```genia
 order = {
   user: {name: "Ari"},
@@ -62,6 +63,7 @@ order = {
   payment: ...
 }
 ```
+Classification: **Illustrative** (not directly runnable)
 
 ## Failure Case
 

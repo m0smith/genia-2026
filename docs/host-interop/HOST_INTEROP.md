@@ -3,16 +3,20 @@
 This document defines the shared portability contract for Genia hosts.
 
 
-**Python is the only implemented host and is the reference host.**
-The Python host adapter implements the shared host contract for these spec categories:
+**LANGUAGE CONTRACT**
+- The shared host contract currently covers these spec categories: parse, ir, eval, cli, flow, error.
+- All observable outputs in those categories are normalized to canonical forms; no Python-specific leakage is allowed in contract behavior.
+
+**PYTHON REFERENCE HOST**
+- Python is the only implemented host and is the reference host today.
+- The Python host adapter implements the shared host contract for these spec categories:
   - parse
   - ir
   - eval
   - cli
   - flow
   - error
-All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
-Other hosts are not implemented yet.
+- Other hosts are not implemented yet.
 
 Future hosts may differ internally, but must preserve the same observable Genia semantics at the source/Core IR/runtime boundary.
 

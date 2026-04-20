@@ -22,6 +22,7 @@ countdown(n, acc) =
 
 countdown(6, 0)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 6

@@ -9,42 +9,46 @@ This repository currently provides:
   - pipelines lower to an explicit ordered-stage IR node rather than nested calls
   - Option constructors lower explicitly as `some(...)` / `none(...)` IR values
 - a REPL and file runner (`python3 -m genia.interpreter`)
-- host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`)
-- host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`)
-- raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`)
-- a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`)
-- simulation primitives (`rng`, `rand`, `rand_int`, `sleep`)
-- terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`)
-- a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`)
-- shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (Python-host-only, implemented)
+- host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`) (**Python-host-only**)
+- host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`) (**Python-host-only**)
+- raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`) (**Python-host-only**)
+- a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`) (**Python-host-only**)
+- simulation primitives (`rng`, `rand`, `rand_int`, `sleep`) (**Python-host-only**)
+- terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`) (**Python-host-only**)
+- a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
+- shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
+  - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
-- debug-stdio adapter support for editor integration
+- debug-stdio adapter support for editor integration (**Python-host-only**)
 - runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, `ants_web.genia`, and `http_service.genia`)
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
 
 
+
 ## Host Portability & Spec Contract
 
-**Python is the only implemented host and is the reference host.**
+**LANGUAGE CONTRACT:**
+- The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
+- All observable outputs (runtime, CLI, errors) are normalized to canonical forms; no Python-specific leakage is allowed in portable contract behavior.
+- CLI pipe mode and Flow are part of the current shared public behavior.
 
-- The Python host adapter implements the shared host contract for these spec categories:
-  - parse
-  - ir
-  - eval
-  - cli
-  - flow
-  - error
-- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
-- The shared spec contract is enforced by the Python host adapter and spec runner.
-- Future hosts must pass the same contract and normalization rules.
-- CLI pipe mode and Flow are part of that current shared public behavior; the HTTP helper surface and actor surface remain Python-host public behavior in this phase and are not yet shared-host contract categories.
-- The shell pipeline stage `$(...)` is a **blessed Python-host-only feature**: it is implemented and supported on Python, but is not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
+**PYTHON REFERENCE HOST:**
+- Python is the only implemented host and is the reference host.
+- The Python host adapter enforces the shared host contract for the categories above.
+- The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
+- The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
+
+Maturity:
+
+- `Stable`: core parser/eval surfaces and the documented portable contract categories enforced through the current Python reference host
+- `Partial`: shared-host enforcement beyond Python and broader host-capability coverage
+- `Experimental`: explicitly marked surfaces such as the shell pipeline stage `$(...)`
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
 
@@ -69,6 +73,8 @@ inc(x) -> x + 1
 meta("inc")
 ```
 
+Classification: **Valid** (directly tested)
+
 Result:
 
 ```genia
@@ -78,6 +84,14 @@ Result:
 ## Documentation & Metadata
 
 Genia annotations are runtime metadata for top-level bindings, not macros.
+
+---
+
+**Note:** All example classifications in this README follow:
+- **Valid** = directly tested in the reviewed examples
+- **Likely valid** = not directly tested in the reviewed examples, but consistent with current implementation
+- **Illustrative** = documentation/example text, not meant to be runnable
+- **Invalid** = outdated, broken, or contradicted by implementation
 
 The canonical `@doc` formatting guide lives in `docs/style/doc-style.md`.
 
@@ -615,7 +629,7 @@ import math as m
 
 ### Python host interop (Phase 1, allowlisted)
 
-Genia currently reuses the existing module system for a minimal Python-only host bridge.
+Genia currently reuses the existing module system for a minimal Python-host-only host bridge.
 There is no new member-access syntax for this.
 
 ```genia
@@ -826,7 +840,7 @@ actor_call(a, 3)
 - `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - `help()` prints a compact overview of the public prelude-backed stdlib families, with public family names grouped from registered prelude autoloads
 - `help("name")` can autoload registered prelude helpers before rendering their docstrings
-- `help("name")` for raw host-backed names prints a generic bridge note rather than a separate host-specific doc registry
+- `help("name")` for raw host-backed names prints a generic bridge note rather than a separate Python reference host doc registry
 - `help("missing")` prints a short missing-name note rather than an undefined-name traceback
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
@@ -1060,7 +1074,7 @@ See docs/design for in-progress ideas and future directions.
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/event loop for simulations
 
-For stricter implementation details and invariants, see:
+For stricter implementation constraints and invariants, see:
 
 - `GENIA_STATE.md`
 - `GENIA_RULES.md`

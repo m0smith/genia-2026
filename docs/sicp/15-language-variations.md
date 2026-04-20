@@ -21,6 +21,7 @@ p = delay(1 + 2)
 
 force(p)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 3

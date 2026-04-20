@@ -20,6 +20,7 @@ apply_twice(f, x) = f(f(x))
 
 apply_twice(square, 2)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ```text
 16
@@ -55,10 +56,11 @@ The cutter shape stays the same.
 - forgetting to pass the function value itself
 - accidentally calling the helper too early
 
-**Example only — not runnable**
+**Illustrative** — not runnable
 ```genia
 apply_twice(square(2), 2)
 ```
+Classification: **Illustrative** (not directly runnable)
 
 That passes a number, not a function.
 

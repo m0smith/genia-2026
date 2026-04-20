@@ -38,8 +38,8 @@ Genia's current runtime value model is broader than just "plain data".
 - `stderr`
 - MetaEnv (`empty_env()`)
 - Flow (runtime Phase 1 is implemented)
-- refs (`ref`)
-- process handles (`spawn`)
+- refs (`ref`) (**Python-host-only**)
+- process handles (`spawn`) (**Python-host-only**)
 - **phase-1 host-backed bytes wrappers** (`utf8_encode`, `utf8_decode`)
 - **phase-1 host-backed zip entry wrappers** (`zip_entries`, `entry_*`, `zip_write`)
 - **phase-1 Python host handles** returned by `python/open` (`<python file>`)
@@ -139,6 +139,7 @@ Both produce the same runtime data representation.
 ```genia
 quote([a, b, c])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -152,6 +153,7 @@ Expected result:
 q = quote({a: 1, "b": c})
 [map_get(q, quote(a)), map_get(q, "b")]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -212,6 +214,7 @@ Expected result:
 ```genia
 quote(a, b)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -261,6 +264,7 @@ These helpers live in `src/genia/std/prelude/syntax.genia` and reuse the existin
 assignment_name(quote(x = 10))
 assignment_value(quote(x = 10))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -278,6 +282,7 @@ x
   branch_guard(car(cdr(match_branches(quote(0 -> 1 | x ? x > 0 -> x))))) == quote(x > 0)
 ]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -297,6 +302,7 @@ Current note:
 ```genia
 assignment_name(quote(42))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -366,6 +372,7 @@ Public names:
 ```genia
 eval(quote(42), empty_env())
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -383,6 +390,7 @@ expr = quote({
 })
 eval(expr, empty_env())
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -395,6 +403,7 @@ Expected result:
 ```genia
 apply(eval(quote(0 -> 1), empty_env()), [9])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -449,6 +458,7 @@ Genia has immutable pairs for SICP-style structural data.
 ```genia
 car(cons(1, 2))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -462,6 +472,7 @@ Expected result:
 xs = cons(1, cons(2, cons(3, nil)))
 [car(xs), car(cdr(xs)), null?(cdr(cdr(cdr(xs))))]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -474,6 +485,7 @@ Expected result:
 ```genia
 car(1)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -515,6 +527,7 @@ Promises are not Flow values.
 ```genia
 force(delay(1 + 2))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -532,6 +545,7 @@ Expected result:
   force(p)
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -552,6 +566,7 @@ This shows the current lexical-capture rule:
   force(p)
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -605,6 +620,7 @@ The public `write`, `writeln`, and `flush` names are defined in `src/genia/std/p
 write(stdout, "a")
 writeln(stdout, "b")
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -616,6 +632,7 @@ Expected behavior:
 flush(stdout)
 flush(stderr)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -633,6 +650,7 @@ render_grid([
   ["O", "-", "O"],
 ])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -652,6 +670,7 @@ Expected behavior:
 ```genia
 write(42, "x")
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -699,6 +718,7 @@ The public `parse_int` name is defined in `src/genia/std/prelude/string.genia` a
 ```genia
 parse_int("42")
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -711,6 +731,7 @@ some(42)
 ```genia
 [parse_int("  -17  "), parse_int("ff", 16), parse_int("101010", 2)]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -723,6 +744,7 @@ Expected result:
 ```genia
 parse_int("12x")
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -788,6 +810,7 @@ world1 = map_put(world0, [10, 12], "food")
 world2 = map_put(world1, [11, 12], "ant")
 print(map_get(world2, [10, 12]))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -805,6 +828,7 @@ m1 = map_put(m0, [1, 2], "a")
 m2 = map_put(m1, [1, 2], "b")
 [map_count(m1), map_count(m2), map_get(m1, [1, 2]), map_get(m2, [1, 2])]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -821,6 +845,7 @@ This shows persistent update semantics with key replacement.
 ```genia
 map_put(1, "k", 10)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -877,6 +902,7 @@ Map values support static named access with `/` when the right-hand side is a ba
 person = { name: "Matthew", age: 42 }
 person/name
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -890,6 +916,7 @@ Expected result:
 person = { name: "Matthew" }
 person/middle
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -902,6 +929,7 @@ none("missing-key", {key: "missing"})
 ```genia
 {name: "Matthew"}/"name"
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -937,6 +965,7 @@ Only two non-function callable-data forms are implemented in this phase.
 person = { name: "Matthew", age: 42 }
 [person("name"), "age"(person)]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -950,6 +979,7 @@ Expected result:
 person = { name: "Matthew" }
 [person("missing"), person("missing", "?"), "missing"(person, "?")]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -977,6 +1007,7 @@ This works because the pipeline stage still calls the string projector with the 
 ```genia
 "name"(42)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1032,6 +1063,7 @@ Flat pipeline-friendly API (no member/dot syntax):
 format_json_bytes(bytes) =
   compose(utf8_encode, json_stringify, json_parse, utf8_decode)(bytes)
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Edge case example
 
@@ -1040,6 +1072,7 @@ rewrite_entry(entry) =
   entry ? entry_json(entry) -> update_entry_bytes(entry, format_json_bytes) |
   _ -> entry
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1051,6 +1084,7 @@ Expected behavior:
 ```genia
 utf8_decode("not-bytes")
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1091,7 +1125,7 @@ Expected behavior:
 
 ## Simulation primitives (Phase 2)
 
-Genia includes minimal host-backed simulation builtins:
+Genia includes minimal Python reference host builtins (**Python-host-only**):
 
 - `rand()`
 - `rand_int(n)`
@@ -1108,6 +1142,7 @@ pick_direction(n) =
 
 pick_direction(rand_int(2))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1136,6 +1171,7 @@ Expected behavior:
 ```genia
 rand_int(1)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1146,6 +1182,7 @@ Expected behavior:
 ```genia
 rand_int(0)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1208,6 +1245,7 @@ step(world) = {
   set_tick(advanced, world_tick(advanced) + 1)
 }
 ```
+Classification: **Likely valid** (not directly tested)
 
 This shows the central simulation shape:
 
@@ -1224,6 +1262,7 @@ wrap(n, size) =
   (n, size) ? n >= size -> 0 |
   (n, _) -> n
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior (demo grid wrapping):
 
@@ -1329,6 +1368,7 @@ Canonical access/search helpers implemented today:
 person = { profile: { name: "Genia" } }
 unwrap_or("unknown", person |> get("profile") |> get("name"))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -1347,6 +1387,7 @@ Expected result:
   find("abc", "b"),
 ]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -1365,6 +1406,7 @@ Expected behavior:
   some(nil),
 ]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected rendered result:
 
@@ -1379,6 +1421,7 @@ This is still ordinary data. The tooling/rendering is just making the data easie
 ```genia
 absence_reason(42)
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

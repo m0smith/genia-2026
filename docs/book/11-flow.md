@@ -186,7 +186,11 @@ Expected result: `30`
 
 ## Real-time input (`stdin_keys`)
 
-Genia now exposes `stdin_keys` as a host-backed Flow source for key-by-key input.
+**LANGUAGE CONTRACT:**
+- `stdin_keys` is not part of the shared portability contract
+
+**PYTHON REFERENCE HOST:**
+- `stdin_keys` is a Python-host-only host-backed Flow source for key-by-key input
 
 - `stdin` remains line-oriented through `stdin |> lines`
 - `stdin_keys` is key-oriented and does not require pressing Enter in interactive terminals
@@ -201,6 +205,7 @@ Genia now exposes `stdin_keys` as a host-backed Flow source for key-by-key input
 ```genia
 stdin_keys |> each(handle_input) |> run
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -211,6 +216,7 @@ Expected behavior:
 ```genia
 stdin_keys |> head(3) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -224,6 +230,7 @@ x = stdin_keys
 x |> collect
 x |> collect
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -254,30 +261,40 @@ The helper is intentionally minimal in this phase:
 ```genia
 tick(5) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
 ```genia
 [0, 1, 2, 3, 4]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Edge case example
 
 ```genia
 tick() |> head(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
 ```genia
 [1, 2, 3, 4]
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Failure case example
 
 ```genia
 tick("bad") |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -298,6 +315,8 @@ These helpers preserve the same lazy pull-based flow model and do not materializ
 ```genia
 ["a", "b", "c"] |> lines |> tee |> merge |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -310,6 +329,8 @@ Expected result:
 ```genia
 ["a", "b", "c"] |> lines |> tee |> zip |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -322,6 +343,8 @@ Expected result:
 ```genia
 tee(["a", "b"])
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -343,6 +366,8 @@ Only `output` is emitted on the output flow.
 ```genia
 [1, 2, 3, 4] |> lines |> scan((state, x) -> [state + x, state + x], 0) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -363,6 +388,8 @@ window2(state, x) = {
 
 [1, 2, 3, 4] |> lines |> scan(window2, []) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -375,6 +402,8 @@ Expected result:
 ```genia
 [1] |> lines |> scan((state, x) -> state + x, 0) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -400,6 +429,8 @@ When they receive a Flow value, they log/forward the Flow handle and preserve la
 ```genia
 stdin |> lines |> map(parse_int) |> keep_some |> collect |> trace("after parse") |> sum
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -414,12 +445,16 @@ clean(flow) =
 
 stdin |> clean |> each(print) |> run
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 ### Edge case example
 
 ```genia
 stdin |> lines |> take(0) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -436,6 +471,8 @@ x = stdin |> lines
 x |> run
 x |> run
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -463,6 +500,8 @@ keep_a_names(record, ctx) =
 
 ["ada", "grace", "alan"] |> lines |> rules(keep_a_names) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -482,6 +521,8 @@ running_total(record, ctx) = {
 
 ["1", "2", "3"] |> lines |> rules(running_total) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -498,6 +539,8 @@ bad(record, ctx) = some({ emit: record })
 
 ["1"] |> lines |> rules(bad) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -557,6 +600,8 @@ remember_dead(x) = ref_update(bad, (xs) -> append(xs, [x]))
 
 ["10", "oops", "20"] |> lines |> keep_some_else(parse_int, remember_dead) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -581,6 +626,8 @@ stage(x) =
 
 ["a", "b", "c", "4"] |> lines |> keep_some_else(stage, log) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -595,6 +642,8 @@ bad(x) = x + 1
 
 [1, 2, 3] |> lines |> keep_some_else(bad, log) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -617,6 +666,8 @@ Use it when you want to keep successful Option values and silently drop `none(..
 ```genia
 ["10", "oops", "20"] |> lines |> map(parse_int) |> keep_some |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -629,6 +680,8 @@ Expected result:
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -646,6 +699,8 @@ Only the helper itself unwraps `some(...)` on success.
 ```genia
 ["a", "b"] |> lines |> keep_some |> collect
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -666,6 +721,8 @@ Expected behavior:
 ```genia
 ["10", "oops", "20"] |> lines |> keep_some(parse_int) |> collect |> sum
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -678,6 +735,8 @@ Expected result:
 ```genia
 ["10", "oops", "20"] |> lines |> map((row) -> unwrap_or(0, row |> parse_int)) |> collect |> sum
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected result:
 
@@ -690,6 +749,8 @@ Expected result:
 ```genia
 ["10", "oops", "20"] |> lines |> map(parse_int) |> collect |> sum
 ```
+Classification: **Likely valid** (not directly tested)
+
 
 Expected behavior:
 
@@ -723,6 +784,7 @@ stdin |> lines |> <stage_expr> |> run
 ```bash
 printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -744,6 +806,7 @@ Recommended mental model:
 ```bash
 genia --pipe 'head(1) |> each(print)'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -756,6 +819,7 @@ Expected behavior:
 ```bash
 genia -p 'head(1) |> each(print) |> run'
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -881,7 +945,7 @@ This should stop upstream reading as soon as the first line is printed.
 - early termination on `take`/`head`
 - `-p` / `--pipe` CLI wrapping for single stage expressions
 - clear runtime errors for invalid flow-source misuse instead of leaked Python iterator errors
-- experimental shell pipeline stage `$(command)` (Python-host-only; see [Chapter 15](15-reference-host-and-portability.md))
+- shell pipeline stage `$(command)` (**Python-host-only**; see [Chapter 15](15-reference-host-and-portability.md))
 
 ### ⚠️ Partial
 

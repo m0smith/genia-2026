@@ -11,6 +11,7 @@ How does Genia choose which branch runs?
 ```
 head([1, 2, 3]) -> 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 This looks simple, but something important is happening:
 
@@ -25,6 +26,7 @@ It is **matching shapes**.
 ```
 head([x, .._]) -> x
 ```
+Classification: **Likely valid** (not directly tested)
 
 This says:
 
@@ -72,12 +74,15 @@ Evaluation is **top to bottom**.
 
 ---
 
+nth(0, [x, .._]) -> x |
+nth(n, [_, ..rest]) -> nth(n - 1, rest)
 ## A Slightly Harder Example
 
 ```
 nth(0, [x, .._]) -> x |
 nth(n, [_, ..rest]) -> nth(n - 1, rest)
 ```
+Classification: **Likely valid** (not directly tested)
 
 This defines `nth`:
 
@@ -101,6 +106,7 @@ Map patterns match required keys in persistent map values.
 greet(person) =
   ({ name }) -> "Hello " + name
 ```
+Classification: **Likely valid** (not directly tested)
 
 `{ name }` is shorthand for `{ name: name }`.
 
@@ -110,6 +116,7 @@ greet(person) =
 describe(person) =
   ({ "name": name, age: years, city, }) -> [name, years, city]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Map patterns are partial by default: extra keys are allowed.  
 All listed keys must be present.
@@ -120,6 +127,7 @@ All listed keys must be present.
 bad(person) =
   ({ "name" }) -> person
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior: syntax error (shorthand is only allowed for identifier keys; string keys must use `:`).
 
@@ -138,6 +146,7 @@ first3(xs) =
     .._
   ] -> [a, b, c]
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Edge case example
 
@@ -149,6 +158,7 @@ head_or_none(xs) =
   ] -> x |
   [] -> "none"
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Failure case example
 
@@ -160,6 +170,7 @@ bad(xs) =
     b
   ] -> a
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior: parse error (`..rest must be the final item in a list pattern`).
 
@@ -182,6 +193,7 @@ kind(name) =
   glob"*.md" -> "markdown" |
   _ -> "other"
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Edge case example
 
@@ -191,6 +203,7 @@ kind(s) =
   glob"*" -> "any" |
   _ -> "fallback"
 ```
+Classification: **Likely valid** (not directly tested)
 
 - `glob""` matches only `""`
 - `glob"*"` matches every string, including `""`
@@ -204,6 +217,7 @@ bad(s) =
   glob"[a-z" -> "nope" |
   _ -> "ok"
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior: syntax error for unterminated character class.
 
@@ -347,6 +361,7 @@ fallback(opt) =
   none -> "missing" |
   some(_) -> "present"
 ```
+Classification: **Likely valid** (not directly tested)
 
 `none` is a literal pattern and matches only the Option none value, not `nil`.
 
@@ -366,6 +381,7 @@ pick_name(opt) =
 
 pick_name(last([]))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Constructor-pattern matching composes with existing map/list patterns.
 
@@ -375,6 +391,7 @@ Constructor-pattern matching composes with existing map/list patterns.
 bad(opt) =
   none(a, b, c) -> a
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 
@@ -458,6 +475,7 @@ run_parsed(parsed) =
   ([opts, [input, output]]) -> [cli_flag?(opts, "pretty"), input, output] |
   _ -> "usage"
 ```
+Classification: **Likely valid** (not directly tested)
 
 ### Edge case example
 
@@ -466,6 +484,7 @@ Use `--` to stop option parsing:
 ```genia
 cli_parse(["--pretty", "--", "--literal"])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected positional remainder includes `"--literal"`.
 
@@ -474,6 +493,7 @@ Expected positional remainder includes `"--literal"`.
 ```genia
 cli_parse(["-ab"], map_put(map_new(), "options", ["a", "b"]))
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

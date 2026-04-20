@@ -24,6 +24,7 @@ Public phase-1 names:
 ```genia
 eval(quote(42), empty_env())
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -38,6 +39,7 @@ env = empty_env()
 f = eval(quote((x) -> x + 1), env)
 apply(f, [10])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -55,6 +57,7 @@ expr = quote({
 })
 eval(expr, empty_env())
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -68,6 +71,7 @@ Expected result:
 matcher = eval(quote(x ? x > 0 -> x | _ -> 0), empty_env())
 [apply(matcher, [5]), apply(matcher, [-1])]
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected result:
 
@@ -80,6 +84,7 @@ Expected result:
 ```genia
 apply(eval(quote(0 -> 1), empty_env()), [9])
 ```
+Classification: **Likely valid** (not directly tested)
 
 Expected behavior:
 

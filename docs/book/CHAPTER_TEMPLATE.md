@@ -14,6 +14,7 @@ Start with a concrete, curiosity-driven question.
 ```
 head([1, 2, 3]) -> 1
 ```
+Classification: **Likely valid** (not directly tested)
 
 Explain only what is necessary.
 
@@ -24,6 +25,7 @@ Explain only what is necessary.
 ```
 head([x, .._]) -> x
 ```
+Classification: **Likely valid** (not directly tested)
 
 Build intuition incrementally.
 
@@ -57,6 +59,7 @@ Explain constraints and expectations.
 nth(0, [x, .._]) -> x |
 nth(n, [_, ..rest]) -> nth(n - 1, rest)
 ```
+Classification: **Likely valid**
 
 ---
 
@@ -65,6 +68,7 @@ nth(n, [_, ..rest]) -> nth(n - 1, rest)
 ```
 head([]) -> ?
 ```
+Classification: **Invalid**
 
 Explain:
 
