@@ -117,6 +117,23 @@ Flow values are lazy and single-use.
 The one rule: raw values stay values, flows stay flows, only explicit bridges cross.
 See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matrix.
 
+## Shell Stage
+
+Experimental, Python-host-only pipeline stage:
+
+| Rule | Meaning |
+| --- | --- |
+| form | `value |> $(command)` executes `command` via the host shell |
+| stdin materialization | strings → UTF-8; lists/flows → newline-joined display; numbers/bools → display |
+| stdout | captured as UTF-8 string; one trailing newline is stripped |
+| empty stdout | returns `none("empty-shell-output")` |
+| limits | only valid inside a pipeline; not part of portable Core IR |
+
+[case: core-shell-stage-upper]
+```genia
+"hello" |> $(tr a-z A-Z)
+```
+
 ## Refs
 
 | Helper | Shape |

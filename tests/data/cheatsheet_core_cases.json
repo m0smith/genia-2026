@@ -40,6 +40,11 @@
     "expected_result": "[8, 7]"
   },
   {
+    "id": "core-shell-stage-upper",
+    "source": "\"hello\" |> $(tr a-z A-Z)",
+    "expected_result": "\"HELLO\""
+  },
+  {
     "id": "core-min-annotation-doc",
     "source": "@doc \"Adds one to x.\"\ninc(x) -> x + 1\ndoc(\"inc\")",
     "expected_result": "\"Adds one to x.\""

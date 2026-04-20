@@ -56,6 +56,11 @@ class TestShellStageHappyPath:
         result = run(env, '"" |> $(echo hello)')
         assert result == "hello"
 
+    def test_only_one_trailing_newline_is_stripped(self, env):
+        """Multiple trailing newlines lose only one final newline."""
+        result = run(env, '"" |> $(printf \'hello\\n\\n\')')
+        assert result == "hello\n"
+
     def test_multiple_output_lines_preserved(self, env):
         """Non-trailing newlines are preserved in stdout."""
         result = run(env, '"a\\nb" |> $(cat)')
@@ -131,11 +136,14 @@ class TestShellStageEmptyOutput:
 
 
 class TestShellStageOptionPropagation:
-    def test_none_propagates_without_execution(self, env):
+    def test_none_propagates_without_execution(self, env, tmp_path):
         """none(...) short-circuits — the shell command is not executed."""
-        result = run(env, 'none("skip") |> $(cat)')
+        marker = tmp_path / "shell-stage-short-circuit-marker"
+        src = f'none("skip") |> $(touch "{marker}")'
+        result = run(env, src)
         assert isinstance(result, GeniaOptionNone)
         assert result.reason == "skip"
+        assert not marker.exists()
 
     def test_none_with_meta_propagates(self, env):
         result = run(env, 'none("reason") |> $(cat)')
