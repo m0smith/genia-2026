@@ -10,6 +10,7 @@ import sys
 
 import pytest
 
+from genia import make_global_env
 from genia.interpreter import _main
 
 
@@ -349,6 +350,28 @@ class TestStderrRobustness:
 # ===========================================================================
 
 class TestPipeModeHappyPath:
+    def test_pipe_mode_bypasses_main_dispatch(self, monkeypatch, capsys):
+        original_make_global_env = make_global_env
+
+        def make_env_with_failing_main(*args, **kwargs):
+            env = original_make_global_env(*args, **kwargs)
+
+            def should_not_run():
+                raise AssertionError("pipe mode should not dispatch main")
+
+            env.set("main", should_not_run)
+            return env
+
+        monkeypatch.setattr("genia.interpreter.make_global_env", make_env_with_failing_main)
+        monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
+
+        exit_code = _main(["-p", "each(print)"])
+        captured = capsys.readouterr()
+
+        assert exit_code == 0
+        assert captured.out == "a\nb\n"
+        assert captured.err == ""
+
     def test_simple_each_print(self, monkeypatch, capsys):
         monkeypatch.setattr("sys.stdin", CountingStdin(["a\n", "b\n"]))
 

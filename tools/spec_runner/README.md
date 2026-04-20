@@ -6,6 +6,8 @@ The shared spec runner loads spec cases, dispatches them to the Python host adap
 **Python is the only implemented host today.**
 The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint, dispatching to category-specific execution modules for parse, ir, eval, cli, flow, and error. All results are normalized before comparison.
 
+Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
+
 **How to run the spec suite:**
 
 ```bash

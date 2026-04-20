@@ -85,6 +85,23 @@ def test_actor_failure_rejects_subsequent_sends():
         run_source("actor_send(a2, 2)", env)
 
 
+def test_actor_failure_rejects_subsequent_calls():
+    """subsequent actor_call raises after the actor has failed"""
+    env = make_global_env([])
+    run_source(
+        """
+        crash_handler(_state, _msg, _ctx) = 1 / 0
+        a = actor(0, crash_handler)
+        actor_send(a, 1)
+        """,
+        env,
+    )
+    wait_for(env, 'cell_failed?(a("_cell"))', True)
+
+    with pytest.raises(RuntimeError, match="Cell has failed"):
+        run_source("actor_call(a, 2)", env)
+
+
 # --- actor_call tests ---
 
 

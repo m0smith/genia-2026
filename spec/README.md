@@ -12,6 +12,8 @@ The Python host adapter implements the shared host contract for these categories
   - flow
   - error
 
+Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
+
 **Purpose:**
 - Keep all hosts aligned with the same language/runtime/CLI contract
 - Validate behavior at the parse, Core IR, eval, CLI, flow, and error boundaries

@@ -39,6 +39,7 @@ Manifest status guardrails:
 ## HTTP service foundation
 
 The Python reference host now also includes a first usable synchronous HTTP service bridge.
+This is a public Python-reference-host surface in the current phase, not a shared cross-host contract category.
 
 The host/runtime split in this phase is intentionally small:
 

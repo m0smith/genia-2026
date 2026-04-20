@@ -75,6 +75,7 @@ Clarifications:
 
 - no browser playground application runtime is implemented in this repository yet
 - browser work in this phase is architecture/contract scaffolding only
+- browser execution is planned to use the Python reference host on a backend service in the current V1 direction
 - browser execution remains a host-capability adaptation concern and does not define a new Genia dialect
 - `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
 
@@ -836,6 +837,7 @@ Output sink semantics:
   - `grid` must be a list
   - each row must be either a string or a list of displayable values
 - `web/serve_http(config, handler)` runs a synchronous blocking HTTP server and returns `{host, port, handled_requests}` after the server stops
+  - this is a public Python-reference-host surface in the current phase, not a shared cross-host contract category
   - `config.host` defaults to `"127.0.0.1"`
   - `config.port` defaults to `8000`
   - optional `config.max_requests` stops the server after a fixed number of handled requests
@@ -1125,6 +1127,7 @@ Behavior:
 Behavior:
 
 - `actor(initial_state, handler)` creates an actor backed by a cell
+  - this is a public Python-reference-host surface in the current phase, not a shared cross-host contract category
   - the handler shape is `handler(state, msg, ctx) -> effect`
   - the actor is represented as a map with internal `_cell` and `_handler` keys
 - supported effect shapes:

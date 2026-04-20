@@ -8,6 +8,7 @@ Genia provides host-backed concurrency primitives layered as:
 4. **Actors** — a thin prelude layer over cells adding a message/effect protocol
 
 All concurrency is backed by Python host threads in this phase.
+The actor surface here is public Python-reference-host behavior in this phase, not a shared cross-host portability contract.
 There is no language-level scheduler, no deterministic timing, and no Erlang-style guarantees.
 
 ## Minimal example

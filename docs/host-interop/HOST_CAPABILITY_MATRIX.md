@@ -15,6 +15,7 @@ Browser playground adapter note:
 - documentation scaffold exists under `docs/browser/`
 - this is not an implemented browser runtime host capability yet
 - `spec/manifest.json` records no implemented browser runtime adapter hosts in this phase
+- browser execution is planned to use the Python reference host on a backend service before any browser-native host exists
 
 | Capability | Python | Node.js | Java | Rust | Go | C++ | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |

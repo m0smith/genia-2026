@@ -169,6 +169,7 @@ All three shapes work with both `actor_send` and `actor_call`.
 `actor_call` with `["stop", ...]` replies with `none("actor-stopped")`.
 If the handler throws during `actor_call`, the result is `none("actor-error")`.
 Actors are a thin prelude layer over cells, not a BEAM-style actor system.
+They are public Python-host behavior in this phase, not a shared cross-host contract surface.
 
 <!-- [case: core-actor-call-reply] -->
 ```genia
@@ -249,6 +250,7 @@ The ants terminal UI accepts `--seed`, `--ants`, `--steps`, `--delay`, `--size`,
 ## Web Helpers
 
 Use `import web` and call helpers through module exports.
+These helpers are public Python-host behavior in this phase, not a shared cross-host contract surface.
 
 | Helper | Shape |
 | --- | --- |

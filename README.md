@@ -41,6 +41,7 @@ This repository currently provides:
 - All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
 - The shared spec contract is enforced by the Python host adapter and spec runner.
 - Future hosts must pass the same contract and normalization rules.
+- CLI pipe mode and Flow are part of that current shared public behavior; the HTTP helper surface and actor surface remain Python-host public behavior in this phase and are not yet shared-host contract categories.
 - See `docs/host-interop/` and `spec/` for details.
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
