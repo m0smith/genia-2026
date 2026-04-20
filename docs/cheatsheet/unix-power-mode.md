@@ -162,7 +162,7 @@ genia -c '"hello" |> $(tr a-z A-Z)'
 
 Expected result: the string is uppercased by the host `tr` command.
 
-<!-- [case: unix-power-shell-cat] -->
+[case: unix-power-shell-cat]
 ```bash
 genia -c '"hello world" |> $(cat)'
 ```
