@@ -294,7 +294,7 @@ Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.m
 
 ## Requirements
 
-- Python >=3.8 (see [pyproject.toml](pyproject.toml))
+ - Python >=3.8 (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
 
 Run tests:
 
