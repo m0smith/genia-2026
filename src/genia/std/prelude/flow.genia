@@ -128,11 +128,19 @@ It does not change ordinary `|>` semantics outside this helper.
 """
 keep_some_else(stage, dead_handler, flow) = _keep_some_else(stage, dead_handler, flow)
 
+
 @doc """Apply rule functions left-to-right to each incoming flow item.
 
 Rule orchestration, defaulting, and contract validation live in prelude in this phase.
+Legacy/compatibility name; see also `refine` (preferred).
 """
 rules(..fns) = rules_dispatch(fns)
+
+@doc """Apply step functions left-to-right to each incoming flow item.
+
+Preferred alias for `rules(..steps)`; see also `rules` (compatibility).
+"""
+refine(..steps) = rules(..steps)
 
 rules_dispatch(args) =
   (args) ? rules_immediate_flow?(args) == true -> {

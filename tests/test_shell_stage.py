@@ -6,7 +6,7 @@ Option propagation, error quality, and regression coverage.
 
 import pytest
 from genia import make_global_env, run_source
-from genia.interpreter import GeniaFlow, GeniaOptionNone, GeniaOptionSome
+from genia.interpreter import GeniaOptionNone, GeniaOptionSome
 
 
 @pytest.fixture

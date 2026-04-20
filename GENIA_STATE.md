@@ -47,6 +47,8 @@ Scaffolded or planned, not implemented as hosts:
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
+- Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
+- Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
 - Error normalization is enforced for parse, runtime, and CLI errors; other error categories are not present.
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.

@@ -6,7 +6,6 @@ Run all doc-style validation tests:
 
 from __future__ import annotations
 
-import os
 import re
 import sys
 from pathlib import Path
@@ -18,9 +17,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 
 from lint_doc import (
     ALLOWED_SECTION_HEADERS,
-    ALLOWED_FENCE_LANGS,
-    BEHAVIOR_TOKENS,
-    DISCOURAGED_PREFIXES,
     lint_doc,
     Severity,
 )

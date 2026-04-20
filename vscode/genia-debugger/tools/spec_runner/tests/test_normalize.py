@@ -1,4 +1,3 @@
-import pytest
 from tools.spec_runner import normalize
 
 # --- Deeply nested normalization ---

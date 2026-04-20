@@ -20,6 +20,8 @@ This repository currently provides:
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
+  - flow orchestration now supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically
+  - step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration (**Python-host-only**)

@@ -3,7 +3,6 @@ Comprehensive tests for Genia Python host adapter contract.
 Covers: all contract categories, normalization, comparator, drift detection.
 """
 import pytest
-import copy
 from hosts.python.adapter import run_case, SpecCase
 from hosts.python.normalize import normalize_result
 

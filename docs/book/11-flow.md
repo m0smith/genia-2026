@@ -1,4 +1,29 @@
+
 # Chapter 11: Flow (Phase 1)
+
+## Flow naming: preferred and compatibility
+
+Genia supports two sets of names for Flow orchestration:
+
+- **Preferred:** `refine(..steps)` and `step_*` (e.g., `step_emit`, `step_skip`)
+- **Legacy (compatibility):** `rules(..fns)` and `rule_*` (e.g., `rule_emit`, `rule_skip`)
+
+The new `refine(..steps)` and `step_*` names are preferred for new code. The legacy `rules(..fns)` and `rule_*` names remain fully supported for compatibility and are not deprecated. Both sets of names are available, behave identically, and are documented below.
+
+**Quick reference:**
+
+| Preferred (new) | Compatibility (old) |
+|-----------------|---------------------|
+| `refine(..steps)` | `rules(..fns)` |
+| `step_skip`      | `rule_skip`        |
+| `step_emit`      | `rule_emit`        |
+| `step_emit_many` | `rule_emit_many`   |
+| `step_set`       | `rule_set`         |
+| `step_ctx`       | `rule_ctx`         |
+| `step_halt`      | `rule_halt`        |
+| `step_step`      | `rule_step`        |
+
+See dual examples below for both styles.
 
 Genia now supports a minimal lazy Flow runtime model for stream-style pipelines.
 
@@ -479,19 +504,30 @@ Expected behavior:
 - second consume raises `RuntimeError: Flow has already been consumed`
 - invalid flow-source misuse raises a clear Genia-facing runtime error instead of leaking a raw Python iterator error
 
-## `rules(..fns)`
 
-`rules(..fns)` is a runtime/library Flow stage.
 
-It does not add syntax.
-Flow stages still move Flow values explicitly; Option-aware `|>` semantics do not create implicit Value↔Flow bridges.
+## `refine(..steps)` and `rules(..fns)` (dual examples)
 
-Each rule runs as `(record, ctx) -> none(...) | some(result)`.
-The running `ctx` starts as `{}` and persists across input items.
-Plain `none` is the no-effect result.
-In this phase, the lazy Flow kernel stays host-backed while the rule orchestration/defaulting/validation path is primarily implemented in `src/genia/std/prelude/flow.genia`.
+Genia supports both the newer `refine(..steps)` and the legacy `rules(..fns)` as Flow pipeline stages. Both are available and behave identically.
 
-### Minimal example
+**Preferred style:**
+
+```genia
+keep_a_names(record, ctx) =
+  (record, ctx) ? starts_with(record, "a") == true -> step_emit(upper(record)) |
+  (_, _) -> step_skip()
+
+["ada", "grace", "alan"] |> lines |> refine(keep_a_names) |> collect
+```
+Classification: **Likely valid** (not directly tested)
+
+Expected result:
+
+```genia
+["ADA", "ALAN"]
+```
+
+**Compatibility style:**
 
 ```genia
 keep_a_names(record, ctx) =
@@ -502,45 +538,31 @@ keep_a_names(record, ctx) =
 ```
 Classification: **Likely valid** (not directly tested)
 
-
 Expected result:
 
 ```genia
 ["ADA", "ALAN"]
 ```
 
-### Edge case example
 
-```genia
-running_total(record, ctx) = {
-  total = unwrap_or(0, get("sum", ctx))
-  value = unwrap_or(0, record |> parse_int)
-  next = total + value
-  rule_step(record, map_put(ctx, "sum", next), [next])
-}
+### Step/rule helpers
 
-["1", "2", "3"] |> lines |> rules(running_total) |> collect
-```
-Classification: **Likely valid** (not directly tested)
+Both sets of helpers are available and interchangeable:
+
+- **Preferred:** `step_skip`, `step_emit`, `step_emit_many`, `step_set`, `step_ctx`, `step_halt`, `step_step`
+- **Compatibility:** `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
+
+You may use either style in any Flow pipeline. All helpers behave identically.
 
 
-Expected result:
-
-```genia
-[1, 3, 6]
-```
-
-This shows that `ctx` carries forward across items and that one input item may emit one output item without changing pipeline syntax.
-
-### Failure case example
+### Failure case example (applies to both names)
 
 ```genia
 bad(record, ctx) = some({ emit: record })
 
-["1"] |> lines |> rules(bad) |> collect
+["1"] |> lines |> refine(bad) |> collect
 ```
 Classification: **Likely valid** (not directly tested)
-
 
 Expected behavior:
 
@@ -549,18 +571,19 @@ Expected behavior:
 
 ### ✅ Implemented
 
-- `rules(..fns)` as an ordinary Flow stage
-- zero-rule identity behavior
+- `refine(..steps)` as a preferred Flow stage (wraps `rules`)
+- `rules(..fns)` as a compatibility Flow stage
+- zero-step/rule identity behavior
 - `emit`, `record`, `ctx`, and `halt` result fields
 - persistent `ctx` across input items
-- rule helper constructors:
-  - `rule_skip`
-  - `rule_emit`
-  - `rule_emit_many`
-  - `rule_set`
-  - `rule_ctx`
-  - `rule_halt`
-  - `rule_step`
+- step/rule helper constructors:
+  - `step_skip` / `rule_skip`
+  - `step_emit` / `rule_emit`
+  - `step_emit_many` / `rule_emit_many`
+  - `step_set` / `rule_set`
+  - `step_ctx` / `rule_ctx`
+  - `step_halt` / `rule_halt`
+  - `step_step` / `rule_step`
 - contract validation with `invalid-rules-result:` runtime errors
 
 ### ⚠️ Partial

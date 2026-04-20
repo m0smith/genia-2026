@@ -6,9 +6,7 @@ stderr robustness.
 """
 
 import io
-import sys
 
-import pytest
 
 from genia import make_global_env
 from genia.interpreter import _main
