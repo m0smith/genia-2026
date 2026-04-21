@@ -216,7 +216,6 @@ class TestBookDocSync:
 
     def test_book_markdown_subset_matches_style_guide(self):
         """The Markdown subset described in the book must match the style guide."""
-        style = self.style_text
         book = self.book_text
 
         # The style guide's allowed list in section 3

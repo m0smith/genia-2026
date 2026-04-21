@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 import sys
 
@@ -9,13 +10,12 @@ TESTS_DIR = Path(__file__).resolve().parent
 if str(TESTS_DIR) not in sys.path:
     sys.path.insert(0, str(TESTS_DIR))
 
-from docs_truth_utils import (
-    CLASSIFICATION_RE,
-    REPO,
-    display_path,
-    iter_example_docs,
-    iter_primary_example_fences,
-)
+docs_truth_utils = importlib.import_module("docs_truth_utils")
+CLASSIFICATION_RE = docs_truth_utils.CLASSIFICATION_RE
+REPO = docs_truth_utils.REPO
+display_path = docs_truth_utils.display_path
+iter_example_docs = docs_truth_utils.iter_example_docs
+iter_primary_example_fences = docs_truth_utils.iter_primary_example_fences
 
 
 def assert_example_classifications_present(path: Path) -> None:

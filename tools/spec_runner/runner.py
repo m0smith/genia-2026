@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .comparator import compare_spec
 from .executor import execute_spec
-from .loader import SPEC_ROOT, discover_specs
+from .loader import discover_specs
 from .reporter import report_failure, report_invalid, report_summary
 
 

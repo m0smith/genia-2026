@@ -423,7 +423,7 @@ class TestPipeModeHappyPath:
         monkeypatch.setattr("sys.stdin", CountingStdin([]))
 
         exit_code = _main(["-p", "each(print)", "--", "--flag", "value"])
-        captured = capsys.readouterr()
+        capsys.readouterr()
 
         assert exit_code == 0
 

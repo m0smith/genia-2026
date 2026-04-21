@@ -101,7 +101,6 @@ def parse_doc(text: str) -> ParsedDoc:
 
     # Find section headers and fences
     in_fence = False
-    fence_open_idx: Optional[int] = None
     fence_backtick_len = 0
 
     for i, line in enumerate(doc.lines):
@@ -112,7 +111,6 @@ def parse_doc(text: str) -> ParsedDoc:
             lang = (m.group(2) or "").strip()
             if not in_fence:
                 in_fence = True
-                fence_open_idx = i
                 fence_backtick_len = len(backticks)
                 doc.fences.append({"open_idx": i, "close_idx": None, "lang": lang})
             elif len(backticks) >= fence_backtick_len and not lang:
@@ -320,7 +318,7 @@ def rule_examples_fence_sanity(doc: ParsedDoc) -> List[LintFinding]:
                         rule_id="DOC007",
                         severity=Severity.ERROR,
                         message=f"Fence language '{lang}' is not allowed in ## Examples. "
-                                f"Allowed: {', '.join(repr(l) for l in sorted(ALLOWED_FENCE_LANGS))}",
+                                f"Allowed: {', '.join(repr(lang_name) for lang_name in sorted(ALLOWED_FENCE_LANGS))}",
                         line=open_idx + 1,
                     ))
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 import sys
 
@@ -9,7 +10,10 @@ TESTS_DIR = Path(__file__).resolve().parent
 if str(TESTS_DIR) not in sys.path:
     sys.path.insert(0, str(TESTS_DIR))
 
-from docs_truth_utils import REPO, display_path, strip_fenced_code
+docs_truth_utils = importlib.import_module("docs_truth_utils")
+REPO = docs_truth_utils.REPO
+display_path = docs_truth_utils.display_path
+strip_fenced_code = docs_truth_utils.strip_fenced_code
 
 
 DOC_PATHS = [
