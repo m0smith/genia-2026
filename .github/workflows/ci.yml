@@ -54,5 +54,8 @@ jobs:
       - name: Run tests
         run: uv run pytest -q -vv --maxfail=1
 
+      - name: Run semantic specs
+        run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m tools.spec_runner
+
       - name: Run tests with coverage
         run: uv run pytest --cov=genia --cov-report=term-missing

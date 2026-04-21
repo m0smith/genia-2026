@@ -6,9 +6,7 @@ stderr robustness.
 """
 
 import io
-import sys
 
-import pytest
 
 from genia import make_global_env
 from genia.interpreter import _main
@@ -425,7 +423,7 @@ class TestPipeModeHappyPath:
         monkeypatch.setattr("sys.stdin", CountingStdin([]))
 
         exit_code = _main(["-p", "each(print)", "--", "--flag", "value"])
-        captured = capsys.readouterr()
+        capsys.readouterr()
 
         assert exit_code == 0
 

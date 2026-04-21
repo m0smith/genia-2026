@@ -3,7 +3,6 @@
 import json
 import sys
 import os
-import tempfile
 
 # Ensure the tools directory is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tools"))
@@ -14,12 +13,10 @@ from lint_doc import (
     main,
     Severity,
     LintFinding,
-    ALLOWED_SECTION_HEADERS,
     _extract_docs_from_file,
     _finding_to_dict,
 )
 
-import pytest
 
 
 # ---------------------------------------------------------------------------

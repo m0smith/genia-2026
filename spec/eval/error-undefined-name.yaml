@@ -1,0 +1,9 @@
+name: error-undefined-name
+category: eval
+input:
+  source: |
+    undefined_name
+expected:
+  stdout: ""
+  stderr: "Error: Undefined name: undefined_name\n"
+  exit_code: 1

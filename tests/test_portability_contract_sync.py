@@ -118,17 +118,25 @@ def test_manifest_core_ir_patterns_match_architecture_doc():
         assert f"`{name}`" in arch_doc, f"{name} missing from core-ir-portability.md"
 
 
-def test_spec_category_dirs_contain_only_scaffold_readmes():
-    """spec/ category dirs must contain only README.md files in this phase."""
+def test_spec_category_dirs_allow_eval_phase1_specs_only():
+    """Phase 1 allows YAML files only in spec/eval; other category dirs remain scaffolds."""
     spec_dir = REPO / "spec"
     category_dirs = ["cli", "errors", "eval", "flows", "ir", "parser"]
     for dirname in category_dirs:
         d = spec_dir / dirname
         assert d.is_dir(), f"spec/{dirname}/ missing"
         files = [f.name for f in d.iterdir() if f.is_file()]
-        assert files == ["README.md"], (
-            f"spec/{dirname}/ should contain only README.md, found: {files}"
-        )
+        if dirname == "eval":
+            assert "README.md" in files
+            non_readme = sorted(name for name in files if name != "README.md")
+            assert non_readme, "spec/eval/ should contain Phase 1 YAML specs"
+            assert all(name.endswith(".yaml") for name in non_readme), (
+                f"spec/eval/ should contain only README.md and .yaml files, found: {files}"
+            )
+        else:
+            assert files == ["README.md"], (
+                f"spec/{dirname}/ should contain only README.md, found: {files}"
+            )
 
 
 def test_manifest_capabilities_cover_capability_matrix():

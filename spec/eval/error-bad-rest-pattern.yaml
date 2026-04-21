@@ -1,0 +1,10 @@
+name: error-bad-rest-pattern
+category: eval
+input:
+  source: |
+    f(xs) = [..rest, x] -> x
+    f([1, 2, 3])
+expected:
+  stdout: ""
+  stderr: "Error: ..rest must be the final item in a list pattern\n"
+  exit_code: 1

@@ -1,0 +1,11 @@
+name: higher-order-apply
+category: eval
+input:
+  source: |
+    apply(f, x) = f(x)
+    inc = (n) -> n + 1
+    apply(inc, 41)
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0

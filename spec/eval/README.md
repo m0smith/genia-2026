@@ -1,14 +1,5 @@
 # Eval Specs
 
-Place shared runtime behavior cases here.
+Shared eval conformance cases for the Semantic Spec System Phase 1.
 
-Intended coverage:
-
-- result values
-- observable evaluation behavior
-- prelude helper behavior that is not primarily CLI/Flow-specific
-- metacircular helper behavior when covered by the shared contract
-
-Current status:
-
-- directory scaffold only
+This directory currently contains YAML cases for the eval category only.
