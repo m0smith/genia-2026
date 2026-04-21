@@ -13,7 +13,13 @@ Shared semantic-spec contract categories are:
   - error
 
 Implemented shared spec coverage in this phase:
-  - `eval` only
+  - `eval` (active, executable shared spec files)
+  - `cli` (scaffold-only)
+  - `flow` (scaffold-only)
+  - `pattern` (scaffold-only)
+  - `error` (scaffold-only)
+  - `parse` (scaffold-only)
+  - `ir` (scaffold-only)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -32,17 +38,17 @@ Browser execution is planned to use the Python reference host on a backend servi
 - error normalization behavior
 
 **Directory Layout:**
-- `parser/`: parse scaffold only in this phase
-- `ir/`: IR scaffold only in this phase
-- `eval/`: implemented Phase 1 eval cases
-- `cli/`: CLI scaffold only in this phase
-- `errors/`: error scaffold only in this phase
-- `flows/`: flow scaffold only in this phase
+- `parser/`: parse scaffold only
+- `ir/`: IR scaffold only
+- `eval/`: implemented eval cases (active)
+- `cli/`: CLI scaffold only
+- `errors/`: error scaffold only
+- `flows/`: flow scaffold only
 
 Prelude behavior may live in the most relevant category for now, usually `eval/`, `cli/`, or `flows/`.
 
 **Normalization:**
-In the implemented Phase 1 eval suite, stdout/stderr line endings are normalized before comparison. The current shared runner compares only `stdout`, `stderr`, and `exit_code`.
+In the implemented eval suite, stdout/stderr line endings are normalized before comparison. The current shared runner compares only `stdout`, `stderr`, and `exit_code`.
 
 **Test Types:**
 - Shared contract tests: validate the cross-host contract for the categories above

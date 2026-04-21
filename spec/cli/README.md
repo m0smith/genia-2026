@@ -4,12 +4,7 @@ Place shared CLI behavior cases here.
 
 Intended coverage:
 
-- file mode
-- `-c`
-- `-p` / `--pipe`
-- stdout/stderr/exit-code normalization
-- `argv()` contract
 
 Current status:
-
+This directory is a scaffold for future CLI spec cases. Only README.md is allowed here in this phase.
 - directory scaffold only

@@ -59,21 +59,44 @@ Maturity:
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
 
+
 ## Semantic Spec System
 
-The Semantic Spec System exists to lock shared observable behavior to executable cases instead of relying only on scattered docs or Python-local tests.
+The Semantic Spec System defines and validates observable behavior for Genia using executable spec cases.
 
-- Current implementation: YAML eval cases under `spec/eval/` plus the Python runner in `tools/spec_runner/`
-- Current guarantee: the runner executes each eval case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization
-- Current limitation: shared spec coverage is **Partial** and **Experimental**; parse, ir, cli, flow, and error categories are documented contract surfaces, but they are not yet implemented as shared spec files
+**LANGUAGE CONTRACT:**
+- The spec system covers these categories:
+  - eval (active, executable shared spec files)
+  - cli (scaffold-only)
+  - flow (scaffold-only)
+  - pattern (scaffold-only)
+  - error (scaffold-only)
+  - parse (scaffold-only)
+  - ir (scaffold-only)
+- Spec coverage has expanded beyond eval, but only eval is implemented as executable shared spec files in the Python reference host.
+- The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
+- Coverage is still partial and experimental.
 
-Example command:
+**PYTHON REFERENCE HOST:**
+- Python is the only implemented host and is the reference host.
+- The current shared spec runner executes only eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- Other categories are present as scaffolds for future shared spec coverage.
+
+**How to run the spec suite:**
 
 ```bash
 python -m tools.spec_runner
 ```
 
-In the repo's configured development environment, CI runs the same entrypoint through `uv`.
+**What the spec guarantees:**
+- For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For other categories: present as scaffolds only; no executable shared spec files yet.
+- Uncovered or partial categories are not guaranteed and may differ in future implementations.
+
+**Limitations:**
+- Spec coverage is expanded but still partial and experimental.
+- Only eval is active for executable shared spec files; other categories are scaffold-only.
+- GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 ## Quick start
 

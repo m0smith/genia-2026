@@ -261,7 +261,7 @@ Pipeline invariant:
 
 ## 10) Observable Spec Contract (Current Implemented Scope)
 
-- shared semantic-spec cases define observable behavior only within the implemented scope recorded in `GENIA_STATE.md`
+- shared semantic-spec cases define observable behavior only for categories and scope implemented and recorded in `GENIA_STATE.md` (currently: eval active, others scaffold-only)
 - current implemented shared semantic-spec coverage is limited to eval cases
 - current shared eval cases assert:
   - `stdout`

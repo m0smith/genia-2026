@@ -1,0 +1,10 @@
+name: error_pattern_miss
+category: error
+input:
+  source: |
+    f(1) -> 2
+    f(2)
+expected:
+  stdout: ""
+  stderr: "PatternMatchError: no matching case\n"
+  exit_code: 1

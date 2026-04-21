@@ -88,7 +88,35 @@ Clarifications:
 - `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
 
 
-## 1) Shared Conformance — Semantic Spec System (Phase 1)
+
+## 1) Shared Conformance — Semantic Spec System
+
+LANGUAGE CONTRACT:
+
+- The Semantic Spec System defines observable behavior for the following categories:
+  - eval (active, executable shared spec files)
+  - cli (scaffold-only)
+  - flow (scaffold-only)
+  - pattern (scaffold-only)
+  - error (scaffold-only)
+  - parse (scaffold-only)
+  - ir (scaffold-only)
+- Spec coverage has expanded beyond eval, but only eval is implemented as executable shared spec files in the Python reference host.
+- The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
+- Coverage is still partial and experimental; see below for category status.
+
+PYTHON REFERENCE HOST:
+
+- Python is the only implemented host and is the reference host.
+- All conformance is validated against the Python reference host.
+- The current shared spec runner executes only eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- Other categories (cli, flow, pattern, error, parse, ir) are present as scaffolds for future shared spec coverage.
+- Uncovered or partial categories are not guaranteed and may differ in future implementations.
+
+**Summary:**
+- Spec coverage is expanded but still partial and experimental.
+- Only eval is active for executable shared spec files; other categories are scaffold-only.
+- GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 **This section documents the implemented shared semantic-spec system in the Python reference host today.**
 

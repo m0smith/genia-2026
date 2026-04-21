@@ -1,0 +1,11 @@
+name: pattern_guard
+category: pattern
+input:
+  source: |
+    f(x) ? x > 0 -> x
+    f(-1)
+expected:
+  stdout: ""
+  stderr: "PatternMatchError: no matching case\n"
+  exit_code: 1
+ 

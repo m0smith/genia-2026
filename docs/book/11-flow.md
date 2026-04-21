@@ -1,3 +1,4 @@
+# Note: Examples in this chapter are validated by the Semantic Spec System where covered. Currently, only the eval category is active for executable shared spec files; other categories are scaffold-only. See GENIA_STATE.md for authoritative status.
 [//]: # (Classification: **Valid** — directly tested)
 
 

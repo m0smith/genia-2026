@@ -4,10 +4,7 @@ Place shared AST->Core IR lowering cases here.
 
 Intended coverage:
 
-- pipeline rewrite snapshots
-- lowered case/match shapes
-- lowering invariants relied on by evaluation
 
 Current status:
-
+This directory is a scaffold for future IR spec cases. Only README.md is allowed here in this phase.
 - directory scaffold only

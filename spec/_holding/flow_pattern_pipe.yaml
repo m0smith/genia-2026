@@ -1,0 +1,10 @@
+name: flow_pattern_pipe
+category: flow
+input:
+  source: |
+    head([x, .._]) -> x
+    [10, 20, 30] |> head
+expected:
+  stdout: "10\n"
+  stderr: ""
+  exit_code: 0
