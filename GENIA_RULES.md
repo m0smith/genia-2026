@@ -256,8 +256,21 @@ Pipeline invariant:
 - Option propagation is part of pipeline evaluation:
   - if a stage input is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
   - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
-  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
-  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
+- when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
+- when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
+
+## 10) Observable Spec Contract (Current Implemented Scope)
+
+- shared semantic-spec cases define observable behavior only within the implemented scope recorded in `GENIA_STATE.md`
+- current implemented shared semantic-spec coverage is limited to eval cases
+- current shared eval cases assert:
+  - `stdout`
+  - `stderr`
+  - `exit_code`
+- determinism in the current shared semantic-spec scope means:
+  - those asserted outputs must match exactly after newline normalization
+  - the runner must not trim or reinterpret meaningful whitespace
+- expanding shared semantic-spec coverage beyond that scope requires implementation plus `GENIA_STATE.md` updates first
   - if a stage result is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned- pipeline-visible function modes are interpreted as:
   - Value -> Value
   - Flow -> Flow

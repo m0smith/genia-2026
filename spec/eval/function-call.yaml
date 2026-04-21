@@ -1,0 +1,10 @@
+name: function-call
+category: eval
+input:
+  source: |
+    inc(x) = x + 1
+    inc(41)
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0

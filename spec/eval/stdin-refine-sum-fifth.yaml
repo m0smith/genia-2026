@@ -1,0 +1,17 @@
+name: stdin-refine-sum-fifth
+category: eval
+input:
+  source: |
+    stdin
+      |> lines
+      |> refine((row, ctx) -> split_whitespace(row) |> nth(4) |> parse_int |> flat_map_some(step_emit))
+      |> collect
+      |> sum
+  stdin: |
+    a b c d 5 x
+    1 2 3 4 6 y
+    short
+expected:
+  stdout: "11\n"
+  stderr: ""
+  exit_code: 0

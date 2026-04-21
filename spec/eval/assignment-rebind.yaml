@@ -1,0 +1,11 @@
+name: assignment-rebind
+category: eval
+input:
+  source: |
+    x = 10
+    x = x + 5
+    x
+expected:
+  stdout: "15\n"
+  stderr: ""
+  exit_code: 0

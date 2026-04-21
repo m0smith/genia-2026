@@ -105,6 +105,11 @@ The host runtime keeps the minimal Flow kernel in this phase:
 
 The public prelude layer carries the user-facing helper surface, and `rules(..fns)` orchestration/defaulting/validation now primarily live there.
 
+Shared semantic-spec note:
+
+- the current shared Semantic Spec System is eval-only in this phase
+- Flow behavior in this chapter is still validated primarily by Python-host tests and runnable examples, not by implemented shared flow spec files yet
+
 ## Flow model
 
 A Flow is:

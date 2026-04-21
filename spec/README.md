@@ -4,13 +4,16 @@
 This directory holds the shared cross-host spec suite for Genia.
 
 **Python is the only implemented host today.**
-The Python host adapter implements the shared host contract for these categories:
+Shared semantic-spec contract categories are:
   - parse
   - ir
   - eval
   - cli
   - flow
   - error
+
+Implemented shared spec coverage in this phase:
+  - `eval` only
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -29,17 +32,17 @@ Browser execution is planned to use the Python reference host on a backend servi
 - error normalization behavior
 
 **Directory Layout:**
-- `parser/`: parse snapshots and parse acceptance/rejection cases
-- `ir/`: minimal portable Core IR snapshots and lowering-focused cases
-- `eval/`: runtime result behavior for lowered programs, including host interop boundary cases
-- `cli/`: file mode, `-c`, `-p`, REPL-adjacent CLI behavior, stdout/stderr, exit codes
-- `errors/`: normalized category/message/span expectations
-- `flows/`: Flow phase-1 and `rules(..fns)` behavior
+- `parser/`: parse scaffold only in this phase
+- `ir/`: IR scaffold only in this phase
+- `eval/`: implemented Phase 1 eval cases
+- `cli/`: CLI scaffold only in this phase
+- `errors/`: error scaffold only in this phase
+- `flows/`: flow scaffold only in this phase
 
 Prelude behavior may live in the most relevant category for now, usually `eval/`, `cli/`, or `flows/`.
 
 **Normalization:**
-All observable outputs (values, errors, IR, CLI, flow) are normalized to canonical, host-neutral forms. No Python-specific details are allowed in normalized outputs. Only the minimal portable Core IR node families are used in the contract. Error objects are normalized with required fields and strict category separation.
+In the implemented Phase 1 eval suite, stdout/stderr line endings are normalized before comparison. The current shared runner compares only `stdout`, `stderr`, and `exit_code`.
 
 **Test Types:**
 - Shared contract tests: validate the cross-host contract for the categories above

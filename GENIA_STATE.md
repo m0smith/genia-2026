@@ -8,14 +8,18 @@ This file describes what is **actually implemented now** in the Python runtime.
 Implemented today:
 
 - **Python is the only implemented host and is the reference host.**
-- The Python host adapter implements the shared host contract for these spec categories:
+- Shared semantic-spec contract categories are:
   - parse
   - ir
   - eval
   - cli
   - flow
   - error
-- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
+- The implemented shared Semantic Spec System currently executes **eval** cases only.
+- The current shared spec runner compares normalized:
+  - stdout
+  - stderr
+  - exit_code
 - The working Python implementation lives in:
   - `src/genia/`
   - `tests/`
@@ -36,21 +40,23 @@ Scaffolded or planned, not implemented as hosts:
 
 **Maturity:**
 
-- Shared host contract is **Partial**: all listed categories above are enforced and tested, but only for Python. Other hosts are not implemented.
-- Flow and CLI behavior are validated for normalization, but advanced/async/multi-port flow and richer CLI features are **not implemented**.
-- Error normalization is enforced, but only for the categories and shapes present in the Python host.
-- IR stability: only the minimal portable Core IR contract is enforced; host-local optimized nodes are excluded from the contract.
+- Shared host contract is **Partial**: the contract categories above are documented, but executable shared spec coverage is implemented only for `eval` in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist, but only for eval behavior in this phase.
+- Flow and CLI behavior are implemented in Python, but shared semantic-spec coverage for those categories is **not implemented yet**.
+- IR stability remains **Partial**: the minimal portable Core IR contract is documented, and the Python runtime guards that boundary, but shared semantic-spec case coverage for IR is **not implemented yet**.
 
 **Explicit limitations:**
 
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
+- Shared semantic-spec case files exist only under `spec/eval/` in this phase.
+- The current shared semantic-spec runner does not yet execute parse, ir, cli, flow, or error categories as shared spec files.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
 - Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
 - Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
-- Error normalization is enforced for parse, runtime, and CLI errors; other error categories are not present.
+- The current shared semantic-spec runner asserts only `stdout`, `stderr`, and `exit_code` for eval cases.
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
@@ -82,36 +88,55 @@ Clarifications:
 - `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
 
 
-## 1) Shared Conformance — Phase 2 (Reference Host Hardening)
+## 1) Shared Conformance — Semantic Spec System (Phase 1)
 
-**This section documents the strict, deterministic, and unambiguous conformance contract enforced in the Python reference host as of Phase 2.**
+**This section documents the implemented shared semantic-spec system in the Python reference host today.**
 
-### Strictness and Normalization
+**LANGUAGE CONTRACT:**
+- shared semantic-spec categories are `parse`, `ir`, `eval`, `cli`, `flow`, and `error`
+- the executable shared semantic-spec suite implemented in this phase covers `eval` only
+- shared spec cases define observable behavior only within that implemented scope
 
-- All observable runtime, CLI, and error outputs are strictly normalized to canonical forms.
-- No Python-specific value, error, or structure leaks into normalized outputs.
-- Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
-- Output ordering and structure are deterministic and stable.
+**PYTHON REFERENCE HOST:**
+- Python is the only implemented host and is the reference host
+- Python executes the shared semantic-spec suite in this phase
+- Python-specific convenience behavior is not promoted into portable language law unless a shared spec category and implemented case coverage exist for it
 
-### Error Contract
+### Implemented Today
 
-- All errors are normalized with required fields: category, message, and span (when applicable).
-- Error categories are strictly separated: parse, runtime, and CLI errors are distinct and never conflated.
-- No silent error swallowing; all malformed or unsupported cases fail with explicit normalized errors.
+- shared spec files exist under `spec/eval/`
+- the shared spec runner exists under `tools/spec_runner/`
+- the runner loads YAML eval cases and executes them independently against the Python reference host
+- the current runner compares:
+  - `stdout`
+  - `stderr`
+  - `exit_code`
+- line endings are normalized before comparison
 
-### Case Validation
+### Planned Categories, Not Yet Implemented As Shared Spec Files
 
+- `parse`
+- `ir`
+- `cli`
+- `flow`
+- `error`
+
+These categories remain part of the shared contract direction and repository scaffolding, but they do not yet have implemented shared spec case coverage in this phase.
+
+### Determinism and Validation
+
+- malformed or unsupported eval spec files fail validation explicitly
+- eval specs are executed independently
+- failures are reported per spec and do not stop later eval specs from running
 - Malformed, missing, or unsupported test cases fail validation and are never silently skipped.
-- Only supported categories are accepted; unsupported or incomplete cases are rejected with explicit errors.
-
-### CLI and Flow Behavior
-
-- CLI and flow behaviors are validated for strict output, error, and exit code normalization.
-- No host-local convenience or extra behavior is surfaced in the shared contract.
+- only `eval` shared spec files are implemented in this phase
 
 ### Limitations and Explicit Absence
 
-- Only the Python host is implemented; all other hosts and runners are scaffolds or planned only.
+- only the Python host executes the shared semantic-spec suite
+- only `eval` category has implemented shared case files
+- current shared spec comparisons do not yet assert structured result payloads, parse snapshots, IR snapshots, or normalized error objects
+- CLI and flow behavior remain documented and tested in Python, but are not yet covered by implemented shared semantic-spec files
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
 

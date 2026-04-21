@@ -41,12 +41,12 @@ This repository currently provides:
 
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- All observable outputs (runtime, CLI, errors) are normalized to canonical forms; no Python-specific leakage is allowed in portable contract behavior.
+- Within the current implemented shared semantic-spec scope, observable outputs are compared in normalized form and Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The Python host adapter enforces the shared host contract for the categories above.
+- The shared contract categories above exist now, but the implemented shared semantic-spec suite currently covers `eval` only.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -58,6 +58,22 @@ Maturity:
 - `Experimental`: explicitly marked surfaces such as the shell pipeline stage `$(...)`
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
+
+## Semantic Spec System
+
+The Semantic Spec System exists to lock shared observable behavior to executable cases instead of relying only on scattered docs or Python-local tests.
+
+- Current implementation: YAML eval cases under `spec/eval/` plus the Python runner in `tools/spec_runner/`
+- Current guarantee: the runner executes each eval case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization
+- Current limitation: shared spec coverage is **Partial** and **Experimental**; parse, ir, cli, flow, and error categories are documented contract surfaces, but they are not yet implemented as shared spec files
+
+Example command:
+
+```bash
+python -m tools.spec_runner
+```
+
+In the repo's configured development environment, CI runs the same entrypoint through `uv`.
 
 ## Quick start
 
@@ -386,7 +402,7 @@ The repo now also includes shared portability scaffolding for future hosts:
 
 - host interop contract docs: `docs/host-interop/`
 - Core IR portability note: `docs/architecture/core-ir-portability.md`
-- shared spec scaffold + manifest: `spec/`
+- shared spec suite + manifest: `spec/`
 - host layout/migration notes: `hosts/`
 
 Alignment rule:
@@ -404,7 +420,12 @@ Current host status:
 | Node.js / Java / Rust / Go / C++ | Planned / scaffolded only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
-`spec/` category directories contain scaffold READMEs only — zero shared test-case files exist in this phase.
+
+Current shared spec status:
+
+- implemented shared case files currently exist under `spec/eval/`
+- `spec/parser/`, `spec/ir/`, `spec/cli/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
+- the shared runner is implemented, but its current executable shared case coverage is eval only
 
 ## Browser playground architecture
 

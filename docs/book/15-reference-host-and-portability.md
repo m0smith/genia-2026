@@ -34,7 +34,8 @@ Manifest status guardrails:
 - `spec/manifest.json` records Python as the only implemented host
 - the live Python source remains under `src/genia/`
 - `hosts/python/` is recorded as scaffolded future-layout documentation
-- the generic shared spec runner is recorded as scaffolded, not implemented
+- the generic shared spec runner is still not implemented as a multi-host tool
+- the repo now includes an implemented Phase 1 shared semantic-spec runner for eval cases only
 
 ## HTTP service foundation
 
@@ -314,13 +315,19 @@ some("hello")
 
 - repository layout is transitional:
   - the working Python host still lives at the repo root rather than `hosts/python/`
-- shared spec runner support is documented, but not implemented as generic tooling yet
-- `spec/` category directories contain scaffold READMEs only — zero shared test-case files exist in this phase
+- shared semantic-spec runner exists, but implemented shared case coverage is eval only
+- `spec/eval/` now contains shared YAML eval cases
+- `spec/parser/`, `spec/ir/`, `spec/cli/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
 - capability coverage for future hosts is planned and tracked, not implemented
 - HTTP service foundation is intentionally narrow:
   - exact-path routing only
   - blocking/synchronous only
   - response bodies are string/bytes/none at the transport boundary
+
+Shared semantic-spec note:
+
+- where a behavior is covered by `spec/eval/`, shared observable outputs now come from executable spec cases
+- example prose and expected outputs in this chapter must not claim more than those implemented cases plus `GENIA_STATE.md`
 
 ## ❌ Not implemented
 

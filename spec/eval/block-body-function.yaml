@@ -1,0 +1,13 @@
+name: block-body-function
+category: eval
+input:
+  source: |
+    sum_pair(a, b) {
+      total = a + b
+      total
+    }
+    sum_pair(20, 22)
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0
