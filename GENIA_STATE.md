@@ -89,19 +89,19 @@ Clarifications:
 
 
 
+
 ## 1) Shared Conformance — Semantic Spec System
 
 LANGUAGE CONTRACT:
 
 - The Semantic Spec System defines observable behavior for the following categories:
-  - eval (active, executable shared spec files)
-  - cli (scaffold-only)
-  - flow (scaffold-only)
-  - pattern (scaffold-only)
-  - error (scaffold-only)
   - parse (scaffold-only)
   - ir (scaffold-only)
-- Spec coverage has expanded beyond eval, but only eval is implemented as executable shared spec files in the Python reference host.
+  - eval (**active**, executable shared spec files)
+  - cli (scaffold-only)
+  - flow (scaffold-only)
+  - error (scaffold-only)
+- Only `eval` is implemented as executable shared spec files in the Python reference host. All other categories are present as scaffolds only.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental; see below for category status.
 
@@ -109,64 +109,27 @@ PYTHON REFERENCE HOST:
 
 - Python is the only implemented host and is the reference host.
 - All conformance is validated against the Python reference host.
-- The current shared spec runner executes only eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
-- Other categories (cli, flow, pattern, error, parse, ir) are present as scaffolds for future shared spec coverage.
+- The current shared spec runner executes only eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
+- Other categories (`parse`, `ir`, `cli`, `flow`, `error`) are present as scaffolds for future shared spec coverage.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Summary:**
-- Spec coverage is expanded but still partial and experimental.
-- Only eval is active for executable shared spec files; other categories are scaffold-only.
-- GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
+- Only `eval` is active for executable shared spec files; other categories are scaffold-only.
+- `GENIA_STATE.md` is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
-**This section documents the implemented shared semantic-spec system in the Python reference host today.**
+**Host implementation location:**
+- The working Python implementation lives in `src/genia/`, `tests/`, and `src/genia/std/prelude/`.
+- `hosts/python/` is a documentation/adaptation scaffold only, not the live runtime source location.
 
-**LANGUAGE CONTRACT:**
-- shared semantic-spec categories are `parse`, `ir`, `eval`, `cli`, `flow`, and `error`
-- the executable shared semantic-spec suite implemented in this phase covers `eval` only
-- shared spec cases define observable behavior only within that implemented scope
+**Planned/Scaffolded:**
+- Node.js, Java, Rust, Go, C++: planned only, not implemented
+- No generic multi-host runner exists; all conformance is validated against the Python reference host
 
-**PYTHON REFERENCE HOST:**
-- Python is the only implemented host and is the reference host
-- Python executes the shared semantic-spec suite in this phase
-- Python-specific convenience behavior is not promoted into portable language law unless a shared spec category and implemented case coverage exist for it
-
-### Implemented Today
-
-- shared spec files exist under `spec/eval/`
-- the shared spec runner exists under `tools/spec_runner/`
-- the runner loads YAML eval cases and executes them independently against the Python reference host
-- the current runner compares:
-  - `stdout`
-  - `stderr`
-  - `exit_code`
-- line endings are normalized before comparison
-
-### Planned Categories, Not Yet Implemented As Shared Spec Files
-
-- `parse`
-- `ir`
-- `cli`
-- `flow`
-- `error`
-
-These categories remain part of the shared contract direction and repository scaffolding, but they do not yet have implemented shared spec case coverage in this phase.
-
-### Determinism and Validation
-
-- malformed or unsupported eval spec files fail validation explicitly
-- eval specs are executed independently
-- failures are reported per spec and do not stop later eval specs from running
-- Malformed, missing, or unsupported test cases fail validation and are never silently skipped.
-- only `eval` shared spec files are implemented in this phase
-
-### Limitations and Explicit Absence
-
-- only the Python host executes the shared semantic-spec suite
-- only `eval` category has implemented shared case files
-- current shared spec comparisons do not yet assert structured result payloads, parse snapshots, IR snapshots, or normalized error objects
-- CLI and flow behavior remain documented and tested in Python, but are not yet covered by implemented shared semantic-spec files
+**Limitations:**
+- Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- No generic multi-host runner exists; all conformance is validated against the Python reference host.
+- Shared semantic-spec case files exist only under `spec/eval/` in this phase.
+- The current shared semantic-spec runner does not yet execute parse, ir, cli, flow, or error categories as shared spec files.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 

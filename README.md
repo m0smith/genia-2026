@@ -39,8 +39,10 @@ This repository currently provides:
 
 ## Host Portability & Spec Contract
 
+
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
+- Only `eval` is active for executable shared spec files; other categories are scaffold-only.
 - Within the current implemented shared semantic-spec scope, observable outputs are compared in normalized form and Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 

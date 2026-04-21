@@ -1,10 +1,5 @@
-# CLI Specs
+# CLI Spec Scaffold
 
-Place shared CLI behavior cases here.
-
-Intended coverage:
-
-
-Current status:
-This directory is a scaffold for future CLI spec cases. Only README.md is allowed here in this phase.
-- directory scaffold only
+This directory is scaffold-only in this phase.
+No executable shared spec files exist here yet.
+Only README.md is allowed.

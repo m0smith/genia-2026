@@ -4,25 +4,28 @@
 The shared spec runner loads shared spec cases, executes them against the Python reference host, and compares normalized observable outputs.
 
 **Python is the only implemented host today.**
-Implemented runner scope in this phase:
-- Active category: eval (executable shared spec files)
-- Scaffold-only: cli, flow, pattern, error, parse, ir (no executable shared spec files yet)
-- YAML spec files under `spec/eval/`
-- comparison fields: `stdout`, `stderr`, `exit_code`
+
+## Runner Scope (Current Phase)
+
+- **Active category:** `eval` (executable shared spec files)
+- **Scaffold-only:** `parse`, `ir`, `cli`, `flow`, `error` (no executable shared spec files yet)
+- YAML spec files are loaded only from `spec/eval/`
+- Comparison fields: `stdout`, `stderr`, `exit_code`
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
-**How to run the spec suite:**
+## How to run the spec suite
 
 ```bash
 python -m tools.spec_runner
 ```
 
-**How it works:**
-- cases are loaded from `spec/eval/*.yaml`
-- each case is executed independently against the Python reference host
-- stdout/stderr line endings are normalized before comparison
-- failures are reported per spec with expected vs actual fields
+## How it works
+
+- Cases are loaded from `spec/eval/*.yaml`
+- Each case is executed independently against the Python reference host
+- `stdout`/`stderr` line endings are normalized before comparison
+- Failures are reported per spec with expected vs actual fields
 
 **Example failure output:**
 
@@ -34,8 +37,8 @@ FAIL eval arithmetic-basic (/path/to/spec/eval/arithmetic-basic.yaml)
 ```
 
 **Normalization:**
-- The runner normalizes line endings for stdout/stderr
-- it does not trim meaningful whitespace
+- The runner normalizes line endings for `stdout`/`stderr`
+- It does not trim meaningful whitespace
 - It compares only `stdout`, `stderr`, and `exit_code` for eval cases
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**

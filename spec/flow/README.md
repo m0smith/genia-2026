@@ -1,3 +1,5 @@
-# spec/flow/
+# Flow Spec Scaffold
 
-This directory is a scaffold for future flow spec cases. Only README.md is allowed here in this phase.
+This directory is scaffold-only in this phase.
+No executable shared spec files exist here yet.
+Only README.md is allowed.

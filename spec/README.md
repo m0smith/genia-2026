@@ -3,23 +3,24 @@
 
 This directory holds the shared cross-host spec suite for Genia.
 
-**Python is the only implemented host today.**
-Shared semantic-spec contract categories are:
-  - parse
-  - ir
-  - eval
-  - cli
-  - flow
-  - error
 
-Implemented shared spec coverage in this phase:
-  - `eval` (active, executable shared spec files)
-  - `cli` (scaffold-only)
-  - `flow` (scaffold-only)
-  - `pattern` (scaffold-only)
-  - `error` (scaffold-only)
-  - `parse` (scaffold-only)
-  - `ir` (scaffold-only)
+# Shared Spec Suite
+
+**Python is the only implemented host today.**
+
+## Canonical Semantic-Spec Categories
+
+- parse
+- ir
+- eval
+- cli
+- flow
+- error
+
+## Implemented Shared Spec Coverage
+
+- `eval` — **active** (executable shared spec files)
+- `parse`, `ir`, `cli`, `flow`, `error` — **scaffold-only** (no executable shared spec files yet)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -28,24 +29,18 @@ Browser execution is planned to use the Python reference host on a backend servi
 - Validate behavior at the parse, Core IR, eval, CLI, flow, and error boundaries
 - Reduce semantic drift between hosts
 
-**Spec Categories:**
-- parse snapshots
-- IR snapshots
-- eval behavior
-- stdout/stderr/exit-code behavior
-- CLI behavior
-- Flow behavior
-- error normalization behavior
+## Directory Layout
 
-**Directory Layout:**
-- `parser/`: parse scaffold only
+- `parse/`: parse scaffold only
 - `ir/`: IR scaffold only
 - `eval/`: implemented eval cases (active)
 - `cli/`: CLI scaffold only
-- `errors/`: error scaffold only
-- `flows/`: flow scaffold only
+- `flow/`: flow scaffold only
+- `error/`: error scaffold only
 
-Prelude behavior may live in the most relevant category for now, usually `eval/`, `cli/`, or `flows/`.
+**Note:**
+- Only `eval/` contains executable shared spec files in this phase.
+- All other category directories are present as scaffolds only and must contain only `README.md`.
 
 **Normalization:**
 In the implemented eval suite, stdout/stderr line endings are normalized before comparison. The current shared runner compares only `stdout`, `stderr`, and `exit_code`.

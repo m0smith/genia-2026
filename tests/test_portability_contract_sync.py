@@ -121,9 +121,9 @@ def test_manifest_core_ir_patterns_match_architecture_doc():
 def test_spec_category_dirs_allow_eval_phase1_specs_only():
     """Phase 1 allows YAML files only in spec/eval; other category dirs remain scaffolds."""
     spec_dir = REPO / "spec"
-    # Categories as defined in GENIA_STATE.md and spec/README.md
+    # Canonical categories as defined in GENIA_STATE.md and spec/README.md
     category_dirs = [
-        "cli", "error", "eval", "flow", "pattern", "parse", "ir"
+        "parse", "ir", "eval", "cli", "flow", "error"
     ]
     # Only eval is officially activated for YAML specs in this phase
     activated = {"eval"}

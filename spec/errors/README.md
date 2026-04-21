@@ -1,13 +1,5 @@
-# Error Specs
+# Errors Spec Scaffold
 
-Place normalized error contract cases here.
-
-Intended coverage:
-
-- parse/lower/eval/CLI error categories
-- stable message wording/prefixes relied on by shared docs/tests
-- optional source location expectations where relevant
-
-Current status:
-
-- directory scaffold only
+This directory is scaffold-only in this phase.
+No executable shared spec files exist here yet.
+Only README.md is allowed.
