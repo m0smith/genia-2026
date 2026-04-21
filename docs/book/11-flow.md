@@ -1,5 +1,14 @@
+[//]: # (Classification: **Valid** — directly tested)
+
 
 # Chapter 11: Flow (Phase 1)
+
+## Preferred naming (Phase 2 signal)
+
+
+## Preferred: `refine(..steps)` and `step_*`
+
+Genia now prefers the `refine(..steps)` and `step_*` naming for new Flow orchestration code. The legacy `rules(..fns)` and `rule_*` names remain fully supported and are not deprecated. Use `refine`/`step_*` in new code and examples; both forms are documented and behave identically.
 
 ## Flow naming: preferred and compatibility
 
@@ -23,7 +32,47 @@ The new `refine(..steps)` and `step_*` names are preferred for new code. The leg
 | `step_halt`      | `rule_halt`        |
 | `step_step`      | `rule_step`        |
 
-See dual examples below for both styles.
+
+### Example: preferred style
+
+```genia
+// Classification: **Valid** — directly tested
+step_emit_if_even(x, ctx) = (x % 2 == 0) -> step_emit(x) | (_, _) -> step_skip()
+
+
+[1, 2, 3, 4]
+  |> refine(step_emit_if_even)
+  |> collect
+  |> sum
+```
+Classification: **Valid**
+
+### Example: legacy style (still supported)
+
+```genia
+// Classification: **Valid** — directly tested
+rule_emit_if_even(x, ctx) = (x % 2 == 0) -> rule_emit(x) | (_, _) -> rule_skip()
+
+
+[1, 2, 3, 4]
+  |> rules(rule_emit_if_even)
+  |> collect
+  |> sum
+```
+Classification: **Valid**
+
+### Example: multiple steps with refine
+
+```genia
+step_double(x, ctx) = step_emit(x * 2)
+step_filter_gt_3(x, ctx) = (x > 3) -> step_emit(x) | (_, _) -> step_skip()
+
+
+[1, 2, 3, 4]
+  |> refine(step_double, step_filter_gt_3)
+  |> collect
+```
+Classification: **Valid**
 
 Genia now supports a minimal lazy Flow runtime model for stream-style pipelines.
 
@@ -506,6 +555,7 @@ Expected behavior:
 
 
 
+
 ## `refine(..steps)` and `rules(..fns)` (dual examples)
 
 Genia supports both the newer `refine(..steps)` and the legacy `rules(..fns)` as Flow pipeline stages. Both are available and behave identically.
@@ -525,6 +575,23 @@ Expected result:
 
 ```genia
 ["ADA", "ALAN"]
+```
+
+**Another preferred example:**
+
+```genia
+emit_even(record, ctx) =
+  (record, ctx) ? parse_int(record) |> unwrap_or(0) % 2 == 0 -> step_emit(record) |
+  (_, _) -> step_skip()
+
+["2", "3", "4"] |> lines |> refine(emit_even) |> collect
+```
+Classification: **Likely valid** (not directly tested)
+
+Expected result:
+
+```genia
+["2", "4"]
 ```
 
 **Compatibility style:**
