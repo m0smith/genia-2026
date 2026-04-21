@@ -12,8 +12,10 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised in runtime en
     ) from exc
 
 
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SPEC_ROOT = REPO_ROOT / "spec" / "eval"
+SPEC_CATEGORIES = ["eval", "error", "flow", "pattern", "cli"]
+SPEC_ROOTS = [REPO_ROOT / "spec" / cat for cat in SPEC_CATEGORIES]
 ALLOWED_TOP_LEVEL_KEYS = {"name", "category", "input", "expected"}
 ALLOWED_INPUT_KEYS = {"source", "stdin"}
 ALLOWED_EXPECTED_KEYS = {"stdout", "stderr", "exit_code"}
@@ -55,7 +57,7 @@ def load_spec(path: Path) -> LoadedSpec:
         if required_key not in data:
             raise ValueError(f"missing required field: {required_key}")
 
-    if data["category"] != "eval":
+    if data["category"] not in SPEC_CATEGORIES:
         raise ValueError(f"unsupported category: {data['category']}")
 
     input_data = _validate_mapping(data["input"], field_name="input")
@@ -104,15 +106,16 @@ def discover_specs() -> tuple[list[LoadedSpec], list[InvalidSpec]]:
     specs: list[LoadedSpec] = []
     invalid_specs: list[InvalidSpec] = []
     seen_names: set[str] = set()
-    for path in sorted(SPEC_ROOT.glob("*.yaml")):
-        try:
-            spec = load_spec(path)
-        except Exception as exc:  # noqa: BLE001
-            invalid_specs.append(InvalidSpec(path=path, message=str(exc)))
-            continue
-        if spec.name in seen_names:
-            invalid_specs.append(InvalidSpec(path=path, message=f"duplicate spec name: {spec.name}"))
-            continue
-        seen_names.add(spec.name)
-        specs.append(spec)
+    for root in SPEC_ROOTS:
+        for path in sorted(root.glob("*.yaml")):
+            try:
+                spec = load_spec(path)
+            except Exception as exc:  # noqa: BLE001
+                invalid_specs.append(InvalidSpec(path=path, message=str(exc)))
+                continue
+            if spec.name in seen_names:
+                invalid_specs.append(InvalidSpec(path=path, message=f"duplicate spec name: {spec.name}"))
+                continue
+            seen_names.add(spec.name)
+            specs.append(spec)
     return specs, invalid_specs

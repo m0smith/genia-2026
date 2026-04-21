@@ -121,20 +121,25 @@ def test_manifest_core_ir_patterns_match_architecture_doc():
 def test_spec_category_dirs_allow_eval_phase1_specs_only():
     """Phase 1 allows YAML files only in spec/eval; other category dirs remain scaffolds."""
     spec_dir = REPO / "spec"
-    category_dirs = ["cli", "errors", "eval", "flows", "ir", "parser"]
+    # Canonical categories as defined in GENIA_STATE.md and spec/README.md
+    category_dirs = [
+        "parse", "ir", "eval", "cli", "flow", "error"
+    ]
+    # Only eval is officially activated for YAML specs in this phase
+    activated = {"eval"}
     for dirname in category_dirs:
         d = spec_dir / dirname
         assert d.is_dir(), f"spec/{dirname}/ missing"
         files = [f.name for f in d.iterdir() if f.is_file()]
-        if dirname == "eval":
-            assert "README.md" in files
-            non_readme = sorted(name for name in files if name != "README.md")
-            assert non_readme, "spec/eval/ should contain Phase 1 YAML specs"
+        assert "README.md" in files, f"spec/{dirname}/ missing README.md"
+        non_readme = sorted(name for name in files if name != "README.md")
+        if dirname in activated:
+            assert non_readme, f"spec/{dirname}/ should contain YAML specs"
             assert all(name.endswith(".yaml") for name in non_readme), (
-                f"spec/eval/ should contain only README.md and .yaml files, found: {files}"
+                f"spec/{dirname}/ should contain only README.md and .yaml files, found: {files}"
             )
         else:
-            assert files == ["README.md"], (
+            assert non_readme == [], (
                 f"spec/{dirname}/ should contain only README.md, found: {files}"
             )
 

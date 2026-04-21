@@ -1,13 +1,5 @@
-# Core IR Specs
+# IR Spec Scaffold
 
-Place shared AST->Core IR lowering cases here.
-
-Intended coverage:
-
-- pipeline rewrite snapshots
-- lowered case/match shapes
-- lowering invariants relied on by evaluation
-
-Current status:
-
-- directory scaffold only
+This directory is scaffold-only in this phase.
+No executable shared spec files exist here yet.
+Only README.md is allowed.

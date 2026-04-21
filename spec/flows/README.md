@@ -1,14 +1,5 @@
-# Flow Specs
+# Flows Spec Scaffold
 
-Place shared Flow phase-1 cases here.
-
-Intended coverage:
-
-- lazy single-use flow behavior
-- `take` early termination
-- `rules(..fns)` semantics
-- flow-related CLI pipe behavior where useful
-
-Current status:
-
-- directory scaffold only
+This directory is scaffold-only in this phase.
+No executable shared spec files exist here yet.
+Only README.md is allowed.

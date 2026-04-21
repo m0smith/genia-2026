@@ -1,0 +1,10 @@
+name: pattern_tuple_match
+category: pattern
+input:
+  source: |
+    f((x, y)) -> x + y
+    f((2, 3))
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0
