@@ -2,7 +2,7 @@ name: pattern-list-rest
 category: eval
 input:
   source: |
-    head([x, .._]) -> x
+    head(xs) = ([x, .._]) -> x | (_) -> none
     head([10, 20, 30])
 expected:
   stdout: "10\n"
