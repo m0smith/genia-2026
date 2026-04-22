@@ -33,7 +33,6 @@ include = [
   "/GENIA_STATE.md",
   "/GENIA_RULES.md",
   "/GENIA_REPL_README.md",
-  "/docs/book/**/*.md",
 ]
 
 [tool.pytest.ini_options]

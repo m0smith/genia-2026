@@ -658,7 +658,7 @@ This protects helper-based and pattern-based Option handling from silent semanti
   - `first_opt` for `first`
   - `nth_opt` for `nth`
 - compatibility aliases are expected to preserve the same outward behavior as their canonical target
-- migration status labels used in docs/book:
+- migration status labels used in docs:
   - `canonical`: preferred public API for new code
   - `compatibility alias`: thin wrapper/alias kept for migration stability
   - `compatibility surface`: behavior still supported but is no longer the preferred teaching path when a clearer helper exists

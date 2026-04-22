@@ -474,7 +474,7 @@ When the phase-1 spec is implemented, later prompts **must** update:
 | `hosts/README.md` | Note that the Python host now validates shared spec cases |
 | `docs/host-interop/HOST_CAPABILITY_MATRIX.md` | Update `shared spec runner support` row from "Scaffolded" to "Phase 1" for Python |
 | `README.md` | Mention shared spec cases exist (brief) |
-| `docs/book/15-reference-host-and-portability.md` | If it exists, update to reflect real spec execution |
+| shared portability docs | Update to reflect real spec execution when contract changes |
 
 Documents that do **not** need updating (unless public user-facing examples change):
 - `docs/cheatsheet/*`
@@ -574,14 +574,14 @@ All cases below exercise behavior that is **already implemented, stable, and ver
 
 Later implementation, test, and documentation prompts **must** follow these rules:
 
-1. **Keep `AGENTS.md` requirements in force.** Every change to language behavior, syntax, runtime semantics, parser rules, or examples must also update `GENIA_STATE.md` and relevant `docs/book/` chapters.
+1. **Keep `AGENTS.md` requirements in force.** Every change to language behavior, syntax, runtime semantics, parser rules, or examples must also update `GENIA_STATE.md` and any relevant implementation-aligned docs/specs.
 
 2. **Keep these documents synchronized as applicable:**
    - `GENIA_STATE.md`
    - `GENIA_RULES.md`
    - `README.md`
    - `GENIA_REPL_README.md`
-   - `docs/book/*`
+   - implementation-aligned docs
    - `docs/host-interop/*`
    - `spec/*`
    - `tools/spec_runner/README.md`

@@ -18,7 +18,7 @@ Read these before writing host code:
 7. `spec/README.md`
 8. `spec/manifest.json`
 9. `tools/spec_runner/README.md`
-10. relevant `docs/book/*` chapters for the feature area you are touching
+10. relevant core docs/specs for the feature area you are touching
 
 ## Minimal Host Requirements
 
@@ -123,7 +123,7 @@ Rule:
 When you add or change host behavior, update:
 
 - `GENIA_STATE.md` if Python behavior changes or if shared status changes
-- relevant `docs/book/*`
+- relevant core docs/specs
 - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
 - `spec/manifest.json` if the host contract changes
 - host-local README/AGENTS files

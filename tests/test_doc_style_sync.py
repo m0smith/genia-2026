@@ -1,4 +1,4 @@
-"""Tests enforcing synchronization between the @doc style guide, book, cheatsheets, and linter.
+"""Tests enforcing synchronization between the @doc style guide, cheatsheets, and linter.
 
 Run all doc-style validation tests:
     pytest tests/test_doc_style_sync.py -v
@@ -23,7 +23,6 @@ from lint_doc import (
 
 REPO = Path(__file__).resolve().parent.parent
 STYLE_GUIDE = REPO / "docs" / "style" / "doc-style.md"
-BOOK_FUNCTIONS = REPO / "docs" / "book" / "03-functions.md"
 CHEATSHEET_CORE = REPO / "docs" / "cheatsheet" / "core.md"
 CHEATSHEET_QUICK = REPO / "docs" / "cheatsheet" / "quick-reference.md"
 PRELUDE_DIR = REPO / "src" / "genia" / "std" / "prelude"
@@ -195,70 +194,7 @@ class TestCheatsheetDocSync:
 
 
 # ===========================================================================
-# 3) Book sync test
-# ===========================================================================
-
-class TestBookDocSync:
-    """Validate that docs/book/03-functions.md @doc content matches the style guide."""
-
-    @pytest.fixture(autouse=True)
-    def _load(self):
-        self.book_text = read_text(BOOK_FUNCTIONS)
-        self.style_text = read_text(STYLE_GUIDE)
-
-    def test_book_has_documenting_functions_section(self):
-        assert "## Documenting Functions" in self.book_text
-
-    def test_book_links_to_style_guide(self):
-        assert "doc-style.md" in self.book_text, (
-            "Book chapter 03 should link to docs/style/doc-style.md"
-        )
-
-    def test_book_markdown_subset_matches_style_guide(self):
-        """The Markdown subset described in the book must match the style guide."""
-        book = self.book_text
-
-        # The style guide's allowed list in section 3
-        style_allowed = [
-            "paragraphs",
-            "blank lines",
-            "bullet lists",
-            "inline code",
-            "fenced code blocks",
-        ]
-        for item in style_allowed:
-            assert item in book, (
-                f"Book's Markdown subset section should mention '{item}'"
-            )
-
-        # The style guide's disallowed list
-        style_disallowed = ["HTML", "tables", "images"]
-        for item in style_disallowed:
-            assert item in book, (
-                f"Book's Markdown subset section should mention disallowed '{item}'"
-            )
-
-    def test_book_allowed_section_headers_consistent(self):
-        """Book prose mentioning allowed @doc section headers must be a subset of the style guide."""
-        book = self.book_text
-        # The book mentions headings like `## Arguments` and `## Returns`
-        # Extract all `## SomeName` references from the book's Markdown subset section
-        heading_refs = re.findall(r'`(## \w+)`', book)
-        style_names = {h.replace("## ", "") for h in ALLOWED_SECTION_HEADERS}
-        for ref in heading_refs:
-            name = ref.replace("## ", "")
-            assert name in style_names, (
-                f"Book references section header '{ref}' but it's not in the "
-                f"style guide's allowed set: {ALLOWED_SECTION_HEADERS}"
-            )
-
-    def test_book_doc_style_guide_section_exists(self):
-        """Book should have a redirect section pointing to the canonical style guide."""
-        assert "## `@doc` Style Guide" in self.book_text or "## @doc Style Guide" in self.book_text
-
-
-# ===========================================================================
-# 4) Source doc lint sweep
+# 3) Source doc lint sweep
 # ===========================================================================
 
 class TestPreludeDocLintSweep:
@@ -309,7 +245,7 @@ class TestPreludeDocLintSweep:
 
 
 # ===========================================================================
-# 5) Linter constants match style guide
+# 4) Linter constants match style guide
 # ===========================================================================
 
 class TestLinterStyleGuideAlignment:
