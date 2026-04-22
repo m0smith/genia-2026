@@ -43,12 +43,13 @@ This repository currently provides:
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
 - `eval` and `ir` are active for executable shared spec files; other categories are scaffold-only.
-- Within the current implemented shared semantic-spec scope, observable outputs are compared in normalized form and Python-specific leakage is not part of the portable contract.
+- Within the current implemented shared semantic-spec scope, eval compares normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval` and `ir`.
+- The current eval shared case inventory covers deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, combined `stdout`/`stderr` separation, stdin-fed eval, and deterministic failures.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -93,6 +94,7 @@ python -m tools.spec_runner
 
 **What the spec guarantees:**
 - For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- The current eval suite covers deterministic final-result rendering and direct stdio output separation; it does not widen into CLI mode selection, REPL behavior, or pipe-mode shared execution.
 - For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
 - For other categories: present as scaffolds only; no executable shared spec files yet.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
