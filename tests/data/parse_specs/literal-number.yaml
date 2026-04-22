@@ -1,0 +1,5 @@
+id: literal-number
+source: "42"
+expect_ast:
+  kind: Literal
+  value: 42

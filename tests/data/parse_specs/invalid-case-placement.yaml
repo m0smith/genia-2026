@@ -1,0 +1,5 @@
+id: invalid-case-placement
+source: "x = (y -> y)"
+expect_error:
+  type: SyntaxError
+  message: "Expected RPAREN"
