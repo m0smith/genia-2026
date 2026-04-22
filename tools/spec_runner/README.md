@@ -27,6 +27,7 @@ python -m tools.spec_runner
 - Cases are loaded from `spec/eval/*.yaml` and `spec/ir/*.yaml`
 - Each case is executed independently against the Python reference host
 - Eval cases normalize `stdout`/`stderr` line endings before comparison
+- The current eval suite includes deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, and combined `stdout`/`stderr` separation cases
 - IR cases normalize portable Core IR before comparison and fail if host-local optimized IR appears in the shared IR path
 - Failures are reported per spec with expected vs actual fields
 
@@ -41,6 +42,7 @@ FAIL eval arithmetic-basic (/path/to/spec/eval/arithmetic-basic.yaml)
 
 **Normalization:**
 - For eval, the runner normalizes line endings for `stdout`/`stderr`
+- For eval, the compared surface remains only `stdout`, `stderr`, and `exit_code`
 - For IR, the runner compares normalized host-neutral portable Core IR output
 - For IR, execution flow is `source -> parse -> lower -> normalize -> compare`
 - It does not trim meaningful whitespace

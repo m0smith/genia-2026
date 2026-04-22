@@ -1,0 +1,10 @@
+name: pattern-duplicate-binding-false
+category: eval
+input:
+  source: |
+    same_pair(xs) = ([x, x]) -> true | (_) -> false
+    same_pair([7, 8])
+expected:
+  stdout: "false\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,10 @@
+name: output-print-and-log
+category: eval
+input:
+  source: |
+    print("ok")
+    log("warn")
+expected:
+  stdout: "ok\n\"warn\"\n"
+  stderr: "warn\n"
+  exit_code: 0
