@@ -138,7 +138,7 @@ CLI contract summary (actual behavior):
   - `help("name")` for raw host-backed names such as `print` falls back to a generic bridge note instead of a separate host-doc registry
   - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
-  - official docstring style/templates live in `docs/book/03-functions.md`
+  - official docstring style/templates live in `docs/style/doc-style.md` and the current cheatsheets
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)

@@ -119,10 +119,10 @@ def test_authoritative_docs_capture_pipeline_option_contract() -> None:
             ],
         ),
         (
-            "docs/book/11-flow.md",
+            "docs/cheatsheet/piepline-flow-vs-value.md",
             [
                 FACTS["pipe_wrapper"],
-                "the pipeline lifts it over `some(field)` automatically",
+                "auto-lift ordinary stages over `some(x)`",
             ],
         ),
     ],
@@ -193,8 +193,8 @@ def test_pipeline_flow_vs_value_cheatsheet_uses_current_option_wording() -> None
     [
         "README.md",
         "docs/cheatsheet/quick-reference.md",
-        "docs/book/01-core-data.md",
-        "docs/book/11-flow.md",
+        "docs/cheatsheet/core.md",
+        "docs/cheatsheet/piepline-flow-vs-value.md",
     ],
 )
 def test_docs_that_mention_non_option_wrapping_also_mention_option_preservation(
@@ -211,6 +211,7 @@ def test_docs_that_mention_non_option_wrapping_also_mention_option_preservation(
         normalize("Option result is preserved as-is"),
         normalize("preserve that Option result as-is"),
         normalize("Option stage results"),
+        normalize("Final result preserves Option structure"),
     ]
     if wrapping_phrase in text:
         assert any(p in text for p in preservation_phrases), (
@@ -260,7 +261,7 @@ def test_instruction_surfaces_reference_semantic_sync_guardrails() -> None:
         ("spec/README.md", FACTS["host_status"]),
         ("docs/browser/README.md", FACTS["host_status"]),
         ("apps/playground/README.md", FACTS["host_status"]),
-        ("docs/book/15-reference-host-and-portability.md", "one implemented host: Python"),
+        ("docs/host-interop/HOST_INTEROP.md", "Python is the only implemented host and is the reference host today."),
     ],
 )
 def test_host_status_docs_stay_clear(relpath: str, expected_excerpt: str) -> None:
@@ -289,7 +290,6 @@ def test_authoritative_and_public_docs_keep_annotation_contract_visible() -> Non
     for relpath in [
         "GENIA_RULES.md",
         "README.md",
-        "docs/book/03-functions.md",
         "docs/cheatsheet/core.md",
     ]:
         text = normalize(read_text(relpath))
@@ -302,7 +302,6 @@ def test_authoritative_and_public_docs_keep_naming_rule_visible() -> None:
         "GENIA_STATE.md",
         "GENIA_REPL_README.md",
         "README.md",
-        "docs/book/01-core-data.md",
     ]:
         text = normalize(read_text(relpath))
         assert normalize("new `?`-suffixed APIs are boolean-returning") in text
@@ -319,7 +318,6 @@ def test_authoritative_and_public_docs_keep_cli_dispatch_contract_visible() -> N
         "README.md",
         "docs/cheatsheet/core.md",
         "docs/cheatsheet/quick-reference.md",
-        "docs/book/03-functions.md",
     ]:
         text = normalize(read_text(relpath))
         assert "main(argv())" in text

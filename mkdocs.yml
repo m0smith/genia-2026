@@ -34,7 +34,6 @@ nav:
       - 13 Metacircular Helpers: book/13-metacircular-helpers.md
       - 14 Building an Evaluator: book/14-building-an-evaluator.md
       - 15 Reference Host and Portability: book/15-reference-host-and-portability.md
-  - SICP with Genia:
       - Overview: sicp/index.md
       - 01 Elements of Programming: sicp/01-elements-of-programming.md
       - 02 Procedures and Processes: sicp/02-procedures-and-processes.md

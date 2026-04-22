@@ -14,10 +14,8 @@ ROOT_DOC_FILES = [
     "README.md",
 ]
 DOC_SURFACE_DIRS = [
-    "docs/book",
     "docs/cheatsheet",
     "docs/host-interop",
-    "docs/sicp",
 ]
 ALLOWED_CLASSIFICATIONS = {"Valid", "Likely valid", "Illustrative", "Invalid"}
 CLASSIFICATION_RE = re.compile(
@@ -57,7 +55,7 @@ def iter_markdown_files() -> list[Path]:
 
 def iter_example_docs() -> list[Path]:
     files: list[Path] = []
-    for rel_dir in ["docs/book", "docs/cheatsheet", "docs/sicp"]:
+    for rel_dir in ["docs/cheatsheet"]:
         files.extend(sorted((REPO / rel_dir).rglob("*.md")))
     return files
 

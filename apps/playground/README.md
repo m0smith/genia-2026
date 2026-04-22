@@ -76,7 +76,7 @@ This allows swapping backend-Python execution with browser-native host execution
 When behavior or examples change, keep synchronized:
 
 - GENIA_STATE.md
-- relevant docs/book chapters
+- relevant core docs and specs
 - relevant docs/cheatsheet pages
 - docs/host-interop/*
 - spec/manifest.json

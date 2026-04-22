@@ -24,7 +24,7 @@ It owns:
 - host adapters
 - specification and conformance tests
 
-This repository does NOT contain teaching material, curriculum, or external examples.
+This repository does NOT contain tutorial content, learning content, or external examples.
 
 ---
 
@@ -45,6 +45,7 @@ Rules:
 - Tests must reflect actual behavior
 - Implementation must match STATE + RULES
 - Docs must describe ONLY what is implemented
+- Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/test_semantic_doc_sync.py`
 
 ---
 
@@ -58,6 +59,8 @@ The following MUST NOT define behavior:
 
 Rule:
 > If it is not in `GENIA_STATE.md`, it is not part of the language.
+
+`GENIA_STATE.md` is the final authority for implemented behavior.
 
 ---
 
@@ -80,8 +83,25 @@ Allowed documentation:
 Prohibited:
 
 - speculative features
-- teaching material
+- tutorial content
 - narrative explanation beyond what is required for correctness
+
+## Documentation Truth Model
+
+Truth hierarchy:
+
+1. `GENIA_STATE.md`
+2. `GENIA_RULES.md`
+3. `GENIA_REPL_README.md`
+4. `README.md`
+5. `spec/*`
+6. `docs/host-interop/*`
+7. `docs/architecture/*`
+8. implementation (`src/*`, `hosts/*`)
+
+* no doc may claim more than `GENIA_STATE.md`
+* examples must include classification
+* host-only behavior must be labeled
 
 ---
 
@@ -134,6 +154,22 @@ Every change MUST follow this pipeline:
 7. Audit / Truth Review
 
 No steps may be skipped.
+
+## Drift-Prevention Rules
+
+- Keep docs, tests, and implementation aligned
+- Update documentation when behavior or examples change
+- Update tests when behavior, wording, or protected semantic facts change
+- Host-only behavior must keep `LANGUAGE CONTRACT:` and `PYTHON REFERENCE HOST:` labels where applicable
+- Do not leave deleted-doc references in tests, tooling, or instruction files
+
+## Required Workflow for Any Change
+
+1. update `GENIA_STATE.md`
+2. update any other affected core docs
+3. update implementation only for already-defined behavior
+4. update or add tests
+5. run the relevant audit/validation
 
 ---
 
@@ -248,7 +284,7 @@ This repository is:
 It is NOT:
 
 - a tutorial
-- a curriculum
+- a learning-content repository
 - a teaching resource
 
 ---

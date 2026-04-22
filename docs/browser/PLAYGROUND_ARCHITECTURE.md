@@ -138,7 +138,7 @@ Planned later:
 Future Codex/Copilot browser or host tasks must keep these synchronized when behavior or user-facing examples change:
 
 - GENIA_STATE.md
-- relevant docs/book chapters
+- relevant core docs and specs
 - relevant docs/cheatsheet pages
 - docs/host-interop/*
 - spec/manifest.json
