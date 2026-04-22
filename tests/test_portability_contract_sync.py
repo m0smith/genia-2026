@@ -122,15 +122,15 @@ def test_manifest_core_ir_patterns_match_architecture_doc():
         assert f"`{name}`" in arch_doc, f"{name} missing from core-ir-portability.md"
 
 
-def test_spec_category_dirs_allow_eval_phase1_specs_only():
-    """Phase 1 allows YAML files only in spec/eval; other category dirs remain scaffolds."""
+def test_spec_category_dirs_allow_eval_and_ir_specs_only():
+    """Current phase allows YAML files only in active shared spec category dirs."""
     spec_dir = REPO / "spec"
     # Canonical categories as defined in GENIA_STATE.md and spec/README.md
     category_dirs = [
         "parse", "ir", "eval", "cli", "flow", "error"
     ]
-    # Only eval is officially activated for YAML specs in this phase
-    activated = {"eval"}
+    # Only eval and ir are officially activated for YAML specs in this phase
+    activated = {"eval", "ir"}
     for dirname in category_dirs:
         d = spec_dir / dirname
         assert d.is_dir(), f"spec/{dirname}/ missing"

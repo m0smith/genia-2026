@@ -99,7 +99,7 @@
     },
     "lower": {
       "input": "source string",
-      "output": "minimal portable Core IR JSON",
+      "output": "normalized minimal portable Core IR JSON",
       "optional_host_local_output": "optional optimized host-local IR JSON payload"
     },
     "eval": {

@@ -70,6 +70,24 @@ Hosts must preserve these lowering invariants:
 - case/function patterns lower into explicit `IrPat*` pattern families
 - lowering output uses only the minimal portable Core IR node families listed above
 
+## Executable Validation
+
+This portability contract is executable in the shared Semantic Spec System for the current Python reference host.
+
+Shared IR cases under `spec/ir/` validate:
+
+- parse
+- lower
+- normalize portable Core IR
+- compare against shared expected IR
+
+Contract rule:
+
+- shared IR validation happens before host-local optimization
+- host-local optimized nodes are rejected from the shared IR path
+
+Python is the only executing host today. This does not imply multi-host IR execution exists.
+
 
 ## Strict Error Normalization and Category Boundaries
 
@@ -112,6 +130,7 @@ The Python reference host now includes a lightweight guard:
 Shared conformance work should continue to assert:
 
 - lowering snapshots/shape
+- executable shared IR cases at the portable boundary
 - eval behavior after lowering
 - CLI/Flow/error contracts at observable boundaries
 
@@ -121,6 +140,7 @@ Implemented today:
 
 - frozen minimal portable Core IR contract (this document)
 - Python-host guard to detect host-local node leakage before optimization
+- executable shared IR semantic-spec validation in the Python reference host
 - tests that lock the boundary between lowered portable IR and host-local optimized IR
 
 Not implemented today:

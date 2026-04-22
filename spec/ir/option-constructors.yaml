@@ -1,0 +1,33 @@
+name: option-constructors
+category: ir
+input:
+  source: |
+    [some(1), none("parse_failed", {source: "x"}), nil]
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrList
+        items:
+          - node: IrOptionSome
+            value:
+              node: IrLiteral
+              value: 1
+          - node: IrOptionNone
+            reason:
+              node: IrQuote
+              expr:
+                kind: Literal
+                value: parse_failed
+            context:
+              node: IrMap
+              items:
+                - key: source
+                  value:
+                    node: IrLiteral
+                    value: x
+          - node: IrOptionNone
+            reason:
+              node: IrLiteral
+              value: nil
+            context: null

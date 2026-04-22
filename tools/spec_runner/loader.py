@@ -14,11 +14,25 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised in runtime en
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SPEC_CATEGORIES = ["eval", "error", "flow", "pattern", "cli"]
+SPEC_CATEGORIES = ["eval", "error", "flow", "pattern", "cli", "ir"]
 SPEC_ROOTS = [REPO_ROOT / "spec" / cat for cat in SPEC_CATEGORIES]
-ALLOWED_TOP_LEVEL_KEYS = {"name", "category", "input", "expected"}
-ALLOWED_INPUT_KEYS = {"source", "stdin"}
-ALLOWED_EXPECTED_KEYS = {"stdout", "stderr", "exit_code"}
+ALLOWED_TOP_LEVEL_KEYS = {"name", "category", "input", "expected", "notes"}
+ALLOWED_INPUT_KEYS_BY_CATEGORY = {
+    "eval": {"source", "stdin"},
+    "error": {"source", "stdin"},
+    "flow": {"source", "stdin"},
+    "pattern": {"source", "stdin"},
+    "cli": {"source", "stdin"},
+    "ir": {"source"},
+}
+ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
+    "eval": {"stdout", "stderr", "exit_code"},
+    "error": {"stdout", "stderr", "exit_code"},
+    "flow": {"stdout", "stderr", "exit_code"},
+    "pattern": {"stdout", "stderr", "exit_code"},
+    "cli": {"stdout", "stderr", "exit_code"},
+    "ir": {"ir"},
+}
 
 
 @dataclass(frozen=True)
@@ -27,9 +41,10 @@ class LoadedSpec:
     category: str
     source: str
     stdin: str
-    expected_stdout: str
-    expected_stderr: str
-    expected_exit_code: int
+    expected_stdout: str | None
+    expected_stderr: str | None
+    expected_exit_code: int | None
+    expected_ir: Any | None
     path: Path
 
 
@@ -61,19 +76,25 @@ def load_spec(path: Path) -> LoadedSpec:
         raise ValueError(f"unsupported category: {data['category']}")
 
     input_data = _validate_mapping(data["input"], field_name="input")
-    unknown_input = set(input_data) - ALLOWED_INPUT_KEYS
+    allowed_input_keys = ALLOWED_INPUT_KEYS_BY_CATEGORY[data["category"]]
+    unknown_input = set(input_data) - allowed_input_keys
     if unknown_input:
         raise ValueError(f"unknown input fields: {sorted(unknown_input)}")
     if "source" not in input_data:
         raise ValueError("missing required field: input.source")
 
     expected_data = _validate_mapping(data["expected"], field_name="expected")
-    unknown_expected = set(expected_data) - ALLOWED_EXPECTED_KEYS
+    allowed_expected_keys = ALLOWED_EXPECTED_KEYS_BY_CATEGORY[data["category"]]
+    unknown_expected = set(expected_data) - allowed_expected_keys
     if unknown_expected:
         raise ValueError(f"unknown expected fields: {sorted(unknown_expected)}")
-    for required_key in ("stdout", "stderr", "exit_code"):
-        if required_key not in expected_data:
-            raise ValueError(f"missing required field: expected.{required_key}")
+    if data["category"] == "ir":
+        if "ir" not in expected_data:
+            raise ValueError("missing required field: expected.ir")
+    else:
+        for required_key in ("stdout", "stderr", "exit_code"):
+            if required_key not in expected_data:
+                raise ValueError(f"missing required field: expected.{required_key}")
 
     if not isinstance(data["name"], str) or not data["name"]:
         raise ValueError("name must be a non-empty string")
@@ -83,21 +104,26 @@ def load_spec(path: Path) -> LoadedSpec:
         raise ValueError("input.source must be a string")
     if "stdin" in input_data and not isinstance(input_data["stdin"], str):
         raise ValueError("input.stdin must be a string")
-    if not isinstance(expected_data["stdout"], str):
-        raise ValueError("expected.stdout must be a string")
-    if not isinstance(expected_data["stderr"], str):
-        raise ValueError("expected.stderr must be a string")
-    if not isinstance(expected_data["exit_code"], int):
-        raise ValueError("expected.exit_code must be an integer")
+    if data["category"] == "ir":
+        if expected_data["ir"] is None:
+            raise ValueError("expected.ir must not be null")
+    else:
+        if not isinstance(expected_data["stdout"], str):
+            raise ValueError("expected.stdout must be a string")
+        if not isinstance(expected_data["stderr"], str):
+            raise ValueError("expected.stderr must be a string")
+        if not isinstance(expected_data["exit_code"], int):
+            raise ValueError("expected.exit_code must be an integer")
 
     return LoadedSpec(
         name=data["name"],
         category=data["category"],
         source=input_data["source"],
         stdin=input_data.get("stdin", ""),
-        expected_stdout=expected_data["stdout"],
-        expected_stderr=expected_data["stderr"],
-        expected_exit_code=expected_data["exit_code"],
+        expected_stdout=expected_data.get("stdout"),
+        expected_stderr=expected_data.get("stderr"),
+        expected_exit_code=expected_data.get("exit_code"),
+        expected_ir=expected_data.get("ir"),
         path=path,
     )
 
