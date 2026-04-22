@@ -47,7 +47,7 @@ When multi-host artifacts disagree, use this order:
 4. shared spec artifacts under `spec/`
 5. `docs/host-interop/*`
 6. `docs/architecture/core-ir-portability.md`
-7. `README.md` and the teaching material under `docs/book/`
+7. `README.md` and relevant core reference docs
 
 Notes:
 
@@ -195,7 +195,7 @@ Rules:
 - pure user-facing transformation logic should prefer prelude/Genia code
 - adding a public capability or changing capability semantics requires:
   - `GENIA_STATE.md`
-  - relevant `docs/book/*`
+  - relevant core docs/specs
   - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
   - `spec/manifest.json`
 

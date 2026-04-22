@@ -35,9 +35,7 @@ Authoritative:
 
 Relevant (only those touched):
 
-* docs/book/*
 * docs/cheatsheet/*
-* docs/sicp/*
 * docs/host-interop/*
 * spec/*
 
@@ -176,9 +174,7 @@ Verify alignment across:
 * GENIA_RULES.md
 * GENIA_REPL_README.md
 * README.md
-* docs/book/*
 * docs/cheatsheet/*
-* docs/sicp/* (if touched)
 * host/spec docs (if relevant)
 
 ## Drift detected:

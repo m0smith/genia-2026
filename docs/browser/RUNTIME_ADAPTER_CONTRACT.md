@@ -137,7 +137,7 @@ Future browser/runtime work must keep docs/spec/book/cheatsheets synchronized.
 At minimum update, when relevant:
 
 - GENIA_STATE.md
-- relevant docs/book chapters
+- relevant core docs and specs
 - relevant docs/cheatsheet pages
 - docs/host-interop/*
 - spec/manifest.json

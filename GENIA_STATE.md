@@ -145,8 +145,6 @@ Implemented today:
   - `GENIA_STATE.md`
   - `GENIA_RULES.md`
   - `GENIA_REPL_README.md`
-  - `docs/book/*`
-  - `docs/sicp/*` chapter content
   - `docs/cheatsheet/*`
   - public-facing host interop docs under `docs/host-interop/`
 - GitHub Actions docs workflow behavior is:
@@ -158,8 +156,7 @@ Implemented today:
     - the protected facts surface is intentionally small and lives in `docs/contract/semantic_facts.json`
     - validation covers both public docs and LLM-instruction surfaces
   - cheatsheet validation tests
-  - SICP runnable-block validation tests
-  - lightweight book chapter status-marker validation
+  - core documentation truthfulness and synchronization tests
 
 Clarifications:
 
@@ -206,7 +203,6 @@ Implemented today:
 
 - style guide structure test: validates `docs/style/doc-style.md` has required sections, good/bad examples, and well-formed genia fences
 - cheatsheet sync test: validates `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections with case markers linking back to the style guide
-- book sync test: validates `docs/book/03-functions.md` has a `Documenting Functions` section whose allowed headers and Markdown subset are consistent with the style guide
 - linter-style guide alignment test: validates that the linter's `ALLOWED_SECTION_HEADERS`, `DISCOURAGED_PREFIXES`, and disallowed Markdown match the style guide
 - prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them
 
@@ -632,7 +628,7 @@ Pipeline (Phase 2) evaluation model:
   - `pair?(x)` reports whether a value is a pair
   - `null?(x)` reports whether a value is the normalized empty-pair terminator (`none("nil")`, including legacy `nil`)
 - pair equality is structural
-- SICP-style lists can be represented as pair chains ending in `nil`
+- lists can be represented as pair chains ending in `nil`
 - ordinary list literals remain separate List values in this phase
 
 ## 4.3) Promises
@@ -958,7 +954,7 @@ Flow semantics:
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
   - Option behavior (`some`/`none` auto-lifting in pipelines) composes with the Flow vs Value distinction but does not erase it
-  - this classification is documented across `docs/book/11-flow.md`, `docs/cheatsheet/piepline-flow-vs-value.md`, and this file
+  - this classification is documented in `docs/cheatsheet/piepline-flow-vs-value.md` and this file
 - `rules` semantics:
   - each rule is called as `(record, ctx)`
   - running `ctx` starts as `{}` for the first input item and persists across later items
