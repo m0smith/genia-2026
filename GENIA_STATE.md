@@ -112,6 +112,9 @@ PYTHON REFERENCE HOST:
 - Python is the only implemented host and is the reference host.
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
+- Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
+- Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
+- Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
 - Other categories (`parse`, `cli`, `flow`, `error`) are present as scaffolds for future shared spec coverage.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
