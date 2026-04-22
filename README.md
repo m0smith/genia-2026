@@ -361,7 +361,7 @@ Published documentation is deployed with GitHub Pages from the `main` branch at:
 
 - `https://m0smith.github.io/genia-2026/`
 
-The published site includes the repo homepage, current state/rules/runtime references, the book, the cheatsheets, host-interop docs, and a top-level `SICP with Genia` section sourced from `docs/sicp/`.
+The published site includes the repo homepage, current state/rules/runtime references, the cheatsheets, host-interop docs, and core reference material from this repository.
 
 To preview locally:
 
@@ -378,7 +378,7 @@ uv run pytest -q tests/test_cheatsheet_*.py tests/test_sicp_code_blocks.py tests
 uv run mkdocs build --strict
 ```
 
-The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives, including the SICP chapter sources under `docs/sicp/`.
+The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives.
 
 LLM instruction sync note:
 
@@ -548,7 +548,7 @@ quote(1 + 2)
 
 ### Pairs and Lists
 
-Genia also has immutable pairs for SICP-style data.
+Genia also has immutable pairs for pair-based structural data.
 
 ```genia
 cons(1, 2)

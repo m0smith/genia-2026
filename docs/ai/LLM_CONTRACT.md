@@ -38,7 +38,7 @@ All LLM-facing tool instruction files must:
 - avoid redefining language semantics, runtime behavior, or source-of-truth precedence locally
 - prefer references over duplicated semantic rules
 - remind agents to update docs and tests with behavior/code changes
-- stay consistent with the book-driven-development rules in `AGENTS.md`
+- stay consistent with the source-of-truth precedence and workflow rules in `AGENTS.md`
 
 ## Semantic Scope
 
@@ -46,8 +46,8 @@ Canonical semantic rules live in:
 
 - `GENIA_STATE.md`
 - `GENIA_RULES.md`
-- relevant `docs/book/*` chapters
-- relevant `docs/sicp/*` chapters when present
+- relevant implementation-aligned docs
+- relevant specs and runtime docs when present
 
 Tool-specific files may add workflow guidance, editor-specific reminders, or task-shaping advice, but they must not redefine protected topics such as:
 
@@ -64,14 +64,14 @@ When a protected semantic fact already has short canonical wording in the author
 Tool-specific instruction files must reinforce the repository rule that:
 
 - any change to language behavior, syntax, runtime semantics, parser rules, or examples must update the authoritative docs
-- book and SICP examples must stay truthful, runnable where appropriate, and synchronized with actual implementation
+- examples must stay truthful, runnable where appropriate, and synchronized with actual implementation
 
 ## Prompting Rule
 
 When creating Codex or Copilot task prompts for repository work, include instructions to:
 
 - read the authoritative docs first
-- keep `GENIA_STATE.md` and relevant docs/book chapters up to date
+- keep `GENIA_STATE.md` and relevant core docs up to date
 - keep tests synchronized with behavior changes
 
 ## Validation

@@ -61,7 +61,6 @@ MAX_PROTECTED_TOPIC_HITS_IN_TOOL_FILE = 6
 DOC_REMINDER_PATTERNS = [
     re.compile(r"update documentation", re.IGNORECASE),
     re.compile(r"update docs", re.IGNORECASE),
-    re.compile(r"docs/book", re.IGNORECASE),
 ]
 
 TEST_REMINDER_PATTERNS = [

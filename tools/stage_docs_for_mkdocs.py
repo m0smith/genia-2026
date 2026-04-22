@@ -14,19 +14,15 @@ ROOT_DOCS = [
 ]
 DOC_DIRS = [
     "docs/architecture",
-    "docs/book",
     "docs/cheatsheet",
     "docs/host-interop",
-    "docs/sicp",
     "docs/style",
 ]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
     "(docs/architecture/": "(architecture/",
-    "(docs/book/": "(book/",
     "(docs/cheatsheet/": "(cheatsheet/",
     "(docs/host-interop/": "(host-interop/",
-    "(docs/sicp/": "(sicp/",
     "(docs/style/": "(style/",
 }
 

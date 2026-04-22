@@ -22,7 +22,8 @@ Validate correctness and alignment.
 - Semantic drift from GENIA_RULES.md
 - Missing or incorrect tests
 - Docs not updated
-- Missing `docs/book/*` alignment when behavior changed
+- Update documentation and tests when behavior or examples changed
+- Missing required core-doc alignment when behavior changed
 - Hidden behavior changes
 - Inconsistent error messages
 - Over-engineering

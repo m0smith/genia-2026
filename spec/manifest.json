@@ -134,7 +134,6 @@
     "GENIA_RULES.md",
     "GENIA_REPL_README.md",
     "README.md",
-    "docs/book",
     "docs/host-interop/HOST_INTEROP.md",
     "docs/host-interop/HOST_PORTING_GUIDE.md",
     "docs/host-interop/HOST_CAPABILITY_MATRIX.md",

@@ -83,9 +83,7 @@ Update as needed:
 
 ### Supporting
 
-* docs/book/*
 * docs/cheatsheet/*
-* docs/sicp/*
 * docs/host-interop/*
 
 ### Examples
@@ -206,7 +204,6 @@ Ensure alignment across:
 * GENIA_RULES.md
 * GENIA_REPL_README.md
 * README.md
-* docs/book/*
 * examples
 
 No contradictions allowed.

@@ -26,4 +26,4 @@ If a change affects shared semantics, also update:
 
 - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
 - `spec/manifest.json` when the shared host contract changes
-- relevant `docs/book/*`
+- relevant core docs/specs
