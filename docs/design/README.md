@@ -14,3 +14,4 @@ See GENIA_STATE.md for actual behavior.
 - **04-contract.md** — Contracts as boundary guarantees, referencing patterns for function signatures.
 - **05-variant-identity.md** — Variant templates (ADTs) for closed alternatives (e.g., Result = Ok | Err).
 - **absence-and-structures.md** — Design note on explicit absence, composable structures, and reducing null.
+- **value-templates.md** - Design for value templates for giving structure and meaning to data
