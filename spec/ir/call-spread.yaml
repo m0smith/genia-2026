@@ -1,0 +1,22 @@
+name: call-spread
+category: ir
+input:
+  source: |
+    f(..[1, 2])
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrVar
+          name: f
+        args:
+          - node: IrSpread
+            expr:
+              node: IrList
+              items:
+                - node: IrLiteral
+                  value: 1
+                - node: IrLiteral
+                  value: 2

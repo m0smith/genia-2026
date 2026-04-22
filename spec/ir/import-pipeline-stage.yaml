@@ -1,0 +1,26 @@
+name: import-pipeline-stage
+category: ir
+input:
+  source: |
+    import python.json as pyjson
+    "null" |> pyjson/loads
+expected:
+  ir:
+    - node: IrImport
+      module_name: python.json
+      alias: pyjson
+    - node: IrExprStmt
+      expr:
+        node: IrPipeline
+        source:
+          node: IrLiteral
+          value: "null"
+        stages:
+          - node: IrBinary
+            left:
+              node: IrVar
+              name: pyjson
+            op: SLASH
+            right:
+              node: IrVar
+              name: loads

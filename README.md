@@ -42,13 +42,13 @@ This repository currently provides:
 
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- Only `eval` is active for executable shared spec files; other categories are scaffold-only.
+- `eval` and `ir` are active for executable shared spec files; other categories are scaffold-only.
 - Within the current implemented shared semantic-spec scope, observable outputs are compared in normalized form and Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The shared contract categories above exist now, but the implemented shared semantic-spec suite currently covers `eval` only.
+- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval` and `ir`.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -69,19 +69,20 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 **LANGUAGE CONTRACT:**
 - The spec system covers these categories:
   - eval (active, executable shared spec files)
+  - ir (active, executable shared spec files)
   - cli (scaffold-only)
   - flow (scaffold-only)
   - pattern (scaffold-only)
   - error (scaffold-only)
   - parse (scaffold-only)
-  - ir (scaffold-only)
-- Spec coverage has expanded beyond eval, but only eval is implemented as executable shared spec files in the Python reference host.
+- Spec coverage has expanded beyond eval, and `eval` plus `ir` are implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The current shared spec runner executes only eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
 - Other categories are present as scaffolds for future shared spec coverage.
 
 **How to run the spec suite:**
@@ -92,12 +93,13 @@ python -m tools.spec_runner
 
 **What the spec guarantees:**
 - For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
 - For other categories: present as scaffolds only; no executable shared spec files yet.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Limitations:**
 - Spec coverage is expanded but still partial and experimental.
-- Only eval is active for executable shared spec files; other categories are scaffold-only.
+- Only eval and ir are active for executable shared spec files; other categories are scaffold-only.
 - GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 ## Quick start
@@ -418,6 +420,7 @@ The current Python host may still apply small post-lowering optimizations such a
 Boundary validation note:
 
 - lowered programs are validated against the minimal portable Core IR contract before host-local optimization in the current Python reference host
+- shared IR semantic-spec cases validate that lowering contract in the current Python reference host
 
 ## Multi-Host Direction
 
@@ -449,8 +452,8 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 Current shared spec status:
 
 - implemented shared case files currently exist under `spec/eval/`
-- `spec/parser/`, `spec/ir/`, `spec/cli/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
-- the shared runner is implemented, but its current executable shared case coverage is eval only
+- `spec/parse/`, `spec/cli/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
+- the shared runner is implemented, and its current executable shared case coverage is eval plus ir
 
 ## Browser playground architecture
 
