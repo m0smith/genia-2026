@@ -1,0 +1,16 @@
+id: fn-def-basic
+source: "inc(x) -> x + 1"
+expect_ast:
+  kind: FuncDef
+  name: inc
+  params:
+    - x
+  body:
+    kind: Binary
+    op: "+"
+    left:
+      kind: Var
+      name: x
+    right:
+      kind: Literal
+      value: 1

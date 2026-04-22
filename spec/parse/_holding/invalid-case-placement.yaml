@@ -1,0 +1,6 @@
+id: invalid-case-placement
+source: "x = (y -> y)"
+expect_error:
+  type: SyntaxError
+  message: "Case expression not allowed in this context"
+...file moved from spec/parse/invalid-case-placement.yaml...

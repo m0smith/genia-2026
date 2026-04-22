@@ -22,6 +22,7 @@ nav:
       - Current State: GENIA_STATE.md
       - Language Rules: GENIA_RULES.md
       - REPL Guide: GENIA_REPL_README.md
+
   - Cheatsheets:
       - Core: cheatsheet/core.md
       - Quick Reference: cheatsheet/quick-reference.md
