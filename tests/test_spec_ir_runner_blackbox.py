@@ -25,6 +25,20 @@ def test_discover_specs_includes_ir_cases() -> None:
     }.issubset(ir_names)
 
 
+def test_discover_specs_includes_eval_cases() -> None:
+    specs, invalid_specs = discover_specs()
+
+    assert not invalid_specs
+    eval_names = {spec.name for spec in specs if spec.category == "eval"}
+    assert {
+        "arithmetic-basic",
+        "output-print",
+        "output-log",
+        "output-print-and-log",
+        "pattern-duplicate-binding-false",
+    }.issubset(eval_names)
+
+
 @pytest.mark.parametrize(
     "fname",
     [
@@ -42,8 +56,18 @@ def test_ir_spec_fixture(fname: str) -> None:
     assert not failures, f"Failures: {failures}"
 
 
-def test_existing_eval_category_still_executes_through_shared_runner() -> None:
-    spec = load_spec(EVAL_DIR / "arithmetic-basic.yaml")
+@pytest.mark.parametrize(
+    "fname",
+    [
+        "arithmetic-basic.yaml",
+        "output-print.yaml",
+        "output-log.yaml",
+        "output-print-and-log.yaml",
+        "pattern-duplicate-binding-false.yaml",
+    ],
+)
+def test_eval_spec_fixture(fname: str) -> None:
+    spec = load_spec(EVAL_DIR / fname)
     actual = execute_spec(spec)
     failures = compare_spec(spec, actual)
 

@@ -1,0 +1,9 @@
+name: output-log
+category: eval
+input:
+  source: |
+    log("oops")
+expected:
+  stdout: "\"oops\"\n"
+  stderr: "oops\n"
+  exit_code: 0
