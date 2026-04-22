@@ -1,5 +1,4 @@
 import pytest
-import yaml
 from hosts.python import parse_and_normalize
 
 # Black-box: test parse adapter normalization
