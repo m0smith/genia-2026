@@ -73,7 +73,6 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
   - ir (active, executable shared spec files)
   - cli (scaffold-only)
   - flow (scaffold-only)
-  - pattern (scaffold-only)
   - error (scaffold-only)
   - parse (scaffold-only)
 - Spec coverage has expanded beyond eval, and `eval` plus `ir` are implemented as executable shared spec files in the Python reference host.
