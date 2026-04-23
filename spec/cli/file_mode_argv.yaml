@@ -10,6 +10,6 @@ input:
   argv: ["foo", "bar"]
   debug_stdio: false
 expected:
-  stdout: '["--", "foo", "bar"]'
+  stdout: '["foo", "bar"]'
   stderr: ""
   exit_code: 0

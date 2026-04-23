@@ -44,8 +44,8 @@ Scaffolded or planned, not implemented as hosts:
 
 **Maturity:**
 
-- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval` and `ir` in the Python reference host. Other hosts are not implemented.
-- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval` and `ir` behavior in this phase.
+- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, and `cli` in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, and `cli` behavior in this phase.
 - Flow behavior is implemented in Python, but shared semantic-spec coverage for flow is **not implemented yet**. CLI shared semantic-spec coverage is implemented for deterministic non-interactive cases.
 - IR stability remains **Partial**: the minimal portable Core IR contract is documented, the Python runtime guards that boundary, and shared semantic-spec case coverage now validates that contract in the Python reference host.
 
@@ -61,6 +61,7 @@ Scaffolded or planned, not implemented as hosts:
 - Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
+- The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner compares normalized portable Core IR output for IR cases.
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
 
@@ -115,7 +116,9 @@ PYTHON REFERENCE HOST:
 - Python is the only implemented host and is the reference host.
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
-- The current shared spec runner executes CLI cases (`spec/cli/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
+- The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
+- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. REPL mode is not included in shared executable spec coverage.
+- The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
 - Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
 - The current eval shared case inventory covers deterministic command-source eval output for:
   - final rendered expression results

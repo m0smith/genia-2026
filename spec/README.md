@@ -44,8 +44,49 @@ Browser execution is planned to use the Python reference host on a backend servi
 - `eval/`, `ir/`, and `cli/` contain executable shared spec files in this phase.
 - Other category directories are present as scaffolds only and must contain only `README.md`.
 
+## Shared YAML Envelope
+
+Executable shared specs use one top-level envelope:
+
+- `name`
+- `id` (optional)
+- `category`
+- `description` (optional)
+- `input`
+- `expected`
+- `notes` (optional)
+
+## CLI Specs
+
+CLI specs live under `spec/cli/` and use `category: cli`.
+
+CLI `input` fields:
+
+- `source`
+- `file`
+- `command`
+- `stdin`
+- `argv`
+- `debug_stdio`
+
+CLI `expected` fields:
+
+- `stdout`
+- `stderr`
+- `exit_code`
+
+CLI mode mapping:
+
+- file mode: `input.file`
+- command mode: `input.command` with empty `input.stdin`
+- pipe mode: `input.command` with non-empty `input.stdin`
+
+For CLI specs, `stdin` is piped input data, not program text. Current shared pipe-mode specs use non-empty `stdin` to select `-p <command>`. Shared executable specs do not cover REPL mode.
+
 **Normalization:**
-- In the implemented eval and cli suites, stdout/stderr line endings are normalized to `\n` and trailing newlines are stripped before comparison. Internal whitespace is not trimmed or collapsed. Stderr is not otherwise normalized.
+- In the implemented eval suite, stdout/stderr line endings are normalized to `\n`. Trailing newlines remain significant.
+- In the implemented CLI suite, stdout/stderr line endings are normalized to `\n` and trailing newlines are stripped before comparison.
+- Internal whitespace is not trimmed or collapsed. Stderr is not otherwise normalized.
 - In the implemented IR suite, portable Core IR is normalized before comparison.
 
 **Test Types:**

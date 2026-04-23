@@ -48,7 +48,9 @@ This repository currently provides:
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, and `cli`.
-- The current eval and cli shared case inventory covers deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, combined `stdout`/`stderr` separation, stdin-fed eval/cli, and deterministic failures.
+- CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
+- REPL mode is not covered by shared executable specs.
+- The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -83,6 +85,8 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
+- CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
+- CLI shared specs cover file mode, command mode, and pipe mode only. REPL is excluded from shared executable coverage.
 - Other categories are present as scaffolds for future shared spec coverage.
 
 **How to run the spec suite:**
@@ -453,7 +457,7 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 Current shared spec status:
 
 - implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, and `spec/cli/`
-- `spec/parse/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
+- `spec/parse/`, `spec/flow/`, and `spec/error/` remain scaffold-only in this phase
 - the shared runner is implemented, and its current executable shared case coverage is eval, ir, and cli
 
 ## Browser playground architecture
