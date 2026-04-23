@@ -1,0 +1,15 @@
+id: command_mode_argv
+name: command_mode_argv
+category: cli
+description: Command mode exposes trailing argv.
+input:
+  source: "print argv()"
+  command: "print argv()"
+  file: null
+  stdin: ""
+  argv: ["a", "b"]
+  debug_stdio: false
+expected:
+  stdout: '["a", "b"]'
+  stderr: ""
+  exit_code: 0

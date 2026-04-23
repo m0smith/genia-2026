@@ -1,0 +1,15 @@
+id: command_mode_double_dash
+name: command_mode_double_dash
+category: cli
+description: Command mode preserves option-like trailing argv after --.
+input:
+  source: "print argv()"
+  file: null
+  command: "print argv()"
+  stdin: ""
+  argv: ["--pretty"]
+  debug_stdio: false
+expected:
+  stdout: '["--pretty"]'
+  stderr: ""
+  exit_code: 0

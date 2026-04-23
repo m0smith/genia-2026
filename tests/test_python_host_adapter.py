@@ -11,7 +11,17 @@ from hosts.python.normalize import normalize_result
     ("parse", "x = 1"),
     ("ir", "x = 1"),
     ("eval", "1 + 2"),
-    ("cli", {"args": ["-c", "1+2"]}),
+    (
+        "cli",
+        {
+            "source": "1+2",
+            "file": None,
+            "command": "1+2",
+            "stdin": "",
+            "argv": [],
+            "debug_stdio": False,
+        },
+    ),
     ("flow", "stdin |> lines |> each(print) |> run"),
     ("error", "1 / 0"),
 ])

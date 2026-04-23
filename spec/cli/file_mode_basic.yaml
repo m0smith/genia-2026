@@ -1,0 +1,15 @@
+id: file_mode_basic
+name: file_mode_basic
+category: cli
+description: Basic file mode execution
+input:
+  source: "spec/cli/file_mode_basic.genia"
+  file: "spec/cli/file_mode_basic.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "42"
+  stderr: ""
+  exit_code: 0

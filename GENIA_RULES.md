@@ -262,14 +262,15 @@ Pipeline invariant:
 
 ## 10) Observable Spec Contract (Current Implemented Scope)
 
-- Shared semantic-spec cases define observable behavior only for categories and scope implemented and recorded in `GENIA_STATE.md` (currently: only `eval` active, others scaffold-only)
-- Current implemented shared semantic-spec coverage is limited to eval cases
-- Current shared eval cases assert:
+- Shared semantic-spec cases define observable behavior only for categories and scope implemented and recorded in `GENIA_STATE.md` (currently: `eval`, `ir`, and `cli` active; other categories scaffold-only)
+- Current shared eval and cli cases assert:
   - `stdout`
   - `stderr`
   - `exit_code`
+- Current shared cli cases cover deterministic non-interactive file, command, and pipe modes; REPL is not covered by shared executable specs
+- Current shared ir cases compare normalized portable Core IR
 - Determinism in the current shared semantic-spec scope means:
-  - those asserted outputs must match exactly after newline normalization
+  - eval and cli asserted outputs must match exactly after newline normalization
   - the runner must not trim or reinterpret meaningful whitespace
 - Expanding shared semantic-spec coverage beyond that scope requires implementation plus `GENIA_STATE.md` updates first
 - Flow remains explicit:
