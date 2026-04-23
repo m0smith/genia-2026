@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 from hosts.python.exec_cli import exec_cli
 from hosts.python.exec_eval import run_eval_subprocess
+from hosts.python.exec_flow import exec_flow
 from hosts.python.exec_ir import exec_ir
 
 from .loader import LoadedSpec
@@ -36,6 +37,14 @@ def execute_spec(spec: LoadedSpec) -> ActualResult:
         return ActualResult(
             stdout=_strip_trailing_newlines(_normalize_text(result["stdout"])),
             stderr=_strip_trailing_newlines(_normalize_text(result["stderr"])),
+            exit_code=result["exit_code"],
+        )
+
+    if spec.category == "flow":
+        result = exec_flow(spec)
+        return ActualResult(
+            stdout=_normalize_text(result["stdout"]),
+            stderr=_normalize_text(result["stderr"]),
             exit_code=result["exit_code"],
         )
 

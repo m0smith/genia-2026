@@ -1,0 +1,11 @@
+name: rules-identity-stage
+category: flow
+input:
+  source: |
+    ["a", "b"] |> lines |> rules() |> collect
+expected:
+  stdout: '["a", "b"]
+
+    '
+  stderr: ""
+  exit_code: 0

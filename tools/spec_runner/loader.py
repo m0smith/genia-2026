@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any
 
 try:
@@ -15,7 +16,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised in runtime en
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Only executable shared-spec categories belong here.
-SPEC_CATEGORIES = ["eval", "cli", "ir"]
+SPEC_CATEGORIES = ["eval", "cli", "ir", "flow"]
 SPEC_ROOTS = [REPO_ROOT / "spec" / cat for cat in SPEC_CATEGORIES]
 
 # All categories use the same top-level envelope.
@@ -33,13 +34,17 @@ ALLOWED_INPUT_KEYS_BY_CATEGORY = {
     "eval": {"source", "stdin"},
     "ir": {"source"},
     "cli": {"source", "file", "command", "stdin", "argv", "debug_stdio"},
+    "flow": {"source", "stdin"},
 }
 
 ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
     "eval": {"stdout", "stderr", "exit_code"},
     "ir": {"ir"},
     "cli": {"stdout", "stderr", "exit_code"},
+    "flow": {"stdout", "stderr", "exit_code"},
 }
+
+FLOW_TERMINAL_PATTERN = re.compile(r"\b(?:collect|run)\b")
 
 
 @dataclass(frozen=True)
@@ -118,6 +123,13 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
         return
 
     if category == "ir":
+        return
+
+    if category == "flow":
+        if "stdin" in input_data and not isinstance(input_data["stdin"], str):
+            raise ValueError("input.stdin must be a string")
+        if not FLOW_TERMINAL_PATTERN.search(input_data["source"]):
+            raise ValueError("flow spec input.source must explicitly consume the flow with collect or run")
         return
 
     # CLI validation

@@ -1,0 +1,16 @@
+name: refine-step-emit-deterministic
+category: flow
+input:
+  source: |
+    stdin
+      |> lines
+      |> refine((row, ctx) -> split_whitespace(row) |> nth(4) |> parse_int |> flat_map_some(step_emit))
+      |> collect
+  stdin: |
+    a b c d 5 x
+    1 2 3 4 6 y
+    short
+expected:
+  stdout: "[5, 6]\n"
+  stderr: ""
+  exit_code: 0
