@@ -39,17 +39,16 @@ This repository currently provides:
 
 ## Host Portability & Spec Contract
 
-
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- `eval` and `ir` are active for executable shared spec files; other categories are scaffold-only.
-- Within the current implemented shared semantic-spec scope, eval compares normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
+- `eval`, `ir`, and `cli` are active for executable shared spec files; other categories are scaffold-only.
+- Within the current implemented shared semantic-spec scope, eval and cli compare normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval` and `ir`.
-- The current eval shared case inventory covers deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, combined `stdout`/`stderr` separation, stdin-fed eval, and deterministic failures.
+- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, and `cli`.
+- The current eval and cli shared case inventory covers deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, combined `stdout`/`stderr` separation, stdin-fed eval/cli, and deterministic failures.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -71,17 +70,18 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The spec system covers these categories:
   - eval (active, executable shared spec files)
   - ir (active, executable shared spec files)
-  - cli (scaffold-only)
+  - cli (active, executable shared spec files)
   - flow (scaffold-only)
   - error (scaffold-only)
   - parse (scaffold-only)
-- Spec coverage has expanded beyond eval, and `eval` plus `ir` are implemented as executable shared spec files in the Python reference host.
+- Spec coverage has expanded beyond eval, and `eval`, `ir`, and `cli` are implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
 - Other categories are present as scaffolds for future shared spec coverage.
 
@@ -93,14 +93,14 @@ python -m tools.spec_runner
 
 **What the spec guarantees:**
 - For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
-- The current eval suite covers deterministic final-result rendering and direct stdio output separation; it does not widen into CLI mode selection, REPL behavior, or pipe-mode shared execution.
+- For cli: the runner executes deterministic non-interactive CLI cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
 - For other categories: present as scaffolds only; no executable shared spec files yet.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Limitations:**
 - Spec coverage is expanded but still partial and experimental.
-- Only eval and ir are active for executable shared spec files; other categories are scaffold-only.
+- Only eval, ir, and cli are active for executable shared spec files; other categories are scaffold-only.
 - GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 ## Quick start
@@ -452,9 +452,9 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 
 Current shared spec status:
 
-- implemented shared case files currently exist under `spec/eval/`
-- `spec/parse/`, `spec/cli/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
-- the shared runner is implemented, and its current executable shared case coverage is eval plus ir
+- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, and `spec/cli/`
+- `spec/parse/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
+- the shared runner is implemented, and its current executable shared case coverage is eval, ir, and cli
 
 ## Browser playground architecture
 

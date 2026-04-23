@@ -8,6 +8,7 @@ Implements: run_case(case: SpecCase) -> SpecResult
 - Thin bridge to src/genia/interpreter.py
 """
 from dataclasses import dataclass
+from types import SimpleNamespace
 from typing import Any, Optional, List, Literal, Union
 
 from .exec_parse import exec_parse
@@ -48,7 +49,17 @@ def run_case(case: SpecCase) -> SpecResult:
     elif case.category == "eval":
         raw = exec_eval(case)
     elif case.category == "cli":
-        raw = exec_cli(case)
+        if not isinstance(case.input, dict):
+            raise TypeError("cli case input must be a mapping")
+        raw = exec_cli(
+            SimpleNamespace(
+                file=case.input.get("file"),
+                command=case.input.get("command"),
+                stdin=case.input.get("stdin", ""),
+                argv=case.input.get("argv", []),
+                debug_stdio=case.input.get("debug_stdio", False),
+            )
+        )
     elif case.category == "flow":
         raw = exec_flow(case)
     elif case.category == "error":

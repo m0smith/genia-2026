@@ -21,7 +21,8 @@ This directory holds the shared cross-host spec suite for Genia.
 
 - `eval` — **active** (executable shared spec files)
 - `ir` — **active** (executable shared spec files)
-- `parse`, `cli`, `flow`, `error` — **scaffold-only** (no executable shared spec files yet)
+- `cli` — **active** (executable shared spec files)
+- `parse`, `flow`, `error` — **scaffold-only** (no executable shared spec files yet)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -35,16 +36,16 @@ Browser execution is planned to use the Python reference host on a backend servi
 - `parse/`: parse scaffold only
 - `ir/`: implemented IR cases (active)
 - `eval/`: implemented eval cases (active)
-- `cli/`: CLI scaffold only
+- `cli/`: implemented CLI cases (active)
 - `flow/`: flow scaffold only
 - `error/`: error scaffold only
 
 **Note:**
-- `eval/` and `ir/` contain executable shared spec files in this phase.
+- `eval/`, `ir/`, and `cli/` contain executable shared spec files in this phase.
 - Other category directories are present as scaffolds only and must contain only `README.md`.
 
 **Normalization:**
-- In the implemented eval suite, stdout/stderr line endings are normalized before comparison.
+- In the implemented eval and cli suites, stdout/stderr line endings are normalized to `\n` and trailing newlines are stripped before comparison. Internal whitespace is not trimmed or collapsed. Stderr is not otherwise normalized.
 - In the implemented IR suite, portable Core IR is normalized before comparison.
 
 **Test Types:**

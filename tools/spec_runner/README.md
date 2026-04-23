@@ -7,11 +7,12 @@ The shared spec runner loads shared spec cases, executes them against the Python
 
 ## Runner Scope (Current Phase)
 
-- **Active categories:** `eval`, `ir` (executable shared spec files)
-- **Scaffold-only:** `parse`, `cli`, `flow`, `error` (no executable shared spec files yet)
-- YAML spec files are loaded from `spec/eval/` and `spec/ir/`
+- **Active categories:** `eval`, `ir`, `cli` (executable shared spec files)
+- **Scaffold-only:** `parse`, `flow`, `error` (no executable shared spec files yet)
+- YAML spec files are loaded from `spec/eval/`, `spec/ir/`, and `spec/cli/`
 - Comparison fields:
   - eval: `stdout`, `stderr`, `exit_code`
+  - cli: `stdout`, `stderr`, `exit_code`
   - ir: normalized portable Core IR
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
@@ -24,10 +25,10 @@ python -m tools.spec_runner
 
 ## How it works
 
-- Cases are loaded from `spec/eval/*.yaml` and `spec/ir/*.yaml`
+- Cases are loaded from `spec/eval/*.yaml`, `spec/cli/*.yaml`, and `spec/ir/*.yaml`
 - Each case is executed independently against the Python reference host
-- Eval cases normalize `stdout`/`stderr` line endings before comparison
-- The current eval suite includes deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, and combined `stdout`/`stderr` separation cases
+- Eval and CLI cases normalize `stdout`/`stderr` line endings before comparison
+- The current eval and CLI suites include deterministic final-result rendering plus direct `stdout` output, direct `stderr` output, and combined `stdout`/`stderr` separation cases
 - IR cases normalize portable Core IR before comparison and fail if host-local optimized IR appears in the shared IR path
 - Failures are reported per spec with expected vs actual fields
 
@@ -41,8 +42,8 @@ FAIL eval arithmetic-basic (/path/to/spec/eval/arithmetic-basic.yaml)
 ```
 
 **Normalization:**
-- For eval, the runner normalizes line endings for `stdout`/`stderr`
-- For eval, the compared surface remains only `stdout`, `stderr`, and `exit_code`
+- For eval and cli, the runner normalizes line endings for `stdout`/`stderr` to `\n` and strips trailing newlines before comparison. Internal whitespace is not trimmed or collapsed. Stderr is not otherwise normalized.
+- For eval and cli, the compared surface remains only `stdout`, `stderr`, and `exit_code`
 - For IR, the runner compares normalized host-neutral portable Core IR output
 - For IR, execution flow is `source -> parse -> lower -> normalize -> compare`
 - It does not trim meaningful whitespace

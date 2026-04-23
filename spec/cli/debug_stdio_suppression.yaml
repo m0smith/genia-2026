@@ -1,0 +1,17 @@
+id: debug_stdio_suppression
+name: debug_stdio_suppression
+category: cli
+description: --debug-stdio rejects command mode deterministically.
+input:
+  source: "print 1"
+  file: null
+  command: "print 1"
+  stdin: ""
+  argv: []
+  debug_stdio: true
+expected:
+  stdout: ""
+  stderr: |-
+    usage: genia [-h] [-V] [-c COMMAND | -p PIPE] [--debug-stdio]
+    genia: error: --debug-stdio cannot be used with --command
+  exit_code: 2

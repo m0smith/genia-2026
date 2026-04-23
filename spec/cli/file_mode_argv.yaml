@@ -1,0 +1,15 @@
+id: file_mode_argv
+name: file_mode_argv
+category: cli
+description: File mode exposes trailing argv.
+input:
+  source: "spec/cli/file_mode_argv.genia"
+  file: "spec/cli/file_mode_argv.genia"
+  command: null
+  stdin: ""
+  argv: ["foo", "bar"]
+  debug_stdio: false
+expected:
+  stdout: '["--", "foo", "bar"]'
+  stderr: ""
+  exit_code: 0

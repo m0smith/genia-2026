@@ -1,0 +1,15 @@
+id: pipe_mode_bypass_main
+name: pipe_mode_bypass_main
+category: cli
+description: Pipe mode executes the stage expression path, not file/command main dispatch.
+input:
+  source: "each(print)"
+  file: null
+  command: "each(print)"
+  stdin: "pipe\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "pipe"
+  stderr: ""
+  exit_code: 0
