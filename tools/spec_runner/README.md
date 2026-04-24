@@ -35,7 +35,7 @@ python -m tools.spec_runner
 - The runner does not construct shell pipelines for CLI specs
 - Eval, CLI, and Flow cases normalize `stdout`/`stderr` line endings before comparison
 - The current CLI suite covers deterministic non-interactive file, command, and pipe cases. REPL is not covered by shared executable specs
-- The current Flow suite covers first-wave observable contract cases only: lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, and `rules()` identity
+- The current Flow suite covers first-wave observable contract cases only: lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
 - IR cases normalize portable Core IR before comparison and fail if host-local optimized IR appears in the shared IR path
 - Failures are reported per spec with expected vs actual fields
 

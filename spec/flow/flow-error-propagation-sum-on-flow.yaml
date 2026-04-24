@@ -1,0 +1,14 @@
+name: flow-error-propagation-sum-on-flow
+category: flow
+input:
+  source: |
+    stdin |> lines |> map(parse_int) |> sum |> collect
+  stdin: |
+    1
+    2
+expected:
+  stdout: ""
+  stderr: 'Error: pipeline stage 3 failed in Flow mode at sum [<command>:1]: stage received flow; sum expected a list, received flow
+
+    '
+  exit_code: 1
