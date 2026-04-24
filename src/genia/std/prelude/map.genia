@@ -18,3 +18,9 @@ map_remove(map, key) = _map_remove(map, key)
 
 @doc "Return the number of entries in a map."
 map_count(map) = _map_count(map)
+
+@doc "Return the entries in a map."
+map_items(map) = _map_items(map)
+
+
+
