@@ -1,0 +1,12 @@
+name: pattern-list-empty
+category: eval
+input:
+  source: |
+    describe(xs) =
+      [] -> "empty" |
+      [_, ..rest] -> "nonempty"
+    describe([])
+expected:
+  stdout: "\"empty\"\n"
+  stderr: ""
+  exit_code: 0

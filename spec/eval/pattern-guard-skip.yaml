@@ -1,0 +1,12 @@
+name: pattern-guard-skip
+category: eval
+input:
+  source: |
+    positive(x) =
+      x ? x > 0 -> x |
+      _ -> 0
+    positive(-3)
+expected:
+  stdout: "0\n"
+  stderr: ""
+  exit_code: 0

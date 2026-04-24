@@ -1,0 +1,12 @@
+name: pattern-option-none
+category: eval
+input:
+  source: |
+    unwrap(opt) =
+      some(x) -> x |
+      none -> "missing"
+    unwrap(none)
+expected:
+  stdout: "\"missing\"\n"
+  stderr: ""
+  exit_code: 0

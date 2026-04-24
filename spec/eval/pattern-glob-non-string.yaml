@@ -1,0 +1,12 @@
+name: pattern-glob-non-string
+category: eval
+input:
+  source: |
+    classify(s) =
+      glob"*.md" -> "markdown" |
+      _ -> "other"
+    classify(42)
+expected:
+  stdout: "\"other\"\n"
+  stderr: ""
+  exit_code: 0

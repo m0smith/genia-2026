@@ -23,6 +23,32 @@ If this change affects behavior, update relevant tests and docs.
 
 ---
 
+--------------------------------
+HARD STOP — PRE-FLIGHT ONLY
+--------------------------------
+
+You MUST STOP after producing the pre-flight output.
+
+You are NOT allowed to:
+- create branches
+- run tests
+- write spec files
+- modify any files
+- run the spec runner
+- commit anything
+- proceed to spec/design/implementation/audit
+
+If you do any of the above, the response is INVALID.
+
+After pre-flight, WAIT for the next prompt.
+
+Do NOT assume the next step.
+
+If you find yourself writing YAML, code, or running commands,
+you have already gone too far. Stop immediately.
+
+---
+
 0. BRANCH
 
 ---

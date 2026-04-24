@@ -1,0 +1,11 @@
+name: pattern-tuple-multiarg
+category: eval
+input:
+  source: |
+    swap(a, b) =
+      (x, y) -> [y, x]
+    swap(10, 20)
+expected:
+  stdout: "[20, 10]\n"
+  stderr: ""
+  exit_code: 0
