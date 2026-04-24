@@ -1247,6 +1247,11 @@ Not implemented yet:
   - `map_has?(map, key)`
   - `map_remove(map, key)`
   - `map_count(map)`
+  - `map_items(map)`
+  - `map_item_key(item)`
+  - `map_item_value(item)`
+  - `map_keys(map)`
+  - `map_values(map)`
   - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
   - the underlying map behavior remains host-backed and unchanged in this phase
 
@@ -1259,6 +1264,11 @@ Behavior:
 - `map_get` returns stored value or `none("missing-key", {key: key})` when key is missing
 - `map_has?` returns `true`/`false`
 - `map_count` returns entry count
+- `map_items` returns a list of `[key, value]` pairs in insertion order
+- `map_item_key` extracts the key from a `[key, value]` pair produced by `map_items`
+- `map_item_value` extracts the value from a `[key, value]` pair produced by `map_items`
+- `map_keys` returns a list of all keys in insertion order
+- `map_values` returns a list of all values in insertion order
 - list keys are supported by stable structural key-freezing in runtime
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
@@ -1575,7 +1585,7 @@ Notable autoloaded functions include:
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `compose`
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
-- map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
