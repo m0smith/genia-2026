@@ -1,0 +1,11 @@
+name: parse-literal-number
+category: parse
+description: Number literal parses to a Literal node
+input:
+  source: "42"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 42
