@@ -3436,7 +3436,7 @@ class GeniaMap:
         return len(self._entries)
 
     def items(self) -> list[tuple[Any, Any]]:
-        return [(raw_key, raw_value) for raw_key, raw_value in self._entries.values()]
+        return [[raw_key, raw_value] for raw_key, raw_value in self._entries.values()]
 
     def __repr__(self) -> str:
         return f"<map {len(self._entries)}>"
@@ -6821,6 +6821,10 @@ def make_global_env(
         genia_map = _ensure_map(map_value, "map_count")
         return genia_map.count()
 
+    def map_items_fn(map_value: Any) -> int:
+        genia_map = _ensure_map(map_value, "map_items")
+        return genia_map.items()
+    
     def some_fn(value: Any) -> GeniaOptionSome:
         return GeniaOptionSome(value)
 
@@ -7702,6 +7706,7 @@ def make_global_env(
     env.set("_map_has?", map_has_fn)
     env.set("_map_remove", map_remove_fn)
     env.set("_map_count", map_count_fn)
+    env.set("_map_items", map_items_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
@@ -7825,6 +7830,7 @@ def make_global_env(
     env.register_autoload("map_has?", 2, "std/prelude/map.genia")
     env.register_autoload("map_remove", 2, "std/prelude/map.genia")
     env.register_autoload("map_count", 1, "std/prelude/map.genia")
+    env.register_autoload("map_items", 1, "std/prelude/map.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand", 0, "std/prelude/random.genia")
     env.register_autoload("rand", 1, "std/prelude/random.genia")
