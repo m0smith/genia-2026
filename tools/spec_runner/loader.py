@@ -16,7 +16,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised in runtime en
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Only executable shared-spec categories belong here.
-SPEC_CATEGORIES = ["eval", "cli", "ir", "flow"]
+SPEC_CATEGORIES = ["eval", "cli", "ir", "flow", "error"]
 SPEC_ROOTS = [REPO_ROOT / "spec" / cat for cat in SPEC_CATEGORIES]
 
 # All categories use the same top-level envelope.
@@ -35,6 +35,7 @@ ALLOWED_INPUT_KEYS_BY_CATEGORY = {
     "ir": {"source"},
     "cli": {"source", "file", "command", "stdin", "argv", "debug_stdio"},
     "flow": {"source", "stdin"},
+    "error": {"source", "stdin"},
 }
 
 ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
@@ -42,6 +43,7 @@ ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
     "ir": {"ir"},
     "cli": {"stdout", "stderr", "exit_code"},
     "flow": {"stdout", "stderr", "exit_code"},
+    "error": {"stdout", "stderr", "exit_code"},
 }
 
 FLOW_TERMINAL_PATTERN = re.compile(r"\b(?:collect|run)\b")
@@ -117,7 +119,7 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
     if not isinstance(input_data["source"], str):
         raise ValueError("input.source must be a string")
 
-    if category == "eval":
+    if category in ("eval", "error"):
         if "stdin" in input_data and not isinstance(input_data["stdin"], str):
             raise ValueError("input.stdin must be a string")
         return

@@ -23,7 +23,8 @@ This directory holds the shared cross-host spec suite for Genia.
 - `ir` — **active** (executable shared spec files)
 - `cli` — **active** (executable shared spec files)
 - `flow` — **active** (executable shared spec files; first-wave coverage only)
-- `parse`, `error` — **scaffold-only** (no executable shared spec files yet)
+- `parse` — **scaffold-only** (no executable shared spec files yet)
+- `error` — **active** (executable shared spec files; initial coverage only)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -39,12 +40,13 @@ Browser execution is planned to use the Python reference host on a backend servi
 - `eval/`: implemented eval cases (active)
 - `cli/`: implemented CLI cases (active)
 - `flow/`: implemented Flow cases (active; first-wave coverage only)
-- `error/`: error scaffold only
+- `error/`: implemented error cases (active; initial coverage only)
 
 **Note:**
-- `eval/`, `ir/`, `cli/`, and `flow/` contain executable shared spec files in this phase.
+- `eval/`, `ir/`, `cli/`, `flow/`, and `error/` contain executable shared spec files in this phase.
 - Flow shared coverage is intentionally limited to first-wave observable contract cases.
-- Other category directories are present as scaffolds only and must contain only `README.md`.
+- Error shared coverage is intentionally limited to initial observable normalized error contract cases.
+- Other scaffold-only category directories must contain only `README.md`.
 
 ## Shared YAML Envelope
 
@@ -88,7 +90,9 @@ For CLI specs, `stdin` is piped input data, not program text. Current shared pip
 **Normalization:**
 - In the implemented eval suite, stdout/stderr line endings are normalized to `\n`. Trailing newlines remain significant.
 - In the implemented CLI suite, stdout/stderr line endings are normalized to `\n` and trailing newlines are stripped before comparison.
+- In the implemented Error suite, stdout/stderr line endings are normalized to `\n`. Trailing newlines remain significant.
 - Internal whitespace is not trimmed or collapsed. Stderr is not otherwise normalized.
+- In the implemented Error suite, the asserted surface remains only `stdout`, `stderr`, and `exit_code`; current cases require `stdout: ""`, exact `stderr`, and `exit_code: 1`.
 - In the implemented IR suite, portable Core IR is normalized before comparison.
 
 **Test Types:**

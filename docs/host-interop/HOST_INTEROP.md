@@ -5,7 +5,7 @@ This document defines the shared portability contract for Genia hosts.
 
 **LANGUAGE CONTRACT**
 - The shared host contract currently covers these spec categories: parse, ir, eval, cli, flow, error.
-- The contract requires host-neutral observable behavior; the current implemented shared semantic-spec suite applies executable comparison for `eval` and `ir` only.
+- The contract requires host-neutral observable behavior; the current implemented shared semantic-spec suite applies executable comparison for `eval`, `ir`, `cli`, `flow`, and initial `error` behavior in the Python reference host.
 
 **PYTHON REFERENCE HOST**
 - Python is the only implemented host and is the reference host today.
@@ -34,8 +34,8 @@ Current status:
 - Python is the only implemented reference host.
 - The Python host adapter in `hosts/python/` implements the shared host contract for the categories above, using the core runtime in `src/genia/`.
 - Node.js, Java, Rust, Go, and C++ are planned hosts only.
-- `spec/` and `tools/spec_runner/` now include an implemented shared semantic-spec runner plus `eval` and `ir` case files.
-- executable shared semantic-spec coverage is currently limited to `eval` and `ir`; the other categories remain scaffolded as shared spec surfaces.
+- `spec/` and `tools/spec_runner/` now include an implemented shared semantic-spec runner plus active `eval`, `ir`, `cli`, `flow`, and initial `error` case files.
+- executable shared semantic-spec coverage is currently active for `eval`, `ir`, `cli`, `flow`, and initial `error`; parse remains scaffolded as a shared spec surface.
 
 ## Authority Order
 
@@ -63,8 +63,19 @@ Notes:
 
 - In the current implemented shared semantic-spec suite:
   - eval comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - cli comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - flow comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - error comparison is limited to normalized observable `stdout`, normalized observable `stderr`, and `exit_code`
   - IR comparison is limited to normalized portable Core IR output
-- Error objects include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
+- Error shared specs in this phase assert only the observable runner surface:
+  - `stdout`
+  - `stderr`
+  - `exit_code`
+- Current error shared cases require:
+  - `stdout` exactly `""`
+  - `stderr` exact match
+  - `exit_code` exactly `1`
+- Error phase/category/message remain contract concepts, but they are not structured runner fields in this phase.
 - Malformed, missing, or unsupported cases fail validation with explicit normalized errors; nothing is silently skipped.
 - Output ordering and structure are deterministic and stable.
 - Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
@@ -76,14 +87,19 @@ Notes:
 
 ## Host Adapter and Spec Runner Model
 
-The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the current implemented shared semantic-spec system, the shared runner executes `eval` and `ir` cases only.
+The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the current implemented shared semantic-spec system, the shared runner executes `eval`, `ir`, `cli`, `flow`, and initial `error` cases.
 
-The shared spec runner loads YAML eval and IR cases, executes them against the Python reference host, and compares:
+The shared spec runner loads YAML eval, cli, flow, error, and IR cases, executes them against the Python reference host, and compares:
 
 - eval: normalized `stdout`, normalized `stderr`, and `exit_code`
+- cli: normalized `stdout`, normalized `stderr`, and `exit_code`
+- flow: normalized `stdout`, normalized `stderr`, and `exit_code`
+- error: normalized `stdout`, normalized `stderr`, and `exit_code`
 - ir: normalized portable Core IR output
 
-This runner does not yet provide implemented shared case coverage for parse, cli, flow, or error categories.
+- Error specs reuse eval execution; there is no separate error execution path in the runner.
+- Error `notes` are informational only and are not machine-asserted.
+- This runner does not yet provide implemented shared case coverage for parse.
 
 Other hosts are not implemented yet. "Portable" means: any future host must pass the same contract and normalization rules, but only Python is enforced today.
 
@@ -176,7 +192,7 @@ The cross-host error model should normalize at least:
   - filename
   - line/column when available
 
-Hosts may attach additional native debugging details, but shared tests should assert only the normalized contract.
+Hosts may attach additional native debugging details, but shared tests should assert only the normalized contract. In the current executable `spec/error/` phase, that asserted surface is limited to `stdout`, `stderr`, and `exit_code`; structured phase/category/source-location fields are not machine-asserted yet.
 
 ## Capability Registry Model
 
