@@ -35,7 +35,15 @@ This repository currently provides:
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
 
+## LLM-Assisted Development
 
+Genia changes must follow the workflow in:
+
+- `AGENTS.md`
+- `docs/process/run-change.md`
+- `docs/process/llm-prompts.md`
+
+Do not use one-shot implementation prompts for behavior changes.
 
 ## Host Portability & Spec Contract
 

@@ -147,17 +147,35 @@ Rule:
 for every change, use pre-flight → spec → design → failing tests → implementation → docs sync → audit
 
 Every change MUST follow this pipeline:
+## Required LLM Change Discipline
 
-1. Pre-flight
-2. Branch creation/verification
-3. Spec
-4. Design
-5. Test
-6. Implementation
-7. Docs Sync
-8. Audit / Truth Review
+Every issue must be completed as separate phases:
 
-No steps may be skipped.
+1. `preflight`
+2. `spec`
+3. `design`
+4. `test`
+5. `implementation`
+6. `docs`
+7. `audit`
+
+Each phase must be a separate prompt and a separate commit.
+
+Agents must not continue into the next phase unless explicitly prompted.
+
+Commit prefixes must match the phase:
+
+- `preflight(scope): ... issue #123`
+- `spec(scope): ... issue #123`
+- `design(scope): ... issue #123`
+- `test(scope): ... issue #123`
+- `feat(scope): ... issue #123`
+- `fix(scope): ... issue #123`
+- `docs(scope): ... issue #123`
+- `audit(scope): ... issue #123`
+
+The `test` phase must commit failing tests before implementation.
+The `implementation` phase must reference the failing-test commit SHA.
 
 ## Drift-Prevention Rules
 
