@@ -88,7 +88,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes Flow cases (spec/flow/) through command-source execution, comparing normalized stdout, stderr, and exit_code.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
 - CLI shared specs cover file mode, command mode, and pipe mode only. REPL is excluded from shared executable coverage.
-- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, and `rules()` identity.
+- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic.
 - Other categories are present as scaffolds for future shared spec coverage.
 
 **How to run the spec suite:**
@@ -461,7 +461,7 @@ Current shared spec status:
 
 - implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, and `spec/flow/`
 - `spec/parse/` and `spec/error/` remain scaffold-only in this phase
-- flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, and `rules()` identity
+- flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
 - the shared runner is implemented, and its current executable shared case coverage is eval, ir, cli, and first-wave flow
 
 ## Browser playground architecture
