@@ -19,9 +19,9 @@ Pipeline:
 1. Pre-flight  
 2. Branch (automatic)  
 3. Spec  
-4. Design  
-5. Implementation  
-6. Test  
+4. Design
+5. Test (TDD)  
+6. Implementation  
 7. Docs  
 8. Audit  
 9. Merge → main  

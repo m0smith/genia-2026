@@ -40,6 +40,7 @@ When sources conflict, resolve in this order:
 6. `docs/host-interop/*`
 7. `docs/architecture/*`
 8. implementation (`src/*`, `hosts/*`)
+9. `docs/process/run-change.md` 
 
 Rules:
 - Tests must reflect actual behavior
@@ -143,15 +144,18 @@ Rule:
 
 # 🧠 REQUIRED WORKFLOW (MANDATORY)
 
+for every change, use pre-flight → spec → design → failing tests → implementation → docs sync → audit
+
 Every change MUST follow this pipeline:
 
 1. Pre-flight
-2. Spec
-3. Design
-4. Implementation
+2. Branch creation/verification
+3. Spec
+4. Design
 5. Test
-6. Docs Sync
-7. Audit / Truth Review
+6. Implementation
+7. Docs Sync
+8. Audit / Truth Review
 
 No steps may be skipped.
 
