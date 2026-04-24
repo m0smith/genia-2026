@@ -15,11 +15,15 @@ Implemented today:
   - cli
   - flow
   - error
-- The implemented shared Semantic Spec System currently executes **eval** cases only.
+- The implemented shared Semantic Spec System currently executes **eval**, **ir**, and **cli** cases.
 - The current shared spec runner compares normalized:
-  - stdout
-  - stderr
-  - exit_code
+  - eval `stdout`
+  - eval `stderr`
+  - eval `exit_code`
+  - cli `stdout`
+  - cli `stderr`
+  - cli `exit_code`
+  - IR portable normalized output
 - The working Python implementation lives in:
   - `src/genia/`
   - `tests/`
@@ -40,23 +44,25 @@ Scaffolded or planned, not implemented as hosts:
 
 **Maturity:**
 
-- Shared host contract is **Partial**: the contract categories above are documented, but executable shared spec coverage is implemented only for `eval` in the Python reference host. Other hosts are not implemented.
-- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist, but only for eval behavior in this phase.
-- Flow and CLI behavior are implemented in Python, but shared semantic-spec coverage for those categories is **not implemented yet**.
-- IR stability remains **Partial**: the minimal portable Core IR contract is documented, and the Python runtime guards that boundary, but shared semantic-spec case coverage for IR is **not implemented yet**.
+- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, and `cli` in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, and `cli` behavior in this phase.
+- Flow behavior is implemented in Python, but shared semantic-spec coverage for flow is **not implemented yet**. CLI shared semantic-spec coverage is implemented for deterministic non-interactive cases.
+- IR stability remains **Partial**: the minimal portable Core IR contract is documented, the Python runtime guards that boundary, and shared semantic-spec case coverage now validates that contract in the Python reference host.
 
 **Explicit limitations:**
 
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
-- Shared semantic-spec case files exist only under `spec/eval/` in this phase.
-- The current shared semantic-spec runner does not yet execute parse, ir, cli, flow, or error categories as shared spec files.
+- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, and `spec/cli/` in this phase.
+- The current shared semantic-spec runner does not yet execute parse, flow, or error categories as shared spec files.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
 - Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
 - Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
-- The current shared semantic-spec runner asserts only `stdout`, `stderr`, and `exit_code` for eval cases.
+- The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
+- The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
+- The current shared semantic-spec runner compares normalized portable Core IR output for IR cases.
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
@@ -96,12 +102,12 @@ LANGUAGE CONTRACT:
 
 - The Semantic Spec System defines observable behavior for the following categories:
   - parse (scaffold-only)
-  - ir (scaffold-only)
+  - ir (**active**, executable shared spec files)
   - eval (**active**, executable shared spec files)
-  - cli (scaffold-only)
+  - cli (**active**, executable shared spec files)
   - flow (scaffold-only)
   - error (scaffold-only)
-- Only `eval` is implemented as executable shared spec files in the Python reference host. All other categories are present as scaffolds only.
+- `eval`, `ir`, and `cli` are implemented as executable shared spec files in the Python reference host. Other categories are present as scaffolds only.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental; see below for category status.
 
@@ -109,12 +115,26 @@ PYTHON REFERENCE HOST:
 
 - Python is the only implemented host and is the reference host.
 - All conformance is validated against the Python reference host.
-- The current shared spec runner executes only eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
-- Other categories (`parse`, `ir`, `cli`, `flow`, `error`) are present as scaffolds for future shared spec coverage.
+- The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
+- The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
+- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. REPL mode is not included in shared executable spec coverage.
+- The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
+- Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
+- The current eval shared case inventory covers deterministic command-source eval output for:
+  - final rendered expression results
+  - direct `stdout` output
+  - direct `stderr` output
+  - combined `stdout`/`stderr` output separation
+  - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
+  - deterministic eval failures with exact `stderr` and `exit_code`
+- Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
+- Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
+- The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
+- Other categories (`parse`, `flow`, `error`) are present as scaffolds for future shared spec coverage.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Summary:**
-- Only `eval` is active for executable shared spec files; other categories are scaffold-only.
+- `eval`, `ir`, and `cli` are active for executable shared spec files; other categories are scaffold-only.
 - `GENIA_STATE.md` is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 **Host implementation location:**
@@ -128,8 +148,8 @@ PYTHON REFERENCE HOST:
 **Limitations:**
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- Shared semantic-spec case files exist only under `spec/eval/` in this phase.
-- The current shared semantic-spec runner does not yet execute parse, ir, cli, flow, or error categories as shared spec files.
+- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, and `spec/cli/` in this phase.
+- The current shared semantic-spec runner does not yet execute parse, flow, or error categories as shared spec files.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
@@ -145,8 +165,6 @@ Implemented today:
   - `GENIA_STATE.md`
   - `GENIA_RULES.md`
   - `GENIA_REPL_README.md`
-  - `docs/book/*`
-  - `docs/sicp/*` chapter content
   - `docs/cheatsheet/*`
   - public-facing host interop docs under `docs/host-interop/`
 - GitHub Actions docs workflow behavior is:
@@ -158,8 +176,7 @@ Implemented today:
     - the protected facts surface is intentionally small and lives in `docs/contract/semantic_facts.json`
     - validation covers both public docs and LLM-instruction surfaces
   - cheatsheet validation tests
-  - SICP runnable-block validation tests
-  - lightweight book chapter status-marker validation
+  - core documentation truthfulness and synchronization tests
 
 Clarifications:
 
@@ -206,7 +223,6 @@ Implemented today:
 
 - style guide structure test: validates `docs/style/doc-style.md` has required sections, good/bad examples, and well-formed genia fences
 - cheatsheet sync test: validates `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections with case markers linking back to the style guide
-- book sync test: validates `docs/book/03-functions.md` has a `Documenting Functions` section whose allowed headers and Markdown subset are consistent with the style guide
 - linter-style guide alignment test: validates that the linter's `ALLOWED_SECTION_HEADERS`, `DISCOURAGED_PREFIXES`, and disallowed Markdown match the style guide
 - prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them
 
@@ -632,7 +648,7 @@ Pipeline (Phase 2) evaluation model:
   - `pair?(x)` reports whether a value is a pair
   - `null?(x)` reports whether a value is the normalized empty-pair terminator (`none("nil")`, including legacy `nil`)
 - pair equality is structural
-- SICP-style lists can be represented as pair chains ending in `nil`
+- lists can be represented as pair chains ending in `nil`
 - ordinary list literals remain separate List values in this phase
 
 ## 4.3) Promises
@@ -958,7 +974,7 @@ Flow semantics:
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
   - Option behavior (`some`/`none` auto-lifting in pipelines) composes with the Flow vs Value distinction but does not erase it
-  - this classification is documented across `docs/book/11-flow.md`, `docs/cheatsheet/piepline-flow-vs-value.md`, and this file
+  - this classification is documented in `docs/cheatsheet/piepline-flow-vs-value.md` and this file
 - `rules` semantics:
   - each rule is called as `(record, ctx)`
   - running `ctx` starts as `{}` for the first input item and persists across later items

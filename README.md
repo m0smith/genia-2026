@@ -39,16 +39,18 @@ This repository currently provides:
 
 ## Host Portability & Spec Contract
 
-
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- Only `eval` is active for executable shared spec files; other categories are scaffold-only.
-- Within the current implemented shared semantic-spec scope, observable outputs are compared in normalized form and Python-specific leakage is not part of the portable contract.
+- `eval`, `ir`, and `cli` are active for executable shared spec files; other categories are scaffold-only.
+- Within the current implemented shared semantic-spec scope, eval and cli compare normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The shared contract categories above exist now, but the implemented shared semantic-spec suite currently covers `eval` only.
+- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, and `cli`.
+- CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
+- REPL mode is not covered by shared executable specs.
+- The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -69,19 +71,22 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 **LANGUAGE CONTRACT:**
 - The spec system covers these categories:
   - eval (active, executable shared spec files)
-  - cli (scaffold-only)
+  - ir (active, executable shared spec files)
+  - cli (active, executable shared spec files)
   - flow (scaffold-only)
-  - pattern (scaffold-only)
   - error (scaffold-only)
   - parse (scaffold-only)
-  - ir (scaffold-only)
-- Spec coverage has expanded beyond eval, but only eval is implemented as executable shared spec files in the Python reference host.
+- Spec coverage has expanded beyond eval, and `eval`, `ir`, and `cli` are implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The current shared spec runner executes only eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
+- CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
+- CLI shared specs cover file mode, command mode, and pipe mode only. REPL is excluded from shared executable coverage.
 - Other categories are present as scaffolds for future shared spec coverage.
 
 **How to run the spec suite:**
@@ -92,12 +97,14 @@ python -m tools.spec_runner
 
 **What the spec guarantees:**
 - For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For cli: the runner executes deterministic non-interactive CLI cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
 - For other categories: present as scaffolds only; no executable shared spec files yet.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Limitations:**
 - Spec coverage is expanded but still partial and experimental.
-- Only eval is active for executable shared spec files; other categories are scaffold-only.
+- Only eval, ir, and cli are active for executable shared spec files; other categories are scaffold-only.
 - GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 ## Quick start
@@ -361,7 +368,7 @@ Published documentation is deployed with GitHub Pages from the `main` branch at:
 
 - `https://m0smith.github.io/genia-2026/`
 
-The published site includes the repo homepage, current state/rules/runtime references, the book, the cheatsheets, host-interop docs, and a top-level `SICP with Genia` section sourced from `docs/sicp/`.
+The published site includes the repo homepage, current state/rules/runtime references, the cheatsheets, host-interop docs, and core reference material from this repository.
 
 To preview locally:
 
@@ -378,7 +385,7 @@ uv run pytest -q tests/test_cheatsheet_*.py tests/test_sicp_code_blocks.py tests
 uv run mkdocs build --strict
 ```
 
-The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives, including the SICP chapter sources under `docs/sicp/`.
+The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives.
 
 LLM instruction sync note:
 
@@ -418,6 +425,7 @@ The current Python host may still apply small post-lowering optimizations such a
 Boundary validation note:
 
 - lowered programs are validated against the minimal portable Core IR contract before host-local optimization in the current Python reference host
+- shared IR semantic-spec cases validate that lowering contract in the current Python reference host
 
 ## Multi-Host Direction
 
@@ -448,9 +456,9 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 
 Current shared spec status:
 
-- implemented shared case files currently exist under `spec/eval/`
-- `spec/parser/`, `spec/ir/`, `spec/cli/`, `spec/flows/`, and `spec/errors/` remain scaffold-only in this phase
-- the shared runner is implemented, but its current executable shared case coverage is eval only
+- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, and `spec/cli/`
+- `spec/parse/`, `spec/flow/`, and `spec/error/` remain scaffold-only in this phase
+- the shared runner is implemented, and its current executable shared case coverage is eval, ir, and cli
 
 ## Browser playground architecture
 
@@ -548,7 +556,7 @@ quote(1 + 2)
 
 ### Pairs and Lists
 
-Genia also has immutable pairs for SICP-style data.
+Genia also has immutable pairs for pair-based structural data.
 
 ```genia
 cons(1, 2)

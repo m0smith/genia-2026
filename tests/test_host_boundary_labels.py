@@ -41,10 +41,9 @@ QUALIFIER_RE = re.compile(r"python-host-only|python reference host", re.IGNORECA
 CONTRACT_FILES = [
     REPO / "README.md",
     REPO / "GENIA_REPL_README.md",
-    REPO / "docs" / "book" / "10-concurrency.md",
-    REPO / "docs" / "book" / "15-reference-host-and-portability.md",
     REPO / "docs" / "cheatsheet" / "core.md",
     REPO / "docs" / "cheatsheet" / "quick-reference.md",
+    REPO / "docs" / "host-interop" / "HOST_INTEROP.md",
 ]
 
 
@@ -81,8 +80,10 @@ def test_host_sensitive_doc_terms_are_qualified(path: Path) -> None:
 @pytest.mark.parametrize("path", CONTRACT_FILES, ids=lambda p: str(p.relative_to(REPO)))
 def test_portability_facing_docs_use_contract_and_reference_host_labels(path: Path) -> None:
     text = read_text(path)
-    assert "LANGUAGE CONTRACT:" in text, f"{display_path(path)} is missing LANGUAGE CONTRACT wording"
-    assert "PYTHON REFERENCE HOST:" in text, (
+    assert "LANGUAGE CONTRACT:" in text or "**LANGUAGE CONTRACT**" in text, (
+        f"{display_path(path)} is missing LANGUAGE CONTRACT wording"
+    )
+    assert "PYTHON REFERENCE HOST:" in text or "**PYTHON REFERENCE HOST**" in text, (
         f"{display_path(path)} is missing PYTHON REFERENCE HOST wording"
     )
 

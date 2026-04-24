@@ -5,7 +5,7 @@ This document defines the shared portability contract for Genia hosts.
 
 **LANGUAGE CONTRACT**
 - The shared host contract currently covers these spec categories: parse, ir, eval, cli, flow, error.
-- The contract requires host-neutral observable behavior; the current implemented shared semantic-spec suite applies that executable comparison only within its eval-only Phase 1 scope.
+- The contract requires host-neutral observable behavior; the current implemented shared semantic-spec suite applies executable comparison for `eval` and `ir` only.
 
 **PYTHON REFERENCE HOST**
 - Python is the only implemented host and is the reference host today.
@@ -34,8 +34,8 @@ Current status:
 - Python is the only implemented reference host.
 - The Python host adapter in `hosts/python/` implements the shared host contract for the categories above, using the core runtime in `src/genia/`.
 - Node.js, Java, Rust, Go, and C++ are planned hosts only.
-- `spec/` and `tools/spec_runner/` now include an implemented Phase 1 shared semantic-spec runner plus eval case files.
-- executable shared semantic-spec coverage is currently limited to `eval`; the other categories remain scaffolded as shared spec surfaces.
+- `spec/` and `tools/spec_runner/` now include an implemented shared semantic-spec runner plus `eval` and `ir` case files.
+- executable shared semantic-spec coverage is currently limited to `eval` and `ir`; the other categories remain scaffolded as shared spec surfaces.
 
 ## Authority Order
 
@@ -47,7 +47,7 @@ When multi-host artifacts disagree, use this order:
 4. shared spec artifacts under `spec/`
 5. `docs/host-interop/*`
 6. `docs/architecture/core-ir-portability.md`
-7. `README.md` and the teaching material under `docs/book/`
+7. `README.md` and relevant core reference docs
 
 Notes:
 
@@ -61,7 +61,9 @@ Notes:
 
 **The Python reference host is the current conformance baseline in this phase.**
 
-- In the current implemented shared semantic-spec suite, executable normalization and comparison are limited to eval-case `stdout`, `stderr`, and `exit_code`.
+- In the current implemented shared semantic-spec suite:
+  - eval comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - IR comparison is limited to normalized portable Core IR output
 - Error objects include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
 - Malformed, missing, or unsupported cases fail validation with explicit normalized errors; nothing is silently skipped.
 - Output ordering and structure are deterministic and stable.
@@ -74,11 +76,14 @@ Notes:
 
 ## Host Adapter and Spec Runner Model
 
-The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the implemented Phase 1 shared semantic-spec system, the shared runner executes eval cases only.
+The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the current implemented shared semantic-spec system, the shared runner executes `eval` and `ir` cases only.
 
-The shared spec runner loads YAML eval cases, executes them against the Python reference host, and compares normalized `stdout`, `stderr`, and `exit_code`. Failures are reported per spec with field-level differences.
+The shared spec runner loads YAML eval and IR cases, executes them against the Python reference host, and compares:
 
-This runner does not yet provide implemented shared case coverage for parse, ir, cli, flow, or error categories.
+- eval: normalized `stdout`, normalized `stderr`, and `exit_code`
+- ir: normalized portable Core IR output
+
+This runner does not yet provide implemented shared case coverage for parse, cli, flow, or error categories.
 
 Other hosts are not implemented yet. "Portable" means: any future host must pass the same contract and normalization rules, but only Python is enforced today.
 
@@ -195,7 +200,7 @@ Rules:
 - pure user-facing transformation logic should prefer prelude/Genia code
 - adding a public capability or changing capability semantics requires:
   - `GENIA_STATE.md`
-  - relevant `docs/book/*`
+  - relevant core docs/specs
   - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
   - `spec/manifest.json`
 
@@ -324,7 +329,7 @@ Current repository note:
 
 ## Shared Spec Contract
 
-The shared spec suite under `spec/` is the authoritative cross-host validation layer within its implemented scope. The current implemented shared case coverage is eval-only in the Python reference host. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
+The shared spec suite under `spec/` is the authoritative cross-host validation layer within its implemented scope. The current implemented shared case coverage is `eval` plus `ir` in the Python reference host. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
 
 
 ## Documentation Rule

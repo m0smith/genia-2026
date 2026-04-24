@@ -28,14 +28,18 @@ def test_manifest_host_status_matches_portability_docs():
         "README.md",
         "docs/host-interop/HOST_INTEROP.md",
         "docs/host-interop/HOST_CAPABILITY_MATRIX.md",
-        "docs/book/15-reference-host-and-portability.md",
+        "docs/architecture/core-ir-portability.md",
         "spec/README.md",
         "hosts/README.md",
         "hosts/python/README.md",
     ]
     for relpath in required_docs:
         text = read_text(relpath)
-        assert "Python is the only implemented host" in text or "Python is the only implemented reference host" in text
+        assert (
+            "Python is the only implemented host" in text
+            or "Python is the only implemented reference host" in text
+            or "Python is the current reference host" in text
+        )
 
     # Updated assertions to match new doc wording
     assert (
@@ -62,7 +66,7 @@ def test_browser_runtime_adapter_manifest_stays_scaffolded_only():
     for relpath in [
         "GENIA_STATE.md",
         "docs/host-interop/HOST_CAPABILITY_MATRIX.md",
-        "docs/book/15-reference-host-and-portability.md",
+        "docs/architecture/core-ir-portability.md",
         "spec/README.md",
         "tools/spec_runner/README.md",
     ]:
@@ -118,15 +122,14 @@ def test_manifest_core_ir_patterns_match_architecture_doc():
         assert f"`{name}`" in arch_doc, f"{name} missing from core-ir-portability.md"
 
 
-def test_spec_category_dirs_allow_eval_phase1_specs_only():
-    """Phase 1 allows YAML files only in spec/eval; other category dirs remain scaffolds."""
+def test_spec_category_dirs_allow_active_specs_only():
+    """Current phase allows YAML files only in active shared spec category dirs."""
     spec_dir = REPO / "spec"
     # Canonical categories as defined in GENIA_STATE.md and spec/README.md
     category_dirs = [
         "parse", "ir", "eval", "cli", "flow", "error"
     ]
-    # Only eval is officially activated for YAML specs in this phase
-    activated = {"eval"}
+    activated = {"eval", "ir", "cli"}
     for dirname in category_dirs:
         d = spec_dir / dirname
         assert d.is_dir(), f"spec/{dirname}/ missing"
@@ -135,8 +138,9 @@ def test_spec_category_dirs_allow_eval_phase1_specs_only():
         non_readme = sorted(name for name in files if name != "README.md")
         if dirname in activated:
             assert non_readme, f"spec/{dirname}/ should contain YAML specs"
-            assert all(name.endswith(".yaml") for name in non_readme), (
-                f"spec/{dirname}/ should contain only README.md and .yaml files, found: {files}"
+            allowed_suffixes = (".yaml", ".genia") if dirname == "cli" else (".yaml",)
+            assert all(name.endswith(allowed_suffixes) for name in non_readme), (
+                f"spec/{dirname}/ should contain only README.md and active spec files, found: {files}"
             )
         else:
             assert non_readme == [], (
@@ -212,7 +216,7 @@ def test_no_doc_implies_multiple_implemented_hosts():
         "docs/host-interop/HOST_INTEROP.md",
         "docs/host-interop/HOST_CAPABILITY_MATRIX.md",
         "docs/host-interop/HOST_PORTING_GUIDE.md",
-        "docs/book/15-reference-host-and-portability.md",
+        "docs/architecture/core-ir-portability.md",
         "spec/README.md",
         "hosts/README.md",
     ]

@@ -1,0 +1,8 @@
+id: assignment-simple
+source: "x = 1"
+expect_ast:
+  kind: Assign
+  name: x
+  value:
+    kind: Literal
+    value: 1

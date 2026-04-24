@@ -27,7 +27,7 @@ Do not redefine language semantics in this file.
 ## Requirements
 - Update tests with changes
 - Update docs if behavior changes
-- Keep relevant `docs/book/*` chapters aligned with actual implementation
+- Keep relevant implementation-aligned docs and tests synchronized with actual behavior
 - Ensure all validation passes
 
 ## Output

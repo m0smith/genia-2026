@@ -20,7 +20,9 @@ This directory holds the shared cross-host spec suite for Genia.
 ## Implemented Shared Spec Coverage
 
 - `eval` — **active** (executable shared spec files)
-- `parse`, `ir`, `cli`, `flow`, `error` — **scaffold-only** (no executable shared spec files yet)
+- `ir` — **active** (executable shared spec files)
+- `cli` — **active** (executable shared spec files)
+- `parse`, `flow`, `error` — **scaffold-only** (no executable shared spec files yet)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -32,18 +34,60 @@ Browser execution is planned to use the Python reference host on a backend servi
 ## Directory Layout
 
 - `parse/`: parse scaffold only
-- `ir/`: IR scaffold only
+- `ir/`: implemented IR cases (active)
 - `eval/`: implemented eval cases (active)
-- `cli/`: CLI scaffold only
+- `cli/`: implemented CLI cases (active)
 - `flow/`: flow scaffold only
 - `error/`: error scaffold only
 
 **Note:**
-- Only `eval/` contains executable shared spec files in this phase.
-- All other category directories are present as scaffolds only and must contain only `README.md`.
+- `eval/`, `ir/`, and `cli/` contain executable shared spec files in this phase.
+- Other category directories are present as scaffolds only and must contain only `README.md`.
+
+## Shared YAML Envelope
+
+Executable shared specs use one top-level envelope:
+
+- `name`
+- `id` (optional)
+- `category`
+- `description` (optional)
+- `input`
+- `expected`
+- `notes` (optional)
+
+## CLI Specs
+
+CLI specs live under `spec/cli/` and use `category: cli`.
+
+CLI `input` fields:
+
+- `source`
+- `file`
+- `command`
+- `stdin`
+- `argv`
+- `debug_stdio`
+
+CLI `expected` fields:
+
+- `stdout`
+- `stderr`
+- `exit_code`
+
+CLI mode mapping:
+
+- file mode: `input.file`
+- command mode: `input.command` with empty `input.stdin`
+- pipe mode: `input.command` with non-empty `input.stdin`
+
+For CLI specs, `stdin` is piped input data, not program text. Current shared pipe-mode specs use non-empty `stdin` to select `-p <command>`. Shared executable specs do not cover REPL mode.
 
 **Normalization:**
-In the implemented eval suite, stdout/stderr line endings are normalized before comparison. The current shared runner compares only `stdout`, `stderr`, and `exit_code`.
+- In the implemented eval suite, stdout/stderr line endings are normalized to `\n`. Trailing newlines remain significant.
+- In the implemented CLI suite, stdout/stderr line endings are normalized to `\n` and trailing newlines are stripped before comparison.
+- Internal whitespace is not trimmed or collapsed. Stderr is not otherwise normalized.
+- In the implemented IR suite, portable Core IR is normalized before comparison.
 
 **Test Types:**
 - Shared contract tests: validate the cross-host contract for the categories above

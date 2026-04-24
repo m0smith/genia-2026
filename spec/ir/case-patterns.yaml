@@ -1,0 +1,49 @@
+name: case-patterns
+category: ir
+input:
+  source: |
+    classify(xs) = ([x, ..rest]) ? x > 0 -> some(x) | (_) -> nil
+expected:
+  ir:
+    - node: IrFuncDef
+      name: classify
+      params:
+        - xs
+      body:
+        node: IrCase
+        clauses:
+          - node: IrCaseClause
+            pattern:
+              node: IrPatTuple
+              items:
+                - node: IrPatList
+                  items:
+                    - node: IrPatBind
+                      name: x
+                    - node: IrPatRest
+                      name: rest
+            guard:
+              node: IrBinary
+              left:
+                node: IrVar
+                name: x
+              op: GT
+              right:
+                node: IrLiteral
+                value: 0
+            result:
+              node: IrOptionSome
+              value:
+                node: IrVar
+                name: x
+          - node: IrCaseClause
+            pattern:
+              node: IrPatTuple
+              items:
+                - node: IrPatWildcard
+            result:
+              node: IrOptionNone
+              reason:
+                node: IrLiteral
+                value: nil
+              context: null

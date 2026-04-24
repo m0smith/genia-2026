@@ -1,0 +1,5 @@
+id: invalid-unclosed-paren
+source: "(1 + 2"
+expect_error:
+  type: SyntaxError
+  message: "Unclosed '('"
