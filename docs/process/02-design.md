@@ -1,11 +1,23 @@
 # === GENIA DESIGN PROMPT ===
 
-READ FIRST:
+You are working in the Genia repo.
 
-* Spec output (authoritative for behavior)
+Before doing anything, read:
 * Pre-flight document
-* AGENTS.md
-* GENIA_STATE.md
+- Spec output
+- AGENTS.md
+- GENIA_STATE.md
+- GENIA_RULES.md
+- GENIA_REPL_README.md
+- README.md
+
+GENIA_STATE.md is the final authority when files conflict.
+
+Do not invent implemented behavior.
+Do not expand scope.
+Do not introduce new syntax unless the spec explicitly requires it.
+Keep documentation truthful and current.
+If this change affects behavior, update relevant tests and docs.
 
 ---
 
@@ -18,6 +30,22 @@ Before doing anything:
 * Verify current branch is NOT `main`
 * Verify branch matches Pre-flight
 * If mismatch → STOP
+
+---
+
+Create the design for implementing the approved spec for <CHANGE NAME>.
+
+Map the spec to:
+- files/modules to change
+- functions/classes/data structures affected
+- minimal algorithm
+- migration/compatibility concerns
+- test locations
+- docs locations
+
+Do not implement.
+Do not change the spec.
+Do not add behavior not already specified.
 
 ---
 

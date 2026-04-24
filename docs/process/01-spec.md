@@ -1,11 +1,22 @@
 # === GENIA SPEC PROMPT ===
 
-READ FIRST:
+You are working in the Genia repo.
 
-* AGENTS.md
-* GENIA_STATE.md (final authority)
-* GENIA_RULES.md
-* README.md
+Before doing anything, read:
+* Pre-flight document
+- AGENTS.md
+- GENIA_STATE.md
+- GENIA_RULES.md
+- GENIA_REPL_README.md
+- README.md
+
+GENIA_STATE.md is the final authority when files conflict.
+
+Do not invent implemented behavior.
+Do not expand scope.
+Do not introduce new syntax unless the spec explicitly requires it.
+Keep documentation truthful and current.
+If this change affects behavior, update relevant tests and docs.
 
 Then read:
 
@@ -24,6 +35,24 @@ Before doing anything:
 * If mismatch → STOP
 
 ---
+
+Write the implementation-ready spec for <CHANGE NAME>.
+
+Assume the parser/current foundation is correct unless the issue explicitly says otherwise.
+
+The spec must define:
+- exact user-visible behavior
+- examples
+- edge cases
+- errors
+- what is explicitly not included
+- compatibility with existing Genia behavior
+
+Do not write implementation code.
+Do not propose extra features.
+Do not change scope from the pre-flight.
+
+--- 
 
 1. PURPOSE
 

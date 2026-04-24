@@ -5,10 +5,23 @@ READ FIRST:
 * Pre-flight document
 * Spec output
 * Design output
-* AGENTS.md
-* GENIA_STATE.md
-* GENIA_RULES.md
-* README.md
+
+You are working in the Genia repo.
+
+Before doing anything, read:
+- AGENTS.md
+- GENIA_STATE.md
+- GENIA_RULES.md
+- GENIA_REPL_README.md
+- README.md
+
+GENIA_STATE.md is the final authority when files conflict.
+
+Do not invent implemented behavior.
+Do not expand scope.
+Do not introduce new syntax unless the spec explicitly requires it.
+Keep documentation truthful and current.
+If this change affects behavior, update relevant tests and docs.
 
 ---
 
@@ -22,6 +35,27 @@ Before doing anything:
 * Verify branch matches Pre-flight
 * If mismatch → STOP
 * Report active branch before proceeding
+
+---
+
+Implement <CHANGE NAME>.
+
+Your only job is to make the approved failing tests pass.
+
+Rules:
+- Do not redesign.
+- Do not expand scope.
+- Do not add new behavior.
+- Prefer minimal changes.
+- Preserve existing passing behavior.
+- Update no docs in this step unless required by test fixtures.
+
+Run:
+- the new tests
+- the nearest existing related tests
+- the full suite if practical
+
+Report exactly what changed and the test results.
 
 ---
 

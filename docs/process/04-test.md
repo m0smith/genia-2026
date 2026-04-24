@@ -6,10 +6,26 @@ READ FIRST:
 * Spec output
 * Design output
 * Implementation changes
-* AGENTS.md
-* GENIA_STATE.md
-* GENIA_RULES.md
 
+Do a Genia pre-flight for issue/change: <CHANGE NAME>.
+
+Read the required project docs first.
+
+Output:
+- scope includes
+- scope excludes
+- source of truth files
+- current behavior
+- desired behavior
+- non-goals
+- affected files
+- risk of drift
+- test strategy
+- docs impact
+- go/no-go recommendation
+
+Do not write code.
+Do not redesign the feature.
 ---
 
 0. BRANCH DISCIPLINE
@@ -22,6 +38,18 @@ Before doing anything:
 * Verify branch matches Pre-flight
 * If mismatch → STOP
 * Report active branch before proceeding
+
+---
+Write failing tests for <CHANGE NAME> based only on the approved spec and design.
+
+Rules:
+- Tests must fail before implementation.
+- Tests must prove the behavior, not just exercise code.
+- Include edge cases and regression cases.
+- Do not change implementation code except test fixtures if needed.
+- Do not introduce behavior not in the spec.
+
+Run the relevant tests and report the failing evidence.
 
 ---
 

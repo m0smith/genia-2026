@@ -19,6 +19,31 @@ Verify:
 
 ---
 
+Audit <CHANGE NAME>.
+
+Assume the implementation is wrong until proven correct.
+
+Check:
+- spec vs implementation
+- design vs implementation
+- tests vs spec
+- docs vs actual behavior
+- cross-file consistency
+- accidental scope expansion
+- missing edge cases
+- misleading examples
+
+Output:
+- PASS / PASS WITH ISSUES / FAIL
+- blocking issues
+- minimal fixes
+- recommended follow-up prompt if needed
+
+Do not redesign.
+Do not add features.
+
+---
+
 1. INPUTS (REQUIRED)
 
 ---
