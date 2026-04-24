@@ -1,0 +1,15 @@
+name: error-parse-bad-rest-pattern
+category: error
+description: SyntaxError when rest pattern is not in final list position
+input:
+  source: |
+    f(xs) = [..rest, x] -> x
+    f([1, 2, 3])
+expected:
+  stdout: ""
+  stderr: "Error: ..rest must be the final item in a list pattern\n"
+  exit_code: 1
+notes: |
+  error_phase: parse
+  error_category: SyntaxError
+  message_source: spec/eval/error-bad-rest-pattern.yaml (passing)

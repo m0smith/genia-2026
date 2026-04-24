@@ -1,0 +1,14 @@
+name: error-eval-undefined-name
+category: error
+description: NameError when evaluating an undefined name
+input:
+  source: |
+    undefined_name
+expected:
+  stdout: ""
+  stderr: "Error: Undefined name: undefined_name\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: NameError
+  message_source: spec/eval/error-undefined-name.yaml (passing)

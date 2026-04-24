@@ -1,0 +1,14 @@
+name: error-eval-assignment-target
+category: error
+description: SyntaxError when assignment target is not a simple name
+input:
+  source: |
+    (1 + 2) = 3
+expected:
+  stdout: ""
+  stderr: "Error: Assignment target must be a simple name\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: SyntaxError
+  message_source: GENIA_RULES.md section 8.3 and GENIA_REPL_README.md
