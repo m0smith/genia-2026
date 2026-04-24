@@ -10,6 +10,6 @@ input:
   argv: ["--pretty"]
   debug_stdio: false
 expected:
-  stdout: '["--", "--pretty"]'
+  stdout: '["--pretty"]'
   stderr: ""
   exit_code: 0

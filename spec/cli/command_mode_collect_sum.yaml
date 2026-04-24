@@ -1,0 +1,15 @@
+id: command_mode_collect_sum
+name: command_mode_collect_sum
+category: cli
+description: Command mode can produce a final collected value.
+input:
+  source: "stdin |> lines |> map(parse_int) |> keep_some |> collect |> sum"
+  file: null
+  command: "stdin |> lines |> map(parse_int) |> keep_some |> collect |> sum"
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "0"
+  stderr: ""
+  exit_code: 0
