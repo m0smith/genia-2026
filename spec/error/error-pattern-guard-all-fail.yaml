@@ -1,0 +1,16 @@
+name: error-pattern-guard-all-fail
+category: error
+description: PatternMatchError when all guarded arms fail their guard condition
+input:
+  source: |
+    classify(x) =
+      x ? x > 100 -> "big" |
+      x ? x > 50 -> "medium"
+    classify(10)
+expected:
+  stdout: ""
+  stderr: "Error: No matching case for function classify/1 with arguments (10,)\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: PatternMatchError

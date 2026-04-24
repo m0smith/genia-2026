@@ -1,0 +1,12 @@
+name: pattern-map-partial
+category: eval
+input:
+  source: |
+    get_name(r) =
+      {name} -> name |
+      _ -> "unknown"
+    get_name({name: "Genia", version: 1})
+expected:
+  stdout: "\"Genia\"\n"
+  stderr: ""
+  exit_code: 0

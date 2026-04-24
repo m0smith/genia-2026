@@ -1,0 +1,12 @@
+name: pattern-literal-string
+category: eval
+input:
+  source: |
+    classify(x) =
+      "hello" -> "greeting" |
+      _ -> "other"
+    classify("hello")
+expected:
+  stdout: "\"greeting\"\n"
+  stderr: ""
+  exit_code: 0

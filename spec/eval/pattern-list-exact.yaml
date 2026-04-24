@@ -1,0 +1,12 @@
+name: pattern-list-exact
+category: eval
+input:
+  source: |
+    singleton(xs) =
+      [x] -> x |
+      _ -> "fallback"
+    singleton([7])
+expected:
+  stdout: "7\n"
+  stderr: ""
+  exit_code: 0

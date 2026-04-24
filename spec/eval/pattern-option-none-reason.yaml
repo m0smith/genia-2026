@@ -1,0 +1,13 @@
+name: pattern-option-none-reason
+category: eval
+input:
+  source: |
+    label(opt) =
+      none("a") -> "got-a" |
+      none(_) -> "other-none" |
+      some(v) -> v
+    label(none("a"))
+expected:
+  stdout: "\"got-a\"\n"
+  stderr: ""
+  exit_code: 0

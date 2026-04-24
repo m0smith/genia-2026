@@ -1,0 +1,12 @@
+name: pattern-guard-pass
+category: eval
+input:
+  source: |
+    positive(x) =
+      x ? x > 0 -> x |
+      _ -> 0
+    positive(5)
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,12 @@
+name: pattern-list-exact-miss
+category: eval
+input:
+  source: |
+    singleton(xs) =
+      [x] -> x |
+      _ -> "fallback"
+    singleton([7, 8])
+expected:
+  stdout: "\"fallback\"\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,16 @@
+name: error-pattern-miss
+category: error
+description: PatternMatchError when no arm matches the argument
+input:
+  source: |
+    f(x) =
+      1 -> "one" |
+      2 -> "two"
+    f(99)
+expected:
+  stdout: ""
+  stderr: "Error: No matching case for function f/1 with arguments (99,)\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: PatternMatchError

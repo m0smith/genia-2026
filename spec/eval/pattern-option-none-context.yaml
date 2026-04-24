@@ -1,0 +1,13 @@
+name: pattern-option-none-context
+category: eval
+input:
+  source: |
+    describe(opt) =
+      none("oob", {index: i}) -> i |
+      none(_) -> "missing" |
+      some(v) -> v
+    describe(none("oob", {index: 5, length: 3}))
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0

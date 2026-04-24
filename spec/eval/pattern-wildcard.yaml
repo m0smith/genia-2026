@@ -1,0 +1,11 @@
+name: pattern-wildcard
+category: eval
+input:
+  source: |
+    classify(x) =
+      _ -> "anything"
+    classify(42)
+expected:
+  stdout: "\"anything\"\n"
+  stderr: ""
+  exit_code: 0

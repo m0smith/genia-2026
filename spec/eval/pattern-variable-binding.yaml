@@ -1,0 +1,10 @@
+name: pattern-variable-binding
+category: eval
+input:
+  source: |
+    double(n) = n -> n * 2
+    double(5)
+expected:
+  stdout: "10\n"
+  stderr: ""
+  exit_code: 0
