@@ -1,0 +1,21 @@
+id: pipe_mode_sum_error
+name: pipe_mode_sum_error
+category: cli
+description: Pipe mode rejects a bare reducer stage.
+input:
+  source: "sum"
+  file: null
+  command: "sum"
+  stdin: |-
+    10
+    20
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: |-
+    Error: pipeline stage 2 failed in Flow mode at sum [<pipe>:1]: stage received flow; sum expected a list, received flow
+    Pipe mode passes a Flow, not a materialized list.
+    Did you mean: collect |> sum
+    Or use -c/--command for the full pipeline.
+  exit_code: 1

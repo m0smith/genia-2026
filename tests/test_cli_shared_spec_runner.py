@@ -80,9 +80,15 @@ def test_discover_specs_includes_cli_cases_without_invalid_specs() -> None:
     assert {
         "file_mode_basic",
         "file_mode_argv",
+        "file_mode_main_argv",
         "command_mode_basic",
         "command_mode_argv",
+        "command_mode_collect_sum",
         "pipe_mode_basic",
+        "pipe_mode_map_parse_int",
+        "pipe_mode_bare_parse_int_error",
+        "pipe_mode_sum_error",
+        "pipe_mode_collect_error",
         "pipe_mode_explicit_run_error",
     }.issubset(cli_names)
 
@@ -298,6 +304,27 @@ def test_cli_spec_fixture_executes_and_compares_expected_observables() -> None:
     assert actual.stdout == "[]"
     assert actual.stderr == ""
     assert actual.exit_code == 0
+    assert failures == []
+
+
+@pytest.mark.parametrize(
+    "fname",
+    [
+        "file_mode_main_argv.yaml",
+        "command_mode_collect_sum.yaml",
+        "pipe_mode_map_parse_int.yaml",
+        "pipe_mode_bare_parse_int_error.yaml",
+        "pipe_mode_sum_error.yaml",
+        "pipe_mode_collect_error.yaml",
+    ],
+)
+def test_new_cli_spec_fixtures_execute_and_compare(fname: str) -> None:
+    spec = load_spec(CLI_DIR / fname)
+
+    actual = execute_spec(spec)
+    failures = compare_spec(spec, actual)
+
+    assert actual.ir is None
     assert failures == []
 
 
