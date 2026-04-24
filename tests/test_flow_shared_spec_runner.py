@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+import hosts.python.exec_flow as exec_flow_module
 from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import ActualResult, execute_spec
 from tools.spec_runner.loader import LoadedSpec, load_spec
@@ -62,6 +64,22 @@ def test_execute_spec_normalizes_flow_line_endings_like_eval(monkeypatch) -> Non
     actual = execute_spec(spec)
 
     assert actual == ActualResult(stdout="a\nb\n", stderr="err\n", exit_code=0)
+
+
+def test_exec_flow_delegates_to_command_source_subprocess_without_wrapping(monkeypatch) -> None:
+    calls: list[tuple[str, str | None]] = []
+
+    def fake_run_eval_subprocess(source: str, stdin: str | None) -> dict[str, object]:
+        calls.append((source, stdin))
+        return {"stdout": "", "stderr": "", "exit_code": 0}
+
+    monkeypatch.setattr(exec_flow_module, "run_eval_subprocess", fake_run_eval_subprocess)
+    case = SimpleNamespace(source="stdin |> lines |> collect", stdin="a\nb\n")
+
+    actual = exec_flow_module.exec_flow(case)
+
+    assert actual == {"stdout": "", "stderr": "", "exit_code": 0}
+    assert calls == [("stdin |> lines |> collect", "a\nb\n")]
 
 
 def test_compare_spec_reports_flow_observable_mismatch() -> None:

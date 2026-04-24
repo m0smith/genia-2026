@@ -41,13 +41,13 @@ This repository currently provides:
 
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- `eval`, `ir`, and `cli` are active for executable shared spec files; other categories are scaffold-only.
+- `eval`, `ir`, `cli`, and first-wave `flow` are active for executable shared spec files; other categories are scaffold-only.
 - Within the current implemented shared semantic-spec scope, eval and cli compare normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, and `cli`.
+- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, and first-wave `flow`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is not covered by shared executable specs.
 - The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior.
@@ -73,10 +73,10 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
   - eval (active, executable shared spec files)
   - ir (active, executable shared spec files)
   - cli (active, executable shared spec files)
-  - flow (scaffold-only)
+  - flow (active, executable shared spec files; first-wave coverage only)
   - error (scaffold-only)
   - parse (scaffold-only)
-- Spec coverage has expanded beyond eval, and `eval`, `ir`, and `cli` are implemented as executable shared spec files in the Python reference host.
+- Spec coverage has expanded beyond eval, and `eval`, `ir`, `cli`, and first-wave `flow` behavior are implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental.
 
@@ -85,8 +85,10 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
+- The current shared spec runner executes Flow cases (spec/flow/) through command-source execution, comparing normalized stdout, stderr, and exit_code.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
 - CLI shared specs cover file mode, command mode, and pipe mode only. REPL is excluded from shared executable coverage.
+- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, and `rules()` identity.
 - Other categories are present as scaffolds for future shared spec coverage.
 
 **How to run the spec suite:**
@@ -99,12 +101,13 @@ python -m tools.spec_runner
 - For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For cli: the runner executes deterministic non-interactive CLI cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
+- For flow: the runner executes first-wave command-source Flow cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For other categories: present as scaffolds only; no executable shared spec files yet.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Limitations:**
 - Spec coverage is expanded but still partial and experimental.
-- Only eval, ir, and cli are active for executable shared spec files; other categories are scaffold-only.
+- Only eval, ir, cli, and first-wave flow are active for executable shared spec files; other categories are scaffold-only.
 - GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 ## Quick start
@@ -456,9 +459,10 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 
 Current shared spec status:
 
-- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, and `spec/cli/`
-- `spec/parse/`, `spec/flow/`, and `spec/error/` remain scaffold-only in this phase
-- the shared runner is implemented, and its current executable shared case coverage is eval, ir, and cli
+- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, and `spec/flow/`
+- `spec/parse/` and `spec/error/` remain scaffold-only in this phase
+- flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, and `rules()` identity
+- the shared runner is implemented, and its current executable shared case coverage is eval, ir, cli, and first-wave flow
 
 ## Browser playground architecture
 

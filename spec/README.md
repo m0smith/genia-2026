@@ -22,7 +22,8 @@ This directory holds the shared cross-host spec suite for Genia.
 - `eval` — **active** (executable shared spec files)
 - `ir` — **active** (executable shared spec files)
 - `cli` — **active** (executable shared spec files)
-- `parse`, `flow`, `error` — **scaffold-only** (no executable shared spec files yet)
+- `flow` — **active** (executable shared spec files; first-wave coverage only)
+- `parse`, `error` — **scaffold-only** (no executable shared spec files yet)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -37,11 +38,12 @@ Browser execution is planned to use the Python reference host on a backend servi
 - `ir/`: implemented IR cases (active)
 - `eval/`: implemented eval cases (active)
 - `cli/`: implemented CLI cases (active)
-- `flow/`: flow scaffold only
+- `flow/`: implemented Flow cases (active; first-wave coverage only)
 - `error/`: error scaffold only
 
 **Note:**
-- `eval/`, `ir/`, and `cli/` contain executable shared spec files in this phase.
+- `eval/`, `ir/`, `cli/`, and `flow/` contain executable shared spec files in this phase.
+- Flow shared coverage is intentionally limited to first-wave observable contract cases.
 - Other category directories are present as scaffolds only and must contain only `README.md`.
 
 ## Shared YAML Envelope

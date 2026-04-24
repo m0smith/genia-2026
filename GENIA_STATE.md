@@ -15,7 +15,7 @@ Implemented today:
   - cli
   - flow
   - error
-- The implemented shared Semantic Spec System currently executes **eval**, **ir**, and **cli** cases.
+- The implemented shared Semantic Spec System currently executes **eval**, **ir**, **cli**, and **flow** cases.
 - The current shared spec runner compares normalized:
   - eval `stdout`
   - eval `stderr`
@@ -23,6 +23,9 @@ Implemented today:
   - cli `stdout`
   - cli `stderr`
   - cli `exit_code`
+  - flow `stdout`
+  - flow `stderr`
+  - flow `exit_code`
   - IR portable normalized output
 - The working Python implementation lives in:
   - `src/genia/`
@@ -44,9 +47,9 @@ Scaffolded or planned, not implemented as hosts:
 
 **Maturity:**
 
-- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, and `cli` in the Python reference host. Other hosts are not implemented.
-- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, and `cli` behavior in this phase.
-- Flow behavior is implemented in Python, but shared semantic-spec coverage for flow is **not implemented yet**. CLI shared semantic-spec coverage is implemented for deterministic non-interactive cases.
+- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, and first-wave `flow` behavior in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, and first-wave `flow` behavior in this phase.
+- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, and the `rules()` identity stage. Advanced Flow behavior is not covered by shared semantic specs in this phase.
 - IR stability remains **Partial**: the minimal portable Core IR contract is documented, the Python runtime guards that boundary, and shared semantic-spec case coverage now validates that contract in the Python reference host.
 
 **Explicit limitations:**
@@ -54,11 +57,12 @@ Scaffolded or planned, not implemented as hosts:
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
-- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, and `spec/cli/` in this phase.
-- The current shared semantic-spec runner does not yet execute parse, flow, or error categories as shared spec files.
+- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, and `spec/flow/` in this phase.
+- The current shared semantic-spec runner does not yet execute parse or error categories as shared spec files.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
 - Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
 - Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
+- Flow shared semantic-spec coverage is limited to first-wave observable cases only; advanced Flow behavior remains uncovered in shared specs.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
@@ -105,9 +109,9 @@ LANGUAGE CONTRACT:
   - ir (**active**, executable shared spec files)
   - eval (**active**, executable shared spec files)
   - cli (**active**, executable shared spec files)
-  - flow (scaffold-only)
+  - flow (**active**, executable shared spec files; first-wave coverage only)
   - error (scaffold-only)
-- `eval`, `ir`, and `cli` are implemented as executable shared spec files in the Python reference host. Other categories are present as scaffolds only.
+- `eval`, `ir`, `cli`, and first-wave `flow` behavior are implemented as executable shared spec files in the Python reference host. Other categories are present as scaffolds only.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental; see below for category status.
 
@@ -117,6 +121,7 @@ PYTHON REFERENCE HOST:
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
+- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage is limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, and `rules()` identity.
 - CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. REPL mode is not included in shared executable spec coverage.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
 - Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
@@ -130,11 +135,11 @@ PYTHON REFERENCE HOST:
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
-- Other categories (`parse`, `flow`, `error`) are present as scaffolds for future shared spec coverage.
+- Other categories (`parse`, `error`) are present as scaffolds for future shared spec coverage.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Summary:**
-- `eval`, `ir`, and `cli` are active for executable shared spec files; other categories are scaffold-only.
+- `eval`, `ir`, `cli`, and first-wave `flow` are active for executable shared spec files; other categories are scaffold-only.
 - `GENIA_STATE.md` is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 **Host implementation location:**
@@ -148,8 +153,8 @@ PYTHON REFERENCE HOST:
 **Limitations:**
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, and `spec/cli/` in this phase.
-- The current shared semantic-spec runner does not yet execute parse, flow, or error categories as shared spec files.
+- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, and `spec/flow/` in this phase.
+- The current shared semantic-spec runner does not yet execute parse or error categories as shared spec files.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
