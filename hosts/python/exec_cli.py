@@ -10,10 +10,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-def _argv_requires_terminator(args: list[str]) -> bool:
-    return any(arg.startswith("-") for arg in args)
-
-
 def exec_cli(spec) -> dict:
     interpreter_path = REPO_ROOT / "src" / "genia" / "interpreter.py"
     env = dict(os.environ)
@@ -36,15 +32,12 @@ def exec_cli(spec) -> dict:
     if file and not command:
         argv.append(file)
         if trailing_args:
-            if _argv_requires_terminator(trailing_args):
-                argv.append("--")
             argv.extend(trailing_args)
         stdin = None
 
     elif command and not file and stdin_text == "":
         argv.extend(["-c", command])
         if trailing_args:
-            argv.append("--")
             argv.extend(trailing_args)
         stdin = None
 
