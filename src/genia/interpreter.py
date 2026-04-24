@@ -7831,6 +7831,7 @@ def make_global_env(
     env.register_autoload("map_remove", 2, "std/prelude/map.genia")
     env.register_autoload("map_count", 1, "std/prelude/map.genia")
     env.register_autoload("map_items", 1, "std/prelude/map.genia")
+    env.register_autoload("map_keys", 1, "std/prelude/map.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand", 0, "std/prelude/random.genia")
     env.register_autoload("rand", 1, "std/prelude/random.genia")
