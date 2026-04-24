@@ -97,7 +97,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes Error cases (spec/error/) through the same eval execution path used by eval cases, comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes Parse cases (spec/parse/) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
-- CLI shared specs cover file mode, command mode, and pipe mode only. REPL is excluded from shared executable coverage.
+- CLI shared specs cover file mode, command mode, and pipe mode only. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, and current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, and non-Flow final results. REPL is excluded from shared executable coverage.
 - Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic.
 - Error shared coverage is active but initial only. Current error shared cases assert only the observable surface: `stdout`, `stderr`, and `exit_code`. In this phase, `stdout` must be `""`, `stderr` must match exactly, `exit_code` must be `1`, and `notes` remain informational only.
 - Parse shared coverage is active but initial only. Current parse shared cases cover stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
@@ -268,7 +268,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
   - pipe mode rejects explicit `stdin` and explicit `run` in unbound stage usage
 - args and errors:
   - trailing CLI args are available through `argv()` in file/command/pipe modes
-  - option-like trailing args are preserved as plain strings (for example `--pretty`)
+  - option-like trailing args are preserved as plain strings (for example `--pretty`); an explicit `--` is not injected into `argv()` unless the user actually passed it
   - when no `-c` or `-p` mode is selected, the first non-mode argument must be a file path
   - use `--` to stop option parsing when a literal arg/path starts with `-`
 

@@ -87,6 +87,16 @@ CLI mode mapping:
 
 For CLI specs, `stdin` is piped input data, not program text. Current shared pipe-mode specs use non-empty `stdin` to select `-p <command>`. Shared executable specs do not cover REPL mode.
 
+Current CLI shared coverage proves:
+
+- basic file execution
+- file-mode `main(argv())` dispatch
+- file and command trailing `argv()` exposure, including option-like trailing args as plain strings
+- command-mode final-value execution
+- basic pipe-mode Flow-stage execution
+- explicit `stdin` / `run` rejection in pipe mode
+- current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results
+
 ## Parse Specs
 
 Parse specs live under `spec/parse/` and use `category: parse`.
