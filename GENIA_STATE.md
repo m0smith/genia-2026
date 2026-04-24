@@ -15,7 +15,7 @@ Implemented today:
   - cli
   - flow
   - error
-- The implemented shared Semantic Spec System currently executes **eval**, **ir**, **cli**, **flow**, and **error** cases.
+- The implemented shared Semantic Spec System currently executes **eval**, **ir**, **cli**, **flow**, **error**, and **parse** cases.
 - The current shared spec runner compares normalized:
   - eval `stdout`
   - eval `stderr`
@@ -30,6 +30,7 @@ Implemented today:
   - error `stderr`
   - error `exit_code`
   - IR portable normalized output
+  - parse normalized AST (exact match for `kind: ok`) or parse error type + message substring (for `kind: error`)
 - The working Python implementation lives in:
   - `src/genia/`
   - `tests/`
@@ -50,8 +51,8 @@ Scaffolded or planned, not implemented as hosts:
 
 **Maturity:**
 
-- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, and initial `error` behavior in the Python reference host. Other hosts are not implemented.
-- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, and initial `error` behavior in this phase.
+- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
 - Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, and error propagation via invalid-reducer-on-flow diagnostic. Advanced Flow behavior is not covered by shared semantic specs in this phase.
 - IR stability remains **Partial**: the minimal portable Core IR contract is documented, the Python runtime guards that boundary, and shared semantic-spec case coverage now validates that contract in the Python reference host.
 
@@ -60,8 +61,8 @@ Scaffolded or planned, not implemented as hosts:
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
-- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, and `spec/error/` in this phase.
-- The current shared semantic-spec runner does not yet execute parse categories as shared spec files.
+- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
+- Parse shared semantic-spec coverage is limited to initial cases for stable, already-implemented syntax forms; parse spec coverage expands only when new forms are explicitly added and tested.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
 - Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
 - Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
@@ -71,6 +72,7 @@ Scaffolded or planned, not implemented as hosts:
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
 - The current shared semantic-spec runner compares normalized portable Core IR output for IR cases.
+- The current shared semantic-spec runner compares normalized parse output for parse cases: exact AST for `kind: ok`, type and message substring for `kind: error`.
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
@@ -109,14 +111,13 @@ Clarifications:
 LANGUAGE CONTRACT:
 
 - The Semantic Spec System defines observable behavior for the following categories:
-  - parse (scaffold-only)
+  - parse (**active**, executable shared spec files; initial coverage only)
   - ir (**active**, executable shared spec files)
   - eval (**active**, executable shared spec files)
   - cli (**active**, executable shared spec files)
   - flow (**active**, executable shared spec files; first-wave coverage only)
   - error (**active**, executable shared spec files; initial coverage only)
-- `eval`, `ir`, `cli`, and first-wave `flow` behavior are implemented as executable shared spec files in the Python reference host. Other categories are present as scaffolds only.
-- `eval`, `ir`, `cli`, first-wave `flow`, and initial `error` behavior are implemented as executable shared spec files in the Python reference host. Other categories are present as scaffolds only.
+- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior are implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental; see below for category status.
 
@@ -146,11 +147,12 @@ PYTHON REFERENCE HOST:
 - Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
 - Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface and does not machine-assert structured phase/category/message fields.
-- Other categories (`parse`) are present as scaffolds for future shared spec coverage.
+- The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
+- Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Summary:**
-- `eval`, `ir`, `cli`, first-wave `flow`, and initial `error` are active for executable shared spec files; other categories are scaffold-only.
+- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active for executable shared spec files.
 - `GENIA_STATE.md` is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 **Host implementation location:**

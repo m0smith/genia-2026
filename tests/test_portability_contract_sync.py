@@ -129,7 +129,7 @@ def test_spec_category_dirs_allow_active_specs_only():
     category_dirs = [
         "parse", "ir", "eval", "cli", "flow", "error"
     ]
-    activated = {"eval", "ir", "cli", "flow", "error"}
+    activated = {"eval", "ir", "cli", "flow", "error", "parse"}
     for dirname in category_dirs:
         d = spec_dir / dirname
         assert d.is_dir(), f"spec/{dirname}/ missing"

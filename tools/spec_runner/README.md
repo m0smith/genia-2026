@@ -7,9 +7,8 @@ The shared spec runner loads shared spec cases, executes them against the Python
 
 ## Runner Scope (Current Phase)
 
-- **Active categories:** `eval`, `ir`, `cli`, `flow`, `error` (executable shared spec files)
-- **Scaffold-only:** `parse`
-- YAML spec files are loaded from `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, and `spec/error/`
+- **Active categories:** `eval`, `ir`, `cli`, `flow`, `error`, `parse` (executable shared spec files)
+- YAML spec files are loaded from `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/`
 - The loader uses one shared top-level envelope for active executable categories: `name`, `id`, `category`, `description`, `input`, `expected`, and `notes`
 - Comparison fields:
   - eval: `stdout`, `stderr`, `exit_code`
@@ -17,6 +16,7 @@ The shared spec runner loads shared spec cases, executes them against the Python
   - flow: `stdout`, `stderr`, `exit_code`
   - error: `stdout`, `stderr`, `exit_code`
   - ir: normalized portable Core IR
+  - parse: normalized AST (exact match for `kind: ok`) or error type + message substring (for `kind: error`)
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
@@ -28,11 +28,12 @@ python -m tools.spec_runner
 
 ## How it works
 
-- Cases are loaded from `spec/eval/*.yaml`, `spec/cli/*.yaml`, `spec/ir/*.yaml`, `spec/flow/*.yaml`, and `spec/error/*.yaml`
+- Cases are loaded from `spec/eval/*.yaml`, `spec/cli/*.yaml`, `spec/ir/*.yaml`, `spec/flow/*.yaml`, `spec/error/*.yaml`, and `spec/parse/*.yaml`
 - Each case is executed independently against the Python reference host
 - CLI cases are executed through the Python host adapter
 - Flow cases are executed through command-source execution in the Python host adapter; the runner does not route Flow cases through CLI pipe mode
 - Error cases reuse the eval execution path; there is no separate error subprocess or error-specific execution path
+- Parse cases call the Python host parse adapter directly (`parse_and_normalize`); no subprocess is invoked
 - CLI file mode uses `input.file`; command mode uses `input.command` with empty `input.stdin`; pipe mode uses `input.command` as `-p <command>` when `input.stdin` is non-empty, with that stdin passed directly as subprocess input
 - The runner does not construct shell pipelines for CLI specs
 - Eval, CLI, and Flow cases normalize `stdout`/`stderr` line endings before comparison
@@ -62,6 +63,7 @@ FAIL eval arithmetic-basic (/path/to/spec/eval/arithmetic-basic.yaml)
 - For eval, cli, flow, and error, the compared surface remains only `stdout`, `stderr`, and `exit_code`
 - For IR, the runner compares normalized host-neutral portable Core IR output
 - For IR, execution flow is `source -> parse -> lower -> normalize -> compare`
+- For parse, the runner compares the normalized parse result: exact AST match for `kind: ok`; type exact + message substring for `kind: error`
 - It does not trim meaningful whitespace
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**

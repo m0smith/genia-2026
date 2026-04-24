@@ -16,7 +16,7 @@ except ModuleNotFoundError as exc:  # pragma: no cover - exercised in runtime en
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Only executable shared-spec categories belong here.
-SPEC_CATEGORIES = ["eval", "cli", "ir", "flow", "error"]
+SPEC_CATEGORIES = ["eval", "cli", "ir", "flow", "error", "parse"]
 SPEC_ROOTS = [REPO_ROOT / "spec" / cat for cat in SPEC_CATEGORIES]
 
 # All categories use the same top-level envelope.
@@ -36,6 +36,7 @@ ALLOWED_INPUT_KEYS_BY_CATEGORY = {
     "cli": {"source", "file", "command", "stdin", "argv", "debug_stdio"},
     "flow": {"source", "stdin"},
     "error": {"source", "stdin"},
+    "parse": {"source"},
 }
 
 ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
@@ -44,6 +45,7 @@ ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
     "cli": {"stdout", "stderr", "exit_code"},
     "flow": {"stdout", "stderr", "exit_code"},
     "error": {"stdout", "stderr", "exit_code"},
+    "parse": {"parse"},
 }
 
 FLOW_TERMINAL_PATTERN = re.compile(r"\b(?:collect|run)\b")
@@ -66,6 +68,7 @@ class LoadedSpec:
     argv: list[str] | None = None
     debug_stdio: bool = False
     spec_id: str | None = None
+    expected_parse: Any | None = None
 
 
 @dataclass(frozen=True)
@@ -124,7 +127,7 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
             raise ValueError("input.stdin must be a string")
         return
 
-    if category == "ir":
+    if category in ("ir", "parse"):
         return
 
     if category == "flow":
@@ -201,6 +204,27 @@ def _validate_expected(category: str, expected_data: dict[str, Any]) -> None:
             raise ValueError("expected.ir must not be null")
         return
 
+    if category == "parse":
+        if "parse" not in expected_data:
+            raise ValueError("missing required field: expected.parse")
+        parse_result = expected_data["parse"]
+        if not isinstance(parse_result, dict):
+            raise ValueError("expected.parse must be a mapping")
+        if "kind" not in parse_result:
+            raise ValueError("expected.parse.kind is required")
+        kind = parse_result["kind"]
+        if kind not in ("ok", "error"):
+            raise ValueError(f"expected.parse.kind must be 'ok' or 'error', got {kind!r}")
+        if kind == "ok":
+            if "ast" not in parse_result:
+                raise ValueError("expected.parse.ast is required when kind is 'ok'")
+        else:
+            if "type" not in parse_result:
+                raise ValueError("expected.parse.type is required when kind is 'error'")
+            if "message" not in parse_result:
+                raise ValueError("expected.parse.message is required when kind is 'error'")
+        return
+
     for required_key in ("stdout", "stderr", "exit_code"):
         if required_key not in expected_data:
             raise ValueError(f"missing required field: expected.{required_key}")
@@ -242,6 +266,7 @@ def load_spec(path: Path) -> LoadedSpec:
         argv=input_data.get("argv", []),
         debug_stdio=input_data.get("debug_stdio", False),
         spec_id=data.get("id"),
+        expected_parse=expected_data.get("parse"),
     )
 
 

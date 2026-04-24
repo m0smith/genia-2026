@@ -34,8 +34,8 @@ Current status:
 - Python is the only implemented reference host.
 - The Python host adapter in `hosts/python/` implements the shared host contract for the categories above, using the core runtime in `src/genia/`.
 - Node.js, Java, Rust, Go, and C++ are planned hosts only.
-- `spec/` and `tools/spec_runner/` now include an implemented shared semantic-spec runner plus active `eval`, `ir`, `cli`, `flow`, and initial `error` case files.
-- executable shared semantic-spec coverage is currently active for `eval`, `ir`, `cli`, `flow`, and initial `error`; parse remains scaffolded as a shared spec surface.
+- `spec/` and `tools/spec_runner/` now include an implemented shared semantic-spec runner plus active `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse` case files.
+- executable shared semantic-spec coverage is currently active for `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse`.
 
 ## Authority Order
 

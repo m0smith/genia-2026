@@ -41,13 +41,13 @@ This repository currently provides:
 
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- `eval`, `ir`, `cli`, and first-wave `flow` are active for executable shared spec files; other categories are scaffold-only.
+- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active for executable shared spec files.
 - Within the current implemented shared semantic-spec scope, eval and cli compare normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, and first-wave `flow`.
+- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is not covered by shared executable specs.
 - The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior.
@@ -75,8 +75,8 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
   - cli (active, executable shared spec files)
   - flow (active, executable shared spec files; first-wave coverage only)
   - error (active, executable shared spec files; initial coverage only)
-  - parse (scaffold-only)
-- Spec coverage has expanded beyond eval, and `eval`, `ir`, `cli`, first-wave `flow`, and initial `error` behavior are implemented as executable shared spec files in the Python reference host.
+  - parse (active, executable shared spec files; initial coverage only)
+- Spec coverage has expanded to all six categories: `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior are all implemented as executable shared spec files in the Python reference host.
 - The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
 - Coverage is still partial and experimental.
 
@@ -87,11 +87,12 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
 - The current shared spec runner executes Flow cases (spec/flow/) through command-source execution, comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes Error cases (spec/error/) through the same eval execution path used by eval cases, comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes Parse cases (spec/parse/) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
 - CLI shared specs cover file mode, command mode, and pipe mode only. REPL is excluded from shared executable coverage.
 - Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic.
 - Error shared coverage is active but initial only. Current error shared cases assert only the observable surface: `stdout`, `stderr`, and `exit_code`. In this phase, `stdout` must be `""`, `stderr` must match exactly, `exit_code` must be `1`, and `notes` remain informational only.
-- Other categories are present as scaffolds for future shared spec coverage.
+- Parse shared coverage is active but initial only. Current parse shared cases cover stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
 
 **How to run the spec suite:**
 
@@ -462,10 +463,11 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 
 Current shared spec status:
 
-- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, and `spec/flow/`
-- `spec/parse/` and `spec/error/` remain scaffold-only in this phase
+- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/`
 - flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
-- the shared runner is implemented, and its current executable shared case coverage is eval, ir, cli, and first-wave flow
+- error shared coverage is initial only; current cases assert `stdout: ""`, exact `stderr`, and `exit_code: 1`
+- parse shared coverage is initial only; current cases cover stable, already-implemented syntax forms
+- the shared runner is implemented, and its current executable shared case coverage is eval, ir, cli, first-wave flow, initial error, and initial parse
 
 ## Browser playground architecture
 
