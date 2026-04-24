@@ -22,12 +22,8 @@ map_count(map) = _map_count(map)
 @doc "Return the entries in a map."
 map_items(map) = _map_items(map)
 
+@doc "Return the key from a map item `[key, value]` pair."
 map_item_key(mi) = [k, _] -> k
-map_item_value(mi) = [_, v] -> v
-
-map_keys(m) = map(map_item_key, map_items(m))
-map_values(m) = map(map_item_value, map_items(m))
-
 
 @doc "Return the value from a map item `[key, value]` pair."
 map_item_value(mi) = [_, v] -> v
