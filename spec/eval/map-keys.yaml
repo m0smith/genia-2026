@@ -1,0 +1,10 @@
+name: map-keys
+category: eval
+input:
+  source: |
+    m = map_put(map_put(map_new(), "a", 1), "b", 2)
+    map_keys(m)
+expected:
+  stdout: "[\"a\", \"b\"]\n"
+  stderr: ""
+  exit_code: 0

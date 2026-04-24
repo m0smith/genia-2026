@@ -1,0 +1,10 @@
+name: map-items
+category: eval
+input:
+  source: |
+    m = map_put(map_put(map_new(), "a", 1), "b", 2)
+    map_items(m)
+expected:
+  stdout: "[[\"a\", 1], [\"b\", 2]]\n"
+  stderr: ""
+  exit_code: 0

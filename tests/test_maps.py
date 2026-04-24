@@ -96,3 +96,48 @@ def test_map_invalid_types_raise_clear_type_errors(run):
 
     with pytest.raises(TypeError, match="map_new expected 0 args, got 1"):
         run("map_new(1)")
+
+
+def test_map_items_returns_key_value_pairs(run):
+    src = '''
+    m = map_put(map_put(map_new(), "a", 1), "b", 2)
+    map_items(m)
+    '''
+    result = run(src)
+    assert sorted(result) == [["a", 1], ["b", 2]]
+
+
+def test_map_items_empty_map(run):
+    assert run('map_items(map_new())') == []
+
+
+def test_map_item_key_extracts_key(run):
+    assert run('map_item_key(["hello", 42])') == "hello"
+
+
+def test_map_item_value_extracts_value(run):
+    assert run('map_item_value(["hello", 42])') == 42
+
+
+def test_map_keys_returns_all_keys(run):
+    src = '''
+    m = map_put(map_put(map_new(), "a", 1), "b", 2)
+    map_keys(m)
+    '''
+    assert sorted(run(src)) == ["a", "b"]
+
+
+def test_map_keys_empty_map(run):
+    assert run('map_keys(map_new())') == []
+
+
+def test_map_values_returns_all_values(run):
+    src = '''
+    m = map_put(map_put(map_new(), "a", 1), "b", 2)
+    map_values(m)
+    '''
+    assert sorted(run(src)) == [1, 2]
+
+
+def test_map_values_empty_map(run):
+    assert run('map_values(map_new())') == []
