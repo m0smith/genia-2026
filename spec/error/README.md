@@ -37,3 +37,6 @@ This directory now holds the active executable shared error specs for the curren
   - `error-eval-undefined-name`
   - `error-parse-bad-rest-pattern`
   - `error-eval-assignment-target`
+  - `error-pattern-miss`
+  - `error-pattern-guard-all-fail`
+  - `error-pattern-glob-malformed`

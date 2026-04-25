@@ -19,6 +19,7 @@ Current eval case inventory covers deterministic command-source eval behavior fo
 - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
 - direct Option rendering (`some(...)`, `none(...)`) in deterministic final-result output
 - pipeline Option propagation (`some(...)` lift and `none(...)` short-circuit) in deterministic final-result output
+- deterministic pattern matching behavior for currently implemented pattern families (literal, wildcard, variable binding, list/tuple, map, option, guard, and glob forms)
 - deterministic eval failures
 
 This directory does not define shared coverage for:
