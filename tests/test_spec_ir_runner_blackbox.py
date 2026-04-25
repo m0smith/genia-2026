@@ -11,6 +11,7 @@ IR_DIR = Path(__file__).resolve().parents[1] / "spec" / "ir"
 EVAL_DIR = Path(__file__).resolve().parents[1] / "spec" / "eval"
 FLOW_DIR = Path(__file__).resolve().parents[1] / "spec" / "flow"
 CLI_DIR = Path(__file__).resolve().parents[1] / "spec" / "cli"
+ERROR_DIR = Path(__file__).resolve().parents[1] / "spec" / "error"
 
 
 def test_discover_specs_includes_ir_cases() -> None:
@@ -39,6 +40,26 @@ def test_discover_specs_includes_eval_cases() -> None:
         "output-log",
         "output-print-and-log",
         "pattern-duplicate-binding-false",
+        "pattern-first-match-wins",
+        "pattern-literal-int",
+        "pattern-literal-string",
+        "pattern-wildcard",
+        "pattern-variable-binding",
+        "pattern-list-exact",
+        "pattern-list-exact-miss",
+        "pattern-list-empty",
+        "pattern-tuple-multiarg",
+        "pattern-map-partial",
+        "pattern-map-key-binding",
+        "pattern-map-shorthand",
+        "pattern-option-some",
+        "pattern-option-none",
+        "pattern-option-none-context",
+        "pattern-option-none-reason",
+        "pattern-guard-pass",
+        "pattern-guard-skip",
+        "pattern-glob-star",
+        "pattern-glob-non-string",
         "option-some-render-basic",
         "option-none-render-basic",
         "pipeline-option-some-lift",
@@ -59,6 +80,18 @@ def test_discover_specs_includes_cli_matrix_cases() -> None:
         "pipe_mode_sum_error",
         "pipe_mode_collect_error",
     }.issubset(cli_names)
+
+
+def test_discover_specs_includes_error_pattern_cases() -> None:
+    specs, invalid_specs = discover_specs()
+
+    assert not invalid_specs
+    error_names = {spec.name for spec in specs if spec.category == "error"}
+    assert {
+        "error-pattern-miss",
+        "error-pattern-guard-all-fail",
+        "error-pattern-glob-malformed",
+    }.issubset(error_names)
 
 
 def test_discover_specs_includes_flow_cases() -> None:
@@ -105,6 +138,26 @@ def test_ir_spec_fixture(fname: str) -> None:
         "output-log.yaml",
         "output-print-and-log.yaml",
         "pattern-duplicate-binding-false.yaml",
+        "pattern-first-match-wins.yaml",
+        "pattern-literal-int.yaml",
+        "pattern-literal-string.yaml",
+        "pattern-wildcard.yaml",
+        "pattern-variable-binding.yaml",
+        "pattern-list-exact.yaml",
+        "pattern-list-exact-miss.yaml",
+        "pattern-list-empty.yaml",
+        "pattern-tuple-multiarg.yaml",
+        "pattern-map-partial.yaml",
+        "pattern-map-key-binding.yaml",
+        "pattern-map-shorthand.yaml",
+        "pattern-option-some.yaml",
+        "pattern-option-none.yaml",
+        "pattern-option-none-context.yaml",
+        "pattern-option-none-reason.yaml",
+        "pattern-guard-pass.yaml",
+        "pattern-guard-skip.yaml",
+        "pattern-glob-star.yaml",
+        "pattern-glob-non-string.yaml",
         "option-some-render-basic.yaml",
         "option-none-render-basic.yaml",
         "pipeline-option-some-lift.yaml",
@@ -156,6 +209,23 @@ def test_cli_spec_fixture(fname: str) -> None:
 )
 def test_flow_spec_fixture(fname: str) -> None:
     spec = load_spec(FLOW_DIR / fname)
+    actual = execute_spec(spec)
+    failures = compare_spec(spec, actual)
+
+    assert actual.ir is None
+    assert not failures, f"Failures: {failures}"
+
+
+@pytest.mark.parametrize(
+    "fname",
+    [
+        "error-pattern-miss.yaml",
+        "error-pattern-guard-all-fail.yaml",
+        "error-pattern-glob-malformed.yaml",
+    ],
+)
+def test_error_spec_fixture(fname: str) -> None:
+    spec = load_spec(ERROR_DIR / fname)
     actual = execute_spec(spec)
     failures = compare_spec(spec, actual)
 

@@ -22,7 +22,8 @@ Browser execution is planned to use the Python reference host on a backend servi
 
 ## Dependencies
 
-- `PyYAML` is required to load shared spec `.yaml` files.
+- Preferred: `PyYAML` in the active Python environment.
+- Fallback: if `PyYAML` is unavailable, the loader can use a Ruby runtime with `YAML` support to parse shared spec files.
 
 ## How to run the spec suite
 

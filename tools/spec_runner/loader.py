@@ -3,14 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import re
+import subprocess
 from typing import Any
 
 try:
     import yaml
-except ModuleNotFoundError as exc:  # pragma: no cover - exercised in runtime environments
-    raise RuntimeError(
-        "tools.spec_runner requires PyYAML in the active environment"
-    ) from exc
+except ModuleNotFoundError:  # pragma: no cover - exercised in runtime environments
+    yaml = None
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -238,7 +237,11 @@ def _validate_expected(category: str, expected_data: dict[str, Any]) -> None:
 
 
 def load_spec(path: Path) -> LoadedSpec:
-    raw = yaml.safe_load(path.read_text(encoding="utf-8"))
+    source_text = path.read_text(encoding="utf-8")
+    if yaml is not None:
+        raw = yaml.safe_load(source_text)
+    else:
+        raw = _safe_load_with_ruby(source_text)
     data = _validate_mapping(raw, field_name="spec")
 
     _validate_top_level(data, path)
@@ -268,6 +271,42 @@ def load_spec(path: Path) -> LoadedSpec:
         spec_id=data.get("id"),
         expected_parse=expected_data.get("parse"),
     )
+
+
+def _safe_load_with_ruby(source_text: str) -> Any:
+    ruby_cmd = [
+        "ruby",
+        "-rjson",
+        "-ryaml",
+        "-e",
+        (
+            "src = STDIN.read\n"
+            "obj = YAML.safe_load(src, permitted_classes: [], aliases: false)\n"
+            "STDOUT.write(JSON.generate(obj))\n"
+        ),
+    ]
+    try:
+        proc = subprocess.run(
+            ruby_cmd,
+            input=source_text,
+            text=True,
+            capture_output=True,
+            check=True,
+        )
+    except FileNotFoundError as exc:
+        raise RuntimeError(
+            "tools.spec_runner requires PyYAML, or a Ruby runtime with YAML support"
+        ) from exc
+    except subprocess.CalledProcessError as exc:
+        detail = exc.stderr.strip() or exc.stdout.strip() or "unknown YAML parse error"
+        raise ValueError(f"invalid YAML: {detail}") from exc
+
+    try:
+        import json
+
+        return json.loads(proc.stdout)
+    except Exception as exc:  # pragma: no cover - defensive parsing guard
+        raise ValueError("invalid YAML: ruby conversion returned invalid JSON") from exc
 
 
 def discover_specs() -> tuple[list[LoadedSpec], list[InvalidSpec]]:

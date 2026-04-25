@@ -134,6 +134,7 @@ PYTHON REFERENCE HOST:
 - The observable error shared-spec contract in this phase is limited to `stdout`, `stderr`, and `exit_code`.
 - Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
 - Error shared spec cases are loaded from YAML files under `spec/error/`; each case provides source text plus optional stdin text, requires `stdout: ""`, exact `stderr`, and `exit_code: 1`, and may include informational `notes` that are not machine-asserted.
+- Shared spec YAML loading prefers `PyYAML`; when `PyYAML` is unavailable, the runner can fall back to a Ruby YAML bridge in the current implementation.
 - The current eval shared case inventory covers deterministic command-source eval output for:
   - final rendered expression results
   - direct `stdout` output
@@ -142,13 +143,14 @@ PYTHON REFERENCE HOST:
   - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
   - direct Option rendering for deterministic final-result output (`some(...)`, `none(...)`)
   - pipeline Option propagation for deterministic final-result output (`some(...)` lift and `none(...)` short-circuit)
+  - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, and glob forms)
   - deterministic eval failures with exact `stderr` and `exit_code`
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
 - Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
-- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface and does not machine-assert structured phase/category/message fields.
+- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, and malformed-glob cases) and does not machine-assert structured phase/category/message fields.
 - The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
