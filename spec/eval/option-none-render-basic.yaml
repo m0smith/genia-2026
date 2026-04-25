@@ -1,0 +1,9 @@
+name: option-none-render-basic
+category: eval
+input:
+  source: |
+    none("missing")
+expected:
+  stdout: "none(\"missing\")\n"
+  stderr: ""
+  exit_code: 0

@@ -17,6 +17,8 @@ Current eval case inventory covers deterministic command-source eval behavior fo
 - direct `stderr` output
 - combined `stdout`/`stderr` output separation
 - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
+- direct Option rendering (`some(...)`, `none(...)`) in deterministic final-result output
+- pipeline Option propagation (`some(...)` lift and `none(...)` short-circuit) in deterministic final-result output
 - deterministic eval failures
 
 This directory does not define shared coverage for:

@@ -1,0 +1,9 @@
+name: pipeline-option-none-short-circuit
+category: eval
+input:
+  source: |
+    none("blocked") |> ((x) -> x + 1)
+expected:
+  stdout: "none(\"blocked\")\n"
+  stderr: ""
+  exit_code: 0

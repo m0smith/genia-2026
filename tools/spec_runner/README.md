@@ -20,6 +20,10 @@ The shared spec runner loads shared spec cases, executes them against the Python
 
 Browser execution is planned to use the Python reference host on a backend service in the current playground direction; this does not add a second implemented host today.
 
+## Dependencies
+
+- `PyYAML` is required to load shared spec `.yaml` files.
+
 ## How to run the spec suite
 
 ```bash
