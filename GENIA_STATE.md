@@ -152,6 +152,7 @@ PYTHON REFERENCE HOST:
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
 - Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, and malformed-glob cases) and does not machine-assert structured phase/category/message fields.
 - The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
+- The current shared spec runner accepts `-v` / `--verbose`, printing each spec name before execution starts and then a single timing line (`<name>\t<elapsed>s`) after each spec completes.
 - Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
