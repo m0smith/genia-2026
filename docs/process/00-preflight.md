@@ -205,10 +205,11 @@ YES
 
 Steps:
 
+* Preflight
 * Spec
 * Design
-* Implementation
 * Test
+* Implementation
 * Docs
 * Audit
 
