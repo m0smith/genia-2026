@@ -108,13 +108,19 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 python -m tools.spec_runner
 ```
 
+```bash
+python -m tools.spec_runner --verbose
+```
+
+- `--verbose` / `-v` prints each spec name before execution begins, then prints a single elapsed-time line in the format `<spec-name>\t<elapsed>s`.
+
 **What the spec guarantees:**
 - For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For cli: the runner executes deterministic non-interactive CLI cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
 - For flow: the runner executes first-wave command-source Flow cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
 - For error: the runner executes initial normalized error cases and compares only `stdout`, `stderr`, and `exit_code`.
-- For other categories: present as scaffolds only; no executable shared spec files yet.
+- For parse: the runner executes parse cases and compares normalized parse output (`kind: ok` exact AST; `kind: error` exact type plus message substring).
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Limitations:**

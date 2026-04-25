@@ -4,6 +4,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import tools.spec_runner.runner as runner_module
 
 from hosts.python import exec_cli as exec_cli_module
 from hosts.python.exec_cli import exec_cli
@@ -350,6 +351,25 @@ def test_spec_runner_integration_includes_cli_without_invalid_specs(capsys) -> N
     assert exit_code == 0
     assert "invalid=0" in captured.out
     assert f"total={len(specs)}" in captured.out
+
+
+def test_spec_runner_verbose_reports_spec_start_and_elapsed(capsys, monkeypatch) -> None:
+    spec = _loaded_cli_spec(name="verbose_case", command="print 1")
+
+    monkeypatch.setattr(runner_module, "discover_specs", lambda: ([spec], []))
+    monkeypatch.setattr(
+        runner_module,
+        "execute_spec",
+        lambda _spec: ActualResult(stdout="", stderr="", exit_code=0),
+    )
+
+    exit_code = runner_module.main(["--verbose"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    assert "verbose_case\n" in captured.out
+    assert "verbose_case\t" in captured.out
+    assert "Summary: total=1 passed=1 failed=0 invalid=0" in captured.out
 
 
 def test_eval_and_ir_specs_still_execute_unchanged() -> None:

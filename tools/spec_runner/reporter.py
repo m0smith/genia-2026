@@ -21,6 +21,14 @@ def report_invalid(path: str, message: str) -> None:
     print(f"  {message}")
 
 
+def report_spec_started(spec: LoadedSpec) -> None:
+    print(spec.name, flush=True)
+
+
+def report_spec_elapsed(spec: LoadedSpec, elapsed_seconds: float) -> None:
+    print(f"{spec.name}\t{elapsed_seconds:.3f}s")
+
+
 def report_summary(*, total: int, passed: int, failed: int, invalid: int) -> None:
     print(
         f"Summary: total={total} passed={passed} failed={failed} invalid={invalid}"
