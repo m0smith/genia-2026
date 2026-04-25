@@ -16,7 +16,7 @@ def _bootstrap_repo_pythonpath() -> None:
 
 _bootstrap_repo_pythonpath()
 
-from .runner import main
+from .runner import main  # noqa: E402
 
 
 raise SystemExit(main())
