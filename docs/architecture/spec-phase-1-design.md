@@ -1,3 +1,10 @@
+> **SUPERSEDED — 2026-04-25**
+> This design artifact predates the current implementation. Directory names used here
+> (`spec/errors/`, `spec/flows/`, `spec/parser/`) have been replaced by the implemented
+> names (`spec/error/`, `spec/flow/`, `spec/parse/`). IR, parse, flow, and the
+> `tools/spec_runner/` runner are all now implemented. See `GENIA_STATE.md` §0–§1 for
+> the authoritative current state.
+
 # Shared Conformance Cases — Phase 1: Design Note
 
 **Status:** Design artifact — no implementation yet.

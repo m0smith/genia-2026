@@ -402,6 +402,7 @@ def test_runtime_pipe_mode_matches_documented_wrapper(monkeypatch, capsys) -> No
 
     assert exit_code == 0
     assert captured.out == "a\n"
+    assert stdin.reads == 1
 
 
 def test_genia_state_limitations_includes_parse_directory() -> None:
@@ -444,4 +445,3 @@ def test_spec_phase_1_design_carries_superseded_notice() -> None:
     assert "SUPERSEDED" in text[:500], (
         "spec-phase-1-design.md must carry a SUPERSEDED notice within the first 500 characters"
     )
-    assert stdin.reads == 1

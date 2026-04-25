@@ -87,19 +87,20 @@ Notes:
 
 ## Host Adapter and Spec Runner Model
 
-The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the current implemented shared semantic-spec system, the shared runner executes `eval`, `ir`, `cli`, `flow`, and initial `error` cases.
+The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the current implemented shared semantic-spec system, the shared runner executes `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse` cases.
 
-The shared spec runner loads YAML eval, cli, flow, error, and IR cases, executes them against the Python reference host, and compares:
+The shared spec runner loads YAML eval, cli, flow, error, IR, and parse cases, executes them against the Python reference host, and compares:
 
 - eval: normalized `stdout`, normalized `stderr`, and `exit_code`
 - cli: normalized `stdout`, normalized `stderr`, and `exit_code`
 - flow: normalized `stdout`, normalized `stderr`, and `exit_code`
 - error: normalized `stdout`, normalized `stderr`, and `exit_code`
 - ir: normalized portable Core IR output
+- parse: normalized AST (exact match for `kind: ok`) or error type exact + message substring (for `kind: error`)
 
 - Error specs reuse eval execution; there is no separate error execution path in the runner.
 - Error `notes` are informational only and are not machine-asserted.
-- This runner does not yet provide implemented shared case coverage for parse.
+- Parse specs call the Python host parse adapter directly; no subprocess is invoked.
 
 Other hosts are not implemented yet. "Portable" means: any future host must pass the same contract and normalization rules, but only Python is enforced today.
 

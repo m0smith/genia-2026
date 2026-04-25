@@ -170,8 +170,8 @@ PYTHON REFERENCE HOST:
 **Limitations:**
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, and `spec/error/` in this phase.
-- The current shared semantic-spec runner does not yet execute parse categories as shared spec files.
+- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
+- Parse shared semantic-spec coverage is initial only; coverage expands only when new forms are explicitly added and tested.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
