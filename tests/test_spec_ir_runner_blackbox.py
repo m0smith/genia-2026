@@ -39,6 +39,10 @@ def test_discover_specs_includes_eval_cases() -> None:
         "output-log",
         "output-print-and-log",
         "pattern-duplicate-binding-false",
+        "option-some-render-basic",
+        "option-none-render-basic",
+        "pipeline-option-some-lift",
+        "pipeline-option-none-short-circuit",
     }.issubset(eval_names)
 
 
@@ -71,6 +75,7 @@ def test_discover_specs_includes_flow_cases() -> None:
         "rules-rule-emit-deterministic",
         "step-rule-helper-equivalence",
         "rules-identity-stage",
+        "flow-keep-some-parse-int",
     }.issubset(flow_names)
 
 
@@ -100,6 +105,10 @@ def test_ir_spec_fixture(fname: str) -> None:
         "output-log.yaml",
         "output-print-and-log.yaml",
         "pattern-duplicate-binding-false.yaml",
+        "option-some-render-basic.yaml",
+        "option-none-render-basic.yaml",
+        "pipeline-option-some-lift.yaml",
+        "pipeline-option-none-short-circuit.yaml",
     ],
 )
 def test_eval_spec_fixture(fname: str) -> None:
@@ -142,6 +151,7 @@ def test_cli_spec_fixture(fname: str) -> None:
         "rules-rule-emit-deterministic.yaml",
         "step-rule-helper-equivalence.yaml",
         "rules-identity-stage.yaml",
+        "flow-keep-some-parse-int.yaml",
     ],
 )
 def test_flow_spec_fixture(fname: str) -> None:

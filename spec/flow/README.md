@@ -20,5 +20,6 @@ Current first-wave Flow shared coverage proves only:
 - `step_*` / `rule_*` equivalence (`step-rule-helper-equivalence`)
 - `rules()` identity stage (`rules-identity-stage`)
 - error propagation via invalid-reducer-on-flow diagnostic (`flow-error-propagation-sum-on-flow`)
+- deterministic Option filtering in Flow pipelines via `keep_some(...)` (`flow-keep-some-parse-int`)
 
 This directory does not define full Flow coverage.

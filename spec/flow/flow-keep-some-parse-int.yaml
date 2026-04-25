@@ -1,0 +1,13 @@
+name: flow-keep-some-parse-int
+category: flow
+input:
+  source: |
+    stdin |> lines |> map(parse_int) |> keep_some |> collect
+  stdin: |
+    1
+    x
+    2
+expected:
+  stdout: "[1, 2]\n"
+  stderr: ""
+  exit_code: 0
