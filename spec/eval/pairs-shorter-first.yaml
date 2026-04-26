@@ -1,0 +1,9 @@
+name: pairs-shorter-first
+category: eval
+input:
+  source: |
+    pairs([1, 2], [10, 20, 30])
+expected:
+  stdout: "[[1, 10], [2, 20]]\n"
+  stderr: ""
+  exit_code: 0

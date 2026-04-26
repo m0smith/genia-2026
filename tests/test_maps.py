@@ -141,3 +141,27 @@ def test_map_values_returns_all_values(run):
 
 def test_map_values_empty_map(run):
     assert run('map_values(map_new())') == []
+
+
+def test_pairs_basic(run):
+    result = run('pairs([1, 2], [3, 4])')
+    assert result == [[1, 3], [2, 4]]
+
+
+def test_pairs_shorter_bound(run):
+    assert run('pairs([1, 2], [10, 20, 30])') == [[1, 10], [2, 20]]
+    assert run('pairs([1, 2, 3], [10, 20])') == [[1, 10], [2, 20]]
+
+
+def test_pairs_empty(run):
+    assert run('pairs([], [1, 2])') == []
+    assert run('pairs([], [])') == []
+
+
+def test_pairs_items_are_lists_not_tuples(run):
+    result = run('pairs([1, 2], [3, 4])')
+    assert isinstance(result, list)
+    for item in result:
+        assert isinstance(item, list), f"expected list, got {type(item)}"
+        assert not isinstance(item, tuple), f"item must not be a Python tuple"
+        assert len(item) == 2
