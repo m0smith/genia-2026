@@ -1,0 +1,11 @@
+name: reduce-on-flow-type-error
+category: eval
+input:
+  source: |
+    acc(a, b) = a
+    reduce(acc, 0, tick(3))
+expected:
+  stdout: ""
+  stderr: |
+    Error: reduce expected a list as third argument, received flow
+  exit_code: 1

@@ -1,0 +1,10 @@
+name: each-on-list-type-error
+category: eval
+input:
+  source: |
+    each(print, [1, 2, 3])
+expected:
+  stdout: ""
+  stderr: |
+    Error: each expected a flow, received list
+  exit_code: 1
