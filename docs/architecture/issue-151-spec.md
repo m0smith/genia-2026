@@ -1,136 +1,478 @@
-# Issue #151 Spec — Preflight-Locked, No-Behavior Change
+# Issue #151 Spec
+
+CHANGE NAME:
+Add stdlib contract shared specs
+
+Phase: spec
+
+Issue: #151
+
+Parent: #116
 
 ## 1. Purpose
 
-This spec defines the behavior contract for issue #151 exactly as locked by the preflight phase:
+Issue #151 adds executable shared specs for already-implemented core stdlib behavior.
 
-- this phase introduces **no Genia language/runtime/CLI/flow semantic changes**
-- this phase introduces **no implementation behavior changes**
-- this phase defines only the process-facing contract that later phases must follow
+The recovery preflight found that current `main` has stdlib-adjacent shared specs, but does not yet have focused shared contract coverage for `map`, `filter`, `first`, and closely related list/absence behavior. This spec defines that missing executable shared-spec inventory.
 
-If later prompts introduce behavior updates, they must be specified in a new spec revision before any implementation work.
+This phase defines expected behavior only. It does not add spec YAML files, runner tests, implementation changes, or documentation sync edits.
 
-## 2. Scope (from preflight)
+## 2. Source Of Truth
 
-### Included
+Final authority:
 
-- writing a spec artifact for issue #151
-- preserving the preflight scope lock
-- defining testable invariants for “no behavior change”
+- `GENIA_STATE.md`
 
-### Excluded
+Supporting sources:
 
-- parser/runtime/interpreter changes
-- standard-library changes
-- host-adapter changes
-- shared-spec runner changes
-- test-suite behavior changes
-- docs-sync changes that claim new implemented behavior
+- `GENIA_RULES.md`
+- `GENIA_REPL_README.md`
+- `README.md`
+- `spec/README.md`
+- `spec/eval/README.md`
+- `spec/flow/README.md`
+- `spec/cli/README.md`
+- `docs/architecture/issue-151-preflight.md`
 
-## 3. Behavior definition
+Relevant existing truths:
 
-Issue #151, in this phase, defines a **null semantic delta**:
+- Python is currently the only implemented host and the reference host.
+- Active executable shared spec categories are `parse`, `ir`, `eval`, `cli`, `flow`, and `error`.
+- Shared eval specs assert normalized `stdout`, normalized `stderr`, and `exit_code`.
+- Shared flow specs assert normalized `stdout`, normalized `stderr`, and `exit_code` for deterministic observable Flow behavior.
+- Shared CLI specs assert normalized `stdout`, normalized `stderr`, and `exit_code` for deterministic non-interactive CLI behavior.
+- `map` and `filter` are polymorphic helpers over lists and flows.
+- `first`, `last`, `nth`, `reduce`, `sum`, and `count` are value functions, not Flow stages.
+- `first(list)` returns `some(value)` or `none("empty-list")`.
+- `last(list)` returns `some(value)` or `none("empty-list")`.
+- `nth(index, list)` returns `some(value)` or `none("index-out-of-bounds", { index: i, length: n })`.
+- List higher-order functions `reduce`, `map`, and `filter` deliver `none(...)` elements to callbacks instead of short-circuiting the outer call.
+- Flow/value boundary misuse already has partial shared coverage and must remain aligned with existing diagnostics.
 
-- Inputs: unchanged
-- Outputs: unchanged
-- Error surfaces: unchanged
-- State transitions: unchanged
+## 3. Scope
 
-Observable behavior for all currently implemented categories (`parse`, `ir`, `eval`, `cli`, `flow`, `error`) remains exactly as already documented in `GENIA_STATE.md`.
+Included:
 
-## 4. Semantics
+- Define focused executable shared specs for core stdlib behavior.
+- Use existing shared spec categories only: `eval`, `flow`, and, where already relevant, `cli`.
+- Cover normal list behavior for `map`, `filter`, and `first`.
+- Cover closely related list/absence helpers that make the contract coherent: `last`, `nth`, and list-HOF Option-element callback behavior.
+- Cover direct Flow `map`/`filter` observable behavior with explicit materialization.
+- Cover only already-implemented behavior documented in `GENIA_STATE.md` and `GENIA_RULES.md`.
+- Define runner/discovery expectations for later test phase.
 
-### Evaluation behavior
+Excluded:
 
-- program evaluation semantics are unchanged
-- expression parsing/evaluation boundaries are unchanged
-- flow orchestration semantics are unchanged
+- New language semantics.
+- New stdlib functions.
+- Broad stdlib normalization.
+- Parser, Core IR, CLI mode, REPL, or Flow runtime redesign.
+- Host adapter behavior changes.
+- Changes to expected behavior of existing shared specs.
+- Error-message redesign.
+- Documentation updates outside phase artifacts.
 
-### Matching behavior
+## 4. Contract Surface
 
-- pattern-matching forms and constraints are unchanged
+The shared stdlib contract for #151 is expressed through existing shared spec categories:
 
-### Error behavior
+- `eval`: command-source evaluation for deterministic list/value stdlib behavior.
+- `flow`: command-source execution with `stdin` for deterministic Flow stdlib behavior.
+- `cli`: no new CLI behavior is required by this spec; existing CLI stdlib-adjacent cases remain valid.
 
-- existing normalized error surface remains unchanged
+No new shared spec category is introduced.
 
-### Edge cases
+The observable comparison surface is unchanged:
 
-- no new edge-case semantics are added in this issue phase
+- `stdout`
+- `stderr`
+- `exit_code`
 
-## 5. Failure behavior
+Line-ending normalization follows the existing category behavior documented in `spec/README.md`.
 
-Failure for this issue phase is defined as **scope drift**. A failure occurs if any change in this phase:
+## 5. Required Eval Shared Specs
 
-- alters observable runtime behavior
-- alters portable contract claims
-- alters shared-spec expectations/results
-- claims features not implemented
+Later phases must add executable `category: eval` YAML specs for the following cases.
 
-What must not happen on failure:
+### `stdlib-map-list-basic`
 
-- no silent semantic expansion
-- no undocumented behavior changes
-- no host-only behavior promoted to portable contract
+Purpose:
 
-## 6. Invariants
+- Prove `map` transforms ordinary list values.
 
-The following truths must hold:
+Source:
 
-1. `GENIA_STATE.md` remains the final authority for implemented behavior.
-2. This issue phase does not modify language/runtime/CLI/flow semantics.
-3. Later phases may not exceed this scope without an explicit spec update.
-4. Documentation must not claim behavior beyond implemented and tested surfaces.
+```genia
+[1, 2, 3] |> map((x) -> x + 1)
+```
 
-## 7. Examples
+Expected:
 
-### Minimal
+- `stdout`: `[2, 3, 4]\n`
+- `stderr`: ``
+- `exit_code`: `0`
 
-- Existing programs continue to parse and evaluate exactly as before.
-- Existing shared spec cases continue to represent the same contract categories.
+### `stdlib-map-list-empty`
 
-### Real
+Purpose:
 
-- Any subsequent commit in this issue that changes user-visible behavior without first revising this spec is non-compliant.
+- Prove `map` over an empty list returns an empty list.
 
-## 8. Non-goals
+Source:
 
-- adding new syntax
-- changing current CLI modes or dispatch rules
-- expanding flow semantics
-- broadening cross-host guarantees
-- introducing implementation details/design decisions in this phase
+```genia
+[] |> map((x) -> x + 1)
+```
 
-## 9. Implementation boundary
+Expected:
 
-This spec is contract-level and process-level only:
+- `stdout`: `[]\n`
+- `stderr`: ``
+- `exit_code`: `0`
 
-- portable semantics are unchanged
-- no Python-specific mechanism is assumed or required
-- no host-internal structure is standardized here
+### `stdlib-filter-list-basic`
 
-## 10. Documentation requirements
+Purpose:
 
-For this issue phase:
+- Prove `filter` keeps list items whose predicate returns true.
 
-- `GENIA_STATE.md`: no behavior wording changes required
-- `GENIA_RULES.md`: no invariant wording changes required
-- `GENIA_REPL_README.md` / `README.md`: no behavior wording changes required
-- maturity labels remain unchanged because no behavior is added
+Source:
 
-## 11. Complexity check
+```genia
+[1, 2, 3, 4, 5] |> filter((x) -> x % 2 == 0)
+```
 
-- [x] Minimal
-- [x] Necessary
-- [ ] Overly complex
+Expected:
 
-Explanation:
+- `stdout`: `[2, 4]\n`
+- `stderr`: ``
+- `exit_code`: `0`
 
-This spec intentionally minimizes risk by freezing scope to a no-behavior-change contract until a later prompt explicitly expands scope.
+### `stdlib-filter-list-no-match`
 
-## 12. Final check
+Purpose:
 
-- No implementation details included
-- No scope expansion beyond preflight
-- Consistent with `GENIA_STATE.md` authority model
-- Behavior is precise and testable via “no semantic delta” invariants
+- Prove `filter` returns an empty list when no items match.
+
+Source:
+
+```genia
+[1, 3, 5] |> filter((x) -> x % 2 == 0)
+```
+
+Expected:
+
+- `stdout`: `[]\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-first-list-some`
+
+Purpose:
+
+- Prove `first` returns `some(value)` for a non-empty list.
+
+Source:
+
+```genia
+first([7, 8, 9])
+```
+
+Expected:
+
+- `stdout`: `some(7)\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-first-list-empty`
+
+Purpose:
+
+- Prove `first` returns structured absence for an empty list.
+
+Source:
+
+```genia
+first([])
+```
+
+Expected:
+
+- `stdout`: `none("empty-list")\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-last-list-some`
+
+Purpose:
+
+- Prove `last` returns `some(value)` for a non-empty list.
+
+Source:
+
+```genia
+last([7, 8, 9])
+```
+
+Expected:
+
+- `stdout`: `some(9)\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-last-list-empty`
+
+Purpose:
+
+- Prove `last` returns structured absence for an empty list.
+
+Source:
+
+```genia
+last([])
+```
+
+Expected:
+
+- `stdout`: `none("empty-list")\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-nth-list-some`
+
+Purpose:
+
+- Prove `nth` returns `some(value)` for an in-range index.
+
+Source:
+
+```genia
+nth(1, [7, 8, 9])
+```
+
+Expected:
+
+- `stdout`: `some(8)\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-nth-list-out-of-bounds`
+
+Purpose:
+
+- Prove `nth` returns structured absence for an out-of-range index.
+
+Source:
+
+```genia
+nth(5, [7, 8, 9])
+```
+
+Expected:
+
+- `stdout`: `none("index-out-of-bounds", {index: 5, length: 3})\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-map-option-elements`
+
+Purpose:
+
+- Prove list `map` passes `none(...)` list elements to callbacks instead of short-circuiting the outer call.
+
+Source:
+
+```genia
+[none("a"), some(2), none("b")] |> map((o) -> unwrap_or(0, o))
+```
+
+Expected:
+
+- `stdout`: `[0, 2, 0]\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `stdlib-filter-option-elements`
+
+Purpose:
+
+- Prove list `filter` passes Option list elements to callbacks and can filter by Option shape.
+
+Source:
+
+```genia
+[some(1), none("x"), some(3)] |> filter((o) -> some?(o))
+```
+
+Expected:
+
+- `stdout`: `[some(1), some(3)]\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+## 6. Required Flow Shared Specs
+
+Later phases must add executable `category: flow` YAML specs for deterministic Flow use of the same contract helpers.
+
+Each Flow spec must include explicit terminal materialization with `collect` or `run`.
+
+### `flow-map-basic`
+
+Purpose:
+
+- Prove `map` over a Flow transforms each item and remains a Flow until collected.
+
+Source:
+
+```genia
+stdin |> lines |> map(upper) |> collect
+```
+
+Stdin:
+
+```text
+a
+b
+```
+
+Expected:
+
+- `stdout`: `["A", "B"]\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `flow-filter-basic`
+
+Purpose:
+
+- Prove `filter` over a Flow keeps matching items and remains a Flow until collected.
+
+Source:
+
+```genia
+stdin |> lines |> filter((line) -> contains(line, "error")) |> collect
+```
+
+Stdin:
+
+```text
+ok
+error one
+warn
+error two
+```
+
+Expected:
+
+- `stdout`: `["error one", "error two"]\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+### `flow-map-filter-chain`
+
+Purpose:
+
+- Prove Flow `map` and `filter` compose deterministically.
+
+Source:
+
+```genia
+stdin |> lines |> map(trim) |> filter((line) -> line != "") |> collect
+```
+
+Stdin:
+
+```text
+  alpha
+
+ beta
+```
+
+Expected:
+
+- `stdout`: `["alpha", "beta"]\n`
+- `stderr`: ``
+- `exit_code`: `0`
+
+## 7. Existing Specs To Preserve
+
+Later phases must preserve existing stdlib-adjacent shared specs unless a separate approved phase changes them:
+
+- `spec/eval/pipeline-map-sum.yaml`
+- `spec/eval/map-items.yaml`
+- `spec/eval/map-keys.yaml`
+- `spec/eval/map-values.yaml`
+- `spec/eval/map-items-map-item-key-pipeline.yaml`
+- `spec/eval/map-items-map-item-value-pipeline.yaml`
+- `spec/eval/first-on-flow-type-error.yaml`
+- `spec/eval/reduce-on-flow-type-error.yaml`
+- `spec/eval/each-on-list-type-error.yaml`
+- `spec/flow/flow-keep-some-parse-int.yaml`
+- `spec/flow/count-as-pipe-stage-type-error.yaml`
+- `spec/cli/pipe_mode_map_parse_int.yaml`
+- `spec/cli/command_mode_collect_sum.yaml`
+
+## 8. Runner Expectations
+
+Later TEST phase must add failing runner/discovery assertions before spec YAML files are implemented.
+
+Required checks:
+
+- Shared spec discovery includes all new eval spec names listed in this spec.
+- Shared spec discovery includes all new flow spec names listed in this spec.
+- The targeted fixture execution path compares each new case through existing `execute_spec` and `compare_spec`.
+- No runner behavior change is expected unless a failing test proves the existing runner cannot load or compare the new cases.
+
+## 9. Error Behavior
+
+This spec does not introduce new error behavior.
+
+Existing Flow/value boundary error specs must remain the source for misuse coverage in this issue:
+
+- `first` given a Flow
+- `reduce` given a Flow
+- `each` given a list
+- `count` used as a Flow stage
+
+Any additional misuse spec must be justified from already-documented `GENIA_STATE.md` / `GENIA_RULES.md` behavior before being added in a later TEST phase.
+
+## 10. Documentation Requirements
+
+This spec phase does not update contract docs.
+
+Later docs phase should:
+
+- update shared-spec coverage descriptions only after executable specs are present and passing
+- avoid claiming full stdlib conformance
+- describe the new coverage as focused core stdlib shared spec coverage
+- keep partial/experimental shared-spec maturity labels aligned with `GENIA_STATE.md`
+- fix any stale shared-spec status wording discovered during preflight if it remains in scope for #151 recovery
+
+## 11. Non-Goals
+
+- No new `stdlib` shared spec category.
+- No new host.
+- No new generic multi-host runner.
+- No new `map` / `filter` / `first` semantics.
+- No broad audit of all stdlib helpers.
+- No normalization of all list/map/string/option helper docs.
+- No conversion of host-local tests into shared specs beyond the cases listed here.
+
+## 12. Acceptance Criteria
+
+Issue #151 recovery is spec-complete when:
+
+- this spec artifact is committed with a `spec(stdlib): ... issue #151` commit
+- no executable shared specs are added in the spec phase
+- no tests are added or changed in the spec phase
+- no runtime or docs-sync behavior is changed in the spec phase
+- later phases have a precise inventory for failing tests, implementation/spec-file additions, docs sync, and audit
+
+## 13. Final Check
+
+- Scope is limited to already-implemented stdlib behavior.
+- No new language semantics are introduced.
+- Portable contract is expressed only through existing shared spec categories.
+- Python implementation details do not define the contract by themselves.
+- `GENIA_STATE.md` remains the final authority.
+
