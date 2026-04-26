@@ -1,0 +1,12 @@
+name: flow-map-basic
+category: flow
+input:
+  source: |
+    stdin |> lines |> map(upper) |> collect
+  stdin: |
+    a
+    b
+expected:
+  stdout: "[\"A\", \"B\"]\n"
+  stderr: ""
+  exit_code: 0

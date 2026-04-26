@@ -21,5 +21,6 @@ Current first-wave Flow shared coverage proves only:
 - `rules()` identity stage (`rules-identity-stage`)
 - error propagation via invalid-reducer-on-flow diagnostic (`flow-error-propagation-sum-on-flow`)
 - deterministic Option filtering in Flow pipelines via `keep_some(...)` (`flow-keep-some-parse-int`)
+- focused core stdlib Flow coverage: direct `map` over a Flow (`flow-map-basic`), direct `filter` over a Flow (`flow-filter-basic`), and a composed `map`/`filter` chain (`flow-map-filter-chain`)
 
 This directory does not define full Flow coverage.

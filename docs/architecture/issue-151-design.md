@@ -1,164 +1,271 @@
-# Issue #151 Design — No-Delta Contract Enforcement
+# Issue #151 Design
+
+CHANGE NAME:
+Add stdlib contract shared specs
+
+Phase: design
+
+Issue: #151
+
+Parent: #116
 
 ## 1. Purpose
 
-Translate the issue #151 spec into an implementation-ready structure while preserving the no-behavior-change contract.
+Translate `docs/architecture/issue-151-spec.md` into an implementation-ready plan for later phases.
 
-This design defines how later phases must enforce scope boundaries, not new runtime behavior.
+This design covers where the failing tests, executable shared specs, and docs-sync edits should land. It does not add those files or change behavior in the design phase.
 
-## 2. Scope lock
+## 2. Scope Lock
 
-This design follows the spec exactly:
+This design follows the spec phase exactly:
 
-- no language/runtime/CLI/flow behavior is added, removed, or changed
-- no parser/evaluator/CLI implementation paths are modified
-- no shared-spec contract surface is broadened
+- use existing shared spec categories only: `eval` and `flow` for new cases
+- do not add a new `stdlib` spec category
+- do not change parser, evaluator, Flow runtime, CLI behavior, host adapters, or stdlib implementation
+- do not redesign existing diagnostics
+- preserve existing stdlib-adjacent shared specs
+- keep `GENIA_STATE.md` as final authority
 
-If a later phase requires behavior changes, it must first update the issue #151 spec.
+If later work discovers that a listed expected result is not implemented, stop and resolve truth against `GENIA_STATE.md` before changing implementation or docs.
 
-## 3. Architecture overview
+## 3. Architecture Overview
 
-This issue is documentation/process architecture only.
+Primary zone:
 
-- Primary zone: Docs / process artifacts (`docs/architecture/`)
-- No change in Language Contract zone
-- No change in Core IR zone
-- No change in Host Adapter zone
+- Docs / Tests / Examples, specifically executable shared spec files under `spec/` and shared-spec runner tests under `tests/`
 
-Data flow impact:
+No intended change:
 
-- none at runtime
-- none in parser/evaluator execution
-- none in CLI/REPL dispatch
+- Language Contract semantics
+- Core IR portability boundary
+- Python runtime implementation
+- Host adapter behavior
+- CLI mode semantics
 
-## 4. File / module changes
+Data flow after implementation:
 
-### New files
+1. `tools.spec_runner.loader.discover_specs()` discovers new YAML files under `spec/eval/` and `spec/flow/`.
+2. `tools.spec_runner.executor.execute_spec()` executes each case through the existing eval or flow category path.
+3. `tools.spec_runner.comparator.compare_spec()` compares `stdout`, `stderr`, and `exit_code`.
+4. Runner tests assert discovery and selected fixture execution.
 
-- `docs/architecture/issue-151-design.md` (this document)
+## 4. File Plan
 
-### Modified files
+Design phase changes:
 
-- none in design phase
+- Modify `docs/architecture/issue-151-design.md` only.
 
-### Removed files
+Later TEST phase should modify:
 
-- none
+- `tests/test_spec_ir_runner_blackbox.py`
 
-## 5. Data shapes
+Later IMPLEMENTATION phase should add:
 
-No runtime data structures change.
+- `spec/eval/stdlib-map-list-basic.yaml`
+- `spec/eval/stdlib-map-list-empty.yaml`
+- `spec/eval/stdlib-filter-list-basic.yaml`
+- `spec/eval/stdlib-filter-list-no-match.yaml`
+- `spec/eval/stdlib-first-list-some.yaml`
+- `spec/eval/stdlib-first-list-empty.yaml`
+- `spec/eval/stdlib-last-list-some.yaml`
+- `spec/eval/stdlib-last-list-empty.yaml`
+- `spec/eval/stdlib-nth-list-some.yaml`
+- `spec/eval/stdlib-nth-list-out-of-bounds.yaml`
+- `spec/eval/stdlib-map-option-elements.yaml`
+- `spec/eval/stdlib-filter-option-elements.yaml`
+- `spec/flow/flow-map-basic.yaml`
+- `spec/flow/flow-filter-basic.yaml`
+- `spec/flow/flow-map-filter-chain.yaml`
 
-Process-only artifacts and expected shape:
-
-- preflight artifact:
-  - scope lock
-  - source-of-truth references
-  - phase plan
-- spec artifact:
-  - included/excluded scope
-  - semantic invariants
-  - failure definition (`scope drift`)
-- design artifact (this file):
-  - file-level plan
-  - control boundaries
-  - test/doc phase inputs
-
-## 6. Function / interface design
-
-No function signatures or interfaces change.
-
-There are no new APIs, no modified call conventions, and no runtime contracts added by this issue phase.
-
-## 7. Control flow
-
-Design-phase execution flow for this issue:
-
-1. Read preflight + spec artifacts.
-2. Confirm no-delta scope.
-3. Produce design artifact that maps future work to documentation-only enforcement.
-4. Defer test/implementation/docs/audit behavior work to later prompts.
-
-Runtime control flow remains unchanged.
-
-## 8. Error handling design
-
-Error condition for this phase: scope drift.
-
-Detection boundaries:
-
-- Any non-doc/runtime-affecting change is treated as design-phase scope violation.
-- Any claim of new behavior without spec update is treated as spec/design drift.
-
-Propagation:
-
-- Fail the phase by rejecting the out-of-scope change.
-- Require explicit spec revision before proceeding.
-
-## 9. Integration points
-
-Direct integration in this phase:
-
-- `docs/architecture/issue-151-preflight.md`
-- `docs/architecture/issue-151-spec.md`
-- `docs/architecture/issue-151-design.md`
-
-No integration with runtime, interpreter modules, CLI execution paths, REPL, flow kernel, or host adapters.
-
-## 10. Test design input
-
-For the later `test` phase under this spec, expected checks are process/contract checks:
-
-- verify no runtime semantic deltas were introduced
-- verify no contract docs claim new behavior
-- verify issue-phase artifacts remain mutually consistent (preflight/spec/design)
-
-Key invariants to assert:
-
-- no language/runtime/CLI/flow behavior deltas
-- no shared-spec expected output deltas
-- no state/rules docs drift caused by issue #151 artifacts
-
-## 11. Doc impact
-
-Design phase doc impact is limited to adding this design artifact.
-
-No required changes in this phase to:
+Later DOCS phase should consider modifying:
 
 - `GENIA_STATE.md`
-- `GENIA_RULES.md`
-- `GENIA_REPL_README.md`
 - `README.md`
+- `spec/README.md`
+- `spec/eval/README.md`
+- `spec/flow/README.md`
+- `GENIA_RULES.md` only for stale shared-spec status wording identified in preflight, if kept in #151 docs scope
 
-Future doc-sync phase should remain no-op unless scope changes with an approved spec revision.
+No later phase should modify runtime files for this issue unless a prior phase is explicitly revised.
 
-## 12. Constraints
+## 5. Spec File Shape
 
-Must:
+Each new eval spec should use the existing shared YAML envelope:
 
-- follow existing issue-phase artifact pattern in `docs/architecture/`
-- preserve minimalism and explicit boundaries
-- keep process claims aligned with current implementation truth
+```yaml
+name: stdlib-map-list-basic
+category: eval
+input:
+  source: |
+    [1, 2, 3] |> map((x) -> x + 1)
+expected:
+  stdout: "[2, 3, 4]\n"
+  stderr: ""
+  exit_code: 0
+```
 
-Must not:
+Each new flow spec should use the existing shared YAML envelope:
 
-- introduce new semantic concepts
-- rely on host-specific behavior
-- alter existing runtime behavior or guarantees
+```yaml
+name: flow-map-basic
+category: flow
+input:
+  source: |
+    stdin |> lines |> map(upper) |> collect
+  stdin: |
+    a
+    b
+expected:
+  stdout: "[\"A\", \"B\"]\n"
+  stderr: ""
+  exit_code: 0
+```
 
-## 13. Complexity check
+Naming rules:
 
-- [x] Minimal
-- [x] Necessary
-- [ ] Over-engineered
+- filenames must match the spec names with `.yaml`
+- eval stdlib value cases use the `stdlib-` prefix
+- flow cases use the existing `flow-` prefix
+- names should be added verbatim to runner tests
 
-Explanation:
+## 6. Test Design
 
-A documentation-only design is the smallest structure that enforces the spec’s no-delta contract.
+The TEST phase must commit failing tests before any spec YAML files are added.
 
-## 14. Final check
+Primary test file:
 
-- matches spec scope exactly
-- introduces no new behavior
-- provides concrete structure for later phases
-- remains implementation-ready without modifying runtime modules
+- `tests/test_spec_ir_runner_blackbox.py`
+
+Required discovery assertions:
+
+- Add all new eval names to `test_discover_specs_includes_eval_cases`.
+- Add all new flow names to `test_discover_specs_includes_flow_cases`.
+
+Required fixture execution assertions:
+
+- Add all new eval filenames to the `test_eval_spec_fixture` parametrization.
+- Add all new flow filenames to the `test_flow_spec_fixture` parametrization.
+
+Expected failure mode in TEST phase:
+
+- discovery assertions fail because YAML files do not yet exist
+- fixture parametrization may fail at `load_spec(...)` because files do not yet exist
+
+Do not change loader, executor, or comparator tests unless the failing tests reveal that the existing shared spec system cannot handle already-supported category shapes.
+
+## 7. Implementation Design
+
+The IMPLEMENTATION phase for this issue is spec-file implementation only.
+
+Implementation steps:
+
+1. Add the 12 eval YAML files listed in this design.
+2. Add the 3 flow YAML files listed in this design.
+3. Keep each case deterministic and minimal.
+4. Use only behavior already documented in `GENIA_STATE.md` / `GENIA_RULES.md`.
+5. Run targeted shared-spec runner tests.
+
+No Python runtime or stdlib code should change if current implementation matches the spec.
+
+If an executable spec fails because behavior differs from the spec:
+
+- stop
+- compare against `GENIA_STATE.md`
+- if `GENIA_STATE.md` supports the spec, open a separate implementation/fix path only after explicit prompt
+- if `GENIA_STATE.md` contradicts the spec, revise the spec in a new spec phase before continuing
+
+## 8. Documentation Design
+
+The DOCS phase should update docs only after the YAML specs exist and pass.
+
+Doc wording should say focused shared stdlib coverage was added, not full stdlib conformance.
+
+Recommended doc updates:
+
+- `GENIA_STATE.md`: add the new focused stdlib eval/flow coverage to current shared spec inventory.
+- `README.md`: update shared spec status summaries so they mention focused core stdlib shared coverage where appropriate.
+- `spec/README.md`: mention focused stdlib value/Flow coverage under eval/flow inventory if the document keeps inventory detail.
+- `spec/eval/README.md`: add list stdlib helper coverage to eval inventory.
+- `spec/flow/README.md`: add direct Flow `map`/`filter` coverage to first-wave Flow inventory.
+- `GENIA_RULES.md`: correct stale "only eval, ir, cli active" wording if this docs phase includes shared-spec status sync.
+
+Docs must not:
+
+- claim every stdlib helper has shared spec coverage
+- claim non-Python hosts are implemented
+- promote host-local implementation details into language behavior
+- remove partial/experimental maturity labels
+
+## 9. Error Handling Design
+
+No new error behavior is designed for #151.
+
+Existing misuse specs remain authoritative for this recovery slice:
+
+- `first-on-flow-type-error`
+- `reduce-on-flow-type-error`
+- `each-on-list-type-error`
+- `count-as-pipe-stage-type-error`
+
+Do not add new error cases unless a later spec revision explicitly lists them.
+
+## 10. Verification Plan
+
+Later phases should run, at minimum:
+
+```bash
+PYTHONPATH=src pytest -q tests/test_spec_ir_runner_blackbox.py
+```
+
+If docs are changed in the DOCS phase, also run the repository's semantic/doc sync tests appropriate to the touched files.
+
+If the full shared spec runner is used, use the existing project-approved command pattern for `tools.spec_runner`.
+
+## 11. Risk And Mitigation
+
+Risk: expected output formatting differs from direct command output.
+
+- Mitigation: use existing shared spec runner normalization and exact outputs from the spec phase.
+
+Risk: Flow `stdin` block formatting introduces an extra blank line.
+
+- Mitigation: keep flow stdin fixtures minimal and compare through the runner in implementation phase.
+
+Risk: docs overstate coverage.
+
+- Mitigation: use "focused core stdlib shared coverage" and keep full-conformance claims out.
+
+Risk: TEST phase accidentally adds YAML fixtures.
+
+- Mitigation: TEST phase should edit only runner assertions and commit failing tests.
+
+## 12. Phase Boundaries
+
+Design phase:
+
+- update this artifact only
+
+TEST phase:
+
+- add failing runner assertions only
+
+IMPLEMENTATION phase:
+
+- add executable YAML shared specs only, unless explicitly re-scoped
+
+DOCS phase:
+
+- update truth-aligned shared-spec coverage docs after specs pass
+
+AUDIT phase:
+
+- verify phase trail, docs/spec/test alignment, and no runtime drift
+
+## 13. Final Check
+
+- Design maps exactly to the committed spec artifact.
+- No new behavior is invented.
+- No implementation files are changed in this phase.
+- No tests are changed in this phase.
+- Later phases have a concrete file and verification plan.
+

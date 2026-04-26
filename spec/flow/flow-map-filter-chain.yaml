@@ -1,0 +1,10 @@
+name: flow-map-filter-chain
+category: flow
+input:
+  source: |
+    stdin |> lines |> map(trim) |> filter((line) -> line != "") |> collect
+  stdin: "  alpha\n\n beta\n"
+expected:
+  stdout: "[\"alpha\", \"beta\"]\n"
+  stderr: ""
+  exit_code: 0

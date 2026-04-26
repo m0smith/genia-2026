@@ -1,0 +1,9 @@
+name: stdlib-first-list-some
+category: eval
+input:
+  source: |
+    first([7, 8, 9])
+expected:
+  stdout: "some(7)\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,9 @@
+name: stdlib-map-list-empty
+category: eval
+input:
+  source: |
+    [] |> map((x) -> x + 1)
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0
