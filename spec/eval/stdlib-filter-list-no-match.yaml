@@ -1,0 +1,9 @@
+name: stdlib-filter-list-no-match
+category: eval
+input:
+  source: |
+    [1, 3, 5] |> filter((x) -> x % 2 == 0)
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0

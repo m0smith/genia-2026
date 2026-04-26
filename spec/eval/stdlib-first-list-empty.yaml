@@ -1,0 +1,9 @@
+name: stdlib-first-list-empty
+category: eval
+input:
+  source: |
+    first([])
+expected:
+  stdout: "none(\"empty-list\")\n"
+  stderr: ""
+  exit_code: 0

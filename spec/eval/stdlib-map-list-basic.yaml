@@ -1,0 +1,9 @@
+name: stdlib-map-list-basic
+category: eval
+input:
+  source: |
+    [1, 2, 3] |> map((x) -> x + 1)
+expected:
+  stdout: "[2, 3, 4]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,9 @@
+name: stdlib-nth-list-out-of-bounds
+category: eval
+input:
+  source: |
+    nth(5, [7, 8, 9])
+expected:
+  stdout: "none(\"index-out-of-bounds\", {index: 5, length: 3})\n"
+  stderr: ""
+  exit_code: 0

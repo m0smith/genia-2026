@@ -1,0 +1,9 @@
+name: stdlib-last-list-some
+category: eval
+input:
+  source: |
+    last([7, 8, 9])
+expected:
+  stdout: "some(9)\n"
+  stderr: ""
+  exit_code: 0
