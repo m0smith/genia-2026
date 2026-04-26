@@ -34,3 +34,11 @@ map_keys(m) = map(map_item_key, map_items(m))
 @doc "Return a list of all values in a map."
 map_values(m) = map(map_item_value, map_items(m))
 
+@doc """Zip two lists into a list of `[x, y]` pairs, bounded by the shorter input.
+
+    pairs([1, 2], [3, 4])  # => [[1, 3], [2, 4]]
+    pairs([1], [10, 20])   # => [[1, 10]]
+    pairs([], [1, 2])      # => []
+"""
+pairs(xs, ys) = _pairs(xs, ys)
+

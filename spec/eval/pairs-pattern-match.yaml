@@ -1,0 +1,10 @@
+name: pairs-pattern-match
+category: eval
+input:
+  source: |
+    add_pair(p) = ([a, b]) -> a + b
+    pairs([1, 2], [3, 4]) |> map(add_pair)
+expected:
+  stdout: "[4, 6]\n"
+  stderr: ""
+  exit_code: 0

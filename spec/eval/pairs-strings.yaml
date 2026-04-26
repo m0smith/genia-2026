@@ -1,0 +1,9 @@
+name: pairs-strings
+category: eval
+input:
+  source: |
+    pairs(["a", "b"], ["x", "y"])
+expected:
+  stdout: "[[\"a\", \"x\"], [\"b\", \"y\"]]\n"
+  stderr: ""
+  exit_code: 0

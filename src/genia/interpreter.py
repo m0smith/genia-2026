@@ -6824,7 +6824,14 @@ def make_global_env(
     def map_items_fn(map_value: Any) -> int:
         genia_map = _ensure_map(map_value, "map_items")
         return genia_map.items()
-    
+
+    def pairs_fn(xs: Any, ys: Any) -> list:
+        if not isinstance(xs, list):
+            raise TypeError(f"pairs expected a list as first argument, received {_runtime_type_name(xs)}")
+        if not isinstance(ys, list):
+            raise TypeError(f"pairs expected a list as second argument, received {_runtime_type_name(ys)}")
+        return [[x, y] for x, y in zip(xs, ys)]
+
     def some_fn(value: Any) -> GeniaOptionSome:
         return GeniaOptionSome(value)
 
@@ -7707,6 +7714,7 @@ def make_global_env(
     env.set("_map_remove", map_remove_fn)
     env.set("_map_count", map_count_fn)
     env.set("_map_items", map_items_fn)
+    env.set("_pairs", pairs_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
@@ -7835,6 +7843,7 @@ def make_global_env(
     env.register_autoload("map_item_value", 1, "std/prelude/map.genia")
     env.register_autoload("map_keys", 1, "std/prelude/map.genia")
     env.register_autoload("map_values", 1, "std/prelude/map.genia")
+    env.register_autoload("pairs", 2, "std/prelude/map.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand", 0, "std/prelude/random.genia")
     env.register_autoload("rand", 1, "std/prelude/random.genia")

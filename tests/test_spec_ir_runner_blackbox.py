@@ -81,6 +81,13 @@ def test_discover_specs_includes_eval_cases() -> None:
         "each-on-list-type-error",
         "reduce-on-flow-type-error",
         "first-on-flow-type-error",
+        "pairs-basic",
+        "pairs-shorter-first",
+        "pairs-shorter-second",
+        "pairs-empty-first",
+        "pairs-empty-both",
+        "pairs-strings",
+        "pairs-pattern-match",
     }.issubset(eval_names)
 
 
@@ -199,6 +206,13 @@ def test_ir_spec_fixture(fname: str) -> None:
         "stdlib-filter-option-elements.yaml",
         "map-items-map-item-key-pipeline.yaml",
         "map-items-map-item-value-pipeline.yaml",
+        "pairs-basic.yaml",
+        "pairs-shorter-first.yaml",
+        "pairs-shorter-second.yaml",
+        "pairs-empty-first.yaml",
+        "pairs-empty-both.yaml",
+        "pairs-strings.yaml",
+        "pairs-pattern-match.yaml",
     ],
 )
 def test_eval_spec_fixture(fname: str) -> None:
