@@ -164,7 +164,7 @@ CLI contract summary (actual behavior):
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
-  - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
   - includes public Python-host-only ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - includes public Python-host-only process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
@@ -190,7 +190,7 @@ CLI contract summary (actual behavior):
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - Python-host-only process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
-  - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
   - phase-2 primitive option model runtime:
     - `none` remains a runtime literal/value
     - public helpers such as `some`, `get`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, and `absence_context` are prelude-backed wrappers over host-backed option primitives
