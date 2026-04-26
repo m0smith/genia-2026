@@ -66,6 +66,9 @@ def test_discover_specs_includes_eval_cases() -> None:
         "pipeline-option-none-short-circuit",
         "map-items-map-item-key-pipeline",
         "map-items-map-item-value-pipeline",
+        "each-on-list-type-error",
+        "reduce-on-flow-type-error",
+        "first-on-flow-type-error",
     }.issubset(eval_names)
 
 
@@ -113,6 +116,7 @@ def test_discover_specs_includes_flow_cases() -> None:
         "flow-keep-some-parse-int",
         "flow-tee-zip-list-pairs",
         "flow-zip-list-pairs",
+        "count-as-pipe-stage-type-error",
     }.issubset(flow_names)
 
 
