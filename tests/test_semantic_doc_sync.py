@@ -403,3 +403,45 @@ def test_runtime_pipe_mode_matches_documented_wrapper(monkeypatch, capsys) -> No
     assert exit_code == 0
     assert captured.out == "a\n"
     assert stdin.reads == 1
+
+
+def test_genia_state_limitations_includes_parse_directory() -> None:
+    state = read_text("GENIA_STATE.md")
+    assert "spec/parse/" in state, (
+        "GENIA_STATE.md Limitations section must list spec/parse/ alongside the other five directories"
+    )
+
+
+def test_genia_state_does_not_claim_parse_not_yet_executed() -> None:
+    state = read_text("GENIA_STATE.md")
+    assert "does not yet execute parse categories as shared spec files" not in state, (
+        "GENIA_STATE.md must not claim the runner does not yet execute parse — parse is active"
+    )
+
+
+def test_host_interop_does_not_claim_no_parse_coverage() -> None:
+    text = read_text("docs/host-interop/HOST_INTEROP.md")
+    assert "does not yet provide implemented shared case coverage for parse" not in text, (
+        "HOST_INTEROP.md must not claim no parse coverage — parse is active"
+    )
+
+
+@pytest.mark.parametrize("relpath", [
+    "docs/cheatsheet/quick-reference.md",
+    "docs/cheatsheet/unix-power-mode.md",
+])
+def test_cheatsheets_do_not_claim_only_eval_is_active(relpath: str) -> None:
+    text = read_text(relpath)
+    assert "only the eval category is active for executable shared spec files" not in text, (
+        f"{relpath} must not claim only eval is active — six categories are now active"
+    )
+    assert "other categories are scaffold-only" not in text, (
+        f"{relpath} must not claim other categories are scaffold-only — five others are active"
+    )
+
+
+def test_spec_phase_1_design_carries_superseded_notice() -> None:
+    text = read_text("docs/architecture/spec-phase-1-design.md")
+    assert "SUPERSEDED" in text[:500], (
+        "spec-phase-1-design.md must carry a SUPERSEDED notice within the first 500 characters"
+    )

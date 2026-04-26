@@ -1,4 +1,4 @@
-# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Currently, only the eval category is active for executable shared spec files; other categories are scaffold-only. See GENIA_STATE.md for authoritative status.
+# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active categories: eval, ir, cli, flow, error, parse (coverage varies by category). See GENIA_STATE.md for authoritative status.
 
 # Genia CLI Cheatsheet: Unix Power Mode
 
