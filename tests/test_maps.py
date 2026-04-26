@@ -163,5 +163,5 @@ def test_pairs_items_are_lists_not_tuples(run):
     assert isinstance(result, list)
     for item in result:
         assert isinstance(item, list), f"expected list, got {type(item)}"
-        assert not isinstance(item, tuple), f"item must not be a Python tuple"
+        assert not isinstance(item, tuple), "item must not be a Python tuple"
         assert len(item) == 2
