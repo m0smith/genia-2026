@@ -31,6 +31,12 @@ Browser execution is planned to use the Python reference host on a backend servi
 python -m tools.spec_runner
 ```
 
+```bash
+python -m tools.spec_runner --verbose
+```
+
+Verbose mode prints each spec name before execution starts, then prints a timing line after execution in the form `<spec-name>\t<elapsed>s`.
+
 ## How it works
 
 - Cases are loaded from `spec/eval/*.yaml`, `spec/cli/*.yaml`, `spec/ir/*.yaml`, `spec/flow/*.yaml`, `spec/error/*.yaml`, and `spec/parse/*.yaml`

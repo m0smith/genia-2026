@@ -19,4 +19,4 @@ _bootstrap_repo_pythonpath()
 from .runner import main  # noqa: E402
 
 
-raise SystemExit(main())
+raise SystemExit(main(sys.argv[1:]))
