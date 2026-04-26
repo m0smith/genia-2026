@@ -1,0 +1,9 @@
+name: flow-zip-list-pairs
+category: flow
+input:
+  source: |
+    zip(lines(["a", "b"]), lines(["1", "2"])) |> collect
+expected:
+  stdout: "[[\"a\", \"1\"], [\"b\", \"2\"]]\n"
+  stderr: ""
+  exit_code: 0
