@@ -64,6 +64,9 @@ def test_discover_specs_includes_eval_cases() -> None:
         "option-none-render-basic",
         "pipeline-option-some-lift",
         "pipeline-option-none-short-circuit",
+        "each-on-list-type-error",
+        "reduce-on-flow-type-error",
+        "first-on-flow-type-error",
     }.issubset(eval_names)
 
 
@@ -109,6 +112,7 @@ def test_discover_specs_includes_flow_cases() -> None:
         "step-rule-helper-equivalence",
         "rules-identity-stage",
         "flow-keep-some-parse-int",
+        "count-as-pipe-stage-type-error",
     }.issubset(flow_names)
 
 

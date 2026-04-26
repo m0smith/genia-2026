@@ -1,0 +1,14 @@
+name: count-as-pipe-stage-type-error
+category: flow
+input:
+  source: |
+    stdin |> lines |> count |> collect
+  stdin: |
+    1
+    2
+    3
+expected:
+  stdout: ""
+  stderr: |
+    Error: pipeline stage 2 failed in Flow mode at count [<command>:1]: stage received flow; reduce expected a list as third argument, received flow
+  exit_code: 1
