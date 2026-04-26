@@ -262,7 +262,7 @@ Pipeline invariant:
 
 ## 10) Observable Spec Contract (Current Implemented Scope)
 
-- Shared semantic-spec cases define observable behavior only for categories and scope implemented and recorded in `GENIA_STATE.md` (currently: `eval`, `ir`, and `cli` active; other categories scaffold-only)
+- Shared semantic-spec cases define observable behavior only for categories and scope implemented and recorded in `GENIA_STATE.md` (currently: `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active; focused core stdlib list/Flow coverage for `map`, `filter`, `first`, `last`, and `nth` is included in the eval and flow categories)
 - Current shared eval and cli cases assert:
   - `stdout`
   - `stderr`

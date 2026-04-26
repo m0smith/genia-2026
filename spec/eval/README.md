@@ -21,6 +21,7 @@ Current eval case inventory covers deterministic command-source eval behavior fo
 - pipeline Option propagation (`some(...)` lift and `none(...)` short-circuit) in deterministic final-result output
 - deterministic pattern matching behavior for currently implemented pattern families (literal, wildcard, variable binding, list/tuple, map, option, guard, and glob forms)
 - deterministic eval failures
+- focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
 
 This directory does not define shared coverage for:
 
