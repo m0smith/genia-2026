@@ -196,7 +196,7 @@ This slice satisfied the core pair-like public shape requirement that #140 descr
 
 | Risk | Status |
 |---|---|
-| Docs claiming more than implementation | No drift — all claims have passing tests |
+| Docs claiming more than implementation | No drift in reviewed sections — all claims have passing tests |
 | Accidental public tuple API | No — internal tuple tolerance preserved in `_split_flow_pair` |
 | Conflating Flow and value functions | No — only `tee` was changed; semantics unchanged |
 | Changing semantics while cleaning up | No — `tee|>zip` and `tee|>merge` behavior identical to before |
