@@ -822,12 +822,13 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
-- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, `run`
 - the host Flow kernel stays intentionally small:
   - lazy pull/consume and single-use enforcement
   - source-bound stdin integration
   - sink/materialization boundaries
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
+- `tee(flow)` returns `[left_flow, right_flow]`; `merge(pair)` and `zip(pair)` consume that two-element list pair
 - `keep_some_else(stage, dead_handler)` is an explicit dead-letter Flow stage for Option-returning item transforms:
   - `stage` receives the original raw item
   - `some(v)` continues on the main flow as `v`

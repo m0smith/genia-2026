@@ -948,9 +948,9 @@ Output sink semantics:
   - `lines(flow_or_source)`
   - `tick()` (unbounded integer tick flow starting at `0`)
   - `tick(count)` (bounded integer tick flow from `0` to `count - 1`)
-  - `tee(flow)`
-  - `merge(flow1, flow2)` and `merge(pair)` where `pair` comes from `tee(flow)`
-  - `zip(flow1, flow2)` and `zip(pair)` where `pair` comes from `tee(flow)`
+  - `tee(flow)` returns `[left_flow, right_flow]`
+  - `merge(flow1, flow2)` and `merge(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
+  - `zip(flow1, flow2)` and `zip(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
   - `scan(step, initial_state, flow)` / `flow |> scan(step, initial_state)`
   - `keep_some_else(stage, dead_handler, flow)` / `flow |> keep_some_else(stage, dead_handler)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
@@ -974,7 +974,7 @@ Flow semantics:
 
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
-- `tee` keeps one shared upstream flow and only buffers as needed when branch consumption rates diverge
+- `tee` returns a two-element list of branch flows and keeps one shared upstream flow, buffering only as needed when branch consumption rates diverge
 - `merge` preserves input ordering (`flow1` items, then `flow2` items)
 - `zip` emits lockstep `[left, right]` pairs and stops when either input flow is exhausted
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)

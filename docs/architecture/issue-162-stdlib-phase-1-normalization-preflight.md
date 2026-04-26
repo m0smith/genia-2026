@@ -135,7 +135,7 @@ Python reference host implementation details:
 - Public prelude functions are loaded from `src/genia/std/prelude/*.genia`.
 - Host-backed primitives in `src/genia/interpreter.py` implement map, option, flow, string, file/zip, and other helper kernels.
 - `GeniaMap.items()` currently returns list-shaped `[key, value]` entries even though its Python type annotation says `list[tuple[Any, Any]]`.
-- `tee` currently returns a Python tuple of two `GeniaFlow` values internally; `merge(pair)` and `zip(pair)` accept tuple or list pairs.
+- At preflight time, `tee` returned a Python tuple of two `GeniaFlow` values internally; `merge(pair)` and `zip(pair)` accepted tuple or list pairs.
 - Python host boundary conversion maps Python list/tuple to Genia list recursively.
 
 Internal-only host/runtime details that must not leak publicly:

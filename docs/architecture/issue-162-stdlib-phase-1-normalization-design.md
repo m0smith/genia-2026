@@ -73,12 +73,12 @@ The first slice should not change parser behavior, lowering, Core IR nodes, pipe
 
 ## 5. Current Surface Findings
 
-Current relevant implementation shape:
+Current relevant implementation shape at design time:
 
 - `GeniaMap.items()` returns list-shaped entries, but its Python annotation currently says `list[tuple[Any, Any]]`.
 - `map_items(map)` delegates to `_map_items(map)`.
 - `map_item_key(item)` and `map_item_value(item)` pattern-match list pair shapes in prelude.
-- `tee(flow)` currently returns a Python tuple of two Flow values internally.
+- `tee(flow)` returned a Python tuple of two Flow values internally before the implementation phase for this slice.
 - `_split_flow_pair(value, name)` accepts either tuple or list pairs for `merge(pair)` and `zip(pair)`.
 - `zip(...)` yields public list pairs shaped `[left, right]`.
 - `scan(step, initial_state, flow)` already documents `[next_state, output]` as the step result shape.
