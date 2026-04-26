@@ -96,6 +96,11 @@ Classification: **Valid** (directly tested)
 Core helpers:
 
 - `lines(source)`
+- `tee(flow)`
+- `merge(flow1, flow2)`
+- `merge(pair)`
+- `zip(flow1, flow2)`
+- `zip(pair)`
 - `keep_some(flow)`
 - `keep_some(stage, flow)`
 - `keep_some_else(stage, dead_handler, flow)`

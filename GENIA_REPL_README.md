@@ -214,7 +214,7 @@ CLI contract summary (actual behavior):
   - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
-  - transforms: `lines`, `keep_some_else`, `map`, `filter`, `take`, `rules`
+  - transforms: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
   - the host Flow kernel remains intentionally small:
@@ -222,6 +222,8 @@ CLI contract summary (actual behavior):
     - source/runtime integration
     - sink/materialization boundaries
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
+  - `tee(flow)` returns `[left_flow, right_flow]` as a public two-element list pair
+  - `merge(pair)` and `zip(pair)` accept the two-element list pair produced by `tee(flow)`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
   - short-circuiting flow consumers and downstream broken-pipe termination stop generator-backed upstream work promptly
   - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors

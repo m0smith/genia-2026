@@ -3435,7 +3435,7 @@ class GeniaMap:
     def count(self) -> int:
         return len(self._entries)
 
-    def items(self) -> list[tuple[Any, Any]]:
+    def items(self) -> list[list[Any]]:
         return [[raw_key, raw_value] for raw_key, raw_value in self._entries.values()]
 
     def __repr__(self) -> str:
@@ -5943,7 +5943,7 @@ def make_global_env(
 
         return GeniaFlow(iterator, label="tick")
 
-    def tee_fn(source: Any) -> tuple[GeniaFlow, GeniaFlow]:
+    def tee_fn(source: Any) -> list[GeniaFlow]:
         upstream = _ensure_flow(source, "tee")
         state = _FlowTeeState(upstream)
 
@@ -5960,7 +5960,7 @@ def make_global_env(
 
             return GeniaFlow(iterator, label=f"tee/{branch_index + 1}")
 
-        return (branch_flow(0), branch_flow(1))
+        return [branch_flow(0), branch_flow(1)]
 
     def _split_flow_pair(value: Any, name: str) -> tuple[GeniaFlow, GeniaFlow]:
         if isinstance(value, (tuple, list)) and len(value) == 2:

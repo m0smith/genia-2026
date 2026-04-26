@@ -89,9 +89,9 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | `scan` | `scan(step, init, flow)` | Stateful `step(state, item) -> [next_state, output]` |
 | `rules` | `refine(..steps)` (preferred), `rules(..fns)` (compatibility) | Stateful flow orchestration |
 | `each` | `each(fn, flow)` | Side effects; passes items through |
-| `tee` | `tee(flow)` | Splits one flow into two |
-| `merge` | `merge(f1, f2)` | Concatenates two flows |
-| `zip` | `zip(f1, f2)` | Pairs items from two flows |
+| `tee` | `tee(flow)` | Returns `[left_flow, right_flow]` |
+| `merge` | `merge(f1, f2)` / `merge(pair)` | Concatenates two flows |
+| `zip` | `zip(f1, f2)` / `zip(pair)` | Emits `[left, right]` items |
 
 ### 🟣 Bridge functions (cross the boundary)
 

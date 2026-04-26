@@ -155,6 +155,15 @@ def test_tee_split_and_merge_recombines_without_data_loss():
         assert run_source(src, env) == [1, 2, 3, 1, 2, 3]
 
 
+def test_tee_public_result_is_list_pair_not_python_tuple():
+        env = make_number_flow_env([1, 2, 3])
+        result = run_source("numbers() |> tee", env)
+
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert all(isinstance(branch, GeniaFlow) for branch in result)
+
+
 def test_tee_zip_keeps_all_items_without_data_loss():
         env = make_number_flow_env([1, 2, 3, 4])
         src = """

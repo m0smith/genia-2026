@@ -64,6 +64,8 @@ def test_discover_specs_includes_eval_cases() -> None:
         "option-none-render-basic",
         "pipeline-option-some-lift",
         "pipeline-option-none-short-circuit",
+        "map-items-map-item-key-pipeline",
+        "map-items-map-item-value-pipeline",
         "each-on-list-type-error",
         "reduce-on-flow-type-error",
         "first-on-flow-type-error",
@@ -112,6 +114,8 @@ def test_discover_specs_includes_flow_cases() -> None:
         "step-rule-helper-equivalence",
         "rules-identity-stage",
         "flow-keep-some-parse-int",
+        "flow-tee-zip-list-pairs",
+        "flow-zip-list-pairs",
         "count-as-pipe-stage-type-error",
     }.issubset(flow_names)
 
@@ -166,6 +170,8 @@ def test_ir_spec_fixture(fname: str) -> None:
         "option-none-render-basic.yaml",
         "pipeline-option-some-lift.yaml",
         "pipeline-option-none-short-circuit.yaml",
+        "map-items-map-item-key-pipeline.yaml",
+        "map-items-map-item-value-pipeline.yaml",
     ],
 )
 def test_eval_spec_fixture(fname: str) -> None:
@@ -209,6 +215,8 @@ def test_cli_spec_fixture(fname: str) -> None:
         "step-rule-helper-equivalence.yaml",
         "rules-identity-stage.yaml",
         "flow-keep-some-parse-int.yaml",
+        "flow-tee-zip-list-pairs.yaml",
+        "flow-zip-list-pairs.yaml",
     ],
 )
 def test_flow_spec_fixture(fname: str) -> None:
