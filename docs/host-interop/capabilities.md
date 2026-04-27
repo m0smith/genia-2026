@@ -42,7 +42,7 @@ Capabilities connecting Genia programs to the host I/O streams. These are `langu
 - **input:** any display-formattable Genia value
 - **output:** `none("nil")` (side effect: text written to host stderr stream)
 - **errors:**
-  - broken pipe on stderr is handled best-effort without recursive noisy failures
+  - none raised — broken pipe on stderr is absorbed best-effort without recursive noisy failures
 - **portability:** `language contract`
 - **notes:** `log(value)` writes display-formatted output plus a trailing newline to stderr. REPL diagnostics and command/file diagnostics go to stderr.
 
