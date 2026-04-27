@@ -499,6 +499,7 @@ Truthful status:
 
 Related shared portability docs:
 
+- docs/host-interop/capabilities.md
 - docs/host-interop/HOST_INTEROP.md
 - docs/host-interop/HOST_PORTING_GUIDE.md
 - docs/host-interop/HOST_CAPABILITY_MATRIX.md
