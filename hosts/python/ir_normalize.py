@@ -49,6 +49,8 @@ from genia.interpreter import (
     MapLiteral,
     Number,
     String,
+    Unquote,
+    UnquoteSplicing,
     Var,
     assert_portable_core_ir,
 )
@@ -316,6 +318,16 @@ def _normalize_quoted_syntax(expr: Any) -> dict[str, Any]:
                 }
                 for key, value in expr.items
             ],
+        }
+    if isinstance(expr, Unquote):
+        return {
+            "kind": "Unquote",
+            "expr": _normalize_quoted_syntax(expr.expr),
+        }
+    if isinstance(expr, UnquoteSplicing):
+        return {
+            "kind": "UnquoteSplicing",
+            "expr": _normalize_quoted_syntax(expr.expr),
         }
 
     raise TypeError(

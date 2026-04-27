@@ -25,6 +25,8 @@ def test_discover_specs_includes_ir_cases() -> None:
         "import-pipeline-stage",
         "call-spread",
         "case-patterns",
+        "quasiquote-unquote-var",
+        "quasiquote-unquote-splicing-var",
     }.issubset(ir_names)
 
 
@@ -150,6 +152,8 @@ def test_discover_specs_includes_flow_cases() -> None:
         "import-pipeline-stage.yaml",
         "call-spread.yaml",
         "case-patterns.yaml",
+        "quasiquote-unquote-var.yaml",
+        "quasiquote-unquote-splicing-var.yaml",
     ],
 )
 def test_ir_spec_fixture(fname: str) -> None:
