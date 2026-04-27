@@ -1,0 +1,20 @@
+name: map-literal
+category: ir
+description: Map literal lowers as IrMap with string keys and lowered value nodes
+input:
+  source: |
+    {name: "Alice", age: 42}
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrMap
+        items:
+          - key: name
+            value:
+              node: IrLiteral
+              value: Alice
+          - key: age
+            value:
+              node: IrLiteral
+              value: 42

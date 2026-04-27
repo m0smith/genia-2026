@@ -1,0 +1,28 @@
+name: pattern-glob
+category: ir
+description: Glob string pattern lowers as IrPatGlob with the compiled pattern source
+input:
+  source: |
+    starts_with_hello(s) = glob"hello*" -> true | _ -> false
+expected:
+  ir:
+    - node: IrFuncDef
+      name: starts_with_hello
+      params:
+        - s
+      body:
+        node: IrCase
+        clauses:
+          - node: IrCaseClause
+            pattern:
+              node: IrPatGlob
+              pattern: hello*
+            result:
+              node: IrLiteral
+              value: true
+          - node: IrCaseClause
+            pattern:
+              node: IrPatWildcard
+            result:
+              node: IrLiteral
+              value: false

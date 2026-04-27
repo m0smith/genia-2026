@@ -1,0 +1,16 @@
+name: lambda-varargs
+category: ir
+description: Varargs lambda lowers as IrLambda with empty params and rest_param
+input:
+  source: |
+    (..xs) -> xs
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLambda
+        params: []
+        rest_param: xs
+        body:
+          node: IrVar
+          name: xs

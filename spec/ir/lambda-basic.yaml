@@ -1,0 +1,22 @@
+name: lambda-basic
+category: ir
+description: Lambda with fixed params lowers as IrLambda with params list and body
+input:
+  source: |
+    (x) -> x + 1
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLambda
+        params:
+          - x
+        body:
+          node: IrBinary
+          left:
+            node: IrVar
+            name: x
+          op: PLUS
+          right:
+            node: IrLiteral
+            value: 1
