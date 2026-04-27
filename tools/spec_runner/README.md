@@ -40,7 +40,7 @@ Verbose mode prints each spec name before execution starts, then prints a timing
 ## How it works
 
 - Cases are loaded from `spec/eval/*.yaml`, `spec/cli/*.yaml`, `spec/ir/*.yaml`, `spec/flow/*.yaml`, `spec/error/*.yaml`, and `spec/parse/*.yaml`
-- Each case is executed independently against the Python reference host
+- Each case is executed independently against the Python reference host via `execute_spec` in `tools/spec_runner/executor.py`, which delegates to `hosts/python/adapter.py::run_case`
 - CLI cases are executed through the Python host adapter
 - Flow cases are executed through command-source execution in the Python host adapter; the runner does not route Flow cases through CLI pipe mode
 - Error cases reuse the eval execution path; there is no separate error subprocess or error-specific execution path
