@@ -113,6 +113,99 @@ No doc may claim more than `GENIA_STATE.md`. A change that is not reflected in a
 
 ---
 
+## Field-Level Lowering Invariants
+
+These are the field-level contract details observed from the `spec/ir/` cases and
+the Python reference implementation. The docs phase for issue #119 must add these
+to `docs/architecture/core-ir-portability.md`.
+
+### IrOptionNone
+
+Three distinct lowering paths, each producing a different `reason` field value:
+
+| Source form | `reason` field | `context` field |
+|---|---|---|
+| `nil` | `IrLiteral("nil")` | `null` |
+| `none` (bare) | `null` | `null` |
+| `none("str", ctx)` | `IrQuote(String AST)` → `{kind: Literal, value: str}` | lowered IrMap |
+| `none(identifier, ctx)` | `IrQuote(Var AST)` → `{kind: Var, name: identifier}` | lowered IrMap |
+
+Key point: the `reason` argument to `none(...)` is wrapped in `IrQuote` (not lowered
+with `lower_node`). This is a deliberate design: the reason is treated as a quoted
+label, preserving its syntactic shape rather than evaluating it.
+
+Spec coverage: `spec/ir/option-constructors.yaml`, `spec/ir/none-bare.yaml`
+
+### IrBinary — SLASH operator
+
+Named slash access `lhs/name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))`.
+This is the portable Core IR form. Hosts must not introduce a separate `IrSlashAccess` node.
+
+Spec coverage: `spec/ir/slash-accessor.yaml`, `spec/ir/import-pipeline-stage.yaml`
+
+### IrAssign placement
+
+`IrAssign` is a statement-level node. It appears directly in `IrBlock.exprs` and at
+the top level of a program. It is NOT wrapped in `IrExprStmt`. Only expression
+statements at block/top level use `IrExprStmt`.
+
+Spec coverage: `spec/ir/block-and-assign.yaml`
+
+### Optional fields
+
+The following fields are omitted from the normalized form when empty or absent:
+
+| Node | Optional field | Present when |
+|---|---|---|
+| `IrFuncDef` | `rest_param` | varargs function |
+| `IrFuncDef` | `docstring` | function has a docstring |
+| `IrFuncDef` | `annotations` | function has annotations |
+| `IrLambda` | `rest_param` | varargs lambda |
+| `IrAssign` | `annotations` | assignment has annotations |
+| `IrCaseClause` | `guard` | clause has a guard expression |
+| `IrImport` | `alias` | import uses `as` alias |
+
+Spec coverage: `spec/ir/funcdef-varargs.yaml`, `spec/ir/lambda-varargs.yaml`,
+`spec/ir/funcdef-annotated.yaml`, `spec/ir/case-patterns.yaml`
+
+### IrPatNone in pattern position
+
+When `none` appears as a pattern (not an expression), it lowers as
+`IrPatNone(reason=null, context=null)`. This is distinct from `IrOptionNone`
+which is used in expression position.
+
+Spec coverage: `spec/ir/option-patterns.yaml`
+
+### IrQuote — inner syntax normalization
+
+`IrQuote` and `IrQuasiQuote` store the raw parser AST node, not a lowered IR node.
+The normalizer serializes quoted inner syntax using a separate `_normalize_quoted_syntax`
+path that handles: `String`, `Number`, `Boolean`, `Var`, `ListLiteral`, `MapLiteral`.
+
+Forms not yet handled by the quoted syntax normalizer:
+- `Unquote` / `UnquoteSplicing` inside `quasiquote` (known normalization limitation)
+
+Spec coverage: `spec/ir/quote-expr.yaml`, `spec/ir/quasiquote-basic.yaml` (simple
+list only; no unquote)
+
+---
+
+## Docs Phase Checklist (issue #119)
+
+The docs phase must update these surfaces:
+
+- `docs/architecture/core-ir-portability.md`:
+  - Add field-level detail for `IrOptionNone` (reason variants above)
+  - Explicitly document SLASH accessor as `IrBinary(op=SLASH)`
+  - Document optional fields for `IrFuncDef`, `IrLambda`, `IrAssign`, `IrCaseClause`, `IrImport`
+  - Document `IrAssign` placement rule (not wrapped in `IrExprStmt`)
+  - Note quasiquote+unquote normalization as a known limitation
+- `GENIA_RULES.md §8.4`:
+  - Sharpen `none(...)` lowering description to name the IrQuote wrapping
+  - Confirm SLASH accessor lowering form
+
+---
+
 ## What This Document Is Not
 
 - Not the frozen contract — that is `docs/architecture/core-ir-portability.md`
