@@ -274,7 +274,7 @@ def test_execute_spec_normalizes_cli_line_endings_and_trailing_newlines(monkeypa
     def fake_exec_cli(_spec: LoadedSpec) -> dict[str, object]:
         return {"stdout": "a\r\nb\n\n", "stderr": "err\r\n\n", "exit_code": 0}
 
-    monkeypatch.setattr("tools.spec_runner.executor.exec_cli", fake_exec_cli)
+    monkeypatch.setattr("hosts.python.adapter.exec_cli", fake_exec_cli)
     spec = _loaded_cli_spec(command="print 1")
 
     actual = execute_spec(spec)
@@ -286,7 +286,7 @@ def test_execute_spec_preserves_internal_cli_whitespace(monkeypatch) -> None:
     def fake_exec_cli(_spec: LoadedSpec) -> dict[str, object]:
         return {"stdout": "a  b\tc\n", "stderr": "x  y\n", "exit_code": 0}
 
-    monkeypatch.setattr("tools.spec_runner.executor.exec_cli", fake_exec_cli)
+    monkeypatch.setattr("hosts.python.adapter.exec_cli", fake_exec_cli)
     spec = _loaded_cli_spec(command="print 1")
 
     actual = execute_spec(spec)
