@@ -1,16 +1,21 @@
 from genia.interpreter import (
   HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
+    IrAssign,
     IrBinary,
+    IrBlock,
     IrCall,
     IrCase,
     IrExprStmt,
     IrFuncDef,
+    IrLambda,
     IrList,
     IrLiteral,
     IrOptionNone,
     IrOptionSome,
     IrPatLiteral,
+    IrPatNone,
     IrPipeline,
+    IrQuote,
     IrSpread,
     IrListTraversalLoop,
     IrPatBind,
@@ -26,6 +31,7 @@ from genia.interpreter import (
     lower_program,
     optimize_program,
 )
+from hosts.python.ir_normalize import normalize_portable_ir
 
 
 def test_lowering_makes_case_patterns_explicit():
@@ -262,3 +268,85 @@ def test_host_local_optimized_ir_nodes_are_not_in_minimal_portable_contract():
 
     assert all(not isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES) for node in iter_ir_nodes(lowered))
     assert any(isinstance(node, HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES) for node in iter_ir_nodes(optimized))
+
+
+# --- Issue #119: Core IR lowering invariant pin tests ---
+
+
+def test_bare_none_lowers_to_ir_option_none_with_null_reason():
+    ast_nodes = Parser(lex("none")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrOptionNone)
+    assert expr_stmt.expr.reason is None
+    assert expr_stmt.expr.context is None
+
+
+def test_none_string_reason_wraps_as_ir_quote():
+    ast_nodes = Parser(lex('none("parse_failed", {source: "x"})')).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrOptionNone)
+    assert isinstance(expr_stmt.expr.reason, IrQuote)
+
+
+def test_slash_standalone_lowers_as_ir_binary_slash():
+    ast_nodes = Parser(lex("person/name")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrBinary)
+    assert expr_stmt.expr.op == "SLASH"
+    assert isinstance(expr_stmt.expr.left, IrVar)
+    assert expr_stmt.expr.left.name == "person"
+    assert isinstance(expr_stmt.expr.right, IrVar)
+    assert expr_stmt.expr.right.name == "name"
+
+
+def test_ir_assign_in_block_not_wrapped_in_ir_expr_stmt():
+    ast_nodes = Parser(lex("{ x = 1\n x }")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    block = ir_nodes[0].expr
+    assert isinstance(block, IrBlock)
+    assert isinstance(block.exprs[0], IrAssign)
+    assert not isinstance(block.exprs[0], IrExprStmt)
+
+
+def test_ir_func_def_no_rest_param_when_not_varargs():
+    ast_nodes = Parser(lex("add(x, y) = x + y")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    fn = ir_nodes[0]
+    assert isinstance(fn, IrFuncDef)
+    assert fn.rest_param is None
+
+
+def test_ir_lambda_no_rest_param_when_not_varargs():
+    ast_nodes = Parser(lex("(x) -> x + 1")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrLambda)
+    assert expr_stmt.expr.rest_param is None
+
+
+def test_ir_pat_none_in_pattern_has_null_reason():
+    src = "unwrap(x) = (some(v)) -> v | (none) -> 0"
+    ast_nodes = Parser(lex(src)).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    fn = ir_nodes[0]
+    assert isinstance(fn, IrFuncDef)
+    none_clause = fn.body.clauses[1]
+    pat = none_clause.pattern
+    assert isinstance(pat, IrPatTuple)
+    none_pat = pat.items[0]
+    assert isinstance(none_pat, IrPatNone)
+    assert none_pat.reason is None
+
+
+def test_normalizer_handles_ir_option_none_null_reason():
+    ast_nodes = Parser(lex("none")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    result = normalize_portable_ir(ir_nodes)
+    assert result == [{"node": "IrExprStmt", "expr": {"node": "IrOptionNone", "reason": None, "context": None}}]
