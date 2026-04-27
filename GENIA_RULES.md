@@ -231,6 +231,9 @@ Required constraints:
 - The frozen minimal portable Core IR contract is documented in `docs/architecture/core-ir-portability.md`.
 - AST->IR lowering output must stay inside the frozen portable `Ir*` node families.
 - Host-local post-lowering optimized nodes (for example `IrListTraversalLoop`) are allowed only after host-local optimization passes and are not part of the minimal shared Core IR contract.
+- Named slash access `lhs/name` lowers as `IrBinary(op=SLASH)`; hosts must not introduce a separate `IrSlashAccess` node.
+- `none(reason, ctx)` lowers as `IrOptionNone`; the reason argument is wrapped in `IrQuote` (not evaluated) — bare `none` produces `reason=null`.
+- `IrAssign` appears directly in `IrBlock.exprs`; it is not wrapped in `IrExprStmt`.
 
 ## 9) Operator model
 
