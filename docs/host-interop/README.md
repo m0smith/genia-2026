@@ -10,6 +10,7 @@ Current status in this phase:
 
 Start here:
 
+- `capabilities.md` for the formal per-capability contract (name, Genia surface, input, output, errors, portability status)
 - `HOST_INTEROP.md` for the cross-host semantic contract
 - `HOST_PORTING_GUIDE.md` for the practical checklist when adding a host
 - `HOST_CAPABILITY_MATRIX.md` for current/planned host capability status

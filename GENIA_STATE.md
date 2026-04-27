@@ -42,6 +42,7 @@ Implemented today:
   - `spec/`
   - `tools/spec_runner/README.md`
   - `hosts/`
+- A formal host capability registry contract is documented at `docs/host-interop/capabilities.md`. It is the authoritative reference for capability names, Genia surface, input/output shapes, normalized error behavior, and portability status for each host capability.
 
 Scaffolded or planned, not implemented as hosts:
 

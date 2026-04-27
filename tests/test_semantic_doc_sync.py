@@ -481,6 +481,224 @@ def test_arch_doc_lowering_invariants_cover_ir_assign_placement() -> None:
     )
 
 
+# --- Issue #118: Host capability registry contract doc-sync tests ---
+# These tests enforce that capabilities.md exists, is complete, and is
+# internally consistent per the 12 invariants in the spec.
+# They FAIL until the implementation phase creates capabilities.md
+# and updates the three related files.
+
+_CAPABILITIES_DOC = "docs/host-interop/capabilities.md"
+
+# Invariant 1: all 29 required capability names must appear in the document.
+_REQUIRED_CAPABILITY_NAMES = [
+    "io.stdout",
+    "io.stderr",
+    "io.stdin",
+    "time.sleep",
+    "random.rng",
+    "random.rand",
+    "random.rand-int",
+    "random.rand-seeded",
+    "random.rand-int-seeded",
+    "http.serve",
+    "process.spawn",
+    "process.send",
+    "process.alive",
+    "process.failed",
+    "process.error",
+    "ref.create",
+    "ref.get",
+    "ref.set",
+    "ref.update",
+    "cell.create",
+    "cell.send",
+    "cell.get",
+    "cell.restart",
+    "bytes.utf8-encode",
+    "bytes.utf8-decode",
+    "json.parse",
+    "json.stringify",
+    "zip.entries",
+    "zip.write",
+]
+
+_ALLOWED_PORTABILITY_TERMS = frozenset(
+    ["language contract", "Python-host-only", "not implemented"]
+)
+
+_PROHIBITED_PHRASES = [
+    "will be implemented",
+    "coming soon",
+    "Node.js: Implemented",
+    "Java: Implemented",
+    "Rust: Implemented",
+    "Go: Implemented",
+    "C++: Implemented",
+]
+
+_PROHIBITED_INTERNAL_NAMES = [
+    "src/genia/interpreter.py",
+    "class Ir",
+    "class Ast",
+    "src/genia/evaluator",
+]
+
+
+def test_capability_registry_all_required_names_present() -> None:
+    """Invariant 1: every required capability name appears in capabilities.md."""
+    text = read_text(_CAPABILITIES_DOC)
+    for name in _REQUIRED_CAPABILITY_NAMES:
+        assert f"`{name}`" in text, (
+            f"capabilities.md is missing required capability entry: `{name}`"
+        )
+
+
+def test_capability_registry_required_fields_present() -> None:
+    """Invariant 2: required fields (name, genia_surface, input, output, errors,
+    portability) appear at least once per capability (29 entries minimum)."""
+    text = read_text(_CAPABILITIES_DOC)
+    required_field_markers = [
+        "**name:**",
+        "**genia_surface:**",
+        "**input:**",
+        "**output:**",
+        "**errors:**",
+        "**portability:**",
+    ]
+    for marker in required_field_markers:
+        count = text.count(marker)
+        assert count >= len(_REQUIRED_CAPABILITY_NAMES), (
+            f"capabilities.md has {count} occurrences of '{marker}' "
+            f"but needs at least {len(_REQUIRED_CAPABILITY_NAMES)} (one per capability)"
+        )
+
+
+def test_capability_registry_portability_values_are_canonical() -> None:
+    """Invariant 3: every portability field uses exactly one of the three
+    allowed status terms; no other portability value may appear."""
+    text = read_text(_CAPABILITIES_DOC)
+    portability_lines = [
+        line for line in text.splitlines() if "**portability:**" in line
+    ]
+    assert len(portability_lines) >= len(_REQUIRED_CAPABILITY_NAMES), (
+        f"capabilities.md has {len(portability_lines)} portability lines "
+        f"but needs at least {len(_REQUIRED_CAPABILITY_NAMES)}"
+    )
+    for line in portability_lines:
+        assert any(term in line for term in _ALLOWED_PORTABILITY_TERMS), (
+            f"portability line uses a non-canonical status term: {line!r}\n"
+            f"Allowed terms: {sorted(_ALLOWED_PORTABILITY_TERMS)}"
+        )
+
+
+def test_capability_registry_no_python_internal_names() -> None:
+    """Invariant 4: capabilities.md must not contain Python-internal class names
+    or source paths from src/genia/."""
+    text = read_text(_CAPABILITIES_DOC)
+    for fragment in _PROHIBITED_INTERNAL_NAMES:
+        assert fragment not in text, (
+            f"capabilities.md must not reference Python internal name: {fragment!r}"
+        )
+
+
+def test_capability_registry_no_prohibited_phrases() -> None:
+    """Invariants 5, 6, 9, 10: capabilities.md must not use prohibited
+    phrasings that overclaim implementation status or future-host status."""
+    text = read_text(_CAPABILITIES_DOC)
+    for phrase in _PROHIBITED_PHRASES:
+        assert phrase not in text, (
+            f"capabilities.md contains prohibited phrase: {phrase!r}"
+        )
+
+
+def test_capability_registry_no_future_tense_in_contracts() -> None:
+    """Invariant 10: capability contract field lines must not use future tense."""
+    text = read_text(_CAPABILITIES_DOC)
+    field_lines = [
+        line for line in text.splitlines()
+        if any(f"**{field}:**" in line for field in
+               ["input", "output", "errors", "portability", "genia_surface", "name"])
+    ]
+    future_words = ["coming soon", "will be", "not yet"]
+    for line in field_lines:
+        for word in future_words:
+            assert word not in line.lower(), (
+                f"capability contract field line uses future-tense phrase {word!r}: {line!r}"
+            )
+
+
+def test_capability_registry_structured_absence_not_conflated_with_errors() -> None:
+    """Invariant 11: json.parse and json.stringify must document failures as
+    structured absence (none(...)) not as exception raises."""
+    text = read_text(_CAPABILITIES_DOC)
+    assert 'none("json-parse-error"' in text, (
+        "capabilities.md must document json.parse failure as "
+        'none("json-parse-error", context), not as a raised exception'
+    )
+    assert 'none("json-stringify-error"' in text, (
+        "capabilities.md must document json.stringify failure as "
+        'none("json-stringify-error", context), not as a raised exception'
+    )
+    assert 'raises `none(' not in text, (
+        "capabilities.md must not describe structured absence as a raised exception"
+    )
+
+
+def test_capability_registry_no_core_ir_semantics() -> None:
+    """Invariant 12: capabilities.md must not define Core IR nodes or language
+    semantics that belong in GENIA_STATE.md."""
+    text = read_text(_CAPABILITIES_DOC)
+    ir_markers = ["IrPipeline", "IrOptionSome", "IrOptionNone", "IrBinary", "IrBlock"]
+    for marker in ir_markers:
+        assert marker not in text, (
+            f"capabilities.md must not reference Core IR node: {marker!r} — "
+            "Core IR semantics belong in docs/architecture/core-ir-portability.md"
+        )
+
+
+def test_capability_registry_maturity_notice_present() -> None:
+    """Doc requirements: capabilities.md must carry the required maturity notice."""
+    text = read_text(_CAPABILITIES_DOC)
+    assert "Python is the reference host" in text, (
+        "capabilities.md must include the maturity notice stating "
+        "Python is the reference host"
+    )
+    assert "partial" in text.lower(), (
+        "capabilities.md must include a maturity notice describing the "
+        "registry contract as partial"
+    )
+
+
+def test_capability_registry_cross_referenced_from_host_interop_readme() -> None:
+    """Spec §8.3: docs/host-interop/README.md must list capabilities.md in its
+    start-here section."""
+    text = read_text("docs/host-interop/README.md")
+    assert "capabilities.md" in text, (
+        "docs/host-interop/README.md must reference capabilities.md "
+        "in its start-here list"
+    )
+
+
+def test_capability_registry_cross_referenced_from_capability_matrix() -> None:
+    """Spec §8.2: HOST_CAPABILITY_MATRIX.md must reference capabilities.md
+    as the per-capability contract source."""
+    text = read_text("docs/host-interop/HOST_CAPABILITY_MATRIX.md")
+    assert "capabilities.md" in text, (
+        "HOST_CAPABILITY_MATRIX.md must reference capabilities.md "
+        "as the formal per-capability contract document"
+    )
+
+
+def test_genia_state_records_capability_registry_exists() -> None:
+    """Spec §8.1: GENIA_STATE.md §0 must record that the formal capability
+    registry contract exists at docs/host-interop/capabilities.md."""
+    text = read_text("GENIA_STATE.md")
+    assert "capabilities.md" in text, (
+        "GENIA_STATE.md §0 must record that the formal host capability "
+        "registry contract is documented at docs/host-interop/capabilities.md"
+    )
+
+
 def test_rules_doc_8_4_mentions_slash_lowering_form() -> None:
     rules = read_text("GENIA_RULES.md")
     marker = "§8.4"
