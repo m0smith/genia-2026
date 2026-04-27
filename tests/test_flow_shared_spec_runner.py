@@ -58,7 +58,7 @@ def test_execute_spec_normalizes_flow_line_endings_like_eval(monkeypatch) -> Non
     def fake_exec_flow(_spec: LoadedSpec) -> dict[str, object]:
         return {"stdout": "a\r\nb\n", "stderr": "err\r\n", "exit_code": 0}
 
-    monkeypatch.setattr("tools.spec_runner.executor.exec_flow", fake_exec_flow)
+    monkeypatch.setattr("hosts.python.adapter.exec_flow", fake_exec_flow)
     spec = load_spec(FLOW_DIR / "stdin-lines-collect-basic.yaml")
 
     actual = execute_spec(spec)

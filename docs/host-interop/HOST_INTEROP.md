@@ -87,7 +87,38 @@ Notes:
 
 ## Host Adapter and Spec Runner Model
 
-The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint. In the current implemented shared semantic-spec system, the shared runner executes `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse` cases.
+The Python host adapter exposes a single `run_case(spec: LoadedSpec) -> ActualResult` entrypoint in `hosts/python/adapter.py`. The shared spec runner routes all category execution through this entrypoint via `tools/spec_runner/executor.py::execute_spec`.
+
+**Input contract** — `run_case` accepts a `LoadedSpec`-compatible value with these execution fields:
+
+| Field | Present for |
+|-------|-------------|
+| `category` | all |
+| `source` | all |
+| `stdin` | eval, flow, error, cli |
+| `file` | cli (file mode) |
+| `command` | cli (command and pipe modes) |
+| `argv` | cli |
+| `debug_stdio` | cli |
+
+The adapter must not inspect `expected_*` fields and must not mutate the input.
+
+**Output contract** — `run_case` returns an `ActualResult`-compatible value with fields per category:
+
+| Category | Fields returned |
+|----------|----------------|
+| eval, flow, error | `stdout`, `stderr`, `exit_code` |
+| cli | `stdout`, `stderr`, `exit_code` (trailing newlines stripped) |
+| ir | `ir` (normalized portable Core IR) |
+| parse | `parse` (`{kind: "ok", ast: ...}` or `{kind: "error", type: ..., message: ...}`) |
+
+**Normalization rules:**
+- All text fields: line endings normalized (`\r\n` → `\n`, `\r` → `\n`)
+- CLI only: trailing newlines stripped from `stdout` and `stderr` after line-ending normalization
+- eval, flow, error: trailing newlines are preserved (not stripped)
+- Unsupported categories raise an error immediately; no result is returned
+
+In the current implemented shared semantic-spec system, the shared runner executes `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse` cases.
 
 The shared spec runner loads YAML eval, cli, flow, error, IR, and parse cases, executes them against the Python reference host, and compares:
 

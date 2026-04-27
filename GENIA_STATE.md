@@ -163,7 +163,8 @@ PYTHON REFERENCE HOST:
 
 **Host implementation location:**
 - The working Python implementation lives in `src/genia/`, `tests/`, and `src/genia/std/prelude/`.
-- `hosts/python/` is a documentation/adaptation scaffold only, not the live runtime source location.
+- `hosts/python/` is the active host adapter layer; it is not the core runtime source location (that remains `src/genia/`).
+- `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
 
 **Planned/Scaffolded:**
 - Node.js, Java, Rust, Go, C++: planned only, not implemented
