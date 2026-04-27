@@ -249,7 +249,7 @@ Phases (one prompt, one commit each):
 4. test — commit failing tests for any doc-validation test changes (if applicable)
 5. implementation — update the actual template and workflow docs
 6. docs sync — verify alignment across all touched docs
-7. audit — confirm no drift, no false portability claims, no phase-skipping
+7. audit — confirm alignment in examined areas, no false portability claims, no phase-skipping
 
 Each phase must be a separate prompt and a separate commit.
 Do not continue beyond this preflight until explicitly prompted.

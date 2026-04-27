@@ -167,7 +167,7 @@ Seven field names are identical in both docs, same order. ✓
 `Portability zone` valid values in both docs:
 `language contract, Core IR, prelude, Python reference host, host adapter, shared spec, docs/tests only` — identical ✓
 
-### Core docs — no drift introduced
+### Core docs — unchanged; cross-references verified in examined areas
 
 `GENIA_STATE.md`, `GENIA_RULES.md`, `README.md`, `AGENTS.md`, `GENIA_REPL_README.md` — unchanged.
 No cross-doc references to the preflight template structure exist outside the three target files
