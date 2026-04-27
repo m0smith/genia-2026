@@ -1,0 +1,23 @@
+name: unary-operators
+category: ir
+description: Unary BANG and MINUS lower as IrUnary in portable Core IR
+input:
+  source: |
+    !true
+    -1
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrUnary
+        op: BANG
+        expr:
+          node: IrLiteral
+          value: true
+    - node: IrExprStmt
+      expr:
+        node: IrUnary
+        op: MINUS
+        expr:
+          node: IrLiteral
+          value: 1

@@ -1,0 +1,38 @@
+name: option-patterns
+category: ir
+description: IrPatSome and IrPatNone as pattern forms; none in pattern position has reason=null context=null
+input:
+  source: |
+    unwrap_value(opt) =
+      (some(v)) -> v |
+      (none) -> 0
+expected:
+  ir:
+    - node: IrFuncDef
+      name: unwrap_value
+      params:
+        - opt
+      body:
+        node: IrCase
+        clauses:
+          - node: IrCaseClause
+            pattern:
+              node: IrPatTuple
+              items:
+                - node: IrPatSome
+                  inner:
+                    node: IrPatBind
+                    name: v
+            result:
+              node: IrVar
+              name: v
+          - node: IrCaseClause
+            pattern:
+              node: IrPatTuple
+              items:
+                - node: IrPatNone
+                  reason: null
+                  context: null
+            result:
+              node: IrLiteral
+              value: 0

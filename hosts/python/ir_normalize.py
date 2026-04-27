@@ -75,7 +75,7 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
     if isinstance(node, IrOptionNone):
         return {
             "node": "IrOptionNone",
-            "reason": _normalize_ir_node(node.reason),
+            "reason": None if node.reason is None else _normalize_ir_node(node.reason),
             "context": None if node.context is None else _normalize_ir_node(node.context),
         }
     if isinstance(node, IrOptionSome):

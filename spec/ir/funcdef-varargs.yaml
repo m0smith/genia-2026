@@ -1,0 +1,15 @@
+name: funcdef-varargs
+category: ir
+description: Varargs function definition lowers as IrFuncDef with empty params and rest_param
+input:
+  source: |
+    list_all(..xs) = xs
+expected:
+  ir:
+    - node: IrFuncDef
+      name: list_all
+      params: []
+      rest_param: xs
+      body:
+        node: IrVar
+        name: xs

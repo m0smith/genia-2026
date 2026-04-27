@@ -65,10 +65,33 @@ Hosts must preserve these lowering invariants:
 
 - pipelines lower as one explicit `IrPipeline(source, stages=[...])` node with ordered stages
 - `some(x)` lowers as `IrOptionSome(...)`
-- `none(...)` lowers as `IrOptionNone(...)`
+- `none(...)` lowers as `IrOptionNone(...)` — see field-level detail below
 - `nil` lowers to `IrOptionNone(IrLiteral("nil"), None, ...)`
+- bare `none` lowers to `IrOptionNone` with `reason=null` and `context=null`
+- `none(reason, ctx)` — the reason argument is wrapped in `IrQuote` (not lowered); it is a quoted label, not an evaluated expression
+- named slash access `lhs/name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))` — hosts must not introduce a separate `IrSlashAccess` node
 - case/function patterns lower into explicit `IrPat*` pattern families
+- `none` in pattern position lowers as `IrPatNone(reason=null, context=null)`, distinct from expression-position `IrOptionNone`
+- `IrAssign` is a statement-level node; it appears directly in `IrBlock.exprs` and at the top level of a program — it is not wrapped in `IrExprStmt`
 - lowering output uses only the minimal portable Core IR node families listed above
+
+### Optional Fields in Normalized Form
+
+The following fields are omitted from the normalized portable IR when empty or absent:
+
+| Node | Optional field | Present when |
+|---|---|---|
+| `IrFuncDef` | `rest_param` | varargs function |
+| `IrFuncDef` | `docstring` | function has a docstring |
+| `IrFuncDef` | `annotations` | function has annotations |
+| `IrLambda` | `rest_param` | varargs lambda |
+| `IrAssign` | `annotations` | assignment has annotations |
+| `IrCaseClause` | `guard` | clause has a guard expression |
+| `IrImport` | `alias` | import uses `as` alias |
+
+### Known Normalization Limitations
+
+- `quasiquote` with `unquote`/`unquote-splicing` inside: the normalizer's `_normalize_quoted_syntax` path does not yet handle `Unquote` or `UnquoteSplicing` AST nodes inside a quasiquote body. Shared spec coverage for quasiquote is limited to simple list forms with no unquote.
 
 ## Executable Validation
 

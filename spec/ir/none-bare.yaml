@@ -1,0 +1,13 @@
+name: none-bare
+category: ir
+description: Bare none lowers as IrOptionNone with reason=null and context=null
+input:
+  source: |
+    none
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrOptionNone
+        reason: null
+        context: null

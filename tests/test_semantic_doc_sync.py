@@ -445,3 +445,53 @@ def test_spec_phase_1_design_carries_superseded_notice() -> None:
     assert "SUPERSEDED" in text[:500], (
         "spec-phase-1-design.md must carry a SUPERSEDED notice within the first 500 characters"
     )
+
+
+# --- Issue #119: Core IR lowering invariant doc-sync tests ---
+# These tests enforce that the architectural docs actually document the lowering
+# invariants that the Python reference host already implements.  They FAIL until
+# the docs phase updates docs/architecture/core-ir-portability.md and GENIA_RULES.md.
+
+
+def test_arch_doc_lowering_invariants_cover_slash_as_ir_binary() -> None:
+    arch = read_text("docs/architecture/core-ir-portability.md")
+    assert "SLASH" in arch, (
+        "docs/architecture/core-ir-portability.md must document that "
+        "named slash access (lhs/name) lowers as IrBinary(op=SLASH)"
+    )
+
+
+def test_arch_doc_lowering_invariants_cover_bare_none_null_reason() -> None:
+    arch = read_text("docs/architecture/core-ir-portability.md")
+    has_reason_null = "reason=null" in arch or "reason: null" in arch
+    has_bare_none_null = "bare" in arch.lower() and "none" in arch and "null" in arch
+    assert has_reason_null or has_bare_none_null, (
+        "docs/architecture/core-ir-portability.md must document that "
+        "bare `none` lowers to IrOptionNone with reason=null and context=null"
+    )
+
+
+def test_arch_doc_lowering_invariants_cover_ir_assign_placement() -> None:
+    arch = read_text("docs/architecture/core-ir-portability.md")
+    not_wrapped = "not wrapped" in arch.lower()
+    directly_in_block = "directly in" in arch.lower() and "block" in arch.lower()
+    assert not_wrapped or directly_in_block, (
+        "docs/architecture/core-ir-portability.md must document the IrAssign placement "
+        "rule: IrAssign appears directly in IrBlock.exprs, NOT wrapped in IrExprStmt"
+    )
+
+
+def test_rules_doc_8_4_mentions_slash_lowering_form() -> None:
+    rules = read_text("GENIA_RULES.md")
+    marker = "§8.4"
+    idx = rules.find(marker)
+    if idx == -1:
+        marker = "8.4"
+        idx = rules.find(marker)
+    assert idx != -1, "GENIA_RULES.md must contain a §8.4 section"
+    section_after = rules[idx:]
+    next_section = section_after.find("\n## ", 1)
+    section = section_after[:next_section] if next_section > 0 else section_after
+    assert "SLASH" in section or "IrBinary" in section, (
+        "GENIA_RULES.md §8.4 must document the SLASH accessor lowering form (IrBinary(op=SLASH))"
+    )
