@@ -4,6 +4,9 @@ For every issue:
 
 1. Create branch: `issue-<number>-<short-name>`
 2. Run preflight prompt
+   - Pre-flight must include a completed PORTABILITY ANALYSIS block (section 3a).
+   - All seven portability fields must be answered before the spec phase begins.
+   - Incomplete portability analysis is grounds for blocking the spec step.
 3. Commit preflight
 4. Run spec prompt
 5. Commit spec
