@@ -89,6 +89,10 @@ The following fields are omitted from the normalized portable IR when empty or a
 | `IrCaseClause` | `guard` | clause has a guard expression |
 | `IrImport` | `alias` | import uses `as` alias |
 
+### Known Normalization Limitations
+
+- `quasiquote` with `unquote`/`unquote-splicing` inside: the normalizer's `_normalize_quoted_syntax` path does not yet handle `Unquote` or `UnquoteSplicing` AST nodes inside a quasiquote body. Shared spec coverage for quasiquote is limited to simple list forms with no unquote.
+
 ## Executable Validation
 
 This portability contract is executable in the shared Semantic Spec System for the current Python reference host.
