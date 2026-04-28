@@ -17,7 +17,7 @@ GENIA_STATE.md is the final authority when files conflict.
 
 Do not invent implemented behavior.
 Do not expand scope.
-Do not introduce new syntax unless the spec explicitly requires it.
+Do not introduce new syntax unless the contract explicitly requires it.
 Keep documentation truthful and current.
 If this change affects behavior, update relevant tests and docs.
 
@@ -32,11 +32,11 @@ You MUST STOP after producing the pre-flight output.
 You are NOT allowed to:
 - create branches
 - run tests
-- write spec files
+- write contract files
 - modify any files
-- run the spec runner
+- run the contract runner
 - commit anything
-- proceed to spec/design/implementation/audit
+- proceed to contract/design/implementation/audit
 
 If you do any of the above, the response is INVALID.
 
@@ -73,7 +73,7 @@ main
 Rules:
 
 * No work begins on `main`
-* Branch must be created before Spec
+* Branch must be created before Contract
 * One branch per change
 
 ---
@@ -122,7 +122,7 @@ Stage:
 
 ---
 
-Required for every pre-flight. All seven fields must be answered before the spec phase begins.
+Required for every pre-flight. All seven fields must be answered before the contract phase begins.
 Do not use "TBD" or defer any field. Ground answers in GENIA_STATE.md facts only.
 
 ## Portability zone:
@@ -291,7 +291,7 @@ YES
 Steps:
 
 * Preflight
-* Spec
+* Contract
 * Design
 * Test
 * Implementation

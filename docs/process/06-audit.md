@@ -24,9 +24,9 @@ Audit <CHANGE NAME>.
 Assume the implementation is wrong until proven correct.
 
 Check:
-- spec vs implementation
+- contract vs implementation
 - design vs implementation
-- tests vs spec
+- tests vs contract
 - docs vs actual behavior
 - cross-file consistency
 - accidental scope expansion
@@ -66,7 +66,7 @@ Relevant (only those touched):
 
 Pipeline artifacts:
 
-* Spec output
+* Contract output
 * Design output
 * Implementation changes
 * Test changes
@@ -117,13 +117,13 @@ Summary:
 
 ---
 
-4. SPEC ↔ IMPLEMENTATION CHECK
+4. CONTRACT ↔ IMPLEMENTATION CHECK
 
 ---
 
 Verify:
 
-* behavior matches Spec exactly
+* behavior matches Contract exactly
 * no silent additions
 * no missing required behavior
 * edge cases handled as defined

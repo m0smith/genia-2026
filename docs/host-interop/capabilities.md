@@ -368,7 +368,7 @@ Capabilities for invoking Genia callables with explicit control over none-propag
   - dispatch error from `invoke_callable` — when `f` is not callable or arity does not match
   - any exception raised inside `f` body — propagates unchanged through `apply_raw`
 - **portability:** `language contract`
-- **notes:** Calls `f` with `args` elements as positional arguments while skipping the automatic `none(...)` short-circuit. `none(...)` values inside `args` are delivered to `f` unchanged — the function body executes. The return value of `f` is returned as-is without coercion or wrapping. `apply_raw` itself is subject to ordinary none-propagation: if `args` is `none(...)` the call short-circuits before `apply_raw` runs. This is the public equivalent of the internal `_invoke_raw_from_builtin` used by `reduce`, `map`, and `filter`.
+- **notes:** Calls `f` with `args` elements as positional arguments while skipping the automatic `none(...)` short-circuit. `none(...)` values inside `args` are delivered to `f` unchanged — the function body executes. The return value of `f` is returned as-is without coercion or wrapping. `apply_raw` itself is subject to ordinary none-propagation: if `args` is `none(...)` the call short-circuits before `apply_raw` runs. The prelude list HOFs `reduce`, `map`, and `filter` use `apply_raw` directly for callback invocation.
 
 #### `zip.write`
 

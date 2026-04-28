@@ -5,11 +5,11 @@ For every issue:
 1. Create branch: `issue-<number>-<short-name>`
 2. Run preflight prompt
    - Pre-flight must include a completed PORTABILITY ANALYSIS block (section 3a).
-   - All seven portability fields must be answered before the spec phase begins.
-   - Incomplete portability analysis is grounds for blocking the spec step.
+   - All seven portability fields must be answered before the contract phase begins.
+   - Incomplete portability analysis is grounds for blocking the contract step.
 3. Commit preflight
-4. Run spec prompt
-5. Commit spec
+4. Run contract prompt
+5. Commit contract
 6. Run design prompt
 7. Commit design
 8. Run failing-test prompt

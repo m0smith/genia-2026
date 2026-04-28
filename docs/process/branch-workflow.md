@@ -18,7 +18,7 @@ Pipeline:
 
 1. Pre-flight  
 2. Branch (automatic)  
-3. Spec  
+3. Contract  
 4. Design
 5. Test (TDD)  
 6. Implementation  
@@ -59,7 +59,7 @@ Examples:
 
 ---
 
-## Automation Contract
+## Automation Expectation
 
 Every prompt MUST:
 
@@ -144,4 +144,4 @@ Expected branch:
 
 Rules:
 - Must not work on main
-- Branch must be created before spec
+- Branch must be created before contract
