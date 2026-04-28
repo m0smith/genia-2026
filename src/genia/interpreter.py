@@ -6905,6 +6905,19 @@ def make_global_env(
             skip_none_propagation=True,
         )
 
+    def apply_raw_fn(proc: Any, args: Any) -> Any:
+        if not isinstance(args, list):
+            raise TypeError(
+                f"apply_raw expected a list as second argument, received {_runtime_type_name(args)}"
+            )
+        return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
+            proc,
+            args,
+            tail_position=False,
+            callee_node=None,
+            skip_none_propagation=True,
+        )
+
     def _get_option_impl(name: str, key: Any, target: Any) -> Any:
         if isinstance(target, GeniaOptionNone):
             return target
@@ -7763,6 +7776,7 @@ def make_global_env(
     env.set("_reduce", reduce_fn)
     env.set("_map", map_fn)
     env.set("_filter", filter_fn)
+    env.set("apply_raw", apply_raw_fn)
 
     env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
     env.register_autoload("cli_parse", 2, "std/prelude/cli.genia")

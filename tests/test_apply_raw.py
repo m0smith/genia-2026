@@ -135,10 +135,10 @@ class TestApplyRawExceptionPropagates:
         with pytest.raises(Exception, match="[Nn]o.*match|[Uu]nmatched|[Dd]ispatch|[Aa]rity"):
             run("inc(x) = x + 1\napply_raw(inc, [1, 2])")
 
-    def test_type_error_inside_body_propagates(self):
-        # + on a string raises inside the body
-        with pytest.raises(TypeError):
-            run('apply_raw((x) -> x + 1, ["not-a-number"])')
+    def test_undefined_name_inside_body_propagates(self):
+        # NameError from inside the body propagates through apply_raw
+        with pytest.raises(NameError, match="undefined_in_body"):
+            run("apply_raw((x) -> undefined_in_body, [1])")
 
 
 # ---------------------------------------------------------------------------
@@ -160,9 +160,11 @@ class TestApplyRawArgsNotList:
         with pytest.raises(TypeError, match="apply_raw expected a list"):
             run("apply_raw((x) -> x, {})")
 
-    def test_none_as_args_raises_type_error(self):
+    def test_bool_as_args_raises_type_error(self):
+        # bool is not a list (note: none(...) as args short-circuits at the apply_raw call
+        # site itself before apply_raw_fn runs, so bool/int/string are the testable cases)
         with pytest.raises(TypeError, match="apply_raw expected a list"):
-            run('apply_raw((x) -> x, none("bad"))')
+            run("apply_raw((x) -> x, true)")
 
     def test_error_message_includes_received_type(self):
         with pytest.raises(TypeError, match="received string"):
