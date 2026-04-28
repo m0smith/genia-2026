@@ -1,0 +1,14 @@
+name: apply-raw-empty-args
+category: eval
+description: apply_raw with an empty args list calls a zero-argument function
+input:
+  source: |
+    apply_raw(() -> 42, [])
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #188
+  invariant: ordinary-value-equivalence
+  Zero-arg case: apply_raw with [] is equivalent to calling the function with no arguments.

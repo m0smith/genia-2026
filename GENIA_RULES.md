@@ -479,6 +479,18 @@ Agents and implementations must preserve structured none metadata:
   - it is registered with `__genia_handles_none__ = True`
 - handlers such as `some?`, `none?`, `unwrap_or`, `or_else`, `map_some`, `flat_map_some`, and all `then_*` helpers are explicitly none-aware
 
+### 9.6.4.1) Explicit raw invocation: `apply_raw`
+
+`apply_raw(f, args)` is a language-contract host primitive that calls `f` with the elements of list `args` as positional arguments without triggering the automatic `none(...)` short-circuit.
+
+- `f` may be any Genia callable (named function, lambda, builtin)
+- `args` must be a Genia list; a non-list second argument raises `TypeError`
+- none values in `args` are delivered to `f` unchanged — the body executes
+- exceptions raised inside `f` propagate through `apply_raw` unchanged
+- the return value of `f` is returned as-is; no coercion or wrapping is applied
+- `apply_raw` itself is subject to ordinary none-propagation: `apply_raw(f, none("x"))` short-circuits before `apply_raw` runs because `none("x")` is a direct argument to `apply_raw`
+- use case: implementing higher-order functions (`reduce`, `map`, `filter`) that must deliver `none(...)` list elements to their callback
+
 ### 9.6.6) Debugging structured absence
 
 Use structured none metadata directly instead of exceptions.
