@@ -353,6 +353,23 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **portability:** `Python-host-only`
 - **notes:** Each entry is an opaque Zip entry wrapper value. Entry accessors: `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`. Returns an eager list in the current phase.
 
+### Group: Callable Invocation
+
+Capabilities for invoking Genia callables with explicit control over none-propagation behavior.
+
+#### `fn.apply-raw`
+
+- **name:** `fn.apply-raw`
+- **genia_surface:** `apply_raw(f, args)`
+- **input:** `f` — any Genia callable; `args` — a Genia list of positional argument values
+- **output:** whatever `f` returns when called with the elements of `args`
+- **errors:**
+  - `TypeError` with message `"apply_raw expected a list as second argument, received <type>"` — when `args` is not a Python list (covers: string, int, bool, map, and any other non-list value)
+  - dispatch error from `invoke_callable` — when `f` is not callable or arity does not match
+  - any exception raised inside `f` body — propagates unchanged through `apply_raw`
+- **portability:** `language contract`
+- **notes:** Calls `f` with `args` elements as positional arguments while skipping the automatic `none(...)` short-circuit. `none(...)` values inside `args` are delivered to `f` unchanged — the function body executes. The return value of `f` is returned as-is without coercion or wrapping. `apply_raw` itself is subject to ordinary none-propagation: if `args` is `none(...)` the call short-circuits before `apply_raw` runs. This is the public equivalent of the internal `_invoke_raw_from_builtin` used by `reduce`, `map`, and `filter`.
+
 #### `zip.write`
 
 - **name:** `zip.write`

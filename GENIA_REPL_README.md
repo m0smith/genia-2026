@@ -194,6 +194,7 @@ CLI contract summary (actual behavior):
   - phase-2 primitive option model runtime:
     - `none` remains a runtime literal/value
     - public helpers such as `some`, `get`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, and `absence_context` are prelude-backed wrappers over host-backed option primitives
+  - raw callback invocation: `apply_raw(f, args)` — language-contract host primitive; bypasses `none(...)` short-circuit; `args` must be a list
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`

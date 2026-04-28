@@ -1595,7 +1595,8 @@ Notable autoloaded functions include:
   - `reduce`, `map`, and `filter` are prelude wrappers over host-backed primitives that skip none-propagation for callbacks, so list elements which are `none(...)` are delivered to the callback
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
-- fn: `apply`, `compose`
+- fn: `apply`, `apply_raw`, `compose`
+  - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit; `args` must be a list or `TypeError` is raised; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
