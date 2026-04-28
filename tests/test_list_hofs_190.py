@@ -230,11 +230,12 @@ class TestFilterStrictBooleanPredicate:
     Genia boolean), so non-boolean truthy return values cause exclusion.
     """
 
-    def test_int_return_not_truthy(self):
-        # FAILS BEFORE IMPL: currently returns [1, 2, 3] (Python truthy(1) == True)
-        # After impl: returns [] (Genia: 1 == true is false)
+    def test_int_1_equals_true_in_genia(self):
+        # Python: 1 == True, so Genia guard (apply_raw(pred,[x]) == true) passes for int 1.
+        # Both old Python _filter (truthy(1)==True) and new prelude (1==true is True) include it.
+        # Consistent with any?((x)->1, xs) returning true.
         result = run("filter((x) -> 1, [1, 2, 3])")
-        assert result == []
+        assert result == [1, 2, 3]
 
     def test_string_return_not_truthy(self):
         # FAILS BEFORE IMPL: currently returns [1, 2] (Python truthy("hello") == True)
