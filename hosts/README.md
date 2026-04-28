@@ -16,6 +16,7 @@ Current status (for formal term definitions see `docs/host-interop/HOST_INTEROP.
 
 The intended long-term structure is:
 
+- `hosts/template/` — copy-and-fill template for new hosts (not a host itself; see `hosts/template/EXAMPLE.md`)
 - `hosts/python/`
 - `hosts/node/`
 - `hosts/java/`
