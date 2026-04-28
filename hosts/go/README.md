@@ -21,3 +21,10 @@ Known commands:
 - build: TODO
 - test: TODO
 - lint: TODO
+
+## Template
+
+Use the host template as a starting point:
+
+- Copy `hosts/template/` to this directory to get the required file structure
+- Follow `hosts/template/EXAMPLE.md` for step-by-step bringup guidance
