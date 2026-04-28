@@ -1,0 +1,19 @@
+name: stdlib-reduce-none-elements
+category: eval
+description: reduce delivers none(...) list elements to the callback without short-circuiting
+input:
+  source: |
+    reduce((acc, o) -> acc + unwrap_or(0, o), 0, [some(1), none("x"), some(3)])
+expected:
+  stdout: "4\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #190
+  invariant: reduce-none-elements-delivered-to-callback
+  List elements that are none(...) must be passed to the callback, not short-circuited.
+  The callback receives some(1), none("x"), some(3) in order.
+  unwrap_or(0, some(1))=1, unwrap_or(0, none("x"))=0, unwrap_or(0, some(3))=3 → 4.
+  This requires apply_raw semantics for callback invocation.
+  A naive Genia implementation without apply_raw would short-circuit on none("x")
+  and return none("x") instead of 4.

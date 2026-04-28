@@ -1,0 +1,15 @@
+name: stdlib-reduce-empty
+category: eval
+description: reduce on an empty list returns the initial accumulator unchanged
+input:
+  source: |
+    reduce((acc, x) -> acc + x, 0, [])
+expected:
+  stdout: "0\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #190
+  invariant: reduce-empty-list-base-case
+  The empty list is the base case: reduce returns the accumulator unchanged.
+  The callback is never invoked. Result is always the initial accumulator value.
