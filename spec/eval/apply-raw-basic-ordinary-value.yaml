@@ -1,0 +1,15 @@
+name: apply-raw-basic-ordinary-value
+category: eval
+description: apply_raw with ordinary (non-none) args produces the same result as a direct call
+input:
+  source: |
+    inc(x) = x + 1
+    apply_raw(inc, [41])
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #188
+  invariant: ordinary-value-equivalence
+  When no argument is none(...), apply_raw(f, args) is observably identical to f(args[0], ...).

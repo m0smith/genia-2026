@@ -1,0 +1,16 @@
+name: apply-raw-none-multi-arg
+category: eval
+description: apply_raw with none in a non-first argument position; body executes and handles none
+input:
+  source: |
+    step = (acc, x) -> acc + unwrap_or(0, x)
+    apply_raw(step, [5, none("q")])
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #188
+  invariant: raw-invocation
+  Normal call step(5, none("q")) short-circuits to none("q") because none is detected among the args.
+  apply_raw bypasses that check; body runs with acc=5, x=none("q"); unwrap_or(0, none("q")) = 0; 5 + 0 = 5.
