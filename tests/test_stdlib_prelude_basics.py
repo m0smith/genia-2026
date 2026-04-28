@@ -87,14 +87,36 @@ def test_reverse(run):
     assert run("reverse([1, 2, 3])") == [3, 2, 1]
 
 
+def test_reduce(run):
+    # empty list returns initial accumulator
+    assert run("reduce((acc, x) -> acc + x, 0, [])") == 0
+    assert run("reduce((acc, x) -> acc + x, 99, [])") == 99
+    # left-to-right accumulation: 0-1-2-3 = -6 (not right-fold -2)
+    assert run("reduce((acc, x) -> acc - x, 0, [1, 2, 3])") == -6
+    # lambda reducer
+    assert run("reduce((acc, x) -> acc + x, 0, [1, 2, 3, 4])") == 10
+    # named function reducer
+    assert run("add(a, b) = a + b\nreduce(add, 0, [1, 2, 3, 4])") == 10
+
+
 def test_map(run):
+    # empty list returns []
     assert run("map((x) -> x + 1, [])") == []
+    # maps values in order
     assert run("map((x) -> x + 1, [1, 2, 3])") == [2, 3, 4]
+    # named function mapper
+    assert run("double(x) = x * 2\nmap(double, [1, 2, 3])") == [2, 4, 6]
 
 
 def test_filter(run):
+    # empty list returns []
     assert run("filter((x) -> x % 2 == 0, [])") == []
+    # keeps items where predicate returns true
     assert run("filter((x) -> x % 2 == 0, [1, 2, 3, 4, 5])") == [2, 4]
+    # drops items where predicate returns false
+    assert run("filter((x) -> x > 3, [1, 2, 3, 4, 5])") == [4, 5]
+    # named function predicate
+    assert run("is_even(x) = x % 2 == 0\nfilter(is_even, [1, 2, 3, 4, 5])") == [2, 4]
 
 
 def test_range(run):
