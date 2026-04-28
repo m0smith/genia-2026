@@ -3,7 +3,7 @@
 READ FIRST:
 
 * Pre-flight document
-* Spec output
+* Contract output
 * Design output
 
 You are working in the Genia repo.
@@ -19,7 +19,7 @@ GENIA_STATE.md is the final authority when files conflict.
 
 Do not invent implemented behavior.
 Do not expand scope.
-Do not introduce new syntax unless the spec explicitly requires it.
+Do not introduce new syntax unless the contract explicitly requires it.
 Keep documentation truthful and current.
 If this change affects behavior, update relevant tests and docs.
 
@@ -63,7 +63,7 @@ Report exactly what changed and the test results.
 
 ---
 
-Implement exactly what is defined in the Spec and organized by the Design.
+Implement exactly what is defined in the Contract and organized by the Design.
 
 This step is for code changes only.
 
@@ -85,9 +85,9 @@ Forbidden:
 * adding extra behavior
 * expanding scope
 * “while I’m here” cleanup unrelated to this change
-* changing semantics not defined in the Spec
+* changing semantics not defined in the Contract
 
-If Spec or Design is unclear:
+If Contract or Design is unclear:
 → STOP and report the ambiguity
 Do NOT invent behavior.
 
@@ -100,10 +100,10 @@ Do NOT invent behavior.
 Must:
 
 * follow the Design exactly
-* preserve existing semantics unless the Spec explicitly changes them
+* preserve existing semantics unless the Contract explicitly changes them
 * keep changes minimal and local
 * follow existing project patterns and naming
-* keep behavior portable where required by the Spec
+* keep behavior portable where required by the Contract
 
 Must NOT:
 
@@ -120,9 +120,9 @@ Must NOT:
 
 Implement:
 
-* the behavior defined in the Spec
+* the behavior defined in the Contract
 * the structures/interfaces defined in the Design
-* the error behavior defined in the Spec
+* the error behavior defined in the Contract
 * the integration points defined in the Design
 
 Also ensure:
@@ -154,8 +154,8 @@ Before finalizing, verify:
 
 * no scope expansion occurred
 * no unrelated files were changed
-* no behavior beyond the Spec was introduced
-* failure behavior matches the Spec
+* no behavior beyond the Contract was introduced
+* failure behavior matches the Contract
 * names and structures match the Design
 
 ---
@@ -196,7 +196,7 @@ If broader than ideal, explain why.
 
 Before finishing, confirm:
 
-* Implementation matches Spec
+* Implementation matches Contract
 * Implementation matches Design
 * No unapproved behavior added
 * Ready for Test prompt

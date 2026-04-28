@@ -3,7 +3,7 @@
 READ FIRST:
 
 * Pre-flight document
-* Spec output
+* Contract output
 * Design output
 * Implementation changes
 
@@ -40,14 +40,14 @@ Before doing anything:
 * Report active branch before proceeding
 
 ---
-Write failing tests for <CHANGE NAME> based only on the approved spec and design.
+Write failing tests for <CHANGE NAME> based only on the approved Contract and design.
 
 Rules:
 - Tests must fail before implementation.
 - Tests must prove the behavior, not just exercise code.
 - Include edge cases and regression cases.
 - Do not change implementation code except test fixtures if needed.
-- Do not introduce behavior not in the spec.
+- Do not introduce behavior not in the Contract.
 
 Run the relevant tests and report the failing evidence.
 
@@ -57,7 +57,7 @@ Run the relevant tests and report the failing evidence.
 
 ---
 
-Verify that the implementation matches the Spec exactly.
+Verify that the implementation matches the Contract exactly.
 
 This step is for tests and verification only.
 
@@ -71,7 +71,7 @@ Do NOT expand scope.
 
 ---
 
-Test only what is defined in the Spec and implemented in this change.
+Test only what is defined in the Contract and implemented in this change.
 
 Must cover:
 
@@ -86,7 +86,7 @@ Must NOT:
 * test speculative future behavior
 * rewrite implementation during the test step unless a tiny, obvious correction is required and explicitly called out
 
-If the Spec is unclear:
+If the Contract is unclear:
 → STOP and report the ambiguity
 
 ---
@@ -98,7 +98,7 @@ If the Spec is unclear:
 Prove:
 
 * the feature behaves as specified
-* failure behavior matches the Spec
+* failure behavior matches the Contract
 * edge cases are handled correctly
 * no regression was introduced in nearby behavior
 
@@ -139,7 +139,7 @@ Include tests for:
 
 Tests must:
 
-* be driven by the Spec invariants
+* be driven by the Contract invariants
 * assert concrete behavior, not vague success
 * fail when behavior regresses
 * reflect current language/runtime reality
@@ -148,7 +148,7 @@ Tests must:
 Tests must NOT:
 
 * assume unimplemented capabilities
-* lock in accidental behavior not stated in the Spec
+* lock in accidental behavior not stated in the Contract
 * rely on host quirks unless explicitly part of the implementation boundary
 
 ---
@@ -161,7 +161,7 @@ Before writing tests, list:
 
 * files to add or update
 * what each test group verifies
-* which Spec invariants each group covers
+* which Contract invariants each group covers
 
 ---
 
@@ -193,7 +193,7 @@ Report:
 * commands run
 * pass/fail results
 * any failures found
-* whether failures are implementation bugs, test bugs, or spec/design ambiguity
+* whether failures are implementation bugs, test bugs, or contract/design ambiguity
 
 ---
 
@@ -205,7 +205,7 @@ If tests fail:
 
 * identify the exact cause
 * do NOT silently weaken the test
-* do NOT change expected behavior unless the Spec was wrong
+* do NOT change expected behavior unless the Contract was wrong
 * recommend the smallest corrective action
 
 If implementation changes are required:
@@ -249,7 +249,7 @@ Confirm whether the test suite is:
 
 Before finishing, confirm:
 
-* tests cover Spec-defined behavior
+* tests cover spec-defined behavior
 * tests cover failure behavior
 * tests cover edge cases
 * tests provide regression protection

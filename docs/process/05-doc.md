@@ -3,7 +3,7 @@
 READ FIRST:
 
 * Pre-flight document
-* Spec output
+* Contract output
 * Design output
 * Implementation changes
 * Test results
@@ -82,7 +82,7 @@ No new behavior. No speculation.
 
 Update docs ONLY for:
 
-* behavior defined in Spec
+* behavior defined in Contract
 * behavior implemented in code
 * behavior verified by tests
 

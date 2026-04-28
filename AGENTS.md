@@ -47,7 +47,10 @@ Rules:
 - Implementation must match STATE + RULES
 - Docs must describe ONLY what is implemented
 - Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/test_semantic_doc_sync.py`
+“Contract” defines behavior only.
+It MUST NOT include tests.
 
+Shared spec YAML files and pytest tests belong to the TEST phase.
 ---
 
 # 🚫 NON-AUTHORITATIVE SOURCES
@@ -144,7 +147,7 @@ Rule:
 
 # 🧠 REQUIRED WORKFLOW (MANDATORY)
 
-for every change, use pre-flight → spec → design → failing tests → implementation → docs sync → audit
+for every change, use pre-flight → contract → design → failing tests → implementation → docs sync → audit
 
 Every change MUST follow this pipeline:
 ## Required LLM Change Discipline
@@ -152,7 +155,7 @@ Every change MUST follow this pipeline:
 Every issue must be completed as separate phases:
 
 1. `preflight`
-2. `spec`
+2. `contract`
 3. `design`
 4. `test`
 5. `implementation`
@@ -166,7 +169,7 @@ Agents must not continue into the next phase unless explicitly prompted.
 Commit prefixes must match the phase:
 
 - `preflight(scope): ... issue #123`
-- `spec(scope): ... issue #123`
+- `contract(scope): ... issue #123`
 - `design(scope): ... issue #123`
 - `test(scope): ... issue #123`
 - `feat(scope): ... issue #123`
@@ -199,7 +202,7 @@ The `implementation` phase must reference the failing-test commit SHA.
 
 Agents MUST NOT:
 
-- invent behavior not defined in spec
+- invent behavior not defined in contract
 - update docs to describe unimplemented features
 - change semantics without updating STATE
 - mix design and implementation in a single step
@@ -239,7 +242,7 @@ Python is the reference host.
 
 Each prompt must perform ONE type of work:
 
-- Spec
+- Contract
 - Design
 - Implementation
 - Test
