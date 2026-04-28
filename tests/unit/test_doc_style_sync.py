@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 # Make the tools directory importable for lint_doc
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "tools"))
 
 from lint_doc import (
     ALLOWED_SECTION_HEADERS,
@@ -21,7 +21,7 @@ from lint_doc import (
     Severity,
 )
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parent.parent.parent
 STYLE_GUIDE = REPO / "docs" / "style" / "doc-style.md"
 CHEATSHEET_CORE = REPO / "docs" / "cheatsheet" / "core.md"
 CHEATSHEET_QUICK = REPO / "docs" / "cheatsheet" / "quick-reference.md"

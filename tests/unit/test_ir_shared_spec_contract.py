@@ -11,7 +11,7 @@ from tools.spec_runner.executor import ActualResult, execute_spec
 from tools.spec_runner.loader import load_spec
 
 
-REPO = Path(__file__).resolve().parents[1]
+REPO = Path(__file__).resolve().parents[2]
 IR_DIR = REPO / "spec" / "ir"
 
 

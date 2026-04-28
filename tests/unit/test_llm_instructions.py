@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def test_llm_instruction_sync_validator() -> None:
-    root = Path(__file__).resolve().parents[1]
+    root = Path(__file__).resolve().parents[2]
     validator = root / "tools" / "validate_llm_instructions.py"
 
     assert validator.exists(), f"Missing validator script: {validator}"

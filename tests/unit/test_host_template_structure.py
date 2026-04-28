@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parent.parent.parent
 TEMPLATE = REPO / "hosts" / "template"
 
 AGENTS_MD = TEMPLATE / "AGENTS.md"

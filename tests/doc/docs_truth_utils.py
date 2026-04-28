@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parent.parent.parent
 ROOT_DOC_FILES = [
     "AGENTS.md",
     "GENIA_REPL_README.md",

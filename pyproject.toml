@@ -42,6 +42,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 pythonpath = ["src", "."]
 
+
 [tool.ruff]
 line-length = 100
 target-version = "py312"

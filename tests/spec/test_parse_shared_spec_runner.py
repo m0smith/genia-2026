@@ -19,9 +19,12 @@ from tools.spec_runner.executor import ActualResult, execute_spec
 from tools.spec_runner.loader import LoadedSpec, discover_specs, load_spec
 from tools.spec_runner.runner import main as run_spec_suite
 
+pytestmark = [pytest.mark.spec, pytest.mark.slow]
 
-REPO = Path(__file__).resolve().parents[1]
+
+REPO = Path(__file__).resolve().parents[2]
 PARSE_DIR = REPO / "spec" / "parse"
+
 
 
 def _parse_spec(
