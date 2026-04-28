@@ -10,7 +10,7 @@ from genia.interpreter import _main
 from genia.utf8 import format_debug
 
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parent.parent.parent
 FACTS_PATH = REPO / "docs" / "contract" / "semantic_facts.json"
 INSTRUCTION_SURFACES = [
     "AGENTS.md",

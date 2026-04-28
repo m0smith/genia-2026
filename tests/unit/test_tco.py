@@ -4,6 +4,7 @@ from genia.utf8 import format_debug
 
 from genia import make_global_env, run_source
 
+pytestmark = [pytest.mark.slow, pytest.mark.unit]
 
 def run_with_env(src: str):
     env = make_global_env([])

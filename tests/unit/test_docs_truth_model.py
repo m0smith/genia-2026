@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parent.parent.parent
 AGENTS_PATH = REPO / "AGENTS.md"
 REQUIRED_HEADINGS = [
     "## Documentation Truth Model",

@@ -7,13 +7,15 @@ from tools.spec_runner.executor import execute_spec
 from tools.spec_runner.loader import discover_specs, load_spec
 
 
-IR_DIR = Path(__file__).resolve().parents[1] / "spec" / "ir"
-EVAL_DIR = Path(__file__).resolve().parents[1] / "spec" / "eval"
-FLOW_DIR = Path(__file__).resolve().parents[1] / "spec" / "flow"
-CLI_DIR = Path(__file__).resolve().parents[1] / "spec" / "cli"
-ERROR_DIR = Path(__file__).resolve().parents[1] / "spec" / "error"
+IR_DIR = Path(__file__).resolve().parents[2] / "spec" / "ir"
+EVAL_DIR = Path(__file__).resolve().parents[2] / "spec" / "eval"
+FLOW_DIR = Path(__file__).resolve().parents[2] / "spec" / "flow"
+CLI_DIR = Path(__file__).resolve().parents[2] / "spec" / "cli"
+ERROR_DIR = Path(__file__).resolve().parents[2] / "spec" / "error"
 
 
+@pytest.mark.spec
+@pytest.mark.slow
 def test_discover_specs_includes_ir_cases() -> None:
     specs, invalid_specs = discover_specs()
 
@@ -29,7 +31,8 @@ def test_discover_specs_includes_ir_cases() -> None:
         "quasiquote-unquote-splicing-var",
     }.issubset(ir_names)
 
-
+@pytest.mark.spec
+@pytest.mark.slow
 def test_discover_specs_includes_eval_cases() -> None:
     specs, invalid_specs = discover_specs()
 
@@ -92,7 +95,8 @@ def test_discover_specs_includes_eval_cases() -> None:
         "pairs-pattern-match",
     }.issubset(eval_names)
 
-
+@pytest.mark.spec
+@pytest.mark.slow
 def test_discover_specs_includes_cli_matrix_cases() -> None:
     specs, invalid_specs = discover_specs()
 
@@ -119,7 +123,8 @@ def test_discover_specs_includes_error_pattern_cases() -> None:
         "error-pattern-glob-malformed",
     }.issubset(error_names)
 
-
+@pytest.mark.spec
+@pytest.mark.slow
 def test_discover_specs_includes_flow_cases() -> None:
     specs, invalid_specs = discover_specs()
 
@@ -143,7 +148,8 @@ def test_discover_specs_includes_flow_cases() -> None:
         "flow-map-filter-chain",
     }.issubset(flow_names)
 
-
+@pytest.mark.spec
+@pytest.mark.slow
 @pytest.mark.parametrize(
     "fname",
     [
@@ -219,6 +225,8 @@ def test_ir_spec_fixture(fname: str) -> None:
         "pairs-pattern-match.yaml",
     ],
 )
+@pytest.mark.spec
+@pytest.mark.slow
 def test_eval_spec_fixture(fname: str) -> None:
     spec = load_spec(EVAL_DIR / fname)
     actual = execute_spec(spec)
@@ -239,6 +247,8 @@ def test_eval_spec_fixture(fname: str) -> None:
         "pipe_mode_collect_error.yaml",
     ],
 )
+@pytest.mark.spec
+@pytest.mark.slow
 def test_cli_spec_fixture(fname: str) -> None:
     spec = load_spec(CLI_DIR / fname)
     actual = execute_spec(spec)
@@ -267,6 +277,8 @@ def test_cli_spec_fixture(fname: str) -> None:
         "flow-map-filter-chain.yaml",
     ],
 )
+@pytest.mark.spec
+@pytest.mark.slow
 def test_flow_spec_fixture(fname: str) -> None:
     spec = load_spec(FLOW_DIR / fname)
     actual = execute_spec(spec)
@@ -284,6 +296,8 @@ def test_flow_spec_fixture(fname: str) -> None:
         "error-pattern-glob-malformed.yaml",
     ],
 )
+@pytest.mark.spec
+@pytest.mark.slow
 def test_error_spec_fixture(fname: str) -> None:
     spec = load_spec(ERROR_DIR / fname)
     actual = execute_spec(spec)
