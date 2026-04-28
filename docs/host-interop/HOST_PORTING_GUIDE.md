@@ -5,6 +5,8 @@ This is the practical checklist for adding a new Genia host.
 Python is the current reference host.
 New hosts should align with Python's implemented semantics, not redefine them.
 
+A ready-to-copy host template lives at `hosts/template/`. Copy it and follow `hosts/template/EXAMPLE.md` as your starting point.
+
 ## Required Reading
 
 Read these before writing host code:
