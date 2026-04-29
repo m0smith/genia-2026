@@ -118,7 +118,7 @@ The two failing tests are correct and non-trivial: they prove `_map` and `_filte
 
 ### GENIA_STATE.md
 
-`_map` and `_filter` had no entries. No drift introduced. ✓
+`_map` and `_filter` had no entries. Implementation is consistent with documentation. ✓
 
 ### docs/host-interop/capabilities.md
 
