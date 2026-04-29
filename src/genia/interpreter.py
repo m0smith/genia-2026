@@ -7048,16 +7048,8 @@ def make_global_env(
             return _invoke_from_builtin(thunk, [])
         raise TypeError(f"or_else_with expected an option value, received {_runtime_type_name(opt)}")
 
-    def reduce_fn(f: Any, acc: Any, xs: Any) -> Any:
-        """Host-backed reduce that calls the callback via invoke_callable with
-        skip_none_propagation, so that list elements which are none(...)
-        are passed to the callback rather than short-circuiting it."""
-        if not isinstance(xs, list):
-            raise TypeError(f"reduce expected a list as third argument, received {_runtime_type_name(xs)}")
-        result = acc
-        for x in xs:
-            result = _invoke_raw_from_builtin(f, [result, x])
-        return result
+    def reduce_error_fn(xs: Any) -> Any:
+        raise TypeError(f"reduce expected a list as third argument, received {_runtime_type_name(xs)}")
 
     def sum_fn(xs: Any) -> Any:
         if not isinstance(xs, list):
@@ -7757,7 +7749,7 @@ def make_global_env(
     env.set("_cli_option", cli_option_fn)
     env.set("_cli_option_or", cli_option_or_fn)
     env.set("_sum", sum_fn)
-    env.set("_reduce", reduce_fn)
+    env.set("_reduce_error", reduce_error_fn)
     env.set("apply_raw", apply_raw_fn)
 
     env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
