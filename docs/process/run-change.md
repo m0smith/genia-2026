@@ -20,5 +20,7 @@ For every issue:
 13. Commit docs
 14. Run audit prompt
 15. Commit audit or audit fixes
+16. Run the Doc Distillation prompt
+17. Commit the updated docs
 
 Do not merge until audit passes.

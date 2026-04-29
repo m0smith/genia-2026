@@ -23,8 +23,9 @@ Pipeline:
 5. Test (TDD)  
 6. Implementation  
 7. Docs  
-8. Audit  
-9. Merge → main  
+8. Audit 
+9. Doc Distillation 
+10. Merge → main  
 
 ---
 

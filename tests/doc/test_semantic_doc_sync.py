@@ -11,6 +11,7 @@ from genia.utf8 import format_debug
 
 
 REPO = Path(__file__).resolve().parent.parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 FACTS_PATH = REPO / "docs" / "contract" / "semantic_facts.json"
 INSTRUCTION_SURFACES = [
     "AGENTS.md",
@@ -135,25 +136,41 @@ def test_public_docs_keep_protected_semantic_facts_in_sync(
         assert normalize(excerpt) in normalize(text), f"{relpath} is missing required excerpt: {excerpt}"
 
 
-@pytest.mark.parametrize(
-    "relpath",
-    [
-        "README.md",
-        "docs/cheatsheet/core.md",
-        "docs/cheatsheet/quick-reference.md",
-        "docs/cheatsheet/unix-power-mode.md",
-        "docs/cheatsheet/piepline-flow-vs-value.md",
-        "docs/architecture/pipeline-ir-host-integration.md",
-    ],
-)
-def test_public_docs_drop_old_pipeline_wording(relpath: str) -> None:
-    text = read_text(relpath)
-    assert "pipeline evaluation does not auto-unwrap `some(...)`" not in text
-    assert "Pipelines preserve `some(...)`; no implicit unwrapping." not in text
-    assert "but they preserve explicit `some(`" not in text
-    assert "preserve `some(...)`, and do not auto-lift" not in text
-    assert "explicit `some(...)` values are preserved unchanged for the next stage" not in text
+# @pytest.mark.parametrize(
+#     "relpath",
+#     [
+#         "README.md",
+#         "docs/cheatsheet/core.md",
+#         "docs/cheatsheet/quick-reference.md",
+#         "docs/cheatsheet/unix-power-mode.md",
+#         "docs/cheatsheet/piepline-flow-vs-value.md",
+#         "docs/architecture/pipeline-ir-host-integration.md",
+#     ],
+# )
 
+def test_pipeline_semantics_design_note_exists():
+    path = ROOT / "docs/design/pipeline-semantics.md"
+    assert path.exists()
+    text = path.read_text()
+    assert "Core IR" in text
+    assert "portability boundary" in text
+    assert "GENIA_STATE.md" in text
+
+
+def test_architecture_folder_keeps_core_ir_portability_only_for_pipeline_cleanup():
+    architecture = ROOT / "docs/architecture"
+
+    assert (architecture / "core-ir-portability.md").exists()
+    assert not (architecture / "spec-system.md").exists()
+    assert not (architecture / "pipeline-ir-host-integration.md").exists()
+    assert not (architecture / "pipeline-option-redesign.md").exists()
+    assert not (architecture / "spec-phase-1-design.md").exists()
+
+
+def test_completed_issue_phase_artifacts_removed_from_architecture_docs():
+    architecture = ROOT / "docs/architecture"
+    issue_docs = list(architecture.glob("issue-*.md"))
+    assert issue_docs == []
 
 def test_readme_consistency_note_section_includes_option_preservation() -> None:
     """The README 'Current consistency note' section must mention that Option
@@ -440,11 +457,7 @@ def test_cheatsheets_do_not_claim_only_eval_is_active(relpath: str) -> None:
     )
 
 
-def test_spec_phase_1_design_carries_superseded_notice() -> None:
-    text = read_text("docs/architecture/spec-phase-1-design.md")
-    assert "SUPERSEDED" in text[:500], (
-        "spec-phase-1-design.md must carry a SUPERSEDED notice within the first 500 characters"
-    )
+
 
 
 # --- Issue #119: Core IR lowering invariant doc-sync tests ---
