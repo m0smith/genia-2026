@@ -17,6 +17,7 @@ DOC_DIRS = [
     "docs/cheatsheet",
     "docs/host-interop",
     "docs/style",
+    "docs/design",
 ]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
@@ -24,6 +25,7 @@ README_LINK_REWRITES = {
     "(docs/cheatsheet/": "(cheatsheet/",
     "(docs/host-interop/": "(host-interop/",
     "(docs/style/": "(style/",
+    "(docs/design/": "(design/",
 }
 
 

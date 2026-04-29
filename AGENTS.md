@@ -106,6 +106,7 @@ Truth hierarchy:
 * no doc may claim more than `GENIA_STATE.md`
 * examples must include classification
 * host-only behavior must be labeled
+* No process artifact may live in docs/ after merge.
 
 ---
 
@@ -161,6 +162,7 @@ Every issue must be completed as separate phases:
 5. `implementation`
 6. `docs`
 7. `audit`
+8. `distillation`
 
 Each phase must be a separate prompt and a separate commit.
 
@@ -176,6 +178,7 @@ Commit prefixes must match the phase:
 - `fix(scope): ... issue #123`
 - `docs(scope): ... issue #123`
 - `audit(scope): ... issue #123`
+- `distillation(scope): ... issue #123`
 
 The `test` phase must commit failing tests before implementation.
 The `implementation` phase must reference the failing-test commit SHA.
@@ -187,6 +190,7 @@ The `implementation` phase must reference the failing-test commit SHA.
 - Update tests when behavior, wording, or protected semantic facts change
 - Host-only behavior must keep `LANGUAGE CONTRACT:` and `PYTHON REFERENCE HOST:` labels where applicable
 - Do not leave deleted-doc references in tests, tooling, or instruction files
+- No process artifact may live in docs/ after merge.
 
 ## Required Workflow for Any Change
 
@@ -248,6 +252,7 @@ Each prompt must perform ONE type of work:
 - Test
 - Docs
 - Audit
+- Distillation
 
 Never combine responsibilities.
 

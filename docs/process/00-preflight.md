@@ -266,6 +266,27 @@ Risk of drift:
 
 ---
 
+
+--------------------------------
+DOC DISTILLATION CHECK
+--------------------------------
+
+Will this change create process artifacts?
+
+[ ] YES → must run Doc Distillation
+[ ] NO
+
+Will docs/architecture or docs/design gain new files?
+
+[ ] YES → must classify (KEEP / EXTRACT / DELETE)
+[ ] NO
+
+Risk of doc drift:
+[ ] Low
+[ ] Medium
+[ ] High
+---
+
 9. PHILOSOPHY CHECK
 
 ---

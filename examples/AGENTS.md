@@ -26,6 +26,9 @@ Examples must not demonstrate speculative or unimplemented features.
 
 ---
 
+
+---
+
 ## Required Structure for Every `.genia` File
 
 ### 1. File Header Comment

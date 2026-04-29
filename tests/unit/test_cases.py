@@ -2,12 +2,19 @@ from pathlib import Path
 import pytest
 from genia import make_global_env, run_source
 
-CASES = Path(__file__).parent / "cases"
+CASES = Path(__file__).parent.parent / "cases"
+CASE_FILES = sorted(CASES.rglob("*.genia"))
+
+
+def test_cases_directory_exists_and_contains_genia_files():
+    assert CASES.exists(), f"CASES path does not exist: {CASES}"
+    assert CASES.is_dir(), f"CASES path is not a directory: {CASES}"
+    assert CASE_FILES, f"No .genia case files found under CASES path: {CASES}"
 
 
 @pytest.mark.parametrize(
     "case",
-    sorted(CASES.rglob("*.genia")),
+    CASE_FILES,
     ids=lambda p: str(p.relative_to(CASES).with_suffix("")),
 )
 def test_cases(case):
