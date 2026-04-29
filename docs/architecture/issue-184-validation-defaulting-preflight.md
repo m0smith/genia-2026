@@ -2,14 +2,14 @@
 
 CHANGE NAME: Extract validation and defaulting helpers to prelude
 ISSUE: #184
-BRANCH: issue-117-extract-validation-defaulting
+BRANCH: issue-184-validation-defaulting
 
 ---
 
 ## 0. BRANCH
 
 Starting branch: `main`
-Working branch: `issue-117-extract-validation-defaulting` (created)
+Working branch: `issue-184-validation-defaulting` (created; previously named `issue-117-extract-validation-defaulting` and renamed)
 Status: branch was created (did not previously exist)
 
 ---
@@ -34,8 +34,9 @@ Status: branch was created (did not previously exist)
   these have Python `isinstance()` / `callable()` dependencies that cannot be expressed in pure Genia
 - Semantic redesign of the rules system or CLI parser
 - Broad refactor of any files outside helper extraction
-- Changes to `GENIA_STATE.md`, `README.md`, `GENIA_RULES.md`, or `GENIA_REPL_README.md`
-  (these helpers are internal prelude utilities, not public API additions)
+- Pre-emptive doc changes — the docs phase must explicitly verify whether any new
+  public helpers require updates to `GENIA_STATE.md`, `README.md`, `GENIA_REPL_README.md`,
+  or cheatsheets. If no permanent doc change is needed, the audit phase must justify that.
 
 ---
 
@@ -77,12 +78,13 @@ validation and defaulting logic is stable; we are only extracting and naming it.
 
 ### How this must be described in docs:
 
-If any new public helpers are added (i.e., exported without `_` prefix and intended
-for user-facing use), they must be documented in `GENIA_STATE.md` and `GENIA_REPL_README.md`.
-If the helpers are internal prelude utilities (prefixed `_` or named within a module namespace),
-no doc update is required.
+The docs phase must explicitly verify whether any newly added or renamed helpers are
+public API (i.e., intended for user-facing code, appearing in `help()`, referenced in
+cheatsheets). If public, updates are required to `GENIA_STATE.md`, `GENIA_REPL_README.md`,
+and relevant cheatsheets. If internal-only, the audit must justify why no doc update is
+needed — a silent omission is not acceptable.
 
-The decision of public vs. internal must be made in the contract phase.
+The decision of public vs. internal must be made in the contract phase and confirmed during docs.
 
 ---
 
@@ -275,12 +277,21 @@ but the logic count stays the same.
 - `tests/test_validate_defaulting_helpers_184.py` — new test file
 - `src/genia/std/prelude/__init__.py` — if a new prelude file is created, register it
 
+### Files requiring docs-phase verification:
+
+The docs phase must check each of these and explicitly state whether they need updating:
+
+- `GENIA_STATE.md` — does it need to document new public helpers?
+- `GENIA_REPL_README.md` — does it need to list new public helper names?
+- `README.md` — does it reference the autoloaded stdlib surface?
+- `docs/cheatsheet/*` — do any cheatsheets reference the relevant prelude?
+
 Risk of drift:
 [x] Low
 
-The scope is contained to prelude files. No host code changes. No doc changes.
-The only risk is if `rules_map?` or `rules_list?` are referenced in tests or spec files
-directly — those references remain valid since the functions still exist with the same names.
+The scope is contained to prelude files. The only risk is if `rules_map?` or `rules_list?`
+are referenced in tests or spec files directly — those references remain valid since
+the functions still exist with the same names.
 
 ---
 
@@ -295,8 +306,12 @@ Will docs/architecture or docs/design gain new files?
 Risk of doc drift:
 [x] Low
 
-The preflight artifact will be classified as EXTRACT or DELETE in the distillation phase.
-No other `docs/` files should be created or modified during this change.
+AGENTS.md rule: "No process artifact may live in docs/ after merge."
+
+This preflight document is a process artifact. Distillation (the final phase) must
+either DELETE it from `docs/architecture/` or EXTRACT any permanent architectural
+facts into an appropriate permanent location before the branch is merged.
+Leaving this file in `docs/architecture/` after merge is not allowed.
 
 ---
 
