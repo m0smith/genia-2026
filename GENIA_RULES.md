@@ -581,13 +581,22 @@ This protects helper-based and pattern-based Option handling from silent semanti
 ## 11) Host-backed persistent map invariants
 
 - persistent map runtime is shared by both map builtins and map literal/pattern syntax
-- public map helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/map.genia`
-- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
-- underlying map behavior remains host-backed in this phase; wrappering does not change semantics
+- public map helper names are exposed through `src/genia/std/prelude/map.genia`
+- those helper names are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying persistent map runtime remains host-backed in this phase; helper exposure does not change semantics
 - required builtins: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - map values are opaque runtime wrappers, not exposed host objects
 - `map_put` / `map_remove` must return new map values (no mutation of prior values)
 - unsupported map input types and unsupported key types must raise clear `TypeError`
+- `pairs(xs, ys)` is a public stdlib helper whose observable contract is independent of the persistent map runtime:
+  - it accepts two list values
+  - it returns a list of two-element list values `[x, y]`
+  - it preserves input order
+  - it stops at the shorter input
+  - it returns `[]` when either input list is empty
+  - first-argument non-list values must raise `TypeError("pairs expected a list as first argument, received <type>")`
+  - second-argument non-list values must raise `TypeError("pairs expected a list as second argument, received <type>")`
+  - it must not return host tuples, Pair values, Flow values, padded rows, or Option wrappers
 
 ## 11.1) Callable-data invariants (phase 1)
 

@@ -1250,7 +1250,7 @@ Not implemented yet:
 
 ### Host-backed persistent associative maps (Phase 1 bridge)
 
-- public map helpers are thin prelude wrappers in `src/genia/std/prelude/map.genia`
+- public map helpers are exposed from `src/genia/std/prelude/map.genia`
   - `map_new()`
   - `map_get(map, key)`
   - `map_put(map, key, value)`
@@ -1263,8 +1263,8 @@ Not implemented yet:
   - `map_keys(map)`
   - `map_values(map)`
   - `pairs(xs, ys)`
-  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying map behavior remains host-backed and unchanged in this phase
+  - these helper names are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying persistent map runtime remains host-backed and unchanged in this phase
 
 Behavior:
 
@@ -1280,7 +1280,16 @@ Behavior:
 - `map_item_value` extracts the value from a `[key, value]` pair produced by `map_items`
 - `map_keys` returns a list of all keys in insertion order
 - `map_values` returns a list of all values in insertion order
-- `pairs(xs, ys)` zips two lists into a list of `[x, y]` pairs bounded by the shorter input; returns `[]` when either input is empty; raises `TypeError` on non-list arguments
+- `pairs(xs, ys)` zips two lists into a list of two-element list pairs:
+  - pair order follows input order
+  - each output item is `[x, y]`, not a tuple or Pair value
+  - the result length is bounded by the shorter input list
+  - `pairs([], ys)` returns `[]`
+  - `pairs(xs, [])` returns `[]`
+  - `pairs([], [])` returns `[]`
+  - first-argument non-list values raise `TypeError("pairs expected a list as first argument, received <type>")`
+  - second-argument non-list values raise `TypeError("pairs expected a list as second argument, received <type>")`
+  - no implicit list coercion, Flow consumption, map traversal, padding, default fill value, or option wrapping is performed
 - list keys are supported by stable structural key-freezing in runtime
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
