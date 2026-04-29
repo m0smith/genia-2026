@@ -29,14 +29,21 @@ nav:
       - Pipeline Flow vs Value: cheatsheet/piepline-flow-vs-value.md
       - Unix Power Mode: cheatsheet/unix-power-mode.md
       - Unix to Genia: cheatsheet/unix-to-genia.md
+
   - Style:
       - "@doc Style Guide": style/doc-style.md
+
+  - Design:
+      - Pipeline Semantics: design/pipeline-semantics.md
+
   - Architecture:
       - Core IR Portability: architecture/core-ir-portability.md
-      - Pipeline IR Host Integration: architecture/pipeline-ir-host-integration.md
-      - Pipeline Option Redesign: architecture/pipeline-option-redesign.md
+
   - Host Interop:
       - Overview: host-interop/README.md
       - Host Interop Contract: host-interop/HOST_INTEROP.md
       - Host Porting Guide: host-interop/HOST_PORTING_GUIDE.md
       - Host Capability Matrix: host-interop/HOST_CAPABILITY_MATRIX.md
+      - Capabilities: host-interop/capabilities.md
+      - Capability Registry Design: host-interop/capability-registry-design.md
+      - Capability Registry Spec: host-interop/capability-registry-spec.md

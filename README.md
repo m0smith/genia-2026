@@ -1056,8 +1056,8 @@ New canonical style:
 unwrap_or(0, fields(row) |> nth(5) |> parse_int)
 ```
 
-Short design note: [docs/design/pipeline-semantics.md](docs/design/pipeline-semantics.md)
-Integration note: [docs/design/pipeline-semantics.md](docs/design/pipeline-semantics.md)
+Short design note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
+Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - non-string input and invalid bases still raise explicit errors
 
 ### Concurrency
