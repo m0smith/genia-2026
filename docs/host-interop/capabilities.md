@@ -370,6 +370,17 @@ Capabilities for invoking Genia callables with explicit control over none-propag
 - **portability:** `language contract`
 - **notes:** Calls `f` with `args` elements as positional arguments while skipping the automatic `none(...)` short-circuit. `none(...)` values inside `args` are delivered to `f` unchanged — the function body executes. The return value of `f` is returned as-is without coercion or wrapping. `apply_raw` itself is subject to ordinary none-propagation: if `args` is `none(...)` the call short-circuits before `apply_raw` runs. The prelude list HOFs `reduce`, `map`, and `filter` use `apply_raw` directly for callback invocation.
 
+#### `fn.reduce-error`
+
+- **name:** `fn.reduce-error`
+- **genia_surface:** `_reduce_error(xs)` (internal — called from `reduce` arm 3 only)
+- **input:** `xs` — any non-list Genia value (the erroneous third argument to `reduce`)
+- **output:** never returns — always raises
+- **errors:**
+  - `TypeError` with message `"reduce expected a list as third argument, received <type-name>"` — always, for all inputs; `<type-name>` is the string produced by `_runtime_type_name(xs)`
+- **portability:** `language contract`
+- **notes:** Single-purpose error delegate called when `reduce`'s catch-all arm fires. Any host implementing `reduce` must raise this exact `TypeError`. The type-name vocabulary is shared across all `_runtime_type_name` usages. Not intended for direct user-code use.
+
 #### `zip.write`
 
 - **name:** `zip.write`

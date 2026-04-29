@@ -135,7 +135,8 @@ class TestFilterRegression:
 class TestReduceRegression:
     """reduce must be completely unaffected by Item A.
 
-    _reduce is not removed; these guard against accidental interference.
+    _reduce was removed in issue #196; these guard that reduce behavior
+    is unchanged regardless of which internal catch-all delegates the error.
     """
 
     def test_reduce_sum(self):
@@ -147,7 +148,7 @@ class TestReduceRegression:
         assert run("reduce((acc, x) -> acc + x, 42, [])") == 42
 
     def test_reduce_non_list_error(self):
-        # A7: exact TypeError message preserved via _reduce catch-all
+        # A7: exact TypeError message preserved via _reduce_error catch-all
         with pytest.raises(TypeError, match="reduce expected a list as third argument"):
             run('reduce((acc, x) -> acc + x, 0, "not-a-list")')
 
