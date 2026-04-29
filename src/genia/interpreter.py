@@ -6825,12 +6825,12 @@ def make_global_env(
         genia_map = _ensure_map(map_value, "map_items")
         return genia_map.items()
 
-    def pairs_fn(xs: Any, ys: Any) -> list:
-        if not isinstance(xs, list):
-            raise TypeError(f"pairs expected a list as first argument, received {_runtime_type_name(xs)}")
-        if not isinstance(ys, list):
-            raise TypeError(f"pairs expected a list as second argument, received {_runtime_type_name(ys)}")
-        return [[x, y] for x, y in zip(xs, ys)]
+    def pairs_error_fn(position: Any, value: Any) -> Any:
+        if position == "first":
+            raise TypeError(f"pairs expected a list as first argument, received {_runtime_type_name(value)}")
+        if position == "second":
+            raise TypeError(f"pairs expected a list as second argument, received {_runtime_type_name(value)}")
+        raise TypeError("pairs internal error expected argument position 'first' or 'second'")
 
     def some_fn(value: Any) -> GeniaOptionSome:
         return GeniaOptionSome(value)
@@ -7703,7 +7703,7 @@ def make_global_env(
     env.set("_map_remove", map_remove_fn)
     env.set("_map_count", map_count_fn)
     env.set("_map_items", map_items_fn)
-    env.set("_pairs", pairs_fn)
+    env.set("_pairs_error", pairs_error_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
