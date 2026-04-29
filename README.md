@@ -1129,10 +1129,10 @@ write_file("output.json", unwrap_or("{}", result))
 
 ### Phase 1 persistent associative maps
 
-- public helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
+- host-backed map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`
 - implemented as an opaque host-backed runtime wrapper (no map syntax added)
 - persistent semantics from Genia perspective (`map_put`/`map_remove` return new map values)
-- `pairs(xs, ys)` zips two lists into `[[x, y], ...]` bounded by the shorter input
+- `pairs(xs, ys)` is a pure Genia prelude function (not host-backed): zips two lists into `[[x, y], ...]` bounded by the shorter input; raises `TypeError` on non-list arguments
 
 ## Autoloaded stdlib highlights
 
