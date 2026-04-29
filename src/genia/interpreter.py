@@ -7059,22 +7059,6 @@ def make_global_env(
             result = _invoke_raw_from_builtin(f, [result, x])
         return result
 
-    def map_fn(f: Any, xs: Any) -> Any:
-        """Host-backed map that calls the callback via invoke_callable with
-        skip_none_propagation, so that list elements which are none(...)
-        are passed to the callback rather than short-circuiting it."""
-        if not isinstance(xs, list):
-            raise TypeError(f"map expected a list as second argument, received {_runtime_type_name(xs)}")
-        return [_invoke_raw_from_builtin(f, [x]) for x in xs]
-
-    def filter_fn(predicate: Any, xs: Any) -> Any:
-        """Host-backed filter that calls the callback via invoke_callable with
-        skip_none_propagation, so that list elements which are none(...)
-        are passed to the callback rather than short-circuiting it."""
-        if not isinstance(xs, list):
-            raise TypeError(f"filter expected a list as second argument, received {_runtime_type_name(xs)}")
-        return [x for x in xs if truthy(_invoke_raw_from_builtin(predicate, [x]))]
-
     def sum_fn(xs: Any) -> Any:
         if not isinstance(xs, list):
             raise TypeError(f"sum expected a list, received {_runtime_type_name(xs)}")
@@ -7774,8 +7758,6 @@ def make_global_env(
     env.set("_cli_option_or", cli_option_or_fn)
     env.set("_sum", sum_fn)
     env.set("_reduce", reduce_fn)
-    env.set("_map", map_fn)
-    env.set("_filter", filter_fn)
     env.set("apply_raw", apply_raw_fn)
 
     env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
