@@ -1,30 +1,9 @@
-"""Failing tests for issue #186 — move rule_*/step_* constructors from fn.genia to flow.genia.
+"""Regression tests for issue #186 Flow-adjacent prelude extraction.
 
 Contract:  GENIA_STATE.md Flow-adjacent helper extraction boundary.
-Design:    issue #186 design-phase commit.
 
-The rule/refine result constructors currently live in fn.genia and are registered
-to autoload from std/prelude/fn.genia.  After implementation they must live in
-flow.genia and autoload from std/prelude/flow.genia.
-
-BEFORE implementation (current state):
-  Group 1 (TestAutoloadPaths):
-    All tests FAIL — autoload paths still point to std/prelude/fn.genia.
-
-  Group 2 (TestRuleHelperValues):
-    All tests PASS — rule_* helpers produce the correct values.
-
-  Group 3 (TestStepHelperAliases):
-    All tests PASS — step_* helpers delegate to rule_*.
-
-  Group 4 (TestRulesAndRefineIntegration):
-    All tests PASS — rules/refine still accept helper results.
-
-  Group 5 (TestHigherOrderAndCoload):
-    All tests PASS — helpers work as higher-order values.
-
-AFTER implementation (target state):
-  All groups PASS.
+The rule/refine result constructors live in flow.genia and autoload from
+std/prelude/flow.genia. They remain pure constructors over ordinary Genia values.
 """
 
 import pytest
@@ -52,8 +31,6 @@ def _run_flow(src: str, stdin_lines=None):
 
 # ---------------------------------------------------------------------------
 # Group 1 — Autoload path assertions
-# FAILS before implementation: paths still point to std/prelude/fn.genia.
-# PASSES after implementation: paths point to std/prelude/flow.genia.
 # ---------------------------------------------------------------------------
 
 class TestAutoloadPaths:
@@ -111,7 +88,7 @@ class TestAutoloadPaths:
 
 # ---------------------------------------------------------------------------
 # Group 2 — rule_* return values
-# PASSES before and after implementation (behavioral regression).
+# Behavioral regression coverage.
 # ---------------------------------------------------------------------------
 
 class TestRuleHelperValues:
@@ -152,7 +129,7 @@ class TestRuleHelperValues:
 
 # ---------------------------------------------------------------------------
 # Group 3 — step_* are exact aliases for rule_*
-# PASSES before and after implementation (behavioral regression).
+# Behavioral regression coverage.
 # ---------------------------------------------------------------------------
 
 class TestStepHelperAliases:
@@ -186,7 +163,7 @@ class TestStepHelperAliases:
 
 # ---------------------------------------------------------------------------
 # Group 4 — rules/refine integration
-# PASSES before and after implementation (behavioral regression).
+# Behavioral regression coverage.
 # ---------------------------------------------------------------------------
 
 class TestRulesAndRefineIntegration:
@@ -275,7 +252,7 @@ class TestRulesAndRefineIntegration:
 
 # ---------------------------------------------------------------------------
 # Group 5 — higher-order and co-load use
-# PASSES before and after implementation (behavioral regression).
+# Behavioral regression coverage.
 # ---------------------------------------------------------------------------
 
 class TestHigherOrderAndCoload:
