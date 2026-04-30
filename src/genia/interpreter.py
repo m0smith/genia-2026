@@ -8251,6 +8251,129 @@ def run_debug_stdio(
     return session.run(lambda: run_source(source, env, filename=resolved_path, debug_hooks=session, debug_mode=True), error_stream=error_stream)
 
 
+@dataclass
+class ExecutionMode:
+    kind: str
+    source: str | None = None
+    program_path: str | None = None
+    script_args: list[str] = field(default_factory=list)
+
+
+def _select_execution_mode(
+    args: argparse.Namespace,
+    remaining_args: list[str],
+    *,
+    explicit_terminator_used: bool,
+    terminator_index: int | None,
+    parser: argparse.ArgumentParser,
+) -> ExecutionMode:
+    if args.command is None and args.pipe is None and remaining_args and remaining_args[0].startswith("-"):
+        if not explicit_terminator_used and terminator_index is None:
+            parser.error(
+                "expected a source file path when not using -c/--command or -p/--pipe; "
+                f"got option-like argument '{remaining_args[0]}'"
+            )
+
+    program_path: Optional[str] = None
+    script_args: list[str] = []
+    if args.command is not None or args.pipe is not None:
+        script_args = remaining_args
+    elif remaining_args:
+        program_path = remaining_args[0]
+        script_args = remaining_args[1:]
+
+    if args.debug_stdio:
+        if args.command is not None:
+            parser.error("--debug-stdio cannot be used with --command")
+        if args.pipe is not None:
+            parser.error("--debug-stdio cannot be used with --pipe")
+        if program_path is None:
+            parser.error("--debug-stdio requires a program path")
+        if script_args:
+            parser.error("--debug-stdio accepts exactly one program path")
+        if not Path(program_path).is_file():
+            parser.error(f"--debug-stdio program path not found: {program_path}")
+        return ExecutionMode(kind="debug_stdio", program_path=program_path)
+
+    if args.pipe is not None:
+        return ExecutionMode(kind="pipe", source=args.pipe, script_args=script_args)
+    if args.command is not None:
+        return ExecutionMode(kind="command", source=args.command, script_args=script_args)
+    if program_path is not None:
+        return ExecutionMode(kind="file", program_path=program_path, script_args=script_args)
+    return ExecutionMode(kind="repl")
+
+
+def _resolve_program_result(run_result: Any, env: Env) -> Any:
+    main_group = env.values.get("main")
+    if not isinstance(main_group, GeniaFunctionGroup):
+        return run_result
+    main_with_args = main_group.get(1)
+    if main_with_args is not None:
+        cli_args = env.get("argv")()
+        return _normalize_absence(main_with_args(cli_args))
+    main_without_args = main_group.get(0)
+    if main_without_args is not None:
+        return _normalize_absence(main_without_args())
+    return run_result
+
+
+def _run_execution_mode(mode: ExecutionMode) -> int:
+    if mode.kind == "debug_stdio":
+        assert mode.program_path is not None
+        return run_debug_stdio(mode.program_path)
+
+    if mode.kind == "pipe":
+        assert mode.source is not None
+        env = make_global_env(cli_args=mode.script_args)
+        try:
+            wrapped_source = _wrap_pipe_mode_expr(mode.source)
+            run_source(wrapped_source, env, filename="<pipe>")
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {_format_pipe_mode_error(e)}")
+            return 1
+
+    if mode.kind == "command":
+        assert mode.source is not None
+        env = make_global_env(cli_args=mode.script_args)
+        try:
+            run_result = run_source(mode.source, env, filename="<command>")
+            result = _resolve_program_result(run_result, env)
+            if result is not None and not _is_nil_none(result):
+                _emit_result(env, result)
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
+
+    if mode.kind == "file":
+        assert mode.program_path is not None
+        env = make_global_env(cli_args=mode.script_args)
+        try:
+            with open(mode.program_path, "r", encoding="utf-8") as f:
+                run_result = run_source(f.read(), env, filename=str(Path(mode.program_path).resolve()))
+            result = _resolve_program_result(run_result, env)
+            if result is not None and not _is_nil_none(result):
+                _emit_result(env, result)
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
+
+    if mode.kind == "repl":
+        repl()
+        return 0
+
+    raise AssertionError(f"unknown execution mode: {mode.kind}")
+
+
 def _main(argv: Optional[list[str]] = None) -> int:
     raw_argv = list(argv) if argv is not None else sys.argv[1:]
     terminator_index: int | None = None
@@ -8292,89 +8415,14 @@ def _main(argv: Optional[list[str]] = None) -> int:
         explicit_terminator_used = True
         remaining_args = remaining_args[1:]
 
-    if args.command is None and args.pipe is None and remaining_args and remaining_args[0].startswith("-"):
-        if not explicit_terminator_used and terminator_index is None:
-            parser.error(
-                "expected a source file path when not using -c/--command or -p/--pipe; "
-                f"got option-like argument '{remaining_args[0]}'"
-            )
-
-    program_path: Optional[str] = None
-    script_args: list[str] = []
-    if args.command is not None or args.pipe is not None:
-        script_args = remaining_args
-    elif remaining_args:
-        program_path = remaining_args[0]
-        script_args = remaining_args[1:]
-
-    if args.debug_stdio:
-        if args.command is not None:
-            parser.error("--debug-stdio cannot be used with --command")
-        if args.pipe is not None:
-            parser.error("--debug-stdio cannot be used with --pipe")
-        if program_path is None:
-            parser.error("--debug-stdio requires a program path")
-        if script_args:
-            parser.error("--debug-stdio accepts exactly one program path")
-        if not Path(program_path).is_file():
-            parser.error(f"--debug-stdio program path not found: {program_path}")
-        return run_debug_stdio(program_path)
-
-    def resolve_program_result(run_result: Any, env: Env) -> Any:
-        main_group = env.values.get("main")
-        if not isinstance(main_group, GeniaFunctionGroup):
-            return run_result
-        main_with_args = main_group.get(1)
-        if main_with_args is not None:
-            cli_args = env.get("argv")()
-            return _normalize_absence(main_with_args(cli_args))
-        main_without_args = main_group.get(0)
-        if main_without_args is not None:
-            return _normalize_absence(main_without_args())
-        return run_result
-
-    if args.pipe is not None:
-        env = make_global_env(cli_args=script_args)
-        try:
-            wrapped_source = _wrap_pipe_mode_expr(args.pipe)
-            run_source(wrapped_source, env, filename="<pipe>")
-            return 0
-        except GeniaQuietBrokenPipe:
-            return 0
-        except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {_format_pipe_mode_error(e)}")
-            return 1
-
-    if args.command is not None:
-        env = make_global_env(cli_args=script_args)
-        try:
-            run_result = run_source(args.command, env, filename="<command>")
-            result = resolve_program_result(run_result, env)
-            if result is not None and not _is_nil_none(result):
-                _emit_result(env, result)
-            return 0
-        except GeniaQuietBrokenPipe:
-            return 0
-        except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {e}")
-            return 1
-    if program_path is not None:
-        env = make_global_env(cli_args=script_args)
-        try:
-            with open(program_path, "r", encoding="utf-8") as f:
-                run_result = run_source(f.read(), env, filename=str(Path(program_path).resolve()))
-            result = resolve_program_result(run_result, env)
-            if result is not None and not _is_nil_none(result):
-                _emit_result(env, result)
-            return 0
-        except GeniaQuietBrokenPipe:
-            return 0
-        except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {e}")
-            return 1
-
-    repl()
-    return 0
+    mode = _select_execution_mode(
+        args,
+        remaining_args,
+        explicit_terminator_used=explicit_terminator_used,
+        terminator_index=terminator_index,
+        parser=parser,
+    )
+    return _run_execution_mode(mode)
 
 
 if __name__ == "__main__":
