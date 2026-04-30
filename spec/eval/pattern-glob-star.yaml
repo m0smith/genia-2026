@@ -1,0 +1,12 @@
+name: pattern-glob-star
+category: eval
+input:
+  source: |
+    classify(s) =
+      glob"*.md" -> "markdown" |
+      _ -> "other"
+    classify("readme.md")
+expected:
+  stdout: "\"markdown\"\n"
+  stderr: ""
+  exit_code: 0

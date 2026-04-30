@@ -8,14 +8,29 @@ This file describes what is **actually implemented now** in the Python runtime.
 Implemented today:
 
 - **Python is the only implemented host and is the reference host.**
-- The Python host adapter implements the shared host contract for these spec categories:
+- Shared semantic-spec contract categories are:
   - parse
   - ir
   - eval
   - cli
   - flow
   - error
-- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
+- The implemented shared Semantic Spec System currently executes **eval**, **ir**, **cli**, **flow**, **error**, and **parse** cases.
+- The current shared spec runner compares normalized:
+  - eval `stdout`
+  - eval `stderr`
+  - eval `exit_code`
+  - cli `stdout`
+  - cli `stderr`
+  - cli `exit_code`
+  - flow `stdout`
+  - flow `stderr`
+  - flow `exit_code`
+  - error `stdout`
+  - error `stderr`
+  - error `exit_code`
+  - IR portable normalized output
+  - parse normalized AST (exact match for `kind: ok`) or parse error type + message substring (for `kind: error`)
 - The working Python implementation lives in:
   - `src/genia/`
   - `tests/`
@@ -27,6 +42,7 @@ Implemented today:
   - `spec/`
   - `tools/spec_runner/README.md`
   - `hosts/`
+- A formal host capability registry contract is documented at `docs/host-interop/capabilities.md`. It is the authoritative reference for capability names, Genia surface, input/output shapes, normalized error behavior, and portability status for each host capability.
 
 Scaffolded or planned, not implemented as hosts:
 
@@ -36,19 +52,28 @@ Scaffolded or planned, not implemented as hosts:
 
 **Maturity:**
 
-- Shared host contract is **Partial**: all listed categories above are enforced and tested, but only for Python. Other hosts are not implemented.
-- Flow and CLI behavior are validated for normalization, but advanced/async/multi-port flow and richer CLI features are **not implemented**.
-- Error normalization is enforced, but only for the categories and shapes present in the Python host.
-- IR stability: only the minimal portable Core IR contract is enforced; host-local optimized nodes are excluded from the contract.
+- Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
+- Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
+- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, and error propagation via invalid-reducer-on-flow diagnostic. Advanced Flow behavior is not covered by shared semantic specs in this phase.
+- IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, `lhs/name` → `IrBinary(op=SLASH)`, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
 
 **Explicit limitations:**
 
 - Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - No generic multi-host runner exists; all conformance is validated against the Python reference host.
+- Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
+- Parse shared semantic-spec coverage is limited to initial cases for stable, already-implemented syntax forms; parse spec coverage expands only when new forms are explicitly added and tested.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
+- Flow orchestration supports both `refine(..steps)` (preferred) and `rules(..fns)` (compatibility); both are available and behave identically.
+- Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
+- Flow shared semantic-spec coverage is limited to first-wave observable cases only; advanced Flow behavior remains uncovered in shared specs.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
-- Error normalization is enforced for parse, runtime, and CLI errors; other error categories are not present.
+- The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
+- The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
+- The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
+- The current shared semantic-spec runner compares normalized portable Core IR output for IR cases.
+- The current shared semantic-spec runner compares normalized parse output for parse cases: exact AST for `kind: ok`, type and message substring for `kind: error`.
 - Only the minimal portable Core IR node families are used in the contract; host-local optimized nodes (e.g., `IrListTraversalLoop`) are excluded.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
@@ -80,38 +105,77 @@ Clarifications:
 - `examples/ants_web.genia` is a browser-viewer demo served by the current host-backed HTTP helper; it is not a browser-native Genia runtime or playground
 
 
-## 1) Shared Conformance — Phase 2 (Reference Host Hardening)
 
-**This section documents the strict, deterministic, and unambiguous conformance contract enforced in the Python reference host as of Phase 2.**
 
-### Strictness and Normalization
+## 1) Shared Conformance — Semantic Spec System
 
-- All observable runtime, CLI, and error outputs are strictly normalized to canonical forms.
-- No Python-specific value, error, or structure leaks into normalized outputs.
-- Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
-- Output ordering and structure are deterministic and stable.
+LANGUAGE CONTRACT:
 
-### Error Contract
+- The Semantic Spec System defines observable behavior for the following categories:
+  - parse (**active**, executable shared spec files; initial coverage only)
+  - ir (**active**, executable shared spec files)
+  - eval (**active**, executable shared spec files)
+  - cli (**active**, executable shared spec files)
+  - flow (**active**, executable shared spec files; first-wave coverage only)
+  - error (**active**, executable shared spec files; initial coverage only)
+- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior are implemented as executable shared spec files in the Python reference host.
+- The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
+- Coverage is still partial and experimental; see below for category status.
 
-- All errors are normalized with required fields: category, message, and span (when applicable).
-- Error categories are strictly separated: parse, runtime, and CLI errors are distinct and never conflated.
-- No silent error swallowing; all malformed or unsupported cases fail with explicit normalized errors.
+PYTHON REFERENCE HOST:
 
-### Case Validation
+- Python is the only implemented host and is the reference host.
+- All conformance is validated against the Python reference host.
+- The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
+- The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
+- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); and focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs, including a composed `map`/`filter` chain case.
+- The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
+- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, and current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results. REPL mode is not included in shared executable spec coverage.
+- The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
+- The observable error shared-spec contract in this phase is limited to `stdout`, `stderr`, and `exit_code`.
+- Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
+- Error shared spec cases are loaded from YAML files under `spec/error/`; each case provides source text plus optional stdin text, requires `stdout: ""`, exact `stderr`, and `exit_code: 1`, and may include informational `notes` that are not machine-asserted.
+- Shared spec YAML loading prefers `PyYAML`; when `PyYAML` is unavailable, the runner can fall back to a Ruby YAML bridge in the current implementation.
+- The current eval shared case inventory covers deterministic command-source eval output for:
+  - final rendered expression results
+  - direct `stdout` output
+  - direct `stderr` output
+  - combined `stdout`/`stderr` output separation
+  - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
+  - direct Option rendering for deterministic final-result output (`some(...)`, `none(...)`)
+  - pipeline Option propagation for deterministic final-result output (`some(...)` lift and `none(...)` short-circuit)
+  - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, and glob forms)
+  - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `reduce` given a Flow, `first` given a Flow
+  - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
+- Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
+- Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
+- Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
+- Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
+- The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
+- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, and malformed-glob cases) and does not machine-assert structured phase/category/message fields.
+- The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
+- The current shared spec runner accepts `-v` / `--verbose`, printing each spec name before execution starts and then a single timing line (`<name>\t<elapsed>s`) after each spec completes.
+- Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
+- Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
-- Malformed, missing, or unsupported test cases fail validation and are never silently skipped.
-- Only supported categories are accepted; unsupported or incomplete cases are rejected with explicit errors.
+**Summary:**
+- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active for executable shared spec files.
+- `GENIA_STATE.md` is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
-### CLI and Flow Behavior
+**Host implementation location:**
+- The working Python implementation lives in `src/genia/`, `tests/`, and `src/genia/std/prelude/`.
+- `hosts/python/` is the active host adapter layer; it is not the core runtime source location (that remains `src/genia/`).
+- `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
 
-- CLI and flow behaviors are validated for strict output, error, and exit code normalization.
-- No host-local convenience or extra behavior is surfaced in the shared contract.
+**Planned/Scaffolded:**
+- Node.js, Java, Rust, Go, C++: planned only, not implemented
+- No generic multi-host runner exists; all conformance is validated against the Python reference host
 
-### Limitations and Explicit Absence
-
-- Only the Python host is implemented; all other hosts and runners are scaffolds or planned only.
+**Limitations:**
+- Only Python is implemented; all other hosts are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- No generic multi-host runner exists; all conformance is validated against the Python reference host.
+- Shared semantic-spec case files exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
+- Parse shared semantic-spec coverage is initial only; coverage expands only when new forms are explicitly added and tested.
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
 
@@ -127,8 +191,6 @@ Implemented today:
   - `GENIA_STATE.md`
   - `GENIA_RULES.md`
   - `GENIA_REPL_README.md`
-  - `docs/book/*`
-  - `docs/sicp/*` chapter content
   - `docs/cheatsheet/*`
   - public-facing host interop docs under `docs/host-interop/`
 - GitHub Actions docs workflow behavior is:
@@ -140,8 +202,7 @@ Implemented today:
     - the protected facts surface is intentionally small and lives in `docs/contract/semantic_facts.json`
     - validation covers both public docs and LLM-instruction surfaces
   - cheatsheet validation tests
-  - SICP runnable-block validation tests
-  - lightweight book chapter status-marker validation
+  - core documentation truthfulness and synchronization tests
 
 Clarifications:
 
@@ -188,7 +249,6 @@ Implemented today:
 
 - style guide structure test: validates `docs/style/doc-style.md` has required sections, good/bad examples, and well-formed genia fences
 - cheatsheet sync test: validates `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections with case markers linking back to the style guide
-- book sync test: validates `docs/book/03-functions.md` has a `Documenting Functions` section whose allowed headers and Markdown subset are consistent with the style guide
 - linter-style guide alignment test: validates that the linter's `ALLOWED_SECTION_HEADERS`, `DISCOURAGED_PREFIXES`, and disallowed Markdown match the style guide
 - prelude doc lint sweep: scans all `src/genia/std/prelude/*.genia` files for `@doc` strings and runs the linter over them
 
@@ -328,7 +388,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
   - lambda expressions whose body delegates to a known Option-aware function (for example `(o) -> unwrap_or(0, o)`) are recognized as absence-aware and bypass short-circuiting
-- list higher-order functions (`reduce`, `map`, `filter`) are host-backed and call their callbacks without none-propagation, so list elements that are `none(...)` are passed to the callback rather than short-circuiting it
+- list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
   - this means `map((o) -> unwrap_or(0, o), [none("a"), some(2)])` correctly returns `[0, 2]` instead of propagating `none`
   - `filter((o) -> some?(o), [some(1), none("x"), some(3)])` correctly returns `[some(1), some(3)]`
 - pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(...)`.
@@ -614,7 +674,7 @@ Pipeline (Phase 2) evaluation model:
   - `pair?(x)` reports whether a value is a pair
   - `null?(x)` reports whether a value is the normalized empty-pair terminator (`none("nil")`, including legacy `nil`)
 - pair equality is structural
-- SICP-style lists can be represented as pair chains ending in `nil`
+- lists can be represented as pair chains ending in `nil`
 - ordinary list literals remain separate List values in this phase
 
 ## 4.3) Promises
@@ -891,9 +951,9 @@ Output sink semantics:
   - `lines(flow_or_source)`
   - `tick()` (unbounded integer tick flow starting at `0`)
   - `tick(count)` (bounded integer tick flow from `0` to `count - 1`)
-  - `tee(flow)`
-  - `merge(flow1, flow2)` and `merge(pair)` where `pair` comes from `tee(flow)`
-  - `zip(flow1, flow2)` and `zip(pair)` where `pair` comes from `tee(flow)`
+  - `tee(flow)` returns `[left_flow, right_flow]`
+  - `merge(flow1, flow2)` and `merge(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
+  - `zip(flow1, flow2)` and `zip(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
   - `scan(step, initial_state, flow)` / `flow |> scan(step, initial_state)`
   - `keep_some_else(stage, dead_handler, flow)` / `flow |> keep_some_else(stage, dead_handler)`
   - `map(f, flow)` / `filter(pred, flow)` when second arg is a flow
@@ -917,7 +977,7 @@ Flow semantics:
 
 - lazy, pull-based, source-bound, single-use
 - consuming a flow twice raises `RuntimeError("Flow has already been consumed")`
-- `tee` keeps one shared upstream flow and only buffers as needed when branch consumption rates diverge
+- `tee` returns a two-element list of branch flows and keeps one shared upstream flow, buffering only as needed when branch consumption rates diverge
 - `merge` preserves input ordering (`flow1` items, then `flow2` items)
 - `zip` emits lockstep `[left, right]` pairs and stops when either input flow is exhausted
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
@@ -940,7 +1000,7 @@ Flow semantics:
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
   - Option behavior (`some`/`none` auto-lifting in pipelines) composes with the Flow vs Value distinction but does not erase it
-  - this classification is documented across `docs/book/11-flow.md`, `docs/cheatsheet/piepline-flow-vs-value.md`, and this file
+  - this classification is documented in `docs/cheatsheet/piepline-flow-vs-value.md` and this file
 - `rules` semantics:
   - each rule is called as `(record, ctx)`
   - running `ctx` starts as `{}` for the first input item and persists across later items
@@ -1190,15 +1250,21 @@ Not implemented yet:
 
 ### Host-backed persistent associative maps (Phase 1 bridge)
 
-- public map helpers are thin prelude wrappers in `src/genia/std/prelude/map.genia`
+- public map helpers are exposed from `src/genia/std/prelude/map.genia`
   - `map_new()`
   - `map_get(map, key)`
   - `map_put(map, key, value)`
   - `map_has?(map, key)`
   - `map_remove(map, key)`
   - `map_count(map)`
-  - these wrappers are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
-  - the underlying map behavior remains host-backed and unchanged in this phase
+  - `map_items(map)`
+  - `map_item_key(item)`
+  - `map_item_value(item)`
+  - `map_keys(map)`
+  - `map_values(map)`
+  - `pairs(xs, ys)`
+  - these helper names are the canonical user-facing API surface and carry Markdown docstrings for `help(...)`
+  - the underlying persistent map runtime remains host-backed and unchanged in this phase
 
 Behavior:
 
@@ -1209,6 +1275,21 @@ Behavior:
 - `map_get` returns stored value or `none("missing-key", {key: key})` when key is missing
 - `map_has?` returns `true`/`false`
 - `map_count` returns entry count
+- `map_items` returns a list of `[key, value]` pairs in insertion order
+- `map_item_key` extracts the key from a `[key, value]` pair produced by `map_items`
+- `map_item_value` extracts the value from a `[key, value]` pair produced by `map_items`
+- `map_keys` returns a list of all keys in insertion order
+- `map_values` returns a list of all values in insertion order
+- `pairs(xs, ys)` zips two lists into a list of two-element list pairs:
+  - pair order follows input order
+  - each output item is `[x, y]`, not a tuple or Pair value
+  - the result length is bounded by the shorter input list
+  - `pairs([], ys)` returns `[]`
+  - `pairs(xs, [])` returns `[]`
+  - `pairs([], [])` returns `[]`
+  - first-argument non-list values raise `TypeError("pairs expected a list as first argument, received <type>")`
+  - second-argument non-list values raise `TypeError("pairs expected a list as second argument, received <type>")`
+  - no implicit list coercion, Flow consumption, map traversal, padding, default fill value, or option wrapping is performed
 - list keys are supported by stable structural key-freezing in runtime
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
@@ -1265,7 +1346,7 @@ Absence semantics:
 - helpers treat all `none...` forms as absence.
 - `parse_int` uses `none("parse-error", context)` for invalid integer text instead of raising for ordinary parse failure
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence
-- list higher-order functions (`reduce`, `map`, `filter`) skip none-propagation for their callbacks so list elements that are `none(...)` are delivered to the callback
+- list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw`; `none(...)` list elements are delivered to the callback without short-circuit
 - a present key whose stored value is legacy `nil` now appears as `some(none("nil"))`
 
 `get?` semantics:
@@ -1338,7 +1419,7 @@ Pipeline note:
   - `sum(xs)` expects a plain list of numbers
   - `sum` rejects raw Option items with a clear error instead of relying on accidental arithmetic with `some(...)` / `none(...)`
   - flow/value parse pipelines should therefore use `keep_some(...)`, `keep_some_else(...)`, or per-item `unwrap_or(...)` before `collect |> sum`
-  - value-mode parse pipelines can now also use `map(parse_int) |> map((o) -> unwrap_or(0, o)) |> sum` because host-backed `map` delivers `none(...)` elements to the callback
+  - value-mode parse pipelines can now also use `map(parse_int) |> map((o) -> unwrap_or(0, o)) |> sum` because `map` uses `apply_raw` semantics to deliver `none(...)` elements to the callback
 - explicit helpers such as `map_some`, `flat_map_some`, and `then_*` remain available for direct Option values and higher-order/non-pipeline composition
 
 Structured absence currently used in canonical access/search helpers:
@@ -1520,12 +1601,13 @@ Loading behavior:
 Notable autoloaded functions include:
 
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
-  - `reduce`, `map`, and `filter` are prelude wrappers over host-backed primitives that skip none-propagation for callbacks, so list elements which are `none(...)` are delivered to the callback
+  - `reduce`, `map`, and `filter` are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
-- fn: `apply`, `compose`
+- fn: `apply`, `apply_raw`, `compose`
+  - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit; `args` must be a list or `TypeError` is raised; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
-- map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
@@ -1561,9 +1643,9 @@ Other implemented optimizations:
 
 Core IR shape currently includes:
 
-- program items: expression statement, assignment, named function definition
-- expressions: literal, explicit Option some/none, variable, call, pipeline, unary, binary, lambda, block, list, map, spread, case
-- patterns: wildcard, variable, literal, tuple, list, map, final rest
+- program items: expression statement, assignment, named function definition, import, annotation
+- expressions: literal, explicit Option some/none, variable, call, pipeline, unary, binary, lambda, block, list, map, spread, case, quote, quasiquote, delay
+- patterns: wildcard, variable, literal, tuple, list, map, final rest, option some/none, glob
 - function docstrings are carried as metadata on named-function definitions (not runtime expressions)
 - Python may add specialized optimized execution nodes after lowering for narrow cases such as `IrListTraversalLoop`
   - these optimized nodes are not the minimal Core IR portability contract

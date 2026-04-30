@@ -1,0 +1,10 @@
+name: flow_simple_pipe
+category: flow
+input:
+  source: |
+    inc(x) -> x + 1
+    1 |> inc
+expected:
+  stdout: "2\n"
+  stderr: ""
+  exit_code: 0

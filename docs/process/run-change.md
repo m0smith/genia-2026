@@ -1,10 +1,26 @@
-# RUN CHANGE
+# Running a Genia Change
 
-1. Fill out pre-flight
-2. Create branch
-3. Run docs/process/01-spec.md
-4. Run docs/process/02-design.md
-5. Run docs/process/03-implementation.md
-6. Run docs/process/04-test.md
-7. Run docs/process/05-docs.md
-8. Run docs/process/06-audit.md
+For every issue:
+
+1. Create branch: `issue-<number>-<short-name>`
+2. Run preflight prompt
+   - Pre-flight must include a completed PORTABILITY ANALYSIS block (section 3a).
+   - All seven portability fields must be answered before the contract phase begins.
+   - Incomplete portability analysis is grounds for blocking the contract step.
+3. Commit preflight
+4. Run contract prompt
+5. Commit contract
+6. Run design prompt
+7. Commit design
+8. Run failing-test prompt
+9. Commit failing tests
+10. Run implementation prompt
+11. Commit implementation
+12. Run docs prompt
+13. Commit docs
+14. Run audit prompt
+15. Commit audit or audit fixes
+16. Run the Doc Distillation prompt
+17. Commit the updated docs
+
+Do not merge until audit passes.

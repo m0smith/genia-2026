@@ -1,0 +1,9 @@
+name: pairs-empty-first
+category: eval
+input:
+  source: |
+    pairs([], [1, 2])
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0

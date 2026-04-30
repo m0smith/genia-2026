@@ -1,0 +1,12 @@
+name: pattern-first-match-wins
+category: eval
+input:
+  source: |
+    classify(x) =
+      _ -> "first" |
+      _ -> "second"
+    classify(42)
+expected:
+  stdout: "\"first\"\n"
+  stderr: ""
+  exit_code: 0

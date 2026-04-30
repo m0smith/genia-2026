@@ -1,0 +1,13 @@
+name: pattern-literal-int
+category: eval
+input:
+  source: |
+    classify(x) =
+      1 -> "one" |
+      2 -> "two" |
+      _ -> "other"
+    classify(1)
+expected:
+  stdout: "\"one\"\n"
+  stderr: ""
+  exit_code: 0

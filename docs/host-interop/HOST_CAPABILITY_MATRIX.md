@@ -11,6 +11,8 @@ Python is the only implemented host today.
 All other hosts below are placeholders for planned work.
 `hosts/python/` is also a placeholder directory for the future monorepo layout; the live Python implementation remains in `src/genia/`.
 
+For the formal per-capability contract (name, Genia surface, input/output shapes, normalized error behavior, and portability status), see `capabilities.md`.
+
 Browser playground adapter note:
 
 - documentation scaffold exists under `docs/browser/`
@@ -37,5 +39,5 @@ Browser playground adapter note:
 | debugger stdio | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python debug adapter mode documented today |
 | prelude autoload | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | public stdlib surface is prelude-centered |
 | doc/help support | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `help()` / `help("name")` in Python host |
-| shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python host adapter implements contract for parse, ir, eval, cli, flow, error; no generic multi-host runner exists |
+| shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | implemented runner plus shared eval cases only; parse/ir/cli/flow/error shared case coverage is not implemented yet |
 | shell pipeline stage `$(...)` | Python-host-only | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |

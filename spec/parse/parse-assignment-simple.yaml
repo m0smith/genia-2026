@@ -1,0 +1,14 @@
+name: parse-assignment-simple
+category: parse
+description: Simple assignment parses to an Assign node
+input:
+  source: "x = 1"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Assign
+      name: x
+      value:
+        kind: Literal
+        value: 1

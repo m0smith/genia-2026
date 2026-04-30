@@ -1,0 +1,9 @@
+name: error_undefined_name
+category: error
+input:
+  source: |
+    foo + 1
+expected:
+  stdout: ""
+  stderr: "NameError: foo is not defined\n"
+  exit_code: 1

@@ -1,0 +1,9 @@
+name: pairs-empty-both
+category: eval
+input:
+  source: |
+    pairs([], [])
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0

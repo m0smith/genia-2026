@@ -1,0 +1,9 @@
+name: arithmetic-precedence
+category: eval
+input:
+  source: |
+    1 + 2 * 3
+expected:
+  stdout: "7\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,10 @@
+name: recursion-factorial
+category: eval
+input:
+  source: |
+    fact(n) = (0) -> 1 | (n) -> n * fact(n - 1)
+    fact(5)
+expected:
+  stdout: "120\n"
+  stderr: ""
+  exit_code: 0

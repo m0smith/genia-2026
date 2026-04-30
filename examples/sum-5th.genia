@@ -16,10 +16,13 @@
 #   * `collect` to materialize a flow into a list
 # --------------------------------------------------------------------------
 
+emit_5th(record, ctx) =
+  (record, _) -> fields(record) |> nth(5) |> parse_int |> flat_map_some(rule_emit) |
+  (_, ctx) -> log("skipping record with no 5th field or non-int in 5th field: ", _flow_debug(ctx))
+
+
 stdin
   |> lines                                       # split stdin into lines
-  |> map(fields)                                 # split each line on whitespace
-  |> keep_some_else((xs) -> nth(5, xs), log)     # extract 6th field (index 5); log failures
-  |> keep_some_else(parse_int, log)              # parse as integer; log non-numeric values
+  |> refine(emit_5th)                            # preferred: extract and sum 6th field if present/int
   |> collect                                     # materialize the flow into a list
   |> sum                                         # total the collected integers

@@ -1,0 +1,10 @@
+name: pattern-list-head
+category: eval
+input:
+  source: |
+    head(xs) = ([x, .._]) -> x | (_) -> none
+    head([10, 20, 30])
+expected:
+  stdout: "10\n"
+  stderr: ""
+  exit_code: 0

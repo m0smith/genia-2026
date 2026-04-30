@@ -3435,8 +3435,8 @@ class GeniaMap:
     def count(self) -> int:
         return len(self._entries)
 
-    def items(self) -> list[tuple[Any, Any]]:
-        return [(raw_key, raw_value) for raw_key, raw_value in self._entries.values()]
+    def items(self) -> list[list[Any]]:
+        return [[raw_key, raw_value] for raw_key, raw_value in self._entries.values()]
 
     def __repr__(self) -> str:
         return f"<map {len(self._entries)}>"
@@ -5943,7 +5943,7 @@ def make_global_env(
 
         return GeniaFlow(iterator, label="tick")
 
-    def tee_fn(source: Any) -> tuple[GeniaFlow, GeniaFlow]:
+    def tee_fn(source: Any) -> list[GeniaFlow]:
         upstream = _ensure_flow(source, "tee")
         state = _FlowTeeState(upstream)
 
@@ -5960,7 +5960,7 @@ def make_global_env(
 
             return GeniaFlow(iterator, label=f"tee/{branch_index + 1}")
 
-        return (branch_flow(0), branch_flow(1))
+        return [branch_flow(0), branch_flow(1)]
 
     def _split_flow_pair(value: Any, name: str) -> tuple[GeniaFlow, GeniaFlow]:
         if isinstance(value, (tuple, list)) and len(value) == 2:
@@ -6821,6 +6821,17 @@ def make_global_env(
         genia_map = _ensure_map(map_value, "map_count")
         return genia_map.count()
 
+    def map_items_fn(map_value: Any) -> int:
+        genia_map = _ensure_map(map_value, "map_items")
+        return genia_map.items()
+
+    def pairs_error_fn(position: Any, value: Any) -> Any:
+        if position == "first":
+            raise TypeError(f"pairs expected a list as first argument, received {_runtime_type_name(value)}")
+        if position == "second":
+            raise TypeError(f"pairs expected a list as second argument, received {_runtime_type_name(value)}")
+        raise TypeError("pairs internal error expected argument position 'first' or 'second'")
+
     def some_fn(value: Any) -> GeniaOptionSome:
         return GeniaOptionSome(value)
 
@@ -6886,6 +6897,19 @@ def make_global_env(
     def _invoke_raw_from_builtin(proc: Any, args: list[Any]) -> Any:
         """Like _invoke_from_builtin but skips none-propagation.
         Used by host-backed HOFs (map/filter/reduce) processing list elements."""
+        return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
+            proc,
+            args,
+            tail_position=False,
+            callee_node=None,
+            skip_none_propagation=True,
+        )
+
+    def apply_raw_fn(proc: Any, args: Any) -> Any:
+        if not isinstance(args, list):
+            raise TypeError(
+                f"apply_raw expected a list as second argument, received {_runtime_type_name(args)}"
+            )
         return Evaluator(env, env.debug_hooks, env.debug_mode).invoke_callable(
             proc,
             args,
@@ -7024,32 +7048,8 @@ def make_global_env(
             return _invoke_from_builtin(thunk, [])
         raise TypeError(f"or_else_with expected an option value, received {_runtime_type_name(opt)}")
 
-    def reduce_fn(f: Any, acc: Any, xs: Any) -> Any:
-        """Host-backed reduce that calls the callback via invoke_callable with
-        skip_none_propagation, so that list elements which are none(...)
-        are passed to the callback rather than short-circuiting it."""
-        if not isinstance(xs, list):
-            raise TypeError(f"reduce expected a list as third argument, received {_runtime_type_name(xs)}")
-        result = acc
-        for x in xs:
-            result = _invoke_raw_from_builtin(f, [result, x])
-        return result
-
-    def map_fn(f: Any, xs: Any) -> Any:
-        """Host-backed map that calls the callback via invoke_callable with
-        skip_none_propagation, so that list elements which are none(...)
-        are passed to the callback rather than short-circuiting it."""
-        if not isinstance(xs, list):
-            raise TypeError(f"map expected a list as second argument, received {_runtime_type_name(xs)}")
-        return [_invoke_raw_from_builtin(f, [x]) for x in xs]
-
-    def filter_fn(predicate: Any, xs: Any) -> Any:
-        """Host-backed filter that calls the callback via invoke_callable with
-        skip_none_propagation, so that list elements which are none(...)
-        are passed to the callback rather than short-circuiting it."""
-        if not isinstance(xs, list):
-            raise TypeError(f"filter expected a list as second argument, received {_runtime_type_name(xs)}")
-        return [x for x in xs if truthy(_invoke_raw_from_builtin(predicate, [x]))]
+    def reduce_error_fn(xs: Any) -> Any:
+        raise TypeError(f"reduce expected a list as third argument, received {_runtime_type_name(xs)}")
 
     def sum_fn(xs: Any) -> Any:
         if not isinstance(xs, list):
@@ -7702,6 +7702,8 @@ def make_global_env(
     env.set("_map_has?", map_has_fn)
     env.set("_map_remove", map_remove_fn)
     env.set("_map_count", map_count_fn)
+    env.set("_map_items", map_items_fn)
+    env.set("_pairs_error", pairs_error_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
@@ -7747,9 +7749,8 @@ def make_global_env(
     env.set("_cli_option", cli_option_fn)
     env.set("_cli_option_or", cli_option_or_fn)
     env.set("_sum", sum_fn)
-    env.set("_reduce", reduce_fn)
-    env.set("_map", map_fn)
-    env.set("_filter", filter_fn)
+    env.set("_reduce_error", reduce_error_fn)
+    env.set("apply_raw", apply_raw_fn)
 
     env.register_autoload("cli_parse", 1, "std/prelude/cli.genia")
     env.register_autoload("cli_parse", 2, "std/prelude/cli.genia")
@@ -7771,6 +7772,7 @@ def make_global_env(
     env.register_autoload("keep_some_else", 2, "std/prelude/flow.genia")
     env.register_autoload("keep_some_else", 3, "std/prelude/flow.genia")
     env.register_autoload("rules", 0, "std/prelude/flow.genia")
+    env.register_autoload("refine", 0, "std/prelude/flow.genia")
     env.register_autoload("each", 2, "std/prelude/flow.genia")
     env.register_autoload("collect", 1, "std/prelude/flow.genia")
     env.register_autoload("run", 1, "std/prelude/flow.genia")
@@ -7805,18 +7807,31 @@ def make_global_env(
     env.register_autoload("trace", 2, "std/prelude/fn.genia")
     env.register_autoload("tap", 2, "std/prelude/fn.genia")
     env.register_autoload("rule_skip", 0, "std/prelude/fn.genia")
+    env.register_autoload("step_skip", 0, "std/prelude/fn.genia")
     env.register_autoload("rule_emit", 1, "std/prelude/fn.genia")
+    env.register_autoload("step_emit", 1, "std/prelude/fn.genia")
     env.register_autoload("rule_emit_many", 1, "std/prelude/fn.genia")
+    env.register_autoload("step_emit_many", 1, "std/prelude/fn.genia")
     env.register_autoload("rule_set", 1, "std/prelude/fn.genia")
+    env.register_autoload("step_set", 1, "std/prelude/fn.genia")
     env.register_autoload("rule_ctx", 1, "std/prelude/fn.genia")
+    env.register_autoload("step_ctx", 1, "std/prelude/fn.genia")
     env.register_autoload("rule_halt", 0, "std/prelude/fn.genia")
+    env.register_autoload("step_halt", 0, "std/prelude/fn.genia")
     env.register_autoload("rule_step", 3, "std/prelude/fn.genia")
+    env.register_autoload("step_step", 3, "std/prelude/fn.genia")
     env.register_autoload("map_new", 0, "std/prelude/map.genia")
     env.register_autoload("map_get", 2, "std/prelude/map.genia")
     env.register_autoload("map_put", 3, "std/prelude/map.genia")
     env.register_autoload("map_has?", 2, "std/prelude/map.genia")
     env.register_autoload("map_remove", 2, "std/prelude/map.genia")
     env.register_autoload("map_count", 1, "std/prelude/map.genia")
+    env.register_autoload("map_items", 1, "std/prelude/map.genia")
+    env.register_autoload("map_item_key", 1, "std/prelude/map.genia")
+    env.register_autoload("map_item_value", 1, "std/prelude/map.genia")
+    env.register_autoload("map_keys", 1, "std/prelude/map.genia")
+    env.register_autoload("map_values", 1, "std/prelude/map.genia")
+    env.register_autoload("pairs", 2, "std/prelude/map.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand", 0, "std/prelude/random.genia")
     env.register_autoload("rand", 1, "std/prelude/random.genia")
@@ -8236,6 +8251,129 @@ def run_debug_stdio(
     return session.run(lambda: run_source(source, env, filename=resolved_path, debug_hooks=session, debug_mode=True), error_stream=error_stream)
 
 
+@dataclass
+class ExecutionMode:
+    kind: str
+    source: str | None = None
+    program_path: str | None = None
+    script_args: list[str] = field(default_factory=list)
+
+
+def _select_execution_mode(
+    args: argparse.Namespace,
+    remaining_args: list[str],
+    *,
+    explicit_terminator_used: bool,
+    terminator_index: int | None,
+    parser: argparse.ArgumentParser,
+) -> ExecutionMode:
+    if args.command is None and args.pipe is None and remaining_args and remaining_args[0].startswith("-"):
+        if not explicit_terminator_used and terminator_index is None:
+            parser.error(
+                "expected a source file path when not using -c/--command or -p/--pipe; "
+                f"got option-like argument '{remaining_args[0]}'"
+            )
+
+    program_path: Optional[str] = None
+    script_args: list[str] = []
+    if args.command is not None or args.pipe is not None:
+        script_args = remaining_args
+    elif remaining_args:
+        program_path = remaining_args[0]
+        script_args = remaining_args[1:]
+
+    if args.debug_stdio:
+        if args.command is not None:
+            parser.error("--debug-stdio cannot be used with --command")
+        if args.pipe is not None:
+            parser.error("--debug-stdio cannot be used with --pipe")
+        if program_path is None:
+            parser.error("--debug-stdio requires a program path")
+        if script_args:
+            parser.error("--debug-stdio accepts exactly one program path")
+        if not Path(program_path).is_file():
+            parser.error(f"--debug-stdio program path not found: {program_path}")
+        return ExecutionMode(kind="debug_stdio", program_path=program_path)
+
+    if args.pipe is not None:
+        return ExecutionMode(kind="pipe", source=args.pipe, script_args=script_args)
+    if args.command is not None:
+        return ExecutionMode(kind="command", source=args.command, script_args=script_args)
+    if program_path is not None:
+        return ExecutionMode(kind="file", program_path=program_path, script_args=script_args)
+    return ExecutionMode(kind="repl")
+
+
+def _resolve_program_result(run_result: Any, env: Env) -> Any:
+    main_group = env.values.get("main")
+    if not isinstance(main_group, GeniaFunctionGroup):
+        return run_result
+    main_with_args = main_group.get(1)
+    if main_with_args is not None:
+        cli_args = env.get("argv")()
+        return _normalize_absence(main_with_args(cli_args))
+    main_without_args = main_group.get(0)
+    if main_without_args is not None:
+        return _normalize_absence(main_without_args())
+    return run_result
+
+
+def _run_execution_mode(mode: ExecutionMode) -> int:
+    if mode.kind == "debug_stdio":
+        assert mode.program_path is not None
+        return run_debug_stdio(mode.program_path)
+
+    if mode.kind == "pipe":
+        assert mode.source is not None
+        env = make_global_env(cli_args=mode.script_args)
+        try:
+            wrapped_source = _wrap_pipe_mode_expr(mode.source)
+            run_source(wrapped_source, env, filename="<pipe>")
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {_format_pipe_mode_error(e)}")
+            return 1
+
+    if mode.kind == "command":
+        assert mode.source is not None
+        env = make_global_env(cli_args=mode.script_args)
+        try:
+            run_result = run_source(mode.source, env, filename="<command>")
+            result = _resolve_program_result(run_result, env)
+            if result is not None and not _is_nil_none(result):
+                _emit_result(env, result)
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
+
+    if mode.kind == "file":
+        assert mode.program_path is not None
+        env = make_global_env(cli_args=mode.script_args)
+        try:
+            with open(mode.program_path, "r", encoding="utf-8") as f:
+                run_result = run_source(f.read(), env, filename=str(Path(mode.program_path).resolve()))
+            result = _resolve_program_result(run_result, env)
+            if result is not None and not _is_nil_none(result):
+                _emit_result(env, result)
+            return 0
+        except GeniaQuietBrokenPipe:
+            return 0
+        except Exception as e:  # noqa: BLE001
+            _emit_error(env, f"Error: {e}")
+            return 1
+
+    if mode.kind == "repl":
+        repl()
+        return 0
+
+    raise AssertionError(f"unknown execution mode: {mode.kind}")
+
+
 def _main(argv: Optional[list[str]] = None) -> int:
     raw_argv = list(argv) if argv is not None else sys.argv[1:]
     terminator_index: int | None = None
@@ -8277,89 +8415,14 @@ def _main(argv: Optional[list[str]] = None) -> int:
         explicit_terminator_used = True
         remaining_args = remaining_args[1:]
 
-    if args.command is None and args.pipe is None and remaining_args and remaining_args[0].startswith("-"):
-        if not explicit_terminator_used and terminator_index is None:
-            parser.error(
-                "expected a source file path when not using -c/--command or -p/--pipe; "
-                f"got option-like argument '{remaining_args[0]}'"
-            )
-
-    program_path: Optional[str] = None
-    script_args: list[str] = []
-    if args.command is not None or args.pipe is not None:
-        script_args = remaining_args
-    elif remaining_args:
-        program_path = remaining_args[0]
-        script_args = remaining_args[1:]
-
-    if args.debug_stdio:
-        if args.command is not None:
-            parser.error("--debug-stdio cannot be used with --command")
-        if args.pipe is not None:
-            parser.error("--debug-stdio cannot be used with --pipe")
-        if program_path is None:
-            parser.error("--debug-stdio requires a program path")
-        if script_args:
-            parser.error("--debug-stdio accepts exactly one program path")
-        if not Path(program_path).is_file():
-            parser.error(f"--debug-stdio program path not found: {program_path}")
-        return run_debug_stdio(program_path)
-
-    def resolve_program_result(run_result: Any, env: Env) -> Any:
-        main_group = env.values.get("main")
-        if not isinstance(main_group, GeniaFunctionGroup):
-            return run_result
-        main_with_args = main_group.get(1)
-        if main_with_args is not None:
-            cli_args = env.get("argv")()
-            return _normalize_absence(main_with_args(cli_args))
-        main_without_args = main_group.get(0)
-        if main_without_args is not None:
-            return _normalize_absence(main_without_args())
-        return run_result
-
-    if args.pipe is not None:
-        env = make_global_env(cli_args=script_args)
-        try:
-            wrapped_source = _wrap_pipe_mode_expr(args.pipe)
-            run_source(wrapped_source, env, filename="<pipe>")
-            return 0
-        except GeniaQuietBrokenPipe:
-            return 0
-        except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {_format_pipe_mode_error(e)}")
-            return 1
-
-    if args.command is not None:
-        env = make_global_env(cli_args=script_args)
-        try:
-            run_result = run_source(args.command, env, filename="<command>")
-            result = resolve_program_result(run_result, env)
-            if result is not None and not _is_nil_none(result):
-                _emit_result(env, result)
-            return 0
-        except GeniaQuietBrokenPipe:
-            return 0
-        except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {e}")
-            return 1
-    if program_path is not None:
-        env = make_global_env(cli_args=script_args)
-        try:
-            with open(program_path, "r", encoding="utf-8") as f:
-                run_result = run_source(f.read(), env, filename=str(Path(program_path).resolve()))
-            result = resolve_program_result(run_result, env)
-            if result is not None and not _is_nil_none(result):
-                _emit_result(env, result)
-            return 0
-        except GeniaQuietBrokenPipe:
-            return 0
-        except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {e}")
-            return 1
-
-    repl()
-    return 0
+    mode = _select_execution_mode(
+        args,
+        remaining_args,
+        explicit_terminator_used=explicit_terminator_used,
+        terminator_index=terminator_index,
+        parser=parser,
+    )
+    return _run_execution_mode(mode)
 
 
 if __name__ == "__main__":

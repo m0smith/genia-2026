@@ -1,0 +1,15 @@
+id: error_pipe_mode_explicit_run
+name: error_pipe_mode_explicit_run
+category: cli
+description: Pipe mode rejects explicit unbound stdin.
+input:
+  source: "stdin"
+  file: null
+  command: "stdin"
+  stdin: "x\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: Do not use stdin in pipe mode; stdin is provided automatically"
+  exit_code: 1

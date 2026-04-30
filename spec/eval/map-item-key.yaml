@@ -1,0 +1,9 @@
+name: map-item-key
+category: eval
+input:
+  source: |
+    map_item_key(["hello", 42])
+expected:
+  stdout: "\"hello\"\n"
+  stderr: ""
+  exit_code: 0

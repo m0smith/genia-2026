@@ -43,7 +43,7 @@ jobs:
         run: uv run python tools/stage_docs_for_mkdocs.py
 
       - name: Validate docs and semantic sync
-        run: uv run pytest -q tests/test_semantic_doc_sync.py tests/test_doc_style_sync.py tests/test_cheatsheet_*.py tests/test_sicp_code_blocks.py tests/test_book_chapter_status_sections.py
+        run: uv run pytest -q tests/doc/test_semantic_doc_sync.py tests/unit/test_doc_style_sync.py tests/unit/test_cheatsheet_*.py
 
       - name: Build docs
         run: uv run mkdocs build --strict

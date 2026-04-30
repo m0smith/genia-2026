@@ -1,0 +1,15 @@
+id: error_runtime
+name: error_runtime
+category: cli
+description: Runtime error in command mode
+input:
+  source: "missing_name"
+  file: null
+  command: "missing_name"
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: Undefined name: missing_name"
+  exit_code: 1

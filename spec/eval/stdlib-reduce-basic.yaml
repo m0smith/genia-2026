@@ -1,0 +1,16 @@
+name: stdlib-reduce-basic
+category: eval
+description: reduce folds a list from left to right using an accumulator
+input:
+  source: |
+    reduce((acc, x) -> acc + x, 0, [1, 2, 3, 4])
+expected:
+  stdout: "10\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #190
+  invariant: basic-reduce-sum
+  Proves the basic left-fold contract: starting accumulator is 0,
+  each element is added in left-to-right order: 0+1=1, 1+2=3, 3+3=6, 6+4=10.
+  This spec must pass whether reduce is host-backed or prelude-native.

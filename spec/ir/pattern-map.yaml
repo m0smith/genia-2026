@@ -1,0 +1,34 @@
+name: pattern-map
+category: ir
+description: Map pattern lowers as IrPatMap with string keys and IrPatBind values
+input:
+  source: |
+    get_name(x) = ({name}) -> name | _ -> "unknown"
+expected:
+  ir:
+    - node: IrFuncDef
+      name: get_name
+      params:
+        - x
+      body:
+        node: IrCase
+        clauses:
+          - node: IrCaseClause
+            pattern:
+              node: IrPatTuple
+              items:
+                - node: IrPatMap
+                  items:
+                    - key: name
+                      value:
+                        node: IrPatBind
+                        name: name
+            result:
+              node: IrVar
+              name: name
+          - node: IrCaseClause
+            pattern:
+              node: IrPatWildcard
+            result:
+              node: IrLiteral
+              value: unknown

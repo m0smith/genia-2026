@@ -1,0 +1,19 @@
+name: apply-raw-contrast-normal-call
+category: eval
+description: normal call with none argument short-circuits (baseline contrast for apply_raw cases)
+input:
+  source: |
+    step = (acc, x) -> acc + unwrap_or(0, x)
+    step(5, none("q"))
+expected:
+  stdout: "none(\"q\")\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #188
+  invariant: normal-call-unchanged
+  This is the baseline that apply-raw-none-multi-arg contrasts against.
+  step(5, none("q")) short-circuits to none("q") because none is found among the args
+  and the function body is not detected as explicitly none-aware (no case pattern, no direct
+  delegation to a none-aware builtin at the top-level expression).
+  Normal call behavior must remain unchanged after apply_raw is introduced.

@@ -1,0 +1,9 @@
+name: stdlib-nth-list-some
+category: eval
+input:
+  source: |
+    nth(1, [7, 8, 9])
+expected:
+  stdout: "some(8)\n"
+  stderr: ""
+  exit_code: 0

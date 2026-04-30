@@ -128,11 +128,19 @@ It does not change ordinary `|>` semantics outside this helper.
 """
 keep_some_else(stage, dead_handler, flow) = _keep_some_else(stage, dead_handler, flow)
 
+
 @doc """Apply rule functions left-to-right to each incoming flow item.
 
 Rule orchestration, defaulting, and contract validation live in prelude in this phase.
+Legacy/compatibility name; see also `refine` (preferred).
 """
 rules(..fns) = rules_dispatch(fns)
+
+@doc """Apply step functions left-to-right to each incoming flow item.
+
+Preferred alias for `rules(..steps)`; see also `rules` (compatibility).
+"""
+refine(..steps) = rules(..steps)
 
 rules_dispatch(args) =
   (args) ? rules_immediate_flow?(args) == true -> {
@@ -226,7 +234,8 @@ rules_result_ctx(result_map, default) =
   rules_optional_value(result_map, "ctx", default)
 
 rules_optional_value(result_map, key, default) =
-  unwrap_or(default, get(key, result_map))
+  (none, key, default) -> default |
+  (result_map, key, default) -> get_or(key, result_map, default)
 
 rules_result_halt(result_map, rule_index) =
   rules_result_halt_value(get("halt", result_map), rule_index)
@@ -240,14 +249,27 @@ rules_result_halt_value(found, rule_index) =
     concat("returned halt = ", concat(_flow_debug(halt), "; expected a boolean"))
   )
 
-rules_map?(value) =
+map?(v) =
   ({}) -> true |
+  (none) -> false |
   (_) -> false
 
-rules_list?(value) =
+list?(v) =
   ([]) -> true |
   ([_, .._]) -> true |
+  (none) -> false |
   (_) -> false
+
+get_or(key, target, default) =
+  unwrap_or(default, get(key, target))
+
+rules_map?(value) =
+  (none) -> false |
+  (v) -> map?(v)
+
+rules_list?(value) =
+  (none) -> false |
+  (v) -> list?(v)
 
 @doc "Run `fn` for each flow item and pass the original items through."
 each(fn, flow) = _each(fn, flow)

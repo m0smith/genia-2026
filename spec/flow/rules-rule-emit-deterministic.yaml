@@ -1,0 +1,16 @@
+name: rules-rule-emit-deterministic
+category: flow
+input:
+  source: |
+    stdin
+      |> lines
+      |> rules((row, ctx) -> split_whitespace(row) |> nth(4) |> parse_int |> flat_map_some(rule_emit))
+      |> collect
+  stdin: |
+    a b c d 5 x
+    1 2 3 4 6 y
+    short
+expected:
+  stdout: "[5, 6]\n"
+  stderr: ""
+  exit_code: 0

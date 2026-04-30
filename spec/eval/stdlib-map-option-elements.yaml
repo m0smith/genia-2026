@@ -1,0 +1,9 @@
+name: stdlib-map-option-elements
+category: eval
+input:
+  source: |
+    [none("a"), some(2), none("b")] |> map((o) -> unwrap_or(0, o))
+expected:
+  stdout: "[0, 2, 0]\n"
+  stderr: ""
+  exit_code: 0

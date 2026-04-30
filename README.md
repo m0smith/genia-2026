@@ -20,6 +20,13 @@ This repository currently provides:
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
+
+  - Flow orchestration: the preferred style is `refine(..steps)` and `step_*` (e.g., `step_emit`).
+  - The legacy `rules(..fns)` and `rule_*` names remain fully supported and behave identically.
+
+**Note:**
+  - The preferred style for new flow orchestration code is `refine(..steps)` and `step_*`.
+  - The legacy `rules(..fns)` and `rule_*` names remain fully supported for compatibility.
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration (**Python-host-only**)
@@ -45,17 +52,30 @@ Features are not added if they:
 
 The goal is not to limit the language, but to ensure that it becomes
 simpler, more consistent, and easier to reason about over time.
+## LLM-Assisted Development
+
+Genia changes must follow the workflow in:
+
+- `AGENTS.md`
+- `docs/process/run-change.md`
+- `docs/process/llm-prompts.md`
+
+Do not use one-shot implementation prompts for behavior changes.
 
 ## Host Portability & Spec Contract
 
 **LANGUAGE CONTRACT:**
 - The portable contract covers: parse, ir, eval, cli, flow, error (see `GENIA_STATE.md` for current scope).
-- All observable outputs (runtime, CLI, errors) are normalized to canonical forms; no Python-specific leakage is allowed in portable contract behavior.
+- `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active for executable shared spec files.
+- Within the current implemented shared semantic-spec scope, eval and cli compare normalized `stdout`, normalized `stderr`, and exact `exit_code`; Python-specific leakage is not part of the portable contract.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
 - Python is the only implemented host and is the reference host.
-- The Python host adapter enforces the shared host contract for the categories above.
+- The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
+- CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
+- REPL mode is not covered by shared executable specs.
+- The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior, including eval Option rendering/propagation cases for `some(...)` and `none(...)`, plus deterministic pattern-matching eval cases (first-match, literal/wildcard/binding, list/tuple/map/option/guard/glob forms) for already-implemented behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
 - See `docs/host-interop/` and `spec/` for details.
@@ -67,6 +87,63 @@ Maturity:
 - `Experimental`: explicitly marked surfaces such as the shell pipeline stage `$(...)`
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
+
+
+## Semantic Spec System
+
+The Semantic Spec System defines and validates observable behavior for Genia using executable spec cases.
+
+**LANGUAGE CONTRACT:**
+- The spec system covers these categories:
+  - eval (active, executable shared spec files)
+  - ir (active, executable shared spec files)
+  - cli (active, executable shared spec files)
+  - flow (active, executable shared spec files; first-wave coverage only)
+  - error (active, executable shared spec files; initial coverage only)
+  - parse (active, executable shared spec files; initial coverage only)
+- Spec coverage has expanded to all six categories: `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior are all implemented as executable shared spec files in the Python reference host.
+- The spec is authoritative for covered categories; uncovered behavior is not guaranteed.
+- Coverage is still partial and experimental.
+
+**PYTHON REFERENCE HOST:**
+- Python is the only implemented host and is the reference host.
+- The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
+- The current shared spec runner executes Flow cases (spec/flow/) through command-source execution, comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes Error cases (spec/error/) through the same eval execution path used by eval cases, comparing normalized stdout, stderr, and exit_code.
+- The current shared spec runner executes Parse cases (spec/parse/) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
+- CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
+- CLI shared specs cover file mode, command mode, and pipe mode only. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, and current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, and non-Flow final results. REPL is excluded from shared executable coverage.
+- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, deterministic `keep_some(...)` option-filtering behavior, and error propagation via invalid-reducer-on-flow diagnostic; focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs (including a composed chain) has been added but does not constitute full stdlib conformance.
+- Error shared coverage is active but initial only. Current error shared cases assert only the observable surface: `stdout`, `stderr`, and `exit_code`; this now includes deterministic pattern-related failure coverage for match-miss, guard-all-fail, and malformed glob diagnostics. In this phase, `stdout` must be `""`, `stderr` must match exactly, `exit_code` must be `1`, and `notes` remain informational only.
+- Parse shared coverage is active but initial only. Current parse shared cases cover stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
+
+**How to run the spec suite:**
+
+```bash
+python -m tools.spec_runner
+```
+
+```bash
+python -m tools.spec_runner --verbose
+```
+
+- `--verbose` / `-v` prints each spec name before execution begins, then prints a single elapsed-time line in the format `<spec-name>\t<elapsed>s`.
+
+**What the spec guarantees:**
+- For eval: the runner executes each case independently and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For cli: the runner executes deterministic non-interactive CLI cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For ir: the runner executes each case independently and compares normalized portable Core IR output captured before host-local optimization.
+- For flow: the runner executes first-wave command-source Flow cases and compares `stdout`, `stderr`, and `exit_code` with newline normalization.
+- For error: the runner executes initial normalized error cases and compares only `stdout`, `stderr`, and `exit_code`.
+- For parse: the runner executes parse cases and compares normalized parse output (`kind: ok` exact AST; `kind: error` exact type plus message substring).
+- Uncovered or partial categories are not guaranteed and may differ in future implementations.
+
+**Limitations:**
+- Spec coverage is expanded but still partial and experimental.
+- Active executable shared categories are eval, ir, cli, first-wave flow, initial error, and initial parse; coverage remains partial and category-scoped.
+- GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
 ## Quick start
 
@@ -214,7 +291,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
   - pipe mode rejects explicit `stdin` and explicit `run` in unbound stage usage
 - args and errors:
   - trailing CLI args are available through `argv()` in file/command/pipe modes
-  - option-like trailing args are preserved as plain strings (for example `--pretty`)
+  - option-like trailing args are preserved as plain strings (for example `--pretty`); an explicit `--` is not injected into `argv()` unless the user actually passed it
   - when no `-c` or `-p` mode is selected, the first non-mode argument must be a file path
   - use `--` to stop option parsing when a literal arg/path starts with `-`
 
@@ -329,7 +406,7 @@ Published documentation is deployed with GitHub Pages from the `main` branch at:
 
 - `https://m0smith.github.io/genia-2026/`
 
-The published site includes the repo homepage, current state/rules/runtime references, the book, the cheatsheets, host-interop docs, and a top-level `SICP with Genia` section sourced from `docs/sicp/`.
+The published site includes the repo homepage, current state/rules/runtime references, the cheatsheets, host-interop docs, and core reference material from this repository.
 
 To preview locally:
 
@@ -346,7 +423,7 @@ uv run pytest -q tests/test_cheatsheet_*.py tests/test_sicp_code_blocks.py tests
 uv run mkdocs build --strict
 ```
 
-The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives, including the SICP chapter sources under `docs/sicp/`.
+The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives.
 
 LLM instruction sync note:
 
@@ -386,6 +463,7 @@ The current Python host may still apply small post-lowering optimizations such a
 Boundary validation note:
 
 - lowered programs are validated against the minimal portable Core IR contract before host-local optimization in the current Python reference host
+- shared IR semantic-spec cases validate that lowering contract in the current Python reference host
 
 ## Multi-Host Direction
 
@@ -395,7 +473,7 @@ The repo now also includes shared portability scaffolding for future hosts:
 
 - host interop contract docs: `docs/host-interop/`
 - Core IR portability note: `docs/architecture/core-ir-portability.md`
-- shared spec scaffold + manifest: `spec/`
+- shared spec suite + manifest: `spec/`
 - host layout/migration notes: `hosts/`
 
 Alignment rule:
@@ -413,7 +491,14 @@ Current host status:
 | Node.js / Java / Rust / Go / C++ | Planned / scaffolded only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
-`spec/` category directories contain scaffold READMEs only — zero shared test-case files exist in this phase.
+
+Current shared spec status:
+
+- implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/`
+- flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
+- error shared coverage is initial only; current cases assert `stdout: ""`, exact `stderr`, and `exit_code: 1`
+- parse shared coverage is initial only; current cases cover stable, already-implemented syntax forms
+- the shared runner is implemented, and its current executable shared case coverage is eval, ir, cli, first-wave flow, initial error, and initial parse
 
 ## Browser playground architecture
 
@@ -431,6 +516,7 @@ Truthful status:
 
 Related shared portability docs:
 
+- docs/host-interop/capabilities.md
 - docs/host-interop/HOST_INTEROP.md
 - docs/host-interop/HOST_PORTING_GUIDE.md
 - docs/host-interop/HOST_CAPABILITY_MATRIX.md
@@ -511,7 +597,7 @@ quote(1 + 2)
 
 ### Pairs and Lists
 
-Genia also has immutable pairs for SICP-style data.
+Genia also has immutable pairs for pair-based structural data.
 
 ```genia
 cons(1, 2)
@@ -754,12 +840,13 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
-- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, `run`
 - the host Flow kernel stays intentionally small:
   - lazy pull/consume and single-use enforcement
   - source-bound stdin integration
   - sink/materialization boundaries
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
+- `tee(flow)` returns `[left_flow, right_flow]`; `merge(pair)` and `zip(pair)` consume that two-element list pair
 - `keep_some_else(stage, dead_handler)` is an explicit dead-letter Flow stage for Option-returning item transforms:
   - `stage` receives the original raw item
   - `some(v)` continues on the main flow as `v`
@@ -986,8 +1073,8 @@ New canonical style:
 unwrap_or(0, fields(row) |> nth(5) |> parse_int)
 ```
 
-Short design note: [docs/architecture/pipeline-option-redesign.md](docs/architecture/pipeline-option-redesign.md)
-Integration note: [docs/architecture/pipeline-ir-host-integration.md](docs/architecture/pipeline-ir-host-integration.md)
+Short design note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
+Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - non-string input and invalid bases still raise explicit errors
 
 ### Concurrency
@@ -1059,17 +1146,19 @@ write_file("output.json", unwrap_or("{}", result))
 
 ### Phase 1 persistent associative maps
 
-- public helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- host-backed map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`
 - implemented as an opaque host-backed runtime wrapper (no map syntax added)
 - persistent semantics from Genia perspective (`map_put`/`map_remove` return new map values)
+- `pairs(xs, ys)` is a pure Genia prelude function (not host-backed): zips two lists into `[[x, y], ...]` bounded by the shorter input; raises `TypeError` on non-list arguments
 
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
 - canonical maybe-returning list/search helpers: `first`, `last`, `nth`, `find` (string search), `find_opt` (predicate search)
 - compatibility aliases: `first_opt`, `nth_opt`
-- fn helpers: `apply`, `compose`
-- map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+- fn helpers: `apply`, `apply_raw`, `compose`
+  - `apply_raw(f, args)` — calls `f` with list `args` as positional arguments, bypassing automatic `none(...)` propagation; `args` must be a list
+- map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`

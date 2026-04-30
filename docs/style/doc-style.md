@@ -246,7 +246,7 @@ What is validated:
 - This file retains its required sections (`## 1. Purpose` through `## 8. Style Principles`) and good/bad examples
 - The linter's allowed section headers, discouraged prefixes, and disallowed Markdown match this guide
 - `docs/cheatsheet/core.md` and `docs/cheatsheet/quick-reference.md` have `@doc Quick Reference` sections linking back here
-- `docs/book/03-functions.md` has a `Documenting Functions` section whose Markdown subset and allowed headers are consistent with this guide
+- core `@doc` surfaces remain consistent with this guide
 - Prelude `.genia` files pass the doc linter (no errors) when `@doc` annotations are present
 
 What is NOT validated:

@@ -1,0 +1,15 @@
+name: apply-raw-none-arg-body-executes
+category: eval
+description: apply_raw calls the function body even when the argument is none(...)
+input:
+  source: |
+    apply_raw((o) -> unwrap_or(0, o), [none("missing")])
+expected:
+  stdout: "0\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #188
+  invariant: raw-invocation
+  Without apply_raw, calling an ordinary lambda with none(...) short-circuits and returns none("missing").
+  apply_raw bypasses that short-circuit so the body executes; unwrap_or(0, none("missing")) returns 0.

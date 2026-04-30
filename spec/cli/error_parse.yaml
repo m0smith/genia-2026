@@ -1,0 +1,15 @@
+id: error_parse
+name: error_parse
+category: cli
+description: Parse error in file mode
+input:
+  source: "spec/cli/error_parse.genia"
+  file: "spec/cli/error_parse.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: Unexpected token '' (EOF) at 8"
+  exit_code: 1

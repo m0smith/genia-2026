@@ -2,6 +2,24 @@
 Flow/pipe-mode execution for Genia Python host adapter.
 """
 
+from .exec_eval import run_eval_subprocess
+
+
 def exec_flow(case) -> dict:
-    # TODO: Run pipe/flow mode using src/genia/interpreter.py, enforce single-use/streaming
-    return {"stdout": "TODO: flow stdout", "stderr": "", "exit_code": 0}
+    source = getattr(case, "source", None)
+    if not isinstance(source, str):
+        input_data = getattr(case, "input", None)
+        if isinstance(input_data, str):
+            source = input_data
+        elif isinstance(input_data, dict):
+            source = input_data.get("source")
+            if not isinstance(source, str):
+                raise TypeError("flow case input.source must be a string")
+        else:
+            raise TypeError("flow case source must be a string")
+
+    stdin = getattr(case, "stdin", None)
+    if stdin is not None and not isinstance(stdin, str):
+        raise TypeError("flow case stdin must be a string when present")
+
+    return run_eval_subprocess(source, stdin or None)

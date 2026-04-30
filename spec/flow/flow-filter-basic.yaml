@@ -1,0 +1,14 @@
+name: flow-filter-basic
+category: flow
+input:
+  source: |
+    stdin |> lines |> filter((line) -> contains(line, "error")) |> collect
+  stdin: |
+    ok
+    error one
+    warn
+    error two
+expected:
+  stdout: "[\"error one\", \"error two\"]\n"
+  stderr: ""
+  exit_code: 0

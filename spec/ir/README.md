@@ -1,13 +1,14 @@
-# Core IR Specs
+# IR Shared Specs
 
-Place shared AST->Core IR lowering cases here.
+This directory contains executable shared IR semantic-spec cases.
 
-Intended coverage:
+Python is the only executing host today.
 
-- pipeline rewrite snapshots
-- lowered case/match shapes
-- lowering invariants relied on by evaluation
+Cases in this directory assert portable Core IR lowering shape at the pre-optimization boundary:
 
-Current status:
+- parse
+- lower
+- normalize portable IR
+- compare against shared expected IR
 
-- directory scaffold only
+Host-local optimized nodes are outside this contract and must not appear in shared IR expectations.

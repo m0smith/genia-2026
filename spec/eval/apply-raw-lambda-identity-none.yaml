@@ -1,0 +1,17 @@
+name: apply-raw-lambda-identity-none
+category: eval
+description: apply_raw with an identity lambda returns none unchanged (body runs, result is none)
+input:
+  source: |
+    apply_raw((x) -> x, [none("y")])
+expected:
+  stdout: "none(\"y\")\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #188
+  invariant: raw-invocation + no-implicit-coercion
+  The body executes with x = none("y") and returns none("y").
+  apply_raw does not re-wrap or transform the result.
+  This proves the function was called (contrast: normal call (x -> x)(none("y")) also returns none("y"),
+  but via short-circuit not body execution; the observable output is the same, confirming no coercion).

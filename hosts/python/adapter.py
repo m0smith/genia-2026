@@ -1,58 +1,52 @@
 """
 Python Host Adapter for Genia Shared Spec Contract
 
-Implements: run_case(case: SpecCase) -> SpecResult
-
-- Category-specific execution paths
-- Normalization layer
-- Thin bridge to src/genia/interpreter.py
+Implements: run_case(spec: LoadedSpec) -> ActualResult
 """
-from dataclasses import dataclass
-from typing import Any, Optional, List, Literal, Union
+from types import SimpleNamespace
 
-from .exec_parse import exec_parse
-from .exec_ir import exec_ir
-from .exec_eval import exec_eval
-from .exec_cli import exec_cli
-from .exec_flow import exec_flow
-from .normalize import normalize_result
+from hosts.python import parse_and_normalize
+from hosts.python.exec_eval import run_eval_subprocess
+from hosts.python.exec_ir import exec_ir
+from hosts.python.exec_cli import exec_cli
+from hosts.python.exec_flow import exec_flow
+from hosts.python.normalize import normalize_text, strip_trailing_newlines
 
-@dataclass
-class SpecCase:
-    id: str
-    category: Literal["parse", "ir", "eval", "cli", "flow", "error"]
-    input: Union[str, dict]
-    args: Optional[List[str]] = None
-    stdin: Optional[str] = None
-    expected: Optional[dict] = None
-
-@dataclass
-class SpecResult:
-    success: bool
-    stdout: str
-    stderr: str
-    exit_code: int
-    result: Optional[Any] = None
-    error: Optional[dict] = None
-    ir: Optional[dict] = None
+from tools.spec_runner.loader import LoadedSpec
+from tools.spec_runner.executor import ActualResult
 
 
-def run_case(case: SpecCase) -> SpecResult:
-    """
-    Dispatches a spec case to the correct execution path and normalizes the result.
-    """
-    if case.category == "parse":
-        raw = exec_parse(case)
-    elif case.category == "ir":
-        raw = exec_ir(case)
-    elif case.category == "eval":
-        raw = exec_eval(case)
-    elif case.category == "cli":
-        raw = exec_cli(case)
-    elif case.category == "flow":
-        raw = exec_flow(case)
-    elif case.category == "error":
-        raw = exec_eval(case)  # error cases use eval path, expect error normalization
-    else:
-        raise ValueError(f"Unknown spec case category: {case.category}")
-    return normalize_result(raw, case)
+def run_case(spec: LoadedSpec) -> ActualResult:
+    if spec.category == "parse":
+        result = parse_and_normalize(spec.source)
+        return ActualResult(parse=result)
+
+    if spec.category == "ir":
+        result = exec_ir(SimpleNamespace(input={"source": spec.source}, stdin=None))
+        return ActualResult(ir=result["ir"])
+
+    if spec.category == "cli":
+        result = exec_cli(spec)
+        return ActualResult(
+            stdout=strip_trailing_newlines(normalize_text(result["stdout"])),
+            stderr=strip_trailing_newlines(normalize_text(result["stderr"])),
+            exit_code=result["exit_code"],
+        )
+
+    if spec.category == "flow":
+        result = exec_flow(spec)
+        return ActualResult(
+            stdout=normalize_text(result["stdout"]),
+            stderr=normalize_text(result["stderr"]),
+            exit_code=result["exit_code"],
+        )
+
+    if spec.category in ("eval", "error"):
+        result = run_eval_subprocess(spec.source, spec.stdin or None)
+        return ActualResult(
+            stdout=normalize_text(result["stdout"]),
+            stderr=normalize_text(result["stderr"]),
+            exit_code=result["exit_code"],
+        )
+
+    raise ValueError(f"Unknown spec case category: {spec.category}")

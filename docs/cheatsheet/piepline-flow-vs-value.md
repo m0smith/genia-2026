@@ -87,11 +87,11 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | `keep_some` | `keep_some(flow)` or `keep_some(stage, flow)` | Unwraps `some(v)`, drops `none(...)` |
 | `keep_some_else` | `keep_some_else(stage, handler, flow)` | Routes `some(v)` forward; `none(...)` to handler |
 | `scan` | `scan(step, init, flow)` | Stateful `step(state, item) -> [next_state, output]` |
-| `rules` | `rules(..fns)` | Stateful flow orchestration |
+| `rules` | `refine(..steps)` (preferred), `rules(..fns)` (compatibility) | Stateful flow orchestration |
 | `each` | `each(fn, flow)` | Side effects; passes items through |
-| `tee` | `tee(flow)` | Splits one flow into two |
-| `merge` | `merge(f1, f2)` | Concatenates two flows |
-| `zip` | `zip(f1, f2)` | Pairs items from two flows |
+| `tee` | `tee(flow)` | Returns `[left_flow, right_flow]` |
+| `merge` | `merge(f1, f2)` / `merge(pair)` | Concatenates two flows |
+| `zip` | `zip(f1, f2)` / `zip(pair)` | Emits `[left, right]` items |
 
 ### 🟣 Bridge functions (cross the boundary)
 
@@ -118,7 +118,7 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | --- | --- | --- | --- |
 | Transform each item | 🟢 `map(f, xs)` | 🔵 `flow \|> map(f)` | [case: pfv-transform-map] |
 | Chain transforms | 🟢 `xs \|> map(f) \|> map(g)` | 🔵 `flow \|> map(f) \|> map(g)` | [case: pfv-transform-chain] |
-| Rule-driven transform | — | 🔵 `flow \|> rules(..fns)` | [case: pfv-transform-rules] |
+| Rule-driven transform | — | 🔵 `flow \|> refine(..steps)` (preferred), `flow \|> rules(..fns)` (compatibility) | [case: pfv-transform-rules] |
 
 ## Filters / selection
 
@@ -178,7 +178,7 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | Pattern | Value | Flow | [case] |
 | --- | --- | --- | --- |
 | Parse and aggregate | 🟢 `rows \|> map(parse_int) \|> map((o) -> unwrap_or(0, o)) \|> sum` | 🟣 `rows \|> lines \|> keep_some(parse_int) \|> collect \|> sum` | [case: pfv-shape-parse-aggregate] [case: pfv-shape-parse-aggregate-value] |
-| Column extraction + sum | 🟢 value-only with nested pipeline | 🟣 `stdin \|> lines \|> rules((r, _) -> split_whitespace(r) \|> nth(4) \|> parse_int \|> flat_map_some(rule_emit)) \|> collect \|> sum` | [case: pfv-shape-column-sum] |
+| Column extraction + sum | 🟢 value-only with nested pipeline | 🟣 `stdin \|> lines \|> refine((r, _) -> split_whitespace(r) \|> nth(4) \|> parse_int \|> flat_map_some(step_emit)) \|> collect \|> sum` (preferred), `stdin \|> lines \|> rules((r, _) -> split_whitespace(r) \|> nth(4) \|> parse_int \|> flat_map_some(rule_emit)) \|> collect \|> sum` (compatibility) | [case: pfv-shape-column-sum] |
 | Stream to output | 🟢 `xs \|> map(f) \|> map(print)` | 🔴 `stdin \|> lines \|> map(f) \|> each(print) \|> run` | [case: pfv-shape-stream-output] |
 
 ## CLI mode selection

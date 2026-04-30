@@ -1,172 +1,107 @@
-# AGENTS.md
+# GENIA AGENTS GUIDE
 
-## Purpose
+This document defines how AI agents (Copilot, Codex, ChatGPT) must operate within the Genia repository.
 
-This document defines how AI agents (e.g., Codex, ChatGPT, or other automated contributors) must operate within the Genia codebase.
-
-The goals are:
-
-* Preserve Genia’s philosophy
-* Ensure implementation and documentation never drift
-* Maintain a **living, correct “Reasoned Schemer–style” learning system**
-* Enforce high-quality, minimal, and consistent contributions
+It establishes:
+- sources of truth
+- architectural boundaries
+- required workflow discipline
+- rules for safe evolution
 
 ---
 
-## Source of Truth
+# 🧭 REPOSITORY ROLE
 
-Agents **must treat the following as authoritative and synchronized**:
+This repository (`genia-2026`) is the **authoritative implementation and semantics repository** for Genia.
 
-* `GENIA_STATE.md` → What is actually implemented (ground truth)
-* `GENIA_RULES.md` → Language semantics (law)
-* `GENIA_REPL_README.md` → Runtime behavior
-* `README.md` → High-level overview
-* `docs/book/*` → Learning system (must reflect reality)
-* `docs/sicp/*` → SICP learning system when present (must reflect reality)
-* `docs/host-interop/*` → Shared cross-host portability contract for multi-host work
-* `spec/*` → Shared conformance scaffolding for multi-host work
+It owns:
+- language behavior
+- runtime behavior
+- CLI behavior
+- flow semantics
+- concurrency semantics
+- Core IR (portability boundary)
+- host adapters
+- specification and conformance tests
 
-📌 If these disagree, **GENIA_STATE.md is the final authority**
-
-For multi-host / portability work, agents must also treat these as synchronized contract artifacts:
-
-* `docs/host-interop/HOST_INTEROP.md`
-* `docs/host-interop/HOST_PORTING_GUIDE.md`
-* `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
-* `docs/architecture/core-ir-portability.md`
-* `spec/README.md`
-* `spec/manifest.json`
-* `tools/spec_runner/README.md`
-* `hosts/README.md`
+This repository does NOT contain tutorial content, learning content, or external examples.
 
 ---
+
+# 📚 SOURCE OF TRUTH (ORDERED)
+
+When sources conflict, resolve in this order:
+
+1. `GENIA_STATE.md` (**FINAL AUTHORITY**)
+2. `GENIA_RULES.md`
+3. `GENIA_REPL_README.md`
+4. `README.md`
+5. `spec/*` (behavioral truth via tests)
+6. `docs/host-interop/*`
+7. `docs/architecture/*`
+8. implementation (`src/*`, `hosts/*`)
+9. `docs/process/run-change.md` 
+
+Rules:
+- Tests must reflect actual behavior
+- Implementation must match STATE + RULES
+- Docs must describe ONLY what is implemented
+- Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/test_semantic_doc_sync.py`
+“Contract” defines behavior only.
+It MUST NOT include tests.
+
+Shared spec YAML files and pytest tests belong to the TEST phase.
+---
+
+# 🚫 NON-AUTHORITATIVE SOURCES
+
+The following MUST NOT define behavior:
+
+- external repositories
+- design notes not reflected in STATE
+- comments in code not reflected in STATE
+
+Rule:
+> If it is not in `GENIA_STATE.md`, it is not part of the language.
+
+`GENIA_STATE.md` is the final authority for implemented behavior.
+
+---
+
+# 📖 DOCUMENTATION MODEL
+
+Documentation in this repository must be:
+
+- concise
+- implementation-aligned
+- test-verifiable
+
+Allowed documentation:
+
+- CLI behavior
+- runtime behavior
+- host interop
+- architectural boundaries
+- cheatsheets tied to real behavior
+
+Prohibited:
+
+- speculative features
+- tutorial content
+- narrative explanation beyond what is required for correctness
+
 ## Documentation Truth Model
-
-Documentation layers have different jobs and must not blur them.
 
 Truth hierarchy:
 
-* `GENIA_STATE.md` → implementation truth (final authority)
-* `GENIA_RULES.md` → semantic rule truth
-* `docs/host-interop/*` and `docs/architecture/core-ir-portability.md` → portability/host-contract truth
-* `README.md` → entry-level truth
-* `GENIA_REPL_README.md` → runtime/CLI truth
-* `docs/book/*` → explanatory truth
-* `docs/cheatsheet/*` → operational truth
-* `docs/sicp/*` → executable teaching truth
-* runnable examples/tests/spec cases → executable truth
-
-Allowed claims by layer:
-
-* `GENIA_STATE.md` may state what exists now, what is partial, and what is missing
-* `GENIA_RULES.md` may state semantic constraints and invariants
-* host/interop docs may state the portable language contract and Python reference host coverage
-* `README.md` may summarize implemented behavior, but only with scoped host qualifiers where needed
-* `GENIA_REPL_README.md` may describe actual Python reference host runtime behavior
-* book/cheatsheet/SICP docs may explain and teach only what current docs/tests support
-
-Forbidden claims by all layers:
-
-* claiming more than `GENIA_STATE.md`
-* presenting Python-host-only behavior as portable language law
-* presenting planned/scaffolded work as implemented
-* using absolute certainty language without evidence
-* marking examples as directly trustworthy without classification
-
----
-## Contract vs Implementation Model
-
-Use these exact labels when a doc discusses host-dependent behavior:
-
-* `LANGUAGE CONTRACT:` → portable guarantees or explicit non-guarantees
-* `PYTHON REFERENCE HOST:` → what Python implements today
-
-Both labels must appear when:
-
-* a feature is Python-host-only
-* a page discusses portability or host behavior
-* a reader could otherwise confuse Python behavior with language semantics
-
-Only `LANGUAGE CONTRACT:` may appear for purely portable semantic rules.
-Only `PYTHON REFERENCE HOST:` may appear for purely host-backed operational notes with no portable guarantee.
-
-Use `Python reference host` consistently.
-Use `Python-host-only` consistently for non-portable public behavior.
-
-## Development Workflow
-
-All changes MUST follow:
-
-1. Pre-flight
-2. Branch creation
-3. Spec
-4. Design
-5. Implementation
-6. Test
-7. Docs sync
-8. Audit
-
-Do not skip steps.
-Do not combine steps.
-Each step must be completed before moving to the next.
-
----
-## Maturity System
-
-Use only these maturity terms:
-
-* `Experimental` → implemented, but shape/coverage may still change materially
-* `Partial` → implemented, but limited in scope, host coverage, or validation
-* `Stable` → implemented and treated as current expected behavior in the reviewed surfaces
-
-Rules:
-
-* use maturity labels only for feature-level clarity, not every subsection
-* when a feature is `Experimental` or `Partial`, say what is missing or unstable
-* do not invent extra maturity categories
-
----
-## Example Classification System
-
-Every example section in `docs/book/*`, `docs/cheatsheet/*`, and `docs/sicp/*` must include one of:
-
-* `Classification: **Valid** ...`
-* `Classification: **Likely valid** ...`
-* `Classification: **Illustrative** ...`
-* `Classification: **Invalid** ...`
-
-Meaning:
-
-* `Valid` → directly tested
-* `Likely valid` → consistent with current implementation, but not directly tested
-* `Illustrative` → not intended to run as a verified example
-* `Invalid` → intentionally wrong, outdated, or contradicted by implementation
-
-Rules:
-
-* classification must appear immediately after the example fence when practical
-* mixed examples default to `Likely valid` unless directly tested end-to-end
-* non-runnable examples must not be presented without `Illustrative`
-
----
-## Host-Boundary Rules
-
-Use `Python-host-only` when behavior depends on:
-
-* Python threads/process/runtime objects
-* blocking I/O, sockets, files, bytes, debugger stdio, or shell execution
-* Python-only public bridges such as `import python`, `import web`, `stdin_keys`, refs/processes/cells/actors, or host RNG convenience helpers
-
-Forbidden host-boundary patterns:
-
-* `implemented` alone where portability could be inferred
-* `available` alone for host-only surfaces
-* implying that Python convenience behavior is part of the portable language contract
-
----
-## Drift-Prevention Rules
-
-Agents must enforce these rules:
+1. `GENIA_STATE.md`
+2. `GENIA_RULES.md`
+3. `GENIA_REPL_README.md`
+4. `README.md`
+5. `spec/*`
+6. `docs/host-interop/*`
+7. `docs/architecture/*`
+8. implementation (`src/*`, `hosts/*`)
 
 * no doc may claim more than `GENIA_STATE.md`
 * examples must include classification
@@ -377,460 +312,157 @@ Avoid:
 
 Genia is a **pattern-matching-first language**.
 
-Agents must:
+Agents must not continue into the next phase unless explicitly prompted.
 
-* Prefer pattern matching over all alternatives
-* Improve pattern expressiveness when needed
-* Avoid fallback to imperative constructs
+Commit prefixes must match the phase:
 
----
+- `preflight(scope): ... issue #123`
+- `contract(scope): ... issue #123`
+- `design(scope): ... issue #123`
+- `test(scope): ... issue #123`
+- `feat(scope): ... issue #123`
+- `fix(scope): ... issue #123`
+- `docs(scope): ... issue #123`
+- `audit(scope): ... issue #123`
+- `distillation(scope): ... issue #123`
 
-### 3. Pattern Matching Is the Only Conditional Model
+The `test` phase must commit failing tests before implementation.
+The `implementation` phase must reference the failing-test commit SHA.
 
-Allowed:
+## Drift-Prevention Rules
 
-* Pattern matching in function definitions / case expressions
-
-Forbidden:
-
-* `if`
-* `switch`
-* ternary operators
-* introducing conditional keywords
-
----
-
-### 4. Immutability by Default
-
-* No mutation unless explicitly designed
-* Favor value transformation
-
----
-
-### 5. Functional Core
-
-Favor:
-
-* Pure functions
-* Recursion (TCO-aware)
-* Composition
-
-Avoid:
-
-* Imperative loops (except `repeat`)
-* Shared mutable state
-
----
-
-### 6. Keep the Host Bridge Small
-
-Public stdlib and library behavior should prefer implementation in Genia/prelude rather than host-language code whenever feasible.
-
-Host code should primarily provide:
-
-* Runtime primitives
-* Capability bridges
-* Unavoidable platform integration
-
-Agents must avoid growing the public language surface around Python-specific behavior.
-
-Minimizing host code matters because it improves:
-
-* Multi-host portability
-* Future native/direct compilation
-* Smaller runtime footprint
-* Easier reasoning about semantics
-
-When adding new public helpers:
-
-* Default to prelude wrappers, even when they are backed by host primitives
-* Avoid host-only convenience helpers unless there is a compelling runtime reason
-
-Rule of thumb for placement:
-
-Keep a feature in Python/host code only when at least one of these is true:
-
-* it directly touches host resources or capabilities
-* it depends on threading, blocking, I/O, files, bytes, processes, or stream runtime primitives
-* it is core parser/compiler/evaluator/runtime substrate
-* moving it into Genia would materially harm correctness, portability, simplicity, or performance at the current phase
-
-Otherwise, prefer implementing it in Genia/prelude.
-
-In particular:
-
-* raw capability access such as `argv()` may remain host-backed
-* interpretation, transformation, and user-facing semantics over those raw values should prefer prelude
-* agents should actively look for chances to shrink Python-side pure transformation logic
-* prefer a minimal runtime kernel in the host language, with language-visible semantics layered in Genia/prelude
-* Flow/rules are the model example in this phase:
-  * keep lazy pull-based single-use flow mechanics in host code
-  * prefer rule orchestration, defaulting, validation, and other language-visible semantics in Genia/prelude when feasible
-* parser/compiler/evaluator substrate may remain host-backed
-* syntax/programs-as-data helpers are the other model example in this phase:
-  * keep parsing, lowering, quoting substrate, and metacircular runtime substrate in host code
-  * prefer user-facing selectors, structural helpers, and semantic glue over quoted forms in Genia/prelude
-* agents should actively look for chances to shrink Python-side structural inspection and pure helper glue, not only business logic
-* public help/discovery is the third model example in this phase:
-  * keep only the minimal host help substrate, rendering, and generic bridge fallback in host code
-  * prefer public-surface discovery derived from prelude `@doc` metadata and autoload registrations over hand-curated Python API narration
-* avoid duplicating public API inventories in host code when prelude/autoload metadata already provides the source of truth
-
-### 7. Shared Semantics Across Hosts
-
-Python is the current implemented reference host unless `GENIA_STATE.md` says otherwise.
-
-For multi-host work:
-
-* shared semantics come first
-* Core IR is the portability boundary
-* shared spec tests under `spec/` are authoritative across hosts
-* host-specific code must not redefine language behavior
-* capability additions or coverage changes must update `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
-* changes to the shared host contract must update `spec/manifest.json`
-* docs/book remains a truthful teaching interface and must distinguish implemented hosts from planned/scaffolded ones
-* agents must prefer portable/shared semantics over host-local convenience
-* future Codex prompts for host work must instruct the agent to keep shared docs/spec/tests/book content in sync
-* host-local tests and docs do not override the shared host contract once it is documented in the shared interop/spec artifacts
-
----
-
-## Book-Driven Development (CRITICAL)
-
-The `docs/book/` directory is not documentation.
-
-It is the **primary interface for understanding Genia**.
-
-Agents must:
-
-* Treat chapters as executable learning artifacts
-* Keep them aligned with real implementation
-* Update them alongside any change
-
-When `docs/sicp/` chapters are present, they follow the same executable-learning-artifact discipline and may be validated by automated tests.
-
----
-
-## Chapter Mapping Responsibility
-
-Agents must map features → chapters:
-
-| Feature          | Chapter             |
-| ---------------- | ------------------- |
-| Data / literals  | 01-core-data        |
-| Pattern matching | 02-pattern-matching |
-| Functions        | 03-functions        |
-| Conditionals     | 02-pattern-matching |
-| Lists            | 05-lists            |
-| Recursion        | 06-recursion        |
-| repeat           | 07-repeat           |
-| Protocols        | 08-protocols        |
-| Errors/retries   | 09-errors           |
-| Concurrency      | 10-concurrency      |
-| Host portability | 15-reference-host-and-portability |
-
-If a feature doesn’t fit → update closest chapter or create a new one.
-
----
+- Keep docs, tests, and implementation aligned
+- Update documentation when behavior or examples change
+- Update tests when behavior, wording, or protected semantic facts change
+- Host-only behavior must keep `LANGUAGE CONTRACT:` and `PYTHON REFERENCE HOST:` labels where applicable
+- Do not leave deleted-doc references in tests, tooling, or instruction files
+- No process artifact may live in docs/ after merge.
 
 ## Required Workflow for Any Change
 
-Short required change workflow:
-
 1. update `GENIA_STATE.md`
-2. update docs
-3. update examples
-4. update tests/spec sidecars
+2. update any other affected core docs
+3. update implementation only for already-defined behavior
+4. update or add tests
 5. run the relevant audit/validation
 
-### Step 1: Read First
+---
 
-Agents MUST read:
+# 🚫 HARD CONSTRAINTS
 
-* `GENIA_STATE.md`
-* `GENIA_RULES.md`
-* Relevant chapter(s) in `docs/book/`
+Agents MUST NOT:
 
-For host / portability work, agents MUST also read:
-
-* `docs/host-interop/HOST_INTEROP.md`
-* `docs/host-interop/HOST_PORTING_GUIDE.md`
-* `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
-* `docs/architecture/core-ir-portability.md`
-* `spec/README.md`
-* `spec/manifest.json`
-* `tools/spec_runner/README.md`
-* relevant `hosts/*/README.md` and `hosts/*/AGENTS.md`
+- invent behavior not defined in contract
+- update docs to describe unimplemented features
+- change semantics without updating STATE
+- mix design and implementation in a single step
+- perform repo-wide renames in a single pass
+- redefine language behavior inside host adapters
 
 ---
 
-### Step 2: Design
+# 🔁 RENAME SAFETY RULE
 
-* Keep solution minimal
-* Align with philosophy
-* Avoid introducing syntax unless necessary
+Renames MUST be performed in phases:
 
----
+1. introduce alias
+2. migrate usage incrementally
+3. update tests
+4. remove old name later
 
-### Step 3: Implement
-
-* Small, focused changes
-* Preserve existing behavior
-
----
-
-### Step 4: Update Documentation (MANDATORY)
-
-Agents MUST update:
-
-* `GENIA_STATE.md`
-* Relevant chapter(s)
-* Examples if behavior changed
-* Relevant `docs/cheatsheet/*` pages when public language/runtime/API examples or call shapes changed
-
-For host / portability work, agents MUST also update the relevant shared contract files when they change:
-
-* `docs/host-interop/*`
-* `spec/manifest.json`
-* `tools/spec_runner/README.md`
-* `hosts/*`
+Never:
+- rename everything at once
 
 ---
 
-### Step 5: Validate Truthfulness
+# 🌍 MULTI-HOST RULES
 
-Before finishing, verify:
+Future hosts (Node, Java, Rust, Go, C++):
 
-* Docs match actual parser/runtime behavior
-* No feature is documented unless implemented
-* Partial features are labeled as partial
-* Experimental and stable labels are used consistently when present
-* Example sections include approved classification labels
-* Python-host-only behavior is labeled clearly
-* Cheatsheet entries match implemented behavior and current call shapes
+- MUST follow the shared contract
+- MUST NOT redefine behavior
+- MUST pass spec tests
+- MUST treat Core IR as the portability boundary
 
----
-
-## Documentation Rules (VERY IMPORTANT)
-
-### 1. No Speculation
-
-Docs must NOT describe:
-
-* Planned features as implemented
-* Idealized behavior
-* Future syntax
-
-## Documentation Style (`@doc`)
-
-Public functions must follow the canonical `@doc` style guide in `docs/style/doc-style.md`.
-Keep this file small; put detailed formatting rules there, not here.
-
-Good:
-
-```genia
-@doc "Adds one to x."
-inc(x) -> x + 1
-```
-
-Bad:
-
-```genia
-@doc "This function adds one to x by using the implementation below."
-inc(x) -> x + 1
-```
-
-All public functions MUST follow the `@doc` style guide.
+Python is the reference host.
 
 ---
 
-### 2. Every Feature Must Include
+# 🧠 PROMPT DISCIPLINE
 
-In book chapters:
+Each prompt must perform ONE type of work:
 
-* Minimal example
-* Edge case example
-* Failure case example
+- Contract
+- Design
+- Implementation
+- Test
+- Docs
+- Audit
+- Distillation
 
----
-
-### 3. Implemented vs Missing
-
-Each chapter must include:
-
-* ✅ What is implemented
-* ⚠️ What is partial
-* ❌ What is not implemented
+Never combine responsibilities.
 
 ---
 
-### 4. Examples Must Be Real
+# 🧾 DOCUMENTATION TRUTH RULE
 
-All examples must:
+Docs must:
 
-* Reflect actual syntax
-* Be executable or testable
-* Match current runtime behavior
-
----
-
-## Generated Documentation Sections
-
-Some parts of documentation must be treated as **generated truth**.
-
-Markers:
-
-```
-<!-- GENERATED:section-name:start -->
-...
-<!-- GENERATED:section-name:end -->
-```
-
-Agents:
-
-* MAY update content inside markers
-* MUST NOT remove markers
-* SHOULD regenerate based on code when possible
+- describe ONLY implemented behavior
+- clearly label partial features
+- avoid implying future capabilities
+- match testable behavior
 
 ---
 
-## Code Style Guidelines
+# 🧪 TESTING RULE
 
-### Functions
+Tests must:
 
-```
-fact(0) -> 1 |
-fact(n) -> n * fact(n - 1)
-```
+- validate real behavior
+- cover edge cases
+- fail on regression
 
----
-
-### Pattern Matching
-
-```
-head([x, .._]) -> x
-```
+No vague assertions.
 
 ---
 
-### Naming
+# 🧩 PHILOSOPHY
 
-* Clear, semantic
-* No unnecessary abbreviations
+Genia prioritizes:
 
----
-
-## Optimization Guidelines
-
-Allowed only if:
-
-* Semantics unchanged
-* Simplicity preserved
-* Measurable improvement
-
-Examples:
-
-* TCO
-* Pattern match optimization
-* Small IR improvements
+- minimalism
+- pattern-first design
+- explicit behavior
+- portability via Core IR
+- truth over convenience
 
 ---
 
-## Feature Additions
+# 🔒 FINAL RULE
 
-Agents must:
+If something is unclear, incomplete, or conflicting:
 
-1. Justify necessity
-2. Prove alignment with philosophy
-3. Add examples
-4. Update docs
+STOP and resolve truth before proceeding.
 
----
-
-## Refactoring Rules
-
-Allowed when:
-
-* Improves clarity
-* Enables features
-* Reduces duplication
-
-Must:
-
-* Preserve behavior
-* Update documentation
+Never guess.
 
 ---
 
-## Testing Expectations
+# ✅ SUMMARY
 
-Agents must:
+This repository is:
 
-* Add examples or tests
-* Cover edge cases
-* Validate pattern matching behavior
-* Prefer `tests/cases/` for black-box language-semantic behavior that should stay reusable across hosts
-* Keep host/runtime-substrate checks in host-specific pytest tests when moving them to cases would hide what is actually being validated
-* Split mixed tests when appropriate:
-  * reusable source/result/error behavior goes to semantic cases
-  * parser internals, debug protocols, package-resource loading, thread/race-sensitive behavior, and other host-specific checks stay in pytest
+- the source of truth
+- the implementation
+- the contract
 
----
+It is NOT:
 
-## Codex Prompt Requirements
-
-Every Codex prompt must include:
-
-* Instruction to read:
-
-  * `GENIA_STATE.md`
-  * `GENIA_RULES.md`
-* Instruction to update documentation
-* Clear constraints
-
-For host / portability work, prompts must also include:
-
-* instruction to read/update `docs/host-interop/*`
-* instruction to read/update `spec/manifest.json` and `tools/spec_runner/README.md`
-* instruction to keep `hosts/*`, root docs, and relevant `docs/book/*` content synchronized
+- a tutorial
+- a learning-content repository
+- a teaching resource
 
 ---
 
-### Standard Prompt Template
-
-```
-Read GENIA_STATE.md and GENIA_RULES.md before making changes.
-
-Task:
-[description]
-
-Constraints:
-- Do not introduce unnecessary syntax
-- Preserve pattern matching semantics
-- Keep implementation minimal
-
-After completion:
-- Update GENIA_STATE.md
-- Update relevant docs/book chapters
-- Ensure examples match real behavior
-```
-
----
-
-## Anti-Patterns (STRICTLY FORBIDDEN)
-
-* Introducing `if`
-* Overcomplicating pattern matching
-* Adding unnecessary keywords
-* Ignoring documentation updates
-* Reimplementing existing features
-* Documenting unimplemented behavior
-
----
-
-## Final Rule
-
-If unsure:
-
-👉 Choose the simplest solution that fits the philosophy
-👉 And make sure the book teaches it correctly
+# 🚀 END

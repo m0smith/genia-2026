@@ -1,0 +1,15 @@
+id: file_mode_double_dash
+name: file_mode_double_dash
+category: cli
+description: File mode preserves option-like trailing argv after --.
+input:
+  source: "spec/cli/file_mode_double_dash.genia"
+  file: spec/cli/file_mode_double_dash.genia
+  command: null
+  stdin: ""
+  argv: ["--pretty"]
+  debug_stdio: false
+expected:
+  stdout: '["--pretty"]'
+  stderr: ""
+  exit_code: 0

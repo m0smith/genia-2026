@@ -138,7 +138,7 @@ CLI contract summary (actual behavior):
   - `help("name")` for raw host-backed names such as `print` falls back to a generic bridge note instead of a separate host-doc registry
   - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
-  - official docstring style/templates live in `docs/book/03-functions.md`
+  - official docstring style/templates live in `docs/style/doc-style.md` and the current cheatsheets
 - lambda expressions, including varargs lambdas with `..rest`
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
@@ -164,7 +164,7 @@ CLI contract summary (actual behavior):
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
-  - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
   - includes public Python-host-only ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - includes public Python-host-only process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
@@ -190,10 +190,12 @@ CLI contract summary (actual behavior):
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - Python-host-only process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
-  - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
+  - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`
+  - `pairs(xs, ys)` is a pure Genia prelude function (not host-backed): zips two lists into `[[x, y], ...]` bounded by the shorter input; raises `TypeError` on non-list arguments
   - phase-2 primitive option model runtime:
     - `none` remains a runtime literal/value
     - public helpers such as `some`, `get`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `some?`, `none?`, `or_else`, `or_else_with`, `absence_reason`, and `absence_context` are prelude-backed wrappers over host-backed option primitives
+  - raw callback invocation: `apply_raw(f, args)` — language-contract host primitive; bypasses `none(...)` short-circuit; `args` must be a list
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
   - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`
@@ -214,7 +216,7 @@ CLI contract summary (actual behavior):
   - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
-  - transforms: `lines`, `keep_some_else`, `map`, `filter`, `take`, `rules`
+  - transforms: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
   - the host Flow kernel remains intentionally small:
@@ -222,6 +224,8 @@ CLI contract summary (actual behavior):
     - source/runtime integration
     - sink/materialization boundaries
   - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
+  - `tee(flow)` returns `[left_flow, right_flow]` as a public two-element list pair
+  - `merge(pair)` and `zip(pair)` accept the two-element list pair produced by `tee(flow)`
   - `take`/`head` perform early upstream termination without over-reading one extra item (normal completion)
   - short-circuiting flow consumers and downstream broken-pipe termination stop generator-backed upstream work promptly
   - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors

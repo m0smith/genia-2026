@@ -1,0 +1,19 @@
+id: pipe_mode_map_parse_int
+name: pipe_mode_map_parse_int
+category: cli
+description: Pipe mode accepts per-item parsing when wrapped in a Flow stage.
+input:
+  source: "map(parse_int) |> keep_some |> each(print)"
+  file: null
+  command: "map(parse_int) |> keep_some |> each(print)"
+  stdin: |-
+    10
+    20
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    10
+    20
+  stderr: ""
+  exit_code: 0

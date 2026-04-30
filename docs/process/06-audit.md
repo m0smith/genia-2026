@@ -19,6 +19,31 @@ Verify:
 
 ---
 
+Audit <CHANGE NAME>.
+
+Assume the implementation is wrong until proven correct.
+
+Check:
+- contract vs implementation
+- design vs implementation
+- tests vs contract
+- docs vs actual behavior
+- cross-file consistency
+- accidental scope expansion
+- missing edge cases
+- misleading examples
+
+Output:
+- PASS / PASS WITH ISSUES / FAIL
+- blocking issues
+- minimal fixes
+- recommended follow-up prompt if needed
+
+Do not redesign.
+Do not add features.
+
+---
+
 1. INPUTS (REQUIRED)
 
 ---
@@ -35,15 +60,13 @@ Authoritative:
 
 Relevant (only those touched):
 
-* docs/book/*
 * docs/cheatsheet/*
-* docs/sicp/*
 * docs/host-interop/*
 * spec/*
 
 Pipeline artifacts:
 
-* Spec output
+* Contract output
 * Design output
 * Implementation changes
 * Test changes
@@ -94,13 +117,13 @@ Summary:
 
 ---
 
-4. SPEC ↔ IMPLEMENTATION CHECK
+4. CONTRACT ↔ IMPLEMENTATION CHECK
 
 ---
 
 Verify:
 
-* behavior matches Spec exactly
+* behavior matches Contract exactly
 * no silent additions
 * no missing required behavior
 * edge cases handled as defined
@@ -176,9 +199,7 @@ Verify alignment across:
 * GENIA_RULES.md
 * GENIA_REPL_README.md
 * README.md
-* docs/book/*
 * docs/cheatsheet/*
-* docs/sicp/* (if touched)
 * host/spec docs (if relevant)
 
 ## Drift detected:

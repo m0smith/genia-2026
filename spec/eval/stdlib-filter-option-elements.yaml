@@ -1,0 +1,9 @@
+name: stdlib-filter-option-elements
+category: eval
+input:
+  source: |
+    [some(1), none("x"), some(3)] |> filter((o) -> some?(o))
+expected:
+  stdout: "[some(1), some(3)]\n"
+  stderr: ""
+  exit_code: 0

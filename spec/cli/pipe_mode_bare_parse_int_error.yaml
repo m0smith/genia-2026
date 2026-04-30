@@ -1,0 +1,20 @@
+id: pipe_mode_bare_parse_int_error
+name: pipe_mode_bare_parse_int_error
+category: cli
+description: Pipe mode rejects a bare per-item function stage.
+input:
+  source: "parse_int"
+  file: null
+  command: "parse_int"
+  stdin: |-
+    10
+    20
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: |-
+    Error: pipeline stage 2 failed in Flow mode at parse_int [<pipe>:1]: stage received flow; parse_int expected a string, received flow
+    Pipe mode passes a Flow through each stage, not one item at a time.
+    Did you mean: map(parse_int) or keep_some(parse_int)
+  exit_code: 1

@@ -1,0 +1,15 @@
+id: file_mode_main_argv
+name: file_mode_main_argv
+category: cli
+description: File mode dispatches to main(argv()) when main/1 exists.
+input:
+  source: "spec/cli/file_mode_main_argv.genia"
+  file: "spec/cli/file_mode_main_argv.genia"
+  command: null
+  stdin: ""
+  argv: ["--pretty", "input.txt"]
+  debug_stdio: false
+expected:
+  stdout: '["--pretty", "input.txt"]'
+  stderr: ""
+  exit_code: 0

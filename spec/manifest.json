@@ -99,7 +99,7 @@
     },
     "lower": {
       "input": "source string",
-      "output": "minimal portable Core IR JSON",
+      "output": "normalized minimal portable Core IR JSON",
       "optional_host_local_output": "optional optimized host-local IR JSON payload"
     },
     "eval": {
@@ -134,7 +134,6 @@
     "GENIA_RULES.md",
     "GENIA_REPL_README.md",
     "README.md",
-    "docs/book",
     "docs/host-interop/HOST_INTEROP.md",
     "docs/host-interop/HOST_PORTING_GUIDE.md",
     "docs/host-interop/HOST_CAPABILITY_MATRIX.md",

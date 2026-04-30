@@ -231,6 +231,9 @@ Required constraints:
 - The frozen minimal portable Core IR contract is documented in `docs/architecture/core-ir-portability.md`.
 - AST->IR lowering output must stay inside the frozen portable `Ir*` node families.
 - Host-local post-lowering optimized nodes (for example `IrListTraversalLoop`) are allowed only after host-local optimization passes and are not part of the minimal shared Core IR contract.
+- Named slash access `lhs/name` lowers as `IrBinary(op=SLASH)`; hosts must not introduce a separate `IrSlashAccess` node.
+- `none(reason, ctx)` lowers as `IrOptionNone`; the reason argument is wrapped in `IrQuote` (not evaluated) — bare `none` produces `reason=null`.
+- `IrAssign` appears directly in `IrBlock.exprs`; it is not wrapped in `IrExprStmt`.
 
 ## 9) Operator model
 
@@ -256,16 +259,27 @@ Pipeline invariant:
 - Option propagation is part of pipeline evaluation:
   - if a stage input is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned
   - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
-  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
-  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
-  - if a stage result is `none(...)`, the remaining stages do not execute and that same `none(...)` is returned- pipeline-visible function modes are interpreted as:
-  - Value -> Value
-  - Flow -> Flow
-  - explicit Value <-> Flow bridge
+- when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
+- when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
+
+
+## 10) Observable Spec Contract (Current Implemented Scope)
+
+- Shared semantic-spec cases define observable behavior only for categories and scope implemented and recorded in `GENIA_STATE.md` (currently: `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` are active; focused core stdlib list/Flow coverage for `map`, `filter`, `first`, `last`, and `nth` is included in the eval and flow categories)
+- Current shared eval and cli cases assert:
+  - `stdout`
+  - `stderr`
+  - `exit_code`
+- Current shared cli cases cover deterministic non-interactive file, command, and pipe modes; REPL is not covered by shared executable specs
+- Current shared ir cases compare normalized portable Core IR
+- Determinism in the current shared semantic-spec scope means:
+  - eval and cli asserted outputs must match exactly after newline normalization
+  - the runner must not trim or reinterpret meaningful whitespace
+- Expanding shared semantic-spec coverage beyond that scope requires implementation plus `GENIA_STATE.md` updates first
 - Flow remains explicit:
-  - pipeline evaluation does not create implicit Value↔Flow conversions
+  - pipeline evaluation does not create implicit Value→Flow conversions
   - flow values still come from explicit bridge/stage functions such as `lines`, `tick`, `collect`, and `run`
-- tail position propagates through the final pipeline stage
+  - tail position propagates through the final pipeline stage
 
 
 Slash accessor invariants (phase 1):
@@ -465,6 +479,18 @@ Agents and implementations must preserve structured none metadata:
   - it is registered with `__genia_handles_none__ = True`
 - handlers such as `some?`, `none?`, `unwrap_or`, `or_else`, `map_some`, `flat_map_some`, and all `then_*` helpers are explicitly none-aware
 
+### 9.6.4.1) Explicit raw invocation: `apply_raw`
+
+`apply_raw(f, args)` is a language-contract host primitive that calls `f` with the elements of list `args` as positional arguments without triggering the automatic `none(...)` short-circuit.
+
+- `f` may be any Genia callable (named function, lambda, builtin)
+- `args` must be a Genia list; a non-list second argument raises `TypeError`
+- none values in `args` are delivered to `f` unchanged — the body executes
+- exceptions raised inside `f` propagate through `apply_raw` unchanged
+- the return value of `f` is returned as-is; no coercion or wrapping is applied
+- `apply_raw` itself is subject to ordinary none-propagation: `apply_raw(f, none("x"))` short-circuits before `apply_raw` runs because `none("x")` is a direct argument to `apply_raw`
+- use case: implementing higher-order functions (`reduce`, `map`, `filter`) that must deliver `none(...)` list elements to their callback
+
 ### 9.6.6) Debugging structured absence
 
 Use structured none metadata directly instead of exceptions.
@@ -555,13 +581,22 @@ This protects helper-based and pattern-based Option handling from silent semanti
 ## 11) Host-backed persistent map invariants
 
 - persistent map runtime is shared by both map builtins and map literal/pattern syntax
-- public map helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/map.genia`
-- those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
-- underlying map behavior remains host-backed in this phase; wrappering does not change semantics
+- public map helper names are exposed through `src/genia/std/prelude/map.genia`
+- those helper names are the canonical user-facing API surface for `help(...)` and higher-order use
+- underlying persistent map runtime remains host-backed in this phase; helper exposure does not change semantics
 - required builtins: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`
 - map values are opaque runtime wrappers, not exposed host objects
 - `map_put` / `map_remove` must return new map values (no mutation of prior values)
 - unsupported map input types and unsupported key types must raise clear `TypeError`
+- `pairs(xs, ys)` is a public stdlib helper whose observable contract is independent of the persistent map runtime:
+  - it accepts two list values
+  - it returns a list of two-element list values `[x, y]`
+  - it preserves input order
+  - it stops at the shorter input
+  - it returns `[]` when either input list is empty
+  - first-argument non-list values must raise `TypeError("pairs expected a list as first argument, received <type>")`
+  - second-argument non-list values must raise `TypeError("pairs expected a list as second argument, received <type>")`
+  - it must not return host tuples, Pair values, Flow values, padded rows, or Option wrappers
 
 ## 11.1) Callable-data invariants (phase 1)
 
@@ -648,7 +683,7 @@ This protects helper-based and pattern-based Option handling from silent semanti
   - `first_opt` for `first`
   - `nth_opt` for `nth`
 - compatibility aliases are expected to preserve the same outward behavior as their canonical target
-- migration status labels used in docs/book:
+- migration status labels used in docs:
   - `canonical`: preferred public API for new code
   - `compatibility alias`: thin wrapper/alias kept for migration stability
   - `compatibility surface`: behavior still supported but is no longer the preferred teaching path when a clearer helper exists

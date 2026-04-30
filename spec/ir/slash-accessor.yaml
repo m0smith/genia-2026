@@ -1,0 +1,18 @@
+name: slash-accessor
+category: ir
+description: Named slash access lowers as IrBinary with op SLASH; this is the portable Core IR form
+input:
+  source: |
+    person/name
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrBinary
+        left:
+          node: IrVar
+          name: person
+        op: SLASH
+        right:
+          node: IrVar
+          name: name

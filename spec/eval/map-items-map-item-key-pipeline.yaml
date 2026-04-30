@@ -1,0 +1,10 @@
+name: map-items-map-item-key-pipeline
+category: eval
+input:
+  source: |
+    m = map_put(map_put(map_new(), "a", 1), "b", 2)
+    map_items(m) |> map(map_item_key)
+expected:
+  stdout: "[\"a\", \"b\"]\n"
+  stderr: ""
+  exit_code: 0

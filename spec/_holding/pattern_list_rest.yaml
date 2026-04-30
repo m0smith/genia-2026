@@ -1,0 +1,10 @@
+name: pattern_list_rest
+category: pattern
+input:
+  source: |
+    head([x, .._]) -> x
+    head([10, 20, 30])
+expected:
+  stdout: "10\n"
+  stderr: ""
+  exit_code: 0

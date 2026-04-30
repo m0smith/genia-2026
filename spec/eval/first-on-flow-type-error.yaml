@@ -1,0 +1,10 @@
+name: first-on-flow-type-error
+category: eval
+input:
+  source: |
+    first(tick(3))
+expected:
+  stdout: ""
+  stderr: |
+    Error: No matching case for function first/1 with arguments (<flow tick ready>,)
+  exit_code: 1

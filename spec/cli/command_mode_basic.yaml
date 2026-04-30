@@ -1,0 +1,15 @@
+id: command_mode_basic
+name: command_mode_basic
+category: cli
+description: Command mode executes inline source.
+input:
+  source: "print 123"
+  file: null
+  command: "print 123"
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "123"
+  stderr: ""
+  exit_code: 0

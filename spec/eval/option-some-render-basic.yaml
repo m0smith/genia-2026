@@ -1,0 +1,9 @@
+name: option-some-render-basic
+category: eval
+input:
+  source: |
+    some(1)
+expected:
+  stdout: "some(1)\n"
+  stderr: ""
+  exit_code: 0

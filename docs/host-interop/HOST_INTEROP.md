@@ -5,7 +5,7 @@ This document defines the shared portability contract for Genia hosts.
 
 **LANGUAGE CONTRACT**
 - The shared host contract currently covers these spec categories: parse, ir, eval, cli, flow, error.
-- All observable outputs in those categories are normalized to canonical forms; no Python-specific leakage is allowed in contract behavior.
+- The contract requires host-neutral observable behavior; the current implemented shared semantic-spec suite applies executable comparison for `eval`, `ir`, `cli`, `flow`, and initial `error` behavior in the Python reference host.
 
 **PYTHON REFERENCE HOST**
 - Python is the only implemented host and is the reference host today.
@@ -34,7 +34,8 @@ Current status:
 - Python is the only implemented reference host.
 - The Python host adapter in `hosts/python/` implements the shared host contract for the categories above, using the core runtime in `src/genia/`.
 - Node.js, Java, Rust, Go, and C++ are planned hosts only.
-- `spec/` and `tools/spec_runner/` define shared contract scaffolding; no generic multi-host runner implementation exists yet.
+- `spec/` and `tools/spec_runner/` now include an implemented shared semantic-spec runner plus active `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse` case files.
+- executable shared semantic-spec coverage is currently active for `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse`.
 
 ## Authority Order
 
@@ -46,7 +47,7 @@ When multi-host artifacts disagree, use this order:
 4. shared spec artifacts under `spec/`
 5. `docs/host-interop/*`
 6. `docs/architecture/core-ir-portability.md`
-7. `README.md` and the teaching material under `docs/book/`
+7. `README.md` and relevant core reference docs
 
 Notes:
 
@@ -58,10 +59,23 @@ Notes:
 
 ## Phase 2 Strictness, Normalization, and Error Contract
 
-**The Python reference host enforces strict, deterministic, and unambiguous conformance as of Phase 2.**
+**The Python reference host is the current conformance baseline in this phase.**
 
-- All observable outputs (runtime, CLI, errors) are strictly normalized to canonical forms; no Python-specific leakage is allowed.
-- Error objects include required fields: category, message, and span (when applicable). Categories are strictly separated (parse/runtime/CLI).
+- In the current implemented shared semantic-spec suite:
+  - eval comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - cli comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - flow comparison is limited to normalized `stdout`, normalized `stderr`, and `exit_code`
+  - error comparison is limited to normalized observable `stdout`, normalized observable `stderr`, and `exit_code`
+  - IR comparison is limited to normalized portable Core IR output
+- Error shared specs in this phase assert only the observable runner surface:
+  - `stdout`
+  - `stderr`
+  - `exit_code`
+- Current error shared cases require:
+  - `stdout` exactly `""`
+  - `stderr` exact match
+  - `exit_code` exactly `1`
+- Error phase/category/message remain contract concepts, but they are not structured runner fields in this phase.
 - Malformed, missing, or unsupported cases fail validation with explicit normalized errors; nothing is silently skipped.
 - Output ordering and structure are deterministic and stable.
 - Only the minimal portable Core IR node families are used in lowering and output (see `docs/architecture/core-ir-portability.md`).
@@ -73,11 +87,51 @@ Notes:
 
 ## Host Adapter and Spec Runner Model
 
-The Python host adapter exposes a single `run_case(case: SpecCase) -> SpecResult` entrypoint, dispatching to category-specific execution modules for parse, ir, eval, cli, flow, and error. All results are normalized before comparison.
+The Python host adapter exposes a single `run_case(spec: LoadedSpec) -> ActualResult` entrypoint in `hosts/python/adapter.py`. The shared spec runner routes all category execution through this entrypoint via `tools/spec_runner/executor.py::execute_spec`.
 
-The shared spec runner loads cases, dispatches them to the adapter, and compares normalized results. Failures are reported with full diff and error context.
+**Input contract** — `run_case` accepts a `LoadedSpec`-compatible value with these execution fields:
 
-Normalization ensures no Python-specific value, error, or structure leaks into outputs. Only the minimal portable Core IR node families are used in the contract.
+| Field | Present for |
+|-------|-------------|
+| `category` | all |
+| `source` | all |
+| `stdin` | eval, flow, error, cli |
+| `file` | cli (file mode) |
+| `command` | cli (command and pipe modes) |
+| `argv` | cli |
+| `debug_stdio` | cli |
+
+The adapter must not inspect `expected_*` fields and must not mutate the input.
+
+**Output contract** — `run_case` returns an `ActualResult`-compatible value with fields per category:
+
+| Category | Fields returned |
+|----------|----------------|
+| eval, flow, error | `stdout`, `stderr`, `exit_code` |
+| cli | `stdout`, `stderr`, `exit_code` (trailing newlines stripped) |
+| ir | `ir` (normalized portable Core IR) |
+| parse | `parse` (`{kind: "ok", ast: ...}` or `{kind: "error", type: ..., message: ...}`) |
+
+**Normalization rules:**
+- All text fields: line endings normalized (`\r\n` → `\n`, `\r` → `\n`)
+- CLI only: trailing newlines stripped from `stdout` and `stderr` after line-ending normalization
+- eval, flow, error: trailing newlines are preserved (not stripped)
+- Unsupported categories raise an error immediately; no result is returned
+
+In the current implemented shared semantic-spec system, the shared runner executes `eval`, `ir`, `cli`, `flow`, initial `error`, and initial `parse` cases.
+
+The shared spec runner loads YAML eval, cli, flow, error, IR, and parse cases, executes them against the Python reference host, and compares:
+
+- eval: normalized `stdout`, normalized `stderr`, and `exit_code`
+- cli: normalized `stdout`, normalized `stderr`, and `exit_code`
+- flow: normalized `stdout`, normalized `stderr`, and `exit_code`
+- error: normalized `stdout`, normalized `stderr`, and `exit_code`
+- ir: normalized portable Core IR output
+- parse: normalized AST (exact match for `kind: ok`) or error type exact + message substring (for `kind: error`)
+
+- Error specs reuse eval execution; there is no separate error execution path in the runner.
+- Error `notes` are informational only and are not machine-asserted.
+- Parse specs call the Python host parse adapter directly; no subprocess is invoked.
 
 Other hosts are not implemented yet. "Portable" means: any future host must pass the same contract and normalization rules, but only Python is enforced today.
 
@@ -170,7 +224,7 @@ The cross-host error model should normalize at least:
   - filename
   - line/column when available
 
-Hosts may attach additional native debugging details, but shared tests should assert only the normalized contract.
+Hosts may attach additional native debugging details, but shared tests should assert only the normalized contract. In the current executable `spec/error/` phase, that asserted surface is limited to `stdout`, `stderr`, and `exit_code`; structured phase/category/source-location fields are not machine-asserted yet.
 
 ## Capability Registry Model
 
@@ -194,7 +248,7 @@ Rules:
 - pure user-facing transformation logic should prefer prelude/Genia code
 - adding a public capability or changing capability semantics requires:
   - `GENIA_STATE.md`
-  - relevant `docs/book/*`
+  - relevant core docs/specs
   - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
   - `spec/manifest.json`
 
@@ -323,7 +377,7 @@ Current repository note:
 
 ## Shared Spec Contract
 
-The shared spec suite under `spec/` is the authoritative cross-host validation layer. The Python host adapter currently implements the contract for parse, ir, eval, cli, flow, and error categories. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
+The shared spec suite under `spec/` is the authoritative cross-host validation layer within its implemented scope. The current implemented shared case coverage is `eval` plus `ir` in the Python reference host. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
 
 
 ## Documentation Rule

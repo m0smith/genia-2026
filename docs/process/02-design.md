@@ -1,11 +1,23 @@
 # === GENIA DESIGN PROMPT ===
 
-READ FIRST:
+You are working in the Genia repo.
 
-* Spec output (authoritative for behavior)
+Before doing anything, read:
 * Pre-flight document
-* AGENTS.md
-* GENIA_STATE.md
+- Contract output
+- AGENTS.md
+- GENIA_STATE.md
+- GENIA_RULES.md
+- GENIA_REPL_README.md
+- README.md
+
+GENIA_STATE.md is the final authority when files conflict.
+
+Do not invent implemented behavior.
+Do not expand scope.
+Do not introduce new syntax unless the contract explicitly requires it.
+Keep documentation truthful and current.
+If this change affects behavior, update relevant tests and docs.
 
 ---
 
@@ -21,11 +33,27 @@ Before doing anything:
 
 ---
 
+Create the design for implementing the approved contract for <CHANGE NAME>.
+
+Map the contract to:
+- files/modules to change
+- functions/classes/data structures affected
+- minimal algorithm
+- migration/compatibility concerns
+- test locations
+- docs locations
+
+Do not implement.
+Do not change the contract.
+Do not add behavior not already specified.
+
+---
+
 1. PURPOSE
 
 ---
 
-Translate the Spec into structure.
+Translate the contract into structure.
 
 This defines **how the behavior will be organized**, not what it does.
 
@@ -37,13 +65,13 @@ No code implementation.
 
 ---
 
-Must follow Spec exactly.
+Must follow Contract exactly.
 
 * Do NOT add behavior
 * Do NOT expand scope
 * Do NOT reinterpret requirements
 
-If Spec is unclear → STOP and report
+If Contract is unclear → STOP and report
 
 ---
 
@@ -83,7 +111,7 @@ Define all relevant data:
 * Value templates (refinement, shape, variant, etc.)
 * Message formats (if applicable)
 
-Be explicit and consistent with Spec.
+Be explicit and consistent with Contract.
 
 ---
 
@@ -96,7 +124,7 @@ Define:
 * Function names
 * Parameters
 * Return values
-* Expected behavior (brief, not full spec)
+* Expected behavior (brief, not full contract)
 
 No implementation logic.
 
@@ -124,7 +152,7 @@ Define:
 * How they are propagated
 * What boundaries enforce correctness
 
-Must match Spec failure behavior.
+Must match Contract failure behavior.
 
 ---
 
@@ -147,7 +175,7 @@ Describe interaction with:
 Prepare for test stage:
 
 * What needs to be tested
-* Key invariants (from Spec)
+* Key invariants (from Contract)
 * Edge cases to cover
 
 ---
@@ -176,7 +204,7 @@ Must:
 
 Must NOT:
 
-* introduce new concepts not in Spec
+* introduce new concepts not in Contract
 * depend on host-specific behavior
 * change existing semantics
 
@@ -202,7 +230,7 @@ Is this design:
 
 Before finishing:
 
-* Matches Spec exactly
+* Matches Contract exactly
 * No new behavior introduced
 * Structure is clear and implementable
 * Ready for implementation without ambiguity

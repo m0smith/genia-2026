@@ -1,0 +1,9 @@
+name: stdlib-last-list-empty
+category: eval
+input:
+  source: |
+    last([])
+expected:
+  stdout: "none(\"empty-list\")\n"
+  stderr: ""
+  exit_code: 0

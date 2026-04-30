@@ -1,0 +1,12 @@
+name: flow-tee-zip-list-pairs
+category: flow
+input:
+  source: |
+    stdin |> lines |> tee |> zip |> collect
+  stdin: |
+    a
+    b
+expected:
+  stdout: "[[\"a\", \"a\"], [\"b\", \"b\"]]\n"
+  stderr: ""
+  exit_code: 0

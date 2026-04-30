@@ -1,0 +1,31 @@
+name: funcdef-block-body
+category: ir
+description: Function definition with a block body lowers as IrFuncDef with IrBlock body
+input:
+  source: |
+    greet(name) = {
+      msg = "Hi "
+      msg + name
+    }
+expected:
+  ir:
+    - node: IrFuncDef
+      name: greet
+      params:
+        - name
+      body:
+        node: IrBlock
+        exprs:
+          - node: IrAssign
+            name: msg
+            expr:
+              node: IrLiteral
+              value: "Hi "
+          - node: IrBinary
+            left:
+              node: IrVar
+              name: msg
+            op: PLUS
+            right:
+              node: IrVar
+              name: name

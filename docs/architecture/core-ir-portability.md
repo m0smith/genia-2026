@@ -65,10 +65,47 @@ Hosts must preserve these lowering invariants:
 
 - pipelines lower as one explicit `IrPipeline(source, stages=[...])` node with ordered stages
 - `some(x)` lowers as `IrOptionSome(...)`
-- `none(...)` lowers as `IrOptionNone(...)`
+- `none(...)` lowers as `IrOptionNone(...)` — see field-level detail below
 - `nil` lowers to `IrOptionNone(IrLiteral("nil"), None, ...)`
+- bare `none` lowers to `IrOptionNone` with `reason=null` and `context=null`
+- `none(reason, ctx)` — the reason argument is wrapped in `IrQuote` (not lowered); it is a quoted label, not an evaluated expression
+- named slash access `lhs/name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))` — hosts must not introduce a separate `IrSlashAccess` node
 - case/function patterns lower into explicit `IrPat*` pattern families
+- `none` in pattern position lowers as `IrPatNone(reason=null, context=null)`, distinct from expression-position `IrOptionNone`
+- `IrAssign` is a statement-level node; it appears directly in `IrBlock.exprs` and at the top level of a program — it is not wrapped in `IrExprStmt`
 - lowering output uses only the minimal portable Core IR node families listed above
+
+### Optional Fields in Normalized Form
+
+The following fields are omitted from the normalized portable IR when empty or absent:
+
+| Node | Optional field | Present when |
+|---|---|---|
+| `IrFuncDef` | `rest_param` | varargs function |
+| `IrFuncDef` | `docstring` | function has a docstring |
+| `IrFuncDef` | `annotations` | function has annotations |
+| `IrLambda` | `rest_param` | varargs lambda |
+| `IrAssign` | `annotations` | assignment has annotations |
+| `IrCaseClause` | `guard` | clause has a guard expression |
+| `IrImport` | `alias` | import uses `as` alias |
+
+## Executable Validation
+
+This portability contract is executable in the shared Semantic Spec System for the current Python reference host.
+
+Shared IR cases under `spec/ir/` validate:
+
+- parse
+- lower
+- normalize portable Core IR
+- compare against shared expected IR
+
+Contract rule:
+
+- shared IR validation happens before host-local optimization
+- host-local optimized nodes are rejected from the shared IR path
+
+Python is the only executing host today. This does not imply multi-host IR execution exists.
 
 
 ## Strict Error Normalization and Category Boundaries
@@ -112,6 +149,7 @@ The Python reference host now includes a lightweight guard:
 Shared conformance work should continue to assert:
 
 - lowering snapshots/shape
+- executable shared IR cases at the portable boundary
 - eval behavior after lowering
 - CLI/Flow/error contracts at observable boundaries
 
@@ -121,6 +159,7 @@ Implemented today:
 
 - frozen minimal portable Core IR contract (this document)
 - Python-host guard to detect host-local node leakage before optimization
+- executable shared IR semantic-spec validation in the Python reference host
 - tests that lock the boundary between lowered portable IR and host-local optimized IR
 
 Not implemented today:

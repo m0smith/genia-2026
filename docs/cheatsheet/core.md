@@ -1,3 +1,4 @@
+# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Currently, only the eval category is active for executable shared spec files; other categories are scaffold-only. See GENIA_STATE.md for authoritative status.
 
 # Genia Core Cheatsheet
 
@@ -105,7 +106,7 @@ Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fi
 | --- | --- |
 | source bridge | `lines(source)` |
 | experimental source bridge | `tick()`, `tick(count)` |
-| split / fan-in | `tee(flow)`, `merge(flow1, flow2)`, `zip(flow1, flow2)` |
+| split / fan-in | `tee(flow) -> [left_flow, right_flow]`, `merge(flow1, flow2)`, `merge(pair)`, `zip(flow1, flow2)`, `zip(pair)` |
 | option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |
 | rule stage | `rules(..fns)` |

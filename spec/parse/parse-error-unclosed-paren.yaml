@@ -1,0 +1,10 @@
+name: parse-error-unclosed-paren
+category: parse
+description: Unclosed parenthesis produces a SyntaxError
+input:
+  source: "(1 + 2"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "Expected RPAREN"

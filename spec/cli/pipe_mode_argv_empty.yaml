@@ -1,0 +1,15 @@
+id: pipe_mode_argv_empty
+name: pipe_mode_argv_empty
+category: cli
+description: Pipe mode exposes empty argv when no trailing args are supplied.
+input:
+  source: "each((line) -> print(argv()))"
+  file: null
+  command: "each((line) -> print(argv()))"
+  stdin: "x\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "[]"
+  stderr: ""
+  exit_code: 0

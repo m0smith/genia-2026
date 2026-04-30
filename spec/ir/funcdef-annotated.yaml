@@ -1,0 +1,28 @@
+name: funcdef-annotated
+category: ir
+description: Annotated function definition lowers as IrFuncDef with IrAnnotation entries
+input:
+  source: |
+    @doc "Adds one"
+    inc(x) = x + 1
+expected:
+  ir:
+    - node: IrFuncDef
+      name: inc
+      params:
+        - x
+      body:
+        node: IrBinary
+        left:
+          node: IrVar
+          name: x
+        op: PLUS
+        right:
+          node: IrLiteral
+          value: 1
+      annotations:
+        - node: IrAnnotation
+          name: doc
+          value:
+            node: IrLiteral
+            value: Adds one

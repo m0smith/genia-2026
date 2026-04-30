@@ -1,0 +1,16 @@
+name: flow-single-use-error
+category: flow
+input:
+  source: |
+    x = stdin |> lines
+    x |> collect
+    x |> collect
+  stdin: |
+    a
+    b
+expected:
+  stdout: ""
+  stderr: 'Error: pipeline stage 1 failed in Explicit bridge mode at collect [<command>:3]: stage received flow; Flow has already been consumed
+
+    '
+  exit_code: 1

@@ -1,0 +1,17 @@
+id: pipe_mode_collect_error
+name: pipe_mode_collect_error
+category: cli
+description: Pipe mode rejects a final non-flow result.
+input:
+  source: "collect"
+  file: null
+  command: "collect"
+  stdin: |-
+    10
+    20
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: Pipe mode stage must produce a flow; received list. Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`."
+  exit_code: 1

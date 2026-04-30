@@ -10,7 +10,7 @@ Authority order for this audit:
 1. `GENIA_STATE.md`
 2. verified runtime behavior in `src/genia/interpreter.py`
 3. current tests
-4. docs/book truthfulness updates made in this phase
+4. documentation truthfulness updates made in this phase
 
 ---
 
@@ -132,7 +132,7 @@ This means the host bridge currently preserves “absence happened” but does n
 | [src/genia/interpreter.py](/Users/m0smith/projects/genia-2026/src/genia/interpreter.py) | `eval_binary(...)` and `eval_unary(...)` | Operator type mismatches return `none("type-error", meta)` instead of raising | Yes | Semantic choice that differs from many other wrong-type failures | Decide whether operators stay absence-producing or move to hard errors; document one rule clearly before changing anything |
 | [src/genia/utf8.py](/Users/m0smith/projects/genia-2026/src/genia/utf8.py) | `format_display(...)`, `format_debug(...)` | Raw Python `None` is rendered as `none("nil")`, hiding host leaks | Yes | Tooling-side normalization leak | Useful today, but it can mask accidental raw `None` at the runtime boundary |
 | [src/genia/std/prelude/eval.genia](/Users/m0smith/projects/genia-2026/src/genia/std/prelude/eval.genia) and [src/genia/std/prelude/syntax.genia](/Users/m0smith/projects/genia-2026/src/genia/std/prelude/syntax.genia) | Metacircular/pair helpers still use `nil` as source-level terminator spelling | Yes | Intentional legacy surface | Keep until a dedicated pair/pair-list cleanup; do not confuse this with a separate runtime nil value |
-| [docs/book/02-pattern-matching.md](/Users/m0smith/projects/genia-2026/docs/book/02-pattern-matching.md) | Option matching chapter | Previously implied `nil` was distinct from runtime `none` and used old `none(empty_list)` example | Yes | Documentation drift | Fixed in this audit phase |
+| Current core docs | Earlier documentation implied `nil` was distinct from runtime `none` and used old `none(empty_list)` examples | Yes | Documentation drift | Keep `GENIA_STATE.md` and surviving core docs aligned with normalized `none("nil")` semantics |
 
 ### Notes on internal `return None`
 
@@ -223,7 +223,7 @@ Files:
 
 - [src/genia/interpreter.py](/Users/m0smith/projects/genia-2026/src/genia/interpreter.py)
 - [src/genia/utf8.py](/Users/m0smith/projects/genia-2026/src/genia/utf8.py)
-- entrypoint/harness tests such as [tests/test_pipeline_operator.py](/Users/m0smith/projects/genia-2026/tests/test_pipeline_operator.py), [tests/test_pairs.py](/Users/m0smith/projects/genia-2026/tests/test_pairs.py), [tests/test_sicp_code_blocks.py](/Users/m0smith/projects/genia-2026/tests/test_sicp_code_blocks.py)
+- entrypoint/harness tests such as [tests/test_pipeline_operator.py](/Users/m0smith/projects/genia-2026/tests/test_pipeline_operator.py) and [tests/test_pairs.py](/Users/m0smith/projects/genia-2026/tests/test_pairs.py)
 
 Why before host interop:
 
@@ -235,7 +235,7 @@ Expected test impact:
 
 Doc impact:
 
-- `GENIA_REPL_README.md` and book examples about visible output may need small clarifications.
+- `GENIA_REPL_README.md` and other current core docs about visible output may need small clarifications.
 
 Rollback risk:
 
@@ -283,7 +283,7 @@ Expected test impact:
 
 Doc impact:
 
-- Mostly `GENIA_STATE.md` / `GENIA_RULES.md`; probably not much book churn if the public surface stays the same.
+- Mostly `GENIA_STATE.md` / `GENIA_RULES.md`; probably not much current-doc churn if the public surface stays the same.
 
 Rollback risk:
 
@@ -297,7 +297,6 @@ Files:
 - [GENIA_STATE.md](/Users/m0smith/projects/genia-2026/GENIA_STATE.md)
 - [GENIA_RULES.md](/Users/m0smith/projects/genia-2026/GENIA_RULES.md)
 - [README.md](/Users/m0smith/projects/genia-2026/README.md)
-- [docs/book/03-functions.md](/Users/m0smith/projects/genia-2026/docs/book/03-functions.md)
 - host bridge tests such as [tests/test_python_host_interop.py](/Users/m0smith/projects/genia-2026/tests/test_python_host_interop.py)
 
 Why last:
@@ -311,7 +310,7 @@ Expected test impact:
 
 Doc impact:
 
-- Shared host docs and book examples must be synchronized.
+- Shared host docs and current core docs must be synchronized.
 
 Rollback risk:
 
@@ -339,5 +338,5 @@ That narrower next step will remove the highest-confidence leaks without steppin
 
 ## Tiny preparatory fixes made in this audit phase
 
-- Updated [docs/book/02-pattern-matching.md](/Users/m0smith/projects/genia-2026/docs/book/02-pattern-matching.md) so it no longer teaches `nil` as a separate runtime absence value and no longer uses the stale `none(empty_list)` example.
+- Updated current core documentation so it no longer teaches `nil` as a separate runtime absence value and no longer uses the stale `none(empty_list)` example.
 - Added this audit document only; no runtime semantics were changed in this phase.

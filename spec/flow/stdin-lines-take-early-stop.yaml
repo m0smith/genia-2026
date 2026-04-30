@@ -1,0 +1,15 @@
+name: stdin-lines-take-early-stop
+category: flow
+input:
+  source: |
+    stdin |> lines |> take(2) |> collect
+  stdin: |
+    a
+    b
+    c
+expected:
+  stdout: '["a", "b"]
+
+    '
+  stderr: ""
+  exit_code: 0

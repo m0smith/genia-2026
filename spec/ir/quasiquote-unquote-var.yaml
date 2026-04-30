@@ -1,0 +1,20 @@
+name: quasiquote-unquote-var
+category: ir
+description: quasiquote body with unquote wrapping a variable normalizes as kind:Unquote
+input:
+  source: |
+    quasiquote([a, unquote(x)])
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrQuasiQuote
+        expr:
+          kind: List
+          items:
+            - kind: Var
+              name: a
+            - kind: Unquote
+              expr:
+                kind: Var
+                name: x

@@ -1,0 +1,12 @@
+name: pattern-map-key-binding
+category: eval
+input:
+  source: |
+    get_age(r) =
+      {age: n} -> n |
+      _ -> 0
+    get_age({age: 42, name: "Genia"})
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0

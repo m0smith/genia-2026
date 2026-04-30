@@ -1,0 +1,9 @@
+name: error_division_by_zero
+category: error
+input:
+  source: |
+    1 / 0
+expected:
+  stdout: ""
+  stderr: "RuntimeError: division by zero\n"
+  exit_code: 1

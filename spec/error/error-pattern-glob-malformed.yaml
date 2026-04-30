@@ -1,0 +1,16 @@
+name: error-pattern-glob-malformed
+category: error
+description: SyntaxError when a glob pattern has an unterminated character class
+input:
+  source: |
+    classify(s) =
+      glob"[a-z" -> "ok" |
+      _ -> "no"
+    classify("a")
+expected:
+  stdout: ""
+  stderr: "Error: Invalid glob pattern: unterminated character class\n"
+  exit_code: 1
+notes: |
+  error_phase: parse
+  error_category: SyntaxError

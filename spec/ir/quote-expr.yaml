@@ -1,0 +1,14 @@
+name: quote-expr
+category: ir
+description: quote() special form lowers as IrQuote; inner syntax is normalized as quoted AST not IR
+input:
+  source: |
+    quote(x)
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrQuote
+        expr:
+          kind: Var
+          name: x

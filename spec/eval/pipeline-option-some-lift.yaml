@@ -1,0 +1,9 @@
+name: pipeline-option-some-lift
+category: eval
+input:
+  source: |
+    some(1) |> ((x) -> x + 1)
+expected:
+  stdout: "some(2)\n"
+  stderr: ""
+  exit_code: 0

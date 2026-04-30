@@ -1,0 +1,9 @@
+name: output-print
+category: eval
+input:
+  source: |
+    print("hi")
+expected:
+  stdout: "hi\n\"hi\"\n"
+  stderr: ""
+  exit_code: 0

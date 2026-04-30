@@ -1,3 +1,4 @@
+# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active categories: eval, ir, cli, flow, error, parse (coverage varies by category). See GENIA_STATE.md for authoritative status.
 # Genia Quick Reference
 
 Implemented features only.
@@ -95,6 +96,11 @@ Classification: **Valid** (directly tested)
 Core helpers:
 
 - `lines(source)`
+- `tee(flow)`
+- `merge(flow1, flow2)`
+- `merge(pair)`
+- `zip(flow1, flow2)`
+- `zip(pair)`
 - `keep_some(flow)`
 - `keep_some(stage, flow)`
 - `keep_some_else(stage, dead_handler, flow)`

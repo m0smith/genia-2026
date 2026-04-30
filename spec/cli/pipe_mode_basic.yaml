@@ -1,0 +1,19 @@
+id: pipe_mode_basic
+name: pipe_mode_basic
+category: cli
+description: Pipe mode runs a stage expression over stdin lines.
+input:
+  source: "each(print)"
+  file: null
+  command: "each(print)"
+  stdin: |-
+    alpha
+    beta
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    alpha
+    beta
+  stderr: ""
+  exit_code: 0

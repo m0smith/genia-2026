@@ -1,0 +1,9 @@
+name: arithmetic-basic
+category: eval
+input:
+  source: |
+    40 + 2
+expected:
+  stdout: "42\n"
+  stderr: ""
+  exit_code: 0

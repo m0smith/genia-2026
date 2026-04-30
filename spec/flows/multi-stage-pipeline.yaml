@@ -1,0 +1,11 @@
+name: multi-stage-pipeline
+category: flow
+input:
+  source: |
+    inc(x) -> x + 1
+    double(x) -> x * 2
+    2 |> inc |> double
+expected:
+  stdout: "6\n"
+  stderr: ""
+  exit_code: 0

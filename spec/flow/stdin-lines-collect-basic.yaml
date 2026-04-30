@@ -1,0 +1,14 @@
+name: stdin-lines-collect-basic
+category: flow
+input:
+  source: |
+    stdin |> lines |> collect
+  stdin: |
+    a
+    b
+expected:
+  stdout: '["a", "b"]
+
+    '
+  stderr: ""
+  exit_code: 0

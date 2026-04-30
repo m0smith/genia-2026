@@ -3,15 +3,30 @@
 READ FIRST:
 
 * Pre-flight document
-* Spec output
+* Contract output
 * Design output
 * Implementation changes
 * Test results
-* AGENTS.md
-* GENIA_STATE.md (final authority)
-* GENIA_RULES.md
-* GENIA_REPL_README.md
-* README.md
+
+Do a Genia pre-flight for issue/change: <CHANGE NAME>.
+
+Read the required project docs first.
+
+Output:
+- scope includes
+- scope excludes
+- source of truth files
+- current behavior
+- desired behavior
+- non-goals
+- affected files
+- risk of drift
+- test strategy
+- docs impact
+- go/no-go recommendation
+
+Do not write code.
+Do not redesign the feature.
 
 ---
 
@@ -25,6 +40,27 @@ Before doing anything:
 * Verify branch matches Pre-flight
 * If mismatch → STOP
 * Report active branch before proceeding
+
+---
+
+Sync docs for <CHANGE NAME>.
+
+Read the implementation and tests first.
+
+Update only docs that need to change:
+- GENIA_STATE.md
+- GENIA_RULES.md
+- GENIA_REPL_README.md
+- README.md
+- relevant docs/book or spec docs
+
+Rules:
+- Describe only implemented and tested behavior.
+- Mark partial/experimental behavior honestly.
+- Do not describe future features as current.
+- Examples must match real syntax.
+
+Run docs checks if available.
 
 ---
 
@@ -46,7 +82,7 @@ No new behavior. No speculation.
 
 Update docs ONLY for:
 
-* behavior defined in Spec
+* behavior defined in Contract
 * behavior implemented in code
 * behavior verified by tests
 
@@ -83,9 +119,7 @@ Update as needed:
 
 ### Supporting
 
-* docs/book/*
 * docs/cheatsheet/*
-* docs/sicp/*
 * docs/host-interop/*
 
 ### Examples
@@ -206,7 +240,6 @@ Ensure alignment across:
 * GENIA_RULES.md
 * GENIA_REPL_README.md
 * README.md
-* docs/book/*
 * examples
 
 No contradictions allowed.

@@ -18,3 +18,38 @@ map_remove(map, key) = _map_remove(map, key)
 
 @doc "Return the number of entries in a map."
 map_count(map) = _map_count(map)
+
+@doc "Return the entries in a map."
+map_items(map) = _map_items(map)
+
+@doc "Return the key from a map item `[key, value]` pair."
+map_item_key(mi) = [k, _] -> k
+
+@doc "Return the value from a map item `[key, value]` pair."
+map_item_value(mi) = [_, v] -> v
+
+@doc "Return a list of all keys in a map."
+map_keys(m) = map(map_item_key, map_items(m))
+
+@doc "Return a list of all values in a map."
+map_values(m) = map(map_item_value, map_items(m))
+
+@doc """Zip two lists into a list of `[x, y]` pairs, bounded by the shorter input.
+
+    pairs([1, 2], [3, 4])  # => [[1, 3], [2, 4]]
+    pairs([1], [10, 20])   # => [[1, 10]]
+    pairs([], [1, 2])      # => []
+"""
+pairs(xs, ys) = pairs_checked(xs, ys, pairs_list?(xs), pairs_list?(ys))
+
+pairs_list?(xs) =
+  [] -> true |
+  [_, .._] -> true |
+  _ -> false
+
+pairs_checked(xs, ys, xs_is_list, ys_is_list) =
+  (xs, _, false, _) -> _pairs_error("first", xs) |
+  (_, ys, true, false) -> _pairs_error("second", ys) |
+  ([], _, true, true) -> [] |
+  (_, [], true, true) -> [] |
+  ([x, ..xs], [y, ..ys], true, true) -> [[x, y], ..pairs(xs, ys)]
