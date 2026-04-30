@@ -1,5 +1,6 @@
 import pytest
 
+import genia.interpreter as interpreter_module
 from genia.interpreter import _main
 
 
@@ -19,6 +20,89 @@ class CountingStdin:
         value = self._lines[self._index]
         self._index += 1
         return value
+
+
+def _capture_execution_mode(monkeypatch, argv: list[str]):
+    captured = {}
+
+    def fake_run_execution_mode(mode):
+        captured["mode"] = mode
+        return 77
+
+    monkeypatch.setattr(interpreter_module, "_run_execution_mode", fake_run_execution_mode)
+
+    exit_code = _main(argv)
+
+    assert exit_code == 77
+    return captured["mode"]
+
+
+def _mode_kind(mode) -> str:
+    kind = mode.kind
+    return getattr(kind, "value", kind)
+
+
+def test_execution_mode_selection_records_command_shape(monkeypatch):
+    mode = _capture_execution_mode(
+        monkeypatch,
+        ["-c", "print argv()", "--pretty", "in.txt"],
+    )
+
+    assert _mode_kind(mode) == "command"
+    assert mode.source == "print argv()"
+    assert mode.program_path is None
+    assert mode.script_args == ["--pretty", "in.txt"]
+
+
+def test_execution_mode_selection_records_pipe_shape(monkeypatch):
+    mode = _capture_execution_mode(
+        monkeypatch,
+        ["-p", "each(print)", "--", "--pretty", "in.txt"],
+    )
+
+    assert _mode_kind(mode) == "pipe"
+    assert mode.source == "each(print)"
+    assert mode.program_path is None
+    assert mode.script_args == ["--pretty", "in.txt"]
+
+
+def test_execution_mode_selection_records_file_shape(tmp_path, monkeypatch):
+    program = tmp_path / "program.genia"
+    program.write_text("argv()", encoding="utf-8")
+
+    mode = _capture_execution_mode(
+        monkeypatch,
+        [str(program), "--pretty", "in.txt"],
+    )
+
+    assert _mode_kind(mode) == "file"
+    assert mode.source is None
+    assert mode.program_path == str(program)
+    assert mode.script_args == ["--pretty", "in.txt"]
+
+
+def test_execution_mode_selection_records_repl_shape(monkeypatch):
+    mode = _capture_execution_mode(monkeypatch, [])
+
+    assert _mode_kind(mode) == "repl"
+    assert mode.source is None
+    assert mode.program_path is None
+    assert mode.script_args == []
+
+
+def test_execution_mode_selection_records_debug_stdio_shape(tmp_path, monkeypatch):
+    program = tmp_path / "debug_target.genia"
+    program.write_text("1 + 2", encoding="utf-8")
+
+    mode = _capture_execution_mode(
+        monkeypatch,
+        ["--debug-stdio", str(program)],
+    )
+
+    assert _mode_kind(mode) == "debug_stdio"
+    assert mode.source is None
+    assert mode.program_path == str(program)
+    assert mode.script_args == []
 
 
 def test_command_flag_executes_source_and_prints_result(capsys):
