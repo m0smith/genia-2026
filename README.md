@@ -823,7 +823,7 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
-- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, `run`
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
 - the host Flow kernel stays intentionally small:
   - lazy pull/consume and single-use enforcement
   - source-bound stdin integration
@@ -919,7 +919,7 @@ actor_call(a, 3)
 ### Core
 
 - direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
-- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `rules`, `each`, `collect`, `run`
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
 - public sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
@@ -937,7 +937,7 @@ actor_call(a, 3)
 - compatibility aliases: `first_opt`, `nth_opt`
 - canonical pipeline style now prefers direct absence-aware stages such as `get`, plus explicit chaining helpers like `then_first`, `then_nth`, `then_find`, and `flat_map_some(...)` when the next stage needs the inner value of `some(...)`
 - explicit helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for direct Option values, higher-order code, and non-pipeline composition
-- flow runtime (Phase 1): `lines`, `keep_some_else`, flow-aware `map`/`filter`, `take`, `rules`, `each`, `collect`, `run`, plus prelude `head` aliases and rule helper constructors `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`
+- flow runtime (Phase 1): `lines`, `keep_some_else`, flow-aware `map`/`filter`, `take`, `rules`, `refine`, `each`, `collect`, `run`, plus prelude `head` aliases, `rule_*` compatibility constructors, and preferred `step_*` constructors
 
 ### CLI args / options (runtime layer)
 

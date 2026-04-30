@@ -1,7 +1,7 @@
 """Failing tests for issue #186 — move rule_*/step_* constructors from fn.genia to flow.genia.
 
-Contract:  docs/architecture/issue-186-flow-adjacent-contract.md  (if committed)
-Design:    docs/architecture/issue-186-flow-adjacent-design.md
+Contract:  GENIA_STATE.md Flow-adjacent helper extraction boundary.
+Design:    issue #186 design-phase commit.
 
 The rule/refine result constructors currently live in fn.genia and are registered
 to autoload from std/prelude/fn.genia.  After implementation they must live in

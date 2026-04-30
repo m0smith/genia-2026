@@ -943,9 +943,12 @@ Output sink semantics:
   - `scan`
   - `keep_some_else`
   - `rules`
+  - `refine`
   - `each`
   - `collect`
   - `run`
+  - `rule_*` compatibility constructors
+  - `step_*` preferred constructors
   - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
 - Flow-adjacent helper extraction boundary:
   - pure helpers that operate on ordinary Genia values and return ordinary Genia values may live in prelude
@@ -970,7 +973,7 @@ Output sink semantics:
   - `each(f, flow)` (tap-style stage)
   - `collect(flow)` (materialize to list)
   - `run(flow)` (consume to completion)
-- stdlib rule helpers (autoloaded from `src/genia/std/prelude/fn.genia`):
+- stdlib rule/refine helper constructors (autoloaded from `src/genia/std/prelude/flow.genia`):
   - `rule_skip()`
   - `rule_emit(x)`
   - `rule_emit_many(xs)`
@@ -978,6 +981,13 @@ Output sink semantics:
   - `rule_ctx(ctx)`
   - `rule_halt()`
   - `rule_step(record, ctx, out)`
+  - `step_skip()`
+  - `step_emit(x)`
+  - `step_emit_many(xs)`
+  - `step_set(record)`
+  - `step_ctx(ctx)`
+  - `step_halt()`
+  - `step_step(record, ctx, out)`
 
 Flow semantics:
 
@@ -1582,6 +1592,7 @@ Autoload is keyed by `(name, arity)` and currently registers functions from bund
 
 - `src/genia/std/prelude/list.genia`
 - `src/genia/std/prelude/fn.genia`
+- `src/genia/std/prelude/flow.genia`
 - `src/genia/std/prelude/map.genia`
 - `src/genia/std/prelude/ref.genia`
 - `src/genia/std/prelude/process.genia`
@@ -1620,7 +1631,7 @@ Notable autoloaded functions include:
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
 - randomness: `rng`, `rand`, `rand_int`
-- flow: `lines`, `tee`, `merge`, `zip`, `scan`, `rules`, `each`, `collect`, `run`
+- flow: `lines`, `tee`, `merge`, `zip`, `scan`, `rules`, `refine`, `each`, `collect`, `run`, `rule_*`, `step_*`
 - option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
 - string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
 - syntax: `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
