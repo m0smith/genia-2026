@@ -194,8 +194,6 @@ class TestGetOr:
         assert run_flow('get_or("n", {n: 42}, 0)') == 42
 
     def test_key_present_returns_map(self):
-        result = run_flow('get_or("inner", {inner: {a: 1}}, {})')
-        # result is a map value; check a key inside it
         assert run_flow('get_or("a", get_or("inner", {inner: {a: 1}}, {}), 0)') == 1
 
     def test_key_present_boolean_value(self):
