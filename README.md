@@ -28,7 +28,23 @@ This repository currently provides:
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
 
+## Core Surface Freeze
 
+Genia intentionally keeps a small and consistent core surface.
+
+New features are only accepted if they:
+
+- reinforce value templates (refinement, shapes, variants, contracts)
+- reinforce canonical patterns (pattern matching and flow/pipeline)
+- reduce ambiguity in how programs are written and understood
+
+Features are not added if they:
+- duplicate existing capabilities
+- introduce alternative ways to express the same concept
+- increase surface area without improving clarity
+
+The goal is not to limit the language, but to ensure that it becomes
+simpler, more consistent, and easier to reason about over time.
 
 ## Host Portability & Spec Contract
 

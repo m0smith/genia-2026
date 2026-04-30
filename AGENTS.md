@@ -217,6 +217,57 @@ No exceptions.
 
 ---
 
+--------------------------------
+CORE SURFACE FREEZE
+--------------------------------
+
+Genia maintains a deliberately small and stable core surface.
+
+New features MUST pass all of the following criteria:
+
+1. Reinforce value templates  
+   - The feature strengthens or composes with:
+     - refinement
+     - shapes (open/closed)
+     - variants
+     - contracts
+
+2. Reinforce canonical patterns  
+   - The feature aligns with and strengthens:
+     - pattern matching
+     - flow/pipeline model
+     - value-first design
+   - It must not introduce competing paradigms
+
+3. Reduce ambiguity  
+   - The feature makes programs easier to reason about
+   - It must not introduce multiple equivalent ways to express the same concept
+   - It must not blur existing semantics
+
+--------------------------------
+REJECTION CRITERIA
+--------------------------------
+
+A feature MUST NOT be added if it:
+
+- duplicates existing capability in a different form
+- introduces a second way to express an existing pattern
+- adds syntax without increasing clarity
+- expands the surface area without strengthening the core model
+
+--------------------------------
+INTENT
+--------------------------------
+
+The goal is not to prevent growth.
+
+The goal is to ensure that every addition:
+- sharpens the language
+- reinforces existing mental models
+- makes Genia simpler, not broader
+
+---
+
 ## Cheatsheet Sync Rule (CRITICAL)
 
 `docs/cheatsheet/*` must remain a truthful quick-reference surface for implemented behavior only.
