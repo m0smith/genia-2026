@@ -184,7 +184,7 @@ CLI contract summary (actual behavior):
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - direct I/O/runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
-  - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `each`, `collect`, `run`
+  - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
