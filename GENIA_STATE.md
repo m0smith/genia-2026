@@ -947,6 +947,12 @@ Output sink semantics:
   - `collect`
   - `run`
   - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
+- Flow-adjacent helper extraction boundary:
+  - pure helpers that operate on ordinary Genia values and return ordinary Genia values may live in prelude
+  - stage composition wrappers, curried/immediate dispatch glue, and rule/refine result defaulting are prelude responsibilities when they do not create, consume, or schedule Flow values
+  - validation of rule/refine result maps may live in prelude when it only checks ordinary Genia value shape and preserves the current `invalid-rules-result:` diagnostic surface
+  - extraction to prelude is a no-behavior-change relocation only; it must not introduce new Flow semantics, new implicit Flow/Value conversion, or new host responsibilities
+  - host execution responsibilities remain in the Python Flow kernel and host adapters
 - flow transforms:
   - `lines(flow_or_source)`
   - `tick()` (unbounded integer tick flow starting at `0`)
@@ -991,6 +997,8 @@ Flow semantics:
   - lazy pull-based iteration over upstream sources
   - source-bound stdin integration
   - sink/materialization boundaries such as `each`, `collect`, and `run`
+  - host pull-loop integration, early-close behavior, and generator/resource cleanup
+  - Flow-producing and Flow-consuming primitive boundaries used by prelude wrappers
 - Flow vs Value classification model:
   - the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary
   - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `take`, `drop`, `reverse`
