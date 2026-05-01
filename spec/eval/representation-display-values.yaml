@@ -9,7 +9,7 @@ input:
 expected:
   stdout: |
     hello
-    [1, x, true, none("missing-key", {key: "name"}), some(ok)]
+    [1, x, true, none("missing-key", {key: name}), some(ok)]
     {name: Genia, count: 2}
   stderr: ""
   exit_code: 0

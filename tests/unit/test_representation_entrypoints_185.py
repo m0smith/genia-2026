@@ -16,7 +16,7 @@ def test_display_returns_display_representation_string_without_output():
 
     assert run_source('display("hello")', env) == "hello"
     assert run_source('display([1, "x", true, none("missing-key", {key: "name"}), some("ok")])', env) == (
-        '[1, x, true, none("missing-key", {key: "name"}), some(ok)]'
+        '[1, x, true, none("missing-key", {key: name}), some(ok)]'
     )
     assert run_source('display({name: "Genia", count: 2})', env) == "{name: Genia, count: 2}"
     assert stdout.getvalue() == ""

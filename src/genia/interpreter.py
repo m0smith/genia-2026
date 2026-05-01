@@ -5567,6 +5567,12 @@ def make_global_env(
         stdout_sink.write_text(output + "\n")
         return args[-1] if args else None
 
+    def display_fn(value: Any) -> str:
+        return format_display(value)
+
+    def debug_repr_fn(value: Any) -> str:
+        return format_debug(value)
+
     def _ensure_string(value: Any, name: str) -> str:
         if not isinstance(value, str):
             raise TypeError(f"{name} expected a string, received {_runtime_type_name(value)}")
@@ -7608,6 +7614,8 @@ def make_global_env(
     env.set("_render_grid", render_grid_fn)
     env.set("log", log)
     env.set("print", print_fn)
+    env.set("display", display_fn)
+    env.set("debug_repr", debug_repr_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_source)
     env.set("stdin_keys", stdin_keys_flow)
