@@ -940,6 +940,18 @@ For each incoming flow item `x`:
 
 ## 20) Output sink invariants (host-backed phase 1)
 
+- `display` and `debug_repr` are the first concrete public entry points of the planned Representation System (#166)
+- these names must be treated as Representation System surface area, not standalone utility helpers
+- `display(value)` and `debug_repr(value)` return strings and must not write to `stdout` or `stderr`
+- output operations remain separate:
+  - `print(...)` writes to `stdout`
+  - `log(...)` writes to `stderr`
+  - `write(sink, value)` and `writeln(sink, value)` write to explicit sinks
+- #185 must not define the full Representation System
+- #166 owns the broader representation model, naming boundaries beyond `display` / `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host handling of opaque runtime values
+- #185 must not introduce alternate public representation terminology such as `render`, `view`, or `repr`
+- if #166 later changes the canonical names, #185 behavior must migrate through the alias-safe rename sequence: introduce alias, migrate usage incrementally, update tests, then remove the old name later
+
 - `stdout` and `stderr` are runtime capability values, not parser syntax
 - public sink helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/io.genia`
 - those wrappers are the canonical user-facing API surface for `help(...)` and higher-order use
