@@ -61,6 +61,15 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | recovery | `unwrap_or(default, opt)`, `or_else(opt, fallback)`, `or_else_with(opt, thunk)` |
 | metadata | `absence_reason(opt)`, `absence_context(opt)`, `absence_meta(opt)` |
 
+## Representation
+
+| Helper | Shape |
+| --- | --- |
+| display string | `display(value)` |
+| debug string | `debug_repr(value)` |
+
+`display` and `debug_repr` return strings. They do not write output. They are the first public Representation System entry points; broader representation behavior belongs to #166.
+
 ## List And Sequence Helpers
 
 | Group | Helpers |
@@ -274,6 +283,7 @@ first_or_none(xs) =
 | Helper | Shape |
 | --- | --- |
 | sink output | `write(sink, value)`, `writeln(sink, value)`, `flush(sink)` |
+| representation strings | `display(value)`, `debug_repr(value)` |
 | terminal control | `clear_screen()`, `move_cursor(x, y)` |
 | grid rendering | `render_grid(grid)` |
 

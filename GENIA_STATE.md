@@ -859,8 +859,8 @@ Case placement rules (enforced):
 
 ### Core I/O and utilities
 
-- direct runtime names: `log`, `print`, `input`, `stdin`, `stdin_keys`, `stdout`, `stderr`, `help`
-- #185 contract: `display` and `debug_repr` are the first concrete public entry points of the planned Representation System (#166); they are contracted here for the #185 implementation phase and are not standalone utility terminology
+- direct runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdin_keys`, `stdout`, `stderr`, `help`
+- `display` and `debug_repr` are the first concrete public entry points of the planned Representation System (#166); they are implemented as minimal Representation System surface area and are not standalone utility terminology
 - public sink helpers are thin prelude wrappers in `src/genia/std/prelude/io.genia`:
   - `write`
   - `writeln`
@@ -925,7 +925,7 @@ Output sink semantics:
 - broken pipe on `stderr` is handled best-effort and does not trigger recursive noisy failures
 - on Windows console streams, `clear_screen` and `move_cursor` try to enable virtual terminal processing before writing ANSI control codes
 
-Representation System entry points (#185 contract):
+Representation System entry points (#185, implemented):
 
 - `display(value)` and `debug_repr(value)` are the first concrete public surface of the planned Representation System.
 - They are entry points into that system, not independent formatting utilities.
@@ -935,7 +935,7 @@ Representation System entry points (#185 contract):
 - Neither function mutates runtime state.
 - Neither function changes `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
 - `print(value)`, `log(value)`, `write(sink, value)`, and `writeln(sink, value)` remain output operations; `display(value)` and `debug_repr(value)` return ordinary strings.
-- For ordinary runtime data, the contracted minimal representation behavior is:
+- For ordinary runtime data, the minimal implemented representation behavior is:
   - strings: `display("x")` returns `x`; `debug_repr("x")` returns `"x"` with debug escaping
   - numbers: both return ordinary numeric text
   - booleans: both return `true` or `false`
