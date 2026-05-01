@@ -6381,11 +6381,15 @@ def make_global_env(
                     if not isinstance(result, GeniaMap):
                         raise RuntimeError("_rules_kernel expected a map result")
 
-                    emitted = result.get("emit", [])
+                    if not result.has("emit"):
+                        raise RuntimeError("_rules_kernel expected emit to be present")
+                    emitted = result.get("emit")
                     if not isinstance(emitted, list):
                         raise RuntimeError("_rules_kernel expected emit to be a list")
 
-                    current_ctx = result.get("ctx", current_ctx)
+                    if not result.has("ctx"):
+                        raise RuntimeError("_rules_kernel expected ctx to be present")
+                    current_ctx = result.get("ctx")
 
                     for value in emitted:
                         yield value

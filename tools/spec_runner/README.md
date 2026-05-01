@@ -50,7 +50,7 @@ Verbose mode prints each spec name before execution starts, then prints a timing
 - Eval, CLI, and Flow cases normalize `stdout`/`stderr` line endings before comparison
 - Error cases use the same line-ending normalization as eval before comparison
 - The current CLI suite covers deterministic non-interactive file, command, and pipe cases, including file-mode `main(argv())` dispatch, command-mode final-value execution, valid pipe-mode Flow-stage usage, and current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, and non-Flow final results. REPL is not covered by shared executable specs
-- The current Flow suite covers first-wave observable contract cases only: lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
+- The current Flow suite covers first-wave observable contract cases only: lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, and error propagation via invalid-reducer-on-flow diagnostic
 - The current Error suite covers initial normalized observable contract cases only: `stdout`, `stderr`, and `exit_code`, with `stdout` expected to be `""`, `stderr` matched exactly, and `exit_code` expected to be `1`
 - IR cases normalize portable Core IR before comparison and fail if host-local optimized IR appears in the shared IR path
 - Failures are reported per spec with expected vs actual fields

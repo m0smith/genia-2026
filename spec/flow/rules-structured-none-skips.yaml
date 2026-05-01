@@ -1,0 +1,15 @@
+name: rules-structured-none-skips
+category: flow
+input:
+  source: |
+    stdin
+      |> lines
+      |> rules((row, ctx) -> none("skip", {row: row}))
+      |> collect
+  stdin: |
+    a
+    b
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0

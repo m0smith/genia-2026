@@ -78,7 +78,7 @@ echo
 echo "Next prompt:"
 echo
 cat <<EOF
-Follow docs/process/preflight-prompt.md.
+Follow docs/process/00-preflight.md.
 
 CHANGE NAME: issue #${ISSUE} ${SLUG}
 CHANGE SLUG: ${CHANGE_SLUG}
@@ -89,3 +89,4 @@ ${HANDOFF_DIR}/
 Output pre-flight to:
 ${HANDOFF_DIR}/00-preflight.md
 EOF
+
