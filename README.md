@@ -575,6 +575,7 @@ Current consistency note:
 - Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
+- `display(value)` and `debug_repr(value)` are the first public Representation System entry points: they return display/debug representation strings without writing output
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - Flow, MetaEnv, Ref, and Process handles are runtime values, but they are not plain data in the same sense as numbers/lists/maps
@@ -882,6 +883,7 @@ flush(stdout)
 - `writeln(sink, value)` writes display-formatted output with a trailing newline
 - `flush(sink)` flushes a sink and returns `none("nil")`
 - `print(...)` writes to `stdout`, and `log(...)` writes to `stderr`
+- `display(value)` and `debug_repr(value)` return representation strings and do not write output
 - `input()` remains independent of `stdin`
 - broken pipe on `stdout` output in Unix pipelines is treated as normal downstream termination
 - flow-driven stdout writes use the same quiet broken-pipe path
@@ -935,7 +937,7 @@ actor_call(a, 3)
 
 ### Core
 
-- direct runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+- direct runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdout`, `stderr`, `help`
 - public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
 - public sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
 - special form: `quote(expr)`

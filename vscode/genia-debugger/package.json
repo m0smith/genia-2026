@@ -17,6 +17,20 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "snippets": [
+    {
+      "language": "markdown",
+      "path": "./snippets/genia-prompts.code-snippets"
+    },
+    {
+      "language": "plaintext",
+      "path": "./snippets/genia-prompts.code-snippets"
+    },
+    {
+      "language": "genia",
+      "path": "./snippets/genia-prompts.code-snippets"
+    }
+  ],
     "debuggers": [
       {
         "type": "genia",

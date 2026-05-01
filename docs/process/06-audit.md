@@ -1,21 +1,26 @@
-# === GENIA AUDIT / TRUTH REVIEW ===
+# === GENIA AUDIT PROMPT (LEAN) ===
 
-CHANGE NAME: <short name of change>
+Follow docs/process/llm-system-prompt.md.
+
+Read:
+- approved contract
+- approved design
+- implementation changes
+- test results
+- doc updates
+
+GENIA_STATE.md is final authority.
 
 ---
 
 0. BRANCH CHECK
 
----
-
 Verify:
+- not on main
+- branch matches change
+- no unrelated changes
 
-* Work was NOT done on `main`
-* Branch name matches change
-* Scope matches branch intent
-* No unrelated changes included
-
-## Violations:
+If violated → report
 
 ---
 
@@ -23,186 +28,80 @@ Audit <CHANGE NAME>.
 
 Assume the implementation is wrong until proven correct.
 
-Check:
-- contract vs implementation
-- design vs implementation
-- tests vs contract
-- docs vs actual behavior
-- cross-file consistency
-- accidental scope expansion
-- missing edge cases
-- misleading examples
-
-Output:
-- PASS / PASS WITH ISSUES / FAIL
-- blocking issues
-- minimal fixes
-- recommended follow-up prompt if needed
-
-Do not redesign.
-Do not add features.
+Rules:
+- Do not redesign
+- Do not expand scope
+- Do not introduce new behavior
+- Focus on correctness, consistency, and truth
 
 ---
 
-1. INPUTS (REQUIRED)
-
----
-
-Must read completely before auditing:
-
-Authoritative:
-
-* AGENTS.md
-* GENIA_STATE.md (final authority)
-* GENIA_RULES.md
-* GENIA_REPL_README.md
-* README.md
-
-Relevant (only those touched):
-
-* docs/cheatsheet/*
-* docs/host-interop/*
-* spec/*
-
-Pipeline artifacts:
-
-* Contract output
-* Design output
-* Implementation changes
-* Test changes
-* Docs sync changes
-
-Notes:
-
-* Do not assume anything not present in these files
-* If sources conflict → GENIA_STATE.md wins
-
----
-
-2. SCOPE LOCK
-
----
-
-This audit:
-
-* verifies correctness
-* detects drift
-* enforces truth alignment
-* proposes minimal fixes
-
-This audit does NOT:
-
-* redesign features
-* expand scope
-* introduce new behavior
-* speculate future capabilities
-
-If a fix requires redesign:
-→ mark as FAIL and stop at recommendations
-
----
-
-3. AUDIT SUMMARY
-
----
+1. SUMMARY
 
 Status:
 [ ] PASS
 [ ] PASS WITH ISSUES
 [ ] FAIL
 
-Summary:
-
-* <1–3 sentences, brutally honest>
+Brief summary (1–3 sentences)
 
 ---
 
-4. CONTRACT ↔ IMPLEMENTATION CHECK
-
----
+2. CORE CHECKS
 
 Verify:
 
-* behavior matches Contract exactly
-* no silent additions
-* no missing required behavior
-* edge cases handled as defined
+- Contract ↔ Implementation match
+- Design ↔ Implementation match
+- Tests ↔ Contract coverage
+- Docs ↔ actual behavior
+- No scope expansion
+- Edge cases handled
 
-## Mismatches:
-
----
-
-5. DESIGN ↔ IMPLEMENTATION CHECK
-
----
-
-Verify:
-
-* structure matches Design
-* no architectural drift
-* no extra abstractions added
-
-## Mismatches:
+List mismatches:
+-
 
 ---
 
-6. TEST VALIDITY
+3. TEST QUALITY
+
+Check:
+- covers core behavior, edge cases, failure cases
+- asserts concrete results
+- fails on regression
+
+List gaps or risks:
+-
 
 ---
 
-Verify:
-
-* tests cover:
-
-  * core behavior
-  * edge cases
-  * failure cases
-* tests assert correct outputs (not vague success)
-* tests fail if behavior regresses
-
-## Missing / weak tests:
-
-## False confidence risks:
-
----
-
-7. TRUTHFULNESS REVIEW
-
----
-
-Strict checks:
+4. DOC TRUTH
 
 Docs must:
-
-* describe only implemented behavior
-* clearly label partial features
-* not imply future capabilities
-* match actual runtime behavior
+- reflect implemented behavior only
+- clearly mark partial features
+- avoid implying future capability
 
 Examples must:
+- match real syntax/output
+- not rely on unimplemented features
 
-* run if marked runnable
-* match real syntax/output
-* not rely on unimplemented features
-
-## Violations:
-
----
-
-8. CROSS-FILE CONSISTENCY
+Violations:
+-
 
 ---
 
-Verify alignment across:
+5. CONSISTENCY
 
-* GENIA_STATE.md
-* GENIA_RULES.md
-* GENIA_REPL_README.md
-* README.md
-* docs/cheatsheet/*
-* host/spec docs (if relevant)
+Check alignment across:
+- GENIA_STATE.md
+- GENIA_RULES.md (if relevant)
+- GENIA_REPL_README.md (if relevant)
+- README.md
+- examples
 
-## Drift detected:
+Drift:
+-
 
 Risk level:
 [ ] Low
@@ -211,107 +110,59 @@ Risk level:
 
 ---
 
-9. PHILOSOPHY CHECK
-
----
-
-Does this change:
-
-* preserve minimalism? YES / NO
-* avoid hidden behavior? YES / NO
-* keep semantics out of host? YES / NO
-* align with pattern-matching-first? YES / NO
-
-## Violations:
-
----
-
-10. COMPLEXITY AUDIT
-
----
-
-Is this change:
+6. COMPLEXITY
 
 [ ] Minimal and necessary
 [ ] Slightly complex but justified
 [ ] Over-engineered
 
-## Justification:
-
-## Anything removable:
+Explain only if not minimal.
 
 ---
 
-11. ISSUE LIST
+7. ISSUES
 
----
-
-For each issue:
+For each:
 
 Severity:
-[ ] Critical (incorrect behavior / lies in docs)
-[ ] Major (drift / missing coverage)
-[ ] Minor (clarity / style)
+[ ] Critical
+[ ] Major
+[ ] Minor
 
-* File(s):
-* Problem:
-* Why it matters:
-* Minimal fix:
-
----
-
-12. RECOMMENDED FIXES (ORDERED)
+- File(s):
+- Problem:
+- Why it matters:
+- Minimal fix:
 
 ---
+
+8. RECOMMENDED FIXES
 
 1.
 2.
 3.
 
 Rules:
-
-* smallest possible corrections
-* no redesign
-* no feature creep
+- smallest possible fixes
+- no redesign
 
 ---
 
-13. OPTIONAL PATCH
+9. VALIDATION
+
+Confirm:
+- tests were executed
+- results observed
+- examples verified
+- docs checked against behavior
 
 ---
 
-Apply ONLY if:
-
-* fix is obvious
-* fix is local
-* no redesign required
-
-Otherwise:
-→ skip and defer to next prompt
-
----
-
-14. VALIDATION
-
----
-
-Must confirm:
-
-* tests executed
-* results observed
-* examples verified
-* docs checked against real behavior
-
-## Evidence:
-
----
-
-## FINAL VERDICT
+FINAL VERDICT:
 
 Ready to merge?
 YES / NO
 
 If NO:
-
-* blocking issues:
-* required follow-up prompts:
+- blocking issues
+- follow-up prompts needed

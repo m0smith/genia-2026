@@ -1,0 +1,15 @@
+name: representation-display-values
+category: eval
+input:
+  source: |
+    print(display("hello"))
+    print(display([1, "x", true, none("missing-key", {key: "name"}), some("ok")]))
+    print(display({name: "Genia", count: 2}))
+    none
+expected:
+  stdout: |
+    hello
+    [1, x, true, none("missing-key", {key: name}), some(ok)]
+    {name: Genia, count: 2}
+  stderr: ""
+  exit_code: 0

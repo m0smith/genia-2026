@@ -1,271 +1,121 @@
-# === GENIA TEST PROMPT ===
+# === GENIA TEST PROMPT (LEAN) ===
 
-READ FIRST:
+Follow docs/process/llm-system-prompt.md.
 
-* Pre-flight document
-* Contract output
-* Design output
-* Implementation changes
+Read:
+- pre-flight document
+- approved contract
+- approved design
+- implementation changes
 
-Do a Genia pre-flight for issue/change: <CHANGE NAME>.
-
-Read the required project docs first.
-
-Output:
-- scope includes
-- scope excludes
-- source of truth files
-- current behavior
-- desired behavior
-- non-goals
-- affected files
-- risk of drift
-- test strategy
-- docs impact
-- go/no-go recommendation
-
-Do not write code.
-Do not redesign the feature.
----
-
-0. BRANCH DISCIPLINE
+GENIA_STATE.md is final authority.
 
 ---
 
-Before doing anything:
+0. BRANCH CHECK
 
-* Verify current branch is NOT `main`
-* Verify branch matches Pre-flight
-* If mismatch → STOP
-* Report active branch before proceeding
+- Must NOT be on main
+- Must match pre-flight branch
+- If mismatch → STOP
+- Report active branch before editing
 
 ---
-Write failing tests for <CHANGE NAME> based only on the approved Contract and design.
+
+Test <CHANGE NAME>.
+
+Goal:
+Verify the implementation matches the contract exactly.
 
 Rules:
-- Tests must fail before implementation.
-- Tests must prove the behavior, not just exercise code.
-- Include edge cases and regression cases.
-- Do not change implementation code except test fixtures if needed.
-- Do not introduce behavior not in the Contract.
-
-Run the relevant tests and report the failing evidence.
-
----
-
-1. PURPOSE
+- Do not redesign
+- Do not expand scope
+- Do not add behavior
+- Do not weaken tests to fit implementation
+- Test only contract-defined behavior
+- If contract/design is unclear → STOP and report ambiguity
 
 ---
 
-Verify that the implementation matches the Contract exactly.
+1. TEST PLAN
 
-This step is for tests and verification only.
-
-Do NOT redesign.
-Do NOT add new behavior.
-Do NOT expand scope.
-
----
-
-2. SCOPE LOCK
+Before editing, list:
+- files to add or update
+- behavior groups to test
+- contract invariants covered
 
 ---
 
-Test only what is defined in the Contract and implemented in this change.
+2. REQUIRED COVERAGE
 
-Must cover:
-
-* required behavior
-* invariants
-* edge cases
-* failure cases
-
-Must NOT:
-
-* introduce new semantics
-* test speculative future behavior
-* rewrite implementation during the test step unless a tiny, obvious correction is required and explicitly called out
-
-If the Contract is unclear:
-→ STOP and report the ambiguity
-
----
-
-3. TEST GOALS
-
----
-
-Prove:
-
-* the feature behaves as specified
-* failure behavior matches the Contract
-* edge cases are handled correctly
-* no regression was introduced in nearby behavior
-
----
-
-4. REQUIRED COVERAGE
-
----
-
-Include tests for:
-
-1. Happy path
-
-* normal expected usage
-* representative successful cases
-
-2. Edge cases
-
-* boundary values
-* empty/minimal cases
-* structurally unusual but valid cases
-
-3. Failure cases
-
-* invalid inputs
-* invalid shapes/patterns
-* expected errors or rejection behavior
-
-4. Regression coverage
-
-* nearby existing behavior that could break because of this change
-
----
-
-5. TEST DESIGN RULES
-
----
+Cover:
+- happy path
+- edge cases
+- failure behavior
+- nearby regression risks
 
 Tests must:
-
-* be driven by the Contract invariants
-* assert concrete behavior, not vague success
-* fail when behavior regresses
-* reflect current language/runtime reality
-* avoid duplicating the implementation logic inside the test
+- assert concrete behavior
+- fail on regression
+- reflect current runtime reality
+- avoid duplicating implementation logic
 
 Tests must NOT:
-
-* assume unimplemented capabilities
-* lock in accidental behavior not stated in the Contract
-* rely on host quirks unless explicitly part of the implementation boundary
-
----
-
-6. TEST PLAN
+- assume unimplemented behavior
+- lock in accidental behavior
+- rely on host quirks unless contract-approved
 
 ---
 
-Before writing tests, list:
+3. EXECUTION
 
-* files to add or update
-* what each test group verifies
-* which Contract invariants each group covers
-
----
-
-7. EXECUTION
+Run the smallest useful set:
+- new tests
+- nearest related tests
+- parser/runtime/CLI/example checks if affected
+- full suite if practical
 
 ---
 
-Run the relevant test commands.
-
-Also run any targeted checks needed for:
-
-* parser behavior
-* interpreter/runtime behavior
-* CLI/REPL behavior
-* example execution
-* regression suites near the changed area
-
-Use the smallest set of commands that gives real confidence.
-
----
-
-8. RESULTS
-
----
-
-Report:
-
-* tests added or changed
-* commands run
-* pass/fail results
-* any failures found
-* whether failures are implementation bugs, test bugs, or contract/design ambiguity
-
----
-
-9. FAILURE HANDLING
-
----
+4. FAILURE HANDLING
 
 If tests fail:
+- identify exact cause
+- classify as implementation bug, test bug, or contract/design ambiguity
+- do not silently weaken expectations
+- recommend smallest corrective action
 
-* identify the exact cause
-* do NOT silently weaken the test
-* do NOT change expected behavior unless the Contract was wrong
-* recommend the smallest corrective action
-
-If implementation changes are required:
-
-* state that clearly
-* defer broader fixes to the next implementation pass unless the fix is tiny and obvious
+Only make implementation changes if the fix is tiny, obvious, and explicitly reported.
 
 ---
 
-10. DOC / EXAMPLE VALIDATION INPUT
+5. DOC INPUT
+
+Note anything docs must reflect:
+- caveats
+- partial behavior
+- examples
+- sharp edges
 
 ---
 
-Identify anything the Docs step must reflect, including:
+6. COMPLEXITY CHECK
 
-* partial behavior
-* caveats
-* sharp edges
-* any example updates required
-
----
-
-11. COMPLEXITY CHECK
-
----
-
-Confirm whether the test suite is:
+Mark one:
 
 [ ] Minimal but sufficient
-[ ] Slightly broader than ideal but justified
+[ ] Broader than ideal but justified
 [ ] Too weak
 [ ] Too broad
 
-## Explain:
+Explain only if not minimal/sufficient.
 
 ---
 
-12. FINAL CHECK
-
----
-
-Before finishing, confirm:
-
-* tests cover spec-defined behavior
-* tests cover failure behavior
-* tests cover edge cases
-* tests provide regression protection
-* results are real, not assumed
-* ready for Docs prompt
-
----
-
-## OUTPUT
-
-Provide:
-
+OUTPUT:
 1. Test summary
 2. Files changed
 3. Commands run
 4. Results
-5. Gaps or follow-up needed
+5. Failures/gaps/follow-up
 
 No redesign. No speculation. No scope expansion.

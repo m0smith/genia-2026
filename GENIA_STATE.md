@@ -859,7 +859,8 @@ Case placement rules (enforced):
 
 ### Core I/O and utilities
 
-- direct runtime names: `log`, `print`, `input`, `stdin`, `stdin_keys`, `stdout`, `stderr`, `help`
+- direct runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdin_keys`, `stdout`, `stderr`, `help`
+- `display` and `debug_repr` are the first concrete public entry points of the planned Representation System (#166); they are implemented as minimal Representation System surface area and are not standalone utility terminology
 - public sink helpers are thin prelude wrappers in `src/genia/std/prelude/io.genia`:
   - `write`
   - `writeln`
@@ -923,6 +924,38 @@ Output sink semantics:
 - flow-driven stdout writes use the same quiet broken-pipe path, so Unix pipelines can stop downstream early without noisy Python tracebacks
 - broken pipe on `stderr` is handled best-effort and does not trigger recursive noisy failures
 - on Windows console streams, `clear_screen` and `move_cursor` try to enable virtual terminal processing before writing ANSI control codes
+
+Representation System entry points (#185, implemented):
+
+- `display(value)` and `debug_repr(value)` are the first concrete public surface of the planned Representation System.
+- They are entry points into that system, not independent formatting utilities.
+- `display(value)` returns a string containing the user-facing display representation of `value`.
+- `debug_repr(value)` returns a string containing the debug representation of `value`.
+- Neither function writes to `stdout` or `stderr`.
+- Neither function mutates runtime state.
+- Neither function changes `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
+- `print(value)`, `log(value)`, `write(sink, value)`, and `writeln(sink, value)` remain output operations; `display(value)` and `debug_repr(value)` return ordinary strings.
+- For ordinary runtime data, the minimal implemented representation behavior is:
+  - strings: `display("x")` returns `x`; `debug_repr("x")` returns `"x"` with debug escaping
+  - numbers: both return ordinary numeric text
+  - booleans: both return `true` or `false`
+  - `none`: both return `none("nil")`
+  - `none(reason)` and `none(reason, context)`: both preserve structured absence syntax and context metadata
+  - `some(value)`: both preserve the `some(...)` wrapper and recursively represent the inner value
+  - lists: both return bracketed list syntax and recursively represent items
+  - maps: both return brace map syntax and recursively represent keys and values
+  - pairs / quoted syntax data: both preserve the existing pair-shaped representation syntax
+- Wrong arity fails through the ordinary callable arity/type-error path.
+- Examples:
+  - `display("hello")` evaluates to the string `hello`
+  - `debug_repr("hello")` evaluates to the string `"hello"`
+  - `display(none("missing-key", {key: "name"}))` evaluates to the string `none("missing-key", {key: "name"})`
+  - `debug_repr([some("x"), false])` evaluates to the string `[some("x"), false]`
+- Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
+- #185 does not define the full Representation System.
+- #166 owns the broader representation model, including naming boundaries beyond `display` and `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host treatment of opaque runtime values.
+- #185 must not introduce alternate public representation terms such as `render`, `view`, or `repr`.
+- If #166 later changes the canonical public names, #185 behavior must migrate through the alias-safe rename process: introduce alias, migrate usage incrementally, update tests, then remove the old name in a later phase.
 
 ### Flow runtime (Phase 1)
 

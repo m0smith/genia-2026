@@ -183,7 +183,11 @@ CLI contract summary (actual behavior):
   - bundled prelude `.genia` sources are loaded from package resources rather than checkout-relative paths
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
-  - direct I/O/runtime names: `log`, `print`, `input`, `stdin`, `stdout`, `stderr`, `help`
+  - direct I/O/runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdout`, `stderr`, `help`
+  - first Representation System entry points:
+    - `display(value)` returns the user-facing display representation string without writing output
+    - `debug_repr(value)` returns the debug representation string without writing output
+    - these entry points are minimal #185 surface area; #166 owns the broader Representation System model
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
@@ -313,6 +317,7 @@ CLI contract summary (actual behavior):
 - output routing:
   - `print(...)` writes to `stdout`
   - `log(...)` writes to `stderr`
+  - `display(value)` and `debug_repr(value)` return representation strings and do not write to `stdout` or `stderr`
   - `write(sink, value)` / `writeln(sink, value)` are public prelude-backed wrappers over the host sink bridge
   - `flush(sink)` is a public prelude-backed wrapper over the host sink bridge
   - broken pipe on `stdout` output in command/file execution is treated as normal downstream termination without a Python traceback

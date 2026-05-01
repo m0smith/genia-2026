@@ -1,244 +1,147 @@
-# === GENIA DESIGN PROMPT ===
+# === GENIA DESIGN PROMPT (LEAN) ===
 
-You are working in the Genia repo.
+Follow docs/process/llm-system-prompt.md.
 
-Before doing anything, read:
-* Pre-flight document
-- Contract output
-- AGENTS.md
-- GENIA_STATE.md
-- GENIA_RULES.md
-- GENIA_REPL_README.md
-- README.md
+Prefer concise wording. Avoid repeating contract text unless needed for design clarity.
 
-GENIA_STATE.md is the final authority when files conflict.
+Read:
+- pre-flight document
+- approved contract for this change
 
-Do not invent implemented behavior.
-Do not expand scope.
-Do not introduce new syntax unless the contract explicitly requires it.
-Keep documentation truthful and current.
-If this change affects behavior, update relevant tests and docs.
+GENIA_STATE.md is final authority.
 
 ---
 
-0. BRANCH DISCIPLINE
+0. BRANCH CHECK
+
+- Must NOT be on main
+- Must match pre-flight branch
+- If mismatch → STOP
 
 ---
 
-Before doing anything:
+Create the implementation design for <CHANGE NAME>.
 
-* Verify current branch is NOT `main`
-* Verify branch matches Pre-flight
-* If mismatch → STOP
-
----
-
-Create the design for implementing the approved contract for <CHANGE NAME>.
-
-Map the contract to:
-- files/modules to change
-- functions/classes/data structures affected
-- minimal algorithm
-- migration/compatibility concerns
-- test locations
-- docs locations
-
-Do not implement.
-Do not change the contract.
-Do not add behavior not already specified.
+Rules:
+- Do not implement
+- Do not change the contract
+- Do not add behavior
+- If the contract is unclear → STOP and report the ambiguity
+- Keep the design host-independent unless the contract explicitly says otherwise
 
 ---
 
 1. PURPOSE
 
----
+Translate the contract into implementation structure.
 
-Translate the contract into structure.
-
-This defines **how the behavior will be organized**, not what it does.
-
-No code implementation.
+This defines how the behavior is organized, not new behavior.
 
 ---
 
 2. SCOPE LOCK
 
----
+Contract includes:
+-
 
-Must follow Contract exactly.
+Contract excludes:
+-
 
-* Do NOT add behavior
-* Do NOT expand scope
-* Do NOT reinterpret requirements
-
-If Contract is unclear → STOP and report
+Do not expand scope.
 
 ---
 
-3. ARCHITECTURE OVERVIEW
-
----
+3. ARCHITECTURE
 
 Describe:
-
-* Where this fits in the system
-* What modules/components are involved
-* How data flows through the system
-
----
-
-4. FILE / MODULE CHANGES
+- where this fits
+- affected components
+- data flow
+- integration points
 
 ---
 
-List all changes:
+4. FILE PLAN
 
-* ## New files:
+New files:
+-
 
-* ## Modified files:
+Modified files:
+-
 
-* ## Removed files (if any):
-
----
-
-5. DATA SHAPES
-
----
-
-Define all relevant data:
-
-* Structures
-* Value templates (refinement, shape, variant, etc.)
-* Message formats (if applicable)
-
-Be explicit and consistent with Contract.
+Removed files:
+-
 
 ---
 
-6. FUNCTION / INTERFACE DESIGN
-
----
+5. DATA / INTERFACE DESIGN
 
 Define:
-
-* Function names
-* Parameters
-* Return values
-* Expected behavior (brief, not full contract)
+- relevant data shapes
+- value templates, variants, message formats if applicable
+- functions/classes/interfaces affected
+- parameters and return values
 
 No implementation logic.
 
 ---
 
-7. CONTROL FLOW
-
----
+6. CONTROL / ERROR FLOW
 
 Describe:
+- execution flow
+- pattern matching or decision structure
+- where errors are detected
+- how errors propagate
+- boundaries that enforce correctness
 
-* Execution flow
-* Key decision points
-* Pattern matching structure (if used)
-
----
-
-8. ERROR HANDLING DESIGN
-
----
-
-Define:
-
-* Where errors are detected
-* How they are propagated
-* What boundaries enforce correctness
-
-Must match Contract failure behavior.
+Must match contract failure behavior.
 
 ---
 
-9. INTEGRATION POINTS
+7. TEST PLAN INPUT
+
+List:
+- invariants to test
+- edge cases
+- regression risks
+- test files/locations
 
 ---
 
-Describe interaction with:
+8. DOC IMPACT
 
-* existing modules
-* runtime/interpreter
-* CLI / REPL / flow system (if applicable)
-
----
-
-10. TEST DESIGN INPUT
-
----
-
-Prepare for test stage:
-
-* What needs to be tested
-* Key invariants (from Contract)
-* Edge cases to cover
+Identify required updates:
+- GENIA_STATE.md
+- GENIA_RULES.md if needed
+- GENIA_REPL_README.md if needed
+- README.md if needed
+- docs/book or other docs if needed
 
 ---
 
-11. DOC IMPACT
+9. COMPLEXITY CHECK
 
----
-
-Identify:
-
-* GENIA_STATE.md changes
-* Docs/book sections affected
-* Examples that must be added/updated
-
----
-
-12. CONSTRAINTS
-
----
-
-Must:
-
-* follow existing patterns
-* preserve minimalism
-* avoid unnecessary abstraction
-
-Must NOT:
-
-* introduce new concepts not in Contract
-* depend on host-specific behavior
-* change existing semantics
-
----
-
-13. COMPLEXITY CHECK
-
----
-
-Is this design:
+Mark one:
 
 [ ] Minimal
 [ ] Necessary
 [ ] Over-engineered
 
-## Explain:
+Explain briefly.
 
 ---
 
-14. FINAL CHECK
+10. FINAL CHECK
+
+Confirm:
+- matches contract exactly
+- no new behavior
+- no host-specific assumptions
+- ready for implementation
 
 ---
 
-Before finishing:
-
-* Matches Contract exactly
-* No new behavior introduced
-* Structure is clear and implementable
-* Ready for implementation without ambiguity
-
----
-
-## OUTPUT
-
-Produce a clean, structured design document.
-
+OUTPUT:
+Clean structured design only.
 No code. No speculation. No scope expansion.
