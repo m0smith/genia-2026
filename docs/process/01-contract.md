@@ -1,220 +1,118 @@
-# === GENIA SPEC PROMPT ===
+# === GENIA SPEC PROMPT (LEAN) ===
 
-You are working in the Genia repo.
+Follow docs/process/llm-system-prompt.md  
+Read the pre-flight document for this change.
 
-Before doing anything, read:
-* Pre-flight document
-- AGENTS.md
-- GENIA_STATE.md
-- GENIA_RULES.md
-- GENIA_REPL_README.md
-- README.md
-
-GENIA_STATE.md is the final authority when files conflict.
-
-Do not invent implemented behavior.
-Do not expand scope.
-Do not introduce new syntax unless the contract explicitly requires it.
-Keep documentation truthful and current.
-If this change affects behavior, update relevant tests and docs.
-
-Then read:
-
-* Pre-flight document for this change
+GENIA_STATE.md is the final authority.
 
 ---
 
-0. BRANCH DISCIPLINE
+0. BRANCH CHECK
 
----
-
-Before doing anything:
-
-* Verify current branch is NOT `main`
-* Verify branch matches Pre-flight
-* If mismatch → STOP
+- Must NOT be on main
+- Must match pre-flight branch
+- If mismatch → STOP
 
 ---
 
 Write the implementation-ready contract for <CHANGE NAME>.
 
-Assume the parser/current foundation is correct unless the issue explicitly says otherwise.
+Rules:
+- No implementation
+- No scope expansion
+- No new behavior beyond pre-flight
+- Must remain host-independent
 
-The contract must define:
-- exact user-visible behavior
-- examples
-- edge cases
-- errors
-- what is explicitly not included
-- compatibility with existing Genia behavior
-
-Do not write implementation code.
-Do not propose extra features.
-Do not change scope from the pre-flight.
-
---- 
-
-1. PURPOSE
+If it is not written here, it does not exist.
 
 ---
 
+1. PURPOSE
+
 Define the exact behavior of the change.
-
-This is the **source of truth** for all later steps.
-
-No implementation allowed.
 
 ---
 
 2. SCOPE (FROM PRE-FLIGHT)
 
----
+Included:
+- 
 
-Respect scope lock:
-
-## Included:
-
-## Excluded:
-
-Do NOT expand scope.
+Excluded:
+- 
 
 ---
 
-3. BEHAVIOR DEFINITION
+3. BEHAVIOR
 
----
-
-Describe:
-
-* What the feature does
-* Inputs
-* Outputs
-* State changes (if any)
+Define precisely:
+- inputs
+- outputs
+- state changes (if any)
 
 ---
 
 4. SEMANTICS
 
+Define:
+- evaluation behavior
+- matching behavior (if applicable)
+- edge cases
+- error behavior
+
 ---
+
+5. FAILURE
 
 Define:
-
-* Evaluation behavior
-* Matching behavior (if applicable)
-* Error behavior
-* Edge case handling
-
-Be explicit.
-
----
-
-5. FAILURE BEHAVIOR
-
----
-
-Define:
-
-* What causes failure
-* What error is produced
-* What does NOT happen on failure
+- what causes failure
+- resulting error
+- what does NOT happen
 
 ---
 
 6. INVARIANTS
 
----
-
 List truths that must always hold:
-
-*
-*
-
-These drive tests later.
+- 
+- 
 
 ---
 
 7. EXAMPLES
 
----
-
 Minimal:
-
-*
+- 
 
 Real:
-
-*
-
-Must be consistent with current language behavior.
+- 
 
 ---
 
 8. NON-GOALS
 
----
-
-Explicitly state what this does NOT do:
-
-*
-*
+Explicitly NOT included:
+- 
+- 
 
 ---
 
-9. IMPLEMENTATION BOUNDARY
+9. DOC NOTES
+
+- How GENIA_STATE.md should describe this
+- Mark as: experimental / partial / stable
 
 ---
 
-This spec MUST:
+10. FINAL CHECK
 
-* describe behavior independent of host
-* NOT assume Python specifics
-* remain portable
-
----
-
-10. DOC REQUIREMENTS
+- Precise and testable
+- No implementation details
+- No scope expansion
+- Consistent with GENIA_STATE.md
 
 ---
 
-State how this must appear in docs:
-
-* GENIA_STATE.md wording
-* Whether marked experimental/partial/stable
-* Any warnings needed
-
----
-
-11. COMPLEXITY CHECK
-
----
-
-Is this:
-
-[ ] Minimal
-[ ] Necessary
-[ ] Overly complex
-
-## Explain:
-
----
-
-12. FINAL CHECK
-
----
-
-Before finishing:
-
-* No implementation details included
-* No scope expansion
-* Consistent with GENIA_STATE.md
-* Behavior is precise and testable
-
----
-
-## OUTPUT
-
-Produce a clean, structured contract.
-
-No code. No design. No implementation.
-
-If it is not written here, it does not exist.
+OUTPUT:
+Clean structured contract only.
+Prefer minimal wording. Avoid repetition.

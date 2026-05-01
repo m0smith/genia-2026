@@ -1,0 +1,144 @@
+{
+  "Genia Preflight Prompt": {
+    "prefix": "genia.pre",
+    "body": [
+      "Follow docs/process/preflight-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}"
+    ],
+    "description": "Genia pre-flight prompt"
+  },
+
+  "Genia Contract Prompt": {
+    "prefix": "genia.contract",
+    "body": [
+      "Follow docs/process/contract-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}"
+    ],
+    "description": "Genia contract/spec prompt"
+  },
+
+  "Genia Spec Prompt": {
+    "prefix": "genia.spec",
+    "body": [
+      "Follow docs/process/contract-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}"
+    ],
+    "description": "Alias for Genia contract/spec prompt"
+  },
+
+  "Genia Design Prompt": {
+    "prefix": "genia.design",
+    "body": [
+      "Follow docs/process/design-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}"
+    ],
+    "description": "Genia design prompt"
+  },
+
+  "Genia Failing Test Prompt": {
+    "prefix": "genia.test.fail",
+    "body": [
+      "Follow docs/process/failing-test-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "",
+      "Work ONLY on:",
+      "- ${2:tests/test_file.py}",
+      "",
+      "If additional files are required → STOP and report."
+    ],
+    "description": "Genia TDD failing test prompt"
+  },
+
+  "Genia Test Verification Prompt": {
+    "prefix": "genia.test",
+    "body": [
+      "Follow docs/process/test-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "",
+      "Work ONLY on:",
+      "- ${2:tests/test_file.py}",
+      "",
+      "If additional files are required → STOP and report."
+    ],
+    "description": "Genia verification test prompt"
+  },
+
+  "Genia Implementation Prompt": {
+    "prefix": "genia.impl",
+    "body": [
+      "Follow docs/process/implementation-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "",
+      "Work ONLY on:",
+      "- ${2:src/genia/file.py}",
+      "- ${3:tests/test_file.py}",
+      "",
+      "If additional files are required → STOP and report."
+    ],
+    "description": "Genia implementation prompt"
+  },
+
+  "Genia Doc Sync Prompt": {
+    "prefix": "genia.docs",
+    "body": [
+      "Follow docs/process/doc-sync-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "",
+      "Work ONLY on:",
+      "- ${2:GENIA_STATE.md}",
+      "- ${3:GENIA_RULES.md}",
+      "- ${4:README.md}",
+      "",
+      "If additional files are required → STOP and report."
+    ],
+    "description": "Genia documentation sync prompt"
+  },
+
+  "Genia Audit Prompt": {
+    "prefix": "genia.audit",
+    "body": [
+      "Follow docs/process/audit-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "",
+      "Work ONLY on changed files and related tests/docs."
+    ],
+    "description": "Genia audit/truth review prompt"
+  },
+
+  "Genia Distillation Prompt": {
+    "prefix": "genia.distill",
+    "body": [
+      "Follow docs/process/distillation-prompt.md",
+      "",
+      "Distill ONLY these files:",
+      "- ${1:docs/design/a.md}",
+      "- ${2:docs/design/b.md}",
+      "- ${3:docs/design/c.md}",
+      "",
+      "Do not consider any files outside this list."
+    ],
+    "description": "Genia doc distillation prompt"
+  },
+
+  "Genia Commit Prompt": {
+    "prefix": "genia.commit",
+    "body": [
+      "Follow docs/process/commit-prompt.md",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "",
+      "Prepare only the commit/PR summary.",
+      "Do not modify files."
+    ],
+    "description": "Genia commit/PR summary prompt"
+  }
+}

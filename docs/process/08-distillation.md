@@ -1,49 +1,67 @@
-You are performing Doc Distillation for Genia.
+# === GENIA DOC DISTILLATION PROMPT (LEAN) ===
+
+Follow docs/process/llm-system-prompt.md.
+
+Bias toward DELETE unless content is clearly canonical.
 
 Target:
 <files or folder>
 
-Before doing anything, read:
-- AGENTS.md
-- GENIA_STATE.md (final authority)
-- GENIA_RULES.md
-- README.md
+GENIA_STATE.md is final authority.
 
 Goal:
-Ensure only minimal, truthful, canonical documentation remains.
+Reduce documentation to minimal, truthful, canonical form.
 
-Steps:
+---
 
-1. Classify each file:
-   - KEEP (authoritative)
-   - EXTRACT (contains useful content)
-   - DELETE (redundant, outdated, or process artifact)
+1. CLASSIFY FILES
 
-2. Extract ONLY:
-   - invariants
-   - data models
-   - contracts
-   - patterns
+For each file:
+- KEEP (authoritative)
+- EXTRACT (contains useful content)
+- DELETE (redundant, outdated, or process artifact)
 
-3. Discard:
-   - phase language
-   - historical comparisons
-   - speculative content
-   - duplicated explanations
+---
 
-4. Map extracted content to:
-   - GENIA_STATE.md
-   - GENIA_RULES.md
-   - docs/design/*
-   - README.md
+2. EXTRACT
 
-5. Produce:
-   - extracted content (cleaned)
-   - destination for each piece
-   - files to delete
+Keep ONLY:
+- invariants
+- data models
+- contracts
+- patterns
+
+Discard:
+- phase/process language
+- historical comparisons
+- speculative content
+- duplicated explanations
+
+---
+
+3. MAP CONTENT
+
+Map extracted content to:
+- GENIA_STATE.md
+- GENIA_RULES.md
+- docs/design/*
+- README.md
+
+---
+
+4. OUTPUT
+
+Provide:
+
+1. File classification list
+2. Extracted content (clean, minimal)
+3. Destination for each extracted piece
+4. Files safe to delete
+
+---
 
 Rules:
-- GENIA_STATE.md is the final authority
 - Do not invent behavior
 - Do not preserve process artifacts
-- Prefer minimalism
+- Prefer minimal wording
+- If content conflicts → GENIA_STATE.md wins
