@@ -819,6 +819,7 @@ When changing syntax/semantics/runtime behavior, update together:
   - source-bound stdin/runtime integration
   - sink/materialization boundaries
 - language-visible `rules` orchestration, defaulting, and most contract validation now live in prelude/Genia code
+- the host rules kernel consumes normalized rule output from prelude and must not provide user-visible rule-result defaults itself
 - phase-1 flow builtins:
   - sources/transforms: `lines`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
@@ -912,6 +913,7 @@ Rule-contract violations raise runtime errors prefixed with `invalid-rules-resul
 * `record` is the current item being transformed
 * `ctx` is persistent rule-processing state across items
 * in this phase, the host runtime keeps the lazy Flow kernel while `src/genia/std/prelude/flow.genia` handles most user-visible rule semantics
+* the host rules kernel expects normalized prelude output with `emit` and `ctx` already present
 
 ## `keep_some_else(stage, dead_handler[, flow])`
 

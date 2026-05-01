@@ -1,0 +1,21 @@
+name: rules-defaulting-and-context
+category: flow
+input:
+  source: |
+    count_seen(record, ctx) = {
+      seen = unwrap_or(0, get("seen", ctx)) + 1
+      some({ctx: {seen: seen}, emit: [seen]})
+    }
+
+    stdin
+      |> lines
+      |> rules((row, ctx) -> some({}), count_seen)
+      |> collect
+  stdin: |
+    a
+    b
+    c
+expected:
+  stdout: "[1, 2, 3]\n"
+  stderr: ""
+  exit_code: 0

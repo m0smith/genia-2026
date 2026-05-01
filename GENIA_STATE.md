@@ -54,7 +54,7 @@ Scaffolded or planned, not implemented as hosts:
 
 - Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
 - Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
-- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, and error propagation via invalid-reducer-on-flow diagnostic. Advanced Flow behavior is not covered by shared semantic specs in this phase.
+- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, selected rule result defaulting/no-effect behavior, and error propagation via invalid-reducer-on-flow diagnostic. Advanced Flow behavior is not covered by shared semantic specs in this phase.
 - IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, `lhs/name` → `IrBinary(op=SLASH)`, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
 
 **Explicit limitations:**
@@ -128,7 +128,7 @@ PYTHON REFERENCE HOST:
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
-- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); and focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs, including a composed `map`/`filter` chain case.
+- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); and focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs, including a composed `map`/`filter` chain case.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
 - CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, and current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results. REPL mode is not included in shared executable spec coverage.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
@@ -990,6 +990,7 @@ Representation System entry points (#185, implemented):
   - `rule_*` compatibility constructors
   - `step_*` preferred constructors
   - `rules` orchestration, defaulting, and contract validation now primarily live in prelude/Genia code
+  - the host rules kernel consumes normalized rule output from prelude and does not provide rule-result defaults itself
 - Flow-adjacent helper extraction boundary:
   - pure helpers that operate on ordinary Genia values and return ordinary Genia values may live in prelude
   - stage composition wrappers, curried/immediate dispatch glue, and rule/refine result defaulting are prelude responsibilities when they do not create, consume, or schedule Flow values
@@ -1073,6 +1074,7 @@ Flow semantics:
   - `rules()` is the identity stage
   - contract violations raise `RuntimeError` messages prefixed with `invalid-rules-result:`
   - rule orchestration, defaulting of omitted fields, and most contract checking are implemented in `src/genia/std/prelude/flow.genia` in this phase
+  - the host rules kernel expects the prelude layer to pass normalized rule output with `emit` and `ctx` fields already present
 - `keep_some_else` semantics:
   - it is an explicit Flow-stage helper for Option-returning per-item stages
   - for each input item `x`, it evaluates `stage(x)`

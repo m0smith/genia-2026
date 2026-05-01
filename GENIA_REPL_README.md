@@ -238,6 +238,7 @@ CLI contract summary (actual behavior):
     - running `ctx` starts as `{}` and persists across input items
     - `rules()` is the identity stage
     - orchestration/defaulting/most contract validation now live in `src/genia/std/prelude/flow.genia`
+    - the host rules kernel consumes normalized rule output from prelude rather than providing user-visible defaults itself
     - contract violations raise runtime errors prefixed with `invalid-rules-result:`
   - `keep_some_else(stage, dead_handler, flow)` is explicit dead-letter routing for Option-returning per-item stages:
     - `stage` receives the original raw item
