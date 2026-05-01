@@ -50,8 +50,10 @@ if __package__ in (None, ""):
         utf8_byte_length,
     )
     from genia.docstrings import render_markdown_docstring
+    from genia.errors import GeniaQuietBrokenPipe, _format_pipe_mode_error, format_exception_text
 else:
     from .docstrings import render_markdown_docstring
+    from .errors import GeniaQuietBrokenPipe, _format_pipe_mode_error, format_exception_text
     from .utf8 import (
         format_debug,
         format_display,
@@ -3214,9 +3216,7 @@ class GeniaCell:
         self._thread.start()
 
     def _error_text(self, exc: BaseException) -> str:
-        message = str(exc).strip()
-        name = type(exc).__name__
-        return f"{name}: {message}" if message else name
+        return format_exception_text(exc)
 
     def _commit_actions(self, actions: list[tuple[str, Any, Any]]) -> None:
         for kind, first, second in actions:
@@ -4108,9 +4108,7 @@ class GeniaProcess:
         self._thread.start()
 
     def _error_text(self, exc: BaseException) -> str:
-        message = str(exc).strip()
-        name = type(exc).__name__
-        return f"{name}: {message}" if message else name
+        return format_exception_text(exc)
 
     def _run(self) -> None:
         while True:
@@ -4163,10 +4161,6 @@ class GeniaZipEntry:
 
     def __repr__(self) -> str:
         return f"<zip-entry {self.name!r} {len(self.data.value)}>"
-
-
-class GeniaQuietBrokenPipe(Exception):
-    pass
 
 
 class GeniaFlow:
@@ -8358,66 +8352,6 @@ def _validate_pipe_mode_expr(source: str) -> None:
 def _wrap_pipe_mode_expr(source: str) -> str:
     _validate_pipe_mode_expr(source)
     return f"stdin |> lines |> {source} |> run"
-
-
-def _extract_pipe_stage_name(message: str) -> str | None:
-    """Extract the stage expression name from a pipeline error message."""
-    match = re.search(r" at (.+?) \[", message)
-    return match.group(1) if match else None
-
-
-def _format_pipe_mode_error(exc: Exception) -> str:
-    message = str(exc)
-    if message == "-p/--pipe expects a single stage expression":
-        return "Pipe mode expression must be a single stage expression, not a full program"
-    if message == "-p/--pipe stage expression must omit stdin; it is added automatically":
-        return "Do not use stdin in pipe mode; stdin is provided automatically"
-    if message == "-p/--pipe stage expression must omit run; it is added automatically":
-        return "Do not use run in pipe mode; run is implicit in pipe mode"
-    if "Flow has already been consumed" in message:
-        return "Flow values are single-use and cannot be reused after consumption"
-    if "run expected a flow, received " in message:
-        received = message.rsplit("received ", 1)[1]
-        detail = f"Pipe mode stage must produce a flow; received {received}"
-        if received in {"int", "float", "bool", "string", "list", "map"}:
-            return f"{detail}. Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`."
-        if received in {"some", "none"}:
-            return (
-                f"{detail}. Pipe mode expects a Flow stage, not a final Option value. "
-                "Use keep_some(...), keep_some_else(...), per-item unwrap_or(...), or switch to -c/--command."
-            )
-        return detail
-    if "stage received flow;" in message:
-        stage_name = _extract_pipe_stage_name(message)
-        # Per-item function receiving a flow directly (e.g. parse_int gets flow instead of string)
-        if re.search(r"expected a (string|number|integer|bool), received flow\b", message):
-            parts = [message]
-            parts.append("Pipe mode passes a Flow through each stage, not one item at a time.")
-            if stage_name:
-                parts.append(f"Did you mean: map({stage_name}) or keep_some({stage_name})")
-            else:
-                parts.append("Wrap per-item functions with map(...) or keep_some(...).")
-            return "\n".join(parts)
-        # Reducer receiving a flow directly (e.g. sum expects a list)
-        if "expected a list, received flow" in message:
-            parts = [message]
-            parts.append("Pipe mode passes a Flow, not a materialized list.")
-            if stage_name:
-                parts.append(f"Did you mean: collect |> {stage_name}")
-            parts.append("Or use -c/--command for the full pipeline.")
-            return "\n".join(parts)
-        # Generic fallback for other flow-stage mismatches
-        return (
-            f"{message}. Pipe mode stages receive a Flow, not one row at a time. "
-            "Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...); "
-            "use -c/--command for reducers such as sum or count."
-        )
-    if "received some" in message:
-        return (
-            f"{message}. "
-            "If this stage is intentionally Option-aware, keep explicit helpers such as flat_map_some(...), map_some(...), or then_* in place."
-        )
-    return message
 
 
 def _emit_result(env: Env, value: Any) -> None:
