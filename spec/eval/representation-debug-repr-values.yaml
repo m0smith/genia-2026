@@ -1,0 +1,15 @@
+name: representation-debug-repr-values
+category: eval
+input:
+  source: |
+    print(debug_repr("line\n\t\"q\""))
+    print(debug_repr([some("x"), false]))
+    print(debug_repr({key: "value"}))
+    none
+expected:
+  stdout: |
+    "line\n\t\"q\""
+    [some("x"), false]
+    {key: "value"}
+  stderr: ""
+  exit_code: 0
