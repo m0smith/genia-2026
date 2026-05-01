@@ -27,6 +27,7 @@ Pattern matching always targets the full argument tuple.
 
 - `f(x)` still matches a one-item tuple target.
 - Multi-arg functions are tuple-pattern sugar, not a separate mechanism.
+- Lambda parameter patterns also match the full argument tuple, but lambdas remain single-arm.
 
 ## 5) Arrow disambiguation by parse context
 
@@ -56,6 +57,7 @@ Required constraints:
 - map pattern shorthand is valid only for identifier keys (`{name}`), not string keys (`{"name"}` requires `:`)
 - parser ignores newlines between list-pattern delimiters and items
 - duplicate names in a pattern require equality at match time
+- lambda parameter position may use existing pattern forms; it must not introduce multi-arm lambda syntax
 - glob patterns match only string values and must match the entire string
 - glob pattern syntax supports only:
   - `*`, `?`, `[abc]`, `[a-z]`, `[!abc]`

@@ -2,13 +2,27 @@
 
 Follow docs/process/llm-system-prompt.md.
 
-Read:
-- pre-flight document
-- approved contract
-- approved design
-- failing-test output, if available
+CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is final authority.
+
+---
+
+# HANDOFF
+
+Read:
+- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+- .genia/process/tmp/handoffs/<change-slug>/01-contract.md
+- .genia/process/tmp/handoffs/<change-slug>/02-design.md
+- .genia/process/tmp/handoffs/<change-slug>/03-failing-tests.md
+
+If any are missing → STOP and report.
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/04-implementation.md
+
+This file must be created.
 
 ---
 
@@ -17,7 +31,6 @@ GENIA_STATE.md is final authority.
 - Must NOT be on main
 - Must match pre-flight branch
 - If mismatch → STOP
-- Report active branch before editing
 
 ---
 
@@ -31,9 +44,10 @@ Rules:
 - Do not expand scope
 - Do not add behavior not in the contract
 - Preserve existing behavior
-- Follow the approved design
-- Do not update docs in this step unless required by test fixtures
-- If contract/design is unclear → STOP and report ambiguity
+- Follow the approved design exactly
+- Keep changes minimal and local
+- Do not update docs in this step unless required by tests
+- If contract/design is unclear → STOP and report
 
 ---
 
@@ -49,7 +63,7 @@ Before editing, list:
 
 2. IMPLEMENTATION
 
-Implement only:
+Implement ONLY:
 - behavior defined in the contract
 - structures/interfaces defined in the design
 - failure behavior defined in the contract
@@ -72,25 +86,28 @@ Verify:
 - failure behavior matches contract
 - names/structures match design
 
+If more than 20 tests fail → STOP and report instead of continuing.
+
 ---
 
 4. COMPLEXITY CHECK
 
 Mark one:
 
-[ ] Minimal and direct
-[ ] Broader than ideal but necessary
-[ ] Too broad
+[ ] Minimal and direct  
+[ ] Broader than ideal but necessary  
+[ ] Too broad  
 
 Explain only if not minimal.
 
 ---
 
 OUTPUT:
-1. Summary of changes
-2. Files changed
-3. Tests run and results
-4. Blockers or ambiguities
-5. Anything for the Test step to verify
+
+1. Summary of changes  
+2. Files changed  
+3. Tests run and results  
+4. Blockers or ambiguities  
+5. Anything for the Test step to verify  
 
 No redesign. No speculative future work.

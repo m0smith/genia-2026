@@ -193,6 +193,8 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
         }
         if node.rest_param is not None:
             normalized["rest_param"] = node.rest_param
+        if node.pattern is not None:
+            normalized["pattern"] = _normalize_pattern(node.pattern)
         return normalized
     if isinstance(node, IrAssign):
         normalized = {

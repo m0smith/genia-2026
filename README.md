@@ -621,6 +621,8 @@ list = (..xs) -> xs
 
 - functions are dispatched by name + arity shape (fixed arity preferred over varargs)
 - varargs supported in named functions and lambdas via `..rest`
+- lambda parameter position supports existing Genia patterns as a single-arm match, including list, map, tuple, option, wildcard, binding, rest, duplicate-binding, and glob patterns
+- multi-arm lambdas are not implemented
 - `delay(expr)` creates a delayed promise value; `force(x)` forces promises and returns non-promises unchanged
 - `quasiquote(expr)` constructs quoted data with selective evaluation via `unquote(...)`
   - `unquote_splicing(...)` is supported in quasiquoted list contexts
@@ -678,6 +680,8 @@ Supported pattern forms:
 - map pattern shorthand is identifier-only (`{"name"}` shorthand is invalid; use `{"name": n}`)
 - guards (`pattern ? condition -> result`)
 - duplicate bindings (`[x, x]` only matches equal values)
+
+Pattern forms are accepted in named function clauses, case expressions, and lambda parameter position. Lambdas remain single-arm.
 
 ### Conditionals in Genia
 

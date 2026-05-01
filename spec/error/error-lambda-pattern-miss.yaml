@@ -1,0 +1,13 @@
+name: error-lambda-pattern-miss
+category: error
+description: Lambda parameter pattern mismatch follows existing pattern-miss behavior
+input:
+  source: |
+    (([a, b]) -> a + b)([1])
+expected:
+  stdout: ""
+  stderr: "Error: No matching case for arguments ([1],)\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: PatternMatchError

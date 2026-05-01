@@ -1,0 +1,10 @@
+name: lambda-pattern-map-param
+category: eval
+description: Lambda parameter position supports existing partial map pattern destructuring
+input:
+  source: |
+    map(({name}) -> name, [{name: "a"}, {name: "b"}])
+expected:
+  stdout: "[\"a\", \"b\"]\n"
+  stderr: ""
+  exit_code: 0

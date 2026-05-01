@@ -1,0 +1,10 @@
+name: parse-lambda-list-pattern-param
+category: parse
+description: Lambda parameter position accepts an existing list pattern
+input:
+  source: "([a, b]) -> a + b"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Lambda

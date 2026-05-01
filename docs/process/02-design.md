@@ -2,13 +2,27 @@
 
 Follow docs/process/llm-system-prompt.md.
 
-Prefer concise wording. Avoid repeating contract text unless needed for design clarity.
-
-Read:
-- pre-flight document
-- approved contract for this change
+CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is final authority.
+
+Prefer concise wording. Avoid repeating contract text unless needed for design clarity.
+
+---
+
+# HANDOFF
+
+Read:
+- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+- .genia/process/tmp/handoffs/<change-slug>/01-contract.md
+
+If any are missing → STOP and report.
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/02-design.md
+
+This file must be created.
 
 ---
 

@@ -1,0 +1,10 @@
+name: lambda-pattern-option-param
+category: eval
+description: Lambda parameter position supports existing Option constructor patterns
+input:
+  source: |
+    map((some(x)) -> x, [some(1), some(2)])
+expected:
+  stdout: "[1, 2]\n"
+  stderr: ""
+  exit_code: 0

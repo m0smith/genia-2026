@@ -1,9 +1,25 @@
 # === GENIA SPEC PROMPT (LEAN) ===
 
-Follow docs/process/llm-system-prompt.md  
-Read the pre-flight document for this change.
+Follow docs/process/llm-system-prompt.md.
+
+CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is the final authority.
+
+---
+
+# HANDOFF
+
+Read:
+- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+
+If missing → STOP and report.
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/01-contract.md
+
+This file must be created.
 
 ---
 
@@ -36,10 +52,10 @@ Define the exact behavior of the change.
 2. SCOPE (FROM PRE-FLIGHT)
 
 Included:
-- 
+-
 
 Excluded:
-- 
+-
 
 ---
 
@@ -48,7 +64,7 @@ Excluded:
 Define precisely:
 - inputs
 - outputs
-- state changes (if any)
+- state changes, if any
 
 ---
 
@@ -56,7 +72,7 @@ Define precisely:
 
 Define:
 - evaluation behavior
-- matching behavior (if applicable)
+- matching behavior, if applicable
 - edge cases
 - error behavior
 
@@ -74,26 +90,24 @@ Define:
 6. INVARIANTS
 
 List truths that must always hold:
-- 
-- 
+-
 
 ---
 
 7. EXAMPLES
 
 Minimal:
-- 
+-
 
 Real:
-- 
+-
 
 ---
 
 8. NON-GOALS
 
 Explicitly NOT included:
-- 
-- 
+-
 
 ---
 

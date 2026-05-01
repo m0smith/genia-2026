@@ -80,5 +80,4 @@ vscode/genia-debugger/out/
 .tmp/
 site/
 
-
-docs/prompt/sample.md
+.genia/process/tmp/

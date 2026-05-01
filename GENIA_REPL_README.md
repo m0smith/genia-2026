@@ -139,7 +139,7 @@ CLI contract summary (actual behavior):
   - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
   - official docstring style/templates live in `docs/style/doc-style.md` and the current cheatsheets
-- lambda expressions, including varargs lambdas with `..rest`
+- lambda expressions, including varargs lambdas with `..rest` and single-arm lambda parameter patterns using existing Genia pattern forms
 - list literals with spread (`[..xs]`, `[1, ..xs, 2]`)
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
 - module import forms: `import mod`, `import mod as alias`
@@ -160,7 +160,7 @@ CLI contract summary (actual behavior):
   - duplicate-binding equality semantics (`[x, x]`)
   - guards with `?`
 - case expressions in function bodies and as final expression in a block
-- conditionals expressed only through pattern matching in function definitions/case expressions
+- conditionals expressed only through pattern matching in function definitions/case expressions; lambdas can pattern-match a single parameter arm but do not support multi-arm lambda syntax
 - function resolution with fixed arity + varargs precedence
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`

@@ -455,6 +455,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
+- lambda parameter position accepts existing Genia patterns as a single-arm match, such as `([a, b]) -> a + b`, `({name}) -> name`, and `(some(x)) -> x`
 - varargs lambdas: `(..xs) -> xs`, `(a, ..rest) -> rest`
 - prefix annotations are now a usable binding-metadata surface: `@name value`
   - one or more consecutive annotations attach to the next top-level function definition or simple-name assignment
@@ -830,9 +831,15 @@ Map pattern semantics:
 - missing keys fail the match
 - duplicate binding names follow normal duplicate-binding equality semantics
 
+Lambda pattern semantics:
+
+- lambda parameter patterns use the same implemented pattern families as function clauses and case arms
+- lambdas remain single-arm; multi-arm lambda syntax is not implemented
+- when a lambda parameter pattern does not match, the runtime raises the existing pattern-miss style error for the received argument tuple
+
 Glob pattern semantics (Phase 1):
 
-- valid in any pattern position accepted by function clauses / case arms
+- valid in any pattern position accepted by function clauses, case arms, or lambda parameter patterns
 - matches only string values (non-string values fail to match)
 - whole-string matching only (no substring mode)
 - supported metacharacters:
@@ -851,7 +858,7 @@ Case placement rules (enforced):
 
 ### Conditionals
 
-- implemented via pattern matching in function definitions and case expressions
+- implemented via pattern matching in function definitions and case expressions; lambdas may also pattern-match their single parameter arm
 - no dedicated conditional keyword exists
 - `decide` has been removed from the language
 
