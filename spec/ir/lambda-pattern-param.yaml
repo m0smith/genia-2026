@@ -1,0 +1,30 @@
+name: lambda-pattern-param
+category: ir
+description: Lambda parameter patterns lower without losing the pattern structure
+input:
+  source: |
+    ([a, b]) -> a + b
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLambda
+        params: []
+        body:
+          node: IrBinary
+          left:
+            node: IrVar
+            name: a
+          op: PLUS
+          right:
+            node: IrVar
+            name: b
+        pattern:
+          node: IrPatTuple
+          items:
+            - node: IrPatList
+              items:
+                - node: IrPatBind
+                  name: a
+                - node: IrPatBind
+                  name: b

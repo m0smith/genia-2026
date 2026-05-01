@@ -1,0 +1,10 @@
+name: lambda-pattern-list-param
+category: eval
+description: Lambda parameter position supports existing list pattern destructuring
+input:
+  source: |
+    map(([a, b]) -> a + b, [[1, 2], [3, 4]])
+expected:
+  stdout: "[3, 7]\n"
+  stderr: ""
+  exit_code: 0

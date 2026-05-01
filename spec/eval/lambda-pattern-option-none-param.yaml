@@ -1,0 +1,10 @@
+name: lambda-pattern-option-none-param
+category: eval
+description: Lambda parameter position supports existing structured none patterns
+input:
+  source: |
+    ((none("missing")) -> "matched")(none("missing"))
+expected:
+  stdout: "\"matched\"\n"
+  stderr: ""
+  exit_code: 0

@@ -746,6 +746,7 @@ class Lambda(Node):
     rest_param: str | None
     body: Node
     span: SourceSpan | None = None
+    pattern: Node | None = None
 
 
 @dataclass
@@ -1054,12 +1055,13 @@ class IrCase(IrNode):
 
 @dataclass
 class IrLambda(IrNode):
-    """Lambda expression with params and lowered body."""
+    """Lambda expression with params/pattern and lowered body."""
 
     params: list[str]
     rest_param: str | None
     body: IrNode
     span: SourceSpan | None = None
+    pattern: IrPattern | None = None
 
 
 @dataclass
@@ -1323,7 +1325,24 @@ def lower_node(node: Node) -> IrNode:
             span=node.span,
         )
     if isinstance(node, Lambda):
-        return IrLambda(node.params, node.rest_param, lower_node(node.body), span=node.span)
+        pattern = node.pattern
+        if pattern is not None and _lambda_pattern_is_simple_parameter_shape(pattern, node.params, node.rest_param):
+            pattern = None
+        if pattern is None:
+            items: list[Node] = [Var(name) for name in node.params]
+            if node.rest_param is not None:
+                items.append(RestPattern(node.rest_param))
+            pattern = TuplePattern(items, span=node.span)
+            lowered_pattern = None
+        else:
+            lowered_pattern = lower_pattern(pattern)
+        return IrLambda(
+            node.params,
+            node.rest_param,
+            lower_node(node.body),
+            span=node.span,
+            pattern=lowered_pattern,
+        )
     if isinstance(node, Assign):
         return IrAssign(node.name, lower_node(node.expr), span=node.span)
     if isinstance(node, FuncDef):
@@ -1376,6 +1395,29 @@ def lower_pattern(pattern: Node) -> IrPattern:
     if isinstance(pattern, SomePattern):
         return IrPatSome(lower_pattern(pattern.inner))
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
+
+
+def _lambda_pattern_is_simple_parameter_shape(
+    pattern: Node,
+    params: list[str],
+    rest_param: str | None,
+) -> bool:
+    if not isinstance(pattern, TuplePattern):
+        return False
+    fixed_items = pattern.items
+    rest_item: Node | None = None
+    if fixed_items and isinstance(fixed_items[-1], RestPattern):
+        rest_item = fixed_items[-1]
+        fixed_items = fixed_items[:-1]
+    if len(fixed_items) != len(params):
+        return False
+    if any(not isinstance(item, Var) for item in fixed_items):
+        return False
+    if [item.name for item in fixed_items if isinstance(item, Var)] != params:
+        return False
+    if rest_item is None:
+        return rest_param is None
+    return isinstance(rest_item, RestPattern) and rest_item.name == rest_param
 
 
 def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list[IrNode]:
@@ -1463,11 +1505,7 @@ def quote_node(node: Node) -> Any:
     if isinstance(node, Spread):
         return quoted_list([symbol("spread"), quote_node(node.expr)])
     if isinstance(node, Lambda):
-        params = [symbol(name) for name in node.params]
-        if node.rest_param is None:
-            header: Any = quoted_list(params)
-        else:
-            header = quoted_list([*params, quoted_list([symbol("rest"), symbol(node.rest_param)])])
+        header = quote_lambda_header(node)
         return quoted_list([symbol("lambda"), header, quote_node(node.body)])
     if isinstance(node, CaseExpr):
         return quoted_list([symbol("match"), *(quote_case_clause(clause, quote_node) for clause in node.clauses)])
@@ -1517,6 +1555,26 @@ def quote_pattern_node(pattern: Node) -> Any:
     if isinstance(pattern, SomePattern):
         return quoted_list([symbol("some"), quote_pattern_node(pattern.inner)])
     raise TypeError(f"quote does not support pattern type {type(pattern).__name__}")
+
+
+def quote_lambda_header(node: Lambda) -> Any:
+    def quoted_list(items: list[Any]) -> Any:
+        result: Any = OPTION_NONE
+        for item in reversed(items):
+            result = GeniaPair(item, result)
+        return result
+
+    if node.pattern is not None and not _lambda_pattern_is_simple_parameter_shape(
+        node.pattern,
+        node.params,
+        node.rest_param,
+    ):
+        return quote_pattern_node(node.pattern)
+
+    params = [symbol(name) for name in node.params]
+    if node.rest_param is None:
+        return quoted_list(params)
+    return quoted_list([*params, quoted_list([symbol("rest"), symbol(node.rest_param)])])
 
 
 def quote_case_clause(
@@ -1645,11 +1703,7 @@ def quasiquote_node(
         if isinstance(current, Spread):
             return quoted_list([symbol("spread"), qq(current.expr, depth)])
         if isinstance(current, Lambda):
-            params = [symbol(name) for name in current.params]
-            if current.rest_param is None:
-                header: Any = quoted_list(params)
-            else:
-                header = quoted_list([*params, quoted_list([symbol("rest"), symbol(current.rest_param)])])
+            header = quote_lambda_header(current)
             return quoted_list([symbol("lambda"), header, qq(current.body, depth)])
         if isinstance(current, CaseExpr):
             return quoted_list([symbol("match"), *(quote_case_clause(clause, lambda expr: qq(expr, depth)) for clause in current.clauses)])
@@ -1990,6 +2044,31 @@ class Parser:
                 break
             self.skip_newlines()
         return params, rest_param
+
+    def parse_lambda_parameter_pattern(self) -> tuple[Node, list[str], str | None]:
+        items: list[Node] = []
+        params: list[str] = []
+        rest_param: str | None = None
+        if self.at("RPAREN"):
+            return TuplePattern(items), params, rest_param
+        while True:
+            item = self.parse_pattern_atom()
+            if isinstance(item, RestPattern):
+                if rest_param is not None:
+                    raise SyntaxError("Lambda can only have one rest parameter")
+                rest_param = item.name
+            items.append(item)
+            if isinstance(item, Var):
+                params.append(item.name)
+            self.skip_newlines()
+            if not self.maybe("COMMA"):
+                break
+            self.skip_newlines()
+            if self.at("RPAREN"):
+                break
+            if rest_param is not None:
+                raise SyntaxError("Lambda rest parameter must be final")
+        return TuplePattern(items), params, rest_param
 
     def try_parse_function_header(self) -> tuple[str, list[str], str | None, Token] | None:
         if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
@@ -2534,13 +2613,19 @@ class Parser:
             try:
                 self.i += 1
                 self.skip_newlines()
-                params, rest_param = self.parse_parameter_list(context="Lambda", allow_wildcard=True)
+                pattern, params, rest_param = self.parse_lambda_parameter_pattern()
                 self.eat("RPAREN")
                 self.skip_newlines()
                 if self.at("ARROW"):
                     self.eat("ARROW")
                     body = self.parse_expr()
-                    return Lambda(params, rest_param, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span))
+                    return Lambda(
+                        params,
+                        rest_param,
+                        body,
+                        span=self.merge_spans(self.span_for_tokens(start, start), body.span),
+                        pattern=pattern,
+                    )
                 self.i = save
             except SyntaxError:
                 self.i = save
@@ -3333,6 +3418,15 @@ class GeniaMetaEnv:
         return value
 
     def extend(self, params: Any, args: list[Any]) -> "GeniaMetaEnv":
+        if _syntax_tagged_list(params, symbol("tuple")):
+            bindings = Evaluator(self._env).match_pattern(_meta_lower_quoted_pattern(params), tuple(args))
+            if bindings is None:
+                raise RuntimeError(f"metacircular match failed for lambda parameters with args {format_debug(args)}")
+            child = Env(self._env)
+            for name, value in bindings.items():
+                child.set(name, value)
+            return GeniaMetaEnv(child)
+
         required, rest = self._parse_params(params)
         if rest is None:
             if len(args) != len(required):
@@ -3835,7 +3929,12 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode |
         return False
     genia_body = getattr(fn, "__genia_body__", None)
     if genia_body is not None:
-        return _callable_case_explicitly_handles_none(genia_body) or _body_delegates_to_option_aware(genia_body)
+        genia_pattern = getattr(fn, "__genia_pattern__", None)
+        return (
+            (genia_pattern is not None and _pattern_explicitly_handles_none(genia_pattern))
+            or _callable_case_explicitly_handles_none(genia_body)
+            or _body_delegates_to_option_aware(genia_body)
+        )
     return False
 
 
@@ -3864,7 +3963,12 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: IrNode |
         return False
     genia_body = getattr(fn, "__genia_body__", None)
     if genia_body is not None:
-        return _callable_case_explicitly_handles_some(genia_body) or _body_delegates_to_option_aware(genia_body)
+        genia_pattern = getattr(fn, "__genia_pattern__", None)
+        return (
+            (genia_pattern is not None and _pattern_explicitly_handles_some(genia_pattern))
+            or _callable_case_explicitly_handles_some(genia_body)
+            or _body_delegates_to_option_aware(genia_body)
+        )
     return False
 
 
@@ -4806,6 +4910,45 @@ class Evaluator:
             return None
         return self.match_pattern_atom(pattern, args[0])
 
+    def match_lambda_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
+        if not isinstance(pattern, IrPatTuple):
+            return self.match_pattern(pattern, args)
+
+        rest_index = None
+        for index, item in enumerate(pattern.items):
+            if isinstance(item, IrPatRest):
+                rest_index = index
+                break
+
+        if rest_index is None:
+            return self.match_pattern(pattern, args)
+
+        if rest_index != len(pattern.items) - 1:
+            return None
+        prefix = pattern.items[:rest_index]
+        if len(args) < len(prefix):
+            return None
+
+        env: dict[str, Any] = {}
+        for pat, arg in zip(prefix, args[:len(prefix)]):
+            sub = self.match_pattern_atom(pat, arg)
+            if sub is None:
+                return None
+            for key, value in sub.items():
+                if key in env and env[key] != value:
+                    return None
+                env[key] = value
+
+        rest_pat = pattern.items[rest_index]
+        sub = self.match_pattern_atom(rest_pat, list(args[len(prefix):]))
+        if sub is None:
+            return None
+        for key, value in sub.items():
+            if key in env and env[key] != value:
+                return None
+            env[key] = value
+        return env
+
     def match_pattern_atom(self, pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]:
         if isinstance(pattern, IrPatLiteral):
             return {} if pattern.value == arg else None
@@ -4990,23 +5133,33 @@ class Evaluator:
         if isinstance(node, IrLambda):
             params = node.params
             rest_param = node.rest_param
+            pattern = node.pattern
             body = node.body
             closure = self.env
 
             def fn(*args):
-                if rest_param is None:
-                    if len(args) != len(params):
-                        raise TypeError(f"lambda expected {len(params)} args, got {len(args)}")
-                elif len(args) < len(params):
-                    raise TypeError(f"lambda expected at least {len(params)} args, got {len(args)}")
                 frame = Env(closure)
-                for p, a in zip(params, args):
-                    frame.set(p, a)
-                if rest_param is not None:
-                    frame.set(rest_param, list(args[len(params):]))
+                if pattern is None:
+                    if rest_param is None:
+                        if len(args) != len(params):
+                            raise TypeError(f"lambda expected {len(params)} args, got {len(args)}")
+                    elif len(args) < len(params):
+                        raise TypeError(f"lambda expected at least {len(params)} args, got {len(args)}")
+                    for p, a in zip(params, args):
+                        frame.set(p, a)
+                    if rest_param is not None:
+                        frame.set(rest_param, list(args[len(params):]))
+                else:
+                    match_env = Evaluator(closure, self.debug_hooks, self.debug_mode).match_lambda_pattern(pattern, args)
+                    if match_env is None:
+                        raise RuntimeError(f"No matching case for arguments {args!r}")
+                    for name, value in match_env.items():
+                        frame.set(name, value)
                 return Evaluator(frame, self.debug_hooks, self.debug_mode).eval(body)
 
             fn.__genia_body__ = body
+            if pattern is not None:
+                fn.__genia_pattern__ = pattern
             return fn
 
         if isinstance(node, IrAssign):
@@ -5218,6 +5371,67 @@ def _syntax_pair_nth(value: Any, index: int, name: str) -> Any:
     if not isinstance(current, GeniaPair):
         raise TypeError(f"{name} expected the quoted form to have enough parts")
     return current.head
+
+
+def _meta_lower_quoted_pattern(pattern: Any) -> IrPattern:
+    if pattern is None or isinstance(pattern, (bool, int, float, str)):
+        return IrPatLiteral(pattern)
+    if isinstance(pattern, GeniaOptionNone):
+        reason = _meta_lower_quoted_pattern(pattern.reason) if pattern.reason is not None else None
+        context = _meta_lower_quoted_pattern(pattern.context) if pattern.context is not None else None
+        return IrPatNone(reason, context)
+    if isinstance(pattern, GeniaSymbol):
+        if pattern.name == "_":
+            return IrPatWildcard()
+        return IrPatBind(pattern.name)
+    if isinstance(pattern, GeniaMap):
+        items: list[tuple[str, IrPattern]] = []
+        for _, (original_key, original_value) in pattern._entries.items():
+            if not isinstance(original_key, str):
+                raise TypeError("metacircular quoted map patterns require string keys")
+            items.append((original_key, _meta_lower_quoted_pattern(original_value)))
+        return IrPatMap(items)
+    if isinstance(pattern, GeniaPair):
+        if _syntax_tagged_list(pattern, symbol("rest")):
+            if _is_nil_none(pattern.tail):
+                return IrPatRest(None)
+            rest_name = _syntax_pair_nth(pattern, 1, "_meta_match_pattern_env")
+            if not isinstance(rest_name, GeniaSymbol):
+                raise TypeError("metacircular rest patterns require a symbol name")
+            if not _is_nil_none(pattern.tail.tail):
+                raise TypeError("metacircular rest patterns accept at most one symbol name")
+            return IrPatRest(rest_name.name)
+        if _syntax_tagged_list(pattern, symbol("tuple")):
+            items: list[IrPattern] = []
+            current = pattern.tail
+            while not _is_nil_none(current):
+                if not isinstance(current, GeniaPair):
+                    raise TypeError("metacircular tuple patterns must be proper lists")
+                items.append(_meta_lower_quoted_pattern(current.head))
+                current = current.tail
+            return IrPatTuple(items)
+        if _syntax_tagged_list(pattern, symbol("glob")):
+            glob_text = _syntax_pair_nth(pattern, 1, "_meta_match_pattern_env")
+            if not isinstance(glob_text, str):
+                raise TypeError("metacircular glob patterns require a string")
+            if not _is_nil_none(pattern.tail.tail):
+                raise TypeError("metacircular glob patterns accept exactly one string")
+            return IrPatGlob(compile_glob_pattern(glob_text))
+        if _syntax_tagged_list(pattern, symbol("some")):
+            if _is_nil_none(pattern.tail) or not isinstance(pattern.tail, GeniaPair):
+                raise TypeError("metacircular some patterns require an inner pattern")
+            if not _is_nil_none(pattern.tail.tail):
+                raise TypeError("metacircular some patterns accept exactly one inner pattern")
+            return IrPatSome(_meta_lower_quoted_pattern(pattern.tail.head))
+        items: list[IrPattern] = []
+        current = pattern
+        while not _is_nil_none(current):
+            if not isinstance(current, GeniaPair):
+                raise TypeError("metacircular list patterns must be proper lists")
+            items.append(_meta_lower_quoted_pattern(current.head))
+            current = current.tail
+        return IrPatList(items)
+    raise TypeError(f"metacircular quoted match pattern is unsupported: {format_debug(pattern)}")
 
 
 def _syntax_reserved_tag_name(value: Any) -> str | None:
@@ -8042,9 +8256,12 @@ def _scan_pipe_mode_reserved_usage(node: Node, bound_names: set[str]) -> tuple[b
 
     if isinstance(node, Lambda):
         nested_bound = set(bound_names)
-        nested_bound.update(node.params)
-        if node.rest_param is not None:
-            nested_bound.add(node.rest_param)
+        if node.pattern is not None:
+            nested_bound.update(_pattern_bound_names(node.pattern))
+        else:
+            nested_bound.update(node.params)
+            if node.rest_param is not None:
+                nested_bound.add(node.rest_param)
         return _scan_pipe_mode_reserved_usage(node.body, nested_bound)
 
     if isinstance(node, Block):
@@ -8075,6 +8292,33 @@ def _scan_pipe_mode_reserved_usage(node: Node, bound_names: set[str]) -> tuple[b
         if saw_stdin and saw_run:
             break
     return saw_stdin, saw_run
+
+
+def _pattern_bound_names(pattern: Node) -> set[str]:
+    if isinstance(pattern, Var):
+        return {pattern.name}
+    if isinstance(pattern, RestPattern):
+        return {pattern.name} if pattern.name is not None else set()
+    if isinstance(pattern, SomePattern):
+        return _pattern_bound_names(pattern.inner)
+    if isinstance(pattern, NoneOption):
+        names: set[str] = set()
+        if pattern.reason is not None:
+            names.update(_pattern_bound_names(pattern.reason))
+        if pattern.context is not None:
+            names.update(_pattern_bound_names(pattern.context))
+        return names
+    if isinstance(pattern, (TuplePattern, ListPattern)):
+        names: set[str] = set()
+        for item in pattern.items:
+            names.update(_pattern_bound_names(item))
+        return names
+    if isinstance(pattern, MapPattern):
+        names: set[str] = set()
+        for _, value in pattern.items:
+            names.update(_pattern_bound_names(value))
+        return names
+    return set()
 
 
 def _scan_pipe_mode_reserved_usage_value(value: Any, bound_names: set[str]) -> tuple[bool, bool]:

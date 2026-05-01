@@ -13,7 +13,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | --- | --- | --- |
 | literals | `1`, `"x"`, `true`, `false`, `nil`, `none`, `[a, b]`, `{k: v}` | `nil` normalizes to `none("nil")` |
 | function | `f(x) = expr` | named functions are first-class |
-| lambda | `(x) -> expr`, `(..xs) -> expr` | varargs lambda supported |
+| lambda | `(x) -> expr`, `([a, b]) -> expr`, `(..xs) -> expr` | single-arm pattern lambdas and varargs supported |
 | assignment | `name = expr` | lexical define/rebind |
 | annotations | `@doc "..."`, `@meta {...}`, `@since "..."`, `@deprecated "..."`, `@category "..."` | top-level function/assignment metadata |
 | block | `{ expr1 expr2 ... }` | returns final expression |

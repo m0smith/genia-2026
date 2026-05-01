@@ -1,0 +1,12 @@
+name: lambda-pattern-quoted-param
+category: eval
+description: Quoted and quasiquoted lambda parameter patterns preserve callable pattern behavior
+input:
+  source: |
+    quoted = eval(quote(([a, b]) -> a + b), empty_env())
+    quasiquoted = eval(quasiquote(([a, b]) -> a + b), empty_env())
+    [apply(quoted, [[1, 2]]), apply(quasiquoted, [[3, 4]])]
+expected:
+  stdout: "[3, 7]\n"
+  stderr: ""
+  exit_code: 0

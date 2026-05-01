@@ -1,0 +1,10 @@
+name: parse-lambda-multi-arm-rejected
+category: parse
+description: Lambda syntax remains single-arm and rejects case-style alternation
+input:
+  source: "(x) -> x | (y) -> y"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "Unexpected token '|'"

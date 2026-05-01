@@ -1,0 +1,10 @@
+name: lambda-pattern-rest-duplicate-param
+category: eval
+description: Lambda parameter patterns keep existing rest and duplicate-binding semantics
+input:
+  source: |
+    (([x, x, ..rest]) -> [x, rest])([1, 1, 2, 3])
+expected:
+  stdout: "[1, [2, 3]]\n"
+  stderr: ""
+  exit_code: 0

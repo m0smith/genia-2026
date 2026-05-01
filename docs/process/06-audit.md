@@ -2,14 +2,28 @@
 
 Follow docs/process/llm-system-prompt.md.
 
-Read:
-- approved contract
-- approved design
-- implementation changes
-- test results
-- doc updates
+CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is final authority.
+
+---
+
+# HANDOFF
+
+Read:
+- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+- .genia/process/tmp/handoffs/<change-slug>/01-contract.md
+- .genia/process/tmp/handoffs/<change-slug>/02-design.md
+- .genia/process/tmp/handoffs/<change-slug>/04-implementation.md
+- .genia/process/tmp/handoffs/<change-slug>/06-doc-sync.md
+
+If any are missing → STOP and report.
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/07-audit.md
+
+This file must be created.
 
 ---
 
@@ -20,13 +34,18 @@ Verify:
 - branch matches change
 - no unrelated changes
 
-If violated → report
+If violated → report.
 
 ---
 
 Audit <CHANGE NAME>.
 
 Assume the implementation is wrong until proven correct.
+
+If change is low risk, focus only on:
+- contract vs implementation
+- tests vs contract
+- docs vs behavior
 
 Rules:
 - Do not redesign
@@ -43,7 +62,7 @@ Status:
 [ ] PASS WITH ISSUES
 [ ] FAIL
 
-Brief summary (1–3 sentences)
+Summary (1–3 sentences):
 
 ---
 
@@ -58,7 +77,7 @@ Verify:
 - No scope expansion
 - Edge cases handled
 
-List mismatches:
+Mismatches:
 -
 
 ---
@@ -70,7 +89,7 @@ Check:
 - asserts concrete results
 - fails on regression
 
-List gaps or risks:
+Gaps / risks:
 -
 
 ---

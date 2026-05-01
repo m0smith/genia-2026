@@ -1,14 +1,27 @@
-# === GENIA TEST PROMPT (LEAN) ===
+# === GENIA FAILING TEST PROMPT (LEAN) ===
 
 Follow docs/process/llm-system-prompt.md.
 
-Read:
-- pre-flight document
-- approved contract
-- approved design
-- implementation changes
+CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is final authority.
+
+---
+
+# HANDOFF
+
+Read:
+- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+- .genia/process/tmp/handoffs/<change-slug>/01-contract.md
+- .genia/process/tmp/handoffs/<change-slug>/02-design.md
+
+If any are missing → STOP and report.
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/03-failing-tests.md
+
+This file must be created.
 
 ---
 
@@ -17,29 +30,28 @@ GENIA_STATE.md is final authority.
 - Must NOT be on main
 - Must match pre-flight branch
 - If mismatch → STOP
-- Report active branch before editing
 
 ---
 
-Test <CHANGE NAME>.
+Write failing tests for <CHANGE NAME>.
 
 Goal:
-Verify the implementation matches the contract exactly.
+Define tests that prove the contract and currently FAIL.
 
 Rules:
-- Do not redesign
-- Do not expand scope
-- Do not add behavior
-- Do not weaken tests to fit implementation
-- Test only contract-defined behavior
-- If contract/design is unclear → STOP and report ambiguity
+- Tests must fail before implementation
+- Tests must prove behavior, not just execute code
+- Cover happy path, edge cases, and failure cases
+- Do not modify implementation (except minimal fixtures if required)
+- Do not introduce behavior not in the contract
+- If contract/design is unclear → STOP and report
 
 ---
 
 1. TEST PLAN
 
-Before editing, list:
-- files to add or update
+List:
+- files to add/update
 - behavior groups to test
 - contract invariants covered
 
@@ -47,22 +59,17 @@ Before editing, list:
 
 2. REQUIRED COVERAGE
 
-Cover:
+Include:
 - happy path
-- edge cases
-- failure behavior
+- edge cases (boundary, empty/minimal, unusual valid inputs)
+- failure cases (invalid inputs, invalid shapes/patterns)
 - nearby regression risks
 
 Tests must:
-- assert concrete behavior
+- assert concrete outputs
 - fail on regression
 - reflect current runtime reality
 - avoid duplicating implementation logic
-
-Tests must NOT:
-- assume unimplemented behavior
-- lock in accidental behavior
-- rely on host quirks unless contract-approved
 
 ---
 
@@ -71,51 +78,31 @@ Tests must NOT:
 Run the smallest useful set:
 - new tests
 - nearest related tests
-- parser/runtime/CLI/example checks if affected
-- full suite if practical
+
+Limit failures to 20. If exceeded → STOP and report.
 
 ---
 
-4. FAILURE HANDLING
+4. FAILURE EVIDENCE
 
-If tests fail:
-- identify exact cause
-- classify as implementation bug, test bug, or contract/design ambiguity
-- do not silently weaken expectations
-- recommend smallest corrective action
+Classify each failure:
+- expected failure (correct per contract)
+- test bug
+- contract/design ambiguity
 
-Only make implementation changes if the fix is tiny, obvious, and explicitly reported.
-
----
-
-5. DOC INPUT
-
-Note anything docs must reflect:
-- caveats
-- partial behavior
-- examples
-- sharp edges
-
----
-
-6. COMPLEXITY CHECK
-
-Mark one:
-
-[ ] Minimal but sufficient
-[ ] Broader than ideal but justified
-[ ] Too weak
-[ ] Too broad
-
-Explain only if not minimal/sufficient.
+Report:
+- commands run
+- failing tests (names and summaries)
+- why they fail relative to contract
 
 ---
 
 OUTPUT:
-1. Test summary
+
+1. Test plan
 2. Files changed
 3. Commands run
-4. Results
-5. Failures/gaps/follow-up
+4. Failing evidence
+5. Ambiguities/blockers
 
-No redesign. No speculation. No scope expansion.
+No implementation. No redesign. No scope expansion.

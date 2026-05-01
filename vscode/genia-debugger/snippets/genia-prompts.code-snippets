@@ -2,9 +2,18 @@
   "Genia Preflight Prompt": {
     "prefix": "genia.pre",
     "body": [
-      "Follow docs/process/preflight-prompt.md",
+      "Follow docs/process/preflight-prompt.md.",
       "",
-      "CHANGE NAME: ${1:change-name}"
+      "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Handoff directory:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/",
+      "",
+      "Output pre-flight to:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/00-preflight.md",
+      "",
+      "Output only the pre-flight."
     ],
     "description": "Genia pre-flight prompt"
   },
@@ -12,9 +21,18 @@
   "Genia Contract Prompt": {
     "prefix": "genia.contract",
     "body": [
-      "Follow docs/process/contract-prompt.md",
+      "Follow docs/process/contract-prompt.md.",
       "",
-      "CHANGE NAME: ${1:change-name}"
+      "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoff:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/00-preflight.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/01-contract.md",
+      "",
+      "Output only the contract/spec."
     ],
     "description": "Genia contract/spec prompt"
   },
@@ -22,9 +40,18 @@
   "Genia Spec Prompt": {
     "prefix": "genia.spec",
     "body": [
-      "Follow docs/process/contract-prompt.md",
+      "Follow docs/process/contract-prompt.md.",
       "",
-      "CHANGE NAME: ${1:change-name}"
+      "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoff:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/00-preflight.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/01-contract.md",
+      "",
+      "Output only the spec/contract."
     ],
     "description": "Alias for Genia contract/spec prompt"
   },
@@ -32,9 +59,19 @@
   "Genia Design Prompt": {
     "prefix": "genia.design",
     "body": [
-      "Follow docs/process/design-prompt.md",
+      "Follow docs/process/design-prompt.md.",
       "",
-      "CHANGE NAME: ${1:change-name}"
+      "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoffs:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/00-preflight.md",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/01-contract.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/02-design.md",
+      "",
+      "Output only the design."
     ],
     "description": "Genia design prompt"
   },
@@ -42,60 +79,93 @@
   "Genia Failing Test Prompt": {
     "prefix": "genia.test.fail",
     "body": [
-      "Follow docs/process/failing-test-prompt.md",
+      "Follow docs/process/failing-test-prompt.md.",
       "",
       "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoffs:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/00-preflight.md",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/01-contract.md",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/02-design.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/03-failing-tests.md",
       "",
       "Work ONLY on:",
-      "- ${2:tests/test_file.py}",
+      "- ${3:tests/test_file.py}",
       "",
       "If additional files are required → STOP and report."
     ],
     "description": "Genia TDD failing test prompt"
   },
 
-  "Genia Test Verification Prompt": {
-    "prefix": "genia.test",
-    "body": [
-      "Follow docs/process/test-prompt.md",
-      "",
-      "CHANGE NAME: ${1:change-name}",
-      "",
-      "Work ONLY on:",
-      "- ${2:tests/test_file.py}",
-      "",
-      "If additional files are required → STOP and report."
-    ],
-    "description": "Genia verification test prompt"
-  },
-
   "Genia Implementation Prompt": {
     "prefix": "genia.impl",
     "body": [
-      "Follow docs/process/implementation-prompt.md",
+      "Follow docs/process/implementation-prompt.md.",
       "",
       "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoffs:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/00-preflight.md",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/01-contract.md",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/02-design.md",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/03-failing-tests.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/04-implementation.md",
       "",
       "Work ONLY on:",
-      "- ${2:src/genia/file.py}",
-      "- ${3:tests/test_file.py}",
+      "- ${3:src/genia/file.py}",
+      "- ${4:tests/test_file.py}",
       "",
       "If additional files are required → STOP and report."
     ],
     "description": "Genia implementation prompt"
   },
 
+  "Genia Test Verification Prompt": {
+    "prefix": "genia.test",
+    "body": [
+      "Follow docs/process/test-prompt.md.",
+      "",
+      "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoffs through:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/04-implementation.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/05-test-verification.md",
+      "",
+      "Work ONLY on:",
+      "- ${3:tests/test_file.py}",
+      "",
+      "If additional files are required → STOP and report."
+    ],
+    "description": "Genia test verification prompt"
+  },
+
   "Genia Doc Sync Prompt": {
     "prefix": "genia.docs",
     "body": [
-      "Follow docs/process/doc-sync-prompt.md",
+      "Follow docs/process/doc-sync-prompt.md.",
       "",
       "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoffs through:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/05-test-verification.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/06-doc-sync.md",
       "",
       "Work ONLY on:",
-      "- ${2:GENIA_STATE.md}",
-      "- ${3:GENIA_RULES.md}",
-      "- ${4:README.md}",
+      "- ${3:GENIA_STATE.md}",
+      "- ${4:GENIA_RULES.md}",
+      "- ${5:README.md}",
       "",
       "If additional files are required → STOP and report."
     ],
@@ -105,11 +175,20 @@
   "Genia Audit Prompt": {
     "prefix": "genia.audit",
     "body": [
-      "Follow docs/process/audit-prompt.md",
+      "Follow docs/process/audit-prompt.md.",
       "",
       "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
       "",
-      "Work ONLY on changed files and related tests/docs."
+      "Read handoffs through:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/06-doc-sync.md",
+      "",
+      "Write handoff:",
+      ".genia/process/tmp/handoffs/${2:issue-123-short-name}/07-audit.md",
+      "",
+      "Work ONLY on changed files and related tests/docs.",
+      "",
+      "Do not redesign."
     ],
     "description": "Genia audit/truth review prompt"
   },
@@ -117,14 +196,27 @@
   "Genia Distillation Prompt": {
     "prefix": "genia.distill",
     "body": [
-      "Follow docs/process/distillation-prompt.md",
+      "Follow docs/process/distillation-prompt.md.",
+      "",
+      "CHANGE SLUG: ${1:issue-123-short-name}",
+      "",
+      "Target handoff directory:",
+      ".genia/process/tmp/handoffs/${1:issue-123-short-name}/",
       "",
       "Distill ONLY these files:",
-      "- ${1:docs/design/a.md}",
-      "- ${2:docs/design/b.md}",
-      "- ${3:docs/design/c.md}",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/00-preflight.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/01-contract.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/02-design.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/03-failing-tests.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/04-implementation.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/05-test-verification.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/06-doc-sync.md",
+      "- .genia/process/tmp/handoffs/${1:issue-123-short-name}/07-audit.md",
       "",
-      "Do not consider any files outside this list."
+      "Extract durable documentation into canonical docs.",
+      "After extraction, list the handoff directory as safe to delete.",
+      "",
+      "Do not preserve process artifacts."
     ],
     "description": "Genia doc distillation prompt"
   },
@@ -132,9 +224,13 @@
   "Genia Commit Prompt": {
     "prefix": "genia.commit",
     "body": [
-      "Follow docs/process/commit-prompt.md",
+      "Follow docs/process/commit-prompt.md.",
       "",
       "CHANGE NAME: ${1:change-name}",
+      "CHANGE SLUG: ${2:issue-123-short-name}",
+      "",
+      "Read handoffs through:",
+      "- .genia/process/tmp/handoffs/${2:issue-123-short-name}/07-audit.md",
       "",
       "Prepare only the commit/PR summary.",
       "Do not modify files."

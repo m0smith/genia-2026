@@ -2,16 +2,27 @@
 
 Follow docs/process/llm-system-prompt.md.
 
-Prefer concise wording. Avoid repeating existing doc content unless required.
-
-Read:
-- pre-flight document
-- approved contract
-- approved design
-- implementation changes
-- test results
+CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is final authority.
+
+---
+
+# HANDOFF
+
+Read:
+- .genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+- .genia/process/tmp/handoffs/<change-slug>/01-contract.md
+- .genia/process/tmp/handoffs/<change-slug>/02-design.md
+- .genia/process/tmp/handoffs/<change-slug>/04-implementation.md
+
+If any are missing → STOP and report.
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/06-doc-sync.md
+
+This file must be created.
 
 ---
 
@@ -20,17 +31,16 @@ GENIA_STATE.md is final authority.
 - Must NOT be on main
 - Must match pre-flight branch
 - If mismatch → STOP
-- Report active branch before editing
 
 ---
 
 Sync docs for <CHANGE NAME>.
 
 Goal:
-Make all documentation match the actual implemented and tested behavior.
+Make documentation match the actual implemented and tested behavior.
 
 Rules:
-- Document only what is implemented and tested
+- Document only what is implemented and verified by tests
 - Do not add future behavior
 - Do not expand scope
 - Keep updates minimal and local
@@ -60,7 +70,7 @@ Core:
 - README.md (if user-facing changes)
 
 Supporting (if needed):
-- docs/book/*
+- docs/design/*
 - docs/cheatsheet/*
 - docs/host-interop/*
 - examples/*
@@ -135,18 +145,19 @@ Docs must:
 
 Mark one:
 
-[ ] Minimal and clear
-[ ] Slightly expanded but justified
-[ ] Too verbose
+[ ] Minimal and clear  
+[ ] Slightly expanded but justified  
+[ ] Too verbose  
 
 Explain only if not minimal.
 
 ---
 
 OUTPUT:
-1. Summary of doc changes
-2. Files updated
-3. Key wording changes
-4. Risks or ambiguities
+
+1. Summary of doc changes  
+2. Files updated  
+3. Key wording changes  
+4. Risks or ambiguities  
 
 No redesign. No speculation. Only truth.

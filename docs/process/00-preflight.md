@@ -3,12 +3,25 @@
 Follow docs/process/llm-system-prompt.md.
 
 CHANGE NAME: <short name>
+CHANGE SLUG: <short-kebab-name>
 
 GENIA_STATE.md is final authority.
 
 HARD STOP:
 Produce pre-flight only.
 Do not create branches, edit files, run tests, write contracts, or commit.
+
+---
+
+# HANDOFF
+
+Handoff directory:
+.genia/process/tmp/handoffs/<change-slug>/
+
+Write output to:
+.genia/process/tmp/handoffs/<change-slug>/00-preflight.md
+
+This file must be created.
 
 ---
 
@@ -70,6 +83,7 @@ Doc wording:
 Follow docs/process/extensions/portability-analysis.md.
 
 Complete this before proceeding to Contract.
+
 ---
 
 4. CONTRACT vs IMPLEMENTATION
@@ -172,6 +186,7 @@ Pipeline:
 - Implementation
 - Docs
 - Audit
+- Distillation
 
 ---
 
