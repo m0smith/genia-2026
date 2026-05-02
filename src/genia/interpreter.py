@@ -51,7 +51,6 @@ if __package__ in (None, ""):
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from genia.pattern_match import (
-        CompiledGlobPattern,
         IrPatBind,
         IrPatGlob,
         IrPatList,
@@ -64,7 +63,6 @@ if __package__ in (None, ""):
         IrPatWildcard,
         IrPattern,
         compile_glob_pattern,
-        glob_match,
         match_lambda_pattern,
         match_pattern,
         match_pattern_atom,
@@ -107,7 +105,6 @@ else:
     from .environment import Env
     from .errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from .pattern_match import (
-        CompiledGlobPattern,
         IrPatBind,
         IrPatGlob,
         IrPatList,
@@ -120,7 +117,6 @@ else:
         IrPatWildcard,
         IrPattern,
         compile_glob_pattern,
-        glob_match,
         match_lambda_pattern,
         match_pattern,
         match_pattern_atom,
