@@ -175,9 +175,6 @@ if __package__ in (None, ""):
     )
     from genia.optimizer import (
         optimize_program as optimize_program,
-        optimize_nth_style_recursion,
-        is_tail_recursive_step,
-        recursive_call_count,
     )
 else:
     from .docstrings import render_markdown_docstring
@@ -315,9 +312,6 @@ else:
     from .parser import Parser
     from .optimizer import (
         optimize_program as optimize_program,
-        optimize_nth_style_recursion,
-        is_tail_recursive_step,
-        recursive_call_count,
     )
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()

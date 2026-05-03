@@ -4,7 +4,6 @@
 # because the module does not exist yet.
 # Tests that import from genia.interpreter verify backward compatibility.
 
-import pytest
 
 from genia.interpreter import Parser, lex, lower_program
 
@@ -38,7 +37,6 @@ def test_optimize_program_still_importable_from_genia_interpreter():
 
 def test_optimizer_does_not_import_interpreter():
     import sys
-    import importlib
 
     # Remove cached module if present so we get a fresh load
     for key in list(sys.modules):
