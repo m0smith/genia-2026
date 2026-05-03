@@ -38,17 +38,20 @@ def test_optimize_program_still_importable_from_genia_interpreter():
 def test_optimizer_does_not_import_interpreter():
     import sys
 
-    # Remove cached module if present so we get a fresh load
-    for key in list(sys.modules):
-        if key in ("genia.optimizer", "genia.interpreter"):
-            del sys.modules[key]
+    snapshot = dict(sys.modules)
+    try:
+        for key in list(sys.modules):
+            if key in ("genia.optimizer", "genia.interpreter"):
+                del sys.modules[key]
 
-    # Load optimizer without triggering interpreter load
-    import genia.optimizer  # noqa: F401
+        import genia.optimizer  # noqa: F401
 
-    assert "genia.interpreter" not in sys.modules, (
-        "genia.optimizer must not import genia.interpreter"
-    )
+        assert "genia.interpreter" not in sys.modules, (
+            "genia.optimizer must not import genia.interpreter"
+        )
+    finally:
+        sys.modules.clear()
+        sys.modules.update(snapshot)
 
 
 # --- Behavioral invariants via new import path ---
