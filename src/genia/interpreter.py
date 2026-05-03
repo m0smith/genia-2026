@@ -1311,21 +1311,48 @@ def _callable_case_explicitly_handles_some(body: IrNode) -> bool:
     return False
 
 
-def _body_delegates_to_option_aware(body: IrNode) -> bool:
-    """Return True when the body's final expression delegates to a known Option-aware function."""
+def _closure_lookup(env: "Env", name: str) -> Any:
+    """Walk the closure chain without triggering autoloads."""
+    current: "Env | None" = env
+    while current is not None:
+        val = current.values.get(name)
+        if val is not None:
+            return val
+        current = current.parent
+    return None
+
+
+def _body_delegates_to_option_aware(body: IrNode, closure: "Env | None" = None) -> bool:
+    """Return True when the body's final expression delegates to a known Option-aware function.
+
+    When a closure is supplied the lookup extends to Python-native callables that carry
+    ``__genia_handles_none__`` or ``__genia_handles_some__``, so public Genia wrappers
+    (e.g. ``none?(v) = _none?(v)``) are classified correctly without requiring their
+    names to appear in ``_NONE_AWARE_PUBLIC_FUNCTIONS``.
+    """
     if isinstance(body, IrCall) and isinstance(body.fn, IrVar):
-        return body.fn.name in _NONE_AWARE_PUBLIC_FUNCTIONS
+        name = body.fn.name
+        if name in _NONE_AWARE_PUBLIC_FUNCTIONS:
+            return True
+        if closure is not None:
+            callee = _closure_lookup(closure, name)
+            if callee is not None and (
+                getattr(callee, "__genia_handles_none__", False)
+                or getattr(callee, "__genia_handles_some__", False)
+            ):
+                return True
+        return False
     if isinstance(body, IrBlock) and body.exprs:
-        return _body_delegates_to_option_aware(body.exprs[-1])
+        return _body_delegates_to_option_aware(body.exprs[-1], closure)
     return False
 
 
 def _function_explicitly_handles_none(fn: GeniaFunction) -> bool:
-    return _callable_case_explicitly_handles_none(fn.body) or _body_delegates_to_option_aware(fn.body)
+    return _callable_case_explicitly_handles_none(fn.body) or _body_delegates_to_option_aware(fn.body, fn.closure)
 
 
 def _function_explicitly_handles_some(fn: GeniaFunction) -> bool:
-    return _callable_case_explicitly_handles_some(fn.body) or _body_delegates_to_option_aware(fn.body)
+    return _callable_case_explicitly_handles_some(fn.body) or _body_delegates_to_option_aware(fn.body, fn.closure)
 
 
 def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: IrNode | None = None) -> bool:
