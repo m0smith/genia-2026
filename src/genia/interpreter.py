@@ -32,7 +32,6 @@ import zipfile
 from importlib import resources as importlib_resources
 from pathlib import Path
 import argparse
-import re
 import sys
 from dataclasses import dataclass, field, fields, is_dataclass
 from typing import Any, Callable, Iterable, Iterator, Optional
@@ -47,8 +46,8 @@ if __package__ in (None, ""):
         utf8_byte_length,
     )
     from genia.docstrings import render_markdown_docstring
-    from genia.lexer import Token, SourceSpan, lex, parse_string_literal, parse_glob_literal
-    from genia.parser import Parser, PRECEDENCE, RESERVED_LITERAL_IDENTIFIERS
+    from genia.lexer import SourceSpan, lex
+    from genia.parser import Parser
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from genia.ast_nodes import (
@@ -306,8 +305,8 @@ else:
         make_none,
         symbol,
     )
-    from .lexer import Token, SourceSpan, lex, parse_string_literal, parse_glob_literal
-    from .parser import Parser, PRECEDENCE, RESERVED_LITERAL_IDENTIFIERS
+    from .lexer import SourceSpan, lex
+    from .parser import Parser
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
 
