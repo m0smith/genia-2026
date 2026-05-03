@@ -5,7 +5,6 @@ none(...) directly instead of having it short-circuit before reaching them.
 Ordinary calls whose bodies do not match none continue to propagate absence.
 """
 
-import pytest
 
 from genia import make_global_env, run_source
 from genia.utf8 import format_debug
