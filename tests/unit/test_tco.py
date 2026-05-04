@@ -1,28 +1,39 @@
+import sys
+
 import pytest
 
 from genia.utf8 import format_debug
-
 from genia import make_global_env, run_source
 
-pytestmark = [pytest.mark.slow, pytest.mark.unit]
+pytestmark = [pytest.mark.unit]
+
 
 def run_with_env(src: str):
     env = make_global_env([])
     return run_source(src, env)
 
 
-def test_self_tail_recursion_large_depth():
+def run_with_low_recursion_limit(src: str, limit: int = 300):
+    old_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(limit)
+    try:
+        return run_with_env(src)
+    finally:
+        sys.setrecursionlimit(old_limit)
+
+
+def test_self_tail_recursion_uses_constant_python_stack():
     src = """
     sum_to(n, acc) =
       (0, acc) -> acc |
       (n, acc) -> sum_to(n - 1, acc + n)
 
-    sum_to(100000, 0)
+    sum_to(1000, 0)
     """
-    assert run_with_env(src) == 5000050000
+    assert run_with_low_recursion_limit(src) == 500500
 
 
-def test_mutual_tail_recursion_large_depth():
+def test_mutual_tail_recursion_uses_constant_python_stack():
     src = """
     even(n) =
       0 -> true |
@@ -32,23 +43,23 @@ def test_mutual_tail_recursion_large_depth():
       0 -> false |
       n -> even(n - 1)
 
-    even(100000)
+    even(1000)
     """
-    assert run_with_env(src) is True
+    assert run_with_low_recursion_limit(src) is True
 
 
-def test_tail_call_in_final_pipeline_stage_uses_constant_stack():
+def test_tail_call_in_final_pipeline_stage_uses_constant_python_stack():
     src = """
     sum_pipe(acc, n) =
       (acc, 0) -> acc |
       (acc, n) -> (n - 1) |> sum_pipe(acc + n)
 
-    sum_pipe(0, 50000)
+    sum_pipe(0, 1000)
     """
-    assert run_with_env(src) == 1250025000
+    assert run_with_low_recursion_limit(src) == 500500
 
 
-def test_tail_call_in_final_block_expression_uses_constant_stack():
+def test_tail_call_in_final_block_expression_uses_constant_python_stack():
     src = """
     sum_block(n, acc) {
       acc
@@ -56,21 +67,32 @@ def test_tail_call_in_final_block_expression_uses_constant_stack():
       (n, acc) -> sum_block(n - 1, acc + n)
     }
 
-    sum_block(50000, 0)
+    sum_block(1000, 0)
     """
-    assert run_with_env(src) == 1250025000
+    assert run_with_low_recursion_limit(src) == 500500
 
 
-def test_non_tail_recursion_still_uses_stack():
+def test_non_tail_recursion_still_uses_python_stack():
     src = """
     countdown(n) =
       0 -> 0 |
       n -> 1 + countdown(n - 1)
 
-    countdown(5000)
+    countdown(1000)
     """
     with pytest.raises(RecursionError):
-        run_with_env(src)
+        run_with_low_recursion_limit(src)
+
+@pytest.mark.slow
+def test_tail_recursion_large_depth_smoke():
+    src = """
+    sum_to(n, acc) =
+      (0, acc) -> acc |
+      (n, acc) -> sum_to(n - 1, acc + n)
+
+    sum_to(100000, 0)
+    """
+    assert run_with_env(src) == 5000050000
 
 
 def test_nth_loop_optimization_correctness():

@@ -336,9 +336,12 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Map values also have callable lookup behavior
   - `m(key)` -> stored value or `none("missing-key", {key: key})`
   - `m(key, default)` -> stored value when key exists, otherwise `default`
+  - other arities → `TypeError("map callable expected 1 or 2 args, got N")`
 - String values can act as callable map projectors
   - `"key"(m)` -> map lookup behavior (`value` or `none("missing-key", {key: key})`)
   - `"key"(m, default)` -> stored value when key exists, otherwise `default`
+  - other arities → `TypeError("string projector expected 1 or 2 args, got N")`
+  - non-map first argument → `TypeError("string projector expected a map-like target as first argument")`
 - This callable layer is behavior-based, not a single unified nominal type
   - maps stay maps even when callable
   - strings stay strings even when used as projectors
@@ -1675,7 +1678,7 @@ Notable autoloaded functions include:
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `apply_raw`, `compose`
-  - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit; `args` must be a list or `TypeError` is raised; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
+  - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit for arguments delivered to `f`; `apply_raw` itself is subject to normal none-propagation on its own two arguments (`apply_raw(f, none("x"))` short-circuits before `apply_raw` runs); `args` must be a list or `TypeError` is raised; return value of `f` is returned as-is with no coercion; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
@@ -1694,6 +1697,8 @@ Notable autoloaded functions include:
 - prelude public functions now carry Markdown docstrings intended for `help(...)` teaching output
 
 ## 8) Tail calls and optimization behavior
+
+Callable dispatch semantics (arity resolution, none-propagation detection, closure capture, TCO trampoline) live in `src/genia/callable.py`; expression dispatch and Flow dispatch are evaluator integration in `src/genia/interpreter.py`.
 
 Implemented tail-call/runtime behavior:
 
