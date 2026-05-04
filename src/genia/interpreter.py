@@ -183,7 +183,6 @@ if __package__ in (None, ""):
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
         invoke_callable as _invoke_callable,
-        _callable_explicitly_handles_none,
         _callable_explicitly_handles_some,
     )
 else:
@@ -330,7 +329,6 @@ else:
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
         invoke_callable as _invoke_callable,
-        _callable_explicitly_handles_none,
         _callable_explicitly_handles_some,
     )
 
