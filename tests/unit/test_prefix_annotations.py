@@ -1,6 +1,7 @@
 import pytest
 
-from genia.interpreter import AnnotatedNode, Annotation, Assign, FuncDef, MapLiteral, Parser, String, Var, lex
+from genia.ast_nodes import AnnotatedNode, Annotation, FuncDef
+from genia.interpreter import Assign, MapLiteral, Parser, String, Var, lex
 
 
 def parse_program(src: str):

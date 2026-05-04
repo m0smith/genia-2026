@@ -1,6 +1,7 @@
 import pytest
 
-from genia.interpreter import FuncDef, Parser, lex
+from genia.ast_nodes import FuncDef
+from genia.interpreter import Parser, lex
 from genia import make_global_env, run_source
 
 
