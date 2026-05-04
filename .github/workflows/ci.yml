@@ -52,13 +52,13 @@ jobs:
         run: uvx ruff check .
 
       - name: Run tests
-        run: uv run pytest -q -vv --maxfail=1 -m "not slow"
+        run: uv run pytest -q -vv --maxfail=1 -m "not slow" -n auto
 
       - name: Run semantic specs
         run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m tools.spec_runner
 
       - name: Run tests with coverage
-        run: uv run pytest --cov=genia --cov-report=term-missing -m "not slow"
+        run: uv run pytest --cov=genia --cov-report=term-missing -m "not slow" -n auto
 
   slow-tests:
     name: Slow tests (${{ matrix.section }}, py${{ matrix.python-version }})
