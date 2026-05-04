@@ -133,8 +133,6 @@ if __package__ in (None, ""):
         match_lambda_pattern,
         match_pattern,
         match_pattern_atom,
-        pattern_explicitly_handles_none,
-        pattern_explicitly_handles_some,
     )
     from genia.values import (
         OPTION_NONE,
@@ -183,18 +181,8 @@ if __package__ in (None, ""):
         GeniaFunctionGroup as GeniaFunctionGroup,
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
-        _NONE_AWARE_PUBLIC_FUNCTIONS,
-        _SOME_AWARE_PUBLIC_FUNCTIONS,
         _callable_explicitly_handles_none,
         _callable_explicitly_handles_some,
-        _function_explicitly_handles_none,
-        _function_explicitly_handles_some,
-        _callable_case_explicitly_handles_none,
-        _callable_case_explicitly_handles_some,
-        _body_delegates_to_option_aware,
-        _closure_lookup,
-        _pattern_explicitly_handles_none,
-        _pattern_explicitly_handles_some,
     )
 else:
     from .docstrings import render_markdown_docstring
@@ -283,8 +271,6 @@ else:
         match_lambda_pattern,
         match_pattern,
         match_pattern_atom,
-        pattern_explicitly_handles_none,
-        pattern_explicitly_handles_some,
     )
     from .utf8 import (
         format_debug,
@@ -340,18 +326,8 @@ else:
         GeniaFunctionGroup as GeniaFunctionGroup,
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
-        _NONE_AWARE_PUBLIC_FUNCTIONS,
-        _SOME_AWARE_PUBLIC_FUNCTIONS,
         _callable_explicitly_handles_none,
         _callable_explicitly_handles_some,
-        _function_explicitly_handles_none,
-        _function_explicitly_handles_some,
-        _callable_case_explicitly_handles_none,
-        _callable_case_explicitly_handles_some,
-        _body_delegates_to_option_aware,
-        _closure_lookup,
-        _pattern_explicitly_handles_none,
-        _pattern_explicitly_handles_some,
     )
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()
