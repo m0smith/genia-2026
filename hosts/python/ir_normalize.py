@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+from genia.ir import IrCaseClause
 from genia.interpreter import (
     Boolean,
     IrAnnotation,
@@ -14,7 +15,6 @@ from genia.interpreter import (
     IrBlock,
     IrCall,
     IrCase,
-    IrCaseClause,
     IrDelay,
     IrExprStmt,
     IrFuncDef,

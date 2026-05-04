@@ -1,9 +1,9 @@
 from pathlib import Path
 
+from genia.ast_nodes import FuncDef
 from genia.interpreter import (
     Assign,
     DebugHooks,
-    FuncDef,
     IrFuncDef,
     Parser,
     SourceSpan,

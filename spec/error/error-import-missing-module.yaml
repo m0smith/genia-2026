@@ -1,0 +1,14 @@
+name: error-import-missing-module
+category: error
+description: FileNotFoundError when importing a non-existent module
+input:
+  source: |
+    import definitely_not_a_real_module_xyz
+expected:
+  stdout: ""
+  stderr: "Error: Module not found: definitely_not_a_real_module_xyz\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: FileNotFoundError
+  contract: GENIA_RULES.md §8.2 — missing module files must raise FileNotFoundError("Module not found: <name>")
