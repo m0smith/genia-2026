@@ -3009,29 +3009,29 @@ def make_global_env(
 
     def tick_fn(*args: Any) -> GeniaFlow:
         if len(args) > 1:
-            raise TypeError(f"tick expected 0 or 1 args, got {len(args)}")
+            raise TypeError(f"evolve expected 0 or 1 args, got {len(args)}")
 
         if len(args) == 0:
             limit = None
         else:
             limit_value = args[0]
             if not isinstance(limit_value, int) or isinstance(limit_value, bool):
-                raise TypeError("tick expected an integer count")
+                raise TypeError("evolve expected an integer count")
             limit = limit_value
 
         def iterator() -> Iterable[int]:
-            tick = 0
+            evolve = 0
             if limit is None:
                 while True:
-                    yield tick
-                    tick += 1
+                    yield evolve
+                    evolve += 1
                 return
 
-            while tick < limit:
-                yield tick
-                tick += 1
+            while evolve < limit:
+                yield evolve
+                evolve += 1
 
-        return GeniaFlow(iterator, label="tick")
+        return GeniaFlow(iterator, label="evolve")
 
     def tee_fn(source: Any) -> list[GeniaFlow]:
         upstream = _ensure_flow(source, "tee")
@@ -4709,7 +4709,7 @@ def make_global_env(
     env.set("stdin_keys", stdin_keys_flow)
     env.set("_flow?", flow_predicate_fn)
     env.set("_lines", lines_fn)
-    env.set("_tick", tick_fn)
+    env.set("_evolve", tick_fn)
     env.set("_tee", tee_fn)
     env.set("_merge", merge_flow_fn)
     env.set("_zip", zip_flow_fn)
@@ -4854,8 +4854,8 @@ def make_global_env(
     env.register_autoload("cli_option", 2, "std/prelude/cli.genia")
     env.register_autoload("cli_option_or", 3, "std/prelude/cli.genia")
     env.register_autoload("lines", 1, "std/prelude/flow.genia")
-    env.register_autoload("tick", 0, "std/prelude/flow.genia")
-    env.register_autoload("tick", 1, "std/prelude/flow.genia")
+    env.register_autoload("evolve", 0, "std/prelude/flow.genia")
+    env.register_autoload("evolve", 1, "std/prelude/flow.genia")
     env.register_autoload("tee", 1, "std/prelude/flow.genia")
     env.register_autoload("merge", 1, "std/prelude/flow.genia")
     env.register_autoload("merge", 2, "std/prelude/flow.genia")

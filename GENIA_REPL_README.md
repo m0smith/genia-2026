@@ -773,7 +773,7 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - `examples/ants.genia` is the canonical deterministic pure colony simulation demo.
 - It threads an explicit world value through `step(world) -> world2`, keeps RNG state in that world, and uses seeded `rand_int(rng_state, n)` only for weighted movement choice.
 - The implemented colony behavior includes nest/home region handling, food pickup and return, pheromone deposit, pheromone evaporation, and direction-aware movement bias.
-- `examples/ants_terminal.genia` is a blocking terminal developer UI over the same colony model. It renders nest, food, ants, carrying ants, and pheromone heat, plus a stats panel with seed, mode, tick, remaining steps, ants, carrying count, delivered food, remaining food, pheromone total, active trail count, and delay.
+- `examples/ants_terminal.genia` is a blocking terminal developer UI over the same colony model. It renders nest, food, ants, carrying ants, and pheromone heat, plus a stats panel with seed, mode, evolve, remaining steps, ants, carrying count, delivered food, remaining food, pheromone total, active trail count, and delay.
 - Terminal UI flags: `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`.
 - Same seed plus same config gives the same progression for a given mode.
 - These demos use builtins only (`map_*`, explicit `rng(seed)` + `rand_int(rng_state, n)`, `sleep`, `print`, terminal helpers) with no new syntax.

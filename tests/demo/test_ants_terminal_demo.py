@@ -32,7 +32,7 @@ def test_terminal_draw_frame_uses_terminal_helpers_and_rendered_world():
 
     assert stdout.getvalue() == (
         "\x1b[2J\x1b[H\x1b[1;1HGenia ants terminal UI\n"
-        "[mode, pure, seed, 0, tick, 0, steps_left, 4]\n"
+        "[mode, pure, seed, 0, evolve, 0, steps_left, 4]\n"
         "[ants, 3, carrying, 0, delivered, 0, food_left, 24]\n"
         "[pheromone_total, 0, active_trails, 0, delay_ms, 80]\n"
         "legend: H carrying ant | a ant | N nest | * food | # + : pheromone high/med/low | . empty\n"

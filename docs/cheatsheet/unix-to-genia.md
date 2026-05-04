@@ -77,11 +77,11 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 ---
 
-## ⏱️ Tick Simulation (Experimental)
+## ⏱️ evolve Simulation (Experimental)
 
 | Use Case | Genia | Notes |
 | ---- | ----- | ----- |
-| Step simulation loop | 🟣 `tick(5) \|> scan((state, _) -> [state + 1, state + 1], 0) \|> collect` | Experimental discrete-time progression [case: unix-map-tick-simulation] |
+| Step simulation loop | 🟣 `evolve(5) \|> scan((state, _) -> [state + 1, state + 1], 0) \|> collect` | Experimental discrete-time progression [case: unix-map-evolve-simulation] |
 
 ---
 

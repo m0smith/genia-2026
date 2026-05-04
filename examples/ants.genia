@@ -2,7 +2,7 @@
 # Ants Pure Simulation
 
 Deterministic colony simulation that threads an explicit world value through
-pure tick steps.
+pure evolve steps.
 
 ## Run
 
@@ -65,13 +65,13 @@ world_pheromone_positions(world) = field(world, "pheromone_positions", [])
 world_food_total(world) = field(world, "food_total", 0)
 world_pheromone_total(world) = field(world, "pheromone_total", 0)
 world_delivered(world) = field(world, "delivered", 0)
-world_tick(world) = field(world, "tick", 0)
+world_tick(world) = field(world, "evolve", 0)
 
 world_set(world, key, value) = map_put(world, key, value)
 set_rng(world, rng_state) = world_set(world, "rng", rng_state)
 set_ants(world, ants) = world_set(world, "ants", ants)
 set_delivered(world, delivered) = world_set(world, "delivered", delivered)
-set_tick(world, tick_value) = world_set(world, "tick", tick_value)
+set_tick(world, tick_value) = world_set(world, "evolve", tick_value)
 
 empty_cell() = {food: 0, pheromone: 0}
 
@@ -207,7 +207,7 @@ empty_world(seed_value, ant_total, width, height) = {
     pheromone_total: 0,
     rng: rng(seed_value),
     delivered: 0,
-    tick: 0
+    evolve: 0
   }
 }
 
@@ -565,7 +565,7 @@ print_rows(rows) =
   }
 
 draw_frame(world, steps_left) = {
-  print(["tick", world_tick(world), "delivered", world_delivered(world), "food_left", total_food(world), "steps_left", steps_left])
+  print(["evolve", world_tick(world), "delivered", world_delivered(world), "food_left", total_food(world), "steps_left", steps_left])
   print_rows(render_rows(world))
 }
 

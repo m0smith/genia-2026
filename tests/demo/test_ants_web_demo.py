@@ -73,7 +73,7 @@ def test_ants_web_snapshot_is_json_friendly_and_uses_ants_logic():
     )
     snapshot = json.loads(result)
 
-    assert snapshot["tick"] == 0
+    assert snapshot["evolve"] == 0
     assert snapshot["seed"] == 7
     assert snapshot["mode"] == "pure"
     assert snapshot["width"] == 8
@@ -114,7 +114,7 @@ def test_ants_web_reset_and_step_are_seeded_and_deterministic():
     first = step_handler({})/body |> json_parse
     reset_state({seed: 9, ants: 4, size: 8, delay: 0, mode: "pure"})
     second = step_handler({})/body |> json_parse
-    [first/tick, first/ants, second/tick, second/ants, json_stringify(first) == json_stringify(second)]
+    [first/evolve, first/ants, second/evolve, second/ants, json_stringify(first) == json_stringify(second)]
     """
 
     result = run_web(program)
@@ -130,7 +130,7 @@ def test_ants_web_actor_mode_endpoint_uses_actor_session():
         req = {body: {seed: 11, ants: 2, size: 8, delay: 0, mode: "actor"}}
         reset = reset_handler(req)/body |> json_parse
         stepped = step_handler({})/body |> json_parse
-        [reset/mode, reset/stats/ants, stepped/mode, stepped/tick, stepped/stats/ants]
+        [reset/mode, reset/stats/ants, stepped/mode, stepped/evolve, stepped/stats/ants]
         """
     )
 
@@ -168,7 +168,7 @@ def test_ants_web_http_routes_serve_assets_and_state_updates():
     initial = json.loads(body)
     assert status == 200
     assert headers["Content-Type"] == "application/json; charset=utf-8"
-    assert initial["tick"] == 0
+    assert initial["evolve"] == 0
 
     status, headers, body = _request(
         "POST",
@@ -187,5 +187,5 @@ def test_ants_web_http_routes_serve_assets_and_state_updates():
     result = _finish_server(thread, outcome)
 
     assert status == 200
-    assert stepped["tick"] == 1
+    assert stepped["evolve"] == 1
     assert result.get("handled_requests") == 4

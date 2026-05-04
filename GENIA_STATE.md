@@ -412,7 +412,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
-- public Flow helper names `lines`, `tick` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
+- public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`
@@ -979,7 +979,7 @@ Representation System entry points (#185, implemented):
   - existing `stdin |> lines` behavior is unchanged
 - public flow helpers are thin prelude wrappers in `src/genia/std/prelude/flow.genia`:
   - `lines`
-  - `tick` (experimental)
+  - `evolve` (experimental)
   - `tee`
   - `merge`
   - `zip`
@@ -1002,8 +1002,8 @@ Representation System entry points (#185, implemented):
   - host execution responsibilities remain in the Python Flow kernel and host adapters
 - flow transforms:
   - `lines(flow_or_source)`
-  - `tick()` (unbounded integer tick flow starting at `0`)
-  - `tick(count)` (bounded integer tick flow from `0` to `count - 1`)
+  - `evolve()` (unbounded integer evolve flow starting at `0`)
+  - `evolve(count)` (bounded integer evolve flow from `0` to `count - 1`)
   - `tee(flow)` returns `[left_flow, right_flow]`
   - `merge(flow1, flow2)` and `merge(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
   - `zip(flow1, flow2)` and `zip(pair)` where `pair` is a two-element list such as the result of `tee(flow)`
@@ -1041,7 +1041,7 @@ Flow semantics:
 - `merge` preserves input ordering (`flow1` items, then `flow2` items)
 - `zip` emits lockstep `[left, right]` pairs and stops when either input flow is exhausted
 - `take` performs early termination (stops upstream pulling as soon as limit is reached, without over-pulling one extra item)
-- `tick` provides deterministic discrete step progression for simulation-style pipelines while preserving the same explicit/lazy/single-use Flow contract
+- `evolve` provides deterministic discrete step progression for simulation-style pipelines while preserving the same explicit/lazy/single-use Flow contract
 - short-circuiting flow consumers such as `take`, `head`, and downstream broken-pipe termination stop generator-backed upstream work promptly
 - `scan` is a per-flow stateful transform where `step(state, item)` must return `[next_state, output]`
 - `scan` keeps state internal to the operator while emitting one output item per input item
@@ -1058,7 +1058,7 @@ Flow semantics:
   - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `take`, `drop`, `reverse`
   - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `scan`, `rules`, `each`, `tee`, `merge`, `zip`, `head`
   - Polymorphic functions (work on both lists and flows): `map`, `filter`
-  - Bridge: source (value → flow): `lines`, `tick`, `stdin_keys`
+  - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
   - Option behavior (`some`/`none` auto-lifting in pipelines) composes with the Flow vs Value distinction but does not erase it
@@ -1770,7 +1770,7 @@ Implemented colony behavior in this phase:
 - food pickup with decremented food quantity
 - return-to-nest delivery with delivered-food counting
 - pheromone deposit on return paths
-- pheromone evaporation each tick
+- pheromone evaporation each evolve
 - direction-aware candidate moves with weighted seeded choice
 
 It is intentionally pure and explicit. It is **not** actor-based, does **not** add a scheduler, and does **not** introduce hidden mutable runtime state or new language syntax.
@@ -1785,7 +1785,7 @@ This is the canonical simulation teaching pattern in this phase: ordinary world 
 - explicit seeded randomness via `rng(seed)` plus `rand_int(rng_state, n)` for reproducible setup and movement
 - visible text UI for development/teaching:
   - deterministic rendering priority: carrying ant `H`, ant `a`, nest `N`, food `*`, pheromone heat `#`/`+`/`:`, empty `.`
-  - stats panel with mode, seed, tick, remaining steps, ant/carrying counts, delivered food, remaining food, pheromone total, active trail count, and delay
+  - stats panel with mode, seed, evolve, remaining steps, ant/carrying counts, delivered food, remaining food, pheromone total, active trail count, and delay
   - CLI flags: `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`
 - pure mode steps the imported pure `ants/step(world)` model
 - actor mode uses a coordinator actor session from `examples/ants_actor.genia` so the same terminal UI can compare the actor/coordinator execution structure
@@ -1796,19 +1796,19 @@ It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **n
 
 - coordinator actor owns the authoritative world state
 - ant workers request sense data via `actor_call` and submit move intents back to the coordinator
-- explicit coordinator-driven tick loop for deterministic reproducibility
+- explicit coordinator-driven evolve loop for deterministic reproducibility
 - reusable actor session helpers for the terminal UI: `actor_session`, `actor_session_world`, `actor_session_step`, and `actor_session_stop`
 - imports and reuses the pure scoring/movement logic from `ants.genia` via `import ants`
 - per-ant RNG splitting via `rng(seed)` / `rand_int` for seeded randomness
-- string-tagged messages: `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["tick"]`, `["snapshot"]`, `["stop"]`
+- string-tagged messages: `["sense", ant_id]`, `["move_intent", ant_id, move]`, `["evolve"]`, `["snapshot"]`, `["stop"]`
 
 It is a teaching architecture layer — same colony behavior, different execution structure. It does **not** add new language syntax, does **not** introduce a scheduler, and does **not** require selective receive or timeouts.
 
 `examples/ants_web.genia` is an application/demo layer over the existing HTTP surface:
 
 - serves `GET /`, `GET /app.js`, and `GET /style.css` as static browser assets
-- serves `GET /state` as a JSON-friendly snapshot with tick, seed, mode, world size, ant positions/carrying status, nest cells, food cells, pheromone cells, delivered food, remaining food, and small stats
-- accepts `POST /reset` with JSON config (`seed`, `ants`, `size`, `delay`, `mode`) and `POST /step` to advance one tick
+- serves `GET /state` as a JSON-friendly snapshot with evolve, seed, mode, world size, ant positions/carrying status, nest cells, food cells, pheromone cells, delivered food, remaining food, and small stats
+- accepts `POST /reset` with JSON config (`seed`, `ants`, `size`, `delay`, `mode`) and `POST /step` to advance one evolve
 - keeps one explicit server-memory session in a `ref`
 - pure mode reuses `ants_terminal/start_session` over the pure `ants/step(world)` model
 - actor mode reuses the coordinator session from `examples/ants_actor.genia`

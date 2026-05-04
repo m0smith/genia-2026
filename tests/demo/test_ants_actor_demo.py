@@ -4,7 +4,7 @@ Covers:
 1. Coordinator owns world truth
 2. Actor-mode ant can request sense data and submit intent
 3. Food pickup/delivery works in actor mode
-4. Actor-mode world is reproducible under explicit tick order
+4. Actor-mode world is reproducible under explicit evolve order
 5. Key invariants: total food accounting, delivered food monotonic
 """
 
@@ -41,13 +41,13 @@ def test_coordinator_snapshot_returns_world():
 
 
 def test_coordinator_tick_increments_tick_counter():
-    """Coordinator tick message increments the world tick count."""
+    """Coordinator evolve message increments the world evolve count."""
     result = run_actor(
         """
         world = ants/new_world(7, 2, 5, 5)
         coord = actor(world, coordinator_handler)
-        actor_call(coord, ["tick"])
-        actor_call(coord, ["tick"])
+        actor_call(coord, ["evolve"])
+        actor_call(coord, ["evolve"])
         snap = actor_call(coord, ["snapshot"])
         w = snapshot_world(snap)
         actor_call(coord, ["stop"])
@@ -114,7 +114,7 @@ def test_run_actor_sim_returns_world():
 
 
 def test_actor_sim_same_seed_is_reproducible():
-    """Same seed produces the same world summary after the same tick count."""
+    """Same seed produces the same world summary after the same evolve count."""
     result1 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
     result2 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
     assert result1 == result2
@@ -128,14 +128,14 @@ def test_actor_sim_different_seed_differs():
 
 
 def test_collect_actor_summaries_length():
-    """collect_actor_summaries returns one entry per tick plus a final snapshot."""
+    """collect_actor_summaries returns one entry per evolve plus a final snapshot."""
     result = run_actor("length(collect_actor_summaries(7, 2, 4))")
     # 4 ticks + 1 final = 5 summaries
     assert result == 5
 
 
 def test_collect_actor_summaries_tick_increases():
-    """Tick counter in summaries increases monotonically."""
+    """evolve counter in summaries increases monotonically."""
     result = run_actor(
         """
         summaries = collect_actor_summaries(7, 2, 3)

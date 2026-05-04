@@ -66,7 +66,7 @@ class TestReduceErrorPrimitive:
         # Before implementation: NameError → FAILS.
         # After implementation: TypeError "...received flow" → PASSES.
         with pytest.raises(TypeError, match="reduce expected a list as third argument, received flow"):
-            run("_reduce_error(tick(3))")
+            run("_reduce_error(evolve(3))")
 
     def test_reduce_error_string_message(self):
         # _reduce_error must produce the exact message for a string value.
@@ -121,7 +121,7 @@ class TestReduceNonListRegression:
     def test_reduce_non_list_flow(self):
         # I1: reduce with a Flow xs raises the exact TypeError message.
         with pytest.raises(TypeError, match="reduce expected a list as third argument, received flow"):
-            run("reduce((acc, x) -> acc + x, 0, tick(3))")
+            run("reduce((acc, x) -> acc + x, 0, evolve(3))")
 
     def test_reduce_non_list_string(self):
         # I2: reduce with a string xs raises the exact TypeError message.

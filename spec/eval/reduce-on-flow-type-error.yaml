@@ -3,7 +3,7 @@ category: eval
 input:
   source: |
     acc(a, b) = a
-    reduce(acc, 0, tick(3))
+    reduce(acc, 0, evolve(3))
 expected:
   stdout: ""
   stderr: |

@@ -2,9 +2,9 @@ name: first-on-flow-type-error
 category: eval
 input:
   source: |
-    first(tick(3))
+    first(evolve(3))
 expected:
   stdout: ""
   stderr: |
-    Error: No matching case for function first/1 with arguments (<flow tick ready>,)
+    Error: No matching case for function first/1 with arguments (<flow evolve ready>,)
   exit_code: 1

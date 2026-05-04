@@ -1,23 +1,23 @@
 @doc "Create a Flow from `stdin`, an incoming Flow, or a list of strings."
 lines(source) = _lines(source)
 
-@doc """Create a Flow of integer tick values starting at `0`.
+@doc """Create a Flow of integer evolve values starting at `0`.
 
-`tick()` is unbounded.
-`tick(count)` is bounded to `0..count - 1`.
-
-Use with `take`/`head` when you want explicit bounded simulation steps.
-"""
-tick() = _tick()
-
-@doc """Create a Flow of integer tick values starting at `0`.
-
-`tick()` is unbounded.
-`tick(count)` is bounded to `0..count - 1`.
+`evolve()` is unbounded.
+`evolve(count)` is bounded to `0..count - 1`.
 
 Use with `take`/`head` when you want explicit bounded simulation steps.
 """
-tick(count) = _tick(count)
+evolve() = _evolve()
+
+@doc """Create a Flow of integer evolve values starting at `0`.
+
+`evolve()` is unbounded.
+`evolve(count)` is bounded to `0..count - 1`.
+
+Use with `take`/`head` when you want explicit bounded simulation steps.
+"""
+evolve(count) = _evolve(count)
 
 @doc """Split one input flow into two lazy branch flows.
 

@@ -59,8 +59,8 @@
     "expected_result": "2"
   },
   {
-    "id": "unix-map-tick-simulation",
-    "source": "tick(5) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
+    "id": "unix-map-evolve-simulation",
+    "source": "evolve(5) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
     "expected_result": "[1, 2, 3, 4, 5]"
   },
   {
