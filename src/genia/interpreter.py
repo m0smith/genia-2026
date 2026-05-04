@@ -51,8 +51,6 @@ if __package__ in (None, ""):
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from genia.ast_nodes import (
-        AnnotatedNode,
-        Annotation,
         Assign,
         Binary,
         Block,
@@ -62,9 +60,7 @@ if __package__ in (None, ""):
         CaseExpr,
         Delay,
         ExprStmt,
-        FuncDef,
         GlobPattern,
-        ImportStmt,
         Lambda,
         ListLiteral,
         ListPattern,
@@ -77,7 +73,6 @@ if __package__ in (None, ""):
         QuasiQuote,
         Quote,
         RestPattern,
-        ShellStage,
         SomePattern,
         Spread,
         String,
@@ -97,7 +92,6 @@ if __package__ in (None, ""):
         IrBlock,
         IrCall,
         IrCase,
-        IrCaseClause,
         IrDelay,
         IrExprStmt,
         IrFuncDef,
@@ -187,8 +181,6 @@ else:
     from .environment import Env
     from .errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from .ast_nodes import (
-        AnnotatedNode,
-        Annotation,
         Assign,
         Binary,
         Block,
@@ -198,9 +190,7 @@ else:
         CaseExpr,
         Delay,
         ExprStmt,
-        FuncDef,
         GlobPattern,
-        ImportStmt,
         Lambda,
         ListLiteral,
         ListPattern,
@@ -213,7 +203,6 @@ else:
         QuasiQuote,
         Quote,
         RestPattern,
-        ShellStage,
         SomePattern,
         Spread,
         String,
@@ -233,7 +222,6 @@ else:
         IrBlock,
         IrCall,
         IrCase,
-        IrCaseClause,
         IrDelay,
         IrExprStmt,
         IrFuncDef,
