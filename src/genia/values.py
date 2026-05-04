@@ -206,6 +206,14 @@ def _normalize_nil(value: Any) -> Any:
 
 
 OPTION_NONE = make_none("nil")
+
+
+def truthy(value: Any) -> bool:
+    if is_none(value):
+        return False
+    return bool(value)
+
+
 _RNG_MODULUS = 2**32
 _RNG_MULTIPLIER = 1664525
 _RNG_INCREMENT = 1013904223

@@ -1698,7 +1698,7 @@ Notable autoloaded functions include:
 
 ## 8) Tail calls and optimization behavior
 
-Callable dispatch semantics (arity resolution, none-propagation detection, closure capture, TCO trampoline) live in `src/genia/callable.py`; expression dispatch and Flow dispatch are evaluator integration in `src/genia/interpreter.py`.
+Callable dispatch semantics (arity resolution, none-propagation detection, closure capture, TCO trampoline, invocation dispatch via `invoke_callable`) live in `src/genia/callable.py`; expression evaluation and pipeline dispatch (eval_call, eval_pipeline_stage) remain in `src/genia/interpreter.py`.
 
 Implemented tail-call/runtime behavior:
 
