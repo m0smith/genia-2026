@@ -296,7 +296,7 @@ Pipeline invariant:
 - Expanding shared semantic-spec coverage beyond that scope requires implementation plus `GENIA_STATE.md` updates first
 - Flow remains explicit:
   - pipeline evaluation does not create implicit Value→Flow conversions
-  - flow values still come from explicit bridge/stage functions such as `lines`, `tick`, `collect`, and `run`
+  - flow values still come from explicit bridge/stage functions such as `lines`, `evolve`, `collect`, and `run`
   - tail position propagates through the final pipeline stage
 
 

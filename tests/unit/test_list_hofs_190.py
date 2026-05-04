@@ -277,14 +277,14 @@ class TestFlowDispatchUnchanged:
         # The evaluator intercepts map for GeniaFlow before prelude runs; result is a flow
         from genia.interpreter import GeniaFlow
         env = make_global_env([])
-        result = run_source("tick(3) |> map((x) -> x + 1)", env)
+        result = run_source("evolve(3) |> map((x) -> x + 1)", env)
         assert isinstance(result, GeniaFlow)
 
     def test_flow_filter_returns_flow(self):
         # The evaluator intercepts filter for GeniaFlow before prelude runs; result is a flow
         from genia.interpreter import GeniaFlow
         env = make_global_env([])
-        result = run_source("tick(5) |> filter((x) -> x > 2)", env)
+        result = run_source("evolve(5) |> filter((x) -> x > 2)", env)
         assert isinstance(result, GeniaFlow)
 
 

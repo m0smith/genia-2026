@@ -106,4 +106,4 @@ class TestPairsErrorRegression:
 
     def test_pairs_flow_argument_error_uses_runtime_type(self):
         with pytest.raises(TypeError, match="pairs expected a list as first argument, received flow"):
-            run("pairs(tick(1), [])")
+            run("pairs(evolve(1), [])")

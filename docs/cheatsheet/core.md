@@ -114,7 +114,7 @@ Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fi
 | Helper | Shape |
 | --- | --- |
 | source bridge | `lines(source)` |
-| experimental source bridge | `tick()`, `tick(count)` |
+| experimental source bridge | `evolve()`, `evolve(count)` |
 | split / fan-in | `tee(flow) -> [left_flow, right_flow]`, `merge(flow1, flow2)`, `merge(pair)`, `zip(flow1, flow2)`, `zip(pair)` |
 | option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |
@@ -361,9 +361,9 @@ Classification: **Valid** (directly tested)
 ```
 Classification: **Valid** (directly tested)
 
-[case: core-min-flow-tick]
+[case: core-min-flow-evolve]
 ```genia
-tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
+evolve(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect
 ```
 Classification: **Valid** (directly tested)
 

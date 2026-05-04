@@ -16,7 +16,7 @@ import ants
 # - no timeouts
 # - host scheduling order is not deterministic
 # - coordinator serialises intents so the demo is reproducible under
-#   an explicit tick-driven loop
+#   an explicit evolve-driven loop
 
 default_tick_count() = 18
 default_ant_count() = 5
@@ -36,7 +36,7 @@ thd(list) = ([_, _, x, .._]) -> x
 # Messages (tagged lists):
 #   ["sense", ant_id]              -> replies with sense data
 #   ["move_intent", ant_id, move]  -> applies move, replies with result
-#   ["tick"]                       -> runs evaporation, increments tick
+#   ["evolve"]                       -> runs evaporation, increments evolve
 #   ["snapshot"]                   -> replies with full world
 #   ["stop"]                       -> stops the coordinator
 # ─────────────────────────────────────────────
@@ -60,7 +60,7 @@ coordinator_handler(world, msg, _ctx) =
     world3 = ants/set_ants(world2, new_ants)
     ["reply", world3, ["move_result", ant_id, tag]]
   } |
-  (world, ["tick"], _) -> {
+  (world, ["evolve"], _) -> {
     evaporated = ants/evaporate(world)
     world2 = ants/set_tick(evaporated, ants/world_tick(evaporated) + 1)
     ["ok", world2]
@@ -105,7 +105,7 @@ split_rng_acc(rng_state, n, i, acc) =
   }
 
 # ─────────────────────────────────────────────
-# Tick loop — coordinator-driven, explicit ant ordering
+# evolve loop — coordinator-driven, explicit ant ordering
 # ─────────────────────────────────────────────
 
 run_tick_ants(coord, ant_rngs) = run_tick_ant(coord, ant_rngs, 0, [])
@@ -138,7 +138,7 @@ run_actor_loop(coord, ant_rngs, master_rng, ticks_left) =
   } |
   (coord, ant_rngs, master_rng, ticks_left) -> {
     new_ant_rngs = run_tick_ants(coord, ant_rngs)
-    actor_call(coord, ["tick"])
+    actor_call(coord, ["evolve"])
     run_actor_loop(coord, new_ant_rngs, master_rng, ticks_left - 1)
   }
 
@@ -159,7 +159,7 @@ actor_session_world(session) = snapshot_world(actor_call(actor_session_coord(ses
 actor_session_step(session) = {
   coord = actor_session_coord(session)
   new_ant_rngs = run_tick_ants(coord, actor_session_rngs(session))
-  actor_call(coord, ["tick"])
+  actor_call(coord, ["evolve"])
   map_put(session, "ant_rngs", new_ant_rngs)
 }
 
@@ -200,7 +200,7 @@ collect_loop(coord, ant_rngs, master_rng, ticks_left, summaries_rev) =
     snap_before = actor_call(coord, ["snapshot"])
     w_before = snapshot_world(snap_before)
     new_ant_rngs = run_tick_ants(coord, ant_rngs)
-    actor_call(coord, ["tick"])
+    actor_call(coord, ["evolve"])
     collect_loop(coord, new_ant_rngs, master_rng, ticks_left - 1, [world_summary(w_before), ..summaries_rev])
   }
 
@@ -227,7 +227,7 @@ sim_loop(coord, ant_rngs, ticks_left, delay_ms) =
     ants/draw_frame(w, ticks_left)
     sleep(delay_ms)
     new_ant_rngs = run_tick_ants(coord, ant_rngs)
-    actor_call(coord, ["tick"])
+    actor_call(coord, ["evolve"])
     sim_loop(coord, new_ant_rngs, ticks_left - 1, delay_ms)
   }
 

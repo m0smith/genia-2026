@@ -19,7 +19,7 @@
 #   GET  /style.css -> styling
 #   GET  /state     -> JSON world snapshot
 #   POST /reset     -> reset current session from JSON config
-#   POST /step      -> advance one simulation tick
+#   POST /step      -> advance one simulation evolve
 # --------------------------------------------------------------------------
 
 import web
@@ -151,7 +151,7 @@ snapshot_world(config, world) = {
   food = ants/food_entries(world)
   pheromones = ants/pheromone_entries(world)
   {
-    tick: ants/world_tick(world),
+    evolve: ants/world_tick(world),
     seed: config_seed(config),
     mode: config_mode(config),
     width: ants/world_width(world),
@@ -457,7 +457,7 @@ function render(state) {
   stats.innerHTML = "";
   addStat("mode", state.mode);
   addStat("seed", state.seed);
-  addStat("tick", state.tick);
+  addStat("evolve", state.evolve);
   addStat("ants", state.stats.ants);
   addStat("carrying", state.stats.carrying);
   addStat("delivered", state.delivered);

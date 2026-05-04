@@ -30,8 +30,8 @@
     "expected_result": "[[\"a\", \"a\"], [\"b\", \"b\"]]"
   },
   {
-    "id": "core-min-flow-tick",
-    "source": "tick(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
+    "id": "core-min-flow-evolve",
+    "source": "evolve(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
     "expected_result": "[1, 2, 3, 4]"
   },
   {

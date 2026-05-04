@@ -123,7 +123,7 @@ active_trails(world) = ants/active_trail_count(world)
 
 stats_panel(world, config, steps_left) = [
   "Genia ants terminal UI",
-  ["mode", config_mode(config), "seed", config_seed(config), "tick", ants/world_tick(world), "steps_left", steps_left],
+  ["mode", config_mode(config), "seed", config_seed(config), "evolve", ants/world_tick(world), "steps_left", steps_left],
   ["ants", length(ants/world_ants(world)), "carrying", carrying_count(world), "delivered", ants/world_delivered(world), "food_left", ants/total_food(world)],
   ["pheromone_total", pheromone_total(world), "active_trails", active_trails(world), "delay_ms", config_delay(config)],
   "legend: H carrying ant | a ant | N nest | * food | # + : pheromone high/med/low | . empty",
