@@ -437,3 +437,17 @@ class TestRulesPipelineRegression:
             env,
         )
         assert result == ["p", "q"]
+
+    def test_flow_not_wrapped_in_some_after_option_lifting(self):
+        """Flow values must not be wrapped in Some when emerging from option-lifting stages.
+
+        When an earlier stage produces GeniaOptionSome(flow) via option lifting,
+        refine and subsequent stages must receive the bare flow, not Some(flow).
+        Regression for issue #228.
+        """
+        env = make_global_env(stdin_data=["a", "b"])
+        result = run_source(
+            "some(stdin) |> lines |> refine((r, _) -> step_emit(r)) |> collect",
+            env,
+        )
+        assert result == ["a", "b"]

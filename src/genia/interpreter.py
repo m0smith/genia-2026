@@ -1904,6 +1904,8 @@ class Evaluator:
                 )
                 if isinstance(result, (GeniaOptionSome, GeniaOptionNone)):
                     return result
+                if isinstance(result, GeniaFlow):
+                    return result
                 return GeniaOptionSome(result)
             return self.invoke_callable(
                 fn,
