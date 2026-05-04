@@ -164,6 +164,7 @@ if __package__ in (None, ""):
         is_none,
         make_none,
         symbol,
+        truthy,
     )
     from genia.optimizer import (
         optimize_program as optimize_program,
@@ -181,6 +182,7 @@ if __package__ in (None, ""):
         GeniaFunctionGroup as GeniaFunctionGroup,
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
+        invoke_callable as _invoke_callable,
         _callable_explicitly_handles_none,
         _callable_explicitly_handles_some,
     )
@@ -307,6 +309,7 @@ else:
         is_none,
         make_none,
         symbol,
+        truthy,
     )
     from .lexer import SourceSpan, lex
     from .parser import Parser
@@ -326,6 +329,7 @@ else:
         GeniaFunctionGroup as GeniaFunctionGroup,
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
+        invoke_callable as _invoke_callable,
         _callable_explicitly_handles_none,
         _callable_explicitly_handles_some,
     )
@@ -1418,148 +1422,19 @@ class Evaluator:
         callee_node: IrNode | None = None,
         skip_none_propagation: bool = False,
     ) -> Any:
-        if not skip_none_propagation:
-            first_none = next((arg for arg in args if is_none(arg)), None)
-            if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
-                return first_none
+        def _autoload(name: str, arity: int) -> Any:
+            if self.env.try_autoload(name, arity):
+                return self.env.get(name)
+            return None
 
-        if isinstance(fn, GeniaFunctionGroup):
-            if isinstance(callee_node, IrVar) and len(args) == 2 and isinstance(args[1], GeniaFlow):
-                if callee_node.name == "map":
-                    mapper = args[0]
-                    source = args[1]
-
-                    def iterator() -> Iterable[Any]:
-                        items = source.consume()
-                        try:
-                            for item in items:
-                                yield self.invoke_callable(mapper, [item], tail_position=False)
-                        finally:
-                            if source.close_on_early_termination:
-                                close = getattr(items, "close", None)
-                                if callable(close):
-                                    close()
-
-                    return GeniaFlow(iterator, label="map", close_on_early_termination=source.close_on_early_termination)
-                if callee_node.name == "filter":
-                    predicate = args[0]
-                    source = args[1]
-
-                    def iterator() -> Iterable[Any]:
-                        items = source.consume()
-                        try:
-                            for item in items:
-                                if truthy(self.invoke_callable(predicate, [item], tail_position=False)):
-                                    yield item
-                        finally:
-                            if source.close_on_early_termination:
-                                close = getattr(items, "close", None)
-                                if callable(close):
-                                    close()
-
-                    return GeniaFlow(
-                        iterator,
-                        label="filter",
-                        close_on_early_termination=source.close_on_early_termination,
-                    )
-                if callee_node.name == "take":
-                    count = args[0]
-                    source = args[1]
-                    if not isinstance(count, int) or isinstance(count, bool):
-                        raise TypeError("take expected an integer count as first argument")
-
-                    def iterator() -> Iterable[Any]:
-                        if count <= 0:
-                            return
-                        remaining = count
-                        items = source.consume()
-                        upstream = iter(items)
-                        try:
-                            while remaining > 0:
-                                try:
-                                    item = next(upstream)
-                                except StopIteration:
-                                    return
-                                yield item
-                                remaining -= 1
-                        finally:
-                            if source.close_on_early_termination:
-                                close = getattr(items, "close", None)
-                                if callable(close):
-                                    close()
-
-                    return GeniaFlow(iterator, label="take", close_on_early_termination=source.close_on_early_termination)
-            arity = len(args)
-
-            def resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any | None:
-                exact = functions.get(call_arity)
-                if exact is not None:
-                    return exact
-
-                vararg_matches = [
-                    candidate
-                    for candidate in functions.values()
-                    if isinstance(candidate, GeniaFunction)
-                    and candidate.rest_param is not None
-                    and call_arity >= candidate.arity
-                ]
-                if len(vararg_matches) == 1:
-                    return vararg_matches[0]
-                if len(vararg_matches) > 1:
-                    callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
-                    candidates = ", ".join(
-                        f"{callee}/{candidate.arity}+"
-                        for candidate in sorted(vararg_matches, key=lambda f: f.arity)
-                    )
-                    raise TypeError(
-                        f"Ambiguous function resolution: {callee}/{call_arity}. Matching varargs: {candidates}"
-                    )
-                return None
-
-            target = resolve_target(fn, arity)
-
-            if target is None and isinstance(callee_node, IrVar):
-                if self.env.try_autoload(callee_node.name, arity):
-                    fn = self.env.get(callee_node.name)
-                    if isinstance(fn, GeniaFunctionGroup):
-                        target = resolve_target(fn, arity)
-
-            if target is None:
-                callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
-                available = ", ".join(f"{callee}/{n}" for n in fn.sorted_arities())
-                raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
-            if tail_position:
-                return TailCall(target, tuple(args))
-            return _normalize_absence(target(*args))
-
-        if isinstance(fn, GeniaMap):
-            arg_count = len(args)
-            if arg_count == 1:
-                return fn.get(args[0])
-            if arg_count == 2:
-                key = args[0]
-                if fn.has(key):
-                    return fn.get(key)
-                return args[1]
-            raise TypeError(f"map callable expected 1 or 2 args, got {arg_count}")
-
-        if isinstance(fn, str):
-            arg_count = len(args)
-            if arg_count not in (1, 2):
-                raise TypeError(f"string projector expected 1 or 2 args, got {arg_count}")
-            target = args[0]
-            if not isinstance(target, GeniaMap):
-                raise TypeError("string projector expected a map-like target as first argument")
-            if arg_count == 2 and not target.has(fn):
-                return args[1]
-            return target.get(fn)
-
-        if not callable(fn):
-            raise TypeError(f"pipeline stage expected a callable value, received {_runtime_type_name(fn)}")
-
-        if tail_position:
-            return TailCall(fn, tuple(args))
-        return _normalize_absence(fn(*args))
+        return _invoke_callable(
+            fn,
+            args,
+            tail_position=tail_position,
+            callee_node=callee_node,
+            skip_none_propagation=skip_none_propagation,
+            autoload_resolver=_autoload,
+        )
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         return match_pattern(pattern, args)
@@ -1818,12 +1693,6 @@ class Evaluator:
                     return make_none("type-error", GeniaMap().put("source", ">=").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case _:
                 raise RuntimeError(f"Unknown binary operator {node.op}")
-
-
-def truthy(value: Any) -> bool:
-    if is_none(value):
-        return False
-    return bool(value)
 
 
 def _annotation_metadata_error(name: str, value: Any, expected: str) -> TypeError:

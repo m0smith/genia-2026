@@ -1,15 +1,13 @@
-"""Genia callable runtime — issue #236.
+"""Genia callable runtime — issues #236, #237.
 
 Defines callable value types (GeniaFunction, GeniaFunctionGroup, TailCall),
-the TCO trampoline (eval_with_tco), and none-awareness detection helpers.
-
-Evaluator integration (invoke_callable, eval_call, eval_pipeline_stage) remains
-in interpreter.py and is out of scope for this module.
+the TCO trampoline (eval_with_tco), none-awareness detection helpers, and
+invoke_callable — the module-level dispatch entry point used by the evaluator.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 if __package__ in (None, ""):
     import sys
@@ -30,7 +28,15 @@ if __package__ in (None, ""):
         pattern_explicitly_handles_some,
     )
     from genia.environment import Env
-    from genia.values import GeniaMap, _merge_metadata_maps
+    from genia.values import (
+        GeniaFlow,
+        GeniaMap,
+        _merge_metadata_maps,
+        _normalize_absence,
+        _runtime_type_name,
+        is_none,
+        truthy,
+    )
     from genia.lexer import SourceSpan
 else:
     from .ir import (
@@ -46,7 +52,15 @@ else:
         pattern_explicitly_handles_some,
     )
     from .environment import Env
-    from .values import GeniaMap, _merge_metadata_maps
+    from .values import (
+        GeniaFlow,
+        GeniaMap,
+        _merge_metadata_maps,
+        _normalize_absence,
+        _runtime_type_name,
+        is_none,
+        truthy,
+    )
     from .lexer import SourceSpan
 
 
@@ -482,3 +496,167 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
             or _body_delegates_to_option_aware(genia_body)
         )
     return False
+
+
+# ---------------------------------------------------------------------------
+# Module-level invocation dispatcher — issue #237
+# ---------------------------------------------------------------------------
+
+def invoke_callable(
+    fn: Any,
+    args: list[Any],
+    *,
+    tail_position: bool,
+    callee_node: Optional[IrNode] = None,
+    skip_none_propagation: bool = False,
+    autoload_resolver: Optional[Callable[[str, int], Any]] = None,
+) -> Any:
+    """Dispatch a Genia callable value with evaluated args.
+
+    Dispatch order: none-guard → GeniaFunctionGroup → GeniaMap → str → callable.
+    Returns TailCall when tail_position=True for GeniaFunctionGroup and plain-callable
+    paths. The autoload_resolver callback is consulted at most once for
+    GeniaFunctionGroup when arity resolution initially fails.
+    """
+    if not skip_none_propagation:
+        first_none = next((arg for arg in args if is_none(arg)), None)
+        if first_none is not None and not _callable_explicitly_handles_none(fn, len(args), callee_node):
+            return first_none
+
+    if isinstance(fn, GeniaFunctionGroup):
+        if isinstance(callee_node, IrVar) and len(args) >= 1 and isinstance(args[-1], GeniaFlow):
+            if callee_node.name == "map" and len(args) == 2:
+                mapper = args[0]
+                source = args[1]
+
+                def _map_iterator() -> Any:
+                    items = source.consume()
+                    try:
+                        for item in items:
+                            yield invoke_callable(mapper, [item], tail_position=False, autoload_resolver=autoload_resolver)
+                    finally:
+                        if source.close_on_early_termination:
+                            close = getattr(items, "close", None)
+                            if callable(close):
+                                close()
+
+                return GeniaFlow(_map_iterator, label="map", close_on_early_termination=source.close_on_early_termination)
+
+            if callee_node.name == "filter" and len(args) == 2:
+                predicate = args[0]
+                source = args[1]
+
+                def _filter_iterator() -> Any:
+                    items = source.consume()
+                    try:
+                        for item in items:
+                            if truthy(invoke_callable(predicate, [item], tail_position=False, autoload_resolver=autoload_resolver)):
+                                yield item
+                    finally:
+                        if source.close_on_early_termination:
+                            close = getattr(items, "close", None)
+                            if callable(close):
+                                close()
+
+                return GeniaFlow(_filter_iterator, label="filter", close_on_early_termination=source.close_on_early_termination)
+
+            if callee_node.name == "take" and len(args) == 2:
+                count = args[0]
+                source = args[1]
+                if not isinstance(count, int) or isinstance(count, bool):
+                    raise TypeError("take expected an integer count as first argument")
+
+                def _take_iterator() -> Any:
+                    if count <= 0:
+                        return
+                    remaining = count
+                    items = source.consume()
+                    upstream = iter(items)
+                    try:
+                        while remaining > 0:
+                            try:
+                                item = next(upstream)
+                            except StopIteration:
+                                return
+                            yield item
+                            remaining -= 1
+                    finally:
+                        if source.close_on_early_termination:
+                            close = getattr(items, "close", None)
+                            if callable(close):
+                                close()
+
+                return GeniaFlow(_take_iterator, label="take", close_on_early_termination=source.close_on_early_termination)
+
+        arity = len(args)
+
+        def _resolve_target(functions: GeniaFunctionGroup, call_arity: int) -> Any:
+            exact = functions.get(call_arity)
+            if exact is not None:
+                return exact
+            vararg_matches = [
+                candidate
+                for candidate in functions.values()
+                if isinstance(candidate, GeniaFunction)
+                and candidate.rest_param is not None
+                and call_arity >= candidate.arity
+            ]
+            if len(vararg_matches) == 1:
+                return vararg_matches[0]
+            if len(vararg_matches) > 1:
+                callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
+                candidates = ", ".join(
+                    f"{callee}/{candidate.arity}+"
+                    for candidate in sorted(vararg_matches, key=lambda f: f.arity)
+                )
+                raise TypeError(
+                    f"Ambiguous function resolution: {callee}/{call_arity}. Matching varargs: {candidates}"
+                )
+            return None
+
+        target = _resolve_target(fn, arity)
+
+        if target is None and autoload_resolver is not None and isinstance(callee_node, IrVar):
+            resolved = autoload_resolver(callee_node.name, arity)
+            if resolved is not None:
+                fn = resolved
+                if isinstance(fn, GeniaFunctionGroup):
+                    target = _resolve_target(fn, arity)
+
+        if target is None:
+            callee = callee_node.name if isinstance(callee_node, IrVar) else "function"
+            available = ", ".join(f"{callee}/{n}" for n in fn.sorted_arities())
+            raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
+
+        if tail_position:
+            return TailCall(target, tuple(args))
+        return _normalize_absence(target(*args))
+
+    if isinstance(fn, GeniaMap):
+        arg_count = len(args)
+        if arg_count == 1:
+            return fn.get(args[0])
+        if arg_count == 2:
+            key = args[0]
+            if fn.has(key):
+                return fn.get(key)
+            return args[1]
+        raise TypeError(f"map callable expected 1 or 2 args, got {arg_count}")
+
+    if isinstance(fn, str):
+        arg_count = len(args)
+        if arg_count not in (1, 2):
+            raise TypeError(f"string projector expected 1 or 2 args, got {arg_count}")
+        target_map = args[0]
+        if not isinstance(target_map, GeniaMap):
+            raise TypeError("string projector expected a map-like target as first argument")
+        if arg_count == 2 and not target_map.has(fn):
+            return args[1]
+        return target_map.get(fn)
+
+    if not callable(fn):
+        raise TypeError(f"pipeline stage expected a callable value, received {_runtime_type_name(fn)}")
+
+    if tail_position:
+        return TailCall(fn, tuple(args))
+    return _normalize_absence(fn(*args))

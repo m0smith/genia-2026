@@ -201,3 +201,288 @@ def test_callable_not_handles_none_for_unknown_name_group():
     from genia.callable import GeniaFunctionGroup, _callable_explicitly_handles_none
     fg = GeniaFunctionGroup(name="my_unknown_fn_xyz")
     assert _callable_explicitly_handles_none(fg, 1) is False
+
+
+# ---------------------------------------------------------------------------
+# Helpers for invoke_callable tests
+# ---------------------------------------------------------------------------
+
+
+def _make_fn_returning(name, params, return_val, rest_param=None):
+    from genia.callable import GeniaFunction
+    from genia.environment import Env
+    from genia.ir import IrLiteral
+    return GeniaFunction(
+        name=name,
+        params=list(params),
+        rest_param=rest_param,
+        docstring=None,
+        body=IrLiteral(value=return_val),
+        closure=Env(None),
+    )
+
+
+def _make_group_1(name, return_val):
+    from genia.callable import GeniaFunctionGroup
+    fg = GeniaFunctionGroup(name=name)
+    fg.add_clause(_make_fn_returning(name, ["x"], return_val))
+    return fg
+
+
+def _make_ir_var(name):
+    from genia.ir import IrVar
+    return IrVar(name=name)
+
+
+# ---------------------------------------------------------------------------
+# 8. invoke_callable — import contract (FAIL before implementation)
+# ---------------------------------------------------------------------------
+
+
+def test_invoke_callable_importable_from_genia_callable():
+    from genia.callable import invoke_callable  # noqa: F401
+
+
+# ---------------------------------------------------------------------------
+# 9. truthy — moved to values.py (FAIL before implementation)
+# ---------------------------------------------------------------------------
+
+
+def test_truthy_importable_from_genia_values():
+    from genia.values import truthy  # noqa: F401
+
+
+def test_truthy_still_importable_from_interpreter():
+    from genia.interpreter import truthy  # noqa: F401
+
+
+def test_truthy_false_for_none():
+    from genia.values import truthy, make_none
+    assert truthy(make_none("x")) is False
+
+
+def test_truthy_true_for_nonzero_int():
+    from genia.values import truthy
+    assert truthy(1) is True
+
+
+def test_truthy_false_for_zero():
+    from genia.values import truthy
+    assert truthy(0) is False
+
+
+# ---------------------------------------------------------------------------
+# 10. invoke_callable — plain callable dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_invoke_callable_calls_plain_callable():
+    from genia.callable import invoke_callable
+    result = invoke_callable(lambda x: x + 1, [41], tail_position=False)
+    assert result == 42
+
+
+def test_invoke_callable_non_callable_raises_type_error():
+    from genia.callable import invoke_callable
+    with pytest.raises(TypeError, match="pipeline stage expected a callable value"):
+        invoke_callable(42, [], tail_position=False)
+
+
+def test_invoke_callable_plain_callable_tail_position_returns_tail_call():
+    from genia.callable import invoke_callable, TailCall
+    fn = lambda: 1  # noqa: E731
+    result = invoke_callable(fn, [], tail_position=True)
+    assert isinstance(result, TailCall)
+    assert result.fn is fn
+
+
+# ---------------------------------------------------------------------------
+# 11. invoke_callable — None short-circuit
+# ---------------------------------------------------------------------------
+
+
+def test_invoke_callable_none_short_circuits_before_dispatch():
+    from genia.callable import invoke_callable
+    from genia.values import make_none
+    n = make_none("x")
+    result = invoke_callable(lambda v: v, [n], tail_position=False)
+    assert result is n
+
+
+def test_invoke_callable_none_short_circuit_returns_first_none():
+    from genia.callable import invoke_callable
+    from genia.values import make_none
+    n1 = make_none("first")
+    n2 = make_none("second")
+    result = invoke_callable(lambda a, b: None, [n1, n2], tail_position=False)
+    assert result is n1
+
+
+def test_invoke_callable_none_propagation_skipped_when_flag_set():
+    from genia.callable import invoke_callable
+    from genia.values import make_none
+    n = make_none("x")
+    result = invoke_callable(lambda v: 99, [n], tail_position=False, skip_none_propagation=True)
+    assert result == 99
+
+
+# ---------------------------------------------------------------------------
+# 12. invoke_callable — GeniaMap dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_invoke_callable_map_arity_1_present_key():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap().put("name", "alice")
+    result = invoke_callable(m, ["name"], tail_position=False)
+    assert result == "alice"
+
+
+def test_invoke_callable_map_arity_1_missing_key_returns_none():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap, is_none
+    m = GeniaMap()
+    result = invoke_callable(m, ["missing"], tail_position=False)
+    assert is_none(result)
+
+
+def test_invoke_callable_map_arity_2_missing_key_returns_default():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap()
+    result = invoke_callable(m, ["missing", "fallback"], tail_position=False)
+    assert result == "fallback"
+
+
+def test_invoke_callable_map_arity_2_present_key_ignores_default():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap().put("x", 99)
+    result = invoke_callable(m, ["x", "ignored"], tail_position=False)
+    assert result == 99
+
+
+def test_invoke_callable_map_wrong_arity_raises():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap()
+    with pytest.raises(TypeError, match="map callable expected 1 or 2 args, got 0"):
+        invoke_callable(m, [], tail_position=False)
+
+
+def test_invoke_callable_map_arity_3_raises():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap()
+    with pytest.raises(TypeError, match="map callable expected 1 or 2 args, got 3"):
+        invoke_callable(m, ["a", "b", "c"], tail_position=False)
+
+
+# ---------------------------------------------------------------------------
+# 13. invoke_callable — str projector dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_invoke_callable_str_projector_arity_1_present():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap().put("k", "val")
+    result = invoke_callable("k", [m], tail_position=False)
+    assert result == "val"
+
+
+def test_invoke_callable_str_projector_arity_2_missing_returns_default():
+    from genia.callable import invoke_callable
+    from genia.values import GeniaMap
+    m = GeniaMap()
+    result = invoke_callable("k", [m, "default"], tail_position=False)
+    assert result == "default"
+
+
+def test_invoke_callable_str_projector_non_map_raises():
+    from genia.callable import invoke_callable
+    with pytest.raises(TypeError, match="string projector expected a map-like target"):
+        invoke_callable("k", ["not_a_map"], tail_position=False)
+
+
+def test_invoke_callable_str_projector_wrong_arity_zero_raises():
+    from genia.callable import invoke_callable
+    with pytest.raises(TypeError, match="string projector expected 1 or 2 args, got 0"):
+        invoke_callable("k", [], tail_position=False)
+
+
+def test_invoke_callable_str_projector_wrong_arity_three_raises():
+    from genia.callable import invoke_callable
+    with pytest.raises(TypeError, match="string projector expected 1 or 2 args, got 3"):
+        invoke_callable("k", [None, None, None], tail_position=False)
+
+
+# ---------------------------------------------------------------------------
+# 14. invoke_callable — GeniaFunctionGroup dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_invoke_callable_function_group_exact_arity_returns_value():
+    from genia.callable import invoke_callable
+    fg = _make_group_1("f", 42)
+    result = invoke_callable(fg, [0], tail_position=False)
+    assert result == 42
+
+
+def test_invoke_callable_function_group_no_match_raises():
+    from genia.callable import invoke_callable
+    fg = _make_group_1("f", 0)
+    with pytest.raises(TypeError, match="No matching function: f/2"):
+        invoke_callable(fg, [1, 2], tail_position=False, callee_node=_make_ir_var("f"))
+
+
+def test_invoke_callable_function_group_tail_position_returns_tail_call():
+    from genia.callable import invoke_callable, TailCall
+    fg = _make_group_1("f", 0)
+    result = invoke_callable(fg, [1], tail_position=True)
+    assert isinstance(result, TailCall)
+
+
+def test_invoke_callable_function_group_ambiguous_varargs_raises():
+    from genia.callable import invoke_callable, GeniaFunctionGroup
+    fg = GeniaFunctionGroup(name="f")
+    fg.add_clause(_make_fn_returning("f", [], 0, rest_param="xs"))
+    fg.add_clause(_make_fn_returning("f", ["a"], 0, rest_param="xs"))
+    with pytest.raises(TypeError, match="Ambiguous function resolution"):
+        invoke_callable(fg, [1, 2], tail_position=False)
+
+
+def test_invoke_callable_function_group_autoload_resolver_called_on_miss():
+    from genia.callable import invoke_callable, GeniaFunctionGroup
+    fg_original = GeniaFunctionGroup(name="f")
+    fg_original.add_clause(_make_fn_returning("f", ["x", "y"], 0))
+    fg_resolved = GeniaFunctionGroup(name="f")
+    fg_resolved.add_clause(_make_fn_returning("f", ["x"], 7))
+    calls = []
+    def resolver(name, arity):
+        calls.append((name, arity))
+        return fg_resolved
+    result = invoke_callable(
+        fg_original, [1],
+        tail_position=False,
+        callee_node=_make_ir_var("f"),
+        autoload_resolver=resolver,
+    )
+    assert calls == [("f", 1)]
+    assert result == 7
+
+
+def test_invoke_callable_function_group_autoload_resolver_none_return_raises():
+    from genia.callable import invoke_callable, GeniaFunctionGroup
+    fg = GeniaFunctionGroup(name="f")
+    fg.add_clause(_make_fn_returning("f", ["x", "y"], 0))
+    def resolver(name, arity):
+        return None
+    with pytest.raises(TypeError, match="No matching function: f/1"):
+        invoke_callable(
+            fg, [1],
+            tail_position=False,
+            callee_node=_make_ir_var("f"),
+            autoload_resolver=resolver,
+        )
