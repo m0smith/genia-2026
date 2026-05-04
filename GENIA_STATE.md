@@ -450,8 +450,11 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - list literals: `[a, b, c]`
 - map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)
 - module import: `import mod`, `import mod as alias`
-  - imports are cached by module name in `loaded_modules` (repeat imports/aliases reuse the same module instance)
+  - imports are cached by module name in `loaded_modules` (repeat imports/aliases reuse the same module value instance)
   - dotted host module names are supported through ordinary identifiers (for example `import python.json as pyjson`)
+  - module resolution order for user modules: (1) requester-relative — `<requester-dir>/<mod>.genia` when the importing source has a known filesystem path; (2) BASE_DIR-relative — `<BASE_DIR>/<mod>.genia`; (3) packaged stdlib — bundled `std/prelude/<mod>.genia`; (4) `FileNotFoundError("Module not found: <mod>")`
+  - requester-relative resolution is skipped when the importing source filename is `<memory>` or `<command>`; when the filename is `<pipe>`, resolution proceeds from the current working directory
+  - import cycle detection raises `RuntimeError("Module import cycle detected while loading <mod>")`; the cycling module is not committed to the cache
 - list spread in literals: `[..xs]`, `[1, ..xs, 2]`
 - call spread: `f(..xs)`
 - lambdas: `(x) -> x + 1`
@@ -1658,6 +1661,12 @@ Loading behavior:
 - autoload can be triggered both by calls and by plain name lookup for function values
   - this means autoloaded functions can be passed to higher-order helpers such as `apply`, `compose`, `map_some`, and `flat_map_some`
   - `help("name")` also triggers autoload for registered public helpers and prints a short missing-name note when no public helper or runtime name exists
+- autoload loading is a separate path from user module imports:
+  - autoloads are keyed by `(name, arity)` and triggered lazily on first name lookup miss
+  - loaded exports bind directly into the root environment; no module value is created
+  - autoload deduplication uses a separate file-key set, independent of the module import cache (`loaded_modules`)
+  - autoload cycle detection raises `RuntimeError("Autoload cycle detected while loading <key>")`
+  - autoloads are not accessible via slash access (`mod/name`) and do not appear in the module cache
 
 Notable autoloaded functions include:
 

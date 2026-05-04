@@ -1,0 +1,14 @@
+name: error-import-disallowed-host
+category: error
+description: PermissionError when importing a disallowed python.* host module
+input:
+  source: |
+    import python.os
+expected:
+  stdout: ""
+  stderr: "Error: Host module not allowed: python.os\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: PermissionError
+  contract: GENIA_RULES.md §8.2 — disallowed host module names must raise PermissionError("Host module not allowed: <name>")

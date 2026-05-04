@@ -157,3 +157,83 @@ def test_import_module_runtime_failure_is_propagated(tmp_path):
 def test_named_accessor_invalid_rhs_expression_fails_clearly(run):
     with pytest.raises(TypeError, match="requires a bare identifier"):
         run("{name: \"Alice\"}/(1 + 2)")
+
+
+# --- Contract §3.7 / §5.1 / §5.3: cycle detection and sentinel behavior ---
+
+
+def test_import_mutual_cycle_raises_runtime_error(tmp_path):
+    (tmp_path / "mod_a.genia").write_text("import mod_b\nval = 1", encoding="utf-8")
+    (tmp_path / "mod_b.genia").write_text("import mod_a\nval = 2", encoding="utf-8")
+    env = make_global_env([])
+    with pytest.raises(RuntimeError, match="Module import cycle detected while loading mod_a"):
+        run_source(
+            "import mod_a",
+            env,
+            filename=str((tmp_path / "prog.genia").resolve()),
+        )
+
+
+def test_import_self_cycle_raises_runtime_error(tmp_path):
+    (tmp_path / "self_mod.genia").write_text("import self_mod\nval = 1", encoding="utf-8")
+    env = make_global_env([])
+    with pytest.raises(RuntimeError, match="Module import cycle detected while loading self_mod"):
+        run_source(
+            "import self_mod",
+            env,
+            filename=str((tmp_path / "prog.genia").resolve()),
+        )
+
+
+# --- Contract §3.5 / §5.2: disallowed host module ---
+
+
+def test_import_disallowed_host_module_raises_permission_error(run):
+    with pytest.raises(PermissionError, match="^Host module not allowed: python.os$"):
+        run("import python.os")
+
+
+def test_import_disallowed_host_module_arbitrary_name(run):
+    with pytest.raises(PermissionError, match="^Host module not allowed: python.subprocess$"):
+        run("import python.subprocess")
+
+
+# --- Contract §3.6: module environment isolation ---
+
+
+def test_module_top_level_assignment_does_not_rebind_root_name(tmp_path):
+    (tmp_path / "iso_mod.genia").write_text("x = 99", encoding="utf-8")
+    env = make_global_env([])
+    env.set("x", 1)
+    run_source(
+        "import iso_mod",
+        env,
+        filename=str((tmp_path / "prog.genia").resolve()),
+    )
+    assert env.values["x"] == 1
+
+
+# --- Contract §3.4: sentinel suppresses requester-relative resolution ---
+
+
+def test_command_sentinel_skips_requester_relative_resolution(tmp_path):
+    (tmp_path / "sentinel_test_mod.genia").write_text("val = 7", encoding="utf-8")
+    env = make_global_env([])
+    # module is only in tmp_path; <command> sentinel must skip requester-relative lookup
+    with pytest.raises(FileNotFoundError, match="Module not found: sentinel_test_mod"):
+        run_source(
+            "import sentinel_test_mod",
+            env,
+            filename="<command>",
+        )
+
+
+def test_memory_sentinel_skips_requester_relative_resolution(tmp_path):
+    (tmp_path / "sentinel_test_mod2.genia").write_text("val = 7", encoding="utf-8")
+    env = make_global_env([])
+    with pytest.raises(FileNotFoundError, match="Module not found: sentinel_test_mod2"):
+        run_source(
+            "import sentinel_test_mod2",
+            env,
+            filename="<memory>",
+        )

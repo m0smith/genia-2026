@@ -164,6 +164,13 @@ Required constraints:
 - top-level named assignments/functions from the module file are exported
 - missing module files must raise a deterministic `FileNotFoundError("Module not found: <name>")`
 - disallowed host module names must raise a deterministic `PermissionError("Host module not allowed: <name>")`
+- module resolution order for user modules:
+  - (1) requester-relative — `<requester-dir>/<mod>.genia` when the importing source has a known filesystem path
+  - (2) BASE_DIR-relative — `<BASE_DIR>/<mod>.genia`
+  - (3) packaged stdlib — bundled `std/prelude/<mod>.genia`
+  - (4) raise `FileNotFoundError("Module not found: <mod>")`
+- requester-relative resolution is skipped when the importing source filename is `<memory>` or `<command>`; when the filename is `<pipe>`, resolution proceeds from the current working directory
+- import cycle detection must raise `RuntimeError("Module import cycle detected while loading <mod>")`; the cycling module must not be committed to the cache
 
 ## 8.2.1) Python host interop invariants (phase 1)
 
@@ -206,6 +213,15 @@ Required constraints:
   - `none(...) |> python/len` skips the host export and preserves the same `none(...)`
   - Flow does not implicitly cross the bridge; passing a Flow to a host value export remains a type error unless an explicit Flow stage has already materialized ordinary values
 - unrestricted host import, arbitrary attribute access, and arbitrary code execution are not part of this phase.
+
+## 8.2.2) Autoload loading path invariants
+
+- autoload loading is a separate loading path from user module imports
+- autoloads are keyed by `(name, arity)` and triggered lazily on first name lookup miss in the root environment
+- loaded exports bind directly into the root environment; no module value is created and no module cache entry is written
+- autoload deduplication uses a separate file-key set, independent of the `loaded_modules` cache
+- autoload cycle detection must raise `RuntimeError("Autoload cycle detected while loading <key>")`
+- autoloads are stdlib-internal infrastructure; they are not accessible via slash access (`mod/name`) and are not part of the user-facing module system
 
 ## 8.3) Assignment invariants
 
