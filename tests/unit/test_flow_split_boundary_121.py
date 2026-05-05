@@ -18,7 +18,7 @@ def _function_body(source: str, name: str) -> str:
 def test_rules_kernel_does_not_default_rule_result_fields_in_host() -> None:
     """Issue #121 keeps rule result defaulting in the portable Flow layer."""
 
-    source = (REPO / "src/genia/interpreter.py").read_text(encoding="utf-8")
+    source = (REPO / "src/genia/builtins.py").read_text(encoding="utf-8")
     body = _function_body(source, "rules_kernel_fn")
 
     assert '.get("emit", [])' not in body
