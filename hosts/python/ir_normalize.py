@@ -7,8 +7,8 @@ from __future__ import annotations
 from typing import Any, Iterable
 
 from genia.ir import IrCaseClause
-from genia.interpreter import (
-    Boolean,
+from genia.ast_nodes import Boolean
+from genia.ir import (
     IrAnnotation,
     IrAssign,
     IrBinary,
@@ -26,17 +26,6 @@ from genia.interpreter import (
     IrNode,
     IrOptionNone,
     IrOptionSome,
-    IrPattern,
-    IrPatBind,
-    IrPatGlob,
-    IrPatList,
-    IrPatLiteral,
-    IrPatMap,
-    IrPatNone,
-    IrPatRest,
-    IrPatSome,
-    IrPatTuple,
-    IrPatWildcard,
     IrPipeline,
     IrQuote,
     IrQuasiQuote,
@@ -45,6 +34,21 @@ from genia.interpreter import (
     IrUnquote,
     IrUnquoteSplicing,
     IrVar,
+     assert_portable_core_ir,)
+from genia.pattern_match import (
+        IrPatBind,
+        IrPatGlob,
+        IrPatList,
+        IrPatLiteral,
+        IrPatMap,
+        IrPatNone,
+        IrPatRest,
+        IrPatSome,
+        IrPatTuple,
+        IrPatWildcard,
+        IrPattern,
+    )
+from genia.ast_nodes import (
     ListLiteral,
     MapLiteral,
     Number,
@@ -52,7 +56,7 @@ from genia.interpreter import (
     Unquote,
     UnquoteSplicing,
     Var,
-    assert_portable_core_ir,
+   
 )
 
 

@@ -4,7 +4,7 @@ Genia is a small, functional-first, expression-oriented language prototype.
 
 This repository currently provides:
 
-- a parser + evaluator (`src/genia/interpreter.py`)
+- a parser + evaluator (`src/genia/interpreter.py`, `src/genia/evaluator.py`)
 - a tiny Core IR + AST→IR lowering pass used before evaluation
   - pipelines lower to an explicit ordered-stage IR node rather than nested calls
   - Option constructors lower explicitly as `some(...)` / `none(...)` IR values

@@ -227,9 +227,9 @@ def eval_with_tco(
             if debug_mode:
                 debug_hooks.on_function_enter(current_fn.name, current_args, frame, current_fn.span)
             if __package__ in (None, ""):
-                from genia.interpreter import Evaluator
+                from genia.evaluator import Evaluator
             else:
-                from .interpreter import Evaluator
+                from .evaluator import Evaluator
             result = Evaluator(frame, debug_hooks=debug_hooks, debug_mode=debug_mode).eval_function_body(
                 current_fn.params,
                 current_args,

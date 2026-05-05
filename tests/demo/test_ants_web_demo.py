@@ -3,11 +3,13 @@ import socket
 import threading
 import time
 from pathlib import Path
+import pytest
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from genia import make_global_env, run_source
 
+pytestmarks = [pytest.mark.slow]
 
 SOURCE_PATH = Path("examples/ants_web.genia")
 SOURCE = SOURCE_PATH.read_text(encoding="utf-8")

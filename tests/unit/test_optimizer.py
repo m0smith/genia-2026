@@ -66,7 +66,7 @@ def test_optimize_program_empty_input_returns_empty_list():
 
 def test_optimize_program_non_funcdef_nodes_pass_through():
     from genia.optimizer import optimize_program
-    from genia.interpreter import IrExprStmt, IrLiteral
+    from genia.ir import IrExprStmt, IrLiteral
 
     src = "42"
     ast_nodes = Parser(lex(src)).parse_program()
@@ -81,7 +81,7 @@ def test_optimize_program_non_funcdef_nodes_pass_through():
 
 def test_optimize_program_nth_style_rewritten_to_loop_via_optimizer_import():
     from genia.optimizer import optimize_program
-    from genia.interpreter import IrFuncDef, IrListTraversalLoop
+    from genia.ir import IrFuncDef, IrListTraversalLoop
 
     src = """
     nth(n, xs) =
@@ -98,7 +98,7 @@ def test_optimize_program_nth_style_rewritten_to_loop_via_optimizer_import():
 
 def test_optimize_program_non_matching_recursion_not_rewritten_via_optimizer_import():
     from genia.optimizer import optimize_program
-    from genia.interpreter import IrFuncDef, IrCase
+    from genia.ir import IrFuncDef, IrCase
 
     src = """
     bad(n, xs) =
@@ -133,7 +133,8 @@ def test_optimize_program_debug_flag_does_not_raise():
 
 def test_optimize_program_results_identical_from_both_import_paths():
     from genia.optimizer import optimize_program as opt_from_optimizer
-    from genia.interpreter import optimize_program as opt_from_interpreter, IrFuncDef
+    # from genia.interpreter import optimize_program as opt_from_interpreter
+    from genia.ir import IrFuncDef
 
     src = """
     nth(n, xs) =
@@ -148,7 +149,7 @@ def test_optimize_program_results_identical_from_both_import_paths():
     # Re-lower so we get a fresh list (optimize_program consumes an iterable)
     ast_nodes2 = Parser(lex(src)).parse_program()
     ir_nodes2 = lower_program(ast_nodes2)
-    result_b = opt_from_interpreter(ir_nodes2)
+    result_b = opt_from_optimizer(ir_nodes2)
 
     assert len(result_a) == len(result_b)
     for a, b in zip(result_a, result_b):

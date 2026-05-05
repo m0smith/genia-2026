@@ -4,11 +4,14 @@ from genia.ast_nodes import FuncDef
 from genia.interpreter import (
     Assign,
     DebugHooks,
-    IrFuncDef,
+    
     Parser,
     SourceSpan,
     lex,
     lower_program,
+)
+from genia.ir import (
+    IrFuncDef,
 )
 from genia import make_global_env, run_source
 

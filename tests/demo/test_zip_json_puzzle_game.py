@@ -1,9 +1,11 @@
 import json
 import zipfile
 from pathlib import Path
+import pytest
 
 from genia.interpreter import _main
 
+pytestmarks = [pytest.mark.slow]
 
 EXAMPLE = Path("examples/zip_json_puzzle.genia")
 

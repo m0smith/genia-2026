@@ -1,9 +1,7 @@
 import pytest
 
 from genia.interpreter import (
-    IrExprStmt,
-    IrFuncDef,
-    IrMap,
+   
     IrPatBind,
     IrPatMap,
     IrPatTuple,
@@ -14,6 +12,11 @@ from genia.interpreter import (
     run_source,
 )
 
+from genia.ir import (
+    IrExprStmt,
+        IrFuncDef,
+        IrMap,
+)
 
 def test_map_literal_basics_and_identifier_key_sugar(run):
     src = '''
