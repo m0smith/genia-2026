@@ -105,11 +105,9 @@ Python-host-only runtime helpers in the current reference host; not part of the 
 | convenience int | `rand_int(n)` |
 | seeded int | `rand_int(rng_state, n)` |
 | delay | `sleep(ms)` |
-| time-based flow source | `every(ms)` |
 
 Use `rng(seed)` plus the seeded overloads when you need reproducible tests or demos.
 Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fine.
-Use `every(ms)` to drive pull-based pipelines at a fixed interval; each pull emits `none("tick")`.
 
 ## Flow (Runtime Value Family)
 
@@ -117,7 +115,6 @@ Use `every(ms)` to drive pull-based pipelines at a fixed interval; each pull emi
 | --- | --- |
 | source bridge | `lines(source)` |
 | experimental source bridge | `evolve()`, `evolve(count)` |
-| time-based source | `every(ms)` |
 | split / fan-in | `tee(flow) -> [left_flow, right_flow]`, `merge(flow1, flow2)`, `merge(pair)`, `zip(flow1, flow2)`, `zip(pair)` |
 | option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |

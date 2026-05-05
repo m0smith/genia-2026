@@ -1061,7 +1061,7 @@ Flow semantics:
   - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `take`, `drop`, `reverse`
   - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `scan`, `rules`, `each`, `tee`, `merge`, `zip`, `head`
   - Polymorphic functions (work on both lists and flows): `map`, `filter`
-  - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`, `every`
+  - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
   - Option behavior (`some`/`none` auto-lifting in pipelines) composes with the Flow vs Value distinction but does not erase it
@@ -1622,7 +1622,6 @@ Behavior:
   - `rand_int(n)`
   - `rand_int(rng_state, n)`
 - `sleep(ms)`
-- `every(ms)`
 
 Behavior:
 
@@ -1634,7 +1633,6 @@ Behavior:
 - the explicit seeded RNG uses a simple 32-bit LCG so the same seed yields the same sequence on the current Python host
 - `rand_int(...)` raises clear `TypeError` for non-integer `n` and `ValueError` for `n <= 0` in both convenience and seeded forms
 - `sleep(ms)` blocks current execution for `ms` milliseconds; raises clear `TypeError` for non-numeric values and `ValueError` for negative values
-- `every(ms)` returns a lazy, pull-based, infinite Flow; each pull waits `ms` milliseconds then emits `none("tick")`; timing is best-effort host wall-clock and not deterministic; raises clear `TypeError` for non-numeric values and `ValueError` for negative values; `every(0)` is allowed and emits without delay; host-backed and non-portable
 
 ## 7) Autoloaded stdlib
 
@@ -1700,7 +1698,7 @@ Notable autoloaded functions include:
 
 ## 8) Tail calls and optimization behavior
 
-Callable dispatch semantics (arity resolution, none-propagation detection, closure capture, TCO trampoline, invocation dispatch via `invoke_callable`) live in `src/genia/callable.py`; expression evaluation and pipeline dispatch (eval_call, eval_pipeline_stage) live in `src/genia/evaluator.py`; `src/genia/interpreter.py` orchestrates builtins, CLI, and REPL and re-exports `Evaluator`, `GeniaPromise`, `GeniaMetaEnv` for backward compatibility.
+Callable dispatch semantics (arity resolution, none-propagation detection, closure capture, TCO trampoline, invocation dispatch via `invoke_callable`) live in `src/genia/callable.py`; expression evaluation and pipeline dispatch (eval_call, eval_pipeline_stage) live in `src/genia/evaluator.py`; builtin registration and Python host interop bridge live in `src/genia/builtins.py` and `src/genia/host_bridge.py` respectively; `src/genia/interpreter.py` is the CLI/REPL orchestration facade and re-exports `make_global_env`, `Evaluator`, `GeniaPromise`, `GeniaMetaEnv`, and selected bridge symbols for backward compatibility.
 
 Implemented tail-call/runtime behavior:
 

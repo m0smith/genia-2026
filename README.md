@@ -4,7 +4,7 @@ Genia is a small, functional-first, expression-oriented language prototype.
 
 This repository currently provides:
 
-- a parser + evaluator (`src/genia/interpreter.py`, `src/genia/evaluator.py`)
+- a parser, evaluator, and builtin registry (`src/genia/evaluator.py`, `src/genia/builtins.py`, `src/genia/host_bridge.py`) with a CLI/REPL facade (`src/genia/interpreter.py`)
 - a tiny Core IR + AST→IR lowering pass used before evaluation
   - pipelines lower to an explicit ordered-stage IR node rather than nested calls
   - Option constructors lower explicitly as `some(...)` / `none(...)` IR values
@@ -13,7 +13,7 @@ This repository currently provides:
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`) (**Python-host-only**)
 - raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`) (**Python-host-only**)
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`) (**Python-host-only**)
-- simulation primitives (`rng`, `rand`, `rand_int`, `sleep`, `every`) (**Python-host-only**)
+- simulation primitives (`rng`, `rand`, `rand_int`, `sleep`) (**Python-host-only**)
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`) (**Python-host-only**)
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
 - shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)

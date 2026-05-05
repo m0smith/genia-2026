@@ -202,7 +202,7 @@ CLI contract summary (actual behavior):
   - raw callback invocation: `apply_raw(f, args)` — language-contract host primitive; bypasses `none(...)` short-circuit; `args` must be a list
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
-  - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, `sleep`, and `every`
+  - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`
   - Python-host-only bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
     - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
@@ -752,10 +752,6 @@ This recursive shape is not in tail position and can still hit Python recursion 
 - `sleep(ms)` blocks execution for `ms` milliseconds and raises:
   - `TypeError` when `ms` is not numeric
   - `ValueError` when `ms < 0`
-- `every(ms)` returns a lazy, pull-based, infinite Flow that emits `none("tick")` after each `ms`-millisecond wait; timing is best-effort host wall-clock; raises:
-  - `TypeError` when `ms` is not numeric
-  - `ValueError` when `ms < 0`
-  - `every(0)` is allowed; termination is controlled by downstream (e.g. `take`)
 
 The explicit seeded RNG is reproducible: the same seed yields the same sequence on the current Python host.
 These are blocking/runtime primitives only; they do not introduce scheduler/async runtime behavior.
