@@ -2409,6 +2409,19 @@ def make_global_env(
         time.sleep(ms / 1000.0)
         return None
 
+    def every_fn(ms: Any) -> GeniaFlow:
+        if not isinstance(ms, (int, float)) or isinstance(ms, bool):
+            raise TypeError("every expected a non-negative number")
+        if ms < 0:
+            raise ValueError("every expected ms >= 0")
+
+        def iterator():
+            while True:
+                time.sleep(ms / 1000.0)
+                yield make_none("tick")
+
+        return GeniaFlow(iterator, label=f"every({ms})")
+
     def utf8_encode_fn(value: Any) -> GeniaBytes:
         text = _ensure_string(value, "utf8_encode")
         return GeniaBytes(text.encode("utf-8"))
@@ -2966,6 +2979,7 @@ def make_global_env(
     env.set("_rand_int", rand_int_fn)
     env.set("_rand_int_seeded", seeded_rand_int_fn)
     env.set("sleep", sleep_fn)
+    env.set("every", every_fn)
     env.set("_byte_length", byte_length_fn)
     env.set("_is_empty", is_empty_fn)
     env.set("_concat", concat_fn)

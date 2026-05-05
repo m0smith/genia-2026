@@ -59,7 +59,7 @@ Capabilities connecting Genia programs to the host I/O streams. These are `langu
 
 ---
 
-### Group: Time / Sleep
+### Group: Time
 
 #### `time.sleep`
 
@@ -72,6 +72,18 @@ Capabilities connecting Genia programs to the host I/O streams. These are `langu
   - `ValueError` — when `ms < 0`
 - **portability:** `Python-host-only`
 - **notes:** Blocking primitive only. Does not introduce a scheduler, async/await surface, or event loop.
+
+#### `time.every`
+
+- **name:** `time.every`
+- **genia_surface:** `every(ms)`
+- **input:** `ms` — Number (non-negative)
+- **output:** lazy, pull-based, infinite `Flow`; each pull waits `ms` milliseconds and emits `none("tick")`
+- **errors:**
+  - `TypeError` — when `ms` is not numeric
+  - `ValueError` — when `ms < 0`
+- **portability:** `Python-host-only`
+- **notes:** Pull-based only — no background thread, no scheduler. Timing is best-effort host wall-clock and not deterministic. `every(0)` is allowed. Termination is controlled by downstream (e.g. `take`). Does not introduce a scheduler, async/await surface, or cancellation API.
 
 ---
 
