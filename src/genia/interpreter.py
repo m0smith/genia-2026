@@ -48,7 +48,7 @@ if __package__ in (None, ""):
     from genia.lexer import SourceSpan, lex
     from genia.parser import Parser
     from genia.environment import Env
-    from genia.evaluator import GeniaMetaEnv, _syntax_pair_nth, _syntax_tagged_list
+
     from genia.errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from genia.ast_nodes import (
         Assign,
@@ -268,9 +268,9 @@ def _resolve_packaged_module(module_name: str) -> tuple[str, str] | None:
 
 
 if __package__ in (None, ""):
-    from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv
+    from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
 else:
-    from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv
+    from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
 
 def _genia_map_to_host_dict(value: GeniaMap) -> dict[Any, Any]:
     result: dict[Any, Any] = {}
