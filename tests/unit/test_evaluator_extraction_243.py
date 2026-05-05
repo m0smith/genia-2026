@@ -9,7 +9,6 @@ Behavior preservation tests PASS before and after implementation (regression gua
 """
 
 import inspect
-import pytest
 
 
 # ---------------------------------------------------------------------------

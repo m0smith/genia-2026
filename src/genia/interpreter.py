@@ -22,7 +22,6 @@ import math
 import os
 import io
 import json
-import subprocess
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from collections import deque
 import random
@@ -49,70 +48,24 @@ if __package__ in (None, ""):
     from genia.lexer import SourceSpan, lex
     from genia.parser import Parser
     from genia.environment import Env
+    from genia.evaluator import GeniaMetaEnv, _syntax_pair_nth, _syntax_tagged_list
     from genia.errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from genia.ast_nodes import (
         Assign,
-        Binary,
         Block,
-        Boolean,
-        Call,
-        CaseClause,
-        CaseExpr,
-        Delay,
         ExprStmt,
-        GlobPattern,
         Lambda,
-        ListLiteral,
         ListPattern,
-        MapLiteral,
         MapPattern,
-        Nil,
         Node,
         NoneOption,
-        Number,
-        QuasiQuote,
-        Quote,
         RestPattern,
         SomePattern,
-        Spread,
-        String,
-        SymbolLiteral,
         TuplePattern,
-        Unary,
-        Unquote,
-        UnquoteSplicing,
         Var,
-        WildcardPattern,
     )
     from genia.ir import (
         HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES as HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
-        IrAnnotation,
-        IrAssign,
-        IrBinary,
-        IrBlock,
-        IrCall,
-        IrCase,
-        IrDelay,
-        IrExprStmt,
-        IrFuncDef,
-        IrImport,
-        IrLambda,
-        IrList,
-        IrListTraversalLoop,
-        IrLiteral,
-        IrMap,
-        IrNode,
-        IrOptionNone,
-        IrOptionSome,
-        IrPipeline,
-        IrQuote,
-        IrQuasiQuote,
-        IrShellStage,
-        IrSpread,
-        IrUnary,
-        IrUnquote,
-        IrUnquoteSplicing,
-        IrVar,
         PORTABLE_CORE_IR_NODE_TYPES as PORTABLE_CORE_IR_NODE_TYPES,
         assert_portable_core_ir,
         iter_ir_nodes as iter_ir_nodes,
@@ -130,9 +83,6 @@ if __package__ in (None, ""):
         IrPatWildcard,
         IrPattern,
         compile_glob_pattern,
-        match_lambda_pattern,
-        match_pattern,
-        match_pattern_atom,
     )
     from genia.values import (
         OPTION_NONE,
@@ -141,7 +91,6 @@ if __package__ in (None, ""):
         _RNG_MULTIPLIER,
         _UNSET,
         _is_nil_none,
-        _merge_metadata_maps,
         _normalize_absence,
         _runtime_type_name,
         _stage_cell_action,
@@ -173,7 +122,6 @@ if __package__ in (None, ""):
         lower_program as lower_program,
         lower_node as lower_node,
         lower_pattern as lower_pattern,
-        _lambda_pattern_is_simple_parameter_shape,
     )
     from genia.callable import (
         DebugHooks as DebugHooks,
@@ -182,8 +130,6 @@ if __package__ in (None, ""):
         GeniaFunctionGroup as GeniaFunctionGroup,
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
-        invoke_callable as _invoke_callable,
-        _callable_explicitly_handles_some,
     )
 else:
     from .docstrings import render_markdown_docstring
@@ -191,67 +137,20 @@ else:
     from .errors import GeniaQuietBrokenPipe, _format_pipe_mode_error
     from .ast_nodes import (
         Assign,
-        Binary,
         Block,
-        Boolean,
-        Call,
-        CaseClause,
-        CaseExpr,
-        Delay,
         ExprStmt,
-        GlobPattern,
         Lambda,
-        ListLiteral,
         ListPattern,
-        MapLiteral,
         MapPattern,
-        Nil,
         Node,
         NoneOption,
-        Number,
-        QuasiQuote,
-        Quote,
         RestPattern,
         SomePattern,
-        Spread,
-        String,
-        SymbolLiteral,
         TuplePattern,
-        Unary,
-        Unquote,
-        UnquoteSplicing,
         Var,
-        WildcardPattern,
     )
     from .ir import (
         HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES as HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
-        IrAnnotation,
-        IrAssign,
-        IrBinary,
-        IrBlock,
-        IrCall,
-        IrCase,
-        IrDelay,
-        IrExprStmt,
-        IrFuncDef,
-        IrImport,
-        IrLambda,
-        IrList,
-        IrListTraversalLoop,
-        IrLiteral,
-        IrMap,
-        IrNode,
-        IrOptionNone,
-        IrOptionSome,
-        IrPipeline,
-        IrQuote,
-        IrQuasiQuote,
-        IrShellStage,
-        IrSpread,
-        IrUnary,
-        IrUnquote,
-        IrUnquoteSplicing,
-        IrVar,
         PORTABLE_CORE_IR_NODE_TYPES as PORTABLE_CORE_IR_NODE_TYPES,
         assert_portable_core_ir,
         iter_ir_nodes as iter_ir_nodes,
@@ -269,9 +168,6 @@ else:
         IrPatWildcard,
         IrPattern,
         compile_glob_pattern,
-        match_lambda_pattern,
-        match_pattern,
-        match_pattern_atom,
     )
     from .utf8 import (
         format_debug,
@@ -285,7 +181,6 @@ else:
         _RNG_MULTIPLIER,
         _UNSET,
         _is_nil_none,
-        _merge_metadata_maps,
         _normalize_absence,
         _runtime_type_name,
         _stage_cell_action,
@@ -319,7 +214,6 @@ else:
         lower_program as lower_program,
         lower_node as lower_node,
         lower_pattern as lower_pattern,
-        _lambda_pattern_is_simple_parameter_shape,
     )
     from .callable import (
         DebugHooks as DebugHooks,
@@ -328,8 +222,6 @@ else:
         GeniaFunctionGroup as GeniaFunctionGroup,
         TailCall as TailCall,
         eval_with_tco as eval_with_tco,
-        invoke_callable as _invoke_callable,
-        _callable_explicitly_handles_some,
     )
 
 BASE_DIR = Path(__file__).resolve().parents[2] if "__file__" in globals() else Path.cwd()

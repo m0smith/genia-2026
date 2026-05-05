@@ -15,7 +15,6 @@ if __package__ in (None, ""):
     if str(_src_root) not in sys.path:
         sys.path.insert(0, str(_src_root))
     from genia.utf8 import format_debug, format_display
-    from genia.lexer import SourceSpan
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe
     from genia.ast_nodes import (
@@ -39,17 +38,15 @@ if __package__ in (None, ""):
         match_pattern_atom,
     )
     from genia.values import (
-        OPTION_NONE, _is_nil_none, _merge_metadata_maps, _normalize_absence,
-        _runtime_type_name, GeniaBytes, GeniaFlow, GeniaMap, GeniaOptionNone,
+        OPTION_NONE, _is_nil_none, _merge_metadata_maps, _runtime_type_name, GeniaFlow, GeniaMap, GeniaOptionNone,
         GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_none,
         make_none, symbol, truthy,
     )
     from genia.callable import (
-        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup,
-        TailCall, eval_with_tco, invoke_callable as _invoke_callable,
+        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
     )
-    from genia.lowering import lower_node, lower_pattern, _lambda_pattern_is_simple_parameter_shape
+    from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
 else:
     from .utf8 import format_debug, format_display
     from .environment import Env
@@ -75,17 +72,15 @@ else:
         match_pattern_atom,
     )
     from .values import (
-        OPTION_NONE, _is_nil_none, _merge_metadata_maps, _normalize_absence,
-        _runtime_type_name, GeniaBytes, GeniaFlow, GeniaMap, GeniaOptionNone,
+        OPTION_NONE, _is_nil_none, _merge_metadata_maps, _runtime_type_name, GeniaFlow, GeniaMap, GeniaOptionNone,
         GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_none,
         make_none, symbol, truthy,
     )
     from .callable import (
-        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup,
-        TailCall, eval_with_tco, invoke_callable as _invoke_callable,
+        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
     )
-    from .lowering import lower_node, lower_pattern, _lambda_pattern_is_simple_parameter_shape
+    from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
 
 QUOTE_OPERATOR_SYMBOLS = {
     "PLUS": "+",

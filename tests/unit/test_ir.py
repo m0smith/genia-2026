@@ -1,6 +1,25 @@
 from genia.interpreter import (
   HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
-    IrAssign,
+   
+    IrPatLiteral,
+    IrPatNone,
+   
+    IrPatBind,
+    IrPatList,
+    IrPatRest,
+    IrPatTuple,
+   
+    Parser,
+    PORTABLE_CORE_IR_NODE_TYPES,
+    assert_portable_core_ir,
+    iter_ir_nodes,
+    lex,
+    lower_program,
+    optimize_program,
+)
+
+from genia.ir import (
+     IrAssign,
     IrBinary,
     IrBlock,
     IrCall,
@@ -12,24 +31,11 @@ from genia.interpreter import (
     IrLiteral,
     IrOptionNone,
     IrOptionSome,
-    IrPatLiteral,
-    IrPatNone,
-    IrPipeline,
+     IrPipeline,
     IrQuote,
     IrSpread,
     IrListTraversalLoop,
-    IrPatBind,
-    IrPatList,
-    IrPatRest,
-    IrPatTuple,
-    IrVar,
-    Parser,
-    PORTABLE_CORE_IR_NODE_TYPES,
-    assert_portable_core_ir,
-    iter_ir_nodes,
-    lex,
-    lower_program,
-    optimize_program,
+     IrVar,
 )
 from hosts.python.ir_normalize import normalize_portable_ir
 
