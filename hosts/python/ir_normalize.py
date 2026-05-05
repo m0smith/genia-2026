@@ -26,7 +26,6 @@ from genia.ir import (
     IrNode,
     IrOptionNone,
     IrOptionSome,
-    IrPattern,
     IrPipeline,
     IrQuote,
     IrQuasiQuote,
@@ -48,7 +47,6 @@ from genia.pattern_match import (
         IrPatTuple,
         IrPatWildcard,
         IrPattern,
-        compile_glob_pattern,
     )
 from genia.ast_nodes import (
     ListLiteral,
