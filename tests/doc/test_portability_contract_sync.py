@@ -177,6 +177,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "refs": "refs",
         "process primitives": "process_primitives",
         "bytes/json/zip": "bytes_json_zip",
+        "resource-io": "resource_io",
         "allowlisted host interop": "allowlisted_host_interop",
         "debugger stdio": "debugger_stdio",
         "prelude autoload": "prelude_autoload",

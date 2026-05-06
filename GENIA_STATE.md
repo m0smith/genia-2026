@@ -1613,6 +1613,44 @@ Behavior:
 - file/zip parse/write/read failures return structured `none(...)` metadata for the new prelude API surface
 - this is a minimal host-backed bridge and is **not** the full flow system
 
+### Resource IO bridge (Phase 1, host-backed)
+
+Maturity: **Experimental** — `fs` backend only; no object store, no streaming, no browser-native backend.
+
+Module: `import resource` or `import resource as res` — accessed via slash syntax (`res/read_text(ref)`, etc.).
+
+**`ResourceRef`** — plain Genia map `{uri: string, backend: string}`. Constructed by `resource_ref(path)`, which is a pure Genia function (no bridge call). The `uri` is stored verbatim with no normalization.
+
+**`ResourceMeta`** — plain Genia map with keys `exists` (boolean, always present), `size` (integer, present only when file exists), `backend` (string, always present).
+
+Public surface from `src/genia/std/prelude/resource.genia`:
+- `resource_ref(path) -> {uri: path, backend: "fs"}` — pure Genia map constructor
+- `discover(root_ref) -> Flow[ResourceRef] | none(...)` — lazy recursive file walk; yields one ResourceRef per file (no directories); existence check is eager (before Flow is returned)
+- `read_text(ref) -> string | none(...)`
+- `read_bytes(ref) -> bytes | none(...)`
+- `write_text(ref, text) -> ref | none(...)` — returns the input ref on success
+- `write_bytes(ref, bytes) -> ref | none(...)` — returns the input ref on success
+- `delete(ref) -> none("nil") | none(...)` — always returns `none("nil")` on success (no meaningful return value)
+- `copy(from_ref, to_ref) -> to_ref | none(...)` — returns the destination ref on success
+- `resource_meta(ref) -> ResourceMeta | none(...)`
+- `resource_capabilities() -> map` — pure constant; no IO; `supports_discover`, `supports_delete`, `supports_copy`, `supports_meta`, `supports_bytes` are all `true`
+
+Locked `none(...)` reason strings — no other reason strings are used for resource operations:
+- `"resource-not-found"` — file or directory does not exist
+- `"resource-read-error"` — OSError during read
+- `"resource-write-error"` — OSError during write
+- `"resource-delete-error"` — OSError during delete (FileNotFoundError → `none("nil")`, not this)
+- `"resource-copy-error"` — OSError during copy
+- `"resource-meta-error"` — OSError during stat
+- `"resource-unsupported"` — backend is not `"fs"`
+- `"resource-malformed-ref"` — ref is not a valid ResourceRef (not a map, missing `uri`, missing `backend`)
+
+Behavior notes:
+- `delete` on a non-existent file returns `none("nil")` (idempotent — file is already gone)
+- None propagation: if any argument to a resource function is `none(...)`, Genia's standard none-propagation short-circuits before the bridge runs
+- `discover` on a non-existent root returns `none("resource-not-found")` eagerly (not a lazy error inside the Flow)
+- Does not deprecate `read_file`/`write_file`: those remain Python-host-only bare-name helpers
+
 ### Simulation primitives (Phase 2)
 
 - public prelude-backed randomness helpers:

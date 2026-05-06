@@ -9,6 +9,7 @@ import json
 import math
 import os
 import io
+import shutil
 import sys
 import random
 import time
@@ -2331,6 +2332,157 @@ def make_global_env(
             context = GeniaMap().put("source", "write_file").put("path", path).put("message", str(exc))
             return make_none("file-write-error", context)
 
+    def _validate_resource_ref(val: Any, operation: str) -> Any:
+        if not isinstance(val, GeniaMap):
+            ctx = GeniaMap().put("received", _runtime_type_name(val)).put("operation", operation)
+            return make_none("resource-malformed-ref", ctx)
+        uri = val.get("uri", None)
+        backend = val.get("backend", None)
+        if not isinstance(uri, str):
+            ctx = GeniaMap().put("received", "map-missing-uri").put("operation", operation)
+            return make_none("resource-malformed-ref", ctx)
+        if not isinstance(backend, str):
+            ctx = GeniaMap().put("received", "map-missing-backend").put("operation", operation)
+            return make_none("resource-malformed-ref", ctx)
+        if backend != "fs":
+            ctx = GeniaMap().put("backend", backend).put("operation", operation)
+            return make_none("resource-unsupported", ctx)
+        return (uri, backend)
+
+    def resource_discover_fn(root_map: Any) -> Any:
+        validated = _validate_resource_ref(root_map, "discover")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        if not os.path.isdir(uri):
+            ctx = GeniaMap().put("uri", uri).put("backend", backend)
+            return make_none("resource-not-found", ctx)
+
+        def iterator() -> Iterable[Any]:
+            for dirpath, _dirnames, filenames in os.walk(uri):
+                for fname in filenames:
+                    fpath = os.path.join(dirpath, fname)
+                    yield GeniaMap().put("uri", fpath).put("backend", "fs")
+
+        return GeniaFlow(iterator, label="resource_discover")
+
+    def resource_read_text_fn(ref_map: Any) -> Any:
+        validated = _validate_resource_ref(ref_map, "read_text")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        try:
+            return Path(uri).read_text(encoding="utf-8")
+        except FileNotFoundError:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend)
+            return make_none("resource-not-found", ctx)
+        except OSError as exc:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", str(exc))
+            return make_none("resource-read-error", ctx)
+
+    def resource_read_bytes_fn(ref_map: Any) -> Any:
+        validated = _validate_resource_ref(ref_map, "read_bytes")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        try:
+            return GeniaBytes(Path(uri).read_bytes())
+        except FileNotFoundError:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend)
+            return make_none("resource-not-found", ctx)
+        except OSError as exc:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", str(exc))
+            return make_none("resource-read-error", ctx)
+
+    def resource_write_text_fn(ref_map: Any, text: Any) -> Any:
+        validated = _validate_resource_ref(ref_map, "write_text")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        if not isinstance(text, str):
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", "text must be a string")
+            return make_none("resource-write-error", ctx)
+        try:
+            Path(uri).write_text(text, encoding="utf-8")
+            return ref_map
+        except OSError as exc:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", str(exc))
+            return make_none("resource-write-error", ctx)
+
+    def resource_write_bytes_fn(ref_map: Any, bytes_val: Any) -> Any:
+        validated = _validate_resource_ref(ref_map, "write_bytes")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        if not isinstance(bytes_val, GeniaBytes):
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", "bytes must be a GeniaBytes value")
+            return make_none("resource-write-error", ctx)
+        try:
+            Path(uri).write_bytes(bytes_val.value)
+            return ref_map
+        except OSError as exc:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", str(exc))
+            return make_none("resource-write-error", ctx)
+
+    def resource_delete_fn(ref_map: Any) -> Any:
+        validated = _validate_resource_ref(ref_map, "delete")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        try:
+            Path(uri).unlink()
+            return make_none("nil")
+        except FileNotFoundError:
+            return make_none("nil")
+        except OSError as exc:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", str(exc))
+            return make_none("resource-delete-error", ctx)
+
+    def resource_copy_fn(from_map: Any, to_map: Any) -> Any:
+        from_validated = _validate_resource_ref(from_map, "copy")
+        if is_none(from_validated):
+            return from_validated
+        to_validated = _validate_resource_ref(to_map, "copy")
+        if is_none(to_validated):
+            return to_validated
+        from_uri, from_backend = from_validated
+        to_uri, _to_backend = to_validated
+        try:
+            shutil.copy2(from_uri, to_uri)
+            return to_map
+        except FileNotFoundError:
+            ctx = GeniaMap().put("uri", from_uri).put("backend", from_backend)
+            return make_none("resource-not-found", ctx)
+        except OSError as exc:
+            ctx = GeniaMap().put("from_uri", from_uri).put("to_uri", to_uri).put("backend", from_backend).put("detail", str(exc))
+            return make_none("resource-copy-error", ctx)
+
+    def resource_meta_fn(ref_map: Any) -> Any:
+        validated = _validate_resource_ref(ref_map, "resource_meta")
+        if is_none(validated):
+            return validated
+        uri, backend = validated
+        path = Path(uri)
+        if not path.exists():
+            return GeniaMap().put("exists", False).put("backend", backend)
+        try:
+            stat = path.stat()
+            return GeniaMap().put("exists", True).put("size", stat.st_size).put("backend", backend)
+        except OSError as exc:
+            ctx = GeniaMap().put("uri", uri).put("backend", backend).put("detail", str(exc))
+            return make_none("resource-meta-error", ctx)
+
+    def resource_capabilities_fn() -> Any:
+        return (
+            GeniaMap()
+            .put("backends", ["fs"])
+            .put("supports_discover", True)
+            .put("supports_delete", True)
+            .put("supports_copy", True)
+            .put("supports_meta", True)
+            .put("supports_bytes", True)
+        )
+
     def zip_read_fn(path: Any) -> Any:
         if not isinstance(path, str):
             context = (
@@ -2642,6 +2794,15 @@ def make_global_env(
     env.set("utf8_encode", utf8_encode_fn)
     env.set("_read_file", read_file_fn)
     env.set("_write_file", write_file_fn)
+    env.set("_resource_discover", resource_discover_fn)
+    env.set("_resource_read_text", resource_read_text_fn)
+    env.set("_resource_read_bytes", resource_read_bytes_fn)
+    env.set("_resource_write_text", resource_write_text_fn)
+    env.set("_resource_write_bytes", resource_write_bytes_fn)
+    env.set("_resource_delete", resource_delete_fn)
+    env.set("_resource_copy", resource_copy_fn)
+    env.set("_resource_meta", resource_meta_fn)
+    env.set("_resource_capabilities", resource_capabilities_fn)
     env.set("_json_parse", json_parse_fn)
     env.set("_json_stringify", json_stringify_fn)
     env.set("_serve_http", serve_http_fn)

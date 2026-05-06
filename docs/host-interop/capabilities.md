@@ -392,3 +392,123 @@ Capabilities for invoking Genia callables with explicit control over none-propag
   - `RuntimeError` — on write failure (e.g., permission denied or disk error)
 - **portability:** `Python-host-only`
 - **notes:** Preserves entry order. Accepts both argument orderings for pipeline compatibility with `|>`.
+
+### Group: Resource IO
+
+Host-backed resource IO bridge. Accessed via `import resource as res`. All operations use a `ResourceRef` map `{uri: string, backend: string}` as the location token. Only the `"fs"` backend is implemented. All failures return structured `none(...)` with locked reason strings; no IO exceptions propagate to Genia code.
+
+#### `resource.resource-ref`
+
+- **name:** `resource.resource-ref`
+- **genia_surface:** `res/resource_ref(path)` (pure Genia — no bridge call)
+- **input:** String (file path)
+- **output:** `{uri: path, backend: "fs"}` — plain Genia map; `uri` is stored verbatim
+- **errors:** none
+- **portability:** `Python-host-only`
+
+#### `resource.discover`
+
+- **name:** `resource.discover`
+- **genia_surface:** `res/discover(root_ref)`
+- **input:** `ResourceRef` map
+- **output:** lazy `GeniaFlow` of `ResourceRef` maps (one per file, no directories); or structured none on failure
+- **errors:**
+  - `none("resource-not-found", ctx)` — root does not exist (checked eagerly before Flow is returned)
+  - `none("resource-malformed-ref", ctx)` — argument is not a valid ResourceRef
+  - `RuntimeError` — mid-stream OSError during traversal (propagates through Flow consumer)
+- **portability:** `Python-host-only`
+- **notes:** Lazy, recursive, single-use. Directories are not emitted as items. The existence check fires before the Flow is constructed so the caller gets `none(...)` immediately, not a Flow that errors on first pull.
+
+#### `resource.read-text`
+
+- **name:** `resource.read-text`
+- **genia_surface:** `res/read_text(ref)`
+- **input:** `ResourceRef` map
+- **output:** String on success; structured none on failure
+- **errors:**
+  - `none("resource-not-found", ctx)` — file does not exist
+  - `none("resource-read-error", ctx)` — other OSError during read
+  - `none("resource-malformed-ref", ctx)` — argument is not a valid ResourceRef
+  - `none("resource-unsupported", ctx)` — backend is not `"fs"`
+- **portability:** `Python-host-only`
+
+#### `resource.read-bytes`
+
+- **name:** `resource.read-bytes`
+- **genia_surface:** `res/read_bytes(ref)`
+- **input:** `ResourceRef` map
+- **output:** opaque Bytes wrapper value on success; structured none on failure
+- **errors:**
+  - `none("resource-not-found", ctx)` — file does not exist
+  - `none("resource-read-error", ctx)` — other OSError during read
+  - `none("resource-malformed-ref", ctx)` — argument is not a valid ResourceRef
+- **portability:** `Python-host-only`
+
+#### `resource.write-text`
+
+- **name:** `resource.write-text`
+- **genia_surface:** `res/write_text(ref, text)`
+- **input:** `ResourceRef` map; String
+- **output:** the input `ref` map on success; structured none on failure
+- **errors:**
+  - `none("resource-write-error", ctx)` — OSError (e.g. parent directory does not exist)
+  - `none("resource-malformed-ref", ctx)` — first argument is not a valid ResourceRef
+- **portability:** `Python-host-only`
+- **notes:** Overwrites existing content. Does not create missing parent directories.
+
+#### `resource.write-bytes`
+
+- **name:** `resource.write-bytes`
+- **genia_surface:** `res/write_bytes(ref, bytes)`
+- **input:** `ResourceRef` map; opaque Bytes wrapper value
+- **output:** the input `ref` map on success; structured none on failure
+- **errors:**
+  - `none("resource-write-error", ctx)` — OSError or non-bytes second argument
+  - `none("resource-malformed-ref", ctx)` — first argument is not a valid ResourceRef
+- **portability:** `Python-host-only`
+
+#### `resource.delete`
+
+- **name:** `resource.delete`
+- **genia_surface:** `res/delete(ref)`
+- **input:** `ResourceRef` map
+- **output:** `none("nil")` on success or when file does not exist (idempotent); structured none on failure
+- **errors:**
+  - `none("resource-delete-error", ctx)` — OSError other than FileNotFoundError
+  - `none("resource-malformed-ref", ctx)` — argument is not a valid ResourceRef
+- **portability:** `Python-host-only`
+- **notes:** `delete` on a non-existent file returns `none("nil")` (not `none("resource-not-found")`).
+
+#### `resource.copy`
+
+- **name:** `resource.copy`
+- **genia_surface:** `res/copy(from_ref, to_ref)`
+- **input:** two `ResourceRef` maps (source, destination)
+- **output:** the destination `to_ref` map on success; structured none on failure
+- **errors:**
+  - `none("resource-not-found", ctx)` — source file does not exist
+  - `none("resource-copy-error", ctx)` — other OSError
+  - `none("resource-malformed-ref", ctx)` — either argument is not a valid ResourceRef
+- **portability:** `Python-host-only`
+- **notes:** Overwrites existing destination.
+
+#### `resource.meta`
+
+- **name:** `resource.meta`
+- **genia_surface:** `res/resource_meta(ref)`
+- **input:** `ResourceRef` map
+- **output:** `ResourceMeta` map `{exists: boolean, size?: integer, backend: string}`; `size` is present only when the file exists; structured none on failure
+- **errors:**
+  - `none("resource-meta-error", ctx)` — OSError during stat
+  - `none("resource-malformed-ref", ctx)` — argument is not a valid ResourceRef
+- **portability:** `Python-host-only`
+
+#### `resource.capabilities`
+
+- **name:** `resource.capabilities`
+- **genia_surface:** `res/resource_capabilities()`
+- **input:** none
+- **output:** fixed map `{backends: ["fs"], supports_discover: true, supports_delete: true, supports_copy: true, supports_meta: true, supports_bytes: true}`
+- **errors:** none
+- **portability:** `Python-host-only`
+- **notes:** Pure constant; no IO. Always returns the same map.
