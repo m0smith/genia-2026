@@ -1,0 +1,4 @@
+import resource as res
+
+result = res/read_text("not-a-ref")
+absence_reason(result)

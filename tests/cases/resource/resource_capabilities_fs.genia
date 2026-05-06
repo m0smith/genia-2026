@@ -1,0 +1,4 @@
+import resource as res
+
+caps = res/resource_capabilities()
+caps/supports_discover
