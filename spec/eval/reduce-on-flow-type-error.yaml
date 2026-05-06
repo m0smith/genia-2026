@@ -3,7 +3,8 @@ category: eval
 input:
   source: |
     acc(a, b) = a
-    reduce(acc, 0, evolve(3))
+    inc(n) -> n + 1
+    reduce(acc, 0, evolve(0, inc) |> take(3))
 expected:
   stdout: ""
   stderr: |

@@ -81,7 +81,7 @@ Validation: runnable rows include `[case: <id>]` markers in Notes and are execut
 
 | Use Case | Genia | Notes |
 | ---- | ----- | ----- |
-| Step simulation loop | 🟣 `evolve(5) \|> scan((state, _) -> [state + 1, state + 1], 0) \|> collect` | Experimental discrete-time progression [case: unix-map-evolve-simulation] |
+| Step simulation loop | 🟣 `inc(n) -> n + 1; evolve(0, inc) \|> take(5) \|> scan((state, _) -> [state + 1, state + 1], 0) \|> collect` | Experimental discrete-time progression [case: unix-map-evolve-simulation] |
 
 ---
 

@@ -15,6 +15,7 @@ Current first-wave Flow shared coverage proves only:
 - lazy pull-based observable behavior through early termination (`stdin-lines-take-early-stop`)
 - single-use enforcement (`flow-single-use-error`)
 - deterministic outputs (`stdin-lines-collect-basic`)
+- `evolve(init, f)` progression (`evolve-init-f-integer-progression`, `evolve-init-f-doubles-from-seed`)
 - `refine(..steps)` behavior (`refine-step-emit-deterministic`)
 - `rules(..fns)` compatibility behavior (`rules-rule-emit-deterministic`)
 - `step_*` / `rule_*` equivalence (`step-rule-helper-equivalence`)

@@ -60,7 +60,7 @@
   },
   {
     "id": "unix-map-evolve-simulation",
-    "source": "evolve(5) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
+    "source": "inc(n) -> n + 1\nevolve(0, inc) |> take(5) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
     "expected_result": "[1, 2, 3, 4, 5]"
   },
   {

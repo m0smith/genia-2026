@@ -837,13 +837,14 @@ When changing syntax/semantics/runtime behavior, update together:
 - language-visible `rules` orchestration, defaulting, and most contract validation now live in prelude/Genia code
 - the host rules kernel consumes normalized rule output from prelude and must not provide user-visible rule-result defaults itself
 - phase-1 flow builtins:
-  - sources/transforms: `lines`, `map`, `filter`, `take`, `rules`
+  - sources/transforms: `lines`, `evolve(init, f)`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`
 - flows are single-use:
   - first consumption succeeds
   - second consumption must raise `RuntimeError("Flow has already been consumed")`
 - `take(n, flow)` must stop upstream pulling immediately after producing `n` items
+- `evolve(init, f)` must emit `init` first and then call `f(previous_value)` only when downstream pulls later items
 - `stdin |> lines` must remain lazy; binding the source must not force a full stdin read up front
 - reaching EOF or a `take`/`head` limit is normal completion (not an error)
 

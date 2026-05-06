@@ -31,7 +31,7 @@
   },
   {
     "id": "core-min-flow-evolve",
-    "source": "evolve(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
+    "source": "inc(n) -> n + 1\nevolve(0, inc) |> take(4) |> scan((state, _) -> [state + 1, state + 1], 0) |> collect",
     "expected_result": "[1, 2, 3, 4]"
   },
   {
