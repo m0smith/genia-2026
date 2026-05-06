@@ -115,7 +115,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes Parse cases (spec/parse/) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
 - CLI shared specs cover file mode, command mode, and pipe mode only. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, and current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, and non-Flow final results. REPL is excluded from shared executable coverage.
-- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, and error propagation via invalid-reducer-on-flow diagnostic; focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs (including a composed chain) has been added but does not constitute full stdlib conformance.
+- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, and error propagation via invalid-reducer-on-flow diagnostic; focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs (including a composed chain) has been added but does not constitute full stdlib conformance.
 - Error shared coverage is active but initial only. Current error shared cases assert only the observable surface: `stdout`, `stderr`, and `exit_code`; this now includes deterministic pattern-related failure coverage for match-miss, guard-all-fail, and malformed glob diagnostics. In this phase, `stdout` must be `""`, `stderr` must match exactly, `exit_code` must be `1`, and `notes` remain informational only.
 - Parse shared coverage is active but initial only. Current parse shared cases cover stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
 
@@ -495,7 +495,7 @@ For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Sta
 Current shared spec status:
 
 - implemented shared case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/`
-- flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
+- flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, and error propagation via invalid-reducer-on-flow diagnostic
 - error shared coverage is initial only; current cases assert `stdout: ""`, exact `stderr`, and `exit_code: 1`
 - parse shared coverage is initial only; current cases cover stable, already-implemented syntax forms
 - the shared runner is implemented, and its current executable shared case coverage is eval, ir, cli, first-wave flow, initial error, and initial parse
@@ -571,7 +571,7 @@ Current consistency note:
 - helpers such as `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, and `then_find` remain useful for explicit Option values and higher-order code
 - public String, Map, Ref, Process, and sink helper names are prelude-backed wrappers over host-backed runtime primitives
 - the public Option helper surface remains help-visible through prelude/autoload metadata, while canonical `some(...)` / `none(...)` constructor forms also lower explicitly in Core IR
-- public Flow helper names `lines`, `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting live in prelude
+- public Flow helper names such as `lines`, `evolve` (experimental), `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting live in prelude
 - Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
@@ -845,12 +845,13 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
-- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
 - the host Flow kernel stays intentionally small:
   - lazy pull/consume and single-use enforcement
   - source-bound stdin integration
   - sink/materialization boundaries
 - reusable pipeline stages are ordinary functions of shape `(flow) -> flow`
+- `evolve(init, f)` creates a lazy progression Flow that emits `init` first, then emits `f(previous_value)` as downstream pulls later items; bounded integer steps use a function such as `inc(n) -> n + 1` with `evolve(0, inc) |> take(n)`
 - `tee(flow)` returns `[left_flow, right_flow]`; `merge(pair)` and `zip(pair)` consume that two-element list pair
 - `keep_some_else(stage, dead_handler)` is an explicit dead-letter Flow stage for Option-returning item transforms:
   - `stage` receives the original raw item

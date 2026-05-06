@@ -825,28 +825,19 @@ def make_global_env(
         return GeniaFlow(iterator, label="lines")
 
     def tick_fn(*args: Any) -> GeniaFlow:
-        if len(args) > 1:
-            raise TypeError(f"evolve expected 0 or 1 args, got {len(args)}")
+        if len(args) != 2:
+            raise TypeError(f"evolve expected 2 args, got {len(args)}")
 
-        if len(args) == 0:
-            limit = None
-        else:
-            limit_value = args[0]
-            if not isinstance(limit_value, int) or isinstance(limit_value, bool):
-                raise TypeError("evolve expected an integer count")
-            limit = limit_value
+        init_value, step_value = args
+        if not callable(step_value):
+            raise TypeError(f"evolve expected callable step function, received {_runtime_type_name(step_value)}")
 
-        def iterator() -> Iterable[int]:
-            evolve = 0
-            if limit is None:
-                while True:
-                    yield evolve
-                    evolve += 1
-                return
-
-            while evolve < limit:
-                yield evolve
-                evolve += 1
+        def iterator() -> Iterable[Any]:
+            current = init_value
+            yield current
+            while True:
+                current = _invoke_from_builtin(step_value, [current])
+                yield current
 
         return GeniaFlow(iterator, label="evolve")
 
@@ -2831,8 +2822,7 @@ def make_global_env(
     env.register_autoload("cli_option", 2, "std/prelude/cli.genia")
     env.register_autoload("cli_option_or", 3, "std/prelude/cli.genia")
     env.register_autoload("lines", 1, "std/prelude/flow.genia")
-    env.register_autoload("evolve", 0, "std/prelude/flow.genia")
-    env.register_autoload("evolve", 1, "std/prelude/flow.genia")
+    env.register_autoload("evolve", 2, "std/prelude/flow.genia")
     env.register_autoload("tee", 1, "std/prelude/flow.genia")
     env.register_autoload("merge", 1, "std/prelude/flow.genia")
     env.register_autoload("merge", 2, "std/prelude/flow.genia")

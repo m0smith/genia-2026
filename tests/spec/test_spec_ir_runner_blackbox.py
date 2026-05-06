@@ -275,6 +275,8 @@ def test_cli_spec_fixture(fname: str) -> None:
         "flow-map-basic.yaml",
         "flow-filter-basic.yaml",
         "flow-map-filter-chain.yaml",
+        "evolve-init-f-integer-progression.yaml",
+        "evolve-init-f-doubles-from-seed.yaml",
     ],
 )
 @pytest.mark.spec

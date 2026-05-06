@@ -96,28 +96,37 @@ def test_flow_wrappers_autoload_as_function_values():
     assert run_source(src, env) == ["a", "b"]
 
 
-def test_tick_infinite_source_can_be_bounded_with_head():
-    env = make_global_env()
-    assert run_source("evolve() |> head(4) |> collect", env) == [0, 1, 2, 3]
-
-
-def test_tick_bounded_source_is_deterministic():
-    env = make_global_env()
-    assert run_source("evolve(5) |> collect", env) == [0, 1, 2, 3, 4]
-
-
-def test_tick_drives_discrete_time_progression_with_scan():
+def test_evolve_integer_progression_can_be_bounded_with_head():
     env = make_global_env()
     src = """
-    evolve(4) |> scan((state, _) -> [state + 10, state + 10], 0) |> collect
+    inc(n) -> n + 1
+    evolve(0, inc) |> head(4) |> collect
+    """
+    assert run_source(src, env) == [0, 1, 2, 3]
+
+
+def test_evolve_integer_progression_is_deterministic_with_take():
+    env = make_global_env()
+    src = """
+    inc(n) -> n + 1
+    evolve(0, inc) |> take(5) |> collect
+    """
+    assert run_source(src, env) == [0, 1, 2, 3, 4]
+
+
+def test_evolve_drives_discrete_time_progression_with_scan():
+    env = make_global_env()
+    src = """
+    inc(n) -> n + 1
+    evolve(0, inc) |> take(4) |> scan((state, _) -> [state + 10, state + 10], 0) |> collect
     """
     assert run_source(src, env) == [10, 20, 30, 40]
 
 
-def test_tick_requires_integer_count_when_bounded():
+def test_evolve_one_arg_no_longer_selects_integer_count_mode():
     env = make_global_env()
-    with pytest.raises(TypeError, match="evolve expected an integer count"):
-        run_source('evolve("bad") |> collect', env)
+    with pytest.raises(Exception):
+        run_source("evolve(5) |> collect", env)
 
 
 def test_stdin_keys_stream_can_feed_flow_stages_directly():
@@ -692,3 +701,103 @@ def test_keep_some_else_is_opt_in_and_does_not_change_ordinary_pipeline_option_b
     result = run_source(src, env)
     assert result[0] is True
     assert format_debug(result[1]) == "some(42)"
+
+
+# --- evolve(init, f) contract tests ---
+# These tests define the intended behavior for issue #250.
+
+
+def test_evolve_init_f_integer_progression():
+    env = make_global_env()
+    assert run_source("evolve(0, (n) -> n + 1) |> take(5) |> collect", env) == [0, 1, 2, 3, 4]
+
+
+def test_evolve_init_f_doubles_from_seed():
+    env = make_global_env()
+    assert run_source("evolve(1, (n) -> n * 2) |> take(5) |> collect", env) == [1, 2, 4, 8, 16]
+
+
+def test_evolve_init_f_identity_repeats_init():
+    env = make_global_env()
+    assert run_source("evolve(5, (x) -> x) |> take(3) |> collect", env) == [5, 5, 5]
+
+
+def test_evolve_init_f_with_map_value_progression():
+    env = make_global_env()
+    src = """
+    step(state) -> {tick: state/tick + 1}
+    evolve({tick: 0}, step) |> take(3) |> collect
+    """
+    assert format_debug(run_source(src, env)) == "[{tick: 0}, {tick: 1}, {tick: 2}]"
+
+
+def test_evolve_init_f_emits_init_without_calling_f():
+    env = make_global_env()
+    calls = {"count": 0}
+
+    def counter(x):
+        calls["count"] += 1
+        return x + 1
+
+    env.set("counter_fn", counter)
+    result = run_source("evolve(0, counter_fn) |> take(1) |> collect", env)
+    assert result == [0]
+    assert calls["count"] == 0
+
+
+def test_evolve_init_f_take_zero_does_not_call_f():
+    env = make_global_env()
+    calls = {"count": 0}
+
+    def counter(x):
+        calls["count"] += 1
+        return x + 1
+
+    env.set("counter_fn", counter)
+    result = run_source("evolve(0, counter_fn) |> take(0) |> collect", env)
+    assert result == []
+    assert calls["count"] == 0
+
+
+def test_evolve_init_f_f_called_n_minus_one_times_for_take_n():
+    env = make_global_env()
+    calls = {"count": 0}
+
+    def counter(x):
+        calls["count"] += 1
+        return x + 1
+
+    env.set("counter_fn", counter)
+    result = run_source("evolve(0, counter_fn) |> take(5) |> collect", env)
+    assert result == [0, 1, 2, 3, 4]
+    assert calls["count"] == 4
+
+
+def test_evolve_init_f_is_single_use():
+    env = make_global_env()
+    src = """
+    x = evolve(0, (n) -> n + 1)
+    first = x |> take(3) |> collect
+    second = x |> take(3) |> collect
+    [first, second]
+    """
+    with pytest.raises(RuntimeError, match="Flow has already been consumed"):
+        run_source(src, env)
+
+
+def test_evolve_init_f_non_callable_f_fails_clearly():
+    env = make_global_env()
+    with pytest.raises(TypeError, match="evolve.*callable"):
+        run_source('evolve(0, "not_a_function") |> head(1) |> collect', env)
+
+
+def test_evolve_zero_arg_is_no_longer_valid():
+    env = make_global_env()
+    with pytest.raises(Exception):
+        run_source("evolve() |> head(1) |> collect", env)
+
+
+def test_evolve_one_arg_is_no_longer_valid():
+    env = make_global_env()
+    with pytest.raises(Exception):
+        run_source("evolve(5) |> collect", env)

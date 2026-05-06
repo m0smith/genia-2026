@@ -1,0 +1,10 @@
+name: evolve-init-f-integer-progression
+category: flow
+input:
+  source: |
+    inc(n) -> n + 1
+    evolve(0, inc) |> take(5) |> collect
+expected:
+  stdout: "[0, 1, 2, 3, 4]\n"
+  stderr: ""
+  exit_code: 0

@@ -2,7 +2,8 @@ name: first-on-flow-type-error
 category: eval
 input:
   source: |
-    first(evolve(3))
+    inc(n) -> n + 1
+    first(evolve(0, inc))
 expected:
   stdout: ""
   stderr: |

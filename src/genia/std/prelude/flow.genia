@@ -1,23 +1,15 @@
 @doc "Create a Flow from `stdin`, an incoming Flow, or a list of strings."
 lines(source) = _lines(source)
 
-@doc """Create a Flow of integer evolve values starting at `0`.
+@doc """Create a Flow by repeatedly applying `step` to the previous value.
 
-`evolve()` is unbounded.
-`evolve(count)` is bounded to `0..count - 1`.
+The first emitted item is `init`.
+Each later item is `step(previous_value)`.
 
-Use with `take`/`head` when you want explicit bounded simulation steps.
+Use `evolve(0, (n) -> n + 1)` for unbounded integer steps.
+Use `take`/`head` for explicit bounded progression.
 """
-evolve() = _evolve()
-
-@doc """Create a Flow of integer evolve values starting at `0`.
-
-`evolve()` is unbounded.
-`evolve(count)` is bounded to `0..count - 1`.
-
-Use with `take`/`head` when you want explicit bounded simulation steps.
-"""
-evolve(count) = _evolve(count)
+evolve(init, step) = _evolve(init, step)
 
 @doc """Split one input flow into two lazy branch flows.
 

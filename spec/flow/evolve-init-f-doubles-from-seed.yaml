@@ -1,0 +1,10 @@
+name: evolve-init-f-doubles-from-seed
+category: flow
+input:
+  source: |
+    double(n) -> n * 2
+    evolve(1, double) |> take(5) |> collect
+expected:
+  stdout: "[1, 2, 4, 8, 16]\n"
+  stderr: ""
+  exit_code: 0

@@ -31,7 +31,7 @@ Three bridge shapes exist and nothing else crosses the boundary:
 
 | Direction | Bridge | What it does |
 | --- | --- | --- |
-| Value → Flow | `lines(source)`, `evolve()`, `evolve(count)` | Create a lazy single-use flow |
+| Value → Flow | `lines(source)`, `evolve(init, f)` | Create a lazy single-use flow |
 | Flow → Value | `collect(flow)` | Materialize flow into a list |
 | Flow → Effect | `run(flow)` | Consume flow for side effects only |
 
@@ -98,7 +98,7 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | Helper | Direction | Notes |
 | --- | --- | --- |
 | `lines` | Value → Flow | Accepts stdin, list-of-strings, or existing flow |
-| `evolve` | (source) → Flow | `evolve()` unbounded, `evolve(count)` bounded |
+| `evolve` | Value → Flow | Emits `init`, then `f(previous_value)` on later pulls |
 | `collect` | Flow → Value | Materializes lazy flow into a list |
 | `run` | Flow → Effect | Consumes flow; returns `nil` |
 
