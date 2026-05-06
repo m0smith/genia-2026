@@ -35,6 +35,7 @@ Browser playground adapter note:
 | refs | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
 | process primitives | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
 | bytes/json/zip | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed bridge helpers |
+| resource-io | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `fs` backend only; `import resource as res`; ResourceRef `{uri, backend}` pattern |
 | allowlisted host interop | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | current Python host exposes only `python` / `python.json` with explicit conversion rules |
 | debugger stdio | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python debug adapter mode documented today |
 | prelude autoload | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | public stdlib surface is prelude-centered |

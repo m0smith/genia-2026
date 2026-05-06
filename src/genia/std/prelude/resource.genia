@@ -1,0 +1,81 @@
+@doc """Construct a ResourceRef map for a filesystem path.
+
+Returns `{uri: path, backend: "fs"}`.
+"""
+resource_ref(path) = {uri: path, backend: "fs"}
+
+@doc """Discover all files under `root` as a lazy Flow of ResourceRef maps.
+
+Each item is `{uri: string, backend: "fs"}`. Directories are not emitted.
+Returns `none("resource-not-found", context)` if `root` does not exist.
+Returns `none("resource-malformed-ref", context)` if `root` is not a valid ResourceRef.
+"""
+discover(root) = _resource_discover(root)
+
+@doc """Read file at `ref` as UTF-8 text.
+
+Returns the file content as a string on success.
+Returns `none("resource-not-found", context)` if the file does not exist.
+Returns `none("resource-read-error", context)` on other IO failures.
+Returns `none("resource-malformed-ref", context)` if `ref` is not a valid ResourceRef.
+Returns `none("resource-unsupported", context)` if the backend is not supported.
+"""
+read_text(ref) = _resource_read_text(ref)
+
+@doc """Read file at `ref` as raw bytes.
+
+Returns a bytes value on success.
+Returns `none("resource-not-found", context)` if the file does not exist.
+Returns `none("resource-read-error", context)` on other IO failures.
+Returns `none("resource-malformed-ref", context)` if `ref` is not a valid ResourceRef.
+"""
+read_bytes(ref) = _resource_read_bytes(ref)
+
+@doc """Write UTF-8 `text` to file at `ref`.
+
+Returns `ref` on success.
+Returns `none("resource-write-error", context)` on failure.
+Returns `none("resource-malformed-ref", context)` if `ref` is not a valid ResourceRef.
+"""
+write_text(ref, text) = _resource_write_text(ref, text)
+
+@doc """Write raw `bytes` to file at `ref`.
+
+Returns `ref` on success.
+Returns `none("resource-write-error", context)` on failure.
+Returns `none("resource-malformed-ref", context)` if `ref` is not a valid ResourceRef.
+"""
+write_bytes(ref, bytes) = _resource_write_bytes(ref, bytes)
+
+@doc """Delete the file at `ref`.
+
+Returns `none("nil")` on success.
+Returns `none("resource-delete-error", context)` on failure.
+Returns `none("resource-malformed-ref", context)` if `ref` is not a valid ResourceRef.
+"""
+delete(ref) = _resource_delete(ref)
+
+@doc """Copy the file from `from_ref` to `to_ref`.
+
+Returns `to_ref` on success.
+Returns `none("resource-not-found", context)` if the source does not exist.
+Returns `none("resource-copy-error", context)` on other failures.
+Returns `none("resource-malformed-ref", context)` if either ref is not a valid ResourceRef.
+"""
+copy(from_ref, to_ref) = _resource_copy(from_ref, to_ref)
+
+@doc """Return metadata for the resource at `ref`.
+
+Returns a map with `exists` (boolean), `size` (integer, present when file exists),
+and `backend` (string).
+Returns `none("resource-meta-error", context)` on failure.
+Returns `none("resource-malformed-ref", context)` if `ref` is not a valid ResourceRef.
+"""
+resource_meta(ref) = _resource_meta(ref)
+
+@doc """Return the capability map for the resource IO host.
+
+Returns a fixed map with `backends`, `supports_discover`, `supports_delete`,
+`supports_copy`, `supports_meta`, and `supports_bytes`.
+"""
+resource_capabilities() = _resource_capabilities()

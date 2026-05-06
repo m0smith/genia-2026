@@ -213,6 +213,14 @@ CLI contract summary (actual behavior):
     - internal primitive: `_serve_http`
     - public web-module exports in `std/prelude/web.genia`: `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, `not_found`
     - this public HTTP helper surface is Python reference host behavior in this phase (**Python-host-only**), not a shared cross-host contract category
+  - Python-host-only resource IO bridge builtins (phase 1, Experimental):
+    - import via `import resource as res`; use exports via slash syntax (`res/read_text(ref)`, etc.)
+    - `ResourceRef` is a plain Genia map `{uri: string, backend: "fs"}`; constructed by `res/resource_ref(path)`
+    - `ResourceMeta` is a plain Genia map `{exists: boolean, size?: integer, backend: string}`
+    - public module exports: `resource_ref`, `discover`, `read_text`, `read_bytes`, `write_text`, `write_bytes`, `delete`, `copy`, `resource_meta`, `resource_capabilities`
+    - `discover(root_ref)` returns a lazy, recursive, single-use `Flow` of `ResourceRef` maps (files only, no directories)
+    - all failures return structured `none(...)` with locked reason strings: `resource-not-found`, `resource-read-error`, `resource-write-error`, `resource-delete-error`, `resource-copy-error`, `resource-meta-error`, `resource-unsupported`, `resource-malformed-ref`
+    - `fs` backend only in this phase; does not deprecate `read_file`/`write_file`
   - string runtime helpers are exposed publicly through prelude-backed wrappers: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - flow runtime (phase 1):
