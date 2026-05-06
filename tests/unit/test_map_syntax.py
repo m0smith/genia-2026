@@ -1,15 +1,16 @@
 import pytest
 
 from genia.interpreter import (
-   
-    IrPatBind,
-    IrPatMap,
-    IrPatTuple,
     Parser,
     make_global_env,
     lex,
     lower_program,
     run_source,
+)
+from genia.pattern_match import (
+    IrPatBind,
+    IrPatMap,
+    IrPatTuple,
 )
 
 from genia.ir import (

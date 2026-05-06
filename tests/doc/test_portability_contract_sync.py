@@ -84,7 +84,7 @@ def test_browser_runtime_adapter_manifest_stays_scaffolded_only():
 
 def test_manifest_core_ir_matches_runtime_types():
     """Manifest node/pattern families must stay in sync with the Python runtime constants."""
-    from genia.interpreter import (
+    from genia.ir import (
         PORTABLE_CORE_IR_NODE_TYPES,
         HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
     )

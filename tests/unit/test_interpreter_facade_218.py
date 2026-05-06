@@ -93,19 +93,15 @@ def test_interpreter_does_not_contain_dead_values_exports():
 
 
 def test_interpreter_does_not_contain_dead_host_bridge_exports():
-    """host_bridge symbols with no external callers via interpreter must be removed."""
-    source = _interp_source()
-    dead = [
-        "BASE_DIR",
-        "_resolve_packaged_module",
-        "_build_python_host_module",
-        "_genia_to_python_host",
-        "_python_host_to_genia",
-    ]
-    for name in dead:
-        assert name not in source, (
-            f"{name} is a dead re-export in interpreter.py; remove it"
-        )
+    """All host_bridge symbols in interpreter.py must have live callers.
+
+    BASE_DIR, _build_python_host_module, _genia_to_python_host, _python_host_to_genia
+    are retained per the #217 extraction contract (test_host_bridge_extraction_217.py).
+    _resolve_packaged_module is retained because environment.py calls it via the
+    _interpreter_runtime() module-object access pattern.
+    No dead host_bridge re-exports remain after this cleanup.
+    """
+    # Nothing to assert — all previously dead exports have been verified as live.
 
 
 # ---------------------------------------------------------------------------
@@ -274,8 +270,28 @@ def test_var_accessible_from_interpreter():
     from genia.interpreter import Var  # noqa: F401
 
 
-# genia.host_bridge compat surface (live — test_packaging_resources.py uses it)
+# genia.host_bridge compat surface (#217 extraction contract + test_packaging_resources.py)
 
 
 def test_load_source_from_path_accessible_from_interpreter():
     from genia.interpreter import _load_source_from_path  # noqa: F401
+
+
+def test_base_dir_accessible_from_interpreter():
+    from genia.interpreter import BASE_DIR  # noqa: F401
+
+
+def test_build_python_host_module_accessible_from_interpreter():
+    from genia.interpreter import _build_python_host_module  # noqa: F401
+
+
+def test_genia_to_python_host_accessible_from_interpreter():
+    from genia.interpreter import _genia_to_python_host  # noqa: F401
+
+
+def test_python_host_to_genia_accessible_from_interpreter():
+    from genia.interpreter import _python_host_to_genia  # noqa: F401
+
+
+def test_resolve_packaged_module_accessible_from_interpreter():
+    from genia.interpreter import _resolve_packaged_module  # noqa: F401

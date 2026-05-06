@@ -2,6 +2,9 @@ from pathlib import Path
 
 from genia import make_global_env, run_source
 
+import pytest
+
+pytestmarks = [pytest.mark.slow]
 
 SOURCE_PATH = Path("examples/ants.genia")
 SOURCE = SOURCE_PATH.read_text(encoding="utf-8")

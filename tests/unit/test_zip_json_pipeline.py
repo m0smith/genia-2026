@@ -3,7 +3,7 @@ import zipfile
 import pytest
 
 from genia import make_global_env, run_source
-from genia.interpreter import GeniaBytes, GeniaZipEntry
+from genia.values import GeniaBytes, GeniaZipEntry
 
 
 def _run(src: str):

@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import Any, Callable, TextIO
 
 from .debug_protocol import read_json_line, write_json_line
-from .interpreter import DebugHooks, Env, GeniaRef, SourceSpan
+from .callable import DebugHooks
+from .environment import Env
+from .lexer import SourceSpan
+from .values import GeniaRef
 
 
 class DebugDisconnect(Exception):

@@ -1,21 +1,22 @@
 from genia.interpreter import (
-  HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
-   
-    IrPatLiteral,
-    IrPatNone,
-   
-    IrPatBind,
-    IrPatList,
-    IrPatRest,
-    IrPatTuple,
-   
     Parser,
-    PORTABLE_CORE_IR_NODE_TYPES,
     assert_portable_core_ir,
-    iter_ir_nodes,
     lex,
     lower_program,
     optimize_program,
+)
+from genia.ir import (
+    HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
+    PORTABLE_CORE_IR_NODE_TYPES,
+    iter_ir_nodes,
+)
+from genia.pattern_match import (
+    IrPatBind,
+    IrPatList,
+    IrPatLiteral,
+    IrPatNone,
+    IrPatRest,
+    IrPatTuple,
 )
 
 from genia.ir import (

@@ -1,20 +1,12 @@
 #!/usr/bin/env python3
 """
-Minimal Genia REPL / interpreter prototype.
+CLI/REPL orchestration facade for the Genia Python reference host.
 
-Implemented subset:
-- numbers, booleans, nil, strings
-- arithmetic: + - * / %
-- comparison: < <= > >= == !=
-- variables and function calls
-- function definitions: name(args) = expr
-- function definitions with blocks: name(args) { ... }
-- case expressions in function bodies and as final expression in blocks
-- pattern matching against the full argument tuple
-- single-argument pattern shorthand: 0 -> 1 is treated like (0) -> 1
-- guards: pattern ? condition -> result
-- blocks with newline or ; expression separators
-- builtins: log(...), print(...), input(prompt), help()
+Entry points: run_source, _main, repl, run_debug_stdio.
+Re-exports selected symbols from genia.builtins, genia.evaluator,
+genia.callable, genia.values, genia.lexer, genia.parser, genia.lowering,
+genia.optimizer, genia.ast_nodes, and genia.host_bridge for backward
+compatibility with callers written before the module split (#210 series).
 """
 from __future__ import annotations
 
@@ -52,10 +44,7 @@ if __package__ in (None, ""):
         Var,
     )
     from genia.ir import (
-        HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES as HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
-        PORTABLE_CORE_IR_NODE_TYPES as PORTABLE_CORE_IR_NODE_TYPES,
         assert_portable_core_ir,
-        iter_ir_nodes as iter_ir_nodes,
     )
     from genia.values import (
         _is_nil_none,
@@ -67,8 +56,6 @@ if __package__ in (None, ""):
     )
     from genia.lowering import (
         lower_program as lower_program,
-        lower_node as lower_node,
-        lower_pattern as lower_pattern,
     )
     from genia.callable import (
         DebugHooks as DebugHooks,
@@ -96,10 +83,7 @@ else:
         Var,
     )
     from .ir import (
-        HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES as HOST_LOCAL_POST_LOWERING_IR_NODE_TYPES,
-        PORTABLE_CORE_IR_NODE_TYPES as PORTABLE_CORE_IR_NODE_TYPES,
         assert_portable_core_ir,
-        iter_ir_nodes as iter_ir_nodes,
     )
     from .utf8 import (
         format_debug,
@@ -116,8 +100,6 @@ else:
     )
     from .lowering import (
         lower_program as lower_program,
-        lower_node as lower_node,
-        lower_pattern as lower_pattern,
     )
     from .callable import (
         DebugHooks as DebugHooks,
@@ -134,34 +116,18 @@ if __package__ in (None, ""):
     from genia.lexer import SourceSpan
     from genia.values import (
         OPTION_NONE,
-        GeniaBytes,
         GeniaFlow,
         GeniaOptionNone,
         GeniaOptionSome,
-        GeniaRef,
-        GeniaZipEntry,
         truthy,
     )
     from genia.host_bridge import (
         BASE_DIR,
         _load_source_from_path,
-        _resolve_packaged_module,
         _build_python_host_module,
         _genia_to_python_host,
         _python_host_to_genia,
-    )
-    from genia.pattern_match import (
-        IrPatBind,
-        IrPatGlob,
-        IrPatList,
-        IrPatLiteral,
-        IrPatMap,
-        IrPatNone,
-        IrPatRest,
-        IrPatSome,
-        IrPatTuple,
-        IrPatWildcard,
-        IrPattern,
+        _resolve_packaged_module,
     )
 else:
     from .builtins import make_global_env as make_global_env
@@ -169,34 +135,18 @@ else:
     from .lexer import SourceSpan as SourceSpan
     from .values import (
         OPTION_NONE as OPTION_NONE,
-        GeniaBytes as GeniaBytes,
         GeniaFlow as GeniaFlow,
         GeniaOptionNone as GeniaOptionNone,
         GeniaOptionSome as GeniaOptionSome,
-        GeniaRef as GeniaRef,
-        GeniaZipEntry as GeniaZipEntry,
         truthy as truthy,
     )
     from .host_bridge import (
         BASE_DIR as BASE_DIR,
         _load_source_from_path as _load_source_from_path,
-        _resolve_packaged_module as _resolve_packaged_module,
         _build_python_host_module as _build_python_host_module,
         _genia_to_python_host as _genia_to_python_host,
         _python_host_to_genia as _python_host_to_genia,
-    )
-    from .pattern_match import (
-        IrPatBind as IrPatBind,
-        IrPatGlob as IrPatGlob,
-        IrPatList as IrPatList,
-        IrPatLiteral as IrPatLiteral,
-        IrPatMap as IrPatMap,
-        IrPatNone as IrPatNone,
-        IrPatRest as IrPatRest,
-        IrPatSome as IrPatSome,
-        IrPatTuple as IrPatTuple,
-        IrPatWildcard as IrPatWildcard,
-        IrPattern as IrPattern,
+        _resolve_packaged_module as _resolve_packaged_module,
     )
 
 # ---------------------------------------------------------------------------
