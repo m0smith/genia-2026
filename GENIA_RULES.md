@@ -850,11 +850,12 @@ When changing syntax/semantics/runtime behavior, update together:
 
 ## 19.1) Seq compatibility invariants
 
-- Seq is a semantic compatibility category for ordered value production, not a runtime value, type constructor, syntax form, helper, or Core IR node.
+- Seq is a semantic compatibility category for ordered value production, not a public runtime value, type constructor, syntax form, helper, or Core IR node.
 - In this phase, only lists and Flow are Seq-compatible public values.
 - Lists are eager and reusable.
 - Flow is lazy, pull-based, source-bound, and single-use.
 - Iterators and generators are host implementation details, not portable Genia values.
+- Python reference-host internal lifecycle helpers for Seq-compatible sources must not create a public Seq surface.
 - Seq compatibility does not change pipeline call shape.
 - Seq compatibility does not change Option-aware pipeline behavior.
 - No implicit list-to-Flow conversion is introduced.

@@ -528,36 +528,117 @@ class GeniaZipEntry:
         return f"<zip-entry {self.name!r} {len(self.data.value)}>"
 
 
-class GeniaFlow:
+class GeniaSeq:
     def __init__(
         self,
         iterator_factory: Callable[[], Iterable[Any]],
         *,
-        label: str = "flow",
+        label: str = "seq",
+        single_use: bool,
         close_on_early_termination: bool = True,
+        reuse_error: str = "Flow has already been consumed",
+        invalid_source_prefix: str = "Flow source",
     ):
         self._iterator_factory = iterator_factory
         self._label = label
+        self._single_use = single_use
         self._consumed = False
         self._close_on_early_termination = close_on_early_termination
+        self._reuse_error = reuse_error
+        self._invalid_source_prefix = invalid_source_prefix
+
+    @classmethod
+    def reusable(
+        cls,
+        iterator_factory: Callable[[], Iterable[Any]],
+        *,
+        label: str = "seq",
+        close_on_early_termination: bool = True,
+    ) -> "GeniaSeq":
+        return cls(
+            iterator_factory,
+            label=label,
+            single_use=False,
+            close_on_early_termination=close_on_early_termination,
+        )
+
+    @classmethod
+    def single_use(
+        cls,
+        iterator_factory: Callable[[], Iterable[Any]],
+        *,
+        label: str = "seq",
+        close_on_early_termination: bool = True,
+    ) -> "GeniaSeq":
+        return cls(
+            iterator_factory,
+            label=label,
+            single_use=True,
+            close_on_early_termination=close_on_early_termination,
+        )
 
     def consume(self) -> Iterable[Any]:
-        if self._consumed:
-            raise RuntimeError("Flow has already been consumed")
-        self._consumed = True
+        if self._single_use:
+            if self._consumed:
+                raise RuntimeError(self._reuse_error)
+            self._consumed = True
         produced = self._iterator_factory()
         try:
             return iter(produced)
         except TypeError:
-            raise TypeError(f"Flow source {self._label} did not produce an iterable") from None
+            raise TypeError(f"{self._invalid_source_prefix} {self._label} did not produce an iterable") from None
 
-    def __repr__(self) -> str:
-        state = "consumed" if self._consumed else "ready"
-        return f"<flow {self._label} {state}>"
+    @property
+    def label(self) -> str:
+        return self._label
+
+    @property
+    def consumed(self) -> bool:
+        return self._consumed
+
+    @property
+    def is_single_use(self) -> bool:
+        return self._single_use
 
     @property
     def close_on_early_termination(self) -> bool:
         return self._close_on_early_termination
+
+
+class GeniaFlow:
+    def __init__(
+        self,
+        iterator_factory: Callable[[], Iterable[Any]] | GeniaSeq,
+        *,
+        label: str = "flow",
+        close_on_early_termination: bool = True,
+    ):
+        if isinstance(iterator_factory, GeniaSeq):
+            if iterator_factory.is_single_use:
+                self._seq = iterator_factory
+            else:
+                self._seq = GeniaSeq.single_use(
+                    iterator_factory.consume,
+                    label=iterator_factory.label,
+                    close_on_early_termination=iterator_factory.close_on_early_termination,
+                )
+        else:
+            self._seq = GeniaSeq.single_use(
+                iterator_factory,
+                label=label,
+                close_on_early_termination=close_on_early_termination,
+            )
+
+    def consume(self) -> Iterable[Any]:
+        return self._seq.consume()
+
+    def __repr__(self) -> str:
+        state = "consumed" if self._seq.consumed else "ready"
+        return f"<flow {self._seq.label} {state}>"
+
+    @property
+    def close_on_early_termination(self) -> bool:
+        return self._seq.close_on_early_termination
 
 
 class GeniaOutputSink:

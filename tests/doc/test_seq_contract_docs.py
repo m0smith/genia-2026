@@ -27,11 +27,12 @@ def test_state_defines_seq_as_semantic_contract_not_runtime_surface() -> None:
         "GENIA_STATE.md",
         [
             "`Seq` is a semantic compatibility category for ordered value production.",
-            "Seq is not a runtime value, type constructor, syntax form, helper, or Core IR node.",
+            "Seq is not a public runtime value, type constructor, syntax form, helper, or Core IR node.",
             "In this phase, the implemented Seq-compatible public values are lists and Flow.",
             "Lists are eager and reusable.",
             "Flow is lazy, pull-based, source-bound, and single-use.",
             "Iterators and generators are host implementation details, not portable Genia values.",
+            "The Python reference host uses an internal `GeniaSeq` helper to model ordered-source consumption lifecycle; this does not create a public Seq surface.",
         ],
     )
 
