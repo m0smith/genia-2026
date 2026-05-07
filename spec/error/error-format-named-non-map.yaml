@@ -1,0 +1,8 @@
+kind: error
+name: error format named placeholder non-map values
+source: |
+  format("Hello {name}", ["list"])
+stdout: ""
+stderr: |
+  Error: format expected a map for named placeholder: name
+exit_code: 1

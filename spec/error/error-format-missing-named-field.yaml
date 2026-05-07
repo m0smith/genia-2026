@@ -1,0 +1,8 @@
+kind: error
+name: error format missing named field
+source: |
+  format("Hello {name}!", {greeting: "Hi"})
+stdout: ""
+stderr: |
+  Error: format missing field: name
+exit_code: 1

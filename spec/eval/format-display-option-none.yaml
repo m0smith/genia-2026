@@ -1,0 +1,8 @@
+kind: eval
+name: format display option none
+source: |
+  format("Value: {val}", {val: none})
+stdout: |
+  Value: none
+stderr: ""
+exit_code: 0

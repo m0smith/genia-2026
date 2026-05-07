@@ -1,0 +1,8 @@
+kind: eval
+name: format escaped right brace
+source: |
+  format("End }}", {})
+stdout: |
+  End }
+stderr: ""
+exit_code: 0

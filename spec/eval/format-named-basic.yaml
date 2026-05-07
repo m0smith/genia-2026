@@ -1,0 +1,8 @@
+kind: eval
+name: format named placeholder basic
+source: |
+  format("Hello {name}!", {name: "Alice"})
+stdout: |
+  Hello Alice!
+stderr: ""
+exit_code: 0

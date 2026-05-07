@@ -1,0 +1,8 @@
+kind: eval
+name: format display string without quotes
+source: |
+  format("Result: {text}", {text: "hello"})
+stdout: |
+  Result: hello
+stderr: ""
+exit_code: 0

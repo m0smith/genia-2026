@@ -1,0 +1,8 @@
+kind: eval
+name: format multiple named placeholders
+source: |
+  format("{greeting} {name}, you are {age} years old", {greeting: "Hello", name: "Bob", age: 30})
+stdout: |
+  Hello Bob, you are 30 years old
+stderr: ""
+exit_code: 0

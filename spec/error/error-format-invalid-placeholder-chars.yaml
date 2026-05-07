@@ -1,0 +1,8 @@
+kind: error
+name: error format invalid placeholder dot notation
+source: |
+  format("Value: {user.name}", {user: {name: "Alice"}})
+stdout: ""
+stderr: |
+  Error: format invalid placeholder
+exit_code: 1

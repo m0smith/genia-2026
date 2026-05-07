@@ -1,0 +1,8 @@
+kind: eval
+name: format empty template
+source: |
+  format("", {})
+stdout: |
+  
+stderr: ""
+exit_code: 0

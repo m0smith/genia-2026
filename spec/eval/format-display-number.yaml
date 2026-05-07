@@ -1,0 +1,8 @@
+kind: eval
+name: format display number
+source: |
+  format("Answer: {answer}", {answer: 42})
+stdout: |
+  Answer: 42
+stderr: ""
+exit_code: 0

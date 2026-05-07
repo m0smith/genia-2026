@@ -1,0 +1,8 @@
+kind: eval
+name: format mixed escaped and regular braces
+source: |
+  format("{{key}} = {0}", ["value"])
+stdout: |
+  {key} = value
+stderr: ""
+exit_code: 0

@@ -1,0 +1,8 @@
+kind: error
+name: error format non-string template
+source: |
+  format(42, {})
+stdout: ""
+stderr: |
+  Error: format expected a string template
+exit_code: 1

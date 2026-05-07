@@ -1,0 +1,8 @@
+kind: error
+name: error format positional placeholder non-list values
+source: |
+  format("Item {0}", {num: 1})
+stdout: ""
+stderr: |
+  Error: format expected a list for positional placeholder: 0
+exit_code: 1

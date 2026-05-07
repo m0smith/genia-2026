@@ -1,0 +1,8 @@
+kind: eval
+name: format escaped left brace
+source: |
+  format("Set {{x}}", {})
+stdout: |
+  Set {x}
+stderr: ""
+exit_code: 0

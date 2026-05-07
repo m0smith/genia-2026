@@ -1,0 +1,8 @@
+kind: eval
+name: format repeated placeholders
+source: |
+  format("{0} and {0} again", ["same"])
+stdout: |
+  same and same again
+stderr: ""
+exit_code: 0
