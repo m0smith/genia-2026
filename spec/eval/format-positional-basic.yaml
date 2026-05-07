@@ -5,6 +5,6 @@ input:
     format("Item {0} costs {1}", ["apple", "5"])
 expected:
   stdout: |
-    Item apple costs 5
+    "Item apple costs 5"
   stderr: ""
   exit_code: 0

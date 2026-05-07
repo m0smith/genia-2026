@@ -5,6 +5,6 @@ input:
     format("{{key}} = {0}", ["value"])
 expected:
   stdout: |
-    {key} = value
+    "{key} = value"
   stderr: ""
   exit_code: 0

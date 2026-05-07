@@ -5,6 +5,6 @@ input:
     format("Value: {val}", {val: none})
 expected:
   stdout: |
-    Value: none("nil")
+    "Value: none(\"nil\")"
   stderr: ""
   exit_code: 0

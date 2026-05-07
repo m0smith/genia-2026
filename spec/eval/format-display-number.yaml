@@ -5,6 +5,6 @@ input:
     format("Answer: {answer}", {answer: 42})
 expected:
   stdout: |
-    Answer: 42
+    "Answer: 42"
   stderr: ""
   exit_code: 0

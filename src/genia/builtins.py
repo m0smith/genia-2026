@@ -580,6 +580,73 @@ def make_global_env(
             raise TypeError("join expected a list of strings, received list")
         return separator.join(xs)
 
+    def format_fn(template: Any, values: Any) -> str:
+        if not isinstance(template, str):
+            raise TypeError("format expected a string template")
+
+        def _is_named_placeholder(body: str) -> bool:
+            if body == "":
+                return False
+            first = body[0]
+            if not (first == "_" or ("A" <= first <= "Z") or ("a" <= first <= "z")):
+                return False
+            return all(
+                ch == "_"
+                or ("A" <= ch <= "Z")
+                or ("a" <= ch <= "z")
+                or ("0" <= ch <= "9")
+                for ch in body[1:]
+            )
+
+        def _is_positional_placeholder(body: str) -> bool:
+            return body != "" and all("0" <= ch <= "9" for ch in body)
+
+        def _format_placeholder(body: str) -> str:
+            if _is_positional_placeholder(body):
+                if not isinstance(values, list):
+                    raise TypeError(
+                        f"format expected a list for positional placeholder: {body}"
+                    )
+                index = int(body, 10)
+                if index >= len(values):
+                    raise ValueError(f"format missing field: {index}")
+                return format_display(values[index])
+
+            if _is_named_placeholder(body):
+                if not isinstance(values, GeniaMap):
+                    raise TypeError(f"format expected a map for named placeholder: {body}")
+                if not values.has(body):
+                    raise ValueError(f"format missing field: {body}")
+                return format_display(values.get(body))
+
+            raise ValueError("format invalid placeholder")
+
+        pieces: list[str] = []
+        i = 0
+        while i < len(template):
+            ch = template[i]
+            if ch == "{":
+                if i + 1 < len(template) and template[i + 1] == "{":
+                    pieces.append("{")
+                    i += 2
+                    continue
+                close = template.find("}", i + 1)
+                if close < 0:
+                    raise ValueError("format invalid placeholder")
+                pieces.append(_format_placeholder(template[i + 1 : close]))
+                i = close + 1
+                continue
+            if ch == "}":
+                if i + 1 < len(template) and template[i + 1] == "}":
+                    pieces.append("}")
+                    i += 2
+                    continue
+                raise ValueError("format invalid placeholder")
+            pieces.append(ch)
+            i += 1
+
+        return "".join(pieces)
+
     def trim_fn(value: Any) -> str:
         return _ensure_string(value, "trim").strip()
 
@@ -2775,6 +2842,7 @@ def make_global_env(
     env.set("_split", split_fn)
     env.set("_split_whitespace", split_whitespace_fn)
     env.set("_join", join_fn)
+    env.set("_format", format_fn)
     env.set("_trim", trim_fn)
     env.set("_trim_start", trim_start_fn)
     env.set("_trim_end", trim_end_fn)
@@ -2944,6 +3012,7 @@ def make_global_env(
     env.register_autoload("split", 2, "std/prelude/string.genia")
     env.register_autoload("split_whitespace", 1, "std/prelude/string.genia")
     env.register_autoload("join", 2, "std/prelude/string.genia")
+    env.register_autoload("format", 2, "std/prelude/string.genia")
     env.register_autoload("trim", 1, "std/prelude/string.genia")
     env.register_autoload("trim_start", 1, "std/prelude/string.genia")
     env.register_autoload("trim_end", 1, "std/prelude/string.genia")

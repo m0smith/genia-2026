@@ -5,6 +5,6 @@ input:
     format("Value: {val}", {val: some(100)})
 expected:
   stdout: |
-    Value: some(100)
+    "Value: some(100)"
   stderr: ""
   exit_code: 0

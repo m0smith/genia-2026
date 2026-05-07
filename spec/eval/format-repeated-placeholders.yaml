@@ -5,6 +5,6 @@ input:
     format("{0} and {0} again", ["same"])
 expected:
   stdout: |
-    same and same again
+    "same and same again"
   stderr: ""
   exit_code: 0

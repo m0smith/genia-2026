@@ -4,6 +4,6 @@ input:
   source: |
     format("", {})
 expected:
-  stdout: "\n"
+  stdout: "\"\"\n"
   stderr: ""
   exit_code: 0

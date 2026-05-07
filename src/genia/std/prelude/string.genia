@@ -28,6 +28,9 @@ split_whitespace(value) = _split_whitespace(value)
 @doc "Join a list of strings with a separator."
 join(sep, xs) = _join(sep, xs)
 
+@doc "Format a string template with named or positional placeholders."
+format(template, values) = _format(template, values)
+
 @doc "Trim leading and trailing whitespace."
 trim(value) = _trim(value)
 

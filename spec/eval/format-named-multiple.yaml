@@ -5,6 +5,6 @@ input:
     format("{greeting} {name}, you are {age} years old", {greeting: "Hello", name: "Bob", age: 30})
 expected:
   stdout: |
-    Hello Bob, you are 30 years old
+    "Hello Bob, you are 30 years old"
   stderr: ""
   exit_code: 0

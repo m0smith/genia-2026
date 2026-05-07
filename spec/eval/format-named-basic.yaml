@@ -5,6 +5,6 @@ input:
     format("Hello {name}!", {name: "Alice"})
 expected:
   stdout: |
-    Hello Alice!
+    "Hello Alice!"
   stderr: ""
   exit_code: 0

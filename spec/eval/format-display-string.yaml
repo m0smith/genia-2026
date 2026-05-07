@@ -5,6 +5,6 @@ input:
     format("Result: {text}", {text: "hello"})
 expected:
   stdout: |
-    Result: hello
+    "Result: hello"
   stderr: ""
   exit_code: 0
