@@ -1,0 +1,9 @@
+name: format-empty-template
+category: eval
+input:
+  source: |
+    format("", {})
+expected:
+  stdout: "\"\"\n"
+  stderr: ""
+  exit_code: 0

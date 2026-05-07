@@ -1,0 +1,10 @@
+name: error-format-named-non-map
+category: error
+input:
+  source: |
+    format("Hello {name}", ["list"])
+expected:
+  stdout: ""
+  stderr: |
+    Error: format expected a map for named placeholder: name
+  exit_code: 1

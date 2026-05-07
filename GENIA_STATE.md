@@ -944,9 +944,18 @@ Representation System entry points (#185, implemented):
 - They are entry points into that system, not independent formatting utilities.
 - `display(value)` returns a string containing the user-facing display representation of `value`.
 - `debug_repr(value)` returns a string containing the debug representation of `value`.
-- Neither function writes to `stdout` or `stderr`.
-- Neither function mutates runtime state.
-- Neither function changes `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
+- `format(template, values)` is a public prelude-backed helper for building strings from a small placeholder template.
+- `format(template, values)` returns a string and does not write output.
+- `format` supports only:
+  - named placeholders such as `{name}`, looked up in a map by string key
+  - positional placeholders such as `{0}`, looked up in a list by zero-based index
+  - escaped braces `{{` and `}}`
+- Placeholder replacements use the same user-facing display representation as `display(value)`.
+- Missing fields and invalid placeholders raise deterministic errors.
+- `format` does not support field paths, interpolation string syntax, width/alignment/precision specifiers, localization, tagged formats, or debug rendering.
+- These helpers do not write to `stdout` or `stderr`.
+- These helpers do not mutate runtime state.
+- These helpers do not change `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
 - `print(value)`, `log(value)`, `write(sink, value)`, and `writeln(sink, value)` remain output operations; `display(value)` and `debug_repr(value)` return ordinary strings.
 - For ordinary runtime data, the minimal implemented representation behavior is:
   - strings: `display("x")` returns `x`; `debug_repr("x")` returns `"x"` with debug escaping

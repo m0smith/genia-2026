@@ -1,0 +1,10 @@
+name: error-format-unmatched-left-brace
+category: error
+input:
+  source: |
+    format("Value: {", {})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format invalid placeholder
+  exit_code: 1

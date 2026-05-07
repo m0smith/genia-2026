@@ -1,0 +1,10 @@
+name: format-display-string
+category: eval
+input:
+  source: |
+    format("Result: {text}", {text: "hello"})
+expected:
+  stdout: |
+    "Result: hello"
+  stderr: ""
+  exit_code: 0

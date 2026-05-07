@@ -1,0 +1,10 @@
+name: format-escaped-braces-left
+category: eval
+input:
+  source: |
+    format("Set {{x}}", {})
+expected:
+  stdout: |
+    "Set {x}"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,10 @@
+name: format-display-number
+category: eval
+input:
+  source: |
+    format("Answer: {answer}", {answer: 42})
+expected:
+  stdout: |
+    "Answer: 42"
+  stderr: ""
+  exit_code: 0

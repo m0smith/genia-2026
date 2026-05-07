@@ -1,0 +1,10 @@
+name: format-positional-leading-zeros
+category: eval
+input:
+  source: |
+    format("{00} {001}", ["X", "Y"])
+expected:
+  stdout: |
+    "X Y"
+  stderr: ""
+  exit_code: 0

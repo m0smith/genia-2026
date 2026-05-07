@@ -1,0 +1,10 @@
+name: format-positional-multiple
+category: eval
+input:
+  source: |
+    format("First: {0}, Second: {1}, Third: {2}", ["A", "B", "C"])
+expected:
+  stdout: |
+    "First: A, Second: B, Third: C"
+  stderr: ""
+  exit_code: 0

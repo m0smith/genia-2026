@@ -1,0 +1,10 @@
+name: format-escaped-braces-right
+category: eval
+input:
+  source: |
+    format("End }}", {})
+expected:
+  stdout: |
+    "End }"
+  stderr: ""
+  exit_code: 0

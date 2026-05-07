@@ -67,8 +67,15 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | --- | --- |
 | display string | `display(value)` |
 | debug string | `debug_repr(value)` |
+| template string | `format(template, values)` |
 
-`display` and `debug_repr` return strings. They do not write output. They are the first public Representation System entry points; broader representation behavior belongs to #166.
+`display`, `debug_repr`, and `format` return strings. They do not write output. `format` supports only named placeholders (`{name}`), positional placeholders (`{0}`), and escaped braces (`{{`, `}}`); replacements use display rendering.
+
+<!-- [case: core-format-named] -->
+```genia
+format("Hello {name}", {name: "Genia"})
+```
+Classification: **Valid** (directly tested)
 
 ## List And Sequence Helpers
 
@@ -90,6 +97,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | --- | --- |
 | checks | `is_empty(s)`, `contains(s, needle)`, `starts_with(s, prefix)`, `ends_with(s, suffix)` |
 | transforms | `concat(a, b)`, `lower(s)`, `upper(s)`, `trim(s)`, `trim_start(s)`, `trim_end(s)` |
+| formatting | `format(template, values)` |
 | split / join | `split(s, sep)`, `split_whitespace(s)`, `join(sep, xs)` |
 | option-returning | `find(s, needle)`, `parse_int(text)`, `parse_int(text, base)` |
 
@@ -283,7 +291,7 @@ first_or_none(xs) =
 | Helper | Shape |
 | --- | --- |
 | sink output | `write(sink, value)`, `writeln(sink, value)`, `flush(sink)` |
-| representation strings | `display(value)`, `debug_repr(value)` |
+| representation strings | `display(value)`, `debug_repr(value)`, `format(template, values)` |
 | terminal control | `clear_screen()`, `move_cursor(x, y)` |
 | grid rendering | `render_grid(grid)` |
 
