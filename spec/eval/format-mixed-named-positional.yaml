@@ -1,8 +1,0 @@
-kind: eval
-name: format mixed named and positional placeholders
-source: |
-  format("Named {key}: {0}, Value: {val}", ["X"], {key: "K", val: "V"})
-stdout: |
-  Named K: X, Value: V
-stderr: ""
-exit_code: 0

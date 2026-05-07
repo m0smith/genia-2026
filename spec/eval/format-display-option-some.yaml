@@ -1,8 +1,10 @@
-kind: eval
-name: format display option some
-source: |
-  format("Value: {val}", {val: some(100)})
-stdout: |
-  Value: some(100)
-stderr: ""
-exit_code: 0
+name: format-display-option-some
+category: eval
+input:
+  source: |
+    format("Value: {val}", {val: some(100)})
+expected:
+  stdout: |
+    Value: some(100)
+  stderr: ""
+  exit_code: 0

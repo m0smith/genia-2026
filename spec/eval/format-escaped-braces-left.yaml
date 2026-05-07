@@ -1,8 +1,10 @@
-kind: eval
-name: format escaped left brace
-source: |
-  format("Set {{x}}", {})
-stdout: |
-  Set {x}
-stderr: ""
-exit_code: 0
+name: format-escaped-braces-left
+category: eval
+input:
+  source: |
+    format("Set {{x}}", {})
+expected:
+  stdout: |
+    Set {x}
+  stderr: ""
+  exit_code: 0

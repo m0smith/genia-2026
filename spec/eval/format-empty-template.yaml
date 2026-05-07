@@ -1,8 +1,9 @@
-kind: eval
-name: format empty template
-source: |
-  format("", {})
-stdout: |
-  
-stderr: ""
-exit_code: 0
+name: format-empty-template
+category: eval
+input:
+  source: |
+    format("", {})
+expected:
+  stdout: "\n"
+  stderr: ""
+  exit_code: 0

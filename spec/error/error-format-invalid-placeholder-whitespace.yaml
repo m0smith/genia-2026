@@ -1,8 +1,10 @@
-kind: error
-name: error format invalid placeholder whitespace
-source: |
-  format("Value: { name }", {name: "test"})
-stdout: ""
-stderr: |
-  Error: format invalid placeholder
-exit_code: 1
+name: error-format-invalid-placeholder-whitespace
+category: error
+input:
+  source: |
+    format("Value: { name }", {name: "test"})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format invalid placeholder
+  exit_code: 1

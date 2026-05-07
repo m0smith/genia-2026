@@ -1,8 +1,10 @@
-kind: error
-name: error format non-string template
-source: |
-  format(42, {})
-stdout: ""
-stderr: |
-  Error: format expected a string template
-exit_code: 1
+name: error-format-non-string-template
+category: error
+input:
+  source: |
+    format(42, {})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format expected a string template
+  exit_code: 1

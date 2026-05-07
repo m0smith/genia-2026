@@ -1,8 +1,10 @@
-kind: error
-name: error format missing positional field
-source: |
-  format("First {0} Second {1}", ["A"])
-stdout: ""
-stderr: |
-  Error: format missing field: 1
-exit_code: 1
+name: error-format-missing-positional-field
+category: error
+input:
+  source: |
+    format("First {0} Second {1}", ["A"])
+expected:
+  stdout: ""
+  stderr: |
+    Error: format missing field: 1
+  exit_code: 1

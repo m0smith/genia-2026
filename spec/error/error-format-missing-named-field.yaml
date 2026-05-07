@@ -1,8 +1,10 @@
-kind: error
-name: error format missing named field
-source: |
-  format("Hello {name}!", {greeting: "Hi"})
-stdout: ""
-stderr: |
-  Error: format missing field: name
-exit_code: 1
+name: error-format-missing-named-field
+category: error
+input:
+  source: |
+    format("Hello {name}!", {greeting: "Hi"})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format missing field: name
+  exit_code: 1

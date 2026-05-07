@@ -1,8 +1,10 @@
-kind: eval
-name: format named placeholder basic
-source: |
-  format("Hello {name}!", {name: "Alice"})
-stdout: |
-  Hello Alice!
-stderr: ""
-exit_code: 0
+name: format-named-basic
+category: eval
+input:
+  source: |
+    format("Hello {name}!", {name: "Alice"})
+expected:
+  stdout: |
+    Hello Alice!
+  stderr: ""
+  exit_code: 0
