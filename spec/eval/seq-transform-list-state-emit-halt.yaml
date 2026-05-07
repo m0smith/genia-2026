@@ -1,0 +1,10 @@
+name: seq-transform-list-state-emit-halt
+category: eval
+input:
+  source: |
+    step(state, x) = (state, x) -> { state: state + x, emit: [state + x], halt: x == 3 }
+    _seq_transform(0, step, [1, 2, 3, 4])
+expected:
+  stdout: "[1, 3, 6]\n"
+  stderr: ""
+  exit_code: 0
