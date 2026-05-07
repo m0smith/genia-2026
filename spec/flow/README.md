@@ -4,6 +4,10 @@ This directory contains executable shared spec files for the active `flow` categ
 
 Flow shared coverage is intentionally partial and limited to first-wave observable contract cases in this phase.
 
+Flow shared specs cover the Flow side of the Seq contract only.
+They do not define a public Seq runtime value, Seq syntax, or host iterator semantics.
+List-side Seq behavior is covered through eval/list specs where applicable.
+
 Flow cases in this directory must:
 
 - include explicit terminal consumption through `collect` or `run`

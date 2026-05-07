@@ -848,6 +848,19 @@ When changing syntax/semantics/runtime behavior, update together:
 - `stdin |> lines` must remain lazy; binding the source must not force a full stdin read up front
 - reaching EOF or a `take`/`head` limit is normal completion (not an error)
 
+## 19.1) Seq compatibility invariants
+
+- Seq is a semantic compatibility category for ordered value production, not a runtime value, type constructor, syntax form, helper, or Core IR node.
+- In this phase, only lists and Flow are Seq-compatible public values.
+- Lists are eager and reusable.
+- Flow is lazy, pull-based, source-bound, and single-use.
+- Iterators and generators are host implementation details, not portable Genia values.
+- Seq compatibility does not change pipeline call shape.
+- Seq compatibility does not change Option-aware pipeline behavior.
+- No implicit list-to-Flow conversion is introduced.
+- No implicit Flow-to-list conversion is introduced.
+- Matching a Flow as a list requires explicit materialization first.
+
 ## `rules(..fns)`
 
 `rules(..fns)` is a Flow-stage function that applies rule functions to each incoming flow item.

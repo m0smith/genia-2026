@@ -837,6 +837,11 @@ get("name", person)
 - Flow is still explicit:
   - Flow values move through pipelines only when explicit bridge/stage functions such as `lines`, `collect`, and `run` are used
   - there is no implicit Value↔Flow conversion
+- Seq is the semantic abstraction for ordered value production.
+  - List is the eager reusable Seq-compatible value.
+  - Flow is the lazy single-use Seq-compatible value.
+  - Iterator is a host implementation detail.
+  - Seq is not a public runtime type, syntax form, helper, or Core IR node.
 
 ### Flow runtime (Phase 1)
 

@@ -228,6 +228,10 @@ CLI contract summary (actual behavior):
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
   - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
+  - Seq is the semantic abstraction for ordered value production.
+    - List is the eager reusable Seq-compatible value.
+    - Flow is the lazy single-use Seq-compatible value.
+    - Iterator is a host implementation detail.
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
   - transforms: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `map`, `filter`, `take`, `rules`

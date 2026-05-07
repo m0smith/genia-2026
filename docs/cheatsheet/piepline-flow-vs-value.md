@@ -4,6 +4,11 @@ The one rule that makes Genia pipelines predictable:
 
 > **Raw values stay values.  Flows stay flows.  Only explicit bridges cross the boundary.**
 
+Seq is the semantic abstraction for ordered value production.
+List is the eager reusable Seq-compatible value.
+Flow is the lazy single-use Seq-compatible value.
+Iterator is a host implementation detail.
+
 Option behavior (`some` / `none`) composes with this rule but does not erase it:
 pipelines auto-lift ordinary stages over `some(x)` and short-circuit on `none(...)`,
 regardless of whether the pipeline carries values or flows.
