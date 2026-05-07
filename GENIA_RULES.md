@@ -861,6 +861,16 @@ When changing syntax/semantics/runtime behavior, update together:
 - No implicit list-to-Flow conversion is introduced.
 - No implicit Flow-to-list conversion is introduced.
 - Matching a Flow as a list requires explicit materialization first.
+- `_seq_transform(initial_state, step, source)` is a kernel primitive over Seq-compatible public sources:
+  - `source` must be a list or Flow
+  - list sources return lists; Flow sources return Flows
+  - `step` is called as `step(state, item)`
+  - `step` must return a map with optional `state`, `emit`, and `halt`
+  - omitted `state` keeps the current state; omitted `emit` defaults to `[]`; omitted `halt` defaults to `false`
+  - `emit` must be a list and emits zero, one, or many values in order
+  - `halt: true` emits the current result and stops the whole transform without pulling later source items
+  - invalid result shape, invalid `emit`, and invalid `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
+- `_seq_transform` must not introduce syntax, a Core IR node, a public Seq value/type/helper, implicit list-to-Flow conversion, or implicit Flow-to-list conversion.
 
 ## `rules(..fns)`
 

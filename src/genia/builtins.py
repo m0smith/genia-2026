@@ -1001,6 +1001,69 @@ def make_global_env(
             ),
         )
 
+    def _seq_transform_error(detail: str) -> None:
+        raise RuntimeError(f"invalid-seq-transform-result: {detail}")
+
+    def _seq_transform_result(result: Any, current_state: Any) -> tuple[Any, list[Any], bool]:
+        if not isinstance(result, GeniaMap):
+            _seq_transform_error(
+                f"expected step(state, item) to return a map, received {_runtime_type_name(result)}"
+            )
+
+        next_state = result.get("state") if result.has("state") else current_state
+
+        emitted = result.get("emit") if result.has("emit") else []
+        if not isinstance(emitted, list):
+            _seq_transform_error(f"expected emit to be a list, received {_runtime_type_name(emitted)}")
+
+        halt = result.get("halt") if result.has("halt") else False
+        if not isinstance(halt, bool):
+            _seq_transform_error(f"expected halt to be a boolean, received {_runtime_type_name(halt)}")
+
+        return next_state, emitted, halt
+
+    def seq_transform_fn(initial_state: Any, step_value: Any, source: Any) -> Any:
+        step = _ensure_callable(step_value, "_seq_transform")
+
+        if isinstance(source, list):
+            state = initial_state
+            output: list[Any] = []
+            for item in source:
+                result = _invoke_raw_from_builtin(step, [state, item])
+                state, emitted, halt = _seq_transform_result(result, state)
+                output.extend(emitted)
+                if halt:
+                    break
+            return output
+
+        if isinstance(source, GeniaFlow):
+            upstream = source
+
+            def iterator() -> Iterable[Any]:
+                state = initial_state
+                items = upstream.consume()
+                try:
+                    for item in items:
+                        result = _invoke_raw_from_builtin(step, [state, item])
+                        state, emitted, halt = _seq_transform_result(result, state)
+                        for emitted_item in emitted:
+                            yield emitted_item
+                        if halt:
+                            return
+                finally:
+                    if upstream.close_on_early_termination:
+                        _maybe_close_iterable(items)
+
+            return GeniaFlow(
+                iterator,
+                label="_seq_transform",
+                close_on_early_termination=upstream.close_on_early_termination,
+            )
+
+        raise TypeError(
+            f"_seq_transform expected list or flow as third argument, received {_runtime_type_name(source)}"
+        )
+
     def map_flow_fn(fn_value: Any, source: Any) -> Any:
         mapper = _ensure_callable(fn_value, "map")
         if isinstance(source, GeniaFlow):
@@ -2739,6 +2802,7 @@ def make_global_env(
     env.set("_tee", tee_fn)
     env.set("_merge", merge_flow_fn)
     env.set("_zip", zip_flow_fn)
+    env.set("_seq_transform", seq_transform_fn)
     env.set("_scan", scan_fn)
     env.set("_keep_some", keep_some_fn)
     env.set("_keep_some_else", keep_some_else_fn)
