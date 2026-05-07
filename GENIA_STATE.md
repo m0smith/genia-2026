@@ -408,6 +408,15 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - lists through value-only stages stay lists (no implicit flow promotion)
   - flows through flow-only stages stay flows (must `collect` to see a list)
   - Option composes orthogonally: per-item Options use `keep_some` in flows; pipeline-level `some`/`none` propagation works the same in both worlds
+- `Seq` is a semantic compatibility category for ordered value production.
+  - Seq is not a runtime value, type constructor, syntax form, helper, or Core IR node.
+  - In this phase, the implemented Seq-compatible public values are lists and Flow.
+  - Lists are eager and reusable.
+  - Flow is lazy, pull-based, source-bound, and single-use.
+  - Iterators and generators are host implementation details, not portable Genia values.
+  - Seq compatibility does not change pipeline call shape or Option-aware pipeline behavior.
+  - Explicit bridges such as `lines`, `collect`, and `run` still define Value<->Flow crossings.
+  - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface.
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
   - `trace(label, value)` logs `label` plus `value` and returns `value` unchanged

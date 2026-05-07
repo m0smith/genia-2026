@@ -316,6 +316,10 @@ Flow semantics are shared language/runtime semantics, even if hosts implement th
 
 Current contract:
 
+- Seq is the semantic abstraction for ordered value production.
+- List is the eager reusable Seq-compatible value.
+- Flow is the lazy single-use Seq-compatible value.
+- Iterator is a host implementation detail.
 - Flow is a runtime value family
 - flows are lazy, pull-based, source-bound, and single-use
 - `|>` lowers to an explicit Core IR pipeline node with one source plus ordered stages
