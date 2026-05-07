@@ -50,6 +50,11 @@
     "expected_result": "\"Adds one to x.\""
   },
   {
+    "id": "core-format-named",
+    "source": "format(\"Hello {name}\", {name: \"Genia\"})",
+    "expected_result": "\"Hello Genia\""
+  },
+  {
     "id": "core-actor-call-reply",
     "source": "handler(state, msg, _ctx) = [\"reply\", state + msg, state + msg]\na = actor(0, handler)\nactor_call(a, 5)",
     "expected_result": "5"
