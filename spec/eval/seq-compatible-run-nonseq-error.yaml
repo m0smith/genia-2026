@@ -1,0 +1,9 @@
+name: seq-compatible-run-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> run
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at run [<command>:1]: stage received int; run expected a Seq-compatible value (list or flow), received int\n"
+  exit_code: 1

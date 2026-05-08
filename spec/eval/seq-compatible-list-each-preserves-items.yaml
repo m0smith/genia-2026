@@ -1,0 +1,9 @@
+name: seq-compatible-list-each-preserves-items
+category: eval
+input:
+  source: |
+    [1, 2, 3] |> each((x) -> x + 10) |> collect
+expected:
+  stdout: "[1, 2, 3]\n"
+  stderr: ""
+  exit_code: 0

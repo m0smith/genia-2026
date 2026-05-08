@@ -1,0 +1,12 @@
+name: seq-compatible-flow-scan-bounded-evolve
+category: flow
+input:
+  source: |
+    evolve(0, (n) -> n + 1)
+      |> scan((state, item) -> [state + item, state + item], 0)
+      |> take(4)
+      |> collect
+expected:
+  stdout: "[0, 1, 3, 6]\n"
+  stderr: ""
+  exit_code: 0
