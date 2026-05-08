@@ -1,0 +1,9 @@
+name: seq-compatible-flow-each-preserves-items
+category: flow
+input:
+  source: |
+    ["a", "b"] |> lines |> each((x) -> print(concat("seen:", x))) |> collect
+expected:
+  stdout: "seen:a\nseen:b\n[\"a\", \"b\"]\n"
+  stderr: ""
+  exit_code: 0

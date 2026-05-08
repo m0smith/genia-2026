@@ -1,0 +1,14 @@
+name: seq-compatible-flow-scan-basic
+category: flow
+input:
+  source: |
+    ["1", "2", "3"]
+      |> lines
+      |> map(parse_int)
+      |> keep_some
+      |> scan((state, item) -> [state + item, state + item], 0)
+      |> collect
+expected:
+  stdout: "[1, 3, 6]\n"
+  stderr: ""
+  exit_code: 0

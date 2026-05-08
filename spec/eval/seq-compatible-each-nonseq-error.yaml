@@ -1,0 +1,9 @@
+name: seq-compatible-each-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> each(print)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at each(print) [<command>:1]: stage received int; each expected a Seq-compatible value (list or flow), received int\n"
+  exit_code: 1
