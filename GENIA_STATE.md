@@ -423,7 +423,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
     - `collect(list)` returns the same ordered list values; `collect(Flow)` materializes emitted Flow items into a list.
     - `run(list)` traverses the list without printing and returns `nil`; `run(Flow)` consumes the Flow to completion and returns `nil`.
     - non-list/non-Flow inputs fail with a Seq-compatible diagnostic naming list or Flow as the accepted public values.
-  - The Python reference host implements `_seq_transform(initial_state, step, source)` as a kernel primitive for shared list/Flow transformation mechanics; this does not create a public Seq surface.
+  - The Python reference host implements `_seq_transform(initial_state, step, source)` as an internal kernel primitive for shared list/Flow transformation mechanics; it is not an ordinary user-callable Genia name and does not create a public Seq surface.
   - `_seq_transform` accepts list or Flow sources and returns the same source kind: list in -> list out, Flow in -> Flow out.
   - `_seq_transform` calls `step(state, item)` for each processed item; the step must return a map with optional `state`, `emit`, and `halt` fields.
   - Missing `state` keeps the current state, missing `emit` emits `[]`, and missing `halt` means `false`.
@@ -437,7 +437,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
-- public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed
+- public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
   - supported host modules are currently allowlisted: `python`, `python.json`
@@ -1034,7 +1034,7 @@ Representation System entry points (#185, implemented):
   - validation of rule/refine result maps may live in prelude when it only checks ordinary Genia value shape and preserves the current `invalid-rules-result:` diagnostic surface
   - extraction to prelude is a no-behavior-change relocation only; it must not introduce new Flow semantics, new implicit Flow/Value conversion, or new host responsibilities
   - host execution responsibilities remain in the Python Flow kernel and host adapters
-- `_seq_transform(initial_state, step, source)` is the current Python reference-host kernel primitive for shared ordered-source transformation over list and Flow sources:
+- `_seq_transform(initial_state, step, source)` is the current Python reference-host internal kernel primitive for shared ordered-source transformation over list and Flow sources:
   - `source` must be a list or Flow; other values raise `TypeError("_seq_transform expected list or flow as third argument, received <type>")`
   - list sources are traversed eagerly and return a list
   - Flow sources return a lazy, pull-based, single-use Flow and do not consume upstream until downstream pulls
@@ -1043,6 +1043,7 @@ Representation System entry points (#185, implemented):
   - `emit` must be a list; its values are emitted in list order
   - `halt: true` stops the whole transform after emitting the current result and does not pull later source items
   - invalid step result shape, non-list `emit`, and non-boolean `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
+  - `_seq_transform` is available only to trusted prelude/runtime code and Python reference-host tests; ordinary Genia user code must use public helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, and `evolve`
   - `_seq_transform` introduces no syntax, no Core IR node, no public Seq value/type/helper, and no implicit list/Flow conversion
 - flow transforms:
   - `lines(flow_or_source)`

@@ -864,7 +864,7 @@ When changing syntax/semantics/runtime behavior, update together:
 - `each(fn, source)` accepts list or Flow and preserves source kind.
 - `collect(source)` accepts list or Flow and returns a list.
 - `run(source)` accepts list or Flow and returns `nil` without printing by itself.
-- `_seq_transform(initial_state, step, source)` is a kernel primitive over Seq-compatible public sources:
+- `_seq_transform(initial_state, step, source)` is a Python reference-host internal kernel primitive over Seq-compatible public sources:
   - `source` must be a list or Flow
   - list sources return lists; Flow sources return Flows
   - `step` is called as `step(state, item)`
@@ -874,6 +874,7 @@ When changing syntax/semantics/runtime behavior, update together:
   - `halt: true` emits the current result and stops the whole transform without pulling later source items
   - invalid result shape, invalid `emit`, and invalid `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
 - `_seq_transform` must not introduce syntax, a Core IR node, a public Seq value/type/helper, implicit list-to-Flow conversion, or implicit Flow-to-list conversion.
+- `_seq_transform` and related underscore sequence kernels must not be ordinary user-callable Genia names; public code uses prelude helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, and `evolve`.
 
 ## `rules(..fns)`
 

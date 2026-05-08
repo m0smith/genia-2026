@@ -326,6 +326,7 @@ Current contract:
 - `|>` lowers to an explicit Core IR pipeline node with one source plus ordered stages
 - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination without over-pulling
+- Python reference-host underscore sequence kernels are internal substrate, not public Genia helper names
 - the public Flow helper surface is prelude-backed:
   - `lines`
   - `rules`
