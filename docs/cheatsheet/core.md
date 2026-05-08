@@ -127,10 +127,11 @@ Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fi
 | option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |
 | rule stage | `rules(..fns)` |
-| effects / sinks | `each(fn, source)`, `collect(source)`, `run(source)` for list or Flow |
+| effect stage / sinks | `each(fn, source)`, `collect(source)`, `run(source)` for list or Flow |
 
 Flow values are lazy and single-use.
 `head` / `take` stop upstream pulling promptly.
+`each(fn, source)` returns a lazy Flow stage; effects run when the stage is consumed.
 `collect(flow)` and `run(flow)` are explicit Flow boundary consumers; list inputs remain reusable values.
 `map` and `filter` are polymorphic: they work on both lists and flows.
 

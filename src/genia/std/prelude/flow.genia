@@ -305,7 +305,7 @@ rules_list?(value) =
   (none) -> false |
   (v) -> list?(v)
 
-@doc "Run `fn` for each list or Flow item and pass the original items through."
+@doc "Return a lazy Flow stage that runs `fn` for each list or Flow item and passes original items through when consumed."
 each(fn, source) = _each(fn, source)
 
 @doc "Return list data from a list or by materializing a Flow."

@@ -103,7 +103,7 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | --- | --- | --- |
 | `lines` | Value → Flow | Accepts stdin, list-of-strings, or existing flow |
 | `evolve` | Value → Flow | Emits `init`, then `f(previous_value)` on later pulls |
-| `each` | list or Flow → same kind | Runs side effects; passes original items through |
+| `each` | list or Flow → Flow | Returns a lazy effect stage; passes original items through when consumed |
 | `collect` | list or Flow → list | Returns list data or materializes lazy flow into a list |
 | `run` | list or Flow → nil | Traverses/consumes; returns `nil` |
 
@@ -245,7 +245,7 @@ Classification: **Valid** (directly tested)
 ## Gotchas
 
 - `nth` is `nth(index, xs)` in normal calls; `xs |> nth(index)` in pipeline style.
-- `each(fn)` over a list runs eagerly; `each(fn)` over a Flow does not execute until the Flow is consumed with `run` or `collect`.
+- `each(fn)` over a list or Flow does not execute effects until the returned Flow is consumed with `run` or `collect`.
 - Flows are single-use; reusing a consumed flow raises a runtime error.
 - `keep_some` is flow-oriented, not a list helper.
 - Pipe mode runs the stage expression over `stdin |> lines` and consumes the final Flow automatically; do not include explicit `stdin` or `run`.
