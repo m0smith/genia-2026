@@ -1,0 +1,9 @@
+name: each-on-list-seq-compatible
+category: eval
+input:
+  source: |
+    each(print, [1, 2, 3])
+expected:
+  stdout: "1\n2\n3\n[1, 2, 3]\n"
+  stderr: ""
+  exit_code: 0

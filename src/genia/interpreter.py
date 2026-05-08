@@ -316,7 +316,7 @@ def _validate_pipe_mode_expr(source: str) -> None:
 
 def _wrap_pipe_mode_expr(source: str) -> str:
     _validate_pipe_mode_expr(source)
-    return f"stdin |> lines |> {source} |> run"
+    return f"stdin |> lines |> {source} |> _pipe_run"
 
 
 def _emit_result(env: Env, value: Any) -> None:

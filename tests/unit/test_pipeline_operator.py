@@ -214,6 +214,6 @@ def test_pipeline_lifts_some_before_non_option_stage(run):
 def test_pipeline_explicit_bridge_error_reports_mode_and_stage(run):
     with pytest.raises(
         TypeError,
-        match=r"pipeline stage 1 failed in Explicit bridge mode at collect .*stage received int; collect expected a flow, received int",
+        match=r"pipeline stage 1 failed in Value mode at collect .*stage received int; collect expected a Seq-compatible value \(list or flow\), received int",
     ):
         run("1 |> collect")

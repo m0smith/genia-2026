@@ -800,6 +800,11 @@ def make_global_env(
             raise TypeError(f"{name} expected a flow, received {_runtime_type_name(value)}")
         return value
 
+    def _seq_compatible_error(name: str, value: Any) -> None:
+        raise TypeError(
+            f"{name} expected a Seq-compatible value (list or flow), received {_runtime_type_name(value)}"
+        )
+
     def flow_predicate_fn(value: Any) -> bool:
         return isinstance(value, GeniaFlow)
 
@@ -1255,9 +1260,17 @@ def make_global_env(
 
         return GeniaFlow(iterator, label="keep_some", close_on_early_termination=upstream.close_on_early_termination)
 
-    def each_fn(fn_value: Any, source: Any) -> GeniaFlow:
+    def each_fn(fn_value: Any, source: Any) -> Any:
         effect = _ensure_callable(fn_value, "each")
-        upstream = _ensure_flow(source, "each")
+        if isinstance(source, list):
+            for item in source:
+                effect(item)
+            return list(source)
+
+        if not isinstance(source, GeniaFlow):
+            _seq_compatible_error("each", source)
+
+        upstream = source
 
         def iterator() -> Iterable[Any]:
             items = upstream.consume()
@@ -1272,7 +1285,12 @@ def make_global_env(
         return GeniaFlow(iterator, label="each", close_on_early_termination=upstream.close_on_early_termination)
 
     def collect_fn(source: Any) -> list[Any]:
-        flow = _ensure_flow(source, "collect")
+        if isinstance(source, list):
+            return list(source)
+        if not isinstance(source, GeniaFlow):
+            _seq_compatible_error("collect", source)
+
+        flow = source
         items = flow.consume()
         try:
             return list(items)
@@ -1281,7 +1299,14 @@ def make_global_env(
                 _maybe_close_iterable(items)
 
     def run_fn(source: Any) -> None:
-        flow = _ensure_flow(source, "run")
+        if isinstance(source, list):
+            for _ in source:
+                pass
+            return None
+        if not isinstance(source, GeniaFlow):
+            _seq_compatible_error("run", source)
+
+        flow = source
         items = flow.consume()
         try:
             for _ in items:
@@ -2812,6 +2837,7 @@ def make_global_env(
     env.set("_rules_error", rules_error_fn)
     env.set("_flow_debug", flow_debug_fn)
     env.set("_run", run_fn)
+    env.set("_pipe_run", lambda source: run_fn(_ensure_flow(source, "run")))
     env.set("_collect", collect_fn)
     env.set("argv", argv_fn)
     env.set("help", help_fn)

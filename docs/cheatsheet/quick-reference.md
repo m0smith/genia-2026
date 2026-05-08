@@ -105,9 +105,9 @@ Core helpers:
 - `keep_some(stage, flow)`
 - `keep_some_else(stage, dead_handler, flow)`
 - `rules(..fns)`
-- `each(fn, flow)`
-- `collect(flow)`
-- `run(flow)`
+- `each(fn, source)` for list or Flow
+- `collect(source)` for list or Flow
+- `run(source)` for list or Flow
 
 Aggregation reminder:
 
@@ -139,7 +139,7 @@ cat file.txt | genia -p 'head(5) |> each(print)'
 ```
 
 - file/`-c` mode dispatch: call `main(argv())` when `main/1` exists, else call `main()` when `main/0` exists
-- pipe mode bypasses `main` and wraps as `stdin |> lines |> <stage_expr> |> run`
+- pipe mode bypasses `main`, runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
 - in `-p`, use Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)` for per-item work
 - use `-c` or file mode for final collected values such as `sum` or `count`
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
