@@ -792,6 +792,7 @@ class Parser:
                 self.skip_newlines()
                 if self.at("ARROW"):
                     self.eat("ARROW")
+                    self.skip_newlines()
                     body = self.parse_expr()
                     return Lambda(
                         params,

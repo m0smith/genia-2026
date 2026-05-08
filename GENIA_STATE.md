@@ -551,6 +551,7 @@ Pipeline (Phase 2) evaluation model:
 - multiple definitions by arity shape are allowed
 - varargs named functions are supported (`f(a, ..rest) = ...`)
 - named functions may use either `=` or `->` for single-expression bodies, or `{ ... }` for block bodies
+- lambda single-expression bodies may start on the next line after the `->` token
 - bindings may carry metadata maps discoverable through `meta("name")`
 - doc lookup is available through `doc("name")`
 - lexical assignment uses the same `name = expr` surface syntax

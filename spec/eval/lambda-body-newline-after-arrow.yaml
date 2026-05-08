@@ -1,0 +1,11 @@
+name: lambda-body-newline-after-arrow
+category: eval
+description: Lambda bodies may start on the line after the arrow token
+input:
+  source: |
+    [1, 2] |> map((x) ->
+      x + 1)
+expected:
+  stdout: "[2, 3]\n"
+  stderr: ""
+  exit_code: 0
