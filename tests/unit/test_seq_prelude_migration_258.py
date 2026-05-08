@@ -92,7 +92,7 @@ class TestPublicSeqHelpersRemainUsable:
     def test_public_seq_terminal_helpers_still_work(self):
         src = """
         seen = ref([])
-        result = each((x) -> ref_set(seen, [..ref_get(seen), x]), [1, 2])
+        result = each((x) -> ref_set(seen, [..ref_get(seen), x]), [1, 2]) |> collect
         [result, collect([3, 4]), run([5, 6]), ref_get(seen)]
         """
         result = run(src)

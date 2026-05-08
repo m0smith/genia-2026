@@ -861,7 +861,7 @@ When changing syntax/semantics/runtime behavior, update together:
 - No implicit list-to-Flow conversion is introduced.
 - No implicit Flow-to-list conversion is introduced.
 - Matching a Flow as a list requires explicit materialization first.
-- `each(fn, source)` accepts list or Flow and preserves source kind.
+- `each(fn, source)` accepts list or Flow and returns a lazy Flow stage that applies effects only when consumed.
 - `collect(source)` accepts list or Flow and returns a list.
 - `run(source)` accepts list or Flow and returns `nil` without printing by itself.
 - `_seq_transform(initial_state, step, source)` is a Python reference-host internal kernel primitive over Seq-compatible public sources:

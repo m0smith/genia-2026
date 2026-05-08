@@ -878,7 +878,7 @@ stdin |> lines |> take(2) |> each(print) |> run
 - `take` stops upstream pulling as soon as the limit is satisfied
 - `take` / `head` and quiet broken-pipe termination stop generator-backed upstream work promptly
 - `each`, `collect`, and `run` accept Seq-compatible public values: list or Flow
-- `each(fn, list)` runs effects eagerly and returns the same ordered list values; `each(fn, flow)` remains lazy until consumed
+- `each(fn, list)` and `each(fn, flow)` return lazy tap-style Flow stages; effects run only when the returned Flow is consumed
 - `collect(list)` returns list data; `collect(flow)` materializes emitted Flow items into a reusable list
 - `run(list)` traverses without printing and returns `nil`; `run(flow)` consumes the Flow to completion and returns `nil`
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use

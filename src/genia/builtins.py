@@ -1263,9 +1263,14 @@ def make_global_env(
     def each_fn(fn_value: Any, source: Any) -> Any:
         effect = _ensure_callable(fn_value, "each")
         if isinstance(source, list):
-            for item in source:
-                effect(item)
-            return list(source)
+            items = list(source)
+
+            def iterator() -> Iterable[Any]:
+                for item in items:
+                    effect(item)
+                    yield item
+
+            return GeniaFlow(iterator, label="each")
 
         if not isinstance(source, GeniaFlow):
             _seq_compatible_error("each", source)

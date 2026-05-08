@@ -418,7 +418,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Seq compatibility does not change pipeline call shape or Option-aware pipeline behavior.
   - Explicit bridges such as `lines` and Flow-side `collect` / `run` still define Value<->Flow crossings.
   - `each`, `collect`, and `run` accept Seq-compatible public values:
-    - `each(f, list)` calls `f(item)` eagerly for each item in order, ignores callback results, and returns the same ordered list values.
+    - `each(f, list)` returns a lazy tap-style Flow stage; when consumed, it calls `f(item)` for each item in order, ignores callback results, and emits the original items unchanged.
     - `each(f, Flow)` remains a lazy tap-style Flow stage that emits original items unchanged.
     - `collect(list)` returns the same ordered list values; `collect(Flow)` materializes emitted Flow items into a list.
     - `run(list)` traverses the list without printing and returns `nil`; `run(Flow)` consumes the Flow to completion and returns `nil`.
@@ -1058,7 +1058,7 @@ Representation System entry points (#185, implemented):
   - `rules(..fns, flow)` / `flow |> rules(..fns)` as a stateful rule-driven transform
   - `head(flow)` and `head(n, flow)` via stdlib aliases over `take`
 - Seq-compatible sinks/materialization:
-  - `each(f, source)` for list or Flow (tap-style stage; preserves source kind)
+  - `each(f, source)` for list or Flow (lazy tap-style Flow stage; emits original items unchanged when consumed)
   - `collect(source)` for list or Flow (returns list)
   - `run(source)` for list or Flow (consume/traverse to completion; returns `nil`)
 - stdlib rule/refine helper constructors (autoloaded from `src/genia/std/prelude/flow.genia`):

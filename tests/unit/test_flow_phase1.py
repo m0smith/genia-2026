@@ -69,13 +69,13 @@ def test_flow_and_value_bridges_remain_explicit():
     )
 
 
-def test_seq_compatible_list_each_runs_effects_eagerly_and_preserves_items(capsys):
+def test_seq_compatible_list_each_defers_effects_until_consumed(capsys):
     env = make_global_env()
     result = run_source("[1, 2, 3] |> each(print)", env)
     captured = capsys.readouterr().out
 
-    assert result == [1, 2, 3]
-    assert captured == "1\n2\n3\n"
+    assert isinstance(result, GeniaFlow)
+    assert captured == ""
 
 
 def test_seq_compatible_list_each_run_composes_as_terminal_pipeline(capsys):
