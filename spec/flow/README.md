@@ -29,6 +29,8 @@ Current first-wave Flow shared coverage proves only:
 - error propagation via invalid-reducer-on-flow diagnostic (`flow-error-propagation-sum-on-flow`)
 - deterministic Option filtering in Flow pipelines via `keep_some(...)` (`flow-keep-some-parse-int`)
 - focused core stdlib Flow coverage: direct `map` over a Flow (`flow-map-basic`), direct `filter` over a Flow (`flow-filter-basic`), and a composed `map`/`filter` chain (`flow-map-filter-chain`)
+- focused `scan` coverage over Flow inputs (`seq-compatible-flow-scan-basic`) and bounded infinite progression (`seq-compatible-flow-scan-bounded-evolve`)
+- Seq-compatible `each` tap behavior preserving original Flow items while running effects (`seq-compatible-flow-each-preserves-items`)
 - Seq-compatible terminal composition over `evolve` with `each(print) |> run` (`seq-compatible-evolve-each-run`)
 
 This directory does not define full Flow coverage.
