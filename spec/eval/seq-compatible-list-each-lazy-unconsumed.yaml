@@ -1,0 +1,10 @@
+name: seq-compatible-list-each-lazy-unconsumed
+category: eval
+input:
+  source: |
+    staged = [1, 2] |> each(print)
+    99
+expected:
+  stdout: "99\n"
+  stderr: ""
+  exit_code: 0

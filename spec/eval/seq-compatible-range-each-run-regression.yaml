@@ -1,0 +1,14 @@
+name: seq-compatible-range-each-run-regression
+category: eval
+input:
+  source: |
+    range(10)
+      |> take(10)
+      |> map((x) -> {a:x})
+      |> map((x) -> format("number:{a}", x))
+      |> each(print)
+      |> run
+expected:
+  stdout: "number:0\nnumber:1\nnumber:2\nnumber:3\nnumber:4\nnumber:5\nnumber:6\nnumber:7\nnumber:8\nnumber:9\n"
+  stderr: ""
+  exit_code: 0

@@ -84,6 +84,14 @@ def test_discover_specs_includes_eval_cases() -> None:
         "map-items-map-item-key-pipeline",
         "map-items-map-item-value-pipeline",
         "each-on-list-seq-compatible",
+        "seq-compatible-list-collect",
+        "seq-compatible-list-run-no-output",
+        "seq-compatible-list-each-run",
+        "seq-compatible-list-each-lazy-unconsumed",
+        "seq-compatible-list-transform-chain",
+        "seq-compatible-range-transform-chain",
+        "seq-compatible-range-each-run-regression",
+        "seq-compatible-collect-nonseq-error",
         "reduce-on-flow-type-error",
         "first-on-flow-type-error",
         "pairs-basic",
@@ -146,6 +154,8 @@ def test_discover_specs_includes_flow_cases() -> None:
         "flow-map-basic",
         "flow-filter-basic",
         "flow-map-filter-chain",
+        "seq-compatible-evolve-each-run",
+        "seq-compatible-flow-transform-chain",
     }.issubset(flow_names)
 
 @pytest.mark.spec
@@ -216,6 +226,15 @@ def test_ir_spec_fixture(fname: str) -> None:
         "stdlib-filter-option-elements.yaml",
         "map-items-map-item-key-pipeline.yaml",
         "map-items-map-item-value-pipeline.yaml",
+        "each-on-list-seq-compatible.yaml",
+        "seq-compatible-list-collect.yaml",
+        "seq-compatible-list-run-no-output.yaml",
+        "seq-compatible-list-each-run.yaml",
+        "seq-compatible-list-each-lazy-unconsumed.yaml",
+        "seq-compatible-list-transform-chain.yaml",
+        "seq-compatible-range-transform-chain.yaml",
+        "seq-compatible-range-each-run-regression.yaml",
+        "seq-compatible-collect-nonseq-error.yaml",
         "pairs-basic.yaml",
         "pairs-shorter-first.yaml",
         "pairs-shorter-second.yaml",
@@ -277,6 +296,8 @@ def test_cli_spec_fixture(fname: str) -> None:
         "flow-map-filter-chain.yaml",
         "evolve-init-f-integer-progression.yaml",
         "evolve-init-f-doubles-from-seed.yaml",
+        "seq-compatible-evolve-each-run.yaml",
+        "seq-compatible-flow-transform-chain.yaml",
     ],
 )
 @pytest.mark.spec
