@@ -64,8 +64,56 @@ def test_collect_materializes_reusable_data():
 
 def test_flow_and_value_bridges_remain_explicit():
     env = make_global_env(stdin_data=["a", "b"])
-    with pytest.raises(TypeError, match="each expected a flow, received list"):
-        run_source("stdin |> lines |> collect |> each(print) |> run", env)
+    assert run_source("stdin |> lines |> collect |> each(print) |> run", env) == run_source(
+        "nil", make_global_env([])
+    )
+
+
+def test_seq_compatible_list_each_runs_effects_eagerly_and_preserves_items(capsys):
+    env = make_global_env()
+    result = run_source("[1, 2, 3] |> each(print)", env)
+    captured = capsys.readouterr().out
+
+    assert result == [1, 2, 3]
+    assert captured == "1\n2\n3\n"
+
+
+def test_seq_compatible_list_each_run_composes_as_terminal_pipeline(capsys):
+    env = make_global_env()
+    result = run_source("[1, 2, 3] |> each(print) |> run", env)
+    captured = capsys.readouterr().out
+
+    assert result == run_source("nil", make_global_env([]))
+    assert captured == "1\n2\n3\n"
+
+
+def test_seq_compatible_collect_accepts_reusable_list():
+    env = make_global_env()
+    src = """
+    xs = [1, 2, 3]
+    [xs |> collect, xs |> collect]
+    """
+
+    assert run_source(src, env) == [[1, 2, 3], [1, 2, 3]]
+
+
+def test_seq_compatible_run_accepts_empty_list_without_printing(capsys):
+    env = make_global_env()
+    result = run_source("[] |> run", env)
+    captured = capsys.readouterr().out
+
+    assert result == run_source("nil", make_global_env([]))
+    assert captured == ""
+
+
+def test_seq_compatible_collect_rejects_non_seq_values_with_contract_diagnostic():
+    env = make_global_env()
+
+    with pytest.raises(
+        TypeError,
+        match=r"collect expected a Seq-compatible value \(list or flow\), received int",
+    ):
+        run_source("42 |> collect", env)
 
 
 def test_invalid_flow_source_reports_clear_runtime_error():
