@@ -234,6 +234,7 @@ CLI contract summary (actual behavior):
     - Iterator is a host implementation detail.
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
+  - `_seq_transform(initial_state, step, source)` is an internal kernel primitive for shared list/Flow transformation mechanics; it preserves source kind and does not create a public Seq surface
   - transforms: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - sinks/materialization: `each`, `run`, `collect`

@@ -417,6 +417,12 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - The Python reference host uses an internal `GeniaSeq` helper to model ordered-source consumption lifecycle; this does not create a public Seq surface.
   - Seq compatibility does not change pipeline call shape or Option-aware pipeline behavior.
   - Explicit bridges such as `lines`, `collect`, and `run` still define Value<->Flow crossings.
+  - The Python reference host implements `_seq_transform(initial_state, step, source)` as a kernel primitive for shared list/Flow transformation mechanics; this does not create a public Seq surface.
+  - `_seq_transform` accepts list or Flow sources and returns the same source kind: list in -> list out, Flow in -> Flow out.
+  - `_seq_transform` calls `step(state, item)` for each processed item; the step must return a map with optional `state`, `emit`, and `halt` fields.
+  - Missing `state` keeps the current state, missing `emit` emits `[]`, and missing `halt` means `false`.
+  - `emit` must be a list of zero, one, or many output values; `halt: true` emits the current step's values and then stops the whole transform without pulling later source items.
+  - Invalid `_seq_transform` step results raise runtime errors prefixed with `invalid-seq-transform-result:`.
   - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface.
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
@@ -1022,6 +1028,16 @@ Representation System entry points (#185, implemented):
   - validation of rule/refine result maps may live in prelude when it only checks ordinary Genia value shape and preserves the current `invalid-rules-result:` diagnostic surface
   - extraction to prelude is a no-behavior-change relocation only; it must not introduce new Flow semantics, new implicit Flow/Value conversion, or new host responsibilities
   - host execution responsibilities remain in the Python Flow kernel and host adapters
+- `_seq_transform(initial_state, step, source)` is the current Python reference-host kernel primitive for shared ordered-source transformation over list and Flow sources:
+  - `source` must be a list or Flow; other values raise `TypeError("_seq_transform expected list or flow as third argument, received <type>")`
+  - list sources are traversed eagerly and return a list
+  - Flow sources return a lazy, pull-based, single-use Flow and do not consume upstream until downstream pulls
+  - `step(state, item)` must return a map with optional `state`, `emit`, and `halt` fields
+  - omitted `state` keeps the current state; omitted `emit` defaults to `[]`; omitted `halt` defaults to `false`
+  - `emit` must be a list; its values are emitted in list order
+  - `halt: true` stops the whole transform after emitting the current result and does not pull later source items
+  - invalid step result shape, non-list `emit`, and non-boolean `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
+  - `_seq_transform` introduces no syntax, no Core IR node, no public Seq value/type/helper, and no implicit list/Flow conversion
 - flow transforms:
   - `lines(flow_or_source)`
   - `evolve(init, f)` (experimental unbounded progression flow; emits `init` first, then repeatedly emits `f(previous_value)`)
