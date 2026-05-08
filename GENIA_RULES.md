@@ -839,7 +839,7 @@ When changing syntax/semantics/runtime behavior, update together:
 - phase-1 flow builtins:
   - sources/transforms: `lines`, `evolve(init, f)`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
-  - sinks/materialization: `each`, `run`, `collect`
+  - Seq-compatible sinks/materialization: `each`, `run`, `collect` accept list or Flow
 - flows are single-use:
   - first consumption succeeds
   - second consumption must raise `RuntimeError("Flow has already been consumed")`
@@ -861,6 +861,9 @@ When changing syntax/semantics/runtime behavior, update together:
 - No implicit list-to-Flow conversion is introduced.
 - No implicit Flow-to-list conversion is introduced.
 - Matching a Flow as a list requires explicit materialization first.
+- `each(fn, source)` accepts list or Flow and preserves source kind.
+- `collect(source)` accepts list or Flow and returns a list.
+- `run(source)` accepts list or Flow and returns `nil` without printing by itself.
 - `_seq_transform(initial_state, step, source)` is a kernel primitive over Seq-compatible public sources:
   - `source` must be a list or Flow
   - list sources return lists; Flow sources return Flows
@@ -1014,7 +1017,7 @@ For each incoming flow item `x`:
 ## 21) Pipe command mode invariants (runtime-only)
 
 - `-p` / `--pipe` are CLI-only runtime flags, not parser syntax
-- pipe mode wraps the provided source exactly as `stdin |> lines |> <stage_expr> |> run`
+- pipe mode runs the provided source over `stdin |> lines`, then consumes the final Flow automatically
 - the provided source must be a single stage expression
 - explicit `stdin` and explicit `run` in pipe mode are rejected with a clear error
 - pipe mode diagnostics should stay Genia-facing rather than exposing internal IR/runtime node names

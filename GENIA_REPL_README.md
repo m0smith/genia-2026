@@ -60,7 +60,7 @@ CLI contract summary (actual behavior):
 
 - file mode: `genia path/to/file.genia [args ...]`
 - command mode: `genia -c 'source' [args ...]`
-- pipe mode: `genia -p 'stage_expr' [args ...]` wraps as `stdin |> lines |> <stage_expr> |> run`
+- pipe mode: `genia -p 'stage_expr' [args ...]` runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
 - REPL mode: `genia`
 - file/command dispatch: call `main(argv())` when `main/1` exists, otherwise call `main()` when `main/0` exists
 - pipe mode bypasses `main`
@@ -227,7 +227,7 @@ CLI contract summary (actual behavior):
   - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`
 - flow runtime (phase 1):
   - `stdin |> lines` creates a lazy single-use flow
-  - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines`, `collect`, and `run`
+  - Flow is a runtime value family; Flow/value crossing still depends on explicit bridge/stage helpers such as `lines` and Flow-side `collect` / `run`
   - Seq is the semantic abstraction for ordered value production.
     - List is the eager reusable Seq-compatible value.
     - Flow is the lazy single-use Seq-compatible value.
@@ -237,7 +237,7 @@ CLI contract summary (actual behavior):
   - `_seq_transform(initial_state, step, source)` is an internal kernel primitive for shared list/Flow transformation mechanics; it preserves source kind and does not create a public Seq surface
   - transforms: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
-  - sinks/materialization: `each`, `run`, `collect`
+  - Seq-compatible sinks/materialization: `each`, `run`, `collect` accept list or Flow
   - the host Flow kernel remains intentionally small:
     - lazy pull-based single-use flow mechanics
     - source/runtime integration
@@ -322,7 +322,7 @@ CLI contract summary (actual behavior):
   - `restart_cell(cell, new_state)` clears failure and discards queued pre-restart updates
   - nested `cell_send` calls made during an update are committed only if that update succeeds
 - CLI pipe mode:
-  - `-p` / `--pipe` wrap the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
+  - `-p` / `--pipe` run the provided stage expression over `stdin |> lines`, then consume the final Flow automatically
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit `stdin` and explicit `run` are rejected with a clear error
   - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error

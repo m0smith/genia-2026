@@ -38,7 +38,7 @@ Three bridge shapes exist and nothing else crosses the boundary:
 | --- | --- | --- |
 | Value → Flow | `lines(source)`, `evolve(init, f)` | Create a lazy single-use flow |
 | Flow → Value | `collect(flow)` | Materialize flow into a list |
-| Flow → Effect | `run(flow)` | Consume flow for side effects only |
+| Flow → Effect | `run(flow)` | Consume flow to completion; `run(list)` also traverses and returns `nil` |
 
 ---
 
@@ -93,7 +93,6 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | `keep_some_else` | `keep_some_else(stage, handler, flow)` | Routes `some(v)` forward; `none(...)` to handler |
 | `scan` | `scan(step, init, flow)` | Stateful `step(state, item) -> [next_state, output]` |
 | `rules` | `refine(..steps)` (preferred), `rules(..fns)` (compatibility) | Stateful flow orchestration |
-| `each` | `each(fn, flow)` | Side effects; passes items through |
 | `tee` | `tee(flow)` | Returns `[left_flow, right_flow]` |
 | `merge` | `merge(f1, f2)` / `merge(pair)` | Concatenates two flows |
 | `zip` | `zip(f1, f2)` / `zip(pair)` | Emits `[left, right]` items |
@@ -104,8 +103,9 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | --- | --- | --- |
 | `lines` | Value → Flow | Accepts stdin, list-of-strings, or existing flow |
 | `evolve` | Value → Flow | Emits `init`, then `f(previous_value)` on later pulls |
-| `collect` | Flow → Value | Materializes lazy flow into a list |
-| `run` | Flow → Effect | Consumes flow; returns `nil` |
+| `each` | list or Flow → same kind | Runs side effects; passes original items through |
+| `collect` | list or Flow → list | Returns list data or materializes lazy flow into a list |
+| `run` | list or Flow → nil | Traverses/consumes; returns `nil` |
 
 ### Debug helpers (mode-transparent)
 
@@ -165,9 +165,9 @@ Recovery pattern: wrap the pipeline, not a single stage.
 
 | Goal | Value | Flow | [case] |
 | --- | --- | --- | --- |
-| Side effect per item | 🟢 `map(fn, xs)` | 🔴 `flow \|> each(fn) \|> run` | [case: pfv-sink-each-run] |
-| Print items | 🟢 `xs \|> map(print)` | 🔴 `flow \|> each(print) \|> run` | [case: pfv-sink-print] |
-| Materialize | already value | 🟣 `flow \|> collect` | [case: pfv-bridge-collect] |
+| Side effect per item | 🟢 `xs \|> each(fn) \|> run` | 🔴 `flow \|> each(fn) \|> run` | [case: pfv-sink-each-run] |
+| Print items | 🟢 `xs \|> each(print) \|> run` | 🔴 `flow \|> each(print) \|> run` | [case: pfv-sink-print] |
+| Materialize | `xs \|> collect` returns list data | 🟣 `flow \|> collect` | [case: pfv-bridge-collect] |
 
 ## Bridges
 
@@ -190,11 +190,11 @@ Recovery pattern: wrap the pipeline, not a single stage.
 
 | Goal | Mode | Why |
 | --- | --- | --- |
-| Stream stdin through flow stages | `-p 'stage_expr'` | `-p` injects `stdin \|> lines` and final `run` |
+| Stream stdin through flow stages | `-p 'stage_expr'` | `-p` injects `stdin \|> lines` and consumes the final Flow |
 | Produce a final collected value | `-c 'source'` or file mode | You control full program shape and materialization |
 | File program with `main(argv())` | file mode | Supports trailing args and runtime dispatch |
 
-Pipe mode wraps as `stdin |> lines |> <stage_expr> |> run`.
+Pipe mode runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically.
 Do not include explicit `stdin` or `run` in `-p`.
 For reducers like `sum` or `count`, use `-c`.
 
@@ -235,8 +235,8 @@ Classification: **Valid** (directly tested)
 ## Rules of thumb
 
 1. **Start from the input.** Stdin or IO? Use `lines` to enter Flow world. Already a list? Stay in Value world.
-2. **Stay in one world.** Chain flow stages or chain value stages. Don't mix without an explicit bridge.
-3. **Cross explicitly.** `collect` is the only Flow → Value bridge. `lines` is the primary Value → Flow bridge.
+2. **Stay in one world.** Chain flow stages or chain value stages. Use Seq-compatible sinks when you only need ordered traversal/materialization.
+3. **Cross explicitly.** `collect(flow)` is the Flow → Value bridge. `lines` is the primary Value → Flow bridge.
 4. **Option composes orthogonally.** Pipeline `some`/`none` lifting works the same in both worlds.
 5. **Use `keep_some` for stream-level Option filtering.** It is flow-oriented. For single Options, use `map_some`, `flat_map_some`, or `unwrap_or`.
 6. **Reducers need values.** `sum`, `count`, `reduce` expect lists, not flows. Use `collect` first.
@@ -245,8 +245,8 @@ Classification: **Valid** (directly tested)
 ## Gotchas
 
 - `nth` is `nth(index, xs)` in normal calls; `xs |> nth(index)` in pipeline style.
-- `each(fn)` does not execute until the flow is consumed with `run` or `collect`.
+- `each(fn)` over a list runs eagerly; `each(fn)` over a Flow does not execute until the Flow is consumed with `run` or `collect`.
 - Flows are single-use; reusing a consumed flow raises a runtime error.
 - `keep_some` is flow-oriented, not a list helper.
-- Pipe mode already wraps as `stdin |> lines |> <stage_expr> |> run`; do not include explicit `stdin` or `run`.
+- Pipe mode runs the stage expression over `stdin |> lines` and consumes the final Flow automatically; do not include explicit `stdin` or `run`.
 - `map` and `filter` are polymorphic: they work on both lists and flows, staying in whichever world they receive.

@@ -11,7 +11,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | Mode | Command | Notes |
 | --- | --- | --- |
 | command mode | `genia -c 'source'` | run full source expression/program |
-| pipe mode | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <stage_expr> |> run` |
+| pipe mode | `genia -p 'stage_expr'` | runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically |
 | file mode | `genia path/to/file.genia` | run file source |
 | REPL mode | `genia` | interactive loop |
 

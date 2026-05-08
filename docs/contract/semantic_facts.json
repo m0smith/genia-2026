@@ -4,7 +4,7 @@
   "pipeline_wrap_back": "lifted non-Option results are wrapped back into `some(...)`.",
   "pipeline_option_results_preserved": "Option results are preserved as-is.",
   "direct_call_option_behavior": "In direct calls, `some(x)` is still a normal value and is passed explicitly.",
-  "pipe_wrapper": "stdin |> lines |> <stage_expr> |> run",
+  "pipe_wrapper": "runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically",
   "main_dispatch": "call `main(argv())` when `main/1` exists, otherwise call `main()` when `main/0` exists",
   "pipe_bypasses_main": "pipe mode bypasses `main`",
   "flow_single_use": "Flow values are lazy, pull-based, source-bound, and single-use.",

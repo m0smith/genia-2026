@@ -1,0 +1,9 @@
+name: seq-compatible-list-collect
+category: eval
+input:
+  source: |
+    [1, 2, 3] |> collect
+expected:
+  stdout: "[1, 2, 3]\n"
+  stderr: ""
+  exit_code: 0

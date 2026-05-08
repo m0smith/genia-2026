@@ -127,11 +127,11 @@ Use `rand()` / `rand_int(n)` when host-backed nondeterministic convenience is fi
 | option keep-only | `keep_some(flow)`, `keep_some(stage, flow)` |
 | option routing | `keep_some_else(stage, dead_handler)`, `keep_some_else(stage, dead_handler, flow)` |
 | rule stage | `rules(..fns)` |
-| effects / sinks | `each(fn, flow)`, `collect(flow)`, `run(flow)` |
+| effects / sinks | `each(fn, source)`, `collect(source)`, `run(source)` for list or Flow |
 
 Flow values are lazy and single-use.
 `head` / `take` stop upstream pulling promptly.
-`collect` and `run` are explicit Value/Flow bridge boundaries.
+`collect(flow)` and `run(flow)` are explicit Flow boundary consumers; list inputs remain reusable values.
 `map` and `filter` are polymorphic: they work on both lists and flows.
 
 The one rule: raw values stay values, flows stay flows, only explicit bridges cross.
@@ -319,7 +319,7 @@ Current response maps use `status`, `headers`, and `body`.
 | --- | --- | --- |
 | file | `genia path/to/file.genia` | run source file |
 | command | `genia -c 'source'` | run inline source |
-| pipe | `genia -p 'stage_expr'` | wraps as `stdin |> lines |> <stage_expr> |> run` |
+| pipe | `genia -p 'stage_expr'` | runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically |
 | repl | `genia` | interactive REPL |
 
 Dispatch and mode notes:

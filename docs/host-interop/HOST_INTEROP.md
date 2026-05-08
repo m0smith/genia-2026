@@ -322,6 +322,7 @@ Current contract:
 - Iterator is a host implementation detail.
 - Flow is a runtime value family
 - flows are lazy, pull-based, source-bound, and single-use
+- `each`, `collect`, and `run` accept the current Seq-compatible public values: list and Flow
 - `|>` lowers to an explicit Core IR pipeline node with one source plus ordered stages
 - consuming the same flow twice raises `RuntimeError("Flow has already been consumed")`
 - `take` performs early termination without over-pulling
@@ -357,8 +358,7 @@ Current required modes:
 Current shared behavior:
 
 - trailing host args are visible as `argv()`
-- pipe mode wraps:
-  - `stdin |> lines |> <stage_expr> |> run`
+- pipe mode runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
 - pipe mode rejects explicit `stdin` and explicit `run`
 - file/command mode apply the current `main/1` then `main/0` entrypoint convention
 - debugger stdio mode is part of the documented host contract for hosts that implement it

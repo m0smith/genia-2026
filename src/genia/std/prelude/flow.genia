@@ -305,11 +305,11 @@ rules_list?(value) =
   (none) -> false |
   (v) -> list?(v)
 
-@doc "Run `fn` for each flow item and pass the original items through."
-each(fn, flow) = _each(fn, flow)
+@doc "Run `fn` for each list or Flow item and pass the original items through."
+each(fn, source) = _each(fn, source)
 
-@doc "Materialize a flow into an ordinary list."
-collect(flow) = _collect(flow)
+@doc "Return list data from a list or by materializing a Flow."
+collect(source) = _collect(source)
 
-@doc "Consume a flow to completion for effects."
-run(flow) = _run(flow)
+@doc "Consume or traverse a list or Flow to completion and return nil."
+run(source) = _run(source)

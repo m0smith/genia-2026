@@ -831,7 +831,7 @@ class Evaluator:
 
     def _pipeline_stage_mode(self, node: IrNode, stage_input: Any) -> str:
         stage_name = self._pipeline_stage_name(node)
-        if stage_name in {"lines", "collect"}:
+        if stage_name == "lines" or (stage_name == "collect" and isinstance(stage_input, GeniaFlow)):
             return "Explicit bridge mode"
         if isinstance(stage_input, GeniaFlow):
             return "Flow mode"

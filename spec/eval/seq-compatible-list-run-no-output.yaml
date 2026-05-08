@@ -1,0 +1,9 @@
+name: seq-compatible-list-run-no-output
+category: eval
+input:
+  source: |
+    [1, 2, 3] |> run
+expected:
+  stdout: ""
+  stderr: ""
+  exit_code: 0

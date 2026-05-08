@@ -128,7 +128,7 @@ PYTHON REFERENCE HOST:
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
-- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); and focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs, including a composed `map`/`filter` chain case.
+- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs, including a composed `map`/`filter` chain case; and Seq-compatible terminal composition over `evolve` with `each(print) |> run`.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
 - CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, and current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results. REPL mode is not included in shared executable spec coverage.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
@@ -285,7 +285,7 @@ Clarifications:
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (option-like tokens are treated as malformed mode/arg combinations unless passed after `--`)
 - in file/command/pipe mode, trailing host CLI arguments are exposed to programs as `argv()` (list of strings)
   - command mode accepts both bare positionals (`a`) and option-like args (`--pretty`) as trailing args
-- pipe mode wraps the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
+- pipe mode runs the provided stage expression over `stdin |> lines`, then consumes the final Flow automatically
   - pipe mode expects a single stage expression, not a full standalone program
   - explicit unbound `stdin` and explicit unbound `run` are rejected in pipe mode with a clear error
   - per-item functions used as bare stages (e.g. `parse_int`) are diagnosed with targeted suggestions (`map(parse_int)` or `keep_some(parse_int)`)
@@ -416,7 +416,13 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Iterators and generators are host implementation details, not portable Genia values.
   - The Python reference host uses an internal `GeniaSeq` helper to model ordered-source consumption lifecycle; this does not create a public Seq surface.
   - Seq compatibility does not change pipeline call shape or Option-aware pipeline behavior.
-  - Explicit bridges such as `lines`, `collect`, and `run` still define Value<->Flow crossings.
+  - Explicit bridges such as `lines` and Flow-side `collect` / `run` still define Value<->Flow crossings.
+  - `each`, `collect`, and `run` accept Seq-compatible public values:
+    - `each(f, list)` calls `f(item)` eagerly for each item in order, ignores callback results, and returns the same ordered list values.
+    - `each(f, Flow)` remains a lazy tap-style Flow stage that emits original items unchanged.
+    - `collect(list)` returns the same ordered list values; `collect(Flow)` materializes emitted Flow items into a list.
+    - `run(list)` traverses the list without printing and returns `nil`; `run(Flow)` consumes the Flow to completion and returns `nil`.
+    - non-list/non-Flow inputs fail with a Seq-compatible diagnostic naming list or Flow as the accepted public values.
   - The Python reference host implements `_seq_transform(initial_state, step, source)` as a kernel primitive for shared list/Flow transformation mechanics; this does not create a public Seq surface.
   - `_seq_transform` accepts list or Flow sources and returns the same source kind: list in -> list out, Flow in -> Flow out.
   - `_seq_transform` calls `step(state, item)` for each processed item; the step must return a map with optional `state`, `emit`, and `halt` fields.
@@ -1050,10 +1056,10 @@ Representation System entry points (#185, implemented):
   - `take(n, flow)` when second arg is a flow
   - `rules(..fns, flow)` / `flow |> rules(..fns)` as a stateful rule-driven transform
   - `head(flow)` and `head(n, flow)` via stdlib aliases over `take`
-- flow sinks/materialization:
-  - `each(f, flow)` (tap-style stage)
-  - `collect(flow)` (materialize to list)
-  - `run(flow)` (consume to completion)
+- Seq-compatible sinks/materialization:
+  - `each(f, source)` for list or Flow (tap-style stage; preserves source kind)
+  - `collect(source)` for list or Flow (returns list)
+  - `run(source)` for list or Flow (consume/traverse to completion; returns `nil`)
 - stdlib rule/refine helper constructors (autoloaded from `src/genia/std/prelude/flow.genia`):
   - `rule_skip()`
   - `rule_emit(x)`
@@ -1093,8 +1099,9 @@ Flow semantics:
 - Flow vs Value classification model:
   - the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary
   - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `take`, `drop`, `reverse`
-  - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `scan`, `rules`, `each`, `tee`, `merge`, `zip`, `head`
+  - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `scan`, `rules`, `tee`, `merge`, `zip`, `head`
   - Polymorphic functions (work on both lists and flows): `map`, `filter`
+  - Seq-compatible helpers (list or Flow): `each`, `collect`, `run`
   - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
@@ -1130,7 +1137,7 @@ Flow semantics:
   - `none(...)` is dropped inside this helper
 - explicit CLI pipe mode is implemented:
   - `genia -p "<stage_expr>"` / `genia --pipe "<stage_expr>"`
-  - wraps as `stdin |> lines |> <stage_expr> |> run`
+  - runs `<stage_expr>` over `stdin |> lines`, then consumes the final Flow automatically
   - no `pipe(...)` helper function exists in this phase
   - pipe mode expects one stage expression, not a full program
   - explicit `stdin` is rejected because pipe mode provides it automatically

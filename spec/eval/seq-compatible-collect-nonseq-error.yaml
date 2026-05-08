@@ -1,0 +1,9 @@
+name: seq-compatible-collect-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> collect
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at collect [<command>:1]: stage received int; collect expected a Seq-compatible value (list or flow), received int\n"
+  exit_code: 1

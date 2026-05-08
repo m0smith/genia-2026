@@ -83,7 +83,7 @@ def test_discover_specs_includes_eval_cases() -> None:
         "stdlib-filter-option-elements",
         "map-items-map-item-key-pipeline",
         "map-items-map-item-value-pipeline",
-        "each-on-list-type-error",
+        "each-on-list-seq-compatible",
         "reduce-on-flow-type-error",
         "first-on-flow-type-error",
         "pairs-basic",

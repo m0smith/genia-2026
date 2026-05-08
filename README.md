@@ -115,7 +115,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes Parse cases (spec/parse/) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
 - CLI shared specs cover file mode, command mode, and pipe mode only. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, and current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, and non-Flow final results. REPL is excluded from shared executable coverage.
-- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, and error propagation via invalid-reducer-on-flow diagnostic; focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs (including a composed chain) has been added but does not constitute full stdlib conformance.
+- Flow shared coverage is partial and limited to first-wave cases proving only lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Seq-compatible terminal composition over `evolve` with `each(print) |> run`; focused core stdlib Flow coverage for direct `map` and `filter` over Flow inputs (including a composed chain) has been added but does not constitute full stdlib conformance.
 - Error shared coverage is active but initial only. Current error shared cases assert only the observable surface: `stdout`, `stderr`, and `exit_code`; this now includes deterministic pattern-related failure coverage for match-miss, guard-all-fail, and malformed glob diagnostics. In this phase, `stdout` must be `""`, `stderr` must match exactly, `exit_code` must be `1`, and `notes` remain informational only.
 - Parse shared coverage is active but initial only. Current parse shared cases cover stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
 
@@ -235,7 +235,7 @@ printf 'a\nb\n' | genia -p 'head(1) |> each(print)'
 
 Pipe-mode mental model:
 
-- `genia -p 'stage_expr'` behaves like `stdin |> lines |> <stage_expr> |> run`
+- Pipe mode runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically.
 - write one stage expression, not a full program
 - do not write explicit `stdin` or explicit `run`
 - in `-p`, each stage still receives the current Flow unless you introduce a per-item Flow stage such as `map(...)`, `filter(...)`, `each(...)`, or `keep_some(...)`
@@ -287,7 +287,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
 
 - mode boundaries:
   - file/command mode evaluate source, then dispatch `main(argv())` if `main/1` exists, else `main()` if `main/0` exists, else preserve the evaluated result
-  - pipe mode never dispatches `main`; it always runs `stdin |> lines |> <stage_expr> |> run`
+  - pipe mode never dispatches `main`; it runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
   - pipe mode rejects explicit `stdin` and explicit `run` in unbound stage usage
 - args and errors:
   - trailing CLI args are available through `argv()` in file/command/pipe modes
@@ -836,7 +836,7 @@ get("name", person)
 - reducers stay explicit:
   - `sum` expects plain numbers, so filter/recover Option values before `collect |> sum`
 - Flow is still explicit:
-  - Flow values move through pipelines only when explicit bridge/stage functions such as `lines`, `collect`, and `run` are used
+  - Flow values move through pipelines only when explicit bridge/stage functions such as `lines` and Flow-side `collect` / `run` are used
   - there is no implicit Value↔Flow conversion
   - Seq is the semantic abstraction for ordered value production.
     - List is the eager reusable Seq-compatible value.
@@ -877,9 +877,12 @@ stdin |> lines |> take(2) |> each(print) |> run
   - the host rules kernel consumes normalized rule output from prelude rather than providing user-visible defaults itself
 - `take` stops upstream pulling as soon as the limit is satisfied
 - `take` / `head` and quiet broken-pipe termination stop generator-backed upstream work promptly
-- `collect(flow)` materializes reusable data, while `run(flow)` drives effects to completion
+- `each`, `collect`, and `run` accept Seq-compatible public values: list or Flow
+- `each(fn, list)` runs effects eagerly and returns the same ordered list values; `each(fn, flow)` remains lazy until consumed
+- `collect(list)` returns list data; `collect(flow)` materializes emitted Flow items into a reusable list
+- `run(list)` traverses without printing and returns `nil`; `run(flow)` consumes the Flow to completion and returns `nil`
 - `stdin()` remains separate and returns a cached list of full stdin lines for non-stream use
-- `-p` / `--pipe` wrap a stage expression as `stdin |> lines |> <stage_expr> |> run` for ergonomic Unix pipeline use
+- `-p` / `--pipe` run a stage expression over `stdin |> lines`, then consume the final Flow automatically for ergonomic Unix pipeline use
 - `-p` expects a stage expression only; omit explicit `stdin` and `run`
 - no `pipe(...)` helper function exists in this phase
 
@@ -1020,7 +1023,7 @@ In file mode (`genia path/to/program.genia`) and command mode (`genia -c "..."`)
 
 Pipe mode (`genia -p "..."` / `genia --pipe "..."`) is separate:
 
-1. it wraps the provided stage expression as `stdin |> lines |> <stage_expr> |> run`
+1. it runs the provided stage expression over `stdin |> lines`, then consumes the final Flow automatically
 2. it does not apply the `main` convention
 3. it rejects explicit `stdin` and explicit `run` inside the provided stage expression
 
