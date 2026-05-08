@@ -179,6 +179,7 @@ class GeniaFunction:
     span: SourceSpan | None = None
     debug_hooks: DebugHooks = field(default_factory=lambda: NOOP_DEBUG_HOOKS)
     debug_mode: bool = False
+    internal_access: bool = False
 
     @property
     def arity(self) -> int:
@@ -219,7 +220,7 @@ def eval_with_tco(
                     raise TypeError(f"{current_fn.name} expected {current_fn.arity} args, got {len(current_args)}")
             elif len(current_args) < current_fn.arity:
                 raise TypeError(f"{current_fn.name} expected at least {current_fn.arity} args, got {len(current_args)}")
-            frame = Env(current_fn.closure)
+            frame = Env(current_fn.closure, internal_access=current_fn.internal_access)
             for p, a in zip(current_fn.params, current_args):
                 frame.set(p, a)
             if current_fn.rest_param is not None:

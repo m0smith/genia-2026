@@ -197,6 +197,7 @@ def run_source(
     filename: str = "<memory>",
     debug_hooks: DebugHooks | None = None,
     debug_mode: bool = False,
+    internal_access: bool = False,
 ) -> Any:
     effective_hooks = debug_hooks or env.debug_hooks or NOOP_DEBUG_HOOKS
     effective_debug_mode = debug_mode or env.debug_mode
@@ -208,7 +209,12 @@ def run_source(
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
     env.debug_hooks = effective_hooks
     env.debug_mode = effective_debug_mode
-    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+    previous_internal_access = env.internal_access
+    env.internal_access = previous_internal_access or internal_access
+    try:
+        result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+    finally:
+        env.internal_access = previous_internal_access
     return _normalize_absence(result)
 
 

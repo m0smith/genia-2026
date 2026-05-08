@@ -572,7 +572,7 @@ Current consistency note:
 - public String, Map, Ref, Process, and sink helper names are prelude-backed wrappers over host-backed runtime primitives
 - the public Option helper surface remains help-visible through prelude/autoload metadata, while canonical `some(...)` / `none(...)` constructor forms also lower explicitly in Core IR
 - public Flow helper names such as `lines`, `evolve` (experimental), `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting live in prelude
-- `_seq_transform(initial_state, step, source)` is an internal kernel primitive for shared list/Flow transformation mechanics; it preserves source kind and does not create a public `Seq` value/type/helper
+- `_seq_transform(initial_state, step, source)` is an internal kernel primitive for shared list/Flow transformation mechanics; it preserves source kind, is not an ordinary user-callable Genia name, and does not create a public `Seq` value/type/helper
 - Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
@@ -843,7 +843,7 @@ get("name", person)
     - Flow is the lazy single-use Seq-compatible value.
     - Iterator is a host implementation detail.
     - Seq is not a public runtime type, syntax form, helper, or Core IR node.
-  - the host has an internal `_seq_transform` kernel primitive for shared list/Flow transformation mechanics; it preserves source kind and does not create a public Seq surface
+  - the host has an internal `_seq_transform` kernel primitive for shared list/Flow transformation mechanics; it preserves source kind, is reserved for trusted prelude/runtime code, and does not create a public Seq surface
 
 ### Flow runtime (Phase 1)
 

@@ -20,13 +20,23 @@ def _interpreter_runtime() -> Any:
 
 
 class Env:
-    def __init__(self, parent: Optional["Env"] = None, *, rebind_parent: bool | None = None):
+    def __init__(
+        self,
+        parent: Optional["Env"] = None,
+        *,
+        rebind_parent: bool | None = None,
+        internal_access: bool | None = None,
+    ):
         self.parent = parent
         self.values: dict[str, Any] = {}
+        self.internal_values: dict[str, Any] = {}
         self.binding_metadata: dict[str, GeniaMap] = {}
         self.assignable: set[str] = set()
         self.rebind_parent = (parent is not None) if rebind_parent is None else rebind_parent
+        inherited_internal_access = parent.internal_access if parent is not None else False
+        self.internal_access = inherited_internal_access if internal_access is None else internal_access
         self.autoloads: dict[tuple[str, int], str] = {}
+        self.trusted_autoloads: set[tuple[str, int]] = set()
         self.loaded_files: set[str] = set()
         self.loading_files: set[str] = set()
         self.loaded_modules: dict[str, ModuleValue] = {}
@@ -41,12 +51,16 @@ class Env:
         return env
 
     def get(self, name: str) -> Any:
-        if name in self.values:
-            return self.values[name]
-        if self.parent is not None:
-            return self.parent.get(name)
-        if self.try_autoload(name, 0) and name in self.values:
-            return self.values[name]
+        env: Env | None = self
+        while env is not None:
+            if name in env.values:
+                return env.values[name]
+            env = env.parent
+        root = self.root()
+        if self.internal_access and name in root.internal_values:
+            return root.internal_values[name]
+        if root.try_autoload(name, 0) and name in root.values:
+            return root.values[name]
         raise NameError(f"Undefined name: {name}")
 
     def set(
@@ -67,6 +81,9 @@ class Env:
             self.assignable.add(name)
         else:
             self.assignable.discard(name)
+
+    def set_internal(self, name: str, value: Any) -> None:
+        self.root().internal_values[name] = value
 
     def assign(self, name: str, value: Any, *, metadata: GeniaMap | None = None) -> None:
         target_env = self.find_assign_target(name)
@@ -129,18 +146,26 @@ class Env:
                 raise NameError(f"Undefined name: {name}")
             env = env.parent
 
-    def register_autoload(self, name: str, arity: int, path: str) -> None:
+    def register_autoload(self, name: str, arity: int, path: str, *, trusted: bool = False) -> None:
         root = self.root()
-        root.autoloads[(name, arity)] = path
+        key = (name, arity)
+        root.autoloads[key] = path
+        if trusted:
+            root.trusted_autoloads.add(key)
+        else:
+            root.trusted_autoloads.discard(key)
 
     def try_autoload(self, name: str, arity: int) -> bool:
         runtime = _interpreter_runtime()
 
         root = self.root()
-        path = root.autoloads.get((name, arity))
+        autoload_key = (name, arity)
+        path = root.autoloads.get(autoload_key)
         if path is None:
-            for (autoload_name, _), candidate_path in root.autoloads.items():
+            for candidate_key, candidate_path in root.autoloads.items():
+                autoload_name, _ = candidate_key
                 if autoload_name == name:
+                    autoload_key = candidate_key
                     path = candidate_path
                     break
             if path is None:
@@ -156,13 +181,20 @@ class Env:
 
         root.loading_files.add(key)
         try:
-            runtime.run_source(source, root, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
+            runtime.run_source(
+                source,
+                root,
+                filename=key,
+                debug_hooks=root.debug_hooks,
+                debug_mode=root.debug_mode,
+                internal_access=autoload_key in root.trusted_autoloads,
+            )
             root.loaded_files.add(key)
             return True
         finally:
             root.loading_files.remove(key)
 
-    def resolve_module_source(self, module_name: str, requester_filename: str | None = None) -> tuple[str, str]:
+    def resolve_module_source(self, module_name: str, requester_filename: str | None = None) -> tuple[str, str, bool]:
         runtime = _interpreter_runtime()
 
         candidates: list[Path] = []
@@ -172,10 +204,11 @@ class Env:
         candidates.append((runtime.BASE_DIR / f"{module_name}.genia").resolve())
         for path in candidates:
             if path.is_file():
-                return path.read_text(encoding="utf-8"), str(path)
+                return path.read_text(encoding="utf-8"), str(path), False
         packaged = runtime._resolve_packaged_module(module_name)
         if packaged is not None:
-            return packaged
+            source, key = packaged
+            return source, key, True
         raise FileNotFoundError(f"Module not found: {module_name}")
 
     def load_module(self, module_name: str, requester_filename: str | None = None) -> ModuleValue:
@@ -191,13 +224,20 @@ class Env:
             root.loaded_modules[module_name] = module_value
             return module_value
 
-        source, key = root.resolve_module_source(module_name, requester_filename)
+        source, key, trusted = root.resolve_module_source(module_name, requester_filename)
         root.loading_modules.add(module_name)
         try:
             module_env = Env(root, rebind_parent=False)
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
-            runtime.run_source(source, module_env, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
+            runtime.run_source(
+                source,
+                module_env,
+                filename=key,
+                debug_hooks=root.debug_hooks,
+                debug_mode=root.debug_mode,
+                internal_access=trusted,
+            )
             exports = dict(module_env.values)
             module_value = ModuleValue(module_name, exports, key)
             root.loaded_modules[module_name] = module_value

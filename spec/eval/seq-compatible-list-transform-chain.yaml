@@ -1,0 +1,12 @@
+name: seq-compatible-list-transform-chain
+category: eval
+input:
+  source: |
+    [1, 2, 3, 4]
+      |> map((x) -> x + 1)
+      |> filter((x) -> x < 5)
+      |> take(3)
+expected:
+  stdout: "[2, 3, 4]\n"
+  stderr: ""
+  exit_code: 0
