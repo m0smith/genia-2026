@@ -80,6 +80,7 @@ Run the smallest useful set:
 - nearest related tests
 
 Limit failures to 20. If exceeded → STOP and report.
+For running larger number of tests, pytest support -n auto to enable parallel tests running
 
 ---
 
