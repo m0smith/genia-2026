@@ -36,6 +36,7 @@ class Env:
         inherited_internal_access = parent.internal_access if parent is not None else False
         self.internal_access = inherited_internal_access if internal_access is None else internal_access
         self.autoloads: dict[tuple[str, int], str] = {}
+        self.trusted_autoloads: set[tuple[str, int]] = set()
         self.loaded_files: set[str] = set()
         self.loading_files: set[str] = set()
         self.loaded_modules: dict[str, ModuleValue] = {}
@@ -145,18 +146,26 @@ class Env:
                 raise NameError(f"Undefined name: {name}")
             env = env.parent
 
-    def register_autoload(self, name: str, arity: int, path: str) -> None:
+    def register_autoload(self, name: str, arity: int, path: str, *, trusted: bool = False) -> None:
         root = self.root()
-        root.autoloads[(name, arity)] = path
+        key = (name, arity)
+        root.autoloads[key] = path
+        if trusted:
+            root.trusted_autoloads.add(key)
+        else:
+            root.trusted_autoloads.discard(key)
 
     def try_autoload(self, name: str, arity: int) -> bool:
         runtime = _interpreter_runtime()
 
         root = self.root()
-        path = root.autoloads.get((name, arity))
+        autoload_key = (name, arity)
+        path = root.autoloads.get(autoload_key)
         if path is None:
-            for (autoload_name, _), candidate_path in root.autoloads.items():
+            for candidate_key, candidate_path in root.autoloads.items():
+                autoload_name, _ = candidate_key
                 if autoload_name == name:
+                    autoload_key = candidate_key
                     path = candidate_path
                     break
             if path is None:
@@ -172,13 +181,20 @@ class Env:
 
         root.loading_files.add(key)
         try:
-            runtime.run_source(source, root, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
+            runtime.run_source(
+                source,
+                root,
+                filename=key,
+                debug_hooks=root.debug_hooks,
+                debug_mode=root.debug_mode,
+                internal_access=autoload_key in root.trusted_autoloads,
+            )
             root.loaded_files.add(key)
             return True
         finally:
             root.loading_files.remove(key)
 
-    def resolve_module_source(self, module_name: str, requester_filename: str | None = None) -> tuple[str, str]:
+    def resolve_module_source(self, module_name: str, requester_filename: str | None = None) -> tuple[str, str, bool]:
         runtime = _interpreter_runtime()
 
         candidates: list[Path] = []
@@ -188,10 +204,11 @@ class Env:
         candidates.append((runtime.BASE_DIR / f"{module_name}.genia").resolve())
         for path in candidates:
             if path.is_file():
-                return path.read_text(encoding="utf-8"), str(path)
+                return path.read_text(encoding="utf-8"), str(path), False
         packaged = runtime._resolve_packaged_module(module_name)
         if packaged is not None:
-            return packaged
+            source, key = packaged
+            return source, key, True
         raise FileNotFoundError(f"Module not found: {module_name}")
 
     def load_module(self, module_name: str, requester_filename: str | None = None) -> ModuleValue:
@@ -207,13 +224,20 @@ class Env:
             root.loaded_modules[module_name] = module_value
             return module_value
 
-        source, key = root.resolve_module_source(module_name, requester_filename)
+        source, key, trusted = root.resolve_module_source(module_name, requester_filename)
         root.loading_modules.add(module_name)
         try:
             module_env = Env(root, rebind_parent=False)
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
-            runtime.run_source(source, module_env, filename=key, debug_hooks=root.debug_hooks, debug_mode=root.debug_mode)
+            runtime.run_source(
+                source,
+                module_env,
+                filename=key,
+                debug_hooks=root.debug_hooks,
+                debug_mode=root.debug_mode,
+                internal_access=trusted,
+            )
             exports = dict(module_env.values)
             module_value = ModuleValue(module_name, exports, key)
             root.loaded_modules[module_name] = module_value

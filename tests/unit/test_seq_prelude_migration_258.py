@@ -20,6 +20,16 @@ def run(src: str):
 class TestInternalSeqKernelsNotPublic:
     """Internal sequence kernels must not be user-callable public helpers."""
 
+    def test_prelude_shaped_filename_does_not_grant_collect_access(self):
+        env = make_global_env([])
+        with pytest.raises(Exception, match="(?i)_collect|undefined|not defined|NameError"):
+            run_source("_collect([1, 2])", env, filename="std/prelude/user.genia")
+
+    def test_prelude_shaped_filename_does_not_grant_run_access(self):
+        env = make_global_env([])
+        with pytest.raises(Exception, match="(?i)_run|undefined|not defined|NameError"):
+            run_source("_run([1, 2])", env, filename="std/prelude/user.genia")
+
     def test_seq_transform_internal_kernel_not_registered(self):
         src = """
         step(state, item) = { emit: [item], state: state }

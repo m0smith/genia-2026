@@ -3187,4 +3187,5 @@ def make_global_env(
     env.register_autoload("actor_failed?", 1, "std/prelude/actor.genia")
     env.register_autoload("actor_error", 1, "std/prelude/actor.genia")
     env.register_autoload("actor_status", 1, "std/prelude/actor.genia")
+    env.trusted_autoloads.update(env.autoloads.keys())
     return env

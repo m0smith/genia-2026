@@ -153,11 +153,6 @@ else:
 # CLI/REPL orchestration
 # ---------------------------------------------------------------------------
 
-def _is_std_prelude_filename(filename: str) -> bool:
-    normalized = filename.replace("\\", "/")
-    return "/std/prelude/" in normalized or normalized.startswith("std/prelude/")
-
-
 def is_complete(source: str) -> bool:
     brace = paren = bracket = 0
     in_str: Optional[str] = None
@@ -202,6 +197,7 @@ def run_source(
     filename: str = "<memory>",
     debug_hooks: DebugHooks | None = None,
     debug_mode: bool = False,
+    internal_access: bool = False,
 ) -> Any:
     effective_hooks = debug_hooks or env.debug_hooks or NOOP_DEBUG_HOOKS
     effective_debug_mode = debug_mode or env.debug_mode
@@ -214,7 +210,7 @@ def run_source(
     env.debug_hooks = effective_hooks
     env.debug_mode = effective_debug_mode
     previous_internal_access = env.internal_access
-    env.internal_access = previous_internal_access or _is_std_prelude_filename(filename)
+    env.internal_access = previous_internal_access or internal_access
     try:
         result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
     finally:
