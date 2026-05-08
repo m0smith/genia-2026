@@ -135,6 +135,14 @@ def test_pipeline_with_lambda_rhs(run):
     assert run(src) == 16
 
 
+def test_pipeline_with_lambda_body_starting_on_next_line(run):
+    src = """
+    [1, 2] |> map((x) ->
+      x + 1)
+    """
+    assert run(src) == [2, 3]
+
+
 def test_pipeline_with_block_rhs(run):
     src = """
     inc(x) = x + 1
