@@ -1123,9 +1123,10 @@ class Evaluator:
             pattern = node.pattern
             body = node.body
             closure = self.env
+            internal_access = self.env.internal_access
 
             def fn(*args):
-                frame = Env(closure)
+                frame = Env(closure, internal_access=internal_access)
                 if pattern is None:
                     if rest_param is None:
                         if len(args) != len(params):
@@ -1168,6 +1169,7 @@ class Evaluator:
                 span=node.span,
                 debug_hooks=self.debug_hooks,
                 debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access,
             )
             self.env.define_function(fn)
             if node.annotations:

@@ -153,6 +153,11 @@ else:
 # CLI/REPL orchestration
 # ---------------------------------------------------------------------------
 
+def _is_std_prelude_filename(filename: str) -> bool:
+    normalized = filename.replace("\\", "/")
+    return "/std/prelude/" in normalized or normalized.startswith("std/prelude/")
+
+
 def is_complete(source: str) -> bool:
     brace = paren = bracket = 0
     in_str: Optional[str] = None
@@ -208,7 +213,12 @@ def run_source(
     ir_nodes = optimize_program(ir_nodes, debug=os.getenv("GENIA_DEBUG_OPT", "") == "1")
     env.debug_hooks = effective_hooks
     env.debug_mode = effective_debug_mode
-    result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+    previous_internal_access = env.internal_access
+    env.internal_access = previous_internal_access or _is_std_prelude_filename(filename)
+    try:
+        result = Evaluator(env, debug_hooks=effective_hooks, debug_mode=effective_debug_mode).eval_program(ir_nodes)
+    finally:
+        env.internal_access = previous_internal_access
     return _normalize_absence(result)
 
 

@@ -1,0 +1,14 @@
+name: seq-compatible-flow-transform-chain
+category: flow
+input:
+  source: |
+    ["1", "skip", "2", "stop", "3"]
+      |> lines
+      |> filter((row) -> row != "skip")
+      |> map((row) -> concat(row, "!"))
+      |> take(3)
+      |> collect
+expected:
+  stdout: "[\"1!\", \"2!\", \"stop!\"]\n"
+  stderr: ""
+  exit_code: 0
