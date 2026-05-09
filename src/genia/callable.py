@@ -97,6 +97,22 @@ class DebugHooks:
 NOOP_DEBUG_HOOKS = DebugHooks()
 
 
+def _maybe_close_iterable(iterable: Any) -> None:
+    close = getattr(iterable, "close", None)
+    if callable(close):
+        close()
+
+
+def _finalize_iterable(iterable: Any, *, primary_error: bool) -> None:
+    if primary_error:
+        try:
+            _maybe_close_iterable(iterable)
+        except Exception:
+            pass
+        return
+    _maybe_close_iterable(iterable)
+
+
 # ---------------------------------------------------------------------------
 # Callable value types
 # ---------------------------------------------------------------------------
@@ -532,14 +548,16 @@ def invoke_callable(
 
                 def _map_iterator() -> Any:
                     items = source.consume()
+                    primary_error = False
                     try:
                         for item in items:
                             yield invoke_callable(mapper, [item], tail_position=False, autoload_resolver=autoload_resolver)
+                    except Exception:
+                        primary_error = True
+                        raise
                     finally:
                         if source.close_on_early_termination:
-                            close = getattr(items, "close", None)
-                            if callable(close):
-                                close()
+                            _finalize_iterable(items, primary_error=primary_error)
 
                 return GeniaFlow(_map_iterator, label="map", close_on_early_termination=source.close_on_early_termination)
 
@@ -549,15 +567,17 @@ def invoke_callable(
 
                 def _filter_iterator() -> Any:
                     items = source.consume()
+                    primary_error = False
                     try:
                         for item in items:
                             if truthy(invoke_callable(predicate, [item], tail_position=False, autoload_resolver=autoload_resolver)):
                                 yield item
+                    except Exception:
+                        primary_error = True
+                        raise
                     finally:
                         if source.close_on_early_termination:
-                            close = getattr(items, "close", None)
-                            if callable(close):
-                                close()
+                            _finalize_iterable(items, primary_error=primary_error)
 
                 return GeniaFlow(_filter_iterator, label="filter", close_on_early_termination=source.close_on_early_termination)
 
@@ -568,11 +588,14 @@ def invoke_callable(
                     raise TypeError("take expected an integer count as first argument")
 
                 def _take_iterator() -> Any:
+                    items = source.consume()
                     if count <= 0:
+                        if source.close_on_early_termination:
+                            _finalize_iterable(items, primary_error=False)
                         return
                     remaining = count
-                    items = source.consume()
                     upstream = iter(items)
+                    primary_error = False
                     try:
                         while remaining > 0:
                             try:
@@ -581,13 +604,43 @@ def invoke_callable(
                                 return
                             yield item
                             remaining -= 1
+                    except Exception:
+                        primary_error = True
+                        raise
                     finally:
                         if source.close_on_early_termination:
-                            close = getattr(items, "close", None)
-                            if callable(close):
-                                close()
+                            _finalize_iterable(items, primary_error=primary_error)
 
                 return GeniaFlow(_take_iterator, label="take", close_on_early_termination=source.close_on_early_termination)
+
+            if callee_node.name == "drop" and len(args) == 2:
+                count = args[0]
+                source = args[1]
+                if not isinstance(count, int) or isinstance(count, bool):
+                    raise TypeError("drop expected an integer count as first argument")
+
+                def _drop_iterator() -> Any:
+                    items = source.consume()
+                    upstream = iter(items)
+                    primary_error = False
+                    try:
+                        remaining = count
+                        while remaining > 0:
+                            try:
+                                next(upstream)
+                            except StopIteration:
+                                return
+                            remaining -= 1
+                        for item in upstream:
+                            yield item
+                    except Exception:
+                        primary_error = True
+                        raise
+                    finally:
+                        if source.close_on_early_termination:
+                            _finalize_iterable(items, primary_error=primary_error)
+
+                return GeniaFlow(_drop_iterator, label="drop", close_on_early_termination=source.close_on_early_termination)
 
         arity = len(args)
 

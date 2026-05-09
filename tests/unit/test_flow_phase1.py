@@ -15,6 +15,48 @@ def make_number_flow_env(values):
     return env
 
 
+class CloseTrackingCounter:
+    def __init__(self, state, *, limit=100, close_error=None):
+        self._state = state
+        self._limit = limit
+        self._close_error = close_error
+        self._next = 0
+        self._closed = False
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._next >= self._limit:
+            raise StopIteration
+        value = self._next
+        self._next += 1
+        self._state["pulled"] += 1
+        return value
+
+    def close(self):
+        if self._closed:
+            return
+        self._closed = True
+        self._state["closed"] += 1
+        if self._close_error is not None:
+            raise self._close_error
+
+
+def make_close_tracking_flow_env(*, limit=100, close_error=None):
+    env = make_global_env()
+    state = {"pulled": 0, "closed": 0}
+
+    def ticks():
+        return GeniaFlow(
+            lambda: CloseTrackingCounter(state, limit=limit, close_error=close_error),
+            label="ticks",
+        )
+
+    env.set("ticks", ticks)
+    return env, state
+
+
 def test_flow_reusable_stage_and_run(capsys):
     src = """
     clean(flow) =
@@ -256,6 +298,14 @@ def test_take_zero_does_not_pull_upstream():
     assert state["pulled"] == 0
 
 
+def test_take_zero_closes_close_tracking_flow_without_pulling():
+    env, state = make_close_tracking_flow_env()
+
+    assert run_source("ticks() |> take(0) |> collect", env) == []
+    assert state["pulled"] == 0
+    assert state["closed"] == 1
+
+
 def test_take_stops_without_overpulling_generator_backed_flow():
     env = make_global_env()
     state = {"pulled": 0}
@@ -388,6 +438,61 @@ def test_filter_fast_path_propagates_early_close_to_upstream():
     env.set("ticks", ticks)
     assert run_source("ticks() |> filter((x) -> x % 2 == 0) |> take(2) |> collect", env) == [0, 2]
     assert state["pulled"] == 3
+    assert state["closed"] == 1
+
+
+def test_flow_drop_passes_tail_without_overpulling_and_closes_on_downstream_take():
+    env, state = make_close_tracking_flow_env()
+
+    assert run_source("ticks() |> drop(2) |> take(2) |> collect", env) == [2, 3]
+    assert state["pulled"] == 4
+    assert state["closed"] == 1
+
+
+def test_flow_drop_exhaustion_closes_short_closeable_source():
+    env, state = make_close_tracking_flow_env(limit=3)
+
+    assert run_source("ticks() |> drop(5) |> collect", env) == []
+    assert state["pulled"] == 3
+    assert state["closed"] == 1
+
+
+def test_nested_flow_finalization_is_idempotent_for_upstream_source():
+    env, state = make_close_tracking_flow_env()
+
+    src = """
+    ticks()
+      |> map((x) -> x + 1)
+      |> filter((x) -> x > 0)
+      |> take(2)
+      |> collect
+    """
+
+    assert run_source(src, env) == [1, 2]
+    assert state["pulled"] == 2
+    assert state["closed"] == 1
+
+
+def test_primary_error_suppresses_finalization_error_during_map_cleanup():
+    env, state = make_close_tracking_flow_env(close_error=RuntimeError("cleanup boom"))
+
+    def boom(_item):
+        raise RuntimeError("primary boom")
+
+    env.set("boom", boom)
+
+    with pytest.raises(RuntimeError, match="primary boom"):
+        run_source("ticks() |> map(boom) |> collect", env)
+    assert state["pulled"] == 1
+    assert state["closed"] == 1
+
+
+def test_collect_surfaces_finalization_error_when_no_primary_error_exists():
+    env, state = make_close_tracking_flow_env(limit=1, close_error=RuntimeError("cleanup boom"))
+
+    with pytest.raises(RuntimeError, match="cleanup boom"):
+        run_source("ticks() |> collect", env)
+    assert state["pulled"] == 1
     assert state["closed"] == 1
 
 

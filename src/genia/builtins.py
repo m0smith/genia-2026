@@ -818,6 +818,15 @@ def make_global_env(
         if callable(close):
             close()
 
+    def _finalize_iterable(iterable: Any, *, primary_error: bool) -> None:
+        if primary_error:
+            try:
+                _maybe_close_iterable(iterable)
+            except Exception:
+                pass
+            return
+        _maybe_close_iterable(iterable)
+
     class _FlowTeeState:
         def __init__(self, upstream: GeniaFlow):
             self._upstream = upstream
@@ -1047,6 +1056,7 @@ def make_global_env(
             def iterator() -> Iterable[Any]:
                 state = initial_state
                 items = upstream.consume()
+                primary_error = False
                 try:
                     for item in items:
                         result = _invoke_raw_from_builtin(step, [state, item])
@@ -1055,9 +1065,12 @@ def make_global_env(
                             yield emitted_item
                         if halt:
                             return
+                except Exception:
+                    primary_error = True
+                    raise
                 finally:
                     if upstream.close_on_early_termination:
-                        _maybe_close_iterable(items)
+                        _finalize_iterable(items, primary_error=primary_error)
 
             return GeniaFlow(
                 iterator,
@@ -1076,12 +1089,16 @@ def make_global_env(
 
             def iterator() -> Iterable[Any]:
                 items = upstream.consume()
+                primary_error = False
                 try:
                     for item in items:
                         yield mapper(item)
+                except Exception:
+                    primary_error = True
+                    raise
                 finally:
                     if upstream.close_on_early_termination:
-                        _maybe_close_iterable(items)
+                        _finalize_iterable(items, primary_error=primary_error)
 
             return GeniaFlow(iterator, label="map", close_on_early_termination=upstream.close_on_early_termination)
         if not isinstance(source, list):
@@ -1095,13 +1112,17 @@ def make_global_env(
 
             def iterator() -> Iterable[Any]:
                 items = upstream.consume()
+                primary_error = False
                 try:
                     for item in items:
                         if truthy(predicate(item)):
                             yield item
+                except Exception:
+                    primary_error = True
+                    raise
                 finally:
                     if upstream.close_on_early_termination:
-                        _maybe_close_iterable(items)
+                        _finalize_iterable(items, primary_error=primary_error)
 
             return GeniaFlow(iterator, label="filter", close_on_early_termination=upstream.close_on_early_termination)
         if not isinstance(source, list):
@@ -1114,10 +1135,13 @@ def make_global_env(
         upstream = _ensure_flow(source, "take")
 
         def iterator() -> Iterable[Any]:
+            items = iter(upstream.consume())
             if n <= 0:
+                if upstream.close_on_early_termination:
+                    _finalize_iterable(items, primary_error=False)
                 return
             remaining = n
-            items = iter(upstream.consume())
+            primary_error = False
             try:
                 while remaining > 0:
                     try:
@@ -1126,9 +1150,12 @@ def make_global_env(
                         return
                     yield item
                     remaining -= 1
+            except Exception:
+                primary_error = True
+                raise
             finally:
                 if upstream.close_on_early_termination:
-                    _maybe_close_iterable(items)
+                    _finalize_iterable(items, primary_error=primary_error)
 
         return GeniaFlow(iterator, label="take", close_on_early_termination=upstream.close_on_early_termination)
 
@@ -1146,6 +1173,7 @@ def make_global_env(
         def iterator() -> Iterable[Any]:
             state = initial_state
             items = upstream.consume()
+            primary_error = False
             try:
                 for item in items:
                     result = _invoke_from_builtin(step, [state, item])
@@ -1156,9 +1184,12 @@ def make_global_env(
                         )
                     state = result[0]
                     yield result[1]
+            except Exception:
+                primary_error = True
+                raise
             finally:
                 if upstream.close_on_early_termination:
-                    _maybe_close_iterable(items)
+                    _finalize_iterable(items, primary_error=primary_error)
 
         return GeniaFlow(iterator, label="scan", close_on_early_termination=upstream.close_on_early_termination)
 
@@ -1279,13 +1310,17 @@ def make_global_env(
 
         def iterator() -> Iterable[Any]:
             items = upstream.consume()
+            primary_error = False
             try:
                 for item in items:
                     effect(item)
                     yield item
+            except Exception:
+                primary_error = True
+                raise
             finally:
                 if upstream.close_on_early_termination:
-                    _maybe_close_iterable(items)
+                    _finalize_iterable(items, primary_error=primary_error)
 
         return GeniaFlow(iterator, label="each", close_on_early_termination=upstream.close_on_early_termination)
 
@@ -1297,11 +1332,15 @@ def make_global_env(
 
         flow = source
         items = flow.consume()
+        primary_error = False
         try:
             return list(items)
+        except Exception:
+            primary_error = True
+            raise
         finally:
             if flow.close_on_early_termination:
-                _maybe_close_iterable(items)
+                _finalize_iterable(items, primary_error=primary_error)
 
     def run_fn(source: Any) -> None:
         if isinstance(source, list):
@@ -1313,12 +1352,16 @@ def make_global_env(
 
         flow = source
         items = flow.consume()
+        primary_error = False
         try:
             for _ in items:
                 pass
+        except Exception:
+            primary_error = True
+            raise
         finally:
             if flow.close_on_early_termination:
-                _maybe_close_iterable(items)
+                _finalize_iterable(items, primary_error=primary_error)
         return None
 
     def _emit_help(text: str) -> None:
