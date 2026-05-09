@@ -66,9 +66,14 @@
     "expected_result": "some(\"b\")"
   },
   {
-    "id": "pfv-take-head",
-    "source": "[\"a\", \"b\", \"c\"] |> lines |> head(2) |> collect",
+    "id": "pfv-take-flow",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> take(2) |> collect",
     "expected_result": "[\"a\", \"b\"]"
+  },
+  {
+    "id": "pfv-drop-flow",
+    "source": "[\"a\", \"b\", \"c\"] |> lines |> drop(1) |> collect",
+    "expected_result": "[\"b\", \"c\"]"
   },
   {
     "id": "pfv-option-map-some",
