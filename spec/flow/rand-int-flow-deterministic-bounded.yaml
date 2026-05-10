@@ -1,0 +1,15 @@
+name: rand-int-flow-deterministic-bounded
+category: flow
+input:
+  source: |
+    first = rand_int_flow(42, 10) |> take(6) |> collect
+    second = rand_int_flow(42, 10) |> take(6) |> collect
+    in_range = filter((x) -> x >= 0 && x < 10, first)
+    ones = rand_int_flow(99, 1) |> take(4) |> collect
+    [first == second, count(first), count(in_range), ones]
+expected:
+  stdout: "[true, 6, 6, [0, 0, 0, 0]]\n"
+  stderr: ""
+  exit_code: 0
+notes:
+  Proves rand_int_flow returns a bounded deterministic Flow and emits ints in [0, n).

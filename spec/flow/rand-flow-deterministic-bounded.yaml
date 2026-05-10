@@ -1,0 +1,14 @@
+name: rand-flow-deterministic-bounded
+category: flow
+input:
+  source: |
+    first = rand_flow(42) |> take(4) |> collect
+    second = rand_flow(42) |> take(4) |> collect
+    in_range = filter((x) -> x >= 0 && x < 1, first)
+    [first == second, count(first), count(in_range)]
+expected:
+  stdout: "[true, 4, 4]\n"
+  stderr: ""
+  exit_code: 0
+notes:
+  Proves rand_flow returns a bounded deterministic Flow and emits floats in [0, 1).
