@@ -128,7 +128,7 @@ PYTHON REFERENCE HOST:
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`. Eval shared coverage includes list-side Seq-compatible `collect`, `run`, lazy `each`, item-preserving `each |> collect`, the existing `seq-compatible-list-transform-chain` fixture, and selected Seq-compatible non-list/non-Flow diagnostics.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
-- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; and Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, and `collect` materialization.
+- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, and `collect` materialization; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
 - CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, and current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results. REPL mode is not included in shared executable spec coverage.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
@@ -1091,6 +1091,18 @@ Flow semantics:
 - `scan` is a per-flow stateful transform where `step(state, item)` must return `[next_state, output]`
 - `scan` keeps state internal to the operator while emitting one output item per input item
 - invalid flow-source misuse fails with clear Genia-facing runtime errors instead of leaked Python iterator errors
+- Seq/Flow resource lifecycle (Partial):
+  - a closeable source is a Seq-compatible source backed by a resource that requires cleanup when consumption ends
+  - closeable sources are finalized (resource released) on: normal exhaustion, early termination, and error interruption
+  - finalization is synchronous and source-local; no async cancellation or scheduler involvement
+  - finalization is idempotent: further finalization requests after the first are no-ops
+  - `take(n)` stops pulling after n values and finalizes any closeable upstream; `take(0)` does not pull any item values but still finalizes if the source was acquired
+  - `drop(n)` pulls and discards exactly n values, then passes remaining values downstream without over-pulling
+  - `drop(n) |> take(m)` pulls exactly n+m values total, then finalizes any closeable upstream
+  - terminal consumers (`collect`, `run`) finalize closeable upstream on normal exhaustion or error interruption
+  - finalization-error behavior: if a primary user or source error is already propagating, finalization errors are suppressed; if no primary error exists, finalization errors surface
+  - list sources are never finalized; lists have no resource lifecycle
+  - PYTHON REFERENCE HOST: finalization is implemented via the iterable `.close()` protocol (generator close); the `close_on_early_termination` flag on internal `GeniaSeq`/`GeniaFlow` objects controls whether cleanup is attempted; these internals are not public Genia surfaces
 - host-backed Flow kernel remains intentionally small in this phase:
   - flow value creation and single-consumption enforcement
   - lazy pull-based iteration over upstream sources
@@ -1100,9 +1112,9 @@ Flow semantics:
   - Flow-producing and Flow-consuming primitive boundaries used by prelude wrappers
 - Flow vs Value classification model:
   - the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary
-  - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `take`, `drop`, `reverse`
+  - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `reverse`
   - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `scan`, `rules`, `tee`, `merge`, `zip`, `head`
-  - Polymorphic functions (work on both lists and flows): `map`, `filter`
+  - Polymorphic functions (work on both lists and flows): `map`, `filter`, `take`, `drop`
   - Seq-compatible helpers (list or Flow): `each`, `collect`, `run`
   - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`
   - Bridge: materialize (flow → value): `collect`

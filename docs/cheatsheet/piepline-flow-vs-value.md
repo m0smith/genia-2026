@@ -27,6 +27,8 @@ Value world                          Flow world
 [1, 2, 3]                            stdin |> lines        ← source bridge
   |> map(f)        polymorphic         |> map(f)
   |> filter(p)     polymorphic         |> filter(p)
+  |> take(n)       polymorphic         |> take(n)
+  |> drop(n)       polymorphic         |> drop(n)
   |> sum           value-only          |> collect  ← bridge to value
                                        |> sum      (now value world)
                                        |> each(print) |> run  ← sink
@@ -78,8 +80,8 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | `first` | `first(xs)` | Returns `some(x)` or `none(...)` |
 | `last` | `last(xs)` | Returns `some(x)` or `none(...)` |
 | `nth` | `nth(index, xs)` | Returns `some(x)` or `none(...)` |
-| `take` | `take(n, xs)` | First n items as list |
-| `drop` | `drop(n, xs)` | Skip first n items |
+| `take` | `take(n, xs)` | Also works as flow stage; polymorphic |
+| `drop` | `drop(n, xs)` | Also works as flow stage; polymorphic |
 | `reverse` | `reverse(xs)` | Reversed list |
 
 ### 🔵 Flow functions (flow in, flow out)
@@ -88,6 +90,8 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | --- | --- | --- |
 | `map` | `flow \|> map(f)` | Polymorphic with list version above |
 | `filter` | `flow \|> filter(pred)` | Polymorphic with list version above |
+| `take` | `flow \|> take(n)` | Polymorphic with list version above; limits flow and stops upstream promptly |
+| `drop` | `flow \|> drop(n)` | Polymorphic with list version above; skips first n pulled items |
 | `head` | `head(n, flow)` / `flow \|> head(n)` | Limits flow; stops upstream promptly |
 | `keep_some` | `keep_some(flow)` or `keep_some(stage, flow)` | Unwraps `some(v)`, drops `none(...)` |
 | `keep_some_else` | `keep_some_else(stage, handler, flow)` | Routes `some(v)` forward; `none(...)` to handler |
@@ -149,7 +153,8 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | First item | 🟢 `first(xs)` | 🟣 `flow \|> head(1) \|> collect \|> first` | [case: pfv-first] |
 | Last item | 🟢 `last(xs)` | 🟣 `flow \|> collect \|> last` | [case: pfv-last] |
 | Nth item | 🟢 `nth(index, xs)` | 🟣 `flow \|> collect \|> nth(index)` | [case: pfv-nth] |
-| Take first n | 🟢 `take(n, xs)` | 🟣 `flow \|> head(n) \|> collect` | [case: pfv-take-head] |
+| Take first n | 🟢 `take(n, xs)` | 🔵 `flow \|> take(n)` | [case: pfv-take-flow] |
+| Drop first n | 🟢 `drop(n, xs)` | 🔵 `flow \|> drop(n)` | [case: pfv-drop-flow] |
 
 ## Option handling in both worlds
 
@@ -249,4 +254,4 @@ Classification: **Valid** (directly tested)
 - Flows are single-use; reusing a consumed flow raises a runtime error.
 - `keep_some` is flow-oriented, not a list helper.
 - Pipe mode runs the stage expression over `stdin |> lines` and consumes the final Flow automatically; do not include explicit `stdin` or `run`.
-- `map` and `filter` are polymorphic: they work on both lists and flows, staying in whichever world they receive.
+- `map`, `filter`, `take`, and `drop` are polymorphic: they work on both lists and flows, staying in whichever world they receive.

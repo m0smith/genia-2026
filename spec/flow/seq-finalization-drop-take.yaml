@@ -1,0 +1,18 @@
+name: seq-finalization-drop-take
+category: flow
+input:
+  source: |
+    stdin |> lines |> drop(2) |> take(2) |> collect
+  stdin: |
+    a
+    b
+    c
+    d
+    e
+expected:
+  stdout: "[\"c\", \"d\"]\n"
+  stderr: ""
+  exit_code: 0
+notes:
+  Proves Flow-aware drop composes with bounded downstream take without materializing a list.
+  Close/finalization itself is covered by Python reference-host unit tests because shared specs expose only stdout, stderr, and exit_code.
