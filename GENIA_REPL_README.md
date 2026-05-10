@@ -204,7 +204,7 @@ CLI contract summary (actual behavior):
   - raw callback invocation: `apply_raw(f, args)` — language-contract host primitive; bypasses `none(...)` short-circuit; `args` must be a list
   - promises: `force`
   - pair primitives: `cons`, `car`, `cdr`, `pair?`, `null?`
-  - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, and `sleep`
+  - Python-host-only simulation primitives (phase 2): explicit `rng(seed)` plus `rand`, `rand_int`, `rand_flow`, `rand_int_flow`, and `sleep`
   - Python-host-only bytes/json/zip bridge builtins (phase 1):
     - `utf8_encode`, `utf8_decode`
     - internal JSON bridge primitives: `_json_parse`, `_json_stringify`

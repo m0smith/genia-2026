@@ -2222,6 +2222,27 @@ def make_global_env(
             raise ValueError("rng expected seed >= 0")
         return GeniaRng(seed % _RNG_MODULUS)
 
+    def rand_flow_seed_fn(seed: Any) -> GeniaRng:
+        if not isinstance(seed, int) or isinstance(seed, bool):
+            raise TypeError("rand_flow seed must be a non-negative integer")
+        if seed < 0:
+            raise ValueError("rand_flow seed must be a non-negative integer")
+        return GeniaRng(seed % _RNG_MODULUS)
+
+    def rand_int_flow_seed_fn(seed: Any) -> GeniaRng:
+        if not isinstance(seed, int) or isinstance(seed, bool):
+            raise TypeError("rand_int_flow seed must be a non-negative integer")
+        if seed < 0:
+            raise ValueError("rand_int_flow seed must be a non-negative integer")
+        return GeniaRng(seed % _RNG_MODULUS)
+
+    def rand_int_flow_bound_fn(n: Any) -> int:
+        if not isinstance(n, int) or isinstance(n, bool):
+            raise TypeError("rand_int_flow n must be a positive integer")
+        if n <= 0:
+            raise ValueError("rand_int_flow n must be a positive integer")
+        return n
+
     def _ensure_rng(value: Any, name: str) -> GeniaRng:
         if not isinstance(value, GeniaRng):
             raise TypeError(f"{name} expected an rng state")
@@ -2965,6 +2986,9 @@ def make_global_env(
     env.set("_map_items", map_items_fn)
     env.set("_pairs_error", pairs_error_fn)
     env.set("_rng", rng_fn)
+    env.set("_rand_flow_seed", rand_flow_seed_fn)
+    env.set("_rand_int_flow_seed", rand_int_flow_seed_fn)
+    env.set("_rand_int_flow_bound", rand_int_flow_bound_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
     env.set("_rand_int", rand_int_fn)
@@ -3102,6 +3126,8 @@ def make_global_env(
     env.register_autoload("map_values", 1, "std/prelude/map.genia")
     env.register_autoload("pairs", 2, "std/prelude/map.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
+    env.register_autoload("rand_flow", 1, "std/prelude/random.genia")
+    env.register_autoload("rand_int_flow", 2, "std/prelude/random.genia")
     env.register_autoload("rand", 0, "std/prelude/random.genia")
     env.register_autoload("rand", 1, "std/prelude/random.genia")
     env.register_autoload("rand_int", 1, "std/prelude/random.genia")

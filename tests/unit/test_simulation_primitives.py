@@ -116,3 +116,86 @@ def test_seeded_rng_rejects_invalid_seed_and_state_inputs(run):
         run("rand(1)")
     with pytest.raises(TypeError, match="rand_int expected an rng state"):
         run("rand_int(1, 5)")
+
+
+def test_rand_flow_is_deterministic_bounded_and_unit_interval(run):
+    first = run("rand_flow(42) |> take(8) |> collect")
+    second = run("rand_flow(42) |> take(8) |> collect")
+
+    assert first == second
+    assert len(first) == 8
+    assert all(isinstance(x, float) for x in first)
+    assert all(0.0 <= x < 1.0 for x in first)
+
+
+def test_rand_flow_distinct_seeds_and_empty_take(run):
+    assert run("rand_flow(1) |> take(6) |> collect") != run(
+        "rand_flow(2) |> take(6) |> collect"
+    )
+    assert run("rand_flow(42) |> take(0) |> collect") == []
+
+
+def test_rand_int_flow_is_deterministic_bounded_and_composable(run):
+    source = """
+    rand_int_flow(123, 6)
+      |> map((n) -> n + 1)
+      |> take(10)
+      |> collect
+    """
+
+    first = run(source)
+    second = run(source)
+
+    assert first == second
+    assert len(first) == 10
+    assert all(isinstance(x, int) for x in first)
+    assert all(1 <= x <= 6 for x in first)
+
+
+def test_rand_int_flow_n_one_and_empty_take(run):
+    assert run("rand_int_flow(9, 1) |> take(5) |> collect") == [0, 0, 0, 0, 0]
+    assert run("rand_int_flow(9, 7) |> take(0) |> collect") == []
+
+
+def test_rand_flow_and_rand_int_flow_are_single_use(run):
+    with pytest.raises(RuntimeError, match="Flow has already been consumed"):
+        run(
+            """
+            flow = rand_flow(7)
+            flow |> take(1) |> collect
+            flow |> take(1) |> collect
+            """
+        )
+
+    with pytest.raises(RuntimeError, match="Flow has already been consumed"):
+        run(
+            """
+            flow = rand_int_flow(7, 10)
+            flow |> take(1) |> collect
+            flow |> take(1) |> collect
+            """
+        )
+
+
+def test_rand_flow_rejects_invalid_seed(run):
+    with pytest.raises(TypeError, match="rand_flow seed must be a non-negative integer"):
+        run('rand_flow("oops")')
+    with pytest.raises(ValueError, match="rand_flow seed must be a non-negative integer"):
+        run("rand_flow(-1)")
+
+
+def test_rand_int_flow_rejects_invalid_seed_and_n_eagerly(run):
+    with pytest.raises(
+        TypeError, match="rand_int_flow seed must be a non-negative integer"
+    ):
+        run('rand_int_flow("oops", 6)')
+    with pytest.raises(
+        ValueError, match="rand_int_flow seed must be a non-negative integer"
+    ):
+        run("rand_int_flow(-1, 6)")
+    with pytest.raises(TypeError, match="rand_int_flow n must be a positive integer"):
+        run('rand_int_flow(1, "6")')
+    with pytest.raises(ValueError, match="rand_int_flow n must be a positive integer"):
+        run("rand_int_flow(1, 0)")
+    with pytest.raises(ValueError, match="rand_int_flow n must be a positive integer"):
+        run("rand_int_flow(1, -1)")
