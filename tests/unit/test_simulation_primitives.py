@@ -1,7 +1,11 @@
+from pathlib import Path
 import time
 
 import pytest
 from genia.utf8 import format_debug
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_rand_values_are_in_unit_interval(run):
@@ -178,24 +182,38 @@ def test_rand_flow_and_rand_int_flow_are_single_use(run):
 
 
 def test_rand_flow_rejects_invalid_seed(run):
-    with pytest.raises(TypeError, match="rand_flow seed must be a non-negative integer"):
+    with pytest.raises(TypeError, match="rng expected an integer seed"):
         run('rand_flow("oops")')
-    with pytest.raises(ValueError, match="rand_flow seed must be a non-negative integer"):
+    with pytest.raises(ValueError, match="rng expected seed >= 0"):
         run("rand_flow(-1)")
 
 
-def test_rand_int_flow_rejects_invalid_seed_and_n_eagerly(run):
-    with pytest.raises(
-        TypeError, match="rand_int_flow seed must be a non-negative integer"
-    ):
+def test_rand_int_flow_rejects_invalid_seed_eagerly_and_invalid_n_on_pull(run):
+    with pytest.raises(TypeError, match="rng expected an integer seed"):
         run('rand_int_flow("oops", 6)')
-    with pytest.raises(
-        ValueError, match="rand_int_flow seed must be a non-negative integer"
-    ):
+    with pytest.raises(ValueError, match="rng expected seed >= 0"):
         run("rand_int_flow(-1, 6)")
-    with pytest.raises(TypeError, match="rand_int_flow n must be a positive integer"):
-        run('rand_int_flow(1, "6")')
-    with pytest.raises(ValueError, match="rand_int_flow n must be a positive integer"):
-        run("rand_int_flow(1, 0)")
-    with pytest.raises(ValueError, match="rand_int_flow n must be a positive integer"):
-        run("rand_int_flow(1, -1)")
+    with pytest.raises(TypeError, match="rand_int expected a positive integer"):
+        run('rand_int_flow(1, "6") |> take(1) |> collect')
+    with pytest.raises(ValueError, match="rand_int expected n > 0"):
+        run("rand_int_flow(1, 0) |> take(1) |> collect")
+    with pytest.raises(ValueError, match="rand_int expected n > 0"):
+        run("rand_int_flow(1, -1) |> take(1) |> collect")
+
+
+def test_rand_flow_helpers_do_not_depend_on_dedicated_host_validation_helpers():
+    random_prelude = ROOT / "src" / "genia" / "std" / "prelude" / "random.genia"
+    builtins_py = ROOT / "src" / "genia" / "builtins.py"
+
+    random_source = random_prelude.read_text(encoding="utf-8")
+    builtins_source = builtins_py.read_text(encoding="utf-8")
+
+    forbidden = [
+        "_rand_flow_seed",
+        "_rand_int_flow_seed",
+        "_rand_int_flow_bound",
+    ]
+
+    for name in forbidden:
+        assert name not in random_source
+        assert name not in builtins_source

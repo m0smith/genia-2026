@@ -760,7 +760,7 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - explicit seeded randomness is state-threaded and deterministic; the same seed must yield the same sequence
 - the current Python host uses a simple fixed 32-bit LCG for the explicit seeded RNG
 - `rand_flow(seed)` returns a lazy single-use Flow of floats in `[0, 1)`; seed must be a non-negative integer; raises `TypeError` for non-integer seed, `ValueError` for negative seed; Flow is unbounded
-- `rand_int_flow(seed, n)` returns a lazy single-use Flow of integers in `[0, n)`; seed must be a non-negative integer and `n` a positive integer; raises `TypeError`/`ValueError` for invalid arguments eagerly at call time; Flow is unbounded
+- `rand_int_flow(seed, n)` returns a lazy single-use Flow of integers in `[0, n)`; seed must be a non-negative integer and `n` a positive integer; invalid seed raises through `rng(seed)` at call time; invalid `n` raises through `rand_int(rng_state, n)` when the Flow is pulled; Flow is unbounded
 - both `rand_flow` and `rand_int_flow` are pure Genia prelude wrappers; they obey the standard single-use Flow contract
 - these are intentionally small runtime primitives only: no scheduler, no async/await, no event loop, no new syntax
 
