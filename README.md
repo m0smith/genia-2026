@@ -13,7 +13,7 @@ This repository currently provides:
 - host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`) (**Python-host-only**)
 - raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`) (**Python-host-only**)
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`) (**Python-host-only**)
-- simulation primitives (`rng`, `rand`, `rand_int`, `sleep`) (**Python-host-only**)
+- simulation primitives (`rng`, `rand`, `rand_int`, `rand_flow`, `rand_int_flow`, `sleep`) (**Python-host-only**)
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`) (**Python-host-only**)
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
 - shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
@@ -1109,6 +1109,8 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - `rand(rng_state)` returns `[next_rng_state, float]`
 - `rand_int(n)` returns a convenience host-RNG integer in `[0, n)` for positive integer `n`
 - `rand_int(rng_state, n)` returns `[next_rng_state, int]` deterministically in `[0, n)`
+- `rand_flow(seed)` returns a lazy single-use Flow of floats in `[0, 1)`; same seed yields same bounded output (experimental)
+- `rand_int_flow(seed, n)` returns a lazy single-use Flow of integers in `[0, n)`; same seed and `n` yield same bounded output (experimental)
 - `sleep(ms)` blocks for `ms` milliseconds
 - intentionally simple: no scheduler, no async/await, no event loop
 

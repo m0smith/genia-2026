@@ -1714,6 +1714,8 @@ Behavior notes:
   - `rand(rng_state)`
   - `rand_int(n)`
   - `rand_int(rng_state, n)`
+  - `rand_flow(seed)` (experimental)
+  - `rand_int_flow(seed, n)` (experimental)
 - `sleep(ms)`
 
 Behavior:
@@ -1726,6 +1728,11 @@ Behavior:
 - the explicit seeded RNG uses a simple 32-bit LCG so the same seed yields the same sequence on the current Python host
 - `rand_int(...)` raises clear `TypeError` for non-integer `n` and `ValueError` for `n <= 0` in both convenience and seeded forms
 - `sleep(ms)` blocks current execution for `ms` milliseconds; raises clear `TypeError` for non-numeric values and `ValueError` for negative values
+- `rand_flow(seed)` returns a lazy, pull-based, single-use Flow emitting floats in `[0, 1)`; same seed yields the same sequence across runs on the Python reference host; seed must be a non-negative integer; raises `TypeError` for non-integer seed and `ValueError` for negative seed; the Flow is unbounded and must be bounded with `take` or similar before `collect` or `run`
+- `rand_int_flow(seed, n)` returns a lazy, pull-based, single-use Flow emitting integers in `[0, n)`; same seed and `n` yield the same sequence across runs on the Python reference host; seed must be a non-negative integer and `n` a positive integer; raises `TypeError`/`ValueError` for invalid `seed` or `n` eagerly at call time; the Flow is unbounded and must be bounded before `collect` or `run`
+- both `rand_flow` and `rand_int_flow` are pure Genia prelude wrappers composed from `evolve`, `drop`, `map`, and existing seeded RNG helpers; no new Python kernel primitives
+- LANGUAGE CONTRACT: `rand_flow` and `rand_int_flow` expose a deterministic bounded lazy sequence contract; cross-host output reproducibility is not guaranteed in this phase
+- PYTHON REFERENCE HOST: determinism is provided by the existing 32-bit LCG via `rng`/`rand`/`rand_int`; internal RNG state is not exposed as a Genia-visible value during Flow consumption
 
 ## 7) Autoloaded stdlib
 
@@ -1777,7 +1784,7 @@ Notable autoloaded functions include:
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
-- randomness: `rng`, `rand`, `rand_int`
+- randomness: `rng`, `rand`, `rand_int`, `rand_flow`, `rand_int_flow`
 - flow: `lines`, `tee`, `merge`, `zip`, `scan`, `rules`, `refine`, `each`, `collect`, `run`, `rule_*`, `step_*`
 - option: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `or_else`, `or_else_with`, `unwrap_or`, `absence_reason`, `absence_context`, `is_some?`, `is_none?`
 - string: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`

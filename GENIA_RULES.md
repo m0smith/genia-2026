@@ -749,6 +749,8 @@ This protects helper-based and pattern-based Option handling from silent semanti
   - `rand(rng_state)`
   - `rand_int(n)`
   - `rand_int(rng_state, n)`
+  - `rand_flow(seed)` (experimental)
+  - `rand_int_flow(seed, n)` (experimental)
 - `sleep(ms)` remains a host-backed blocking builtin
 - `rng(seed)` requires a non-negative integer seed and returns an explicit RNG state value
 - `rand()` returns a host-RNG float in `[0, 1)` for convenience use
@@ -757,6 +759,9 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - `rand_int(rng_state, n)` requires a valid RNG state and positive integer `n`, returns `[next_rng_state, int]` with the integer in `[0, n)`
 - explicit seeded randomness is state-threaded and deterministic; the same seed must yield the same sequence
 - the current Python host uses a simple fixed 32-bit LCG for the explicit seeded RNG
+- `rand_flow(seed)` returns a lazy single-use Flow of floats in `[0, 1)`; seed must be a non-negative integer; raises `TypeError` for non-integer seed, `ValueError` for negative seed; Flow is unbounded
+- `rand_int_flow(seed, n)` returns a lazy single-use Flow of integers in `[0, n)`; seed must be a non-negative integer and `n` a positive integer; raises `TypeError`/`ValueError` for invalid arguments eagerly at call time; Flow is unbounded
+- both `rand_flow` and `rand_int_flow` are pure Genia prelude wrappers; they obey the standard single-use Flow contract
 - these are intentionally small runtime primitives only: no scheduler, no async/await, no event loop, no new syntax
 
 ## 14) Bytes / JSON / ZIP bridge invariants (host-backed only)
