@@ -27,3 +27,27 @@ rand_int(n) = _rand_int(n)
 The integer is deterministic for a given seed and is always in `[0, n)`.
 """
 rand_int(rng_state, n) = _rand_int_seeded(rng_state, n)
+
+@doc """Return a lazy seeded Flow of floats in `[0, 1)`.
+
+The same seed produces the same bounded output in the Python reference host.
+Use `take` or another limiter before `collect` or `run`.
+"""
+rand_flow(seed) = rand_flow_from(_rand_flow_seed(seed))
+
+rand_flow_from(state) =
+  evolve([state, nil], ([s, _]) -> rand(s))
+    |> drop(1)
+    |> map(([_, v]) -> v)
+
+@doc """Return a lazy seeded Flow of integers in `[0, n)`.
+
+The same seed and `n` produce the same bounded output in the Python reference host.
+Use `take` or another limiter before `collect` or `run`.
+"""
+rand_int_flow(seed, n) = rand_int_flow_from(_rand_int_flow_seed(seed), _rand_int_flow_bound(n))
+
+rand_int_flow_from(state, n) =
+  evolve([state, nil], ([s, _]) -> rand_int(s, n))
+    |> drop(1)
+    |> map(([_, v]) -> v)
