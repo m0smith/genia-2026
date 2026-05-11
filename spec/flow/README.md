@@ -32,5 +32,7 @@ Current first-wave Flow shared coverage proves only:
 - focused `scan` coverage over Flow inputs (`seq-compatible-flow-scan-basic`) and bounded infinite progression (`seq-compatible-flow-scan-bounded-evolve`)
 - Seq-compatible `each` tap behavior preserving original Flow items while running effects (`seq-compatible-flow-each-preserves-items`)
 - Seq-compatible terminal composition over `evolve` with `each(print) |> run` (`seq-compatible-evolve-each-run`)
+- resource lifecycle composition over `drop |> take |> collect` with bounded pulling and correct output (`seq-finalization-drop-take`)
 
 This directory does not define full Flow coverage.
+Close/finalization counts remain covered by Python reference-host unit tests because shared specs expose only stdout, stderr, and exit_code.
