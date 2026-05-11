@@ -429,6 +429,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Missing `state` keeps the current state, missing `emit` emits `[]`, and missing `halt` means `false`.
   - `emit` must be a list of zero, one, or many output values; `halt: true` emits the current step's values and then stops the whole transform without pulling later source items.
   - Invalid `_seq_transform` step results raise runtime errors prefixed with `invalid-seq-transform-result:`.
+  - PYTHON REFERENCE HOST: adjacent Flow `map` / `filter` stages may be represented by an internal fused Flow object that composes callbacks over one upstream source. This is an implementation optimization only; it adds no public Seq value, no fusion API, no new syntax, no Core IR node, no runtime flags, and no observable `trace` / display label change.
   - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface.
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
@@ -1046,6 +1047,12 @@ Representation System entry points (#185, implemented):
   - invalid step result shape, non-list `emit`, and non-boolean `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
   - `_seq_transform` is available only to trusted prelude/runtime code and Python reference-host tests; ordinary Genia user code must use public helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, and `evolve`
   - `_seq_transform` introduces no syntax, no Core IR node, no public Seq value/type/helper, and no implicit list/Flow conversion
+- PYTHON REFERENCE HOST: adjacent Flow `map` / `filter` stages may be fused into one internal Flow wrapper before downstream consumption:
+  - fusion applies only to Flow inputs and only to adjacent `map` / `filter` stages in this phase
+  - list-side `map` / `filter` behavior remains eager and reusable, with no list fusion in this phase
+  - non-fusable Flow stages and consumers (`take`, `drop`, `scan`, `each`, `collect`, `run`, rules/refine helpers, and option-routing helpers) continue to consume a normal Flow-compatible value
+  - the fused wrapper is internal Python host machinery, not a public runtime value or portable Core IR contract
+  - observable behavior must remain unchanged: item order, callback order, side-effect order, laziness, bounded pulling, upstream close behavior, single-use enforcement, errors, stdout/stderr/exit code, and Flow display labels
 - flow transforms:
   - `lines(flow_or_source)`
   - `evolve(init, f)` (experimental unbounded progression flow; emits `init` first, then repeatedly emits `f(previous_value)`)
