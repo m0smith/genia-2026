@@ -254,4 +254,5 @@ Classification: **Valid** (directly tested)
 - Flows are single-use; reusing a consumed flow raises a runtime error.
 - `keep_some` is flow-oriented, not a list helper.
 - Pipe mode runs the stage expression over `stdin |> lines` and consumes the final Flow automatically; do not include explicit `stdin` or `run`.
+- `stdin` is a host input capability, not a Seq-compatible value. `stdin |> each(...)`, `stdin |> collect`, and `stdin |> run` all fail. Use `stdin |> lines` first to enter Flow world.
 - `map`, `filter`, `take`, and `drop` are polymorphic: they work on both lists and flows, staying in whichever world they receive.
