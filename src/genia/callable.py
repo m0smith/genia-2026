@@ -129,6 +129,13 @@ class _FilterStage(_FusedStage):
     label = "filter"
 
 
+def _preserve_fused_callback_error(exc: Exception) -> None:
+    try:
+        setattr(exc, "_genia_preserve_pipeline_error", True)
+    except Exception:
+        pass
+
+
 class _FusedFlow(GeniaFlow):
     def __init__(self, upstream: GeniaFlow, stages: list[_FusedStage]):
         self._upstream = upstream
@@ -143,10 +150,19 @@ class _FusedFlow(GeniaFlow):
                     keep = True
                     for stage in self._stages:
                         if isinstance(stage, _MapStage):
-                            current = stage.mapper(current)
-                        elif isinstance(stage, _FilterStage) and not truthy(stage.predicate(current)):
-                            keep = False
-                            break
+                            try:
+                                current = stage.mapper(current)
+                            except Exception as exc:
+                                _preserve_fused_callback_error(exc)
+                                raise
+                        elif isinstance(stage, _FilterStage):
+                            try:
+                                keep = truthy(stage.predicate(current))
+                            except Exception as exc:
+                                _preserve_fused_callback_error(exc)
+                                raise
+                            if not keep:
+                                break
                     if keep:
                         yield current
             except Exception:

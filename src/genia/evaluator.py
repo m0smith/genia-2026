@@ -844,6 +844,8 @@ class Evaluator:
         return f"{span.filename}:{span.line}"
 
     def _wrap_pipeline_stage_error(self, exc: Exception, stage_index: int, node: IrNode, stage_input: Any) -> Exception:
+        if getattr(exc, "_genia_preserve_pipeline_error", False):
+            return exc
         message = str(exc)
         if message.startswith("pipeline stage ") and " failed in " in message:
             return exc
