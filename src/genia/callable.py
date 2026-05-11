@@ -113,6 +113,62 @@ def _finalize_iterable(iterable: Any, *, primary_error: bool) -> None:
     _maybe_close_iterable(iterable)
 
 
+class _FusedStage:
+    pass
+
+
+@dataclass(frozen=True)
+class _MapStage(_FusedStage):
+    mapper: Callable[[Any], Any]
+    label = "map"
+
+
+@dataclass(frozen=True)
+class _FilterStage(_FusedStage):
+    predicate: Callable[[Any], Any]
+    label = "filter"
+
+
+class _FusedFlow(GeniaFlow):
+    def __init__(self, upstream: GeniaFlow, stages: list[_FusedStage]):
+        self._upstream = upstream
+        self._stages = list(stages)
+
+        def _iterator() -> Any:
+            items = upstream.consume()
+            primary_error = False
+            try:
+                for item in items:
+                    current = item
+                    keep = True
+                    for stage in self._stages:
+                        if isinstance(stage, _MapStage):
+                            current = stage.mapper(current)
+                        elif isinstance(stage, _FilterStage) and not truthy(stage.predicate(current)):
+                            keep = False
+                            break
+                    if keep:
+                        yield current
+            except Exception:
+                primary_error = True
+                raise
+            finally:
+                if upstream.close_on_early_termination:
+                    _finalize_iterable(items, primary_error=primary_error)
+
+        super().__init__(
+            _iterator,
+            label=self._stages[-1].label,
+            close_on_early_termination=upstream.close_on_early_termination,
+        )
+
+
+def _append_fused_stage(source: GeniaFlow, stage: _FusedStage) -> _FusedFlow:
+    if isinstance(source, _FusedFlow):
+        return _FusedFlow(source._upstream, source._stages + [stage])
+    return _FusedFlow(source, [stage])
+
+
 # ---------------------------------------------------------------------------
 # Callable value types
 # ---------------------------------------------------------------------------
@@ -545,41 +601,32 @@ def invoke_callable(
             if callee_node.name == "map" and len(args) == 2:
                 mapper = args[0]
                 source = args[1]
-
-                def _map_iterator() -> Any:
-                    items = source.consume()
-                    primary_error = False
-                    try:
-                        for item in items:
-                            yield invoke_callable(mapper, [item], tail_position=False, autoload_resolver=autoload_resolver)
-                    except Exception:
-                        primary_error = True
-                        raise
-                    finally:
-                        if source.close_on_early_termination:
-                            _finalize_iterable(items, primary_error=primary_error)
-
-                return GeniaFlow(_map_iterator, label="map", close_on_early_termination=source.close_on_early_termination)
+                return _append_fused_stage(
+                    source,
+                    _MapStage(
+                        lambda item: invoke_callable(
+                            mapper,
+                            [item],
+                            tail_position=False,
+                            autoload_resolver=autoload_resolver,
+                        )
+                    ),
+                )
 
             if callee_node.name == "filter" and len(args) == 2:
                 predicate = args[0]
                 source = args[1]
-
-                def _filter_iterator() -> Any:
-                    items = source.consume()
-                    primary_error = False
-                    try:
-                        for item in items:
-                            if truthy(invoke_callable(predicate, [item], tail_position=False, autoload_resolver=autoload_resolver)):
-                                yield item
-                    except Exception:
-                        primary_error = True
-                        raise
-                    finally:
-                        if source.close_on_early_termination:
-                            _finalize_iterable(items, primary_error=primary_error)
-
-                return GeniaFlow(_filter_iterator, label="filter", close_on_early_termination=source.close_on_early_termination)
+                return _append_fused_stage(
+                    source,
+                    _FilterStage(
+                        lambda item: invoke_callable(
+                            predicate,
+                            [item],
+                            tail_position=False,
+                            autoload_resolver=autoload_resolver,
+                        )
+                    ),
+                )
 
             if callee_node.name == "take" and len(args) == 2:
                 count = args[0]
