@@ -1,3 +1,5 @@
+import pytest
+
 from genia import make_global_env, run_source
 from genia.interpreter import GeniaFlow
 
@@ -60,6 +62,102 @@ def test_flow_map_filter_fusion_preserves_bounded_pulling_and_close():
         env,
     ) == [20, 40, 60]
     assert state == {"pulled": 6, "closed": 1}
+
+
+def test_fused_flow_map_callback_error_propagates_and_closes_upstream():
+    env = make_global_env()
+    state = {"pulled": [], "closed": 0}
+    mapper_error = RuntimeError("boom from mapper")
+
+    class ClosableCounter:
+        def __init__(self):
+            self._next = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            value = self._next
+            self._next += 1
+            state["pulled"].append(value)
+            return value
+
+        def close(self):
+            state["closed"] += 1
+
+    def ticks():
+        return GeniaFlow(lambda: ClosableCounter(), label="ticks")
+
+    def boom_on_three(value):
+        if value == 3:
+            raise mapper_error
+        return value
+
+    env.set("ticks", ticks)
+    env.set("boom_on_three", boom_on_three)
+
+    with pytest.raises(RuntimeError, match="boom from mapper") as exc_info:
+        run_source(
+            """
+            ticks()
+              |> map((x) -> x + 1)
+              |> filter((x) -> x < 10)
+              |> map(boom_on_three)
+              |> collect
+            """,
+            env,
+        )
+
+    assert exc_info.value is mapper_error
+    assert state == {"pulled": [0, 1, 2], "closed": 1}
+
+
+def test_fused_flow_filter_callback_error_propagates_and_closes_upstream():
+    env = make_global_env()
+    state = {"pulled": [], "closed": 0}
+    predicate_error = RuntimeError("boom from predicate")
+
+    class ClosableCounter:
+        def __init__(self):
+            self._next = 0
+
+        def __iter__(self):
+            return self
+
+        def __next__(self):
+            value = self._next
+            self._next += 1
+            state["pulled"].append(value)
+            return value
+
+        def close(self):
+            state["closed"] += 1
+
+    def ticks():
+        return GeniaFlow(lambda: ClosableCounter(), label="ticks")
+
+    def boom_predicate_on_three(value):
+        if value == 3:
+            raise predicate_error
+        return True
+
+    env.set("ticks", ticks)
+    env.set("boom_predicate_on_three", boom_predicate_on_three)
+
+    with pytest.raises(RuntimeError, match="boom from predicate") as exc_info:
+        run_source(
+            """
+            ticks()
+              |> map((x) -> x + 1)
+              |> filter(boom_predicate_on_three)
+              |> map((x) -> x * 10)
+              |> collect
+            """,
+            env,
+        )
+
+    assert exc_info.value is predicate_error
+    assert state == {"pulled": [0, 1, 2], "closed": 1}
 
 
 def test_fused_flow_still_enforces_single_use():
