@@ -801,9 +801,11 @@ def make_global_env(
         return value
 
     def _seq_compatible_error(name: str, value: Any) -> None:
-        raise TypeError(
-            f"{name} expected a Seq-compatible value (list or flow), received {_runtime_type_name(value)}"
-        )
+        type_name = _runtime_type_name(value)
+        msg = f"{name} expected a Seq-compatible value (list or Flow); received {type_name}."
+        if isinstance(value, GeniaStdinSource):
+            msg += " Use stdin |> lines to adapt stdin into a Flow."
+        raise TypeError(msg)
 
     def flow_predicate_fn(value: Any) -> bool:
         return isinstance(value, GeniaFlow)

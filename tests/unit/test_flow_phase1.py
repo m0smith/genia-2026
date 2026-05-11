@@ -153,7 +153,7 @@ def test_seq_compatible_collect_rejects_non_seq_values_with_contract_diagnostic(
 
     with pytest.raises(
         TypeError,
-        match=r"collect expected a Seq-compatible value \(list or flow\), received int",
+        match=r"collect expected a Seq-compatible value \(list or Flow\); received int\.",
     ):
         run_source("42 |> collect", env)
 

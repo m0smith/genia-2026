@@ -417,6 +417,8 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - The Python reference host uses an internal `GeniaSeq` helper to model ordered-source consumption lifecycle; this does not create a public Seq surface.
   - Seq compatibility does not change pipeline call shape or Option-aware pipeline behavior.
   - Explicit bridges such as `lines` and Flow-side `collect` / `run` still define Value<->Flow crossings.
+  - `stdin` is a host-backed input capability, not a Seq-compatible public value; it must be adapted through `lines(stdin)` before participating in Flow-style ordered processing.
+  - Direct use of `stdin` as a source to `each`, `collect`, or `run` fails with a Genia-facing diagnostic naming list or Flow as the accepted values and pointing to `stdin |> lines`.
   - `each`, `collect`, and `run` accept Seq-compatible public values:
     - `each(f, list)` returns a lazy tap-style Flow stage; when consumed, it calls `f(item)` for each item in order, ignores callback results, and emits the original items unchanged.
     - `each(f, Flow)` remains a lazy tap-style Flow stage that emits original items unchanged.

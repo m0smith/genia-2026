@@ -47,6 +47,8 @@ def _runtime_type_name(value: Any) -> str:
         return "python_handle"
     if isinstance(value, GeniaPair):
         return "pair"
+    if isinstance(value, GeniaStdinSource):
+        return "stdin"
     if value.__class__.__name__ == "GeniaMetaEnv":
         return "meta_env"
     if value.__class__.__name__ == "GeniaPromise":
