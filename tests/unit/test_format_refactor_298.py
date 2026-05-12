@@ -106,6 +106,70 @@ def test_parse_empty_placeholder_raises():
         parse_format_template("{}")
 
 
+# --- issue #303 edge cases ---
+
+
+def test_parse_adjacent_named_placeholders():
+    parts = parse_format_template("{first}{last}")
+    assert parts == [
+        TemplatePlaceholder("first", None),
+        TemplatePlaceholder("last", None),
+    ]
+
+
+def test_parse_placeholder_at_start():
+    parts = parse_format_template("{name}!")
+    assert parts == [
+        TemplatePlaceholder("name", None),
+        TemplateLiteral("!"),
+    ]
+
+
+def test_parse_placeholder_at_end():
+    parts = parse_format_template("Hello {name}")
+    assert parts == [
+        TemplateLiteral("Hello "),
+        TemplatePlaceholder("name", None),
+    ]
+
+
+def test_parse_repeated_placeholders():
+    parts = parse_format_template("{name} {name}")
+    assert parts == [
+        TemplatePlaceholder("name", None),
+        TemplateLiteral(" "),
+        TemplatePlaceholder("name", None),
+    ]
+
+
+def test_parse_adjacent_positional_placeholders():
+    parts = parse_format_template("{0}{1}")
+    assert parts == [
+        TemplatePlaceholder("0", None),
+        TemplatePlaceholder("1", None),
+    ]
+
+
+def test_parse_mixed_literal_adjacent_placeholders_and_punctuation():
+    parts = parse_format_template("Hello {first}{last}!")
+    assert parts == [
+        TemplateLiteral("Hello "),
+        TemplatePlaceholder("first", None),
+        TemplatePlaceholder("last", None),
+        TemplateLiteral("!"),
+    ]
+
+
+def test_parse_placeholder_with_punctuated_spec():
+    parts = parse_format_template("{amount:,.2}")
+    assert parts == [TemplatePlaceholder("amount", ",.2")]
+
+
+def test_parse_placeholder_with_empty_spec():
+    parts = parse_format_template("{name:}")
+    assert parts == [TemplatePlaceholder("name", "")]
+
+
 # ---------------------------------------------------------------------------
 # resolve_format_placeholder — field resolution
 # ---------------------------------------------------------------------------
