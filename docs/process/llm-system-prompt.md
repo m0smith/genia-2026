@@ -40,3 +40,16 @@ Rules:
 - Each phase must read prior handoffs before starting.
 - If required handoff files are missing → STOP and report.
 - Distillation must extract durable documentation into canonical docs, then remove or mark handoffs for deletion.
+
+Testing note:
+This repo supports parallel pytest execution.
+
+For full regression testing, prefer:
+
+  pytest -n auto -q
+
+Use narrower targeted tests during development, but before audit/merge run the full parallel regression command when practical.
+
+If `pytest -n auto` fails because pytest-xdist is unavailable, report that clearly and fall back to:
+
+  pytest  -q
