@@ -1,0 +1,10 @@
+name: format-field-align-center-odd
+category: eval
+input:
+  source: |
+    format("{name:^4}", {name: "A"})
+expected:
+  stdout: |
+    " A  "
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,10 @@
+name: format-field-format-value-parity-numeric
+category: eval
+input:
+  source: |
+    format(Format("{n:03}"), {n: 5})
+expected:
+  stdout: |
+    "005"
+  stderr: ""
+  exit_code: 0

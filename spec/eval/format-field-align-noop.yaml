@@ -1,0 +1,10 @@
+name: format-field-align-noop
+category: eval
+input:
+  source: |
+    format("{name:<3}", {name: "hello"})
+expected:
+  stdout: |
+    "hello"
+  stderr: ""
+  exit_code: 0

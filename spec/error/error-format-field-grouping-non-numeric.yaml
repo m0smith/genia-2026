@@ -1,0 +1,10 @@
+name: error-format-field-grouping-non-numeric
+category: error
+input:
+  source: |
+    format("{name:,}", {name: "hello"})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format-error: format spec ',' requires numeric value
+  exit_code: 1

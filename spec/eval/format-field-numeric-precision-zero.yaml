@@ -1,0 +1,10 @@
+name: format-field-numeric-precision-zero
+category: eval
+input:
+  source: |
+    format("{n:.0}", {n: 12.5})
+expected:
+  stdout: |
+    "13"
+  stderr: ""
+  exit_code: 0

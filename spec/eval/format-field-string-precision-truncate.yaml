@@ -1,0 +1,10 @@
+name: format-field-string-precision-truncate
+category: eval
+input:
+  source: |
+    format("{name:.3}", {name: "Matthew"})
+expected:
+  stdout: |
+    "Mat"
+  stderr: ""
+  exit_code: 0

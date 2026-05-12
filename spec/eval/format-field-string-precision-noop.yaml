@@ -1,0 +1,10 @@
+name: format-field-string-precision-noop
+category: eval
+input:
+  source: |
+    format("{name:.10}", {name: "hi"})
+expected:
+  stdout: |
+    "hi"
+  stderr: ""
+  exit_code: 0

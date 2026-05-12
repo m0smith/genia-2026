@@ -1,0 +1,10 @@
+name: format-field-positional-with-spec
+category: eval
+input:
+  source: |
+    format("{0:<5}", ["A"])
+expected:
+  stdout: |
+    "A    "
+  stderr: ""
+  exit_code: 0

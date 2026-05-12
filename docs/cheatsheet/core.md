@@ -69,7 +69,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | debug string | `debug_repr(value)` |
 | template string | `format(template, values)` |
 
-`display`, `debug_repr`, and `format` return strings. They do not write output. `format` supports only named placeholders (`{name}`), positional placeholders (`{0}`), and escaped braces (`{{`, `}}`); replacements use display rendering.
+`display`, `debug_repr`, and `format` return strings. They do not write output. `format` supports named placeholders (`{name}`), positional placeholders (`{0}`), escaped braces (`{{`, `}}`), and an experimental limited set of field specs (#169): `{field:<N}` left-align, `{field:>N}` right-align, `{field:^N}` center, `{n:.N}` precision, `{n:0N}` zero-pad, `{n:,}` comma-group. Replacements use display rendering.
 
 <!-- [case: core-format-named] -->
 ```genia
