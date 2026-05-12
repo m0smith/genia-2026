@@ -1,8 +1,8 @@
-name: error-format-non-string-template
+name: error-format-first-class-non-string-non-format
 category: error
 input:
   source: |
-    format(42, {})
+    format(123, {})
 expected:
   stdout: ""
   stderr: |

@@ -577,7 +577,8 @@ Current consistency note:
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
 - `display(value)` and `debug_repr(value)` are the first public Representation System entry points: they return display/debug representation strings without writing output
-- `format(template, values)` is a public prelude-backed string helper: it returns a string, uses `display(value)` for replacements, and supports only `{name}`, `{0}`, `{{`, and `}}`
+- `format(template_or_format, values)` is a public prelude-backed string helper: it returns a string, uses `display(value)` for replacements, and supports only `{name}`, `{0}`, `{{`, and `}}`; its first argument is a raw string template or a `Format` value
+- `Format(template)` constructs a first-class representation value from a string template (Experimental, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - Flow, MetaEnv, Ref, and Process handles are runtime values, but they are not plain data in the same sense as numbers/lists/maps
@@ -901,7 +902,7 @@ flush(stdout)
 - `flush(sink)` flushes a sink and returns `none("nil")`
 - `print(...)` writes to `stdout`, and `log(...)` writes to `stderr`
 - `display(value)` and `debug_repr(value)` return representation strings and do not write output
-- `format(template, values)` returns a string built from named or positional placeholders and does not write output
+- `format(template_or_format, values)` returns a string built from named or positional placeholders and does not write output; accepts a raw string or a `Format` value
 - `input()` remains independent of `stdin`
 - broken pipe on `stdout` output in Unix pipelines is treated as normal downstream termination
 - flow-driven stdout writes use the same quiet broken-pipe path

@@ -1,0 +1,10 @@
+name: format-first-class-format-value-inline
+category: eval
+input:
+  source: |
+    format(Format("{a} {b} {c}"), {a: "X", b: "O", c: " "})
+expected:
+  stdout: |
+    "X O  "
+  stderr: ""
+  exit_code: 0

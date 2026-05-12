@@ -69,6 +69,7 @@ if __package__ in (None, ""):
         GeniaBytes,
         GeniaCell,
         GeniaFlow,
+        GeniaFormat,
         GeniaMap,
         GeniaOptionNone,
         GeniaOptionSome,
@@ -131,6 +132,7 @@ else:
         GeniaBytes,
         GeniaCell,
         GeniaFlow,
+        GeniaFormat,
         GeniaMap,
         GeniaOptionNone,
         GeniaOptionSome,
@@ -474,6 +476,13 @@ def make_global_env(
     def debug_repr_fn(value: Any) -> str:
         return format_debug(value)
 
+    def format_constructor(template: Any) -> GeniaFormat:
+        if not isinstance(template, str):
+            raise TypeError(
+                f"Format expected a string template, received {_runtime_type_name(template)}"
+            )
+        return GeniaFormat(template)
+
     def _ensure_string(value: Any, name: str) -> str:
         if not isinstance(value, str):
             raise TypeError(f"{name} expected a string, received {_runtime_type_name(value)}")
@@ -581,8 +590,12 @@ def make_global_env(
         return separator.join(xs)
 
     def format_fn(template: Any, values: Any) -> str:
-        if not isinstance(template, str):
-            raise TypeError("format expected a string template")
+        if isinstance(template, GeniaFormat):
+            template = template.template
+        elif not isinstance(template, str):
+            raise TypeError(
+                f"format expected a string template or Format value, received {_runtime_type_name(template)}"
+            )
 
         def _is_named_placeholder(body: str) -> bool:
             if body == "":
@@ -2868,6 +2881,7 @@ def make_global_env(
     env.set("print", print_fn)
     env.set("display", display_fn)
     env.set("debug_repr", debug_repr_fn)
+    env.set("Format", format_constructor)
     env.set("input", input_fn)
     env.set("stdin", stdin_source)
     env.set("stdin_keys", stdin_keys_flow)

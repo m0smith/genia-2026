@@ -1,0 +1,10 @@
+name: format-first-class-format-debug-repr
+category: eval
+input:
+  source: |
+    debug_repr(Format("{a}"))
+expected:
+  stdout: |
+    "<format>"
+  stderr: ""
+  exit_code: 0

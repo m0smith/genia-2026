@@ -242,6 +242,14 @@ def test_ir_spec_fixture(fname: str) -> None:
         "pairs-empty-both.yaml",
         "pairs-strings.yaml",
         "pairs-pattern-match.yaml",
+        "format-first-class-format-value-named.yaml",
+        "format-first-class-format-value-inline.yaml",
+        "format-first-class-format-value-backward-compat.yaml",
+        "format-first-class-format-display.yaml",
+        "format-first-class-format-debug-repr.yaml",
+        "format-first-class-format-empty-template.yaml",
+        "format-first-class-format-no-placeholders.yaml",
+        "format-first-class-format-positional.yaml",
     ],
 )
 @pytest.mark.spec
@@ -317,6 +325,9 @@ def test_flow_spec_fixture(fname: str) -> None:
         "error-pattern-miss.yaml",
         "error-pattern-guard-all-fail.yaml",
         "error-pattern-glob-malformed.yaml",
+        "error-format-non-string-template.yaml",
+        "error-format-first-class-constructor-non-string.yaml",
+        "error-format-first-class-non-string-non-format.yaml",
     ],
 )
 @pytest.mark.spec

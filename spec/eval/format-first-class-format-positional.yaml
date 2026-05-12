@@ -1,0 +1,10 @@
+name: format-first-class-format-positional
+category: eval
+input:
+  source: |
+    format(Format("{0} {1}"), ["hello", "world"])
+expected:
+  stdout: |
+    "hello world"
+  stderr: ""
+  exit_code: 0

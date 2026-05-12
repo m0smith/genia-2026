@@ -1,0 +1,10 @@
+name: format-first-class-format-value-backward-compat
+category: eval
+input:
+  source: |
+    format("{a} {b} {c}", {a: "X", b: "O", c: " "})
+expected:
+  stdout: |
+    "X O  "
+  stderr: ""
+  exit_code: 0
