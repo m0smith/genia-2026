@@ -1,0 +1,9 @@
+name: seq-compatible-filter-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> filter((x) -> true)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at filter((x) -> ...) [<command>:1]: stage received int; filter expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1

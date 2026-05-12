@@ -1,0 +1,9 @@
+name: seq-compatible-drop-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> drop(1)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at drop(1) [<command>:1]: stage received int; drop expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1
