@@ -970,8 +970,9 @@ Representation System entry points (#185, implemented):
 - They are entry points into that system, not independent formatting utilities.
 - `display(value)` returns a string containing the user-facing display representation of `value`.
 - `debug_repr(value)` returns a string containing the debug representation of `value`.
-- `format(template, values)` is a public prelude-backed helper for building strings from a small placeholder template.
-- `format(template, values)` returns a string and does not write output.
+- `format(template_or_format, values)` is a public prelude-backed helper for building strings from a small placeholder template.
+- `format(template_or_format, values)` returns a string and does not write output.
+- The first argument to `format` is either a raw string template or a `Format` value (see below).
 - `format` supports only:
   - named placeholders such as `{name}`, looked up in a map by string key
   - positional placeholders such as `{0}`, looked up in a list by zero-based index
@@ -979,6 +980,17 @@ Representation System entry points (#185, implemented):
 - Placeholder replacements use the same user-facing display representation as `display(value)`.
 - Missing fields and invalid placeholders raise deterministic errors.
 - `format` does not support field paths, interpolation string syntax, width/alignment/precision specifiers, localization, tagged formats, or debug rendering.
+- `Format(template)` is a first-class Representation System constructor (**Experimental**, #168):
+  - `Format(template)` accepts a string template and returns a first-class `Format` value.
+  - A `Format` value is representation-only: it is not a Value Template and does not participate in shape/refinement/contract/variant semantics.
+  - `format(Format(template), values)` produces the same result as `format(template, values)` for the same template and values.
+  - A `Format` value can be assigned to a name, passed as an argument, stored in a list or map, and returned from a function.
+  - `display(Format(...))` returns `<format>`; the wrapped template is not exposed.
+  - `debug_repr(Format(...))` returns `<format>`; the wrapped template is not exposed.
+  - `Format(non_string)` fails with `TypeError: Format expected a string template, received <type>`.
+  - `format(non_string_non_format, values)` fails with `TypeError: format expected a string template or Format value, received <type>`.
+  - No parser syntax such as `Format "..."` is introduced; `Format("...")` is the only accepted call form.
+  - `Format` is Experimental. The wrapped template, display/debug text, and constructor surface may change before stabilization.
 - These helpers do not write to `stdout` or `stderr`.
 - These helpers do not mutate runtime state.
 - These helpers do not change `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.

@@ -189,7 +189,9 @@ CLI contract summary (actual behavior):
     - `debug_repr(value)` returns the debug representation string without writing output
     - these entry points are minimal #185 surface area; #166 owns the broader Representation System model
   - public prelude-backed string formatting helper:
-    - `format(template, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; it supports escaped braces with `{{` and `}}`
+    - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; it supports escaped braces with `{{` and `}}`
+    - `format` accepts either a raw string template or a `Format` value as its first argument
+    - `Format(template)` constructs a first-class representation value from a string template (**Experimental**, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
@@ -333,7 +335,7 @@ CLI contract summary (actual behavior):
 - output routing:
   - `print(...)` writes to `stdout`
   - `log(...)` writes to `stderr`
-  - `display(value)`, `debug_repr(value)`, and `format(template, values)` return strings and do not write to `stdout` or `stderr`
+  - `display(value)`, `debug_repr(value)`, and `format(template_or_format, values)` return strings and do not write to `stdout` or `stderr`
   - `write(sink, value)` / `writeln(sink, value)` are public prelude-backed wrappers over the host sink bridge
   - `flush(sink)` is a public prelude-backed wrapper over the host sink bridge
   - broken pipe on `stdout` output in command/file execution is treated as normal downstream termination without a Python traceback

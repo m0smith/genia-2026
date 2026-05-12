@@ -49,6 +49,8 @@ def _runtime_type_name(value: Any) -> str:
         return "pair"
     if isinstance(value, GeniaStdinSource):
         return "stdin"
+    if isinstance(value, GeniaFormat):
+        return "format"
     if value.__class__.__name__ == "GeniaMetaEnv":
         return "meta_env"
     if value.__class__.__name__ == "GeniaPromise":
@@ -511,6 +513,14 @@ class GeniaProcess:
                 return "<process failed>"
         status = "alive" if self.is_alive() else "dead"
         return f"<process {status}>"
+
+
+class GeniaFormat:
+    def __init__(self, template: str):
+        self.template = template
+
+    def __repr__(self) -> str:
+        return "<format>"
 
 
 class GeniaBytes:

@@ -1,0 +1,10 @@
+name: format-first-class-format-display
+category: eval
+input:
+  source: |
+    display(Format("{a}"))
+expected:
+  stdout: |
+    "<format>"
+  stderr: ""
+  exit_code: 0

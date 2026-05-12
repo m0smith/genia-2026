@@ -43,6 +43,8 @@ def format_display(value: Any) -> str:
         return _format_pair(value, format_display)
     if _is_map(value):
         return _format_map(value, format_display)
+    if _is_format(value):
+        return "<format>"
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -75,6 +77,8 @@ def format_debug(value: Any) -> str:
         return _format_pair(value, format_debug)
     if _is_map(value):
         return _format_map(value, format_debug)
+    if _is_format(value):
+        return "<format>"
     if isinstance(value, str):
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
@@ -108,6 +112,10 @@ def _is_option_none(value: Any) -> bool:
 
 def _is_option_some(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaOptionSome" and hasattr(value, "value")
+
+
+def _is_format(value: Any) -> bool:
+    return value.__class__.__name__ == "GeniaFormat" and hasattr(value, "template")
 
 
 def _format_pair(value: Any, formatter) -> str:

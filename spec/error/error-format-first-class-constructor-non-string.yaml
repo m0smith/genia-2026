@@ -1,0 +1,10 @@
+name: error-format-first-class-constructor-non-string
+category: error
+input:
+  source: |
+    Format(123)
+expected:
+  stdout: ""
+  stderr: |
+    Error: Format expected a string template, received int
+  exit_code: 1

@@ -1,0 +1,10 @@
+name: format-first-class-format-no-placeholders
+category: eval
+input:
+  source: |
+    format(Format("hello world"), {})
+expected:
+  stdout: |
+    "hello world"
+  stderr: ""
+  exit_code: 0

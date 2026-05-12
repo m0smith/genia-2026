@@ -1,0 +1,11 @@
+name: format-first-class-format-value-named
+category: eval
+input:
+  source: |
+    BoardRow = Format("{a} {b} {c}")
+    format(BoardRow, {a: "X", b: "O", c: " "})
+expected:
+  stdout: |
+    "X O  "
+  stderr: ""
+  exit_code: 0
