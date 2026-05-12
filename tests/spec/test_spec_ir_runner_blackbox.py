@@ -272,6 +272,7 @@ def test_ir_spec_fixture(fname: str) -> None:
         "format-field-format-value-parity-align.yaml",
         "format-field-format-value-parity-numeric.yaml",
         "format-field-escaped-braces-spec-text.yaml",
+        "format-pipeline-map-named.yaml",
     ],
 )
 @pytest.mark.spec
