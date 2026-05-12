@@ -693,7 +693,7 @@ def make_global_env(
             if spec == ",":
                 if isinstance(value, bool) or not isinstance(value, (int, float)):
                     raise ValueError(
-                        f"format-error: format spec ',' requires numeric value"
+                        "format-error: format spec ',' requires numeric value"
                     )
                 return _format_grouping(value)
 
