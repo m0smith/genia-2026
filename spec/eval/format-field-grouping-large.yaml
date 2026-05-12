@@ -1,0 +1,10 @@
+name: format-field-grouping-large
+category: eval
+input:
+  source: |
+    format("{n:,}", {n: 1234567})
+expected:
+  stdout: |
+    "1,234,567"
+  stderr: ""
+  exit_code: 0

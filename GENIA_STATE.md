@@ -973,13 +973,22 @@ Representation System entry points (#185, implemented):
 - `format(template_or_format, values)` is a public prelude-backed helper for building strings from a small placeholder template.
 - `format(template_or_format, values)` returns a string and does not write output.
 - The first argument to `format` is either a raw string template or a `Format` value (see below).
-- `format` supports only:
+- `format` supports:
   - named placeholders such as `{name}`, looked up in a map by string key
   - positional placeholders such as `{0}`, looked up in a list by zero-based index
   - escaped braces `{{` and `}}`
-- Placeholder replacements use the same user-facing display representation as `display(value)`.
+  - field format specs (**Experimental**, #169): a limited set of display specifiers after `:` inside a placeholder:
+    - `<N` — left-align in width N using spaces
+    - `>N` — right-align in width N using spaces
+    - `^N` — center-align in width N using spaces; odd padding adds the extra space on the right
+    - `.N` — truncate string value to first N characters; or format numeric value to exactly N decimal places (ties away from zero)
+    - `0N` — zero-pad numeric output to width N; negative values keep the sign before the zeros
+    - `,` — comma-group numeric output (integer portion only, ASCII commas, no localization)
+  - `bool` values are not numeric for spec purposes; numeric specs (`0N`, `,`) applied to bools fail deterministically
+  - combined specs, bare width specs (e.g. `{n:10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
+- Placeholder replacements use the same user-facing display representation as `display(value)`, except where a field spec applies.
 - Missing fields and invalid placeholders raise deterministic errors.
-- `format` does not support field paths, interpolation string syntax, width/alignment/precision specifiers, localization, tagged formats, or debug rendering.
+- `format` does not support field paths, interpolation string syntax, localization, tagged formats, debug rendering, custom formatter protocols, or spec combinations beyond the listed subset.
 - `Format(template)` is a first-class Representation System constructor (**Experimental**, #168):
   - `Format(template)` accepts a string template and returns a first-class `Format` value.
   - A `Format` value is representation-only: it is not a Value Template and does not participate in shape/refinement/contract/variant semantics.

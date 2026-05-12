@@ -1,0 +1,10 @@
+name: format-field-zero-pad-already-wide
+category: eval
+input:
+  source: |
+    format("{n:03}", {n: 1234})
+expected:
+  stdout: |
+    "1234"
+  stderr: ""
+  exit_code: 0

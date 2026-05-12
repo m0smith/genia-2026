@@ -1,0 +1,10 @@
+name: format-field-zero-pad-negative
+category: eval
+input:
+  source: |
+    format("{n:03}", {n: -5})
+expected:
+  stdout: |
+    "-05"
+  stderr: ""
+  exit_code: 0

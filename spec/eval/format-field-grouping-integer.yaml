@@ -1,0 +1,10 @@
+name: format-field-grouping-integer
+category: eval
+input:
+  source: |
+    format("{n:,}", {n: 1000})
+expected:
+  stdout: |
+    "1,000"
+  stderr: ""
+  exit_code: 0

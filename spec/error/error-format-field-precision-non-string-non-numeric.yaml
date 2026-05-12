@@ -1,0 +1,10 @@
+name: error-format-field-precision-non-string-non-numeric
+category: error
+input:
+  source: |
+    format("{v:.2}", {v: [1, 2, 3]})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format-error: format spec '.2' requires string or numeric value
+  exit_code: 1

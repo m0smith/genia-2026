@@ -1,0 +1,10 @@
+name: format-field-string-precision-zero
+category: eval
+input:
+  source: |
+    format("{name:.0}", {name: "Matthew"})
+expected:
+  stdout: |
+    ""
+  stderr: ""
+  exit_code: 0

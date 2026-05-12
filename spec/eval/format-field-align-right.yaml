@@ -1,0 +1,10 @@
+name: format-field-align-right
+category: eval
+input:
+  source: |
+    format("{name:>5}", {name: "A"})
+expected:
+  stdout: |
+    "    A"
+  stderr: ""
+  exit_code: 0

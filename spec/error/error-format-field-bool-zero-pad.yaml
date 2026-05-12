@@ -1,0 +1,10 @@
+name: error-format-field-bool-zero-pad
+category: error
+input:
+  source: |
+    format("{n:03}", {n: true})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format-error: format spec '03' requires numeric value
+  exit_code: 1

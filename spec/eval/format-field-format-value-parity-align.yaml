@@ -1,0 +1,10 @@
+name: format-field-format-value-parity-align
+category: eval
+input:
+  source: |
+    format(Format("{name:<5}"), {name: "A"})
+expected:
+  stdout: |
+    "A    "
+  stderr: ""
+  exit_code: 0
