@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import execute_spec
 from tools.spec_runner.loader import discover_specs, load_spec
@@ -41,6 +43,7 @@ def test_issue_260_seq_shared_spec_inventory_is_present() -> None:
     assert missing == {}
 
 
+@pytest.mark.slow
 def test_issue_260_seq_shared_specs_execute_as_portable_observable_contract() -> None:
     missing_paths = []
     failures_by_name = {}

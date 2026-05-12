@@ -1,3 +1,5 @@
+import pytest
+
 from pathlib import Path
 
 from genia import make_global_env, run_source
@@ -16,6 +18,7 @@ def test_first_and_rest(run):
     assert run("rest([1, 2, 3])") == [2, 3]
 
 
+@pytest.mark.slow
 def test_option_list_helpers(run):
     assert run("is_none?(first([]))") is True
     assert run("is_some?(first([nil]))") is True

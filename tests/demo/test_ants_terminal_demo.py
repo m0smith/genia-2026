@@ -1,6 +1,8 @@
 import io
 from pathlib import Path
 
+import pytest
+
 from genia import make_global_env, run_source
 
 
@@ -19,6 +21,7 @@ def test_terminal_demo_collect_positions_is_seeded_and_reproducible():
     assert result == run_terminal_demo("collect_positions(7, 3, 3)")
 
 
+@pytest.mark.slow
 def test_terminal_draw_frame_uses_terminal_helpers_and_rendered_world():
     stdout = io.StringIO()
 

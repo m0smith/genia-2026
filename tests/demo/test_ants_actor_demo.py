@@ -10,6 +10,8 @@ Covers:
 
 from pathlib import Path
 
+import pytest
+
 from genia import make_global_env, run_source
 
 
@@ -113,6 +115,7 @@ def test_run_actor_sim_returns_world():
     assert result == 3
 
 
+@pytest.mark.slow
 def test_actor_sim_same_seed_is_reproducible():
     """Same seed produces the same world summary after the same evolve count."""
     result1 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
@@ -120,6 +123,7 @@ def test_actor_sim_same_seed_is_reproducible():
     assert result1 == result2
 
 
+@pytest.mark.slow
 def test_actor_sim_different_seed_differs():
     """Different seeds produce different outcomes."""
     result1 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
@@ -149,6 +153,7 @@ def test_collect_actor_summaries_tick_increases():
 # --- Invariants ---
 
 
+@pytest.mark.slow
 def test_food_accounting_preserved():
     """Total food + delivered equals the initial total."""
     result = run_actor(
@@ -165,6 +170,7 @@ def test_food_accounting_preserved():
     assert result is True
 
 
+@pytest.mark.slow
 def test_delivered_food_monotonic():
     """Delivered food never decreases across ticks."""
     result = run_actor(
@@ -178,6 +184,7 @@ def test_delivered_food_monotonic():
         assert result[i] <= result[i + 1], f"delivered decreased at index {i}: {result[i]} > {result[i+1]}"
 
 
+@pytest.mark.slow
 def test_ant_count_unchanged():
     """Number of ants stays the same after simulation."""
     result = run_actor(

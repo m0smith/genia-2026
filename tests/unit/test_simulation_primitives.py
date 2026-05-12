@@ -19,6 +19,7 @@ def test_rand_multiple_calls_are_not_constant(run):
     assert len(set(samples)) > 1
 
 
+@pytest.mark.slow
 def test_rand_int_values_within_bounds_and_not_constant(run):
     n = 7
     samples = [run(f"rand_int({n})") for _ in range(128)]
