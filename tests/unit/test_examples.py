@@ -1,3 +1,5 @@
+import pytest
+
 from pathlib import Path
 
 from genia import make_global_env, run_source
@@ -69,6 +71,7 @@ def test_tic_tac_toe_example_retries_invalid_move(monkeypatch):
     assert outputs[-1] == "X wins!\n"
 
 
+@pytest.mark.slow
 def test_ants_terminal_demo_parses_configurable_ant_count():
     source_path = Path("examples/ants_terminal.genia")
     source = source_path.read_text(encoding="utf-8")
@@ -89,6 +92,7 @@ def test_ants_terminal_demo_parses_configurable_ant_count():
     assert run_source(source + "\ngrid_size(25)", env, filename=str(source_path.resolve())) == 25
 
 
+@pytest.mark.slow
 def test_ants_terminal_demo_parses_seed_option():
     source_path = Path("examples/ants_terminal.genia")
     source = source_path.read_text(encoding="utf-8")
