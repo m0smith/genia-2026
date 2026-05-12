@@ -47,7 +47,6 @@ if __package__ in (None, ""):
         render_format_value,
         resolve_format_placeholder,
         TemplateLiteral,
-        TemplatePlaceholder,
     )
     from genia.docstrings import render_markdown_docstring
     from genia.lexer import SourceSpan
@@ -118,7 +117,6 @@ else:
         render_format_value,
         resolve_format_placeholder,
         TemplateLiteral,
-        TemplatePlaceholder,
     )
     from .docstrings import render_markdown_docstring
     from .lexer import SourceSpan
