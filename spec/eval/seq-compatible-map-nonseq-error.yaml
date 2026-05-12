@@ -1,0 +1,9 @@
+name: seq-compatible-map-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> map((x) -> x)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at map((x) -> ...) [<command>:1]: stage received int; map expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1

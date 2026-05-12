@@ -1,0 +1,9 @@
+name: seq-compatible-take-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> take(3)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at take(3) [<command>:1]: stage received int; take expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1

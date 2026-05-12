@@ -1,0 +1,9 @@
+name: seq-compatible-scan-nonseq-error
+category: eval
+input:
+  source: |
+    42 |> scan((s, x) -> [s + x, s + x], 0)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at scan((s, x) -> ..., 0) [<command>:1]: stage received int; scan expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1

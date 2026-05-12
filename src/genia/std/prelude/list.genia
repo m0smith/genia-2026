@@ -120,7 +120,8 @@ map(f, xs) = map_acc(f, xs, [])
 
 map_acc(f, xs, acc) =
   (f, [], acc) -> acc |
-  (f, [x, ..rest], acc) -> map_acc(f, rest, [..acc, apply_raw(f, [x])])
+  (f, [x, ..rest], acc) -> map_acc(f, rest, [..acc, apply_raw(f, [x])]) |
+  (f, xs, _) -> _seq_type_error("map", xs)
 
 @doc "Keep elements where `predicate(x)` is `true`."
 filter(predicate, xs) = filter_acc(predicate, xs, [])
@@ -128,7 +129,8 @@ filter(predicate, xs) = filter_acc(predicate, xs, [])
 filter_acc(predicate, xs, acc) =
   (predicate, [], acc) -> acc |
   (predicate, [x, ..rest], acc) ? apply_raw(predicate, [x]) == true -> filter_acc(predicate, rest, [..acc, x]) |
-  (predicate, [_, ..rest], acc) -> filter_acc(predicate, rest, acc)
+  (predicate, [_, ..rest], acc) -> filter_acc(predicate, rest, acc) |
+  (predicate, xs, _) -> _seq_type_error("filter", xs)
 
 @doc "Count elements in a list."
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
@@ -191,7 +193,8 @@ take(n, xs) = take_acc(n, xs, [])
 take_acc(n, xs, acc) =
   (_, [], acc) -> acc |
   (0, _, acc) -> acc |
-  (n, [x, ..rest], acc) -> take_acc(n - 1, rest, [..acc, x])
+  (n, [x, ..rest], acc) -> take_acc(n - 1, rest, [..acc, x]) |
+  (_, xs, _) -> _seq_type_error("take", xs)
 
 @doc "Convenience alias for `take`."
 head(xs) = take(1, xs)
@@ -202,7 +205,8 @@ head(n, xs) = take(n, xs)
 drop(n, xs) =
   (_, []) -> [] |
   (0, xs) -> xs |
-  (n, [_, ..rest]) -> drop(n - 1, rest)
+  (n, [_, ..rest]) -> drop(n - 1, rest) |
+  (_, xs) -> _seq_type_error("drop", xs)
 
 @doc "Build a numeric range."
 range(stop) = range(0, stop - 1, 1)

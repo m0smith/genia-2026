@@ -1145,9 +1145,24 @@ def make_global_env(
             return take_fn(args[0], args[1])
         raise TypeError(f"head expected 1 or 2 args, got {len(args)}")
 
-    def scan_fn(step_value: Any, initial_state: Any, source: Any) -> GeniaFlow:
+    def scan_fn(step_value: Any, initial_state: Any, source: Any) -> Any:
         step = _ensure_callable(step_value, "scan")
-        upstream = _ensure_flow(source, "scan")
+        if isinstance(source, list):
+            state = initial_state
+            result = []
+            for item in source:
+                step_result = _invoke_from_builtin(step, [state, item])
+                if not isinstance(step_result, list) or len(step_result) != 2:
+                    raise TypeError(
+                        "scan expected step(state, item) to return [next_state, output], "
+                        f"received {_runtime_type_name(step_result)}"
+                    )
+                state = step_result[0]
+                result.append(step_result[1])
+            return result
+        if not isinstance(source, GeniaFlow):
+            _seq_compatible_error("scan", source)
+        upstream = source
 
         def iterator() -> Iterable[Any]:
             state = initial_state
@@ -1171,6 +1186,9 @@ def make_global_env(
                     _finalize_iterable(items, primary_error=primary_error)
 
         return GeniaFlow(iterator, label="scan", close_on_early_termination=upstream.close_on_early_termination)
+
+    def seq_type_error_fn(name: Any, value: Any) -> None:
+        _seq_compatible_error(str(name), value)
 
     def _ensure_rule_values(rule_values: list[Any]) -> list[Any]:
         for index, rule_value in enumerate(rule_values, start=1):
@@ -2857,6 +2875,7 @@ def make_global_env(
     env.set("_zip", zip_flow_fn)
     env.set_internal("_seq_transform", seq_transform_fn)
     env.set_internal("_scan", scan_fn)
+    env.set("_seq_type_error", seq_type_error_fn)
     env.set("_keep_some", keep_some_fn)
     env.set("_keep_some_else", keep_some_else_fn)
     env.set_internal("_each", each_fn)

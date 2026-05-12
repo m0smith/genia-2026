@@ -844,7 +844,8 @@ When changing syntax/semantics/runtime behavior, update together:
 - phase-1 flow builtins:
   - sources/transforms: `lines`, `evolve(init, f)`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
-  - Seq-compatible sinks/materialization: `each`, `run`, `collect` accept list or Flow
+  - Seq-compatible sinks/materialization: `each`, `run`, `collect` accept list or Flow; non-list/non-Flow inputs fail with a Seq-compatible diagnostic
+  - Seq-compatible transforms: `map`, `filter`, `take`, `drop` accept list or Flow and produce Seq-compatible diagnostics for invalid inputs; `scan` accepts list or Flow (`scan(list)` returns list, `scan(Flow)` returns Flow)
 - flows are single-use:
   - first consumption succeeds
   - second consumption must raise `RuntimeError("Flow has already been consumed")`
