@@ -433,6 +433,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `emit` must be a list of zero, one, or many output values; `halt: true` emits the current step's values and then stops the whole transform without pulling later source items.
   - Invalid `_seq_transform` step results raise runtime errors prefixed with `invalid-seq-transform-result:`.
   - PYTHON REFERENCE HOST: adjacent Flow `map` / `filter` stages may be represented by an internal fused Flow object that composes callbacks over one upstream source. This is an implementation optimization only; it adds no public Seq value, no fusion API, no new syntax, no Core IR node, no runtime flags, and no observable `trace` / display label change.
+  - PYTHON REFERENCE HOST: `_ensure_seq_compatible(name, source)` is an internal kernel primitive that validates a value is a Seq-compatible source and returns it unchanged; it accepts list and GeniaFlow only, raises a Seq-compatible TypeError for all other values, and does not consume or pull from a Flow during validation. It is registered via `env.set_internal` and is not accessible from ordinary Genia user code.
   - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface.
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
@@ -1071,6 +1072,13 @@ Representation System entry points (#185, implemented):
   - invalid step result shape, non-list `emit`, and non-boolean `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
   - `_seq_transform` is available only to trusted prelude/runtime code and Python reference-host tests; ordinary Genia user code must use public helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, and `evolve`
   - `_seq_transform` introduces no syntax, no Core IR node, no public Seq value/type/helper, and no implicit list/Flow conversion
+- `_ensure_seq_compatible(name, source)` is the Python reference-host internal boundary primitive for validating Seq-compatible source values:
+  - accepts list → returns the list unchanged
+  - accepts GeniaFlow → returns the Flow unchanged without pulling any items
+  - rejects all other values → raises `TypeError` via the Seq-compatible diagnostic: `"<name> expected a Seq-compatible value (list or Flow); received <type>."`
+  - for direct `stdin` capability values, the diagnostic appends: `" Use stdin |> lines to adapt stdin into a Flow."`
+  - `_ensure_seq_compatible` is available only to trusted prelude/runtime code; ordinary Genia user code cannot call it
+  - it introduces no public Seq surface, no Core IR node, no new syntax, and no implicit list/Flow conversion
 - PYTHON REFERENCE HOST: adjacent Flow `map` / `filter` stages may be fused into one internal Flow wrapper before downstream consumption:
   - fusion applies only to Flow inputs and only to adjacent `map` / `filter` stages in this phase
   - list-side `map` / `filter` behavior remains eager and reusable, with no list fusion in this phase

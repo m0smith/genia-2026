@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-flow-drop
+category: flow
+input:
+  source: |
+    evolve(0, (n) -> n + 1) |> drop(2) |> take(3) |> collect
+expected:
+  stdout: "[2, 3, 4]\n"
+  stderr: ""
+  exit_code: 0

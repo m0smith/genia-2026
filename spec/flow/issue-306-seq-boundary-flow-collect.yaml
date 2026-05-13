@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-flow-collect
+category: flow
+input:
+  source: |
+    evolve(0, (n) -> n + 1) |> take(3) |> collect
+expected:
+  stdout: "[0, 1, 2]\n"
+  stderr: ""
+  exit_code: 0
