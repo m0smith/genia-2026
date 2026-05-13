@@ -225,8 +225,10 @@ class TestReducerMisuse:
         exit_code = _main(["-p", "count"])
         captured = capsys.readouterr()
 
+        # count now works on flows (issue #305). In pipe mode, count returns an int
+        # which pipe mode rejects because it expects a flow output.
         assert exit_code == 1
-        assert "received flow" in captured.err
+        assert "received int" in captured.err
         assert "-c/--command" in captured.err
 
 

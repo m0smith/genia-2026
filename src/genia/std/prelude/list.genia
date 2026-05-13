@@ -113,7 +113,7 @@ reverse_acc(xs, acc) =
 reduce(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce(f, apply_raw(f, [acc, x]), rest) |
-  (f, acc, xs) -> _reduce_error(xs)
+  (f, acc, xs) -> _seq_reduce(f, acc, xs)
 
 @doc "Apply a function to every list element."
 map(f, xs) = map_acc(f, xs, [])

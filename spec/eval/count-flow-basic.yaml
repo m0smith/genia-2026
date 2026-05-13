@@ -1,0 +1,16 @@
+name: count-flow-basic
+category: eval
+description: count on a Flow returns the number of consumed elements
+input:
+  source: |
+    inc(n) -> n + 1
+    evolve(0, inc) |> take(5) |> count
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #305
+  invariant: count-flow-accepted
+  count is defined as reduce((acc, _) -> acc + 1, 0, xs). After #305 reduce accepts Flow,
+  so count(flow) naturally works. evolve(0, inc) |> take(5) produces 5 elements.

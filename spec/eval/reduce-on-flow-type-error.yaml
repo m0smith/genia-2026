@@ -1,12 +1,18 @@
 name: reduce-on-flow-type-error
 category: eval
+description: reduce on a bounded Flow now returns the final accumulator instead of failing
 input:
   source: |
     acc(a, b) = a
     inc(n) -> n + 1
     reduce(acc, 0, evolve(0, inc) |> take(3))
 expected:
-  stdout: ""
-  stderr: |
-    Error: reduce expected a list as third argument, received flow
-  exit_code: 1
+  stdout: "0\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #305
+  invariant: reduce-flow-accepted
+  Previously documented as a failure. After #305, reduce accepts Flow as Seq-compatible.
+  step = acc(a, b) = a always returns accumulator unchanged. Flow emits 0, 1, 2.
+  acc(0, 0)=0, acc(0, 1)=0, acc(0, 2)=0. Final accumulator: 0.

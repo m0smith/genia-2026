@@ -1,5 +1,6 @@
 name: count-as-pipe-stage-type-error
 category: flow
+description: count on flow now works; collect after count fails because count returns int
 input:
   source: |
     stdin |> lines |> count |> collect
@@ -9,6 +10,10 @@ input:
     3
 expected:
   stdout: ""
-  stderr: |
-    Error: pipeline stage 2 failed in Flow mode at count [<command>:1]: stage received flow; reduce expected a list as third argument, received flow
+  stderr: "Error: pipeline stage 3 failed in Value mode at collect [<command>:1]: stage received int; collect expected a Seq-compatible value (list or Flow); received int.\n"
   exit_code: 1
+notes: |
+  issue: #305
+  count is built on reduce. After #305 reduce accepts Flow, so count(flow) returns an int.
+  collect then fails because it expects a Seq-compatible value, not an int.
+  The error moved from stage 2 (count) to stage 3 (collect).

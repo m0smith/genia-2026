@@ -373,13 +373,24 @@ Capabilities for invoking Genia callables with explicit control over none-propag
 #### `fn.reduce-error`
 
 - **name:** `fn.reduce-error`
-- **genia_surface:** `_reduce_error(xs)` (internal — called from `reduce` arm 3 only)
-- **input:** `xs` — any non-list Genia value (the erroneous third argument to `reduce`)
+- **genia_surface:** `_reduce_error(xs)` (internal — no longer called by `reduce`; superseded by `_seq_reduce`)
+- **input:** `xs` — any non-list Genia value
 - **output:** never returns — always raises
 - **errors:**
-  - `TypeError` with message `"reduce expected a list as third argument, received <type-name>"` — always, for all inputs; `<type-name>` is the string produced by `_runtime_type_name(xs)`
+  - `TypeError` with message `"reduce expected a list as third argument, received <type-name>"` — always
 - **portability:** `language contract`
-- **notes:** Single-purpose error delegate called when `reduce`'s catch-all arm fires. Any host implementing `reduce` must raise this exact `TypeError`. The type-name vocabulary is shared across all `_runtime_type_name` usages. Not intended for direct user-code use.
+- **notes:** Legacy error delegate. As of issue #305, `reduce`'s catch-all arm delegates to `_seq_reduce` instead, which raises the updated Seq-compatible error message. `_reduce_error` remains registered but is no longer called by the prelude. Not intended for direct user-code use.
+
+#### `fn.seq-reduce`
+
+- **name:** `fn.seq-reduce`
+- **genia_surface:** `_seq_reduce(f, acc, source)` (internal — called from `reduce` catch-all arm)
+- **input:** `f` — callable (two-argument reducer); `acc` — any Genia value including `none(...)`; `source` — list or Flow
+- **output:** final accumulator value after folding all items
+- **errors:**
+  - `TypeError` with message `"reduce expected a Seq-compatible value (list or Flow); received <type-name>"` — when `source` is not a list or Flow
+- **portability:** `language contract`
+- **notes:** Seq-compatible reduce delegate. Handles both list and Flow sources. `none(...)` as initial accumulator is not short-circuited (marked `__genia_handles_none__ = True`). For Flow input, finalizes the iterator on early termination following the same pattern as `collect_fn` and `run_fn`. Replaces `_reduce_error` as `reduce`'s catch-all delegate as of issue #305.
 
 #### `zip.write`
 

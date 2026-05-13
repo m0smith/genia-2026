@@ -110,27 +110,25 @@ class TestReduceInternalRemoved:
 
 
 class TestReduceNonListRegression:
-    """reduce(f, acc, non_list) must raise the exact TypeError via arm 3.
+    """reduce(f, acc, source) behavior for non-list sources after issue #305.
 
-    These tests pass on current main (arm 3 delegates to _reduce) and must
-    continue to pass after implementation (arm 3 delegates to _reduce_error).
-    The observable user-visible behavior — the exact error message — is identical
-    in both cases. These are regression guards, not failing tests.
+    After #305, Flow is Seq-compatible. String and int remain non-Seq-compatible
+    but now produce the Seq-compatible diagnostic instead of the old list-only message.
     """
 
     def test_reduce_non_list_flow(self):
-        # I1: reduce with a Flow xs raises the exact TypeError message.
-        with pytest.raises(TypeError, match="reduce expected a list as third argument, received flow"):
-            run("inc(n) -> n + 1\nreduce((acc, x) -> acc + x, 0, evolve(0, inc) |> take(3))")
+        # I1: reduce with a Flow now returns the final accumulator (no longer raises).
+        # evolve(0, inc) |> take(3) produces 0, 1, 2. Sum = 3.
+        assert run("inc(n) -> n + 1\nreduce((acc, x) -> acc + x, 0, evolve(0, inc) |> take(3))") == 3
 
     def test_reduce_non_list_string(self):
-        # I2: reduce with a string xs raises the exact TypeError message.
-        with pytest.raises(TypeError, match="reduce expected a list as third argument, received string"):
+        # I2: reduce with a non-Seq-compatible string raises Seq-compatible TypeError.
+        with pytest.raises(TypeError, match="reduce expected a Seq-compatible value \\(list or Flow\\); received string\\."):
             run('reduce((acc, x) -> acc + x, 0, "not-a-list")')
 
     def test_reduce_non_list_int(self):
-        # reduce with an int xs raises the exact TypeError message.
-        with pytest.raises(TypeError, match="reduce expected a list as third argument, received int"):
+        # reduce with a non-Seq-compatible int raises Seq-compatible TypeError.
+        with pytest.raises(TypeError, match="reduce expected a Seq-compatible value \\(list or Flow\\); received int\\."):
             run("reduce((acc, x) -> acc + x, 0, 42)")
 
     def test_reduce_list_unaffected(self):
