@@ -148,8 +148,8 @@ class TestReduceRegression:
         assert run("reduce((acc, x) -> acc + x, 42, [])") == 42
 
     def test_reduce_non_list_error(self):
-        # A7: exact TypeError message preserved via _reduce_error catch-all
-        with pytest.raises(TypeError, match="reduce expected a list as third argument"):
+        # A7: non-Seq-compatible source raises Seq-compatible TypeError after #305
+        with pytest.raises(TypeError, match="reduce expected a Seq-compatible value"):
             run('reduce((acc, x) -> acc + x, 0, "not-a-list")')
 
     def test_reduce_none_elements_delivered(self):

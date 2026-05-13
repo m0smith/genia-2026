@@ -329,7 +329,7 @@ Dispatch and mode notes:
 - runtime entrypoint order is `main/1` first, then `main/0`
 - pipe mode bypasses `main`
 - in pipe mode, stage helpers still receive a Flow; use `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or `keep_some_else(...)` for per-item work
-- use `-c` or file mode for final value reducers such as `collect |> sum` or `collect |> count`
+- use `-c` or file mode for final value reducers that require a list, such as `collect |> sum`; `reduce` and `count` accept Flow directly
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literals)
 
 ## Minimal Valid Snippets

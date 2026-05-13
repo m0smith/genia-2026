@@ -95,10 +95,10 @@ class TestReduceNoneElements:
 
 
 class TestReduceTypeError:
-    """Spec invariant: R4 — non-list third argument raises exact TypeError."""
+    """Spec invariant: R4 — non-Seq-compatible third argument raises Seq-compatible TypeError."""
 
     def test_string_raises(self):
-        with pytest.raises(TypeError, match="reduce expected a list as third argument"):
+        with pytest.raises(TypeError, match="reduce expected a Seq-compatible value"):
             run('reduce((a, b) -> a, 0, "not-a-list")')
 
     def test_int_raises(self):
@@ -106,8 +106,24 @@ class TestReduceTypeError:
             run("reduce((a, b) -> a, 0, 42)")
 
     def test_error_message_exact(self):
-        with pytest.raises(TypeError, match="reduce expected a list as third argument, received string"):
+        with pytest.raises(TypeError, match="reduce expected a Seq-compatible value \\(list or Flow\\); received string\\."):
             run('reduce((a, b) -> a, 0, "oops")')
+
+
+class TestReduceFlowCompatible:
+    """Spec invariants: #305 — reduce accepts Flow as Seq-compatible source."""
+
+    def test_flow_bounded_evolve_sum(self):
+        assert run("inc(n) -> n + 1\nevolve(0, inc) |> take(5) |> reduce((sum, x) -> sum + x, 0)") == 10
+
+    def test_flow_bounded_evolve_product(self):
+        assert run("inc(n) -> n + 1\nevolve(1, (n) -> n + 1) |> take(4) |> reduce((acc, x) -> acc * x, 1)") == 24
+
+    def test_flow_option_accumulator(self):
+        from genia.values import GeniaOptionSome
+        result = run("inc(n) -> n + 1\nevolve(0, inc) |> take(5) |> reduce((acc, x) -> some(x), none)")
+        assert isinstance(result, GeniaOptionSome)
+        assert result.value == 4
 
 
 # ---------------------------------------------------------------------------

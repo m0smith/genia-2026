@@ -1,0 +1,19 @@
+name: reduce-flow-range-basic
+category: flow
+description: reduce accepts a Flow produced from stdin and returns the final accumulator
+input:
+  source: |
+    stdin |> lines |> reduce((acc, line) -> acc + 1, 0)
+  stdin: |
+    a
+    b
+    c
+expected:
+  stdout: "3\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #305
+  invariant: reduce-flow-accepted
+  stdin |> lines produces a genuine Flow. reduce counts lines by incrementing accumulator.
+  Proves reduce accepts Flow as a Seq-compatible source in a real stream context.

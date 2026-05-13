@@ -47,7 +47,7 @@ ALLOWED_EXPECTED_KEYS_BY_CATEGORY = {
     "parse": {"parse"},
 }
 
-FLOW_TERMINAL_PATTERN = re.compile(r"\b(?:collect|run)\b")
+FLOW_TERMINAL_PATTERN = re.compile(r"\b(?:collect|run|reduce)\b")
 
 
 @dataclass(frozen=True)

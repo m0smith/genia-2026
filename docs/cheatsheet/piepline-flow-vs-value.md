@@ -74,9 +74,7 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | --- | --- | --- |
 | `map` | `map(f, xs)` | Also works as flow stage; polymorphic |
 | `filter` | `filter(pred, xs)` | Also works as flow stage; polymorphic |
-| `reduce` | `reduce(f, acc, xs)` | Value-only reducer |
 | `sum` | `sum(xs)` | Expects plain numbers |
-| `count` | `count(xs)` | List length |
 | `first` | `first(xs)` | Returns `some(x)` or `none(...)` |
 | `last` | `last(xs)` | Returns `some(x)` or `none(...)` |
 | `nth` | `nth(index, xs)` | Returns `some(x)` or `none(...)` |
@@ -110,6 +108,8 @@ Recovery pattern: wrap the pipeline, not a single stage.
 | `each` | list or Flow → Flow | Returns a lazy effect stage; passes original items through when consumed |
 | `collect` | list or Flow → list | Returns list data or materializes lazy flow into a list |
 | `run` | list or Flow → nil | Traverses/consumes; returns `nil` |
+| `reduce` | list or Flow → value | Folds items into accumulator; `none(...)` as initial accumulator is not short-circuited |
+| `count` | list or Flow → int | Counts items; built on `reduce` |
 
 ### Debug helpers (mode-transparent)
 
@@ -142,9 +142,9 @@ Recovery pattern: wrap the pipeline, not a single stage.
 
 | Goal | Value | Flow | [case] |
 | --- | --- | --- | --- |
-| Reduce | 🟢 `reduce(f, acc, xs)` | 🟣 `flow \|> collect \|> reduce(f, acc)` | [case: pfv-reduce] |
+| Reduce | 🟢 `reduce(f, acc, xs)` | 🟣 `flow \|> reduce(f, acc)` | [case: pfv-reduce] |
 | Sum | 🟢 `sum(xs)` | 🟣 `flow \|> collect \|> sum` | [case: pfv-sum] |
-| Count | 🟢 `count(xs)` | 🟣 `flow \|> collect \|> count` | [case: pfv-count] |
+| Count | 🟢 `count(xs)` | 🟣 `flow \|> count` | [case: pfv-count] |
 
 ## Positional access
 
@@ -201,7 +201,7 @@ Recovery pattern: wrap the pipeline, not a single stage.
 
 Pipe mode runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically.
 Do not include explicit `stdin` or `run` in `-p`.
-For reducers like `sum` or `count`, use `-c`.
+For reducers like `sum` that require a list, use `collect` first or use `-c`. `reduce` and `count` accept Flow directly.
 
 ## Value-only pipeline example
 
@@ -244,7 +244,7 @@ Classification: **Valid** (directly tested)
 3. **Cross explicitly.** `collect(flow)` is the Flow → Value bridge. `lines` is the primary Value → Flow bridge.
 4. **Option composes orthogonally.** Pipeline `some`/`none` lifting works the same in both worlds.
 5. **Use `keep_some` for stream-level Option filtering.** It is flow-oriented. For single Options, use `map_some`, `flat_map_some`, or `unwrap_or`.
-6. **Reducers need values.** `sum`, `count`, `reduce` expect lists, not flows. Use `collect` first.
+6. **`reduce` and `count` are Seq-compatible.** They accept both lists and Flow directly. `sum` expects a list; use `collect` first for Flow input.
 7. **Direct calls don't lift.** Automatic `some(x)` unwrapping is pipeline-only. Direct `f(some(x))` short-circuits.
 
 ## Gotchas

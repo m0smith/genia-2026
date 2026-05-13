@@ -844,7 +844,7 @@ When changing syntax/semantics/runtime behavior, update together:
 - phase-1 flow builtins:
   - sources/transforms: `lines`, `evolve(init, f)`, `map`, `filter`, `take`, `rules`
   - stdlib aliases over `take`: `head(flow)`, `head(n, flow)`
-  - Seq-compatible sinks/materialization: `each`, `run`, `collect` accept list or Flow; non-list/non-Flow inputs fail with a Seq-compatible diagnostic
+  - Seq-compatible sinks/materialization: `each`, `run`, `collect`, `reduce`, `count` accept list or Flow; non-list/non-Flow inputs fail with a Seq-compatible diagnostic
   - Seq-compatible transforms: `map`, `filter`, `take`, `drop` accept list or Flow and produce Seq-compatible diagnostics for invalid inputs; `scan` accepts list or Flow (`scan(list)` returns list, `scan(Flow)` returns Flow)
 - flows are single-use:
   - first consumption succeeds
@@ -870,6 +870,9 @@ When changing syntax/semantics/runtime behavior, update together:
 - `each(fn, source)` accepts list or Flow and returns a lazy Flow stage that applies effects only when consumed.
 - `collect(source)` accepts list or Flow and returns a list.
 - `run(source)` accepts list or Flow and returns `nil` without printing by itself.
+- `reduce(f, acc, source)` accepts list or Flow and returns the final accumulator after folding all items left-to-right; `none(...)` as initial accumulator is not short-circuited; consuming a Flow with `reduce` constitutes single-use consumption.
+- `count(source)` accepts list or Flow and returns the number of items; built on `reduce`.
+- `_seq_reduce(f, acc, source)` is a Python reference-host internal kernel primitive; called from `reduce`'s catch-all prelude arm; handles both list and Flow; raises Seq-compatible diagnostic for non-list/non-Flow input.
 - `_seq_transform(initial_state, step, source)` is a Python reference-host internal kernel primitive over Seq-compatible public sources:
   - `source` must be a list or Flow
   - list sources return lists; Flow sources return Flows
@@ -880,7 +883,7 @@ When changing syntax/semantics/runtime behavior, update together:
   - `halt: true` emits the current result and stops the whole transform without pulling later source items
   - invalid result shape, invalid `emit`, and invalid `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
 - `_seq_transform` must not introduce syntax, a Core IR node, a public Seq value/type/helper, implicit list-to-Flow conversion, or implicit Flow-to-list conversion.
-- `_seq_transform` and related underscore sequence kernels must not be ordinary user-callable Genia names; public code uses prelude helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, and `evolve`.
+- `_seq_transform`, `_seq_reduce`, and related underscore sequence kernels must not be ordinary user-callable Genia names; public code uses prelude helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, `reduce`, `count`, and `evolve`.
 
 ## `rules(..fns)`
 

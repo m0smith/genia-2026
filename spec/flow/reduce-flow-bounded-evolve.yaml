@@ -1,0 +1,17 @@
+name: reduce-flow-bounded-evolve
+category: flow
+description: reduce on a bounded infinite Flow terminates without eager materialization
+input:
+  source: |
+    inc(n) -> n + 1
+    evolve(0, inc) |> take(5) |> reduce((sum, x) -> sum + x, 0)
+expected:
+  stdout: "10\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #305
+  invariant: reduce-flow-bounded-no-eager-materialize
+  evolve(0, inc) produces 0,1,2,3,4,... take(5) bounds it to 0,1,2,3,4. Sum=10.
+  Proves reduce does not attempt to materialize the infinite upstream source.
+  If reduce eagerly materialized, this would hang or OOM.

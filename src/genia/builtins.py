@@ -1366,6 +1366,29 @@ def make_global_env(
                 _finalize_iterable(items, primary_error=primary_error)
         return None
 
+    def _seq_reduce_fn(f: Any, acc: Any, source: Any) -> Any:
+        if isinstance(source, list):
+            for item in source:
+                acc = _invoke_raw_from_builtin(f, [acc, item])
+            return acc
+        if not isinstance(source, GeniaFlow):
+            _seq_compatible_error("reduce", source)
+        flow = source
+        items = flow.consume()
+        primary_error = False
+        try:
+            for item in items:
+                acc = _invoke_raw_from_builtin(f, [acc, item])
+        except Exception:
+            primary_error = True
+            raise
+        finally:
+            if flow.close_on_early_termination:
+                _finalize_iterable(items, primary_error=primary_error)
+        return acc
+
+    _seq_reduce_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
     def _emit_help(text: str) -> None:
         stdout_sink.write_text(text + "\n")
 
@@ -2880,6 +2903,7 @@ def make_global_env(
     env.set("_zip", zip_flow_fn)
     env.set_internal("_seq_transform", seq_transform_fn)
     env.set_internal("_ensure_seq_compatible", ensure_seq_compatible_fn)
+    env.set_internal("_seq_reduce", _seq_reduce_fn)
     env.set_internal("_scan", scan_fn)
     env.set("_seq_type_error", seq_type_error_fn)
     env.set("_keep_some", keep_some_fn)

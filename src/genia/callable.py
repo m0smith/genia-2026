@@ -343,6 +343,7 @@ def eval_with_tco(
 
 _NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
     {
+        "reduce",
         "apply",
         "inspect",
         "trace",

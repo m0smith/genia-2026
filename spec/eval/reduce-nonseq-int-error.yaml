@@ -1,0 +1,16 @@
+name: reduce-nonseq-int-error
+category: eval
+description: reduce rejects a non-Seq-compatible source with a clear diagnostic
+input:
+  source: |
+    sum(acc, x) = acc + x
+    42 |> reduce(sum, 0)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at reduce(sum, 0) [<command>:2]: stage received int; reduce expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1
+notes: |
+  issue: #305
+  invariant: reduce-nonseq-diagnostic
+  42 is not Seq-compatible. reduce must fail with the standard Seq-compatible error style.
+  Diagnostic must not claim only lists are valid. Must include both list and Flow.

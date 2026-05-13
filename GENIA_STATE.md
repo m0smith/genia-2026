@@ -54,7 +54,7 @@ Scaffolded or planned, not implemented as hosts:
 
 - Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
 - Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
-- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, selected rule result defaulting/no-effect behavior, error propagation via invalid-reducer-on-flow diagnostic, focused Flow `map` / `filter` / `scan` coverage, selected Seq-compatible `each` / `collect` / `run` terminal behavior, and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output. Advanced Flow behavior is not covered by shared semantic specs in this phase.
+- Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, selected rule result defaulting/no-effect behavior, focused Flow `map` / `filter` / `scan` coverage, selected Seq-compatible `each` / `collect` / `run` / `reduce` terminal behavior, and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output. Advanced Flow behavior is not covered by shared semantic specs in this phase.
 - IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, `lhs/name` → `IrBinary(op=SLASH)`, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
 
 **Explicit limitations:**
@@ -128,7 +128,7 @@ PYTHON REFERENCE HOST:
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`. Eval shared coverage includes list-side Seq-compatible `collect`, `run`, lazy `each`, item-preserving `each |> collect`, the existing `seq-compatible-list-transform-chain` fixture, list-side `scan` (accepting list input and returning list), Seq-compatible non-list/non-Flow diagnostics for `each`, `collect`, `run`, `map`, `filter`, `take`, `drop`, and `scan`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
-- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, error propagation via invalid-reducer-on-flow diagnostic, and Flow/value boundary enforcement (value function `count` misused as a pipe stage); focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, and `collect` materialization; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
+- The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, `collect` materialization, and `reduce` accumulation over Flow; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
 - CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, and current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results. REPL mode is not included in shared executable spec coverage.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
@@ -145,7 +145,7 @@ PYTHON REFERENCE HOST:
   - direct Option rendering for deterministic final-result output (`some(...)`, `none(...)`)
   - pipeline Option propagation for deterministic final-result output (`some(...)` lift and `none(...)` short-circuit)
   - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, and glob forms)
-  - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `reduce` given a Flow, `first` given a Flow
+  - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `first` given a Flow, `reduce` given a non-Seq-compatible value (int, string)
   - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
@@ -392,6 +392,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
   - lambda expressions whose body delegates to a known Option-aware function (for example `(o) -> unwrap_or(0, o)`) are recognized as absence-aware and bypass short-circuiting
 - list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
+  - `reduce` accepts both list and Flow (Seq-compatible) as its third argument; `none(...)` as initial accumulator is not short-circuited
   - this means `map((o) -> unwrap_or(0, o), [none("a"), some(2)])` correctly returns `[0, 2]` instead of propagating `none`
   - `filter((o) -> some?(o), [some(1), none("x"), some(3)])` correctly returns `[some(1), some(3)]`
 - pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(...)`.
@@ -1151,10 +1152,10 @@ Flow semantics:
   - Flow-producing and Flow-consuming primitive boundaries used by prelude wrappers
 - Flow vs Value classification model:
   - the one rule: raw values stay values, flows stay flows, only explicit bridges cross the boundary
-  - Value functions (list in, value out): `reduce`, `sum`, `count`, `first`, `last`, `nth`, `reverse`
+  - Value functions (list in, value out): `sum`, `first`, `last`, `nth`, `reverse`
   - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `rules`, `tee`, `merge`, `zip`, `head`
   - Polymorphic functions (work on both lists and flows, same-kind return): `map`, `filter`, `take`, `drop`, `scan`
-  - Seq-compatible helpers (list or Flow): `each`, `collect`, `run`
+  - Seq-compatible helpers (list or Flow): `each`, `collect`, `run`, `reduce`, `count`
   - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`
@@ -1506,7 +1507,7 @@ Absence semantics:
 - helpers treat all `none...` forms as absence.
 - `parse_int` uses `none("parse-error", context)` for invalid integer text instead of raising for ordinary parse failure
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence
-- list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw`; `none(...)` list elements are delivered to the callback without short-circuit
+- list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw`; `none(...)` list elements are delivered to the callback without short-circuit; `reduce` additionally accepts Flow as Seq-compatible input and does not short-circuit on `none(...)` as initial accumulator
 - a present key whose stored value is legacy `nil` now appears as `some(none("nil"))`
 
 `get?` semantics:
@@ -1813,7 +1814,7 @@ Loading behavior:
 Notable autoloaded functions include:
 
 - list: `list`, `first`, `rest`, `empty?`, `nil?`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `count`, `any?`, `nth`, `take`, `drop`, `range`
-  - `reduce`, `map`, and `filter` are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
+  - `reduce`, `map`, and `filter` are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit; `reduce` additionally accepts Flow as Seq-compatible input and does not short-circuit on `none(...)` as initial accumulator; `count` (built on `reduce`) also accepts Flow
 - canonical list/search helpers: `first`, `last`, `nth`, string `find`, `find_opt`
 - compatibility aliases: `first_opt`, `nth_opt`
 - fn: `apply`, `apply_raw`, `compose`

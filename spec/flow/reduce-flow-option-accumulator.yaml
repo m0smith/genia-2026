@@ -1,0 +1,17 @@
+name: reduce-flow-option-accumulator
+category: flow
+description: reduce accumulator may be any Genia value including Option values
+input:
+  source: |
+    inc(n) -> n + 1
+    evolve(0, inc) |> take(5) |> reduce((acc, x) -> some(x), none)
+expected:
+  stdout: "some(4)\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: #305
+  invariant: reduce-flow-option-accumulator
+  evolve(0, inc) |> take(5) emits 0,1,2,3,4. step = (acc, x) -> some(x), initial = none.
+  After each step the accumulator becomes some(last x). Final: some(4).
+  Proves accumulator can become an Option value and callback return is not coerced.
