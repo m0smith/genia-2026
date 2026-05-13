@@ -784,6 +784,11 @@ def make_global_env(
             msg += " Use stdin |> lines to adapt stdin into a Flow."
         raise TypeError(msg)
 
+    def ensure_seq_compatible_fn(name: Any, source: Any) -> Any:
+        if isinstance(source, list) or isinstance(source, GeniaFlow):
+            return source
+        _seq_compatible_error(str(name), source)
+
     def flow_predicate_fn(value: Any) -> bool:
         return isinstance(value, GeniaFlow)
 
@@ -2874,6 +2879,7 @@ def make_global_env(
     env.set("_merge", merge_flow_fn)
     env.set("_zip", zip_flow_fn)
     env.set_internal("_seq_transform", seq_transform_fn)
+    env.set_internal("_ensure_seq_compatible", ensure_seq_compatible_fn)
     env.set_internal("_scan", scan_fn)
     env.set("_seq_type_error", seq_type_error_fn)
     env.set("_keep_some", keep_some_fn)

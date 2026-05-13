@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-bool-collect-error
+category: eval
+input:
+  source: |
+    true |> collect
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at collect [<command>:1]: stage received bool; collect expected a Seq-compatible value (list or Flow); received bool.\n"
+  exit_code: 1

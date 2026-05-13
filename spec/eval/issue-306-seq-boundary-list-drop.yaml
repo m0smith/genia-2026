@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-list-drop
+category: eval
+input:
+  source: |
+    [1, 2, 3, 4] |> drop(2) |> collect
+expected:
+  stdout: "[3, 4]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-string-map-error
+category: eval
+input:
+  source: |
+    "abc" |> map((x) -> x)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at map((x) -> ...) [<command>:1]: stage received string; map expected a Seq-compatible value (list or Flow); received string.\n"
+  exit_code: 1

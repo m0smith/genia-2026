@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-wrapped-list-one-item
+category: eval
+input:
+  source: |
+    [[1, 2, 3]] |> each(print) |> run
+expected:
+  stdout: "[1, 2, 3]\n"
+  stderr: ""
+  exit_code: 0

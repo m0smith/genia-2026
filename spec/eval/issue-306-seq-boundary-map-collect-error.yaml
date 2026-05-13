@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-map-collect-error
+category: eval
+input:
+  source: |
+    {a: 1} |> collect
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at collect [<command>:1]: stage received map; collect expected a Seq-compatible value (list or Flow); received map.\n"
+  exit_code: 1

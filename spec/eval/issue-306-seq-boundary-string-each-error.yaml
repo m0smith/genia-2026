@@ -1,0 +1,9 @@
+name: issue-306-seq-boundary-string-each-error
+category: eval
+input:
+  source: |
+    "abc" |> each(print) |> run
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at each(print) [<command>:1]: stage received string; each expected a Seq-compatible value (list or Flow); received string.\n"
+  exit_code: 1
