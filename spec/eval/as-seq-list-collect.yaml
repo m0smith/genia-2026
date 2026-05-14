@@ -1,0 +1,9 @@
+name: as-seq-list-collect
+category: eval
+input:
+  source: |
+    as_seq([1, 2, 3]) |> collect
+expected:
+  stdout: "[1, 2, 3]\n"
+  stderr: ""
+  exit_code: 0

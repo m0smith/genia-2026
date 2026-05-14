@@ -1,0 +1,10 @@
+name: as-seq-list-reusable
+category: eval
+input:
+  source: |
+    xs = as_seq([1, 2, 3])
+    [xs |> collect, xs |> collect]
+expected:
+  stdout: "[[1, 2, 3], [1, 2, 3]]\n"
+  stderr: ""
+  exit_code: 0

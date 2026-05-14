@@ -52,6 +52,13 @@ The output stops when either input flow is exhausted.
 """
 zip(pair) = _zip(pair)
 
+@doc """Explicitly adapt a list or string into a Seq-compatible ordered source.
+
+Lists are returned as ordered elements without flattening.
+Strings are decomposed into one-character strings only through this helper.
+"""
+as_seq(value) = _as_seq(value)
+
 @doc """Stateful flow transform.
 
 `step(state, item)` must return `[next_state, output]`.

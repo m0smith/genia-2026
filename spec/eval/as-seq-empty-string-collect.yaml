@@ -1,0 +1,9 @@
+name: as-seq-empty-string-collect
+category: eval
+input:
+  source: |
+    as_seq("") |> collect
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0

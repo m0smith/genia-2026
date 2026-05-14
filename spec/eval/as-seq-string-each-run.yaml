@@ -1,0 +1,9 @@
+name: as-seq-string-each-run
+category: eval
+input:
+  source: |
+    as_seq("abc") |> each(print) |> run
+expected:
+  stdout: "a\nb\nc\n"
+  stderr: ""
+  exit_code: 0

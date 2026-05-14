@@ -789,6 +789,13 @@ def make_global_env(
             return source
         _seq_compatible_error(str(name), source)
 
+    def as_seq_fn(value: Any) -> list[Any]:
+        if isinstance(value, list):
+            return value
+        if isinstance(value, str):
+            return list(value)
+        raise TypeError(f"as_seq expected a list or string, received {_runtime_type_name(value)}.")
+
     def flow_predicate_fn(value: Any) -> bool:
         return isinstance(value, GeniaFlow)
 
@@ -2901,6 +2908,7 @@ def make_global_env(
     env.set("_tee", tee_fn)
     env.set("_merge", merge_flow_fn)
     env.set("_zip", zip_flow_fn)
+    env.set_internal("_as_seq", as_seq_fn)
     env.set_internal("_seq_transform", seq_transform_fn)
     env.set_internal("_ensure_seq_compatible", ensure_seq_compatible_fn)
     env.set_internal("_seq_reduce", _seq_reduce_fn)
@@ -3063,6 +3071,7 @@ def make_global_env(
     env.register_autoload("merge", 2, "std/prelude/flow.genia")
     env.register_autoload("zip", 1, "std/prelude/flow.genia")
     env.register_autoload("zip", 2, "std/prelude/flow.genia")
+    env.register_autoload("as_seq", 1, "std/prelude/flow.genia")
     env.register_autoload("scan", 2, "std/prelude/flow.genia")
     env.register_autoload("scan", 3, "std/prelude/flow.genia")
     env.register_autoload("keep_some", 1, "std/prelude/flow.genia")

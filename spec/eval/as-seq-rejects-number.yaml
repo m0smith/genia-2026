@@ -1,0 +1,9 @@
+name: as-seq-rejects-number
+category: eval
+input:
+  source: |
+    as_seq(42)
+expected:
+  stdout: ""
+  stderr: "Error: as_seq expected a list or string, received int.\n"
+  exit_code: 1

@@ -883,7 +883,8 @@ When changing syntax/semantics/runtime behavior, update together:
   - `halt: true` emits the current result and stops the whole transform without pulling later source items
   - invalid result shape, invalid `emit`, and invalid `halt` raise runtime errors prefixed with `invalid-seq-transform-result:`
 - `_seq_transform` must not introduce syntax, a Core IR node, a public Seq value/type/helper, implicit list-to-Flow conversion, or implicit Flow-to-list conversion.
-- `_seq_transform`, `_seq_reduce`, and related underscore sequence kernels must not be ordinary user-callable Genia names; public code uses prelude helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, `reduce`, `count`, and `evolve`.
+- `_seq_transform`, `_seq_reduce`, and related underscore sequence kernels must not be ordinary user-callable Genia names; public code uses prelude helpers such as `map`, `filter`, `take`, `scan`, `each`, `collect`, `run`, `reduce`, `count`, `evolve`, and `as_seq`.
+- `as_seq(value)` is the only public explicit adapter for converting values into Seq-compatible ordered sources; strings remain atomic and are not implicitly Seq-compatible; `as_seq` does not introduce a `Char` type, scalar auto-lifting, or a public Seq runtime value beyond itself.
 
 ## `rules(..fns)`
 
