@@ -582,6 +582,7 @@ Current consistency note:
 - `Format(template, tag)` constructs a tagged first-class representation value; `tag` must be a non-empty string; the tag is metadata only and does not affect rendering or display/debug output (Experimental, #292)
 - `format_template(fmt)` returns the source template string from a first-class `Format` value (Experimental, #294); `display(Format(...))` and `debug_repr(Format(...))` remain opaque as `<format>`; non-Format input fails with a deterministic `TypeError`
 - `format_tag(fmt)` returns `some(tag)` for a tagged `Format` value or `none("missing-format-tag")` for an untagged `Format` value (Experimental, #292)
+- `format_compose(parts)` creates a composed `Format` value from an ordered list of raw string templates and `Format` values; rendering concatenates each piece rendered with the same values map; all placeholders share one input namespace; composition is pure with no parser syntax or Value Template behavior (Experimental, #293)
 - `some(pattern)`, `none(reason)`, and `none(reason, context)` are supported in pattern matching for Option values
 - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - Flow, MetaEnv, Ref, and Process handles are runtime values, but they are not plain data in the same sense as numbers/lists/maps
