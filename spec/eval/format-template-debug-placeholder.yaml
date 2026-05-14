@@ -1,0 +1,10 @@
+name: format-template-debug-placeholder
+category: eval
+input:
+  source: |
+    format_template(Format("{a:?}"))
+expected:
+  stdout: |
+    "{a:?}"
+  stderr: ""
+  exit_code: 0

@@ -192,6 +192,7 @@ CLI contract summary (actual behavior):
     - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`
     - `format` accepts either a raw string template or a `Format` value as its first argument
     - `Format(template)` constructs a first-class representation value from a string template (**Experimental**, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
+    - `format_template(fmt)` returns the original source template string from a `Format` value (**Experimental**, #294); `display(Format(...))` and `debug_repr(Format(...))` remain opaque as `<format>`
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`
