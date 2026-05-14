@@ -516,8 +516,9 @@ class GeniaProcess:
 
 
 class GeniaFormat:
-    def __init__(self, template: str):
+    def __init__(self, template: str, tag: str | None = None):
         self.template = template
+        self.tag = tag
 
     def __repr__(self) -> str:
         return "<format>"

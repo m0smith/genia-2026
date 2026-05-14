@@ -3,6 +3,7 @@ import io
 import pytest
 
 from genia import make_global_env, run_source
+from genia.utf8 import format_debug
 
 
 def _env():
@@ -42,14 +43,14 @@ def test_format_tag_returns_none_for_untagged_format():
     env, _, _ = _env()
     result = run_source('format_tag(Format("{name}"))', env)
 
-    assert repr(result) == 'none("missing-format-tag")'
+    assert format_debug(result) == 'none("missing-format-tag")'
 
 
 def test_format_tag_returns_some_for_tagged_format():
     env, _, _ = _env()
     result = run_source('format_tag(Format("{name}", "person-card"))', env)
 
-    assert repr(result) == 'some("person-card")'
+    assert format_debug(result) == 'some("person-card")'
 
 
 def test_tagged_format_display_and_debug_remain_opaque():

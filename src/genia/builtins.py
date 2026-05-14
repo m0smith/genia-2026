@@ -490,12 +490,22 @@ def make_global_env(
     def debug_repr_fn(value: Any) -> str:
         return format_debug(value)
 
-    def format_constructor(template: Any) -> GeniaFormat:
+    def format_constructor(*args: Any) -> GeniaFormat:
+        if len(args) not in (1, 2):
+            raise TypeError(f"Format expected 1 or 2 args, got {len(args)}")
+        template = args[0]
         if not isinstance(template, str):
             raise TypeError(
-                f"Format expected a string template, received {_runtime_type_name(template)}"
+                f"Format expected template string, received {_runtime_type_name(template)}"
             )
-        return GeniaFormat(template)
+        tag = None
+        if len(args) == 2:
+            tag = args[1]
+            if not isinstance(tag, str):
+                raise TypeError(f"Format expected tag string, received {_runtime_type_name(tag)}")
+            if tag == "":
+                raise TypeError("Format expected non-empty tag string")
+        return GeniaFormat(template, tag)
 
     def format_template_fn(fmt: Any) -> str:
         if not isinstance(fmt, GeniaFormat):
@@ -503,6 +513,18 @@ def make_global_env(
                 f"format_template expected a format, received {_runtime_type_name(fmt)}"
             )
         return fmt.template
+
+    def format_tag_fn(*args: Any) -> GeniaOptionSome | GeniaOptionNone:
+        if len(args) != 1:
+            raise TypeError(f"format_tag expected 1 arg, got {len(args)}")
+        fmt = args[0]
+        if not isinstance(fmt, GeniaFormat):
+            raise TypeError(
+                f"format_tag expected a format value, received {_runtime_type_name(fmt)}"
+            )
+        if fmt.tag is None:
+            return make_none("missing-format-tag")
+        return GeniaOptionSome(fmt.tag)
 
     def _ensure_string(value: Any, name: str) -> str:
         if not isinstance(value, str):
@@ -2907,6 +2929,7 @@ def make_global_env(
     env.set("debug_repr", debug_repr_fn)
     env.set("Format", format_constructor)
     env.set("format_template", format_template_fn)
+    env.set("format_tag", format_tag_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_source)
     env.set("stdin_keys", stdin_keys_flow)

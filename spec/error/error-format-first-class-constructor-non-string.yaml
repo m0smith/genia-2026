@@ -6,5 +6,5 @@ input:
 expected:
   stdout: ""
   stderr: |
-    Error: Format expected a string template, received int
+    Error: Format expected template string, received int
   exit_code: 1
