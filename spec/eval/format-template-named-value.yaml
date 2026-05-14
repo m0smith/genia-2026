@@ -1,0 +1,11 @@
+name: format-template-named-value
+category: eval
+input:
+  source: |
+    BoardRow = Format("{a} {b} {c}")
+    format_template(BoardRow)
+expected:
+  stdout: |
+    "{a} {b} {c}"
+  stderr: ""
+  exit_code: 0

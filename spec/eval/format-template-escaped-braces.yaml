@@ -1,0 +1,10 @@
+name: format-template-escaped-braces
+category: eval
+input:
+  source: |
+    format_template(Format("{{a}}"))
+expected:
+  stdout: |
+    "{{a}}"
+  stderr: ""
+  exit_code: 0

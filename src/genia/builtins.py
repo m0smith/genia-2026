@@ -497,6 +497,13 @@ def make_global_env(
             )
         return GeniaFormat(template)
 
+    def format_template_fn(fmt: Any) -> str:
+        if not isinstance(fmt, GeniaFormat):
+            raise TypeError(
+                f"format_template expected a format, received {_runtime_type_name(fmt)}"
+            )
+        return fmt.template
+
     def _ensure_string(value: Any, name: str) -> str:
         if not isinstance(value, str):
             raise TypeError(f"{name} expected a string, received {_runtime_type_name(value)}")
@@ -2899,6 +2906,7 @@ def make_global_env(
     env.set("display", display_fn)
     env.set("debug_repr", debug_repr_fn)
     env.set("Format", format_constructor)
+    env.set("format_template", format_template_fn)
     env.set("input", input_fn)
     env.set("stdin", stdin_source)
     env.set("stdin_keys", stdin_keys_flow)

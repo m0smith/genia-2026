@@ -1012,6 +1012,17 @@ Representation System entry points (#185, implemented):
   - `format(non_string_non_format, values)` fails with `TypeError: format expected a string template or Format value, received <type>`.
   - No parser syntax such as `Format "..."` is introduced; `Format("...")` is the only accepted call form.
   - `Format` is Experimental. The wrapped template, display/debug text, and constructor surface may change before stabilization.
+- `format_template(fmt)` is a public Representation System helper (**Experimental**, #294):
+  - `format_template(fmt)` returns the original source template string supplied to `Format(...)`.
+  - Accepted: a `Format` value created by `Format(template)`.
+  - Rejected: raw strings, numbers, lists, maps, booleans, flow values, and any other non-Format value.
+  - `format_template(fmt)` returns the template string exactly: no normalization, no unescaping, no placeholder parsing.
+  - `format_template("{a}")` fails with `TypeError: format_template expected a format, received string`.
+  - `format_template(non_format)` fails with `TypeError: format_template expected a format, received <type>`.
+  - `display(Format(...))` and `debug_repr(Format(...))` remain opaque; `format_template` is the only approved way to recover the source template string.
+  - `format_template` does not expose compiled template internals, placeholder metadata, or parsed template structure.
+  - `format_template` is not explicitly none-aware; ordinary none propagation applies in pipelines.
+  - `format_template` is Experimental. The accessor name and behavior may change before stabilization.
 - These helpers do not write to `stdout` or `stderr`.
 - These helpers do not mutate runtime state.
 - These helpers do not change `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
@@ -1033,6 +1044,8 @@ Representation System entry points (#185, implemented):
   - `format("display={x} debug={x:?}", {x: "hello"})` evaluates to the string `display=hello debug="hello"`
   - `display(none("missing-key", {key: "name"}))` evaluates to the string `none("missing-key", {key: "name"})`
   - `debug_repr([some("x"), false])` evaluates to the string `[some("x"), false]`
+  - `format_template(Format("{a} {b}"))` evaluates to the string `{a} {b}`
+  - `format_template(Format("{{escaped}}"))` evaluates to the string `{{escaped}}`
 - Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
 - #185 does not define the full Representation System.
 - #166 owns the broader representation model, including naming boundaries beyond `display` and `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host treatment of opaque runtime values.

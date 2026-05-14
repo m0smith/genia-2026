@@ -1,0 +1,10 @@
+name: format-template-empty
+category: eval
+input:
+  source: |
+    format_template(Format(""))
+expected:
+  stdout: |
+    ""
+  stderr: ""
+  exit_code: 0
