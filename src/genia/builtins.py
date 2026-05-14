@@ -512,6 +512,8 @@ def make_global_env(
             raise TypeError(
                 f"format_template expected a format, received {_runtime_type_name(fmt)}"
             )
+        if fmt.template is None:
+            raise TypeError("format_template expected an atomic Format value")
         return fmt.template
 
     def format_tag_fn(*args: Any) -> GeniaOptionSome | GeniaOptionNone:
@@ -632,15 +634,17 @@ def make_global_env(
             raise TypeError("join expected a list of strings, received list")
         return separator.join(xs)
 
-    def format_fn(template: Any, values: Any) -> str:
-        if isinstance(template, GeniaFormat):
-            template = template.template
-        elif not isinstance(template, str):
+    def _render_format_piece(piece: Any, values: Any) -> str:
+        if isinstance(piece, GeniaFormat):
+            if piece.pieces is not None:
+                return "".join(_render_format_piece(part, values) for part in piece.pieces)
+            piece = piece.template
+        if not isinstance(piece, str):
             raise TypeError(
-                f"format expected a string template or Format value, received {_runtime_type_name(template)}"
+                f"format expected a string template or Format value, received {_runtime_type_name(piece)}"
             )
 
-        parts = parse_format_template(template)
+        parts = parse_format_template(piece)
         pieces: list[str] = []
         for part in parts:
             if isinstance(part, TemplateLiteral):
@@ -652,6 +656,22 @@ def make_global_env(
                 else:
                     pieces.append(render_format_value(resolved))
         return "".join(pieces)
+
+    def format_fn(template: Any, values: Any) -> str:
+        return _render_format_piece(template, values)
+
+    def format_compose_fn(parts: Any) -> GeniaFormat:
+        if not isinstance(parts, list):
+            raise TypeError(
+                f"format_compose expected list of format pieces, received {_runtime_type_name(parts)}"
+            )
+        for index, part in enumerate(parts):
+            if not isinstance(part, (str, GeniaFormat)):
+                raise TypeError(
+                    "format_compose expected string or Format "
+                    f"at index {index}, received {_runtime_type_name(part)}"
+                )
+        return GeniaFormat(pieces=tuple(parts))
 
     def trim_fn(value: Any) -> str:
         return _ensure_string(value, "trim").strip()
@@ -3049,6 +3069,7 @@ def make_global_env(
     env.set("_split_whitespace", split_whitespace_fn)
     env.set("_join", join_fn)
     env.set("_format", format_fn)
+    env.set("_format_compose", format_compose_fn)
     env.set("_trim", trim_fn)
     env.set("_trim_start", trim_start_fn)
     env.set("_trim_end", trim_end_fn)
@@ -3222,6 +3243,7 @@ def make_global_env(
     env.register_autoload("split_whitespace", 1, "std/prelude/string.genia")
     env.register_autoload("join", 2, "std/prelude/string.genia")
     env.register_autoload("format", 2, "std/prelude/string.genia")
+    env.register_autoload("format_compose", 1, "std/prelude/string.genia")
     env.register_autoload("trim", 1, "std/prelude/string.genia")
     env.register_autoload("trim_start", 1, "std/prelude/string.genia")
     env.register_autoload("trim_end", 1, "std/prelude/string.genia")
