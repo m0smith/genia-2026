@@ -191,8 +191,10 @@ CLI contract summary (actual behavior):
   - public prelude-backed string formatting helper:
     - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`
     - `format` accepts either a raw string template or a `Format` value as its first argument
-    - `Format(template)` constructs a first-class representation value from a string template (**Experimental**, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
+    - `Format(template)` constructs an untagged first-class representation value from a string template (**Experimental**, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
+    - `Format(template, tag)` constructs a tagged first-class representation value; `tag` must be a non-empty string; the tag is metadata only and does not affect rendering or display/debug output (**Experimental**, #292)
     - `format_template(fmt)` returns the original source template string from a `Format` value (**Experimental**, #294); `display(Format(...))` and `debug_repr(Format(...))` remain opaque as `<format>`
+    - `format_tag(fmt)` returns `some(tag)` for a tagged `Format` value or `none("missing-format-tag")` for an untagged `Format` value (**Experimental**, #292)
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`

@@ -1000,18 +1000,24 @@ Representation System entry points (#185, implemented):
   - combined specs, bare width specs (e.g. `{n:10}`), debug spec combinations (e.g. `{x:?>10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
 - Placeholder replacements use the same user-facing display representation as `display(value)`, except where the exact debug spec `?` or another listed field spec applies.
 - Missing fields and invalid placeholders raise deterministic errors.
-- `format` does not support field paths, interpolation string syntax, localization, tagged formats, custom formatter protocols, or spec combinations beyond the listed subset.
-- `Format(template)` is a first-class Representation System constructor (**Experimental**, #168):
-  - `Format(template)` accepts a string template and returns a first-class `Format` value.
+- `format` does not support field paths, interpolation string syntax, localization, tag-based format selection, custom formatter protocols, or spec combinations beyond the listed subset.
+- `Format(template)` and `Format(template, tag)` are first-class Representation System constructors (**Experimental**, #168, #292):
+  - `Format(template)` accepts a string template and returns an untagged first-class `Format` value.
+  - `Format(template, tag)` accepts a string template and a non-empty string tag and returns a tagged first-class `Format` value.
   - A `Format` value is representation-only: it is not a Value Template and does not participate in shape/refinement/contract/variant semantics.
-  - `format(Format(template), values)` produces the same result as `format(template, values)` for the same template and values.
+  - The tag is representation metadata attached to the `Format` value only. It does not affect placeholder parsing, placeholder resolution, field-spec rendering, debug field specs, or the identity of values being formatted.
+  - `format(Format(template), values)` and `format(Format(template, tag), values)` produce the same result as `format(template, values)` for the same template and values.
   - A `Format` value can be assigned to a name, passed as an argument, stored in a list or map, and returned from a function.
-  - `display(Format(...))` returns `<format>`; the wrapped template is not exposed.
-  - `debug_repr(Format(...))` returns `<format>`; the wrapped template is not exposed.
-  - `Format(non_string)` fails with `TypeError: Format expected a string template, received <type>`.
+  - `display(Format(...))` returns `<format>`; the wrapped template and tag are not exposed.
+  - `debug_repr(Format(...))` returns `<format>`; the wrapped template and tag are not exposed.
+  - `Format()` fails with `TypeError: Format expected 1 or 2 args, got 0`.
+  - `Format(template, tag, extra)` fails with `TypeError: Format expected 1 or 2 args, got 3`.
+  - `Format(non_string)` fails with `TypeError: Format expected template string, received <type>`.
+  - `Format(template, non_string_tag)` fails with `TypeError: Format expected tag string, received <type>`.
+  - `Format(template, "")` fails with `TypeError: Format expected non-empty tag string`.
   - `format(non_string_non_format, values)` fails with `TypeError: format expected a string template or Format value, received <type>`.
-  - No parser syntax such as `Format "..."` is introduced; `Format("...")` is the only accepted call form.
-  - `Format` is Experimental. The wrapped template, display/debug text, and constructor surface may change before stabilization.
+  - No parser syntax such as `Format "..."` is introduced; `Format("...")` and `Format("...", "tag")` are the only accepted call forms.
+  - `Format` is Experimental. The wrapped template, tag, display/debug text, and constructor surface may change before stabilization.
 - `format_template(fmt)` is a public Representation System helper (**Experimental**, #294):
   - `format_template(fmt)` returns the original source template string supplied to `Format(...)`.
   - Accepted: a `Format` value created by `Format(template)`.
@@ -1023,6 +1029,16 @@ Representation System entry points (#185, implemented):
   - `format_template` does not expose compiled template internals, placeholder metadata, or parsed template structure.
   - `format_template` is not explicitly none-aware; ordinary none propagation applies in pipelines.
   - `format_template` is Experimental. The accessor name and behavior may change before stabilization.
+- `format_tag(fmt)` is a public Representation System helper (**Experimental**, #292):
+  - `format_tag(fmt)` returns `some(tag)` for a tagged `Format` value created with `Format(template, tag)`.
+  - `format_tag(fmt)` returns `none("missing-format-tag")` for an untagged `Format` value created with `Format(template)`.
+  - Accepted: a `Format` value created by `Format(template)` or `Format(template, tag)`.
+  - Rejected: raw strings, numbers, lists, maps, booleans, flow values, and any other non-Format value.
+  - `format_tag()` fails with `TypeError: format_tag expected 1 arg, got 0`.
+  - `format_tag(fmt, extra)` fails with `TypeError: format_tag expected 1 arg, got 2`.
+  - `format_tag(non_format)` fails with `TypeError: format_tag expected a format value, received <type>`.
+  - `format_tag` does not expose the template, alter rendering, or cause tag-based format dispatch.
+  - `format_tag` is Experimental. The helper name and behavior may change before stabilization.
 - These helpers do not write to `stdout` or `stderr`.
 - These helpers do not mutate runtime state.
 - These helpers do not change `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
@@ -1046,6 +1062,9 @@ Representation System entry points (#185, implemented):
   - `debug_repr([some("x"), false])` evaluates to the string `[some("x"), false]`
   - `format_template(Format("{a} {b}"))` evaluates to the string `{a} {b}`
   - `format_template(Format("{{escaped}}"))` evaluates to the string `{{escaped}}`
+  - `format_tag(Format("{name}", "person-card"))` evaluates to `some("person-card")`
+  - `format_tag(Format("{name}"))` evaluates to `none("missing-format-tag")`
+  - `format(Format("{name}", "person-card"), {name: "Ada"})` evaluates to the string `Ada`
 - Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
 - #185 does not define the full Representation System.
 - #166 owns the broader representation model, including naming boundaries beyond `display` and `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host treatment of opaque runtime values.

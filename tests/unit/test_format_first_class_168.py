@@ -81,7 +81,7 @@ def test_format_value_display_does_not_expose_template():
 
 def test_format_constructor_rejects_non_string():
     env, _, _ = _env()
-    with pytest.raises(TypeError, match="Format expected a string template"):
+    with pytest.raises(TypeError, match="Format expected template string, received int"):
         run_source("Format(123)", env)
 
 
@@ -93,7 +93,7 @@ def test_format_rejects_non_string_non_format_first_arg():
 
 def test_format_constructor_rejects_list():
     env, _, _ = _env()
-    with pytest.raises(TypeError, match="Format expected a string template"):
+    with pytest.raises(TypeError, match="Format expected template string, received list"):
         run_source('Format(["a", "b"])', env)
 
 
