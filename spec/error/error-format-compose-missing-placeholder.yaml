@@ -1,0 +1,11 @@
+name: error-format-compose-missing-placeholder
+category: error
+input:
+  source: |
+    F = format_compose([Format("{missing}")])
+    format(F, {})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format missing field: missing
+  exit_code: 1

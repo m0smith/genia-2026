@@ -1,0 +1,13 @@
+name: format-compose-mixed-pieces
+category: eval
+input:
+  source: |
+    Name = Format("{name}")
+    Location = Format("{city}")
+    Line = format_compose([Name, " - ", Location])
+    format(Line, {name: "Matt", city: "Bountiful"})
+expected:
+  stdout: |
+    "Matt - Bountiful"
+  stderr: ""
+  exit_code: 0

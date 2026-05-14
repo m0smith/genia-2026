@@ -250,6 +250,12 @@ def test_ir_spec_fixture(fname: str) -> None:
         "format-first-class-format-empty-template.yaml",
         "format-first-class-format-no-placeholders.yaml",
         "format-first-class-format-positional.yaml",
+        "format-compose-basic.yaml",
+        "format-compose-empty.yaml",
+        "format-compose-mixed-pieces.yaml",
+        "format-compose-nested.yaml",
+        "format-compose-repeated-placeholder.yaml",
+        "format-compose-preserves-existing-format.yaml",
         "format-field-align-left.yaml",
         "format-field-align-right.yaml",
         "format-field-align-center-even.yaml",
@@ -359,6 +365,10 @@ def test_flow_spec_fixture(fname: str) -> None:
         "error-format-field-grouping-non-numeric.yaml",
         "error-format-field-precision-non-string-non-numeric.yaml",
         "error-format-field-bool-zero-pad.yaml",
+        "error-format-compose-invalid-piece.yaml",
+        "error-format-compose-missing-placeholder.yaml",
+        "error-format-compose-non-list.yaml",
+        "error-format-compose-string-argument.yaml",
     ],
 )
 @pytest.mark.spec

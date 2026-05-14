@@ -1,0 +1,10 @@
+name: error-format-compose-non-list
+category: error
+input:
+  source: |
+    format_compose(42)
+expected:
+  stdout: ""
+  stderr: |
+    Error: format_compose expected list of format pieces, received int
+  exit_code: 1

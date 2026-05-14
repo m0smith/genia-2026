@@ -1,0 +1,11 @@
+name: format-compose-empty
+category: eval
+input:
+  source: |
+    Empty = format_compose([])
+    format(Empty, {})
+expected:
+  stdout: |
+    ""
+  stderr: ""
+  exit_code: 0

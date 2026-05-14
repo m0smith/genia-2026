@@ -1,0 +1,11 @@
+name: format-compose-basic
+category: eval
+input:
+  source: |
+    Greeting = format_compose(["Hello ", "{name}", "!"])
+    format(Greeting, {name: "Ada"})
+expected:
+  stdout: |
+    "Hello Ada!"
+  stderr: ""
+  exit_code: 0
