@@ -1,0 +1,17 @@
+name: format-debug-mode-170
+category: eval
+input:
+  source: |
+    value = {name: "Ada", scores: [1, 2, none("missing-score")]}
+    print(format("display={x} debug={x:?}", {x: "hi"}))
+    print(format("{0} {0:?}", ["hi"]))
+    print(format("{x:?}", {x: value}))
+    print(format(Format("{x:?}"), {x: Format("{a}")}))
+expected:
+  stdout: |
+    display=hi debug="hi"
+    hi "hi"
+    {name: "Ada", scores: [1, 2, none("missing-score")]}
+    <format>
+  stderr: ""
+  exit_code: 0
