@@ -1,0 +1,9 @@
+name: as-seq-string-collect
+category: eval
+input:
+  source: |
+    as_seq("abc") |> collect
+expected:
+  stdout: "[\"a\", \"b\", \"c\"]\n"
+  stderr: ""
+  exit_code: 0

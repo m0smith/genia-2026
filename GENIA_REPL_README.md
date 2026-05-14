@@ -237,6 +237,7 @@ CLI contract summary (actual behavior):
   - binding `stdin` into a flow does not read all input up front
   - `stdin()` still returns cached full stdin lines for compatibility
   - `_seq_transform(initial_state, step, source)` is an internal kernel primitive for shared list/Flow transformation mechanics; it preserves source kind, is not an ordinary user-callable Genia name, and does not create a public Seq surface
+  - explicit adapter: `as_seq(list_or_string)` — converts a list or string into a Seq-compatible ordered source; strings remain atomic unless passed to `as_seq`
   - transforms: `lines`, `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `map`, `filter`, `take`, `rules`
   - stdlib aliases: `head(flow)`, `head(n, flow)`
   - Seq-compatible sinks/materialization: `each`, `run`, `collect` accept list or Flow; raw `stdin` is not directly Seq-compatible and must be adapted through `stdin |> lines` first

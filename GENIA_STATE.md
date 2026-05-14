@@ -435,7 +435,15 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Invalid `_seq_transform` step results raise runtime errors prefixed with `invalid-seq-transform-result:`.
   - PYTHON REFERENCE HOST: adjacent Flow `map` / `filter` stages may be represented by an internal fused Flow object that composes callbacks over one upstream source. This is an implementation optimization only; it adds no public Seq value, no fusion API, no new syntax, no Core IR node, no runtime flags, and no observable `trace` / display label change.
   - PYTHON REFERENCE HOST: `_ensure_seq_compatible(name, source)` is an internal kernel primitive that validates a value is a Seq-compatible source and returns it unchanged; it accepts list and GeniaFlow only, raises a Seq-compatible TypeError for all other values, and does not consume or pull from a Flow during validation. It is registered via `env.set_internal` and is not accessible from ordinary Genia user code.
-  - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface.
+  - `as_seq(value)` is a public explicit adapter that converts supported values into Seq-compatible ordered sources; it does not introduce a public Seq runtime type or constructor.
+    - `as_seq(list)` returns the list value unchanged; list reusability is preserved.
+    - `as_seq(string)` returns a list of one-character strings in iteration order; strings remain atomic unless passed to `as_seq`.
+    - `as_seq("")` returns an empty list.
+    - Unsupported inputs (e.g., number, boolean, map) fail with `TypeError: as_seq expected a list or string, received <type>.`
+    - Flow input is not supported in this phase; Flow remains Seq-compatible through existing `each`, `collect`, `run`, `map`, `filter`, `scan`, `reduce` without `as_seq`.
+    - `as_seq` does not make strings implicitly Seq-compatible; `collect("abc")` and similar remain invalid.
+    - `as_seq` does not introduce a `Char` type; each emitted element is a one-character Genia string value.
+  - Maturity: Partial; list and Flow behavior is implemented, while Seq remains semantic terminology rather than a separate public surface. `as_seq` for list and string input is implemented and tested.
 - pipeline debugging helpers are implemented as prelude-level identity stages:
   - `inspect(value)` logs and returns `value` unchanged
   - `trace(label, value)` logs `label` plus `value` and returns `value` unchanged
@@ -1156,6 +1164,7 @@ Flow semantics:
   - Flow functions (flow in, flow out): `keep_some`, `keep_some_else`, `rules`, `tee`, `merge`, `zip`, `head`
   - Polymorphic functions (work on both lists and flows, same-kind return): `map`, `filter`, `take`, `drop`, `scan`
   - Seq-compatible helpers (list or Flow): `each`, `collect`, `run`, `reduce`, `count`
+  - Explicit adapter (value → Seq-compatible): `as_seq` (list or string → list; does not produce Flow)
   - Bridge: source (value → flow): `lines`, `evolve`, `stdin_keys`
   - Bridge: materialize (flow → value): `collect`
   - Bridge: consume (flow → effect): `run`

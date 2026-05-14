@@ -854,7 +854,8 @@ stdin |> lines |> take(2) |> each(print) |> run
 
 - `stdin |> lines` creates a lazy, pull-based, single-use Flow
 - Flow is a runtime value produced/consumed by flow builtins; it is not a separate syntax category
-- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
+- public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, `as_seq`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
+- `as_seq(value)` explicitly adapts a list or string into a Seq-compatible ordered source; lists are returned unchanged, strings are decomposed into one-character strings; strings remain atomic unless passed to `as_seq`
 - the host Flow kernel stays intentionally small:
   - lazy pull/consume and single-use enforcement
   - source-bound stdin integration
