@@ -1,0 +1,10 @@
+name: error-format-debug-composed-spec
+category: error
+input:
+  source: |
+    format("{x:?>10}", {x: 1})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format-error: unsupported format spec '?>10'
+  exit_code: 1

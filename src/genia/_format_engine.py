@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
-from genia.utf8 import format_display
+from genia.utf8 import format_debug, format_display
 from genia.values import GeniaMap
 
 
@@ -152,6 +152,9 @@ def apply_format_spec(value: Any, spec: str) -> str:
     """Apply a format field spec (e.g. '<5', '.2', '03', ',') to a resolved value."""
     if not spec:
         raise ValueError("format-error: invalid format spec ''")
+
+    if spec == "?":
+        return format_debug(value)
 
     if spec[0] in "<>^":
         rest = spec[1:]

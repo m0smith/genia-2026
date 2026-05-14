@@ -988,6 +988,7 @@ Representation System entry points (#185, implemented):
   - named placeholders such as `{name}`, looked up in a map by string key
   - positional placeholders such as `{0}`, looked up in a list by zero-based index
   - escaped braces `{{` and `}}`
+  - debug placeholders (**Partial**, #170): `{name:?}` and `{0:?}` render the resolved value with the same debug representation as `debug_repr(value)`
   - field format specs (**Experimental**, #169): a limited set of display specifiers after `:` inside a placeholder:
     - `<N` — left-align in width N using spaces
     - `>N` — right-align in width N using spaces
@@ -996,10 +997,10 @@ Representation System entry points (#185, implemented):
     - `0N` — zero-pad numeric output to width N; negative values keep the sign before the zeros
     - `,` — comma-group numeric output (integer portion only, ASCII commas, no localization)
   - `bool` values are not numeric for spec purposes; numeric specs (`0N`, `,`) applied to bools fail deterministically
-  - combined specs, bare width specs (e.g. `{n:10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
-- Placeholder replacements use the same user-facing display representation as `display(value)`, except where a field spec applies.
+  - combined specs, bare width specs (e.g. `{n:10}`), debug spec combinations (e.g. `{x:?>10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
+- Placeholder replacements use the same user-facing display representation as `display(value)`, except where the exact debug spec `?` or another listed field spec applies.
 - Missing fields and invalid placeholders raise deterministic errors.
-- `format` does not support field paths, interpolation string syntax, localization, tagged formats, debug rendering, custom formatter protocols, or spec combinations beyond the listed subset.
+- `format` does not support field paths, interpolation string syntax, localization, tagged formats, custom formatter protocols, or spec combinations beyond the listed subset.
 - `Format(template)` is a first-class Representation System constructor (**Experimental**, #168):
   - `Format(template)` accepts a string template and returns a first-class `Format` value.
   - A `Format` value is representation-only: it is not a Value Template and does not participate in shape/refinement/contract/variant semantics.
@@ -1029,6 +1030,7 @@ Representation System entry points (#185, implemented):
 - Examples:
   - `display("hello")` evaluates to the string `hello`
   - `debug_repr("hello")` evaluates to the string `"hello"`
+  - `format("display={x} debug={x:?}", {x: "hello"})` evaluates to the string `display=hello debug="hello"`
   - `display(none("missing-key", {key: "name"}))` evaluates to the string `none("missing-key", {key: "name"})`
   - `debug_repr([some("x"), false])` evaluates to the string `[some("x"), false]`
 - Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
