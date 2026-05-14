@@ -141,6 +141,12 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 
 ### Group: HTTP Serving
 
+**Status:** Python-host-only — synchronous blocking HTTP server only; not part of the shared portable contract.
+
+**Guarantees:** Request and response are plain Genia maps with stable field names (`method`, `path`, `query`, `headers`, `body`, `raw_body`, `client` for requests; `status`, `headers`, `body` for responses). Handler errors are normalized to a `500 internal server error` response without surfacing a language-level exception.
+
+**Not Guaranteed:** Path parameters, middleware, streaming request/response bodies, WebSocket support, async execution, or portability to non-Python hosts in the current phase.
+
 #### `http.serve`
 
 - **name:** `http.serve`
@@ -155,6 +161,12 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 ---
 
 ### Group: Process / Mailbox
+
+**Status:** Python-host-only — host-thread process model only; not part of the shared portable contract.
+
+**Guarantees:** Each process has a FIFO mailbox; one handler invocation runs at a time per process. Processes are fail-stop: an unhandled exception in the handler exits the worker, caches an error string, and causes subsequent `send` calls to raise.
+
+**Not Guaranteed:** Preemption, distributed messaging, process supervision trees, cross-host portability, or any scheduling fairness guarantee in the current phase.
 
 Host-backed concurrency substrate. Processes are fail-stop: handler exceptions cache an error string, exit the worker, and cause future `send` calls to raise.
 
@@ -210,6 +222,12 @@ Host-backed concurrency substrate. Processes are fail-stop: handler exceptions c
 ---
 
 ### Group: Refs / Cells
+
+**Status:** Python-host-only — host-backed synchronized primitives only; not part of the shared portable contract.
+
+**Guarantees:** `ref_get`, `ref_set`, and `ref_update` are individually synchronized (host-lock-protected). `cell_send` updates are serialized one at a time; failed updates preserve the last successful state and mark the cell failed.
+
+**Not Guaranteed:** Atomicity across multiple ref operations, cross-cell update ordering, distributed state, cell supervision, or portability to non-Python hosts in the current phase.
 
 Host-backed synchronized state substrate.
 
