@@ -42,6 +42,7 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "pipeline_option_results_preserved",
         "direct_call_option_behavior",
         "pipe_wrapper",
+        "stdin_bridge_only",
         "main_dispatch",
         "pipe_bypasses_main",
         "flow_single_use",
@@ -68,6 +69,49 @@ def test_authoritative_docs_capture_pipeline_option_contract() -> None:
     assert "when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`" in rules
     assert "when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is" in rules
     assert FACTS["direct_call_option_behavior"] in rules
+
+
+def test_authoritative_docs_capture_stdin_bridge_only_contract() -> None:
+    state = read_text("GENIA_STATE.md")
+    normalized = normalize(state)
+
+    required = [
+        "`stdin` is a host-backed input capability, not a Seq-compatible public value",
+        "it must be adapted through `lines(stdin)` before participating in Flow-style ordered processing",
+        "Direct use of `stdin` as a source to `each`, `collect`, or `run` fails",
+        "`stdin |> lines`",
+    ]
+    for excerpt in required:
+        assert normalize(excerpt) in normalized
+
+
+@pytest.mark.parametrize(
+    "relpath",
+    [
+        "GENIA_STATE.md",
+        "GENIA_REPL_README.md",
+        "README.md",
+        "docs/ai/LLM_CONTRACT.md",
+        ".github/copilot-instructions.md",
+    ],
+)
+def test_docs_do_not_widen_raw_stdin_into_seq_compatible_value(relpath: str) -> None:
+    text = normalize(read_text(relpath))
+    forbidden = [
+        "stdin is seq-compatible",
+        "`stdin` is seq-compatible",
+        "stdin is a seq-compatible public value",
+        "`stdin` is a seq-compatible public value",
+        "each accepts stdin directly",
+        "collect accepts stdin directly",
+        "run accepts stdin directly",
+        "each(print, stdin)",
+        "collect(stdin)",
+        "run(stdin)",
+        "stdin |> each(print)",
+    ]
+    for excerpt in forbidden:
+        assert normalize(excerpt) not in text
 
 
 @pytest.mark.parametrize(
