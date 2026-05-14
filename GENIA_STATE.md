@@ -1902,7 +1902,7 @@ Core IR shape currently includes:
 
 ## 11) Example demos shipped in-repo
 
-- `examples/tic-tac-toe.genia`: interactive text game example
+- `examples/tic-tac-toe.genia`: canonical Format + Seq-compatible style example — two-player console tic-tac-toe using `Format`/`format(...)` for board rendering and list-side sequence helpers for data-driven winner detection
 - `examples/ants.genia`: canonical pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
 - `examples/ants_terminal.genia`: blocking terminal developer UI over the same colony simulation with CLI-configurable seed, ant count, step count, delay, world size, and pure/actor mode selection
 - `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure

@@ -5,6 +5,15 @@ from pathlib import Path
 from genia import make_global_env, run_source
 
 
+TIC_TAC_TOE_PATH = Path("examples/tic-tac-toe.genia")
+
+
+def run_tic_tac_toe_expression(expression: str):
+    source = TIC_TAC_TOE_PATH.read_text(encoding="utf-8")
+    env = make_global_env([], output_handler=lambda _text: None)
+    return run_source(source + f"\n{expression}", env, filename=str(TIC_TAC_TOE_PATH.resolve()))
+
+
 def test_sum_5th_example_refine_works():
     source = Path("examples/sum-5th.genia").read_text(encoding="utf-8")
     env = make_global_env(
@@ -32,7 +41,7 @@ def test_sum_5th_example_uses_autoloaded_fields_and_structured_absence():
 
 
 def test_tic_tac_toe_example_runs_to_x_win(monkeypatch):
-    source_path = Path("examples/tic-tac-toe.genia")
+    source_path = TIC_TAC_TOE_PATH
     source = source_path.read_text(encoding="utf-8")
     outputs: list[str] = []
     prompts: list[str] = []
@@ -56,7 +65,7 @@ def test_tic_tac_toe_example_runs_to_x_win(monkeypatch):
 
 
 def test_tic_tac_toe_example_retries_invalid_move(monkeypatch):
-    source_path = Path("examples/tic-tac-toe.genia")
+    source_path = TIC_TAC_TOE_PATH
     source = source_path.read_text(encoding="utf-8")
     outputs: list[str] = []
     moves = iter(["oops", "0", "3", "1", "4", "2"])
@@ -68,6 +77,87 @@ def test_tic_tac_toe_example_retries_invalid_move(monkeypatch):
     transcript = "".join(outputs)
 
     assert transcript.count("That square is not available. Try again.\n") == 1
+    assert outputs[-1] == "X wins!\n"
+
+
+def test_tic_tac_toe_example_uses_format_for_rows():
+    source = TIC_TAC_TOE_PATH.read_text(encoding="utf-8")
+
+    assert "Format(" in source
+    assert "format(" in source
+    assert "showSquare(a) + \" \" + showSquare(b)" not in source
+    assert run_tic_tac_toe_expression('formatRow("X", "_", "O")') == "X _ O"
+
+
+def test_tic_tac_toe_winning_lines_are_explicit_data():
+    assert run_tic_tac_toe_expression("winningLines()") == [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ]
+
+
+def test_tic_tac_toe_winner_contract_covers_empty_rows_columns_and_diagonals():
+    assert run_tic_tac_toe_expression("winner(newBoard())") == "_"
+    assert run_tic_tac_toe_expression('winner(["X", "X", "X", "_", "_", "_", "_", "_", "_"])') == "X"
+    assert run_tic_tac_toe_expression('winner(["_", "O", "_", "_", "O", "_", "_", "O", "_"])') == "O"
+    assert run_tic_tac_toe_expression('winner(["_", "_", "O", "_", "O", "_", "O", "_", "_"])') == "O"
+
+
+def test_tic_tac_toe_example_runs_to_o_win(monkeypatch):
+    source = TIC_TAC_TOE_PATH.read_text(encoding="utf-8")
+    outputs: list[str] = []
+    moves = iter(["0", "3", "1", "4", "8", "5"])
+
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(moves))
+    env = make_global_env([], output_handler=outputs.append)
+
+    result = run_source(source + "\nmain()", env, filename=str(TIC_TAC_TOE_PATH.resolve()))
+
+    assert result == "O wins!"
+    assert outputs[-1] == "O wins!\n"
+
+
+def test_tic_tac_toe_example_runs_to_draw(monkeypatch):
+    source = TIC_TAC_TOE_PATH.read_text(encoding="utf-8")
+    outputs: list[str] = []
+    moves = iter(["0", "1", "2", "4", "3", "5", "7", "6", "8"])
+
+    monkeypatch.setattr("builtins.input", lambda prompt="": next(moves))
+    env = make_global_env([], output_handler=outputs.append)
+
+    result = run_source(source + "\nmain()", env, filename=str(TIC_TAC_TOE_PATH.resolve()))
+
+    assert result == "Draw!"
+    assert outputs[-1] == "Draw!\n"
+
+
+def test_tic_tac_toe_example_occupied_square_retries_same_player(monkeypatch):
+    source = TIC_TAC_TOE_PATH.read_text(encoding="utf-8")
+    outputs: list[str] = []
+    prompts: list[str] = []
+    moves = iter(["0", "0", "3", "1", "4", "2"])
+
+    def fake_input(prompt=""):
+        prompts.append(prompt)
+        return next(moves)
+
+    monkeypatch.setattr("builtins.input", fake_input)
+    env = make_global_env([], output_handler=outputs.append)
+
+    run_source(source + "\nmain()", env, filename=str(TIC_TAC_TOE_PATH.resolve()))
+
+    assert "That square is not available. Try again.\n" in outputs
+    assert prompts[:3] == [
+        "Player X, enter a move from 0 to 8:",
+        "Player O, enter a move from 0 to 8:",
+        "Player O, enter a move from 0 to 8:",
+    ]
     assert outputs[-1] == "X wins!\n"
 
 

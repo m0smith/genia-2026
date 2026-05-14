@@ -11,7 +11,8 @@
 #
 # Features demonstrated:
 #   * case-expression pattern matching with literal and tuple patterns
-#   * duplicate-variable patterns for equality checks (winner detection)
+#   * Format values with format(...) for display rows
+#   * data-driven winner detection with list-side sequence helpers
 #   * guards (`?`) for conditional clause selection
 #   * list destructuring across all nine board cells
 #   * rest patterns (`..`) in list spreads
@@ -40,21 +41,58 @@ nextPlayer(player) =
 @doc "Render one square as display text."
 showSquare(square) = square
 
+@doc "Return the board row Format value."
+rowFormat() = Format("{a} {b} {c}")
+
+@doc "Render three board squares as one display row."
+formatRow(a, b, c) = format(rowFormat(), {
+  a: showSquare(a),
+  b: showSquare(b),
+  c: showSquare(c)
+})
+
 # Case expression with list destructuring: bind each cell by position.
 @doc "Print the board as three rows."
 printBoard(board) =
   [a, b, c, d, e, f, g, h, i] -> {
     print("")
-    print(showSquare(a) + " " + showSquare(b) + " " + showSquare(c))
-    print(showSquare(d) + " " + showSquare(e) + " " + showSquare(f))
-    print(showSquare(g) + " " + showSquare(h) + " " + showSquare(i))
+    print(formatRow(a, b, c))
+    print(formatRow(d, e, f))
+    print(formatRow(g, h, i))
     print("")
   }
 
 # == Win detection =========================================================
-# Each clause checks one winning line.  Duplicate variable `p` in a pattern
-# means all matched positions must hold the same value.  The guard
-# `? p != "_"` prevents an all-empty line from being counted as a win.
+# Winning lines are represented as board indexes.  The winner helper maps
+# those lines to Option values, then unwraps the first actual winner.
+
+@doc "Return the eight board index triples that can win tic-tac-toe."
+winningLines() = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6]
+]
+
+@doc "Read one board square by index for a known winning line."
+lineSquare(board, index) = nth(index, board) |> unwrap_or("_")
+
+@doc "Return some(marker) when three squares form a non-empty line."
+lineWinnerValue(a, b, c) =
+  (p, p, p) ? p != "_" -> some(p) |
+  (_, _, _) -> none("no-winner")
+
+@doc "Return the winner for one line as some(marker) or none."
+lineWinner(board, line) =
+  (board, [a, b, c]) -> lineWinnerValue(
+    lineSquare(board, a),
+    lineSquare(board, b),
+    lineSquare(board, c)
+  )
 
 @doc """
 Detect whether X or O has a winning line.
@@ -63,16 +101,11 @@ Detect whether X or O has a winning line.
 - "X" or "O" when that player has three in a row
 - "_" when no winner exists yet
 """
-winner(board) =
-  [p, p, p, .._]              ? p != "_" -> p |  # row 1
-  [_, _, _, p, p, p, _, _, _]  ? p != "_" -> p |  # row 2
-  [_, _, _, _, _, _, p, p, p]  ? p != "_" -> p |  # row 3
-  [p, _, _, p, _, _, p, _, _]  ? p != "_" -> p |  # col 1
-  [_, p, _, _, p, _, _, p, _]  ? p != "_" -> p |  # col 2
-  [_, _, p, _, _, p, _, _, p]  ? p != "_" -> p |  # col 3
-  [p, _, _, _, p, _, _, _, p]  ? p != "_" -> p |  # diagonal ↘
-  [_, _, p, _, p, _, p, _, _]  ? p != "_" -> p |  # diagonal ↙
-  _                                        -> "_"
+winner(board) = {
+  candidates = map((line) -> lineWinner(board, line), winningLines())
+  match = find_opt((candidate) -> is_some?(candidate), candidates)
+  unwrap_or("_", flat_map_some((candidate) -> candidate, match))
+}
 
 # == Board queries =========================================================
 
