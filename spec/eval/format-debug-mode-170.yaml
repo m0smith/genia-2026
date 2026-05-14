@@ -13,5 +13,6 @@ expected:
     hi "hi"
     {name: "Ada", scores: [1, 2, none("missing-score")]}
     <format>
+    "<format>"
   stderr: ""
   exit_code: 0
