@@ -294,6 +294,8 @@ class Parser:
             return bindable
 
         expr = self.parse_expr()
+        if isinstance(expr, Var) and expr.name == "Format" and self.at("STRING"):
+            raise SyntaxError('Format constructor requires call syntax: Format("...")')
         if self.at("ASSIGN"):
             raise SyntaxError("Assignment target must be a simple name")
         return ExprStmt(expr, span=expr.span)
