@@ -35,6 +35,7 @@ nav:
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
+      - Representation System and Format: design/representation-system-and-format.md
 
   - Architecture:
       - Core IR Portability: architecture/core-ir-portability.md

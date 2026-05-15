@@ -979,10 +979,14 @@ Representation System entry points (#185, implemented):
 
 - `display(value)` and `debug_repr(value)` are the first concrete public surface of the planned Representation System.
 - They are entry points into that system, not independent formatting utilities.
+- Representation renders values as strings for output and debugging.
+- Representation does not change value identity.
+- Representation is separate from value templates; value templates describe or constrain values, while representation formats describe output strings.
 - `display(value)` returns a string containing the user-facing display representation of `value`.
 - `debug_repr(value)` returns a string containing the debug representation of `value`.
 - `format(template_or_format, values)` is a public prelude-backed helper for building strings from a small placeholder template.
 - `format(template_or_format, values)` returns a string and does not write output.
+- `format(template_or_format, values)` does not mutate the input template, `Format` value, or values map/list.
 - The first argument to `format` is either a raw string template or a `Format` value (see below).
 - `format` supports:
   - named placeholders such as `{name}`, looked up in a map by string key
@@ -1004,6 +1008,8 @@ Representation System entry points (#185, implemented):
 - `Format(template)` and `Format(template, tag)` are first-class Representation System constructors (**Experimental**, #168, #292):
   - `Format(template)` accepts a string template and returns an untagged first-class `Format` value.
   - `Format(template, tag)` accepts a string template and a non-empty string tag and returns a tagged first-class `Format` value.
+  - `Format` is for output representation and does not affect value identity.
+  - `Format` is separate from value templates.
   - A `Format` value is representation-only: it is not a Value Template and does not participate in shape/refinement/contract/variant semantics.
   - The tag is representation metadata attached to the `Format` value only. It does not affect placeholder parsing, placeholder resolution, field-spec rendering, debug field specs, or the identity of values being formatted.
   - `format(Format(template), values)` and `format(Format(template, tag), values)` produce the same result as `format(template, values)` for the same template and values.

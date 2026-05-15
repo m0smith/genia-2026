@@ -17,6 +17,7 @@ This repository currently provides:
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`) (**Python-host-only**)
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
 - shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
+- representation helpers (`display`, `debug_repr`, `format`) and experimental `Format` values for output representation
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
@@ -577,7 +578,8 @@ Current consistency note:
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
 - `display(value)` and `debug_repr(value)` are the first public Representation System entry points: they return display/debug representation strings without writing output
-- `format(template_or_format, values)` is a public prelude-backed string helper: it returns a string, uses `display(value)` for ordinary replacements, supports debug placeholders `{name:?}` / `{0:?}` using `debug_repr(value)`, supports `{name}`, `{0}`, `{{`, `}}`, and a limited set of field format specs (Experimental, #169: alignment `<N`/`>N`/`^N`, precision `.N`, zero-pad `0N`, comma-group `,`); its first argument is a raw string template or a `Format` value
+- representation does not change value identity; value templates describe or constrain values, while representation formats describe output strings
+- `format(template_or_format, values)` is a public prelude-backed string helper: it returns a string, writes nothing, does not mutate inputs, uses `display(value)` for ordinary replacements, supports debug placeholders `{name:?}` / `{0:?}` using `debug_repr(value)`, supports `{name}`, `{0}`, `{{`, `}}`, and a limited set of field format specs (Experimental, #169: alignment `<N`/`>N`/`^N`, precision `.N`, zero-pad `0N`, comma-group `,`); its first argument is a raw string template or a `Format` value
 - `Format(template)` constructs an untagged first-class representation value from a string template (Experimental, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
 - `Format(template, tag)` constructs a tagged first-class representation value; `tag` must be a non-empty string; the tag is metadata only and does not affect rendering or display/debug output (Experimental, #292)
 - `format_template(fmt)` returns the source template string from a first-class `Format` value (Experimental, #294); `display(Format(...))` and `debug_repr(Format(...))` remain opaque as `<format>`; non-Format input fails with a deterministic `TypeError`

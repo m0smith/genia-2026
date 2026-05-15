@@ -185,17 +185,24 @@ CLI contract summary (actual behavior):
 - builtins:
   - direct I/O/runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdout`, `stderr`, `help`
   - first Representation System entry points:
+    - representation renders values as strings for output and debugging
+    - representation does not change value identity
+    - representation is separate from value templates; value templates describe or constrain values, while representation formats describe output strings
     - `display(value)` returns the user-facing display representation string without writing output
     - `debug_repr(value)` returns the debug representation string without writing output
     - these entry points are minimal #185 surface area; #166 owns the broader Representation System model
   - public prelude-backed string formatting helper:
     - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`
+    - `format(template_or_format, values)` does not write output and does not mutate the input template, `Format` value, or values map/list
     - `format` accepts either a raw string template or a `Format` value as its first argument
+    - `Format` is for output representation and does not affect value identity
+    - `Format` is separate from value templates
     - `Format(template)` constructs an untagged first-class representation value from a string template (**Experimental**, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`
     - `Format(template, tag)` constructs a tagged first-class representation value; `tag` must be a non-empty string; the tag is metadata only and does not affect rendering or display/debug output (**Experimental**, #292)
     - `format_template(fmt)` returns the original source template string from a `Format` value (**Experimental**, #294); `display(Format(...))` and `debug_repr(Format(...))` remain opaque as `<format>`
     - `format_tag(fmt)` returns `some(tag)` for a tagged `Format` value or `none("missing-format-tag")` for an untagged `Format` value (**Experimental**, #292)
     - `format_compose(parts)` creates a composed `Format` from an ordered list of raw string templates and `Format` values; rendering concatenates each piece rendered with the same values map; empty composition is valid; pieces share one input namespace (**Experimental**, #293)
+    - see `docs/design/representation-system-and-format.md` for the focused representation and `Format` documentation
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`

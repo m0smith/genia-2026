@@ -51,8 +51,23 @@
   },
   {
     "id": "core-format-named",
-    "source": "format(\"Hello {name}\", {name: \"Genia\"})",
-    "expected_result": "\"Hello Genia\""
+    "source": "format(\"Hello {name}!\", {name: \"Alice\"})",
+    "expected_result": "\"Hello Alice!\""
+  },
+  {
+    "id": "core-format-positional",
+    "source": "format(\"Item {0} costs {1}\", [\"apple\", \"5\"])",
+    "expected_result": "\"Item apple costs 5\""
+  },
+  {
+    "id": "core-format-escaped-braces",
+    "source": "format(\"{{key}} = {0}\", [\"value\"])",
+    "expected_result": "\"{key} = value\""
+  },
+  {
+    "id": "core-format-tic-tac-toe-row",
+    "source": "format(\"{0} | {1} | {2}\", [\"X\", \"O\", \"X\"])",
+    "expected_result": "\"X | O | X\""
   },
   {
     "id": "core-actor-call-reply",
