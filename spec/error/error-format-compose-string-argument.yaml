@@ -1,0 +1,10 @@
+name: error-format-compose-string-argument
+category: error
+input:
+  source: |
+    format_compose("{x}")
+expected:
+  stdout: ""
+  stderr: |
+    Error: format_compose expected list of format pieces, received string
+  exit_code: 1

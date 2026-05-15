@@ -31,6 +31,9 @@ join(sep, xs) = _join(sep, xs)
 @doc "Format a string template with named or positional placeholders."
 format(template, values) = _format(template, values)
 
+@doc "Compose an ordered list of string templates and Format values into a reusable Format."
+format_compose(parts) = _format_compose(parts)
+
 @doc "Trim leading and trailing whitespace."
 trim(value) = _trim(value)
 

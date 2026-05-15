@@ -195,6 +195,7 @@ CLI contract summary (actual behavior):
     - `Format(template, tag)` constructs a tagged first-class representation value; `tag` must be a non-empty string; the tag is metadata only and does not affect rendering or display/debug output (**Experimental**, #292)
     - `format_template(fmt)` returns the original source template string from a `Format` value (**Experimental**, #294); `display(Format(...))` and `debug_repr(Format(...))` remain opaque as `<format>`
     - `format_tag(fmt)` returns `some(tag)` for a tagged `Format` value or `none("missing-format-tag")` for an untagged `Format` value (**Experimental**, #292)
+    - `format_compose(parts)` creates a composed `Format` from an ordered list of raw string templates and `Format` values; rendering concatenates each piece rendered with the same values map; empty composition is valid; pieces share one input namespace (**Experimental**, #293)
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - raw CLI primitive: `argv`

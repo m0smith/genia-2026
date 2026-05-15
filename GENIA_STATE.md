@@ -1027,6 +1027,7 @@ Representation System entry points (#185, implemented):
   - `format_template(non_format)` fails with `TypeError: format_template expected a format, received <type>`.
   - `display(Format(...))` and `debug_repr(Format(...))` remain opaque; `format_template` is the only approved way to recover the source template string.
   - `format_template` does not expose compiled template internals, placeholder metadata, or parsed template structure.
+  - `format_template` does not apply to composed `Format` values created by `format_compose(...)`. Calling `format_template` on a composed format fails with `TypeError: format_template expected an atomic Format value`.
   - `format_template` is not explicitly none-aware; ordinary none propagation applies in pipelines.
   - `format_template` is Experimental. The accessor name and behavior may change before stabilization.
 - `format_tag(fmt)` is a public Representation System helper (**Experimental**, #292):
@@ -1039,6 +1040,23 @@ Representation System entry points (#185, implemented):
   - `format_tag(non_format)` fails with `TypeError: format_tag expected a format value, received <type>`.
   - `format_tag` does not expose the template, alter rendering, or cause tag-based format dispatch.
   - `format_tag` is Experimental. The helper name and behavior may change before stabilization.
+- `format_compose(parts)` is a public Representation System helper (**Experimental**, #293):
+  - `format_compose(parts)` accepts a list of format pieces and returns a new `Format` value.
+  - Each piece in `parts` must be either a raw string template or a `Format` value (including another composed `Format`).
+  - Rendering a composed `Format` with `format(composed_fmt, values)` renders each piece in order with the same `values` map and concatenates the resulting strings.
+  - Empty composition is valid: `format(format_compose([]), {})` returns `""`.
+  - Nested composition is valid: composed `Format` values may be used as pieces in later composition.
+  - Repeated placeholders are allowed and read the same value from the input map.
+  - All placeholders in a composed `Format` share the same input namespace; there is no per-piece namespace.
+  - Composition adds no separators, whitespace, or newlines; separators must be explicit pieces.
+  - `format_compose(parts)` is pure: it does not mutate `parts`, any piece, or any values map.
+  - `display(format_compose(...))` and `debug_repr(format_compose(...))` return `<format>`.
+  - `format_template` does not apply to composed `Format` values; calling it on a composed format fails with a deterministic `TypeError`.
+  - `format_compose(non_list)` fails with `TypeError: format_compose expected list of format pieces, received <type>`.
+  - `format_compose([..., invalid, ...])` fails with `TypeError: format_compose expected string or Format at index <n>, received <type>` (zero-based index).
+  - Missing placeholder behavior during rendering is unchanged: existing missing-placeholder errors apply.
+  - `format_compose` does not add parser syntax, Core IR behavior, control flow, expression evaluation, localization, debug mode, tagged dispatch, field paths, or Value Template behavior.
+  - `format_compose` is Experimental. The helper name and behavior may change before stabilization.
 - These helpers do not write to `stdout` or `stderr`.
 - These helpers do not mutate runtime state.
 - These helpers do not change `print`, `log`, `write`, `writeln`, REPL result display, CLI final-result rendering, or pipeline semantics.
@@ -1065,6 +1083,9 @@ Representation System entry points (#185, implemented):
   - `format_tag(Format("{name}", "person-card"))` evaluates to `some("person-card")`
   - `format_tag(Format("{name}"))` evaluates to `none("missing-format-tag")`
   - `format(Format("{name}", "person-card"), {name: "Ada"})` evaluates to the string `Ada`
+  - `format(format_compose(["Hello, ", Format("{name}"), "!"]), {name: "Matt"})` evaluates to the string `Hello, Matt!`
+  - `format(format_compose([]), {})` evaluates to the string `""`
+  - `format(format_compose(["{x}", " / ", "{x}"]), {x: "go"})` evaluates to the string `go / go`
 - Runtime capability values and function-like values may have host-specific opaque debug/display text in this phase unless a later contract explicitly stabilizes them.
 - #185 does not define the full Representation System.
 - #166 owns the broader representation model, including naming boundaries beyond `display` and `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host treatment of opaque runtime values.

@@ -516,9 +516,15 @@ class GeniaProcess:
 
 
 class GeniaFormat:
-    def __init__(self, template: str, tag: str | None = None):
+    def __init__(
+        self,
+        template: str | None = None,
+        tag: str | None = None,
+        pieces: Iterable[str | "GeniaFormat"] | None = None,
+    ):
         self.template = template
         self.tag = tag
+        self.pieces = tuple(pieces) if pieces is not None else None
 
     def __repr__(self) -> str:
         return "<format>"

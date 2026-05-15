@@ -1,0 +1,11 @@
+name: format-compose-repeated-placeholder
+category: eval
+input:
+  source: |
+    Pair = format_compose(["{x}", " / ", Format("{x}")])
+    format(Pair, {x: "A"})
+expected:
+  stdout: |
+    "A / A"
+  stderr: ""
+  exit_code: 0

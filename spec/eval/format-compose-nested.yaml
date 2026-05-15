@@ -1,0 +1,13 @@
+name: format-compose-nested
+category: eval
+input:
+  source: |
+    Cell = Format("{value}")
+    PaddedCell = format_compose(["[", Cell, "]"])
+    Row = format_compose([PaddedCell, " ", PaddedCell])
+    format(Row, {value: "X"})
+expected:
+  stdout: |
+    "[X] [X]"
+  stderr: ""
+  exit_code: 0

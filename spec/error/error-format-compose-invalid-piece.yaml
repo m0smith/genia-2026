@@ -1,0 +1,10 @@
+name: error-format-compose-invalid-piece
+category: error
+input:
+  source: |
+    format_compose([Format("{x}"), 42])
+expected:
+  stdout: ""
+  stderr: |
+    Error: format_compose expected string or Format at index 1, received int
+  exit_code: 1
