@@ -67,15 +67,46 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | --- | --- |
 | display string | `display(value)` |
 | debug string | `debug_repr(value)` |
-| template string | `format(template, values)` |
+| template string | `format(template_or_format, values)` |
+| experimental format value | `Format(template)` |
 
-`display`, `debug_repr`, and `format` return strings. They do not write output. `format` supports named placeholders (`{name}`), positional placeholders (`{0}`), debug placeholders (`{name:?}`, `{0:?}`), escaped braces (`{{`, `}}`), and an experimental limited set of field specs (#169): `{field:<N}` left-align, `{field:>N}` right-align, `{field:^N}` center, `{n:.N}` precision, `{n:0N}` zero-pad, `{n:,}` comma-group. Ordinary replacements use display rendering; exact `:?` replacements use debug rendering.
+`display`, `debug_repr`, and `format` return strings. They do not write output. Representation does not affect value identity. `Format(template)` is Experimental and is for output representation, not value templates. `format` supports named placeholders (`{name}`), positional placeholders (`{0}`), debug placeholders (`{name:?}`, `{0:?}`), escaped braces (`{{`, `}}`), and an experimental limited set of field specs (#169): `{field:<N}` left-align, `{field:>N}` right-align, `{field:^N}` center, `{n:.N}` precision, `{n:0N}` zero-pad, `{n:,}` comma-group. Ordinary replacements use display rendering; exact `:?` replacements use debug rendering.
 
 <!-- [case: core-format-named] -->
 ```genia
-format("Hello {name}", {name: "Genia"})
+format("Hello {name}!", {name: "Alice"})
 ```
 Classification: **Valid** (directly tested)
+
+<!-- [case: core-format-positional] -->
+```genia
+format("Item {0} costs {1}", ["apple", "5"])
+```
+Classification: **Valid** (directly tested)
+
+<!-- [case: core-format-escaped-braces] -->
+```genia
+format("{{key}} = {0}", ["value"])
+```
+Classification: **Valid** (directly tested)
+
+<!-- [case: core-format-tic-tac-toe-row] -->
+```genia
+format("{0} | {1} | {2}", ["X", "O", "X"])
+```
+Classification: **Valid** (directly tested)
+
+Missing field failure:
+
+```text
+format("Hello {name}!", {greeting: "Hi"})
+```
+
+Expected stderr:
+
+```text
+Error: format missing field: name
+```
 
 ## List And Sequence Helpers
 
