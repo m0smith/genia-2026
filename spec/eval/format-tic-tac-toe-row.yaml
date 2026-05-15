@@ -1,0 +1,10 @@
+name: format-tic-tac-toe-row
+category: eval
+input:
+  source: |
+    format("{0} | {1} | {2}", ["X", "O", "X"])
+expected:
+  stdout: |
+    "X | O | X"
+  stderr: ""
+  exit_code: 0
