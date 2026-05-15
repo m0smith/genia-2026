@@ -57,6 +57,12 @@ def test_format_value_positional_placeholders():
     assert result == "hello world"
 
 
+def test_format_constructor_requires_call_syntax():
+    env, _, _ = _env()
+    with pytest.raises(Exception, match="Format"):
+        run_source('Format "{name}"', env)
+
+
 # --- Display and debug rendering ---
 
 def test_format_value_display_returns_format_tag():
