@@ -1,0 +1,10 @@
+name: error-format-field-path-invalid-trailing-dot
+category: error
+input:
+  source: |
+    format("{name.}", {name: "Ada"})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format invalid placeholder
+  exit_code: 1

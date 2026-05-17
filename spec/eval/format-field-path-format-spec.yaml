@@ -1,0 +1,10 @@
+name: format-field-path-format-spec
+category: eval
+input:
+  source: |
+    format("{user.score:03}", {user: {score: 7}})
+expected:
+  stdout: |
+    "007"
+  stderr: ""
+  exit_code: 0

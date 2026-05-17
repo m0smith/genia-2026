@@ -1,0 +1,10 @@
+name: format-field-path-repeated
+category: eval
+input:
+  source: |
+    format("{user.name}/{user.name}", {user: {name: "Ada"}})
+expected:
+  stdout: |
+    "Ada/Ada"
+  stderr: ""
+  exit_code: 0

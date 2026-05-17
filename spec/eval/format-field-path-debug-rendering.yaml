@@ -1,0 +1,10 @@
+name: format-field-path-debug-rendering
+category: eval
+input:
+  source: |
+    format("{user.name:?}", {user: {name: "Ada"}})
+expected:
+  stdout: |
+    "\"Ada\""
+  stderr: ""
+  exit_code: 0

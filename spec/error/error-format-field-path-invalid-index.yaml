@@ -1,0 +1,10 @@
+name: error-format-field-path-invalid-index
+category: error
+input:
+  source: |
+    format("{users[0].name}", {users: [{name: "Ada"}]})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format invalid placeholder
+  exit_code: 1

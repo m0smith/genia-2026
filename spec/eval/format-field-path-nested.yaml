@@ -1,0 +1,10 @@
+name: format-field-path-nested
+category: eval
+input:
+  source: |
+    format("name:{user.name}", {user: {name: "Ada"}})
+expected:
+  stdout: |
+    "name:Ada"
+  stderr: ""
+  exit_code: 0

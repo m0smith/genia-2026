@@ -1,0 +1,10 @@
+name: error-format-field-path-missing-top-level
+category: error
+input:
+  source: |
+    format("{user.name}", {})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format missing field: user.name
+  exit_code: 1
