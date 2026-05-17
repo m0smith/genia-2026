@@ -88,7 +88,17 @@ def _is_valid_field(field: str) -> bool:
         return False
     if _is_positional_field(field):
         return True
-    return _is_named_field(field)
+    return _is_named_path(field)
+
+
+def _is_named_path(field: str) -> bool:
+    return all(_is_named_field(part) for part in field.split("."))
+
+
+def _split_named_path(field: str) -> list[str]:
+    if not _is_named_path(field):
+        raise ValueError("format invalid placeholder")
+    return field.split(".")
 
 
 def _is_named_field(field: str) -> bool:
@@ -124,13 +134,20 @@ def resolve_format_placeholder(value: Any, field: str) -> Any:
         if index >= len(value):
             raise ValueError(f"format missing field: {index}")
         return value[index]
-    if _is_named_field(field):
-        if not isinstance(value, GeniaMap):
-            raise TypeError(f"format expected a map for named placeholder: {field}")
-        if not value.has(field):
-            raise ValueError(f"format missing field: {field}")
-        return value.get(field)
-    raise ValueError("format invalid placeholder")
+    current = value
+    for segment in _split_named_path(field):
+        current = _resolve_named_segment(current, segment, field)
+    return current
+
+
+def _resolve_named_segment(value: Any, segment: str, full_path: str) -> Any:
+    if not isinstance(value, GeniaMap):
+        if segment == full_path:
+            raise TypeError(f"format expected a map for named placeholder: {segment}")
+        raise TypeError(f"format expected a map while resolving placeholder path: {full_path}")
+    if not value.has(segment):
+        raise ValueError(f"format missing field: {full_path}")
+    return value.get(segment)
 
 
 # ---------------------------------------------------------------------------
