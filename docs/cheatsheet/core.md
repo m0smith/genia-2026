@@ -70,7 +70,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | template string | `format(template_or_format, values)` |
 | experimental format value | `Format(template)` |
 
-`display`, `debug_repr`, and `format` return strings. They do not write output. Representation does not affect value identity. `Format(template)` is Experimental and is for output representation, not value templates. `format` supports named placeholders (`{name}`), positional placeholders (`{0}`), debug placeholders (`{name:?}`, `{0:?}`), escaped braces (`{{`, `}}`), and an experimental limited set of field specs (#169): `{field:<N}` left-align, `{field:>N}` right-align, `{field:^N}` center, `{n:.N}` precision, `{n:0N}` zero-pad, `{n:,}` comma-group. Ordinary replacements use display rendering; exact `:?` replacements use debug rendering.
+`display`, `debug_repr`, and `format` return strings. They do not write output. Representation does not affect value identity. `Format(template)` is Experimental and is for output representation, not value templates. `format` supports named placeholders (`{name}`), field-path placeholders (`{user.name}`, `{user.address.city}`) for dot-separated nested map lookup (Experimental, #290), positional placeholders (`{0}`), debug placeholders (`{name:?}`, `{0:?}`), escaped braces (`{{`, `}}`), and an experimental limited set of field specs (#169): `{field:<N}` left-align, `{field:>N}` right-align, `{field:^N}` center, `{n:.N}` precision, `{n:0N}` zero-pad, `{n:,}` comma-group. Ordinary replacements use display rendering; exact `:?` replacements use debug rendering. Field paths are lookup-only: no expressions, list indexing, optional chaining, or filters.
 
 <!-- [case: core-format-named] -->
 ```genia
@@ -95,6 +95,12 @@ Classification: **Valid** (directly tested)
 format("{0} | {1} | {2}", ["X", "O", "X"])
 ```
 Classification: **Valid** (directly tested)
+
+<!-- [case: core-format-field-path-nested] -->
+```genia
+format("{user.name} lives in {user.address.city}", {user: {name: "Ada", address: {city: "Bountiful"}}})
+```
+Classification: **Valid** (directly tested, Experimental #290)
 
 Missing field failure:
 
