@@ -24,6 +24,9 @@ REQUIRED_FORMAT_FIELD_PATH_SPECS = {
         "error-format-field-path-invalid-trailing-dot",
         "error-format-field-path-invalid-double-dot",
         "error-format-field-path-invalid-index",
+        "error-format-field-path-slash-separator",
+        "error-format-field-path-slash-nested",
+        "error-format-field-path-mixed-slash-dot",
     },
 }
 

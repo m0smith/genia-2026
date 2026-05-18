@@ -1003,7 +1003,7 @@ Representation System entry points (#185, implemented):
     - `,` — comma-group numeric output (integer portion only, ASCII commas, no localization)
   - `bool` values are not numeric for spec purposes; numeric specs (`0N`, `,`) applied to bools fail deterministically
   - combined specs, bare width specs (e.g. `{n:10}`), debug spec combinations (e.g. `{x:?>10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
-- Field-path placeholder resolution (#290): a missing top-level or nested segment fails with `format missing field: <path>`; a non-map intermediate fails with `format expected a map while resolving placeholder path: <path>`; invalid path syntax (empty segment, leading/trailing/double dot, brackets, calls) fails with `format invalid placeholder`.
+- Field-path placeholder resolution (#290): a missing top-level or nested segment fails with `format missing field: <path>`; a non-map intermediate fails with `format expected a map while resolving placeholder path: <path>`; invalid path syntax (empty segment, leading/trailing/double dot, slash-separated paths, brackets, calls) fails with `format invalid placeholder`; slash (`/`) is not a field-path separator and must not be used in field-path placeholders.
 - Placeholder replacements use the same user-facing display representation as `display(value)`, except where the exact debug spec `?` or another listed field spec applies.
 - Missing fields and invalid placeholders raise deterministic errors.
 - `format` does not support interpolation string syntax, localization, tag-based format selection, custom formatter protocols, list indexing in field paths, optional chaining, filters, or spec combinations beyond the listed subset.
