@@ -1,0 +1,10 @@
+name: format-field-path-mixed-top-level
+category: eval
+input:
+  source: |
+    format("{label}:{user.name}", {label: "student", user: {name: "Ada"}})
+expected:
+  stdout: |
+    "student:Ada"
+  stderr: ""
+  exit_code: 0

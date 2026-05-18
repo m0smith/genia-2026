@@ -990,6 +990,7 @@ Representation System entry points (#185, implemented):
 - The first argument to `format` is either a raw string template or a `Format` value (see below).
 - `format` supports:
   - named placeholders such as `{name}`, looked up in a map by string key
+  - field-path placeholders (**Experimental**, #290): `{user.name}`, `{user.address.city}` — dot-separated named segments resolved left-to-right through nested map-like values; each segment must match `[A-Za-z_][A-Za-z0-9_]*`; field paths are lookup-only and not general template expressions
   - positional placeholders such as `{0}`, looked up in a list by zero-based index
   - escaped braces `{{` and `}}`
   - debug placeholders (**Partial**, #170): `{name:?}` and `{0:?}` render the resolved value with the same debug representation as `debug_repr(value)`
@@ -1002,9 +1003,10 @@ Representation System entry points (#185, implemented):
     - `,` — comma-group numeric output (integer portion only, ASCII commas, no localization)
   - `bool` values are not numeric for spec purposes; numeric specs (`0N`, `,`) applied to bools fail deterministically
   - combined specs, bare width specs (e.g. `{n:10}`), debug spec combinations (e.g. `{x:?>10}`), and any spec not listed above are unsupported and fail with a `format-error:` prefixed error
+- Field-path placeholder resolution (#290): a missing top-level or nested segment fails with `format missing field: <path>`; a non-map intermediate fails with `format expected a map while resolving placeholder path: <path>`; invalid path syntax (empty segment, leading/trailing/double dot, brackets, calls) fails with `format invalid placeholder`.
 - Placeholder replacements use the same user-facing display representation as `display(value)`, except where the exact debug spec `?` or another listed field spec applies.
 - Missing fields and invalid placeholders raise deterministic errors.
-- `format` does not support field paths, interpolation string syntax, localization, tag-based format selection, custom formatter protocols, or spec combinations beyond the listed subset.
+- `format` does not support interpolation string syntax, localization, tag-based format selection, custom formatter protocols, list indexing in field paths, optional chaining, filters, or spec combinations beyond the listed subset.
 - `Format(template)` and `Format(template, tag)` are first-class Representation System constructors (**Experimental**, #168, #292):
   - `Format(template)` accepts a string template and returns an untagged first-class `Format` value.
   - `Format(template, tag)` accepts a string template and a non-empty string tag and returns a tagged first-class `Format` value.

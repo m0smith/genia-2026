@@ -1,0 +1,10 @@
+name: format-field-path-multi-nested
+category: eval
+input:
+  source: |
+    format("city:{user.address.city}", {user: {address: {city: "Bountiful"}}})
+expected:
+  stdout: |
+    "city:Bountiful"
+  stderr: ""
+  exit_code: 0

@@ -70,6 +70,11 @@
     "expected_result": "\"X | O | X\""
   },
   {
+    "id": "core-format-field-path-nested",
+    "source": "format(\"{user.name} lives in {user.address.city}\", {user: {name: \"Ada\", address: {city: \"Bountiful\"}}})",
+    "expected_result": "\"Ada lives in Bountiful\""
+  },
+  {
     "id": "core-actor-call-reply",
     "source": "handler(state, msg, _ctx) = [\"reply\", state + msg, state + msg]\na = actor(0, handler)\nactor_call(a, 5)",
     "expected_result": "5"

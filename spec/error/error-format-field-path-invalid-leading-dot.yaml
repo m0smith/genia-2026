@@ -1,8 +1,8 @@
-name: error-format-invalid-placeholder-chars
+name: error-format-field-path-invalid-leading-dot
 category: error
 input:
   source: |
-    format("Value: {user.name}", {user: {name: "Alice"}})
+    format("{.name}", {name: "Ada"})
 expected:
   stdout: ""
   stderr: |
