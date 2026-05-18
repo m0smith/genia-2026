@@ -1,0 +1,10 @@
+name: error-format-field-path-mixed-slash-dot
+category: error
+input:
+  source: |
+    format("{user/name.first}", {user: {name: {first: "Ada"}}})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format invalid placeholder
+  exit_code: 1

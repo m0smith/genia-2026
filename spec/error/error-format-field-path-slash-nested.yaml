@@ -1,0 +1,10 @@
+name: error-format-field-path-slash-nested
+category: error
+input:
+  source: |
+    format("{user/address/city}", {user: {address: {city: "Bountiful"}}})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format invalid placeholder
+  exit_code: 1

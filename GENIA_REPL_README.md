@@ -192,7 +192,7 @@ CLI contract summary (actual behavior):
     - `debug_repr(value)` returns the debug representation string without writing output
     - these entry points are minimal #185 surface area; #166 owns the broader Representation System model
   - public prelude-backed string formatting helper:
-    - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`
+    - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`; field-path placeholders `{user.name}` / `{user.address.city}` use dot (`.`) as the canonical separator for nested map lookup (**Experimental**, #290)
     - `format(template_or_format, values)` does not write output and does not mutate the input template, `Format` value, or values map/list
     - `format` accepts either a raw string template or a `Format` value as its first argument
     - `Format` is for output representation and does not affect value identity
