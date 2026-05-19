@@ -144,7 +144,7 @@ CLI contract summary (actual behavior):
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
 - module import forms: `import mod`, `import mod as alias`
   - imports are cached by module name; repeated imports/aliases reuse the same module value
-- phase-1 slash named accessor: `mod/name`, `map/name` (bare identifier RHS only; not general field-path lookup)
+- named accessor (phase 1): `lhs.name` is the canonical form; legacy `lhs/name` is compatibility only (bare identifier RHS only; not general field-path lookup)
 - callable data (phase 1 subset):
   - map lookup calls: `m(key)`, `m(key, default)`
   - string projector calls over maps: `"key"(m)`, `"key"(m, default)`
