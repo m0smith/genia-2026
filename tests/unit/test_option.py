@@ -125,9 +125,9 @@ def test_none_pattern_rejects_too_many_inner_patterns(run):
         run("f(x) = none(a, b, c) -> a")
 
 
-def test_some_pattern_rejects_multiple_inner_patterns(run):
-    with pytest.raises(SyntaxError, match="some\\(\\.\\.\\.\\) pattern expects exactly one inner pattern"):
-        run('f(x) = some(a, b) -> a')
+def test_some_pattern_rejects_too_many_inner_patterns(run):
+    with pytest.raises(SyntaxError, match=r"some\(\.\.\.\) pattern expects at most 2 inner patterns"):
+        run('f(x) = some(a, b, c) -> a')
 
 
 def test_option_list_helpers_work_with_pattern_matching(run):

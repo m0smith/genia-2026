@@ -11,6 +11,7 @@ from .ast_nodes import (
     CaseClause,
     CaseExpr,
     Delay,
+    ErrPattern,
     ExprStmt,
     FuncDef,
     GlobPattern,
@@ -31,7 +32,6 @@ from .ast_nodes import (
     SomePattern,
     Spread,
     String,
-    SymbolLiteral,
     TuplePattern,
     Unary,
     Unquote,
@@ -638,11 +638,35 @@ class Parser:
                 self.skip_newlines()
                 inner = self.parse_pattern_atom()
                 self.skip_newlines()
+                context: Node | None = None
                 if self.at("COMMA"):
-                    comma = self.eat("COMMA")
-                    raise SyntaxError(f"some(...) pattern expects exactly one inner pattern at {comma.pos}")
+                    self.eat("COMMA")
+                    self.skip_newlines()
+                    context = self.parse_pattern_atom()
+                    self.skip_newlines()
+                    if self.at("COMMA"):
+                        comma = self.eat("COMMA")
+                        raise SyntaxError(f"some(...) pattern expects at most 2 inner patterns at {comma.pos}")
                 end = self.eat("RPAREN")
-                return SomePattern(inner, span=self.span_for_tokens(tok, end))
+                return SomePattern(inner, context, span=self.span_for_tokens(tok, end))
+            if tok.text == "err" and self.at("LPAREN"):
+                start = self.eat("LPAREN")
+                self.skip_newlines()
+                if self.at("RPAREN"):
+                    raise SyntaxError(f"err(...) pattern expects 1 or 2 inner patterns at {self.peek().pos}")
+                reason = self.parse_none_reason_pattern_atom()
+                self.skip_newlines()
+                context: Node | None = None
+                if self.at("COMMA"):
+                    self.eat("COMMA")
+                    self.skip_newlines()
+                    context = self.parse_pattern_atom()
+                    self.skip_newlines()
+                    if self.at("COMMA"):
+                        comma = self.eat("COMMA")
+                        raise SyntaxError(f"err(...) pattern expects at most 2 inner patterns at {comma.pos}")
+                end = self.eat("RPAREN")
+                return ErrPattern(reason, context, span=self.span_for_tokens(tok, end))
             if tok.text == "_":
                 return WildcardPattern(span=self.span_for_tokens(tok, tok))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
@@ -689,7 +713,7 @@ class Parser:
                 return NoneOption(span=self.span_for_tokens(tok, tok))
             if tok.text == "_":
                 return WildcardPattern(span=self.span_for_tokens(tok, tok))
-            return SymbolLiteral(tok.text, span=self.span_for_tokens(tok, tok))
+            return Var(tok.text, span=self.span_for_tokens(tok, tok))
         raise SyntaxError(f"none(...) reason pattern expects a literal, symbol label, or _ at {tok.pos}")
 
     def finish_none_pattern(self, none_tok: Token) -> Node:

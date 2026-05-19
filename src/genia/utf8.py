@@ -38,7 +38,9 @@ def format_display(value: Any) -> str:
     if _is_option_none(value):
         return _format_option_none(value, format_display)
     if _is_option_some(value):
-        return f"some({format_display(value.value)})"
+        return _format_option_some(value, format_display)
+    if _is_option_err(value):
+        return _format_option_err(value, format_display)
     if _is_pair(value):
         return _format_pair(value, format_display)
     if _is_map(value):
@@ -72,7 +74,9 @@ def format_debug(value: Any) -> str:
     if _is_option_none(value):
         return _format_option_none(value, format_debug)
     if _is_option_some(value):
-        return f"some({format_debug(value.value)})"
+        return _format_option_some(value, format_debug)
+    if _is_option_err(value):
+        return _format_option_err(value, format_debug)
     if _is_pair(value):
         return _format_pair(value, format_debug)
     if _is_map(value):
@@ -114,6 +118,14 @@ def _is_option_some(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaOptionSome" and hasattr(value, "value")
 
 
+def _is_option_err(value: Any) -> bool:
+    return (
+        value.__class__.__name__ == "GeniaOptionErr"
+        and hasattr(value, "reason")
+        and hasattr(value, "context")
+    )
+
+
 def _is_format(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaFormat" and hasattr(value, "template")
 
@@ -150,6 +162,23 @@ def _format_option_none(value: Any, formatter) -> str:
     if context is None:
         return f"none({reason_text})"
     return f"none({reason_text}, {_format_option_part(context, formatter)})"
+
+
+def _format_option_some(value: Any, formatter) -> str:
+    value_text = formatter(getattr(value, "value"))
+    context = getattr(value, "context", None)
+    if context is None:
+        return f"some({value_text})"
+    return f"some({value_text}, {_format_option_part(context, formatter)})"
+
+
+def _format_option_err(value: Any, formatter) -> str:
+    reason = getattr(value, "reason")
+    context = getattr(value, "context", None)
+    reason_text = _format_option_part(reason, formatter)
+    if context is None:
+        return f"err({reason_text})"
+    return f"err({reason_text}, {_format_option_part(context, formatter)})"
 
 
 def _is_nil_none_value(value: Any) -> bool:

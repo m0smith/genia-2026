@@ -77,6 +77,7 @@ if __package__ in (None, ""):
         GeniaCell,
         GeniaFlow,
         GeniaFormat,
+        GeniaOptionErr,
         GeniaMap,
         GeniaOptionNone,
         GeniaOptionSome,
@@ -147,6 +148,7 @@ else:
         GeniaCell,
         GeniaFlow,
         GeniaFormat,
+        GeniaOptionErr,
         GeniaMap,
         GeniaOptionNone,
         GeniaOptionSome,
@@ -2018,8 +2020,17 @@ def make_global_env(
             raise TypeError(f"pairs expected a list as second argument, received {_runtime_type_name(value)}")
         raise TypeError("pairs internal error expected argument position 'first' or 'second'")
 
-    def some_fn(value: Any) -> GeniaOptionSome:
-        return GeniaOptionSome(value)
+    def some_fn(*args: Any) -> GeniaOptionSome:
+        if len(args) not in (1, 2):
+            raise TypeError("some(...) expects 1 or 2 arguments")
+        context = args[1] if len(args) == 2 else None
+        return GeniaOptionSome(args[0], context)
+
+    def err_fn(*args: Any) -> GeniaOptionErr:
+        if len(args) not in (1, 2):
+            raise TypeError("err(...) expects 1 or 2 arguments")
+        context = args[1] if len(args) == 2 else None
+        return GeniaOptionErr(args[0], context)
 
     def is_some_fn(value: Any) -> bool:
         return isinstance(value, GeniaOptionSome)
@@ -2257,6 +2268,7 @@ def make_global_env(
         flush_fn,
         cli_spec_fn,
         some_fn,
+        err_fn,
         is_some_fn,
         is_none_fn,
         some_predicate_fn,
@@ -2986,6 +2998,7 @@ def make_global_env(
     env.set("nil", OPTION_NONE)
     env.set("none", OPTION_NONE)
     env.set("_some", some_fn)
+    env.set("_err", err_fn)
     env.set("_none?", none_predicate_fn)
     env.set("_some?", some_predicate_fn)
     env.set("_get", get_fn)
@@ -3214,6 +3227,7 @@ def make_global_env(
     env.register_autoload("move_cursor", 2, "std/prelude/io.genia")
     env.register_autoload("render_grid", 1, "std/prelude/io.genia")
     env.register_autoload("some", 1, "std/prelude/option.genia")
+    env.register_autoload("err", 1, "std/prelude/option.genia")
     env.register_autoload("none?", 1, "std/prelude/option.genia")
     env.register_autoload("some?", 1, "std/prelude/option.genia")
     env.register_autoload("get", 2, "std/prelude/option.genia")

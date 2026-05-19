@@ -39,7 +39,7 @@ if __package__ in (None, ""):
     )
     from genia.values import (
         OPTION_NONE, _is_nil_none, _merge_metadata_maps, _runtime_type_name, GeniaFlow, GeniaMap, GeniaOptionNone,
-        GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_none,
+        GeniaOptionErr, GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_err, is_none,
         make_none, symbol, truthy,
     )
     from genia.callable import (
@@ -73,7 +73,7 @@ else:
     )
     from .values import (
         OPTION_NONE, _is_nil_none, _merge_metadata_maps, _runtime_type_name, GeniaFlow, GeniaMap, GeniaOptionNone,
-        GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_none,
+        GeniaOptionErr, GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_err, is_none,
         make_none, symbol, truthy,
     )
     from .callable import (
@@ -860,7 +860,7 @@ class Evaluator:
         input_type = _runtime_type_name(stage_input)
         if isinstance(stage_input, GeniaOptionSome):
             rendered += f": pipeline value was {input_type} (auto-unwrapped)"
-        elif isinstance(stage_input, GeniaOptionNone):
+        elif isinstance(stage_input, (GeniaOptionNone, GeniaOptionErr)):
             rendered += f": pipeline value was {input_type}"
         else:
             rendered += f": stage received {input_type}"
@@ -875,7 +875,7 @@ class Evaluator:
     def eval_pipeline(self, node: IrPipeline, tail_position: bool) -> Any:
         stage_value = self.eval(node.source)
         for index, stage in enumerate(node.stages):
-            if is_none(stage_value):
+            if is_none(stage_value) or is_err(stage_value):
                 return stage_value
             try:
                 stage_value = self.eval_pipeline_stage(
@@ -905,11 +905,11 @@ class Evaluator:
                     tail_position=tail_position,
                     callee_node=callee_node,
                 )
-                if isinstance(result, (GeniaOptionSome, GeniaOptionNone)):
+                if isinstance(result, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
                     return result
                 if isinstance(result, GeniaFlow):
                     return result
-                return GeniaOptionSome(result)
+                return GeniaOptionSome(result, stage_value.context)
             return self.invoke_callable(
                 fn,
                 [*base_args, stage_value],
@@ -1003,8 +1003,8 @@ class Evaluator:
         else:
             out = stdout_text
 
-        if was_some and not isinstance(out, (GeniaOptionSome, GeniaOptionNone)):
-            out = GeniaOptionSome(out)
+        if was_some and not isinstance(out, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+            out = GeniaOptionSome(out, stage_value.context)
         return out
 
     def invoke_callable(

@@ -174,6 +174,14 @@ class MapPattern(Node):
 @dataclass
 class SomePattern(Node):
     inner: Node
+    context: Node | None = None
+    span: SourceSpan | None = None
+
+
+@dataclass
+class ErrPattern(Node):
+    reason: Node
+    context: Node | None = None
     span: SourceSpan | None = None
 
 
