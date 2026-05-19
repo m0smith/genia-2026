@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,7 @@ def normalize(text: str) -> str:
 
 
 FACTS = json.loads(FACTS_PATH.read_text(encoding="utf-8"))
+CANONICAL_FIELD_PATH_SEPARATOR_FACT = "canonical_format_field_path_separator"
 
 
 def test_semantic_facts_file_stays_small_and_complete() -> None:
@@ -50,9 +52,10 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "host_status",
         "naming_rule",
         "annotation_builtins",
+        CANONICAL_FIELD_PATH_SEPARATOR_FACT,
     }
     assert set(FACTS) == expected_keys
-    assert len(FACTS) <= 16, "semantic facts surface should stay intentionally small"
+    assert len(FACTS) <= 17, "semantic facts surface should stay intentionally small"
 
 
 def test_authoritative_docs_capture_pipeline_option_contract() -> None:
@@ -369,6 +372,83 @@ def test_authoritative_and_public_docs_keep_naming_rule_visible() -> None:
         assert (
             normalize("`get?` remains the current compatibility exception") in text
             or normalize("`get?` remains the existing compatibility exception") in text
+        )
+
+
+def test_canonical_format_field_path_separator_semantic_fact_is_actionable() -> None:
+    fact = FACTS.get(CANONICAL_FIELD_PATH_SEPARATOR_FACT)
+    assert isinstance(fact, str), (
+        "docs/contract/semantic_facts.json must define "
+        f"{CANONICAL_FIELD_PATH_SEPARATOR_FACT!r} so semantic sync can guard "
+        "dot as the canonical format field-path separator"
+    )
+
+    normalized_fact = normalize(fact)
+    for excerpt in [
+        "dot",
+        "canonical",
+        "field-path separator",
+        "slash",
+        "not",
+    ]:
+        assert excerpt in normalized_fact, (
+            f"{CANONICAL_FIELD_PATH_SEPARATOR_FACT!r} must explicitly mention "
+            f"{excerpt!r}: {fact!r}"
+        )
+
+
+def test_docs_guard_canonical_format_field_path_separator() -> None:
+    representation = read_text("docs/design/representation-system-and-format.md")
+    state = read_text("GENIA_STATE.md")
+    rules = read_text("GENIA_RULES.md")
+    arch = read_text("docs/architecture/core-ir-portability.md")
+
+    required_representation_excerpts = [
+        "Field-path placeholders use dot-separated nested map lookup",
+        "Slash is not a field-path separator.",
+        "{user.name}",
+        "{user.address.city}",
+    ]
+    for excerpt in required_representation_excerpts:
+        assert normalize(excerpt) in normalize(representation), (
+            "docs/design/representation-system-and-format.md must preserve "
+            f"the canonical dot field-path separator wording: {excerpt!r}"
+        )
+
+    required_state_excerpts = [
+        "dot-separated named segments resolved left-to-right through nested map-like values",
+        "slash (`/`) is not a field-path separator",
+        "must not be used in field-path placeholders",
+    ]
+    for excerpt in required_state_excerpts:
+        assert normalize(excerpt) in normalize(state), (
+            "GENIA_STATE.md must remain the final-authority anchor for "
+            f"format field-path separator semantics: {excerpt!r}"
+        )
+
+    for text, relpath in [
+        (rules, "GENIA_RULES.md"),
+        (arch, "docs/architecture/core-ir-portability.md"),
+    ]:
+        normalized = normalize(text)
+        assert "irbinary(op=slash" in normalized
+        assert "not general field-path lookup" in normalized, (
+            f"{relpath} must keep slash scoped to narrow named access, not "
+            "format placeholder field paths"
+        )
+
+    forbidden_patterns = [
+        r"\{[A-Za-z_][A-Za-z0-9_]*(?:/[A-Za-z_][A-Za-z0-9_]*)+\}",
+        r"slash-separated\s+field\s+paths?",
+        r"field\s+paths?\s+(?:use|uses|using)\s+/",
+        r"field\s+path\s+separator\s+is\s+/",
+        r"format\s+field\s+paths?\s+use\s+dot\s+or\s+slash",
+        r"format\s+placeholders?.{0,80}slash\s+paths?",
+    ]
+    for pattern in forbidden_patterns:
+        assert not re.search(pattern, representation, flags=re.IGNORECASE | re.DOTALL), (
+            "docs/design/representation-system-and-format.md must not reintroduce "
+            f"slash-as-format-field-path wording matched by {pattern!r}"
         )
 
 
