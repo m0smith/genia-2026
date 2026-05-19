@@ -6,6 +6,22 @@
       "Bash(sed -n '3385,3410p' src/genia/interpreter.py)",
       "Bash(sed -n '3555,3615p' src/genia/interpreter.py)",
       "Bash(sed -n '8073,8085p' src/genia/interpreter.py)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./.git/**)",
+      "Read(./.venv/**)",
+      "Read(./node_modules/**)",
+      "Read(./dist/**)",
+      "Read(./build/**)",
+      "Read(./site/**)",
+      "Read(./htmlcov/**)",
+      "Read(./.pytest_cache/**)",
+      "Read(./.mypy_cache/**)",
+      "Read(./.ruff_cache/**)",
+      "Read(./.coverage)",
+      "Read(./.genia/process/tmp/**)"
     ]
   }
 }
