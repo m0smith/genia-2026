@@ -1,0 +1,11 @@
+name: outcome-err-context-render
+category: eval
+description: err(reason, context) preserves and renders context metadata
+input:
+  source: |
+    err("parse-error", {text: "abc"})
+expected:
+  stdout: "err(\"parse-error\", {text: \"abc\"})\n"
+  stderr: ""
+  exit_code: 0
+

@@ -1,0 +1,11 @@
+name: outcome-some-context-render
+category: eval
+description: some(value, context) renders as a context-carrying Outcome value
+input:
+  source: |
+    some(42, {source: "cache"})
+expected:
+  stdout: "some(42, {source: \"cache\"})\n"
+  stderr: ""
+  exit_code: 0
+

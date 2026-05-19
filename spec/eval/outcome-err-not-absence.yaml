@@ -1,0 +1,11 @@
+name: outcome-err-not-absence
+category: eval
+description: existing absence helpers do not treat err(...) as none(...) absence
+input:
+  source: |
+    none?(err("bad"))
+expected:
+  stdout: "false\n"
+  stderr: ""
+  exit_code: 0
+

@@ -1,0 +1,11 @@
+name: outcome-err-render
+category: eval
+description: err(reason) is a recoverable value-level Outcome, not a runtime error
+input:
+  source: |
+    err("parse-error")
+expected:
+  stdout: "err(\"parse-error\")\n"
+  stderr: ""
+  exit_code: 0
+

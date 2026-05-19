@@ -1,0 +1,15 @@
+name: outcome-pattern-err
+category: eval
+description: pattern matching distinguishes recoverable err(...) values
+input:
+  source: |
+    describe(x) =
+      some(_) -> "present" |
+      none(_) -> "absent" |
+      err(reason) -> reason
+    describe(err("bad-number"))
+expected:
+  stdout: "\"bad-number\"\n"
+  stderr: ""
+  exit_code: 0
+

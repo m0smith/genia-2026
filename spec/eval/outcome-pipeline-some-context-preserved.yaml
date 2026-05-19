@@ -1,0 +1,11 @@
+name: outcome-pipeline-some-context-preserved
+category: eval
+description: some(value, context) preserves context through ordinary pipeline lifting
+input:
+  source: |
+    some(2, {field: "age"}) |> ((x) -> x + 1)
+expected:
+  stdout: "some(3, {field: \"age\"})\n"
+  stderr: ""
+  exit_code: 0
+
