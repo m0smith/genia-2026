@@ -1,0 +1,18 @@
+name: dot-named-access
+category: ir
+description: Canonical dot named access lowers through the existing narrow named-access IR shape
+input:
+  source: |
+    person.name
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrBinary
+        left:
+          node: IrVar
+          name: person
+        op: SLASH
+        right:
+          node: IrVar
+          name: name

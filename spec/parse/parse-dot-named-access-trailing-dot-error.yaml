@@ -1,0 +1,10 @@
+name: parse-dot-named-access-trailing-dot-error
+category: parse
+description: Dot named access requires a name segment after the dot
+input:
+  source: "person."
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "named access"

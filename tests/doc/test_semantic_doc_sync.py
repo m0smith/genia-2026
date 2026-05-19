@@ -34,6 +34,7 @@ def normalize(text: str) -> str:
 
 FACTS = json.loads(FACTS_PATH.read_text(encoding="utf-8"))
 CANONICAL_FIELD_PATH_SEPARATOR_FACT = "canonical_format_field_path_separator"
+CANONICAL_NAMED_ACCESS_SEPARATOR_FACT = "canonical_named_access_separator"
 
 
 def test_semantic_facts_file_stays_small_and_complete() -> None:
@@ -53,9 +54,10 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "naming_rule",
         "annotation_builtins",
         CANONICAL_FIELD_PATH_SEPARATOR_FACT,
+        CANONICAL_NAMED_ACCESS_SEPARATOR_FACT,
     }
     assert set(FACTS) == expected_keys
-    assert len(FACTS) <= 17, "semantic facts surface should stay intentionally small"
+    assert len(FACTS) <= 18, "semantic facts surface should stay intentionally small"
 
 
 def test_authoritative_docs_capture_pipeline_option_contract() -> None:
@@ -600,6 +602,30 @@ def test_arch_doc_lowering_invariants_cover_slash_as_ir_binary() -> None:
         "docs/architecture/core-ir-portability.md must clarify that "
         "IrBinary(op=SLASH) is named slash access, not field-path lookup"
     )
+
+
+def test_authoritative_docs_record_dot_as_canonical_named_access_separator() -> None:
+    state = read_text("GENIA_STATE.md")
+    rules = read_text("GENIA_RULES.md")
+    arch = read_text("docs/architecture/core-ir-portability.md")
+    design = read_text("docs/design/ir.md")
+
+    for relpath, text in {
+        "GENIA_STATE.md": state,
+        "GENIA_RULES.md": rules,
+        "docs/architecture/core-ir-portability.md": arch,
+        "docs/design/ir.md": design,
+    }.items():
+        normalized = normalize(text)
+        assert "dot" in normalized and "canonical" in normalized and "named access" in normalized, (
+            f"{relpath} must state that dot is the canonical named-access separator"
+        )
+        assert "lhs.name" in text or "person.name" in text, (
+            f"{relpath} must show the canonical dot named-access source form"
+        )
+        assert "legacy" in normalized or "compatibility" in normalized, (
+            f"{relpath} must label slash named access as legacy/compatibility if retained"
+        )
 
 
 def test_arch_doc_lowering_invariants_cover_bare_none_null_reason() -> None:

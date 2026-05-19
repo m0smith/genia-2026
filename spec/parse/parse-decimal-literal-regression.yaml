@@ -1,0 +1,11 @@
+name: parse-decimal-literal-regression
+category: parse
+description: Decimal numbers remain numeric literals, not dot named access
+input:
+  source: "1.2"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 1.2
