@@ -50,6 +50,7 @@ Supported patterns:
 - tuple pattern
 - list pattern with optional rest
 - map pattern (string-keyed entries; partial-by-default)
+- named reusable pattern (`Name(inner_pattern)`) — Experimental
 
 Required constraints:
 
@@ -63,6 +64,23 @@ Required constraints:
   - `*`, `?`, `[abc]`, `[a-z]`, `[!abc]`
   - escapes: `\*`, `\?`, `\[`, `\]`, `\\`
 - malformed glob classes must raise deterministic syntax errors
+
+## 6.1) Named reusable pattern invariants (Experimental)
+
+- `pattern Name(value) = body` declares a named pattern at top level with exactly one matcher parameter
+- `pattern Name() = body` and `pattern Name(a, b) = body` must fail at parse time (arity error)
+- `Name(inner_pattern)` in pattern position is the use form; only one nested pattern argument is supported
+- `Name()` and `Name(a, b)` in pattern position must fail at parse time (use arity error)
+- `some`, `none`, and `err` in pattern position remain built-in Outcome constructor patterns; named pattern resolution does not apply to them
+- the matcher body must return one of `some(...)`, `none(...)`, or `err(...)`; any other return value is a runtime error
+- `some(payload, context?)` means match success; the pattern engine continues matching `inner_pattern` against `payload`
+- `none(reason, context?)` means pattern miss; dispatch tries the next arm
+- `err(reason, context?)` must NOT be treated as a miss; it surfaces as the dispatch result without trying later arms
+- a name bound to an ordinary function used in named-pattern position must fail with a deterministic runtime error
+- an unknown name used in named-pattern position must fail with a deterministic runtime error
+- named pattern declarations bind `Name` in the normal lexical environment; no separate pattern namespace is introduced
+- named patterns are valid in the same pattern positions as other implemented pattern forms
+- recursive named pattern definitions are not supported in this phase
 
 ## 7) Spread semantics
 

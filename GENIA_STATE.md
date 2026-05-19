@@ -144,7 +144,7 @@ PYTHON REFERENCE HOST:
   - stdin-fed eval cases whose compared surface remains `stdout`, `stderr`, and `exit_code`
   - direct Option rendering for deterministic final-result output (`some(...)`, `none(...)`)
   - pipeline Option propagation for deterministic final-result output (`some(...)` lift and `none(...)` short-circuit)
-  - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, and glob forms)
+  - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, glob, and named reusable pattern forms)
   - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `first` given a Flow, `reduce` given a non-Seq-compatible value (int, string)
   - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
@@ -152,10 +152,10 @@ PYTHON REFERENCE HOST:
 - Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
-- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, and malformed-glob cases) and does not machine-assert structured phase/category/message fields.
+- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, malformed-glob, and named-pattern error cases) and does not machine-assert structured phase/category/message fields.
 - The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - The current shared spec runner accepts `-v` / `--verbose`, printing each spec name before execution starts and then a single timing line (`<name>\t<elapsed>s`) after each spec completes.
-- Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.
+- Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms, and now includes named pattern declaration (`pattern Name(value) = body`) and named pattern use in case arms (`Name(inner_pattern)`), including error cases for invalid declaration and use arity. Parse spec coverage expands only when new forms are explicitly added and tested.
 - Uncovered or partial categories are not guaranteed and may differ in future implementations.
 
 **Summary:**
@@ -873,6 +873,7 @@ Implemented pattern types:
 - rest pattern `..name` / `.._` (list patterns only; final position only)
 - duplicate binding semantics (same name must match equal value)
 - multiline list pattern formatting is accepted (newlines inside `[...]` pattern shapes)
+- named reusable patterns (`Name(inner_pattern)`) — **Experimental**
 
 Map pattern semantics:
 
@@ -905,6 +906,23 @@ Glob pattern semantics (Phase 1):
 - supported escaping inside glob text:
   - `\*`, `\?`, `\[`, `\]`, `\\`
 - malformed character classes raise deterministic syntax errors
+
+Named reusable pattern semantics (Experimental):
+
+- a named pattern is declared at top level with `pattern Name(value) = body`; exactly one matcher parameter is required
+- the body evaluates to an Outcome value; non-Outcome bodies are a runtime error
+- `Name(inner_pattern)` in pattern position invokes the named matcher with the candidate value and then matches `inner_pattern` against the matcher's returned payload
+- `some(payload, context?)` — match succeeds; `inner_pattern` is matched against `payload`
+- `none(reason, context?)` — pattern misses; later case arms are tried normally
+- `err(reason, context?)` — recoverable matcher failure; does NOT fall through as a miss; surfaces as the dispatch result
+- non-Outcome return from the matcher is a runtime error
+- `some`, `none`, and `err` in pattern position remain built-in Outcome constructor patterns unaffected by named pattern resolution
+- using a name that is bound to an ordinary function (not a named pattern) in pattern position is a runtime error
+- using an unknown name in named-pattern position is a runtime error
+- only one nested pattern argument is supported; `Name()` and `Name(a, b)` are parse errors
+- named patterns are valid wherever ordinary patterns are valid (function case arms, list patterns, map patterns, tuple patterns)
+- named pattern declarations do not introduce a separate namespace; `Name` is bound in the normal lexical environment
+- recursive named patterns are not supported in this phase
 
 Case placement rules (enforced):
 
