@@ -1,9 +1,9 @@
-name: slash-accessor
+name: dot-named-access
 category: ir
-description: "Legacy compatibility: slash named access lowers as IrBinary with op SLASH (dot is the canonical source form); this is narrow named access, not general field-path lookup"
+description: Canonical dot named access lowers through the existing narrow named-access IR shape
 input:
   source: |
-    person/name
+    person.name
 expected:
   ir:
     - node: IrExprStmt

@@ -54,6 +54,18 @@ def test_map_named_accessor_and_missing_returns_nil(run):
     assert format_debug(result[2]) == 'none("missing-key", {key: "middle"})'
 
 
+def test_dot_named_accessor_reuses_existing_map_and_module_behavior(run):
+    src = """
+    import math
+    person = { name: "Matthew", age: 42 }
+    [person.name, person.age, person.middle, math.pi, math.inc(2)]
+    """
+    result = run(src)
+    assert result[0:2] == ["Matthew", 42]
+    assert format_debug(result[2]) == 'none("missing-key", {key: "middle"})'
+    assert result[3:] == [pytest.approx(3.141592653589793), 3]
+
+
 def test_named_accessor_invalid_lhs_type_errors(run):
     with pytest.raises(TypeError, match="named accessor '/' is only supported for map and module values"):
         run("42/foo")

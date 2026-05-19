@@ -792,19 +792,21 @@ import python.json as pyjson
 
 - raises `ValueError("python.json/loads invalid JSON: ...")`
 
-### Named slash access (`/`)
+### Named access
+
+Dot is the canonical named-access separator:
 
 ```genia
 person = { name: "Matthew", age: 42 }
-[person/name, person/age, person/middle]
+[person.name, person.age, person.middle]
 ```
 
+- `lhs.name` is the canonical narrow named-access form (bare identifier RHS only; not general field-path lookup)
 - map named access returns the value when present
 - missing map keys return `none("missing-key", {key: "middle"})`
 - module named access returns exported bindings
 - missing module exports raise a clear error
-- `/` access is narrow: only `lhs/name` (bare identifier RHS), not general member/index access or field-path lookup
-- map slash access is still supported for compatibility, but new code should prefer canonical maybe-aware lookup:
+- legacy `lhs/name` slash access is retained as compatibility only; new code should prefer canonical dot access or maybe-aware lookup:
 
 ```genia
 get("name", person)

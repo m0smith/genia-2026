@@ -312,6 +312,19 @@ def test_slash_standalone_lowers_as_ir_binary_slash():
     assert expr_stmt.expr.right.name == "name"
 
 
+def test_dot_named_access_lowers_as_existing_named_access_ir_shape():
+    ast_nodes = Parser(lex("person.name")).parse_program()
+    ir_nodes = lower_program(ast_nodes)
+    expr_stmt = ir_nodes[0]
+    assert isinstance(expr_stmt, IrExprStmt)
+    assert isinstance(expr_stmt.expr, IrBinary)
+    assert expr_stmt.expr.op == "SLASH"
+    assert isinstance(expr_stmt.expr.left, IrVar)
+    assert expr_stmt.expr.left.name == "person"
+    assert isinstance(expr_stmt.expr.right, IrVar)
+    assert expr_stmt.expr.right.name == "name"
+
+
 def test_ir_assign_in_block_not_wrapped_in_ir_expr_stmt():
     ast_nodes = Parser(lex("{ x = 1\n x }")).parse_program()
     ir_nodes = lower_program(ast_nodes)

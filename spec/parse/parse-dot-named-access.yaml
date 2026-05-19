@@ -1,0 +1,17 @@
+name: parse-dot-named-access
+category: parse
+description: Canonical dot named access parses as narrow named access
+input:
+  source: "person.name"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Binary
+      op: /
+      left:
+        kind: Var
+        name: person
+      right:
+        kind: Var
+        name: name
