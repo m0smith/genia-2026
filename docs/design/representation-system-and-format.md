@@ -47,11 +47,13 @@ The first argument may be:
 Supported placeholder forms:
 
 - Named placeholders use map values: `{name}`
+- Field-path placeholders use dot-separated nested map lookup: `{user.name}`, `{user.address.city}`
 - Positional placeholders use list values: `{0}`
 - Debug placeholders use debug representation: `{name:?}`, `{0:?}`
 - Escaped braces use `{{` and `}}`
 
 Plain placeholders use display rendering. Debug placeholders use the same debug rendering as `debug_repr(value)`.
+Slash is not a field-path separator.
 
 `format(...)` is side-effect-free at the language surface: it does not write output and does not mutate the template, `Format` value, or values map/list.
 
@@ -100,6 +102,20 @@ Result:
 ```
 
 Classification: Valid, covered by `spec/eval/format-positional-basic.yaml`.
+
+Field-path placeholder:
+
+```genia
+format("{user.name} lives in {user.address.city}", {user: {name: "Ada", address: {city: "Bountiful"}}})
+```
+
+Result:
+
+```text
+"Ada lives in Bountiful"
+```
+
+Classification: Valid, covered by `spec/eval/format-field-path-multi-nested.yaml`.
 
 Escaped braces:
 
