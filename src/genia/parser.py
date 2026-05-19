@@ -778,6 +778,8 @@ class Parser:
                 if self.at("LPAREN"):
                     return self.finish_none_expr(tok)
                 return NoneOption(span=self.span_for_tokens(tok, tok))
+            if "." in tok.text:
+                return self.parse_dotted_identifier_expr(tok)
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind in ("MINUS", "BANG"):
             self.i += 1
@@ -820,6 +822,20 @@ class Parser:
         if tok.kind == "LBRACE":
             return self.parse_brace_expr()
         raise SyntaxError(f"Unexpected token {tok.text!r} ({tok.kind}) at {tok.pos}")
+
+    def parse_dotted_identifier_expr(self, tok: Token) -> Node:
+        parts = tok.text.split(".")
+        if len(parts) == 2 and all(parts):
+            span = self.span_for_tokens(tok, tok)
+            return Binary(
+                Var(parts[0], span=span),
+                "SLASH",
+                Var(parts[1], span=span),
+                span=span,
+            )
+        if parts and parts[-1] == "":
+            raise SyntaxError(f"named access requires an identifier after '.' at {tok.pos}")
+        return Var(tok.text, span=self.span_for_tokens(tok, tok))
 
     def parse_brace_expr(self) -> Node:
         save = self.i

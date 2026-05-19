@@ -249,7 +249,7 @@ Required constraints:
 - The frozen minimal portable Core IR contract is documented in `docs/architecture/core-ir-portability.md`.
 - AST->IR lowering output must stay inside the frozen portable `Ir*` node families.
 - Host-local post-lowering optimized nodes (for example `IrListTraversalLoop`) are allowed only after host-local optimization passes and are not part of the minimal shared Core IR contract.
-- Named slash access `lhs/name` lowers as `IrBinary(op=SLASH)`; this is narrow named access, not general field-path lookup, and hosts must not introduce a separate `IrSlashAccess` node.
+- Dot is the canonical named-access separator: `lhs.name` lowers as `IrBinary(op=SLASH)`. This is narrow named access, not general field-path lookup, and hosts must not introduce a separate access node. Legacy `lhs/name` remains compatibility syntax only.
 - `none(reason, ctx)` lowers as `IrOptionNone`; the reason argument is wrapped in `IrQuote` (not evaluated) — bare `none` produces `reason=null`.
 - `IrAssign` appears directly in `IrBlock.exprs`; it is not wrapped in `IrExprStmt`.
 
@@ -260,7 +260,7 @@ Implemented operators are limited to:
 - unary: `-`, `!`
 - binary: `+ - * / % < <= > >= == != && ||`
 - pipeline: `|>`
-- slash named accessor form: `lhs/name` (RHS bare identifier only)
+- named accessor form: canonical `lhs.name`; legacy compatibility `lhs/name` (RHS bare identifier only)
 
 Pipeline invariant:
 
@@ -302,7 +302,8 @@ Pipeline invariant:
 
 Slash accessor invariants (phase 1):
 
-- `lhs/name` is narrow named access, not general member access or field-path lookup
+- `lhs.name` is canonical narrow named access, not general member access or field-path lookup
+- legacy `lhs/name` compatibility remains accepted for the same narrow access shape
 - only module values and map values are valid LHS kinds
 - for maps: missing key returns `none("missing-key", {key: <name>})`
 - for modules: missing export raises a clear error

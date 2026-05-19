@@ -138,11 +138,12 @@ Spec coverage: `spec/ir/option-constructors.yaml`, `spec/ir/none-bare.yaml`
 
 ### IrBinary — SLASH operator
 
-Named slash access `lhs/name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))`.
+Canonical named access `lhs.name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))`.
+Legacy `lhs/name` compatibility lowers to the same portable Core IR shape.
 This is the portable Core IR form for narrow named access, not general field-path lookup.
-Hosts must not introduce a separate `IrSlashAccess` node.
+Hosts must not introduce a separate access node.
 
-Spec coverage: `spec/ir/slash-accessor.yaml`, `spec/ir/import-pipeline-stage.yaml`
+Spec coverage: `spec/ir/dot-named-access.yaml`, `spec/ir/slash-accessor.yaml`, `spec/ir/import-pipeline-stage.yaml`
 
 ### IrAssign placement
 

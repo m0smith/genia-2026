@@ -69,7 +69,7 @@ Hosts must preserve these lowering invariants:
 - `nil` lowers to `IrOptionNone(IrLiteral("nil"), None, ...)`
 - bare `none` lowers to `IrOptionNone` with `reason=null` and `context=null`
 - `none(reason, ctx)` — the reason argument is wrapped in `IrQuote` (not lowered); it is a quoted label, not an evaluated expression
-- named slash access `lhs/name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))` — this is narrow named access, not general field-path lookup, and hosts must not introduce a separate `IrSlashAccess` node
+- dot is the canonical named-access separator: `lhs.name` lowers as `IrBinary(op=SLASH, left=IrVar(lhs), right=IrVar(name))`; legacy `lhs/name` compatibility lowers to the same shape — this is narrow named access, not general field-path lookup, and hosts must not introduce a separate access node
 - case/function patterns lower into explicit `IrPat*` pattern families
 - `none` in pattern position lowers as `IrPatNone(reason=null, context=null)`, distinct from expression-position `IrOptionNone`
 - `IrAssign` is a statement-level node; it appears directly in `IrBlock.exprs` and at the top level of a program — it is not wrapped in `IrExprStmt`
