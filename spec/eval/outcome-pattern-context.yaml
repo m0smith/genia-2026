@@ -1,0 +1,20 @@
+name: outcome-pattern-context
+category: eval
+description: context-aware Outcome patterns bind only values carrying context
+input:
+  source: |
+    describe(x) =
+      some(value, ctx) -> ctx/source |
+      none(reason, ctx) -> ctx/source |
+      err(reason, ctx) -> ctx/source |
+      _ -> "missing-context"
+    [
+      describe(some(1, {source: "cache"})),
+      describe(none("empty", {source: "list"})),
+      describe(err("bad", {source: "parser"}))
+    ]
+expected:
+  stdout: "[\"cache\", \"list\", \"parser\"]\n"
+  stderr: ""
+  exit_code: 0
+

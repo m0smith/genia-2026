@@ -1,0 +1,10 @@
+name: outcome-none-reason-render
+category: eval
+description: none(reason) renders as a structured absence Outcome value
+input:
+  source: |
+    none("empty-list")
+expected:
+  stdout: "none(\"empty-list\")\n"
+  stderr: ""
+  exit_code: 0

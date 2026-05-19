@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from .values import GeniaMap, GeniaOptionNone, GeniaOptionSome
+from .values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
 
 @dataclass(frozen=True)
@@ -216,6 +216,15 @@ class IrPatSome(IrPattern):
     """Option constructor pattern that matches `some(value)` values."""
 
     inner: IrPattern
+    context: IrPattern | None = None
+
+
+@dataclass
+class IrPatErr(IrPattern):
+    """Outcome constructor pattern that matches `err(reason, context?)` values."""
+
+    reason: IrPattern
+    context: IrPattern | None = None
 
 
 @dataclass
@@ -312,7 +321,25 @@ def match_pattern_atom(pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]
     if isinstance(pattern, IrPatSome):
         if not isinstance(arg, GeniaOptionSome):
             return None
-        return match_pattern_atom(pattern.inner, arg.value)
+        env = match_pattern_atom(pattern.inner, arg.value)
+        if env is None:
+            return None
+        if pattern.context is not None:
+            context_bindings = match_pattern_atom(pattern.context, arg.context)
+            if context_bindings is None or not _merge_bindings(env, context_bindings):
+                return None
+        return env
+    if isinstance(pattern, IrPatErr):
+        if not isinstance(arg, GeniaOptionErr):
+            return None
+        env = match_pattern_atom(pattern.reason, arg.reason)
+        if env is None:
+            return None
+        if pattern.context is not None:
+            context_bindings = match_pattern_atom(pattern.context, arg.context)
+            if context_bindings is None or not _merge_bindings(env, context_bindings):
+                return None
+        return env
     if isinstance(pattern, IrPatList):
         if not isinstance(arg, list):
             return None

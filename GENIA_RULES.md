@@ -44,7 +44,7 @@ Supported patterns:
 
 - literal
 - glob string pattern (`glob"..."`)
-- option constructor pattern (`some(pattern)`)
+- Outcome constructor pattern (`some(pattern)`, `none(...)`, `err(reason)`, context-aware forms)
 - variable binding
 - wildcard `_`
 - tuple pattern
@@ -459,11 +459,11 @@ No additional member/index/flow operators should be introduced without explicitl
 
 This section is the complete contract for how absence values behave in Genia.
 
-### 9.6.1) The two Option forms
+### 9.6.1) Outcome forms
 
-There are exactly two Option forms:
+The Outcome value family has three forms:
 
-- `some(value)` — a present value
+- `some(value)` / `some(value, context)` — a present value with optional context metadata
 - `none(reason)` / `none(reason, context)` — a structured absence
   - bare `none` and legacy `nil` both normalize to `none("nil")`
   - `reason` is always a string
@@ -472,14 +472,20 @@ There are exactly two Option forms:
     - `absence_reason(none(...))` -> `some(reason)`
     - `absence_context(none(...))` -> `some(context)` when present, otherwise `none("nil")`
     - `absence_meta(none(...))` -> `some({reason: ..., context: ...?})`
+- `err(reason)` / `err(reason, context)` — a recoverable value-level failure (Experimental)
+  - `err(...)` is not a runtime error; it is a normal Genia value
+  - `err(...)` is not absence; `none?(err(...))` returns `false`
+  - existing absence helpers do not treat `err(...)` as `none(...)`
 
-### 9.6.2) Option propagation in pipelines (invariants)
+### 9.6.2) Outcome propagation in pipelines (invariants)
 
 - if a stage input is `none(...)`, the stage does not execute and the same `none(...)` is returned
+- if a stage input is `err(...)`, the stage does not execute and the same `err(...)` is returned; `err(...)` is never automatically converted to `none(...)`
 - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage is invoked with `x`
 - lifted stage results follow this rule:
   - non-Option result `y` becomes `some(y)`
-  - Option results (`some(...)` / `none(...)`) are propagated unchanged
+  - Option/Outcome results (`some(...)` / `none(...)`) are propagated unchanged
+- when lifting `some(x, context)`, context metadata is preserved in the result: `some(result, context)`
 - if a stage produces a `none(...)` result, remaining stages do not execute
 - structured none metadata (reason string + context map) passes through every skipped stage unchanged
 ### 9.6.3) Structured-none metadata invariant
@@ -669,8 +675,11 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - pattern matching supports:
   - literal `none`
   - structured none patterns `none(reason)` and `none(reason, context)`
-  - constructor destructuring for `some(...)` with exactly one inner pattern
+  - constructor destructuring for `some(...)` with one inner pattern or `some(value, context)` context-aware form
+  - `err(reason)` and `err(reason, context)` constructor patterns (Experimental)
+  - context-aware patterns match only Outcome values that carry context
 - in `none(reason)` and `none(reason, context)` patterns, the reason position matches the reason value directly; the context position uses normal pattern matching rules
+- in `err(reason)` and `err(reason, context)` patterns, the reason position binds as a pattern variable
 - `unwrap_or(default, opt)` accepts option values only
 - `is_some?(opt)` / `some?(opt)` and `is_none?(opt)` / `none?(opt)` report option shape
 - `or_else(opt, fallback)` returns the wrapped value for `some(value)` and the fallback for any `none...` form

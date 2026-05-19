@@ -13,6 +13,7 @@ if __package__ in (None, ""):
         Call,
         CaseExpr,
         Delay,
+        ErrPattern,
         ExprStmt,
         FuncDef,
         GlobPattern,
@@ -72,6 +73,7 @@ if __package__ in (None, ""):
     )
     from genia.pattern_match import (
         IrPatBind,
+        IrPatErr,
         IrPatGlob,
         IrPatList,
         IrPatLiteral,
@@ -96,6 +98,7 @@ else:
         Call,
         CaseExpr,
         Delay,
+        ErrPattern,
         ExprStmt,
         FuncDef,
         GlobPattern,
@@ -155,6 +158,7 @@ else:
     )
     from .pattern_match import (
         IrPatBind,
+        IrPatErr,
         IrPatGlob,
         IrPatList,
         IrPatLiteral,
@@ -339,7 +343,15 @@ def lower_pattern(pattern: Node) -> IrPattern:
     if isinstance(pattern, GlobPattern):
         return IrPatGlob(compile_glob_pattern(pattern.pattern))
     if isinstance(pattern, SomePattern):
-        return IrPatSome(lower_pattern(pattern.inner))
+        return IrPatSome(
+            lower_pattern(pattern.inner),
+            lower_pattern(pattern.context) if pattern.context is not None else None,
+        )
+    if isinstance(pattern, ErrPattern):
+        return IrPatErr(
+            lower_pattern(pattern.reason),
+            lower_pattern(pattern.context) if pattern.context is not None else None,
+        )
     raise RuntimeError(f"Unknown pattern during lowering: {pattern!r}")
 
 

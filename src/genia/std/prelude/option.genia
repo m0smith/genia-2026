@@ -1,5 +1,8 @@
 @doc "Wrap a present value in the Option success form."
-some(value) = _some(value)
+some(..args) = _some(..args)
+
+@doc "Construct a recoverable Outcome failure value."
+err(..args) = _err(..args)
 
 @doc "Check whether a value is any `none...` Option form."
 none?(value) = _none?(value)

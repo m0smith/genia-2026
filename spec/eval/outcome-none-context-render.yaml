@@ -1,0 +1,10 @@
+name: outcome-none-context-render
+category: eval
+description: none(reason, context) renders with structured absence reason and context metadata
+input:
+  source: |
+    none("empty-list", {length: 0})
+expected:
+  stdout: "none(\"empty-list\", {length: 0})\n"
+  stderr: ""
+  exit_code: 0

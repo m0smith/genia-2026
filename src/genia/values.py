@@ -17,6 +17,8 @@ def _runtime_type_name(value: Any) -> str:
         return "none"
     if isinstance(value, GeniaOptionSome):
         return f"some({_runtime_type_name(value.value)})"
+    if isinstance(value, GeniaOptionErr):
+        return "err"
     if isinstance(value, bool):
         return "bool"
     if isinstance(value, int):
@@ -226,9 +228,27 @@ _RNG_INCREMENT = 1013904223
 @dataclass(frozen=True)
 class GeniaOptionSome:
     value: Any
+    context: Any = None
 
     def __repr__(self) -> str:
+        if self.context is not None:
+            return f"some({self.value!r}, {self.context!r})"
         return f"some({self.value!r})"
+
+
+@dataclass(frozen=True)
+class GeniaOptionErr:
+    reason: Any
+    context: Any = None
+
+    def __repr__(self) -> str:
+        if self.context is not None:
+            return f"err({self.reason!r}, {self.context!r})"
+        return f"err({self.reason!r})"
+
+
+def is_err(value: Any) -> bool:
+    return isinstance(value, GeniaOptionErr)
 
 
 @dataclass(frozen=True)

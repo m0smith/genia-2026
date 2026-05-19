@@ -310,9 +310,11 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - String
 - Boolean
 - Pair
-- None / Some (`none`, `some(value)`)
+- Outcome — `none`, `some(value)`, `some(value, context)`, `err(reason, context?)`
   - `none` is shorthand for `none("nil")`
   - legacy surface `nil` also normalizes to `none("nil")`
+  - `some(value, context)` — successful presence with optional context metadata (Experimental)
+  - `err(reason, context?)` — recoverable value-level failure; not a runtime error (Experimental)
 - List
 - Map
   - map literals and `map_*` builtins produce the same runtime map value family
@@ -388,16 +390,24 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `absence_reason(none(...))` -> `some(reason)`
   - `absence_context(none(...))` -> `some(context)` when present, otherwise `none("nil")`
   - `absence_meta(none(...))` -> `some({reason: ..., context: ...?})`
-- `some(pattern)` and `none(...)` patterns are implemented for Option values in pattern matching.
+- Outcome extends the current `some` / `none` model with `err(...)` for recoverable failure (Experimental):
+  - `some(value, context)` — present value with optional context metadata; context is preserved through pipeline lifting
+  - `err(reason, context?)` — recoverable value-level failure; not a runtime error; renders to stdout with exit_code 0
+  - `err(...)` is not absence: `none?(err(...))` returns `false`; existing absence helpers do not treat `err(...)` as `none(...)`
+  - constructor arity: `some` accepts 1 or 2 args; `err` requires exactly 1 or 2 args; invalid arity is a runtime error
+- `some(pattern)`, `none(...)`, and `err(...)` constructor patterns are implemented in pattern matching.
+  - context-aware forms `some(value, ctx)`, `none(reason, ctx)`, `err(reason, ctx)` bind only when context is present
 - ordinary function calls short-circuit on `none(...)` arguments unless the callee explicitly handles absence.
   - lambda expressions whose body delegates to a known Option-aware function (for example `(o) -> unwrap_or(0, o)`) are recognized as absence-aware and bypass short-circuiting
 - list higher-order functions (`reduce`, `map`, `filter`) are pure prelude implementations using `apply_raw` for callback invocation; `none(...)` list elements are delivered to the callback without short-circuit
   - `reduce` accepts both list and Flow (Seq-compatible) as its third argument; `none(...)` as initial accumulator is not short-circuited
   - this means `map((o) -> unwrap_or(0, o), [none("a"), some(2)])` correctly returns `[0, 2]` instead of propagating `none`
   - `filter((o) -> some?(o), [some(1), none("x"), some(3)])` correctly returns `[some(1), some(3)]`
-- pipelines short-circuit on `none(...)` and automatically lift ordinary stages over `some(...)`.
+- pipelines short-circuit on `none(...)` and `err(...)`, and automatically lift ordinary stages over `some(...)`.
   - non-Option stage results are wrapped back into `some(...)`
   - Option stage results (`some(...)` / `none(...)`) are preserved as-is
+  - `err(...)` short-circuits value-transforming stages and propagates unchanged; `err(...)` is not converted to `none(...)`
+  - `some(value, context)` context metadata is preserved through ordinary pipeline lifting
   - explicitly Option-aware stages (for example `unwrap_or`, `map_some`, `flat_map_some`, and `then_*`) still receive Option values directly
 - Pipeline + Option invariants are locked by black-box tests under `tests/cases/option/invariant_*.genia`:
   - raw values stay raw through all stages (no implicit Option promotion)
@@ -523,11 +533,13 @@ Pipeline (Phase 2) evaluation model:
     `|> g`
   - `x |> `
     `f |> g`
-- automatic Option propagation is part of pipeline evaluation:
+- automatic Outcome propagation is part of pipeline evaluation:
   - if a stage input is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
+  - if a stage input is `err(...)`, the remaining stages do not execute and the same `err(...)` is returned; `err(...)` is not converted to `none(...)`
   - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
   - when a lifted stage returns non-Option `y`, the pipeline continues with `some(y)`
-  - when a lifted stage returns `some(...)` or `none(...)`, that Option result is preserved
+  - when a lifted stage returns `some(...)` or `none(...)`, that Outcome result is preserved
+  - when a lifted stage lifts `some(x, context)`, context metadata is preserved in the resulting `some(result, context)`
   - if a stage result is `none(...)`, the remaining stages do not execute and the same `none(...)` is returned
 - pipeline failure diagnostics now include:
   - 1-based stage index

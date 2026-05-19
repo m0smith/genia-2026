@@ -1,0 +1,11 @@
+name: outcome-pipeline-err-short-circuit
+category: eval
+description: err(...) short-circuits ordinary value-transforming pipeline stages
+input:
+  source: |
+    err("bad-number", {field: "age"}) |> ((x) -> x + 1)
+expected:
+  stdout: "err(\"bad-number\", {field: \"age\"})\n"
+  stderr: ""
+  exit_code: 0
+
