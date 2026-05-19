@@ -23,6 +23,8 @@ if __package__ in (None, ""):
         ListPattern,
         MapLiteral,
         MapPattern,
+        NamedPatternDef,
+        NamedPatternUse,
         Nil,
         Node,
         NoneOption,
@@ -58,6 +60,7 @@ if __package__ in (None, ""):
         IrList,
         IrLiteral,
         IrMap,
+        IrNamedPatternDef,
         IrNode,
         IrOptionNone,
         IrOptionSome,
@@ -78,6 +81,7 @@ if __package__ in (None, ""):
         IrPatList,
         IrPatLiteral,
         IrPatMap,
+        IrPatNamed,
         IrPatNone,
         IrPatRest,
         IrPatSome,
@@ -108,6 +112,8 @@ else:
         ListPattern,
         MapLiteral,
         MapPattern,
+        NamedPatternDef,
+        NamedPatternUse,
         Nil,
         Node,
         NoneOption,
@@ -143,6 +149,7 @@ else:
         IrList,
         IrLiteral,
         IrMap,
+        IrNamedPatternDef,
         IrNode,
         IrOptionNone,
         IrOptionSome,
@@ -163,6 +170,7 @@ else:
         IrPatList,
         IrPatLiteral,
         IrPatMap,
+        IrPatNamed,
         IrPatNone,
         IrPatRest,
         IrPatSome,
@@ -209,6 +217,14 @@ def lower_node(node: Node) -> IrNode:
                 target.params,
                 target.rest_param,
                 target.docstring,
+                lower_node(target.body),
+                annotations=lowered_annotations,
+                span=node.span,
+            )
+        if isinstance(target, NamedPatternDef):
+            return IrNamedPatternDef(
+                target.name,
+                target.param,
                 lower_node(target.body),
                 annotations=lowered_annotations,
                 span=node.span,
@@ -305,6 +321,8 @@ def lower_node(node: Node) -> IrNode:
             annotations=[],
             span=node.span,
         )
+    if isinstance(node, NamedPatternDef):
+        return IrNamedPatternDef(node.name, node.param, lower_node(node.body), annotations=[], span=node.span)
     if isinstance(node, ImportStmt):
         return IrImport(node.module_name, node.alias, span=node.span)
     if isinstance(node, ShellStage):
@@ -334,6 +352,8 @@ def lower_pattern(pattern: Node) -> IrPattern:
         return IrPatRest(pattern.name)
     if isinstance(pattern, Var):
         return IrPatBind(pattern.name)
+    if isinstance(pattern, NamedPatternUse):
+        return IrPatNamed(pattern.name, lower_pattern(pattern.inner))
     if isinstance(pattern, TuplePattern):
         return IrPatTuple([lower_pattern(item) for item in pattern.items])
     if isinstance(pattern, ListPattern):

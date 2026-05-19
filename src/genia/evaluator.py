@@ -27,19 +27,19 @@ if __package__ in (None, ""):
     from genia.ir import (
         IrAnnotation, IrAssign, IrBinary, IrBlock, IrCall, IrCase, IrDelay,
         IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
-        IrLiteral, IrMap, IrNode, IrOptionNone, IrOptionSome, IrPipeline,
+        IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOptionNone, IrOptionSome, IrPipeline,
         IrQuote, IrQuasiQuote, IrShellStage, IrSpread, IrUnary, IrUnquote,
         IrUnquoteSplicing, IrVar,
     )
     from genia.pattern_match import (
         IrPatBind, IrPatGlob, IrPatList, IrPatLiteral, IrPatMap, IrPatNone,
         IrPatRest, IrPatSome, IrPatTuple, IrPatWildcard, IrPattern,
-        compile_glob_pattern, match_lambda_pattern, match_pattern,
+        PatternOutcomeError, compile_glob_pattern, match_lambda_pattern, match_pattern,
         match_pattern_atom,
     )
     from genia.values import (
         OPTION_NONE, _is_nil_none, _merge_metadata_maps, _runtime_type_name, GeniaFlow, GeniaMap, GeniaOptionNone,
-        GeniaOptionErr, GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_err, is_none,
+        GeniaNamedPattern, GeniaOptionErr, GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_err, is_none,
         make_none, symbol, truthy,
     )
     from genia.callable import (
@@ -61,19 +61,19 @@ else:
     from .ir import (
         IrAnnotation, IrAssign, IrBinary, IrBlock, IrCall, IrCase, IrDelay,
         IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
-        IrLiteral, IrMap, IrNode, IrOptionNone, IrOptionSome, IrPipeline,
+        IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOptionNone, IrOptionSome, IrPipeline,
         IrQuote, IrQuasiQuote, IrShellStage, IrSpread, IrUnary, IrUnquote,
         IrUnquoteSplicing, IrVar,
     )
     from .pattern_match import (
         IrPatBind, IrPatGlob, IrPatList, IrPatLiteral, IrPatMap, IrPatNone,
         IrPatRest, IrPatSome, IrPatTuple, IrPatWildcard, IrPattern,
-        compile_glob_pattern, match_lambda_pattern, match_pattern,
+        PatternOutcomeError, compile_glob_pattern, match_lambda_pattern, match_pattern,
         match_pattern_atom,
     )
     from .values import (
         OPTION_NONE, _is_nil_none, _merge_metadata_maps, _runtime_type_name, GeniaFlow, GeniaMap, GeniaOptionNone,
-        GeniaOptionErr, GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_err, is_none,
+        GeniaNamedPattern, GeniaOptionErr, GeniaOptionSome, GeniaPair, GeniaSymbol, ModuleValue, is_err, is_none,
         make_none, symbol, truthy,
     )
     from .callable import (
@@ -688,7 +688,10 @@ class Evaluator:
 
     def eval_case_expr(self, args: tuple[Any, ...], case_expr: IrCase, fn_name: str | None = None) -> Any:
         for clause in case_expr.clauses:
-            match_env = self.match_pattern(clause.pattern, args)
+            try:
+                match_env = self.match_pattern(clause.pattern, args)
+            except PatternOutcomeError as exc:
+                return exc.outcome
             if match_env is None:
                 continue
             local = Env(self.env)
@@ -1031,13 +1034,27 @@ class Evaluator:
         )
 
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
-        return match_pattern(pattern, args)
+        return match_pattern(pattern, args, named_pattern_resolver=self.resolve_named_pattern)
 
     def match_lambda_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
-        return match_lambda_pattern(pattern, args)
+        return match_lambda_pattern(pattern, args, named_pattern_resolver=self.resolve_named_pattern)
 
     def match_pattern_atom(self, pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]:
-        return match_pattern_atom(pattern, arg)
+        return match_pattern_atom(pattern, arg, named_pattern_resolver=self.resolve_named_pattern)
+
+    def resolve_named_pattern(self, name: str, value: Any) -> Any:
+        try:
+            candidate = self.env.get(name)
+        except NameError as exc:
+            raise RuntimeError(f"unknown named pattern {name}") from exc
+        if not isinstance(candidate, GeniaNamedPattern):
+            raise RuntimeError(f"{name} is not a named pattern")
+        return self.invoke_callable(
+            candidate.matcher,
+            [value],
+            tail_position=False,
+            skip_none_propagation=True,
+        )
 
     def eval(self, node: IrNode) -> Any:
         if self.debug_mode:
@@ -1178,6 +1195,25 @@ class Evaluator:
                 metadata = self.eval_annotations(node.annotations)
                 self.env.merge_binding_metadata(node.name, metadata)
             return fn
+        if isinstance(node, IrNamedPatternDef):
+            matcher = GeniaFunction(
+                node.name,
+                [node.param],
+                None,
+                None,
+                node.body,
+                self.env,
+                span=node.span,
+                debug_hooks=self.debug_hooks,
+                debug_mode=self.debug_mode,
+                internal_access=self.env.internal_access,
+            )
+            value = GeniaNamedPattern(node.name, matcher)
+            self.env.set(node.name, value)
+            if node.annotations:
+                metadata = self.eval_annotations(node.annotations)
+                self.env.merge_binding_metadata(node.name, metadata)
+            return value
         if isinstance(node, IrImport):
             requester = node.span.filename if node.span is not None else None
             module_value = self.env.load_module(node.module_name, requester)

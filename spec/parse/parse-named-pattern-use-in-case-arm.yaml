@@ -11,4 +11,7 @@ expected:
     ast:
       kind: FuncDef
       name: f
-
+      params:
+        - value
+      body:
+        kind: CaseExpr

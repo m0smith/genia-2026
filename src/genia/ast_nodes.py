@@ -186,6 +186,13 @@ class ErrPattern(Node):
 
 
 @dataclass
+class NamedPatternUse(Node):
+    name: str
+    inner: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
 class CaseClause(Node):
     pattern: Node
     guard: Optional[Node]
@@ -235,6 +242,14 @@ class FuncDef(Node):
     params: list[str]
     rest_param: str | None
     docstring: str | None
+    body: Node
+    span: SourceSpan | None = None
+
+
+@dataclass
+class NamedPatternDef(Node):
+    name: str
+    param: str
     body: Node
     span: SourceSpan | None = None
 
