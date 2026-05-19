@@ -1,0 +1,14 @@
+name: error-outcome-some-zero-arg
+category: error
+description: some() with no arguments rejects as invalid Outcome constructor arity
+input:
+  source: |
+    some()
+expected:
+  stdout: ""
+  stderr: "Error: some(...) expects 1 or 2 arguments\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
+  some(value, context?) is the allowed Outcome constructor shape; zero args is not valid.
