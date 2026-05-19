@@ -516,6 +516,10 @@ def test_arch_doc_lowering_invariants_cover_slash_as_ir_binary() -> None:
         "docs/architecture/core-ir-portability.md must document that "
         "named slash access (lhs/name) lowers as IrBinary(op=SLASH)"
     )
+    assert "not general field-path lookup" in arch, (
+        "docs/architecture/core-ir-portability.md must clarify that "
+        "IrBinary(op=SLASH) is named slash access, not field-path lookup"
+    )
 
 
 def test_arch_doc_lowering_invariants_cover_bare_none_null_reason() -> None:
@@ -769,4 +773,8 @@ def test_rules_doc_8_4_mentions_slash_lowering_form() -> None:
     section = section_after[:next_section] if next_section > 0 else section_after
     assert "SLASH" in section or "IrBinary" in section, (
         "GENIA_RULES.md §8.4 must document the SLASH accessor lowering form (IrBinary(op=SLASH))"
+    )
+    assert "not general field-path lookup" in section, (
+        "GENIA_RULES.md §8.4 must clarify that SLASH lowering is named slash access, "
+        "not field-path lookup"
     )
