@@ -1,0 +1,13 @@
+name: outcome-none-bare-render
+category: eval
+description: bare none evaluates to the nil absence form and produces no output
+input:
+  source: |
+    none
+expected:
+  stdout: ""
+  stderr: ""
+  exit_code: 0
+notes: |
+  bare none normalizes to none("nil"); the nil absence form is suppressed from
+  final-result display. This matches the existing none("nil") rendering behavior.
