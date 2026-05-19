@@ -1,0 +1,17 @@
+name: error-named-pattern-non-outcome-return
+category: error
+description: Named pattern matchers must return an Outcome value
+input:
+  source: |
+    pattern Positive(n) = n > 0
+    classify(value) =
+      Positive(x) -> x
+    classify(1)
+expected:
+  stdout: ""
+  stderr: "Error: named pattern Positive returned non-Outcome value\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
+

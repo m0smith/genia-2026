@@ -1,0 +1,15 @@
+name: named-pattern-miss-falls-through
+category: eval
+description: none(...) from a named pattern is a miss that allows later arms to match
+input:
+  source: |
+    pattern Never(n) = none("no-match", {value: n})
+    classify(value) =
+      Never(x) -> "matched" |
+      _ -> "fallback"
+    classify(7)
+expected:
+  stdout: "\"fallback\"\n"
+  stderr: ""
+  exit_code: 0
+

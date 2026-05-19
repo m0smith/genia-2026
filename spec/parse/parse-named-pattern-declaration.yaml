@@ -1,0 +1,14 @@
+name: parse-named-pattern-declaration
+category: parse
+description: Named pattern declaration parses as a bindable pattern definition
+input:
+  source: "pattern Positive(n) = some(n)"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: NamedPatternDef
+      name: Positive
+      params:
+        - n
+

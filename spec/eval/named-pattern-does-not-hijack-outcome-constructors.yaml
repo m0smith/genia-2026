@@ -1,0 +1,15 @@
+name: named-pattern-does-not-hijack-outcome-constructors
+category: eval
+description: Built-in Outcome constructor patterns keep their existing behavior beside named patterns
+input:
+  source: |
+    classify(value) =
+      some(x) -> x |
+      none(reason) -> reason |
+      err(reason) -> reason
+    [classify(some(3)), classify(none("missing")), classify(err("bad"))]
+expected:
+  stdout: "[3, \"missing\", \"bad\"]\n"
+  stderr: ""
+  exit_code: 0
+

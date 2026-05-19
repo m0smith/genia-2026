@@ -1,0 +1,13 @@
+name: parse-error-named-pattern-use-arity
+category: parse
+description: Named pattern use supports only one nested pattern argument in issue 113
+input:
+  source: |
+    f(value) =
+      Positive(x, y) -> x
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "named pattern Positive expects exactly one pattern argument"
+

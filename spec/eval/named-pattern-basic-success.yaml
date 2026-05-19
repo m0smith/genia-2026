@@ -1,0 +1,14 @@
+name: named-pattern-basic-success
+category: eval
+description: Named pattern success matches the nested pattern against the some(...) payload
+input:
+  source: |
+    pattern Positive(n) = some(n)
+    classify(value) =
+      Positive(x) -> x
+    classify(7)
+expected:
+  stdout: "7\n"
+  stderr: ""
+  exit_code: 0
+

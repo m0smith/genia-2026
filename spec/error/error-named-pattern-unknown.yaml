@@ -1,0 +1,16 @@
+name: error-named-pattern-unknown
+category: error
+description: Unknown named pattern use fails deterministically
+input:
+  source: |
+    classify(value) =
+      Missing(x) -> x
+    classify(1)
+expected:
+  stdout: ""
+  stderr: "Error: unknown named pattern Missing\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: NameError
+
