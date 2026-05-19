@@ -249,7 +249,7 @@ Required constraints:
 - The frozen minimal portable Core IR contract is documented in `docs/architecture/core-ir-portability.md`.
 - AST->IR lowering output must stay inside the frozen portable `Ir*` node families.
 - Host-local post-lowering optimized nodes (for example `IrListTraversalLoop`) are allowed only after host-local optimization passes and are not part of the minimal shared Core IR contract.
-- Named slash access `lhs/name` lowers as `IrBinary(op=SLASH)`; hosts must not introduce a separate `IrSlashAccess` node.
+- Named slash access `lhs/name` lowers as `IrBinary(op=SLASH)`; this is narrow named access, not general field-path lookup, and hosts must not introduce a separate `IrSlashAccess` node.
 - `none(reason, ctx)` lowers as `IrOptionNone`; the reason argument is wrapped in `IrQuote` (not evaluated) — bare `none` produces `reason=null`.
 - `IrAssign` appears directly in `IrBlock.exprs`; it is not wrapped in `IrExprStmt`.
 
@@ -302,7 +302,7 @@ Pipeline invariant:
 
 Slash accessor invariants (phase 1):
 
-- `lhs/name` is narrow named access, not general member access
+- `lhs/name` is narrow named access, not general member access or field-path lookup
 - only module values and map values are valid LHS kinds
 - for maps: missing key returns `none("missing-key", {key: <name>})`
 - for modules: missing export raises a clear error

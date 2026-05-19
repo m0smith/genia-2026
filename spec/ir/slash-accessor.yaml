@@ -1,6 +1,6 @@
 name: slash-accessor
 category: ir
-description: Named slash access lowers as IrBinary with op SLASH; this is the portable Core IR form
+description: Named slash access lowers as IrBinary with op SLASH; this is narrow named access, not general field-path lookup
 input:
   source: |
     person/name
