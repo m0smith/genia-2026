@@ -44,6 +44,7 @@ The minimal portable Core IR node families are:
 - `IrLambda`
 - `IrAssign`
 - `IrFuncDef`
+- `IrNamedPatternDef`
 - `IrImport`
 
 Pattern families in the portable contract are:

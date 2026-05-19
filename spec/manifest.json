@@ -27,6 +27,7 @@
       "IrLambda",
       "IrAssign",
       "IrFuncDef",
+      "IrNamedPatternDef",
       "IrImport"
     ],
     "minimal_portable_pattern_families": [
