@@ -12,5 +12,6 @@
   "flow_early_termination": "`head` / `take` stop upstream pulling promptly.",
   "host_status": "Python is the only implemented host today.",
   "naming_rule": "new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.",
-  "annotation_builtins": "`@doc`, `@meta`, `@since`, `@deprecated`, and `@category`"
+  "annotation_builtins": "`@doc`, `@meta`, `@since`, `@deprecated`, and `@category`",
+  "canonical_format_field_path_separator": "Dot (`.`) is the canonical field-path separator for representation/format placeholders; slash (`/`) is not the format field-path separator and remains limited to existing slash operator/Core IR wording."
 }
