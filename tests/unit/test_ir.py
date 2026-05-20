@@ -152,7 +152,7 @@ def test_multiline_pipeline_lowers_to_explicit_ir_pipeline():
 def test_host_module_stage_remains_explicit_inside_pipeline_ir():
     src = """
     import python.json as pyjson
-    "null" |> pyjson/loads
+    "null" |> pyjson.loads
     """
     ast_nodes = Parser(lex(src)).parse_program()
     ir_nodes = lower_program(ast_nodes)
@@ -166,6 +166,7 @@ def test_host_module_stage_remains_explicit_inside_pipeline_ir():
     stage = expr_stmt.expr.stages[0]
     assert isinstance(stage, IrBinary)
     assert stage.op == "SLASH"
+    assert stage.named_access is True
 
 
 def test_option_constructors_lower_to_explicit_option_ir_nodes():
@@ -251,7 +252,7 @@ def test_lowered_program_uses_only_portable_core_ir_nodes():
     src = """
     import python.json as pyjson
     f(x) = x |> some |> map_some((n) -> n + 1)
-    [f(1), "null" |> pyjson/loads]
+    [f(1), "null" |> pyjson.loads]
     """
     ast_nodes = Parser(lex(src)).parse_program()
     ir_nodes = lower_program(ast_nodes)
@@ -299,17 +300,18 @@ def test_none_string_reason_wraps_as_ir_quote():
     assert isinstance(expr_stmt.expr.reason, IrQuote)
 
 
-def test_slash_standalone_lowers_as_ir_binary_slash():
-    ast_nodes = Parser(lex("person/name")).parse_program()
+def test_slash_operator_lowers_as_ir_binary_slash_without_named_access_contract():
+    ast_nodes = Parser(lex("10 / 2")).parse_program()
     ir_nodes = lower_program(ast_nodes)
     expr_stmt = ir_nodes[0]
     assert isinstance(expr_stmt, IrExprStmt)
     assert isinstance(expr_stmt.expr, IrBinary)
     assert expr_stmt.expr.op == "SLASH"
-    assert isinstance(expr_stmt.expr.left, IrVar)
-    assert expr_stmt.expr.left.name == "person"
-    assert isinstance(expr_stmt.expr.right, IrVar)
-    assert expr_stmt.expr.right.name == "name"
+    assert expr_stmt.expr.named_access is False
+    assert isinstance(expr_stmt.expr.left, IrLiteral)
+    assert expr_stmt.expr.left.value == 10
+    assert isinstance(expr_stmt.expr.right, IrLiteral)
+    assert expr_stmt.expr.right.value == 2
 
 
 def test_dot_named_access_lowers_as_existing_named_access_ir_shape():
@@ -319,6 +321,7 @@ def test_dot_named_access_lowers_as_existing_named_access_ir_shape():
     assert isinstance(expr_stmt, IrExprStmt)
     assert isinstance(expr_stmt.expr, IrBinary)
     assert expr_stmt.expr.op == "SLASH"
+    assert expr_stmt.expr.named_access is True
     assert isinstance(expr_stmt.expr.left, IrVar)
     assert expr_stmt.expr.left.name == "person"
     assert isinstance(expr_stmt.expr.right, IrVar)

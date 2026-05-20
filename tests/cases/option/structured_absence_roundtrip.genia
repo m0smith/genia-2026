@@ -1,5 +1,5 @@
 describe(x) =
-  none("missing-key", info) -> info/key |
+  none("missing-key", info) -> info.key |
   none("empty-list") -> "empty" |
   some(v) -> v
 

@@ -67,7 +67,7 @@ def test_terminal_demo_uses_imported_ants_logic():
     result = run_terminal_demo(
         """
         world = new_terminal_world(7, 3)
-        [length(ants/world_ants(world)), ants/world_delivered(world), ants/world_tick(ants/step(world))]
+        [length(ants.world_ants(world)), ants.world_delivered(world), ants.world_tick(ants.step(world))]
         """
     )
 
@@ -89,15 +89,15 @@ def test_terminal_render_helpers_show_pheromone_heat_and_priority():
     result = run_terminal_demo(
         """
         world = new_terminal_world(7, 1, 20)
-        trail = ants/set_pheromone(world, [0, 0], ants/pheromone_deposit() * 2)
-        food = ants/set_food(trail, [1, 0], 2)
-        nest = ants/world_nest(food)
-        ant0 = ants/ant([2, 0], [1, 0], true)
-        with_ant = ants/set_ants(food, [ant0])
+        trail = ants.set_pheromone(world, [0, 0], ants.pheromone_deposit() * 2)
+        food = ants.set_food(trail, [1, 0], 2)
+        nest = ants.world_nest(food)
+        ant0 = ants.ant([2, 0], [1, 0], true)
+        with_ant = ants.set_ants(food, [ant0])
         [
           pheromone_heat(1),
-          pheromone_heat(ants/pheromone_deposit()),
-          pheromone_heat(ants/pheromone_deposit() * 2),
+          pheromone_heat(ants.pheromone_deposit()),
+          pheromone_heat(ants.pheromone_deposit() * 2),
           terminal_cell_char(with_ant, [0, 0]),
           terminal_cell_char(with_ant, [1, 0]),
           terminal_cell_char(with_ant, [2, 0]),
@@ -118,7 +118,7 @@ def test_actor_mode_session_advances_and_stops():
         session2 = session_step(config_mode(config), session)
         w = session_world(config_mode(config), session2)
         session_stop(config_mode(config), session2)
-        [config_mode(config), ants/world_tick(w), length(ants/world_ants(w))]
+        [config_mode(config), ants.world_tick(w), length(ants.world_ants(w))]
         """
     )
 

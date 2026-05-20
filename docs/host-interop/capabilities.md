@@ -150,7 +150,7 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 #### `http.serve`
 
 - **name:** `http.serve`
-- **genia_surface:** `import web` then `web/serve_http(config, handler)`
+- **genia_surface:** `import web` then `web.serve_http(config, handler)`
 - **input:** `config` — Map; `handler` — Function with shape `(request_map) -> response_map`
 - **output:** none (blocking; does not return while server is running)
 - **errors:**
@@ -429,7 +429,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.resource-ref`
 
 - **name:** `resource.resource-ref`
-- **genia_surface:** `res/resource_ref(path)` (pure Genia — no bridge call)
+- **genia_surface:** `res.resource_ref(path)` (pure Genia — no bridge call)
 - **input:** String (file path)
 - **output:** `{uri: path, backend: "fs"}` — plain Genia map; `uri` is stored verbatim
 - **errors:** none
@@ -438,7 +438,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.discover`
 
 - **name:** `resource.discover`
-- **genia_surface:** `res/discover(root_ref)`
+- **genia_surface:** `res.discover(root_ref)`
 - **input:** `ResourceRef` map
 - **output:** lazy `GeniaFlow` of `ResourceRef` maps (one per file, no directories); or structured none on failure
 - **errors:**
@@ -451,7 +451,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.read-text`
 
 - **name:** `resource.read-text`
-- **genia_surface:** `res/read_text(ref)`
+- **genia_surface:** `res.read_text(ref)`
 - **input:** `ResourceRef` map
 - **output:** String on success; structured none on failure
 - **errors:**
@@ -464,7 +464,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.read-bytes`
 
 - **name:** `resource.read-bytes`
-- **genia_surface:** `res/read_bytes(ref)`
+- **genia_surface:** `res.read_bytes(ref)`
 - **input:** `ResourceRef` map
 - **output:** opaque Bytes wrapper value on success; structured none on failure
 - **errors:**
@@ -476,7 +476,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.write-text`
 
 - **name:** `resource.write-text`
-- **genia_surface:** `res/write_text(ref, text)`
+- **genia_surface:** `res.write_text(ref, text)`
 - **input:** `ResourceRef` map; String
 - **output:** the input `ref` map on success; structured none on failure
 - **errors:**
@@ -488,7 +488,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.write-bytes`
 
 - **name:** `resource.write-bytes`
-- **genia_surface:** `res/write_bytes(ref, bytes)`
+- **genia_surface:** `res.write_bytes(ref, bytes)`
 - **input:** `ResourceRef` map; opaque Bytes wrapper value
 - **output:** the input `ref` map on success; structured none on failure
 - **errors:**
@@ -499,7 +499,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.delete`
 
 - **name:** `resource.delete`
-- **genia_surface:** `res/delete(ref)`
+- **genia_surface:** `res.delete(ref)`
 - **input:** `ResourceRef` map
 - **output:** `none("nil")` on success or when file does not exist (idempotent); structured none on failure
 - **errors:**
@@ -511,7 +511,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.copy`
 
 - **name:** `resource.copy`
-- **genia_surface:** `res/copy(from_ref, to_ref)`
+- **genia_surface:** `res.copy(from_ref, to_ref)`
 - **input:** two `ResourceRef` maps (source, destination)
 - **output:** the destination `to_ref` map on success; structured none on failure
 - **errors:**
@@ -524,7 +524,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.meta`
 
 - **name:** `resource.meta`
-- **genia_surface:** `res/resource_meta(ref)`
+- **genia_surface:** `res.resource_meta(ref)`
 - **input:** `ResourceRef` map
 - **output:** `ResourceMeta` map `{exists: boolean, size?: integer, backend: string}`; `size` is present only when the file exists; structured none on failure
 - **errors:**
@@ -535,7 +535,7 @@ Host-backed resource IO bridge. Accessed via `import resource as res`. All opera
 #### `resource.capabilities`
 
 - **name:** `resource.capabilities`
-- **genia_surface:** `res/resource_capabilities()`
+- **genia_surface:** `res.resource_capabilities()`
 - **input:** none
 - **output:** fixed map `{backends: ["fs"], supports_discover: true, supports_delete: true, supports_copy: true, supports_meta: true, supports_bytes: true}`
 - **errors:** none

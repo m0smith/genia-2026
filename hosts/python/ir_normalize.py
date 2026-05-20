@@ -126,12 +126,15 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
             "expr": _normalize_ir_node(node.expr),
         }
     if isinstance(node, IrBinary):
-        return {
+        normalized = {
             "node": "IrBinary",
             "left": _normalize_ir_node(node.left),
             "op": node.op,
             "right": _normalize_ir_node(node.right),
         }
+        if node.named_access:
+            normalized["named_access"] = True
+        return normalized
     if isinstance(node, IrPipeline):
         return {
             "node": "IrPipeline",

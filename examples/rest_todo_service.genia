@@ -27,12 +27,12 @@
 
 import web
 
-web_bad_request = web/bad_request
-web_get = web/get
-web_json = web/json
-web_post = web/post
-web_route_request = web/route_request
-web_serve_http = web/serve_http
+web_bad_request = web.bad_request
+web_get = web.get
+web_json = web.json
+web_post = web.post
+web_route_request = web.route_request
+web_serve_http = web.serve_http
 
 # -- State -----------------------------------------------------------------
 # Two refs: the list of todos and a counter for the next id.

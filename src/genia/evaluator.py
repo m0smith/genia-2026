@@ -1326,7 +1326,7 @@ class Evaluator:
             if is_none(right):
                 return right
             return left or right
-        if node.op == "SLASH" and isinstance(left, (GeniaMap, ModuleValue)):
+        if node.op == "SLASH" and node.named_access and isinstance(left, (GeniaMap, ModuleValue)):
             if isinstance(node.right, IrVar):
                 key_name = node.right.name
                 if isinstance(left, GeniaMap):
@@ -1348,12 +1348,12 @@ class Evaluator:
                     else:
                         args.append(self.eval(arg_node))
                 return self.invoke_callable(callee, args, tail_position=False, callee_node=node.right.fn)
-            raise TypeError("named accessor '/' requires a bare identifier on the right-hand side")
+            raise TypeError("named access requires a bare identifier on the right-hand side")
         try:
             right = self.eval(node.right)
         except NameError:
-            if node.op == "SLASH" and isinstance(node.right, IrVar):
-                raise TypeError("named accessor '/' is only supported for map and module values") from None
+            if node.op == "SLASH" and node.named_access and isinstance(node.right, IrVar):
+                raise TypeError("named access is only supported for map and module values") from None
             raise
         if is_none(right):
             return right

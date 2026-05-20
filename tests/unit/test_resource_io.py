@@ -18,8 +18,8 @@ def test_resource_ref_returns_map_with_uri_and_backend():
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref("foo.txt")
-        [ref/uri, ref/backend]
+        ref = res.resource_ref("foo.txt")
+        [ref.uri, ref.backend]
         """,
         env,
     )
@@ -31,7 +31,7 @@ def test_resource_ref_absolute_path_stored_verbatim():
     result = run_source(
         """
         import resource as res
-        res/resource_ref("/abs/path/to/file.txt")/uri
+        res.resource_ref("/abs/path/to/file.txt")("uri")
         """,
         env,
     )
@@ -43,7 +43,7 @@ def test_resource_ref_unicode_path_stored_verbatim():
     result = run_source(
         """
         import resource as res
-        res/resource_ref("données/fichier.txt")/uri
+        res.resource_ref("données/fichier.txt")("uri")
         """,
         env,
     )
@@ -62,9 +62,9 @@ def test_write_then_read_text_roundtrip(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(out_path)
-        res/write_text(ref, "hello world")
-        res/read_text(ref)
+        ref = res.resource_ref(out_path)
+        res.write_text(ref, "hello world")
+        res.read_text(ref)
         """,
         env,
     )
@@ -78,9 +78,9 @@ def test_write_text_returns_ref_on_success(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(out_path)
-        written_ref = res/write_text(ref, "data")
-        written_ref/uri
+        ref = res.resource_ref(out_path)
+        written_ref = res.write_text(ref, "data")
+        written_ref.uri
         """,
         env,
     )
@@ -94,10 +94,10 @@ def test_write_text_overwrites_existing_content(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(out_path)
-        res/write_text(ref, "first")
-        res/write_text(ref, "second")
-        res/read_text(ref)
+        ref = res.resource_ref(out_path)
+        res.write_text(ref, "first")
+        res.write_text(ref, "second")
+        res.read_text(ref)
         """,
         env,
     )
@@ -112,7 +112,7 @@ def test_read_text_empty_file_returns_empty_string(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/read_text(res/resource_ref(file_path))
+        res.read_text(res.resource_ref(file_path))
         """,
         env,
     )
@@ -126,7 +126,7 @@ def test_read_text_missing_file_returns_not_found(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/read_text(res/resource_ref(missing_path))
+        res.read_text(res.resource_ref(missing_path))
         """,
         env,
     )
@@ -141,7 +141,7 @@ def test_write_text_to_nonexistent_directory_returns_write_error(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/write_text(res/resource_ref(out_path), "data")
+        res.write_text(res.resource_ref(out_path), "data")
         """,
         env,
     )
@@ -159,7 +159,7 @@ def test_read_text_malformed_ref_plain_string_returns_malformed_ref():
     result = run_source(
         """
         import resource as res
-        res/read_text("just-a-string")
+        res.read_text("just-a-string")
         """,
         env,
     )
@@ -172,7 +172,7 @@ def test_read_text_malformed_ref_missing_backend_key_returns_malformed_ref():
     result = run_source(
         """
         import resource as res
-        res/read_text({uri: "foo.txt"})
+        res.read_text({uri: "foo.txt"})
         """,
         env,
     )
@@ -185,7 +185,7 @@ def test_read_text_missing_uri_key_returns_malformed_ref():
     result = run_source(
         """
         import resource as res
-        res/read_text({backend: "fs"})
+        res.read_text({backend: "fs"})
         """,
         env,
     )
@@ -198,7 +198,7 @@ def test_read_text_unsupported_backend_returns_resource_unsupported():
     result = run_source(
         """
         import resource as res
-        res/read_text({uri: "foo.txt", backend: "s3"})
+        res.read_text({uri: "foo.txt", backend: "s3"})
         """,
         env,
     )
@@ -218,10 +218,10 @@ def test_write_then_read_bytes_roundtrip(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(out_path)
+        ref = res.resource_ref(out_path)
         data = utf8_encode("binary content")
-        res/write_bytes(ref, data)
-        utf8_decode(res/read_bytes(ref))
+        res.write_bytes(ref, data)
+        utf8_decode(res.read_bytes(ref))
         """,
         env,
     )
@@ -235,7 +235,7 @@ def test_read_bytes_missing_file_returns_not_found(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/read_bytes(res/resource_ref(missing_path))
+        res.read_bytes(res.resource_ref(missing_path))
         """,
         env,
     )
@@ -250,9 +250,9 @@ def test_write_bytes_returns_ref_on_success(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(out_path)
-        written_ref = res/write_bytes(ref, utf8_encode("x"))
-        written_ref/uri
+        ref = res.resource_ref(out_path)
+        written_ref = res.write_bytes(ref, utf8_encode("x"))
+        written_ref.uri
         """,
         env,
     )
@@ -271,7 +271,7 @@ def test_delete_nonexistent_file_returns_nil(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/delete(res/resource_ref(file_path))
+        res.delete(res.resource_ref(file_path))
         """,
         env,
     )
@@ -286,9 +286,9 @@ def test_delete_returns_nil_none_on_success(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        res/write_text(ref, "data")
-        res/delete(ref)
+        ref = res.resource_ref(file_path)
+        res.write_text(ref, "data")
+        res.delete(ref)
         """,
         env,
     )
@@ -303,10 +303,10 @@ def test_delete_then_read_returns_not_found(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        res/write_text(ref, "bye")
-        res/delete(ref)
-        res/read_text(ref)
+        ref = res.resource_ref(file_path)
+        res.write_text(ref, "bye")
+        res.delete(ref)
+        res.read_text(ref)
         """,
         env,
     )
@@ -328,11 +328,11 @@ def test_copy_source_content_to_dest(tmp_path):
     result = run_source(
         """
         import resource as res
-        from_ref = res/resource_ref(src_path)
-        to_ref = res/resource_ref(dst_path)
-        res/write_text(from_ref, "copied content")
-        res/copy(from_ref, to_ref)
-        res/read_text(to_ref)
+        from_ref = res.resource_ref(src_path)
+        to_ref = res.resource_ref(dst_path)
+        res.write_text(from_ref, "copied content")
+        res.copy(from_ref, to_ref)
+        res.read_text(to_ref)
         """,
         env,
     )
@@ -348,11 +348,11 @@ def test_copy_returns_to_ref_on_success(tmp_path):
     result = run_source(
         """
         import resource as res
-        from_ref = res/resource_ref(src_path)
-        to_ref = res/resource_ref(dst_path)
-        res/write_text(from_ref, "x")
-        copied_ref = res/copy(from_ref, to_ref)
-        copied_ref/uri
+        from_ref = res.resource_ref(src_path)
+        to_ref = res.resource_ref(dst_path)
+        res.write_text(from_ref, "x")
+        copied_ref = res.copy(from_ref, to_ref)
+        copied_ref.uri
         """,
         env,
     )
@@ -368,7 +368,7 @@ def test_copy_missing_source_returns_not_found(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/copy(res/resource_ref(src_path), res/resource_ref(dst_path))
+        res.copy(res.resource_ref(src_path), res.resource_ref(dst_path))
         """,
         env,
     )
@@ -385,12 +385,12 @@ def test_copy_overwrites_existing_dest(tmp_path):
     result = run_source(
         """
         import resource as res
-        from_ref = res/resource_ref(src_path)
-        to_ref = res/resource_ref(dst_path)
-        res/write_text(to_ref, "old content")
-        res/write_text(from_ref, "new content")
-        res/copy(from_ref, to_ref)
-        res/read_text(to_ref)
+        from_ref = res.resource_ref(src_path)
+        to_ref = res.resource_ref(dst_path)
+        res.write_text(to_ref, "old content")
+        res.write_text(from_ref, "new content")
+        res.copy(from_ref, to_ref)
+        res.read_text(to_ref)
         """,
         env,
     )
@@ -409,10 +409,10 @@ def test_resource_meta_existing_file_has_exists_true(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        res/write_text(ref, "hello meta")
-        meta = res/resource_meta(ref)
-        meta/exists
+        ref = res.resource_ref(file_path)
+        res.write_text(ref, "hello meta")
+        meta = res.resource_meta(ref)
+        meta.exists
         """,
         env,
     )
@@ -427,9 +427,9 @@ def test_resource_meta_existing_file_size_matches_content(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        res/write_text(ref, "hello meta")
-        res/resource_meta(ref)/size
+        ref = res.resource_ref(file_path)
+        res.write_text(ref, "hello meta")
+        res.resource_meta(ref)("size")
         """,
         env,
     )
@@ -443,9 +443,9 @@ def test_resource_meta_existing_file_backend_is_fs(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        res/write_text(ref, "x")
-        res/resource_meta(ref)/backend
+        ref = res.resource_ref(file_path)
+        res.write_text(ref, "x")
+        res.resource_meta(ref)("backend")
         """,
         env,
     )
@@ -459,8 +459,8 @@ def test_resource_meta_missing_file_exists_is_false(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        res/resource_meta(ref)/exists
+        ref = res.resource_ref(file_path)
+        res.resource_meta(ref)("exists")
         """,
         env,
     )
@@ -474,8 +474,8 @@ def test_resource_meta_missing_file_has_no_size_key(tmp_path):
     result = run_source(
         """
         import resource as res
-        ref = res/resource_ref(file_path)
-        meta = res/resource_meta(ref)
+        ref = res.resource_ref(file_path)
+        meta = res.resource_meta(ref)
         map_has?(meta, "size")
         """,
         env,
@@ -495,7 +495,7 @@ def test_discover_returns_a_flow(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/discover(res/resource_ref(root_path))
+        res.discover(res.resource_ref(root_path))
         """,
         env,
     )
@@ -510,9 +510,9 @@ def test_discover_flow_items_have_uri_and_backend_keys(tmp_path):
     result = run_source(
         """
         import resource as res
-        root = res/resource_ref(root_path)
-        res/discover(root)
-          |> map((ref) -> [ref/uri, ref/backend])
+        root = res.resource_ref(root_path)
+        res.discover(root)
+          |> map((ref) -> [ref.uri, ref.backend])
           |> collect
         """,
         env,
@@ -533,8 +533,8 @@ def test_discover_does_not_emit_directories(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/discover(res/resource_ref(root_path))
-          |> map((ref) -> ref/uri)
+        res.discover(res.resource_ref(root_path))
+          |> map((ref) -> ref.uri)
           |> collect
         """,
         env,
@@ -552,7 +552,7 @@ def test_discover_empty_directory_collects_to_empty_list(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/discover(res/resource_ref(root_path)) |> collect
+        res.discover(res.resource_ref(root_path)) |> collect
         """,
         env,
     )
@@ -567,7 +567,7 @@ def test_discover_flow_is_single_use(tmp_path):
         run_source(
             """
             import resource as res
-            flow = res/discover(res/resource_ref(root_path))
+            flow = res.discover(res.resource_ref(root_path))
             collect(flow)
             collect(flow)
             """,
@@ -582,7 +582,7 @@ def test_discover_nonexistent_root_returns_not_found(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/discover(res/resource_ref(root_path))
+        res.discover(res.resource_ref(root_path))
         """,
         env,
     )
@@ -595,7 +595,7 @@ def test_discover_malformed_ref_returns_malformed_ref():
     result = run_source(
         """
         import resource as res
-        res/discover("not-a-ref")
+        res.discover("not-a-ref")
         """,
         env,
     )
@@ -611,8 +611,8 @@ def test_discover_pipeline_read_all_text(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/discover(res/resource_ref(root_path))
-          |> map(res/read_text)
+        res.discover(res.resource_ref(root_path))
+          |> map(res.read_text)
           |> collect
         """,
         env,
@@ -630,7 +630,7 @@ def test_resource_capabilities_supports_discover_is_true():
     result = run_source(
         """
         import resource as res
-        res/resource_capabilities()/supports_discover
+        res.resource_capabilities()("supports_discover")
         """,
         env,
     )
@@ -642,13 +642,13 @@ def test_resource_capabilities_all_supports_flags_are_true():
     result = run_source(
         """
         import resource as res
-        caps = res/resource_capabilities()
+        caps = res.resource_capabilities()
         [
-          caps/supports_discover,
-          caps/supports_delete,
-          caps/supports_copy,
-          caps/supports_meta,
-          caps/supports_bytes
+          caps.supports_discover,
+          caps.supports_delete,
+          caps.supports_copy,
+          caps.supports_meta,
+          caps.supports_bytes
         ]
         """,
         env,
@@ -661,8 +661,8 @@ def test_resource_capabilities_backends_contains_fs():
     result = run_source(
         """
         import resource as res
-        caps = res/resource_capabilities()
-        any?((b) -> b == "fs", caps/backends)
+        caps = res.resource_capabilities()
+        any?((b) -> b == "fs", caps.backends)
         """,
         env,
     )
@@ -679,7 +679,7 @@ def test_none_propagation_short_circuits_read_text():
     result = run_source(
         """
         import resource as res
-        res/read_text(none("upstream-failure"))
+        res.read_text(none("upstream-failure"))
         """,
         env,
     )
@@ -692,7 +692,7 @@ def test_none_propagation_short_circuits_write_text(tmp_path):
     result = run_source(
         """
         import resource as res
-        res/write_text(none("upstream-failure"), "data")
+        res.write_text(none("upstream-failure"), "data")
         """,
         env,
     )
@@ -705,7 +705,7 @@ def test_none_propagation_short_circuits_discover():
     result = run_source(
         """
         import resource as res
-        res/discover(none("upstream-failure"))
+        res.discover(none("upstream-failure"))
         """,
         env,
     )

@@ -24,7 +24,7 @@ def test_none_argument_short_circuits_ordinary_calls_unless_pattern_matched():
     src = """
     f(x) = x + 1
     g(x) =
-      none("missing-key", info) -> info/key |
+      none("missing-key", info) -> info.key |
       _ -> "ok"
 
     [f(none("missing-key", {key: "name"})), g(none("missing-key", {key: "name"}))]

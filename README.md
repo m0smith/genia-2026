@@ -561,7 +561,7 @@ Current consistency note:
   - string `find`
   - list predicate-search helper `find_opt`
   - `parse_int`
-- compatibility lookup surfaces such as `map_get`, callable map/string lookup, slash access, and `cli_option` now also return structured `none(...)` on missing results
+- lookup surfaces such as `map_get`, callable map/string lookup, dot access, and `cli_option` now also return structured `none(...)` on missing results
 - compatibility aliases retained:
   - `get?`
   - `first_opt`
@@ -735,13 +735,13 @@ empty = {}
 import math
 import math as m
 
-[math/pi, m/inc(2)]
+[math.pi, m.inc(2)]
 ```
 
 - `import mod` binds a module value to `mod`
 - `import mod as alias` binds the same module value to `alias`
 - module imports are cached by module name (`loaded_modules`) so duplicate imports are not re-evaluated
-- module exports are accessed with narrow slash access (`mod/name`)
+- module exports are accessed with narrow dot access (`mod.name`)
 - modules are immutable runtime namespace values (distinct from maps)
 
 ### Python host interop (Phase 1, allowlisted)
@@ -758,10 +758,11 @@ import python.json as pyjson
   - `python`
   - `python.json`
 - supported root exports:
-  - `python/open`, `python/read`, `python/write`, `python/close`
-  - `python/read_text`, `python/write_text`
-  - `python/len`, `python/str`
-  - nested `python/json/loads`, `python/json/dumps`
+  - `python.open`, `python.read`, `python.write`, `python.close`
+  - `python.read_text`, `python.write_text`
+  - `python.len`, `python.str`
+- supported `python.json` exports, usually imported with `import python.json as pyjson`:
+  - `pyjson.loads`, `pyjson.dumps`
 - host imports are allowlisted; `import python.os` is rejected
 - host functions participate in ordinary calls and Option-aware pipelines
 - host `None` maps to Genia `none`
@@ -771,24 +772,24 @@ Working examples:
 
 ```genia
 import python
-"file.txt" |> python/open |> python/read
+"file.txt" |> python.open |> python.read
 ```
 
 ```genia
 import python.json as pyjson
-unwrap_or("fallback", "null" |> pyjson/loads)
+unwrap_or("fallback", "null" |> pyjson.loads)
 ```
 
 ```genia
 import python
-[1, 2, 3] |> python/len
+[1, 2, 3] |> python.len
 ```
 
 Failure example:
 
 ```genia
 import python.json as pyjson
-"{" |> pyjson/loads
+"{" |> pyjson.loads
 ```
 
 - raises `ValueError("python.json/loads invalid JSON: ...")`
@@ -807,7 +808,7 @@ person = { name: "Matthew", age: 42 }
 - missing map keys return `none("missing-key", {key: "middle"})`
 - module named access returns exported bindings
 - missing module exports raise a clear error
-- legacy `lhs/name` slash access is retained as compatibility only; new code should prefer canonical dot access or maybe-aware lookup:
+- legacy `lhs/name` slash access has been removed; use canonical dot access or maybe-aware lookup:
 
 ```genia
 get("name", person)

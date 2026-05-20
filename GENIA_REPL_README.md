@@ -94,7 +94,7 @@ CLI contract summary (actual behavior):
   - runtime capability values:
     - shared/runtime-surface values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented)
     - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
-  - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, slash map access, and `cli_option` all use structured `none...` for missing/absent results
+  - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, dot map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
   - Outcome pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, constructor pattern `some(pattern)`, and `err(reason)` / `err(reason, context)` forms
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
@@ -151,7 +151,7 @@ CLI contract summary (actual behavior):
 - map literals (`{name: "m"}`, `{"name": "m"}`, `{}`)
 - module import forms: `import mod`, `import mod as alias`
   - imports are cached by module name; repeated imports/aliases reuse the same module value
-- named accessor (phase 1): `lhs.name` is the canonical form; legacy `lhs/name` is compatibility only (bare identifier RHS only; not general field-path lookup)
+- named accessor (phase 1): `lhs.name` is the canonical form; legacy `lhs/name` compatibility has been removed (bare identifier RHS only; not general field-path lookup)
 - callable data (phase 1 subset):
   - map lookup calls: `m(key)`, `m(key, default)`
   - string projector calls over maps: `"key"(m)`, `"key"(m, default)`
@@ -179,7 +179,7 @@ CLI contract summary (actual behavior):
   - includes public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`
   - includes public option helpers from `src/genia/std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - includes public string helpers from `src/genia/std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
-  - includes a public Python-host-only web module in `src/genia/std/prelude/web.genia` (import via `import web` and use exports such as `web/serve_http`, `web/get`, `web/post`, `web/route_request`, `web/json`, and `web/ok_text`)
+  - includes a public Python-host-only web module in `src/genia/std/prelude/web.genia` (import via `import web` and use exports such as `web.serve_http`, `web.get`, `web.post`, `web.route_request`, `web.json`, and `web.ok_text`)
   - includes Flow rule/refine helper constructors from `src/genia/std/prelude/flow.genia`: `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`, plus preferred `step_*` aliases
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
@@ -237,8 +237,8 @@ CLI contract summary (actual behavior):
     - public web-module exports in `std/prelude/web.genia`: `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, `not_found`
     - this public HTTP helper surface is Python reference host behavior in this phase (**Python-host-only**), not a shared cross-host contract category
   - Python-host-only resource IO bridge builtins (phase 1, Experimental):
-    - import via `import resource as res`; use exports via slash syntax (`res/read_text(ref)`, etc.)
-    - `ResourceRef` is a plain Genia map `{uri: string, backend: "fs"}`; constructed by `res/resource_ref(path)`
+    - import via `import resource as res`; use exports via dot syntax (`res.read_text(ref)`, etc.)
+    - `ResourceRef` is a plain Genia map `{uri: string, backend: "fs"}`; constructed by `res.resource_ref(path)`
     - `ResourceMeta` is a plain Genia map `{exists: boolean, size?: integer, backend: string}`
     - public module exports: `resource_ref`, `discover`, `read_text`, `read_bytes`, `write_text`, `write_bytes`, `delete`, `copy`, `resource_meta`, `resource_capabilities`
     - `discover(root_ref)` returns a lazy, recursive, single-use `Flow` of `ResourceRef` maps (files only, no directories)
@@ -817,5 +817,5 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - The terminal UI does not use `stdin_keys` and does not provide pause/step/quit key controls; speed and length are controlled by CLI flags.
 - `examples/ants_actor.genia` provides the actor/coordinator mode for comparison; it is an optional coordination layer over the pure world-step model and does not provide a scheduler/event loop abstraction.
 - actor helpers remain public Python-host behavior in this phase; they are not promoted to a shared cross-host contract here.
-- `examples/ants_web.genia` is a browser viewer over the same simulation using the current host-backed `web/serve_http` helper. It serves static HTML/CSS/JS plus JSON endpoints: `GET /state`, `POST /reset`, and `POST /step`.
+- `examples/ants_web.genia` is a browser viewer over the same simulation using the current host-backed `web.serve_http` helper. It serves static HTML/CSS/JS plus JSON endpoints: `GET /state`, `POST /reset`, and `POST /step`.
 - The browser uses Canvas rendering and client-side repeated `/step` calls for run/pause controls. It is not a browser-native Genia runtime, a browser playground runtime, WebSockets, SSE, or a richer server runtime.

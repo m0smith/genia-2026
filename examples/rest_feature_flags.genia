@@ -81,12 +81,12 @@ import web
 # -- Module imports --------------------------------------------------------
 # Bind web module exports to short local names for readability.
 
-web_bad_request    = web/bad_request
-web_get            = web/get
-web_json           = web/json
-web_post           = web/post
-web_route_request  = web/route_request
-web_serve_http     = web/serve_http
+web_bad_request    = web.bad_request
+web_get            = web.get
+web_json           = web.json
+web_post           = web.post
+web_route_request  = web.route_request
+web_serve_http     = web.serve_http
 
 # == State =================================================================
 # A single `ref` holds the entire flag-rule map.  All mutations go through

@@ -3,7 +3,7 @@ category: ir
 input:
   source: |
     import python.json as pyjson
-    "null" |> pyjson/loads
+    "null" |> pyjson.loads
 expected:
   ir:
     - node: IrImport
@@ -24,3 +24,4 @@ expected:
             right:
               node: IrVar
               name: loads
+            named_access: true

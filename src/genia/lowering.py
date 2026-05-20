@@ -264,7 +264,13 @@ def lower_node(node: Node) -> IrNode:
         if node.op == "PIPE_FWD":
             source, stages = _flatten_pipeline_ast(node)
             return IrPipeline(lower_node(source), [lower_node(stage) for stage in stages], span=node.span)
-        return IrBinary(lower_node(node.left), node.op, lower_node(node.right), span=node.span)
+        return IrBinary(
+            lower_node(node.left),
+            node.op,
+            lower_node(node.right),
+            named_access=node.named_access,
+            span=node.span,
+        )
     if isinstance(node, Call):
         if isinstance(node.fn, Var) and node.fn.name == "some" and len(node.args) == 1:
             return IrOptionSome(lower_node(node.args[0]), span=node.span)

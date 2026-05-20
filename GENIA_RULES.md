@@ -192,8 +192,8 @@ Required constraints:
 
 ## 8.2.1) Python host interop invariants (phase 1)
 
-- Python host interop reuses the existing module system and narrow slash export access.
-- There is no new member-access syntax for host interop in this phase.
+- Python host interop reuses the existing module system and narrow dot export access.
+- There is no additional member-access syntax for host interop in this phase.
 - supported host modules are currently allowlisted:
   - `python`
   - `python.json`
@@ -227,8 +227,8 @@ Required constraints:
 - current normalized bridge example:
   - `python.json/loads` raises `ValueError("python.json/loads invalid JSON: ...")` for invalid JSON text
 - pipeline interaction at the bridge still uses ordinary pipeline semantics:
-  - `some(x) |> python/len` passes `x` into the host export through ordinary host-boundary conversion
-  - `none(...) |> python/len` skips the host export and preserves the same `none(...)`
+  - `some(x) |> python.len` passes `x` into the host export through ordinary host-boundary conversion
+  - `none(...) |> python.len` skips the host export and preserves the same `none(...)`
   - Flow does not implicitly cross the bridge; passing a Flow to a host value export remains a type error unless an explicit Flow stage has already materialized ordinary values
 - unrestricted host import, arbitrary attribute access, and arbitrary code execution are not part of this phase.
 
@@ -239,7 +239,7 @@ Required constraints:
 - loaded exports bind directly into the root environment; no module value is created and no module cache entry is written
 - autoload deduplication uses a separate file-key set, independent of the `loaded_modules` cache
 - autoload cycle detection must raise `RuntimeError("Autoload cycle detected while loading <key>")`
-- autoloads are stdlib-internal infrastructure; they are not accessible via slash access (`mod/name`) and are not part of the user-facing module system
+- autoloads are stdlib-internal infrastructure; they are not accessible through module named access (`mod.name`) and are not part of the user-facing module system
 
 ## 8.3) Assignment invariants
 
@@ -267,7 +267,7 @@ Required constraints:
 - The frozen minimal portable Core IR contract is documented in `docs/architecture/core-ir-portability.md`.
 - AST->IR lowering output must stay inside the frozen portable `Ir*` node families.
 - Host-local post-lowering optimized nodes (for example `IrListTraversalLoop`) are allowed only after host-local optimization passes and are not part of the minimal shared Core IR contract.
-- Dot is the canonical named-access separator: `lhs.name` lowers as `IrBinary(op=SLASH)`. This is narrow named access, not general field-path lookup, and hosts must not introduce a separate access node. Legacy `lhs/name` remains compatibility syntax only.
+- Dot is the canonical named-access separator: `lhs.name` lowers as `IrBinary(op=SLASH, named_access=true)`. `named_access=true` is part of the portable Core IR contract and is emitted in normalized shared IR. Ordinary slash/division lowers as `IrBinary(op=SLASH)` without `named_access`. This is narrow named access, not general field-path lookup, and hosts must not introduce a separate access node. Legacy `lhs/name` compatibility has been removed.
 - `none(reason, ctx)` lowers as `IrOptionNone`; the reason argument is wrapped in `IrQuote` (not evaluated) — bare `none` produces `reason=null`.
 - `IrAssign` appears directly in `IrBlock.exprs`; it is not wrapped in `IrExprStmt`.
 
@@ -278,7 +278,7 @@ Implemented operators are limited to:
 - unary: `-`, `!`
 - binary: `+ - * / % < <= > >= == != && ||`
 - pipeline: `|>`
-- named accessor form: canonical `lhs.name`; legacy compatibility `lhs/name` (RHS bare identifier only)
+- named accessor form: canonical `lhs.name` (RHS bare identifier only)
 - matcher operators (Experimental): `@?`, `@!`, `&` — see section 9.7
 
 Pipeline invariant:
@@ -358,7 +358,7 @@ These operators apply Outcome matcher functions. A matcher function is a callabl
 Slash accessor invariants (phase 1):
 
 - `lhs.name` is canonical narrow named access, not general member access or field-path lookup
-- legacy `lhs/name` compatibility remains accepted for the same narrow access shape
+- legacy `lhs/name` compatibility has been removed
 - only module values and map values are valid LHS kinds
 - for maps: missing key returns `none("missing-key", {key: <name>})`
 - for modules: missing export raises a clear error

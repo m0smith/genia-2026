@@ -1,4 +1,4 @@
 import resource as res
 
-ref = res/resource_ref("hello.txt")
-[ref/uri, ref/backend]
+ref = res.resource_ref("hello.txt")
+[ref.uri, ref.backend]

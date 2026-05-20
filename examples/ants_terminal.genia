@@ -90,41 +90,41 @@ seed_arg(args) = seed_from_parsed(
 
 new_terminal_world(seed_value, ant_total) = new_terminal_world(seed_value, ant_total, grid_size(ant_total))
 new_terminal_world(seed_value, ant_total, size) = {
-  ants/new_world(seed_value, ant_total, size, size)
+  ants.new_world(seed_value, ant_total, size, size)
 }
 
 pheromone_heat(value) =
-  (value) ? value >= ants/pheromone_deposit() * 2 -> "#" |
-  (value) ? value >= ants/pheromone_deposit() -> "+" |
+  (value) ? value >= ants.pheromone_deposit() * 2 -> "#" |
+  (value) ? value >= ants.pheromone_deposit() -> "+" |
   (value) ? value > 0 -> ":" |
   (_) -> "."
 
-terminal_cell_char(world, pos) = terminal_cell_char_ant(ants/ant_at_pos(ants/world_ants(world), pos), world, pos)
+terminal_cell_char(world, pos) = terminal_cell_char_ant(ants.ant_at_pos(ants.world_ants(world), pos), world, pos)
 
 terminal_cell_char_ant(opt_ant, world, pos) =
-  (some(ant_value), _, _) ? ants/ant_carrying?(ant_value) == true -> "H" |
+  (some(ant_value), _, _) ? ants.ant_carrying?(ant_value) == true -> "H" |
   (some(_), _, _) -> "a" |
-  (none(_), world, pos) ? ants/in_nest(world, pos) == true -> "N" |
-  (none(_), world, pos) ? ants/food_at(world, pos) > 0 -> "*" |
-  (none(_), world, pos) -> pheromone_heat(ants/pheromone_at(world, pos))
+  (none(_), world, pos) ? ants.in_nest(world, pos) == true -> "N" |
+  (none(_), world, pos) ? ants.food_at(world, pos) > 0 -> "*" |
+  (none(_), world, pos) -> pheromone_heat(ants.pheromone_at(world, pos))
 
 terminal_render_row(world, y, x) =
-  (world, y, x) ? x >= ants/world_width(world) -> "" |
+  (world, y, x) ? x >= ants.world_width(world) -> "" |
   (world, y, x) -> terminal_cell_char(world, [x, y]) + terminal_render_row(world, y, x + 1)
 
 terminal_render_rows(world) = terminal_render_rows_y(world, 0)
 terminal_render_rows_y(world, y) =
-  (world, y) ? y >= ants/world_height(world) -> [] |
+  (world, y) ? y >= ants.world_height(world) -> [] |
   (world, y) -> [terminal_render_row(world, y, 0), ..terminal_render_rows_y(world, y + 1)]
 
-carrying_count(world) = length(filter((ant_value) -> ants/ant_carrying?(ant_value), ants/world_ants(world)))
-pheromone_total(world) = ants/total_pheromone(world)
-active_trails(world) = ants/active_trail_count(world)
+carrying_count(world) = length(filter((ant_value) -> ants.ant_carrying?(ant_value), ants.world_ants(world)))
+pheromone_total(world) = ants.total_pheromone(world)
+active_trails(world) = ants.active_trail_count(world)
 
 stats_panel(world, config, steps_left) = [
   "Genia ants terminal UI",
-  ["mode", config_mode(config), "seed", config_seed(config), "evolve", ants/world_tick(world), "steps_left", steps_left],
-  ["ants", length(ants/world_ants(world)), "carrying", carrying_count(world), "delivered", ants/world_delivered(world), "food_left", ants/total_food(world)],
+  ["mode", config_mode(config), "seed", config_seed(config), "evolve", ants.world_tick(world), "steps_left", steps_left],
+  ["ants", length(ants.world_ants(world)), "carrying", carrying_count(world), "delivered", ants.world_delivered(world), "food_left", ants.total_food(world)],
   ["pheromone_total", pheromone_total(world), "active_trails", active_trails(world), "delay_ms", config_delay(config)],
   "legend: H carrying ant | a ant | N nest | * food | # + : pheromone high/med/low | . empty",
   "controls: CLI only (--seed --ants --steps --delay --size --mode pure|actor); no pause/step keys"
@@ -138,7 +138,7 @@ draw_panel(rows) =
   }
 
 draw_frame(world, steps_left, size) = draw_frame_config(world, steps_left, {
-  ants: length(ants/world_ants(world)),
+  ants: length(ants.world_ants(world)),
   seed: default_seed(),
   steps: default_steps(),
   delay: default_delay_ms(),
@@ -155,23 +155,23 @@ draw_frame_config(world, steps_left, config) = {
 
 pure_session(world) = {world: world}
 pure_session_world(session) = unwrap_or(none("missing-world"), get("world", session))
-pure_session_step(session) = map_put(session, "world", ants/step(pure_session_world(session)))
+pure_session_step(session) = map_put(session, "world", ants.step(pure_session_world(session)))
 pure_session_stop(session) = "done"
 
 start_session(mode, world) =
-  ("actor", world) -> ants_actor/actor_session(world) |
+  ("actor", world) -> ants_actor.actor_session(world) |
   (_, world) -> pure_session(world)
 
 session_world(mode, session) =
-  ("actor", session) -> ants_actor/actor_session_world(session) |
+  ("actor", session) -> ants_actor.actor_session_world(session) |
   (_, session) -> pure_session_world(session)
 
 session_step(mode, session) =
-  ("actor", session) -> ants_actor/actor_session_step(session) |
+  ("actor", session) -> ants_actor.actor_session_step(session) |
   (_, session) -> pure_session_step(session)
 
 session_stop(mode, session) =
-  ("actor", session) -> ants_actor/actor_session_stop(session) |
+  ("actor", session) -> ants_actor.actor_session_stop(session) |
   (_, session) -> pure_session_stop(session)
 
 simulate_session(mode, session, steps_left, config) =
@@ -185,7 +185,7 @@ simulate_session(mode, session, steps_left, config) =
 
 simulate(world, steps_left, delay_ms, size) =
   (_, steps_left, _, size) -> simulate_with_config({
-    ants: length(ants/world_ants(world)),
+    ants: length(ants.world_ants(world)),
     seed: default_seed(),
     steps: steps_left,
     delay: delay_ms,
@@ -208,9 +208,9 @@ collect_summaries(seed_value, ant_total, steps_left) = collect_summaries_world(
 )
 
 world_summary(world) = [
-  ants/world_tick(world),
-  ants/world_delivered(world),
-  ants/total_food(world),
+  ants.world_tick(world),
+  ants.world_delivered(world),
+  ants.total_food(world),
   pheromone_total(world),
   active_trails(world),
   carrying_count(world)
@@ -219,7 +219,7 @@ world_summary(world) = [
 collect_summaries_world(world, steps_left, summaries_rev) =
   (world, steps_left, summaries_rev) ? steps_left <= 0 -> reverse([world_summary(world), ..summaries_rev]) |
   (world, steps_left, summaries_rev) -> collect_summaries_world(
-    ants/step(world),
+    ants.step(world),
     steps_left - 1,
     [world_summary(world), ..summaries_rev]
   )
@@ -233,9 +233,9 @@ collect_positions(seed_value, ant_total, steps_left) = collect_positions_world(
 )
 
 collect_positions_world(world, steps_left, positions_rev) =
-  (world, steps_left, positions_rev) ? steps_left <= 0 -> reverse([map(ants/ant_pos, ants/world_ants(world)), ..positions_rev]) |
+  (world, steps_left, positions_rev) ? steps_left <= 0 -> reverse([map(ants.ant_pos, ants.world_ants(world)), ..positions_rev]) |
   (world, steps_left, positions_rev) -> collect_positions_world(
-    ants/step(world),
+    ants.step(world),
     steps_left - 1,
-    [map(ants/ant_pos, ants/world_ants(world)), ..positions_rev]
+    [map(ants.ant_pos, ants.world_ants(world)), ..positions_rev]
   )

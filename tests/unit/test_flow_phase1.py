@@ -878,7 +878,7 @@ def test_evolve_init_f_identity_repeats_init():
 def test_evolve_init_f_with_map_value_progression():
     env = make_global_env()
     src = """
-    step(state) -> {tick: state/tick + 1}
+    step(state) -> {tick: state.tick + 1}
     evolve({tick: 0}, step) |> take(3) |> collect
     """
     assert format_debug(run_source(src, env)) == "[{tick: 0}, {tick: 1}, {tick: 2}]"
