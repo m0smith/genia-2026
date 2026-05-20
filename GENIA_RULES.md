@@ -279,6 +279,7 @@ Implemented operators are limited to:
 - binary: `+ - * / % < <= > >= == != && ||`
 - pipeline: `|>`
 - named accessor form: canonical `lhs.name`; legacy compatibility `lhs/name` (RHS bare identifier only)
+- matcher operators (Experimental): `@?`, `@!`, `&` — see section 9.7
 
 Pipeline invariant:
 
@@ -297,6 +298,42 @@ Pipeline invariant:
   - if a stage input is `some(x)` and the stage is not explicitly Option-aware, the stage receives `x`
 - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back as `some(y)`
 - when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
+
+
+## 9.7) Matcher operator invariants (Experimental)
+
+These operators apply Outcome matcher functions. A matcher function is a callable value that accepts one argument and returns an Outcome (`some(...)`, `none(...)`, or `err(...)`).
+
+### `@?` invariants
+
+- `value @? matcher` calls `matcher(value)` and returns the resulting Outcome unchanged
+- `@?` must not coerce the Outcome to boolean
+- `@?` must not unwrap `some(...)`
+- `@?` must not raise merely because the matcher returned `none(...)` or `err(...)`
+- right operand not callable → runtime error
+- matcher returns non-Outcome → runtime error
+
+### `@!` invariants
+
+- `value @! matcher` calls `matcher(value)`
+- if result is `some(v[, ctx])` → evaluates to `v`; context is not exposed by this operator
+- if result is `none(...)` → runtime error (`@! assertion failed: matcher returned none`)
+- if result is `err(reason[, ctx])` → runtime error preserving reason (`@! assertion failed: matcher returned err: <reason>`)
+- right operand not callable → runtime error
+- matcher returns non-Outcome → runtime error
+
+### `&` matcher composition invariants
+
+- `matcher_a & matcher_b` evaluates to a new callable matcher function
+- the composed matcher applies `matcher_a` first, then (only on `some`) passes the payload to `matcher_b`
+- if `matcher_a(value)` returns `none(...)` → return that `none(...)` without calling `matcher_b`
+- if `matcher_a(value)` returns `err(...)` → return that `err(...)` without calling `matcher_b`
+- if `matcher_a(value)` returns `some(next[, ctx])` → call `matcher_b(next)` and return its Outcome
+- composition is left-to-right and deterministic
+- context merging across composed success is not implemented in this phase
+- either operand not callable → runtime error at composition time
+- either matcher returns non-Outcome at invocation time → runtime error
+- `&` for matcher composition is distinct from `&&` (boolean and); non-matcher operands are a runtime error
 
 
 ## 10) Observable Spec Contract (Current Implemented Scope)
