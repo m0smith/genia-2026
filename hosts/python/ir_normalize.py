@@ -231,6 +231,17 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
         if node.alias is not None:
             normalized["alias"] = node.alias
         return normalized
+    from genia.ir import IrNamedPatternDef
+    if isinstance(node, IrNamedPatternDef):
+        normalized = {
+            "node": "IrNamedPatternDef",
+            "name": node.name,
+            "param": node.param,
+            "body": _normalize_ir_node(node.body),
+        }
+        if node.annotations:
+            normalized["annotations"] = [_normalize_ir_node(a) for a in node.annotations]
+        return normalized
 
     raise TypeError(
         "Portable Core IR normalization failed: unsupported node "
