@@ -1,0 +1,19 @@
+name: template-at-assert
+category: ir
+description: The @! matcher assertion operator lowers through portable binary IR
+input:
+  source: |
+    value @! matcher
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrBinary
+        left:
+          node: IrVar
+          name: value
+        op: AT_ASSERT
+        right:
+          node: IrVar
+          name: matcher
+

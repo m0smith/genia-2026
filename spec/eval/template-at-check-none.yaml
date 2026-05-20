@@ -1,0 +1,11 @@
+name: template-at-check-none
+category: eval
+description: "@? returns a matcher none(...) Outcome unchanged instead of coercing to false"
+input:
+  source: |
+    miss(n) = none("not-positive")
+    -1 @? miss
+expected:
+  stdout: "none(\"not-positive\")\n"
+  stderr: ""
+  exit_code: 0

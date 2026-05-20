@@ -1,0 +1,11 @@
+name: template-at-check-some
+category: eval
+description: "@? returns a matcher some(...) Outcome unchanged"
+input:
+  source: |
+    ok(n) = some(n)
+    5 @? ok
+expected:
+  stdout: "some(5)\n"
+  stderr: ""
+  exit_code: 0

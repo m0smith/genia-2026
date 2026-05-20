@@ -1,0 +1,13 @@
+name: error-template-at-check-non-callable
+category: error
+description: "@? rejects a non-callable matcher operand"
+input:
+  source: |
+    1 @? 2
+expected:
+  stdout: ""
+  stderr: "Error: @? expected matcher function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

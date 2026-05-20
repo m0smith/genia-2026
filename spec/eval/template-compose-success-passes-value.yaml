@@ -1,0 +1,13 @@
+name: template-compose-success-passes-value
+category: eval
+description: Matcher composition passes the some(...) payload from the left matcher to the right matcher
+input:
+  source: |
+    inc_match(n) = some(n + 1)
+    double_match(n) = some(n * 2)
+    3 @? (inc_match & double_match)
+expected:
+  stdout: "some(8)\n"
+  stderr: ""
+  exit_code: 0
+

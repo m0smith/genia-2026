@@ -1,0 +1,15 @@
+name: error-template-compose-left-non-callable
+category: error
+description: Matcher composition rejects a non-callable left operand
+input:
+  source: |
+    ok(n) = some(n)
+    1 & ok
+expected:
+  stdout: ""
+  stderr: "Error: & expected matcher function on left, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
+

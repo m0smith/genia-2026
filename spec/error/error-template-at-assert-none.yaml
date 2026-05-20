@@ -1,0 +1,14 @@
+name: error-template-at-assert-none
+category: error
+description: "@! fails loudly when the matcher returns none(...)"
+input:
+  source: |
+    miss(n) = none("not-positive")
+    -1 @! miss
+expected:
+  stdout: ""
+  stderr: "Error: @! assertion failed: matcher returned none: not-positive\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: RuntimeError

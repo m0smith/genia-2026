@@ -1,0 +1,13 @@
+name: template-compose-first-none-short-circuit
+category: eval
+description: Matcher composition short-circuits on a left-side none(...) Outcome
+input:
+  source: |
+    miss(n) = none("left-miss")
+    would_change(n) = some(n + 100)
+    3 @? (miss & would_change)
+expected:
+  stdout: "none(\"left-miss\")\n"
+  stderr: ""
+  exit_code: 0
+
