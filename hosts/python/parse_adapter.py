@@ -71,6 +71,9 @@ def normalize_ast(node):
             'AND': '&&',
             'OR': '||',
             'PIPE_FWD': '|>',
+            'AT_CHECK': '@?',
+            'AT_ASSERT': '@!',
+            'AMP': '&',
         }
         op = getattr(node, 'op', None)
         op_str = op_symbol_map.get(op, op)

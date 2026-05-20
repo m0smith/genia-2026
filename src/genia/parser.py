@@ -46,7 +46,10 @@ from .lexer import Token, SourceSpan, parse_string_literal, parse_glob_literal
 PRECEDENCE = {
     "PIPE_FWD": 5,
     "OR": 10,
+    "AT_CHECK": 15,
+    "AT_ASSERT": 15,
     "AND": 20,
+    "AMP": 25,
     "EQEQ": 30,
     "NE": 30,
     "LT": 40,

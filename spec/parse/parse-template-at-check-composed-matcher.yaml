@@ -1,0 +1,24 @@
+name: parse-template-at-check-composed-matcher
+category: parse
+description: Parenthesized matcher composition parses as the right operand to @?
+input:
+  source: "value @? (left & right)"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Binary
+      op: "@?"
+      left:
+        kind: Var
+        name: value
+      right:
+        kind: Binary
+        op: "&"
+        left:
+          kind: Var
+          name: left
+        right:
+          kind: Var
+          name: right
+

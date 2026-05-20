@@ -1,0 +1,11 @@
+name: template-at-check-err
+category: eval
+description: "@? returns a matcher err(...) Outcome unchanged instead of throwing"
+input:
+  source: |
+    bad(n) = err("not-a-number")
+    "x" @? bad
+expected:
+  stdout: "err(\"not-a-number\")\n"
+  stderr: ""
+  exit_code: 0

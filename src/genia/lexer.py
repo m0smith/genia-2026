@@ -6,7 +6,7 @@ from dataclasses import dataclass
 # - Clojure-style symbol punctuation that we allow in names is listed below.
 # - `name?` and `name!` are ordinary identifiers (no special lexer semantics).
 # - `/` is reserved for division and is not allowed inside identifier names.
-ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", ",", ";", ":", "@", "(", ")", "{", "}", "[", "]"})
+ALWAYS_OPERATOR_DELIMITERS = frozenset({"+", "*", "/", "%", "=", "<", ">", "|", "&", ",", ";", ":", "@", "(", ")", "{", "}", "[", "]"})
 ALLOWED_SYMBOL_PUNCTUATION = frozenset({"_", "?", "!", ".", "$", "-"})
 IDENT_START_RE = re.compile(r"[A-Za-z_$]")
 IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
@@ -22,6 +22,8 @@ TOKEN_SPEC = [
     ("AND", r"&&"),
     ("OR", r"\|\|"),
     ("PIPE_FWD", r"\|>"),
+    ("AT_CHECK", r"@\?"),
+    ("AT_ASSERT", r"@!"),
     ("ASSIGN", r"="),
     ("LT", r"<"),
     ("GT", r">"),
@@ -33,6 +35,7 @@ TOKEN_SPEC = [
     ("BANG", r"!"),
     ("QMARK", r"\?"),
     ("PIPE", r"\|"),
+    ("AMP", r"&"),
     ("LPAREN", r"\("),
     ("RPAREN", r"\)"),
     ("LBRACE", r"\{"),
@@ -59,6 +62,8 @@ PUNCTUATION_TOKENS = [
     ("AND", "&&"),
     ("OR", "||"),
     ("PIPE_FWD", "|>"),
+    ("AT_CHECK", "@?"),
+    ("AT_ASSERT", "@!"),
     ("DOTDOT", ".."),
     ("ASSIGN", "="),
     ("LT", "<"),
@@ -71,6 +76,7 @@ PUNCTUATION_TOKENS = [
     ("BANG", "!"),
     ("QMARK", "?"),
     ("PIPE", "|"),
+    ("AMP", "&"),
     ("LPAREN", "("),
     ("RPAREN", ")"),
     ("LBRACE", "{"),

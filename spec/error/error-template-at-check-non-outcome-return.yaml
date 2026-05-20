@@ -1,0 +1,14 @@
+name: error-template-at-check-non-outcome-return
+category: error
+description: "@? rejects matcher functions that return non-Outcome values"
+input:
+  source: |
+    bad(n) = n > 0
+    1 @? bad
+expected:
+  stdout: ""
+  stderr: "Error: matcher used with @? must return Outcome, received bool\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

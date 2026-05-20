@@ -1,0 +1,13 @@
+name: template-compose-second-none
+category: eval
+description: Matcher composition returns the right matcher Outcome when the left matcher succeeds
+input:
+  source: |
+    ok(n) = some(n)
+    miss(n) = none("right-miss")
+    3 @? (ok & miss)
+expected:
+  stdout: "none(\"right-miss\")\n"
+  stderr: ""
+  exit_code: 0
+

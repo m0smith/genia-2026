@@ -1,0 +1,13 @@
+name: template-compose-first-err-short-circuit
+category: eval
+description: Matcher composition short-circuits on a left-side err(...) Outcome
+input:
+  source: |
+    fail(n) = err("left-fail")
+    would_change(n) = some(n + 100)
+    3 @? (fail & would_change)
+expected:
+  stdout: "err(\"left-fail\")\n"
+  stderr: ""
+  exit_code: 0
+

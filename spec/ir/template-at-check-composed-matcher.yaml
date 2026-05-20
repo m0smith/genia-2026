@@ -1,0 +1,25 @@
+name: template-at-check-composed-matcher
+category: ir
+description: A composed matcher can be the right operand of @? in portable binary IR
+input:
+  source: |
+    value @? (left & right)
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrBinary
+        left:
+          node: IrVar
+          name: value
+        op: AT_CHECK
+        right:
+          node: IrBinary
+          left:
+            node: IrVar
+            name: left
+          op: AMP
+          right:
+            node: IrVar
+            name: right
+

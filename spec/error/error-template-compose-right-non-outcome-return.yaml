@@ -1,0 +1,15 @@
+name: error-template-compose-right-non-outcome-return
+category: error
+description: "Matcher composition rejects non-Outcome values returned by the right matcher"
+input:
+  source: |
+    bad(n) = n > 0
+    ok(n) = some(n)
+    1 @? (ok & bad)
+expected:
+  stdout: ""
+  stderr: "Error: matcher composed with & must return Outcome, received bool\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

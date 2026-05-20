@@ -1,0 +1,17 @@
+name: parse-template-compose
+category: parse
+description: The matcher composition operator parses as a standalone infix binary expression
+input:
+  source: "left & right"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Binary
+      op: "&"
+      left:
+        kind: Var
+        name: left
+      right:
+        kind: Var
+        name: right

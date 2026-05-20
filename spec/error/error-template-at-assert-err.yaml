@@ -1,0 +1,14 @@
+name: error-template-at-assert-err
+category: error
+description: "@! fails loudly and preserves the reason when the matcher returns err(...)"
+input:
+  source: |
+    fail(n) = err("not-a-number")
+    "x" @! fail
+expected:
+  stdout: ""
+  stderr: "Error: @! assertion failed: matcher returned err: not-a-number\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: RuntimeError

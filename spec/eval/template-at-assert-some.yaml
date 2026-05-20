@@ -1,0 +1,11 @@
+name: template-at-assert-some
+category: eval
+description: "@! unwraps the value carried by a successful some(...) matcher Outcome"
+input:
+  source: |
+    ok(n) = some(n + 1)
+    5 @! ok
+expected:
+  stdout: "6\n"
+  stderr: ""
+  exit_code: 0
