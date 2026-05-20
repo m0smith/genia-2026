@@ -1,0 +1,15 @@
+name: error-sheet-derive-duplicate-column
+category: error
+description: derive rejects duplicate derived column names in the minimal Sheet core.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann"]],
+      [quote(age), [30]]
+    ])
+    people |> derive(quote(age), (row) -> 31)
+expected:
+  stdout: ""
+  stderr: |
+    Error: derive expected a new column name; age already exists
+  exit_code: 1

@@ -1,0 +1,15 @@
+name: sheet-derive-core
+category: eval
+description: derive appends one value per row, stores Outcome values as cells, and leaves the original Sheet unchanged.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann", "Bob"]],
+      [quote(age), [30, 22]]
+    ])
+    derived = people |> derive(quote(status), (row) -> some("ok"))
+    [rows(derived), shape(people)]
+expected:
+  stdout: "[[[[name, \"Ann\"], [age, 30], [status, some(\"ok\")]], [[name, \"Bob\"], [age, 22], [status, some(\"ok\")]]], [[rows, 2], [columns, 2]]]\n"
+  stderr: ""
+  exit_code: 0

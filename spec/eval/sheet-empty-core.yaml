@@ -1,0 +1,12 @@
+name: sheet-empty-core
+category: eval
+description: Empty Sheets have zero rows and columns and can be selected with an empty column list.
+input:
+  source: |
+    empty = sheet([])
+    selected = empty |> select([])
+    [shape(empty), columns(empty), rows(empty), shape(selected)]
+expected:
+  stdout: "[[[rows, 0], [columns, 0]], [], [], [[rows, 0], [columns, 0]]]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,14 @@
+name: sheet-shape-columns-rows
+category: eval
+description: Minimal Sheets construct from ordered column pairs and expose shape, columns, and rows deterministically.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann", "Bob", "Cara"]],
+      [quote(age), [30, 22, 41]]
+    ])
+    [shape(people), columns(people), rows(people)]
+expected:
+  stdout: "[[[rows, 3], [columns, 2]], [name, age], [[[name, \"Ann\"], [age, 30]], [[name, \"Bob\"], [age, 22]], [[name, \"Cara\"], [age, 41]]]]\n"
+  stderr: ""
+  exit_code: 0

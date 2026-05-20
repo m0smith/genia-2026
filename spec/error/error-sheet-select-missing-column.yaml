@@ -1,0 +1,15 @@
+name: error-sheet-select-missing-column
+category: error
+description: select fails clearly when a requested Sheet column is absent.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann"]],
+      [quote(age), [30]]
+    ])
+    people |> select([quote(city)])
+expected:
+  stdout: ""
+  stderr: |
+    Error: select could not find column city
+  exit_code: 1
