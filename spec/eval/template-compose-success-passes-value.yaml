@@ -1,13 +1,12 @@
 name: template-compose-success-passes-value
 category: eval
-description: Matcher composition passes the some(...) payload from the left matcher to the right matcher
+description: Matcher composition preserves the original subject when both matchers succeed
 input:
   source: |
-    inc_match(n) = some(n + 1)
-    double_match(n) = some(n * 2)
-    3 @? (inc_match & double_match)
+    left(n) = some(n + 100)
+    right(n) = some(n * 2)
+    3 @? (left & right)
 expected:
-  stdout: "some(8)\n"
+  stdout: "some(3)\n"
   stderr: ""
   exit_code: 0
-

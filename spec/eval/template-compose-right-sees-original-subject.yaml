@@ -1,0 +1,15 @@
+name: template-compose-right-sees-original-subject
+category: eval
+description: Matcher composition passes the original subject to the right matcher after left success
+input:
+  source: |
+    left(n) = some(n + 100)
+    right(n) = (
+      x ? x < 10 -> none("right-saw-original") |
+      _ -> some(n)
+    )
+    3 @? (left & right)
+expected:
+  stdout: "none(\"right-saw-original\")\n"
+  stderr: ""
+  exit_code: 0

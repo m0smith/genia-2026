@@ -23,6 +23,18 @@ REQUIRED_TEMPLATE_MATCHER_IR_SPECS = {
     "template-compose",
 }
 
+REQUIRED_TEMPLATE_MATCHER_EVAL_SPECS = {
+    "template-at-check-some",
+    "template-at-check-none",
+    "template-at-check-err",
+    "template-at-assert-some",
+    "template-compose-success-passes-value",
+    "template-compose-right-sees-original-subject",
+    "template-compose-second-none",
+    "template-compose-first-none-short-circuit",
+    "template-compose-first-err-short-circuit",
+}
+
 
 def test_template_matcher_error_shared_spec_inventory_is_present():
     specs, invalid_specs = discover_specs()
@@ -30,11 +42,12 @@ def test_template_matcher_error_shared_spec_inventory_is_present():
     assert not invalid_specs
     discovered = {
         category: {spec.name for spec in specs if spec.category == category}
-        for category in ("parse", "ir", "error")
+        for category in ("parse", "ir", "eval", "error")
     }
 
     assert REQUIRED_TEMPLATE_MATCHER_PARSE_SPECS.issubset(discovered["parse"])
     assert REQUIRED_TEMPLATE_MATCHER_IR_SPECS.issubset(discovered["ir"])
+    assert REQUIRED_TEMPLATE_MATCHER_EVAL_SPECS.issubset(discovered["eval"])
     assert REQUIRED_TEMPLATE_MATCHER_ERROR_SPECS.issubset(discovered["error"])
 
 
@@ -44,6 +57,7 @@ def test_template_matcher_error_shared_specs_execute_as_contract():
     cases = {
         "parse": REQUIRED_TEMPLATE_MATCHER_PARSE_SPECS,
         "ir": REQUIRED_TEMPLATE_MATCHER_IR_SPECS,
+        "eval": REQUIRED_TEMPLATE_MATCHER_EVAL_SPECS,
         "error": REQUIRED_TEMPLATE_MATCHER_ERROR_SPECS,
     }
 

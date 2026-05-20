@@ -605,7 +605,10 @@ class _ComposedMatcher:
         first = self.evaluator.call_matcher(self.left, value, "&")
         if isinstance(first, (GeniaOptionNone, GeniaOptionErr)):
             return first
-        return self.evaluator.call_matcher(self.right, first.value, "&")
+        second = self.evaluator.call_matcher(self.right, value, "&")
+        if isinstance(second, GeniaOptionSome):
+            return GeniaOptionSome(value)
+        return second
 
     def __repr__(self) -> str:
         return "<matcher-composition>"
@@ -1082,7 +1085,10 @@ class Evaluator:
 
     def apply_matcher_check(self, value: Any, matcher_candidate: Any) -> Any:
         matcher = self.ensure_matcher(matcher_candidate, "@? expected matcher function")
-        return self.call_matcher(matcher, value, "@?")
+        outcome = self.call_matcher(matcher, value, "@?")
+        if isinstance(outcome, GeniaOptionSome):
+            return GeniaOptionSome(value)
+        return outcome
 
     def apply_matcher_assert(self, value: Any, matcher_candidate: Any) -> Any:
         outcome = self.call_matcher(
@@ -1091,7 +1097,7 @@ class Evaluator:
             "@!",
         )
         if isinstance(outcome, GeniaOptionSome):
-            return outcome.value
+            return value
         if isinstance(outcome, GeniaOptionErr):
             raise RuntimeError(f"@! assertion failed: matcher returned err: {format_display(outcome.reason)}")
         raise RuntimeError(f"@! assertion failed: matcher returned none: {format_display(outcome.reason)}")
