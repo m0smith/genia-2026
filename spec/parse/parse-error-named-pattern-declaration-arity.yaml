@@ -1,0 +1,11 @@
+name: parse-error-named-pattern-declaration-arity
+category: parse
+description: Named pattern declarations support only one matcher parameter in issue 113
+input:
+  source: "pattern Between(value, low, high) = some(value)"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "named pattern Between expects exactly one parameter"
+

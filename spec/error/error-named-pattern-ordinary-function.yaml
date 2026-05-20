@@ -1,0 +1,17 @@
+name: error-named-pattern-ordinary-function
+category: error
+description: Ordinary functions are not accepted as named patterns in pattern position
+input:
+  source: |
+    Positive(n) = some(n)
+    classify(value) =
+      Positive(x) -> x
+    classify(1)
+expected:
+  stdout: ""
+  stderr: "Error: Positive is not a named pattern\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
+

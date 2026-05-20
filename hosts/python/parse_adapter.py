@@ -43,6 +43,18 @@ def normalize_ast(node):
             'params': params,
             'body': body
         }
+    if node_type == 'NamedPatternDef':
+        return {
+            'kind': 'NamedPatternDef',
+            'name': getattr(node, 'name', None),
+            'params': [getattr(node, 'param', None)],
+        }
+    if node_type == 'NamedPatternUse':
+        return {
+            'kind': 'NamedPatternUse',
+            'name': getattr(node, 'name', None),
+            'inner': normalize_ast(getattr(node, 'inner', None)),
+        }
     if node_type == 'Binary':
         op_symbol_map = {
             'PLUS': '+',

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from .values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
@@ -228,11 +228,28 @@ class IrPatErr(IrPattern):
 
 
 @dataclass
+class IrPatNamed(IrPattern):
+    """Named pattern invocation with one nested payload pattern."""
+
+    name: str
+    inner: IrPattern
+
+
+@dataclass
 class IrPatNone(IrPattern):
     """Option none-family pattern with optional reason and context matching."""
 
     reason: IrPattern | None = None
     context: IrPattern | None = None
+
+
+NamedPatternResolver = Callable[[str, Any], Any]
+
+
+class PatternOutcomeError(Exception):
+    def __init__(self, outcome: GeniaOptionErr):
+        super().__init__(repr(outcome))
+        self.outcome = outcome
 
 
 def _merge_bindings(target: dict[str, Any], source: dict[str, Any]) -> bool:
@@ -243,25 +260,35 @@ def _merge_bindings(target: dict[str, Any], source: dict[str, Any]) -> bool:
     return True
 
 
-def match_pattern(pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
+def match_pattern(
+    pattern: IrPattern,
+    args: tuple[Any, ...],
+    *,
+    named_pattern_resolver: NamedPatternResolver | None = None,
+) -> Optional[dict[str, Any]]:
     # Pattern matching targets the full argument tuple.
     if isinstance(pattern, IrPatTuple):
         if len(pattern.items) != len(args):
             return None
         env: dict[str, Any] = {}
         for pat, arg in zip(pattern.items, args):
-            sub = match_pattern_atom(pat, arg)
+            sub = match_pattern_atom(pat, arg, named_pattern_resolver=named_pattern_resolver)
             if sub is None or not _merge_bindings(env, sub):
                 return None
         return env
     if len(args) != 1:
         return None
-    return match_pattern_atom(pattern, args[0])
+    return match_pattern_atom(pattern, args[0], named_pattern_resolver=named_pattern_resolver)
 
 
-def match_lambda_pattern(pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
+def match_lambda_pattern(
+    pattern: IrPattern,
+    args: tuple[Any, ...],
+    *,
+    named_pattern_resolver: NamedPatternResolver | None = None,
+) -> Optional[dict[str, Any]]:
     if not isinstance(pattern, IrPatTuple):
-        return match_pattern(pattern, args)
+        return match_pattern(pattern, args, named_pattern_resolver=named_pattern_resolver)
 
     rest_index = None
     for index, item in enumerate(pattern.items):
@@ -270,7 +297,7 @@ def match_lambda_pattern(pattern: IrPattern, args: tuple[Any, ...]) -> Optional[
             break
 
     if rest_index is None:
-        return match_pattern(pattern, args)
+        return match_pattern(pattern, args, named_pattern_resolver=named_pattern_resolver)
 
     if rest_index != len(pattern.items) - 1:
         return None
@@ -280,18 +307,23 @@ def match_lambda_pattern(pattern: IrPattern, args: tuple[Any, ...]) -> Optional[
 
     env: dict[str, Any] = {}
     for pat, arg in zip(prefix, args[:len(prefix)]):
-        sub = match_pattern_atom(pat, arg)
+        sub = match_pattern_atom(pat, arg, named_pattern_resolver=named_pattern_resolver)
         if sub is None or not _merge_bindings(env, sub):
             return None
 
     rest_pat = pattern.items[rest_index]
-    sub = match_pattern_atom(rest_pat, list(args[len(prefix):]))
+    sub = match_pattern_atom(rest_pat, list(args[len(prefix):]), named_pattern_resolver=named_pattern_resolver)
     if sub is None or not _merge_bindings(env, sub):
         return None
     return env
 
 
-def match_pattern_atom(pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]:
+def match_pattern_atom(
+    pattern: IrPattern,
+    arg: Any,
+    *,
+    named_pattern_resolver: NamedPatternResolver | None = None,
+) -> Optional[dict[str, Any]]:
     if isinstance(pattern, IrPatLiteral):
         return {} if pattern.value == arg else None
     if isinstance(pattern, IrPatWildcard):
@@ -309,37 +341,48 @@ def match_pattern_atom(pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]
             return None
         env: dict[str, Any] = {}
         if pattern.reason is not None:
-            reason_bindings = match_pattern_atom(pattern.reason, arg.reason)
+            reason_bindings = match_pattern_atom(pattern.reason, arg.reason, named_pattern_resolver=named_pattern_resolver)
             if reason_bindings is None:
                 return None
             env.update(reason_bindings)
         if pattern.context is not None:
-            context_bindings = match_pattern_atom(pattern.context, arg.context)
+            context_bindings = match_pattern_atom(pattern.context, arg.context, named_pattern_resolver=named_pattern_resolver)
             if context_bindings is None or not _merge_bindings(env, context_bindings):
                 return None
         return env
     if isinstance(pattern, IrPatSome):
         if not isinstance(arg, GeniaOptionSome):
             return None
-        env = match_pattern_atom(pattern.inner, arg.value)
+        env = match_pattern_atom(pattern.inner, arg.value, named_pattern_resolver=named_pattern_resolver)
         if env is None:
             return None
         if pattern.context is not None:
-            context_bindings = match_pattern_atom(pattern.context, arg.context)
+            context_bindings = match_pattern_atom(pattern.context, arg.context, named_pattern_resolver=named_pattern_resolver)
             if context_bindings is None or not _merge_bindings(env, context_bindings):
                 return None
         return env
     if isinstance(pattern, IrPatErr):
         if not isinstance(arg, GeniaOptionErr):
             return None
-        env = match_pattern_atom(pattern.reason, arg.reason)
+        env = match_pattern_atom(pattern.reason, arg.reason, named_pattern_resolver=named_pattern_resolver)
         if env is None:
             return None
         if pattern.context is not None:
-            context_bindings = match_pattern_atom(pattern.context, arg.context)
+            context_bindings = match_pattern_atom(pattern.context, arg.context, named_pattern_resolver=named_pattern_resolver)
             if context_bindings is None or not _merge_bindings(env, context_bindings):
                 return None
         return env
+    if isinstance(pattern, IrPatNamed):
+        if named_pattern_resolver is None:
+            raise RuntimeError(f"unknown named pattern {pattern.name}")
+        outcome = named_pattern_resolver(pattern.name, arg)
+        if isinstance(outcome, GeniaOptionSome):
+            return match_pattern_atom(pattern.inner, outcome.value, named_pattern_resolver=named_pattern_resolver)
+        if isinstance(outcome, GeniaOptionNone):
+            return None
+        if isinstance(outcome, GeniaOptionErr):
+            raise PatternOutcomeError(outcome)
+        raise RuntimeError(f"named pattern {pattern.name} returned non-Outcome value")
     if isinstance(pattern, IrPatList):
         if not isinstance(arg, list):
             return None
@@ -355,7 +398,7 @@ def match_pattern_atom(pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]
                 return None
             env: dict[str, Any] = {}
             for pat, item in zip(pattern.items, arg):
-                sub = match_pattern_atom(pat, item)
+                sub = match_pattern_atom(pat, item, named_pattern_resolver=named_pattern_resolver)
                 if sub is None or not _merge_bindings(env, sub):
                     return None
             return env
@@ -368,11 +411,11 @@ def match_pattern_atom(pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]
 
         env: dict[str, Any] = {}
         for pat, item in zip(prefix, arg[:len(prefix)]):
-            sub = match_pattern_atom(pat, item)
+            sub = match_pattern_atom(pat, item, named_pattern_resolver=named_pattern_resolver)
             if sub is None or not _merge_bindings(env, sub):
                 return None
 
-        sub = match_pattern_atom(rest_pat, arg[len(prefix):])
+        sub = match_pattern_atom(rest_pat, arg[len(prefix):], named_pattern_resolver=named_pattern_resolver)
         if sub is None or not _merge_bindings(env, sub):
             return None
         return env
@@ -384,7 +427,7 @@ def match_pattern_atom(pattern: IrPattern, arg: Any) -> Optional[dict[str, Any]]
             if not arg.has(key):
                 return None
             value = arg.get(key)
-            sub = match_pattern_atom(value_pattern, value)
+            sub = match_pattern_atom(value_pattern, value, named_pattern_resolver=named_pattern_resolver)
             if sub is None or not _merge_bindings(env, sub):
                 return None
         return env
@@ -401,6 +444,8 @@ def pattern_explicitly_handles_none(pattern: IrPattern) -> bool:
     if isinstance(pattern, IrPatMap):
         return any(pattern_explicitly_handles_none(item) for _, item in pattern.items)
     if isinstance(pattern, IrPatSome):
+        return pattern_explicitly_handles_none(pattern.inner)
+    if isinstance(pattern, IrPatNamed):
         return pattern_explicitly_handles_none(pattern.inner)
     return False
 
@@ -419,4 +464,6 @@ def pattern_explicitly_handles_some(pattern: IrPattern) -> bool:
             return True
         if pattern.context is not None and pattern_explicitly_handles_some(pattern.context):
             return True
+    if isinstance(pattern, IrPatNamed):
+        return pattern_explicitly_handles_some(pattern.inner)
     return False

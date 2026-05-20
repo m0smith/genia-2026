@@ -1,0 +1,15 @@
+name: named-pattern-inner-pattern-miss-falls-through
+category: eval
+description: A nested pattern miss after some(payload) behaves as an ordinary pattern miss
+input:
+  source: |
+    pattern Identity(n) = some(n)
+    classify(value) =
+      Identity(0) -> "zero" |
+      _ -> "other"
+    classify(7)
+expected:
+  stdout: "\"other\"\n"
+  stderr: ""
+  exit_code: 0
+

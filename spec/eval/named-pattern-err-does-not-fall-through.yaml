@@ -1,0 +1,15 @@
+name: named-pattern-err-does-not-fall-through
+category: eval
+description: err(...) from a named pattern surfaces and does not fall through as a miss
+input:
+  source: |
+    pattern Bad(value) = err("bad-pattern", {value: value})
+    classify(value) =
+      Bad(x) -> "matched" |
+      _ -> "fallback"
+    classify(7)
+expected:
+  stdout: "err(\"bad-pattern\", {value: 7})\n"
+  stderr: ""
+  exit_code: 0
+

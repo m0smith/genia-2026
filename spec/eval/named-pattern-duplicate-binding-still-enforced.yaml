@@ -1,0 +1,15 @@
+name: named-pattern-duplicate-binding-still-enforced
+category: eval
+description: Duplicate binding equality remains enforced inside nested named-pattern payload patterns
+input:
+  source: |
+    pattern Identity(value) = some(value)
+    classify(value) =
+      Identity([x, x]) -> "same" |
+      _ -> "different"
+    classify([1, 2])
+expected:
+  stdout: "\"different\"\n"
+  stderr: ""
+  exit_code: 0
+

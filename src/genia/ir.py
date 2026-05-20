@@ -229,6 +229,17 @@ class IrFuncDef(IrNode):
 
 
 @dataclass
+class IrNamedPatternDef(IrNode):
+    """Named pattern matcher definition lowered as a single-argument matcher."""
+
+    name: str
+    param: str
+    body: IrNode
+    annotations: list[IrAnnotation] = field(default_factory=list)
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrImport(IrNode):
     module_name: str
     alias: str
@@ -281,6 +292,7 @@ PORTABLE_CORE_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
     IrLambda,
     IrAssign,
     IrFuncDef,
+    IrNamedPatternDef,
     IrImport,
 )
 
@@ -347,6 +359,9 @@ def iter_ir_nodes(root: IrNode | Iterable[IrNode]) -> Iterator[IrNode]:
             children.extend(annotation.value for annotation in node.annotations)
             children.append(node.expr)
         elif isinstance(node, IrFuncDef):
+            children.extend(annotation.value for annotation in node.annotations)
+            children.append(node.body)
+        elif isinstance(node, IrNamedPatternDef):
             children.extend(annotation.value for annotation in node.annotations)
             children.append(node.body)
         elif isinstance(node, IrListTraversalLoop):

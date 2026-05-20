@@ -21,6 +21,8 @@ from .ast_nodes import (
     ListPattern,
     MapLiteral,
     MapPattern,
+    NamedPatternDef,
+    NamedPatternUse,
     Nil,
     Node,
     NoneOption,
@@ -324,6 +326,10 @@ class Parser:
         return None
 
     def try_parse_bindable_toplevel(self) -> Node | None:
+        named_pattern = self.try_parse_named_pattern_def()
+        if named_pattern is not None:
+            return named_pattern
+
         header = self.try_parse_function_header()
         if header is not None:
             name, params, rest_param, name_tok = header
@@ -379,6 +385,35 @@ class Parser:
         if assign is not None:
             return assign
         return None
+
+    def try_parse_named_pattern_def(self) -> NamedPatternDef | None:
+        if not (self.at("IDENT") and self.peek().text == "pattern"):
+            return None
+
+        pattern_tok = self.eat("IDENT")
+        self.skip_newlines()
+        if not self.at("IDENT"):
+            bad = self.peek()
+            raise SyntaxError(f"pattern expected a name identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+        name_tok = self.eat("IDENT")
+        name = name_tok.text
+        self.skip_newlines()
+        self.eat("LPAREN")
+        self.skip_newlines()
+
+        if not self.at("IDENT"):
+            raise SyntaxError(f"named pattern {name} expects exactly one parameter")
+        param_tok = self.eat("IDENT")
+        param = self.validate_parameter_name(param_tok, context="Named pattern")
+        self.skip_newlines()
+        if self.at("COMMA"):
+            raise SyntaxError(f"named pattern {name} expects exactly one parameter")
+        self.eat("RPAREN")
+        self.skip_newlines()
+        self.eat("ASSIGN")
+        self.skip_separators()
+        body = self.parse_function_body_after_intro(1)
+        return NamedPatternDef(name, param, body, span=self.merge_spans(self.span_for_tokens(pattern_tok, name_tok), body.span))
 
     def parse_prefix_annotations(self) -> list[Annotation]:
         annotations: list[Annotation] = []
@@ -669,6 +704,17 @@ class Parser:
                 return ErrPattern(reason, context, span=self.span_for_tokens(tok, end))
             if tok.text == "_":
                 return WildcardPattern(span=self.span_for_tokens(tok, tok))
+            if self.at("LPAREN"):
+                self.eat("LPAREN")
+                self.skip_newlines()
+                if self.at("RPAREN"):
+                    raise SyntaxError(f"named pattern {tok.text} expects exactly one pattern argument")
+                inner = self.parse_pattern_atom()
+                self.skip_newlines()
+                if self.at("COMMA"):
+                    raise SyntaxError(f"named pattern {tok.text} expects exactly one pattern argument")
+                end = self.eat("RPAREN")
+                return NamedPatternUse(tok.text, inner, span=self.span_for_tokens(tok, end))
             return Var(tok.text, span=self.span_for_tokens(tok, tok))
         if tok.kind == "LBRACK":
             start = self.eat("LBRACK")

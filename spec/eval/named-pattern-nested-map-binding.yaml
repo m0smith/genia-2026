@@ -1,0 +1,14 @@
+name: named-pattern-nested-map-binding
+category: eval
+description: Named pattern success composes with nested map-pattern bindings
+input:
+  source: |
+    pattern Identity(value) = some(value)
+    render(value) =
+      Identity({name}) -> name
+    render({name: "Ada", extra: 1})
+expected:
+  stdout: "\"Ada\"\n"
+  stderr: ""
+  exit_code: 0
+

@@ -1,0 +1,16 @@
+name: ir-named-pattern-declaration
+category: ir
+description: named pattern declarations lower to IrNamedPatternDef with name, param, and body
+input:
+  source: |
+    pattern Positive(n) = some(n)
+expected:
+  ir:
+    - node: IrNamedPatternDef
+      name: Positive
+      param: n
+      body:
+        node: IrOptionSome
+        value:
+          node: IrVar
+          name: n

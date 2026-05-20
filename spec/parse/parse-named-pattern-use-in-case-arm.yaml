@@ -1,0 +1,17 @@
+name: parse-named-pattern-use-in-case-arm
+category: parse
+description: Named pattern use parses in ordinary case-arm pattern position
+input:
+  source: |
+    f(value) =
+      Positive(x) -> x
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: FuncDef
+      name: f
+      params:
+        - value
+      body:
+        kind: CaseExpr

@@ -31,6 +31,8 @@ def _runtime_type_name(value: Any) -> str:
         return "list"
     if isinstance(value, GeniaMap):
         return "map"
+    if isinstance(value, GeniaNamedPattern):
+        return "named-pattern"
     if isinstance(value, GeniaFlow):
         return "flow"
     if isinstance(value, GeniaRng):
@@ -249,6 +251,15 @@ class GeniaOptionErr:
 
 def is_err(value: Any) -> bool:
     return isinstance(value, GeniaOptionErr)
+
+
+@dataclass(frozen=True)
+class GeniaNamedPattern:
+    name: str
+    matcher: Any
+
+    def __repr__(self) -> str:
+        return f"<pattern {self.name}>"
 
 
 @dataclass(frozen=True)
