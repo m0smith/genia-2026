@@ -1,4 +1,4 @@
-# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active categories: eval, ir, cli, flow, error, parse (coverage varies by category). See GENIA_STATE.md for authoritative status.
+# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active shared semantic spec categories: parse, ir, eval, cli, flow, error. Coverage is partial and experimental; Python is the only implemented host. See GENIA_STATE.md for authoritative status.
 # Genia Quick Reference
 
 Implemented features only.
@@ -11,7 +11,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 - immutable by default
 - pattern matching is primary branching
 - pipeline operator: `|>`
-- explicit absence values: `some(...)`, `none(...)`
+- explicit Outcome values: `some(...)`, `none(...)`, `err(...)`
 - Flow values are lazy, pull-based, single-use
 
 ## Core Syntax
@@ -32,7 +32,9 @@ sum([x, ..rest]) = x + sum(rest)
 head([x, .._]) = x
 ```
 
-## Option / Absence
+## Outcome / Absence
+
+Outcome values distinguish successful presence (`some(value)`), successful absence (`none(...)`), and recoverable failure (`err(...)`). err(...) is not converted to `none(...)`.
 
 [case: quick-option-constructors]
 ```genia
@@ -48,6 +50,7 @@ Pipeline rule reminder:
 - `none(...)` short-circuits and preserves reason/context metadata
 - ordinary stages lift over `some(x)` automatically
 - lifted non-Option results are wrapped back into `some(...)`; Option stage results are preserved as-is
+- err(...) is not converted to `none(...)`; it short-circuits ordinary stages
 - direct calls still receive explicit `some(...)` values unchanged
 - explicitly Option-aware helpers (`unwrap_or`, `map_some`, `flat_map_some`, `then_*`) still receive Option values directly
 
@@ -212,6 +215,14 @@ first_or_none(xs) =
 - compare: `== != < <= > >=`
 - boolean: `&& || !`
 - pipeline: `|>`
+
+Outcome matcher operators:
+
+| Form | Meaning |
+| --- | --- |
+| `value @? matcher` | Applies the matcher; returns `some(value)` on success and preserves `none(...)` and `err(...)` unchanged. Not boolean. |
+| `value @! matcher` | Applies the matcher; returns the original value on success and raises on `none(...)` or `err(...)`. |
+| `matcher_a & matcher_b` | Composes matcher functions left-to-right, short-circuiting on `none(...)` or `err(...)`. |
 
 ## Shell Stage (Python-host-only)
 

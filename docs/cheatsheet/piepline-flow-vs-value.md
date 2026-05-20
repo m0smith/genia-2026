@@ -9,9 +9,11 @@ List is the eager reusable Seq-compatible value.
 Flow is the lazy single-use Seq-compatible value.
 Iterator is a host implementation detail.
 
-Option behavior (`some` / `none`) composes with this rule but does not erase it:
-pipelines auto-lift ordinary stages over `some(x)` and short-circuit on `none(...)`,
-regardless of whether the pipeline carries values or flows.
+Outcome behavior (`some` / `none` / `err`) composes with this rule but does not erase it:
+pipelines auto-lift ordinary stages over `some(x)` and short-circuit on `none(...)` or `err(...)`,
+regardless of whether the pipeline carries values or flows. Outcome values distinguish successful presence
+(`some(value)`), successful absence (`none(...)`), and recoverable failure (`err(...)`);
+err(...) is not converted to `none(...)`.
 
 Legend: 🟢 Value  🔵 Flow  🟣 Bridge  🔴 Sink
 
@@ -56,6 +58,7 @@ These invariants are enforced by the pipeline evaluator and locked by tests unde
 | 4 | **`none(...)` metadata is preserved exactly.** Reason and context survive short-circuit unchanged. | `none("timeout", {retry: 3}) \|> f \|> g` keeps both fields |
 | 5 | **Final result preserves Option structure.** The pipeline boundary does not strip or add wrappers. | `some(5) \|> add1` → `some(6)`, not `6` |
 | 6 | **Flow vs Value is orthogonal to Option.** Option propagation works the same in both worlds. | Use `keep_some` for per-item Option filtering in flows |
+| 7 | **`err(...)` is recoverable failure.** err(...) is not converted to `none(...)`; it short-circuits ordinary stages. | `err("bad") \|> f` keeps `err("bad")` |
 
 Recovery pattern: wrap the pipeline, not a single stage.
 
