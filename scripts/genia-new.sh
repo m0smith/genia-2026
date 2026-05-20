@@ -86,6 +86,16 @@ CHANGE SLUG: ${CHANGE_SLUG}
 Handoff directory:
 ${HANDOFF_DIR}/
 
+export HANDOFF_DIR="${HANDOFF_DIR}"
+export CHANGE_SLUG="${CHANGE_SLUG}"
+export ISSUE="${ISSUE}"
+export BRANCH="${BRANCH}"
+export TYPE="${TYPE}"
+export SLUG="${SLUG}"
+
+Post process reports:
+(   git status; git diff ; git log --oneline main..HEAD; cat ${HANDOFF_DIR}/*) | pbcopy
+
 Output pre-flight to:
 ${HANDOFF_DIR}/00-preflight.md
 EOF
