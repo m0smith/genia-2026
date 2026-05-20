@@ -43,7 +43,7 @@ if __package__ in (None, ""):
         make_none, symbol, truthy,
     )
     from genia.callable import (
-        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, invoke_callable as _invoke_callable,
+        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
@@ -77,7 +77,7 @@ else:
         make_none, symbol, truthy,
     )
     from .callable import (
-        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, invoke_callable as _invoke_callable,
+        DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
@@ -97,6 +97,9 @@ QUOTE_OPERATOR_SYMBOLS = {
     "AND": "&&",
     "OR": "||",
     "PIPE_FWD": "|>",
+    "AT_CHECK": "@?",
+    "AT_ASSERT": "@!",
+    "AMP": "&",
     "BANG": "!",
 }
 
@@ -592,6 +595,22 @@ class GeniaMetaEnv:
         return "<meta-env>"
 
 
+class _ComposedMatcher:
+    def __init__(self, evaluator: "Evaluator", left: Any, right: Any):
+        self.evaluator = evaluator
+        self.left = left
+        self.right = right
+
+    def __call__(self, value: Any) -> Any:
+        first = self.evaluator.call_matcher(self.left, value, "&")
+        if isinstance(first, (GeniaOptionNone, GeniaOptionErr)):
+            return first
+        return self.evaluator.call_matcher(self.right, first.value, "&")
+
+    def __repr__(self) -> str:
+        return "<matcher-composition>"
+
+
 class Evaluator:
     def __init__(self, env: Env, debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS, debug_mode: bool = False):
         self.env = env
@@ -1033,6 +1052,55 @@ class Evaluator:
             autoload_resolver=_autoload,
         )
 
+    def is_matcher_callable(self, value: Any) -> bool:
+        return isinstance(value, (GeniaNamedPattern, GeniaFunctionGroup, GeniaMap, str)) or callable(value)
+
+    def ensure_matcher(self, value: Any, diagnostic: str) -> Any:
+        if self.is_matcher_callable(value):
+            if isinstance(value, GeniaNamedPattern):
+                return value.matcher
+            return value
+        raise TypeError(f"{diagnostic}, received {_runtime_type_name(value)}")
+
+    def ensure_outcome(self, value: Any, diagnostic: str) -> Any:
+        if isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+            return value
+        raise TypeError(f"{diagnostic}, received {_runtime_type_name(value)}")
+
+    def call_matcher(self, matcher: Any, value: Any, operator_name: str) -> Any:
+        result = self.invoke_callable(
+            matcher,
+            [value],
+            tail_position=False,
+            skip_none_propagation=True,
+        )
+        if operator_name in {"@?", "@!"}:
+            diagnostic = f"matcher used with {operator_name} must return Outcome"
+        else:
+            diagnostic = "matcher composed with & must return Outcome"
+        return self.ensure_outcome(result, diagnostic)
+
+    def apply_matcher_check(self, value: Any, matcher_candidate: Any) -> Any:
+        matcher = self.ensure_matcher(matcher_candidate, "@? expected matcher function")
+        return self.call_matcher(matcher, value, "@?")
+
+    def apply_matcher_assert(self, value: Any, matcher_candidate: Any) -> Any:
+        outcome = self.call_matcher(
+            self.ensure_matcher(matcher_candidate, "@! expected matcher function"),
+            value,
+            "@!",
+        )
+        if isinstance(outcome, GeniaOptionSome):
+            return outcome.value
+        if isinstance(outcome, GeniaOptionErr):
+            raise RuntimeError(f"@! assertion failed: matcher returned err: {format_display(outcome.reason)}")
+        raise RuntimeError(f"@! assertion failed: matcher returned none: {format_display(outcome.reason)}")
+
+    def compose_matchers(self, left_candidate: Any, right_candidate: Any) -> Any:
+        left = self.ensure_matcher(left_candidate, "& expected matcher function on left")
+        right = self.ensure_matcher(right_candidate, "& expected matcher function on right")
+        return _ComposedMatcher(self, left, right)
+
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         return match_pattern(pattern, args, named_pattern_resolver=self.resolve_named_pattern)
 
@@ -1227,6 +1295,12 @@ class Evaluator:
 
     def eval_binary(self, node: IrBinary) -> Any:
         left = self.eval(node.left)
+        if node.op == "AT_CHECK":
+            return self.apply_matcher_check(left, self.eval(node.right))
+        if node.op == "AT_ASSERT":
+            return self.apply_matcher_assert(left, self.eval(node.right))
+        if node.op == "AMP":
+            return self.compose_matchers(left, self.eval(node.right))
         if node.op in {"EQEQ", "NE"}:
             right = self.eval(node.right)
             match node.op:
