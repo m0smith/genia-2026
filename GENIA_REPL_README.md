@@ -84,9 +84,11 @@ CLI contract summary (actual behavior):
 
 - parser keeps a surface AST and lowers it into a minimal Core IR before evaluation
 - runtime value categories today:
-  - core values: Number, Promise, Symbol, String, Boolean, Pair, `none` / `none(reason)` / `none(reason, context)` / `some(value)`, List, Map
+  - core values: Number, Promise, Symbol, String, Boolean, Pair, Outcome (`none`, `some(value)`, `some(value, context)`, `err(reason, context?)`), List, Map
     - `none` is shorthand for `none("nil")`
     - legacy surface `nil` also normalizes to `none("nil")`
+    - `some(value, context)` — successful presence with optional context metadata (Experimental)
+    - `err(reason, context?)` — recoverable value-level failure; not a runtime error (Experimental)
   - function / module values: Function, Module
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values:
@@ -94,7 +96,7 @@ CLI contract summary (actual behavior):
     - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, slash map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
-  - Option pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, and constructor pattern `some(pattern)`
+  - Outcome pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, constructor pattern `some(pattern)`, and `err(reason)` / `err(reason, context)` forms
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
@@ -106,15 +108,16 @@ CLI contract summary (actual behavior):
   - parameters are assignable
   - assignment is limited to simple names in this phase
 - unary/binary operators: `!`, unary `-`, `+ - * / %`, comparisons, equality, `&&`, `||`
-- pipeline operator (phase 2): `|>` with Option-aware stage semantics
+- pipeline operator (phase 2): `|>` with Outcome-aware stage semantics
   - ordinary call shape is preserved: `x |> f` calls `f(x)`, `x |> f(y)` calls `f(y, x)`, and `x |> expr` calls `expr(x)` when `expr` is valid in ordinary call-callee position
   - example: `record |> "name"` behaves like `"name"(record)`
   - `none(...)` short-circuits the rest of the pipeline and is returned unchanged
-  - when the current value is `some(x)` and the next stage is not explicitly Option-aware, the stage receives `x`
-  - when that lifted stage returns a non-Option value `y`, the pipeline wraps it back into `some(y)`
-  - when that lifted stage returns `some(...)` or `none(...)`, that Option result is preserved as-is
-  - raw non-Option values stay raw values through ordinary stages
-  - pipeline evaluation does not silently discard Option structure at the final result boundary
+  - `err(...)` short-circuits the rest of the pipeline and is returned unchanged; `err(...)` is not converted to `none(...)`
+  - when the current value is `some(x)` and the next stage is not explicitly Outcome-aware, the stage receives `x`
+  - when that lifted stage returns a non-Outcome value `y`, the pipeline wraps it back into `some(y)`
+  - when that lifted stage returns `some(...)`, `none(...)`, or `err(...)`, that Outcome result is preserved as-is
+  - raw non-Outcome values stay raw values through ordinary stages
+  - pipeline evaluation does not silently discard Outcome structure at the final result boundary
   - pipeline-visible function modes are interpreted as Value -> Value, Flow -> Flow, or explicit Value <-> Flow bridge
   - stage failures now report stage index, stage rendering, mode classification, and received runtime type names when possible
   - multiline formatting is accepted around the operator:
@@ -124,6 +127,10 @@ CLI contract summary (actual behavior):
       |> g
     ```
   - lowering/desugaring happens in the AST→Core IR pass
+- matcher operators (Experimental):
+  - `value @? matcher` — applies `matcher(value)`; returns the matcher Outcome unchanged (`some(value)` on success, `none(...)` or `err(...)` on failure); never returns a boolean
+  - `value @! matcher` — applies `matcher(value)`; returns the original `value` when the matcher succeeds; raises a runtime error when the matcher returns `none` or `err`
+  - `matcher_a & matcher_b` — creates a composed matcher: applies `matcher_a` first; short-circuits on `none` or `err`; if `matcher_a` succeeds, applies `matcher_b` to the original subject
 - function definitions with expression body, block body, or case body
 - proper tail-call optimization for calls in tail position
   - self tail recursion runs in constant stack space
@@ -154,12 +161,12 @@ CLI contract summary (actual behavior):
   - list patterns
   - map patterns (`{name}`, `{name: n}`, `{"name": n}`)
   - glob string patterns (`glob"..."`) with whole-string matching only
-  - option constructor patterns (`some(pattern)`) and literal `none`
+  - Outcome constructor patterns: `some(pattern)`, literal `none`, and `err(reason)` / `err(reason, context)` forms
   - wildcard `_`
   - rest pattern `..rest` / `.._`
   - duplicate-binding equality semantics (`[x, x]`)
   - guards with `?`
-  - named reusable patterns (`pattern Name(value) = body` / `Name(inner_pattern)`) — Experimental; matcher must return `some(...)`, `none(...)`, or `err(...)`; `err(...)` does not fall through as a miss
+  - named reusable patterns (`pattern Name(value) = body` / `Name(inner_pattern)`) — Experimental; the body must return an Outcome value: `some(...)` (match success), `none(...)` (pattern miss), or `err(...)` (recoverable failure, does not fall through as a miss)
 - case expressions in function bodies and as final expression in a block
 - conditionals expressed only through pattern matching in function definitions/case expressions; lambdas can pattern-match a single parameter arm but do not support multi-arm lambda syntax
 - function resolution with fixed arity + varargs precedence
