@@ -1,10 +1,10 @@
 name: template-at-check-some
 category: eval
-description: "@? returns a matcher some(...) Outcome unchanged"
+description: "@? returns some(original subject) when the matcher succeeds"
 input:
   source: |
-    ok(n) = some(n)
-    5 @? ok
+    replace(n) = some(n + 100)
+    5 @? replace
 expected:
   stdout: "some(5)\n"
   stderr: ""
