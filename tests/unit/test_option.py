@@ -51,7 +51,7 @@ def test_structured_none_predicates_and_recovery_helpers(run):
         '\n'.join(
             [
                 'ctx = unwrap_or({}, absence_context(none("index-out-of-bounds", { index: 8, length: 2 })))',
-                '[ctx/index, ctx/length]',
+                '[ctx.index, ctx.length]',
             ]
         )
     ) == [8, 2]
@@ -83,7 +83,7 @@ def test_get_missing_key_returns_none(run):
         '\n'.join(
             [
                 'ctx = unwrap_or({}, absence_context(get?("b", {a: 1})))',
-                'ctx/key',
+                'ctx.key',
             ]
         )
     ) == "b"
@@ -94,7 +94,7 @@ def test_then_get_chain_preserves_original_absence(run):
         'record = {}',
         'result = record |> get("profile") |> then_get("name")',
         'ctx = unwrap_or({}, absence_context(result))',
-        '[absence_reason(result), ctx/key]',
+        '[absence_reason(result), ctx.key]',
     ])
     result = run(src)
     assert format_debug(result[0]) == 'some("missing-key")'
@@ -183,7 +183,7 @@ def test_nth_opt_returns_structured_absence(run):
         '\n'.join(
             [
                 'ctx = unwrap_or({}, absence_context(nth_opt(8, [10, 20])))',
-                '[ctx/index, ctx/length]',
+                '[ctx.index, ctx.length]',
             ]
         )
     ) == [8, 2]
@@ -279,10 +279,10 @@ def test_safe_chaining_does_not_change_ordinary_arithmetic_or_option_errors(run)
     assert format_debug(_run('none("empty-list") + 3')) == 'none("empty-list")'
 
 
-def test_slash_access_returns_structured_none_for_missing_keys(run):
+def test_dot_access_returns_structured_none_for_missing_keys(run):
     src = '\n'.join([
         'record = { name: "Genia" }',
-        'none?(record/missing)',
+        'none?(record.missing)',
     ])
     assert run(src) is True
 

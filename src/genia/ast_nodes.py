@@ -96,6 +96,7 @@ class Binary(Node):
     left: Node
     op: str
     right: Node
+    named_access: bool = False
     span: SourceSpan | None = None
 
 

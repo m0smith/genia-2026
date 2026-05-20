@@ -904,6 +904,7 @@ class Parser:
                 Var(parts[0], span=span),
                 "SLASH",
                 Var(parts[1], span=span),
+                named_access=True,
                 span=span,
             )
         if parts and parts[-1] == "":

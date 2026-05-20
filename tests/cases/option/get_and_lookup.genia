@@ -6,7 +6,7 @@ ctx = unwrap_or({}, absence_context(missing))
   unwrap_or(0, get("a", record)),
   is_none?(missing),
   unwrap_or("missing", get("profile", record) |> get("name")),
-  ctx/key,
+  ctx.key,
   is_some?(get("empty", record)),
   unwrap_or("fallback", get("empty", record)),
   get?("a", record) == get("a", record),

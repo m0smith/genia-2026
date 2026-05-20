@@ -16,3 +16,4 @@ expected:
         right:
           node: IrVar
           name: name
+        named_access: true

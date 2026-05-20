@@ -40,8 +40,8 @@ def test_map_like_lookup_paths_now_return_structured_none(run):
     assert run('none?({name: "Genia"}("missing"))') is True
     assert run('"name"({name: "Genia"})') == "Genia"
     assert run('none?("missing"({name: "Genia"}))') is True
-    assert run('{name: "Genia"}/name') == "Genia"
-    assert run('none?({name: "Genia"}/missing)') is True
+    assert run('record = {name: "Genia"}\nrecord.name') == "Genia"
+    assert run('record = {name: "Genia"}\nnone?(record.missing)') is True
 
 
 def test_cli_option_uses_structured_absence_for_missing_values(run):
@@ -59,7 +59,7 @@ def test_migration_does_not_regress_patterns_or_helper_driven_pipeline_flow(run)
     src = '\n'.join([
         'pick(opt) =',
         '  some(v) -> v |',
-        '  none("missing-key", info) -> info/key |',
+        '  none("missing-key", info) -> info.key |',
         '  none(_) -> "missing"',
         'record = { user: { name: "Genia" } }',
         '[pick(record |> get("user") |> then_get("name")), pick({} |> get("user") |> then_get("name"))]',

@@ -9,7 +9,7 @@ extract_name(opt) =
 
 describe(opt) =
   none("empty-list") -> "empty" |
-  none("index-out-of-bounds", info) -> info/index |
+  none("index-out-of-bounds", info) -> info.index |
   none(_) -> "missing" |
   some(v) -> v
 

@@ -115,6 +115,7 @@ class IrBinary(IrNode):
     left: IrNode
     op: str
     right: IrNode
+    named_access: bool = False
     span: SourceSpan | None = None
 
 

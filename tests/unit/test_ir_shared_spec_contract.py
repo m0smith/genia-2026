@@ -21,7 +21,7 @@ def _lower_and_normalize(source: str) -> list[dict]:
 
 
 def test_normalized_ir_is_deterministic_across_repeated_runs() -> None:
-    source = 'import python.json as pyjson\n"null" |> pyjson/loads'
+    source = 'import python.json as pyjson\n"null" |> pyjson.loads'
 
     first = _lower_and_normalize(source)
     second = _lower_and_normalize(source)

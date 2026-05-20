@@ -7,7 +7,7 @@ from genia.utf8 import format_debug
 def test_import_module_and_named_access_from_std_prelude(run):
     src = """
     import math
-    [math/pi, math/inc(2)]
+    [math.pi, math.inc(2)]
     """
     assert run(src) == [pytest.approx(3.141592653589793), 3]
 
@@ -16,7 +16,7 @@ def test_import_module_with_alias_binds_same_module_value(run):
     src = """
     import math
     import math as m
-    [math == m, m/inc(2)]
+    [math == m, m.inc(2)]
     """
     assert run(src) == [True, 3]
 
@@ -39,15 +39,15 @@ def test_module_missing_export_raises_clear_error(run):
         run(
             """
             import math
-            math/missing
+            math.missing
             """
         )
 
 
-def test_map_named_accessor_and_missing_returns_nil(run):
+def test_map_dot_named_accessor_and_missing_returns_nil(run):
     src = """
     person = { name: "Matthew", age: 42 }
-    [person/name, person/age, person/middle]
+    [person.name, person.age, person.middle]
     """
     result = run(src)
     assert result[0:2] == ["Matthew", 42]
@@ -67,15 +67,33 @@ def test_dot_named_accessor_reuses_existing_map_and_module_behavior(run):
 
 
 def test_named_accessor_invalid_lhs_type_errors(run):
-    with pytest.raises(TypeError, match="named accessor '/' is only supported for map and module values"):
+    with pytest.raises((NameError, SyntaxError, TypeError)) as excinfo:
         run("42/foo")
+    assert "named accessor" not in str(excinfo.value).lower()
 
 
-def test_named_accessor_invalid_rhs_forms_fail_clearly(run):
-    with pytest.raises(TypeError, match="requires a bare identifier"):
-        run('{name: "m"}/"name"')
-    with pytest.raises(TypeError, match="requires a bare identifier"):
-        run("{name: \"m\"}/((x) -> x)")
+def test_legacy_slash_named_access_is_not_supported_for_maps_or_modules(run):
+    with pytest.raises((NameError, SyntaxError, TypeError)) as excinfo:
+        run('{name: "m"}/name')
+    assert "named accessor" not in str(excinfo.value).lower()
+
+    slash_constant = format_debug(run("import math\nmath/pi"))
+    assert "named accessor" not in slash_constant.lower()
+    assert 'none("type-error"' in slash_constant
+
+    slash_call = format_debug(run("import math\nmath/inc(2)"))
+    assert "named accessor" not in slash_call.lower()
+    assert 'none("type-error"' in slash_call
+
+
+def test_slash_invalid_rhs_forms_do_not_report_named_access_guidance(run):
+    string_rhs = format_debug(run('{name: "m"}/"name"'))
+    assert "named accessor" not in string_rhs.lower()
+    assert 'none("type-error"' in string_rhs
+
+    fn_rhs = format_debug(run("{name: \"m\"}/((x) -> x)"))
+    assert "named accessor" not in fn_rhs.lower()
+    assert 'none("type-error"' in fn_rhs
 
 
 def test_slash_division_behavior_still_works(run):
@@ -104,7 +122,7 @@ def test_file_based_module_resolution_relative_to_source(tmp_path):
     result = run_source(
         """
         import local_math as m
-        [m/pi, m/inc(2)]
+        [m.pi, m.inc(2)]
         """,
         env,
         filename=str((tmp_path / "main.genia").resolve()),
@@ -128,7 +146,7 @@ def test_duplicate_import_does_not_re_evaluate_module(tmp_path):
         """
         import counter_mod
         import counter_mod as c
-        [counter_mod/value, c/value]
+        [counter_mod.value, c.value]
         """,
         env,
         filename=str((tmp_path / "main.genia").resolve()),
@@ -167,8 +185,9 @@ def test_import_module_runtime_failure_is_propagated(tmp_path):
 
 
 def test_named_accessor_invalid_rhs_expression_fails_clearly(run):
-    with pytest.raises(TypeError, match="requires a bare identifier"):
-        run("{name: \"Alice\"}/(1 + 2)")
+    result = format_debug(run("{name: \"Alice\"}/(1 + 2)"))
+    assert "named accessor" not in result.lower()
+    assert 'none("type-error"' in result
 
 
 # --- Contract §3.7 / §5.1 / §5.3: cycle detection and sentinel behavior ---

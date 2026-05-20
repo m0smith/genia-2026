@@ -19,7 +19,7 @@ def test_runtime_can_load_known_stdlib_file_through_resource_loader(monkeypatch,
     monkeypatch.chdir(tmp_path)
     env = make_global_env([])
 
-    result = run_source("import math\n[math/pi, math/inc(2)]", env, filename="<command>")
+    result = run_source("import math\n[math.pi, math.inc(2)]", env, filename="<command>")
 
     assert result[0] == 3.141592653589793
     assert result[1] == 3
