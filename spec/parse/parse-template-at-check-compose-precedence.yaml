@@ -1,0 +1,23 @@
+name: parse-template-at-check-compose-precedence
+category: parse
+description: Unparenthesized matcher composition binds tighter than @?
+input:
+  source: "value @? left & right"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Binary
+      op: "@?"
+      left:
+        kind: Var
+        name: value
+      right:
+        kind: Binary
+        op: "&"
+        left:
+          kind: Var
+          name: left
+        right:
+          kind: Var
+          name: right
