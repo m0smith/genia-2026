@@ -257,6 +257,65 @@ def test_pipeline_flow_vs_value_cheatsheet_uses_current_option_wording() -> None
 @pytest.mark.parametrize(
     "relpath",
     [
+        "docs/cheatsheet/core.md",
+        "docs/cheatsheet/quick-reference.md",
+        "docs/cheatsheet/unix-power-mode.md",
+    ],
+)
+def test_cheatsheets_list_current_active_shared_spec_categories(relpath: str) -> None:
+    text = normalize(read_text(relpath))
+
+    assert normalize("parse, ir, eval, cli, flow, error") in text
+    assert normalize("partial") in text
+    assert normalize("Python") in text and normalize("only implemented host") in text
+
+
+@pytest.mark.parametrize(
+    "relpath",
+    [
+        "docs/cheatsheet/core.md",
+        "docs/cheatsheet/quick-reference.md",
+        "docs/cheatsheet/piepline-flow-vs-value.md",
+    ],
+)
+def test_cheatsheets_document_outcome_presence_absence_and_failure(relpath: str) -> None:
+    text = normalize(read_text(relpath))
+
+    assert normalize("Outcome") in text
+    assert normalize("some(value)") in text
+    assert normalize("none(...)") in text
+    assert normalize("err(...)") in text
+    assert normalize("recoverable failure") in text
+    assert normalize("err(...) is not converted to `none(...)`") in text
+
+
+@pytest.mark.parametrize(
+    "relpath",
+    [
+        "docs/cheatsheet/core.md",
+        "docs/cheatsheet/quick-reference.md",
+    ],
+)
+def test_cheatsheets_document_phase1_outcome_matcher_operator_surface(relpath: str) -> None:
+    text = normalize(read_text(relpath))
+
+    required = [
+        "`value @? matcher`",
+        "returns `some(value)`",
+        "preserves `none(...)` and `err(...)` unchanged",
+        "not boolean",
+        "`value @! matcher`",
+        "raises",
+        "`matcher_a & matcher_b`",
+        "composes matcher functions",
+    ]
+    for excerpt in required:
+        assert normalize(excerpt) in text
+
+
+@pytest.mark.parametrize(
+    "relpath",
+    [
         "README.md",
         "docs/cheatsheet/quick-reference.md",
         "docs/cheatsheet/core.md",
