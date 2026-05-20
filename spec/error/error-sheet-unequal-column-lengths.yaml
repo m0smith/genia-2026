@@ -1,0 +1,14 @@
+name: error-sheet-unequal-column-lengths
+category: error
+description: Sheet construction rejects columns with unequal lengths.
+input:
+  source: |
+    sheet([
+      [quote(name), ["Ann", "Bob"]],
+      [quote(age), [30]]
+    ])
+expected:
+  stdout: ""
+  stderr: |
+    Error: sheet expected all columns to have equal length
+  exit_code: 1

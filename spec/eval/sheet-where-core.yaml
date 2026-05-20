@@ -1,0 +1,16 @@
+name: sheet-where-core
+category: eval
+description: where filters rows with boolean predicates while preserving row alignment and input immutability.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann", "Bob"]],
+      [quote(age), [30, 22]]
+    ])
+    kept = people |> where((row) -> true)
+    dropped = people |> where((row) -> false)
+    [rows(kept), shape(dropped), shape(people)]
+expected:
+  stdout: "[[[[name, \"Ann\"], [age, 30]], [[name, \"Bob\"], [age, 22]]], [[rows, 0], [columns, 2]], [[rows, 2], [columns, 2]]]\n"
+  stderr: ""
+  exit_code: 0

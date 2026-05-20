@@ -64,6 +64,15 @@ if __package__ in (None, ""):
         IrPattern,
         compile_glob_pattern,
     )
+    from genia.sheet import (
+        make_sheet,
+        sheet_columns,
+        sheet_derive,
+        sheet_rows,
+        sheet_select,
+        sheet_shape,
+        sheet_where,
+    )
     from genia.values import (
         OPTION_NONE,
         _RNG_INCREMENT,
@@ -134,6 +143,15 @@ else:
         IrPatWildcard,
         IrPattern,
         compile_glob_pattern,
+    )
+    from .sheet import (
+        make_sheet,
+        sheet_columns,
+        sheet_derive,
+        sheet_rows,
+        sheet_select,
+        sheet_shape,
+        sheet_where,
     )
     from .values import (
         OPTION_NONE,
@@ -2102,6 +2120,29 @@ def make_global_env(
             skip_none_propagation=True,
         )
 
+    def where_fn(predicate: Any, sheet_value: Any) -> Any:
+        return sheet_where(predicate, sheet_value, _invoke_raw_from_builtin)
+
+    def derive_fn(name: Any, function: Any, sheet_value: Any) -> Any:
+        return sheet_derive(name, function, sheet_value, _invoke_raw_from_builtin)
+
+    class _HostFunction:
+        def __init__(self, name: str, arity: int, fn: Callable[..., Any]):
+            self.name = name
+            self.params = [f"arg{i}" for i in range(arity)]
+            self.rest_param = None
+            self.docstring = None
+            self.arity = arity
+            self._fn = fn
+
+        def __call__(self, *args: Any) -> Any:
+            return self._fn(*args)
+
+    def _host_function_group(name: str, arity: int, fn: Callable[..., Any]) -> GeniaFunctionGroup:
+        group = GeniaFunctionGroup(name)
+        group.add_clause(_HostFunction(name, arity, fn))
+        return group
+
     def apply_raw_fn(proc: Any, args: Any) -> Any:
         if not isinstance(args, list):
             raise TypeError(
@@ -2991,6 +3032,13 @@ def make_global_env(
     env.set("help", help_fn)
     env.set("doc", doc_fn)
     env.set("meta", meta_fn)
+    env.set("sheet", _host_function_group("sheet", 1, make_sheet))
+    env.set("shape", _host_function_group("shape", 1, sheet_shape))
+    env.set("columns", _host_function_group("columns", 1, sheet_columns))
+    env.set("select", _host_function_group("select", 2, sheet_select))
+    env.set("where", _host_function_group("where", 2, where_fn))
+    env.set("derive", _host_function_group("derive", 3, derive_fn))
+    env.set("rows", _host_function_group("rows", 1, sheet_rows))
     env.set("pi", math.pi)
     env.set("e", math.e)
     env.set("true", True)

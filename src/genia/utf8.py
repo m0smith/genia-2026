@@ -45,6 +45,8 @@ def format_display(value: Any) -> str:
         return _format_pair(value, format_display)
     if _is_map(value):
         return _format_map(value, format_display)
+    if _is_sheet(value):
+        return _format_sheet(value, format_display)
     if _is_format(value):
         return "<format>"
     if isinstance(value, str):
@@ -81,6 +83,8 @@ def format_debug(value: Any) -> str:
         return _format_pair(value, format_debug)
     if _is_map(value):
         return _format_map(value, format_debug)
+    if _is_sheet(value):
+        return _format_sheet(value, format_debug)
     if _is_format(value):
         return "<format>"
     if isinstance(value, str):
@@ -130,6 +134,14 @@ def _is_format(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaFormat" and hasattr(value, "template")
 
 
+def _is_sheet(value: Any) -> bool:
+    return (
+        value.__class__.__name__ == "GeniaSheet"
+        and hasattr(value, "columns")
+        and hasattr(value, "row_count")
+    )
+
+
 def _format_pair(value: Any, formatter) -> str:
     parts: list[str] = []
     current = value
@@ -153,6 +165,15 @@ def _format_map_key(key: Any, formatter) -> str:
     if isinstance(key, str) and _GENIA_IDENT_RE.fullmatch(key):
         return key
     return formatter(key)
+
+
+def _format_sheet(value: Any, formatter) -> str:
+    columns = getattr(value, "columns")
+    parts = [
+        "[" + formatter(name) + ", [" + ", ".join(formatter(item) for item in values) + "]]"
+        for name, values in columns
+    ]
+    return "sheet([" + ", ".join(parts) + "])"
 
 
 def _format_option_none(value: Any, formatter) -> str:

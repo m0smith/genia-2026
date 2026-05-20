@@ -1,0 +1,16 @@
+name: sheet-select-immutable
+category: eval
+description: Selecting columns returns a new Sheet in requested order without mutating the input Sheet.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann", "Bob"]],
+      [quote(age), [30, 22]],
+      [quote(city), ["Provo", "Ogden"]]
+    ])
+    selected = people |> select([quote(age), quote(name)])
+    [columns(selected), rows(selected), shape(people)]
+expected:
+  stdout: "[[age, name], [[[age, 30], [name, \"Ann\"]], [[age, 22], [name, \"Bob\"]]], [[rows, 2], [columns, 3]]]\n"
+  stderr: ""
+  exit_code: 0
