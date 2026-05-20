@@ -495,9 +495,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - unary operators: `-`, `!`
 - binary operators: `+ - * / % < <= > >= == != && ||`
 - pipeline operator: `|>`
-- matcher check operator: `value @? matcher` — applies `matcher(value)` and returns the Outcome unchanged (`some`, `none`, or `err`); never returns boolean — Experimental
-- matcher assert operator: `value @! matcher` — applies `matcher(value)`, unwraps `some(v)` to `v`, and raises a runtime error on `none` or `err`, preserving the `err` reason in the diagnostic — Experimental
-- matcher composition operator: `matcher_a & matcher_b` — creates a composed matcher that applies `matcher_a` first; short-circuits on `none` or `err`; passes `some` payload to `matcher_b` — Experimental
+- matcher check operator: `value @? matcher` — applies `matcher(value)`; returns `some(value)` when matcher succeeds, preserves `none(...)` and `err(...)` unchanged; never returns boolean — Experimental
+- matcher assert operator: `value @! matcher` — applies `matcher(value)`; returns the original `value` when matcher succeeds; raises a runtime error on `none` or `err`, preserving the `err` reason in the diagnostic — Experimental
+- matcher composition operator: `matcher_a & matcher_b` — creates a composed matcher that applies `matcher_a` first; short-circuits on `none` or `err`; if `matcher_a` succeeds, applies `matcher_b` to the original subject; returns `some(subject)` when both matchers succeed — Experimental
 - block expressions: `{ ... }`
 - list literals: `[a, b, c]`
 - map literals: `{ key: value }` with identifier/string keys (`name: 1` sugar for `"name": 1`)

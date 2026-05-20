@@ -306,9 +306,9 @@ These operators apply Outcome matcher functions. A matcher function is a callabl
 
 ### `@?` invariants
 
-- `value @? matcher` calls `matcher(value)` and returns the resulting Outcome unchanged
+- `value @? matcher` calls `matcher(value)`; if result is `some(...)` → returns `some(value)` (original subject); if result is `none(...)` or `err(...)` → returns it unchanged
 - `@?` must not coerce the Outcome to boolean
-- `@?` must not unwrap `some(...)`
+- `@?` must not expose the matcher's success payload; the original subject is the success value
 - `@?` must not raise merely because the matcher returned `none(...)` or `err(...)`
 - right operand not callable → runtime error
 - matcher returns non-Outcome → runtime error
@@ -316,7 +316,7 @@ These operators apply Outcome matcher functions. A matcher function is a callabl
 ### `@!` invariants
 
 - `value @! matcher` calls `matcher(value)`
-- if result is `some(v[, ctx])` → evaluates to `v`; context is not exposed by this operator
+- if result is `some(...)` → evaluates to `value` (original subject); matcher success payload is not exposed
 - if result is `none(...)` → runtime error (`@! assertion failed: matcher returned none`)
 - if result is `err(reason[, ctx])` → runtime error preserving reason (`@! assertion failed: matcher returned err: <reason>`)
 - right operand not callable → runtime error
@@ -325,10 +325,10 @@ These operators apply Outcome matcher functions. A matcher function is a callabl
 ### `&` matcher composition invariants
 
 - `matcher_a & matcher_b` evaluates to a new callable matcher function
-- the composed matcher applies `matcher_a` first, then (only on `some`) passes the payload to `matcher_b`
+- the composed matcher applies `matcher_a` first; if that succeeds, applies `matcher_b` to the original subject (not the matcher payload)
 - if `matcher_a(value)` returns `none(...)` → return that `none(...)` without calling `matcher_b`
 - if `matcher_a(value)` returns `err(...)` → return that `err(...)` without calling `matcher_b`
-- if `matcher_a(value)` returns `some(next[, ctx])` → call `matcher_b(next)` and return its Outcome
+- if `matcher_a(value)` returns `some(...)` → call `matcher_b(value)` (original subject); if result is `some(...)` → return `some(value)`; propagate `none(...)` or `err(...)` unchanged
 - composition is left-to-right and deterministic
 - context merging across composed success is not implemented in this phase
 - either operand not callable → runtime error at composition time
