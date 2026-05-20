@@ -18,6 +18,7 @@ This repository currently provides:
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
 - shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
 - representation helpers (`display`, `debug_repr`, `format`) and experimental `Format` values for output representation
+- experimental immutable Sheet values for columnar/tabular data (`sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`) (**Experimental**)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing

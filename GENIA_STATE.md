@@ -319,6 +319,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Map
   - map literals and `map_*` builtins produce the same runtime map value family
   - map values are persistent and opaque at runtime (`<map N>`)
+- Sheet — immutable, columnar, named-column value (**Experimental**)
 
 ### Function / module values
 
@@ -483,6 +484,40 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - Flow remains an explicit runtime value family rather than an implicit pipeline mode
   - host interop is a narrow capability bridge layered onto the same call/pipeline semantics
 - This is still not a full static type/protocol system; the coherence is semantic rather than nominal.
+
+### Sheet values (Experimental)
+
+**LANGUAGE CONTRACT:**
+
+A Sheet is an immutable, columnar, named-column value. It is distinct from Flow, Seq, and ordinary lists.
+
+A Sheet has:
+- zero or more named columns
+- deterministic column order
+- columns represented as ordered sequences of values
+- all columns aligned by row index
+- a deterministic row count
+- immutable update semantics; all operations return new Sheets
+
+A Sheet is not:
+- a lazy or streaming value
+- a reactive or formula-driven spreadsheet
+- a Seq-compatible source in this phase
+- a replacement for Flow or lists
+
+**PYTHON REFERENCE HOST:**
+
+Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column storage. Column names may be any hashable Genia value (symbols are the intended default). Column order is deterministic from construction order.
+
+**Maturity:** Experimental — minimal immutable columnar core only.
+
+**Explicit limitations:**
+- No reactive cells, formula plans, joins, grouping, sorting, or spreadsheet UI semantics.
+- `some(...)`, `none(...)`, and `err(...)` are stored as ordinary cell values; no automatic Outcome propagation across columns.
+- `derive` rejects an existing column name.
+- `where` predicates must return a boolean; non-boolean predicate results fail clearly.
+- Construction requires lists as column values; other Seq-compatible values are not accepted in this phase.
+- Sheets are not Seq-compatible sources in this phase.
 
 ## 3) Implemented syntax and expression forms
 
@@ -1133,6 +1168,49 @@ Representation System entry points (#185, implemented):
 - #166 owns the broader representation model, including naming boundaries beyond `display` and `debug_repr`, extension points, user-defined representations, registry/strategy behavior, and cross-host treatment of opaque runtime values.
 - #185 must not introduce alternate public representation terms such as `render`, `view`, or `repr`.
 - If #166 later changes the canonical public names, #185 behavior must migrate through the alias-safe rename process: introduce alias, migrate usage incrementally, update tests, then remove the old name in a later phase.
+
+### Sheet builtins (Experimental)
+
+Sheet public helpers are registered directly as arity-specific `GeniaFunctionGroup` builtins in the global environment (not autoloaded). This allows coexistence with user-defined functions at other arities (for example, user-defined `rows/0` may coexist with `rows(sheet)`).
+
+Public helpers:
+
+- `sheet(columns)` — construct a Sheet from a list of `[name, values]` column pairs; column values must be lists; column names must be unique; all columns must have equal length
+- `shape(sheet)` — return `[[rows, n], [columns, n]]`
+- `columns(sheet)` — return column names in deterministic order
+- `select(names, sheet)` — return a new Sheet with requested columns in requested order; rejects duplicate or missing names
+- `where(predicate, sheet)` — return a new Sheet of rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; predicate must return boolean
+- `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
+- `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
+
+All Sheet operations return new Sheet values. Existing Sheet values are never mutated.
+
+Construction example:
+
+```genia
+people = sheet([
+  [quote(name), ["Ann", "Bob", "Cara"]],
+  [quote(age), [30, 22, 41]]
+])
+shape(people)
+```
+
+Returns `[[rows, 3], [columns, 2]]`.
+
+Error behavior:
+
+- non-Sheet value passed to a Sheet-only operation: `TypeError`
+- unequal column lengths at construction: `TypeError` with column name
+- duplicate column names at construction or in `select`: `TypeError`
+- missing column in `select`: `TypeError` naming the column
+- non-boolean predicate result in `where`: `TypeError`
+- existing column name in `derive`: `TypeError` naming the column
+- Sheet errors opt out of generic pipeline error wrapping (`_genia_preserve_pipeline_error = True`)
+
+Implementation files:
+- `src/genia/sheet.py` — `GeniaSheet` runtime value and pure helper functions
+- `src/genia/builtins.py` — builtin registration
+- `src/genia/utf8.py` — deterministic Sheet rendering
 
 ### Flow runtime (Phase 1)
 

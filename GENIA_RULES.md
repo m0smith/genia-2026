@@ -1101,3 +1101,17 @@ For each incoming flow item `x`:
 - ordinary `-c` command mode remains unchanged and evaluates exactly what the user wrote
 - pipe mode bypasses the `main` convention; file mode and `-c` mode keep existing `main/1` then `main/0` behavior
 - pipeline operator semantics are unchanged; this does not add a new operator or runtime meaning for `|>`
+
+## 22) Sheet invariants (Experimental)
+
+- A `GeniaSheet` is an immutable, columnar, named-column runtime value.
+- `sheet(columns)` accepts a list of `[name, values]` two-item pairs; column values must be lists; column names must be unique; all columns must have equal length.
+- `shape`, `columns`, `select`, `where`, `derive`, and `rows` must reject non-Sheet values with a clear `TypeError`.
+- `select(names, sheet)` returns a new Sheet with requested columns in requested order; duplicate or missing names must fail clearly; input Sheet is never mutated.
+- `where(predicate, sheet)` returns a new Sheet containing rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; non-boolean predicate results must fail clearly.
+- `derive(name, function, sheet)` returns a new Sheet with a new column appended; an existing column name must fail clearly; the row function receives each row as a list of `[name, value]` pairs.
+- All Sheet operations return new `GeniaSheet` values; tuple-backed canonical column storage must not be mutated.
+- `some(...)`, `none(...)`, and `err(...)` values are stored as ordinary cell values; no implicit Outcome propagation is introduced across columns or rows.
+- Sheet errors must set `_genia_preserve_pipeline_error = True` to opt out of generic pipeline error wrapping.
+- Sheets are not Seq-compatible sources and must not be passed to `each`, `collect`, `run`, `map`, `filter`, or `reduce` without explicit conversion in this phase.
+- No new syntax, parser changes, or Core IR nodes are introduced by Sheet.
