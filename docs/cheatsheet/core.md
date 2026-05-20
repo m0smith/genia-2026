@@ -1,4 +1,4 @@
-# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Currently, only the eval category is active for executable shared spec files; other categories are scaffold-only. See GENIA_STATE.md for authoritative status.
+# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active shared semantic spec categories: parse, ir, eval, cli, flow, error. Coverage is partial and experimental; Python is the only implemented host. See GENIA_STATE.md for authoritative status.
 
 # Genia Core Cheatsheet
 
@@ -32,8 +32,16 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | tuple | `(x, y)` |
 | list + rest | `[x, ..rest]` |
 | map (partial) | `{name}`, `{name: n}` |
-| option constructor | `some(x)`, `none`, `none(reason)`, `none(reason, ctx)` |
+| Outcome constructor | `some(x)`, `some(x, ctx)`, `none`, `none(reason)`, `none(reason, ctx)`, `err(reason)`, `err(reason, ctx)` |
 | guard | `(x) ? x > 0 -> ...` |
+
+Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence.
+
+| Matcher form | Meaning |
+| --- | --- |
+| `value @? matcher` | Applies the matcher; returns `some(value)` on success and preserves `none(...)` and `err(...)` unchanged. Not boolean. |
+| `value @! matcher` | Applies the matcher; returns the original value on success and raises on `none(...)` or `err(...)`. |
+| `matcher_a & matcher_b` | Composes matcher functions left-to-right, short-circuiting on `none(...)` or `err(...)`. |
 
 ## Pipeline Rules
 
@@ -49,17 +57,19 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 
 Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 
-## Option And Absence
+## Outcome And Absence
 
 | Constructor / Helper | Shape |
 | --- | --- |
-| constructors | `some(value)`, `none`, `none(reason)`, `none(reason, context)` |
+| constructors | `some(value)`, `some(value, context)`, `none`, `none(reason)`, `none(reason, context)`, `err(reason)`, `err(reason, context)` |
 | predicates | `some?(x)`, `none?(x)`, `is_some?(x)`, `is_none?(x)` |
 | map access | `get(key, target)`, `get?(key, target)` |
 | option chaining | `map_some(f, opt)`, `flat_map_some(f, opt)` |
 | chain helpers | `then_get(key, target)`, `then_first(target)`, `then_nth(index, target)`, `then_find(needle, target)` |
 | recovery | `unwrap_or(default, opt)`, `or_else(opt, fallback)`, `or_else_with(opt, thunk)` |
 | metadata | `absence_reason(opt)`, `absence_context(opt)`, `absence_meta(opt)` |
+
+Outcome values distinguish successful presence (`some(value)`), successful absence (`none(...)`), and recoverable failure (`err(...)`). In pipelines, `none(...)` and `err(...)` short-circuit ordinary stages; err(...) is not converted to `none(...)`.
 
 ## Representation
 
