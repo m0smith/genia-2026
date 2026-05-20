@@ -15,8 +15,8 @@
 #   curl http://127.0.0.1:8080/info
 #
 # Features demonstrated:
-#   * module import and slash-export binding (`web/ok_text`, `web/json`)
-#   * route definition with `web/get`
+#   * module import and dot export access (`web.ok_text`, `web.json`)
+#   * route definition with `web.get`
 #   * JSON and plain-text responses
 #   * CLI argument parsing for `--port` and `--max-requests`
 #   * pattern matching with guards for config construction
@@ -26,11 +26,11 @@
 import web
 
 # Bind module exports to short local names for clarity.
-web_ok_text = web/ok_text
-web_json = web/json
-web_route_request = web/route_request
-web_get = web/get
-web_serve_http = web/serve_http
+web_ok_text = web.ok_text
+web_json = web.json
+web_route_request = web.route_request
+web_get = web.get
+web_serve_http = web.serve_http
 
 # -- Handlers --------------------------------------------------------------
 

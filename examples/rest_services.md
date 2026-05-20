@@ -2,11 +2,11 @@
 
 These examples are runnable against Genia's current host-backed HTTP surface:
 
-- exact-path routing with `web/get(...)` and `web/post(...)`
+- exact-path routing with `web.get(...)` and `web.post(...)`
 - request maps with `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`
-- response maps built with `web/json(...)`, `web/ok_text(...)`, `web/bad_request(...)`, or `web/response(...)`
+- response maps built with `web.json(...)`, `web.ok_text(...)`, `web.bad_request(...)`, or `web.response(...)`
 - in-memory state via `ref`, `ref_get`, `ref_set`, and `ref_update`
-- blocking/synchronous serving through `web/serve_http(...)`
+- blocking/synchronous serving through `web.serve_http(...)`
 
 Request map notes:
 

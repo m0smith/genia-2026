@@ -64,10 +64,10 @@ def test_serve_http_plain_text_response():
     source = """
 import web
 
-get = web/get
-ok_text = web/ok_text
-route_request = web/route_request
-serve_http = web/serve_http
+get = web.get
+ok_text = web.ok_text
+route_request = web.route_request
+serve_http = web.serve_http
 
 serve_http(
   {host: host, port: port, max_requests: 1},
@@ -96,19 +96,19 @@ def test_serve_http_json_response_and_request_body_parsing():
     source = """
 import web
 
-post = web/post
-json = web/json
-route_request = web/route_request
-serve_http = web/serve_http
+post = web.post
+json = web.json
+route_request = web.route_request
+serve_http = web.serve_http
 
 serve_http(
   {host: host, port: port, max_requests: 1},
     route_request([
         post("/echo", (request) -> json({
-      method: request/method,
-      path: request/path,
-      query: request/query,
-      body: request/body
+      method: request.method,
+      path: request.path,
+      query: request.query,
+      body: request.body
     }))
   ])
 )
@@ -144,21 +144,21 @@ def test_serve_http_request_map_includes_client_and_raw_text_body():
     source = """
 import web
 
-post = web/post
-json = web/json
-route_request = web/route_request
-serve_http = web/serve_http
+post = web.post
+json = web.json
+route_request = web.route_request
+serve_http = web.serve_http
 
 serve_http(
   {host: host, port: port, max_requests: 1},
     route_request([
         post("/inspect", (request) -> json({
-      method: request/method,
-      path: request/path,
-      raw_body: request/raw_body,
-      body: request/body,
-      client_host: request/client/host,
-      client_port: request/client/port
+      method: request.method,
+      path: request.path,
+      raw_body: request.raw_body,
+      body: request.body,
+      client_host: unwrap_or("", get("host", request.client)),
+      client_port: unwrap_or(0, get("port", request.client))
     }))
   ])
 )
@@ -194,18 +194,18 @@ def test_serve_http_json_body_parse_failure_stays_in_request_body_as_absence():
     source = """
 import web
 
-post = web/post
-json = web/json
-route_request = web/route_request
-serve_http = web/serve_http
+post = web.post
+json = web.json
+route_request = web.route_request
+serve_http = web.serve_http
 
 serve_http(
   {host: host, port: port, max_requests: 1},
     route_request([
         post("/inspect", (request) -> json({
-      raw_body: request/raw_body,
-      body_reason: unwrap_or("?", absence_reason(request/body)),
-      body_source: unwrap_or("?", then_get("source", absence_context(request/body)))
+      raw_body: request.raw_body,
+      body_reason: unwrap_or("?", absence_reason(request.body)),
+      body_source: unwrap_or("?", then_get("source", absence_context(request.body)))
     }))
   ])
 )
@@ -240,10 +240,10 @@ def test_serve_http_route_request_returns_not_found_response():
     source = """
 import web
 
-get = web/get
-ok_text = web/ok_text
-route_request = web/route_request
-serve_http = web/serve_http
+get = web.get
+ok_text = web.ok_text
+route_request = web.route_request
+serve_http = web.serve_http
 
 serve_http(
   {host: host, port: port, max_requests: 1},
@@ -271,9 +271,9 @@ def test_serve_http_invalid_handler_result_returns_500():
     source = """
 import web
 
-get = web/get
-route_request = web/route_request
-serve_http = web/serve_http
+get = web.get
+route_request = web.route_request
+serve_http = web.serve_http
 
 serve_http(
   {host: host, port: port, max_requests: 1},

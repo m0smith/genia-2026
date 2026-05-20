@@ -31,12 +31,12 @@ def test_coordinator_snapshot_returns_world():
     """Coordinator replies to snapshot with the current world."""
     result = run_actor(
         """
-        world = ants/new_world(7, 2, 5, 5)
+        world = ants.new_world(7, 2, 5, 5)
         coord = actor(world, coordinator_handler)
         snap = actor_call(coord, ["snapshot"])
         w = snapshot_world(snap)
         actor_call(coord, ["stop"])
-        ants/world_tick(w)
+        ants.world_tick(w)
         """
     )
     assert result == 0
@@ -46,14 +46,14 @@ def test_coordinator_tick_increments_tick_counter():
     """Coordinator evolve message increments the world evolve count."""
     result = run_actor(
         """
-        world = ants/new_world(7, 2, 5, 5)
+        world = ants.new_world(7, 2, 5, 5)
         coord = actor(world, coordinator_handler)
         actor_call(coord, ["evolve"])
         actor_call(coord, ["evolve"])
         snap = actor_call(coord, ["snapshot"])
         w = snapshot_world(snap)
         actor_call(coord, ["stop"])
-        ants/world_tick(w)
+        ants.world_tick(w)
         """
     )
     assert result == 2
@@ -66,7 +66,7 @@ def test_ant_sense_returns_weighted_candidates():
     """Sense reply contains weighted candidate moves for the ant."""
     result = run_actor(
         """
-        world = ants/new_world(7, 2, 5, 5)
+        world = ants.new_world(7, 2, 5, 5)
         coord = actor(world, coordinator_handler)
         reply = actor_call(coord, ["sense", 0])
         check(r) = (["sense_reply", _, _, weighted]) -> length(weighted) > 0
@@ -82,7 +82,7 @@ def test_ant_move_intent_updates_world():
     """Move intent via coordinator applies the move and returns a tag."""
     result = run_actor(
         """
-        world = ants/new_world(7, 2, 5, 5)
+        world = ants.new_world(7, 2, 5, 5)
         coord = actor(world, coordinator_handler)
         sense = actor_call(coord, ["sense", 0])
         get_weighted(r) = (["sense_reply", _, _, w]) -> w
@@ -92,7 +92,7 @@ def test_ant_move_intent_updates_world():
         move_result = actor_call(coord, ["move_intent", 0, chosen_move])
         snap = actor_call(coord, ["snapshot"])
         w = snapshot_world(snap)
-        count = length(ants/world_ants(w))
+        count = length(ants.world_ants(w))
         actor_call(coord, ["stop"])
         count
         """
@@ -107,9 +107,9 @@ def test_run_actor_sim_returns_world():
     """run_actor_sim returns a world map after the given number of ticks."""
     result = run_actor(
         """
-        world = ants/new_world(7, 2, 5, 5)
+        world = ants.new_world(7, 2, 5, 5)
         w = run_actor_sim(world, 3)
-        ants/world_tick(w)
+        ants.world_tick(w)
         """
     )
     assert result == 3
@@ -118,16 +118,16 @@ def test_run_actor_sim_returns_world():
 @pytest.mark.slow
 def test_actor_sim_same_seed_is_reproducible():
     """Same seed produces the same world summary after the same evolve count."""
-    result1 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
-    result2 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
+    result1 = run_actor("world_summary(run_actor_sim(ants.new_world(7, 3, 5, 5), 5))")
+    result2 = run_actor("world_summary(run_actor_sim(ants.new_world(7, 3, 5, 5), 5))")
     assert result1 == result2
 
 
 @pytest.mark.slow
 def test_actor_sim_different_seed_differs():
     """Different seeds produce different outcomes."""
-    result1 = run_actor("world_summary(run_actor_sim(ants/new_world(7, 3, 5, 5), 5))")
-    result2 = run_actor("world_summary(run_actor_sim(ants/new_world(42, 3, 5, 5), 5))")
+    result1 = run_actor("world_summary(run_actor_sim(ants.new_world(7, 3, 5, 5), 5))")
+    result2 = run_actor("world_summary(run_actor_sim(ants.new_world(42, 3, 5, 5), 5))")
     assert result1 != result2
 
 
@@ -158,12 +158,12 @@ def test_food_accounting_preserved():
     """Total food + delivered equals the initial total."""
     result = run_actor(
         """
-        world0 = ants/new_world(7, 3, 5, 5)
-        initial_food = ants/total_food(world0)
+        world0 = ants.new_world(7, 3, 5, 5)
+        initial_food = ants.total_food(world0)
         world_f = run_actor_sim(world0, 6)
-        final_food = ants/total_food(world_f)
-        delivered = ants/world_delivered(world_f)
-        carried = length(filter((a) -> ants/ant_carrying?(a), ants/world_ants(world_f)))
+        final_food = ants.total_food(world_f)
+        delivered = ants.world_delivered(world_f)
+        carried = length(filter((a) -> ants.ant_carrying?(a), ants.world_ants(world_f)))
         initial_food == final_food + delivered + carried
         """
     )
@@ -189,9 +189,9 @@ def test_ant_count_unchanged():
     """Number of ants stays the same after simulation."""
     result = run_actor(
         """
-        world = ants/new_world(7, 4, 5, 5)
+        world = ants.new_world(7, 4, 5, 5)
         w = run_actor_sim(world, 5)
-        length(ants/world_ants(w))
+        length(ants.world_ants(w))
         """
     )
     assert result == 4

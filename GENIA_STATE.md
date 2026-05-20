@@ -55,7 +55,7 @@ Scaffolded or planned, not implemented as hosts:
 - Shared host contract is **Partial**: the contract categories above are documented, and executable shared spec coverage is implemented for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in the Python reference host. Other hosts are not implemented.
 - Semantic Spec System is **Experimental**: the file format, runner, and initial case inventory exist for `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse` behavior in this phase.
 - Flow behavior is implemented in Python, and shared semantic-spec coverage for flow is now **active but partial**. Current flow shared coverage is limited to first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)` behavior, `rules(..fns)` compatibility behavior, `step_*` / `rule_*` equivalence, the `rules()` identity stage, selected rule result defaulting/no-effect behavior, focused Flow `map` / `filter` / `scan` coverage, selected Seq-compatible `each` / `collect` / `run` / `reduce` terminal behavior, and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output. Advanced Flow behavior is not covered by shared semantic specs in this phase.
-- IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, canonical `lhs.name` -> `IrBinary(op=SLASH)` for narrow named access, with legacy `lhs/name` retained as compatibility; neither form is general field-path lookup, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
+- IR stability remains **Partial**: the minimal portable Core IR contract is documented with field-level lowering invariants (bare `none` reason=null, `none()` reason wrapped as `IrQuote`, canonical `lhs.name` -> `IrBinary(op=SLASH, named_access=true)` for narrow named access (ordinary slash/division lowers as `IrBinary(op=SLASH)` without `named_access`; legacy `lhs/name` compatibility removed); neither form is general field-path lookup, `IrAssign` placement in `IrBlock.exprs`, optional fields), the Python runtime guards that boundary, and shared semantic-spec case coverage now validates the full portable node family in the Python reference host, including `quasiquote` bodies with `unquote` and `unquote_splicing` in list context.
 
 **Explicit limitations:**
 
@@ -328,7 +328,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - lambdas evaluate to ordinary callable runtime values
 - Module
   - `import mod` / `import mod as alias` bind module namespace values
-  - module values are distinct from maps and are accessed with narrow slash access (`mod/name`)
+  - module values are distinct from maps and are accessed with narrow dot named access (`mod.name`)
   - current Python host interop reuses this same module value model:
     - `import python`
     - `import python.json as pyjson`
@@ -371,10 +371,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - ZipEntry
   - `zip_entries` returns opaque zip entry wrapper values
 - HTTP serving
-  - `import web` exposes module exports such as `web/serve_http(config, handler)` for the host-backed blocking HTTP capability
+  - `import web` exposes module exports such as `web.serve_http(config, handler)` for the host-backed blocking HTTP capability
   - requests and responses are represented as ordinary Genia maps at the language boundary
 - Python host handles
-  - `python/open` returns opaque Python file-handle values (`<python file>`)
+  - `python.open` returns opaque Python file-handle values (`<python file>`)
   - these are capability-style values intended only for passing back to allowlisted Python host exports
 
 ### Current consistency notes
@@ -385,7 +385,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - plain `none` and legacy `nil` both normalize to `none("nil")`
   - compatibility aliases remain where naming migration was staged (`get?`, `first_opt`, `nth_opt`)
   - canonical maybe-aware access/search APIs use structured absence directly (`get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`)
-  - compatibility surfaces such as `map_get`, slash access, callable map/string lookup, and `cli_option` now also return structured `none(...)` on missing results
+  - lookup surfaces such as `map_get`, dot access, callable map/string lookup, and `cli_option` now also return structured `none(...)` on missing results
 - structured `none(...)` metadata is still absence metadata, not a separate control-flow family.
 - absence metadata is inspectable through:
   - `absence_reason(none(...))` -> `some(reason)`
@@ -667,7 +667,7 @@ Pipeline (Phase 2) evaluation model:
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
 - named accessor (phase 1):
   - `lhs.name` is the canonical narrow named-access form; it is not general field-path lookup
-  - legacy `lhs/name` compatibility is still accepted when RHS is a bare identifier
+  - legacy `lhs/name` compatibility has been removed
   - supported LHS runtime kinds: module values, map values
   - map missing key => `none("missing-key", {key: "name"})`
   - module missing export => clear error
@@ -681,17 +681,18 @@ Pipeline (Phase 2) evaluation model:
   - `import python`
   - `import python.json`
   - `import python.json as alias`
-- current allowlisted exports:
-  - `python/open`
-  - `python/read`
-  - `python/write`
-  - `python/close`
-  - `python/read_text`
-  - `python/write_text`
-  - `python/len`
-  - `python/str`
-  - `python/json/loads`
-  - `python/json/dumps`
+- current allowlisted `python` exports:
+  - `python.open`
+  - `python.read`
+  - `python.write`
+  - `python.close`
+  - `python.read_text`
+  - `python.write_text`
+  - `python.len`
+  - `python.str`
+- current allowlisted `python.json` exports:
+  - `loads`
+  - `dumps`
 - host exports participate in ordinary calls and pipeline stages without special pipeline rules.
 - boundary conversion rules:
   - Genia string/number/bool -> Python scalar
@@ -1017,7 +1018,7 @@ Output sink semantics:
 - `render_grid(grid)` writes a text grid to `stdout` and returns `grid`
   - `grid` must be a list
   - each row must be either a string or a list of displayable values
-- `web/serve_http(config, handler)` runs a synchronous blocking HTTP server and returns `{host, port, handled_requests}` after the server stops
+- `web.serve_http(config, handler)` runs a synchronous blocking HTTP server and returns `{host, port, handled_requests}` after the server stops
   - this is a public Python-reference-host surface in the current phase, not a shared cross-host contract category
   - `config.host` defaults to `"127.0.0.1"`
   - `config.port` defaults to `8000`
@@ -1793,7 +1794,7 @@ Absence migration status:
 | `map_get` | compatibility surface | raw value | `none("missing-key", { key: key })` | use `get` in new code |
 | callable map lookup `m(key)` | compatibility surface | raw value | `none("missing-key", { key: key })` | use `get` in new code |
 | string projector lookup `"key"(m)` | compatibility surface | raw value | `none("missing-key", { key: key })` | use `get` in new code |
-| map slash access `m/name` | compatibility surface | raw value | `none("missing-key", { key: key })` | keep for compatibility; prefer `get("name", m)` |
+| map dot access `m.name` | canonical narrow named access | raw value | `none("missing-key", { key: key })` | narrow map/module access only; prefer `get("name", m)` for maybe-aware lookup |
 | `cli_option` | canonical CLI lookup | raw value | `none("missing-key", { key: name })` | use `cli_option_or` for defaults |
 
 Compatibility note:
@@ -1896,7 +1897,7 @@ Behavior:
 
 Maturity: **Experimental** — `fs` backend only; no object store, no streaming, no browser-native backend.
 
-Module: `import resource` or `import resource as res` — accessed via slash syntax (`res/read_text(ref)`, etc.).
+Module: `import resource` or `import resource as res` — accessed via dot syntax (`res.read_text(ref)`, etc.).
 
 **`ResourceRef`** — plain Genia map `{uri: string, backend: string}`. Constructed by `resource_ref(path)`, which is a pure Genia function (no bridge call). The `uri` is stored verbatim with no normalization.
 
@@ -1993,7 +1994,7 @@ Loading behavior:
   - loaded exports bind directly into the root environment; no module value is created
   - autoload deduplication uses a separate file-key set, independent of the module import cache (`loaded_modules`)
   - autoload cycle detection raises `RuntimeError("Autoload cycle detected while loading <key>")`
-  - autoloads are not accessible via slash access (`mod/name`) and do not appear in the module cache
+  - autoloads are not accessible through module named access (`mod.name`) and do not appear in the module cache
 
 Notable autoloaded functions include:
 
@@ -2116,7 +2117,7 @@ This is the canonical simulation teaching pattern in this phase: ordinary world 
   - deterministic rendering priority: carrying ant `H`, ant `a`, nest `N`, food `*`, pheromone heat `#`/`+`/`:`, empty `.`
   - stats panel with mode, seed, evolve, remaining steps, ant/carrying counts, delivered food, remaining food, pheromone total, active trail count, and delay
   - CLI flags: `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`
-- pure mode steps the imported pure `ants/step(world)` model
+- pure mode steps the imported pure `ants.step(world)` model
 - actor mode uses a coordinator actor session from `examples/ants_actor.genia` so the same terminal UI can compare the actor/coordinator execution structure
 
 It is still a blocking terminal demo. It does **not** use `stdin_keys`, does **not** introduce a real-time event loop, does **not** provide pause/step/quit key controls, and does **not** add new language/runtime features. Same seed plus same config gives the same progression for a given mode.
@@ -2139,7 +2140,7 @@ It is a teaching architecture layer — same colony behavior, different executio
 - serves `GET /state` as a JSON-friendly snapshot with evolve, seed, mode, world size, ant positions/carrying status, nest cells, food cells, pheromone cells, delivered food, remaining food, and small stats
 - accepts `POST /reset` with JSON config (`seed`, `ants`, `size`, `delay`, `mode`) and `POST /step` to advance one evolve
 - keeps one explicit server-memory session in a `ref`
-- pure mode reuses `ants_terminal/start_session` over the pure `ants/step(world)` model
+- pure mode reuses `ants_terminal.start_session` over the pure `ants.step(world)` model
 - actor mode reuses the coordinator session from `examples/ants_actor.genia`
 - the browser uses Canvas drawing and client-side repeated `/step` calls for run/pause controls
 

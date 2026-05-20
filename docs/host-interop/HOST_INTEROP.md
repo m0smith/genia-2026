@@ -258,7 +258,7 @@ Current host interop is a narrow capability bridge, not a second semantic runtim
 
 Current Python-host contract:
 
-- host interop reuses ordinary `import` plus slash export access
+- host interop reuses ordinary `import` plus dot export access (`import python.json as pyjson`, then `pyjson.loads`)
 - current allowlisted modules are `python` and `python.json`
 - host exports participate in the same call and pipeline model as ordinary Genia callables
 - boundary normalization preserves shared Genia semantics:
@@ -266,7 +266,7 @@ Current Python-host contract:
   - Genia `some(x)` crossing to the host -> converted `x`
   - host exceptions remain explicit errors
 - current normalized bridge example:
-  - `python.json/loads("{")` raises `ValueError("python.json/loads invalid JSON: ...")`
+  - `import python.json as pyjson` then `"{" |> pyjson.loads` raises `ValueError("python.json/loads invalid JSON: ...")`
 
 Important boundary rule:
 
@@ -278,7 +278,7 @@ Important boundary rule:
 
 Current Python-host contract:
 
-- `import web` exposes `web/serve_http(config, handler)` as the minimal host primitive wrapper
+- `import web` exposes `web.serve_http(config, handler)` as the minimal host primitive wrapper
 - the host bridge owns socket/protocol integration only
 - the language boundary uses ordinary Genia maps for both requests and responses
 - current request map fields are:

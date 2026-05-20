@@ -26,12 +26,12 @@ import web
 import ants
 import ants_terminal
 
-web_get = web/get
-web_json = web/json
-web_post = web/post
-web_response = web/response
-web_route_request = web/route_request
-web_serve_http = web/serve_http
+web_get = web.get
+web_json = web.json
+web_post = web.post
+web_response = web.response
+web_route_request = web.route_request
+web_serve_http = web.serve_http
 
 default_port() = 8082
 default_max_requests() = 0
@@ -85,7 +85,7 @@ config_from_body(body, fallback) = {
   }
 }
 
-new_world_for_config(config) = ants/new_world(
+new_world_for_config(config) = ants.new_world(
   config_seed(config),
   config_ant_count(config),
   config_size(config),
@@ -97,22 +97,22 @@ make_state(config) = {
   world = new_world_for_config(config)
   {
     config: config,
-    session: ants_terminal/start_session(mode, world)
+    session: ants_terminal.start_session(mode, world)
   }
 }
 
 state_config(state) = unwrap_or(default_config(), state |> get("config"))
 state_session(state) = unwrap_or({}, state |> get("session"))
 state_mode(state) = config_mode(state_config(state))
-state_world(state) = ants_terminal/session_world(state_mode(state), state_session(state))
+state_world(state) = ants_terminal.session_world(state_mode(state), state_session(state))
 
 state_step(state) = map_put(
   state,
   "session",
-  ants_terminal/session_step(state_mode(state), state_session(state))
+  ants_terminal.session_step(state_mode(state), state_session(state))
 )
 
-state_stop(state) = ants_terminal/session_stop(state_mode(state), state_session(state))
+state_stop(state) = ants_terminal.session_stop(state_mode(state), state_session(state))
 
 current_state = ref(make_state(default_config()))
 
@@ -122,16 +122,16 @@ body_map_value(value) =
   value -> value
 
 point_snapshot(pos) = {
-  x: ants/pos_x(pos),
-  y: ants/pos_y(pos)
+  x: ants.pos_x(pos),
+  y: ants.pos_y(pos)
 }
 
 ant_snapshot(ant_value) = {
-  pos = ants/ant_pos(ant_value)
+  pos = ants.ant_pos(ant_value)
   {
-    x: ants/pos_x(pos),
-    y: ants/pos_y(pos),
-    carrying: ants/ant_carrying?(ant_value)
+    x: ants.pos_x(pos),
+    y: ants.pos_y(pos),
+    carrying: ants.ant_carrying?(ant_value)
   }
 }
 
@@ -142,34 +142,34 @@ amount_entry_snapshot(entry) =
     amount: amount
   }
 
-carrying_count(world) = length(filter((ant_value) -> ants/ant_carrying?(ant_value), ants/world_ants(world)))
-pheromone_total(world) = ants/total_pheromone(world)
+carrying_count(world) = length(filter((ant_value) -> ants.ant_carrying?(ant_value), ants.world_ants(world)))
+pheromone_total(world) = ants.total_pheromone(world)
 
 snapshot_state(state) = snapshot_world(state_config(state), state_world(state))
 
 snapshot_world(config, world) = {
-  food = ants/food_entries(world)
-  pheromones = ants/pheromone_entries(world)
+  food = ants.food_entries(world)
+  pheromones = ants.pheromone_entries(world)
   {
-    evolve: ants/world_tick(world),
+    evolve: ants.world_tick(world),
     seed: config_seed(config),
     mode: config_mode(config),
-    width: ants/world_width(world),
-    height: ants/world_height(world),
-    ants: map(ant_snapshot, ants/world_ants(world)),
+    width: ants.world_width(world),
+    height: ants.world_height(world),
+    ants: map(ant_snapshot, ants.world_ants(world)),
     nest: {
-      center: point_snapshot(ants/world_nest(world)),
-      radius: ants/world_nest_radius(world),
-      cells: map(point_snapshot, ants/nest_positions(world))
+      center: point_snapshot(ants.world_nest(world)),
+      radius: ants.world_nest_radius(world),
+      cells: map(point_snapshot, ants.nest_positions(world))
     },
     food: map(amount_entry_snapshot, food),
     pheromones: map(amount_entry_snapshot, pheromones),
-    delivered: ants/world_delivered(world),
-    remaining_food: ants/total_food(world),
+    delivered: ants.world_delivered(world),
+    remaining_food: ants.total_food(world),
     stats: {
-      ants: length(ants/world_ants(world)),
+      ants: length(ants.world_ants(world)),
       carrying: carrying_count(world),
-      active_trails: ants/active_trail_count(world),
+      active_trails: ants.active_trail_count(world),
       pheromone_total: pheromone_total(world),
       delay: config_delay(config)
     }

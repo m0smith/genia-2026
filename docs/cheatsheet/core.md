@@ -20,7 +20,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | pipeline | `x |> f |> g` | explicit pipeline IR stage list |
 | quote | `quote(expr)`, `quasiquote(expr)` | programs-as-data helpers exist |
 | delay | `delay(expr)` + `force(promise)` | stream prelude uses this |
-| import | `import mod`, `import mod as alias` | module value + slash access |
+| import | `import mod`, `import mod as alias` | module value + dot access |
 
 ## Pattern Matching
 
@@ -294,9 +294,9 @@ Classification: **Valid** (directly tested)
 | Feature | Notes |
 | --- | --- |
 | module import | `import mod`, `import mod as alias` |
-| slash access | `mod/name`, `map/name` |
+| named access | `mod.name`, `map.name` |
 | host allowlist | `python`, `python.json` |
-| host examples | `python/len`, `python/str`, `python/json/loads`, `python/json/dumps` |
+| host examples | `python.len`, `python.str`, `pyjson.loads`, `pyjson.dumps` after `import python.json as pyjson` |
 
 ## Documentation And Metadata
 
@@ -353,10 +353,10 @@ The ants terminal UI accepts `--seed`, `--ants`, `--steps`, `--delay`, `--size`,
 
 | Helper | Shape |
 | --- | --- |
-| host bridge | `web/serve_http(config, handler)` |
-| routes | `web/get(path, handler)`, `web/post(path, handler)`, `web/route_request(routes)` |
-| response maps | `web/response(status, headers, body)` |
-| response helpers | `web/json(body)`, `web/text(body)`, `web/ok(body)`, `web/ok_text(text)`, `web/bad_request(message)`, `web/not_found()` |
+| host bridge | `web.serve_http(config, handler)` |
+| routes | `web.get(path, handler)`, `web.post(path, handler)`, `web.route_request(routes)` |
+| response maps | `web.response(status, headers, body)` |
+| response helpers | `web.json(body)`, `web.text(body)`, `web.ok(body)`, `web.ok_text(text)`, `web.bad_request(message)`, `web.not_found()` |
 
 Current request maps use `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`.
 Current response maps use `status`, `headers`, and `body`.

@@ -93,11 +93,12 @@ def test_ants_web_snapshot_stats_use_tracked_food_and_pheromones():
     result = json.loads(run_web(
         """
         config = {seed: 7, ants: 1, size: 8, delay: 0, mode: "pure"}
-        world0 = ants/empty_world(7, 1, 8, 8)
-        world1 = ants/set_food(world0, [1, 1], 2)
-        world2 = ants/set_pheromone(world1, [2, 2], 3)
+        world0 = ants.empty_world(7, 1, 8, 8)
+        world1 = ants.set_food(world0, [1, 1], 2)
+        world2 = ants.set_pheromone(world1, [2, 2], 3)
         snap = snapshot_world(config, world2)
-        json_stringify([snap/remaining_food, snap/stats/pheromone_total, snap/stats/active_trails, snap/food, snap/pheromones])
+        stats = snap.stats
+        json_stringify([snap.remaining_food, stats.pheromone_total, stats.active_trails, snap.food, snap.pheromones])
         """
     ))
 
@@ -113,10 +114,12 @@ def test_ants_web_snapshot_stats_use_tracked_food_and_pheromones():
 def test_ants_web_reset_and_step_are_seeded_and_deterministic():
     program = """
     reset_state({seed: 9, ants: 4, size: 8, delay: 0, mode: "pure"})
-    first = step_handler({})/body |> json_parse
+    first_response = step_handler({})
+    first = first_response.body |> json_parse
     reset_state({seed: 9, ants: 4, size: 8, delay: 0, mode: "pure"})
-    second = step_handler({})/body |> json_parse
-    [first/evolve, first/ants, second/evolve, second/ants, json_stringify(first) == json_stringify(second)]
+    second_response = step_handler({})
+    second = second_response.body |> json_parse
+    [first.evolve, first.ants, second.evolve, second.ants, json_stringify(first) == json_stringify(second)]
     """
 
     result = run_web(program)
@@ -130,9 +133,13 @@ def test_ants_web_actor_mode_endpoint_uses_actor_session():
     result = run_web(
         """
         req = {body: {seed: 11, ants: 2, size: 8, delay: 0, mode: "actor"}}
-        reset = reset_handler(req)/body |> json_parse
-        stepped = step_handler({})/body |> json_parse
-        [reset/mode, reset/stats/ants, stepped/mode, stepped/evolve, stepped/stats/ants]
+        reset_response = reset_handler(req)
+        reset = reset_response.body |> json_parse
+        stepped_response = step_handler({})
+        stepped = stepped_response.body |> json_parse
+        reset_stats = reset.stats
+        stepped_stats = stepped.stats
+        [reset.mode, reset_stats.ants, stepped.mode, stepped.evolve, stepped_stats.ants]
         """
     )
 

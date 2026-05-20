@@ -655,11 +655,11 @@ def test_arch_doc_lowering_invariants_cover_slash_as_ir_binary() -> None:
     arch = read_text("docs/architecture/core-ir-portability.md")
     assert "SLASH" in arch, (
         "docs/architecture/core-ir-portability.md must document that "
-        "named slash access (lhs/name) lowers as IrBinary(op=SLASH)"
+        "canonical dot named access lowers as IrBinary(op=SLASH)"
     )
     assert "not general field-path lookup" in arch, (
         "docs/architecture/core-ir-portability.md must clarify that "
-        "IrBinary(op=SLASH) is named slash access, not field-path lookup"
+        "IrBinary(op=SLASH) is narrow named access, not field-path lookup"
     )
 
 
@@ -682,8 +682,41 @@ def test_authoritative_docs_record_dot_as_canonical_named_access_separator() -> 
         assert "lhs.name" in text or "person.name" in text, (
             f"{relpath} must show the canonical dot named-access source form"
         )
-        assert "legacy" in normalized or "compatibility" in normalized, (
-            f"{relpath} must label slash named access as legacy/compatibility if retained"
+        forbidden_claims = [
+            "legacy lhs/name remains",
+            "legacy `lhs/name` remains",
+            "lhs/name retained",
+            "slash named access is retained",
+            "legacy slash named access is retained",
+            "slash named access as legacy/compatibility",
+            "legacy compatibility lowers to the same",
+        ]
+        for claim in forbidden_claims:
+            assert claim not in normalized, (
+                f"{relpath} must not retain legacy slash named-access compatibility wording: {claim!r}"
+            )
+
+
+def test_semantic_fact_records_slash_named_access_removal() -> None:
+    fact = FACTS.get(CANONICAL_NAMED_ACCESS_SEPARATOR_FACT)
+    assert isinstance(fact, str), (
+        "docs/contract/semantic_facts.json must define "
+        f"{CANONICAL_NAMED_ACCESS_SEPARATOR_FACT!r} so semantic sync can guard "
+        "dot as the only named-access separator"
+    )
+
+    normalized_fact = normalize(fact)
+    for excerpt in [
+        "dot",
+        "canonical",
+        "named-access separator",
+        "slash",
+        "removed",
+        "not general field-path lookup",
+    ]:
+        assert excerpt in normalized_fact, (
+            f"{CANONICAL_NAMED_ACCESS_SEPARATOR_FACT!r} must explicitly mention "
+            f"{excerpt!r}: {fact!r}"
         )
 
 
@@ -940,6 +973,6 @@ def test_rules_doc_8_4_mentions_slash_lowering_form() -> None:
         "GENIA_RULES.md §8.4 must document the SLASH accessor lowering form (IrBinary(op=SLASH))"
     )
     assert "not general field-path lookup" in section, (
-        "GENIA_RULES.md §8.4 must clarify that SLASH lowering is named slash access, "
+        "GENIA_RULES.md §8.4 must clarify that SLASH lowering is narrow named access, "
         "not field-path lookup"
     )

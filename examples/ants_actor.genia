@@ -43,26 +43,26 @@ thd(list) = ([_, _, x, .._]) -> x
 
 coordinator_handler(world, msg, _ctx) =
   (world, ["sense", ant_id], _) -> {
-    ant_value = unwrap_or(ants/ant([0,0],[1,0]), nth(ant_id, ants/world_ants(world)))
-    all_ants = ants/world_ants(world)
-    other_positions = map(ants/ant_pos, append(take(ant_id, all_ants), drop(ant_id + 1, all_ants)))
-    weighted = ants/weighted_candidates(world, ant_value, other_positions)
+    ant_value = unwrap_or(ants.ant([0,0],[1,0]), nth(ant_id, ants.world_ants(world)))
+    all_ants = ants.world_ants(world)
+    other_positions = map(ants.ant_pos, append(take(ant_id, all_ants), drop(ant_id + 1, all_ants)))
+    weighted = ants.weighted_candidates(world, ant_value, other_positions)
     ["reply", world, ["sense_reply", ant_id, ant_value, weighted]]
   } |
   (world, ["move_intent", ant_id, chosen_move], _) -> {
-    ant_value = unwrap_or(ants/ant([0,0],[1,0]), nth(ant_id, ants/world_ants(world)))
-    result = ants/apply_move(world, ant_value, chosen_move)
+    ant_value = unwrap_or(ants.ant([0,0],[1,0]), nth(ant_id, ants.world_ants(world)))
+    result = ants.apply_move(world, ant_value, chosen_move)
     world2 = fst(result)
     ant2 = snd(result)
     tag = thd(result)
-    old_ants = ants/world_ants(world2)
+    old_ants = ants.world_ants(world2)
     new_ants = append(take(ant_id, old_ants), [ant2, ..drop(ant_id + 1, old_ants)])
-    world3 = ants/set_ants(world2, new_ants)
+    world3 = ants.set_ants(world2, new_ants)
     ["reply", world3, ["move_result", ant_id, tag]]
   } |
   (world, ["evolve"], _) -> {
-    evaporated = ants/evaporate(world)
-    world2 = ants/set_tick(evaporated, ants/world_tick(evaporated) + 1)
+    evaporated = ants.evaporate(world)
+    world2 = ants.set_tick(evaporated, ants.world_tick(evaporated) + 1)
     ["ok", world2]
   } |
   (world, ["snapshot"], _) -> ["reply", world, ["snapshot_reply", world]] |
@@ -72,7 +72,7 @@ coordinator_handler(world, msg, _ctx) =
 # Ant decision: stateless, reuses pure scoring logic
 # ─────────────────────────────────────────────
 
-ant_pick_move(rng_state, weighted) = ants/pick_weighted(rng_state, weighted)
+ant_pick_move(rng_state, weighted) = ants.pick_weighted(rng_state, weighted)
 
 # Run one ant's sense-then-move cycle through the coordinator.
 ant_turn(ant_id, coord, rng_state) = {
@@ -124,7 +124,7 @@ run_tick_ant(coord, ant_rngs, i, new_rngs_rev) =
 
 run_actor_sim(world, tick_count) = {
   coord = actor(world, coordinator_handler)
-  rng_split = split_rng(ants/world_rng(world), length(ants/world_ants(world)))
+  rng_split = split_rng(ants.world_rng(world), length(ants.world_ants(world)))
   master_rng = fst(rng_split)
   ant_rngs = snd(rng_split)
   run_actor_loop(coord, ant_rngs, master_rng, tick_count)
@@ -147,7 +147,7 @@ snapshot_world(reply) =
 
 actor_session(world) = {
   coord = actor(world, coordinator_handler)
-  rng_split = split_rng(ants/world_rng(world), length(ants/world_ants(world)))
+  rng_split = split_rng(ants.world_rng(world), length(ants.world_ants(world)))
   {coord: coord, ant_rngs: snd(rng_split)}
 }
 
@@ -173,16 +173,16 @@ actor_session_stop(session) = {
 # ─────────────────────────────────────────────
 
 world_summary(world) = [
-  ants/world_tick(world),
-  ants/world_delivered(world),
-  ants/total_food(world),
-  length(ants/world_ants(world))
+  ants.world_tick(world),
+  ants.world_delivered(world),
+  ants.total_food(world),
+  length(ants.world_ants(world))
 ]
 
 collect_actor_summaries(seed_value, ant_total, tick_count) = {
-  world = ants/new_world(seed_value, ant_total, default_width(), default_height())
+  world = ants.new_world(seed_value, ant_total, default_width(), default_height())
   coord = actor(world, coordinator_handler)
-  rng_split = split_rng(ants/world_rng(world), ant_total)
+  rng_split = split_rng(ants.world_rng(world), ant_total)
   master_rng = fst(rng_split)
   ant_rngs = snd(rng_split)
   collect_loop(coord, ant_rngs, master_rng, tick_count, [])
@@ -210,7 +210,7 @@ collect_loop(coord, ant_rngs, master_rng, ticks_left, summaries_rev) =
 
 simulate_actor(world, ticks_left, delay_ms) = {
   coord = actor(world, coordinator_handler)
-  rng_split = split_rng(ants/world_rng(world), length(ants/world_ants(world)))
+  rng_split = split_rng(ants.world_rng(world), length(ants.world_ants(world)))
   ant_rngs = snd(rng_split)
   sim_loop(coord, ant_rngs, ticks_left, delay_ms)
 }
@@ -224,7 +224,7 @@ sim_loop(coord, ant_rngs, ticks_left, delay_ms) =
     snap = actor_call(coord, ["snapshot"])
     w = snapshot_world(snap)
     print("-----")
-    ants/draw_frame(w, ticks_left)
+    ants.draw_frame(w, ticks_left)
     sleep(delay_ms)
     new_ant_rngs = run_tick_ants(coord, ant_rngs)
     actor_call(coord, ["evolve"])
@@ -248,7 +248,7 @@ seed_arg(args) = seed_from_parsed(
 
 main() = main([])
 main(args) = simulate_actor(
-  ants/new_world(seed_arg(args), default_ant_count(), default_width(), default_height()),
+  ants.new_world(seed_arg(args), default_ant_count(), default_width(), default_height()),
   default_tick_count(),
   default_delay_ms()
 )
