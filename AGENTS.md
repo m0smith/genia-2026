@@ -359,6 +359,8 @@ Agents MUST NOT:
 - perform repo-wide renames in a single pass
 - redefine language behavior inside host adapters
 
+Parking-lot documents are non-authoritative idea capture only. They must not be treated as implemented behavior or source-of-truth language semantics.
+
 ---
 
 # 🔁 RENAME SAFETY RULE
