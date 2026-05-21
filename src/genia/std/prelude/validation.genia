@@ -11,6 +11,24 @@
 * `err("missing required field", context)` when the field is absent"""
 validate_required(field, record) = _validate_required(field, record)
 
+@doc """Validate an optional record field and return an Outcome.
+
+## Arguments
+
+* `field`: optional field name to validate
+* `record`: map record that may include the field
+* `validator`: optional callable checked with the field value
+
+## Returns
+
+* `none({field: field, reason: quote(missing_optional_field)})` when the field is absent
+* `some(value, {field: field})` when the field is present and no validator is supplied
+* the validator's `some(...)` or `err(...)` unchanged when supplied
+* `err(quote(optional_field_validator_returned_none), context)` when a present field validator returns `none(...)`"""
+validate_optional(field, record) = _validate_optional(field, record)
+
+validate_optional(field, record, validator) = _validate_optional(field, record, validator)
+
 @doc """Validate a record field with a predicate and return an Outcome.
 
 ## Arguments

@@ -2112,6 +2112,36 @@ def make_global_env(
     def _is_validation_callable(value: Any) -> bool:
         return isinstance(value, (GeniaFunctionGroup, GeniaMap, str)) or callable(value)
 
+    def validate_optional_fn(*args: Any) -> Any:
+        if len(args) not in (2, 3):
+            raise TypeError(f"validate_optional expected 2 or 3 arguments, got {len(args)}")
+
+        field, record = args[0], args[1]
+        validator = args[2] if len(args) == 3 else _UNSET
+
+        record_map = _validate_record_map(record, "validate_optional")
+        if validator is not _UNSET and not _is_validation_callable(validator):
+            raise TypeError("validate_optional expected validator to be callable")
+
+        if not record_map.has(field):
+            reason = GeniaMap().put("field", field).put("reason", symbol("missing_optional_field"))
+            return GeniaOptionNone(reason)
+
+        value = record_map.get(field)
+        if validator is _UNSET:
+            return GeniaOptionSome(value, GeniaMap().put("field", field))
+
+        result = _invoke_raw_from_builtin(validator, [value])
+        if isinstance(result, (GeniaOptionSome, GeniaOptionErr)):
+            return result
+        if isinstance(result, GeniaOptionNone):
+            context = GeniaMap().put("field", field).put("validator_result", result)
+            return GeniaOptionErr(symbol("optional_field_validator_returned_none"), context)
+        raise TypeError(
+            "validate_optional validator must return an Outcome, "
+            f"received {_runtime_type_name(result)}"
+        )
+
     def validate_field_fn(field: Any, predicate: Any, expected: Any, record: Any) -> Any:
         if not _is_validation_callable(predicate):
             raise TypeError("validate_field expected predicate to be callable")
@@ -3213,6 +3243,7 @@ def make_global_env(
     env.set("_map_items", map_items_fn)
     env.set("_pairs_error", pairs_error_fn)
     env.set("_validate_required", validate_required_fn)
+    env.set("_validate_optional", validate_optional_fn)
     env.set("_validate_field", validate_field_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
@@ -3354,6 +3385,8 @@ def make_global_env(
     env.register_autoload("map_values", 1, "std/prelude/map.genia")
     env.register_autoload("pairs", 2, "std/prelude/map.genia")
     env.register_autoload("validate_required", 2, "std/prelude/validation.genia")
+    env.register_autoload("validate_optional", 2, "std/prelude/validation.genia")
+    env.register_autoload("validate_optional", 3, "std/prelude/validation.genia")
     env.register_autoload("validate_field", 4, "std/prelude/validation.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand_flow", 1, "std/prelude/random.genia")

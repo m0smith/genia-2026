@@ -324,6 +324,11 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Validation helper results are ordinary Outcome values over ordinary map records:
   - `validate_required(field, record)` returns `some(record)` when `record` has `field`, otherwise `err("missing required field", {row: ...?, field: field, reason: "missing required field"})`
   - `validate_field(field, predicate, expected, record)` returns `some(record)` when the field exists and `predicate(value) == true`, otherwise a recoverable diagnostic `err(...)`; non-callable predicates remain runtime errors
+  - `validate_optional(field, record)` and `validate_optional(field, record, validator)` validate optional record fields (**Experimental**):
+    - missing field returns `none({field: field, reason: quote(missing_optional_field)})`
+    - present field with no validator returns `some(value, {field: field})`
+    - present field with validator: `some(...)` and `err(...)` results are preserved unchanged; `none(...)` result is normalized to `err(quote(optional_field_validator_returned_none), {field: field, validator_result: result})`
+    - non-map record, non-callable validator, and validator returning non-Outcome are runtime errors
 - `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
   - accepts a list or Flow (Seq-compatible source)
   - every item must be an Outcome; non-Outcome items raise a runtime `TypeError`
@@ -476,7 +481,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public validation helper names `validate_required` and `validate_field` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
+- public validation helper names `validate_required`, `validate_field`, and `validate_optional` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
