@@ -173,7 +173,7 @@ CLI contract summary (actual behavior):
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
   - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-  - includes public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`
+  - includes public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`, `validate_optional`
   - includes public Python-host-only ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - includes public Python-host-only process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
@@ -220,6 +220,7 @@ CLI contract summary (actual behavior):
   - Python-host-only process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`
   - minimal record validation helpers are exposed publicly through prelude-backed wrappers: `validate_required(field, record)` and `validate_field(field, predicate, expected, record)` return `some(record)` for valid map records and recoverable `err(...)` diagnostics for missing/invalid fields; non-callable predicates remain runtime errors
+  - `validate_optional(field, record[, validator])` validates optional record fields (**Experimental**): missing field returns `none({field: field, reason: quote(missing_optional_field)})`; present field with no validator returns `some(value, {field: field})`; present field with validator preserves `some(...)` and `err(...)` unchanged and normalizes validator `none(...)` to `err(quote(optional_field_validator_returned_none), ...)`; non-map record, non-callable validator, and validator returning non-Outcome are runtime errors
   - `collect_validated(results)` is a host-backed terminal builtin (Experimental, issue #383) that accepts a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; `some(value)` contributes `value` to clean; `none(...)` and `err(...)` produce structured diagnostics with `index`, `kind` (`quote(skipped)` or `quote(error)`), `reason`, and `context`; does not create Sheets or change Outcome semantics
   - `pairs(xs, ys)` is a pure Genia prelude function (not host-backed): zips two lists into `[[x, y], ...]` bounded by the shorter input; raises `TypeError` on non-list arguments
   - phase-2 primitive option model runtime:
