@@ -1,0 +1,18 @@
+name: collect-validated-mixed-some-none-err
+category: eval
+description: collect_validated separates clean values from skipped and error diagnostics
+input:
+  source: |
+    collect_validated([
+      some({id: 1, name: "Ann"}),
+      none("inactive", {id: 2}),
+      err("missing-name", {id: 3}),
+      some({id: 4, name: "Cara"})
+    ])
+expected:
+  stdout: "{clean: [{id: 1, name: \"Ann\"}, {id: 4, name: \"Cara\"}], diagnostics: [{index: 1, kind: skipped, reason: \"inactive\", context: some({id: 2})}, {index: 2, kind: error, reason: \"missing-name\", context: some({id: 3})}]}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: none(...) produces skipped diagnostics and err(...) produces error diagnostics.

@@ -1,0 +1,16 @@
+name: collect-validated-all-clean
+category: eval
+description: collect_validated extracts all some values as clean records
+input:
+  source: |
+    collect_validated([
+      some({id: 1, name: "Ann"}),
+      some({id: 2, name: "Bo"})
+    ])
+expected:
+  stdout: "{clean: [{id: 1, name: \"Ann\"}, {id: 2, name: \"Bo\"}], diagnostics: []}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: some(value) contributes value to clean and emits no diagnostic.

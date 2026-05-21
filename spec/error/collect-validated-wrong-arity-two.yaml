@@ -1,0 +1,13 @@
+name: collect-validated-wrong-arity-two
+category: error
+description: collect_validated rejects extra arguments through standard arity handling
+input:
+  source: |
+    collect_validated([], [])
+expected:
+  stdout: ""
+  stderr: "Error: No matching function: collect_validated/2. Available: collect_validated/1\n"
+  exit_code: 1
+notes: |
+  issue: 383
+  contract: collect_validated has arity one.

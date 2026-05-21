@@ -1,0 +1,15 @@
+name: collect-validated-some-context-ignored
+category: eval
+description: collect_validated ignores context on accepted some values
+input:
+  source: |
+    collect_validated([
+      some({id: 1, status: "ok"}, {line: 10})
+    ])
+expected:
+  stdout: "{clean: [{id: 1, status: \"ok\"}], diagnostics: []}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: some(value, context) contributes only value to clean in this first version.
