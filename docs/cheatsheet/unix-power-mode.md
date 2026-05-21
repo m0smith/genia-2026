@@ -45,7 +45,7 @@ Flow rules:
 - `map` and `filter` are polymorphic: they work on both lists and flows.
 - Pipe mode is only for stage expressions that still produce a Flow.
 - Raw values stay values, flows stay flows, only explicit bridges cross.
-- Minimal validation helpers return `some(record)` for valid map records and recoverable `err(...)` diagnostics for missing or invalid fields. Use `collect_validated(results)` (Experimental) to collect a finite list or Flow of Outcome items into `{clean: [...], diagnostics: [...]}` for multi-record report collection.
+- Minimal validation helpers return `some(record)` for valid map records and recoverable `err(...)` diagnostics for missing or invalid fields. Validation `field` arguments may be flat names or simple dot-joined nested paths such as `"patient.name"` for helper lookup and diagnostic metadata only. Use `collect_validated(results)` (Experimental) to collect a finite list or Flow of Outcome items into `{clean: [...], diagnostics: [...]}` for multi-record report collection.
 - See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matrix.
 
 ## Working Commands
