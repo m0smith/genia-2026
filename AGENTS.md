@@ -139,6 +139,26 @@ Prefer references over duplicated semantic rules.
 
 ---
 
+## Product Priority
+
+Before proposing or implementing new feature work, read:
+- `docs/strategy/killer-workflow.md`
+
+Prefer work that strengthens Genia's first killer workflow:
+**Outcome-aware validated data pipelines.**
+
+```
+messy records in → clear pipelines → validated shaped output / reports + useful diagnostics
+```
+
+If a proposed change does not support that workflow, treat it as parking-lot/future work
+unless explicitly approved.
+
+The strategy doc is a prioritization guide, not a language contract.
+`GENIA_STATE.md` remains the final authority for implemented behavior.
+
+---
+
 ## Non-Negotiable Rule (CRITICAL)
 
 > Any change to language behavior, syntax, runtime semantics, parser rules, or examples MUST also update:

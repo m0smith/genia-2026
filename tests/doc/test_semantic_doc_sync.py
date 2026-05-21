@@ -958,6 +958,57 @@ def test_genia_state_records_capability_registry_exists() -> None:
     )
 
 
+# --- Killer workflow alignment doc-sync tests ---
+
+
+def test_agents_references_killer_workflow_strategy_doc() -> None:
+    text = read_text("AGENTS.md")
+    assert "docs/strategy/killer-workflow.md" in text, (
+        "AGENTS.md must reference docs/strategy/killer-workflow.md"
+    )
+
+
+def test_llm_contract_references_killer_workflow_strategy_doc() -> None:
+    text = read_text("docs/ai/LLM_CONTRACT.md")
+    assert "docs/strategy/killer-workflow.md" in text, (
+        "docs/ai/LLM_CONTRACT.md must reference docs/strategy/killer-workflow.md"
+    )
+
+
+def test_killer_workflow_strategy_doc_is_not_implemented_behavior() -> None:
+    text = read_text("docs/strategy/killer-workflow.md")
+    assert "does not define implemented" in text, (
+        "docs/strategy/killer-workflow.md must clearly state it does not define implemented behavior"
+    )
+    assert "GENIA_STATE.md" in text, (
+        "docs/strategy/killer-workflow.md must reference GENIA_STATE.md as final authority"
+    )
+
+
+def test_preflight_template_includes_killer_workflow_alignment() -> None:
+    text = read_text("docs/process/00-preflight.md")
+    assert "killer workflow" in text.lower() or "KILLER WORKFLOW" in text, (
+        "docs/process/00-preflight.md must include a Killer Workflow Alignment check"
+    )
+    assert "Outcome-aware validated data pipelines" in text, (
+        "docs/process/00-preflight.md must mention Outcome-aware validated data pipelines"
+    )
+
+
+def test_planner_agent_references_killer_workflow_strategy_doc() -> None:
+    text = read_text(".github/agents/planner.agent.md")
+    assert "docs/strategy/killer-workflow.md" in text, (
+        ".github/agents/planner.agent.md must reference docs/strategy/killer-workflow.md"
+    )
+
+
+def test_audit_template_includes_killer_workflow_drift_check() -> None:
+    text = read_text("docs/process/06-audit.md")
+    assert "KILLER WORKFLOW DRIFT CHECK" in text, (
+        "docs/process/06-audit.md must include the 'KILLER WORKFLOW DRIFT CHECK' section header"
+    )
+
+
 def test_rules_doc_8_4_mentions_slash_lowering_form() -> None:
     rules = read_text("GENIA_RULES.md")
     marker = "§8.4"

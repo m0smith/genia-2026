@@ -79,6 +79,7 @@ echo "Next prompt:"
 echo
 cat <<EOF
 Follow docs/process/00-preflight.md.
+Read docs/strategy/killer-workflow.md before finalizing scope.
 
 CHANGE NAME: issue #${ISSUE} ${SLUG}
 CHANGE SLUG: ${CHANGE_SLUG}

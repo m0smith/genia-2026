@@ -176,6 +176,32 @@ Notes:
 
 ---
 
+KILLER WORKFLOW ALIGNMENT
+
+Does this change directly strengthen Outcome-aware validated data pipelines?
+
+[ ] Yes
+[ ] Indirectly
+[ ] No
+
+If yes or indirectly, explain how it improves at least one:
+- Flow / Seq
+- Outcome
+- record parsing
+- validation
+- diagnostics
+- Sheets
+- CLI data processing
+- value templates for validation/contracts/shapes
+
+If no:
+- Should this be parking-lot instead?
+- Why is it still worth doing now?
+
+Reference: docs/strategy/killer-workflow.md
+
+---
+
 11. PROMPT PLAN
 
 Pipeline:
