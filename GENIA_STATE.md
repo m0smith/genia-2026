@@ -320,6 +320,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - map literals and `map_*` builtins produce the same runtime map value family
   - map values are persistent and opaque at runtime (`<map N>`)
 - Sheet — immutable, columnar, named-column value (**Experimental**)
+- Validation helper results are ordinary Outcome values over ordinary map records:
+  - `validate_required(field, record)` returns `some(record)` when `record` has `field`, otherwise `err("missing required field", {row: ...?, field: field, reason: "missing required field"})`
+  - `validate_field(field, predicate, expected, record)` returns `some(record)` when the field exists and `predicate(value) == true`, otherwise a recoverable diagnostic `err(...)`; non-callable predicates remain runtime errors
 
 ### Function / module values
 
@@ -461,6 +464,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
+- public validation helper names `validate_required` and `validate_field` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
 - limited Python host interop is implemented in this phase:
@@ -1640,6 +1644,33 @@ Behavior:
 - tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
 - invalid map arguments and unsupported key types raise clear `TypeError`
 
+### Record validation helpers (Phase 1 minimal Outcome-aware data pipeline surface)
+
+- public validation helpers are exposed from `src/genia/std/prelude/validation.genia`
+  - `validate_required(field, record)`
+  - `validate_field(field, predicate, expected, record)`
+  - the helpers operate on one map record at a time; no schema DSL, Sheet behavior, Flow collector, or report helper is introduced in this phase
+  - the helpers use existing Outcome values: valid records return `some(record)`, and recoverable user-data problems return `err(reason, context)`
+
+Behavior:
+
+- `validate_required(field, record)`:
+  - requires `record` to be a map
+  - returns `some(record)` when `record` contains `field`
+  - returns `err("missing required field", context)` when `field` is absent
+- `validate_field(field, predicate, expected, record)`:
+  - requires `predicate` to be callable; non-callable predicates raise `TypeError("validate_field expected predicate to be callable")`
+  - requires `record` to be a map
+  - returns `err("missing required field", context)` when `field` is absent
+  - calls `predicate(value)` with raw callback invocation when the field is present
+  - returns `some(record)` only when the predicate result is exactly `true`
+  - returns `err("invalid field", context)` when the predicate result is not exactly `true`
+- missing-field diagnostic context includes `row` when the record has a `row` field, plus `field` and `reason`
+- invalid-field diagnostic context includes `row` when present, plus `field`, `expected`, `actual`, and `reason`
+- runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
+- shared specs currently cover valid-record, missing-required-field, invalid-field, and non-callable-predicate misuse cases only
+- multi-record splitting/collection, summary reports, optional-field semantics, nested field paths, and Sheet integration are not implemented by these helpers
+
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 
 - option values:
@@ -2006,6 +2037,7 @@ Notable autoloaded functions include:
   - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit for arguments delivered to `f`; `apply_raw` itself is subject to normal none-propagation on its own two arguments (`apply_raw(f, none("x"))` short-circuits before `apply_raw` runs); `args` must be a list or `TypeError` is raised; return value of `f` is returned as-is with no coercion; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
+- validation: `validate_required`, `validate_field`
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`

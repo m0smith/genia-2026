@@ -1,0 +1,14 @@
+name: validated-pipeline-missing-required-field
+category: eval
+description: Missing required record field is represented as a recoverable diagnostic Outcome
+input:
+  source: |
+    validate_required("age", {row: 2, name: "Linus"})
+expected:
+  stdout: "err(\"missing required field\", {row: 2, field: \"age\", reason: \"missing required field\"})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 375
+  helper_surface: validate_required(field, record)
+  contract: missing required user data is recoverable err data with row, field, and reason context.

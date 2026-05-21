@@ -173,6 +173,7 @@ CLI contract summary (actual behavior):
 - autoloaded stdlib functions keyed by `(name, arity)`
   - includes list transforms/helpers such as `reduce`, `map`, `filter`, `first`, `last`, `nth`, `find_opt`, and `range`
   - includes public map helpers from `src/genia/std/prelude/map.genia`: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
+  - includes public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`
   - includes public Python-host-only ref helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - includes public Python-host-only process helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`
   - includes public output sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
@@ -218,6 +219,7 @@ CLI contract summary (actual behavior):
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
   - Python-host-only process runtime helpers are exposed publicly through prelude-backed wrappers: `spawn`, `send`, `process_alive?`
   - phase-1 persistent associative map helpers are exposed publicly through prelude-backed wrappers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`
+  - minimal record validation helpers are exposed publicly through prelude-backed wrappers: `validate_required(field, record)` and `validate_field(field, predicate, expected, record)` return `some(record)` for valid map records and recoverable `err(...)` diagnostics for missing/invalid fields; non-callable predicates remain runtime errors
   - `pairs(xs, ys)` is a pure Genia prelude function (not host-backed): zips two lists into `[[x, y], ...]` bounded by the shorter input; raises `TypeError` on non-list arguments
   - phase-2 primitive option model runtime:
     - `none` remains a runtime literal/value

@@ -34,6 +34,7 @@ For example, `examples/ants_terminal.genia` accepts `--seed`, `--ants`, `--steps
 | side effects | `each(print)`, `each(log)` |
 | materialize | `collect` |
 | maybe-safe parse | `parse_int`, `flat_map_some`, `unwrap_or` |
+| record validation | `validate_required`, `validate_field` for one map record at a time |
 | numeric aggregate | `keep_some(...) |> collect |> sum` or `map((x) -> unwrap_or(...)) |> collect |> sum` |
 
 Flow rules:
@@ -43,6 +44,7 @@ Flow rules:
 - `map` and `filter` are polymorphic: they work on both lists and flows.
 - Pipe mode is only for stage expressions that still produce a Flow.
 - Raw values stay values, flows stay flows, only explicit bridges cross.
+- Minimal validation helpers return `some(record)` for valid map records and recoverable `err(...)` diagnostics for missing or invalid fields; multi-record report collection is not a built-in helper in this phase.
 - See `docs/cheatsheet/piepline-flow-vs-value.md` for the full classification matrix.
 
 ## Working Commands
