@@ -1,0 +1,13 @@
+name: collect-validated-non-seq-source-error
+category: error
+description: collect_validated rejects scalar non-Seq-compatible sources
+input:
+  source: |
+    collect_validated(42)
+expected:
+  stdout: ""
+  stderr: "Error: collect_validated expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1
+notes: |
+  issue: 383
+  contract: programmer misuse of the source shape remains a runtime error.

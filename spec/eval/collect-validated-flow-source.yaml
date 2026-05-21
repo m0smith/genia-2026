@@ -1,0 +1,17 @@
+name: collect-validated-flow-source
+category: eval
+description: collect_validated accepts a Flow source through Seq-compatible source behavior
+input:
+  source: |
+    evolve(0, (n) -> n + 1)
+      |> take(3)
+      |> map((n) -> some(n))
+      |> collect_validated
+expected:
+  stdout: "{clean: [0, 1, 2], diagnostics: []}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: collect_validated is terminal and consumes finite Flow sources accepted by Seq-compatible helpers.
+  fixture_note: covered as eval because current flow fixture validation recognizes collect/run/reduce terminals only.

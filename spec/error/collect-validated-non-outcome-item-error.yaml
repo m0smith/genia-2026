@@ -1,0 +1,13 @@
+name: collect-validated-non-outcome-item-error
+category: error
+description: collect_validated rejects non-Outcome items with the source index
+input:
+  source: |
+    collect_validated([some(1), 2])
+expected:
+  stdout: ""
+  stderr: "Error: collect_validated expected Outcome items, received int at index 1\n"
+  exit_code: 1
+notes: |
+  issue: 383
+  contract: raw records must be wrapped by validation as Outcome values.

@@ -1,0 +1,13 @@
+name: collect-validated-wrong-arity-zero
+category: error
+description: collect_validated rejects missing arguments through standard arity handling
+input:
+  source: |
+    collect_validated()
+expected:
+  stdout: ""
+  stderr: "Error: No matching function: collect_validated/0. Available: collect_validated/1\n"
+  exit_code: 1
+notes: |
+  issue: 383
+  contract: collect_validated has arity one.

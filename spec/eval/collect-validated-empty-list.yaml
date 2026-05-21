@@ -1,0 +1,13 @@
+name: collect-validated-empty-list
+category: eval
+description: collect_validated returns empty clean and diagnostics lists for an empty source
+input:
+  source: |
+    collect_validated([])
+expected:
+  stdout: "{clean: [], diagnostics: []}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: empty Seq-compatible sources produce empty clean and diagnostics collections.

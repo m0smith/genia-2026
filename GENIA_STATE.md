@@ -147,6 +147,7 @@ PYTHON REFERENCE HOST:
   - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, glob, and named reusable pattern forms)
   - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `first` given a Flow, `reduce` given a non-Seq-compatible value (int, string)
   - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
+  - `collect_validated/1` behavior: empty source, all-clean, mixed `some`/`none`/`err`, `some` context ignored on clean path, bare `none`, `err` without context, and Flow-compatible source (Experimental; initial coverage only)
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
 - Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
@@ -323,6 +324,17 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - Validation helper results are ordinary Outcome values over ordinary map records:
   - `validate_required(field, record)` returns `some(record)` when `record` has `field`, otherwise `err("missing required field", {row: ...?, field: field, reason: "missing required field"})`
   - `validate_field(field, predicate, expected, record)` returns `some(record)` when the field exists and `predicate(value) == true`, otherwise a recoverable diagnostic `err(...)`; non-callable predicates remain runtime errors
+- `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
+  - accepts a list or Flow (Seq-compatible source)
+  - every item must be an Outcome; non-Outcome items raise a runtime `TypeError`
+  - `some(value)` and `some(value, context)` append `value` to `clean`; `some` context is ignored in this first version
+  - `none(...)` appends a diagnostic with `kind: quote(skipped)`
+  - `err(...)` appends a diagnostic with `kind: quote(error)`
+  - diagnostics have `index` (zero-based source position), `kind` (symbol), `reason`, and `context` (`some(ctx)` when present or `none("nil")` when absent)
+  - result shape: `{clean: [...], diagnostics: [...]}`
+  - does not create Sheets
+  - does not change Outcome semantics or pipeline short-circuit behavior
+  - does not change `keep_some` or existing validation helpers
 
 ### Function / module values
 
@@ -465,6 +477,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public validation helper names `validate_required` and `validate_field` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
+- `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
 - limited Python host interop is implemented in this phase:
@@ -1671,6 +1684,29 @@ Behavior:
 - shared specs currently cover valid-record, missing-required-field, invalid-field, and non-callable-predicate misuse cases only
 - multi-record splitting/collection, summary reports, optional-field semantics, nested field paths, and Sheet integration are not implemented by these helpers
 
+### collect_validated helper (**Experimental**, issue #383)
+
+- public name: `collect_validated/1`
+- registered as a host-backed builtin in `src/genia/builtins.py`
+- accepts a Seq-compatible source: list or Flow
+  - non-list/non-Flow input raises a runtime error
+- every item produced by the source must be an Outcome value; non-Outcome items raise `TypeError("collect_validated expected Outcome items, received <type> at index <n>")`
+- `some(value)` and `some(value, context)` append `value` to the `clean` list; the `some` context is ignored in this first version
+- `none(...)` appends a diagnostic with `kind: quote(skipped)`
+- `err(...)` appends a diagnostic with `kind: quote(error)`
+- diagnostic shape:
+  ```
+  {index: n, kind: quote(skipped) | quote(error), reason: reason, context: some(ctx) | none("nil")}
+  ```
+  - `index` is the zero-based source item position
+  - `context` is `some(ctx)` when the Outcome carried a context, or `none("nil")` when absent
+- result shape: `{clean: [...], diagnostics: [...]}`
+- does not create Sheets; Sheet conversion is explicitly deferred
+- does not change Outcome semantics, pipeline short-circuit behavior, `keep_some`, or existing validation helpers
+- `collect_validated` is terminal: it consumes the entire finite source to produce complete output; infinite Flow sources must be bounded before calling `collect_validated`
+- error shared specs cover wrong arity (0 args, 2 args), non-Seq source, and non-Outcome item cases
+- eval shared specs cover empty source, all clean, mixed `some`/`none`/`err`, `some` context ignored, bare `none`, `err` without context, and Flow-compatible source
+
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 
 - option values:
@@ -2037,7 +2073,7 @@ Notable autoloaded functions include:
   - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit for arguments delivered to `f`; `apply_raw` itself is subject to normal none-propagation on its own two arguments (`apply_raw(f, none("x"))` short-circuits before `apply_raw` runs); `args` must be a list or `TypeError` is raised; return value of `f` is returned as-is with no coercion; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- validation: `validate_required`, `validate_field`
+- validation: `validate_required`, `validate_field`; `collect_validated` (host-backed builtin, Experimental)
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`

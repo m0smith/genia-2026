@@ -1,0 +1,13 @@
+name: collect-validated-err-without-context
+category: eval
+description: collect_validated wraps missing err context as none("nil")
+input:
+  source: |
+    collect_validated([err("bad-row")])
+expected:
+  stdout: "{clean: [], diagnostics: [{index: 0, kind: error, reason: \"bad-row\", context: none(\"nil\")}]}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: err(reason) produces an error diagnostic with missing context represented as none("nil").

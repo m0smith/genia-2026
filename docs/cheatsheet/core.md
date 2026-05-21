@@ -67,12 +67,21 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | option chaining | `map_some(f, opt)`, `flat_map_some(f, opt)` |
 | chain helpers | `then_get(key, target)`, `then_first(target)`, `then_nth(index, target)`, `then_find(needle, target)` |
 | record validation | `validate_required(field, record)`, `validate_field(field, predicate, expected, record)` |
+| pipeline collection | `collect_validated(results)` — **Experimental** |
 | recovery | `unwrap_or(default, opt)`, `or_else(opt, fallback)`, `or_else_with(opt, thunk)` |
 | metadata | `absence_reason(opt)`, `absence_context(opt)`, `absence_meta(opt)` |
 
 Outcome values distinguish successful presence (`some(value)`), successful absence (`none(...)`), and recoverable failure (`err(...)`). In pipelines, `none(...)` and `err(...)` short-circuit ordinary stages; err(...) is not converted to `none(...)`.
 
 `validate_required` and `validate_field` are one-record map helpers for minimal Outcome-aware validation. Valid records return `some(record)`; missing or invalid fields return recoverable `err(...)` diagnostics. Non-callable predicates remain runtime errors.
+
+`collect_validated(results)` (**Experimental**) is an explicit terminal helper for Outcome-aware validated pipelines. It accepts a list or Flow of Outcome items and returns `{clean: [...], diagnostics: [...]}`. `some(value)` contributes `value` to clean; `none(...)` produces a diagnostic with `kind: quote(skipped)`; `err(...)` produces a diagnostic with `kind: quote(error)`. Diagnostics include `index`, `kind`, `reason`, and `context` (`some(ctx)` or `none("nil")`). Does not create Sheets. Does not change Outcome semantics, pipeline short-circuit behavior, or existing helpers. Infinite Flow sources must be bounded before calling `collect_validated`.
+
+<!-- [case: core-collect-validated-all-clean] -->
+```genia
+collect_validated([some(1), some(2)])
+```
+Classification: **Valid** (directly tested, Experimental)
 
 ## Representation
 

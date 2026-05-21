@@ -1,0 +1,13 @@
+name: collect-validated-bare-none
+category: eval
+description: collect_validated reports bare none as a skipped diagnostic
+input:
+  source: |
+    collect_validated([none])
+expected:
+  stdout: "{clean: [], diagnostics: [{index: 0, kind: skipped, reason: \"nil\", context: none(\"nil\")}]}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 383
+  contract: bare none follows current normalization to none("nil") for diagnostic reason and missing context.
