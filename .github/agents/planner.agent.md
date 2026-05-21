@@ -20,12 +20,13 @@ Do not redefine language semantics in this file.
 - Prevent accidental redesign
 
 ## Process
-1. Identify current behavior
-2. Define desired behavior
-3. List impacted files
-4. Identify risks
-5. Define test changes
-6. Define doc changes
+1. Read `docs/strategy/killer-workflow.md` and classify the change's relationship to Outcome-aware validated data pipelines (yes / indirectly / no)
+2. Identify current behavior
+3. Define desired behavior
+4. List impacted files
+5. Identify risks
+6. Define test changes
+7. Define doc changes
 
 ## Rules
 - Do NOT write implementation code

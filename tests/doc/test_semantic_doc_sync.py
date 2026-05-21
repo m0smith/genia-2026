@@ -995,6 +995,13 @@ def test_preflight_template_includes_killer_workflow_alignment() -> None:
     )
 
 
+def test_planner_agent_references_killer_workflow_strategy_doc() -> None:
+    text = read_text(".github/agents/planner.agent.md")
+    assert "docs/strategy/killer-workflow.md" in text, (
+        ".github/agents/planner.agent.md must reference docs/strategy/killer-workflow.md"
+    )
+
+
 def test_audit_template_includes_killer_workflow_drift_check() -> None:
     text = read_text("docs/process/06-audit.md")
     assert "KILLER WORKFLOW DRIFT CHECK" in text, (
