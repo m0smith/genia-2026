@@ -1,0 +1,32 @@
+@doc """Require a record field and return an Outcome.
+
+## Arguments
+
+* `field`: field name to require
+* `record`: map record that may include `row`
+
+## Returns
+
+* `some(record)` when the field is present
+* `err("missing required field", context)` when the field is absent"""
+validate_required(field, record) = _validate_required(field, record)
+
+@doc """Validate a record field with a predicate and return an Outcome.
+
+## Arguments
+
+* `field`: field name to validate
+* `predicate`: callable checked with the field value
+* `expected`: description of the expected condition
+* `record`: map record that may include `row`
+
+## Returns
+
+* `some(record)` when the field is present and the predicate returns `true`
+* `err("missing required field", context)` when the field is absent
+* `err("invalid field", context)` when the predicate does not return `true`
+
+## Errors
+
+* raises when `predicate` is not callable"""
+validate_field(field, predicate, expected, record) = _validate_field(field, predicate, expected, record)

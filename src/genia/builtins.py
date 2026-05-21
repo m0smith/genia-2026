@@ -2038,6 +2038,51 @@ def make_global_env(
             raise TypeError(f"pairs expected a list as second argument, received {_runtime_type_name(value)}")
         raise TypeError("pairs internal error expected argument position 'first' or 'second'")
 
+    def _validate_record_map(record: Any, name: str) -> GeniaMap:
+        if not isinstance(record, GeniaMap):
+            raise TypeError(f"{name} expected a record map, received {_runtime_type_name(record)}")
+        return record
+
+    def _validate_diagnostic_context(record: GeniaMap, field: Any, reason: str) -> GeniaMap:
+        context = GeniaMap()
+        if record.has("row"):
+            context = context.put("row", record.get("row"))
+        return context.put("field", field).put("reason", reason)
+
+    def validate_required_fn(field: Any, record: Any) -> Any:
+        record_map = _validate_record_map(record, "validate_required")
+        if record_map.has(field):
+            return GeniaOptionSome(record_map)
+        context = _validate_diagnostic_context(record_map, field, "missing required field")
+        return GeniaOptionErr("missing required field", context)
+
+    def _is_validation_callable(value: Any) -> bool:
+        return isinstance(value, (GeniaFunctionGroup, GeniaMap, str)) or callable(value)
+
+    def validate_field_fn(field: Any, predicate: Any, expected: Any, record: Any) -> Any:
+        if not _is_validation_callable(predicate):
+            raise TypeError("validate_field expected predicate to be callable")
+
+        record_map = _validate_record_map(record, "validate_field")
+        if not record_map.has(field):
+            context = _validate_diagnostic_context(record_map, field, "missing required field")
+            return GeniaOptionErr("missing required field", context)
+
+        actual = record_map.get(field)
+        if _invoke_raw_from_builtin(predicate, [actual]) == True:  # noqa: E712
+            return GeniaOptionSome(record_map)
+
+        context = GeniaMap()
+        if record_map.has("row"):
+            context = context.put("row", record_map.get("row"))
+        context = (
+            context.put("field", field)
+            .put("expected", expected)
+            .put("actual", actual)
+            .put("reason", "invalid field")
+        )
+        return GeniaOptionErr("invalid field", context)
+
     def some_fn(*args: Any) -> GeniaOptionSome:
         if len(args) not in (1, 2):
             raise TypeError("some(...) expects 1 or 2 arguments")
@@ -3113,6 +3158,8 @@ def make_global_env(
     env.set("_map_count", map_count_fn)
     env.set("_map_items", map_items_fn)
     env.set("_pairs_error", pairs_error_fn)
+    env.set("_validate_required", validate_required_fn)
+    env.set("_validate_field", validate_field_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
@@ -3252,6 +3299,8 @@ def make_global_env(
     env.register_autoload("map_keys", 1, "std/prelude/map.genia")
     env.register_autoload("map_values", 1, "std/prelude/map.genia")
     env.register_autoload("pairs", 2, "std/prelude/map.genia")
+    env.register_autoload("validate_required", 2, "std/prelude/validation.genia")
+    env.register_autoload("validate_field", 4, "std/prelude/validation.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand_flow", 1, "std/prelude/random.genia")
     env.register_autoload("rand_int_flow", 2, "std/prelude/random.genia")
