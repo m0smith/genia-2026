@@ -1,0 +1,14 @@
+name: validated-pipeline-valid-record
+category: eval
+description: Minimal field validation preserves a valid record as a clean Outcome value
+input:
+  source: |
+    validate_field("age", (value) -> value == 37, "age must equal 37", {row: 1, name: "Ada", age: 37})
+expected:
+  stdout: "some({row: 1, name: \"Ada\", age: 37})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 375
+  helper_surface: validate_field(field, predicate, expected, record)
+  contract: valid record data is preserved as some(clean_record).

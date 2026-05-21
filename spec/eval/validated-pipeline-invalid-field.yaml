@@ -1,0 +1,14 @@
+name: validated-pipeline-invalid-field
+category: eval
+description: Invalid record field is represented as a recoverable diagnostic Outcome
+input:
+  source: |
+    validate_field("age", (value) -> value == 37, "age must equal 37", {row: 3, name: "Grace", age: "old"})
+expected:
+  stdout: "err(\"invalid field\", {row: 3, field: \"age\", expected: \"age must equal 37\", actual: \"old\", reason: \"invalid field\"})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 375
+  helper_surface: validate_field(field, predicate, expected, record)
+  contract: invalid user data is recoverable err data with row, field, expected, actual, and reason context.

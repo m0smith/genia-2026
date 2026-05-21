@@ -1,0 +1,15 @@
+name: error-validated-pipeline-predicate-non-callable
+category: error
+description: Validation helper predicate misuse remains a runtime error
+input:
+  source: |
+    validate_field("age", 1, "age must equal 37", {row: 4, name: "Alan", age: 37})
+expected:
+  stdout: ""
+  stderr: "Error: validate_field expected predicate to be callable\n"
+  exit_code: 1
+notes: |
+  issue: 375
+  error_phase: eval
+  error_category: TypeError
+  contract: programmer misuse is not converted into a recoverable row diagnostic.
