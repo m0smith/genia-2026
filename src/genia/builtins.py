@@ -1420,6 +1420,59 @@ def make_global_env(
             if flow.close_on_early_termination:
                 _finalize_iterable(items, primary_error=primary_error)
 
+    def collect_validated_fn(source: Any) -> GeniaMap:
+        clean: list[Any] = []
+        diagnostics: list[Any] = []
+
+        if isinstance(source, list):
+            items: Iterable[Any] = source
+            close_source: Any = None
+        elif isinstance(source, GeniaFlow):
+            items = source.consume()
+            close_source = source
+        else:
+            _seq_compatible_error("collect_validated", source)
+
+        primary_error = False
+        try:
+            for index, item in enumerate(items):
+                if isinstance(item, GeniaOptionSome):
+                    clean.append(item.value)
+                    continue
+
+                if isinstance(item, GeniaOptionNone):
+                    diagnostics.append(
+                        GeniaMap()
+                        .put("index", index)
+                        .put("kind", symbol("skipped"))
+                        .put("reason", item.reason)
+                        .put("context", GeniaOptionSome(item.context) if item.context is not None else OPTION_NONE)
+                    )
+                    continue
+
+                if isinstance(item, GeniaOptionErr):
+                    diagnostics.append(
+                        GeniaMap()
+                        .put("index", index)
+                        .put("kind", symbol("error"))
+                        .put("reason", item.reason)
+                        .put("context", GeniaOptionSome(item.context) if item.context is not None else OPTION_NONE)
+                    )
+                    continue
+
+                raise TypeError(
+                    "collect_validated expected Outcome items, "
+                    f"received {_runtime_type_name(item)} at index {index}"
+                )
+        except Exception:
+            primary_error = True
+            raise
+        finally:
+            if isinstance(close_source, GeniaFlow) and close_source.close_on_early_termination:
+                _finalize_iterable(items, primary_error=primary_error)
+
+        return GeniaMap().put("clean", clean).put("diagnostics", diagnostics)
+
     def run_fn(source: Any) -> None:
         if isinstance(source, list):
             for _ in source:
@@ -3073,6 +3126,7 @@ def make_global_env(
     env.set_internal("_run", run_fn)
     env.set("_pipe_run", lambda source: run_fn(_ensure_flow(source, "run")))
     env.set_internal("_collect", collect_fn)
+    env.set("collect_validated", _host_function_group("collect_validated", 1, collect_validated_fn))
     env.set("argv", argv_fn)
     env.set("help", help_fn)
     env.set("doc", doc_fn)
