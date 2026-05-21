@@ -74,6 +74,20 @@ When creating Codex or Copilot task prompts for repository work, include instruc
 - keep `GENIA_STATE.md` and relevant core docs up to date
 - keep tests synchronized with behavior changes
 
+## Product Priority / Killer Workflow
+
+Before proposing major new work, read `docs/strategy/killer-workflow.md`.
+
+Agents must:
+
+- read the killer workflow strategy before proposing or implementing major new work
+- explicitly classify each change's relationship to the killer workflow
+- prefer changes that strengthen Outcome-aware validated data pipelines
+- route unrelated ideas to parking lot unless explicitly approved
+- avoid treating `docs/strategy/killer-workflow.md` as implemented behavior — it is a strategy guide, not a language contract
+
+The strategy doc does not define implemented behavior. `GENIA_STATE.md` remains final authority.
+
 ## Validation
 
 Repository tooling may validate tool-specific instruction files against this contract.

@@ -6,6 +6,14 @@ This directory is for ideas that may influence future Genia design, but **nothin
 
 If anything in this directory conflicts with `GENIA_STATE.md`, then `GENIA_STATE.md` wins.
 
+## Killer Workflow Alignment
+
+Ideas that do not support Genia's first killer workflow — Outcome-aware validated data pipelines —
+should be parked here unless explicitly approved.
+
+Read `docs/strategy/killer-workflow.md` for the full list of preferred alignment areas
+and the areas that belong in parking lot by default.
+
 ## Purpose
 
 Use this directory to capture:
@@ -15,6 +23,7 @@ Use this directory to capture:
 - possible host/runtime directions
 - postponed scope from completed issues
 - ideas that are useful but not ready for pre-flight
+- ideas that do not align with the current killer workflow
 
 ## Non-authoritative rule
 

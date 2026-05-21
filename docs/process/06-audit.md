@@ -177,6 +177,17 @@ Confirm:
 
 ---
 
+KILLER WORKFLOW DRIFT CHECK
+
+- Did this change stay aligned with the stated killer workflow?
+- Did it add general-purpose machinery not needed for the workflow?
+- Did it pull in actors/UI/lifecycle/multi-host/demo work prematurely?
+- Did docs imply strategic ideas are implemented behavior?
+
+Reference: docs/strategy/killer-workflow.md
+
+---
+
 FINAL VERDICT:
 
 Ready to merge?
