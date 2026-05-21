@@ -2096,6 +2096,48 @@ def make_global_env(
             raise TypeError(f"{name} expected a record map, received {_runtime_type_name(record)}")
         return record
 
+    def _validation_path_segments(field: Any) -> list[str] | None:
+        if not isinstance(field, str) or "." not in field:
+            return None
+        segments = field.split(".")
+        if any(segment == "" for segment in segments):
+            return None
+        return segments
+
+    def _validation_field_lookup(record: GeniaMap, field: Any) -> tuple[bool, Any]:
+        if record.has(field):
+            return True, record.get(field)
+
+        segments = _validation_path_segments(field)
+        if segments is None:
+            return False, None
+
+        current: Any = record
+        for segment in segments:
+            if not isinstance(current, GeniaMap) or not current.has(segment):
+                return False, None
+            current = current.get(segment)
+        return True, current
+
+    def _validation_join_path(prefix: Any, field: Any) -> Any:
+        if not isinstance(prefix, str) or not isinstance(field, str):
+            return field
+        if prefix == field or prefix.endswith(f".{field}"):
+            return prefix
+        return f"{prefix}.{field}"
+
+    def _validation_prefix_diagnostic_field(result: Any, field: Any) -> Any:
+        if not isinstance(result, GeniaOptionErr):
+            return result
+        context = result.context
+        if not isinstance(context, GeniaMap) or not context.has("field"):
+            return result
+        diagnostic_field = context.get("field")
+        prefixed_field = _validation_join_path(field, diagnostic_field)
+        if prefixed_field == diagnostic_field:
+            return result
+        return GeniaOptionErr(result.reason, context.put("field", prefixed_field))
+
     def _validate_diagnostic_context(record: GeniaMap, field: Any, reason: str) -> GeniaMap:
         context = GeniaMap()
         if record.has("row"):
@@ -2104,7 +2146,8 @@ def make_global_env(
 
     def validate_required_fn(field: Any, record: Any) -> Any:
         record_map = _validate_record_map(record, "validate_required")
-        if record_map.has(field):
+        found, _ = _validation_field_lookup(record_map, field)
+        if found:
             return GeniaOptionSome(record_map)
         context = _validate_diagnostic_context(record_map, field, "missing required field")
         return GeniaOptionErr("missing required field", context)
@@ -2123,17 +2166,19 @@ def make_global_env(
         if validator is not _UNSET and not _is_validation_callable(validator):
             raise TypeError("validate_optional expected validator to be callable")
 
-        if not record_map.has(field):
+        found, value = _validation_field_lookup(record_map, field)
+        if not found:
             reason = GeniaMap().put("field", field).put("reason", symbol("missing_optional_field"))
             return GeniaOptionNone(reason)
 
-        value = record_map.get(field)
         if validator is _UNSET:
             return GeniaOptionSome(value, GeniaMap().put("field", field))
 
         result = _invoke_raw_from_builtin(validator, [value])
-        if isinstance(result, (GeniaOptionSome, GeniaOptionErr)):
+        if isinstance(result, GeniaOptionSome):
             return result
+        if isinstance(result, GeniaOptionErr):
+            return _validation_prefix_diagnostic_field(result, field)
         if isinstance(result, GeniaOptionNone):
             context = GeniaMap().put("field", field).put("validator_result", result)
             return GeniaOptionErr(symbol("optional_field_validator_returned_none"), context)
@@ -2147,11 +2192,11 @@ def make_global_env(
             raise TypeError("validate_field expected predicate to be callable")
 
         record_map = _validate_record_map(record, "validate_field")
-        if not record_map.has(field):
+        found, actual = _validation_field_lookup(record_map, field)
+        if not found:
             context = _validate_diagnostic_context(record_map, field, "missing required field")
             return GeniaOptionErr("missing required field", context)
 
-        actual = record_map.get(field)
         if _invoke_raw_from_builtin(predicate, [actual]) == True:  # noqa: E712
             return GeniaOptionSome(record_map)
 

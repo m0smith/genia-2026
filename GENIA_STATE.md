@@ -322,12 +322,13 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - map values are persistent and opaque at runtime (`<map N>`)
 - Sheet — immutable, columnar, named-column value (**Experimental**)
 - Validation helper results are ordinary Outcome values over ordinary map records:
+  - `field` may be a flat field name or a simple dot-joined nested field path such as `"patient.name"` or `"patient.address.zip"`; this is validation-helper lookup and diagnostic metadata only, not a general field-path language feature
   - `validate_required(field, record)` returns `some(record)` when `record` has `field`, otherwise `err("missing required field", {row: ...?, field: field, reason: "missing required field"})`
   - `validate_field(field, predicate, expected, record)` returns `some(record)` when the field exists and `predicate(value) == true`, otherwise a recoverable diagnostic `err(...)`; non-callable predicates remain runtime errors
   - `validate_optional(field, record)` and `validate_optional(field, record, validator)` validate optional record fields (**Experimental**):
     - missing field returns `none({field: field, reason: quote(missing_optional_field)})`
     - present field with no validator returns `some(value, {field: field})`
-    - present field with validator: `some(...)` and `err(...)` results are preserved unchanged; `none(...)` result is normalized to `err(quote(optional_field_validator_returned_none), {field: field, validator_result: result})`
+    - present field with validator: `some(...)` results are preserved unchanged; `err(...)` results keep their meaning, and a `field` entry in an error context is prefixed to the full nested path when applicable; `none(...)` result is normalized to `err(quote(optional_field_validator_returned_none), {field: field, validator_result: result})`
     - non-map record, non-callable validator, and validator returning non-Outcome are runtime errors
 - `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
   - accepts a list or Flow (Seq-compatible source)
@@ -1685,9 +1686,11 @@ Behavior:
   - returns `err("invalid field", context)` when the predicate result is not exactly `true`
 - missing-field diagnostic context includes `row` when the record has a `row` field, plus `field` and `reason`
 - invalid-field diagnostic context includes `row` when present, plus `field`, `expected`, `actual`, and `reason`
+- simple nested field paths are supported for validation helper lookup and diagnostic metadata by passing a dot-joined string field such as `"patient.name"` or `"patient.address.zip"`; diagnostics keep that full path in `field`
+- this nested validation path support does not add general field-path syntax, wildcards, recursive descent, list index paths, or a public path value type
 - runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
 - shared specs currently cover valid-record, missing-required-field, invalid-field, and non-callable-predicate misuse cases only
-- multi-record splitting/collection, summary reports, optional-field semantics, nested field paths, and Sheet integration are not implemented by these helpers
+- multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
 
 ### collect_validated helper (**Experimental**, issue #383)
 

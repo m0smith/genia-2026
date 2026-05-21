@@ -2,7 +2,7 @@
 
 ## Arguments
 
-* `field`: field name to require
+* `field`: flat field name or simple dot-joined nested field path to require
 * `record`: map record that may include `row`
 
 ## Returns
@@ -15,7 +15,7 @@ validate_required(field, record) = _validate_required(field, record)
 
 ## Arguments
 
-* `field`: optional field name to validate
+* `field`: optional flat field name or simple dot-joined nested field path to validate
 * `record`: map record that may include the field
 * `validator`: optional callable checked with the field value
 
@@ -23,7 +23,8 @@ validate_required(field, record) = _validate_required(field, record)
 
 * `none({field: field, reason: quote(missing_optional_field)})` when the field is absent
 * `some(value, {field: field})` when the field is present and no validator is supplied
-* the validator's `some(...)` or `err(...)` unchanged when supplied
+* the validator's `some(...)` unchanged when supplied
+* the validator's `err(...)` with the same meaning and full nested `field` context when applicable
 * `err(quote(optional_field_validator_returned_none), context)` when a present field validator returns `none(...)`"""
 validate_optional(field, record) = _validate_optional(field, record)
 
@@ -33,7 +34,7 @@ validate_optional(field, record, validator) = _validate_optional(field, record, 
 
 ## Arguments
 
-* `field`: field name to validate
+* `field`: flat field name or simple dot-joined nested field path to validate
 * `predicate`: callable checked with the field value
 * `expected`: description of the expected condition
 * `record`: map record that may include `row`
