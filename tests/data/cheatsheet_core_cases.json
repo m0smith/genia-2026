@@ -88,5 +88,10 @@
     "id": "core-actor-status",
     "source": "handler(state, _msg, _ctx) = [\"ok\", state]\na = actor(0, handler)\nactor_status(a)",
     "expected_result": "\"ready\""
+  },
+  {
+    "id": "core-collect-validated-all-clean",
+    "source": "collect_validated([some(1), some(2)])",
+    "expected_result": "{clean: [1, 2], diagnostics: []}"
   }
 ]

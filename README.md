@@ -1192,6 +1192,18 @@ write_file("output.json", unwrap_or("{}", result))
 - `validate_field(field, predicate, expected, record)` returns `some(record)` only when the field exists and `predicate(value) == true`; missing or invalid user data returns recoverable `err(...)` diagnostics
 - non-callable predicates remain runtime errors; no schema DSL, Sheet integration, Flow collector, or report helper is added by this surface
 
+### collect_validated terminal helper (**Experimental**, issue #383)
+
+- `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated data pipelines
+- accepts a Seq-compatible source (list or Flow); non-Seq-compatible input is a runtime error
+- every item must be an Outcome; non-Outcome items raise a runtime error with the item index
+- `some(value)` and `some(value, context)` append `value` to `clean`; `some` context is ignored in this first version
+- `none(...)` appends a diagnostic with `kind: quote(skipped)`
+- `err(...)` appends a diagnostic with `kind: quote(error)`
+- diagnostics include `index`, `kind`, `reason`, and `context` (`some(ctx)` or `none("nil")`)
+- returns `{clean: [...], diagnostics: [...]}`
+- does not create Sheets; does not change Outcome semantics, pipeline short-circuit behavior, or existing helpers
+
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
@@ -1200,7 +1212,7 @@ write_file("output.json", unwrap_or("{}", result))
 - fn helpers: `apply`, `apply_raw`, `compose`
   - `apply_raw(f, args)` — calls `f` with list `args` as positional arguments, bypassing automatic `none(...)` propagation; `args` must be a list
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- validation helpers: `validate_required`, `validate_field`
+- validation helpers: `validate_required`, `validate_field`; `collect_validated` (host-backed builtin, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`
