@@ -60,6 +60,14 @@ Excludes:
 - browser playground
 - speculative value-template syntax
 
+Sequencing notes:
+
+- Finish the end-to-end diagnostics path before broadening validation ergonomics.
+- `validate_each/3` context merging is an R1 follow-up only after parse → validate → collect diagnostic preservation proves the needed context shape.
+- Minimal Sheet integration belongs late in R1 only as a landing zone for validated records and diagnostics.
+- Rich Sheet/report behavior belongs to R5 unless required for the R1 demo.
+- Do not start validation DSL work in R1.
+
 Exit criteria:
 
 - A small but convincing end-to-end validated data pipeline demo exists.
@@ -210,6 +218,12 @@ Possible includes:
 - better command-line ergonomics
 - clearer examples for real-world records
 
+Deferred candidates after the R1 demo proves the basic workflow:
+
+- richer Sheet integration beyond the minimal R1 landing zone
+- `validate_each/3` context merging, if R1 diagnostics reveal a concrete repeated need
+- validation DSL exploration, only if plain helpers and value-template work prove insufficient
+
 Excludes by default:
 
 - actors
@@ -224,10 +238,17 @@ Excludes by default:
 These are valuable, but not part of the near roadmap unless explicitly promoted:
 
 - actor system
+  - includes actor lifecycle, supervision, and actor-oriented runtime expansion
+  - keep out of R1 unless a narrow validated-pipeline use case explicitly requires it
 - browser playground runtime
+  - useful as a future demo surface, not required for the first validated-data-pipeline release
 - ants / simulation teaching demos
+  - useful teaching material after the data-pipeline wedge is demonstrable
+  - not a release blocker for R1
 - full value-template system
 - refinement / shape / contract / variant roadmap
+- validation DSL
+  - do not create implementation tickets until helper-based validation proves insufficient
 - multi-host implementation beyond contract scaffolding
 - server mode
 - notebook mode
