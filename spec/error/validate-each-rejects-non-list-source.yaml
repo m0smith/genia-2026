@@ -1,0 +1,16 @@
+name: validate-each-rejects-non-list-source
+category: error
+description: validate_each rejects non-list sources as programmer misuse
+input:
+  source: |
+    ok(x) = some(x)
+    validate_each({a: 1}, ok)
+expected:
+  stdout: ""
+  stderr: "Error: validate_each expected a list source, received map\n"
+  exit_code: 1
+notes: |
+  issue: 414
+  error_phase: eval
+  error_category: TypeError
+  contract: validate_each source input is list-only in this phase.

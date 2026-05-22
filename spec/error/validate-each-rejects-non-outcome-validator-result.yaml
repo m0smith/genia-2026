@@ -1,0 +1,16 @@
+name: validate-each-rejects-non-outcome-validator-result
+category: error
+description: validate_each rejects validators that return non-Outcome values
+input:
+  source: |
+    bad(x) = x
+    validate_each([1], bad)
+expected:
+  stdout: ""
+  stderr: "Error: validate_each validator must return an Outcome, received int at index 0\n"
+  exit_code: 1
+notes: |
+  issue: 414
+  error_phase: eval
+  error_category: TypeError
+  contract: validate_each validators must return some(...), none(...), or err(...).

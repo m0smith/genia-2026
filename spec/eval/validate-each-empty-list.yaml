@@ -1,0 +1,14 @@
+name: validate-each-empty-list
+category: eval
+description: validate_each returns an empty list for an empty source
+input:
+  source: |
+    ok(x) = some(x)
+    validate_each([], ok)
+expected:
+  stdout: "[]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 414
+  contract: empty list validation produces no synthetic Outcome or diagnostic.

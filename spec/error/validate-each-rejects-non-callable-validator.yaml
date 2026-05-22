@@ -1,0 +1,15 @@
+name: validate-each-rejects-non-callable-validator
+category: error
+description: validate_each rejects non-callable validators as programmer misuse
+input:
+  source: |
+    validate_each([1, 2], 42)
+expected:
+  stdout: ""
+  stderr: "Error: validate_each expected validator to be callable\n"
+  exit_code: 1
+notes: |
+  issue: 414
+  error_phase: eval
+  error_category: TypeError
+  contract: validate_each requires a callable validator.
