@@ -331,6 +331,18 @@ This is the current runtime value model in `main`. It is intentionally descripti
     - present field with no validator returns `some(value, {field: field})`
     - present field with validator: `some(...)` results are preserved unchanged; `err(...)` results keep their meaning, and a `field` entry in an error context is prefixed to the full nested path when applicable; `none(...)` result is normalized to `err(quote(optional_field_validator_returned_none), {field: field, validator_result: result})`
     - non-map record, non-callable validator, and validator returning non-Outcome are runtime errors
+- `validate_record(record, validators)` and `validate_record(record, validators, context)` compose field validators over one record and return a record-level Outcome (**Experimental**):
+  - `record` must be a map-like Genia value; non-map input is a runtime misuse error
+  - `validators` must be a map-like value whose keys are field paths and whose values are validator callables; each callable receives the original `record` and must return an Outcome
+  - non-map `validators`, non-callable validator values, and non-Outcome validator returns are runtime misuse errors
+  - validators execute in deterministic Genia map iteration order; all validators run even when earlier ones return `err(...)`
+  - `some(value)` field results contribute the validated field value to the `clean_record` under the validator map key
+  - `none(...)` field results are successful absence and do not contribute a value to `clean_record`
+  - `err(...)` field results are aggregated into record-level diagnostics; each diagnostic includes `field`, `status: quote(error)`, `reason`, and `context`
+  - if no validators return `err(...)`, returns `some(clean_record, record_context?)` where `clean_record` contains only present validated values
+  - if one or more validators return `err(...)`, returns `err(quote(record_validation_failed), record_context_with_diagnostics)`
+  - optional caller-provided `context` is preserved in the record-level Outcome
+  - does not mutate the original record; does not add a schema DSL, Sheet behavior, Flow collector, or value-template integration
 - `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
   - accepts a list or Flow (Seq-compatible source)
   - every item must be an Outcome; non-Outcome items raise a runtime `TypeError`
@@ -483,7 +495,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public validation helper names `validate_required`, `validate_field`, and `validate_optional` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
+- public validation helper names `validate_required`, `validate_field`, `validate_optional`, and `validate_record` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
@@ -1671,8 +1683,10 @@ Behavior:
   - `validate_optional(field, record)`
   - `validate_optional(field, record, validator)`
   - `validate_field(field, predicate, expected, record)`
+  - `validate_record(record, validators)` (**Experimental**)
+  - `validate_record(record, validators, context)` (**Experimental**)
   - the helpers operate on one map record at a time; no schema DSL, Sheet behavior, Flow collector, or report helper is introduced in this phase
-  - the helpers use existing Outcome values: valid records return `some(record)`, and recoverable user-data problems return `err(reason, context)`
+  - the helpers use existing Outcome values: valid records return `some(record)` or `some(clean_record, context?)`, and recoverable user-data problems return `err(reason, context)`
 
 Behavior:
 
@@ -1694,6 +1708,29 @@ Behavior:
 - runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
 - shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, and non-callable-predicate misuse cases
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
+
+### validate_record helper (**Experimental**, issue #391)
+
+- public names: `validate_record/2` and `validate_record/3`
+- exposed as prelude-backed wrappers over host-backed `_validate_record` in `src/genia/builtins.py`; public surface lives in `src/genia/std/prelude/validation.genia`
+- `validate_record(record, validators)` and `validate_record(record, validators, context)` compose field validators over one map record and return one record-level Outcome
+- `record` must be a Genia map; non-map input is a runtime misuse error
+- `validators` must be a Genia map whose keys are field path strings and whose values are callable validators
+  - non-map `validators` is a runtime misuse error
+  - non-callable validator values are a runtime misuse error
+  - each validator callable receives the original `record` and must return an Outcome
+  - validator returning a non-Outcome value is a runtime misuse error
+- validators execute in deterministic Genia map iteration order; all validators run even when earlier validators return `err(...)` so that all field diagnostics can be collected
+- field-level Outcome interpretation:
+  - `some(value)` or `some(value, context)` — the validated field value is added to `clean_record` under the validator map key
+  - `none(...)` — successful absence; the field is not added to `clean_record` and does not cause record failure
+  - `err(reason, context?)` — field-level validation failure; appended as a diagnostic
+- field-error diagnostic shape: `{field: <key>, status: quote(error), reason: <field reason>, context: <some(ctx) or none("nil")>}`
+- record-level Outcome:
+  - no `err(...)` from any validator: `some(clean_record, record_context?)` where `clean_record` contains only present validated values
+  - one or more `err(...)` results: `err(quote(record_validation_failed), record_context_with_diagnostics)`
+- optional third argument `context` is preserved in the record-level Outcome for both success and failure
+- does not mutate the input record; does not add a schema DSL, Sheet behavior, Flow collector, value-template integration, or new path syntax
 
 ### collect_validated helper (**Experimental**, issue #383)
 
@@ -2093,7 +2130,7 @@ Notable autoloaded functions include:
   - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit for arguments delivered to `f`; `apply_raw` itself is subject to normal none-propagation on its own two arguments (`apply_raw(f, none("x"))` short-circuits before `apply_raw` runs); `args` must be a list or `TypeError` is raised; return value of `f` is returned as-is with no coercion; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- validation: `validate_required`, `validate_field`; `collect_validated` (host-backed builtin, Experimental)
+- validation: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental); `collect_validated` (host-backed builtin, Experimental)
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`
