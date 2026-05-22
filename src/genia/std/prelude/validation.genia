@@ -30,6 +30,26 @@ validate_optional(field, record) = _validate_optional(field, record)
 
 validate_optional(field, record, validator) = _validate_optional(field, record, validator)
 
+@doc """Compose field validators over one record and return a record-level Outcome.
+
+## Arguments
+
+* `record`: map record to validate
+* `validators`: map whose keys are field paths and whose values are validator callables; each callable receives the original `record` and must return an Outcome
+* `context`: optional caller-provided context preserved in the returned record-level Outcome
+
+## Returns
+
+* `some(clean_record, context?)` when all validators return `some(...)` or `none(...)`
+* `err(quote(record_validation_failed), context_with_diagnostics)` when any validator returns `err(...)`
+
+## Errors
+
+* raises when `record` is not a map, `validators` is not a map, a validator is not callable, or a validator returns a non-Outcome"""
+validate_record(record, validators) = _validate_record(record, validators)
+
+validate_record(record, validators, context) = _validate_record(record, validators, context)
+
 @doc """Validate a record field with a predicate and return an Outcome.
 
 ## Arguments

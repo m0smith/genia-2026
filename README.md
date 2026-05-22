@@ -1188,12 +1188,18 @@ write_file("output.json", unwrap_or("{}", result))
 
 ### Minimal record validation helpers
 
-- public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`, `validate_optional`
+- public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental)
 - `validate_required(field, record)` returns `some(record)` when a map record contains `field`; otherwise it returns `err("missing required field", context)`
 - `validate_field(field, predicate, expected, record)` returns `some(record)` only when the field exists and `predicate(value) == true`; missing or invalid user data returns recoverable `err(...)` diagnostics
 - `field` may be a flat name or a simple dot-joined nested path such as `"patient.name"` or `"patient.address.zip"` for validation helper lookup and diagnostic metadata only; this is not a general field-path language feature
 - `validate_optional(field, record[, validator])` validates optional record fields (**Experimental**): missing field returns `none({field: field, reason: quote(missing_optional_field)})`; present field with no validator returns `some(value, {field: field})`; present field with validator preserves `some(...)`, keeps `err(...)` meaning while prefixing a `field` context entry to the full nested path when applicable, and normalizes validator `none(...)` to `err(quote(optional_field_validator_returned_none), ...)`; non-map record, non-callable validator, and validator returning non-Outcome are runtime errors
 - non-callable predicates remain runtime errors; no schema DSL, Sheet integration, Flow collector, or report helper is added by this surface
+- `validate_record(record, validators)` and `validate_record(record, validators, context)` compose field validators over one map record and return one record-level Outcome (**Experimental**):
+  - `validators` is a map whose keys are field paths and whose values are callable validators; each callable receives the original `record` and must return an Outcome
+  - `some(value)` field results contribute present values to `clean_record`; `none(...)` field results are successful absence; `err(...)` field results are aggregated into diagnostics; all validators run
+  - success returns `some(clean_record, context?)`; failure returns `err(quote(record_validation_failed), context_with_diagnostics)`
+  - non-map record, non-map validators, non-callable validators, and non-Outcome validator returns are runtime misuse errors
+  - does not mutate the input record; does not add a schema DSL, Sheet behavior, or value-template integration
 
 ### collect_validated terminal helper (**Experimental**, issue #383)
 
@@ -1215,7 +1221,7 @@ write_file("output.json", unwrap_or("{}", result))
 - fn helpers: `apply`, `apply_raw`, `compose`
   - `apply_raw(f, args)` — calls `f` with list `args` as positional arguments, bypassing automatic `none(...)` propagation; `args` must be a list
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- validation helpers: `validate_required`, `validate_field`, `validate_optional` (Experimental); `collect_validated` (host-backed builtin, Experimental)
+- validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental); `collect_validated` (host-backed builtin, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`
