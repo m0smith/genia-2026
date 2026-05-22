@@ -143,6 +143,10 @@ Prefer references over duplicated semantic rules.
 
 Before proposing or implementing new feature work, read:
 - `docs/strategy/killer-workflow.md`
+- `docs/strategy/release-roadmap.md`
+
+Before creating new issues/tickets, also read:
+- `docs/process/08-roadmap-ticketing.md`
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
