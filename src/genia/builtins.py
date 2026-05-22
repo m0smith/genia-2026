@@ -2211,6 +2211,73 @@ def make_global_env(
         )
         return GeniaOptionErr("invalid field", context)
 
+    def _validate_record_context(context: Any, diagnostics: list[Any]) -> GeniaMap:
+        if isinstance(context, GeniaMap):
+            record_context = context
+        elif context is _UNSET:
+            record_context = GeniaMap()
+        else:
+            record_context = GeniaMap().put("context", context)
+        return record_context.put("diagnostics", diagnostics)
+
+    def validate_record_fn(*args: Any) -> Any:
+        if len(args) not in (2, 3):
+            raise TypeError(f"validate_record expected 2 or 3 arguments, got {len(args)}")
+
+        record_map = _validate_record_map(args[0], "validate_record")
+        validators = args[1]
+        context = args[2] if len(args) == 3 else _UNSET
+        if not isinstance(validators, GeniaMap):
+            raise TypeError(
+                "validate_record expected validators to be a map, "
+                f"received {_runtime_type_name(validators)}"
+            )
+
+        clean = GeniaMap()
+        diagnostics: list[Any] = []
+        for field, validator in validators.items():
+            if not _is_validation_callable(validator):
+                raise TypeError(
+                    "validate_record expected validator for field "
+                    f"{format_debug(field)} to be callable"
+                )
+
+            result = _invoke_raw_from_builtin(validator, [record_map])
+            if isinstance(result, GeniaOptionSome):
+                value = result.value
+                if value is record_map:
+                    found, field_value = _validation_field_lookup(record_map, field)
+                    if found:
+                        value = field_value
+                clean = clean.put(field, value)
+                continue
+            if isinstance(result, GeniaOptionNone):
+                continue  # successful absence: do not contribute to clean_record
+            if isinstance(result, GeniaOptionErr):
+                diagnostic_context = result.context if result.context is not None else OPTION_NONE
+                diagnostics.append(
+                    GeniaMap()
+                    .put("field", field)
+                    .put("status", symbol("error"))
+                    .put("reason", result.reason)
+                    .put("context", diagnostic_context)
+                )
+                continue
+            raise TypeError(
+                "validate_record validator for field "
+                f"{format_debug(field)} must return an Outcome, "
+                f"received {_runtime_type_name(result)}"
+            )
+
+        if diagnostics:
+            return GeniaOptionErr(
+                symbol("record_validation_failed"),
+                _validate_record_context(context, diagnostics),
+            )
+        if context is _UNSET:
+            return GeniaOptionSome(clean)
+        return GeniaOptionSome(clean, context)
+
     def some_fn(*args: Any) -> GeniaOptionSome:
         if len(args) not in (1, 2):
             raise TypeError("some(...) expects 1 or 2 arguments")
@@ -3333,6 +3400,7 @@ def make_global_env(
     env.set("_validate_required", validate_required_fn)
     env.set("_validate_optional", validate_optional_fn)
     env.set("_validate_field", validate_field_fn)
+    env.set("_validate_record", validate_record_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
@@ -3477,6 +3545,8 @@ def make_global_env(
     env.register_autoload("validate_optional", 2, "std/prelude/validation.genia")
     env.register_autoload("validate_optional", 3, "std/prelude/validation.genia")
     env.register_autoload("validate_field", 4, "std/prelude/validation.genia")
+    env.register_autoload("validate_record", 2, "std/prelude/validation.genia")
+    env.register_autoload("validate_record", 3, "std/prelude/validation.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand_flow", 1, "std/prelude/random.genia")
     env.register_autoload("rand_int_flow", 2, "std/prelude/random.genia")
