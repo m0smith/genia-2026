@@ -1,0 +1,14 @@
+name: validation-optional-absent-none
+category: eval
+description: Missing optional field is represented as successful absence rather than validation failure
+input:
+  source: |
+    validate_optional("nickname", {name: "Ada"})
+expected:
+  stdout: "none({field: \"nickname\", reason: missing_optional_field})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 401
+  helper_surface: validate_optional(field, record)
+  contract: missing optional user data returns none(...) with stable field and reason context.

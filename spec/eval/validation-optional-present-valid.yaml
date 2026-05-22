@@ -1,0 +1,15 @@
+name: validation-optional-present-valid
+category: eval
+description: Optional field validation preserves a successful validator Outcome for present data
+input:
+  source: |
+    valid(value) = some(value + 1, {source: quote(validator)})
+    validate_optional("age", {age: 41}, valid)
+expected:
+  stdout: "some(42, {source: validator})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 401
+  helper_surface: validate_optional(field, record, validator)
+  contract: present optional data with a successful validator remains a successful Outcome.

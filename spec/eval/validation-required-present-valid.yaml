@@ -1,0 +1,14 @@
+name: validation-required-present-valid
+category: eval
+description: Required field validation preserves the record when the field is present
+input:
+  source: |
+    validate_required("name", {row: 1, name: "Ada"})
+expected:
+  stdout: "some({row: 1, name: \"Ada\"})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 401
+  helper_surface: validate_required(field, record)
+  contract: present required data returns some(record).

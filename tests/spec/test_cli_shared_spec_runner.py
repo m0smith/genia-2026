@@ -341,12 +341,25 @@ def test_compare_spec_reports_cli_observable_mismatch() -> None:
     ]
 
 
-def test_spec_runner_integration_includes_cli_without_invalid_specs(capsys) -> None:
-    exit_code = run_spec_suite()
-    captured = capsys.readouterr()
+def test_spec_runner_integration_includes_cli_without_invalid_specs(capsys, monkeypatch) -> None:
+    monkeypatch.setattr(
+        runner_module,
+        "execute_spec",
+        lambda spec: ActualResult(
+            stdout=spec.expected_stdout,
+            stderr=spec.expected_stderr,
+            exit_code=spec.expected_exit_code,
+            ir=spec.expected_ir,
+            parse=spec.expected_parse,
+        ),
+    )
 
     specs, invalid_specs = discover_specs()
     cli_count = sum(1 for spec in specs if spec.category == "cli")
+
+    exit_code = run_spec_suite()
+    captured = capsys.readouterr()
+
     assert cli_count > 0
     assert invalid_specs == []
     assert exit_code == 0

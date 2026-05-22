@@ -1,0 +1,14 @@
+name: validation-nested-present-valid
+category: eval
+description: Nested validation path lookup succeeds for present optional data
+input:
+  source: |
+    validate_optional("patient.name", {patient: {name: "Ada"}})
+expected:
+  stdout: "some(\"Ada\", {field: \"patient.name\"})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 401
+  helper_surface: validate_optional(field, record)
+  contract: simple dot-joined nested validation paths are supported for helper lookup and field metadata.
