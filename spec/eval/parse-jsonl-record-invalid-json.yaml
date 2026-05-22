@@ -1,0 +1,18 @@
+name: parse-jsonl-record-invalid-json
+category: eval
+description: parse_jsonl_record returns err(invalid_jsonl_record, context) for malformed non-blank JSON
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record("{\"id\":"))
+expected:
+  stdout: "[invalid_jsonl_record, jsonl_record, error, invalid_jsonl_record]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 389
+  contract: malformed non-blank JSONL records are recoverable err(...) values with stable reason category.
+  fixture_note: parser message text is intentionally not asserted.

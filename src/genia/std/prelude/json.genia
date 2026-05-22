@@ -5,6 +5,14 @@ Returns `none("json-parse-error", context)` on parse/type failures.
 """
 json_parse(value) = _json_parse(value)
 
+@doc """Parse one JSONL object record into an Outcome.
+
+Returns `some(record, context)` for JSON objects.
+Returns `none(context)` for blank lines.
+Returns `err(reason, context)` for malformed JSON or non-object JSON values.
+"""
+parse_jsonl_record(line) = _parse_jsonl_record(line)
+
 @doc """Render a Genia value as deterministic pretty JSON.
 
 Object keys are sorted and output uses 2-space indentation.

@@ -1,0 +1,23 @@
+name: parse-jsonl-record-non-object-json
+category: eval
+description: parse_jsonl_record returns err(jsonl_record_not_object, context) for valid non-object JSON values
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason] |
+      _ -> [quote(unexpected)]
+
+    [
+      describe(parse_jsonl_record("[1,2]")),
+      describe(parse_jsonl_record("123")),
+      describe(parse_jsonl_record("\"text\"")),
+      describe(parse_jsonl_record("true")),
+      describe(parse_jsonl_record("null"))
+    ]
+expected:
+  stdout: "[[jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 389
+  contract: this helper is record-oriented; valid JSON values that are not objects are recoverable record-shape errors.

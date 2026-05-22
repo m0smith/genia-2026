@@ -1,0 +1,17 @@
+name: parse-jsonl-record-valid-object
+category: eval
+description: parse_jsonl_record returns some(record, context) for a valid JSON object line
+input:
+  source: |
+    describe(result) =
+      some(record, ctx) -> [record.id, record.name, ctx.kind, ctx.status, ctx.reason] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record("{\"id\":1,\"name\":\"Ada\"}"))
+expected:
+  stdout: "[1, \"Ada\", jsonl_record, parsed, parsed]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 389
+  contract: valid JSON object lines become some(parsed_record, context) with stable jsonl_record/parsed context fields.

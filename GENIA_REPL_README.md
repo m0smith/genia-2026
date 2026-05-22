@@ -234,6 +234,7 @@ CLI contract summary (actual behavior):
     - `utf8_encode`, `utf8_decode`
     - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
     - public JSON wrappers: `json_parse`, `json_stringify`, `json_pretty`
+    - public JSONL record helper: `parse_jsonl_record` (**Experimental**)
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - Python-host-only HTTP serving bridge builtins (phase 1):
@@ -805,6 +806,13 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
   - JSON objects become runtime map values (same family used by `map_new`/`map_put`).
 - `json_stringify(value)` renders deterministic pretty JSON (`indent=2`, sorted keys) or returns `none("json-stringify-error", context)`.
 - `json_pretty(value)` remains a compatibility alias for `json_stringify(value)`.
+- `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line into an Outcome for record-oriented pipelines:
+  - valid JSON object → `some(parsed_record, context)` with `kind: quote(jsonl_record)`, `status: quote(parsed)`, `reason: quote(parsed)`
+  - blank or whitespace-only line → `none("blank_line", context)` with `kind: quote(jsonl_record)`, `status: quote(skipped)`, `reason: quote(blank_line)`
+  - malformed JSON → `err(quote(invalid_jsonl_record), context)` with `status: quote(error)`
+  - valid JSON that is not an object → `err(quote(jsonl_record_not_object), context)` with `status: quote(error)`
+  - non-string input is a runtime/type misuse error
+  - does not change `json_parse` behavior; additive helper only
 - `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
 - `zip_write(entries, path)` writes entries in order and returns `path`.
   - It also accepts `(path, entries)` to stay pipeline-friendly with the current `|>` call-shape rules.

@@ -1133,6 +1133,7 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - `json_parse(string) -> value | none("json-parse-error", context)`
 - `json_stringify(value) -> string | none("json-stringify-error", context)`
 - `json_pretty(value) -> string | none(...)` (compatibility alias for `json_stringify`)
+- `parse_jsonl_record(line) -> some(record, context) | none("blank_line", context) | err(reason, context)` — parse one JSONL object line into an Outcome for record pipelines (**Experimental**)
 - `read_file(path) -> string | none(...)`
 - `write_file(path, string) -> path | none(...)`
 - `zip_read(path) -> flow | none(...)`

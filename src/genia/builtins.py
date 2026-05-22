@@ -2602,6 +2602,49 @@ def make_global_env(
             return make_none("json-parse-error", context)
         return _json_to_runtime(parsed)
 
+    def _jsonl_context(status: str, reason: str) -> GeniaMap:
+        return (
+            GeniaMap()
+            .put("kind", symbol("jsonl_record"))
+            .put("status", symbol(status))
+            .put("reason", symbol(reason))
+        )
+
+    def _jsonl_value_type(value: Any) -> GeniaSymbol:
+        if value is None:
+            return symbol("null")
+        if isinstance(value, bool):
+            return symbol("bool")
+        if isinstance(value, (int, float)):
+            return symbol("number")
+        if isinstance(value, str):
+            return symbol("string")
+        if isinstance(value, list):
+            return symbol("list")
+        if isinstance(value, dict):
+            return symbol("object")
+        return symbol("unknown")
+
+    def parse_jsonl_record_fn(value: Any) -> Any:
+        text = _ensure_string(value, "parse_jsonl_record")
+        if text.strip() == "":
+            return make_none("blank_line", _jsonl_context("skipped", "blank_line"))
+
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError as exc:
+            context = _jsonl_context("error", "invalid_jsonl_record").put("message", exc.msg)
+            return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
+
+        runtime_value = _json_to_runtime(parsed)
+        if not isinstance(runtime_value, GeniaMap):
+            context = _jsonl_context("error", "jsonl_record_not_object").put(
+                "value_type", _jsonl_value_type(parsed)
+            )
+            return GeniaOptionErr(symbol("jsonl_record_not_object"), context)
+
+        return GeniaOptionSome(runtime_value, _jsonl_context("parsed", "parsed"))
+
     def json_stringify_fn(value: Any) -> Any:
         try:
             return json.dumps(_json_from_runtime(value), indent=2, ensure_ascii=False, sort_keys=True)
@@ -3328,6 +3371,7 @@ def make_global_env(
     env.set("_resource_meta", resource_meta_fn)
     env.set("_resource_capabilities", resource_capabilities_fn)
     env.set("_json_parse", json_parse_fn)
+    env.set("_parse_jsonl_record", parse_jsonl_record_fn)
     env.set("_json_stringify", json_stringify_fn)
     env.set("_serve_http", serve_http_fn)
     env.set("_zip_read", zip_read_fn)
@@ -3495,6 +3539,7 @@ def make_global_env(
     env.register_autoload("parse_int", 1, "std/prelude/string.genia")
     env.register_autoload("parse_int", 2, "std/prelude/string.genia")
     env.register_autoload("json_parse", 1, "std/prelude/json.genia")
+    env.register_autoload("parse_jsonl_record", 1, "std/prelude/json.genia")
     env.register_autoload("json_stringify", 1, "std/prelude/json.genia")
     env.register_autoload("json_pretty", 1, "std/prelude/json.genia")
     env.register_autoload("read_file", 1, "std/prelude/file.genia")
