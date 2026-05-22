@@ -1,0 +1,15 @@
+name: validation-optional-present-invalid-err
+category: eval
+description: Optional field validator failure remains a recoverable diagnostic Outcome
+input:
+  source: |
+    invalid(value) = err(quote(bad_age), {actual: value})
+    validate_optional("age", {age: "old"}, invalid)
+expected:
+  stdout: "err(bad_age, {actual: \"old\"})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 401
+  helper_surface: validate_optional(field, record, validator)
+  contract: present optional data with a failing validator returns err(...) as recoverable data.

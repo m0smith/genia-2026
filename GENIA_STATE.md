@@ -147,6 +147,7 @@ PYTHON REFERENCE HOST:
   - deterministic pattern matching output for currently implemented pattern families (first-match behavior, literals, wildcard/variable binding, list/tuple/map, option, guard, glob, and named reusable pattern forms)
   - deterministic eval failures with exact `stderr` and `exit_code`, including Flow/value boundary errors: `each` given a list, `first` given a Flow, `reduce` given a non-Seq-compatible value (int, string)
   - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
+  - selected validation helper behavior: optional field present/absent/invalid outcomes, required field present success, and simple nested validation path success/missing diagnostics (Partial; Python reference host only)
   - `collect_validated/1` behavior: empty source, all-clean, mixed `some`/`none`/`err`, `some` context ignored on clean path, bare `none`, `err` without context, and Flow-compatible source (Experimental; initial coverage only)
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
@@ -1667,6 +1668,8 @@ Behavior:
 
 - public validation helpers are exposed from `src/genia/std/prelude/validation.genia`
   - `validate_required(field, record)`
+  - `validate_optional(field, record)`
+  - `validate_optional(field, record, validator)`
   - `validate_field(field, predicate, expected, record)`
   - the helpers operate on one map record at a time; no schema DSL, Sheet behavior, Flow collector, or report helper is introduced in this phase
   - the helpers use existing Outcome values: valid records return `some(record)`, and recoverable user-data problems return `err(reason, context)`
@@ -1689,7 +1692,7 @@ Behavior:
 - simple nested field paths are supported for validation helper lookup and diagnostic metadata by passing a dot-joined string field such as `"patient.name"` or `"patient.address.zip"`; diagnostics keep that full path in `field`
 - this nested validation path support does not add general field-path syntax, wildcards, recursive descent, list index paths, or a public path value type
 - runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
-- shared specs currently cover valid-record, missing-required-field, invalid-field, and non-callable-predicate misuse cases only
+- shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, and non-callable-predicate misuse cases
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
 
 ### collect_validated helper (**Experimental**, issue #383)

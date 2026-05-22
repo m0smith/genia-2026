@@ -1,0 +1,14 @@
+name: validation-nested-missing-err
+category: eval
+description: Missing nested required validation path reports the full field path
+input:
+  source: |
+    validate_required("patient.address.zip", {patient: {address: {city: "Cambridge"}}})
+expected:
+  stdout: "err(\"missing required field\", {field: \"patient.address.zip\", reason: \"missing required field\"})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 401
+  helper_surface: validate_required(field, record)
+  contract: missing nested required data returns recoverable err(...) with the full validation field path.
