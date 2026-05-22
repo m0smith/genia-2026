@@ -1938,11 +1938,12 @@ Pattern matching note:
 
 - `utf8_decode(bytes) -> string`
 - `utf8_encode(string) -> bytes`
-- internal JSON bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`
+- internal JSON bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`, `_parse_jsonl_record(line) -> some(record, context)|none("blank_line", context)|err(reason, context)`
 - public JSON helpers from `src/genia/std/prelude/json.genia`:
   - `json_parse(string) -> value | none("json-parse-error", context)`
   - `json_stringify(value) -> string | none("json-stringify-error", context)`
   - `json_pretty(value) -> string | none(...)` (compatibility alias)
+  - `parse_jsonl_record(line) -> some(parsed_record, context) | none("blank_line", context) | err(reason, context)` (**Experimental**)
 - internal file/zip bridge primitives: `_read_file(path)`, `_write_file(path, text)`, `_zip_read(path)`, `_zip_write(path, items)`
 - public file/zip helpers from `src/genia/std/prelude/file.genia`:
   - `read_file(path) -> string | none(...)`
@@ -1966,6 +1967,14 @@ Behavior:
 - JSON objects from `json_parse` are represented as persistent runtime map values (`map_*` bridge type)
 - `json_stringify`/`json_pretty` emit deterministic pretty JSON with 2-space indentation and sorted object keys
 - JSON parse/stringify failures return structured `none(...)` metadata rather than raising parse/stringify exceptions
+- `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line and returns an Outcome with stable context metadata:
+  - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed)})`
+  - blank or whitespace-only line: `none("blank_line", {kind: quote(jsonl_record), status: quote(skipped), reason: quote(blank_line)})`
+  - malformed JSON: `err(quote(invalid_jsonl_record), {kind: quote(jsonl_record), status: quote(error), reason: quote(invalid_jsonl_record), message: "..."})`
+  - valid JSON that is not an object: `err(quote(jsonl_record_not_object), {kind: quote(jsonl_record), status: quote(error), reason: quote(jsonl_record_not_object)})`
+  - non-string input is a runtime/type misuse error, not a recoverable Outcome
+  - `parse_jsonl_record` does not change `json_parse` behavior; it is an additive helper
+  - shared semantic spec coverage is active for this helper (see `spec/eval/parse-jsonl-record-*.yaml` and `spec/error/parse-jsonl-record-non-string-error.yaml`)
 - `zip_read` is lazy and returns Flow items shaped as `[filename, bytes]`
 - `zip_write` consumes a Flow (or list) of `[filename, bytes|string]` items
 - file/zip parse/write/read failures return structured `none(...)` metadata for the new prelude API surface

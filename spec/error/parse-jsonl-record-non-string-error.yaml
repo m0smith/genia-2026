@@ -1,0 +1,15 @@
+name: parse-jsonl-record-non-string-error
+category: error
+description: parse_jsonl_record treats non-string input as runtime API misuse
+input:
+  source: |
+    parse_jsonl_record(42)
+expected:
+  stdout: ""
+  stderr: "Error: parse_jsonl_record expected a string, received int\n"
+  exit_code: 1
+notes: |
+  issue: 389
+  error_phase: eval
+  error_category: TypeError
+  contract: non-string input is programmer misuse, not a recoverable record-level err(...).

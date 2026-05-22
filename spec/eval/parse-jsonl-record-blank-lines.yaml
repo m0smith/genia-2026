@@ -1,0 +1,20 @@
+name: parse-jsonl-record-blank-lines
+category: eval
+description: parse_jsonl_record returns none(context) for empty and whitespace-only lines
+input:
+  source: |
+    describe(result) =
+      none(_, ctx) -> [ctx.kind, ctx.status, ctx.reason] |
+      _ -> [quote(unexpected)]
+
+    [
+      describe(parse_jsonl_record("")),
+      describe(parse_jsonl_record("   "))
+    ]
+expected:
+  stdout: "[[jsonl_record, skipped, blank_line], [jsonl_record, skipped, blank_line]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 389
+  contract: empty or whitespace-only record lines are skipped as none(context), not malformed data.

@@ -1,0 +1,18 @@
+name: parse-jsonl-record-json-parse-regression
+category: eval
+description: existing json_parse invalid-JSON behavior remains none(json-parse-error)
+input:
+  source: |
+    parsed = json_parse("{\"x\":")
+    [
+      none?(parsed),
+      unwrap_or("?", absence_reason(parsed)),
+      unwrap_or("?", absence_context(parsed) |> then_get("source"))
+    ]
+expected:
+  stdout: "[true, \"json-parse-error\", \"json_parse\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 389
+  contract: parse_jsonl_record is additive and must not change existing json_parse failure behavior.

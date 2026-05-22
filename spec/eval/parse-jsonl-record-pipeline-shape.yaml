@@ -1,0 +1,24 @@
+name: parse-jsonl-record-pipeline-shape
+category: eval
+description: parse_jsonl_record composes as an ordinary function over record-like list pipelines
+input:
+  source: |
+    classify(result) =
+      some(record, ctx) -> [quote(clean), record.id, ctx.status] |
+      none(_, ctx) -> [quote(skip), ctx.reason] |
+      err(reason, ctx) -> [quote(error), reason, ctx.reason]
+
+    [
+      "{\"id\":1}",
+      "",
+      "{bad}",
+      "[1,2]",
+      "{\"id\":2}"
+    ] |> map((line) -> classify(parse_jsonl_record(line)))
+expected:
+  stdout: "[[clean, 1, parsed], [skip, blank_line], [error, invalid_jsonl_record, invalid_jsonl_record], [error, jsonl_record_not_object, jsonl_record_not_object], [clean, 2, parsed]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 389
+  contract: the helper is a normal function suitable for record pipelines and does not terminate processing on dirty records.
