@@ -1784,7 +1784,7 @@ PYTHON REFERENCE HOST:
 
 - implemented in `src/genia/builtins.py` alongside other validation helpers
 - list items are validated using the existing raw callable invocation path
-- Outcome detection reuses the same internal `is_outcome_value` check used by `collect_validated`
+- Outcome detection uses a local `_is_validation_outcome` helper; `collect_validated` applies equivalent inline Outcome checks
 
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 

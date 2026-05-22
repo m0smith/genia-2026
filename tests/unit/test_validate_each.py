@@ -74,6 +74,11 @@ def test_validate_each_rejects_non_callable_validator():
         _run("validate_each([{id: 1}], 7)")
 
 
+def test_validate_each_rejects_non_list_source():
+    with pytest.raises(TypeError, match="validate_each expected a list source"):
+        _run("validate_each({a: 1}, (record) -> some(record))")
+
+
 def test_validate_each_rejects_non_outcome_validator_result():
     src = """
     invalid(record) = record("id") == 1
