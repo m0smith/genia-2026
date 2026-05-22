@@ -68,6 +68,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | chain helpers | `then_get(key, target)`, `then_first(target)`, `then_nth(index, target)`, `then_find(needle, target)` |
 | JSONL record parse | `parse_jsonl_record(line)` → `some(record, ctx)` / `none("blank_line", ctx)` / `err(reason, ctx)` — **Experimental** |
 | record validation | `validate_required(field, record)`, `validate_field(field, predicate, expected, record)`, `validate_optional(field, record[, validator])`, `validate_record(record, validators[, context])` — **Experimental** |
+| batch validation | `validate_each(source, validator)` — applies a validator to each list item and returns one Outcome per item — **Experimental** |
 | pipeline collection | `collect_validated(results)` — **Experimental** |
 | recovery | `unwrap_or(default, opt)`, `or_else(opt, fallback)`, `or_else_with(opt, thunk)` |
 | metadata | `absence_reason(opt)`, `absence_context(opt)`, `absence_meta(opt)` |
@@ -83,6 +84,8 @@ Outcome values distinguish successful presence (`some(value)`), successful absen
 `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string into an Outcome for record pipelines. Valid JSON objects return `some(record, context)` with `kind: quote(jsonl_record)`, `status: quote(parsed)`, `reason: quote(parsed)`. Blank or whitespace-only lines return `none("blank_line", context)` with `reason: quote(blank_line)` in context. Malformed JSON returns `err(quote(invalid_jsonl_record), context)`. Valid non-object JSON (array, number, string, boolean, null) returns `err(quote(jsonl_record_not_object), context)`. Non-string input is a runtime/type misuse error. Does not change `json_parse` behavior.
 
 `collect_validated(results)` (**Experimental**) is an explicit terminal helper for Outcome-aware validated pipelines. It accepts a list or Flow of Outcome items and returns `{clean: [...], diagnostics: [...]}`. `some(value)` contributes `value` to clean; `none(...)` produces a diagnostic with `kind: quote(skipped)`; `err(...)` produces a diagnostic with `kind: quote(error)`. Diagnostics include `index`, `kind`, `reason`, and `context` (`some(ctx)` or `none("nil")`). Does not create Sheets. Does not change Outcome semantics, pipeline short-circuit behavior, or existing helpers. Infinite Flow sources must be bounded before calling `collect_validated`.
+
+`validate_each(source, validator)` (**Experimental**) applies a validator to each item of a supported source and returns one Outcome per item. In this phase, list input is implemented and tested. `validator` must be callable and must return an Outcome (`some(...)`, `none(...)`, or `err(...)`); non-Outcome validator results are runtime errors. Output order matches source order; output length equals input length. Aggregation remains the job of `collect_validated`. Flow input and `validate_each/3` are not implemented in this phase.
 
 <!-- [case: core-collect-validated-all-clean] -->
 ```genia

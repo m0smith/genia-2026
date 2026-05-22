@@ -1188,7 +1188,7 @@ write_file("output.json", unwrap_or("{}", result))
 
 ### Minimal record validation helpers
 
-- public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental)
+- public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental), `validate_each` (Experimental)
 - `validate_required(field, record)` returns `some(record)` when a map record contains `field`; otherwise it returns `err("missing required field", context)`
 - `validate_field(field, predicate, expected, record)` returns `some(record)` only when the field exists and `predicate(value) == true`; missing or invalid user data returns recoverable `err(...)` diagnostics
 - `field` may be a flat name or a simple dot-joined nested path such as `"patient.name"` or `"patient.address.zip"` for validation helper lookup and diagnostic metadata only; this is not a general field-path language feature
@@ -1200,6 +1200,11 @@ write_file("output.json", unwrap_or("{}", result))
   - success returns `some(clean_record, context?)`; failure returns `err(quote(record_validation_failed), context_with_diagnostics)`
   - non-map record, non-map validators, non-callable validators, and non-Outcome validator returns are runtime misuse errors
   - does not mutate the input record; does not add a schema DSL, Sheet behavior, or value-template integration
+- `validate_each(source, validator)` applies a callable validator to each item of a list source and returns one Outcome per item (**Experimental**, issue #392):
+  - `source` must be a list; `validator` must be callable and must return an Outcome
+  - preserves `some(...)`, `none(...)`, and `err(...)` values in output; output length equals input length
+  - does not aggregate; compose with `collect_validated` for aggregation
+  - `validate_each/3`, Flow input, and Sheet behavior are not implemented in this phase
 
 ### collect_validated terminal helper (**Experimental**, issue #383)
 
@@ -1221,7 +1226,7 @@ write_file("output.json", unwrap_or("{}", result))
 - fn helpers: `apply`, `apply_raw`, `compose`
   - `apply_raw(f, args)` — calls `f` with list `args` as positional arguments, bypassing automatic `none(...)` propagation; `args` must be a list
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental); `collect_validated` (host-backed builtin, Experimental)
+- validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental); `validate_each` (Experimental); `collect_validated` (host-backed builtin, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`

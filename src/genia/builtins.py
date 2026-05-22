@@ -2220,6 +2220,30 @@ def make_global_env(
             record_context = GeniaMap().put("context", context)
         return record_context.put("diagnostics", diagnostics)
 
+    def _is_validation_outcome(value: Any) -> bool:
+        return isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr))
+
+    def validate_each_fn(source: Any, validator: Any) -> list[Any]:
+        if not isinstance(source, list):
+            raise TypeError(
+                "validate_each expected a list source, "
+                f"received {_runtime_type_name(source)}"
+            )
+        if not _is_validation_callable(validator):
+            raise TypeError("validate_each expected validator to be callable")
+
+        outcomes: list[Any] = []
+        for index, item in enumerate(source):
+            result = _invoke_raw_from_builtin(validator, [item])
+            if _is_validation_outcome(result):
+                outcomes.append(result)
+                continue
+            raise TypeError(
+                "validate_each validator must return an Outcome, "
+                f"received {_runtime_type_name(result)} at index {index}"
+            )
+        return outcomes
+
     def validate_record_fn(*args: Any) -> Any:
         if len(args) not in (2, 3):
             raise TypeError(f"validate_record expected 2 or 3 arguments, got {len(args)}")
@@ -3400,6 +3424,7 @@ def make_global_env(
     env.set("_validate_required", validate_required_fn)
     env.set("_validate_optional", validate_optional_fn)
     env.set("_validate_field", validate_field_fn)
+    env.set("_validate_each", validate_each_fn)
     env.set("_validate_record", validate_record_fn)
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
@@ -3545,6 +3570,7 @@ def make_global_env(
     env.register_autoload("validate_optional", 2, "std/prelude/validation.genia")
     env.register_autoload("validate_optional", 3, "std/prelude/validation.genia")
     env.register_autoload("validate_field", 4, "std/prelude/validation.genia")
+    env.register_autoload("validate_each", 2, "std/prelude/validation.genia")
     env.register_autoload("validate_record", 2, "std/prelude/validation.genia")
     env.register_autoload("validate_record", 3, "std/prelude/validation.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")

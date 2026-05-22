@@ -343,6 +343,15 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - if one or more validators return `err(...)`, returns `err(quote(record_validation_failed), record_context_with_diagnostics)`
   - optional caller-provided `context` is preserved in the record-level Outcome
   - does not mutate the original record; does not add a schema DSL, Sheet behavior, Flow collector, or value-template integration
+- `validate_each(source, validator)` applies a callable validator to each item in a list source and returns one Outcome per item (**Experimental**, issue #392):
+  - `source` must be a list in this phase; non-list input is a runtime `TypeError`
+  - `validator` must be callable; non-callable validators raise a runtime `TypeError`
+  - calls `validator(item)` once per source item; validator runtime errors propagate unchanged
+  - every validator result must be an Outcome; non-Outcome validator results raise `TypeError`
+  - preserves `some(...)`, `none(...)`, and `err(...)` values unchanged in output
+  - returns a list of Outcome values in source order; output length equals input length
+  - does not aggregate; aggregation remains the job of `collect_validated`
+  - `validate_each/3`, Flow input, Sheet behavior, and validation DSL are not implemented in this phase
 - `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
   - accepts a list or Flow (Seq-compatible source)
   - every item must be an Outcome; non-Outcome items raise a runtime `TypeError`
@@ -495,7 +504,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public validation helper names `validate_required`, `validate_field`, `validate_optional`, and `validate_record` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
+- public validation helper names `validate_required`, `validate_field`, `validate_optional`, `validate_record`, and `validate_each` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
@@ -1685,7 +1694,8 @@ Behavior:
   - `validate_field(field, predicate, expected, record)`
   - `validate_record(record, validators)` (**Experimental**)
   - `validate_record(record, validators, context)` (**Experimental**)
-  - the helpers operate on one map record at a time; no schema DSL, Sheet behavior, Flow collector, or report helper is introduced in this phase
+  - `validate_each(source, validator)` (**Experimental**)
+  - the helpers operate on one map record or list of records at a time; no schema DSL, Sheet behavior, or report helper is introduced in this phase
   - the helpers use existing Outcome values: valid records return `some(record)` or `some(clean_record, context?)`, and recoverable user-data problems return `err(reason, context)`
 
 Behavior:
@@ -1754,6 +1764,27 @@ Behavior:
 - `collect_validated` is terminal: it consumes the entire finite source to produce complete output; infinite Flow sources must be bounded before calling `collect_validated`
 - error shared specs cover wrong arity (0 args, 2 args), non-Seq source, and non-Outcome item cases
 - eval shared specs cover empty source, all clean, mixed `some`/`none`/`err`, `some` context ignored, bare `none`, `err` without context, and Flow-compatible source
+
+### validate_each helper (**Experimental**, issue #392)
+
+- public name: `validate_each/2`
+- exposed as a prelude-backed wrapper over host-backed `_validate_each` in `src/genia/builtins.py`; public surface lives in `src/genia/std/prelude/validation.genia`
+- `validate_each(source, validator)` applies a callable validator to each item of a list source and returns one Outcome per item
+- `source` must be a list; non-list input is a runtime `TypeError`
+- `validator` must be callable; non-callable validators raise `TypeError`
+- calls `validator(item)` once per source item in order; validator runtime errors propagate unchanged
+- every validator result must be an Outcome (`some(...)`, `none(...)`, or `err(...)`); non-Outcome results raise `TypeError`
+- preserves `some(...)`, `none(...)`, and `err(...)` values unchanged in output position
+- returns a list of Outcome values in source order with output length equal to input length
+- does not aggregate diagnostics; aggregation remains the job of `collect_validated`
+- composes with `validate_record` as the per-item validator; composes with `collect_validated` as the terminal aggregator
+- `validate_each/3`, Flow input, Sheet behavior, and context merging are not implemented in this phase
+
+PYTHON REFERENCE HOST:
+
+- implemented in `src/genia/builtins.py` alongside other validation helpers
+- list items are validated using the existing raw callable invocation path
+- Outcome detection uses a local `_is_validation_outcome` helper; `collect_validated` applies equivalent inline Outcome checks
 
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
 
