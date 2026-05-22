@@ -76,17 +76,23 @@ When creating Codex or Copilot task prompts for repository work, include instruc
 
 ## Product Priority / Killer Workflow
 
-Before proposing major new work, read `docs/strategy/killer-workflow.md`.
+Before proposing major new work, read:
+- `docs/strategy/killer-workflow.md`
+- `docs/strategy/release-roadmap.md`
+
+Before creating new issues or tickets, also read:
+- `docs/process/08-roadmap-ticketing.md`
 
 Agents must:
 
-- read the killer workflow strategy before proposing or implementing major new work
+- read the killer workflow strategy and release roadmap before proposing or implementing major new work
 - explicitly classify each change's relationship to the killer workflow
+- classify each proposed ticket as: current release, next release, infrastructure, follow-up, or parking lot
 - prefer changes that strengthen Outcome-aware validated data pipelines
 - route unrelated ideas to parking lot unless explicitly approved
-- avoid treating `docs/strategy/killer-workflow.md` as implemented behavior — it is a strategy guide, not a language contract
+- avoid treating `docs/strategy/killer-workflow.md` or `docs/strategy/release-roadmap.md` as implemented behavior — they are strategy and planning guides, not language contracts
 
-The strategy doc does not define implemented behavior. `GENIA_STATE.md` remains final authority.
+The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
 ## Validation
 
