@@ -30,28 +30,29 @@ validate_optional(field, record) = _validate_optional(field, record)
 
 validate_optional(field, record, validator) = _validate_optional(field, record, validator)
 
-@doc """Apply a validator to each item in a list and return Outcomes.
+@doc """Apply a validator to each item in a list or Flow and return Outcomes.
 
 ## Arguments
 
-* `source`: list of items to validate
+* `source`: list or Flow of items to validate
 * `validator`: callable that receives each item and must return an Outcome
 
 ## Returns
 
-* a list of Outcome values in source order
+* a list of Outcome values in source order when `source` is a list
+* a lazy Flow of Outcome values when `source` is a Flow
 * one Outcome per input item: `some(...)`, `none(...)`, or `err(...)`
 
 ## Errors
 
-* raises when `source` is not a list
+* raises when `source` is not a list or Flow
 * raises when `validator` is not callable
-* raises when `validator` returns a non-Outcome value
+* raises when `validator` returns a non-Outcome value; for Flow input this occurs when the returned Flow is consumed
 
 ## Notes
 
 * `validate_each` does not aggregate; use `collect_validated` for aggregation
-* Flow sources and `validate_each/3` are not implemented"""
+* `validate_each/3` is not implemented"""
 validate_each(source, validator) = _validate_each(source, validator)
 
 @doc """Compose field validators over one record and return a record-level Outcome.
