@@ -1,7 +1,9 @@
 import pytest
 
 from genia import make_global_env, run_source
+from genia.interpreter import GeniaFlow
 from genia.utf8 import format_debug
+from genia.values import GeniaOptionSome
 
 
 def _run(src: str):
@@ -74,8 +76,8 @@ def test_validate_each_rejects_non_callable_validator():
         _run("validate_each([{id: 1}], 7)")
 
 
-def test_validate_each_rejects_non_list_source():
-    with pytest.raises(TypeError, match="validate_each expected a list source"):
+def test_validate_each_rejects_non_list_non_flow_source():
+    with pytest.raises(TypeError, match="validate_each expected a list or Flow source"):
         _run("validate_each({a: 1}, (record) -> some(record))")
 
 
@@ -122,3 +124,130 @@ def test_validate_each_composes_with_validate_record():
         'context: {row: 2, field: "name", reason: "missing required field"}}]}), '
         'some({name: "Grace"})]'
     )
+
+
+def test_validate_each_flow_returns_flow_and_preserves_ordered_outcomes():
+    src = """
+    next(n) = n + 1
+    validator(n) = some(n * 10)
+
+    source = evolve(1, next) |> take(3)
+    validate_each(source, validator)
+    """
+
+    result = _run(src)
+
+    assert isinstance(result, GeniaFlow)
+    assert format_debug(list(result.consume())) == "[some(10), some(20), some(30)]"
+
+
+def test_validate_each_flow_preserves_some_none_and_err_outcomes():
+    src = """
+    next(n) = n + 1
+    validator(n) = (
+      0 -> some({id: n}) |
+      1 -> none("inactive", {id: n}) |
+      2 -> err(quote(invalid_record), {id: n})
+    )
+
+    source = evolve(0, next) |> take(3)
+    collect(validate_each(source, validator))
+    """
+
+    assert format_debug(_run(src)) == (
+        '[some({id: 0}), '
+        'none("inactive", {id: 1}), '
+        "err(invalid_record, {id: 2})]"
+    )
+
+
+def test_validate_each_flow_composes_with_collect_validated():
+    src = """
+    next(n) = n + 1
+    validator(n) = (
+      0 -> some({id: n}) |
+      1 -> none("inactive", {id: n}) |
+      2 -> err(quote(invalid_record), {id: n})
+    )
+
+    source = evolve(0, next) |> take(3)
+    collect_validated(validate_each(source, validator))
+    """
+
+    assert format_debug(_run(src)) == (
+        "{clean: [{id: 0}], diagnostics: ["
+        '{index: 1, kind: skipped, reason: "inactive", context: some({id: 1})}, '
+        "{index: 2, kind: error, reason: invalid_record, context: some({id: 2})}]}"
+    )
+
+
+def test_validate_each_flow_is_lazy_until_consumed():
+    env = make_global_env([])
+    state = {"pulled": 0, "validated": 0}
+
+    def counted_source():
+        def iterator():
+            for value in [1, 2, 3]:
+                state["pulled"] += 1
+                yield value
+
+        return GeniaFlow(iterator, label="counted")
+
+    def validator(value):
+        state["validated"] += 1
+        return GeniaOptionSome(value * 10)
+
+    env.set("counted_source", counted_source)
+    env.set("validator", validator)
+
+    result = run_source("validate_each(counted_source(), validator)", env)
+
+    assert isinstance(result, GeniaFlow)
+    assert state == {"pulled": 0, "validated": 0}
+
+    items = iter(result.consume())
+    assert format_debug(next(items)) == "some(10)"
+    assert state == {"pulled": 1, "validated": 1}
+
+    assert format_debug(list(items)) == "[some(20), some(30)]"
+    assert state == {"pulled": 3, "validated": 3}
+
+
+def test_validate_each_flow_non_outcome_validator_result_fails_when_consumed():
+    env = make_global_env([])
+    state = {"validated": 0}
+
+    def counted_source():
+        return GeniaFlow(lambda: iter([1]), label="counted")
+
+    def invalid(value):
+        state["validated"] += 1
+        return value
+
+    env.set("counted_source", counted_source)
+    env.set("invalid", invalid)
+
+    result = run_source("validate_each(counted_source(), invalid)", env)
+
+    assert isinstance(result, GeniaFlow)
+    assert state == {"validated": 0}
+    with pytest.raises(TypeError, match="validate_each validator must return an Outcome"):
+        list(result.consume())
+    assert state == {"validated": 1}
+
+
+def test_validate_each_flow_output_is_single_use():
+    src = """
+    next(n) = n + 1
+    validator(n) = some(n)
+
+    source = evolve(1, next) |> take(2)
+    validate_each(source, validator)
+    """
+
+    result = _run(src)
+
+    assert isinstance(result, GeniaFlow)
+    assert format_debug(list(result.consume())) == "[some(1), some(2)]"
+    with pytest.raises(RuntimeError, match="Flow has already been consumed"):
+        list(result.consume())

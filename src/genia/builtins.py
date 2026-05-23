@@ -2223,25 +2223,49 @@ def make_global_env(
     def _is_validation_outcome(value: Any) -> bool:
         return isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr))
 
-    def validate_each_fn(source: Any, validator: Any) -> list[Any]:
-        if not isinstance(source, list):
+    def validate_each_fn(source: Any, validator: Any) -> Any:
+        if not isinstance(source, (list, GeniaFlow)):
             raise TypeError(
-                "validate_each expected a list source, "
+                "validate_each expected a list or Flow source, "
                 f"received {_runtime_type_name(source)}"
             )
         if not _is_validation_callable(validator):
             raise TypeError("validate_each expected validator to be callable")
 
-        outcomes: list[Any] = []
-        for index, item in enumerate(source):
+        def validate_one(item: Any, index: int) -> Any:
             result = _invoke_raw_from_builtin(validator, [item])
             if _is_validation_outcome(result):
-                outcomes.append(result)
-                continue
+                return result
             raise TypeError(
                 "validate_each validator must return an Outcome, "
                 f"received {_runtime_type_name(result)} at index {index}"
             )
+
+        if isinstance(source, GeniaFlow):
+            upstream = source
+
+            def iterator() -> Iterable[Any]:
+                items = upstream.consume()
+                primary_error = False
+                try:
+                    for index, item in enumerate(items):
+                        yield validate_one(item, index)
+                except Exception:
+                    primary_error = True
+                    raise
+                finally:
+                    if upstream.close_on_early_termination:
+                        _finalize_iterable(items, primary_error=primary_error)
+
+            return GeniaFlow(
+                iterator,
+                label="validate_each",
+                close_on_early_termination=upstream.close_on_early_termination,
+            )
+
+        outcomes: list[Any] = []
+        for index, item in enumerate(source):
+            outcomes.append(validate_one(item, index))
         return outcomes
 
     def validate_record_fn(*args: Any) -> Any:

@@ -155,7 +155,7 @@ PYTHON REFERENCE HOST:
 - Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
-- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, malformed-glob, named-pattern error cases, and selected `validate_each/2` misuse diagnostics: non-list source, non-callable validator, and non-Outcome validator result) and does not machine-assert structured phase/category/message fields.
+- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, malformed-glob, named-pattern error cases, and selected `validate_each/2` misuse diagnostics: non-list/non-Flow source, non-callable validator, and non-Outcome validator result) and does not machine-assert structured phase/category/message fields.
 - The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - The current shared spec runner accepts `-v` / `--verbose`, printing each spec name before execution starts and then a single timing line (`<name>\t<elapsed>s`) after each spec completes.
 - Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms, and now includes named pattern declaration (`pattern Name(value) = body`) and named pattern use in case arms (`Name(inner_pattern)`), including error cases for invalid declaration and use arity. Parse spec coverage expands only when new forms are explicitly added and tested.
@@ -344,15 +344,16 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - if one or more validators return `err(...)`, returns `err(quote(record_validation_failed), record_context_with_diagnostics)`
   - optional caller-provided `context` is preserved in the record-level Outcome
   - does not mutate the original record; does not add a schema DSL, Sheet behavior, Flow collector, or value-template integration
-- `validate_each(source, validator)` applies a callable validator to each item in a list source and returns one Outcome per item (**Experimental**, issue #392):
-  - `source` must be a list in this phase; non-list input is a runtime `TypeError`
+- `validate_each(source, validator)` applies a callable validator to each item in a list or Flow source and returns one Outcome per item (**Experimental**, issue #392, issue #415):
+  - `source` must be a list or a Flow; non-list/non-Flow input is a runtime `TypeError`
   - `validator` must be callable; non-callable validators raise a runtime `TypeError`
   - calls `validator(item)` once per source item; validator runtime errors propagate unchanged
   - every validator result must be an Outcome; non-Outcome validator results raise `TypeError`
   - preserves `some(...)`, `none(...)`, and `err(...)` values unchanged in output
-  - returns a list of Outcome values in source order; output length equals input length
+  - list input returns a list of Outcome values in source order; output length equals input length
+  - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
   - does not aggregate; aggregation remains the job of `collect_validated`
-  - `validate_each/3`, Flow input, Sheet behavior, and validation DSL are not implemented in this phase
+  - `validate_each/3`, Sheet behavior, and validation DSL are not implemented in this phase
 - `collect_validated(results)` is an explicit terminal helper for Outcome-aware validated pipelines (**Experimental**):
   - accepts a list or Flow (Seq-compatible source)
   - every item must be an Outcome; non-Outcome items raise a runtime `TypeError`
@@ -1717,7 +1718,7 @@ Behavior:
 - simple nested field paths are supported for validation helper lookup and diagnostic metadata by passing a dot-joined string field such as `"patient.name"` or `"patient.address.zip"`; diagnostics keep that full path in `field`
 - this nested validation path support does not add general field-path syntax, wildcards, recursive descent, list index paths, or a public path value type
 - runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
-- shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list source, non-callable validator, and non-Outcome validator result)
+- shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list/non-Flow source, non-callable validator, and non-Outcome validator result)
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
 
 ### validate_record helper (**Experimental**, issue #391)
@@ -1766,25 +1767,27 @@ Behavior:
 - error shared specs cover wrong arity (0 args, 2 args), non-Seq source, and non-Outcome item cases
 - eval shared specs cover empty source, all clean, mixed `some`/`none`/`err`, `some` context ignored, bare `none`, `err` without context, and Flow-compatible source
 
-### validate_each helper (**Experimental**, issue #392)
+### validate_each helper (**Experimental**, issue #392, issue #415)
 
 - public name: `validate_each/2`
 - exposed as a prelude-backed wrapper over host-backed `_validate_each` in `src/genia/builtins.py`; public surface lives in `src/genia/std/prelude/validation.genia`
-- `validate_each(source, validator)` applies a callable validator to each item of a list source and returns one Outcome per item
-- `source` must be a list; non-list input is a runtime `TypeError`
+- `validate_each/2` accepts list and Flow sources. List input returns a list of Outcome values. Flow input returns a lazy Flow of Outcome values. The validator must return an Outcome for each item. validate_each does not aggregate; collect_validated remains the aggregation helper. validate_each/3 is not implemented.
+- `source` must be a list or Flow; non-list/non-Flow input is a runtime `TypeError`
 - `validator` must be callable; non-callable validators raise `TypeError`
 - calls `validator(item)` once per source item in order; validator runtime errors propagate unchanged
 - every validator result must be an Outcome (`some(...)`, `none(...)`, or `err(...)`); non-Outcome results raise `TypeError`
 - preserves `some(...)`, `none(...)`, and `err(...)` values unchanged in output position
-- returns a list of Outcome values in source order with output length equal to input length
+- list input returns a list of Outcome values in source order with output length equal to input length
+- Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
 - does not aggregate diagnostics; aggregation remains the job of `collect_validated`
 - composes with `validate_record` as the per-item validator; composes with `collect_validated` as the terminal aggregator
-- `validate_each/3`, Flow input, Sheet behavior, and context merging are not implemented in this phase
+- `validate_each/3`, Sheet behavior, and context merging are not implemented in this phase
 
 PYTHON REFERENCE HOST:
 
 - implemented in `src/genia/builtins.py` alongside other validation helpers
 - list items are validated using the existing raw callable invocation path
+- Flow items are validated lazily during Flow consumption using the existing Flow stage pattern
 - Outcome detection uses a local `_is_validation_outcome` helper; `collect_validated` applies equivalent inline Outcome checks
 
 ### Primitive Option model (Phase 3 canonical access surface on runtime-backed values)
