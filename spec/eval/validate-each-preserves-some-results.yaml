@@ -1,0 +1,14 @@
+name: validate-each-preserves-some-results
+category: eval
+description: validate_each preserves per-item some results in source order
+input:
+  source: |
+    ok(x) = some(x)
+    validate_each([1, 2, 3], ok)
+expected:
+  stdout: "[some(1), some(2), some(3)]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 414
+  contract: validate_each returns a list of Outcome values and preserves source order.

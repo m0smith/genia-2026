@@ -149,12 +149,13 @@ PYTHON REFERENCE HOST:
   - focused core stdlib list/absence helper behavior: `map` over lists (basic and empty), `filter` over lists (basic, no-match, and Option-element callbacks), `first` (some and empty-list), `last` (some and empty-list), `nth` (in-range and out-of-bounds)
   - selected validation helper behavior: optional field present/absent/invalid outcomes, required field present success, and simple nested validation path success/missing diagnostics (Partial; Python reference host only)
   - `collect_validated/1` behavior: empty source, all-clean, mixed `some`/`none`/`err`, `some` context ignored on clean path, bare `none`, `err` without context, and Flow-compatible source (Experimental; initial coverage only)
+  - selected `validate_each/2` behavior: empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation (Experimental; initial coverage only)
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
 - Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Error comparison is otherwise exact in this phase: `stdout` must be `""`, `stderr` must match exactly after that line-ending normalization, and `exit_code` must be `1`.
 - The current shared spec runner also executes IR cases (`spec/ir/`), comparing normalized portable Core IR output before host-local optimization.
-- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, malformed-glob, and named-pattern error cases) and does not machine-assert structured phase/category/message fields.
+- Error shared coverage is active but initial only: the current inventory proves a narrow normalized error surface (including deterministic pattern miss, guard-all-fail, malformed-glob, named-pattern error cases, and selected `validate_each/2` misuse diagnostics: non-list source, non-callable validator, and non-Outcome validator result) and does not machine-assert structured phase/category/message fields.
 - The current shared spec runner executes Parse cases (`spec/parse/`) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - The current shared spec runner accepts `-v` / `--verbose`, printing each spec name before execution starts and then a single timing line (`<name>\t<elapsed>s`) after each spec completes.
 - Parse shared coverage is active but initial only: the current inventory covers stable, already-implemented syntax forms, and now includes named pattern declaration (`pattern Name(value) = body`) and named pattern use in case arms (`Name(inner_pattern)`), including error cases for invalid declaration and use arity. Parse spec coverage expands only when new forms are explicitly added and tested.
@@ -1716,7 +1717,7 @@ Behavior:
 - simple nested field paths are supported for validation helper lookup and diagnostic metadata by passing a dot-joined string field such as `"patient.name"` or `"patient.address.zip"`; diagnostics keep that full path in `field`
 - this nested validation path support does not add general field-path syntax, wildcards, recursive descent, list index paths, or a public path value type
 - runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
-- shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, and non-callable-predicate misuse cases
+- shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list source, non-callable validator, and non-Outcome validator result)
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
 
 ### validate_record helper (**Experimental**, issue #391)

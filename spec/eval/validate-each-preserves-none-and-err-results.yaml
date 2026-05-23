@@ -1,0 +1,18 @@
+name: validate-each-preserves-none-and-err-results
+category: eval
+description: validate_each preserves mixed Outcome results without aggregating diagnostics
+input:
+  source: |
+    classify(x) =
+      0 -> none("skipped_zero") |
+      n ? n == -1 -> err(quote(invalid_negative), {value: x}) |
+      _ -> some(x)
+
+    validate_each([1, 0, -1, 2], classify)
+expected:
+  stdout: "[some(1), none(\"skipped_zero\"), err(invalid_negative, {value: -1}), some(2)]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 414
+  contract: none(...) and err(...) are preserved as item Outcomes; aggregation remains collect_validated.
