@@ -344,12 +344,15 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - if one or more validators return `err(...)`, returns `err(quote(record_validation_failed), record_context_with_diagnostics)`
   - optional caller-provided `context` is preserved in the record-level Outcome
   - does not mutate the original record; does not add a schema DSL, Sheet behavior, Flow collector, or value-template integration
-- `validate_each(source, validator)` applies a callable validator to each item in a list or Flow source and returns one Outcome per item (**Experimental**, issue #392, issue #415):
+- `validate_each(source, validator)` applies a callable validator to each item in a list or Flow source and returns one Outcome per item (**Experimental**, issue #392, issue #415, issue #416):
   - `source` must be a list or a Flow; non-list/non-Flow input is a runtime `TypeError`
   - `validator` must be callable; non-callable validators raise a runtime `TypeError`
-  - calls `validator(item)` once per source item; validator runtime errors propagate unchanged
+  - classifies each source item before invoking the validator:
+    - upstream `err(...)` items are preserved unchanged; the validator is not called
+    - upstream `none(...)` items are preserved unchanged; the validator is not called
+    - upstream `some(payload)` items: the validator is called with the unwrapped `payload`; the validator result is returned as the item output
+    - plain records and values: the validator is called with the item directly; validator runtime errors propagate unchanged
   - every validator result must be an Outcome; non-Outcome validator results raise `TypeError`
-  - preserves `some(...)`, `none(...)`, and `err(...)` values unchanged in output
   - list input returns a list of Outcome values in source order; output length equals input length
   - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
   - does not aggregate; aggregation remains the job of `collect_validated`

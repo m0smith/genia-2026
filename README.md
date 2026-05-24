@@ -1200,11 +1200,11 @@ write_file("output.json", unwrap_or("{}", result))
   - success returns `some(clean_record, context?)`; failure returns `err(quote(record_validation_failed), context_with_diagnostics)`
   - non-map record, non-map validators, non-callable validators, and non-Outcome validator returns are runtime misuse errors
   - does not mutate the input record; does not add a schema DSL, Sheet behavior, or value-template integration
-- `validate_each(source, validator)` applies a callable validator to each item of a list or Flow source and returns one Outcome per item (**Experimental**, issue #392, issue #415):
+- `validate_each(source, validator)` applies a callable validator to each item of a list or Flow source and returns one Outcome per item (**Experimental**, issue #392, issue #415, issue #416):
   - `source` must be a list or Flow; `validator` must be callable and must return an Outcome
+  - classifies each source item before invoking the validator: upstream `err(...)` and `none(...)` items are preserved unchanged without calling the validator; upstream `some(payload)` items have the validator called with the unwrapped `payload`; plain records and values are passed to the validator directly
   - list input returns a list of Outcome values in source order; output length equals input length
   - Flow input returns a lazy Flow of Outcome values; validation happens during consumption
-  - preserves `some(...)`, `none(...)`, and `err(...)` values in output
   - does not aggregate; compose with `collect_validated` for aggregation
   - `validate_each/3` and Sheet behavior are not implemented in this phase
 
