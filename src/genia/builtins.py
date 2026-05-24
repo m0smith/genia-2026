@@ -2233,7 +2233,10 @@ def make_global_env(
             raise TypeError("validate_each expected validator to be callable")
 
         def validate_one(item: Any, index: int) -> Any:
-            result = _invoke_raw_from_builtin(validator, [item])
+            if isinstance(item, (GeniaOptionErr, GeniaOptionNone)):
+                return item
+            target = item.value if isinstance(item, GeniaOptionSome) else item
+            result = _invoke_raw_from_builtin(validator, [target])
             if _is_validation_outcome(result):
                 return result
             raise TypeError(
