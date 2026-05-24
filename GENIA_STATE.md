@@ -1770,16 +1770,19 @@ Behavior:
 - error shared specs cover wrong arity (0 args, 2 args), non-Seq source, and non-Outcome item cases
 - eval shared specs cover empty source, all clean, mixed `some`/`none`/`err`, `some` context ignored, bare `none`, `err` without context, and Flow-compatible source
 
-### validate_each helper (**Experimental**, issue #392, issue #415)
+### validate_each helper (**Experimental**, issue #392, issue #415, issue #416)
 
 - public name: `validate_each/2`
 - exposed as a prelude-backed wrapper over host-backed `_validate_each` in `src/genia/builtins.py`; public surface lives in `src/genia/std/prelude/validation.genia`
 - `validate_each/2` accepts list and Flow sources. List input returns a list of Outcome values. Flow input returns a lazy Flow of Outcome values. The validator must return an Outcome for each item. validate_each does not aggregate; collect_validated remains the aggregation helper. validate_each/3 is not implemented.
 - `source` must be a list or Flow; non-list/non-Flow input is a runtime `TypeError`
 - `validator` must be callable; non-callable validators raise `TypeError`
-- calls `validator(item)` once per source item in order; validator runtime errors propagate unchanged
+- classifies each source item before invoking the validator:
+  - upstream `err(...)` items are preserved unchanged; the validator is not called
+  - upstream `none(...)` items are preserved unchanged; the validator is not called
+  - upstream `some(payload)` items: the validator is called with the unwrapped `payload`; the validator result is returned as the item output
+  - plain records and values: the validator is called with the item directly; validator runtime errors propagate unchanged
 - every validator result must be an Outcome (`some(...)`, `none(...)`, or `err(...)`); non-Outcome results raise `TypeError`
-- preserves `some(...)`, `none(...)`, and `err(...)` values unchanged in output position
 - list input returns a list of Outcome values in source order with output length equal to input length
 - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
 - does not aggregate diagnostics; aggregation remains the job of `collect_validated`
