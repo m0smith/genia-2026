@@ -71,6 +71,97 @@ def test_validate_each_preserves_none_outcomes():
     )
 
 
+def test_validate_each_preserves_upstream_err_without_calling_validator():
+    env = make_global_env([])
+
+    def fail_if_called(value):
+        raise AssertionError(f"validator should not receive upstream err: {value!r}")
+
+    env.set("fail_if_called", fail_if_called)
+
+    result = run_source(
+        """
+        validate_each([
+          err("invalid json", {line: 2, raw: "{bad}"})
+        ], fail_if_called)
+        """,
+        env,
+    )
+
+    assert format_debug(result) == '[err("invalid json", {line: 2, raw: "{bad}"})]'
+
+
+def test_validate_each_preserves_upstream_none_without_calling_validator():
+    env = make_global_env([])
+
+    def fail_if_called(value):
+        raise AssertionError(f"validator should not receive upstream none: {value!r}")
+
+    env.set("fail_if_called", fail_if_called)
+
+    result = run_source(
+        """
+        validate_each([
+          none("blank line", {line: 3, raw: ""})
+        ], fail_if_called)
+        """,
+        env,
+    )
+
+    assert format_debug(result) == '[none("blank line", {line: 3, raw: ""})]'
+
+
+def test_validate_each_unwraps_upstream_some_before_validation():
+    src = """
+    validator(record) = (
+      ({id: 1}) -> some({id: record("id"), checked: true}) |
+      (_) -> err(quote(validator_received_wrapper), {received: display(record)})
+    )
+
+    validate_each([
+      some({id: 1})
+    ], validator)
+    """
+
+    assert format_debug(_run(src)) == "[some({id: 1, checked: true})]"
+
+
+def test_validate_each_preserves_mixed_upstream_outcome_order():
+    src = """
+    validator(record) = (
+      ({id: id}) -> some({id: id, valid: true}) |
+      (_) -> err(quote(validator_received_wrapper), {received: display(record)})
+    )
+
+    validate_each([
+      some({id: 1}),
+      err("invalid json", {line: 2}),
+      none("blank line", {line: 3}),
+      some({id: 4})
+    ], validator)
+    """
+
+    assert format_debug(_run(src)) == (
+        '[some({id: 1, valid: true}), '
+        'err("invalid json", {line: 2}), '
+        'none("blank line", {line: 3}), '
+        'some({id: 4, valid: true})]'
+    )
+
+
+def test_validate_each_plain_record_validation_still_works():
+    src = """
+    validator(record) = (
+      ({id: id}) -> some({id: id, valid: true}) |
+      (_) -> err(quote(invalid_record), {received: display(record)})
+    )
+
+    validate_each([{id: 7}], validator)
+    """
+
+    assert format_debug(_run(src)) == "[some({id: 7, valid: true})]"
+
+
 def test_validate_each_rejects_non_callable_validator():
     with pytest.raises(TypeError, match="validate_each expected validator to be callable"):
         _run("validate_each([{id: 1}], 7)")
