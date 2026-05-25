@@ -2050,7 +2050,7 @@ Behavior:
   - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed), line: <original_line>})`
   - blank or whitespace-only line: `none("blank_line", {kind: quote(jsonl_record), status: quote(skipped), reason: quote(blank_line), line: <original_line>})`
   - malformed JSON: `err(quote(invalid_jsonl_record), {kind: quote(jsonl_record), status: quote(error), reason: quote(invalid_jsonl_record), message: "...", line: <original_line>})`
-  - valid JSON that is not an object: `err(quote(jsonl_record_not_object), {kind: quote(jsonl_record), status: quote(error), reason: quote(jsonl_record_not_object), line: <original_line>})`
+  - valid JSON that is not an object: `err(quote(jsonl_record_not_object), {kind: quote(jsonl_record), status: quote(error), reason: quote(jsonl_record_not_object), value_type: <type_symbol>, line: <original_line>})` where `value_type` is a symbol describing the actual JSON value type (`list`, `string`, `number`, `bool`, `null`)
   - non-string input is a runtime/type misuse error, not a recoverable Outcome
   - `parse_jsonl_record` does not change `json_parse` behavior; it is an additive helper
   - shared semantic spec coverage is active for this helper (see `spec/eval/parse-jsonl-record-*.yaml` and `spec/error/parse-jsonl-record-non-string-error.yaml`)

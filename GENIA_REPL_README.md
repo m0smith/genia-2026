@@ -813,7 +813,7 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
   - valid JSON object → `some(parsed_record, context)` with `kind: quote(jsonl_record)`, `status: quote(parsed)`, `reason: quote(parsed)`, `line: <original_line>`
   - blank or whitespace-only line → `none("blank_line", context)` with `kind: quote(jsonl_record)`, `status: quote(skipped)`, `reason: quote(blank_line)`, `line: <original_line>`
   - malformed JSON → `err(quote(invalid_jsonl_record), context)` with `status: quote(error)`, `message: "..."`, `line: <original_line>`
-  - valid JSON that is not an object → `err(quote(jsonl_record_not_object), context)` with `status: quote(error)`, `line: <original_line>`
+  - valid JSON that is not an object → `err(quote(jsonl_record_not_object), context)` with `status: quote(error)`, `value_type: <type_symbol>` (one of `list`, `string`, `number`, `bool`, `null`), `line: <original_line>`
   - non-string input is a runtime/type misuse error
   - does not change `json_parse` behavior; additive helper only
 - `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
