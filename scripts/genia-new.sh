@@ -93,10 +93,12 @@ export ISSUE="${ISSUE}"
 export BRANCH="${BRANCH}"
 export TYPE="${TYPE}"
 export SLUG="${SLUG}"
-
+EOF
+cat <<'EOF'
 Post process reports:
-(   git status; git diff ; git log --oneline main..HEAD; cat ${HANDOFF_DIR}/*) | pbcopy
-
+(export GIT_PAGER=cat; git status; git diff ; git log --oneline main..HEAD; cat ${HANDOFF_DIR}/*) | pbcopy
+EOF
+cat <<EOF
 Output pre-flight to:
 ${HANDOFF_DIR}/00-preflight.md
 EOF
