@@ -1,3 +1,5 @@
+import pytest
+
 from genia import make_global_env, run_source
 
 
@@ -53,3 +55,86 @@ def test_json_stringify_renders_deterministic_pretty_json():
     json_stringify({ b: 2, a: 1 })
     '''
     assert _run(src) == '{\n  "a": 1,\n  "b": 2\n}'
+
+
+def test_parse_jsonl_record_success_context_includes_exact_original_line():
+    src = r'''
+    line = "{\"id\":1,\"name\":\"Ada\"}"
+    describe(result) =
+      some(record, ctx) -> [record.id, record.name, display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record(line))
+    '''
+    assert _run(src) == [1, "Ada", "jsonl_record", "parsed", "parsed", '{"id":1,"name":"Ada"}']
+
+
+def test_parse_jsonl_record_success_context_preserves_surrounding_whitespace():
+    src = r'''
+    line = "  {\"id\":1}  "
+    describe(result) =
+      some(record, ctx) -> [record.id, display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record(line))
+    '''
+    assert _run(src) == [1, "jsonl_record", "parsed", "parsed", '  {"id":1}  ']
+
+
+def test_parse_jsonl_record_blank_context_includes_exact_original_line():
+    src = r'''
+    describe(result) =
+      none(reason, ctx) -> [reason, display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    [
+      describe(parse_jsonl_record("")),
+      describe(parse_jsonl_record("   "))
+    ]
+    '''
+    assert _run(src) == [
+        ["blank_line", "jsonl_record", "skipped", "blank_line", ""],
+        ["blank_line", "jsonl_record", "skipped", "blank_line", "   "],
+    ]
+
+
+def test_parse_jsonl_record_invalid_json_context_includes_exact_original_line():
+    src = r'''
+    line = "{bad json}"
+    describe(result) =
+      err(reason, ctx) -> [display(reason), display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record(line))
+    '''
+    assert _run(src) == [
+        "invalid_jsonl_record",
+        "jsonl_record",
+        "error",
+        "invalid_jsonl_record",
+        "{bad json}",
+    ]
+
+
+def test_parse_jsonl_record_non_object_context_includes_exact_original_line():
+    src = r'''
+    line = "[1,2,3]"
+    describe(result) =
+      err(reason, ctx) -> [display(reason), display(ctx.kind), display(ctx.status), display(ctx.reason), display(ctx.value_type), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record(line))
+    '''
+    assert _run(src) == [
+        "jsonl_record_not_object",
+        "jsonl_record",
+        "error",
+        "jsonl_record_not_object",
+        "list",
+        "[1,2,3]",
+    ]
+
+
+def test_parse_jsonl_record_non_string_input_remains_runtime_type_misuse():
+    with pytest.raises(TypeError, match="parse_jsonl_record expected a string, received int"):
+        _run("parse_jsonl_record(42)")

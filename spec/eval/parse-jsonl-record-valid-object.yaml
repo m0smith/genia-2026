@@ -4,14 +4,14 @@ description: parse_jsonl_record returns some(record, context) for a valid JSON o
 input:
   source: |
     describe(result) =
-      some(record, ctx) -> [record.id, record.name, ctx.kind, ctx.status, ctx.reason] |
+      some(record, ctx) -> [record.id, record.name, ctx.kind, ctx.status, ctx.reason, ctx.line] |
       _ -> [quote(unexpected)]
 
     describe(parse_jsonl_record("{\"id\":1,\"name\":\"Ada\"}"))
 expected:
-  stdout: "[1, \"Ada\", jsonl_record, parsed, parsed]\n"
+  stdout: "[1, \"Ada\", jsonl_record, parsed, parsed, \"{\\\"id\\\":1,\\\"name\\\":\\\"Ada\\\"}\"]\n"
   stderr: ""
   exit_code: 0
 notes: |
-  issue: 389
-  contract: valid JSON object lines become some(parsed_record, context) with stable jsonl_record/parsed context fields.
+  issue: 389, 410
+  contract: valid JSON object lines become some(parsed_record, context) with stable jsonl_record/parsed context fields and the exact original line.

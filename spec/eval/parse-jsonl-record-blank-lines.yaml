@@ -4,7 +4,7 @@ description: parse_jsonl_record returns none(context) for empty and whitespace-o
 input:
   source: |
     describe(result) =
-      none(_, ctx) -> [ctx.kind, ctx.status, ctx.reason] |
+      none(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
       _ -> [quote(unexpected)]
 
     [
@@ -12,9 +12,9 @@ input:
       describe(parse_jsonl_record("   "))
     ]
 expected:
-  stdout: "[[jsonl_record, skipped, blank_line], [jsonl_record, skipped, blank_line]]\n"
+  stdout: "[[\"blank_line\", jsonl_record, skipped, blank_line, \"\"], [\"blank_line\", jsonl_record, skipped, blank_line, \"   \"]]\n"
   stderr: ""
   exit_code: 0
 notes: |
-  issue: 389
-  contract: empty or whitespace-only record lines are skipped as none(context), not malformed data.
+  issue: 389, 410
+  contract: empty or whitespace-only record lines are skipped as none(context), not malformed data, and context keeps the exact original line.

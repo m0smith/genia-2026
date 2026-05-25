@@ -9,6 +9,7 @@ from tools.spec_runner.loader import discover_specs, load_spec
 
 ISSUE_389_EVAL_SPECS = [
     "parse-jsonl-record-valid-object.yaml",
+    "parse-jsonl-record-valid-object-whitespace-line.yaml",
     "parse-jsonl-record-blank-lines.yaml",
     "parse-jsonl-record-invalid-json.yaml",
     "parse-jsonl-record-non-object-json.yaml",
