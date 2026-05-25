@@ -2046,10 +2046,11 @@ Behavior:
 - `json_stringify`/`json_pretty` emit deterministic pretty JSON with 2-space indentation and sorted object keys
 - JSON parse/stringify failures return structured `none(...)` metadata rather than raising parse/stringify exceptions
 - `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line and returns an Outcome with stable context metadata:
-  - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed)})`
-  - blank or whitespace-only line: `none("blank_line", {kind: quote(jsonl_record), status: quote(skipped), reason: quote(blank_line)})`
-  - malformed JSON: `err(quote(invalid_jsonl_record), {kind: quote(jsonl_record), status: quote(error), reason: quote(invalid_jsonl_record), message: "..."})`
-  - valid JSON that is not an object: `err(quote(jsonl_record_not_object), {kind: quote(jsonl_record), status: quote(error), reason: quote(jsonl_record_not_object)})`
+  - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
+  - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed), line: <original_line>})`
+  - blank or whitespace-only line: `none("blank_line", {kind: quote(jsonl_record), status: quote(skipped), reason: quote(blank_line), line: <original_line>})`
+  - malformed JSON: `err(quote(invalid_jsonl_record), {kind: quote(jsonl_record), status: quote(error), reason: quote(invalid_jsonl_record), message: "...", line: <original_line>})`
+  - valid JSON that is not an object: `err(quote(jsonl_record_not_object), {kind: quote(jsonl_record), status: quote(error), reason: quote(jsonl_record_not_object), line: <original_line>})`
   - non-string input is a runtime/type misuse error, not a recoverable Outcome
   - `parse_jsonl_record` does not change `json_parse` behavior; it is an additive helper
   - shared semantic spec coverage is active for this helper (see `spec/eval/parse-jsonl-record-*.yaml` and `spec/error/parse-jsonl-record-non-string-error.yaml`)
