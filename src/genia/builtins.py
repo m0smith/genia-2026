@@ -2720,12 +2720,13 @@ def make_global_env(
             return make_none("json-parse-error", context)
         return _json_to_runtime(parsed)
 
-    def _jsonl_context(status: str, reason: str) -> GeniaMap:
+    def _jsonl_context(status: str, reason: str, line: str) -> GeniaMap:
         return (
             GeniaMap()
             .put("kind", symbol("jsonl_record"))
             .put("status", symbol(status))
             .put("reason", symbol(reason))
+            .put("line", line)
         )
 
     def _jsonl_value_type(value: Any) -> GeniaSymbol:
@@ -2746,22 +2747,24 @@ def make_global_env(
     def parse_jsonl_record_fn(value: Any) -> Any:
         text = _ensure_string(value, "parse_jsonl_record")
         if text.strip() == "":
-            return make_none("blank_line", _jsonl_context("skipped", "blank_line"))
+            return make_none("blank_line", _jsonl_context("skipped", "blank_line", text))
 
         try:
             parsed = json.loads(text)
         except json.JSONDecodeError as exc:
-            context = _jsonl_context("error", "invalid_jsonl_record").put("message", exc.msg)
+            context = _jsonl_context("error", "invalid_jsonl_record", text).put(
+                "message", exc.msg
+            )
             return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
 
         runtime_value = _json_to_runtime(parsed)
         if not isinstance(runtime_value, GeniaMap):
-            context = _jsonl_context("error", "jsonl_record_not_object").put(
+            context = _jsonl_context("error", "jsonl_record_not_object", text).put(
                 "value_type", _jsonl_value_type(parsed)
             )
             return GeniaOptionErr(symbol("jsonl_record_not_object"), context)
 
-        return GeniaOptionSome(runtime_value, _jsonl_context("parsed", "parsed"))
+        return GeniaOptionSome(runtime_value, _jsonl_context("parsed", "parsed", text))
 
     def json_stringify_fn(value: Any) -> Any:
         try:

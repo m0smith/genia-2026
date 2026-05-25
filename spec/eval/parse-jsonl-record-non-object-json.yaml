@@ -4,7 +4,7 @@ description: parse_jsonl_record returns err(jsonl_record_not_object, context) fo
 input:
   source: |
     describe(result) =
-      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason] |
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
       _ -> [quote(unexpected)]
 
     [
@@ -15,9 +15,9 @@ input:
       describe(parse_jsonl_record("null"))
     ]
 expected:
-  stdout: "[[jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object]]\n"
+  stdout: "[[jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object, \"[1,2]\"], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object, \"123\"], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object, \"\\\"text\\\"\"], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object, \"true\"], [jsonl_record_not_object, jsonl_record, error, jsonl_record_not_object, \"null\"]]\n"
   stderr: ""
   exit_code: 0
 notes: |
-  issue: 389
-  contract: this helper is record-oriented; valid JSON values that are not objects are recoverable record-shape errors.
+  issue: 389, 410
+  contract: this helper is record-oriented; valid JSON values that are not objects are recoverable record-shape errors with exact original line context.

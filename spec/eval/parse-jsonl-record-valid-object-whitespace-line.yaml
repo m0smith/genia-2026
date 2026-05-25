@@ -1,0 +1,17 @@
+name: parse-jsonl-record-valid-object-whitespace-line
+category: eval
+description: parse_jsonl_record preserves surrounding whitespace in success context line metadata
+input:
+  source: |
+    describe(result) =
+      some(record, ctx) -> [record.id, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_jsonl_record("  {\"id\":1}  "))
+expected:
+  stdout: "[1, jsonl_record, parsed, parsed, \"  {\\\"id\\\":1}  \"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 410
+  contract: success context includes the exact original line string, including surrounding whitespace.

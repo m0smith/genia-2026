@@ -809,10 +809,11 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - `json_stringify(value)` renders deterministic pretty JSON (`indent=2`, sorted keys) or returns `none("json-stringify-error", context)`.
 - `json_pretty(value)` remains a compatibility alias for `json_stringify(value)`.
 - `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line into an Outcome for record-oriented pipelines:
-  - valid JSON object → `some(parsed_record, context)` with `kind: quote(jsonl_record)`, `status: quote(parsed)`, `reason: quote(parsed)`
-  - blank or whitespace-only line → `none("blank_line", context)` with `kind: quote(jsonl_record)`, `status: quote(skipped)`, `reason: quote(blank_line)`
-  - malformed JSON → `err(quote(invalid_jsonl_record), context)` with `status: quote(error)`
-  - valid JSON that is not an object → `err(quote(jsonl_record_not_object), context)` with `status: quote(error)`
+  - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
+  - valid JSON object → `some(parsed_record, context)` with `kind: quote(jsonl_record)`, `status: quote(parsed)`, `reason: quote(parsed)`, `line: <original_line>`
+  - blank or whitespace-only line → `none("blank_line", context)` with `kind: quote(jsonl_record)`, `status: quote(skipped)`, `reason: quote(blank_line)`, `line: <original_line>`
+  - malformed JSON → `err(quote(invalid_jsonl_record), context)` with `status: quote(error)`, `message: "..."`, `line: <original_line>`
+  - valid JSON that is not an object → `err(quote(jsonl_record_not_object), context)` with `status: quote(error)`, `value_type: <type_symbol>` (one of `list`, `string`, `number`, `bool`, `null`), `line: <original_line>`
   - non-string input is a runtime/type misuse error
   - does not change `json_parse` behavior; additive helper only
 - `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
