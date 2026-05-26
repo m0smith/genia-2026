@@ -29,6 +29,14 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ---
 
+## Current Release Focus
+
+The active next release is **R2 — Native Test Kernel**.
+
+R2 protects the R1 killer-workflow foundation by adding a small Genia-native testing surface for Genia-facing behavior.
+
+---
+
 ## Release R1 — Killer Workflow Foundation ✓ COMPLETE
 
 Theme:
@@ -71,53 +79,53 @@ Excluded from R1 (see R2, R5, or parking lot):
 
 Theme:
 
-> Let Genia test Genia where Genia-level tests make sense.
+> Let Genia test Genia-facing behavior where Genia-level tests make sense.
+
+R2 protects and exercises the R1 surface through native Genia tests.
 
 **Scope note:** R2 is exclusively the native test kernel. Leftover R1 data-workflow hardening (CSV,
 Sheets, diagnostics, report helpers) belongs to R5, not R2.
 
 Primary outcomes:
 
-- Genia-native tests can cover pipeline, Outcome, validation, and Sheet-facing behavior.
-- Native tests complement pytest/specs; they do not replace all Python tests.
-- The first lifecycle shape is introduced through testing only.
+- A small native test runner exists.
+- Genia files can define and run multiple tests.
+- Minimal assertions exist.
+- Test output and exit codes are deterministic.
+- A small part of the R1 validated-pipeline surface is covered by Genia-native tests.
+- Pytest and shared specs remain authoritative for host/runtime/parser/spec-runner internals.
 
-Includes:
+Planned R2 scope (not current behavior):
 
-- `genia test` execution mode or equivalent test runner entry point
-- `@test`
-- minimal assertions
-- test discovery
-- deterministic test result reporting
-- minimal module/test lifecycle:
-  - init
-  - module_before
-  - test_before
-  - test
-  - test_after
-  - module_after
-  - finalize
-- test-scope annotations only:
-  - setup
-  - teardown
-  - test
+- `genia test <file>` or equivalent test runner entry point
+- One small test declaration mechanism (`@test` or a `test_*` naming convention)
+- Minimal assertion helpers — likely candidates include `assert_equal`, `assert_true`, `assert_some`,
+  `assert_none`, `assert_err`; final names to be contract-defined
+- Test discovery
+- Deterministic `stdout`, `stderr`, and `exit_code` for: passing tests, failing assertions,
+  runtime errors inside tests, and invalid tests
+- First Genia-native tests covering a small subset of the R1 surface, such as `parse_jsonl_record`,
+  `validate_required`, `validate_optional`, `validate_record`, `validate_each`,
+  `collect_validated`, `validated_pipeline_demo`
+- Any lifecycle behavior in R2 is test-runner-scoped only; possible minimal hooks may include
+  `before_each` / `after_each` or equivalent test phases
 
-Excludes:
+### R2 Non-goals
 
-- arbitrary custom lifecycle definitions
-- server/request/actor lifecycles
-- parallel native test execution
-- property testing
-- snapshot testing
-- full pytest migration
-- changing shared semantic spec authority
-- data-workflow hardening (CSV helpers, Sheet aggregation, richer diagnostics) — these belong to R5
+R2 does not include CSV support, Sheet landing-zone work, `render_csv` / `write_csv`, report output,
+diagnostic helper framework, value-template implementation, validation DSL, general lifecycle
+machinery, actor lifecycle, server/request lifecycle, browser UI, parallel native tests, property
+tests, snapshot tests, or full pytest migration. Shared semantic spec authority does not change.
 
 Exit criteria:
 
-- Genia-native tests cover part of the validated data pipeline surface.
-- Python pytest remains responsible for host/runtime/parser/spec-runner internals.
-- Lifecycle semantics are documented as partial and test-runner-scoped.
+1. `genia test <file>` or equivalent exists.
+2. A Genia file can define and run multiple tests.
+3. Minimal assertions exist.
+4. Output and exit codes are deterministic.
+5. A small set of R1 validated-pipeline behaviors are covered by Genia-native tests.
+6. Docs clearly state pytest and shared specs still own host/runtime/parser/shared conformance internals.
+7. Any lifecycle behavior is documented as partial and test-runner-scoped only.
 
 ---
 
