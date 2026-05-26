@@ -17,7 +17,7 @@ input:
   argv: []
   debug_stdio: false
 expected:
-  stdout: "{clean: [{id: 1, name: Ada}, {id: 2, name: Grace}], diagnostics: [{index: 1, kind: skipped, reason: blank_line, context: some({kind: jsonl_record, status: skipped, reason: blank_line, line: })}, {index: 2, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: id, status: error, reason: invalid field, context: {field: id, expected: positive id, actual: 0, reason: invalid field}}]})}, {index: 3, kind: error, reason: invalid_jsonl_record, context: some({kind: jsonl_record, status: error, reason: invalid_jsonl_record, line: {\"id\":, message: Expecting value})}]}"
+  stdout: "{clean: [{id: 1, name: Ada}, {id: 2, name: Grace}], diagnostics: [{index: 1, kind: skipped, reason: blank_line, context: some({kind: jsonl_record, status: skipped, reason: blank_line, line: })}, {index: 2, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: id, status: error, reason: invalid field, context: {field: id, expected: positive id, actual: 0, reason: invalid field}}]})}, {index: 3, kind: error, reason: invalid_jsonl_record, context: some({kind: jsonl_record, status: error, reason: invalid_jsonl_record, line: {\"id\":, message: Expecting value, column: 7})}]}"
   stderr: ""
   exit_code: 0
 notes: |

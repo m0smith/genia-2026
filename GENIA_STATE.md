@@ -295,6 +295,7 @@ Clarifications:
   - per-item functions used as bare stages (e.g. `parse_int`) are diagnosed with targeted suggestions (`map(parse_int)` or `keep_some(parse_int)`)
   - reducers used as bare stages (e.g. `sum`) are diagnosed with `collect |> sum` or `-c/--command` guidance
   - non-flow final results (e.g. from `collect`) are reported with `-c/--command` guidance
+  - `collect_validated` record-pipeline aggregate results have a targeted diagnostic that names the original stage expression and suggests `-c/--command` mode or explicit print-with-empty-Flow
   - broken pipe on stdout exits cleanly with no traceback or stderr noise
 - after file/command source evaluation, runtime entrypoint convention is:
   - if `main/1` exists, call `main(argv())`
@@ -353,7 +354,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
     - upstream `none(...)` items are preserved unchanged; the validator is not called
     - upstream `some(payload)` items: the validator is called with the unwrapped `payload`; the validator result is returned as the item output
     - plain records and values: the validator is called with the item directly; validator runtime errors propagate unchanged
-  - every validator result must be an Outcome; non-Outcome validator results raise `TypeError`
+  - every validator result must be an Outcome; non-Outcome validator results raise `TypeError("validate_each expected validator to return an Outcome, received <type> at index <n>")`
   - list input returns a list of Outcome values in source order; output length equals input length
   - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
   - does not aggregate; aggregation remains the job of `collect_validated`
@@ -1433,6 +1434,7 @@ Flow semantics:
   - explicit `stdin` is rejected because pipe mode provides it automatically
   - explicit `run` is rejected because pipe mode runs the final flow automatically
   - if the stage expression does not produce a flow for the automatic final `run`, pipe mode reports a clear user-facing error
+  - `collect_validated` record-pipeline aggregate results have a targeted diagnostic that names the original stage expression and suggests `-c/--command` mode or explicit print-with-empty-Flow as alternatives (Python reference host)
   - if a pipe-mode stage helper receives the whole Flow when it expected per-item values, pipe mode reports clear guidance to use Flow stages such as `map(...)`, `filter(...)`, `each(...)`, `keep_some(...)`, or to switch to `-c` / `--command` for reducers such as `sum`
   - common `some(...)` pipeline mismatches in pipe mode keep the original type error but use Genia-facing stage rendering (for example `some(1)`) instead of leaking internal IR node names
 
@@ -1783,7 +1785,7 @@ Behavior:
   - upstream `none(...)` items are preserved unchanged; the validator is not called
   - upstream `some(payload)` items: the validator is called with the unwrapped `payload`; the validator result is returned as the item output
   - plain records and values: the validator is called with the item directly; validator runtime errors propagate unchanged
-- every validator result must be an Outcome (`some(...)`, `none(...)`, or `err(...)`); non-Outcome results raise `TypeError`
+- every validator result must be an Outcome (`some(...)`, `none(...)`, or `err(...)`); non-Outcome results raise `TypeError("validate_each expected validator to return an Outcome, received <type> at index <n>")`
 - list input returns a list of Outcome values in source order with output length equal to input length
 - Flow input returns a lazy derived Flow of Outcome values; validation happens during consumption; single-use and finalization behavior follow existing Flow semantics
 - does not aggregate diagnostics; aggregation remains the job of `collect_validated`
@@ -2050,7 +2052,7 @@ Behavior:
   - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
   - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed), line: <original_line>})`
   - blank or whitespace-only line: `none("blank_line", {kind: quote(jsonl_record), status: quote(skipped), reason: quote(blank_line), line: <original_line>})`
-  - malformed JSON: `err(quote(invalid_jsonl_record), {kind: quote(jsonl_record), status: quote(error), reason: quote(invalid_jsonl_record), message: "...", line: <original_line>})`
+  - malformed JSON: `err(quote(invalid_jsonl_record), {kind: quote(jsonl_record), status: quote(error), reason: quote(invalid_jsonl_record), message: "...", line: <original_line>, column: <col>})` where `column` is the 1-based column position from the JSON parse error
   - valid JSON that is not an object: `err(quote(jsonl_record_not_object), {kind: quote(jsonl_record), status: quote(error), reason: quote(jsonl_record_not_object), value_type: <type_symbol>, line: <original_line>})` where `value_type` is a symbol describing the actual JSON value type (`list`, `string`, `number`, `bool`, `null`)
   - non-string input is a runtime/type misuse error, not a recoverable Outcome
   - `parse_jsonl_record` does not change `json_parse` behavior; it is an additive helper

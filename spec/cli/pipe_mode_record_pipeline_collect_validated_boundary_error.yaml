@@ -1,0 +1,22 @@
+id: pipe_mode_record_pipeline_collect_validated_boundary_error
+name: pipe_mode_record_pipeline_collect_validated_boundary_error
+category: cli
+description: Pipe mode rejects a record pipeline that materializes collect_validated as the final stage.
+input:
+  source: "map(parse_jsonl_record) |> collect_validated"
+  file: null
+  command: "map(parse_jsonl_record) |> collect_validated"
+  stdin: |-
+    {"id":1}
+    {"id":
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: |-
+    Error: Pipe mode expected the stage expression to return a Flow, received map after `map(parse_jsonl_record) |> collect_validated`.
+    Use -c/--command for aggregate record-pipeline results, or print the aggregate and return an empty Flow from the pipe-mode stage.
+  exit_code: 1
+notes: |
+  issue: 398
+  contract: Pipe mode remains stage-oriented; record-pipeline aggregation through collect_validated is a final value and must use command/file mode or explicitly return a Flow.
