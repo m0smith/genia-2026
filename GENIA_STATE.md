@@ -2251,6 +2251,7 @@ Core IR shape currently includes:
 - `examples/ants_terminal.genia`: blocking terminal developer UI over the same colony simulation with CLI-configurable seed, ant count, step count, delay, world size, and pure/actor mode selection
 - `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
 - `examples/ants_web.genia`: browser visualization over the same ants simulation using the current blocking HTTP helper, JSON endpoints, and a Canvas renderer in plain browser JavaScript
+- `examples/validated_pipeline_demo.genia`: experimental first demo milestone for the Outcome-aware validated data pipeline direction — a file-mode demo covered by shared CLI spec `spec/cli/validated-data-pipeline-demo.yaml`; reads JSONL records from `examples/data/validated_pipeline_demo.jsonl`, validates each record using existing `parse_jsonl_record`, `validate_each`, `validate_record`, and `collect_validated` helpers, and emits clean records plus diagnostics; demonstrates the intended Outcome-aware validated data pipeline direction; does not add new helper/runtime semantics; Experimental
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 

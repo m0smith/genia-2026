@@ -1,0 +1,20 @@
+id: validated-data-pipeline-demo
+name: validated-data-pipeline-demo
+category: cli
+description: File mode runs the first demoable validated JSONL record pipeline milestone.
+input:
+  source: "examples/validated_pipeline_demo.genia"
+  file: "examples/validated_pipeline_demo.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "{clean: [{id: 1, name: \"Ann\", age: 30}, {id: 4, name: \"Cara\", age: 22}], diagnostics: [{index: 1, kind: skipped, reason: \"blank_line\", context: some({kind: jsonl_record, status: skipped, reason: blank_line, line: \"\"})}, {index: 2, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: \"age\", status: error, reason: \"invalid field\", context: {field: \"age\", expected: \"age >= 0\", actual: -1, reason: \"invalid field\"}}]})}, {index: 3, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: \"name\", status: error, reason: \"missing required field\", context: {field: \"name\", reason: \"missing required field\"}}]})}, {index: 4, kind: error, reason: invalid_jsonl_record, context: some({kind: jsonl_record, status: error, reason: invalid_jsonl_record, line: \"not-json\", message: \"Expecting value\"})}]}"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 397
+  contract: file-mode CLI demo proves a narrow Outcome-aware validated JSONL record pipeline using existing parse_jsonl_record, validate_each, validate_record, and collect_validated behavior.
+  fixture: implementation phase should add examples/validated_pipeline_demo.genia and examples/data/validated_pipeline_demo.jsonl.
+  non_goal: does not add syntax, parser/Core IR changes, Sheets, lifecycle, actors, browser work, or a general ETL framework.

@@ -1,0 +1,15 @@
+import resource as res
+
+valid_person(record) =
+  validate_record(record, {
+    id: (r) -> validate_required("id", r),
+    name: (r) -> validate_required("name", r),
+    age: (r) -> validate_field("age", (value) -> value >= 0, "age >= 0", r)
+  })
+
+res.read_text(res.resource_ref("examples/data/validated_pipeline_demo.jsonl"))
+  |> ((text) -> split(text, "\n"))
+  |> lines
+  |> map(parse_jsonl_record)
+  |> ((records) -> validate_each(records, valid_person))
+  |> collect_validated
