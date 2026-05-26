@@ -1,0 +1,6 @@
+{"id": 1, "name": "Ann", "age": 30}
+
+{"id": 2, "name": "Ben", "age": -1}
+{"id": 3, "age": 41}
+not-json
+{"id": 4, "name": "Cara", "age": 22}
