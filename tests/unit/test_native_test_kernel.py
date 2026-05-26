@@ -92,6 +92,23 @@ def test_runtime_error_result_aggregation_and_exit_code():
     assert suite_exit_code(suite) == 1
 
 
+def test_malformed_named_test_unit_with_non_callable_body_is_discovery_error():
+    result = run_test_unit(TestUnit("bad", "not callable"))
+
+    assert result == {
+        "kind": "error",
+        "name": "bad",
+        "phase": "discovery",
+        "reason": "test unit body must be callable",
+        "expected": None,
+        "actual": None,
+        "stdout": "",
+        "stderr": "",
+        "diagnostics": {},
+    }
+    assert isinstance(result["diagnostics"], dict)
+
+
 def test_aggregation_preserves_order_and_counts_mixed_results():
     results = [
         {
