@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+SCRIPT_SOURCED=0
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+  if [[ "${ZSH_EVAL_CONTEXT:-}" == *:file ]]; then
+    SCRIPT_SOURCED=1
+  fi
+elif [[ -n "${BASH_VERSION:-}" ]]; then
+  if [[ "${BASH_SOURCE[0]:-}" != "${0}" ]]; then
+    SCRIPT_SOURCED=1
+  fi
+fi
+
+if [[ "$SCRIPT_SOURCED" -eq 0 ]]; then
+  set -euo pipefail
+fi
 
 ISSUE="${1:-}"
 SLUG="${2:-}"
@@ -11,6 +24,9 @@ if [[ -z "$ISSUE" || -z "$SLUG" ]]; then
   echo
   echo "Example:"
   echo "  scripts/genia-new.sh 207 flow-normalization feature"
+  if [[ "$SCRIPT_SOURCED" -eq 1 ]]; then
+    return 1
+  fi
   exit 1
 fi
 
@@ -32,9 +48,13 @@ if [[ "$CURRENT_BRANCH" == "main" ]]; then
   git switch -c "$BRANCH"
 else
   echo "Current branch is: ${CURRENT_BRANCH}"
-  read -p "Create/switch to ${BRANCH} from here? [y/N] " CONFIRM
+  printf "Create/switch to %s from here? [y/N] " "$BRANCH"
+  read CONFIRM
   if [[ "$CONFIRM" != "y" && "$CONFIRM" != "Y" ]]; then
     echo "Aborted."
+    if [[ "$SCRIPT_SOURCED" -eq 1 ]]; then
+      return 0
+    fi
     exit 0
   fi
   git switch -c "$BRANCH"
@@ -94,6 +114,15 @@ export BRANCH="${BRANCH}"
 export TYPE="${TYPE}"
 export SLUG="${SLUG}"
 EOF
+if [[ "$SCRIPT_SOURCED" -eq 1 ]]; then
+  alias genia_post_process_report='(export GIT_PAGER=cat; git status; git diff; git log --oneline main..HEAD; cat "$HANDOFF_DIR"/*) | pbcopy'
+  export HANDOFF_DIR="${HANDOFF_DIR}"
+  export CHANGE_SLUG="${CHANGE_SLUG}"
+  export ISSUE="${ISSUE}"
+  export BRANCH="${BRANCH}"
+  export TYPE="${TYPE}"
+  export SLUG="${SLUG}"
+fi
 cat <<'EOF'
 Post process reports:
 (export GIT_PAGER=cat; git status; git diff ; git log --oneline main..HEAD; cat ${HANDOFF_DIR}/*) | pbcopy
