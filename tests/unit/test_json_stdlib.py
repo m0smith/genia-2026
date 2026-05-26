@@ -116,6 +116,34 @@ def test_parse_jsonl_record_invalid_json_context_includes_exact_original_line():
     ]
 
 
+def test_malformed_jsonl_context_survives_validate_each_and_collection():
+    src = r'''
+    result = collect_validated(
+      validate_each(
+        [parse_jsonl_record("{\"id\":")],
+        (record) -> some(record)
+      )
+    )
+
+    diagnostic = unwrap_or({}, result.diagnostics |> nth(0))
+    ctx = unwrap_or({}, diagnostic.context)
+    [
+      display(diagnostic.kind),
+      display(diagnostic.reason),
+      ctx.line,
+      ctx.message,
+      unwrap_or(-1, ctx |> get("column"))
+    ]
+    '''
+    assert _run(src) == [
+        "error",
+        "invalid_jsonl_record",
+        '{"id":',
+        "Expecting value",
+        7,
+    ]
+
+
 def test_parse_jsonl_record_non_object_context_includes_exact_original_line():
     src = r'''
     line = "[1,2,3]"

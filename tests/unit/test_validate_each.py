@@ -178,7 +178,10 @@ def test_validate_each_rejects_non_outcome_validator_result():
     validate_each([{id: 1}], invalid)
     """
 
-    with pytest.raises(TypeError, match="validate_each validator must return an Outcome"):
+    with pytest.raises(
+        TypeError,
+        match="validate_each expected validator to return an Outcome, received bool at index 0",
+    ):
         _run(src)
 
 
@@ -322,7 +325,10 @@ def test_validate_each_flow_non_outcome_validator_result_fails_when_consumed():
 
     assert isinstance(result, GeniaFlow)
     assert state == {"validated": 0}
-    with pytest.raises(TypeError, match="validate_each validator must return an Outcome"):
+    with pytest.raises(
+        TypeError,
+        match="validate_each expected validator to return an Outcome, received int at index 0",
+    ):
         list(result.consume())
     assert state == {"validated": 1}
 

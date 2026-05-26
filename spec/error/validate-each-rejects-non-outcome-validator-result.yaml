@@ -7,7 +7,7 @@ input:
     validate_each([1], bad)
 expected:
   stdout: ""
-  stderr: "Error: validate_each validator must return an Outcome, received int at index 0\n"
+  stderr: "Error: validate_each expected validator to return an Outcome, received int at index 0\n"
   exit_code: 1
 notes: |
   issue: 414
