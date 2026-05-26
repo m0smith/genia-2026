@@ -2240,7 +2240,7 @@ def make_global_env(
             if _is_validation_outcome(result):
                 return result
             raise TypeError(
-                "validate_each validator must return an Outcome, "
+                "validate_each expected validator to return an Outcome, "
                 f"received {_runtime_type_name(result)} at index {index}"
             )
 
@@ -2752,8 +2752,10 @@ def make_global_env(
         try:
             parsed = json.loads(text)
         except json.JSONDecodeError as exc:
-            context = _jsonl_context("error", "invalid_jsonl_record", text).put(
-                "message", exc.msg
+            context = (
+                _jsonl_context("error", "invalid_jsonl_record", text)
+                .put("message", exc.msg)
+                .put("column", exc.colno)
             )
             return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
 

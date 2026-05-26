@@ -20,7 +20,7 @@ def _extract_pipe_stage_name(message: str) -> str | None:
     return match.group(1) if match else None
 
 
-def _format_pipe_mode_error(exc: Exception) -> str:
+def _format_pipe_mode_error(exc: Exception, *, stage_expr: str | None = None) -> str:
     message = str(exc)
     if message == "-p/--pipe expects a single stage expression":
         return "Pipe mode expression must be a single stage expression, not a full program"
@@ -32,6 +32,13 @@ def _format_pipe_mode_error(exc: Exception) -> str:
         return "Flow values are single-use and cannot be reused after consumption"
     if "run expected a flow, received " in message:
         received = message.rsplit("received ", 1)[1]
+        if stage_expr is not None and "collect_validated" in stage_expr:
+            return (
+                f"Pipe mode expected the stage expression to return a Flow, received {received} "
+                f"after `{stage_expr}`.\n"
+                "Use -c/--command for aggregate record-pipeline results, or print the aggregate "
+                "and return an empty Flow from the pipe-mode stage."
+            )
         detail = f"Pipe mode stage must produce a flow; received {received}"
         if received in {"int", "float", "bool", "string", "list", "map"}:
             return (

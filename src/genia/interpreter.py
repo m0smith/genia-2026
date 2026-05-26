@@ -494,7 +494,7 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
         except GeniaQuietBrokenPipe:
             return 0
         except Exception as e:  # noqa: BLE001
-            _emit_error(env, f"Error: {_format_pipe_mode_error(e)}")
+            _emit_error(env, f"Error: {_format_pipe_mode_error(e, stage_expr=mode.source)}")
             return 1
 
     if mode.kind == "command":
