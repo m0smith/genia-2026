@@ -2237,6 +2237,40 @@ Core IR shape currently includes:
 - `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
 - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
 
+## 9.1) Native test kernel core (Python reference host, Experimental)
+
+LANGUAGE CONTRACT:
+- Native test kernel core provides normalized pass/fail/error result dictionaries and suite dictionaries.
+- It normalizes `TestUnit` execution into one of three stable result kinds: `pass`, `fail`, or `error`.
+- It aggregates suite results and maps suite results to kernel-level exit codes.
+- `TestResult` is distinct from Outcome (`some`/`none`/`err`); there is no automatic mapping between them.
+- Exit code `0` means all executed tests passed or the suite was empty; exit code `1` means at least one test failed or errored.
+
+PYTHON REFERENCE HOST:
+- Implemented as `src/genia/test_kernel.py` in the Python reference host.
+- Kernel-only; no CLI runner or shared spec-runner integration exists yet.
+- Provides: `NativeTestFailure`, `TestUnit`, `run_test_unit`, `run_test_suite`, `aggregate_results`, `suite_exit_code`.
+- `TestUnit` is a frozen dataclass with `name` (required non-empty string), `body` (required callable), and optional `location` and `metadata`.
+- `run_test_unit(test_unit)` executes the body, catches `NativeTestFailure` as a `fail` result, and catches other exceptions as `error` results.
+- `run_test_suite(test_units)` runs each unit in given order and aggregates results via `aggregate_results`.
+- Normalized `TestResult` dictionaries contain stable keys: `kind`, `name`, `phase`, `reason`, `expected`, `actual`, `stdout`, `stderr`, `diagnostics`.
+- `stdout` and `stderr` are stable empty strings in this phase; capture is not implemented.
+- `TestSuiteResult` dictionaries contain: `total`, `passed`, `failed`, `errored`, `results`.
+- `results` preserves input order exactly.
+- Validated by `tests/unit/test_native_test_kernel.py` (5 tests, Python reference host only).
+
+Not implemented in this phase:
+- `skip` result kind
+- `duration` field
+- CLI test runner
+- shared spec-runner integration
+- host adapter for Genia runtime callables
+- parser/lexer/evaluator/Core IR changes
+- public Genia builtins or prelude surface for test authoring
+- annotations, lifecycle phases, or fixtures
+- stdout/stderr capture (fields are present but always empty strings)
+- multi-host test execution
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
