@@ -1,0 +1,27 @@
+id: validated_record_pipeline_killer_workflow
+name: validated_record_pipeline_killer_workflow
+category: cli
+description: Pipe mode validates JSONL stdin records through existing Outcome-aware helpers and collects clean data plus diagnostics.
+input:
+  source: |
+    ((flow) -> { result = flow |> map(parse_jsonl_record) |> ((records) -> validate_each(records, (record) -> validate_record(record, {id: (r) -> validate_field("id", (x) -> x > 0, "positive id", r), name: (r) -> validate_required("name", r)}))) |> collect_validated; print(result); evolve(0, (x) -> x) |> take(0) })
+  file: null
+  command: |
+    ((flow) -> { result = flow |> map(parse_jsonl_record) |> ((records) -> validate_each(records, (record) -> validate_record(record, {id: (r) -> validate_field("id", (x) -> x > 0, "positive id", r), name: (r) -> validate_required("name", r)}))) |> collect_validated; print(result); evolve(0, (x) -> x) |> take(0) })
+  stdin: |-
+    {"id":1,"name":"Ada"}
+
+    {"id":0,"name":"Bad"}
+    {"id":
+    {"id":2,"name":"Grace"}
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "{clean: [{id: 1, name: Ada}, {id: 2, name: Grace}], diagnostics: [{index: 1, kind: skipped, reason: blank_line, context: some({kind: jsonl_record, status: skipped, reason: blank_line, line: })}, {index: 2, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: id, status: error, reason: invalid field, context: {field: id, expected: positive id, actual: 0, reason: invalid field}}]})}, {index: 3, kind: error, reason: invalid_jsonl_record, context: some({kind: jsonl_record, status: error, reason: invalid_jsonl_record, line: {\"id\":, message: Expecting value})}]}"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 404
+  contract: CLI pipe-mode fixture proves a narrow Outcome-aware validated-record pipeline using existing JSONL parsing, validation helpers, and collect_validated aggregation.
+  fixture_note: pipe mode requires the stage expression to return a Flow, so the aggregate is printed before returning an empty Flow.
+  non_goal: does not add new runtime behavior, syntax, Sheet support, reporting, or broader killer-workflow implementation.
