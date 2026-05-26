@@ -29,50 +29,41 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ---
 
-## Release R1 — Killer Workflow Foundation
+## Release R1 — Killer Workflow Foundation ✓ COMPLETE
 
 Theme:
 
 > Make Outcome-aware validated data pipelines feel real, useful, and demonstrable.
 
-Primary outcomes:
+**Status: Complete.** The R1 foundation has been implemented and demonstrated.
 
-- JSONL / CSV / stdin record ingestion path feels smooth.
-- Outcome-aware validation helpers are coherent.
-- Diagnostics are useful for record/field failures.
-- Flow / Seq / Sheet pieces support the data-pipeline story.
-- Examples show messy records becoming clean shaped output.
+R1 proved the core pipeline model end-to-end:
 
-Includes:
+```
+messy records in → clear pipelines → Outcome-aware validation → clean records + diagnostics out
+```
 
-- record parsing helpers
-- validation helper polish
-- collect validated rows
-- diagnostic conventions
-- Sheet landing-zone improvements
-- docs/examples tied to real behavior
+Delivered:
 
-Excludes:
+- Outcome value family: `some`, `none`, `err` with pipeline propagation
+- Validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`
+- `collect_validated` terminal helper for aggregating Outcome-aware pipeline results
+- Flow / Seq / Sheet pieces supporting the data-pipeline story
+- Diagnostic conventions for record/field failures
+- Malformed record pipeline diagnostics (issue #398)
+- End-to-end validated data pipeline demo (`examples/validated_pipeline_demo.genia`)
+- Docs and tests tied to implemented behavior
+
+Excluded from R1 (see R2, R5, or parking lot):
 
 - general lifecycle system
 - native unit test framework
 - actors/concurrency expansion
 - browser playground
 - speculative value-template syntax
-
-Sequencing notes:
-
-- Finish the end-to-end diagnostics path before broadening validation ergonomics.
-- `validate_each/3` context merging is an R1 follow-up only after parse → validate → collect diagnostic preservation proves the needed context shape.
-- Minimal Sheet integration belongs late in R1 only as a landing zone for validated records and diagnostics.
-- Rich Sheet/report behavior belongs to R5 unless required for the R1 demo.
-- Do not start validation DSL work in R1.
-
-Exit criteria:
-
-- A small but convincing end-to-end validated data pipeline demo exists.
-- The demo is backed by tests/specs.
-- Docs describe only implemented behavior.
+- CSV / JSONL record-parsing production helpers
+- rich Sheet integration beyond minimal landing zone
+- grouped diagnostic summaries and report helpers
 
 ---
 
@@ -81,6 +72,9 @@ Exit criteria:
 Theme:
 
 > Let Genia test Genia where Genia-level tests make sense.
+
+**Scope note:** R2 is exclusively the native test kernel. Leftover R1 data-workflow hardening (CSV,
+Sheets, diagnostics, report helpers) belongs to R5, not R2.
 
 Primary outcomes:
 
@@ -117,6 +111,7 @@ Excludes:
 - snapshot testing
 - full pytest migration
 - changing shared semantic spec authority
+- data-workflow hardening (CSV helpers, Sheet aggregation, richer diagnostics) — these belong to R5
 
 Exit criteria:
 
@@ -208,7 +203,20 @@ Theme:
 
 > Make validated pipelines feel production-useful.
 
-Possible includes:
+This release picks up the data-workflow items deferred from R1. These items were deferred
+because R1 proved the core model; they are not required for that proof and belong to production-quality polish.
+
+Deferred R1 items now targeting R5:
+
+- **#405** — post-R1 hardening (deferred from R1)
+- **#393** — R5 hardening
+- **#394** — conditional / deferred until concrete need is proven
+- **#390** — CSV support (record ingestion from CSV files)
+- **#395** — Sheet landing zone improvements
+- **#396** — depends on #395; schedule after Sheet landing zone lands
+- **#363 / #364** — depends on Sheet landing zone; schedule after #395
+
+Possible additional includes:
 
 - richer diagnostics
 - grouped summaries
@@ -239,13 +247,14 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 
 - actor system
   - includes actor lifecycle, supervision, and actor-oriented runtime expansion
-  - keep out of R1 unless a narrow validated-pipeline use case explicitly requires it
+  - keep out of R2/R3 unless a narrow use case explicitly requires it
 - browser playground runtime
   - useful as a future demo surface, not required for the first validated-data-pipeline release
 - ants / simulation teaching demos
   - useful teaching material after the data-pipeline wedge is demonstrable
-  - not a release blocker for R1
 - full value-template system
+  - **#87 / #89 / #91** — broad value-template / contract roadmap issues; future / parking lot
+    unless explicitly promoted to a release
 - refinement / shape / contract / variant roadmap
 - validation DSL
   - do not create implementation tickets until helper-based validation proves insufficient
@@ -253,6 +262,31 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - server mode
 - notebook mode
 - parallel native test execution
+- **#399** — future design work; not R2 or near-term; belongs in parking lot until scope is defined
+- **#102** — broad scope; should be split into smaller targeted tickets or updated before use
+  as a release tracker; do not use as a release blocker in its current form
+
+---
+
+## Post-R1 Issue Disposition
+
+This section records the classification of R1-adjacent issues after R1 completion.
+
+| Issue | Classification | Notes |
+|---|---|---|
+| #374 | **Closed / completed** | Delivered as part of R1. |
+| #405 | Post-R1 hardening → R5 | Keep open; schedule in R5. |
+| #393 | R5 hardening | Keep open; schedule in R5. |
+| #394 | Conditional / deferred | Keep open; promote when need is concrete. |
+| #390 | R5 — CSV support | Keep open; schedule in R5. |
+| #395 | R5 — Sheet landing zone | Keep open; schedule in R5. |
+| #396 | R5 — after #395 | Keep open; depends on Sheet landing zone. |
+| #363 / #364 | R5 — after Sheet landing zone | Keep open; schedule after #395. |
+| #399 | Future design | Not R2; park until scope is defined. |
+| #87 / #89 / #91 | Parking lot | Future / parking lot unless explicitly promoted. |
+| #102 | Needs split or update | Do not use as a broad release blocker; split first. |
+
+If an issue listed above is already closed, do not reopen it.
 
 ---
 
