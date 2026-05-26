@@ -1,0 +1,18 @@
+name: validation-helpers-feed-collect-validated
+category: eval
+description: validate_each results feed collect_validated cleanly with skipped and error diagnostics
+input:
+  source: |
+    classify(x) =
+      0 -> none("skipped_zero") |
+      n ? n == -1 -> err(quote(invalid_negative), {value: x}) |
+      _ -> some(x)
+
+    collect_validated(validate_each([1, 0, -1, 2], classify))
+expected:
+  stdout: "{clean: [1, 2], diagnostics: [{index: 1, kind: skipped, reason: \"skipped_zero\", context: none(\"nil\")}, {index: 2, kind: error, reason: invalid_negative, context: some({value: -1})}]}\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 403
+  contract: validate_each output feeds collect_validated into clean values plus skipped and error diagnostics.

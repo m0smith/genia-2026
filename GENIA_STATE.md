@@ -150,6 +150,7 @@ PYTHON REFERENCE HOST:
   - selected validation helper behavior: optional field present/absent/invalid outcomes, required field present success, and simple nested validation path success/missing diagnostics (Partial; Python reference host only)
   - `collect_validated/1` behavior: empty source, all-clean, mixed `some`/`none`/`err`, `some` context ignored on clean path, bare `none`, `err` without context, and Flow-compatible source (Experimental; initial coverage only)
   - selected `validate_each/2` behavior: empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation (Experimental; initial coverage only)
+  - `validate_each/2` output feeding `collect_validated` directly: shared eval coverage proves mixed Outcome results from validation helpers aggregate into clean values plus skipped/error diagnostics. Experimental; initial coverage only.
 - Eval normalization is limited to line-ending normalization for `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
 - Eval comparison is otherwise exact: `stdout`, `stderr`, and `exit_code` must match exactly after that line-ending normalization.
 - Error normalization is limited to the same line-ending normalization used for eval `stdout` and `stderr` (`\r\n` and `\r` normalize to `\n`).
