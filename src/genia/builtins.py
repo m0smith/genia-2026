@@ -73,6 +73,7 @@ if __package__ in (None, ""):
         sheet_shape,
         sheet_where,
     )
+    from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
         _RNG_INCREMENT,
@@ -153,6 +154,7 @@ else:
         sheet_shape,
         sheet_where,
     )
+    from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
         _RNG_INCREMENT,
@@ -509,6 +511,16 @@ def make_global_env(
 
     def debug_repr_fn(value: Any) -> str:
         return format_debug(value)
+
+    def assert_true_fn(value: Any) -> Any:
+        if not truthy(value):
+            raise NativeTestFailure("assert_true failed")
+        return OPTION_NONE
+
+    def assert_eq_fn(actual: Any, expected: Any) -> Any:
+        if actual != expected:
+            raise NativeTestFailure("assert_eq failed", expected=expected, actual=actual)
+        return OPTION_NONE
 
     def format_constructor(*args: Any) -> GeniaFormat:
         if len(args) not in (1, 2):
@@ -3339,6 +3351,8 @@ def make_global_env(
     env.set("print", print_fn)
     env.set("display", display_fn)
     env.set("debug_repr", debug_repr_fn)
+    env.set("assert_true", _host_function_group("assert_true", 1, assert_true_fn))
+    env.set("assert_eq", _host_function_group("assert_eq", 2, assert_eq_fn))
     env.set("Format", format_constructor)
     env.set("format_template", format_template_fn)
     env.set("format_tag", format_tag_fn)

@@ -70,6 +70,7 @@ CLI contract summary (actual behavior):
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literal args/paths)
 - `--debug-stdio` accepts exactly one program path and rejects `-c`/`-p` combinations with explicit parser errors
 - `--test` is mutually exclusive with `-c`, `-p`, and `--debug-stdio`; invalid combinations exit with code `2`
+- native test assertion helpers (Python reference host, Experimental): `assert_true(value)` and `assert_eq(actual, expected)` are minimal assertion helpers available in native test bodies; passing helpers return `none` and print nothing; inside native test mode, failing helpers are reported as test `FAIL` outcomes rather than evaluation `ERROR` outcomes; incorrect arity remains an evaluation `ERROR`; this is not a full assertion framework; see `GENIA_STATE.md` section 9.1.1
 
 **Limitations:**
 - Only the Python host is implemented; all CLI, REPL, and pipe behavior is enforced and tested only for Python.
