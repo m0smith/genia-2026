@@ -218,6 +218,26 @@ Possible includes:
 - better command-line ergonomics
 - clearer examples for real-world records
 
+- possible file-search helper for CLI-native data workflow setup
+  - direct call shape: `find(root, opts)`
+  - options are represented as a plain validated options record
+  - initial file-search results should compose with Flow/Seq-style pipelines
+
+- Option Record Pattern for APIs with many optional settings
+  - default options value
+  - plain options record
+  - pure modifier functions
+  - final validation before execution
+
+- file-search options as the first concrete example:
+  - `default_find_options()`
+  - `with_pattern(...)`
+  - `with_max_depth(...)`
+  - `with_follow_symlinks(...)`
+  - `validate_find_options(...)`
+
+- diagnostics for unknown or invalid options
+
 Deferred candidates after the R1 demo proves the basic workflow:
 
 - richer Sheet integration beyond the minimal R1 landing zone
@@ -253,6 +273,15 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - server mode
 - notebook mode
 - parallel native test execution
+
+- record-derived `with_*` helper generation
+  - possible future opt-in form: `@derive(quote(withers))`
+  - generated helpers must be namespaced under the record/template
+  - generated helpers must not create global `with_*` functions
+  - promote only after multiple APIs prove the manual Option Record Pattern is valuable
+
+- automatic global `with_*` helper generation
+  - rejected by default: risks namespace collisions, unclear origin, and excessive implicit API surface
 
 ---
 
