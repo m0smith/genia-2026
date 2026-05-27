@@ -32,7 +32,7 @@ ALLOWED_TOP_LEVEL_KEYS = {
 ALLOWED_INPUT_KEYS_BY_CATEGORY = {
     "eval": {"source", "stdin"},
     "ir": {"source"},
-    "cli": {"source", "file", "command", "stdin", "argv", "debug_stdio"},
+    "cli": {"source", "file", "command", "test", "stdin", "argv", "debug_stdio"},
     "flow": {"source", "stdin"},
     "error": {"source", "stdin"},
     "parse": {"source"},
@@ -64,6 +64,7 @@ class LoadedSpec:
     description: str = ""
     file: str | None = None
     command: str | None = None
+    test: str | None = None
     argv: list[str] | None = None
     debug_stdio: bool = False
     spec_id: str | None = None
@@ -142,7 +143,7 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
     if not isinstance(input_data["stdin"], str):
         raise ValueError("input.stdin must be a string")
 
-    for optional_text_key in ("file", "command", "stdin"):
+    for optional_text_key in ("file", "command", "test", "stdin"):
         if optional_text_key in input_data:
             value = input_data[optional_text_key]
             if value is not None and not isinstance(value, str):
@@ -158,16 +159,26 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
 
     file_value = input_data.get("file")
     command_value = input_data.get("command")
+    test_value = input_data.get("test")
     stdin_value = input_data["stdin"]
 
     has_file = isinstance(file_value, str) and file_value != ""
     has_command = isinstance(command_value, str) and command_value != ""
+    has_test = isinstance(test_value, str) and test_value != ""
     has_stdin = isinstance(stdin_value, str) and stdin_value != ""
 
     # Valid CLI modes:
     # - file mode: file only, stdin empty
     # - command mode: command only, stdin empty
     # - pipe mode: command required, stdin may be non-empty
+    # - test mode: test only, stdin empty
+    if has_test:
+        if has_file or has_command or has_stdin or input_data["argv"]:
+            raise ValueError("cli test mode requires input.test only; file/command/stdin/argv must be empty")
+        if input_data["source"] != test_value:
+            raise ValueError("cli test mode requires input.source to match input.test")
+        return
+
     if has_file:
         if has_command or has_stdin:
             raise ValueError("cli file mode requires input.file only; command/stdin must be empty")
@@ -266,6 +277,7 @@ def load_spec(path: Path) -> LoadedSpec:
         description=data.get("description", ""),
         file=input_data.get("file"),
         command=input_data.get("command"),
+        test=input_data.get("test"),
         argv=input_data.get("argv", []),
         debug_stdio=input_data.get("debug_stdio", False),
         spec_id=data.get("id"),

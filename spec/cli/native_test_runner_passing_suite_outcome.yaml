@@ -1,0 +1,21 @@
+id: native_test_runner_passing_suite_outcome
+name: native_test_runner_passing_suite_outcome
+category: cli
+description: Native test mode reports a passing suite outcome.
+input:
+  source: "spec/cli/native_test_runner_passing_suite_outcome.genia"
+  file: null
+  command: null
+  test: "spec/cli/native_test_runner_passing_suite_outcome.genia"
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    total=1 passed=1 failed=0 errored=0
+    PASS passes
+    total=1 passed=1 failed=0 errored=0
+  stderr: ""
+  exit_code: 0
+notes: |
+  Covers the deterministic CLI report for a single passing native test.
