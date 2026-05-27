@@ -558,6 +558,15 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
 def _main(argv: Optional[list[str]] = None) -> int:
     raw_argv = list(argv) if argv is not None else sys.argv[1:]
+    if raw_argv and raw_argv[0] == "test":
+        if len(raw_argv) != 2:
+            parser = argparse.ArgumentParser(prog="genia test")
+            parser.add_argument("file")
+            parser.error("genia test accepts exactly one file path")
+        from .native_test_runner import run_native_tests
+
+        return run_native_tests(raw_argv[1])
+
     terminator_index: int | None = None
     try:
         terminator_index = raw_argv.index("--")

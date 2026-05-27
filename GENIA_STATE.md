@@ -2275,8 +2275,11 @@ Status: Experimental, Python reference host.
 
 `genia --test <file>` runs native test units registered through the test-mode-only `test(name, body)` helper and reports the existing normalized native test runner outcomes. The CLI prints suite counts before and after per-result lines, reports `PASS`, `FAIL`, and `ERROR` results, and exits `0` when no failures/errors occur, `1` when failures or normalized test errors occur, and `2` for invalid CLI invocation.
 
+`genia test <file>` is a minimal native test runner entry point over the same Python reference-host native test kernel. It validates and parses the file, discovers test units through the existing test-mode-only `test(name, body)` registration path, runs the discovered units through the native test kernel, prints one `[PASS|FAIL|ERROR] <name>` line per result followed by `Summary: total=<t> passed=<p> failed=<f> errors=<e>`, and exits `0` when all discovered tests pass, `1` when any test fails/errors, and `2` for file, parse, or no-tests errors.
+
 PYTHON REFERENCE HOST:
 - Implemented as `src/genia/test_cli.py` in the Python reference host.
+- The `genia test <file>` entry point is implemented as `src/genia/native_test_runner.py` and routed by `src/genia/interpreter.py`.
 - Test mode registers a test-mode-only `test(name, body)` helper that appends `TestUnit` values to a private list; malformed units are normalized as discovery errors by the existing kernel.
 - `--test` is mutually exclusive with `-c`/`--command`, `-p`/`--pipe`, and `--debug-stdio`.
 - Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
