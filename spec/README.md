@@ -69,6 +69,7 @@ CLI `input` fields:
 - `source`
 - `file`
 - `command`
+- `test`
 - `stdin`
 - `argv`
 - `debug_stdio`
@@ -84,6 +85,7 @@ CLI mode mapping:
 - file mode: `input.file`
 - command mode: `input.command` with empty `input.stdin`
 - pipe mode: `input.command` with non-empty `input.stdin`
+- native test mode: `input.test`
 
 For CLI specs, `stdin` is piped input data, not program text. Current shared pipe-mode specs use non-empty `stdin` to select `-p <command>`. Shared executable specs do not cover REPL mode.
 
@@ -96,6 +98,7 @@ Current CLI shared coverage proves:
 - basic pipe-mode Flow-stage execution
 - explicit `stdin` / `run` rejection in pipe mode
 - current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results
+- selected native test-runner outcomes exposed through `--test`: passing suite, runtime-erroring suite, and discovery-error suite
 
 ## Parse Specs
 

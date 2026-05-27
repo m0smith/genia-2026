@@ -6,7 +6,7 @@ CLI shared coverage is intentionally partial and limited to deterministic non-in
 
 CLI cases in this directory must:
 
-- cover only file mode, `-c` command mode, `-p` pipe mode, or explicit `--debug-stdio` argument validation
+- cover only file mode, `-c` command mode, `-p` pipe mode, native `--test` mode, or explicit `--debug-stdio` argument validation
 - assert only normalized `stdout`, normalized `stderr`, and exact `exit_code`
 - remain deterministic
 - avoid REPL behavior
@@ -33,6 +33,7 @@ Current CLI shared coverage proves:
 - pipe mode guidance for a non-flow final result (`pipe_mode_collect_error`)
 - deterministic file-mode parse/runtime failures (`error_parse`, `error_runtime`)
 - deterministic `--debug-stdio` / mode-validation behavior (`debug_stdio_suppression`)
+- selected native test-runner outcomes exposed through `--test`: passing suite, runtime-erroring suite, and discovery-error suite
 
 Shared CLI coverage does not yet prove the full CLI surface.
 
@@ -40,6 +41,7 @@ In particular, this directory does not define executable shared coverage for:
 
 - REPL mode
 - every malformed mode/arg combination
+- failing native test-suite outcomes not currently producible through the Genia-facing `--test` surface
 - every pipe-mode guidance diagnostic
 - every flow-vs-command difference already tested in host-local tests
 - Python-host-only debugger runtime behavior beyond deterministic argument validation
