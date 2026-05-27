@@ -2264,10 +2264,41 @@ Not implemented in this phase:
 - shared spec-runner integration
 - host adapter for Genia runtime callables
 - parser/lexer/evaluator/Core IR changes
-- public Genia builtins or prelude surface for test authoring beyond the test-mode-only `test(name, body)` helper
-- annotations, lifecycle phases, or fixtures
+- broad assertion framework, lifecycle hooks, annotations, or fixtures; only the minimal helpers `assert_true` and `assert_eq` are implemented
 - stdout/stderr capture (fields are present but always empty strings)
 - multi-host test execution
+
+## 9.1.1) Native test assertion helpers (Python reference host, Experimental)
+
+PYTHON REFERENCE HOST:
+- The Python reference host provides minimal native-test assertion helpers: `assert_true(value)` and `assert_eq(actual, expected)`.
+- Implemented as builtins registered directly in the global environment via `src/genia/builtins.py`.
+- This is not a full assertion framework. This is the minimal native-test helper surface.
+
+`assert_true(value)`:
+- passes when `value` is truthy according to current runtime truthiness
+- returns `none` on success
+- prints nothing on success
+- raises `NativeTestFailure` on assertion failure
+- inside native test mode, a failing `assert_true` is reported as a test `FAIL` outcome, not an `ERROR` outcome
+
+`assert_eq(actual, expected)`:
+- passes when `actual` equals `expected` according to current Genia equality behavior
+- returns `none` on success
+- prints nothing on success
+- preserves useful actual/expected diagnostics on failure
+- raises `NativeTestFailure` on assertion failure
+- inside native test mode, a failing `assert_eq` is reported as a test `FAIL` outcome, not an `ERROR` outcome
+
+Assertion failure behavior:
+- Inside native test mode, failing helpers are reported as test FAIL outcomes rather than evaluation ERROR outcomes.
+- Incorrect helper arity remains an evaluation ERROR.
+- Later tests in the same suite continue running after an assertion failure.
+
+Not implemented in this phase:
+- `assert_false`, `assert_ne`, `assert_raises`, custom assertion messages, snapshot testing, property testing, soft assertions, or matcher DSLs
+- cross-host implementation; Python is the only implemented host
+- assertion lifecycle hooks, grouping, or count tracking
 
 ## 9.2) Native test CLI (Python reference host, Experimental)
 
