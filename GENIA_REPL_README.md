@@ -62,12 +62,14 @@ CLI contract summary (actual behavior):
 - command mode: `genia -c 'source' [args ...]`
 - pipe mode: `genia -p 'stage_expr' [args ...]` runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
 - REPL mode: `genia`
+- native test mode: `genia --test path/to/test_file.genia` (Experimental, Python reference host; see `GENIA_STATE.md` section 9.2)
 - file/command dispatch: call `main(argv())` when `main/1` exists, otherwise call `main()` when `main/0` exists
 - pipe mode bypasses `main`
 - trailing args are exposed through `argv()` as plain strings (including option-like values)
 - in pipe mode, explicit unbound `stdin` and explicit unbound `run` are rejected with clear errors
 - when no `-c`/`-p` mode is selected, the first non-mode argument must be a source file path (`--` stops option parsing for dash-prefixed literal args/paths)
 - `--debug-stdio` accepts exactly one program path and rejects `-c`/`-p` combinations with explicit parser errors
+- `--test` is mutually exclusive with `-c`, `-p`, and `--debug-stdio`; invalid combinations exit with code `2`
 
 **Limitations:**
 - Only the Python host is implemented; all CLI, REPL, and pipe behavior is enforced and tested only for Python.

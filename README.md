@@ -277,6 +277,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
   - `genia -c 'source' [args ...]` -> command mode
   - `genia -p 'stage_expr' [args ...]` -> pipe mode
   - `genia` -> REPL mode
+  - `genia --test path/to/test_file.genia` -> native test mode (Experimental, Python reference host)
 
 ### Choose `-p` vs `-c`
 
