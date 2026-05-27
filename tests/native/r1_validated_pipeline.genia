@@ -1,0 +1,35 @@
+valid_person(record) =
+  validate_record(record, {
+    id: (r) -> validate_field("id", (x) -> x > 0, "positive id", r),
+    name: (r) -> validate_required("name", r)
+  })
+
+test("validated pipeline collects clean records and diagnostics", () -> {
+  lines = [
+    "{\"id\":1,\"name\":\"Ada\"}",
+    "",
+    "{\"id\":0,\"name\":\"Bad\"}",
+    "{\"id\":",
+    "{\"id\":2,\"name\":\"Grace\"}"
+  ]
+
+  result =
+    lines
+      |> map(parse_jsonl_record)
+      |> ((records) -> validate_each(records, valid_person))
+      |> collect_validated
+
+  diagnostics = result("diagnostics")
+  skipped = unwrap_or({}, diagnostics |> nth(0))
+  invalid = unwrap_or({}, diagnostics |> nth(1))
+  malformed = unwrap_or({}, diagnostics |> nth(2))
+
+  assert_eq(display(result("clean")), "[{id: 1, name: Ada}, {id: 2, name: Grace}]")
+  assert_eq(count(diagnostics), 3)
+  assert_eq(display(skipped("kind")), "skipped")
+  assert_eq(display(skipped("reason")), "blank_line")
+  assert_eq(display(invalid("kind")), "error")
+  assert_eq(display(invalid("reason")), "record_validation_failed")
+  assert_eq(display(malformed("kind")), "error")
+  assert_eq(display(malformed("reason")), "invalid_jsonl_record")
+})
