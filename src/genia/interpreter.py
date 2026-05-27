@@ -428,7 +428,13 @@ def _select_execution_mode(
     terminator_index: int | None,
     parser: argparse.ArgumentParser,
 ) -> ExecutionMode:
-    if args.command is None and args.pipe is None and remaining_args and remaining_args[0].startswith("-"):
+    if (
+        args.command is None
+        and args.pipe is None
+        and getattr(args, "test", None) is None
+        and remaining_args
+        and remaining_args[0].startswith("-")
+    ):
         if not explicit_terminator_used and terminator_index is None:
             parser.error(
                 "expected a source file path when not using -c/--command or -p/--pipe; "
@@ -437,13 +443,15 @@ def _select_execution_mode(
 
     program_path: Optional[str] = None
     script_args: list[str] = []
-    if args.command is not None or args.pipe is not None:
+    if args.command is not None or args.pipe is not None or getattr(args, "test", None) is not None:
         script_args = remaining_args
     elif remaining_args:
         program_path = remaining_args[0]
         script_args = remaining_args[1:]
 
     if args.debug_stdio:
+        if getattr(args, "test", None) is not None:
+            parser.error("--debug-stdio cannot be used with --test")
         if args.command is not None:
             parser.error("--debug-stdio cannot be used with --command")
         if args.pipe is not None:
@@ -455,6 +463,13 @@ def _select_execution_mode(
         if not Path(program_path).is_file():
             parser.error(f"--debug-stdio program path not found: {program_path}")
         return ExecutionMode(kind="debug_stdio", program_path=program_path)
+
+    if getattr(args, "test", None) is not None:
+        if remaining_args:
+            parser.error("--test accepts exactly one program path")
+        if not Path(args.test).is_file():
+            parser.error(f"--test program path not found: {args.test}")
+        return ExecutionMode(kind="test", program_path=args.test)
 
     if args.pipe is not None:
         return ExecutionMode(kind="pipe", source=args.pipe, script_args=script_args)
@@ -483,6 +498,12 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
     if mode.kind == "debug_stdio":
         assert mode.program_path is not None
         return run_debug_stdio(mode.program_path)
+
+    if mode.kind == "test":
+        assert mode.program_path is not None
+        from .test_cli import run_native_tests_from_file
+
+        return run_native_tests_from_file(mode.program_path)
 
     if mode.kind == "pipe":
         assert mode.source is not None
@@ -545,6 +566,7 @@ def _main(argv: Optional[list[str]] = None) -> int:
 
     parser = argparse.ArgumentParser(
         prog="genia",
+        usage="genia [-h] [-V] [-c COMMAND | -p PIPE] [--debug-stdio]",
         description="Genia CLI: file mode, command mode (-c), pipe mode (-p), or REPL.",
         epilog=(
             "Modes:\n"
@@ -561,6 +583,7 @@ def _main(argv: Optional[list[str]] = None) -> int:
     command_group = parser.add_mutually_exclusive_group()
     command_group.add_argument("-c", "--command", help="Execute inline Genia source")
     command_group.add_argument("-p", "--pipe", help="Execute a pipe-mode stage expression")
+    command_group.add_argument("--test", help="Run native tests from a Genia source file")
     parser.add_argument("--debug-stdio", action="store_true", help="Run debug adapter over stdio for a program file")
     args, remaining_args = parser.parse_known_args(raw_argv)
     if getattr(args, "version", False):

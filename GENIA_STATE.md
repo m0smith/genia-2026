@@ -2248,7 +2248,6 @@ LANGUAGE CONTRACT:
 
 PYTHON REFERENCE HOST:
 - Implemented as `src/genia/test_kernel.py` in the Python reference host.
-- Kernel-only; no CLI runner or shared spec-runner integration exists yet.
 - Provides: `NativeTestFailure`, `TestUnit`, `run_test_unit`, `run_test_suite`, `aggregate_results`, `suite_exit_code`.
 - `TestUnit` is a frozen dataclass with `name` (required non-empty string), `body` (required callable), and optional `location` and `metadata`.
 - `run_test_unit(test_unit)` executes the body, catches `NativeTestFailure` as a `fail` result, and catches other exceptions as `error` results.
@@ -2257,19 +2256,35 @@ PYTHON REFERENCE HOST:
 - `stdout` and `stderr` are stable empty strings in this phase; capture is not implemented.
 - `TestSuiteResult` dictionaries contain: `total`, `passed`, `failed`, `errored`, `results`.
 - `results` preserves input order exactly.
-- Validated by `tests/unit/test_native_test_kernel.py` (5 tests, Python reference host only).
+- Validated by `tests/unit/test_native_test_kernel.py` (6 tests, Python reference host only).
 
 Not implemented in this phase:
 - `skip` result kind
 - `duration` field
-- CLI test runner
 - shared spec-runner integration
 - host adapter for Genia runtime callables
 - parser/lexer/evaluator/Core IR changes
-- public Genia builtins or prelude surface for test authoring
+- public Genia builtins or prelude surface for test authoring beyond the test-mode-only `test(name, body)` helper
 - annotations, lifecycle phases, or fixtures
 - stdout/stderr capture (fields are present but always empty strings)
 - multi-host test execution
+
+## 9.2) Native test CLI (Python reference host, Experimental)
+
+Status: Experimental, Python reference host.
+
+`genia --test <file>` runs native test units registered through the test-mode-only `test(name, body)` helper and reports the existing normalized native test runner outcomes. The CLI prints suite counts before and after per-result lines, reports `PASS`, `FAIL`, and `ERROR` results, and exits `0` when no failures/errors occur, `1` when failures or normalized test errors occur, and `2` for invalid CLI invocation.
+
+PYTHON REFERENCE HOST:
+- Implemented as `src/genia/test_cli.py` in the Python reference host.
+- Test mode registers a test-mode-only `test(name, body)` helper that appends `TestUnit` values to a private list; malformed units are normalized as discovery errors by the existing kernel.
+- `--test` is mutually exclusive with `-c`/`--command`, `-p`/`--pipe`, and `--debug-stdio`.
+- Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
+- Report format: a summary line `total=<t> passed=<p> failed=<f> errored=<e>` appears both before and after per-result lines.
+- Per-result lines: `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected> actual=<actual>` when present), `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
+- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (6 tests), Python reference host only.
+
+This does not add test annotations, setup/teardown lifecycle hooks, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
 
 ## 10) Explicitly not implemented (current)
 
