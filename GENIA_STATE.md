@@ -2336,7 +2336,7 @@ PYTHON REFERENCE HOST:
 - Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
 - Report format: a summary line `total=<t> passed=<p> failed=<f> errored=<e>` appears both before and after per-result lines.
 - Per-result lines: `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected> actual=<actual>` when present), `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
-- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (6 tests), Python reference host only.
+- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (9 tests), Python reference host only.
 
 This does not add test annotations, setup/teardown lifecycle hooks, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
 
