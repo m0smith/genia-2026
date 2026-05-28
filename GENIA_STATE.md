@@ -2300,6 +2300,8 @@ Not implemented in this phase:
 - cross-host implementation; Python is the only implemented host
 - assertion lifecycle hooks, grouping, or count tracking
 
+A Genia-native fixture now covers the R1 validated pipeline path. Validated by `tests/unit/test_r1_validated_pipeline_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r1_validated_pipeline.genia`. Validated pipeline behavior is covered by a native test fixture using `parse_jsonl_record`, `validate_each`, `validate_record`, `collect_validated`, and `assert_eq`.
+
 ## 9.2) Native test CLI (Python reference host, Experimental)
 
 Status: Experimental, Python reference host.
