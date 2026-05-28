@@ -2237,6 +2237,24 @@ Core IR shape currently includes:
 - `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
 - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
 
+### Native test layer boundaries (Python reference host, Experimental)
+
+The current native test stack uses four layers:
+
+- **Kernel** (`src/genia/test_kernel.py`): executes already-formed `TestUnit` values and normalizes their outcomes. The kernel distinguishes passing tests, assertion/native-test failures (`NativeTestFailure`), unexpected runtime errors, and malformed/discovery-invalid test units. The kernel does not discover tests, load files, format CLI output, or own process exit codes.
+- **Runner** (`src/genia/native_test_runner.py`): coordinates file/suite-level native test execution for `genia test <file>` by invoking the kernel and aggregating results. The runner does not define assertion semantics or change language runtime behavior.
+- **CLI/test-mode layer** (`src/genia/test_cli.py`): selects the `--test` entry point, loads/evaluates the file in test mode, registers tests through the `test(name, body)` mechanism, formats output via `format_test_suite_report`, and returns process exit codes via `suite_exit_code`. The CLI layer does not own kernel outcome normalization or provide broad discovery or lifecycle support.
+- **Assertion helpers** (`src/genia/builtins.py`): `assert_true` and `assert_eq` make passing assertions return `none` (the implemented success value) and make failing assertions raise `NativeTestFailure`, which the kernel reports as a `fail` result rather than an unexpected `error`.
+
+Current native test behavior distinguishes:
+
+- `pass`: the test unit body completes without raising;
+- `fail`: the test unit body raises `NativeTestFailure` (phase `"evaluation"`);
+- `error`: an unexpected exception occurs during execution (phase `"evaluation"`);
+- discovery error: the test unit has an invalid name or non-callable body (phase `"discovery"`).
+
+Current native test support is not a complete test framework; lifecycle hooks, setup/teardown annotations, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
+
 ## 9.1) Native test kernel core (Python reference host, Experimental)
 
 LANGUAGE CONTRACT:
