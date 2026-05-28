@@ -29,7 +29,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ---
 
-## Release R1 — Killer Workflow Foundation
+## Release R1 — Killer Workflow Foundation ✓ COMPLETE
 
 Theme:
 
@@ -76,7 +76,7 @@ Exit criteria:
 
 ---
 
-## Release R2 — Native Test Kernel
+## Release R2 — Native Test Kernel ✓ COMPLETE
 
 Theme:
 
@@ -126,7 +126,56 @@ Exit criteria:
 
 ---
 
-## Release R3 — Lifecycle Generalization
+## Release R3 — Native Test Expansion Wave 1
+
+Theme:
+
+> Grow native test coverage over Genia-facing behavior without touching parser/IR/host internals.
+
+Desired test syntax:
+
+```genia
+@test("basic math works")
+test1() = assert_eq(1+1, 2)
+```
+
+R2 used `test(name, body)` call form. R3 adopts the annotation + named-function style as the preferred authoring shape. The annotation carries the human-readable description; the function name is used for identification and filtering.
+
+Primary outcomes:
+
+- Validation helpers are covered by native tests.
+- Outcome constructors and rendering behavior are tested at the Genia level.
+- JSONL helper behavior is exercised by native tests.
+- One or two pipeline examples demonstrate native tests on real workflow behavior.
+- Tests are authored in the `@test("description") / name() = body` form.
+
+Includes:
+
+- `@test("description")` annotation + named-function syntax
+- native tests for validation helpers
+- native tests for Outcome constructors and rendering
+- native tests for JSONL helper behavior
+- one or two end-to-end pipeline example tests
+
+Excludes:
+
+- parser internals
+- IR normalization
+- host adapter behavior
+- lifecycle generalization (see R4)
+- pytest migration (see R5)
+- setup/teardown, fixtures, parameterization, broad discovery, or multi-host claims
+
+Exit criteria:
+
+- Native tests use the `@test("description") / name() = body` syntax.
+- Native tests cover validation helpers, Outcome constructors/rendering, and JSONL helper behavior.
+- At least one pipeline example is backed by a native test.
+- No parser, IR, or host internals are touched.
+
+---
+
+## Release R4 — Lifecycle Generalization
 
 Theme:
 
@@ -165,7 +214,7 @@ Exit criteria:
 
 ---
 
-## Release R4 — Native Test Expansion / Pytest Migration Wave 1
+## Release R5 — Native Test Expansion / Pytest Migration Wave 1
 
 Theme:
 
@@ -202,7 +251,7 @@ Exit criteria:
 
 ---
 
-## Release R5 — Data Workflow Hardening
+## Release R6 — Data Workflow Hardening
 
 Theme:
 
