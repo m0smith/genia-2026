@@ -86,31 +86,26 @@ Primary outcomes:
 
 - Genia-native tests can cover pipeline, Outcome, validation, and Sheet-facing behavior.
 - Native tests complement pytest/specs; they do not replace all Python tests.
-- The first lifecycle shape is introduced through testing only.
+- The Python reference host has a minimal native test kernel, CLI entry point, and assertion-helper surface.
+- A Genia-native fixture covers part of the validated data pipeline surface.
 
 Includes:
 
-- `genia test` execution mode or equivalent test runner entry point
-- `@test`
+- `genia test <file>` execution mode
+- legacy `genia --test <file>` mode
+- current `test(name, body)` registration path
 - minimal assertions
-- test discovery
+- file-level test discovery through registered test units
 - deterministic test result reporting
-- minimal module/test lifecycle:
-  - init
-  - module_before
-  - test_before
-  - test
-  - test_after
-  - module_after
-  - finalize
-- test-scope annotations only:
-  - setup
-  - teardown
-  - test
+- selected shared CLI native-test outcomes
+- one native validated-pipeline fixture
 
 Excludes:
 
 - arbitrary custom lifecycle definitions
+- annotation-driven native test discovery
+- setup/teardown annotations
+- generalized module/test lifecycle hooks
 - server/request/actor lifecycles
 - parallel native test execution
 - property testing
@@ -122,7 +117,7 @@ Exit criteria:
 
 - Genia-native tests cover part of the validated data pipeline surface.
 - Python pytest remains responsible for host/runtime/parser/spec-runner internals.
-- Lifecycle semantics are documented as partial and test-runner-scoped.
+- Native-test behavior is documented as Experimental, Python reference host only.
 
 ---
 
@@ -139,7 +134,7 @@ Desired test syntax:
 test1() = assert_eq(1+1, 2)
 ```
 
-R2 used `test(name, body)` call form. R3 adopts the annotation + named-function style as the preferred authoring shape. The annotation carries the human-readable description; the function name is used for identification and filtering.
+R2 currently uses the implemented `test(name, body)` call form. R3 plans to adopt the annotation + named-function style as the preferred authoring shape after it is separately contracted, tested, implemented, and reflected in `GENIA_STATE.md`. The planned annotation carries the human-readable description; the function name is intended for identification and filtering.
 
 Primary outcomes:
 
@@ -147,11 +142,11 @@ Primary outcomes:
 - Outcome constructors and rendering behavior are tested at the Genia level.
 - JSONL helper behavior is exercised by native tests.
 - One or two pipeline examples demonstrate native tests on real workflow behavior.
-- Tests are authored in the `@test("description") / name() = body` form.
+- Planned preferred tests are authored in the `@test("description") / name() = body` form only after that surface exists.
 
 Includes:
 
-- `@test("description")` annotation + named-function syntax
+- planned `@test("description")` annotation + named-function syntax work
 - native tests for validation helpers
 - native tests for Outcome constructors and rendering
 - native tests for JSONL helper behavior
@@ -168,7 +163,7 @@ Excludes:
 
 Exit criteria:
 
-- Native tests use the `@test("description") / name() = body` syntax.
+- Native tests use the `@test("description") / name() = body` syntax after that syntax is implemented and documented as current behavior.
 - Native tests cover validation helpers, Outcome constructors/rendering, and JSONL helper behavior.
 - At least one pipeline example is backed by a native test.
 - No parser, IR, or host internals are touched.
