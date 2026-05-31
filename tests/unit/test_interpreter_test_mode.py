@@ -102,6 +102,135 @@ def test_test_mode_reports_discovery_error_for_non_callable_body(tmp_path, capsy
     assert captured.err == ""
 
 
+def test_test_mode_discovers_annotated_zero_arg_function(tmp_path, capsys):
+    program = tmp_path / "annotated_passing_test.genia"
+    program.write_text(
+        '@test "passes through annotation discovery"\n'
+        "passes() = assert_true(true)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out == (
+        "total=1 passed=1 failed=0 errored=0\n"
+        "PASS passes\n"
+        "total=1 passed=1 failed=0 errored=0\n"
+    )
+    assert captured.err == ""
+
+
+def test_test_mode_reports_annotated_assertion_failure_as_failure(tmp_path, capsys):
+    program = tmp_path / "annotated_failing_test.genia"
+    program.write_text(
+        '@test "assertion failures stay failures"\n'
+        "fails() = assert_eq(1, 2)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "total=1 passed=0 failed=1 errored=0\n" in captured.out
+    assert "FAIL fails phase=evaluation reason=assert_eq failed" in captured.out
+    assert "ERROR fails" not in captured.out
+    assert captured.err == ""
+
+
+def test_test_mode_reports_annotated_runtime_error_as_error(tmp_path, capsys):
+    program = tmp_path / "annotated_erroring_test.genia"
+    program.write_text(
+        '@test "runtime errors stay errors"\n'
+        "errors() = missing_name\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "total=1 passed=0 failed=0 errored=1\n" in captured.out
+    assert "ERROR errors phase=evaluation reason=Undefined name: missing_name" in captured.out
+    assert "FAIL errors" not in captured.out
+    assert captured.err == ""
+
+
+def test_test_mode_runs_legacy_and_annotated_tests_in_deterministic_order(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "mixed_native_tests.genia"
+    program.write_text(
+        'test("legacy registration", () -> assert_true(true))\n'
+        '@test "annotation registration"\n'
+        "annotated() = assert_eq(2 + 2, 4)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out == (
+        "total=2 passed=2 failed=0 errored=0\n"
+        "PASS legacy registration\n"
+        "PASS annotated\n"
+        "total=2 passed=2 failed=0 errored=0\n"
+    )
+    assert captured.err == ""
+
+
+def test_test_mode_reports_annotated_parameterized_function_as_discovery_error(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "annotated_parameterized_test.genia"
+    program.write_text(
+        '@test "parameterized tests are unsupported"\n'
+        "with_param(x) = assert_true(x)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "total=1 passed=0 failed=0 errored=1\n" in captured.out
+    assert (
+        "ERROR with_param phase=discovery reason=@test functions must take zero arguments"
+        in captured.out
+    )
+    assert captured.err == ""
+
+
+def test_test_mode_does_not_treat_unannotated_setup_as_lifecycle_hook(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "no_lifecycle_hooks.genia"
+    program.write_text(
+        "setup() = missing_name\n"
+        '@test "ordinary annotated test still passes"\n'
+        "passes() = assert_true(true)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out == (
+        "total=1 passed=1 failed=0 errored=0\n"
+        "PASS passes\n"
+        "total=1 passed=1 failed=0 errored=0\n"
+    )
+    assert "setup" not in captured.out
+    assert captured.err == ""
+
+
 def test_test_mode_runs_empty_suite_successfully(tmp_path, capsys):
     program = tmp_path / "empty_test.genia"
     program.write_text("none\n", encoding="utf-8")
