@@ -650,7 +650,7 @@ class Evaluator:
                 continue
             raise RuntimeError(
                 "Unsupported annotation: "
-                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category"
+                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test"
             )
         return metadata
 
