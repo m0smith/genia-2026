@@ -633,6 +633,7 @@ class Evaluator:
             "since": "since",
             "deprecated": "deprecated",
             "category": "category",
+            "test": "test",
         }
         for annotation in annotations:
             value = self.eval(annotation.value)
@@ -649,7 +650,7 @@ class Evaluator:
                 continue
             raise RuntimeError(
                 "Unsupported annotation: "
-                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category"
+                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test"
             )
         return metadata
 

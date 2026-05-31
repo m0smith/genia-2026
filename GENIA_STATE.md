@@ -707,6 +707,7 @@ Pipeline (Phase 2) evaluation model:
     - `@since "0.4"` -> stores `{"since": "0.4"}`
     - `@deprecated "message"` -> stores `{"deprecated": "message"}`
     - `@category "name"` -> stores `{"category": "name"}`
+    - `@test "description"` -> stores `{"test": "description"}`; marks the annotated zero-argument function for native test discovery in native test mode
   - annotation metadata attaches to the binding name for top-level functions and top-level assignments
   - unannotated rebinding preserves existing metadata on that binding
   - annotated rebinding merges new metadata over existing metadata, with the last annotation winning for duplicate keys
@@ -714,6 +715,7 @@ Pipeline (Phase 2) evaluation model:
   - `meta("name")` returns the metadata map or `none("missing-meta", {name: ...})` for undefined names
   - `help("name")` prefers `@doc` metadata text over legacy function docstrings and also shows selected metadata fields such as category/since/deprecated
   - no macros, compile-time transforms, or annotation-driven evaluator rewrites are implemented
+  - `@test` annotations are discovered by the native test runner; `@test` does not execute by itself and does not affect language evaluation behavior outside native test mode; see section 9.2
 - resolution behavior:
   - exact fixed arity beats varargs
   - if multiple varargs candidates match and neither is more specific, runtime raises `TypeError("Ambiguous function resolution")`
@@ -2243,7 +2245,7 @@ The current native test stack uses four layers:
 
 - **Kernel** (`src/genia/test_kernel.py`): executes already-formed `TestUnit` values and normalizes their outcomes. The kernel distinguishes passing tests, assertion/native-test failures (`NativeTestFailure`), unexpected runtime errors, and malformed/discovery-invalid test units. The kernel does not discover tests, load files, format CLI output, or own process exit codes.
 - **Runner** (`src/genia/native_test_runner.py`): coordinates file/suite-level native test execution for `genia test <file>` by invoking the kernel and aggregating results. The runner does not define assertion semantics or change language runtime behavior.
-- **CLI/test-mode layer** (`src/genia/test_cli.py`): selects the `--test` entry point, loads/evaluates the file in test mode, registers tests through the `test(name, body)` mechanism, formats output via `format_test_suite_report`, and returns process exit codes via `suite_exit_code`. The CLI layer does not own kernel outcome normalization or provide broad discovery or lifecycle support.
+- **CLI/test-mode layer** (`src/genia/test_cli.py`): selects the `--test` entry point, loads/evaluates the file in test mode, registers tests through the `test(name, body)` mechanism, appends `@test` annotated zero-argument functions discovered by `discover_test_units(env)` after evaluation, formats output via `format_test_suite_report`, and returns process exit codes via `suite_exit_code`. The CLI layer does not own kernel outcome normalization or provide broad discovery or lifecycle support.
 - **Assertion helpers** (`src/genia/builtins.py`): `assert_true` and `assert_eq` make passing assertions return `none` (the implemented success value) and make failing assertions raise `NativeTestFailure`, which the kernel reports as a `fail` result rather than an unexpected `error`.
 
 Current native test behavior distinguishes:
@@ -2253,7 +2255,7 @@ Current native test behavior distinguishes:
 - `error`: an unexpected exception occurs during execution (phase `"evaluation"`);
 - discovery error: the test unit has an invalid name or non-callable body (phase `"discovery"`).
 
-Current native test support is not a complete test framework; lifecycle hooks, setup/teardown annotations, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
+Current native test support is not a complete test framework; lifecycle hooks, `@setup`/`@teardown` annotations, setup/teardown, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
 
 ## 9.1) Native test kernel core (Python reference host, Experimental)
 
@@ -2282,7 +2284,7 @@ Not implemented in this phase:
 - shared spec-runner integration
 - host adapter for Genia runtime callables
 - parser/lexer/evaluator/Core IR changes
-- broad assertion framework, lifecycle hooks, annotations, or fixtures; only the minimal helpers `assert_true` and `assert_eq` are implemented
+- broad assertion framework, lifecycle hooks, lifecycle annotations (such as `@setup`/`@teardown`), or fixtures; only the minimal helpers `assert_true` and `assert_eq` are implemented; `@test` annotation discovery is handled by the CLI/test-mode layer, not the kernel
 - stdout/stderr capture (fields are present but always empty strings)
 - multi-host test execution
 
@@ -2324,9 +2326,11 @@ A Genia-native fixture now covers the R1 validated pipeline path. Validated by `
 
 Status: Experimental, Python reference host.
 
-`genia --test <file>` runs native test units registered through the test-mode-only `test(name, body)` helper and reports the existing normalized native test runner outcomes. The CLI prints suite counts before and after per-result lines, reports `PASS`, `FAIL`, and `ERROR` results, and exits `0` when no failures/errors occur, `1` when failures or normalized test errors occur, and `2` for invalid CLI invocation.
+`genia --test <file>` runs native test units registered through the test-mode-only `test(name, body)` helper and `@test` annotated zero-argument functions discovered after evaluation, and reports the existing normalized native test runner outcomes. The CLI prints suite counts before and after per-result lines, reports `PASS`, `FAIL`, and `ERROR` results, and exits `0` when no failures/errors occur, `1` when failures or normalized test errors occur, and `2` for invalid CLI invocation.
 
-`genia test <file>` is a minimal native test runner entry point over the same Python reference-host native test kernel. It validates and parses the file, discovers test units through the existing test-mode-only `test(name, body)` registration path, runs the discovered units through the native test kernel, prints one `[PASS|FAIL|ERROR] <name>` line per result followed by `Summary: total=<t> passed=<p> failed=<f> errors=<e>`, and exits `0` when all discovered tests pass, `1` when any test fails/errors, and `2` for file, parse, or no-tests errors.
+`genia test <file>` is a minimal native test runner entry point over the same Python reference-host native test kernel. It validates and parses the file, discovers test units through the existing test-mode-only `test(name, body)` registration path and appends `@test` annotated zero-argument functions discovered after evaluation, runs the discovered units through the native test kernel, prints one `[PASS|FAIL|ERROR] <name>` line per result followed by `Summary: total=<t> passed=<p> failed=<f> errors=<e>`, and exits `0` when all discovered tests pass, `1` when any test fails/errors, and `2` for file, parse, or no-tests errors.
+
+Native tests may be authored with the legacy `test(name, body)` call form. Native tests may also be authored as `@test "description"` annotated zero-argument functions. The `@test "description"` annotation carries the human-readable description; the function name is the test identifier. Annotated native tests are discovered only in native test mode. `@test` marks functions for discovery; it does not execute by itself. Annotated tests use the same native test kernel as legacy tests. Assertion failures are `FAIL`; unexpected runtime exceptions are `ERROR`; malformed annotated tests such as parameterized annotated functions are discovery `ERROR`. Lifecycle hooks are not implemented. Setup/teardown, fixtures, parameterized tests, filtering, parallel native tests, and broad lifecycle semantics are not implemented.
 
 PYTHON REFERENCE HOST:
 - Implemented as `src/genia/test_cli.py` in the Python reference host.
@@ -2336,9 +2340,9 @@ PYTHON REFERENCE HOST:
 - Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
 - Report format: a summary line `total=<t> passed=<p> failed=<f> errored=<e>` appears both before and after per-result lines.
 - Per-result lines: `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected> actual=<actual>` when present), `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
-- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (9 tests), Python reference host only.
+- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (15 tests), Python reference host only.
 
-This does not add test annotations, setup/teardown lifecycle hooks, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
+`@test "description"` annotation-driven native test discovery is implemented; annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. This does not add setup/teardown lifecycle hooks, `@setup` or `@teardown` annotations, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
 
 ## 10) Explicitly not implemented (current)
 

@@ -279,6 +279,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
   - `genia` -> REPL mode
   - `genia test path/to/test_file.genia` -> minimal native test runner entry point (Experimental, Python reference host)
   - `genia --test path/to/test_file.genia` -> legacy native test mode (Experimental, Python reference host)
+  - native tests may be authored with legacy `test(name, body)` or as `@test "description"` annotated zero-argument functions; annotated tests are discovered only in native test mode
 
 ### Choose `-p` vs `-c`
 

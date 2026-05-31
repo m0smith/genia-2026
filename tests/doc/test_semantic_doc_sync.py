@@ -53,6 +53,7 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "host_status",
         "naming_rule",
         "annotation_builtins",
+        "native_test_annotation_discovery",
         CANONICAL_FIELD_PATH_SEPARATOR_FACT,
         CANONICAL_NAMED_ACCESS_SEPARATOR_FACT,
     }
@@ -1053,9 +1054,9 @@ def test_r3_native_test_roadmap_stays_separate_from_r4_lifecycle_generalization(
     assert "test(name, body)" in state, (
         "GENIA_STATE.md must preserve the current native-test registration path"
     )
-    assert "This does not add test annotations" in state, (
-        "GENIA_STATE.md must not imply R3 annotation syntax is implemented"
+    assert "annotation-driven native test discovery is implemented" in state, (
+        "GENIA_STATE.md must document @test annotation-driven native test discovery"
     )
-    assert "lifecycle hooks, annotations, or fixtures" in state, (
-        "GENIA_STATE.md must keep native-test lifecycle/annotation limits visible"
+    assert "setup/teardown lifecycle hooks" in state, (
+        "GENIA_STATE.md must keep lifecycle non-goals visible"
     )

@@ -14,5 +14,6 @@
   "naming_rule": "new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.",
   "annotation_builtins": "`@doc`, `@meta`, `@since`, `@deprecated`, and `@category`",
   "canonical_format_field_path_separator": "Dot (`.`) is the canonical field-path separator for representation/format placeholders; slash (`/`) is not the format field-path separator and remains limited to existing slash operator/Core IR wording.",
-  "canonical_named_access_separator": "Dot (`.`) is the canonical named-access separator; legacy slash named access has been removed and is not general field-path lookup."
+  "canonical_named_access_separator": "Dot (`.`) is the canonical named-access separator; legacy slash named access has been removed and is not general field-path lookup.",
+  "native_test_annotation_discovery": "`@test \"description\"` annotates zero-argument functions for native test discovery; discovery runs after legacy `test(name, body)` registrations."
 }
