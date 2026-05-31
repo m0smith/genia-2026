@@ -5,10 +5,11 @@ from pathlib import Path
 from typing import Any
 
 from .builtins import make_global_env
+from .callable import GeniaFunctionGroup
 from .errors import GeniaQuietBrokenPipe
 from .test_kernel import TestUnit, run_test_suite, suite_exit_code
 from .utf8 import format_debug
-from .values import GeniaOutputSink
+from .values import GeniaMap, GeniaOutputSink
 
 
 def _summary_line(suite: dict[str, Any]) -> str:
@@ -73,7 +74,39 @@ def make_test_env() -> tuple[Any, list[TestUnit]]:
 
 
 def discover_test_units(env: Any) -> list[TestUnit]:
-    return list(getattr(env, "_native_test_units", []))
+    return [
+        *list(getattr(env, "_native_test_units", [])),
+        *discover_annotated_test_units(env),
+    ]
+
+
+def discover_annotated_test_units(env: Any) -> list[TestUnit]:
+    test_units: list[TestUnit] = []
+    for name, value in env.values.items():
+        metadata = env.binding_metadata.get(name)
+        if not _is_test_metadata(metadata):
+            continue
+        if not isinstance(value, GeniaFunctionGroup):
+            test_units.append(_discovery_error_test_unit(name, "@test must annotate a function"))
+            continue
+        description = metadata.get("test")
+        if not isinstance(description, str) or description == "":
+            test_units.append(_discovery_error_test_unit(name, "@test description must be a non-empty string"))
+            continue
+        body = value.get(0)
+        if body is None or value.sorted_arities() != [0]:
+            test_units.append(_discovery_error_test_unit(name, "@test functions must take zero arguments"))
+            continue
+        test_units.append(TestUnit(name, body, metadata={"description": description}))
+    return test_units
+
+
+def _is_test_metadata(metadata: Any) -> bool:
+    return isinstance(metadata, GeniaMap) and metadata.has("test")
+
+
+def _discovery_error_test_unit(name: str, reason: str) -> TestUnit:
+    return TestUnit(name, None, metadata={"discovery_error": reason})
 
 
 def _write_stdout(env: Any, text: str) -> None:
@@ -99,13 +132,14 @@ def _write_stderr(env: Any, message: str) -> None:
 
 
 def run_native_tests_from_file(program_path: str) -> int:
-    env, tests = make_test_env()
+    env, _ = make_test_env()
     try:
         path = Path(program_path)
         source = path.read_text(encoding="utf-8")
         from .interpreter import run_source
 
         run_source(source, env, filename=str(path.resolve()))
+        tests = discover_test_units(env)
         suite = run_test_suite(tests)
         _write_stdout(env, format_test_suite_report(suite))
         return suite_exit_code(suite)

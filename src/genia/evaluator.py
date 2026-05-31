@@ -633,6 +633,7 @@ class Evaluator:
             "since": "since",
             "deprecated": "deprecated",
             "category": "category",
+            "test": "test",
         }
         for annotation in annotations:
             value = self.eval(annotation.value)

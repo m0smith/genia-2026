@@ -60,6 +60,12 @@ def run_test_unit(test_unit: TestUnit) -> dict[str, Any]:
     if not isinstance(getattr(test_unit, "name", None), str) or test_unit.name == "":
         return _discovery_error(test_unit, "test unit name must be a non-empty string")
 
+    discovery_error = getattr(test_unit, "discovery_error", None)
+    if discovery_error is None and isinstance(getattr(test_unit, "metadata", None), dict):
+        discovery_error = test_unit.metadata.get("discovery_error")
+    if discovery_error is not None:
+        return _discovery_error(test_unit, str(discovery_error))
+
     body = getattr(test_unit, "body", None)
     if not callable(body):
         return _discovery_error(test_unit, "test unit body must be callable")
