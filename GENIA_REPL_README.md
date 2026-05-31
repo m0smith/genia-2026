@@ -62,7 +62,7 @@ CLI contract summary (actual behavior):
 - command mode: `genia -c 'source' [args ...]`
 - pipe mode: `genia -p 'stage_expr' [args ...]` runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
 - REPL mode: `genia`
-- native test mode: `genia test path/to/test_file.genia` (minimal entry point) or legacy `genia --test path/to/test_file.genia` (Experimental, Python reference host; see `GENIA_STATE.md` section 9.2)
+- native test mode: `genia test path/to/test_file.genia` (minimal entry point) or legacy `genia --test path/to/test_file.genia` (Experimental, Python reference host; see `GENIA_STATE.md` section 9.2); native tests may be authored with legacy `test(name, body)` or as `@test "description"` annotated zero-argument functions; annotated tests are discovered only in native test mode
 - file/command dispatch: call `main(argv())` when `main/1` exists, otherwise call `main()` when `main/0` exists
 - pipe mode bypasses `main`
 - trailing args are exposed through `argv()` as plain strings (including option-like values)

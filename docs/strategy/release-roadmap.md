@@ -127,26 +127,26 @@ Theme:
 
 > Grow native test coverage over Genia-facing behavior without touching parser/IR/host internals.
 
-Desired test syntax:
+Implemented annotation-driven test syntax (issue #458):
 
 ```genia
-@test("basic math works")
+@test "basic math works"
 test1() = assert_eq(1+1, 2)
 ```
 
-R2 currently uses the implemented `test(name, body)` call form. R3 plans to adopt the annotation + named-function style as the preferred authoring shape after it is separately contracted, tested, implemented, and reflected in `GENIA_STATE.md`. The planned annotation carries the human-readable description; the function name is intended for identification and filtering.
+R2 introduced the `test(name, body)` call form. R3 adds `@test "description"` annotation-driven native test discovery (issue #458): `@test` annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. The annotation carries the human-readable description; the function name is the test identifier.
 
 Primary outcomes:
 
+- `@test "description"` annotation-driven native test discovery is implemented (issue #458). ✓ done
 - Validation helpers are covered by native tests.
 - Outcome constructors and rendering behavior are tested at the Genia level.
 - JSONL helper behavior is exercised by native tests.
 - One or two pipeline examples demonstrate native tests on real workflow behavior.
-- Planned preferred tests are authored in the `@test("description") / name() = body` form only after that surface exists.
 
 Includes:
 
-- planned `@test("description")` annotation + named-function syntax work
+- `@test "description"` annotation + named-function discovery (issue #458) ✓ implemented
 - native tests for validation helpers
 - native tests for Outcome constructors and rendering
 - native tests for JSONL helper behavior
@@ -163,7 +163,7 @@ Excludes:
 
 Exit criteria:
 
-- Native tests use the `@test("description") / name() = body` syntax after that syntax is implemented and documented as current behavior.
+- Native tests use the `@test "description" / name() = body` form for annotation-driven discovery. The annotation syntax is implemented and documented as current behavior (issue #458). ✓ done
 - Native tests cover validation helpers, Outcome constructors/rendering, and JSONL helper behavior.
 - At least one pipeline example is backed by a native test.
 - No parser, IR, or host internals are touched.

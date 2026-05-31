@@ -129,6 +129,7 @@ Required constraints:
   - `@since`
   - `@deprecated`
   - `@category`
+  - `@test`
 - no annotation introduces macros, compile-time transforms, or syntax rewriting in this phase
 
 ## 8.1.2) Prefix annotation runtime semantics
@@ -155,13 +156,20 @@ Required constraints:
   - evaluates its value expression after the target binding exists
   - the resulting value must be a string
   - stores metadata under key `"category"`
+- `@test`:
+  - evaluates its value expression after the target binding exists
+  - the resulting value must be a string
+  - stores metadata under key `"test"`
+  - marks the annotated zero-argument function for native test discovery in native test mode
+  - has no effect on language evaluation behavior outside native test mode
+  - annotated functions with one or more parameters are a discovery error, not an evaluation error
 - multiple annotations merge from top to bottom
 - last annotation wins for duplicate metadata keys
 - rebinding without annotations preserves existing binding metadata
 - rebinding with annotations merges new metadata over existing metadata for that binding
 - `doc("name")` returns the current doc string for a bound name or `none("missing-doc", {name: ...})`
 - `meta("name")` returns the current metadata map for a bound name
-- unsupported annotations must fail clearly at runtime
+- annotations not in the supported list above must fail clearly at runtime
 - annotation metadata is ordinary runtime metadata only in this phase:
   - no macros
   - no compile-time transforms
