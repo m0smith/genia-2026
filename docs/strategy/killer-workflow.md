@@ -68,6 +68,21 @@ Unless explicitly approved, route proposals in these areas to parking lot:
 
 See `docs/parking-lot/README.md` for the parking-lot process.
 
+## Release Positioning
+
+**R1** proved the killer-workflow foundation end-to-end:
+
+```
+messy records in → clear pipelines → Outcome-aware validation → clean records + diagnostics out
+```
+
+R1 is complete.
+
+**R2** protects and exercises the R1 surface through native Genia tests.
+R2 is the active release focus. It is not more CSV/Sheet/diagnostic hardening — that belongs to R5.
+
+**R5** hardens the data workflow with CSV, Sheets, report output, and richer diagnostics.
+
 ## Using This Document
 
 Agents and contributors should read this document before proposing or implementing new work.
