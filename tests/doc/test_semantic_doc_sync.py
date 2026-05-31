@@ -375,7 +375,7 @@ def test_instruction_surfaces_reference_semantic_sync_guardrails() -> None:
     ]:
         text = read_text(relpath)
         assert "docs/contract/semantic_facts.json" in text
-        assert "tests/test_semantic_doc_sync.py" in text
+        assert "tests/doc/test_semantic_doc_sync.py" in text
 
 
 @pytest.mark.parametrize(

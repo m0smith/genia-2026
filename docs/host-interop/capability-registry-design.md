@@ -24,7 +24,7 @@ Follows spec exactly. No new behavior added.
 | Decision | Resolution | Rationale |
 |---|---|---|
 | Document format | Markdown with per-capability bullet-list template | Consistent with existing host-interop docs; human-readable; machine-checkable by string matching |
-| Validation layer | Lightweight string-based doc-sync tests added to `tests/test_semantic_doc_sync.py` | Matches existing test pattern; no schema format needed; minimal scope |
+| Validation layer | Lightweight string-based doc-sync tests added to `tests/doc/test_semantic_doc_sync.py` | Matches existing test pattern; no schema format needed; minimal scope |
 
 No YAML schema file, no Python validation registry, no new test framework. Those are deferred.
 
@@ -36,7 +36,7 @@ This change is entirely in the **Docs / Tests** zone (AGENTS.md four-zone model)
 
 ```
 docs/host-interop/capabilities.md        ← new: primary deliverable
-tests/test_semantic_doc_sync.py          ← modified: adds invariant checks
+tests/doc/test_semantic_doc_sync.py      ← modified: adds invariant checks
 docs/host-interop/HOST_CAPABILITY_MATRIX.md  ← modified: adds reference
 docs/host-interop/README.md              ← modified: adds to start-here list
 GENIA_STATE.md §0                        ← modified: records registry exists
@@ -57,7 +57,7 @@ No files in `src/genia/`, `hosts/python/`, or `spec/` change.
 
 ### Modified files
 
-**`tests/test_semantic_doc_sync.py`**
+**`tests/doc/test_semantic_doc_sync.py`**
 - Add one new test function: `test_capability_registry_invariants`.
 - Checks all 12 spec invariants by string matching against `docs/host-interop/capabilities.md`.
 - Follows the existing pattern: `read_text(relpath)` + `assert "..." in text`.
@@ -153,7 +153,7 @@ This structure lets the doc-sync test verify capability presence with simple `as
 
 ### Function: `test_capability_registry_invariants`
 
-Location: `tests/test_semantic_doc_sync.py`
+Location: `tests/doc/test_semantic_doc_sync.py`
 
 The test reads `docs/host-interop/capabilities.md` once and asserts all 12 invariants from the spec.
 
@@ -187,7 +187,7 @@ No existing test assertions change. The new function is additive.
 Phase ordering matters. The test phase must produce failing tests before the implementation phase writes the document.
 
 **Test phase commit (tests fail — capabilities.md does not exist):**
-1. Add `test_capability_registry_invariants` to `tests/test_semantic_doc_sync.py`.
+1. Add `test_capability_registry_invariants` to `tests/doc/test_semantic_doc_sync.py`.
 
 **Implementation phase commits (tests pass):**
 1. Write `docs/host-interop/capabilities.md` (all 29 capability entries).
@@ -214,7 +214,7 @@ For the doc-sync test:
 
 | System | Interaction |
 |---|---|
-| `tests/test_semantic_doc_sync.py` | New function added; existing functions untouched |
+| `tests/doc/test_semantic_doc_sync.py` | New function added; existing functions untouched |
 | `docs/host-interop/HOST_CAPABILITY_MATRIX.md` | Cross-reference sentence added; rows unchanged |
 | `docs/host-interop/README.md` | One list entry added |
 | `GENIA_STATE.md §0` | One bullet point added under "Implemented today" |

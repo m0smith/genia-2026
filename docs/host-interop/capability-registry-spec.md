@@ -479,7 +479,7 @@ Must add `capabilities.md` to the "Start here" list with a one-line description:
 - This spec does NOT add shared spec YAML cases.
 - This spec does NOT define how future hosts implement capabilities.
 - This spec does NOT introduce a new Genia language surface.
-- `docs/contract/semantic_facts.json` and `tests/test_semantic_doc_sync.py` may not need to change; that is a design-phase determination.
+- `docs/contract/semantic_facts.json` and `tests/doc/test_semantic_doc_sync.py` may not need to change; that is a design-phase determination.
 
 ---
 

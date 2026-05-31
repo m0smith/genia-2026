@@ -46,7 +46,7 @@ Rules:
 - Tests must reflect actual behavior
 - Implementation must match STATE + RULES
 - Docs must describe ONLY what is implemented
-- Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/test_semantic_doc_sync.py`
+- Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/doc/test_semantic_doc_sync.py`
 “Contract” defines behavior only.
 It MUST NOT include tests.
 
@@ -125,7 +125,7 @@ Treat it as the shared cross-tool adapter contract below the main source-of-trut
 
 Protected semantic sync guardrails live in:
 - `docs/contract/semantic_facts.json`
-- `tests/test_semantic_doc_sync.py`
+- `tests/doc/test_semantic_doc_sync.py`
 
 Tool-specific instruction files (for example GitHub Copilot or editor/task-specific agent files) must remain consistent with:
 - `GENIA_STATE.md`
