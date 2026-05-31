@@ -1,0 +1,21 @@
+id: native_test_runner_discovery_error_suite_outcome
+name: native_test_runner_discovery_error_suite_outcome
+category: cli
+description: Native test mode reports a discovery-error suite outcome.
+input:
+  source: "spec/cli/native_test_runner_discovery_error_suite_outcome.genia"
+  file: null
+  command: null
+  test: "spec/cli/native_test_runner_discovery_error_suite_outcome.genia"
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    total=1 passed=0 failed=0 errored=1
+    ERROR bad phase=discovery reason=test unit body must be callable
+    total=1 passed=0 failed=0 errored=1
+  stderr: ""
+  exit_code: 1
+notes: |
+  Covers the deterministic CLI report for a malformed native test unit.

@@ -27,11 +27,12 @@ def _loaded_cli_spec(
     stdin: str = "",
     argv: list[str] | None = None,
     debug_stdio: bool = False,
+    test: str | None = None,
     expected_stdout: str = "",
     expected_stderr: str = "",
     expected_exit_code: int = 0,
 ) -> LoadedSpec:
-    source = file if file is not None else command
+    source = file if file is not None else test if test is not None else command
     assert source is not None
     return LoadedSpec(
         name=name,
@@ -46,6 +47,7 @@ def _loaded_cli_spec(
         description="test",
         file=file,
         command=command,
+        test=test,
         argv=[] if argv is None else argv,
         debug_stdio=debug_stdio,
         spec_id=name,
@@ -92,6 +94,9 @@ def test_discover_specs_includes_cli_cases_without_invalid_specs() -> None:
         "pipe_mode_sum_error",
         "pipe_mode_collect_error",
         "pipe_mode_explicit_run_error",
+        "native_test_runner_passing_suite_outcome",
+        "native_test_runner_error_suite_outcome",
+        "native_test_runner_discovery_error_suite_outcome",
     }.issubset(cli_names)
 
 
@@ -106,6 +111,26 @@ def test_cli_loader_preserves_flattened_cli_fields() -> None:
     assert spec.argv == ["a", "b"]
     assert spec.debug_stdio is False
     assert spec.expected_stdout == '["a", "b"]'
+    assert spec.expected_stderr == ""
+    assert spec.expected_exit_code == 0
+
+
+def test_cli_loader_preserves_test_mode_field() -> None:
+    spec = load_spec(CLI_DIR / "native_test_runner_passing_suite_outcome.yaml")
+
+    assert spec.category == "cli"
+    assert spec.source == "spec/cli/native_test_runner_passing_suite_outcome.genia"
+    assert spec.file is None
+    assert spec.command is None
+    assert spec.test == "spec/cli/native_test_runner_passing_suite_outcome.genia"
+    assert spec.stdin == ""
+    assert spec.argv == []
+    assert spec.debug_stdio is False
+    assert spec.expected_stdout == (
+        "total=1 passed=1 failed=0 errored=0\n"
+        "PASS passes\n"
+        "total=1 passed=1 failed=0 errored=0"
+    )
     assert spec.expected_stderr == ""
     assert spec.expected_exit_code == 0
 
@@ -170,7 +195,7 @@ def test_exec_cli_file_mode_does_not_insert_terminator_for_plain_argv(monkeypatc
 
     exec_cli(spec)
 
-    assert calls[0]["argv"][2:] == ["script.genia", "foo", "bar"]
+    assert calls[0]["argv"][3:] == ["script.genia", "foo", "bar"]
 
 
 def test_exec_cli_file_mode_passes_option_like_argv_without_inserting_terminator(monkeypatch) -> None:
@@ -185,7 +210,7 @@ def test_exec_cli_file_mode_passes_option_like_argv_without_inserting_terminator
 
     exec_cli(spec)
 
-    assert calls[0]["argv"][2:] == ["script.genia", "--pretty"]
+    assert calls[0]["argv"][3:] == ["script.genia", "--pretty"]
 
 
 def test_exec_cli_command_mode_executes_command_and_passes_argv() -> None:
@@ -213,8 +238,41 @@ def test_exec_cli_command_mode_passes_trailing_args_without_inserted_terminator(
     actual = exec_cli(spec)
 
     assert actual["stdout"] == "ok\n"
-    assert calls[0]["argv"][2:] == ["-c", "print 1", "--pretty"]
+    assert calls[0]["argv"][3:] == ["-c", "print 1", "--pretty"]
     assert calls[0]["input"] is None
+
+
+def test_exec_cli_test_mode_executes_native_test_runner() -> None:
+    spec = load_spec(CLI_DIR / "native_test_runner_passing_suite_outcome.yaml")
+
+    actual = exec_cli(spec)
+
+    assert actual == {
+        "stdout": (
+            "total=1 passed=1 failed=0 errored=0\n"
+            "PASS passes\n"
+            "total=1 passed=1 failed=0 errored=0\n"
+        ),
+        "stderr": "",
+        "exit_code": 0,
+    }
+
+
+def test_exec_cli_test_mode_uses_test_flag_without_shell(monkeypatch) -> None:
+    calls: list[dict[str, object]] = []
+
+    def fake_run(argv: list[str], **kwargs: object) -> SimpleNamespace:
+        calls.append({"argv": argv, **kwargs})
+        return SimpleNamespace(stdout="ok\n", stderr="", returncode=0)
+
+    monkeypatch.setattr(exec_cli_module.subprocess, "run", fake_run)
+    spec = _loaded_cli_spec(test="script.genia")
+
+    exec_cli(spec)
+
+    assert calls[0]["argv"][3:] == ["--test", "script.genia"]
+    assert calls[0]["input"] is None
+    assert calls[0].get("shell") is None
 
 
 def test_exec_cli_pipe_mode_executes_command_with_piped_stdin() -> None:
@@ -264,7 +322,7 @@ def test_exec_cli_uses_subprocess_without_shell_piping(monkeypatch) -> None:
 
     exec_cli(spec)
 
-    assert calls[0]["argv"][2:] == ["-p", "each(print)"]
+    assert calls[0]["argv"][3:] == ["-p", "each(print)"]
     assert calls[0]["input"] == "x\n"
     assert calls[0].get("shell") is None
     assert not any("|" in part for part in calls[0]["argv"])
@@ -318,6 +376,9 @@ def test_cli_spec_fixture_executes_and_compares_expected_observables() -> None:
         "pipe_mode_bare_parse_int_error.yaml",
         "pipe_mode_sum_error.yaml",
         "pipe_mode_collect_error.yaml",
+        "native_test_runner_passing_suite_outcome.yaml",
+        "native_test_runner_error_suite_outcome.yaml",
+        "native_test_runner_discovery_error_suite_outcome.yaml",
     ],
 )
 def test_new_cli_spec_fixtures_execute_and_compare(fname: str) -> None:

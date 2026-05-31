@@ -102,7 +102,7 @@ Repository tooling may also validate a small machine-readable semantic-facts sur
 Protected semantic facts currently live in:
 
 - `docs/contract/semantic_facts.json`
-- `tests/test_semantic_doc_sync.py`
+- `tests/doc/test_semantic_doc_sync.py`
 
 That validation should enforce:
 

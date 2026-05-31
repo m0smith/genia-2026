@@ -29,14 +29,6 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ---
 
-## Current Release Focus
-
-The active next release is **R2 — Native Test Kernel**.
-
-R2 protects the R1 killer-workflow foundation by adding a small Genia-native testing surface for Genia-facing behavior.
-
----
-
 ## Release R1 — Killer Workflow Foundation ✓ COMPLETE
 
 Theme:
@@ -75,61 +67,101 @@ Excluded from R1 (see R2, R5, or parking lot):
 
 ---
 
-## Release R2 — Native Test Kernel
+## Release R2 — Native Test Kernel ✓ COMPLETE
 
 Theme:
 
-> Let Genia test Genia-facing behavior where Genia-level tests make sense.
-
-R2 protects and exercises the R1 surface through native Genia tests.
-
-**Scope note:** R2 is exclusively the native test kernel. Leftover R1 data-workflow hardening (CSV,
-Sheets, diagnostics, report helpers) belongs to R5, not R2.
+> Let Genia test Genia where Genia-level tests make sense.
 
 Primary outcomes:
 
-- A small native test runner exists.
-- Genia files can define and run multiple tests.
-- Minimal assertions exist.
-- Test output and exit codes are deterministic.
-- A small part of the R1 validated-pipeline surface is covered by Genia-native tests.
-- Pytest and shared specs remain authoritative for host/runtime/parser/spec-runner internals.
+- Genia-native tests can cover pipeline, Outcome, validation, and Sheet-facing behavior.
+- Native tests complement pytest/specs; they do not replace all Python tests.
+- The Python reference host has a minimal native test kernel, CLI entry point, and assertion-helper surface.
+- A Genia-native fixture covers part of the validated data pipeline surface.
 
-Planned R2 scope (not current behavior):
+R2 protects and exercises the R1 surface through native Genia tests.
 
-- `genia test <file>` or equivalent test runner entry point
-- One small test declaration mechanism (`@test` or a `test_*` naming convention)
-- Minimal assertion helpers — likely candidates include `assert_equal`, `assert_true`, `assert_some`,
-  `assert_none`, `assert_err`; final names to be contract-defined
-- Test discovery
-- Deterministic `stdout`, `stderr`, and `exit_code` for: passing tests, failing assertions,
-  runtime errors inside tests, and invalid tests
-- First Genia-native tests covering a small subset of the R1 surface, such as `parse_jsonl_record`,
-  `validate_required`, `validate_optional`, `validate_record`, `validate_each`,
-  `collect_validated`, `validated_pipeline_demo`
-- Any lifecycle behavior in R2 is test-runner-scoped only; possible minimal hooks may include
-  `before_each` / `after_each` or equivalent test phases
+- `genia test <file>` execution mode
+- legacy `genia --test <file>` mode
+- current `test(name, body)` registration path
+- minimal assertions
+- file-level test discovery through registered test units
+- deterministic test result reporting
+- selected shared CLI native-test outcomes
+- one native validated-pipeline fixture
 
-### R2 Non-goals
+Primary outcomes:
 
-R2 does not include CSV support, Sheet landing-zone work, `render_csv` / `write_csv`, report output,
-diagnostic helper framework, value-template implementation, validation DSL, general lifecycle
-machinery, actor lifecycle, server/request lifecycle, browser UI, parallel native tests, property
-tests, snapshot tests, or full pytest migration. Shared semantic spec authority does not change.
+- arbitrary custom lifecycle definitions
+- annotation-driven native test discovery
+- setup/teardown annotations
+- generalized module/test lifecycle hooks
+- server/request/actor lifecycles
+- parallel native test execution
+- property testing
+- snapshot testing
+- full pytest migration
+- changing shared semantic spec authority
 
 Exit criteria:
 
-1. `genia test <file>` or equivalent exists.
-2. A Genia file can define and run multiple tests.
-3. Minimal assertions exist.
-4. Output and exit codes are deterministic.
-5. A small set of R1 validated-pipeline behaviors are covered by Genia-native tests.
-6. Docs clearly state pytest and shared specs still own host/runtime/parser/shared conformance internals.
-7. Any lifecycle behavior is documented as partial and test-runner-scoped only.
+- Genia-native tests cover part of the validated data pipeline surface.
+- Python pytest remains responsible for host/runtime/parser/spec-runner internals.
+- Native-test behavior is documented as Experimental, Python reference host only.
 
 ---
 
-## Release R3 — Lifecycle Generalization
+## Release R3 — Native Test Expansion Wave 1
+
+Theme:
+
+> Grow native test coverage over Genia-facing behavior without touching parser/IR/host internals.
+
+Desired test syntax:
+
+```genia
+@test("basic math works")
+test1() = assert_eq(1+1, 2)
+```
+
+R2 currently uses the implemented `test(name, body)` call form. R3 plans to adopt the annotation + named-function style as the preferred authoring shape after it is separately contracted, tested, implemented, and reflected in `GENIA_STATE.md`. The planned annotation carries the human-readable description; the function name is intended for identification and filtering.
+
+Primary outcomes:
+
+- Validation helpers are covered by native tests.
+- Outcome constructors and rendering behavior are tested at the Genia level.
+- JSONL helper behavior is exercised by native tests.
+- One or two pipeline examples demonstrate native tests on real workflow behavior.
+- Planned preferred tests are authored in the `@test("description") / name() = body` form only after that surface exists.
+
+Includes:
+
+- planned `@test("description")` annotation + named-function syntax work
+- native tests for validation helpers
+- native tests for Outcome constructors and rendering
+- native tests for JSONL helper behavior
+- one or two end-to-end pipeline example tests
+
+Excludes:
+
+- parser internals
+- IR normalization
+- host adapter behavior
+- lifecycle generalization (see R4)
+- pytest migration (see R5)
+- setup/teardown, fixtures, parameterization, broad discovery, or multi-host claims
+
+Exit criteria:
+
+- Native tests use the `@test("description") / name() = body` syntax after that syntax is implemented and documented as current behavior.
+- Native tests cover validation helpers, Outcome constructors/rendering, and JSONL helper behavior.
+- At least one pipeline example is backed by a native test.
+- No parser, IR, or host internals are touched.
+
+---
+
+## Release R4 — Lifecycle Generalization
 
 Theme:
 
@@ -168,7 +200,7 @@ Exit criteria:
 
 ---
 
-## Release R4 — Native Test Expansion / Pytest Migration Wave 1
+## Release R5 — Native Test Expansion / Pytest Migration Wave 1
 
 Theme:
 
@@ -205,7 +237,7 @@ Exit criteria:
 
 ---
 
-## Release R5 — Data Workflow Hardening
+## Release R6 — Data Workflow Hardening
 
 Theme:
 
@@ -233,6 +265,26 @@ Possible additional includes:
 - schema/shape inspection helpers
 - better command-line ergonomics
 - clearer examples for real-world records
+
+- possible file-search helper for CLI-native data workflow setup
+  - direct call shape: `find(root, opts)`
+  - options are represented as a plain validated options record
+  - initial file-search results should compose with Flow/Seq-style pipelines
+
+- Option Record Pattern for APIs with many optional settings
+  - default options value
+  - plain options record
+  - pure modifier functions
+  - final validation before execution
+
+- file-search options as the first concrete example:
+  - `default_find_options()`
+  - `with_pattern(...)`
+  - `with_max_depth(...)`
+  - `with_follow_symlinks(...)`
+  - `validate_find_options(...)`
+
+- diagnostics for unknown or invalid options
 
 Deferred candidates after the R1 demo proves the basic workflow:
 
@@ -295,6 +347,15 @@ This section records the classification of R1-adjacent issues after R1 completio
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |
 
 If an issue listed above is already closed, do not reopen it.
+
+- record-derived `with_*` helper generation
+  - possible future opt-in form: `@derive(quote(withers))`
+  - generated helpers must be namespaced under the record/template
+  - generated helpers must not create global `with_*` functions
+  - promote only after multiple APIs prove the manual Option Record Pattern is valuable
+
+- automatic global `with_*` helper generation
+  - rejected by default: risks namespace collisions, unclear origin, and excessive implicit API surface
 
 ---
 

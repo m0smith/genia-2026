@@ -130,7 +130,7 @@ PYTHON REFERENCE HOST:
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
 - The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, `collect` materialization, and `reduce` accumulation over Flow; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
-- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, and `-p` pipe mode behavior. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, and current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results. REPL mode is not included in shared executable spec coverage.
+- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode behavior, and selected native `--test` mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results, plus selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL mode is not included in shared executable spec coverage.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
 - The observable error shared-spec contract in this phase is limited to `stdout`, `stderr`, and `exit_code`.
 - Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
@@ -2236,6 +2236,109 @@ Core IR shape currently includes:
   - `@doc` metadata is the primary source of truth for help content; legacy inline docstrings serve as fallback only
 - `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
 - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
+
+### Native test layer boundaries (Python reference host, Experimental)
+
+The current native test stack uses four layers:
+
+- **Kernel** (`src/genia/test_kernel.py`): executes already-formed `TestUnit` values and normalizes their outcomes. The kernel distinguishes passing tests, assertion/native-test failures (`NativeTestFailure`), unexpected runtime errors, and malformed/discovery-invalid test units. The kernel does not discover tests, load files, format CLI output, or own process exit codes.
+- **Runner** (`src/genia/native_test_runner.py`): coordinates file/suite-level native test execution for `genia test <file>` by invoking the kernel and aggregating results. The runner does not define assertion semantics or change language runtime behavior.
+- **CLI/test-mode layer** (`src/genia/test_cli.py`): selects the `--test` entry point, loads/evaluates the file in test mode, registers tests through the `test(name, body)` mechanism, formats output via `format_test_suite_report`, and returns process exit codes via `suite_exit_code`. The CLI layer does not own kernel outcome normalization or provide broad discovery or lifecycle support.
+- **Assertion helpers** (`src/genia/builtins.py`): `assert_true` and `assert_eq` make passing assertions return `none` (the implemented success value) and make failing assertions raise `NativeTestFailure`, which the kernel reports as a `fail` result rather than an unexpected `error`.
+
+Current native test behavior distinguishes:
+
+- `pass`: the test unit body completes without raising;
+- `fail`: the test unit body raises `NativeTestFailure` (phase `"evaluation"`);
+- `error`: an unexpected exception occurs during execution (phase `"evaluation"`);
+- discovery error: the test unit has an invalid name or non-callable body (phase `"discovery"`).
+
+Current native test support is not a complete test framework; lifecycle hooks, setup/teardown annotations, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
+
+## 9.1) Native test kernel core (Python reference host, Experimental)
+
+LANGUAGE CONTRACT:
+- Native test kernel core provides normalized pass/fail/error result dictionaries and suite dictionaries.
+- It normalizes `TestUnit` execution into one of three stable result kinds: `pass`, `fail`, or `error`.
+- It aggregates suite results and maps suite results to kernel-level exit codes.
+- `TestResult` is distinct from Outcome (`some`/`none`/`err`); there is no automatic mapping between them.
+- Exit code `0` means all executed tests passed or the suite was empty; exit code `1` means at least one test failed or errored.
+
+PYTHON REFERENCE HOST:
+- Implemented as `src/genia/test_kernel.py` in the Python reference host.
+- Provides: `NativeTestFailure`, `TestUnit`, `run_test_unit`, `run_test_suite`, `aggregate_results`, `suite_exit_code`.
+- `TestUnit` is a frozen dataclass with `name` (required non-empty string), `body` (required callable), and optional `location` and `metadata`.
+- `run_test_unit(test_unit)` executes the body, catches `NativeTestFailure` as a `fail` result, and catches other exceptions as `error` results.
+- `run_test_suite(test_units)` runs each unit in given order and aggregates results via `aggregate_results`.
+- Normalized `TestResult` dictionaries contain stable keys: `kind`, `name`, `phase`, `reason`, `expected`, `actual`, `stdout`, `stderr`, `diagnostics`.
+- `stdout` and `stderr` are stable empty strings in this phase; capture is not implemented.
+- `TestSuiteResult` dictionaries contain: `total`, `passed`, `failed`, `errored`, `results`.
+- `results` preserves input order exactly.
+- Validated by `tests/unit/test_native_test_kernel.py` (6 tests, Python reference host only).
+
+Not implemented in this phase:
+- `skip` result kind
+- `duration` field
+- shared spec-runner integration
+- host adapter for Genia runtime callables
+- parser/lexer/evaluator/Core IR changes
+- broad assertion framework, lifecycle hooks, annotations, or fixtures; only the minimal helpers `assert_true` and `assert_eq` are implemented
+- stdout/stderr capture (fields are present but always empty strings)
+- multi-host test execution
+
+## 9.1.1) Native test assertion helpers (Python reference host, Experimental)
+
+PYTHON REFERENCE HOST:
+- The Python reference host provides minimal native-test assertion helpers: `assert_true(value)` and `assert_eq(actual, expected)`.
+- Implemented as builtins registered directly in the global environment via `src/genia/builtins.py`.
+- This is not a full assertion framework. This is the minimal native-test helper surface.
+
+`assert_true(value)`:
+- passes when `value` is truthy according to current runtime truthiness
+- returns `none` on success
+- prints nothing on success
+- raises `NativeTestFailure` on assertion failure
+- inside native test mode, a failing `assert_true` is reported as a test `FAIL` outcome, not an `ERROR` outcome
+
+`assert_eq(actual, expected)`:
+- passes when `actual` equals `expected` according to current Genia equality behavior
+- returns `none` on success
+- prints nothing on success
+- preserves useful actual/expected diagnostics on failure
+- raises `NativeTestFailure` on assertion failure
+- inside native test mode, a failing `assert_eq` is reported as a test `FAIL` outcome, not an `ERROR` outcome
+
+Assertion failure behavior:
+- Inside native test mode, failing helpers are reported as test FAIL outcomes rather than evaluation ERROR outcomes.
+- Incorrect helper arity remains an evaluation ERROR.
+- Later tests in the same suite continue running after an assertion failure.
+
+Not implemented in this phase:
+- `assert_false`, `assert_ne`, `assert_raises`, custom assertion messages, snapshot testing, property testing, soft assertions, or matcher DSLs
+- cross-host implementation; Python is the only implemented host
+- assertion lifecycle hooks, grouping, or count tracking
+
+A Genia-native fixture now covers the R1 validated pipeline path. Validated by `tests/unit/test_r1_validated_pipeline_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r1_validated_pipeline.genia`. Validated pipeline behavior is covered by a native test fixture using `parse_jsonl_record`, `validate_each`, `validate_record`, `collect_validated`, and `assert_eq`.
+
+## 9.2) Native test CLI (Python reference host, Experimental)
+
+Status: Experimental, Python reference host.
+
+`genia --test <file>` runs native test units registered through the test-mode-only `test(name, body)` helper and reports the existing normalized native test runner outcomes. The CLI prints suite counts before and after per-result lines, reports `PASS`, `FAIL`, and `ERROR` results, and exits `0` when no failures/errors occur, `1` when failures or normalized test errors occur, and `2` for invalid CLI invocation.
+
+`genia test <file>` is a minimal native test runner entry point over the same Python reference-host native test kernel. It validates and parses the file, discovers test units through the existing test-mode-only `test(name, body)` registration path, runs the discovered units through the native test kernel, prints one `[PASS|FAIL|ERROR] <name>` line per result followed by `Summary: total=<t> passed=<p> failed=<f> errors=<e>`, and exits `0` when all discovered tests pass, `1` when any test fails/errors, and `2` for file, parse, or no-tests errors.
+
+PYTHON REFERENCE HOST:
+- Implemented as `src/genia/test_cli.py` in the Python reference host.
+- The `genia test <file>` entry point is implemented as `src/genia/native_test_runner.py` and routed by `src/genia/interpreter.py`.
+- Test mode registers a test-mode-only `test(name, body)` helper that appends `TestUnit` values to a private list; malformed units are normalized as discovery errors by the existing kernel.
+- `--test` is mutually exclusive with `-c`/`--command`, `-p`/`--pipe`, and `--debug-stdio`.
+- Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
+- Report format: a summary line `total=<t> passed=<p> failed=<f> errored=<e>` appears both before and after per-result lines.
+- Per-result lines: `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected> actual=<actual>` when present), `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
+- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (9 tests), Python reference host only.
+
+This does not add test annotations, setup/teardown lifecycle hooks, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
 
 ## 10) Explicitly not implemented (current)
 
