@@ -163,6 +163,7 @@ Required constraints:
   - marks the annotated zero-argument function for native test discovery in native test mode
   - has no effect on language evaluation behavior outside native test mode
   - annotated functions with one or more parameters are a discovery error, not an evaluation error
+  - duplicate native-test names across `@test` annotated functions and explicit `test(name, body)` registrations are discovery errors in native test mode
 - multiple annotations merge from top to bottom
 - last annotation wins for duplicate metadata keys
 - rebinding without annotations preserves existing binding metadata

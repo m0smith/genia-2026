@@ -74,10 +74,22 @@ def make_test_env() -> tuple[Any, list[TestUnit]]:
 
 
 def discover_test_units(env: Any) -> list[TestUnit]:
-    return [
+    return validate_unique_test_names([
         *list(getattr(env, "_native_test_units", [])),
         *discover_annotated_test_units(env),
-    ]
+    ])
+
+
+def validate_unique_test_names(test_units: list[TestUnit]) -> list[TestUnit]:
+    seen: set[str] = set()
+    for test_unit in test_units:
+        name = getattr(test_unit, "name", None)
+        if not isinstance(name, str) or name == "":
+            continue
+        if name in seen:
+            return [_discovery_error_test_unit(name, f"duplicate native test name: {name}")]
+        seen.add(name)
+    return test_units
 
 
 def discover_annotated_test_units(env: Any) -> list[TestUnit]:
