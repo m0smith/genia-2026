@@ -183,6 +183,31 @@ def test_test_mode_runs_legacy_and_annotated_tests_in_deterministic_order(
     assert captured.err == ""
 
 
+def test_test_mode_reports_duplicate_legacy_and_annotated_names_as_discovery_error(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "duplicate_native_test_names.genia"
+    program.write_text(
+        'test("duplicate", () -> assert_true(true))\n'
+        '@test "duplicate native test name"\n'
+        "duplicate() = assert_true(true)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "total=1 passed=0 failed=0 errored=1\n" in captured.out
+    assert (
+        "ERROR duplicate phase=discovery reason=duplicate native test name: duplicate"
+        in captured.out
+    )
+    assert "PASS duplicate" not in captured.out
+    assert captured.err == ""
+
+
 def test_test_mode_reports_annotated_parameterized_function_as_discovery_error(
     tmp_path,
     capsys,
@@ -203,6 +228,23 @@ def test_test_mode_reports_annotated_parameterized_function_as_discovery_error(
         "ERROR with_param phase=discovery reason=@test functions must take zero arguments"
         in captured.out
     )
+    assert captured.err == ""
+
+
+def test_test_mode_reports_annotated_non_function_as_discovery_error(tmp_path, capsys):
+    program = tmp_path / "annotated_non_function_test.genia"
+    program.write_text(
+        '@test "assignments are not native tests"\n'
+        "not_a_function = 42\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert "total=1 passed=0 failed=0 errored=1\n" in captured.out
+    assert "ERROR not_a_function phase=discovery reason=@test must annotate a function" in captured.out
     assert captured.err == ""
 
 
@@ -228,6 +270,52 @@ def test_test_mode_does_not_treat_unannotated_setup_as_lifecycle_hook(
         "total=1 passed=1 failed=0 errored=0\n"
     )
     assert "setup" not in captured.out
+    assert captured.err == ""
+
+
+def test_test_mode_rejects_setup_annotation_instead_of_running_lifecycle_hook(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "setup_annotation_is_not_lifecycle.genia"
+    program.write_text(
+        '@setup "not supported as lifecycle behavior"\n'
+        "setup() = missing_name\n"
+        '@test "ordinary test is not reached through lifecycle setup"\n'
+        "passes() = assert_true(true)\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 1
+    assert captured.out == ""
+    assert "Unsupported annotation: @setup" in captured.err
+    assert "PASS passes" not in captured.out
+
+
+def test_test_mode_preserves_doc_metadata_on_annotated_native_test(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "annotated_test_doc_metadata.genia"
+    program.write_text(
+        '@doc "Native-test doc metadata remains available."\n'
+        '@test "native test marker"\n'
+        'documented() = assert_eq(doc("documented"), "Native-test doc metadata remains available.")\n',
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out == (
+        "total=1 passed=1 failed=0 errored=0\n"
+        "PASS documented\n"
+        "total=1 passed=1 failed=0 errored=0\n"
+    )
     assert captured.err == ""
 
 
