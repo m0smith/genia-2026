@@ -563,9 +563,9 @@ def _main(argv: Optional[list[str]] = None) -> int:
             parser = argparse.ArgumentParser(prog="genia test")
             parser.add_argument("file")
             parser.error("genia test accepts exactly one file path")
-        from .native_test_runner import run_native_tests
+        from .test_cli import run_native_tests_from_file
 
-        return run_native_tests(raw_argv[1])
+        return run_native_tests_from_file(raw_argv[1])
 
     terminator_index: int | None = None
     try:
