@@ -1,0 +1,99 @@
+describe_jsonl_object(result) =
+  some(record, ctx) -> [
+    record.id,
+    record.name,
+    display(ctx.kind),
+    display(ctx.status),
+    display(ctx.reason),
+    ctx.line
+  ] |
+  _ -> [quote(unexpected)]
+
+describe_jsonl_blank(result) =
+  none(reason, ctx) -> [
+    reason,
+    display(ctx.kind),
+    display(ctx.status),
+    display(ctx.reason),
+    ctx.line
+  ] |
+  _ -> [quote(unexpected)]
+
+describe_jsonl_error(result) =
+  err(reason, ctx) -> [
+    display(reason),
+    display(ctx.kind),
+    display(ctx.status),
+    display(ctx.reason),
+    ctx.line
+  ] |
+  _ -> [quote(unexpected)]
+
+describe_jsonl_non_object(result) =
+  err(reason, ctx) -> [
+    display(reason),
+    display(ctx.kind),
+    display(ctx.status),
+    display(ctx.reason),
+    display(ctx.value_type),
+    ctx.line
+  ] |
+  _ -> [quote(unexpected)]
+
+jsonl_context_line(result) =
+  some(_, ctx) -> ctx.line |
+  none(_, ctx) -> ctx.line |
+  err(_, ctx) -> ctx.line
+
+@test "valid JSON object returns parsed record with original line context"
+valid_json_object_returns_record_with_context() = {
+  line = "{\"id\":1,\"name\":\"Ada\"}"
+
+  assert_eq(
+    describe_jsonl_object(parse_jsonl_record(line)),
+    [1, "Ada", "jsonl_record", "parsed", "parsed", line]
+  )
+}
+
+@test "blank line returns absence with original line context"
+blank_line_returns_absence_with_context() = {
+  line = "   "
+
+  assert_eq(
+    describe_jsonl_blank(parse_jsonl_record(line)),
+    ["blank_line", "jsonl_record", "skipped", "blank_line", line]
+  )
+}
+
+@test "malformed JSON returns recoverable failure with original line context"
+malformed_json_returns_recoverable_failure_with_context() = {
+  line = "{\"id\":"
+
+  assert_eq(
+    describe_jsonl_error(parse_jsonl_record(line)),
+    ["invalid_jsonl_record", "jsonl_record", "error", "invalid_jsonl_record", line]
+  )
+}
+
+@test "non-object JSON returns recoverable failure with original line context"
+non_object_json_returns_recoverable_failure_with_context() = {
+  line = "[1,2,3]"
+
+  assert_eq(
+    describe_jsonl_non_object(parse_jsonl_record(line)),
+    ["jsonl_record_not_object", "jsonl_record", "error", "jsonl_record_not_object", "list", line]
+  )
+}
+
+@test "all JSONL outcomes preserve exact original line context"
+all_jsonl_outcomes_preserve_exact_original_line_context() = {
+  object_line = "  {\"id\":1}  "
+  blank_line = "   "
+  malformed_line = "{\"id\":"
+  non_object_line = "[1,2,3]"
+
+  assert_eq(jsonl_context_line(parse_jsonl_record(object_line)), object_line)
+  assert_eq(jsonl_context_line(parse_jsonl_record(blank_line)), blank_line)
+  assert_eq(jsonl_context_line(parse_jsonl_record(malformed_line)), malformed_line)
+  assert_eq(jsonl_context_line(parse_jsonl_record(non_object_line)), non_object_line)
+}
