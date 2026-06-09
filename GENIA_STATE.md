@@ -1108,6 +1108,7 @@ Representation System entry points (#185, implemented):
 - Representation is separate from value templates; value templates describe or constrain values, while representation formats describe output strings.
 - `display(value)` returns a string containing the user-facing display representation of `value`.
 - `debug_repr(value)` returns a string containing the debug representation of `value`.
+- `display(value)` and `debug_repr(value)` render Outcome values directly, including `none(...)`; ordinary none propagation must not bypass these representation entry points. This is representation behavior only and does not change Outcome identity, direct-call none propagation for other functions, or pipeline propagation.
 - `format(template_or_format, values)` is a public prelude-backed helper for building strings from a small placeholder template.
 - `format(template_or_format, values)` returns a string and does not write output.
 - `format(template_or_format, values)` does not mutate the input template, `Format` value, or values map/list.
@@ -1208,7 +1209,7 @@ Representation System entry points (#185, implemented):
   - `display("hello")` evaluates to the string `hello`
   - `debug_repr("hello")` evaluates to the string `"hello"`
   - `format("display={x} debug={x:?}", {x: "hello"})` evaluates to the string `display=hello debug="hello"`
-  - `display(none("missing-key", {key: "name"}))` evaluates to the string `none("missing-key", {key: "name"})`
+  - `display(none("missing-key", {key: "name"}))` evaluates to the string `none("missing-key", {key: name})`
   - `debug_repr([some("x"), false])` evaluates to the string `[some("x"), false]`
   - `format_template(Format("{a} {b}"))` evaluates to the string `{a} {b}`
   - `format_template(Format("{{escaped}}"))` evaluates to the string `{{escaped}}`
@@ -2321,6 +2322,8 @@ Not implemented in this phase:
 - assertion lifecycle hooks, grouping, or count tracking
 
 A Genia-native fixture now covers the R1 validated pipeline path. Validated by `tests/unit/test_r1_validated_pipeline_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r1_validated_pipeline.genia`. Validated pipeline behavior is covered by a native test fixture using `parse_jsonl_record`, `validate_each`, `validate_record`, `collect_validated`, and `assert_eq`.
+
+A Genia-native fixture now covers selected Outcome constructor, representation, predicate, and structured absence inspection behavior. Validated by `tests/unit/test_outcome_native_tests.py` (6 tests, Python reference host only); the fixture is `tests/native/outcome_rendering.genia`. The fixture uses `@test` annotated zero-argument functions and `assert_eq` to cover selected current behavior for `some(...)`, `none(...)`, `err(...)`, `display(...)`, `debug_repr(...)`, `some?`, `none?`, `absence_reason`, and `absence_context`. This is selected native coverage only; it does not change Outcome semantics or native-test report semantics.
 
 ## 9.2) Native test CLI (Python reference host, Experimental)
 

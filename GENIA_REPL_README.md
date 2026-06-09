@@ -202,6 +202,7 @@ CLI contract summary (actual behavior):
     - representation is separate from value templates; value templates describe or constrain values, while representation formats describe output strings
     - `display(value)` returns the user-facing display representation string without writing output
     - `debug_repr(value)` returns the debug representation string without writing output
+    - `display(value)` and `debug_repr(value)` render Outcome values directly, including `none(...)`; this is representation behavior and does not change Outcome identity or pipeline propagation
     - these entry points are minimal #185 surface area; #166 owns the broader Representation System model
   - public prelude-backed string formatting helper:
     - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`; field-path placeholders `{user.name}` / `{user.address.city}` use dot (`.`) as the canonical separator for nested map lookup (**Experimental**, #290)

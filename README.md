@@ -416,6 +416,7 @@ Test suite note:
 
 - `tests/cases/` holds reusable black-box language-semantic cases
 - pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
+- `tests/native/outcome_rendering.genia` provides selected Genia-native coverage for current Outcome constructor, representation, predicate, and structured absence inspection behavior through `genia test` (Python reference host only)
 
 ## Documentation
 
@@ -593,7 +594,7 @@ Current consistency note:
 - Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
-- `display(value)` and `debug_repr(value)` are the first public Representation System entry points: they return display/debug representation strings without writing output
+- `display(value)` and `debug_repr(value)` are the first public Representation System entry points: they return display/debug representation strings without writing output, and they render Outcome values directly, including `none(...)`
 - representation does not change value identity; value templates describe or constrain values, while representation formats describe output strings
 - `format(template_or_format, values)` is a public prelude-backed string helper: it returns a string, writes nothing, does not mutate inputs, uses `display(value)` for ordinary replacements, supports debug placeholders `{name:?}` / `{0:?}` using `debug_repr(value)`, supports `{name}`, `{0}`, `{{`, `}}`, field-path placeholders `{user.name}` / `{user.address.city}` for dot-separated nested map lookup (Experimental, #290), and a limited set of field format specs (Experimental, #169: alignment `<N`/`>N`/`^N`, precision `.N`, zero-pad `0N`, comma-group `,`); its first argument is a raw string template or a `Format` value
 - `Format(template)` constructs an untagged first-class representation value from a string template (Experimental, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`

@@ -512,6 +512,9 @@ def make_global_env(
     def debug_repr_fn(value: Any) -> str:
         return format_debug(value)
 
+    display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
     def assert_true_fn(value: Any) -> Any:
         if not truthy(value):
             raise NativeTestFailure("assert_true failed")
