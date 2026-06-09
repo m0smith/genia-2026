@@ -16,7 +16,7 @@ some_with_context_renders_deterministically() = {
 none_values_render_deterministically() = {
   assert_eq(display(none), "none(\"nil\")")
   assert_eq(display(none("missing-key")), "none(\"missing-key\")")
-  assert_eq(display(none("missing-key", {key: "name"})), "none(\"missing-key\", {key: \"name\"})")
+  assert_eq(display(none("missing-key", {key: "name"})), "none(\"missing-key\", {key: name})")
   assert_eq(debug_repr(none("missing-key", {key: "name"})), "none(\"missing-key\", {key: \"name\"})")
 }
 
