@@ -2244,8 +2244,8 @@ Core IR shape currently includes:
 The current native test stack uses four layers:
 
 - **Kernel** (`src/genia/test_kernel.py`): executes already-formed `TestUnit` values and normalizes their outcomes. The kernel distinguishes passing tests, assertion/native-test failures (`NativeTestFailure`), unexpected runtime errors, and malformed/discovery-invalid test units. The kernel does not discover tests, load files, format CLI output, or own process exit codes.
-- **Runner** (`src/genia/native_test_runner.py`): coordinates file/suite-level native test execution for `genia test <file>` by invoking the kernel and aggregating results. The runner does not define assertion semantics or change language runtime behavior.
-- **CLI/test-mode layer** (`src/genia/test_cli.py`): selects the `--test` entry point, loads/evaluates the file in test mode, registers tests through the `test(name, body)` mechanism, appends `@test` annotated zero-argument functions discovered by `discover_test_units(env)` after evaluation, validates unique test names across explicit and annotated tests (duplicate names are discovery errors with error text `duplicate native test name: <name>`), formats output via `format_test_suite_report`, and returns process exit codes via `suite_exit_code`. The CLI layer does not own kernel outcome normalization or provide broad discovery or lifecycle support.
+- **Runner** (`src/genia/native_test_runner.py`): provides file/suite-level test execution helpers by invoking the kernel and aggregating results. The runner does not define assertion semantics or change language runtime behavior.
+- **CLI/test-mode layer** (`src/genia/test_cli.py`): selects the `--test` entry point and handles `genia test <file>` through `run_native_tests_from_file`, loads/evaluates the file in test mode, registers tests through the `test(name, body)` mechanism, appends `@test` annotated zero-argument functions discovered by `discover_test_units(env)` after evaluation, validates unique test names across explicit and annotated tests (duplicate names are discovery errors with error text `duplicate native test name: <name>`), formats output via `format_test_suite_report`, and returns process exit codes via `suite_exit_code`. The CLI layer does not own kernel outcome normalization or provide broad discovery or lifecycle support.
 - **Assertion helpers** (`src/genia/builtins.py`): `assert_true` and `assert_eq` make passing assertions return `none` (the implemented success value) and make failing assertions raise `NativeTestFailure`, which the kernel reports as a `fail` result rather than an unexpected `error`.
 
 Current native test behavior distinguishes:
@@ -2334,13 +2334,13 @@ Native tests may be authored with the legacy `test(name, body)` call form. Nativ
 
 PYTHON REFERENCE HOST:
 - Implemented as `src/genia/test_cli.py` in the Python reference host.
-- The `genia test <file>` entry point is implemented as `src/genia/native_test_runner.py` and routed by `src/genia/interpreter.py`.
+- The `genia test <file>` entry point is implemented as `src/genia/test_cli.py::run_native_tests_from_file` and routed by `src/genia/interpreter.py`.
 - Test mode registers a test-mode-only `test(name, body)` helper that appends `TestUnit` values to a private list; malformed units are normalized as discovery errors by the existing kernel.
 - `--test` is mutually exclusive with `-c`/`--command`, `-p`/`--pipe`, and `--debug-stdio`.
 - Invalid combinations such as `--debug-stdio --test` are rejected with exit code `2`.
 - Report format: a summary line `total=<t> passed=<p> failed=<f> errored=<e>` appears both before and after per-result lines.
 - Per-result lines: `PASS <name>`, `FAIL <name> phase=<phase> reason=<reason>` (with `expected=<expected> actual=<actual>` when present), `ERROR <name-or-unnamed> phase=<phase> reason=<reason>`.
-- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (19 tests), Python reference host only.
+- Validated by `tests/unit/test_native_test_cli.py` (6 tests) and `tests/unit/test_interpreter_test_mode.py` (20 tests), Python reference host only.
 
 `@test "description"` annotation-driven native test discovery is implemented; annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. Duplicate test names across explicit and annotated tests are discovery errors. This does not add setup/teardown lifecycle hooks, `@setup` or `@teardown` annotations, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
 
