@@ -1076,6 +1076,7 @@ For each incoming flow item `x`:
 - `display` and `debug_repr` are the first concrete public entry points of the planned Representation System (#166)
 - these names must be treated as Representation System surface area, not standalone utility helpers
 - `display(value)` and `debug_repr(value)` return strings and must not write to `stdout` or `stderr`
+- `display(value)` and `debug_repr(value)` must render Outcome values directly, including `none(...)`; ordinary none propagation must not bypass these representation entry points
 - output operations remain separate:
   - `print(...)` writes to `stdout`
   - `log(...)` writes to `stderr`
