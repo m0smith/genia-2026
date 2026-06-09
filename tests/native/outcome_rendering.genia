@@ -1,0 +1,46 @@
+@test "some values render deterministically"
+some_values_render_deterministically() = {
+  assert_eq(display(some(3)), "some(3)")
+  assert_eq(display(some("x")), "some(x)")
+  assert_eq(debug_repr(some("x")), "some(\"x\")")
+  assert_eq(display(some(none)), "some(none(\"nil\"))")
+}
+
+@test "some values with context render deterministically"
+some_with_context_renders_deterministically() = {
+  assert_eq(display(some(3, {source: "fixture"})), "some(3, {source: fixture})")
+  assert_eq(debug_repr(some(3, {source: "fixture"})), "some(3, {source: \"fixture\"})")
+}
+
+@test "none values render deterministically"
+none_values_render_deterministically() = {
+  assert_eq(display(none), "none(\"nil\")")
+  assert_eq(display(none("missing-key")), "none(\"missing-key\")")
+  assert_eq(display(none("missing-key", {key: "name"})), "none(\"missing-key\", {key: \"name\"})")
+  assert_eq(debug_repr(none("missing-key", {key: "name"})), "none(\"missing-key\", {key: \"name\"})")
+}
+
+@test "err values render deterministically"
+err_values_render_deterministically() = {
+  assert_eq(display(err("invalid")), "err(\"invalid\")")
+  assert_eq(display(err("invalid", {field: "age"})), "err(\"invalid\", {field: age})")
+  assert_eq(debug_repr(err("invalid", {field: "age"})), "err(\"invalid\", {field: \"age\"})")
+}
+
+@test "outcome predicates identify some and none"
+outcome_predicates_identify_some_and_none() = {
+  assert_eq(some?(some(3)), true)
+  assert_eq(some?(none("missing-key")), false)
+  assert_eq(none?(none("missing-key")), true)
+  assert_eq(none?(some(3)), false)
+  assert_eq(some?(some(3)), is_some?(some(3)))
+  assert_eq(none?(none("missing-key")), is_none?(none("missing-key")))
+}
+
+@test "absence helpers expose reason and context"
+absence_helpers_expose_reason_and_context() = {
+  assert_eq(debug_repr(absence_reason(none("empty-list"))), "some(\"empty-list\")")
+  assert_eq(debug_repr(absence_reason(none)), "some(\"nil\")")
+  assert_eq(debug_repr(absence_context(none("empty-list"))), "none(\"nil\")")
+  assert_eq(debug_repr(absence_context(none("missing-key", {key: "name"}))), "some({key: \"name\"})")
+}
