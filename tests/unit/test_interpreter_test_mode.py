@@ -76,6 +76,41 @@ def test_test_mode_reports_failing_assertions_as_failures_and_continues(tmp_path
     assert captured.err == ""
 
 
+def test_test_subcommand_reports_failing_assertions_as_failures_and_continues(
+    tmp_path,
+    capsys,
+):
+    program = tmp_path / "failing_assertions.genia"
+    program.write_text(
+        "\n".join(
+            [
+                'test("before passes", () -> assert_true(true))',
+                'test("assert eq fails", () -> assert_eq(2 + 2, 5))',
+                'test("after still runs", () -> none)',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["test", str(program)])
+
+    captured = capsys.readouterr()
+    lines = captured.out.splitlines()
+    assert exit_code == 1
+    assert lines[0] == "total=3 passed=2 failed=1 errored=0"
+    assert lines[-1] == "total=3 passed=2 failed=1 errored=0"
+    assert lines[1] == "PASS before passes"
+    assert lines[2].startswith(
+        "FAIL assert eq fails phase=evaluation reason=assert_eq failed"
+    )
+    assert "expected=5" in lines[2]
+    assert "actual=4" in lines[2]
+    assert "ERROR assert eq fails" not in captured.out
+    assert lines[3] == "PASS after still runs"
+    assert captured.err == ""
+
+
 def test_test_mode_keeps_assertion_helper_arity_as_runtime_error(tmp_path, capsys):
     program = tmp_path / "bad_assertion_arity.genia"
     program.write_text('test("bad arity", () -> assert_true())\n', encoding="utf-8")
