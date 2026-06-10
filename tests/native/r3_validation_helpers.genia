@@ -1,0 +1,116 @@
+valid_person(record) =
+  validate_record(record, {
+    id: (r) -> validate_field("id", (x) -> x > 0, "positive id", r),
+    name: (r) -> validate_required("name", r)
+  })
+
+outcome_kind(result) =
+  some(_) -> "some" |
+  none(_) -> "skipped" |
+  err(_) -> "error"
+
+outcome_reason(result) =
+  none(reason) -> reason |
+  err(reason) -> reason
+
+optional_absence_reason(result) =
+  none(reason) -> reason("reason")
+
+validated_value(result) =
+  some(value) -> value |
+  _ -> {}
+
+outcome_at(items, index) =
+  unwrap_or(none, items |> nth(index))
+
+validated_value_at(items, index) =
+  validated_value(outcome_at(items, index))
+
+map_at(items, index) =
+  unwrap_or({}, items |> nth(index))
+
+must_not_run(_value) =
+  assert_eq("validator should not run", "validator ran")
+
+test("validate_required and validate_field return current outcomes", () -> {
+  present = validate_required("name", {name: "Ada"})
+  missing = validate_required("name", {id: 1})
+  valid_id = validate_field("id", (x) -> x > 0, "positive id", {id: 1})
+  invalid_id = validate_field("id", (x) -> x > 0, "positive id", {id: 0})
+
+  assert_eq(display(present), "some({name: Ada})")
+  assert_eq(outcome_kind(missing), "error")
+  assert_eq(display(outcome_reason(missing)), "missing required field")
+  assert_eq(display(valid_id), "some({id: 1})")
+  assert_eq(outcome_kind(invalid_id), "error")
+  assert_eq(display(outcome_reason(invalid_id)), "invalid field")
+})
+
+test("validate_optional handles missing and present fields", () -> {
+  missing = validate_optional("nickname", {name: "Ada"})
+  present = validate_optional("nickname", {nickname: "ace"})
+  checked = validate_optional("nickname", {nickname: "ace"}, (value) -> some(value))
+
+  assert_eq(outcome_kind(missing), "skipped")
+  assert_eq(display(optional_absence_reason(missing)), "missing_optional_field")
+  assert_eq(display(present), "some(ace, {field: nickname})")
+  assert_eq(display(checked), "some(ace)")
+})
+
+test("validate_record composes field validators", () -> {
+  valid = valid_person({id: 1, name: "Ada"})
+  invalid = valid_person({id: 0, name: "Bad"})
+  missing = valid_person({id: 2})
+
+  assert_eq(display(valid), "some({id: 1, name: Ada})")
+  assert_eq(outcome_kind(invalid), "error")
+  assert_eq(display(outcome_reason(invalid)), "record_validation_failed")
+  assert_eq(outcome_kind(missing), "error")
+  assert_eq(display(outcome_reason(missing)), "record_validation_failed")
+})
+
+test("validate_each preserves list order and outcome boundaries", () -> {
+  plain_results = validate_each(
+    [{id: 1, name: "Ada"}, {id: 0, name: "Bad"}, {id: 2, name: "Grace"}],
+    valid_person
+  )
+
+  upstream_missing = validate_each([none("skip")], must_not_run)
+  upstream_error = validate_each([err(quote(bad_record), {row: 7})], must_not_run)
+  upstream_some = validate_each([some({id: 3, name: "Lin"})], valid_person)
+
+  assert_eq(count(plain_results), 3)
+  assert_eq(display(validated_value_at(plain_results, 0)), "{id: 1, name: Ada}")
+  assert_eq(display(outcome_reason(outcome_at(plain_results, 1))), "record_validation_failed")
+  assert_eq(display(validated_value_at(plain_results, 2)), "{id: 2, name: Grace}")
+
+  assert_eq(count(upstream_missing), 1)
+  assert_eq(outcome_kind(outcome_at(upstream_missing, 0)), "skipped")
+  assert_eq(display(outcome_reason(outcome_at(upstream_missing, 0))), "skip")
+
+  assert_eq(count(upstream_error), 1)
+  assert_eq(outcome_kind(outcome_at(upstream_error, 0)), "error")
+  assert_eq(display(outcome_reason(outcome_at(upstream_error, 0))), "bad_record")
+
+  assert_eq(count(upstream_some), 1)
+  assert_eq(display(validated_value_at(upstream_some, 0)), "{id: 3, name: Lin}")
+})
+
+test("collect_validated aggregates clean records and diagnostics", () -> {
+  outcomes = [
+    some({id: 1, name: "Ada"}),
+    none("blank_line"),
+    err(quote(record_validation_failed), {row: 3}),
+    some({id: 2, name: "Grace"})
+  ]
+
+  result = collect_validated(outcomes)
+  diagnostics = result("diagnostics")
+
+  assert_eq(display(result("clean")), "[{id: 1, name: Ada}, {id: 2, name: Grace}]")
+  assert_eq(count(diagnostics), 2)
+  assert_eq(display(map_at(diagnostics, 0)("kind")), "skipped")
+  assert_eq(display(map_at(diagnostics, 0)("reason")), "blank_line")
+  assert_eq(display(map_at(diagnostics, 1)("kind")), "error")
+  assert_eq(display(map_at(diagnostics, 1)("reason")), "record_validation_failed")
+})

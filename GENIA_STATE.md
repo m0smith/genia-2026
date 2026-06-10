@@ -2325,6 +2325,8 @@ A Genia-native fixture now covers the R1 validated pipeline path. Validated by `
 
 A Genia-native fixture now covers selected Outcome constructor, representation, predicate, and structured absence inspection behavior. Validated by `tests/unit/test_outcome_native_tests.py` (6 tests, Python reference host only); the fixture is `tests/native/outcome_rendering.genia`. The fixture uses `@test` annotated zero-argument functions and `assert_eq` to cover selected current behavior for `some(...)`, `none(...)`, `err(...)`, `display(...)`, `debug_repr(...)`, `some?`, `none?`, `absence_reason`, and `absence_context`. This is selected native coverage only; it does not change Outcome semantics or native-test report semantics.
 
+A Genia-native fixture covers selected validation-helper behavior for the R3 validated-pipeline surface, including required/field/optional/record validation, `validate_each` Outcome-boundary behavior, and `collect_validated` aggregation. Validated by `tests/unit/test_r3_validation_helpers_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r3_validation_helpers.genia`. This is selected native coverage only and does not change validation, Outcome, Flow, or native-test semantics.
+
 ## 9.2) Native test CLI (Python reference host, Experimental)
 
 Status: Experimental, Python reference host.
