@@ -170,6 +170,113 @@ def test_native_test_cli_reports_duplicate_valid_native_test_names(
     assert captured.err == ""
 
 
+def test_native_test_cli_reports_all_duplicate_name_occurrences_deterministically(
+    tmp_path,
+    capsys,
+):
+    source = (
+        'test("same_name", () -> assert_true(true))\n'
+        "\n"
+        'test("same_name", () -> assert_true(true))\n'
+        "\n"
+        '@test "annotated duplicate"\n'
+        "same_name() = assert_true(true)\n"
+    )
+
+    first_exit_code, first_captured = _run_native_test_source(tmp_path, capsys, source)
+    second_exit_code, second_captured = _run_native_test_source(tmp_path, capsys, source)
+
+    assert first_exit_code == 1
+    assert second_exit_code == 1
+    assert first_captured.out == second_captured.out
+    assert "total=1 passed=0 failed=0 errored=1\n" in first_captured.out
+    assert (
+        "ERROR same_name phase=discovery "
+        "reason=duplicate native test name: same_name"
+    ) in first_captured.out
+    assert "occurrence 1" in first_captured.out
+    assert "occurrence 2" in first_captured.out
+    assert "occurrence 3" in first_captured.out
+    assert "native_tests.genia" in first_captured.out
+    assert "line 1" in first_captured.out
+    assert "line 3" in first_captured.out
+    assert "line 5" in first_captured.out or "line 6" in first_captured.out
+    assert "PASS same_name" not in first_captured.out
+    assert first_captured.err == ""
+    assert second_captured.err == ""
+
+
+def test_validate_unique_test_names_includes_existing_location_metadata_for_duplicates():
+    from genia.test_cli import validate_unique_test_names
+    from genia.test_kernel import TestUnit, run_test_suite, suite_exit_code
+
+    test_units = [
+        TestUnit(
+            "same_name",
+            lambda: None,
+            location={"file": "suite.genia", "line": 7, "source": "test()"},
+        ),
+        TestUnit(
+            "other_name",
+            lambda: None,
+            location={"file": "suite.genia", "line": 10, "source": "test()"},
+        ),
+        TestUnit(
+            "same_name",
+            lambda: None,
+            location={"file": "suite.genia", "line": 12, "source": "@test"},
+        ),
+    ]
+
+    discovered = validate_unique_test_names(test_units)
+    suite = run_test_suite(discovered)
+
+    assert suite_exit_code(suite) == 1
+    assert suite == {
+        "total": 1,
+        "passed": 0,
+        "failed": 0,
+        "errored": 1,
+        "results": [
+            {
+                "kind": "error",
+                "name": "same_name",
+                "phase": "discovery",
+                "reason": (
+                    "duplicate native test name: same_name\n"
+                    "occurrence 1: suite.genia line 7 source=test()\n"
+                    "occurrence 2: suite.genia line 12 source=@test"
+                ),
+                "expected": None,
+                "actual": None,
+                "stdout": "",
+                "stderr": "",
+                "diagnostics": {},
+            }
+        ],
+    }
+
+
+def test_validate_unique_test_names_leaves_non_duplicate_suites_unchanged():
+    from genia.test_cli import validate_unique_test_names
+    from genia.test_kernel import TestUnit
+
+    test_units = [
+        TestUnit(
+            "first",
+            lambda: None,
+            location={"file": "suite.genia", "line": 1, "source": "test()"},
+        ),
+        TestUnit(
+            "second",
+            lambda: None,
+            location={"file": "suite.genia", "line": 3, "source": "@test"},
+        ),
+    ]
+
+    assert validate_unique_test_names(test_units) == test_units
+
+
 def test_native_test_cli_rejects_setup_annotation_instead_of_running_lifecycle_hook(
     tmp_path,
     capsys,
