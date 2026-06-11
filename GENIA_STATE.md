@@ -2327,6 +2327,8 @@ A Genia-native fixture now covers selected Outcome constructor, representation, 
 
 A Genia-native fixture covers selected validation-helper behavior for the R3 validated-pipeline surface, including required/field/optional/record validation, `validate_each` Outcome-boundary behavior, and `collect_validated` aggregation. Validated by `tests/unit/test_r3_validation_helpers_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r3_validation_helpers.genia`. This is selected native coverage only and does not change validation, Outcome, Flow, or native-test semantics.
 
+A runnable native-test example file is now available for the R3 validated-pipeline surface. The example is `examples/r3_validated_pipeline_native_tests.genia`, validated by `tests/unit/test_r3_validated_pipeline_native_test_examples.py` (1 test, Python reference host only). It covers Outcome-boundary preservation through `validate_each` (upstream `some(...)`, `none(...)`, and `err(...)` items pass through without invoking the validator), direct `validate_each(...) |> collect_validated(...)` composition, and a JSONL-style pipeline demonstrating clean/diagnostic observability. The example uses existing `test(name, body)` native-test authoring, existing validation helpers, and existing Outcome semantics only. This is selected native coverage only; it does not imply complete validated-pipeline coverage, advanced Flow behavior beyond what is already stated above, or new language/runtime/CLI/lifecycle behavior.
+
 ## 9.2) Native test CLI (Python reference host, Experimental)
 
 Status: Experimental, Python reference host.
@@ -2366,6 +2368,7 @@ PYTHON REFERENCE HOST:
 - `examples/ants_actor.genia`: actor/coordinator version of the ants simulation — same colony rules, different execution structure
 - `examples/ants_web.genia`: browser visualization over the same ants simulation using the current blocking HTTP helper, JSON endpoints, and a Canvas renderer in plain browser JavaScript
 - `examples/validated_pipeline_demo.genia`: experimental first demo milestone for the Outcome-aware validated data pipeline direction — a file-mode demo covered by shared CLI spec `spec/cli/validated-data-pipeline-demo.yaml`; reads JSONL records from `examples/data/validated_pipeline_demo.jsonl`, validates each record using existing `parse_jsonl_record`, `validate_each`, `validate_record`, and `collect_validated` helpers, and emits clean records plus diagnostics; demonstrates the intended Outcome-aware validated data pipeline direction; does not add new helper/runtime semantics; Experimental
+- `examples/r3_validated_pipeline_native_tests.genia`: R3 native-test example for the validated-pipeline surface — runnable through the native test runner (`genia test examples/r3_validated_pipeline_native_tests.genia`); covers Outcome-boundary preservation through `validate_each`, direct `validate_each(...) |> collect_validated(...)` composition, and a JSONL-style pipeline with clean/diagnostic observability; uses existing `test(name, body)` native-test syntax and existing validation/Outcome helpers; validated by `tests/unit/test_r3_validated_pipeline_native_test_examples.py`; this is selected native coverage only, not complete validated-pipeline coverage; Experimental
 
 `examples/ants.genia` intentionally uses only currently implemented features:
 
