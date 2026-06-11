@@ -32,7 +32,7 @@ This repository currently provides:
   - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
   - autoloaded function names can also be referenced as higher-order function values, not only called directly
 - debug-stdio adapter support for editor integration (**Python-host-only**)
-- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, `ants_web.genia`, `http_service.genia`, and `validated_pipeline_demo.genia`)
+- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, `ants_web.genia`, `http_service.genia`, `validated_pipeline_demo.genia`, and `r3_validated_pipeline_native_tests.genia` — a native-test example for the validated-pipeline surface)
 - proper tail-call optimization for calls in tail position
 - multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
 
