@@ -1,0 +1,105 @@
+valid_person(record) =
+  validate_record(record, {
+    id: (r) -> validate_field("id", (x) -> x > 0, "positive id", r),
+    name: (r) -> validate_required("name", r)
+  })
+
+classify_number(n) =
+  0 -> none("zero") |
+  _ ? n > 0 -> some(n) |
+  _ -> err(quote(negative_number), {value: n})
+
+outcome_kind(result) =
+  some(_) -> "some" |
+  none(_) -> "skipped" |
+  err(_) -> "error"
+
+outcome_reason(result) =
+  none(reason) -> reason |
+  err(reason) -> reason
+
+validated_value(result) =
+  some(value) -> value |
+  _ -> {}
+
+outcome_at(items, index) =
+  unwrap_or(none, items |> nth(index))
+
+validated_value_at(items, index) =
+  validated_value(outcome_at(items, index))
+
+map_at(items, index) =
+  unwrap_or({}, items |> nth(index))
+
+must_not_run(_value) =
+  assert_eq("validator should not run", "validator ran")
+
+test("validated pipeline preserves upstream Outcome boundaries", () -> {
+  results = validate_each([
+    some({id: 1, name: "Ada"}),
+    none("blank_line"),
+    err(quote(invalid_jsonl_record), {line: 3})
+  ], valid_person)
+
+  assert_eq(count(results), 3)
+  assert_eq(display(validated_value_at(results, 0)), "{id: 1, name: Ada}")
+  assert_eq(outcome_kind(outcome_at(results, 1)), "skipped")
+  assert_eq(display(outcome_reason(outcome_at(results, 1))), "blank_line")
+  assert_eq(outcome_kind(outcome_at(results, 2)), "error")
+  assert_eq(display(outcome_reason(outcome_at(results, 2))), "invalid_jsonl_record")
+
+  skipped = validate_each([none("skip")], must_not_run)
+  failed = validate_each([err(quote(bad_record), {row: 7})], must_not_run)
+
+  assert_eq(outcome_kind(outcome_at(skipped, 0)), "skipped")
+  assert_eq(display(outcome_reason(outcome_at(skipped, 0))), "skip")
+  assert_eq(outcome_kind(outcome_at(failed, 0)), "error")
+  assert_eq(display(outcome_reason(outcome_at(failed, 0))), "bad_record")
+})
+
+test("validate_each feeds collect_validated directly", () -> {
+  result =
+    validate_each([2, 0, -1, 3], classify_number)
+      |> collect_validated
+
+  diagnostics = result("diagnostics")
+  skipped = map_at(diagnostics, 0)
+  invalid = map_at(diagnostics, 1)
+
+  assert_eq(display(result("clean")), "[2, 3]")
+  assert_eq(count(diagnostics), 2)
+  assert_eq(display(skipped("kind")), "skipped")
+  assert_eq(display(skipped("reason")), "zero")
+  assert_eq(display(invalid("kind")), "error")
+  assert_eq(display(invalid("reason")), "negative_number")
+})
+
+test("validated JSONL pipeline keeps clean records and diagnostics observable", () -> {
+  lines = [
+    "{\"id\":1,\"name\":\"Ada\"}",
+    "",
+    "{\"id\":0,\"name\":\"Bad\"}",
+    "{\"id\":",
+    "{\"id\":2,\"name\":\"Grace\"}"
+  ]
+
+  result =
+    lines
+      |> map(parse_jsonl_record)
+      |> ((records) -> validate_each(records, valid_person))
+      |> collect_validated
+
+  diagnostics = result("diagnostics")
+  skipped = map_at(diagnostics, 0)
+  invalid = map_at(diagnostics, 1)
+  malformed = map_at(diagnostics, 2)
+
+  assert_eq(display(result("clean")), "[{id: 1, name: Ada}, {id: 2, name: Grace}]")
+  assert_eq(count(diagnostics), 3)
+  assert_eq(display(skipped("kind")), "skipped")
+  assert_eq(display(skipped("reason")), "blank_line")
+  assert_eq(display(invalid("kind")), "error")
+  assert_eq(display(invalid("reason")), "record_validation_failed")
+  assert_eq(display(malformed("kind")), "error")
+  assert_eq(display(malformed("reason")), "invalid_jsonl_record")
+})
