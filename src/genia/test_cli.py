@@ -83,6 +83,8 @@ def discover_test_units(env: Any) -> list[TestUnit]:
 def validate_unique_test_names(test_units: list[TestUnit]) -> list[TestUnit]:
     seen: set[str] = set()
     for test_unit in test_units:
+        if _has_discovery_error(test_unit):
+            continue
         name = getattr(test_unit, "name", None)
         if not isinstance(name, str) or name == "":
             continue
@@ -90,6 +92,11 @@ def validate_unique_test_names(test_units: list[TestUnit]) -> list[TestUnit]:
             return [_discovery_error_test_unit(name, f"duplicate native test name: {name}")]
         seen.add(name)
     return test_units
+
+
+def _has_discovery_error(test_unit: TestUnit) -> bool:
+    metadata = getattr(test_unit, "metadata", None)
+    return isinstance(metadata, dict) and metadata.get("discovery_error") is not None
 
 
 def discover_annotated_test_units(env: Any) -> list[TestUnit]:
