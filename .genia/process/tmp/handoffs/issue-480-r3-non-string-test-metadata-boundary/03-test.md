@@ -87,7 +87,7 @@ None observed in the focused native-test suites run during this phase.
 
 ## Commit
 
-- Failing-test commit SHA: `PENDING`
+- Failing-test commit SHA: `4df6fef6bca0b1333946ac8f4ebb9a35382ffe30`
 
 ## Implementation Status
 
