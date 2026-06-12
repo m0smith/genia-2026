@@ -79,9 +79,16 @@ messy records in → clear pipelines → Outcome-aware validation → clean reco
 R1 is complete.
 
 **R2** protects and exercises the R1 surface through native Genia tests.
-R2 is the active release focus. It is not more CSV/Sheet/diagnostic hardening — that belongs to R5.
+R2 is complete.
 
-**R5** hardens the data workflow with CSV, Sheets, report output, and richer diagnostics.
+**R3** expanded native Genia test coverage over Genia-facing behavior.
+R3 delivered `@test "description"` annotation-driven native test discovery, native test coverage for validation helpers, Outcome constructors/rendering, JSONL helpers, and pipeline examples.
+R3 is complete.
+
+**R4** extracts the proven test lifecycle shape into a portable lifecycle contract.
+R4 is the active release focus. It is not more data-pipeline hardening (that belongs to R6) and not actors, servers, or plugins (those are parking lot).
+
+**R6** hardens the data workflow with CSV, Sheets, report output, and richer diagnostics.
 
 ## Using This Document
 
