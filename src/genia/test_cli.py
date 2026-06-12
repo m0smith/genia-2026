@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import ast
+import re
 import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +13,11 @@ from .errors import GeniaQuietBrokenPipe
 from .test_kernel import TestUnit, run_test_suite, suite_exit_code
 from .utf8 import format_debug
 from .values import GeniaMap, GeniaOutputSink
+
+
+_LEGACY_TEST_REGISTRATION_RE = re.compile(
+    r"""\btest\s*\(\s*(?P<literal>"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""
+)
 
 
 def _summary_line(suite: dict[str, Any]) -> str:
@@ -81,17 +89,64 @@ def discover_test_units(env: Any) -> list[TestUnit]:
 
 
 def validate_unique_test_names(test_units: list[TestUnit]) -> list[TestUnit]:
-    seen: set[str] = set()
+    by_name: dict[str, list[TestUnit]] = {}
+    duplicate_names: set[str] = set()
     for test_unit in test_units:
         if _has_discovery_error(test_unit):
             continue
         name = getattr(test_unit, "name", None)
         if not isinstance(name, str) or name == "":
             continue
-        if name in seen:
-            return [_discovery_error_test_unit(name, f"duplicate native test name: {name}")]
-        seen.add(name)
+        by_name.setdefault(name, []).append(test_unit)
+        if len(by_name[name]) > 1:
+            duplicate_names.add(name)
+    for name in by_name:
+        if name in duplicate_names:
+            return [
+                _discovery_error_test_unit(
+                    name,
+                    _duplicate_name_reason(name, by_name[name]),
+                )
+            ]
     return test_units
+
+
+def _duplicate_name_reason(name: str, occurrences: list[TestUnit]) -> str:
+    lines = [f"duplicate native test name: {name}"]
+    for index, test_unit in enumerate(occurrences, start=1):
+        location = _format_test_location(getattr(test_unit, "location", None))
+        lines.append(f"occurrence {index}: {location}")
+    return "\n".join(lines)
+
+
+def _format_test_location(location: Any) -> str:
+    if isinstance(location, dict):
+        parts: list[str] = []
+        file_name = location.get("file")
+        if file_name:
+            parts.append(str(file_name))
+        line = location.get("line")
+        if line is not None:
+            parts.append(f"line {line}")
+        column = location.get("column")
+        if column is not None:
+            parts.append(f"column {column}")
+        source = location.get("source")
+        if source:
+            parts.append(f"source={source}")
+        return " ".join(parts) if parts else "<unknown>"
+
+    file_name = getattr(location, "filename", None)
+    line = getattr(location, "line", None)
+    column = getattr(location, "column", None)
+    parts = []
+    if file_name:
+        parts.append(str(file_name))
+    if line is not None:
+        parts.append(f"line {line}")
+    if column is not None:
+        parts.append(f"column {column}")
+    return " ".join(parts) if parts else "<unknown>"
 
 
 def _has_discovery_error(test_unit: TestUnit) -> bool:
@@ -116,7 +171,14 @@ def discover_annotated_test_units(env: Any) -> list[TestUnit]:
         if body is None or value.sorted_arities() != [0]:
             test_units.append(_discovery_error_test_unit(name, "@test functions must take zero arguments"))
             continue
-        test_units.append(TestUnit(name, body, metadata={"description": description}))
+        test_units.append(
+            TestUnit(
+                name,
+                body,
+                location=_span_location(getattr(body, "span", None), source="@test"),
+                metadata={"description": description},
+            )
+        )
     return test_units
 
 
@@ -126,6 +188,72 @@ def _is_test_metadata(metadata: Any) -> bool:
 
 def _discovery_error_test_unit(name: str, reason: str) -> TestUnit:
     return TestUnit(name, None, metadata={"discovery_error": reason})
+
+
+def _span_location(span: Any, *, source: str | None = None) -> dict[str, Any] | None:
+    if span is None:
+        return None
+    location: dict[str, Any] = {}
+    file_name = getattr(span, "filename", None)
+    if file_name is not None:
+        location["file"] = file_name
+    line = getattr(span, "line", None)
+    if line is not None:
+        location["line"] = line
+    column = getattr(span, "column", None)
+    if column is not None:
+        location["column"] = column
+    if source is not None:
+        location["source"] = source
+    return location or None
+
+
+def _attach_legacy_test_locations(
+    test_units: list[TestUnit],
+    source: str,
+    file_name: str,
+) -> None:
+    locations_by_name = _legacy_test_registration_locations(source, file_name)
+    used_by_name: dict[str, int] = {}
+    for index, test_unit in enumerate(test_units):
+        if getattr(test_unit, "location", None) is not None:
+            continue
+        name = getattr(test_unit, "name", None)
+        if not isinstance(name, str):
+            continue
+        locations = locations_by_name.get(name)
+        if not locations:
+            continue
+        used_index = used_by_name.get(name, 0)
+        if used_index >= len(locations):
+            continue
+        test_units[index] = replace(test_unit, location=locations[used_index])
+        used_by_name[name] = used_index + 1
+
+
+def _legacy_test_registration_locations(
+    source: str,
+    file_name: str,
+) -> dict[str, list[dict[str, Any]]]:
+    locations_by_name: dict[str, list[dict[str, Any]]] = {}
+    for line_number, line in enumerate(source.splitlines(), start=1):
+        match = _LEGACY_TEST_REGISTRATION_RE.search(line)
+        if match is None:
+            continue
+        try:
+            name = ast.literal_eval(match.group("literal"))
+        except (SyntaxError, ValueError):
+            continue
+        if not isinstance(name, str):
+            continue
+        locations_by_name.setdefault(name, []).append(
+            {
+                "file": file_name,
+                "line": line_number,
+                "source": "test()",
+            }
+        )
+    return locations_by_name
 
 
 def _write_stdout(env: Any, text: str) -> None:
@@ -158,6 +286,11 @@ def run_native_tests_from_file(program_path: str) -> int:
         from .interpreter import run_source
 
         run_source(source, env, filename=str(path.resolve()))
+        _attach_legacy_test_locations(
+            getattr(env, "_native_test_units", []),
+            source,
+            str(path.resolve()),
+        )
         tests = discover_test_units(env)
         suite = run_test_suite(tests)
         _write_stdout(env, format_test_suite_report(suite))
