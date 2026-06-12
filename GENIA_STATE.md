@@ -2266,18 +2266,19 @@ LANGUAGE CONTRACT:
 - It aggregates suite results and maps suite results to kernel-level exit codes.
 - `TestResult` is distinct from Outcome (`some`/`none`/`err`); there is no automatic mapping between them.
 - Exit code `0` means all executed tests passed or the suite was empty; exit code `1` means at least one test failed or errored.
+- Native test metadata keys and values must be strings. Non-string metadata is reported as a deterministic discovery error before test body execution. Diagnostics use deterministic Genia runtime type names and include existing `TestUnit.location` when available.
 
 PYTHON REFERENCE HOST:
 - Implemented as `src/genia/test_kernel.py` in the Python reference host.
 - Provides: `NativeTestFailure`, `TestUnit`, `run_test_unit`, `run_test_suite`, `aggregate_results`, `suite_exit_code`.
-- `TestUnit` is a frozen dataclass with `name` (required non-empty string), `body` (required callable), and optional `location` and `metadata`.
-- `run_test_unit(test_unit)` executes the body, catches `NativeTestFailure` as a `fail` result, and catches other exceptions as `error` results.
+- `TestUnit` is a frozen dataclass with `name` (required non-empty string), `body` (required callable), and optional `location` and `metadata`. When `metadata` is present, all keys and values must be strings; non-string metadata is a discovery error.
+- `run_test_unit(test_unit)` validates metadata before executing the body, catches `NativeTestFailure` as a `fail` result, and catches other exceptions as `error` results. Non-string metadata keys are reported as discovery errors with reason `invalid native test metadata key: expected string, received <type>`; non-string metadata values are reported as discovery errors with reason `invalid native test metadata value for key '<key>': expected string, received <type>`. Diagnostics use Genia runtime type names; existing `TestUnit.location` is appended when available. Invalid metadata must not cause the test body to execute.
 - `run_test_suite(test_units)` runs each unit in given order and aggregates results via `aggregate_results`.
 - Normalized `TestResult` dictionaries contain stable keys: `kind`, `name`, `phase`, `reason`, `expected`, `actual`, `stdout`, `stderr`, `diagnostics`.
 - `stdout` and `stderr` are stable empty strings in this phase; capture is not implemented.
 - `TestSuiteResult` dictionaries contain: `total`, `passed`, `failed`, `errored`, `results`.
 - `results` preserves input order exactly.
-- Validated by `tests/unit/test_native_test_kernel.py` (6 tests, Python reference host only).
+- Validated by `tests/unit/test_native_test_kernel.py` (10 tests, Python reference host only).
 
 Not implemented in this phase:
 - `skip` result kind

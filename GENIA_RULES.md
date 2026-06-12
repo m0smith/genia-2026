@@ -164,6 +164,7 @@ Required constraints:
   - has no effect on language evaluation behavior outside native test mode
   - annotated functions with one or more parameters are a discovery error, not an evaluation error
   - duplicate native-test names across `@test` annotated functions and explicit `test(name, body)` registrations are discovery errors in native test mode
+- native test metadata keys and values must be strings; non-string metadata keys or values in a `TestUnit` are discovery errors reported before test body execution; diagnostics use Genia runtime type names; existing `TestUnit.location` is appended to diagnostic text when available
 - multiple annotations merge from top to bottom
 - last annotation wins for duplicate metadata keys
 - rebinding without annotations preserves existing binding metadata
