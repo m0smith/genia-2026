@@ -5,66 +5,27 @@ Status: **Parking lot / non-authoritative**
 This note captures future ideas only. It does not define implemented Genia behavior.
 If this conflicts with `GENIA_STATE.md`, `GENIA_STATE.md` wins.
 
-## Current direction to preserve
+## Current boundary
 
-The preferred direction is:
+`GENIA_STATE.md` is the authority for implemented Sheet behavior.
+Do not describe existing Sheet constructors or operations as hypothetical here.
 
-```text
-Sheet = immutable, columnar, named-column value with aligned rows
-```
+## Outcome-aware columns
 
-Start small. Avoid Excel-like cell mutation and hidden recalculation until much later, if ever.
+Future Sheet work may explore how Sheet values should interact with Outcome values:
 
-## Design influences
+- storing `some(...)`, `none(...)`, and `err(...)` as ordinary cell values
+- explicit aggregation of missing or invalid cells
+- report-friendly diagnostics for invalid rows or columns
+- clear rules for operations that preserve, inspect, or summarize Outcome values
 
-Useful influences:
+Open questions:
 
-- APL: shape-first thinking
-- Fortran: elemental functions, shape conformance, whole-array operations
-- R: dataframe/tibble ergonomics, grouped summaries, pipe-friendly verbs
-- Spreadsheets: approachable row/column mental model and formulas
+- Should any Sheet operation understand Outcome values directly?
+- Which operations should aggregate diagnostics instead of short-circuiting?
+- How should row, column, and field-path context appear in reports?
 
-## Candidate early operations
-
-```text
-sheet(...)
-shape(sheet)
-columns(sheet)
-rows(sheet)
-select(sheet, columns)
-where(sheet, predicate)
-derive(sheet, column, function)
-collect(sheet)
-```
-
-Possible pipe style:
-
-```genia
-people
-  |> where(row -> row.age >= 18)
-  |> derive(quote(age_next), row -> row.age + 1)
-  |> select([quote(name), quote(age_next)])
-```
-
-Treat this as hypothetical until implemented and tested.
-
-## Outcome-aware cells and columns
-
-Future Sheet values should interact cleanly with Outcome:
-
-```text
-some(value)        present usable value
-none(context?)     missing/absent value
-err(reason, ctx?)  recoverable invalid value
-```
-
-Open question:
-
-- Should columns contain Outcome values directly?
-- Should Sheet operations propagate Outcome automatically?
-- Which operations short-circuit on `err`, and which aggregate/report errors?
-
-## Formula plans later
+## Formula Plans
 
 Future formula plans may include:
 
@@ -73,9 +34,10 @@ Future formula plans may include:
 - cycle detection
 - pure derived columns
 - Outcome propagation
-- optional caching/materialization
+- optional caching or materialization
+- formula plans represented as ordinary Genia data
 
-Avoid for early phase:
+Avoid by default:
 
 - A1 references
 - mutable reactive cells
@@ -83,15 +45,25 @@ Avoid for early phase:
 - Excel-compatible formula language
 - UI spreadsheet semantics
 
-## Safe R ideas
+## Summaries And Inspection
 
-Borrow:
+Useful future areas:
 
-- columnar mental model
-- pipe-friendly verbs
 - grouped summaries
+- aggregate helpers for report output
 - vectorized column expressions
-- interactive inspection helpers like `head`, `schema`, `describe`
+- schema or shape inspection helpers
+- preview helpers such as `head`, `schema`, or `describe`
+- explicit conversion points between validation output and Sheet-shaped reports
+
+## Design Influences
+
+Borrow carefully from:
+
+- APL: shape-first thinking
+- Fortran: elemental functions, shape conformance, whole-array operations
+- R: dataframe/tibble ergonomics, grouped summaries, pipe-friendly verbs
+- Spreadsheets: approachable row/column mental model and formulas
 
 Avoid:
 
@@ -100,31 +72,11 @@ Avoid:
 - NA / NaN / NULL confusion
 - non-standard evaluation magic
 - mutable dataframe expectations
-
-## Safe Fortran/APL ideas
-
-Borrow:
-
-- scalar lifting over shaped values
-- shape conformance
-- elemental/pure formulas
-- whole-column expressions
-- independence guarantees for derived columns
-
-Avoid:
-
 - dense legacy syntax
 - implicit typing
 - global mutable numeric state
 
 ## Promotion trigger
 
-Promote this note when implementing the first minimal Sheet contract:
-
-```text
-immutable Sheets
-named aligned columns
-row count / shape checks
-select / where / derive
-basic tests and docs sync
-```
+Promote a future Sheet idea when it has a narrow contract, clear interaction with the
+Outcome-aware validated data pipeline workflow, and a testable behavior boundary.

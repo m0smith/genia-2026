@@ -5,103 +5,70 @@ Status: **Parking lot / non-authoritative**
 This note captures future ideas only. It does not define implemented Genia behavior.
 If this conflicts with `GENIA_STATE.md`, `GENIA_STATE.md` wins.
 
-## Core distinction
+## Current boundary
 
-Preserve this mental model:
+`GENIA_STATE.md` is the authority for implemented Seq-compatible and Flow behavior.
+Do not use this note to redefine which helpers currently accept lists or Flow values.
 
-```text
-Seq  = Genia semantic abstraction for ordered production
-Flow = lazy, pull-based, usually single-use Seq implementation / transformation
-List = eager, reusable Seq-compatible value
-```
+Useful future docs should preserve the semantic distinction between:
 
-Do not define this as “everything secretly becomes Flow.”
+- Seq compatibility as an ordered-production category
+- Flow as a lazy, pull-based, single-use runtime value
+- List as an eager, reusable value
+- source values that produce ordered items
+- terminal consumers that materialize, reduce, or run ordered items
 
-## Why Seq matters
+## Ownership Vocabulary
 
-Seq exists to remove artificial cliffs between eager list pipelines and lazy Flow pipelines.
+Future docs may need clearer terms for source ownership and consumption:
 
-Candidate public contract:
+- reusable source
+- single-use source
+- lazy source
+- eager source
+- consumed source
+- finalized source
+- owned source
+- borrowed source
 
-```text
-map     : Seq -> Seq
-filter  : Seq -> Seq
-take    : Seq -> Seq
-drop    : Seq -> Seq
-scan    : Seq -> Seq
-each    : Seq -> Seq
-collect : Seq -> List
-run     : Seq -> none
-reduce  : Seq -> value
-```
+This may help portability work, but should remain Genia-native terminology rather than
+importing another language's ownership model wholesale.
 
-## Resource vocabulary
+## Resource And Finalization Terminology
 
-Future docs may need clear terms:
-
-```text
-reusable Seq
-single-use Seq
-lazy source
-eager source
-consumed source
-finalized source
-owned source
-borrowed source
-```
-
-This overlaps with Rust-friendly portability but should remain Genia-native.
-
-## Expected behavior direction
-
-Pipelines like this should eventually compose without a Flow/list cliff:
-
-```genia
-range(10)
-  |> take(10)
-  |> map((x) -> {a: x})
-  |> map((x) -> format("number:{a}", x))
-  |> each(print)
-  |> run
-```
-
-Treat this as hypothetical unless already covered by current specs.
-
-## Error wording direction
-
-Prefer diagnostics like:
-
-```text
-each expected a Seq-compatible value, received <type>
-```
-
-over:
-
-```text
-each expected a Flow, received list
-```
-
-once the Seq contract is implemented.
-
-## Laziness and finalization
-
-Future contracts should preserve:
+Future contracts may need tighter wording for:
 
 - bounded consumption
 - early termination
-- correct upstream finalization
+- upstream finalization
 - deterministic output order
-- single-use enforcement for source-backed streams
+- source-backed single-use enforcement
+- terminal consumers versus transforming stages
+
+These notes should become authoritative only through `GENIA_STATE.md`, focused specs,
+and tests.
+
+## Future Tightening Areas
+
+Possible future work:
+
+- clearer diagnostic wording for Seq-compatible misuse
+- more shared specs for bounded pulling and finalization behavior
+- explicit documentation for reusable versus single-use sources
+- tighter distinction between host implementation iterators and public Genia values
+- more precise guidance for terminal consumers such as materialization, reduction, and
+  effectful traversal
 
 ## Non-goals
 
 - no async streams yet
 - no multi-port flows yet
-- no Python generator exposure
+- no Python generator exposure as a public Genia value
 - no Clojure-compatible full seq library
 - no implicit conversion of arbitrary values to Seq
-- no new syntax merely for Seq
+- no new syntax merely for Seq or Flow
 
 ## Promotion trigger
 
-Promote this note when adding or tightening shared specs for Seq-compatible functions, especially `each`, `collect`, `run`, `reduce`, `map`, `filter`, `take`, `drop`, or `scan`.
+Promote one future Seq/Flow item when it tightens the current contract with focused
+specs and does not imply behavior beyond what has been implemented and verified.

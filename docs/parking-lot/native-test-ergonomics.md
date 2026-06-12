@@ -1,48 +1,40 @@
-# Native Test Assertion Library / Richer Test Ergonomics
+# Native Test Ergonomics Future Ideas
 
 Status: **Parking lot / non-authoritative**
 
 This note captures future ideas only. It does not define implemented Genia behavior.
 If this conflicts with `GENIA_STATE.md`, `GENIA_STATE.md` wins.
 
-## Why this exists
+## Current boundary
 
-Issue #431 added shared CLI coverage for passing, runtime-erroring, and discovery-error native test suite outcomes. The failing-suite case (`kind: fail`) was intentionally excluded because the current Genia-facing `--test` surface has no assertion helper or deterministic failure constructor — producing `NativeTestFailure` requires new implementation.
-
-This note captures the deferred scope so it is not lost.
+`GENIA_STATE.md` is the authority for implemented native-test behavior.
+The current Python reference host already has minimal assertion helpers and normalized
+native-test failure reporting. Do not use this parking-lot note as evidence that
+`assert_true`, `assert_eq`, or `NativeTestFailure` are missing.
 
 ## Ideas to preserve
 
-- Add the minimal deterministic failing outcome needed for shared CLI coverage first:
-  - a single assertion helper or failure constructor that produces `kind: fail` through the `--test` surface
-  - keep it narrow: one simple equality assertion is enough to unlock the shared CLI fixture
-- After that baseline exists, consider richer test ergonomics:
-  - equality assertions (`assert_eq(expected, actual)`)
-  - expected-error assertions (`assert_raises(...)`)
-  - grouped assertions within a single test body
-  - better failure rendering (show expected vs actual in a readable diff-like format)
-  - named test suites or module-level grouping
+Future assertion ergonomics may include:
 
-## What this should not become
+- custom assertion messages
+- `assert_false` / `assert_ne`
+- `assert_raises(...)` or an equivalent expected-error helper
+- grouped assertions within one test body
+- soft assertions or assertion count reporting
+- clearer diff-style rendering for large expected/actual values
+- named suites or module-level grouping
+- property testing
+- snapshot testing
+- richer filtering/report output such as JSON, JUnit, or TAP
 
-- a full xUnit/RSpec/PyTest-style framework added in one large issue
-- a new annotation-driven lifecycle (`@setup`, `@teardown`, `@test`) before the minimal assertion surface exists
-- REPL-integrated test execution (separate concern)
-- a change to the native test-runner kernel contract without first adding shared CLI coverage
+## Non-goals
 
-## Related areas
-
-- `spec/cli/README.md` — records the explicit exclusion of `native_test_runner_failing_suite_outcome` until a Genia-facing failure constructor is available
-- issue #431 — added passing, error, and discovery-error shared CLI coverage
-- issue #438 — exposed native test-runner outcomes through the CLI (`--test` mode)
-- `src/genia/test_kernel.py` — current host-local native test kernel
+- no full xUnit/RSpec/PyTest-style framework in one large issue
+- no lifecycle hooks or setup/teardown behavior from this parking-lot note
+- no parser, runtime, or kernel behavior change without the normal Genia phase process
+- no claim that any future helper exists until `GENIA_STATE.md` and tests say so
 
 ## Promotion trigger
 
-Promote this note into pre-flight when:
-
-- a decision is made on the minimal assertion surface (function name, arity, failure contract)
-- the shared CLI failing-suite fixture is ready to be written alongside the implementation
-- scope is confirmed to exclude the richer ergonomics listed above (keep it one small issue at a time)
-
-Keep out of issue #442 scope.
+Promote one narrow item at a time when there is a concrete failing test or user-facing
+reporting gap that the existing minimal assertion surface does not cover.
