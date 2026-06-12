@@ -112,7 +112,9 @@ Exit criteria:
 
 ---
 
-## Release R3 — Native Test Expansion Wave 1
+## Release R3 — Native Test Expansion Wave 1 ✓ COMPLETE
+
+**Status: Complete.** R3 expanded native Genia test coverage over Genia-facing behavior.
 
 Theme:
 
@@ -126,6 +128,17 @@ test1() = assert_eq(1+1, 2)
 ```
 
 R2 introduced the `test(name, body)` call form. R3 adds `@test "description"` annotation-driven native test discovery (issue #458): `@test` annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. The annotation carries the human-readable description; the function name is the test identifier.
+
+R3 delivered:
+
+- `@test "description"` annotation-driven native test discovery (issue #458) — implemented and documented as current behavior
+- native test coverage for validation helpers (`validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`) and `collect_validated`
+- native test coverage for Outcome constructors and rendering behavior (`some`, `none`, `err`, `display`, `debug_repr`)
+- native test coverage for JSONL helper behavior in validated pipeline examples
+- at least one pipeline example backed by a native test (`examples/r3_validated_pipeline_native_tests.genia`)
+- native tests kept focused on Genia-facing behavior; parser/IR/host internals were not touched
+
+Do not overclaim R3 completion beyond what the current repo actually shows.
 
 Primary outcomes:
 
@@ -163,6 +176,8 @@ Exit criteria:
 
 ## Release R4 — Lifecycle Generalization
 
+**Status: Active release focus.**
+
 Theme:
 
 > Extract the proven test lifecycle shape into a portable lifecycle contract.
@@ -181,8 +196,10 @@ Includes:
 - cleanup rules
 - failure rules
 - annotation binding model
-- source-order / reverse-source-order execution rules
+- deterministic source-order / reverse-source-order execution rules
 - portable docs for execution-mode lifecycle proposals
+- test lifecycle remains the first implemented consumer
+- annotations do not execute merely because they exist
 
 Excludes:
 
@@ -190,13 +207,22 @@ Excludes:
 - actor lifecycle implementation
 - arbitrary plugin system
 - YAML lifecycle runner unless separately approved
+- broad runtime rewrites
 - lifecycle behavior not exercised by tests
+- unrelated R5 data hardening unless explicitly requested
 
 Exit criteria:
 
 - Lifecycle is documented as a general model.
 - Test lifecycle remains the first implemented consumer.
 - No annotations execute merely because they exist.
+
+Agent guidance for R4:
+
+- Current release focus is R4. When asked for new Genia work with no release specified, classify the work against R4 first.
+- If the work is R4 lifecycle work, proceed through the normal phase pipeline.
+- If the work is not R4, mark it as non-R4 and either defer/parking-lot it or proceed only if the user explicitly asked for it.
+- R4 is not a bucket for actors, servers, notebooks, UI, or plugins. Those may use lifecycle later, but they are not R4 implementation targets by default.
 
 ---
 
@@ -361,12 +387,22 @@ If an issue listed above is already closed, do not reopen it.
 
 ## Roadmap Rule for Agents
 
+**Current active release: R4 — Lifecycle Generalization.**
+
 Before proposing new tickets, agents must classify the work as:
 
-- current release
+- current release (R4)
 - next release
 - infrastructure
 - follow-up
 - parking lot
+
+When asked for new Genia work with no release specified:
+
+1. Classify the work against R4 first.
+2. If the work is R4 lifecycle work (lifecycle plan shape, phase shape, scope model, cleanup/failure rules, annotation binding model, execution-order rules, portable lifecycle docs), proceed through the normal phase pipeline.
+3. If the work is not R4, mark it as non-R4 and either defer/parking-lot it or proceed only if the user explicitly asked for it.
+
+R4 is not a bucket for actors, servers, notebooks, UI, or plugins. Those may use lifecycle later, but they are not R4 implementation targets by default.
 
 If the work is parking-lot/future, do not create implementation tickets unless explicitly approved.
