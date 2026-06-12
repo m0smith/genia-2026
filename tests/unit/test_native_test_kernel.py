@@ -6,6 +6,7 @@ from genia.test_kernel import (
     run_test_unit,
     suite_exit_code,
 )
+from genia.values import GeniaMap
 
 
 def test_passing_test_unit_result_aggregation_and_exit_code():
@@ -107,6 +108,117 @@ def test_malformed_named_test_unit_with_non_callable_body_is_discovery_error():
         "diagnostics": {},
     }
     assert isinstance(result["diagnostics"], dict)
+
+
+def test_valid_string_test_metadata_remains_accepted():
+    result = run_test_unit(
+        TestUnit("passes", lambda: None, metadata={"description": "string metadata"})
+    )
+
+    assert result == {
+        "kind": "pass",
+        "name": "passes",
+        "phase": "evaluation",
+        "reason": None,
+        "expected": None,
+        "actual": None,
+        "stdout": "",
+        "stderr": "",
+        "diagnostics": {},
+    }
+
+
+def test_non_string_metadata_value_is_discovery_error_with_location():
+    result = run_test_unit(
+        TestUnit(
+            "bad_metadata",
+            lambda: None,
+            location="metadata_boundary.genia:2",
+            metadata={"description": 123},
+        )
+    )
+
+    assert result == {
+        "kind": "error",
+        "name": "bad_metadata",
+        "phase": "discovery",
+        "reason": (
+            "invalid native test metadata value for key 'description': "
+            "expected string, received int at metadata_boundary.genia:2"
+        ),
+        "expected": None,
+        "actual": None,
+        "stdout": "",
+        "stderr": "",
+        "diagnostics": {},
+    }
+
+
+def test_composite_metadata_values_are_discovery_errors():
+    suite = run_test_suite(
+        [
+            TestUnit("list_metadata", lambda: None, metadata={"description": ["bad"]}),
+            TestUnit(
+                "map_metadata",
+                lambda: None,
+                metadata={"description": GeniaMap().put("bad", "value")},
+            ),
+        ]
+    )
+
+    assert suite == {
+        "total": 2,
+        "passed": 0,
+        "failed": 0,
+        "errored": 2,
+        "results": [
+            {
+                "kind": "error",
+                "name": "list_metadata",
+                "phase": "discovery",
+                "reason": (
+                    "invalid native test metadata value for key 'description': "
+                    "expected string, received list"
+                ),
+                "expected": None,
+                "actual": None,
+                "stdout": "",
+                "stderr": "",
+                "diagnostics": {},
+            },
+            {
+                "kind": "error",
+                "name": "map_metadata",
+                "phase": "discovery",
+                "reason": (
+                    "invalid native test metadata value for key 'description': "
+                    "expected string, received map"
+                ),
+                "expected": None,
+                "actual": None,
+                "stdout": "",
+                "stderr": "",
+                "diagnostics": {},
+            },
+        ],
+    }
+    assert suite_exit_code(suite) == 1
+
+
+def test_non_string_metadata_key_is_discovery_error():
+    result = run_test_unit(TestUnit("bad_key", lambda: None, metadata={1: "value"}))
+
+    assert result == {
+        "kind": "error",
+        "name": "bad_key",
+        "phase": "discovery",
+        "reason": "invalid native test metadata key: expected string, received int",
+        "expected": None,
+        "actual": None,
+        "stdout": "",
+        "stderr": "",
+        "diagnostics": {},
+    }
 
 
 def test_aggregation_preserves_order_and_counts_mixed_results():

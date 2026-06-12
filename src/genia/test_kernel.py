@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable, ClassVar, Iterable
 
+from .values import _runtime_type_name
+
 
 class NativeTestFailure(Exception):
     def __init__(self, reason: str, expected: Any = None, actual: Any = None):
@@ -56,9 +58,44 @@ def _discovery_error(test_unit: Any, reason: str) -> dict[str, Any]:
     )
 
 
+def _metadata_location_suffix(test_unit: Any) -> str:
+    location = getattr(test_unit, "location", None)
+    return f" at {location}" if isinstance(location, str) and location else ""
+
+
+def _metadata_discovery_error(test_unit: Any) -> str | None:
+    metadata = getattr(test_unit, "metadata", None)
+    if metadata is None:
+        return None
+    if not isinstance(metadata, dict):
+        received = _runtime_type_name(metadata)
+        return (
+            "invalid native test metadata: "
+            f"expected map, received {received}{_metadata_location_suffix(test_unit)}"
+        )
+    for key, value in metadata.items():
+        if not isinstance(key, str):
+            received = _runtime_type_name(key)
+            return (
+                "invalid native test metadata key: "
+                f"expected string, received {received}{_metadata_location_suffix(test_unit)}"
+            )
+        if not isinstance(value, str):
+            received = _runtime_type_name(value)
+            return (
+                f"invalid native test metadata value for key '{key}': "
+                f"expected string, received {received}{_metadata_location_suffix(test_unit)}"
+            )
+    return None
+
+
 def run_test_unit(test_unit: TestUnit) -> dict[str, Any]:
     if not isinstance(getattr(test_unit, "name", None), str) or test_unit.name == "":
         return _discovery_error(test_unit, "test unit name must be a non-empty string")
+
+    invalid_metadata = _metadata_discovery_error(test_unit)
+    if invalid_metadata is not None:
+        return _discovery_error(test_unit, invalid_metadata)
 
     discovery_error = getattr(test_unit, "discovery_error", None)
     if discovery_error is None and isinstance(getattr(test_unit, "metadata", None), dict):
