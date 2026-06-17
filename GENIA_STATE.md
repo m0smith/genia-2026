@@ -2383,6 +2383,45 @@ Explicit limitations:
 - No portable multi-host lifecycle runner behavior is implemented.
 - This is Python reference-host internal utility code; no public Genia prelude API was added in this phase.
 
+## 9.4) Lifecycle scope tree data-shape support (Python reference host, Experimental)
+
+Status: Experimental, Python reference host only. Implemented in issue #450.
+
+LANGUAGE CONTRACT:
+- A lifecycle scope tree is ordinary data: a map with a required `scopes` list of scope maps.
+- Each scope is a map with a required `name` identifier, a required `parent` (either `none` for the root scope or `some(identifier)` for non-root scopes), and a required `children` list of identifiers.
+- The first-pass R4 scope vocabulary is exactly four names: `execution`, `suite`, `module`, `test`.
+- The canonical first-pass hierarchy is `execution -> suite -> module -> test`.
+- Canonical parent/child relationships are deterministic:
+  - `execution`: parent `none`, children `[suite]`
+  - `suite`: parent `some(execution)`, children `[module]`
+  - `module`: parent `some(suite)`, children `[test]`
+  - `test`: parent `some(module)`, children `[]`
+- Duplicate scope names are rejected.
+- Unsupported scope names (including server, actor, plugin, request, browser, notebook) are rejected.
+- Optional `description` (string) and `metadata` (map) fields are preserved as inert data and are not executed.
+- Lifecycle scope tree data is inert: constructing, importing, or validating a scope tree does not execute lifecycle behavior.
+
+PYTHON REFERENCE HOST:
+- `validate_lifecycle_scope_tree(value) -> None` validates the shape without executing lifecycle behavior; raises `ValueError` with a deterministic path-based diagnostic on invalid input.
+- `normalize_lifecycle_scope_tree(value) -> GeniaMap` validates and returns a normalized scope tree map; raises `ValueError` on invalid input.
+- Identifier fields (`name`, `parent` inner value, and `children` entries) must be `GeniaSymbol` values (produced by `quote(...)` in Genia surface code).
+- Input order of scope records is preserved by normalization; no implicit reordering occurs.
+- Callable values stored in optional `metadata` fields are not invoked during validation or normalization.
+- Implemented in `src/genia/lifecycle_scope.py`.
+- Validated by `tests/unit/test_lifecycle_scope.py` (9 tests), Python reference host only.
+
+Explicit limitations:
+- No lifecycle runner behavior is implemented.
+- No lifecycle phase execution is implemented.
+- No setup/teardown behavior is implemented.
+- No annotation discovery or annotation execution is implemented.
+- No cleanup execution behavior is implemented.
+- No execution-mode lifecycle dispatch is implemented.
+- No server, actor, plugin, browser, notebook, HTTP, command, file, pipe, REPL, source, or flow lifecycle scopes are implemented.
+- No changes were made to parser, lexer, Core IR, evaluator, prelude, CLI, native test runner, runtime execution paths, or shared semantic specs.
+- This is Python reference-host internal utility code; no public Genia prelude API was added in this phase.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
