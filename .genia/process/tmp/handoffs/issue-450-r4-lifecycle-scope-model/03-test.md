@@ -139,4 +139,4 @@ Confirmed:
 
 - The attached prompt named `docs/process/03-test.md`, but this branch contains `docs/process/04-test.md` and no `docs/process/03-test.md`. I read `docs/process/04-test.md` and noted the mismatch rather than creating or editing a process document.
 - The handoff directory already contained ignored placeholder/empty later-phase files, including `03-failing-tests.md`. This TEST handoff was written to the prompt-requested `03-test.md`.
-- Failing-test commit SHA: `9c10689`
+- Failing-test commit SHA: `406ec70`
