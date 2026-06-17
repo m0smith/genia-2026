@@ -2352,6 +2352,37 @@ PYTHON REFERENCE HOST:
 
 `@test "description"` annotation-driven native test discovery is implemented; annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. Duplicate test names across explicit and annotated tests are discovery errors. This does not add setup/teardown lifecycle hooks, `@setup` or `@teardown` annotations, filtering, parallel execution, JSON/JUnit/TAP output, or multi-host test execution.
 
+## 9.3) Lifecycle plan data-shape support (Python reference host, Experimental)
+
+Status: Experimental, Python reference host only. Implemented in issue #449.
+
+LANGUAGE CONTRACT:
+- A lifecycle plan is ordinary data: a map with a required `name` identifier and a required `phases` list of phase maps.
+- A lifecycle phase is a map with a required `name` identifier and a required `action` identifier. Optional fields are `scope` (portable scope label), `always` (boolean), `description` (string), and `metadata` (map).
+- Phase order is list order; no implicit ordering or reordering is added.
+- `action` is a portable identifier (a quoted symbol), not a callable or host hook; it does not execute by existing in a plan.
+- `always`, if present, must be a boolean; it normalizes to `false` when absent.
+- A valid plan must not contain duplicate phase `name` values within one plan.
+- Lifecycle plans are inert data: constructing, importing, or validating a plan does not execute lifecycle behavior.
+
+PYTHON REFERENCE HOST:
+- `validate_lifecycle_plan(value) -> None` validates the shape without executing lifecycle behavior; raises `ValueError` with a deterministic path-based diagnostic on invalid input.
+- `normalize_lifecycle_plan(value) -> GeniaMap` validates and returns a normalized plan map with `always` defaulted to `false` on phases where absent; raises `ValueError` on invalid input.
+- Identifier fields (`name`, `action`, `scope`) must be `GeniaSymbol` values (produced by `quote(...)` in Genia surface code).
+- Callable values as `action` fields are rejected as nonportable behavior.
+- Implemented in `src/genia/lifecycle_plan.py`.
+- Validated by `tests/unit/test_lifecycle_plan.py` (13 tests), Python reference host only.
+
+Explicit limitations:
+- No lifecycle runner behavior is implemented.
+- No phase execution is implemented.
+- No action resolution or registry is implemented.
+- No execution-mode lifecycle dispatch is implemented.
+- No annotation-driven phase discovery (`@setup`, `@teardown`) is implemented.
+- No module, server, actor, notebook, or browser lifecycle support is implemented.
+- No portable multi-host lifecycle runner behavior is implemented.
+- This is Python reference-host internal utility code; no public Genia prelude API was added in this phase.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
