@@ -146,7 +146,9 @@ This vocabulary does not add a new runtime error type or structured diagnostic f
 
 ## Current implementation status
 
-Generalized lifecycle plans are not implemented runtime behavior.
+Lifecycle plan data-shape validation and normalization is implemented in the Python reference host as a focused internal utility (`src/genia/lifecycle_plan.py`, issue #449). `validate_lifecycle_plan(value)` and `normalize_lifecycle_plan(value)` validate that an ordinary map value conforms to the portable lifecycle plan data shape: required `name` and `phases` fields, required `name` and `action` identifier fields per phase, boolean `always` normalization, and duplicate-phase-name rejection. This is Python reference-host support only; no public Genia prelude API, no lifecycle runner, no phase execution, no action resolution, and no annotation discovery were added. See `GENIA_STATE.md` section 9.3 for the full language contract.
+
+Generalized lifecycle plan execution is not implemented runtime behavior.
 
 Lifecycle runners are not implemented runtime behavior.
 
