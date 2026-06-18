@@ -13,10 +13,10 @@ class LifecycleAnnotationBinding:
     phase: str
     annotation_name: str
     filters: Mapping[str, Any]
-    ordering: str
-    required: bool
-    participant_kind: str
-    failure_policy: str
+    ordering: str = "source_order"
+    required: bool = False
+    participant_kind: str = "callable"
+    failure_policy: str = "diagnostic"
 
 
 @dataclass(frozen=True)
@@ -64,22 +64,19 @@ class LifecycleBindingResult:
     diagnostics: list[LifecycleBindingDiagnostic]
 
 
-_SUPPORTED_ORDERINGS = {
+_SUPPORTED_ORDERINGS = (
     "source_order",
     "reverse_source_order",
     "stable_name_order",
-}
+)
+_SUPPORTED_ORDERING_SET = set(_SUPPORTED_ORDERINGS)
 
 
 def discover_lifecycle_participants(
     binding: LifecycleAnnotationBinding,
     candidates: list[AnnotationCandidate],
 ) -> LifecycleBindingResult:
-    if binding.ordering not in _SUPPORTED_ORDERINGS:
-        raise ValueError(
-            "invalid lifecycle annotation binding at binding.ordering: "
-            f"unsupported ordering {binding.ordering}"
-        )
+    ordering = _validate_ordering(binding.ordering)
 
     participants: list[LifecycleParticipant] = []
     diagnostics: list[LifecycleBindingDiagnostic] = []
@@ -129,7 +126,7 @@ def discover_lifecycle_participants(
                     annotation=annotation,
                     phase=binding.phase,
                     binding=binding,
-                    order_key=_order_key(binding, candidate),
+                    order_key=_order_key(ordering, candidate),
                     source_location=candidate.source_location,
                 )
             )
@@ -180,16 +177,30 @@ def _participant_kind_matches(
     return True
 
 
+def _validate_ordering(ordering: Any) -> str:
+    if not isinstance(ordering, str):
+        raise ValueError(
+            "invalid lifecycle annotation binding at binding.ordering: "
+            f"expected ordering identifier, got {_runtime_type_name(ordering)}"
+        )
+    if ordering not in _SUPPORTED_ORDERING_SET:
+        raise ValueError(
+            "invalid lifecycle annotation binding at binding.ordering: "
+            f"unsupported ordering {ordering}"
+        )
+    return ordering
+
+
 def _order_key(
-    binding: LifecycleAnnotationBinding,
+    ordering: str,
     candidate: AnnotationCandidate,
 ) -> tuple[Any, ...]:
     source_identity = candidate.source_identity
     source_index = candidate.source_index
     name = candidate.name
-    if binding.ordering == "source_order":
+    if ordering == "source_order":
         return (source_identity, source_index, name)
-    if binding.ordering == "reverse_source_order":
+    if ordering == "reverse_source_order":
         return (source_identity, -source_index, name)
     return (name, source_identity, source_index)
 
