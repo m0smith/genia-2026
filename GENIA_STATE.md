@@ -2425,6 +2425,33 @@ Explicit limitations:
 - No changes were made to parser, lexer, Core IR, evaluator, prelude, CLI, native test runner, runtime execution paths, or shared semantic specs.
 - This is Python reference-host internal utility code; no public Genia prelude API was added in this phase.
 
+## 9.5) Lifecycle annotation binding helper (Python reference host, Experimental)
+
+Status: Experimental, Python reference host only. Implemented in issue #452.
+
+LANGUAGE CONTRACT:
+- Lifecycle annotation binding treats annotations as candidate markers for lifecycle phases; annotations do not execute themselves.
+- A lifecycle annotation binding selects candidates by annotation name, exact metadata filters, participant kind, and deterministic ordering.
+- Supported first-pass ordering labels are `source_order`, `reverse_source_order`, and `stable_name_order`.
+- Required bindings report a deterministic diagnostic when no participants match; optional bindings may produce an empty participant list without diagnostics.
+- Selecting the same declaration more than once for one binding produces a deterministic diagnostic and includes that declaration at most once.
+- Binding results are discovery data only. Selecting a participant does not invoke it, activate a phase, execute setup/teardown behavior, or change ordinary evaluation.
+
+PYTHON REFERENCE HOST:
+- Implemented as `src/genia/lifecycle_binding.py`.
+- Provides internal dataclasses and `discover_lifecycle_participants(...)` for phase-owned annotation binding discovery.
+- The helper supports annotation-name matching, exact metadata filtering, callable participant validation, deterministic ordering, duplicate diagnostics, required-binding diagnostics, unsupported-ordering errors, and binding results without executing participant values.
+- Validated by `tests/unit/test_lifecycle_binding.py` (12 tests), Python reference host only.
+
+Explicit limitations:
+- No lifecycle runner behavior is implemented.
+- No lifecycle phase execution is implemented.
+- No setup/teardown behavior is implemented.
+- No `@setup` or `@teardown` annotations are implemented.
+- No parser, lexer, Core IR, evaluator, CLI, native test behavior, prelude, public builtin, runtime execution path, or shared semantic spec behavior changed.
+- No public Genia lifecycle annotation binding API was added.
+- Native test discovery remains owned by the existing native test CLI/test-mode layer; it was not refactored to use this helper in this phase.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

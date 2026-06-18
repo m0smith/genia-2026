@@ -74,11 +74,13 @@ Out of scope:
 
 `inert annotation rule` means annotations are metadata unless a future lifecycle phase explicitly consumes them through a lifecycle binding.
 
-`OrderingRule` means deterministic participant order within a phase. Initial ordering vocabulary includes `source_order` and `reverse_source_order`.
+`OrderingRule` means deterministic participant order within a phase. Initial ordering vocabulary includes `source_order`, `reverse_source_order`, and `stable_name_order`.
 
 `source_order` means candidates are processed in deterministic source order.
 
 `reverse_source_order` means candidates are processed in the reverse of deterministic source order.
+
+`stable_name_order` means candidates are processed by declaration name with deterministic source-position tie-breakers.
 
 `ExecutionMode` means the way Genia source is invoked and run, such as file, command, pipe, REPL, or native test mode. `execution mode lifecycle` is vocabulary for a possible future lifecycle associated with an execution mode; it is not a runtime execution-mode refactor in this issue.
 
@@ -114,6 +116,7 @@ The initial vocabulary terms are:
 
 - `source_order`
 - `reverse_source_order`
+- `stable_name_order`
 
 Illustrative/proposed, not current runtime behavior:
 
@@ -150,6 +153,8 @@ Lifecycle plan data-shape validation and normalization is implemented in the Pyt
 
 Lifecycle scope tree data-shape validation and normalization is implemented in the Python reference host as a focused internal utility (`src/genia/lifecycle_scope.py`, issue #450). `validate_lifecycle_scope_tree(value)` and `normalize_lifecycle_scope_tree(value)` validate that an ordinary map value conforms to the first-pass R4 lifecycle scope tree data shape: required `scopes` list, required `name`/`parent`/`children` fields per scope, the canonical `execution -> suite -> module -> test` hierarchy, duplicate-scope-name rejection, and unsupported-scope-name rejection. Optional `description` and `metadata` fields are preserved as inert data without execution. This is Python reference-host internal validation only; does not execute lifecycle behavior, does not add annotation discovery or setup/teardown behavior, does not add cleanup execution, and does not change parser, Core IR, prelude, CLI, native test runner, or runtime execution paths. See `GENIA_STATE.md` section 9.4 for the full language contract.
 
+Lifecycle annotation binding discovery is implemented in the Python reference host as a focused internal utility (`src/genia/lifecycle_binding.py`, issue #452). `discover_lifecycle_participants(...)` selects annotation candidates for a phase using exact annotation-name matching, exact metadata filters, callable participant validation, deterministic ordering, duplicate diagnostics, required-binding diagnostics, and unsupported-ordering errors. This helper returns binding result data only and does not execute participants. This is Python reference-host internal support only; no public Genia prelude API, lifecycle runner, setup/teardown behavior, `@setup` or `@teardown` annotations, parser change, Core IR change, CLI change, native test behavior change, or runtime execution path change was added. See `GENIA_STATE.md` section 9.5 for the full language contract.
+
 Generalized lifecycle plan execution is not implemented runtime behavior.
 
 Lifecycle runners are not implemented runtime behavior.
@@ -158,7 +163,7 @@ Phase graph execution is not implemented runtime behavior.
 
 Setup/teardown lifecycle hooks are not implemented runtime behavior.
 
-Generalized annotation bindings are not implemented runtime behavior.
+Generalized annotation binding execution is not implemented runtime behavior.
 
 Python is currently the reference host, as described by `GENIA_STATE.md`, but lifecycle vocabulary is not Python-only behavior.
 
