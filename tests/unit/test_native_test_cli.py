@@ -297,6 +297,49 @@ def test_native_test_cli_rejects_setup_annotation_instead_of_running_lifecycle_h
     assert "PASS ordinary" not in captured.out
 
 
+def test_native_test_cli_ignores_non_test_metadata_annotations_for_discovery(
+    tmp_path,
+    capsys,
+):
+    exit_code, captured = _run_native_test_source(
+        tmp_path,
+        capsys,
+        '@doc "helper docs only"\n'
+        "helper() = missing_name\n"
+        "\n"
+        '@test "ordinary test"\n'
+        "ordinary() = assert_true(true)\n",
+    )
+
+    assert exit_code == 0
+    assert captured.out == (
+        "total=1 passed=1 failed=0 errored=0\n"
+        "PASS ordinary\n"
+        "total=1 passed=1 failed=0 errored=0\n"
+    )
+    assert "helper" not in captured.out
+    assert captured.err == ""
+
+
+def test_test_annotation_does_not_execute_outside_native_test_mode(tmp_path, capsys):
+    from genia.builtins import make_global_env
+    from genia.interpreter import run_source
+
+    env = make_global_env(cli_args=[])
+
+    run_source(
+        '@test "ordinary test"\n'
+        'ordinary() = print("should not run")\n',
+        env,
+        filename=str(tmp_path / "ordinary.genia"),
+    )
+    captured = capsys.readouterr()
+
+    assert captured.out == ""
+    assert captured.err == ""
+    assert not hasattr(env, "_native_test_units")
+
+
 def test_formats_passing_suite_with_summary_before_and_after_results():
     report = _format_report(
         {
