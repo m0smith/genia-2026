@@ -10,6 +10,7 @@ from typing import Any
 from .builtins import make_global_env
 from .callable import GeniaFunctionGroup
 from .errors import GeniaQuietBrokenPipe
+from .native_test_lifecycle import validate_native_test_lifecycle
 from .test_kernel import TestUnit, run_test_suite, suite_exit_code
 from .utf8 import format_debug
 from .values import GeniaMap, GeniaOutputSink
@@ -281,6 +282,7 @@ def _write_stderr(env: Any, message: str) -> None:
 def run_native_tests_from_file(program_path: str) -> int:
     env, _ = make_test_env()
     try:
+        validate_native_test_lifecycle()
         path = Path(program_path)
         source = path.read_text(encoding="utf-8")
         from .interpreter import run_source
