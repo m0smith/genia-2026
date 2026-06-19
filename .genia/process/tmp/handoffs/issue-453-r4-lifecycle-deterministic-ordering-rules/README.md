@@ -38,7 +38,15 @@ represent performed work and should be disregarded.
 
 ## Commit chain
 
+Phase commits through audit:
+
 - `8a2eecb` test(lifecycle): add ordering rule coverage issue #453
 - `b8449bc` fix(lifecycle): normalize binding ordering rules issue #453
 - `c12cd50` docs(lifecycle): sync ordering rule contract issue #453
 - `f8de19a` audit(lifecycle): verify ordering rule contract issue #453
+
+Reconciliation metadata commits:
+
+- `0216395` distillation(lifecycle): reconcile issue #453 handoff artifacts
+- latest reconciliation refresh: metadata-only update to this README and
+  `07-reconciliation.md`, if present on the branch after `0216395`
