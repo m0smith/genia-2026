@@ -2427,12 +2427,15 @@ Explicit limitations:
 
 ## 9.5) Lifecycle annotation binding helper (Python reference host, Experimental)
 
-Status: Experimental, Python reference host only. Implemented in issue #452.
+Status: Experimental, Python reference host only. Implemented in issue #452; ordering-rule contract hardened in issue #453.
 
 LANGUAGE CONTRACT:
 - Lifecycle annotation binding treats annotations as candidate markers for lifecycle phases; annotations do not execute themselves.
 - A lifecycle annotation binding selects candidates by annotation name, exact metadata filters, participant kind, and deterministic ordering.
 - Supported first-pass ordering labels are `source_order`, `reverse_source_order`, and `stable_name_order`.
+- Omitted annotation binding ordering defaults to `source_order`.
+- Ordering metadata is normalized and preserved in the binding result data. Ordering metadata is inert: it does not execute annotated declarations, introduce lifecycle phase execution, introduce setup/teardown behavior, or introduce dependency or priority ordering.
+- Invalid ordering values fail validation with a deterministic diagnostic. Unsupported ordering labels and non-string ordering values are both rejected; the diagnostic names the `binding.ordering` field, and for non-string values it names the runtime type. Ordering validation does not invoke participant or ordering values.
 - Required bindings report a deterministic diagnostic when no participants match; optional bindings may produce an empty participant list without diagnostics.
 - Selecting the same declaration more than once for one binding produces a deterministic diagnostic and includes that declaration at most once.
 - Binding results are discovery data only. Selecting a participant does not invoke it, activate a phase, execute setup/teardown behavior, or change ordinary evaluation.
@@ -2440,8 +2443,9 @@ LANGUAGE CONTRACT:
 PYTHON REFERENCE HOST:
 - Implemented as `src/genia/lifecycle_binding.py`.
 - Provides internal dataclasses and `discover_lifecycle_participants(...)` for phase-owned annotation binding discovery.
-- The helper supports annotation-name matching, exact metadata filtering, callable participant validation, deterministic ordering, duplicate diagnostics, required-binding diagnostics, unsupported-ordering errors, and binding results without executing participant values.
-- Validated by `tests/unit/test_lifecycle_binding.py` (12 tests), Python reference host only.
+- The helper supports annotation-name matching, exact metadata filtering, callable participant validation, deterministic ordering, duplicate diagnostics, required-binding diagnostics, and binding results without executing participant values.
+- `LifecycleAnnotationBinding.ordering` defaults to `source_order` when omitted. Ordering values are validated through a centralized `_validate_ordering(...)` check that rejects non-string values and unsupported labels with deterministic `binding.ordering` diagnostics; the ordering value is preserved in the normalized binding result data.
+- Validated by `tests/unit/test_lifecycle_binding.py` (15 tests), Python reference host only.
 
 Explicit limitations:
 - No lifecycle runner behavior is implemented.

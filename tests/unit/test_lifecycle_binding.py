@@ -84,6 +84,28 @@ def test_required_binding_with_zero_candidates_reports_deterministic_diagnostic(
     ]
 
 
+def test_annotation_binding_defaults_to_source_order_when_ordering_is_omitted():
+    lifecycle_binding = _binding_module()
+    binding = lifecycle_binding.LifecycleAnnotationBinding(
+        phase="test_before",
+        annotation_name="setup",
+        filters={},
+        required=False,
+        participant_kind="callable",
+        failure_policy="diagnostic",
+    )
+    candidates = [
+        _candidate("third", lambda: None, [_annotation("setup")], source_index=3),
+        _candidate("first", lambda: None, [_annotation("setup")], source_index=1),
+        _candidate("second", lambda: None, [_annotation("setup")], source_index=2),
+    ]
+
+    result = _discover(binding, candidates)
+
+    assert binding.ordering == "source_order"
+    assert _participant_names(result) == ["first", "second", "third"]
+
+
 def test_annotation_name_matching_selects_only_matching_annotations():
     selected = _candidate("selected", lambda: None, [_annotation("setup")], source_index=1)
     ignored = _candidate("ignored", lambda: None, [_annotation("test")], source_index=2)
@@ -164,6 +186,22 @@ def test_reverse_source_order_ordering_is_deterministic():
     assert _participant_names(result) == ["third", "second", "first"]
 
 
+def test_annotation_binding_preserves_ordering_in_normalized_result_data():
+    candidates = [
+        _candidate("first", lambda: None, [_annotation("setup")], source_index=1),
+        _candidate("second", lambda: None, [_annotation("setup")], source_index=2),
+    ]
+
+    result = _discover(_binding(ordering="reverse_source_order"), candidates)
+
+    assert result.binding.ordering == "reverse_source_order"
+    assert [participant.binding.ordering for participant in result.participants] == [
+        "reverse_source_order",
+        "reverse_source_order",
+    ]
+    assert _participant_names(result) == ["second", "first"]
+
+
 def test_stable_name_order_ordering_is_deterministic():
     candidates = [
         _candidate("bravo", lambda: None, [_annotation("setup")], source_index=1),
@@ -200,3 +238,21 @@ def test_unsupported_ordering_reports_deterministic_error():
         match="invalid lifecycle annotation binding at binding.ordering: unsupported ordering random_order",
     ):
         _discover(_binding(ordering="random_order"), [])
+
+
+def test_non_string_ordering_reports_field_and_runtime_type_without_calling_value():
+    calls = []
+
+    def ordering_value():
+        calls.append("called")
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "invalid lifecycle annotation binding at binding\\.ordering: "
+            "expected ordering identifier, got function"
+        ),
+    ):
+        _discover(_binding(ordering=ordering_value), [])
+
+    assert calls == []
