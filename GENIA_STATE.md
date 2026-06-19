@@ -2456,6 +2456,43 @@ Explicit limitations:
 - No public Genia lifecycle annotation binding API was added.
 - Native test discovery remains owned by the existing native test CLI/test-mode layer; it was not refactored to use this helper in this phase.
 
+## 9.6) Native test lifecycle contract consumer (Python reference host, Experimental)
+
+Status: Experimental, Python reference host only, internal/inert lifecycle contract consumer. Implemented in issue #454.
+
+The Python reference host native test path is the first implemented consumer of the inert R4 lifecycle contract. It describes and validates the existing native test lifecycle shape as inert lifecycle plan/scope data. Observable native-test behavior is unchanged.
+
+LANGUAGE CONTRACT:
+- The native test path is described as an inert lifecycle plan with the phase shape `discover -> run -> report`.
+- The native test path is described as an inert lifecycle scope tree with the canonical hierarchy `execution -> suite -> module -> test`.
+- The descriptor is internal/inert data: constructing or validating it does not execute lifecycle behavior and does not change native-test behavior.
+- Descriptor validation is silent during native test execution; it produces no user-visible output unless the static internal descriptor is malformed.
+
+PYTHON REFERENCE HOST:
+- Implemented in `src/genia/native_test_lifecycle.py` with:
+  - `native_test_lifecycle_plan()` — returns inert lifecycle plan data for the native test path.
+  - `native_test_lifecycle_scope_tree()` — returns inert lifecycle scope-tree data for the native test path.
+  - `validate_native_test_lifecycle()` — validates and returns normalized plan/scope data using the existing lifecycle helpers (`normalize_lifecycle_plan`, `normalize_lifecycle_scope_tree`).
+- The descriptor reuses the existing inert lifecycle plan/scope validators (sections 9.3 and 9.4); it does not duplicate or loosen validation logic.
+- Dependency direction is `native_test_lifecycle.py -> lifecycle_plan.py / lifecycle_scope.py`; the lifecycle helpers do not depend on native-test modules.
+- `validate_native_test_lifecycle()` is integrated into `src/genia/test_cli.py` on the native test file execution path as a silent, behavior-neutral validation call.
+- Validated by `tests/unit/test_native_test_lifecycle_consumer.py` (9 tests), Python reference host only.
+
+Explicit limitations:
+- No lifecycle runner is implemented.
+- No lifecycle phase execution is implemented.
+- No setup execution is implemented.
+- No teardown execution is implemented.
+- No `@setup` or `@teardown` annotations are implemented.
+- No generalized annotation execution is implemented.
+- No lifecycle action registry or action resolution is implemented.
+- No public Genia prelude lifecycle API was added.
+- No parser, lexer, Core IR, or evaluator semantic changes were made.
+- Native-test discovery is not routed through lifecycle binding; `@test` discovery is unchanged and `discover_lifecycle_participants(...)` is not used.
+- No execution-mode lifecycle dispatch is implemented.
+- No server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle is implemented; no multi-host lifecycle is implemented.
+- No changes to native-test CLI output or native-test exit codes were made.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

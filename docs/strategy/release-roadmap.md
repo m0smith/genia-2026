@@ -198,7 +198,7 @@ Includes:
 - annotation binding model
 - deterministic source-order / reverse-source-order execution rules
 - portable docs for execution-mode lifecycle proposals
-- test lifecycle remains the first implemented consumer
+- test lifecycle remains the first implemented consumer — the Python reference host native test path now consumes the inert lifecycle contract as descriptive plan/scope data (issue #454); Experimental, no lifecycle runner / phase execution / setup/teardown / observable native-test behavior change
 - annotations do not execute merely because they exist
 
 Excludes:
@@ -214,7 +214,7 @@ Excludes:
 Exit criteria:
 
 - Lifecycle is documented as a general model.
-- Test lifecycle remains the first implemented consumer.
+- Test lifecycle remains the first implemented consumer. ✓ first consumer implemented as an inert descriptor link (issue #454); the Python reference host native test path describes/validates its lifecycle shape without executing lifecycle phases.
 - No annotations execute merely because they exist.
 
 Agent guidance for R4:
