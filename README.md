@@ -406,6 +406,8 @@ Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.m
 
  - Python >=3.8 (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
 
+CI tests against Python 3.8 through 3.14. Python 3.15 (stable release expected 2026-10-01) is also run on an allowed-to-fail (`continue-on-error`) basis so upcoming breakage surfaces early without blocking the build.
+
 Run tests:
 
 ```bash

@@ -25,11 +25,16 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    # 3.15 is allowed to fail (continue-on-error) until it ships stable (2026-10-01).
+    continue-on-error: ${{ matrix.experimental || false }}
 
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        include:
+          - python-version: "3.15"
+            experimental: true
 
     steps:
       - name: Check out repository
@@ -39,6 +44,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
@@ -63,12 +69,24 @@ jobs:
   slow-tests:
     name: Slow tests (${{ matrix.section }}, py${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    # 3.15 is allowed to fail (continue-on-error) until it ships stable (2026-10-01).
+    continue-on-error: ${{ matrix.experimental || false }}
 
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         section: ["unit", "spec", "demo"]
+        include:
+          - python-version: "3.15"
+            section: "unit"
+            experimental: true
+          - python-version: "3.15"
+            section: "spec"
+            experimental: true
+          - python-version: "3.15"
+            section: "demo"
+            experimental: true
 
     steps:
       - name: Check out repository
@@ -78,6 +96,7 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
