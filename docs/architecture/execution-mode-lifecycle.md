@@ -225,6 +225,8 @@ notebook_mode_lifecycle:
 
 These examples are proposal sketches only. They do not implement server mode, notebook/playground mode, browser runtime behavior, route annotations, or new host capabilities.
 
+Actor lifecycle, plugin lifecycle, and a YAML lifecycle runner are likewise out of scope and not implemented. They are not part of this proposal and must not be read as planned R4 implementation work.
+
 ## Non-Implementation Boundary
 
 This issue implements no lifecycle runner.
