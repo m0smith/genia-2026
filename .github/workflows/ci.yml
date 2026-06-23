@@ -55,7 +55,7 @@ jobs:
         run: uv sync --dev
 
       - name: Lint (ruff)
-        run: uvx ruff check .
+        run: uv run ruff check .
 
       - name: Run tests
         run: uv run pytest -q -vv --maxfail=1 -m "not slow" -n auto
