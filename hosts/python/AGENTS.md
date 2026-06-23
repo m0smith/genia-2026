@@ -17,7 +17,7 @@ Additional host-local rules:
 Known local commands:
 
 - setup: `uv sync --dev`
-- lint: `uvx ruff check .`
+- lint: `uv run ruff check .`
 - tests: `uv run pytest -q -vv --maxfail=1`
 - coverage: `uv run pytest --cov=genia --cov-report=term-missing`
 - run REPL: `python3 -m genia.interpreter`

@@ -35,6 +35,6 @@ Known commands:
 - setup: `uv sync --dev`
 - run REPL: `python3 -m genia.interpreter`
 - run CLI entrypoint: `genia -c "1 + 2"`
-- lint: `uvx ruff check .`
+- lint: `uv run ruff check .`
 - tests: `uv run pytest -q -vv --maxfail=1`
 - tests with coverage: `uv run pytest --cov=genia --cov-report=term-missing`
