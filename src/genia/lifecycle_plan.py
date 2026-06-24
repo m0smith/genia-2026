@@ -348,6 +348,7 @@ def _normalize_result_policy(value: Any) -> GeniaMap:
         if value.has(field):
             field_value = value.get(field)
             _require_boolean(field_value, f"{path}.{field}")
+            normalized = normalized.put(field, field_value)
 
     return normalized
 
