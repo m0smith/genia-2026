@@ -2412,7 +2412,7 @@ PYTHON REFERENCE HOST:
 - Input order of scope records is preserved by normalization; no implicit reordering occurs.
 - Callable values stored in optional `metadata` fields are not invoked during validation or normalization.
 - Implemented in `src/genia/lifecycle_scope.py`.
-- Validated by `tests/unit/test_lifecycle_scope.py` (9 tests), Python reference host only.
+- Validated by `tests/unit/test_lifecycle_scope.py` (13 tests), Python reference host only.
 
 Explicit limitations:
 - No lifecycle runner behavior is implemented.
