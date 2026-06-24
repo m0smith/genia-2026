@@ -148,6 +148,36 @@ def test_rejects_invalid_root_shape_with_path_diagnostics():
         _assert_invalid(scope_tree, expected_message)
 
 
+@pytest.mark.parametrize(
+    ("bad_description", "type_name"),
+    [
+        (symbol("oops"), "symbol"),
+        ([], "list"),
+        (_record(), "map"),
+    ],
+)
+def test_rejects_non_string_root_description(bad_description, type_name):
+    _assert_invalid(
+        _canonical_scope_tree(description=bad_description),
+        rf"invalid lifecycle scope tree at scope_tree\.description: expected string, got {type_name}",
+    )
+
+
+@pytest.mark.parametrize(
+    ("bad_metadata", "type_name"),
+    [
+        ([], "list"),
+        (symbol("oops"), "symbol"),
+        ("owner", "string"),
+    ],
+)
+def test_rejects_non_map_root_metadata(bad_metadata, type_name):
+    _assert_invalid(
+        _canonical_scope_tree(metadata=bad_metadata),
+        rf"invalid lifecycle scope tree at scope_tree\.metadata: expected map, got {type_name}",
+    )
+
+
 def test_rejects_invalid_scope_record_shape_with_path_diagnostics():
     cases = [
         (
@@ -187,8 +217,39 @@ def test_rejects_invalid_scope_record_shape_with_path_diagnostics():
         _assert_invalid(_scope_tree([scope_record]), expected_message)
 
 
+@pytest.mark.parametrize(
+    ("bad_parent", "type_name_regex"),
+    [
+        (GeniaOptionSome("execution"), r"some\(string\)"),
+        (GeniaOptionSome(123), r"some\(int\)"),
+    ],
+)
+def test_rejects_some_non_symbol_parent(bad_parent, type_name_regex):
+    scope = _record(
+        name=symbol("execution"),
+        parent=bad_parent,
+        children=[symbol("suite")],
+    )
+
+    _assert_invalid(
+        _scope_tree([scope]),
+        rf"invalid lifecycle scope tree at scope_tree\.scopes\[0\]\.parent: "
+        rf"expected none or some\(identifier\), got {type_name_regex}",
+    )
+
+
 def test_rejects_unsupported_scope_names_with_supported_scope_hint():
-    unsupported_names = ["server", "actor", "plugin", "request", "resource", "browser", "notebook"]
+    unsupported_names = [
+        "server",
+        "actor",
+        "plugin",
+        "request",
+        "resource",
+        "browser",
+        "notebook",
+        "source",
+        "flow",
+    ]
     for unsupported_name in unsupported_names:
         tree = _scope_tree(
             [
@@ -271,3 +332,32 @@ def test_rejects_noncanonical_scope_hierarchy():
     ]
     for scope_tree, expected_message in cases:
         _assert_invalid(scope_tree, expected_message)
+
+
+@pytest.mark.parametrize(
+    ("scope_name", "index", "expected_parent", "children"),
+    [
+        ("suite", 1, "execution", ["module"]),
+        ("module", 2, "suite", ["test"]),
+        ("test", 3, "module", []),
+    ],
+)
+def test_rejects_non_root_scope_with_none_parent(
+    scope_name,
+    index,
+    expected_parent,
+    children,
+):
+    scopes = [
+        _scope("execution", OPTION_NONE, ["suite"]),
+        _scope("suite", GeniaOptionSome(symbol("execution")), ["module"]),
+        _scope("module", GeniaOptionSome(symbol("suite")), ["test"]),
+        _scope("test", GeniaOptionSome(symbol("module")), []),
+    ]
+    scopes[index] = _scope(scope_name, OPTION_NONE, children)
+
+    _assert_invalid(
+        _scope_tree(scopes),
+        rf"invalid lifecycle scope tree at scope_tree\.scopes\[{scope_name}\]\.parent: "
+        rf"expected parent {expected_parent}, got none",
+    )
