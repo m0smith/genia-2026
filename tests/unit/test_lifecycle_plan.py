@@ -391,6 +391,61 @@ def test_result_policy_normalizes_deterministic_defaults_and_explicit_safe_value
     assert result_policy.get("include_source_location") is True
 
 
+def test_result_policy_preserves_explicit_all_false_include_flags():
+    plan = _record(
+        name=symbol("test_lifecycle"),
+        phases=[_phase("body", "lifecycle_run_body")],
+        result_policy=_record(
+            include_phase=False,
+            include_scope=False,
+            include_role=False,
+            include_source_location=False,
+        ),
+    )
+
+    result_policy = _normalize(plan).get("result_policy")
+
+    assert result_policy.get("include_phase") is False
+    assert result_policy.get("include_scope") is False
+    assert result_policy.get("include_role") is False
+    assert result_policy.get("include_source_location") is False
+
+
+def test_result_policy_preserves_mixed_explicit_include_flags_independently():
+    plan = _record(
+        name=symbol("test_lifecycle"),
+        phases=[_phase("body", "lifecycle_run_body")],
+        result_policy=_record(
+            include_phase=False,
+            include_scope=True,
+            include_role=False,
+            include_source_location=True,
+        ),
+    )
+
+    result_policy = _normalize(plan).get("result_policy")
+
+    assert result_policy.get("include_phase") is False
+    assert result_policy.get("include_scope") is True
+    assert result_policy.get("include_role") is False
+    assert result_policy.get("include_source_location") is True
+
+
+def test_result_policy_defaults_omitted_include_flags_after_single_explicit_false():
+    plan = _record(
+        name=symbol("test_lifecycle"),
+        phases=[_phase("body", "lifecycle_run_body")],
+        result_policy=_record(include_phase=False),
+    )
+
+    result_policy = _normalize(plan).get("result_policy")
+
+    assert result_policy.get("include_phase") is False
+    assert result_policy.get("include_scope") is True
+    assert result_policy.get("include_role") is True
+    assert result_policy.get("include_source_location") is True
+
+
 @pytest.mark.parametrize(
     ("result_policy", "expected_message"),
     [
