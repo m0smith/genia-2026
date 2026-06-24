@@ -2363,7 +2363,7 @@ LANGUAGE CONTRACT:
 - `action` is a portable identifier (a quoted symbol), not a callable or host hook; it does not execute by existing in a plan.
 - `always`, if present, must be a boolean; it normalizes to `false` when absent.
 - Optional root policy maps are supported for portable data validation only: `cleanup`, `failure_policy`, and `result_policy`.
-- Root policy maps normalize contract-safe defaults and reject unsupported, unsafe, or nonportable policy values. Cleanup validation preserves cleanup eligibility for entered scopes, rejects cleanup for unentered scopes, keeps cleanup failures observable, and permits only supported cleanup ordering labels. Failure policy validation preserves primary failures and cleanup failures and rejects policies that overwrite or swallow cleanup failures. Result policy validation preserves deterministic failure observability fields.
+- Root policy maps normalize contract-safe defaults and reject unsupported, unsafe, or nonportable policy values. Cleanup validation preserves cleanup eligibility for entered scopes, rejects cleanup for unentered scopes, keeps cleanup failures observable, and permits only supported cleanup ordering labels. Failure policy validation preserves primary failures and cleanup failures and rejects policies that overwrite or swallow cleanup failures. Result policy validation fixes `failure_order` to the deterministic `observed_order` label and validates the observability include flags (`include_phase`, `include_scope`, `include_role`, `include_source_location`) as booleans, preserving each explicit accepted value in the normalized output and defaulting omitted flags to `true`.
 - A valid plan must not contain duplicate phase `name` values within one plan.
 - Lifecycle plans are inert data: constructing, importing, or validating a plan does not execute lifecycle behavior.
 
@@ -2373,7 +2373,7 @@ PYTHON REFERENCE HOST:
 - Identifier fields (`name`, `action`, `scope`) must be `GeniaSymbol` values (produced by `quote(...)` in Genia surface code).
 - Callable values as `action` fields are rejected as nonportable behavior.
 - Implemented in `src/genia/lifecycle_plan.py`.
-- Validated by `tests/unit/test_lifecycle_plan.py` (32 tests), Python reference host only.
+- Validated by `tests/unit/test_lifecycle_plan.py` (35 tests), Python reference host only.
 
 Explicit limitations:
 - No lifecycle runner behavior is implemented.
