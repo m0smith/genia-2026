@@ -1,4 +1,5 @@
 import importlib
+from unittest.mock import NonCallableMock
 
 import pytest
 
@@ -65,6 +66,20 @@ def _participant_names(result):
 
 def _diagnostic_reasons(result):
     return [diagnostic.reason for diagnostic in result.diagnostics]
+
+
+def _genia_function(name="setup"):
+    callable_mod = importlib.import_module("genia.callable")
+    environment_mod = importlib.import_module("genia.environment")
+    ir_mod = importlib.import_module("genia.ir")
+    return callable_mod.GeniaFunction(
+        name=name,
+        params=[],
+        rest_param=None,
+        docstring=None,
+        body=ir_mod.IrVar("none"),
+        closure=environment_mod.Env(),
+    )
 
 
 def test_optional_binding_with_zero_candidates_succeeds_without_diagnostics():
@@ -150,6 +165,36 @@ def test_callable_participant_kind_accepts_callable_values():
 
     assert _participant_names(result) == ["setup"]
     assert result.participants[0].value is setup
+    assert result.diagnostics == []
+
+
+def test_callable_participant_kind_accepts_genia_function_group_semantics():
+    callable_mod = importlib.import_module("genia.callable")
+    function_group = NonCallableMock(spec=callable_mod.GeniaFunctionGroup)
+    function_group.name = "setup"
+
+    result = _discover(
+        _binding(participant_kind="callable"),
+        [_candidate("setup", function_group, [_annotation("setup")])],
+    )
+
+    assert isinstance(function_group, callable_mod.GeniaFunctionGroup)
+    assert not callable(function_group)
+    assert _participant_names(result) == ["setup"]
+    assert result.participants[0].value is function_group
+    assert result.diagnostics == []
+
+
+def test_callable_participant_kind_accepts_genia_function_values():
+    function = _genia_function()
+
+    result = _discover(
+        _binding(participant_kind="callable"),
+        [_candidate("setup", function, [_annotation("setup")])],
+    )
+
+    assert _participant_names(result) == ["setup"]
+    assert result.participants[0].value is function
     assert result.diagnostics == []
 
 

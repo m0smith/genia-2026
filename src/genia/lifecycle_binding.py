@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .callable import GeniaFunction, GeniaFunctionGroup
 from .values import _runtime_type_name
 
 
@@ -173,8 +174,12 @@ def _participant_kind_matches(
     candidate: AnnotationCandidate,
 ) -> bool:
     if binding.participant_kind == "callable":
-        return callable(candidate.value)
+        return _is_lifecycle_callable_participant(candidate.value)
     return True
+
+
+def _is_lifecycle_callable_participant(value: Any) -> bool:
+    return isinstance(value, (GeniaFunctionGroup, GeniaFunction)) or callable(value)
 
 
 def _validate_ordering(ordering: Any) -> str:

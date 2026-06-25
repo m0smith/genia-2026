@@ -2445,7 +2445,7 @@ PYTHON REFERENCE HOST:
 - Provides internal dataclasses and `discover_lifecycle_participants(...)` for phase-owned annotation binding discovery.
 - The helper supports annotation-name matching, exact metadata filtering, callable participant validation, deterministic ordering, duplicate diagnostics, required-binding diagnostics, and binding results without executing participant values.
 - `LifecycleAnnotationBinding.ordering` defaults to `source_order` when omitted. Ordering values are validated through a centralized `_validate_ordering(...)` check that rejects non-string values and unsupported labels with deterministic `binding.ordering` diagnostics; the ordering value is preserved in the normalized binding result data.
-- Validated by `tests/unit/test_lifecycle_binding.py` (15 tests), Python reference host only.
+- Validated by `tests/unit/test_lifecycle_binding.py` (17 tests), Python reference host only.
 
 Explicit limitations:
 - No lifecycle runner behavior is implemented.
