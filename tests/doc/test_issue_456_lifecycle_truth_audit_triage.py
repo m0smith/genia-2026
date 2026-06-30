@@ -1,172 +1,155 @@
+"""Issue #456 — R4 lifecycle truth-audit guardrail.
+
+This test verifies the *truth boundary* that issue #456 audited: that Genia's
+R4 lifecycle work remains proposal/vocabulary only and is not claimed as
+implemented runtime behavior, with ``GENIA_STATE.md`` as final authority.
+
+Earlier this guardrail was wired to a local audit handoff file under the
+gitignored process scratch tree (see ``.gitignore``). That tree is process
+scratch space; it is not a source of truth and must never be required as
+committed test input. The check below re-expresses the same guardrail against
+committed, authoritative repository files only:
+
+* ``GENIA_STATE.md`` (final authority)
+* ``GENIA_RULES.md`` (annotation invariants)
+* ``docs/architecture/lifecycle.md`` (proposed lifecycle vocabulary)
+* ``docs/architecture/execution-mode-lifecycle.md`` (#455 proposal doc)
+* the committed lifecycle/semantic guardrail test modules
+
+A regression test at the bottom asserts this module no longer depends on the
+process scratch tree.
+"""
+
 from __future__ import annotations
 
 import re
 from pathlib import Path
 
-import pytest
-
 
 REPO = Path(__file__).resolve().parents[2]
-HANDOFF_DIR = (
-    REPO
-    / ".genia"
-    / "process"
-    / "tmp"
-    / "handoffs"
-    / "issue-456-r4-lifecycle-truth-audit-follow-up-triage"
-)
-AUDIT_HANDOFF = HANDOFF_DIR / "03-audit.md"
+
+STATE_DOC = REPO / "GENIA_STATE.md"
+RULES_DOC = REPO / "GENIA_RULES.md"
+LIFECYCLE_DOC = REPO / "docs" / "architecture" / "lifecycle.md"
+EXECUTION_MODE_DOC = REPO / "docs" / "architecture" / "execution-mode-lifecycle.md"
+
+COMMITTED_GUARDRAIL_TESTS = [
+    REPO / "tests" / "doc" / "test_lifecycle_architecture_doc.py",
+    REPO / "tests" / "doc" / "test_execution_mode_lifecycle_doc.py",
+    REPO / "tests" / "doc" / "test_semantic_doc_sync.py",
+]
 
 
 def normalize(text: str) -> str:
     return " ".join(text.casefold().split())
 
 
-def read_audit_handoff() -> str:
-    if not AUDIT_HANDOFF.exists():
-        pytest.fail(
-            "issue #456 audit/triage handoff must exist at "
-            ".genia/process/tmp/handoffs/"
-            "issue-456-r4-lifecycle-truth-audit-follow-up-triage/03-audit.md"
-        )
-    return AUDIT_HANDOFF.read_text(encoding="utf-8")
+def read_committed(path: Path) -> str:
+    assert path.exists(), f"required committed source must exist: {path.relative_to(REPO)}"
+    text = path.read_text(encoding="utf-8")
+    assert text.strip(), f"required committed source must not be empty: {path.relative_to(REPO)}"
+    return text
 
 
-def assert_contains_all(text: str, excerpts: list[str]) -> None:
+def assert_contains_all(text: str, excerpts: list[str], source_label: str) -> None:
     normalized = normalize(text)
     for excerpt in excerpts:
         assert normalize(excerpt) in normalized, (
-            "issue #456 audit/triage handoff is missing required text: "
-            f"{excerpt}"
+            f"{source_label} is missing required lifecycle-truth text: {excerpt!r}"
         )
 
 
-def test_issue_456_audit_handoff_exists_at_approved_path() -> None:
-    text = read_audit_handoff()
-
-    assert text.strip(), "issue #456 audit/triage handoff must not be empty"
-
-
-def test_issue_456_audit_handoff_has_required_sections() -> None:
-    text = read_audit_handoff()
-
-    required_sections = [
-        "## 0. Branch / scope confirmation",
-        "## 1. Sources read",
-        "## 2. Commands run",
-        "## 3. Audit verdict",
-        "## 5. Source-of-truth check",
-        "## 6. Lifecycle docs truth check",
-        "## 7. Test/doc guardrail check",
-        "## 8. R4 scope-slip check",
-        "## 9. Issue triage table",
-        "## 10. Findings ledger",
-        "## 12. R4 follow-ups",
-        "## 14. Recommended issue actions, not performed",
-    ]
-    assert_contains_all(text, required_sections)
-
-
-def test_issue_456_audit_verdict_uses_approved_label() -> None:
-    text = read_audit_handoff()
-
-    verdict_match = re.search(
-        r"(?im)^\s*(?:verdict|audit verdict)\s*:\s*(PASS|PASS WITH ISSUES|FAIL)\s*$",
-        text,
-    )
-    assert verdict_match, (
-        "issue #456 audit/triage handoff must record an audit verdict as one of: "
-        "PASS, PASS WITH ISSUES, FAIL"
-    )
-
-
-def test_issue_456_issue_triage_distinguishes_closure_and_follow_up_candidates() -> None:
-    text = read_audit_handoff()
+def test_issue_456_state_is_final_authority_for_lifecycle_truth() -> None:
+    text = read_committed(STATE_DOC)
 
     assert_contains_all(
         text,
         [
-            "| Issue | State | Title | Classification | Recommended action | Rationale | Action taken? |",
-            "obsolete/close candidate",
-            "R4 follow-up",
-            "post-R4 deferred",
-            "completed/no action",
-            "needs operator decision",
-            "close as completed",
-            "close as not planned",
-            "create small follow-up issue",
-            "NO",
+            "GENIA_STATE.md is the final authority for implemented behavior",
+            "No lifecycle runner behavior is implemented.",
+            "No setup/teardown behavior is implemented.",
         ],
+        "GENIA_STATE.md",
     )
 
 
-def test_issue_456_findings_use_evidence_and_action_schema() -> None:
-    text = read_audit_handoff()
+def test_issue_456_lifecycle_doc_keeps_proposal_vs_current_boundary() -> None:
+    text = read_committed(LIFECYCLE_DOC)
 
-    assert re.search(r"(?m)^### Finding F-\d{2} ", text), (
-        "issue #456 audit/triage handoff must include at least one findings-ledger "
-        "entry using the stable 'Finding F-NN' schema"
-    )
     assert_contains_all(
         text,
         [
-            "Severity:",
-            "Classification:",
-            "Source(s):",
-            "Problem:",
-            "Evidence:",
-            "Why it matters:",
-            "Minimal fix or recommendation:",
-            "Action performed: NO",
+            "not implemented runtime behavior",
+            "Generalized lifecycle plan execution is not implemented runtime behavior.",
+            "Lifecycle runners are not implemented runtime behavior.",
+            "Setup/teardown lifecycle hooks are not implemented runtime behavior.",
+            "Generalized annotation binding execution is not implemented runtime behavior.",
+            "no lifecycle runner implementation",
+            "no annotation execution behavior",
         ],
+        "docs/architecture/lifecycle.md",
     )
 
 
-def test_issue_456_audit_cites_authoritative_evidence_sources() -> None:
-    text = read_audit_handoff()
+def test_issue_456_execution_mode_doc_remains_proposal_only() -> None:
+    # Preserves the issue #455 dependency boundary: execution-mode lifecycle
+    # is proposal documentation, not an implemented runner refactor.
+    text = read_committed(EXECUTION_MODE_DOC)
 
     assert_contains_all(
         text,
         [
-            "GENIA_STATE.md",
-            "GENIA_RULES.md",
-            "docs/architecture/lifecycle.md",
-            "docs/architecture/execution-mode-lifecycle.md",
-            "tests/doc/test_semantic_doc_sync.py",
-            "#455",
-            "#456",
-        ],
-    )
-
-    evidence_markers = [
-        "authoritative-state",
-        "rules-invariant",
-        "architecture-doc",
-        "test-guardrail",
-        "issue-state",
-    ]
-    assert any(normalize(marker) in normalize(text) for marker in evidence_markers), (
-        "issue #456 audit/triage handoff must cite evidence with stable source "
-        "types, not only broad prose"
-    )
-
-
-def test_issue_456_audit_preserves_lifecycle_non_behavior_boundaries() -> None:
-    text = read_audit_handoff()
-
-    assert_contains_all(
-        text,
-        [
+            "execution-mode lifecycle",
+            "proposal",
+            "not implemented",
+            "no lifecycle runner",
             "GENIA_STATE.md",
             "final authority",
-            "not implemented",
-            "proposal",
-            "no lifecycle runner",
-            "execution-mode lifecycle",
-            "proposal documentation",
         ],
+        "docs/architecture/execution-mode-lifecycle.md",
     )
 
+
+def test_issue_456_annotations_remain_inert_metadata() -> None:
+    rules = read_committed(RULES_DOC)
+    lifecycle = read_committed(LIFECYCLE_DOC)
+
+    assert_contains_all(
+        rules,
+        [
+            "annotation metadata behavior is currently implemented only for",
+            "no annotation introduces macros, compile-time transforms, or syntax rewriting",
+        ],
+        "GENIA_RULES.md",
+    )
+    assert_contains_all(
+        lifecycle,
+        [
+            "Annotations mark candidates. Lifecycle phases decide execution.",
+            "Annotations do not execute merely because they exist.",
+            "Imports and loading must not auto-run lifecycle work.",
+        ],
+        "docs/architecture/lifecycle.md",
+    )
+
+
+def test_issue_456_committed_lifecycle_guardrail_tests_exist() -> None:
+    # The audit's "test/doc guardrail check" section depended on these
+    # committed guardrail modules. Assert they remain present and non-empty.
+    for path in COMMITTED_GUARDRAIL_TESTS:
+        assert path.exists(), (
+            "committed lifecycle/semantic guardrail test must exist: "
+            f"{path.relative_to(REPO)}"
+        )
+        assert path.read_text(encoding="utf-8").strip(), (
+            f"committed guardrail test must not be empty: {path.relative_to(REPO)}"
+        )
+
+
+def test_issue_456_lifecycle_proposal_docs_do_not_claim_implemented_behavior() -> None:
+    # Re-expression of the original forbidden-claims guardrail, now run over the
+    # committed proposal docs whose job is to maintain the proposal/not-implemented
+    # boundary (rather than over a scratch handoff file).
     forbidden_claims = [
         r"\bimplemented lifecycle system\b",
         r"\bgeneralized lifecycle runner is implemented\b",
@@ -180,36 +163,28 @@ def test_issue_456_audit_preserves_lifecycle_non_behavior_boundaries() -> None:
         r"not implemented|not current|no |does not|must not|proposal|proposed|future",
         re.IGNORECASE,
     )
-    for line_number, line in enumerate(text.splitlines(), start=1):
-        for pattern in forbidden_claims:
-            if re.search(pattern, line, flags=re.IGNORECASE):
-                assert allowed_context.search(line), (
-                    "issue #456 audit/triage handoff must not claim new implemented "
-                    f"lifecycle behavior at line {line_number}: {line.strip()!r}"
-                )
+    for path in (LIFECYCLE_DOC, EXECUTION_MODE_DOC):
+        text = read_committed(path)
+        for line_number, line in enumerate(text.splitlines(), start=1):
+            for pattern in forbidden_claims:
+                if re.search(pattern, line, flags=re.IGNORECASE):
+                    assert allowed_context.search(line), (
+                        f"{path.relative_to(REPO)} must not claim implemented "
+                        f"lifecycle behavior at line {line_number}: {line.strip()!r}"
+                    )
 
 
-def test_issue_456_audit_does_not_instruct_automatic_github_mutation() -> None:
-    text = read_audit_handoff()
-
-    assert_contains_all(
-        text,
-        [
-            "Recommended issue actions, not performed",
-            "Action performed: NO",
-            "operator approval",
-        ],
+def test_issue_456_test_has_no_process_scratch_dependency() -> None:
+    # Regression guard: this module must not reintroduce a dependency on the
+    # gitignored process scratch directory as required test input. The needles
+    # are assembled at runtime so this assertion does not match itself.
+    source = Path(__file__).read_text(encoding="utf-8")
+    scratch_dir = ".genia/process/" + "tmp"
+    handoff_word = "hand" + "offs"
+    assert scratch_dir not in source, (
+        "tests must never require gitignored process scratch files as input "
+        f"(found reference to {scratch_dir!r})"
     )
-    forbidden_mutations = [
-        r"\bclosed issue #\d+",
-        r"\bcreated issue #\d+",
-        r"\brelabel(?:ed)? issue #\d+",
-        r"\bcommented on issue #\d+",
-        r"\bAction taken\?\s*\|\s*YES\b",
-        r"\bAction performed:\s*YES\b",
-    ]
-    for pattern in forbidden_mutations:
-        assert not re.search(pattern, text, flags=re.IGNORECASE), (
-            "issue #456 audit/triage handoff must recommend GitHub issue actions "
-            f"without performing or instructing automatic mutations: {pattern}"
-        )
+    assert handoff_word not in source, (
+        "tests must never require process handoff scratch files as input"
+    )
