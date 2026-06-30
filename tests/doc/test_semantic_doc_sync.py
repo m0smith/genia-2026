@@ -1061,3 +1061,59 @@ def test_r3_native_test_roadmap_stays_separate_from_r4_lifecycle_generalization(
     assert "setup/teardown lifecycle hooks" in state, (
         "GENIA_STATE.md must keep lifecycle non-goals visible"
     )
+
+
+def test_native_test_placement_boundary_stays_explicit_in_state() -> None:
+    state = read_text("GENIA_STATE.md")
+    marker = "Native test / pytest / shared-spec placement boundary"
+    start = state.find(marker)
+    assert start != -1, (
+        "GENIA_STATE.md must document the R5 native-test / pytest / shared-spec "
+        "placement boundary"
+    )
+
+    section_after = state[start:]
+    next_section = section_after.find("\n## ", 1)
+    section = section_after[:next_section] if next_section > 0 else section_after
+    normalized = normalize(section)
+
+    required = [
+        "native tests complement pytest and shared semantic specs",
+        "native tests do not replace pytest or shared semantic specs",
+        "genia-facing behavior",
+        "python pytest",
+        "parser",
+        "core ir",
+        "host adapter",
+        "cli harness",
+        "spec runner",
+        "shared semantic specs remain authoritative",
+        "experimental",
+        "python reference host",
+    ]
+    for excerpt in required:
+        assert normalize(excerpt) in normalized, (
+            "GENIA_STATE.md native-test placement boundary is missing required "
+            f"wording: {excerpt}"
+        )
+
+    unsupported_features = [
+        "setup/teardown",
+        "fixtures",
+        "parameterized tests",
+        "snapshots",
+        "property tests",
+        "parallelism",
+        "filtering",
+        "broad discovery",
+        "multi-host execution",
+    ]
+    for feature in unsupported_features:
+        assert (
+            normalize(f"{feature} are not implemented") in normalized
+            or normalize(f"{feature} is not implemented") in normalized
+            or normalize(f"no {feature}") in normalized
+        ), (
+            "GENIA_STATE.md native-test placement boundary must keep unsupported "
+            f"native-test feature out of current support claims: {feature}"
+        )
