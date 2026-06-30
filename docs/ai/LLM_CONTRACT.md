@@ -94,28 +94,29 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Active Release: R4 — Lifecycle Generalization
+## Active Release: R5 — Native Test Migration / Genia-Facing Coverage Wave 1
 
-**Current active release is R4.**
+**Current active release is R5.**
 
-R3 (Native Test Expansion Wave 1) is complete. R4 (Lifecycle Generalization) is now the active release focus.
+R4 (Lifecycle Generalization) is complete. R5 is now the active release focus.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
-1. Classify the work against R4 first.
-2. If the work is R4 lifecycle work — lifecycle plan shape, phase shape, scope model, cleanup rules, failure rules, annotation binding model, deterministic source-order / reverse-source-order execution rules, or portable lifecycle docs — proceed through the normal phase pipeline.
-3. If the work is not R4, mark it as non-R4 and either defer/parking-lot it or proceed only if the user explicitly asked for it.
+1. Classify the work against R5 first.
+2. If the work is native-test migration or Genia-facing coverage — Outcome helpers, validation helpers, Flow/Seq visible behavior, implemented Sheet helper behavior, prelude-level utilities, examples intended to be Genia-facing, or test-boundary docs — proceed through the normal phase pipeline.
+3. If the work is not R5, mark it as non-R5 and either defer/parking-lot it or classify it to R6 unless the user explicitly asked for it.
 
-R4 is not a bucket for actors, servers, notebooks, UI, or plugins. Those may use lifecycle later, but they are not R4 implementation targets by default.
+R5 is not a bucket for new data-workflow helpers or broad feature work. Those may belong to R6 or the parking lot, but they are not R5 implementation targets by default.
 
-R4 exclusions (do not include unless explicitly requested):
-- server mode implementation
-- actor lifecycle implementation
-- arbitrary plugin system
-- YAML lifecycle runner
-- broad runtime rewrites
-- lifecycle behavior not exercised by tests
-- unrelated data-pipeline hardening (belongs to R6)
+R5 exclusions (do not include unless explicitly requested):
+- CSV helper implementation
+- new Sheet APIs such as row-access ergonomics, Sheet row Seq adapters, `collect_sheet`, or `render_csv` / `write_csv`
+- new diagnostic helper APIs
+- value-template implementation
+- actor, browser, server, notebook, or playground work
+- parser, lexer, Core IR, or host-adapter changes
+- broad pytest deletion
+- shared semantic spec authority changes
 
 ## Validation
 
