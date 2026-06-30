@@ -39,7 +39,7 @@ Theme:
 
 R1 proved the core pipeline model end-to-end:
 
-```
+```text
 messy records in → clear pipelines → Outcome-aware validation → clean records + diagnostics out
 ```
 
@@ -54,7 +54,7 @@ Delivered:
 - End-to-end validated data pipeline demo (`examples/validated_pipeline_demo.genia`)
 - Docs and tests tied to implemented behavior
 
-Excluded from R1 (see R2, R5, or parking lot):
+Excluded from R1 (see R2, R6, or parking lot):
 
 - general lifecycle system
 - native unit test framework
@@ -73,14 +73,9 @@ Theme:
 
 > Let Genia test Genia where Genia-level tests make sense.
 
-Primary outcomes:
-
-- Genia-native tests can cover pipeline, Outcome, validation, and Sheet-facing behavior.
-- Native tests complement pytest/specs; they do not replace all Python tests.
-- The Python reference host has a minimal native test kernel, CLI entry point, and assertion-helper surface.
-- A Genia-native fixture covers part of the validated data pipeline surface.
-
 R2 protects and exercises the R1 surface through native Genia tests.
+
+Delivered:
 
 - `genia test <file>` execution mode
 - legacy `genia --test <file>` mode
@@ -91,7 +86,7 @@ R2 protects and exercises the R1 surface through native Genia tests.
 - selected shared CLI native-test outcomes
 - one native validated-pipeline fixture
 
-Primary outcomes:
+Excluded:
 
 - arbitrary custom lifecycle definitions
 - annotation-driven native test discovery
@@ -127,34 +122,16 @@ Implemented annotation-driven test syntax (issue #458):
 test1() = assert_eq(1+1, 2)
 ```
 
-R2 introduced the `test(name, body)` call form. R3 adds `@test "description"` annotation-driven native test discovery (issue #458): `@test` annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. The annotation carries the human-readable description; the function name is the test identifier.
+R2 introduced the `test(name, body)` call form. R3 added `@test "description"` annotation-driven native test discovery: `@test` annotated zero-argument functions are discovered after legacy `test(name, body)` registrations and run through the same native test kernel. The annotation carries the human-readable description; the function name is the test identifier.
 
-R3 delivered:
+Delivered:
 
-- `@test "description"` annotation-driven native test discovery (issue #458) — implemented and documented as current behavior
-- native test coverage for validation helpers (`validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`) and `collect_validated`
-- native test coverage for Outcome constructors and rendering behavior (`some`, `none`, `err`, `display`, `debug_repr`)
+- `@test "description"` annotation-driven native test discovery (issue #458)
+- native test coverage for validation helpers and `collect_validated`
+- native test coverage for Outcome constructors and rendering behavior
 - native test coverage for JSONL helper behavior in validated pipeline examples
 - at least one pipeline example backed by a native test (`examples/r3_validated_pipeline_native_tests.genia`)
 - native tests kept focused on Genia-facing behavior; parser/IR/host internals were not touched
-
-Do not overclaim R3 completion beyond what the current repo actually shows.
-
-Primary outcomes:
-
-- `@test "description"` annotation-driven native test discovery is implemented (issue #458). ✓ done
-- Validation helpers are covered by native tests.
-- Outcome constructors and rendering behavior are tested at the Genia level.
-- JSONL helper behavior is exercised by native tests.
-- One or two pipeline examples demonstrate native tests on real workflow behavior.
-
-Includes:
-
-- `@test "description"` annotation + named-function discovery (issue #458) ✓ implemented
-- native tests for validation helpers
-- native tests for Outcome constructors and rendering
-- native tests for JSONL helper behavior
-- one or two end-to-end pipeline example tests
 
 Excludes:
 
@@ -165,18 +142,11 @@ Excludes:
 - pytest migration (see R5)
 - setup/teardown, fixtures, parameterization, broad discovery, or multi-host claims
 
-Exit criteria:
-
-- Native tests use the `@test "description" / name() = body` form for annotation-driven discovery. The annotation syntax is implemented and documented as current behavior (issue #458). ✓ done
-- Native tests cover validation helpers, Outcome constructors/rendering, and JSONL helper behavior.
-- At least one pipeline example is backed by a native test.
-- No parser, IR, or host internals are touched.
-
 ---
 
-## Release R4 — Lifecycle Generalization
+## Release R4 — Lifecycle Generalization ✓ COMPLETE
 
-**Status: Active release focus.**
+**Status: Complete.** R4 extracted the proven test lifecycle shape into a portable lifecycle contract while keeping observable lifecycle behavior narrow and test-backed.
 
 Theme:
 
@@ -188,7 +158,7 @@ Primary outcomes:
 - Annotation discovery is phase-driven and explicit.
 - Execution modes can eventually use lifecycle plans without making import/load behavior spooky.
 
-Includes:
+Delivered / included:
 
 - lifecycle plan shape
 - phase shape
@@ -198,7 +168,7 @@ Includes:
 - annotation binding model
 - deterministic source-order / reverse-source-order execution rules
 - portable docs for execution-mode lifecycle proposals
-- test lifecycle remains the first implemented consumer — the Python reference host native test path now consumes the inert lifecycle contract as descriptive plan/scope data (issue #454); Experimental, no lifecycle runner / phase execution / setup/teardown / observable native-test behavior change
+- test lifecycle remains the first implemented consumer — the Python reference host native test path consumes the inert lifecycle contract as descriptive plan/scope data (issue #454); Experimental, no lifecycle runner / phase execution / setup/teardown / observable native-test behavior change
 - annotations do not execute merely because they exist
 
 Excludes:
@@ -209,24 +179,19 @@ Excludes:
 - YAML lifecycle runner unless separately approved
 - broad runtime rewrites
 - lifecycle behavior not exercised by tests
-- unrelated R5 data hardening unless explicitly requested
+- unrelated data-pipeline hardening, now classified under R6 unless explicitly promoted
 
 Exit criteria:
 
 - Lifecycle is documented as a general model.
-- Test lifecycle remains the first implemented consumer. ✓ first consumer implemented as an inert descriptor link (issue #454); the Python reference host native test path describes/validates its lifecycle shape without executing lifecycle phases.
+- Test lifecycle remains the first implemented consumer as an inert descriptor link.
 - No annotations execute merely because they exist.
-
-Agent guidance for R4:
-
-- Current release focus is R4. When asked for new Genia work with no release specified, classify the work against R4 first.
-- If the work is R4 lifecycle work, proceed through the normal phase pipeline.
-- If the work is not R4, mark it as non-R4 and either defer/parking-lot it or proceed only if the user explicitly asked for it.
-- R4 is not a bucket for actors, servers, notebooks, UI, or plugins. Those may use lifecycle later, but they are not R4 implementation targets by default.
 
 ---
 
-## Release R5 — Native Test Expansion / Pytest Migration Wave 1
+## Release R5 — Native Test Migration / Genia-Facing Coverage Wave 1
+
+**Status: Active release focus.**
 
 Theme:
 
@@ -243,7 +208,7 @@ Move candidates:
 - Outcome helpers
 - validation helpers
 - Flow/Seq visible behavior
-- Sheet helper behavior
+- Sheet helper behavior that is already implemented
 - prelude-level utilities
 - examples intended to be Genia-facing
 
@@ -256,10 +221,38 @@ Keep in pytest:
 - spec runner implementation
 - Python-specific exceptions and plumbing
 
+Current R5 issue set:
+
+- **#509** — roadmap/R5 active-release alignment
+- **#510** — native-test vs pytest boundary contract
+- **#511** — audit pytest coverage for native-test migration candidates
+- **#512** — migrate Outcome helper behavior to native tests
+- **#513** — migrate validation helper behavior to native tests
+- **#514** — migrate visible Flow/Seq behavior to native tests
+- **#515** — migrate implemented Sheet helper behavior to native tests
+- **#516** — add native coverage for Genia-facing examples
+- **#517** — document native-test vs pytest guidance
+- **#518** — final R5 native migration truth review
+
+Existing R5-adjacent issues:
+
+- **#369** — optional shared spec cleanup for removed slash named-access compatibility
+- **#406** — tested validation quick-reference examples
+- **#486** — optional focused validated-pipeline reporting example, if still useful
+
 Exit criteria:
 
-- Native test suite proves useful without duplicating every pytest.
+- Native test suite proves useful Genia-facing behavior without duplicating every pytest.
 - Documentation explains what belongs in native tests vs pytest.
+- Parser, IR, host, CLI harness, spec-runner, and Python internals remain protected by pytest/shared specs.
+- No R6 data-hardening work is pulled into R5 unless explicitly promoted.
+
+Agent guidance for R5:
+
+- Current release focus is R5. When asked for new Genia work with no release specified, classify the work against R5 first.
+- If the work is native-test migration or Genia-facing coverage, proceed through the normal phase pipeline.
+- If the work is data-workflow hardening, classify it as R6 unless the user explicitly promotes it.
+- R5 is not a bucket for CSV helpers, new Sheet APIs, diagnostic helper APIs, actors, browser work, or broad value-template implementation.
 
 ---
 
@@ -269,13 +262,12 @@ Theme:
 
 > Make validated pipelines feel production-useful.
 
-This release picks up the data-workflow items deferred from R1. These items were deferred
-because R1 proved the core model; they are not required for that proof and belong to production-quality polish.
+This release picks up the data-workflow items deferred from R1. These items were deferred because R1 proved the core model; they are not required for that proof and belong to production-quality polish.
 
-Deferred R1 items now targeting R5:
+Deferred R1 items now targeting R6:
 
-- **#405** — post-R1 hardening (deferred from R1)
-- **#393** — R5 hardening
+- **#405** — post-R1 diagnostic-context hardening
+- **#393** — diagnostic helper APIs for field/index-aware validation diagnostics
 - **#394** — conditional / deferred until concrete need is proven
 - **#390** — CSV support (record ingestion from CSV files)
 - **#395** — Sheet landing zone improvements
@@ -291,25 +283,8 @@ Possible additional includes:
 - schema/shape inspection helpers
 - better command-line ergonomics
 - clearer examples for real-world records
-
 - possible file-search helper for CLI-native data workflow setup
-  - direct call shape: `find(root, opts)`
-  - options are represented as a plain validated options record
-  - initial file-search results should compose with Flow/Seq-style pipelines
-
 - Option Record Pattern for APIs with many optional settings
-  - default options value
-  - plain options record
-  - pure modifier functions
-  - final validation before execution
-
-- file-search options as the first concrete example:
-  - `default_find_options()`
-  - `with_pattern(...)`
-  - `with_max_depth(...)`
-  - `with_follow_symlinks(...)`
-  - `validate_find_options(...)`
-
 - diagnostics for unknown or invalid options
 
 Deferred candidates after the R1 demo proves the basic workflow:
@@ -333,14 +308,13 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 
 - actor system
   - includes actor lifecycle, supervision, and actor-oriented runtime expansion
-  - keep out of R2/R3 unless a narrow use case explicitly requires it
+  - keep out of R5 unless a narrow use case explicitly requires it
 - browser playground runtime
   - useful as a future demo surface, not required for the first validated-data-pipeline release
 - ants / simulation teaching demos
   - useful teaching material after the data-pipeline wedge is demonstrable
 - full value-template system
-  - **#87 / #89 / #91** — broad value-template / contract roadmap issues; future / parking lot
-    unless explicitly promoted to a release
+  - **#87 / #89 / #91** — broad value-template / contract roadmap issues; future / parking lot unless explicitly promoted to a release
 - refinement / shape / contract / variant roadmap
 - validation DSL
   - do not create implementation tickets until helper-based validation proves insufficient
@@ -348,9 +322,8 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - server mode
 - notebook mode
 - parallel native test execution
-- **#399** — future design work; not R2 or near-term; belongs in parking lot until scope is defined
-- **#102** — broad scope; should be split into smaller targeted tickets or updated before use
-  as a release tracker; do not use as a release blocker in its current form
+- **#399** — future design work; not R5 or near-term; belongs in parking lot until scope is defined
+- **#102** — broad scope; should be split into smaller targeted tickets or updated before use as a release tracker; do not use as a release blocker in its current form
 
 ---
 
@@ -361,48 +334,22 @@ This section records the classification of R1-adjacent issues after R1 completio
 | Issue | Classification | Notes |
 |---|---|---|
 | #374 | **Closed / completed** | Delivered as part of R1. |
-| #405 | Post-R1 hardening → R5 | Keep open; schedule in R5. |
-| #393 | R5 hardening | Keep open; schedule in R5. |
+| #405 | R6 diagnostic-context hardening | Keep open; schedule in R6. |
+| #393 | R6 diagnostics hardening | Keep open; schedule in R6. |
 | #394 | Conditional / deferred | Keep open; promote when need is concrete. |
-| #390 | R5 — CSV support | Keep open; schedule in R5. |
-| #395 | R5 — Sheet landing zone | Keep open; schedule in R5. |
-| #396 | R5 — after #395 | Keep open; depends on Sheet landing zone. |
-| #363 / #364 | R5 — after Sheet landing zone | Keep open; schedule after #395. |
-| #399 | Future design | Not R2; park until scope is defined. |
+| #390 | R6 — CSV support | Keep open; schedule in R6. |
+| #395 | R6 — Sheet landing zone | Keep open; schedule in R6. |
+| #396 | R6 — after #395 | Keep open; depends on Sheet landing zone. |
+| #363 / #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
+| #399 | Future design | Not R5; park until scope is defined. |
 | #87 / #89 / #91 | Parking lot | Future / parking lot unless explicitly promoted. |
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |
 
 If an issue listed above is already closed, do not reopen it.
 
+Possible future generated-helper idea:
+
 - record-derived `with_*` helper generation
   - possible future opt-in form: `@derive(quote(withers))`
   - generated helpers must be namespaced under the record/template
   - generated helpers must not create global `with_*` functions
-  - promote only after multiple APIs prove the manual Option Record Pattern is valuable
-
-- automatic global `with_*` helper generation
-  - rejected by default: risks namespace collisions, unclear origin, and excessive implicit API surface
-
----
-
-## Roadmap Rule for Agents
-
-**Current active release: R4 — Lifecycle Generalization.**
-
-Before proposing new tickets, agents must classify the work as:
-
-- current release (R4)
-- next release
-- infrastructure
-- follow-up
-- parking lot
-
-When asked for new Genia work with no release specified:
-
-1. Classify the work against R4 first.
-2. If the work is R4 lifecycle work (lifecycle plan shape, phase shape, scope model, cleanup/failure rules, annotation binding model, execution-order rules, portable lifecycle docs), proceed through the normal phase pipeline.
-3. If the work is not R4, mark it as non-R4 and either defer/parking-lot it or proceed only if the user explicitly asked for it.
-
-R4 is not a bucket for actors, servers, notebooks, UI, or plugins. Those may use lifecycle later, but they are not R4 implementation targets by default.
-
-If the work is parking-lot/future, do not create implementation tickets unless explicitly approved.
