@@ -2258,6 +2258,28 @@ Current native test behavior distinguishes:
 
 Current native test support is not a complete test framework; lifecycle hooks, `@setup`/`@teardown` annotations, setup/teardown, fixtures, parameterized tests, broad directory discovery, and multi-host conformance are out of scope in this phase.
 
+### Native test / pytest / shared-spec placement boundary (Python reference host, Experimental)
+
+Native test support remains Experimental and backed by the Python reference host in this phase. Native tests complement pytest and shared semantic specs. Native tests do not replace pytest or shared semantic specs.
+
+Genia-native tests belong to Genia-facing behavior that can be expressed and verified in Genia source from the user's perspective. Appropriate native-test coverage includes Outcome helpers, validation helpers, Flow/Seq visible behavior, Sheet helpers, user-facing examples, and similar prelude/source-level behavior.
+
+Python pytest remains the home for parser, lexer, AST, Core IR, host/runtime internals, host adapter behavior, CLI harness internals, spec runner internals, Python-specific exception/normalization behavior, and native-test stack internals such as the kernel, CLI/test-mode layer, discovery validation, duplicate-name machinery, and inert lifecycle descriptor validation.
+
+Shared semantic specs remain authoritative for portable observable CLI/eval/flow/error/parse/IR behavior where covered. Covered portable observable behavior must stay in shared specs and must not be moved into native tests as a replacement.
+
+Unsupported native-test features remain unsupported in this phase:
+
+- setup/teardown execution and setup/teardown are not implemented
+- fixtures are not implemented
+- parameterized tests are not implemented
+- snapshots are not implemented
+- property tests are not implemented
+- parallelism is not implemented
+- filtering is not implemented
+- broad discovery is not implemented
+- multi-host execution is not implemented
+
 ## 9.1) Native test kernel core (Python reference host, Experimental)
 
 LANGUAGE CONTRACT:
