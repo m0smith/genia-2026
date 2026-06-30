@@ -40,17 +40,16 @@ When sources conflict, resolve in this order:
 6. `docs/host-interop/*`
 7. `docs/architecture/*`
 8. implementation (`src/*`, `hosts/*`)
-9. `docs/process/run-change.md` 
+9. `docs/process/run-change.md`
 
 Rules:
 - Tests must reflect actual behavior
 - Implementation must match STATE + RULES
 - Docs must describe ONLY what is implemented
 - Cross-doc semantic guardrails live in `docs/contract/semantic_facts.json` and `tests/doc/test_semantic_doc_sync.py`
-“Contract” defines behavior only.
-It MUST NOT include tests.
+- “Contract” defines behavior only. It MUST NOT include tests.
+- Shared spec YAML files and pytest tests belong to the TEST phase.
 
-Shared spec YAML files and pytest tests belong to the TEST phase.
 ---
 
 # 🚫 NON-AUTHORITATIVE SOURCES
@@ -118,6 +117,7 @@ Banned certainty phrases in docs unless narrowly evidenced:
 * `no drift`
 
 ---
+
 ## Cross-Tool Instruction Sync
 
 Shared cross-tool LLM guidance lives in `docs/ai/LLM_CONTRACT.md`.
@@ -148,13 +148,13 @@ Before proposing or implementing new feature work, read:
 Before creating new issues/tickets, also read:
 - `docs/process/08-roadmap-ticketing.md`
 
-**Current active release: R4 — Lifecycle Generalization.**
-R3 (Native Test Expansion Wave 1) is complete. When asked for new Genia work with no release specified, classify work against R4 first. If it is not R4 lifecycle work, mark it as non-R4 and defer or park it unless the user explicitly asked for it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for full R4 scope and agent guidance.
+**Current active release: R5 — Native Test Migration / Genia-Facing Coverage Wave 1.**
+R4 (Lifecycle Generalization) is complete. When asked for new Genia work with no release specified, classify work against R5 first. If it is not native-test migration or Genia-facing coverage work, mark it as non-R5 and defer, park, or classify it to R6 unless the user explicitly asked for it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for full R5 scope and agent guidance.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
 
-```
+```text
 messy records in → clear pipelines → validated shaped output / reports + useful diagnostics
 ```
 
@@ -187,21 +187,21 @@ Genia maintains a deliberately small and stable core surface.
 
 New features MUST pass all of the following criteria:
 
-1. Reinforce value templates  
+1. Reinforce value templates
    - The feature strengthens or composes with:
      - refinement
      - shapes (open/closed)
      - variants
      - contracts
 
-2. Reinforce canonical patterns  
+2. Reinforce canonical patterns
    - The feature aligns with and strengthens:
      - pattern matching
      - flow/pipeline model
      - value-first design
    - It must not introduce competing paradigms
 
-3. Reduce ambiguity  
+3. Reduce ambiguity
    - The feature makes programs easier to reason about
    - It must not introduce multiple equivalent ways to express the same concept
    - It must not blur existing semantics
@@ -216,282 +216,3 @@ A feature MUST NOT be added if it:
 - introduces a second way to express an existing pattern
 - adds syntax without increasing clarity
 - expands the surface area without strengthening the core model
-
---------------------------------
-INTENT
---------------------------------
-
-The goal is not to prevent growth.
-
-The goal is to ensure that every addition:
-- sharpens the language
-- reinforces existing mental models
-- makes Genia simpler, not broader
-
----
-
-## Cheatsheet Sync Rule (CRITICAL)
-
-`docs/cheatsheet/*` must remain a truthful quick-reference surface for implemented behavior only.
-
-When language/runtime/API-facing behavior or user-facing examples change, agents must also update relevant cheatsheet pages.
-
-At minimum, review and update as needed:
-
-* `docs/cheatsheet/core.md`
-* `docs/cheatsheet/unix-power-mode.md`
-
-Cheatsheets must not include:
-
-* unimplemented helpers/operators
-* speculative or planned features presented as available
-* call shapes that do not match the current runtime
-
-If cheatsheet content conflicts with source-of-truth docs, `GENIA_STATE.md` remains final authority and cheatsheets must be corrected.
-
-### Cheatsheet Example Validation Rule
-
-Every runnable example added or changed in a cheatsheet **must** include a `[case: <id>]` marker and a matching entry in the sidecar JSON file under `tests/data/`:
-
-| Cheatsheet | Sidecar JSON | Test module |
-|---|---|---|
-| `docs/cheatsheet/piepline-flow-vs-value.md` | `tests/data/pipeline_flow_vs_value_cases.json` | `tests/test_cheatsheet_pipeline_flow_vs_value.py` |
-| `docs/cheatsheet/core.md` | `tests/data/cheatsheet_core_cases.json` | `tests/test_cheatsheet_core.py` |
-| `docs/cheatsheet/quick-reference.md` | `tests/data/cheatsheet_quick_reference_cases.json` | `tests/test_cheatsheet_quick_reference.py` |
-| `docs/cheatsheet/unix-power-mode.md` | `tests/data/cheatsheet_unix_power_mode_cases.json` | `tests/test_cheatsheet_unix_power_mode.py` |
-| `docs/cheatsheet/unix-to-genia.md` | `tests/data/cheatsheet_unix_to_genia_cases.json` | `tests/test_cheatsheet_unix_to_genia.py` |
-
-Marker placement: add `<!-- [case: <id>] -->` on the line immediately before the opening ` ``` ` fence of the runnable snippet.
-
-JSON case entry shape:
-```json
-{
-  "id": "<id>",
-  "source": "<genia source>",
-  "expected_result": "<display string>",
-  "expected_stdout": "<optional stdout string>",
-  "stdin_data": ["optional", "lines"]
-}
-```
-
-Agents must run `pytest tests/test_cheatsheet_*.py` after editing any cheatsheet to catch drift.
-
----
-
-## SICP Validation Rule (CRITICAL)
-
-`docs/sicp/*` is an executable learning surface when present.
-
-Runnable Genia blocks in SICP chapters must follow the fence/expected-output contract in `docs/sicp/AGENTS.MD` and remain truthful to current implementation.
-
-When editing SICP chapters, agents must:
-
-* keep `docs/sicp/index.md` aligned with the published chapter set
-* run `pytest tests/test_sicp_code_blocks.py`
-
----
-
-## `@doc` Style Validation Rule
-
-When editing any of these files:
-
-* `docs/style/doc-style.md`
-* `docs/cheatsheet/core.md` (the `@doc Quick Reference` section)
-* `docs/cheatsheet/quick-reference.md` (the `@doc Quick Reference` section)
-* `docs/book/03-functions.md` (the `Documenting Functions` or `@doc Style Guide` sections)
-
-agents must run:
-
-```
-pytest tests/test_doc_style_sync.py
-```
-
-This validates that:
-
-* the style guide retains its required sections and examples
-* cheatsheet `@doc` sections stay consistent with the style guide
-* book `@doc` content matches the style guide's allowed headers and Markdown subset
-* the linter's constants match the style guide
-* prelude `@doc` strings (when present) pass the linter
-
----
-
-## Core Philosophy
-
-### 1. Preserve Simplicity
-
-Genia must remain:
-
-* Minimal
-* Expressive
-* Human-readable
-* Easy to implement
-
-Avoid:
-
-* Extra syntax
-* Cleverness over clarity
-* Hidden behavior
-
----
-
-### 2. Pattern Matching Is the Core
-
-Genia is a **pattern-matching-first language**.
-
-Agents must not continue into the next phase unless explicitly prompted.
-
-Commit prefixes must match the phase:
-
-- `preflight(scope): ... issue #123`
-- `contract(scope): ... issue #123`
-- `design(scope): ... issue #123`
-- `test(scope): ... issue #123`
-- `feat(scope): ... issue #123`
-- `fix(scope): ... issue #123`
-- `docs(scope): ... issue #123`
-- `audit(scope): ... issue #123`
-- `distillation(scope): ... issue #123`
-
-The `test` phase must commit failing tests before implementation.
-The `implementation` phase must reference the failing-test commit SHA.
-
-## Drift-Prevention Rules
-
-- Keep docs, tests, and implementation aligned
-- Update documentation when behavior or examples change
-- Update tests when behavior, wording, or protected semantic facts change
-- Host-only behavior must keep `LANGUAGE CONTRACT:` and `PYTHON REFERENCE HOST:` labels where applicable
-- Do not leave deleted-doc references in tests, tooling, or instruction files
-- No process artifact may live in docs/ after merge.
-
-## Required Workflow for Any Change
-
-1. update `GENIA_STATE.md`
-2. update any other affected core docs
-3. update implementation only for already-defined behavior
-4. update or add tests
-5. run the relevant audit/validation
-
----
-
-# 🚫 HARD CONSTRAINTS
-
-Agents MUST NOT:
-
-- invent behavior not defined in contract
-- update docs to describe unimplemented features
-- change semantics without updating STATE
-- mix design and implementation in a single step
-- perform repo-wide renames in a single pass
-- redefine language behavior inside host adapters
-
-Parking-lot documents are non-authoritative idea capture only. They must not be treated as implemented behavior or source-of-truth language semantics.
-
----
-
-# 🔁 RENAME SAFETY RULE
-
-Renames MUST be performed in phases:
-
-1. introduce alias
-2. migrate usage incrementally
-3. update tests
-4. remove old name later
-
-Never:
-- rename everything at once
-
----
-
-# 🌍 MULTI-HOST RULES
-
-Future hosts (Node, Java, Rust, Go, C++):
-
-- MUST follow the shared contract
-- MUST NOT redefine behavior
-- MUST pass spec tests
-- MUST treat Core IR as the portability boundary
-
-Python is the reference host.
-
----
-
-# 🧠 PROMPT DISCIPLINE
-
-Each prompt must perform ONE type of work:
-
-- Contract
-- Design
-- Implementation
-- Test
-- Docs
-- Audit
-- Distillation
-
-Never combine responsibilities.
-
----
-
-# 🧾 DOCUMENTATION TRUTH RULE
-
-Docs must:
-
-- describe ONLY implemented behavior
-- clearly label partial features
-- avoid implying future capabilities
-- match testable behavior
-
----
-
-# 🧪 TESTING RULE
-
-Tests must:
-
-- validate real behavior
-- cover edge cases
-- fail on regression
-
-No vague assertions.
-
----
-
-# 🧩 PHILOSOPHY
-
-Genia prioritizes:
-
-- minimalism
-- pattern-first design
-- explicit behavior
-- portability via Core IR
-- truth over convenience
-
----
-
-# 🔒 FINAL RULE
-
-If something is unclear, incomplete, or conflicting:
-
-STOP and resolve truth before proceeding.
-
-Never guess.
-
----
-
-# ✅ SUMMARY
-
-This repository is:
-
-- the source of truth
-- the implementation
-- the contract
-
-It is NOT:
-
-- a tutorial
-- a learning-content repository
-- a teaching resource
-
----
-
-# 🚀 END
