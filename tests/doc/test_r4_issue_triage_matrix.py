@@ -8,14 +8,15 @@ import pytest
 
 
 REPO = Path(__file__).resolve().parents[2]
-AUDIT_HANDOFF = (
+# The R4 issue triage matrix is a committed audit/triage artifact. It used to
+# live only in the gitignored process scratch tree, which made this guardrail
+# depend on non-committed scratch input. The matrix is now committed under
+# docs/ so the guardrail runs against an authoritative source of truth.
+TRIAGE_MATRIX_DOC = (
     REPO
-    / ".genia"
-    / "process"
-    / "tmp"
-    / "handoffs"
-    / "issue-456-r4-lifecycle-truth-audit-follow-up-triage"
-    / "03-audit.md"
+    / "docs"
+    / "architecture"
+    / "r4-issue-triage-matrix.md"
 )
 TABLE_HEADER = (
     "| Issue | State | Title | Classification | Recommended action | "
@@ -70,13 +71,12 @@ class TriageRow:
 
 
 def read_audit_handoff() -> str:
-    if not AUDIT_HANDOFF.exists():
+    if not TRIAGE_MATRIX_DOC.exists():
         pytest.fail(
-            "issue #456 audit/triage handoff must exist at "
-            ".genia/process/tmp/handoffs/"
-            "issue-456-r4-lifecycle-truth-audit-follow-up-triage/03-audit.md"
+            "issue #456 R4 triage matrix must exist at "
+            "docs/architecture/r4-issue-triage-matrix.md"
         )
-    return AUDIT_HANDOFF.read_text(encoding="utf-8")
+    return TRIAGE_MATRIX_DOC.read_text(encoding="utf-8")
 
 
 def split_table_row(line: str) -> list[str]:
@@ -174,3 +174,19 @@ def test_issue_456_triage_rows_record_no_action_taken() -> None:
             "issue #456 triage row must record Action taken? as NO "
             f"at line {row.line_number} for {row.issue}: {row.action_taken!r}"
         )
+
+
+def test_issue_456_triage_matrix_has_no_process_scratch_dependency() -> None:
+    # Regression guard: this module must not reintroduce a dependency on the
+    # gitignored process scratch directory as required test input. The needles
+    # are assembled at runtime so this assertion does not match itself.
+    source = Path(__file__).read_text(encoding="utf-8")
+    scratch_dir = ".genia/process/" + "tmp"
+    handoff_word = "hand" + "offs"
+    assert scratch_dir not in source, (
+        "tests must never require gitignored process scratch files as input "
+        f"(found reference to {scratch_dir!r})"
+    )
+    assert handoff_word not in source, (
+        "tests must never require process handoff scratch files as input"
+    )
