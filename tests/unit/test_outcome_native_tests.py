@@ -11,13 +11,14 @@ def test_outcome_rendering_native_tests_pass(capsys):
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out == (
-        "total=6 passed=6 failed=0 errored=0\n"
+        "total=7 passed=7 failed=0 errored=0\n"
         "PASS some_values_render_deterministically\n"
         "PASS some_with_context_renders_deterministically\n"
         "PASS none_values_render_deterministically\n"
         "PASS err_values_render_deterministically\n"
         "PASS outcome_predicates_identify_some_and_none\n"
         "PASS absence_helpers_expose_reason_and_context\n"
-        "total=6 passed=6 failed=0 errored=0\n"
+        "PASS absence_metadata_exposes_reason_and_context\n"
+        "total=7 passed=7 failed=0 errored=0\n"
     )
     assert captured.err == ""
