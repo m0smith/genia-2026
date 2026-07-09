@@ -35,6 +35,10 @@ outcome_predicates_identify_some_and_none() = {
   assert_eq(none?(some(3)), false)
   assert_eq(some?(some(3)), is_some?(some(3)))
   assert_eq(none?(none("missing-key")), is_none?(none("missing-key")))
+  assert_eq(none?(err("bad")), false)
+  assert_eq(some?(err("bad")), false)
+  assert_eq(none?(err("bad")), is_none?(err("bad")))
+  assert_eq(some?(err("bad")), is_some?(err("bad")))
 }
 
 @test "absence helpers expose reason and context"
@@ -43,4 +47,10 @@ absence_helpers_expose_reason_and_context() = {
   assert_eq(debug_repr(absence_reason(none)), "some(\"nil\")")
   assert_eq(debug_repr(absence_context(none("empty-list"))), "none(\"nil\")")
   assert_eq(debug_repr(absence_context(none("missing-key", {key: "name"}))), "some({key: \"name\"})")
+}
+
+@test "absence metadata exposes reason and context"
+absence_metadata_exposes_reason_and_context() = {
+  assert_eq(debug_repr(absence_meta(none("empty-list"))), "some({reason: \"empty-list\"})")
+  assert_eq(debug_repr(absence_meta(none("missing-key", {key: "name"}))), "some({reason: \"missing-key\", context: {key: \"name\"}})")
 }
