@@ -320,6 +320,7 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - do not create implementation tickets until helper-based validation proves insufficient
 - multi-host implementation beyond contract scaffolding
 - server mode
+  - see `docs/parking-lot/web-backend-cfm-app.md` for concrete `web`-prelude ergonomics gaps (CORS preflight, `cors()` helper, path params, optional concurrency) surfaced by a real consuming app; parked and non-authoritative until explicitly promoted
 - notebook mode
 - parallel native test execution
 - **#399** — future design work; not R5 or near-term; belongs in parking lot until scope is defined
