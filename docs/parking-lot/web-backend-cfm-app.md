@@ -75,11 +75,12 @@ for the authoritative surface. This note does not redefine them.
 - `docs/strategy/release-roadmap.md` — "server mode" parking-lot entry
 - `examples/rest_todo_service.genia` — existing REST example used as the spike skeleton
 
-## Promotion trigger
+## Promotion status
 
-Promote this note into pre-flight when:
+**Promoted to Release R7 — Web Serving Ergonomics** (see `docs/strategy/release-roadmap.md`)
+as explicitly approved infrastructure work. This note remains the idea-capture source;
+per the parking-lot process it should be superseded by a pre-flight artifact and tracking
+issues before implementation begins. R7 must not displace killer-workflow (R5/R6) work.
 
-- A consuming app concretely needs preflight/CORS ergonomics, path params, or
-  concurrency (not before), AND
-- The work is explicitly approved as infrastructure or promoted out of the parking lot,
-  so it does not displace killer-workflow (validated data pipeline) work.
+Original promotion trigger (now satisfied): a consuming app concretely needs the
+preflight/CORS ergonomics, and the work has been explicitly approved as infrastructure.
