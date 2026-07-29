@@ -302,6 +302,48 @@ Excludes by default:
 
 ---
 
+## Release R7 — Web Serving Ergonomics
+
+**Status: Planned.** Promoted from the parking lot as **explicitly approved infrastructure work**. This release does **not** strengthen the validated-data-pipeline killer workflow; it is scheduled deliberately as infrastructure and must not displace R5 or R6.
+
+Theme:
+
+> Make the web / HTTP serving surface comfortable for a real browser client.
+
+Context:
+
+- Surfaced by exercising `serve_http` against a real browser client for an external consuming app. Idea capture: `docs/parking-lot/web-backend-cfm-app.md`.
+- Verified current behavior: handler-returned response headers are emitted verbatim (CORS works on real GET/POST responses), and `request("query")` is a parsed map with query-stripped path routing.
+- Verified gaps this release targets: CORS preflight (`OPTIONS`) returns 404; no `cors()` helper and no header merge into `json`/`text`; exact-path-only routing (no path params); single-threaded synchronous server; `web` surface sits outside the shared spec categories.
+
+Candidate scope (cut tracking issues before starting):
+
+- `options(path, handler)` route constructor / preflight-aware routing so browsers can complete preflighted cross-origin requests
+- a `cors(...)` header helper, plus a way to merge extra headers into `json(...)` / `text(...)`
+- optional path-parameter routing (low priority — query-string style already covers lookups)
+- optional threaded / multi-request `serve_http` mode (only if a consumer needs concurrency)
+- stabilize the web capability: add it to the host capability registry (`docs/host-interop/capabilities.md`) and/or a spec category so consumers can depend on it durably
+
+Excludes:
+
+- a general web framework or broad "server mode" runtime
+- browser-native runtime
+- displacing R5 (native-test migration) or R6 (data-workflow hardening)
+- documenting any of the above as implemented before it ships — `GENIA_STATE.md` remains authoritative
+
+Exit criteria:
+
+- A browser frontend can complete a preflighted cross-origin request against a Genia service without hand-rolled boilerplate.
+- Web serving behavior a consumer depends on is pinned via the capability registry and/or a spec category (or explicitly documented as version-pinned).
+- No killer-workflow (R5 / R6) work was displaced to deliver it.
+
+Agent guidance for R7:
+
+- R7 is infrastructure, not killer-workflow. Do not pull R7 work forward ahead of R5/R6 unless the user explicitly reprioritizes.
+- Keep the surface minimal and consistent with the Core Surface Freeze — add capability, not alternative ways to express the same thing.
+
+---
+
 ## Parking Lot / Later
 
 These are valuable, but not part of the near roadmap unless explicitly promoted:
@@ -320,6 +362,7 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - do not create implementation tickets until helper-based validation proves insufficient
 - multi-host implementation beyond contract scaffolding
 - server mode
+  - **Promoted to R7 (Web Serving Ergonomics)** — the concrete `web`-prelude ergonomics gaps (CORS preflight, `cors()` helper, path params, optional concurrency) are now scheduled there as approved infrastructure work. Idea capture: `docs/parking-lot/web-backend-cfm-app.md`. Broader "server mode" beyond those ergonomics remains parked.
 - notebook mode
 - parallel native test execution
 - **#399** — future design work; not R5 or near-term; belongs in parking lot until scope is defined
