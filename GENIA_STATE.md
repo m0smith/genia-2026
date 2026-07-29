@@ -2328,6 +2328,7 @@ PYTHON REFERENCE HOST:
 
 `assert_eq(actual, expected)`:
 - passes when `actual` equals `expected` according to current Genia equality behavior
+- compares Outcome values directly, including `none(...)`
 - returns `none` on success
 - prints nothing on success
 - preserves useful actual/expected diagnostics on failure
@@ -2349,6 +2350,8 @@ A Genia-native fixture now covers the R1 validated pipeline path. Validated by `
 A Genia-native fixture now covers selected Outcome constructor, representation, predicate, and structured absence inspection behavior. Validated by `tests/unit/test_outcome_native_tests.py` (7 tests, Python reference host only); the fixture is `tests/native/outcome_rendering.genia`. The fixture uses `@test` annotated zero-argument functions and `assert_eq` to cover selected current behavior for `some(...)`, `none(...)`, `err(...)`, `display(...)`, `debug_repr(...)`, `some?`, `none?`, `absence_reason`, `absence_context`, and `absence_meta`. This is selected native coverage only; it does not change Outcome semantics or native-test report semantics.
 
 A Genia-native fixture covers selected validation-helper behavior for the R3 validated-pipeline surface, including required/field/optional/record validation, `validate_each` Outcome-boundary behavior, and `collect_validated` aggregation. Validated by `tests/unit/test_r3_validation_helpers_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r3_validation_helpers.genia`. This is selected native coverage only and does not change validation, Outcome, Flow, or native-test semantics.
+
+A Genia-native fixture covers selected Flow/Seq visible behavior, including direct Flow `map`, `filter`, and `scan` results, list-side `collect` reuse, and list-side `run` terminal behavior returning `none`. Validated by `tests/unit/test_flow_seq_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/flow_seq_behavior.genia`. This is selected native coverage only and does not change Flow, Seq, assertion, or native-test semantics.
 
 A runnable native-test example file is now available for the R3 validated-pipeline surface. The example is `examples/r3_validated_pipeline_native_tests.genia`, validated by `tests/unit/test_r3_validated_pipeline_native_test_examples.py` (1 test, Python reference host only). It covers Outcome-boundary preservation through `validate_each` (upstream `some(...)`, `none(...)`, and `err(...)` items pass through without invoking the validator), direct `validate_each(...) |> collect_validated(...)` composition, and a JSONL-style pipeline demonstrating clean/diagnostic observability. The example uses existing `test(name, body)` native-test authoring, existing validation helpers, and existing Outcome semantics only. This is selected native coverage only; it does not imply complete validated-pipeline coverage, advanced Flow behavior beyond what is already stated above, or new language/runtime/CLI/lifecycle behavior.
 
