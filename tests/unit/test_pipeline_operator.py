@@ -219,6 +219,14 @@ def test_pipeline_lifts_some_before_non_option_stage(run):
     assert run('unwrap_or(-1, some("42") |> parse_int)') == 42
 
 
+def test_pipeline_tail_position_host_backed_group_call_returns_normally(run):
+    src = """
+    drain(xs) = xs |> run
+    none?(drain([1, 2, 3]))
+    """
+    assert run(src) is True
+
+
 def test_pipeline_explicit_bridge_error_reports_mode_and_stage(run):
     with pytest.raises(
         TypeError,

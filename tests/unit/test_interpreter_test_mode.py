@@ -76,6 +76,35 @@ def test_test_mode_reports_failing_assertions_as_failures_and_continues(tmp_path
     assert captured.err == ""
 
 
+def test_test_mode_assert_eq_compares_none_values(tmp_path, capsys):
+    program = tmp_path / "none_assertions.genia"
+    program.write_text(
+        "\n".join(
+            [
+                'test("assert eq none passes", () -> assert_eq(none("same"), none("same")))',
+                'test("assert eq none fails", () -> assert_eq(none("actual"), none("expected")))',
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    exit_code = _main(["--test", str(program)])
+
+    captured = capsys.readouterr()
+    lines = captured.out.splitlines()
+    assert exit_code == 1
+    assert lines[0] == "total=2 passed=1 failed=1 errored=0"
+    assert lines[1] == "PASS assert eq none passes"
+    assert lines[2].startswith(
+        "FAIL assert eq none fails phase=evaluation reason=assert_eq failed"
+    )
+    assert "expected=none(\"expected\")" in lines[2]
+    assert "actual=none(\"actual\")" in lines[2]
+    assert lines[3] == "total=2 passed=1 failed=1 errored=0"
+    assert captured.err == ""
+
+
 def test_test_subcommand_reports_failing_assertions_as_failures_and_continues(
     tmp_path,
     capsys,

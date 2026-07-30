@@ -530,6 +530,10 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional
             return True
         candidate = fn.get(arity)
         if candidate is not None:
+            if getattr(candidate, "__genia_handles_none__", False):
+                return True
+            if not isinstance(candidate, GeniaFunction):
+                return False
             return _function_explicitly_handles_none(candidate)
         matches = [
             current
@@ -566,6 +570,10 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
             return True
         candidate = fn.get(arity)
         if candidate is not None:
+            if getattr(candidate, "__genia_handles_some__", False):
+                return True
+            if not isinstance(candidate, GeniaFunction):
+                return False
             return _function_explicitly_handles_some(candidate)
         matches = [
             current
@@ -746,7 +754,7 @@ def invoke_callable(
             available = ", ".join(f"{callee}/{n}" for n in fn.sorted_arities())
             raise TypeError(f"No matching function: {callee}/{arity}. Available: {available}")
 
-        if tail_position:
+        if isinstance(target, GeniaFunction) and tail_position:
             return TailCall(target, tuple(args))
         return _normalize_absence(target(*args))
 

@@ -1,0 +1,44 @@
+@test "flow map transforms visible values"
+flow_map_transforms_visible_values() = {
+  result = ["alpha", "beta", "gamma"]
+    |> lines
+    |> map((row) -> concat(row, "!"))
+    |> collect
+
+  assert_eq(result, ["alpha!", "beta!", "gamma!"])
+}
+
+@test "flow filter preserves matching values in order"
+flow_filter_preserves_matching_values_in_order() = {
+  result = ["ok", "error one", "warn", "error two"]
+    |> lines
+    |> filter((row) -> contains(row, "error"))
+    |> collect
+
+  assert_eq(result, ["error one", "error two"])
+}
+
+@test "flow scan emits accumulated values"
+flow_scan_emits_accumulated_values() = {
+  result = evolve(1, (n) -> n + 1)
+    |> take(3)
+    |> scan((state, item) -> [state + item, state + item], 0)
+    |> collect
+
+  assert_eq(result, [1, 3, 6])
+}
+
+@test "list collect returns reusable list values"
+list_collect_returns_reusable_list_values() = {
+  source = [1, 2, 3]
+  collected = source |> collect
+
+  assert_eq(collected, [1, 2, 3])
+  assert_eq([collected |> count, source |> count], [3, 3])
+}
+
+@test "list run traverses and returns none"
+list_run_traverses_and_returns_none() = {
+  result = [1, 2, 3] |> run
+  assert_eq(result, none)
+}

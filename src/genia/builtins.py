@@ -525,6 +525,9 @@ def make_global_env(
             raise NativeTestFailure("assert_eq failed", expected=expected, actual=actual)
         return OPTION_NONE
 
+    assert_true_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    assert_eq_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
     def format_constructor(*args: Any) -> GeniaFormat:
         if len(args) not in (1, 2):
             raise TypeError(f"Format expected 1 or 2 args, got {len(args)}")
@@ -2440,6 +2443,10 @@ def make_global_env(
             self.docstring = None
             self.arity = arity
             self._fn = fn
+            if getattr(fn, "__genia_handles_none__", False):
+                self.__genia_handles_none__ = True
+            if getattr(fn, "__genia_handles_some__", False):
+                self.__genia_handles_some__ = True
 
         def __call__(self, *args: Any) -> Any:
             return self._fn(*args)
