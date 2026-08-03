@@ -419,6 +419,7 @@ Test suite note:
 - `tests/cases/` holds reusable black-box language-semantic cases
 - pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
 - `tests/native/outcome_rendering.genia` provides selected Genia-native coverage for current Outcome constructor, representation, predicate, and structured absence inspection behavior through `genia test` (Python reference host only)
+- `tests/native/sheet_helper_behavior.genia` provides selected Genia-native coverage for current Sheet helper behavior through `genia test` (Python reference host only)
 
 ## Documentation
 
