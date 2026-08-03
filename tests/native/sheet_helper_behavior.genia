@@ -1,0 +1,75 @@
+@test "sheet shape columns and rows are deterministic"
+sheet_shape_columns_and_rows_are_deterministic() = {
+  people = sheet([
+    [quote(name), ["Ann", "Bob", "Cara"]],
+    [quote(age), [30, 22, 41]]
+  ])
+
+  assert_eq(shape(people), [[quote(rows), 3], [quote(columns), 2]])
+  assert_eq(columns(people), [quote(name), quote(age)])
+  assert_eq(rows(people), [
+    [[quote(name), "Ann"], [quote(age), 30]],
+    [[quote(name), "Bob"], [quote(age), 22]],
+    [[quote(name), "Cara"], [quote(age), 41]]
+  ])
+}
+
+@test "empty sheet has zero shape columns and rows"
+empty_sheet_has_zero_shape_columns_and_rows() = {
+  empty = sheet([])
+  selected = empty |> select([])
+
+  assert_eq(shape(empty), [[quote(rows), 0], [quote(columns), 0]])
+  assert_eq(columns(empty), [])
+  assert_eq(rows(empty), [])
+  assert_eq(shape(selected), [[quote(rows), 0], [quote(columns), 0]])
+}
+
+@test "sheet select reorders columns and preserves original"
+sheet_select_reorders_columns_and_preserves_original() = {
+  people = sheet([
+    [quote(name), ["Ann", "Bob"]],
+    [quote(age), [30, 22]],
+    [quote(city), ["Provo", "Ogden"]]
+  ])
+  selected = people |> select([quote(age), quote(name)])
+
+  assert_eq(columns(selected), [quote(age), quote(name)])
+  assert_eq(rows(selected), [
+    [[quote(age), 30], [quote(name), "Ann"]],
+    [[quote(age), 22], [quote(name), "Bob"]]
+  ])
+  assert_eq(shape(people), [[quote(rows), 2], [quote(columns), 3]])
+}
+
+@test "sheet where filters rows and preserves original"
+sheet_where_filters_rows_and_preserves_original() = {
+  people = sheet([
+    [quote(name), ["Ann", "Bob"]],
+    [quote(age), [30, 22]]
+  ])
+  kept = people |> where((row) -> true)
+  dropped = people |> where((row) -> false)
+
+  assert_eq(rows(kept), [
+    [[quote(name), "Ann"], [quote(age), 30]],
+    [[quote(name), "Bob"], [quote(age), 22]]
+  ])
+  assert_eq(shape(dropped), [[quote(rows), 0], [quote(columns), 2]])
+  assert_eq(shape(people), [[quote(rows), 2], [quote(columns), 2]])
+}
+
+@test "sheet derive appends outcome cells and preserves original"
+sheet_derive_appends_outcome_cells_and_preserves_original() = {
+  people = sheet([
+    [quote(name), ["Ann", "Bob"]],
+    [quote(age), [30, 22]]
+  ])
+  derived = people |> derive(quote(status), (row) -> some("ok"))
+
+  assert_eq(rows(derived), [
+    [[quote(name), "Ann"], [quote(age), 30], [quote(status), some("ok")]],
+    [[quote(name), "Bob"], [quote(age), 22], [quote(status), some("ok")]]
+  ])
+  assert_eq(shape(people), [[quote(rows), 2], [quote(columns), 2]])
+}
