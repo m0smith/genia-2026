@@ -344,6 +344,47 @@ Agent guidance for R7:
 
 ---
 
+## Release R8 — Server Execution Mode
+
+**Status: Planned.** Promoted from the parking lot as **explicitly approved infrastructure work**, staged **after R7** and **depending on it**. R4 explicitly excluded server-mode implementation; this schedules it deliberately. It does **not** strengthen the validated-data-pipeline killer workflow and **must not displace R5 or R6**. Design capture: `docs/parking-lot/server-execution-mode.md`.
+
+Theme:
+
+> A `serve` execution mode as the second consumer of the R4 lifecycle model.
+
+Context:
+
+- R4 delivered the lifecycle model + annotation binding model and named the **test lifecycle as the first consumer**. R8 adds the intended **second consumer: a server / request lifecycle** activated by a dedicated serve execution mode.
+- This makes annotation-driven web config legitimate under the R4 rule that *annotations do not execute merely because they exist*: `@cors` / `@route` are inert descriptors the serve mode's lifecycle activates, exactly as `@test` is inert until `genia test` runs the test lifecycle.
+
+Candidate scope (cut tracking issues before starting):
+
+- a `serve` execution mode (`genia serve <file>`) alongside file / `-c` / `-p` / `test` modes
+- a server lifecycle plan reusing the R4 contract — phases: startup (config + data + bind), per-request (route → handler → response, CORS applied here), shutdown (deterministic cleanup)
+- inert annotations activated only by serve mode: `@server(...)` (config), `@route(method, path)` (handler discovery, same shape as `@test` discovery), `@cors(...)` (request-lifecycle cross-cutting)
+- **bind-down principle:** annotations are sugar over existing primitives — `@route` → `route_request`, `@cors` → the R7 `cors` wrapper, `@server` → `serve_http`. No second mechanism (Core Surface Freeze).
+
+Excludes:
+
+- a general application framework, plugin system, or DI container
+- any annotation that executes outside a lifecycle (must stay consistent with R4)
+- new language semantics or Core IR changes — serve mode is a host/runtime execution mode
+- displacing R5 (native-test migration) or R6 (data-workflow hardening)
+- documenting any of the above as implemented before it ships — `GENIA_STATE.md` remains authoritative
+
+Exit criteria:
+
+- `genia serve <file>` runs an annotation-declared REST service whose handlers never mention CORS, with preflight handled by the server lifecycle.
+- The serve mode consumes the R4 lifecycle contract as its second implemented consumer; annotations remain inert descriptors bound by the lifecycle, not self-executing.
+- R7 primitives are the sole mechanism the annotations bind to; no killer-workflow (R5/R6) work was displaced.
+
+Agent guidance for R8:
+
+- R8 depends on R7 and is infrastructure, not killer-workflow. Do not start R8 before R7 lands or ahead of R5/R6 unless the user explicitly reprioritizes.
+- Keep annotations inert and lifecycle-activated; do not introduce a self-executing annotation mechanism.
+
+---
+
 ## Parking Lot / Later
 
 These are valuable, but not part of the near roadmap unless explicitly promoted:
@@ -362,7 +403,7 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - do not create implementation tickets until helper-based validation proves insufficient
 - multi-host implementation beyond contract scaffolding
 - server mode
-  - **Promoted to R7 (Web Serving Ergonomics)** — the concrete `web`-prelude ergonomics gaps (CORS preflight, `cors()` helper, path params, optional concurrency) are now scheduled there as approved infrastructure work. Idea capture: `docs/parking-lot/web-backend-cfm-app.md`. Broader "server mode" beyond those ergonomics remains parked.
+  - **Web ergonomics promoted to R7**, and the **serve execution mode promoted to R8** (Server Execution Mode — the second R4 lifecycle consumer, `@server`/`@route`/`@cors` bound to R7 primitives). Idea capture: `docs/parking-lot/web-backend-cfm-app.md` (R7) and `docs/parking-lot/server-execution-mode.md` (R8). Anything beyond those two remains parked.
 - notebook mode
 - parallel native test execution
 - **#399** — future design work; not R5 or near-term; belongs in parking lot until scope is defined

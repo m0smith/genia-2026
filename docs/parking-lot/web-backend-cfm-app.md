@@ -74,6 +74,7 @@ for the authoritative surface. This note does not redefine them.
 - `docs/host-interop/capabilities.md` — host capability registry (candidate home if stabilized)
 - `docs/strategy/release-roadmap.md` — "server mode" parking-lot entry
 - `examples/rest_todo_service.genia` — existing REST example used as the spike skeleton
+- `docs/parking-lot/server-execution-mode.md` — R8 follow-on: a `serve` execution mode + `@server`/`@route`/`@cors` annotations that bind down to the R7 primitives defined here
 
 ## Promotion status
 
