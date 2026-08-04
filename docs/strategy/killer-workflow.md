@@ -86,9 +86,13 @@ R3 delivered `@test "description"` annotation-driven native test discovery, nati
 R3 is complete.
 
 **R4** extracts the proven test lifecycle shape into a portable lifecycle contract.
-R4 is the active release focus. It is not more data-pipeline hardening (that belongs to R6) and not actors, servers, or plugins (those are parking lot).
+R4 is complete.
+
+**R5** moves appropriate Genia-facing tests into Genia-native tests.
+R5 is complete.
 
 **R6** hardens the data workflow with CSV, Sheets, report output, and richer diagnostics.
+R6 is the active release focus. It is not actors, servers, or plugins (those are parking lot).
 
 ## Using This Document
 
