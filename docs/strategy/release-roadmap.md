@@ -189,9 +189,9 @@ Exit criteria:
 
 ---
 
-## Release R5 — Native Test Migration / Genia-Facing Coverage Wave 1
+## Release R5 — Native Test Migration / Genia-Facing Coverage Wave 1 ✓ COMPLETE
 
-**Status: Active release focus.**
+**Status: Complete.** All ten R5 issues (#509-#518) are closed and the final truth audit (#518) passed with full regression green.
 
 Theme:
 
@@ -258,11 +258,17 @@ Agent guidance for R5:
 
 ## Release R6 — Data Workflow Hardening
 
+**Status: Active release focus.**
+
 Theme:
 
 > Make validated pipelines feel production-useful.
 
 This release picks up the data-workflow items deferred from R1. These items were deferred because R1 proved the core model; they are not required for that proof and belong to production-quality polish.
+
+Current R6 issue set:
+
+- **#543** — roadmap/R6 active-release alignment
 
 Deferred R1 items now targeting R6:
 
@@ -299,6 +305,15 @@ Excludes by default:
 - browser-native runtime
 - full static type system
 - broad value-template implementation
+
+Agent guidance for R6:
+
+- Current release focus is R6. When asked for new Genia work with no release specified, classify the work against R6 first.
+- If the work is data-workflow hardening from the deferred-item set above (#390, #393, #394, #395, #396, #363, #364, #405) or a "possible additional includes" item explicitly approved by the user, proceed through the normal phase pipeline.
+- #394 stays conditional/deferred until a concrete need is proven; do not start it speculatively.
+- #396, #363, and #364 depend on #395 (Sheet landing zone); schedule after #395 lands.
+- Do not create tickets for "possible additional includes" or "deferred candidates" items without explicit user approval — they are brainstorm/parking-lot scope, not approved tickets.
+- R6 is not a bucket for actors, browser-native runtime, a full static type system, or broad value-template implementation; those stay parked unless explicitly promoted.
 
 ---
 
