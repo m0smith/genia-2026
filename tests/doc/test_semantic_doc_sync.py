@@ -395,6 +395,32 @@ def test_host_status_docs_stay_clear(relpath: str, expected_excerpt: str) -> Non
     assert normalize(expected_excerpt) in normalize(read_text(relpath))
 
 
+def test_readme_documents_native_test_pytest_shared_spec_boundary() -> None:
+    text = normalize(read_text("README.md"))
+
+    required = [
+        "native tests complement pytest and shared semantic specs",
+        "do not replace pytest or shared semantic specs",
+        "experimental",
+        "python reference host only",
+        "genia-facing behavior",
+        "expressed and verified in genia source",
+        "parser",
+        "core ir",
+        "host adapter",
+        "cli harness",
+        "spec runner",
+        "native-test stack internals",
+        "shared semantic specs remain authoritative",
+        "portable observable behavior",
+    ]
+    for excerpt in required:
+        assert normalize(excerpt) in text, (
+            "README.md must preserve native-test / pytest / shared-spec "
+            f"boundary wording: {excerpt!r}"
+        )
+
+
 def test_browser_and_playground_docs_stay_scaffolded() -> None:
     browser = read_text("docs/browser/README.md")
     playground = read_text("apps/playground/README.md")
