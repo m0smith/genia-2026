@@ -1,0 +1,68 @@
+# --------------------------------------------------------------------------
+# Tic-Tac-Toe — Native Test Coverage
+# --------------------------------------------------------------------------
+#
+# Native-test companion for `tic-tac-toe.genia`. It imports that example and
+# asserts its pure board/move logic directly, without driving the
+# `input()`-based interactive game loop.
+#
+# Run:
+#   genia test examples/tic_tac_toe_native_tests.genia
+#
+# Features demonstrated:
+#   * importing another example module and calling its exported functions
+#   * @test-annotated zero-argument native test functions
+#   * asserting pure pattern-matching and pipeline logic in isolation
+# --------------------------------------------------------------------------
+
+import tic-tac-toe
+
+@test "winner detects row, column, and diagonal wins"
+winner_detects_row_column_and_diagonal_wins() = {
+  row = ["X", "X", "X", "_", "_", "_", "_", "_", "_"]
+  column = ["O", "_", "_", "O", "_", "_", "O", "_", "_"]
+  diagonal = ["X", "_", "_", "_", "X", "_", "_", "_", "X"]
+
+  assert_eq(tic-tac-toe.winner(row), "X")
+  assert_eq(tic-tac-toe.winner(column), "O")
+  assert_eq(tic-tac-toe.winner(diagonal), "X")
+}
+
+@test "winner reports no winner on an open board"
+winner_reports_no_winner_on_open_board() = {
+  open = ["X", "O", "X", "_", "_", "_", "_", "_", "_"]
+  assert_eq(tic-tac-toe.winner(open), "_")
+}
+
+@test "isLegalMove checks target square state"
+is_legal_move_checks_target_square_state() = {
+  board = ["X", "_", "O", "_", "_", "_", "_", "_", "_"]
+
+  assert_eq(tic-tac-toe.isLegalMove(board, "1"), true)
+  assert_eq(tic-tac-toe.isLegalMove(board, "0"), false)
+  assert_true(tic-tac-toe.isLegalMove(board, "9") != true)
+  assert_true(tic-tac-toe.isLegalMove(board, "nope") != true)
+}
+
+@test "setAt replaces only the targeted index"
+set_at_replaces_only_the_targeted_index() = {
+  board = tic-tac-toe.newBoard()
+  updated = tic-tac-toe.setAt(board, 4, "X")
+
+  assert_eq(updated, ["_", "_", "_", "_", "X", "_", "_", "_", "_"])
+}
+
+@test "containsEmpty? reports whether open squares remain"
+contains_empty_reports_whether_open_squares_remain() = {
+  partial = ["X", "O", "X", "O", "_", "X", "O", "X", "O"]
+  full = ["X", "O", "X", "O", "X", "X", "O", "X", "O"]
+
+  assert_eq(tic-tac-toe.containsEmpty?(partial), true)
+  assert_eq(tic-tac-toe.containsEmpty?(full), false)
+}
+
+@test "nextPlayer alternates the marker"
+next_player_alternates_marker() = {
+  assert_eq(tic-tac-toe.nextPlayer("X"), "O")
+  assert_eq(tic-tac-toe.nextPlayer("O"), "X")
+}
