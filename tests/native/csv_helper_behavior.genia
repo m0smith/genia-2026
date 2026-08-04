@@ -1,0 +1,83 @@
+describe_csv_fields(result) =
+  some(fields, ctx) -> [fields, ctx.kind, ctx.status, ctx.reason, ctx.line, ctx.field_count] |
+  _ -> [quote(unexpected)]
+
+describe_csv_record(result) =
+  some(record, ctx) -> [record.name, record.age, ctx.kind, ctx.status, ctx.reason, ctx.line, ctx.field_count, ctx.header_count] |
+  _ -> [quote(unexpected)]
+
+describe_csv_blank(result) =
+  none(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+  _ -> [quote(unexpected)]
+
+describe_csv_error(result) =
+  err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+  _ -> [quote(unexpected)]
+
+csv_context_line(result) =
+  some(_, ctx) -> ctx.line |
+  none(_, ctx) -> ctx.line |
+  err(_, ctx) -> ctx.line
+
+@test "valid CSV row returns fields with original line context"
+valid_csv_row_returns_fields_with_context() = {
+  line = "Ada,37"
+
+  assert_eq(
+    describe_csv_fields(parse_csv_row(line)),
+    [["Ada", "37"], quote(csv_row), quote(parsed), quote(parsed), line, 2]
+  )
+}
+
+@test "quoted CSV row handles commas and doubled quotes"
+quoted_csv_row_handles_commas_and_doubled_quotes() = {
+  line = "\"Ada, Lovelace\",\"said \"\"hi\"\"\","
+
+  assert_eq(
+    describe_csv_fields(parse_csv_row(line)),
+    [["Ada, Lovelace", "said \"hi\"", ""], quote(csv_row), quote(parsed), quote(parsed), line, 3]
+  )
+}
+
+@test "headers map parsed CSV fields positionally"
+headers_map_parsed_csv_fields_positionally() = {
+  line = "Ada,37"
+
+  assert_eq(
+    describe_csv_record(parse_csv_row(["name", "age"], line)),
+    ["Ada", "37", quote(csv_row), quote(parsed), quote(parsed), line, 2, 2]
+  )
+}
+
+@test "blank CSV row returns absence with original line context"
+blank_csv_row_returns_absence_with_context() = {
+  line = "   "
+
+  assert_eq(
+    describe_csv_blank(parse_csv_row(line)),
+    ["blank_line", quote(csv_row), quote(skipped), quote(blank_line), line]
+  )
+}
+
+@test "malformed CSV row returns recoverable failure with original line context"
+malformed_csv_row_returns_recoverable_failure_with_context() = {
+  line = "\"unterminated"
+
+  assert_eq(
+    describe_csv_error(parse_csv_row(line)),
+    [quote(invalid_csv_row), quote(csv_row), quote(error), quote(invalid_csv_row), line]
+  )
+}
+
+@test "all CSV outcomes preserve exact original line context"
+all_csv_outcomes_preserve_exact_original_line_context() = {
+  valid_line = " Ada ,37"
+  blank_line = "   "
+  malformed_line = "\"unterminated"
+  mismatch_line = "Ada,37,extra"
+
+  assert_eq(csv_context_line(parse_csv_row(valid_line)), valid_line)
+  assert_eq(csv_context_line(parse_csv_row(blank_line)), blank_line)
+  assert_eq(csv_context_line(parse_csv_row(malformed_line)), malformed_line)
+  assert_eq(csv_context_line(parse_csv_row(["name", "age"], mismatch_line)), mismatch_line)
+}

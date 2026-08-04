@@ -1,0 +1,15 @@
+name: parse-csv-row-non-string-line-error
+category: error
+description: parse_csv_row treats non-string line input as runtime API misuse
+input:
+  source: |
+    parse_csv_row(42)
+expected:
+  stdout: ""
+  stderr: "Error: parse_csv_row expected line to be string, received int\n"
+  exit_code: 1
+notes: |
+  issue: 390
+  error_phase: eval
+  error_category: TypeError
+  contract: non-string line input is programmer misuse, not recoverable row data failure.

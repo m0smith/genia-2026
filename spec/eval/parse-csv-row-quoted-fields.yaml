@@ -1,0 +1,17 @@
+name: parse-csv-row-quoted-fields
+category: eval
+description: parse_csv_row supports quoted fields with commas and doubled quotes
+input:
+  source: |
+    describe(result) =
+      some(fields, ctx) -> [fields, ctx.field_count, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("\"Ada, Lovelace\",\"said \"\"hi\"\"\","))
+expected:
+  stdout: "[[\"Ada, Lovelace\", \"said \\\"hi\\\"\", \"\"], 3, \"\\\"Ada, Lovelace\\\",\\\"said \\\"\\\"hi\\\"\\\"\\\",\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: quoted comma, doubled quote, and trailing empty field are supported.
