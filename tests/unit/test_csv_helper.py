@@ -1,7 +1,6 @@
 import pytest
 
 from genia import make_global_env, run_source
-from genia.utf8 import format_debug
 
 
 def _run(src: str):

@@ -13,6 +13,17 @@ Returns `err(reason, context)` for malformed JSON or non-object JSON values.
 """
 parse_jsonl_record(line) = _parse_jsonl_record(line)
 
+@doc """Parse one CSV row into an Outcome.
+
+Returns `some(fields, context)` for a valid row.
+Returns `some(record, context)` when headers are provided.
+Returns `none("blank_line", context)` for blank lines.
+Returns `err(reason, context)` for malformed rows or header mismatches.
+"""
+parse_csv_row(line) = _parse_csv_row(line)
+
+parse_csv_row(headers, line) = _parse_csv_row(headers, line)
+
 @doc """Render a Genia value as deterministic pretty JSON.
 
 Object keys are sorted and output uses 2-space indentation.
