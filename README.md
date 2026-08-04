@@ -417,7 +417,11 @@ pytest -q
 Test suite note:
 
 - `tests/cases/` holds reusable black-box language-semantic cases
-- pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host
+- native tests complement pytest and shared semantic specs; they do not replace pytest or shared semantic specs
+- native test support is Experimental and Python reference host only in this phase
+- Genia-native tests belong to Genia-facing behavior that can be expressed and verified in Genia source, such as Outcome helpers, validation helpers, visible Flow/Seq behavior, implemented Sheet helper behavior, and user-facing examples
+- pytest files keep host/runtime-substrate coverage that is still specific to the Python reference host, including parser, lexer, AST, Core IR, host adapter, CLI harness, spec runner, native-test stack internals, and Python-specific normalization or exception behavior
+- shared semantic specs remain authoritative for covered portable observable behavior across eval, CLI, flow, error, parse, and IR; native tests may complement that coverage but must not replace it
 - `tests/native/outcome_rendering.genia` provides selected Genia-native coverage for current Outcome constructor, representation, predicate, and structured absence inspection behavior through `genia test` (Python reference host only)
 - `tests/native/sheet_helper_behavior.genia` provides selected Genia-native coverage for current Sheet helper behavior through `genia test` (Python reference host only)
 
