@@ -129,9 +129,11 @@ Examples should cover a range of Genia surface area:
 | Category | Examples |
 |---|---|
 | Core language | `sum-5th.genia` (pipelines, stdin) |
-| Simulation / game | `ants.genia`, `ants_terminal.genia`, `tic-tac-toe.genia` |
+| Simulation / game | `ants.genia`, `ants_actor.genia`, `ants_terminal.genia`, `ants_web.genia`, `tic-tac-toe.genia` |
 | Web / REST | `http_service.genia`, `rest_*.genia` |
 | Puzzle / data | `zip_json_puzzle.genia` |
+| Validated data pipeline | `validated_pipeline_demo.genia` |
+| Native test coverage | `r3_validated_pipeline_native_tests.genia`, `tic_tac_toe_native_tests.genia` |
 
 When adding a new example, pick the category it belongs to and ensure it teaches something not already covered.
 
@@ -154,7 +156,7 @@ Companion docs should include:
 - every example must be parseable by the current interpreter
 - examples with a `main` entry point should be runnable without error
 - the test suite under `tests/` may include tests that exercise examples; keep examples and tests synchronized
-- run `uv run pytest tests/test_examples.py` to verify
+- run `uv run pytest tests/unit/test_examples.py` to verify
 
 ---
 

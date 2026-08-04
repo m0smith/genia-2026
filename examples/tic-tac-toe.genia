@@ -146,7 +146,8 @@ Check whether a requested move targets an empty square.
 
 ## Returns
 - true when the move is valid and the target square is empty
-- false otherwise (occupied, out of range, or unparseable)
+- a non-true value otherwise; occupied moves return false, while out-of-range or unparseable moves
+  propagate absence through the pipeline
 """
 isLegalMove(board, move) = (
   moveSquare(board, move)
