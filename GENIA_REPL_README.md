@@ -241,6 +241,7 @@ CLI contract summary (actual behavior):
     - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
     - public JSON wrappers: `json_parse`, `json_stringify`, `json_pretty`
     - public JSONL record helper: `parse_jsonl_record` (**Experimental**)
+    - public CSV row helper: `parse_csv_row` (**Experimental**)
     - `zip_entries`, `zip_write`
     - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
   - Python-host-only HTTP serving bridge builtins (phase 1):
@@ -820,6 +821,17 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
   - malformed JSON → `err(quote(invalid_jsonl_record), context)` with `status: quote(error)`, `message: "..."`, `line: <original_line>`, `column: <col>` (1-based column position from JSON parse error)
   - valid JSON that is not an object → `err(quote(jsonl_record_not_object), context)` with `status: quote(error)`, `value_type: <type_symbol>` (one of `list`, `string`, `number`, `bool`, `null`), `line: <original_line>`
   - non-string input is a runtime/type misuse error
+  - does not change `json_parse` behavior; additive helper only
+- `parse_csv_row(line)` and `parse_csv_row(headers, line)` (**Experimental**) parse one CSV row string into an Outcome for record-oriented pipelines:
+  - supported row subset: comma delimiter, double-quote quoting, quoted commas, doubled quotes inside quoted fields, empty fields, no automatic trimming
+  - unsupported: multiline quoted fields, alternate delimiters/quote characters, escape options, comments, dialect options, automatic type inference, file-level CSV reading, and Sheet conversion
+  - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
+  - `parse_csv_row(line)` valid non-blank row → `some(fields, context)` with `kind: quote(csv_row)`, `status: quote(parsed)`, `reason: quote(parsed)`, `field_count: <n>`, where `fields` is a list of strings
+  - `parse_csv_row(headers, line)` valid non-blank row → `some(record, context)` with the same status/reason plus `header_count: <n>`, where `record` maps each header string to the parsed field string at the same position
+  - blank or whitespace-only line → `none("blank_line", context)` with `status: quote(skipped)`, `reason: quote(blank_line)`
+  - malformed row data (unterminated quote, quote in an unquoted field, data after a closing quote, or an embedded newline/carriage return) → `err(quote(invalid_csv_row), context)` with `status: quote(error)`, `message: "..."`
+  - header/field count mismatch → `err(quote(csv_header_mismatch), context)` with `status: quote(error)`, `field_count: <n>`, `header_count: <n>`
+  - non-string line, non-list headers, non-string header items, empty header names, and duplicate header names are runtime/type misuse errors, not recoverable Outcomes
   - does not change `json_parse` behavior; additive helper only
 - `zip_entries(path)` returns an eager list of zip entry wrapper values in archive order.
 - `zip_write(entries, path)` writes entries in order and returns `path`.
