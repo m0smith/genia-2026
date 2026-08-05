@@ -15,6 +15,14 @@ Implemented behavior remains defined by:
 
 This roadmap exists to help LLM agents and maintainers keep planning, issue creation, and release sequencing aligned with the current product direction.
 
+## Release Examples
+
+Every release listed below (R1 onward) must have a published `docs/releases/<Rn>.md`
+page with one or more small, runnable examples for that release's headline
+behavior — see `docs/releases/README.md`. This is maintained during the doc
+phase of each change (`docs/process/05-doc.md` step 6a), not retrofitted at
+release close. A release is not "done" (✓ COMPLETE) until its page exists.
+
 ## Product North Star
 
 Genia's first killer workflow is:
@@ -314,6 +322,7 @@ Agent guidance for R6:
 - #396, #363, and #364 depend on #395 (Sheet landing zone); schedule after #395 lands.
 - Do not create tickets for "possible additional includes" or "deferred candidates" items without explicit user approval — they are brainstorm/parking-lot scope, not approved tickets.
 - R6 is not a bucket for actors, browser-native runtime, a full static type system, or broad value-template implementation; those stay parked unless explicitly promoted.
+- `docs/releases/R6.md` must gain a runnable example for each landed R6 issue that adds user-facing behavior (see Release Examples above); update it in the same doc phase, not as a separate follow-up.
 
 ---
 

@@ -33,6 +33,15 @@ nav:
   - Style:
       - "@doc Style Guide": style/doc-style.md
 
+  - Releases:
+      - Overview: releases/README.md
+      - "R1 — Killer Workflow Foundation": releases/R1.md
+      - "R2 — Native Test Kernel": releases/R2.md
+      - "R3 — Native Test Expansion Wave 1": releases/R3.md
+      - "R4 — Lifecycle Generalization": releases/R4.md
+      - "R5 — Native Test Migration": releases/R5.md
+      - "R6 — Data Workflow Hardening": releases/R6.md
+
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
       - Representation System and Format: design/representation-system-and-format.md
