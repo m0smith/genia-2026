@@ -1,0 +1,38 @@
+name: parse-csv-row-pipeline-shape
+category: eval
+description: parse_csv_row composes with validate_each and collect_validated as row Outcomes
+input:
+  source: |
+    result = collect_validated(
+      validate_each(
+        [
+          parse_csv_row(["name", "age"], "Ada,37"),
+          parse_csv_row(["name", "age"], "   "),
+          parse_csv_row(["name", "age"], "\"unterminated")
+        ],
+        (record) -> some(record)
+      )
+    )
+
+    first = unwrap_or({}, result.clean |> nth(0))
+    skipped = unwrap_or({}, result.diagnostics |> nth(0))
+    failed = unwrap_or({}, result.diagnostics |> nth(1))
+    skipped_ctx = unwrap_or({}, skipped.context)
+    failed_ctx = unwrap_or({}, failed.context)
+    [
+      first.name,
+      first.age,
+      display(skipped.kind),
+      display(skipped.reason),
+      skipped_ctx.line,
+      display(failed.kind),
+      display(failed.reason),
+      failed_ctx.line
+    ]
+expected:
+  stdout: "[\"Ada\", \"37\", \"skipped\", \"blank_line\", \"   \", \"error\", \"invalid_csv_row\", \"\\\"unterminated\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: CSV row Outcomes compose with existing validation and collection helpers without changing those helpers.

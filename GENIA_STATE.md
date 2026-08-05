@@ -2022,12 +2022,14 @@ Pattern matching note:
 
 - `utf8_decode(bytes) -> string`
 - `utf8_encode(string) -> bytes`
-- internal JSON bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`, `_parse_jsonl_record(line) -> some(record, context)|none("blank_line", context)|err(reason, context)`
+- internal JSON/CSV bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`, `_parse_jsonl_record(line) -> some(record, context)|none("blank_line", context)|err(reason, context)`, `_parse_csv_row(line) -> some(fields, context)|none("blank_line", context)|err(reason, context)`, `_parse_csv_row(headers, line) -> some(record, context)|none("blank_line", context)|err(reason, context)`
 - public JSON helpers from `src/genia/std/prelude/json.genia`:
   - `json_parse(string) -> value | none("json-parse-error", context)`
   - `json_stringify(value) -> string | none("json-stringify-error", context)`
   - `json_pretty(value) -> string | none(...)` (compatibility alias)
   - `parse_jsonl_record(line) -> some(parsed_record, context) | none("blank_line", context) | err(reason, context)` (**Experimental**)
+  - `parse_csv_row(line) -> some(fields, context) | none("blank_line", context) | err(reason, context)` (**Experimental**)
+  - `parse_csv_row(headers, line) -> some(record, context) | none("blank_line", context) | err(reason, context)` (**Experimental**)
 - internal file/zip bridge primitives: `_read_file(path)`, `_write_file(path, text)`, `_zip_read(path)`, `_zip_write(path, items)`
 - public file/zip helpers from `src/genia/std/prelude/file.genia`:
   - `read_file(path) -> string | none(...)`
@@ -2060,6 +2062,17 @@ Behavior:
   - non-string input is a runtime/type misuse error, not a recoverable Outcome
   - `parse_jsonl_record` does not change `json_parse` behavior; it is an additive helper
   - shared semantic spec coverage is active for this helper (see `spec/eval/parse-jsonl-record-*.yaml` and `spec/error/parse-jsonl-record-non-string-error.yaml`)
+- `parse_csv_row` (**Experimental**, issue #390) parses one CSV row string and returns an Outcome with stable context metadata:
+  - supported row subset: comma delimiter, double-quote quoting, quoted commas, doubled quotes inside quoted fields, empty fields, no automatic trimming
+  - unsupported: multiline quoted fields, alternate delimiters, alternate quote characters, escape options, comments, dialect options, automatic type inference, file-level CSV reading, and Sheet conversion
+  - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
+  - `parse_csv_row(line)` valid non-blank row: `some(fields, {kind: quote(csv_row), status: quote(parsed), reason: quote(parsed), line: <original_line>, field_count: <n>})` where `fields` is a list of strings
+  - `parse_csv_row(headers, line)` valid non-blank row: `some(record, {kind: quote(csv_row), status: quote(parsed), reason: quote(parsed), line: <original_line>, field_count: <n>, header_count: <n>})` where `headers` is a list of unique non-empty strings and `record` maps each header to the parsed field string at the same position
+  - blank or whitespace-only line: `none("blank_line", {kind: quote(csv_row), status: quote(skipped), reason: quote(blank_line), line: <original_line>})`
+  - malformed row data: `err(quote(invalid_csv_row), {kind: quote(csv_row), status: quote(error), reason: quote(invalid_csv_row), message: "...", line: <original_line>})`
+  - header/field count mismatch: `err(quote(csv_header_mismatch), {kind: quote(csv_row), status: quote(error), reason: quote(csv_header_mismatch), line: <original_line>, field_count: <field_count>, header_count: <header_count>})`
+  - non-string line input, non-list headers input, non-string header items, empty header names, and duplicate header names are runtime/type misuse errors, not recoverable Outcomes
+  - shared semantic spec coverage is active for this helper (see `spec/eval/parse-csv-row-*.yaml` and `spec/error/parse-csv-row-*.yaml`)
 - `zip_read` is lazy and returns Flow items shaped as `[filename, bytes]`
 - `zip_write` consumes a Flow (or list) of `[filename, bytes|string]` items
 - file/zip parse/write/read failures return structured `none(...)` metadata for the new prelude API surface

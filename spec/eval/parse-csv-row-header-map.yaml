@@ -1,0 +1,17 @@
+name: parse-csv-row-header-map
+category: eval
+description: parse_csv_row maps headers positionally for valid rows
+input:
+  source: |
+    describe(result) =
+      some(record, ctx) -> [record.name, record.age, ctx.kind, ctx.status, ctx.reason, ctx.line, ctx.field_count, ctx.header_count] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row(["name", "age"], "Ada,37"))
+expected:
+  stdout: "[\"Ada\", \"37\", csv_row, parsed, parsed, \"Ada,37\", 2, 2]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: two-arity helper maps header names to parsed field strings positionally.

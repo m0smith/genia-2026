@@ -1,0 +1,17 @@
+name: parse-csv-row-blank-line
+category: eval
+description: parse_csv_row returns none for blank or whitespace-only rows
+input:
+  source: |
+    describe(result) =
+      none(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    [describe(parse_csv_row("")), describe(parse_csv_row("   "))]
+expected:
+  stdout: "[[\"blank_line\", csv_row, skipped, blank_line, \"\"], [\"blank_line\", csv_row, skipped, blank_line, \"   \"]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: blank lines are recoverable skipped rows and preserve exact line context.

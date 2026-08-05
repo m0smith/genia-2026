@@ -1,0 +1,15 @@
+name: parse-csv-row-non-list-headers-error
+category: error
+description: parse_csv_row treats non-list headers as runtime API misuse
+input:
+  source: |
+    parse_csv_row("name,age", "Ada,37")
+expected:
+  stdout: ""
+  stderr: "Error: parse_csv_row expected headers to be a list, received string\n"
+  exit_code: 1
+notes: |
+  issue: 390
+  error_phase: eval
+  error_category: TypeError
+  contract: headers must be a list for parse_csv_row/2.

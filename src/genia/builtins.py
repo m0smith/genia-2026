@@ -2751,6 +2751,143 @@ def make_global_env(
             .put("line", line)
         )
 
+    def _csv_context(status: str, reason: str, line: str) -> GeniaMap:
+        return (
+            GeniaMap()
+            .put("kind", symbol("csv_row"))
+            .put("status", symbol(status))
+            .put("reason", symbol(reason))
+            .put("line", line)
+        )
+
+    def _parse_csv_fields(line: str) -> list[str] | str:
+        fields: list[str] = []
+        field: list[str] = []
+        in_quotes = False
+        after_quote = False
+        field_started_quoted = False
+
+        for ch in line:
+            if ch in "\r\n":
+                return "embedded newline in CSV row"
+
+            if in_quotes:
+                if ch == '"':
+                    in_quotes = False
+                    after_quote = True
+                else:
+                    field.append(ch)
+                continue
+
+            if after_quote:
+                if ch == '"':
+                    field.append('"')
+                    in_quotes = True
+                    after_quote = False
+                elif ch == ",":
+                    fields.append("".join(field))
+                    field = []
+                    after_quote = False
+                    field_started_quoted = False
+                else:
+                    return "unexpected character after closing quote"
+                continue
+
+            if ch == ",":
+                fields.append("".join(field))
+                field = []
+                field_started_quoted = False
+                continue
+
+            if ch == '"':
+                if field or field_started_quoted:
+                    return "quote in unquoted field"
+                in_quotes = True
+                field_started_quoted = True
+                continue
+
+            field.append(ch)
+
+        if in_quotes:
+            return "unterminated quoted field"
+
+        fields.append("".join(field))
+        return fields
+
+    def _csv_parsed_context(line: str, field_count: int, header_count: int | None = None) -> GeniaMap:
+        context = _csv_context("parsed", "parsed", line).put("field_count", field_count)
+        if header_count is not None:
+            context = context.put("header_count", header_count)
+        return context
+
+    def _csv_malformed(line: str, message: str) -> GeniaOptionErr:
+        context = _csv_context("error", "invalid_csv_row", line).put("message", message)
+        return GeniaOptionErr(symbol("invalid_csv_row"), context)
+
+    def _ensure_csv_line(value: Any) -> str:
+        if not isinstance(value, str):
+            raise TypeError(
+                f"parse_csv_row expected line to be string, received {_runtime_type_name(value)}"
+            )
+        return value
+
+    def _ensure_csv_headers(value: Any) -> list[str]:
+        if not isinstance(value, list):
+            raise TypeError(
+                f"parse_csv_row expected headers to be a list, received {_runtime_type_name(value)}"
+            )
+
+        headers: list[str] = []
+        seen: set[str] = set()
+        for index, header in enumerate(value):
+            if not isinstance(header, str):
+                raise TypeError(
+                    "parse_csv_row expected header at index "
+                    f"{index} to be string, received {_runtime_type_name(header)}"
+                )
+            if header == "":
+                raise ValueError(f"parse_csv_row expected header at index {index} to be non-empty")
+            if header in seen:
+                raise ValueError(f"parse_csv_row duplicate header: {header}")
+            seen.add(header)
+            headers.append(header)
+        return headers
+
+    def parse_csv_row_fn(*args: Any) -> Any:
+        if len(args) == 1:
+            line = _ensure_csv_line(args[0])
+            if line.strip() == "":
+                return make_none("blank_line", _csv_context("skipped", "blank_line", line))
+
+            parsed = _parse_csv_fields(line)
+            if isinstance(parsed, str):
+                return _csv_malformed(line, parsed)
+            return GeniaOptionSome(parsed, _csv_parsed_context(line, len(parsed)))
+
+        if len(args) == 2:
+            headers = _ensure_csv_headers(args[0])
+            line = _ensure_csv_line(args[1])
+            if line.strip() == "":
+                return make_none("blank_line", _csv_context("skipped", "blank_line", line))
+
+            parsed = _parse_csv_fields(line)
+            if isinstance(parsed, str):
+                return _csv_malformed(line, parsed)
+            if len(headers) != len(parsed):
+                context = (
+                    _csv_context("error", "csv_header_mismatch", line)
+                    .put("field_count", len(parsed))
+                    .put("header_count", len(headers))
+                )
+                return GeniaOptionErr(symbol("csv_header_mismatch"), context)
+
+            record = GeniaMap()
+            for header, field in zip(headers, parsed):
+                record = record.put(header, field)
+            return GeniaOptionSome(record, _csv_parsed_context(line, len(parsed), len(headers)))
+
+        raise TypeError(f"parse_csv_row expected 1 or 2 args, got {len(args)}")
+
     def _jsonl_value_type(value: Any) -> GeniaSymbol:
         if value is None:
             return symbol("null")
@@ -3521,6 +3658,7 @@ def make_global_env(
     env.set("_resource_capabilities", resource_capabilities_fn)
     env.set("_json_parse", json_parse_fn)
     env.set("_parse_jsonl_record", parse_jsonl_record_fn)
+    env.set("_parse_csv_row", parse_csv_row_fn)
     env.set("_json_stringify", json_stringify_fn)
     env.set("_serve_http", serve_http_fn)
     env.set("_zip_read", zip_read_fn)
@@ -3692,6 +3830,8 @@ def make_global_env(
     env.register_autoload("parse_int", 2, "std/prelude/string.genia")
     env.register_autoload("json_parse", 1, "std/prelude/json.genia")
     env.register_autoload("parse_jsonl_record", 1, "std/prelude/json.genia")
+    env.register_autoload("parse_csv_row", 1, "std/prelude/json.genia")
+    env.register_autoload("parse_csv_row", 2, "std/prelude/json.genia")
     env.register_autoload("json_stringify", 1, "std/prelude/json.genia")
     env.register_autoload("json_pretty", 1, "std/prelude/json.genia")
     env.register_autoload("read_file", 1, "std/prelude/file.genia")

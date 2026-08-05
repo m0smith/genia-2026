@@ -1157,6 +1157,8 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - `json_stringify(value) -> string | none("json-stringify-error", context)`
 - `json_pretty(value) -> string | none(...)` (compatibility alias for `json_stringify`)
 - `parse_jsonl_record(line) -> some(record, context) | none("blank_line", context) | err(reason, context)` — parse one JSONL object line into an Outcome for record pipelines (**Experimental**)
+- `parse_csv_row(line) -> some(fields, context) | none("blank_line", context) | err(reason, context)` — parse one CSV row into a list of field strings for record pipelines (**Experimental**)
+- `parse_csv_row(headers, line) -> some(record, context) | none("blank_line", context) | err(reason, context)` — parse one CSV row into a header-mapped record for record pipelines (**Experimental**)
 - `read_file(path) -> string | none(...)`
 - `write_file(path, string) -> path | none(...)`
 - `zip_read(path) -> flow | none(...)`
@@ -1167,6 +1169,8 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - `entry_name(entry)`, `entry_bytes(entry)`, `set_entry_bytes(entry, bytes)`, `update_entry_bytes(entry, f)`, `entry_json(entry)`
 
 This is a minimal host-backed bridge for pipeline-first archive transforms; it is **not** the full Flow runtime system.
+
+`parse_csv_row` is a one-row helper, not a CSV framework. It supports comma-delimited rows, double-quoted fields, quoted commas, doubled quotes, and empty fields; it does not trim fields, infer types, read whole files, support multiline fields, expose dialect options, or create Sheets. Malformed row data returns `err(quote(invalid_csv_row), context)`, header/field count mismatch returns `err(quote(csv_header_mismatch), context)`, and invalid argument/header shapes are runtime misuse errors.
 
 Example archive rewrite pipeline (list-based in this phase):
 
@@ -1251,6 +1255,7 @@ write_file("output.json", unwrap_or("{}", result))
 - fn helpers: `apply`, `apply_raw`, `compose`
   - `apply_raw(f, args)` — calls `f` with list `args` as positional arguments, bypassing automatic `none(...)` propagation; `args` must be a list
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
+- data parsing helpers: `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental); `validate_each` (Experimental); `collect_validated` (host-backed builtin, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`

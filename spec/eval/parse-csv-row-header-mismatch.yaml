@@ -1,0 +1,17 @@
+name: parse-csv-row-header-mismatch
+category: eval
+description: parse_csv_row returns err for header and field count mismatch
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line, ctx.field_count, ctx.header_count] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row(["name", "age"], "Ada,37,extra"))
+expected:
+  stdout: "[csv_header_mismatch, csv_row, error, csv_header_mismatch, \"Ada,37,extra\", 3, 2]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: header mismatch is row data failure and remains recoverable.

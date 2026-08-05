@@ -1,0 +1,17 @@
+name: parse-csv-row-data-after-closing-quote
+category: eval
+description: parse_csv_row returns err when data follows a closing quote before the next delimiter
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("\"a\"b,c"))
+expected:
+  stdout: "[invalid_csv_row, csv_row, error, invalid_csv_row, \"\\\"a\\\"b,c\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: data after a closing quoted field before a delimiter is malformed CSV row data.

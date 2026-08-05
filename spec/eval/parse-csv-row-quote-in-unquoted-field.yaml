@@ -1,0 +1,17 @@
+name: parse-csv-row-quote-in-unquoted-field
+category: eval
+description: parse_csv_row returns err when a quote character appears inside an unquoted field
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("a\"b,c"))
+expected:
+  stdout: "[invalid_csv_row, csv_row, error, invalid_csv_row, \"a\\\"b,c\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: a quote character inside an unquoted field is malformed CSV row data, not programmer misuse.

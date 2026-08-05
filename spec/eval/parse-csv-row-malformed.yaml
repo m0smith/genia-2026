@@ -1,0 +1,17 @@
+name: parse-csv-row-malformed
+category: eval
+description: parse_csv_row returns err for malformed CSV rows
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("\"unterminated"))
+expected:
+  stdout: "[invalid_csv_row, csv_row, error, invalid_csv_row, \"\\\"unterminated\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: malformed CSV user data is a recoverable err(...), not runtime misuse.

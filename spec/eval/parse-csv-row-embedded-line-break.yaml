@@ -1,0 +1,17 @@
+name: parse-csv-row-embedded-line-break
+category: eval
+description: parse_csv_row returns err for embedded newline or carriage return characters in the row
+input:
+  source: |
+    describe(result) =
+      err(reason, ctx) -> [reason, ctx.kind, ctx.status, ctx.reason, ctx.line] |
+      _ -> [quote(unexpected)]
+
+    [describe(parse_csv_row("a,b\nc")), describe(parse_csv_row("a,b\rc"))]
+expected:
+  stdout: "[[invalid_csv_row, csv_row, error, invalid_csv_row, \"a,b\\nc\"], [invalid_csv_row, csv_row, error, invalid_csv_row, \"a,b\\rc\"]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: embedded newline or carriage return characters in line are malformed; this row helper does not support multiline fields.

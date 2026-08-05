@@ -1,0 +1,15 @@
+name: parse-csv-row-invalid-header-error
+category: error
+description: parse_csv_row treats invalid header items as runtime API misuse
+input:
+  source: |
+    parse_csv_row(["name", 7], "Ada,37")
+expected:
+  stdout: ""
+  stderr: "Error: parse_csv_row expected header at index 1 to be string, received int\n"
+  exit_code: 1
+notes: |
+  issue: 390
+  error_phase: eval
+  error_category: TypeError
+  contract: every header item must be a string.

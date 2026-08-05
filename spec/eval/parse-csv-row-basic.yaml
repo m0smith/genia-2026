@@ -1,0 +1,17 @@
+name: parse-csv-row-basic
+category: eval
+description: parse_csv_row returns parsed string fields with stable success context
+input:
+  source: |
+    describe(result) =
+      some(fields, ctx) -> [fields, ctx.kind, ctx.status, ctx.reason, ctx.line, ctx.field_count] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("Ada,37,engineer"))
+expected:
+  stdout: "[[\"Ada\", \"37\", \"engineer\"], csv_row, parsed, parsed, \"Ada,37,engineer\", 3]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 390
+  contract: valid CSV rows become some(fields, context); all fields remain strings.
