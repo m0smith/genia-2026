@@ -69,6 +69,41 @@ malformed_csv_row_returns_recoverable_failure_with_context() = {
   )
 }
 
+@test "quote inside an unquoted field is malformed"
+quote_in_unquoted_field_is_malformed() = {
+  line = "a\"b,c"
+
+  assert_eq(
+    describe_csv_error(parse_csv_row(line)),
+    [quote(invalid_csv_row), quote(csv_row), quote(error), quote(invalid_csv_row), line]
+  )
+}
+
+@test "data after a closing quote before a delimiter is malformed"
+data_after_closing_quote_is_malformed() = {
+  line = "\"a\"b,c"
+
+  assert_eq(
+    describe_csv_error(parse_csv_row(line)),
+    [quote(invalid_csv_row), quote(csv_row), quote(error), quote(invalid_csv_row), line]
+  )
+}
+
+@test "embedded newline or carriage return characters are malformed"
+embedded_line_break_is_malformed() = {
+  newline_line = "a,b\nc"
+  cr_line = "a,b\rc"
+
+  assert_eq(
+    describe_csv_error(parse_csv_row(newline_line)),
+    [quote(invalid_csv_row), quote(csv_row), quote(error), quote(invalid_csv_row), newline_line]
+  )
+  assert_eq(
+    describe_csv_error(parse_csv_row(cr_line)),
+    [quote(invalid_csv_row), quote(csv_row), quote(error), quote(invalid_csv_row), cr_line]
+  )
+}
+
 @test "all CSV outcomes preserve exact original line context"
 all_csv_outcomes_preserve_exact_original_line_context() = {
   valid_line = " Ada ,37"

@@ -15,6 +15,9 @@ ISSUE_390_EVAL_SPECS = [
     "parse-csv-row-header-map.yaml",
     "parse-csv-row-header-mismatch.yaml",
     "parse-csv-row-pipeline-shape.yaml",
+    "parse-csv-row-quote-in-unquoted-field.yaml",
+    "parse-csv-row-data-after-closing-quote.yaml",
+    "parse-csv-row-embedded-line-break.yaml",
 ]
 
 ISSUE_390_ERROR_SPECS = [

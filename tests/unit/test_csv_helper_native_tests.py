@@ -11,13 +11,16 @@ def test_csv_helper_native_tests_pass(capsys):
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out == (
-        "total=6 passed=6 failed=0 errored=0\n"
+        "total=9 passed=9 failed=0 errored=0\n"
         "PASS valid_csv_row_returns_fields_with_context\n"
         "PASS quoted_csv_row_handles_commas_and_doubled_quotes\n"
         "PASS headers_map_parsed_csv_fields_positionally\n"
         "PASS blank_csv_row_returns_absence_with_context\n"
         "PASS malformed_csv_row_returns_recoverable_failure_with_context\n"
+        "PASS quote_in_unquoted_field_is_malformed\n"
+        "PASS data_after_closing_quote_is_malformed\n"
+        "PASS embedded_line_break_is_malformed\n"
         "PASS all_csv_outcomes_preserve_exact_original_line_context\n"
-        "total=6 passed=6 failed=0 errored=0\n"
+        "total=9 passed=9 failed=0 errored=0\n"
     )
     assert captured.err == ""

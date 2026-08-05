@@ -67,6 +67,45 @@ def test_parse_csv_row_malformed_returns_recoverable_error():
     assert result[5]
 
 
+def test_parse_csv_row_quote_in_unquoted_field_is_malformed():
+    src = r'''
+    describe(result) =
+      err(reason, ctx) -> [display(reason), display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("a\"b,c"))
+    '''
+
+    assert _run(src) == ["invalid_csv_row", "csv_row", "error", "invalid_csv_row", 'a"b,c']
+
+
+def test_parse_csv_row_data_after_closing_quote_is_malformed():
+    src = r'''
+    describe(result) =
+      err(reason, ctx) -> [display(reason), display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    describe(parse_csv_row("\"a\"b,c"))
+    '''
+
+    assert _run(src) == ["invalid_csv_row", "csv_row", "error", "invalid_csv_row", '"a"b,c']
+
+
+def test_parse_csv_row_embedded_newline_and_carriage_return_are_malformed():
+    src = r'''
+    describe(result) =
+      err(reason, ctx) -> [display(reason), display(ctx.kind), display(ctx.status), display(ctx.reason), ctx.line] |
+      _ -> [quote(unexpected)]
+
+    [describe(parse_csv_row("a,b\nc")), describe(parse_csv_row("a,b\rc"))]
+    '''
+
+    assert _run(src) == [
+        ["invalid_csv_row", "csv_row", "error", "invalid_csv_row", "a,b\nc"],
+        ["invalid_csv_row", "csv_row", "error", "invalid_csv_row", "a,b\rc"],
+    ]
+
+
 def test_parse_csv_row_headers_return_record_and_context():
     src = r'''
     describe(result) =
