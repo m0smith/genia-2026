@@ -73,6 +73,7 @@ Supporting (if needed):
 - docs/design/*
 - docs/cheatsheet/*
 - docs/host-interop/*
+- docs/releases/* (see step 6a — required when this change lands or extends the active release's headline behavior)
 - examples/*
 
 ---
@@ -119,6 +120,30 @@ Update or add minimal examples if needed.
 
 ---
 
+6a. RELEASE EXAMPLE PAGE (`docs/releases/<Rn>.md`)
+
+If this change delivers, extends, or meaningfully changes the active
+release's headline behavior (the theme/primary-outcomes in
+`docs/strategy/release-roadmap.md`):
+
+- Add or update one small, copy-pasteable, runnable example on
+  `docs/releases/<Rn>.md` for the active release (create the file from
+  the existing releases if it doesn't exist yet; add it to `mkdocs.yml`
+  nav and `docs/releases/README.md`'s release list).
+- The example must actually run: paste-and-run it yourself (`genia ...` /
+  `genia test ...` / whatever the feature's entry point is) and copy the
+  real output into the page. Do not hand-write expected output.
+- Keep it minimal — the smallest snippet that demonstrates the behavior,
+  not a comprehensive tour.
+- If the change is internal/infra with no new example-worthy behavior,
+  state that explicitly in this phase's output instead of skipping
+  silently.
+
+This step is part of what "done" means for a release-facing change, not
+optional polish.
+
+---
+
 7. CONSISTENCY CHECK
 
 Verify alignment across:
@@ -127,6 +152,7 @@ Verify alignment across:
 - GENIA_REPL_README.md
 - README.md
 - examples
+- docs/releases/<Rn>.md (if step 6a applied)
 
 No contradictions.
 

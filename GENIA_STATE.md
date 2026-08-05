@@ -197,6 +197,7 @@ Implemented today:
   - `GENIA_REPL_README.md`
   - `docs/cheatsheet/*`
   - public-facing host interop docs under `docs/host-interop/`
+  - per-release runnable examples under `docs/releases/` (see `docs/releases/README.md`)
 - GitHub Actions docs workflow behavior is:
   - on pull requests: stage, validate, and build docs without deployment
   - on pushes to `main`: stage, validate, build, and deploy to GitHub Pages
@@ -2541,6 +2542,10 @@ Explicit limitations:
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
 
 ## 11) Example demos shipped in-repo
+
+Per-release curated runnable examples (one or more small examples per
+release for its headline behavior) are published at `docs/releases/` —
+see `docs/releases/README.md`.
 
 - `examples/tic-tac-toe.genia`: canonical Format + Seq-compatible style example — two-player console tic-tac-toe using `Format`/`format(...)` for board rendering and list-side sequence helpers for data-driven winner detection
 - `examples/ants.genia`: canonical pure deterministic ants colony simulation demo with optional CLI seed for reproducible runs
