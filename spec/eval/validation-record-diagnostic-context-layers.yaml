@@ -1,0 +1,20 @@
+name: validation-record-diagnostic-context-layers
+category: eval
+description: Record validation preserves caller context and nests stable field diagnostics in validator order
+input:
+  source: |
+    validate_record(
+      {row: 2, age: -1},
+      {
+        name: (record) -> validate_required("name", record),
+        age: (record) -> validate_field("age", (value) -> value > 0, "positive", record)
+      },
+      {source: "csv", batch: 7}
+    )
+expected:
+  stdout: "err(record_validation_failed, {source: \"csv\", batch: 7, diagnostics: [{field: \"name\", status: error, reason: \"missing required field\", context: {row: 2, field: \"name\", reason: \"missing required field\"}}, {field: \"age\", status: error, reason: \"invalid field\", context: {row: 2, field: \"age\", expected: \"positive\", actual: -1, reason: \"invalid field\"}}]})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 405
+  contract: validate_record keeps caller context at the outer record layer and adds ordered field diagnostics with stable field, status, reason, and nested context keys.

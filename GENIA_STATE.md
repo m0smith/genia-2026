@@ -1728,6 +1728,12 @@ Behavior:
 - simple nested field paths are supported for validation helper lookup and diagnostic metadata by passing a dot-joined string field such as `"patient.name"` or `"patient.address.zip"`; diagnostics keep that full path in `field`
 - this nested validation path support does not add general field-path syntax, wildcards, recursive descent, list index paths, or a public path value type
 - runtime/programmer misuse remains a runtime error; it is not converted into a recoverable row diagnostic
+- validation diagnostic context is **Experimental** and stable only per the producing helper/result layer; there is no universal validation diagnostic context shape:
+  - `validate_required` and the missing-field branch of `validate_field` stably expose `field` and `reason`, plus `row` only when the input record contains a `row` field
+  - the invalid-field branch of `validate_field` stably exposes `field`, `expected`, `actual`, and `reason`, plus `row` only when the input record contains a `row` field
+  - `field` is the caller-supplied flat or supported dot-joined field path; `row`, `expected`, and `actual` preserve the corresponding Genia values without coercion
+  - map entry order and rendered diagnostic formatting are representation details, not additional validation-context semantics
+- `validate_optional` keeps its currently documented Outcome shapes, but issue #405 does not establish one shared stable context schema across its absence, success, nested-validator error, and validator-returned-`none(...)` branches; fields beyond each branch's existing behavior remain branch-specific
 - shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list/non-Flow source, non-callable validator, and non-Outcome validator result)
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
 
@@ -1748,10 +1754,13 @@ Behavior:
   - `none(...)` — successful absence; the field is not added to `clean_record` and does not cause record failure
   - `err(reason, context?)` — field-level validation failure; appended as a diagnostic
 - field-error diagnostic shape: `{field: <key>, status: quote(error), reason: <field reason>, context: <some(ctx) or none("nil")>}`
+  - the stable field-diagnostic keys are `field`, `status`, `reason`, and `context`
+  - `field` is the validator-map key, `status` is `quote(error)`, `reason` preserves the field `err(...)` reason, and `context` preserves the field `err(...)` context or is `none("nil")` when absent
 - record-level Outcome:
   - no `err(...)` from any validator: `some(clean_record, record_context?)` where `clean_record` contains only present validated values
   - one or more `err(...)` results: `err(quote(record_validation_failed), record_context_with_diagnostics)`
 - optional third argument `context` is preserved in the record-level Outcome for both success and failure
+- on failure, `diagnostics` is the stable record-level key added to the supplied record context (or to a new context map); other caller-supplied context keys are preserved and are not validation-defined fields
 - does not mutate the input record; does not add a schema DSL, Sheet behavior, Flow collector, value-template integration, or new path syntax
 
 ### collect_validated helper (**Experimental**, issue #383)
@@ -1770,6 +1779,7 @@ Behavior:
   ```
   - `index` is the zero-based source item position
   - `context` is `some(ctx)` when the Outcome carried a context, or `none("nil")` when absent
+- the stable aggregate-diagnostic keys are `index`, `kind`, `reason`, and `context`; there is no guarantee that nested `context` maps share one schema across producers
 - result shape: `{clean: [...], diagnostics: [...]}`
 - does not create Sheets; Sheet conversion is explicitly deferred
 - does not change Outcome semantics, pipeline short-circuit behavior, `keep_some`, or existing validation helpers

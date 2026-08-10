@@ -1,0 +1,13 @@
+name: validation-record-diagnostic-without-context
+category: eval
+description: Record validation represents an absent field-error context explicitly
+input:
+  source: |
+    validate_record({id: 1}, {id: (_record) -> err(quote(bad_id))})
+expected:
+  stdout: "err(record_validation_failed, {diagnostics: [{field: \"id\", status: error, reason: bad_id, context: none(\"nil\")}]})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 405
+  contract: a validate_record field diagnostic always contains context and uses none("nil") when the field err carries no context.
