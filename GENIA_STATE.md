@@ -1737,6 +1737,23 @@ Behavior:
 - shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list/non-Flow source, non-callable validator, and non-Outcome validator result)
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
 
+### Field/index validation diagnostic helpers (**Experimental**, issue #393 contract)
+
+Contract-locked for issue #393; implementation is pending in this branch:
+
+- public names: `diagnostic_error/4`, `diagnostic_skipped/4`, `diagnostic_reason/1`, and `diagnostic_field/1`
+- `diagnostic_error(index, field, reason, context)` returns exactly `{index: index, field: field, kind: quote(error), reason: reason, context: context}`
+- `diagnostic_skipped(index, field, reason, context)` returns exactly `{index: index, field: field, kind: quote(skipped), reason: reason, context: context}`
+- constructor arguments are ordinary Genia values and are preserved without validation, coercion, or context wrapping; only `kind` is supplied by the constructor
+- `diagnostic_reason(diagnostic)` requires a map and returns its `reason` value using existing map lookup semantics
+- `diagnostic_field(diagnostic)` requires a map and returns its `field` value using existing map lookup semantics
+- an accessor given a non-map is a runtime misuse error; an absent requested key returns `none("missing-key", {key: <key>})`
+- standard callable arity handling rejects any arity other than the public arities above
+- the helpers produce and inspect ordinary immutable maps; they perform no I/O and mutate no value
+- this helper-specific five-key shape does not replace or normalize producer-specific validation context, `validate_record` field diagnostics, or `collect_validated` aggregate diagnostics
+- `collect_validated` does not automatically consume, create, or transform these helper maps
+- no universal validation diagnostic schema, reporter framework, logging framework, Sheet behavior, Flow behavior, Outcome change, parser syntax, or Core IR change is introduced
+
 ### validate_record helper (**Experimental**, issue #391)
 
 - public names: `validate_record/2` and `validate_record/3`
