@@ -1218,6 +1218,7 @@ write_file("output.json", unwrap_or("{}", result))
 - public validation helpers from `src/genia/std/prelude/validation.genia`: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental), `validate_each` (Experimental)
 - `validate_required(field, record)` returns `some(record)` when a map record contains `field`; otherwise it returns `err("missing required field", context)`
 - `validate_field(field, predicate, expected, record)` returns `some(record)` only when the field exists and `predicate(value) == true`; missing or invalid user data returns recoverable `err(...)` diagnostics
+- validation diagnostic fields are Experimental and stable per producing layer, not as one universal schema: missing-field helper context has `field` and `reason`, invalid-field helper context also has `expected` and `actual`, and either includes `row` only when the input record contains it
 - `field` may be a flat name or a simple dot-joined nested path such as `"patient.name"` or `"patient.address.zip"` for validation helper lookup and diagnostic metadata only; this is not a general field-path language feature
 - `validate_optional(field, record[, validator])` validates optional record fields (**Experimental**): missing field returns `none({field: field, reason: quote(missing_optional_field)})`; present field with no validator returns `some(value, {field: field})`; present field with validator preserves `some(...)`, keeps `err(...)` meaning while prefixing a `field` context entry to the full nested path when applicable, and normalizes validator `none(...)` to `err(quote(optional_field_validator_returned_none), ...)`; non-map record, non-callable validator, and validator returning non-Outcome are runtime errors
 - non-callable predicates remain runtime errors; no schema DSL, Sheet integration, Flow collector, or report helper is added by this surface
@@ -1225,6 +1226,7 @@ write_file("output.json", unwrap_or("{}", result))
   - `validators` is a map whose keys are field paths and whose values are callable validators; each callable receives the original `record` and must return an Outcome
   - `some(value)` field results contribute present values to `clean_record`; `none(...)` field results are successful absence; `err(...)` field results are aggregated into diagnostics; all validators run
   - success returns `some(clean_record, context?)`; failure returns `err(quote(record_validation_failed), context_with_diagnostics)`
+  - each field diagnostic has stable keys `field`, `status`, `reason`, and `context`; failure context has stable key `diagnostics`, while caller-supplied context remains at the outer record layer
   - non-map record, non-map validators, non-callable validators, and non-Outcome validator returns are runtime misuse errors
   - does not mutate the input record; does not add a schema DSL, Sheet behavior, or value-template integration
 - `validate_each(source, validator)` applies a callable validator to each item of a list or Flow source and returns one Outcome per item (**Experimental**, issue #392, issue #415, issue #416):
@@ -1244,6 +1246,7 @@ write_file("output.json", unwrap_or("{}", result))
 - `none(...)` appends a diagnostic with `kind: quote(skipped)`
 - `err(...)` appends a diagnostic with `kind: quote(error)`
 - diagnostics include `index`, `kind`, `reason`, and `context` (`some(ctx)` or `none("nil")`)
+- nested diagnostic context remains producer-owned; `collect_validated` does not normalize it into a shared schema
 - returns `{clean: [...], diagnostics: [...]}`
 - does not create Sheets; does not change Outcome semantics, pipeline short-circuit behavior, or existing helpers
 
