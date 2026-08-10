@@ -6,7 +6,7 @@ input:
     diagnostic_reason(7)
 expected:
   stdout: ""
-  stderr: "Error: map_get expected a map, received int\n"
+  stderr: "Error: map_get expected a map as first argument, received int\n"
   exit_code: 1
 notes: |
   issue: 393

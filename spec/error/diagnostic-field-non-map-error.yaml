@@ -6,7 +6,7 @@ input:
     diagnostic_field("age")
 expected:
   stdout: ""
-  stderr: "Error: map_get expected a map, received string\n"
+  stderr: "Error: map_get expected a map as first argument, received string\n"
   exit_code: 1
 notes: |
   issue: 393

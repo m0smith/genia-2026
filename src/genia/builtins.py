@@ -2347,6 +2347,30 @@ def make_global_env(
             return GeniaOptionSome(clean)
         return GeniaOptionSome(clean, context)
 
+    def diagnostic_error_fn(index: Any, field: Any, reason: Any, context: Any) -> GeniaMap:
+        return (
+            GeniaMap()
+            .put("index", index)
+            .put("field", field)
+            .put("kind", symbol("error"))
+            .put("reason", reason)
+            .put("context", context)
+        )
+
+    diagnostic_error_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
+    def diagnostic_skipped_fn(index: Any, field: Any, reason: Any, context: Any) -> GeniaMap:
+        return (
+            GeniaMap()
+            .put("index", index)
+            .put("field", field)
+            .put("kind", symbol("skipped"))
+            .put("reason", reason)
+            .put("context", context)
+        )
+
+    diagnostic_skipped_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
     def some_fn(*args: Any) -> GeniaOptionSome:
         if len(args) not in (1, 2):
             raise TypeError("some(...) expects 1 or 2 arguments")
@@ -3619,6 +3643,11 @@ def make_global_env(
     env.set("_validate_field", validate_field_fn)
     env.set("_validate_each", validate_each_fn)
     env.set("_validate_record", validate_record_fn)
+    env.set("_diagnostic_error", _host_function_group("_diagnostic_error", 4, diagnostic_error_fn))
+    env.set(
+        "_diagnostic_skipped",
+        _host_function_group("_diagnostic_skipped", 4, diagnostic_skipped_fn),
+    )
     env.set("_rng", rng_fn)
     env.set("_rand", rand_fn)
     env.set("_rand_seeded", seeded_rand_fn)
@@ -3767,6 +3796,10 @@ def make_global_env(
     env.register_autoload("validate_each", 2, "std/prelude/validation.genia")
     env.register_autoload("validate_record", 2, "std/prelude/validation.genia")
     env.register_autoload("validate_record", 3, "std/prelude/validation.genia")
+    env.register_autoload("diagnostic_error", 4, "std/prelude/validation.genia")
+    env.register_autoload("diagnostic_skipped", 4, "std/prelude/validation.genia")
+    env.register_autoload("diagnostic_reason", 1, "std/prelude/validation.genia")
+    env.register_autoload("diagnostic_field", 1, "std/prelude/validation.genia")
     env.register_autoload("rng", 1, "std/prelude/random.genia")
     env.register_autoload("rand_flow", 1, "std/prelude/random.genia")
     env.register_autoload("rand_int_flow", 2, "std/prelude/random.genia")

@@ -75,6 +75,66 @@ validate_record(record, validators) = _validate_record(record, validators)
 
 validate_record(record, validators, context) = _validate_record(record, validators, context)
 
+@doc """Create a field/index-aware error diagnostic map.
+
+## Arguments
+
+* `index`: caller-provided source position metadata
+* `field`: caller-provided field metadata
+* `reason`: caller-provided failure reason
+* `context`: caller-provided diagnostic context
+
+## Returns
+
+* an error diagnostic map with `index`, `field`, `kind`, `reason`, and `context`"""
+diagnostic_error(index, field, reason, context) =
+  _diagnostic_error(index, field, reason, context)
+
+@doc """Create a field/index-aware skipped diagnostic map.
+
+## Arguments
+
+* `index`: caller-provided source position metadata
+* `field`: caller-provided field metadata
+* `reason`: caller-provided skip reason
+* `context`: caller-provided diagnostic context
+
+## Returns
+
+* a skipped diagnostic map with `index`, `field`, `kind`, `reason`, and `context`"""
+diagnostic_skipped(index, field, reason, context) =
+  _diagnostic_skipped(index, field, reason, context)
+
+@doc """Return a diagnostic map's reason.
+
+## Arguments
+
+* `diagnostic`: map that may contain `reason`
+
+## Returns
+
+* the stored `reason`, or missing-key absence when the key is absent
+
+## Errors
+
+* raises when `diagnostic` is not a map"""
+diagnostic_reason(diagnostic) = map_get(diagnostic, "reason")
+
+@doc """Return a diagnostic map's field.
+
+## Arguments
+
+* `diagnostic`: map that may contain `field`
+
+## Returns
+
+* the stored `field`, or missing-key absence when the key is absent
+
+## Errors
+
+* raises when `diagnostic` is not a map"""
+diagnostic_field(diagnostic) = map_get(diagnostic, "field")
+
 @doc """Validate a record field with a predicate and return an Outcome.
 
 ## Arguments
