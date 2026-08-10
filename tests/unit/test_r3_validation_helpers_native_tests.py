@@ -11,7 +11,7 @@ def test_r3_validation_helpers_native_tests_pass(capsys):
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out == (
-        "total=13 passed=13 failed=0 errored=0\n"
+        "total=15 passed=15 failed=0 errored=0\n"
         "PASS required_field_outcomes_are_stable\n"
         "PASS field_validation_outcomes_are_stable\n"
         "PASS nested_validation_paths_are_preserved\n"
@@ -25,6 +25,8 @@ def test_r3_validation_helpers_native_tests_pass(capsys):
         "PASS collect_validated_handles_empty_and_clean_inputs\n"
         "PASS collect_validated_reports_mixed_diagnostics\n"
         "PASS validation_pipeline_composes_end_to_end\n"
-        "total=13 passed=13 failed=0 errored=0\n"
+        "PASS field_index_diagnostic_constructors_preserve_values\n"
+        "PASS field_index_diagnostic_accessors_reuse_map_absence\n"
+        "total=15 passed=15 failed=0 errored=0\n"
     )
     assert captured.err == ""

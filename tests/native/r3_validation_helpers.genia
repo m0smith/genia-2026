@@ -305,3 +305,34 @@ validation_pipeline_composes_end_to_end() = {
   assert_eq(map_at(diagnostics, 2)("kind"), quote(error))
   assert_eq(map_at(diagnostics, 2)("reason"), quote(upstream_parse_failed))
 }
+
+@test "field index diagnostic constructors preserve values"
+field_index_diagnostic_constructors_preserve_values() = {
+  failed = diagnostic_error(2, "age", quote(out_of_range), {actual: -1})
+  skipped = diagnostic_skipped("row-3", quote(name), "blank", none)
+
+  assert_eq(failed, {
+    index: 2,
+    field: "age",
+    kind: quote(error),
+    reason: quote(out_of_range),
+    context: {actual: -1}
+  })
+  assert_eq(skipped, {
+    index: "row-3",
+    field: quote(name),
+    kind: quote(skipped),
+    reason: "blank",
+    context: none
+  })
+}
+
+@test "field index diagnostic accessors reuse map absence"
+field_index_diagnostic_accessors_reuse_map_absence() = {
+  diagnostic = diagnostic_error(2, "age", quote(out_of_range), {})
+
+  assert_eq(diagnostic_reason(diagnostic), quote(out_of_range))
+  assert_eq(diagnostic_field(diagnostic), "age")
+  assert_eq(diagnostic_reason({field: "age"}), none("missing-key", {key: "reason"}))
+  assert_eq(diagnostic_field({reason: "invalid"}), none("missing-key", {key: "field"}))
+}

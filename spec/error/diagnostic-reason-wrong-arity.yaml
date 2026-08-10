@@ -1,0 +1,15 @@
+name: diagnostic-reason-wrong-arity
+category: error
+description: diagnostic_reason rejects arities other than one
+input:
+  source: |
+    diagnostic_reason({}, {})
+expected:
+  stdout: ""
+  stderr: "Error: No matching function: diagnostic_reason/2. Available: diagnostic_reason/1\n"
+  exit_code: 1
+notes: |
+  issue: 393
+  error_phase: eval
+  error_category: TypeError
+  contract: diagnostic_reason has arity one.

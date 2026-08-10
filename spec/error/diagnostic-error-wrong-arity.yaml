@@ -1,0 +1,15 @@
+name: diagnostic-error-wrong-arity
+category: error
+description: diagnostic_error rejects arities other than four
+input:
+  source: |
+    diagnostic_error(1, "age", "invalid")
+expected:
+  stdout: ""
+  stderr: "Error: No matching function: diagnostic_error/3. Available: diagnostic_error/4\n"
+  exit_code: 1
+notes: |
+  issue: 393
+  error_phase: eval
+  error_category: TypeError
+  contract: diagnostic_error has arity four.
