@@ -1,0 +1,11 @@
+name: error-row-get-missing-column
+category: error
+description: row_get fails clearly when the requested column is absent from the row.
+input:
+  source: |
+    row_get([[quote(age), 30]], quote(city))
+expected:
+  stdout: ""
+  stderr: |
+    Error: row_get could not find column city
+  exit_code: 1

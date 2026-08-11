@@ -286,7 +286,8 @@ Deferred R1 items now targeting R6:
 - **#390** — CSV support (record ingestion from CSV files)
 - **#395** — Sheet landing zone improvements
 - **#396** — depends on #395; schedule after Sheet landing zone lands
-- **#363 / #364** — depends on Sheet landing zone; schedule after #395
+- **#363** — delivered; `row_get(row, column_name)` ergonomic row access
+- **#364** — depends on Sheet landing zone; schedule after #395
 
 Possible additional includes:
 
@@ -448,7 +449,8 @@ This section records the classification of R1-adjacent issues after R1 completio
 | #390 | R6 — CSV support | Keep open; schedule in R6. |
 | #395 | R6 — Sheet landing zone | Keep open; schedule in R6. |
 | #396 | R6 — after #395 | Keep open; depends on Sheet landing zone. |
-| #363 / #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
+| #363 | R6 — delivered | `row_get(row, column_name)` ergonomic row access shipped. |
+| #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
 | #399 | Future design | Not R5; park until scope is defined. |
 | #87 / #89 / #91 | Parking lot | Future / parking lot unless explicitly promoted. |
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |

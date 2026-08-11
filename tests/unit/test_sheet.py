@@ -90,6 +90,61 @@ def test_derive_appends_column_stores_outcomes_and_preserves_original_sheet(run)
     )
 
 
+def test_row_get_returns_paired_value_directly_and_via_where_derive(run):
+    result = run(
+        """
+        people = sheet([
+          [quote(name), ["Ann", "Bob", "Cara"]],
+          [quote(age), [30, 22, 41]]
+        ])
+        older = people
+          |> where((row) -> row_get(row, quote(age)) >= 30)
+          |> derive(quote(age_next), (row) -> row_get(row, quote(age)) + 1)
+        [row_get([[quote(age), 30]], quote(age)), rows(older)]
+        """
+    )
+
+    assert format_debug(result) == (
+        '[30, [[[name, "Ann"], [age, 30], [age_next, 31]], '
+        '[[name, "Cara"], [age, 41], [age_next, 42]]]]'
+    )
+
+
+def test_row_get_matches_string_keyed_rows_from_collect_sheet(run):
+    result = run(
+        """
+        report = collect_sheet([{name: "Ann", age: 30}])
+        derived = report |> derive("age_next", (row) -> row_get(row, "age") + 1)
+        rows(derived)
+        """
+    )
+
+    assert format_debug(result) == '[[["name", "Ann"], ["age", 30], ["age_next", 31]]]'
+
+
+def test_row_get_first_match_wins_on_duplicate_names(run):
+    result = run(
+        """
+        row_get([[quote(age), 1], [quote(age), 2]], quote(age))
+        """
+    )
+
+    assert format_debug(result) == "1"
+
+
+def test_row_get_does_not_mutate_row_or_source_sheet(run):
+    result = run(
+        """
+        people = sheet([[quote(age), [30]]])
+        row = [[quote(age), 30]]
+        value = row_get(row, quote(age))
+        [value, row, rows(people)]
+        """
+    )
+
+    assert format_debug(result) == '[30, [[age, 30]], [[[age, 30]]]]'
+
+
 @pytest.mark.parametrize(
     ("source", "message"),
     [
@@ -124,6 +179,18 @@ def test_derive_appends_column_stores_outcomes_and_preserves_original_sheet(run)
             people |> derive(quote(name), (row) -> "Ada")
             """,
             "derive expected a new column name; name already exists",
+        ),
+        (
+            'row_get("not-a-row", quote(age))',
+            r"row_get expected a row \(list of \[name, value\] pairs\)",
+        ),
+        (
+            "row_get([quote(age)], quote(age))",
+            r"row_get expected a row \(list of \[name, value\] pairs\); malformed entry at index 0",
+        ),
+        (
+            "row_get([[quote(age), 30]], quote(city))",
+            "row_get could not find column city",
         ),
     ],
 )
