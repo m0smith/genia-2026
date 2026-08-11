@@ -1,0 +1,11 @@
+name: error-collect-sheet-not-seq
+category: error
+description: collect_sheet fails clearly when the source is not a Seq-compatible list or Flow.
+input:
+  source: |
+    collect_sheet("not-a-seq")
+expected:
+  stdout: ""
+  stderr: |
+    Error: collect_sheet expected a Seq-compatible value (list or Flow); received string.
+  exit_code: 1

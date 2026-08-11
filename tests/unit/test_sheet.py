@@ -130,3 +130,120 @@ def test_derive_appends_column_stores_outcomes_and_preserves_original_sheet(run)
 def test_sheet_errors_are_clear(run, source, message):
     with pytest.raises((RuntimeError, TypeError), match=message):
         run(source)
+
+
+def test_collect_sheet_empty_input_has_zero_shape(run):
+    result = run(
+        """
+        report = collect_sheet([])
+        [shape(report), columns(report), rows(report)]
+        """
+    )
+
+    assert format_debug(result) == "[[[rows, 0], [columns, 0]], [], []]"
+
+
+def test_collect_sheet_builds_columns_from_first_record_order(run):
+    result = run(
+        """
+        report = collect_sheet([
+          {name: "Ann", age: 30},
+          {name: "Bob", age: 22}
+        ])
+        [shape(report), columns(report), rows(report)]
+        """
+    )
+
+    assert format_debug(result) == (
+        '[[[rows, 2], [columns, 2]], ["name", "age"], '
+        '[[["name", "Ann"], ["age", 30]], [["name", "Bob"], ["age", 22]]]]'
+    )
+
+
+def test_collect_sheet_ignores_later_record_key_order(run):
+    result = run(
+        """
+        report = collect_sheet([
+          {name: "Ann", age: 30},
+          {age: 22, name: "Bob"}
+        ])
+        rows(report)
+        """
+    )
+
+    assert format_debug(result) == (
+        '[[["name", "Ann"], ["age", 30]], [["name", "Bob"], ["age", 22]]]'
+    )
+
+
+def test_collect_sheet_accepts_finite_flow_same_as_list(run):
+    result = run(
+        """
+        next(n) = n + 1
+        record(n) = (
+          0 -> {name: "Ann", age: 30} |
+          1 -> {name: "Bob", age: 22}
+        )
+        source = evolve(0, next) |> take(2) |> map(record)
+        rows(collect_sheet(source))
+        """
+    )
+
+    assert format_debug(result) == (
+        '[[["name", "Ann"], ["age", 30]], [["name", "Bob"], ["age", 22]]]'
+    )
+
+
+def test_collect_sheet_stores_outcome_field_values_as_ordinary_cells(run):
+    result = run(
+        """
+        report = collect_sheet([{name: "Ann", status: some("ok")}])
+        rows(report)
+        """
+    )
+
+    assert format_debug(result) == '[[["name", "Ann"], ["status", some("ok")]]]'
+
+
+def test_collect_sheet_does_not_mutate_source_records(run):
+    result = run(
+        """
+        records = [{name: "Ann"}, {name: "Bob"}]
+        report = collect_sheet(records)
+        [records, rows(report)]
+        """
+    )
+
+    assert format_debug(result) == (
+        '[[{name: "Ann"}, {name: "Bob"}], [[["name", "Ann"]], [["name", "Bob"]]]]'
+    )
+
+
+@pytest.mark.parametrize(
+    ("source", "message"),
+    [
+        (
+            'collect_sheet("not-a-seq")',
+            r"collect_sheet expected a Seq-compatible value \(list or Flow\); received",
+        ),
+        (
+            'collect_sheet([{name: "Ann"}, "not-a-map"])',
+            "collect_sheet expected map records; received .* at index 1",
+        ),
+        (
+            'collect_sheet([some({name: "Ann"})])',
+            "collect_sheet expected map records; received .* at index 0",
+        ),
+        (
+            'collect_sheet([{name: "Ann", age: 30}, {name: "Bob"}])',
+            "collect_sheet expected column age at row 1",
+        ),
+        (
+            'collect_sheet([{name: "Ann"}, {name: "Bob", age: 22}])',
+            "collect_sheet expected only column.*found unexpected column age at row 1",
+        ),
+    ],
+)
+def test_collect_sheet_errors_are_clear(run, source, message):
+    with pytest.raises((RuntimeError, TypeError), match=message):
+        run(source)

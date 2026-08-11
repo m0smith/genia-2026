@@ -1125,4 +1125,5 @@ For each incoming flow item `x`:
 - `some(...)`, `none(...)`, and `err(...)` values are stored as ordinary cell values; no implicit Outcome propagation is introduced across columns or rows.
 - Sheet errors must set `_genia_preserve_pipeline_error = True` to opt out of generic pipeline error wrapping.
 - Sheets are not Seq-compatible sources and must not be passed to `each`, `collect`, `run`, `map`, `filter`, or `reduce` without explicit conversion in this phase.
+- `collect_sheet(records)` (Experimental, issue #395) is the one explicit Seq-to-Sheet conversion: it accepts a finite list or Flow of map records, uses the first record's key order as column order, and requires every later record's key set to exactly match the first record's — no union, padding, or dropped fields. Non-map items and shape mismatches must fail clearly with the offending row index. It does not read or unwrap Outcome values; a bare `some`/`none`/`err` item is rejected as a non-map record.
 - No new syntax, parser changes, or Core IR nodes are introduced by Sheet.

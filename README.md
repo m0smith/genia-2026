@@ -1251,7 +1251,20 @@ write_file("output.json", unwrap_or("{}", result))
 - diagnostics include `index`, `kind`, `reason`, and `context` (`some(ctx)` or `none("nil")`)
 - nested diagnostic context remains producer-owned; `collect_validated` does not normalize it into a shared schema
 - returns `{clean: [...], diagnostics: [...]}`
-- does not create Sheets; does not change Outcome semantics, pipeline short-circuit behavior, or existing helpers
+- does not create Sheets itself; does not change Outcome semantics, pipeline short-circuit behavior, or existing helpers
+
+### collect_sheet terminal helper (**Experimental**, issue #395)
+
+- `collect_sheet(records)` explicitly converts a finite list or Flow of homogeneous map records into an immutable Sheet — the landing-zone step after `collect_validated`
+- accepts a Seq-compatible source (list or Flow) of plain maps; non-Seq-compatible input or a non-map item is a runtime error naming the offending item's index
+- empty input returns the same zero-row/zero-column Sheet as `sheet([])`
+- the first record's key order becomes the Sheet's column order; every later record must have exactly that key set (order-independent) — no column union, padding, or dropped fields
+- values are stored as ordinary cells with no coercion; it does not read or unwrap Outcome values
+
+```genia
+validated = collect_validated(validate_each(records, validate_customer))
+report = collect_sheet(map_get(validated, "clean"))
+```
 
 ## Autoloaded stdlib highlights
 
@@ -1263,6 +1276,7 @@ write_file("output.json", unwrap_or("{}", result))
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - data parsing helpers: `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
+- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `collect_sheet` (host-backed builtins, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`

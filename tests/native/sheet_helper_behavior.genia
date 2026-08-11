@@ -73,3 +73,21 @@ sheet_derive_appends_outcome_cells_and_preserves_original() = {
   ])
   assert_eq(shape(people), [[quote(rows), 2], [quote(columns), 2]])
 }
+
+@test "collect_sheet builds an immutable Sheet from homogeneous map records"
+collect_sheet_builds_sheet_from_homogeneous_records() = {
+  empty = collect_sheet([])
+  assert_eq(shape(empty), [[quote(rows), 0], [quote(columns), 0]])
+
+  report = collect_sheet([
+    {name: "Ann", age: 30},
+    {age: 22, name: "Bob"}
+  ])
+
+  assert_eq(shape(report), [[quote(rows), 2], [quote(columns), 2]])
+  assert_eq(columns(report), ["name", "age"])
+  assert_eq(rows(report), [
+    [["name", "Ann"], ["age", 30]],
+    [["name", "Bob"], ["age", 22]]
+  ])
+}

@@ -1,0 +1,17 @@
+name: collect-sheet-core
+category: eval
+description: collect_sheet builds an immutable Sheet from a finite list of homogeneous map records, using first-record key order for columns.
+input:
+  source: |
+    empty = collect_sheet([])
+    report = collect_sheet([
+      {name: "Ann", age: 30},
+      {age: 22, name: "Bob"}
+    ])
+    [shape(empty), shape(report), columns(report), rows(report)]
+expected:
+  stdout: '[[[rows, 0], [columns, 0]], [[rows, 2], [columns, 2]], ["name", "age"], [[["name", "Ann"], ["age", 30]], [["name", "Bob"], ["age", 22]]]]
+
+    '
+  stderr: ""
+  exit_code: 0

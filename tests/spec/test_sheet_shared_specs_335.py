@@ -19,12 +19,15 @@ SHEET_EVAL_SPECS = [
     "sheet-select-immutable.yaml",
     "sheet-where-core.yaml",
     "sheet-derive-core.yaml",
+    "collect-sheet-core.yaml",
 ]
 
 SHEET_ERROR_SPECS = [
     "error-sheet-unequal-column-lengths.yaml",
     "error-sheet-select-missing-column.yaml",
     "error-sheet-derive-duplicate-column.yaml",
+    "error-collect-sheet-missing-column.yaml",
+    "error-collect-sheet-not-seq.yaml",
 ]
 
 
