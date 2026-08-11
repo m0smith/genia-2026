@@ -1266,6 +1266,22 @@ validated = collect_validated(validate_each(records, validate_customer))
 report = collect_sheet(map_get(validated, "clean"))
 ```
 
+### render_csv Sheet output helper (**Experimental**, issue #396)
+
+- `render_csv(sheet)` returns CSV text for an immutable Sheet and performs no I/O
+- headers use Sheet column order and records use Sheet row order; a non-zero-column result ends every record with `\n`
+- commas, double quotes, newlines, and carriage returns trigger CSV double-quoting; embedded double quotes are doubled and other whitespace is preserved
+- string, symbol, integer, float, boolean, and nil fields are supported; nil is an empty field, while composite and non-nil Outcome fields fail with a zero-based row/column diagnostic
+- a zero-column Sheet returns `""`; use existing `write(stdout, render_csv(report))` to emit the result
+
+```genia
+report = collect_sheet([
+  {name: "Ann", note: "hello, world"},
+  {name: "Bob", note: "said \"hi\""}
+])
+render_csv(report)
+```
+
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
@@ -1276,7 +1292,7 @@ report = collect_sheet(map_get(validated, "clean"))
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - data parsing helpers: `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
-- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `collect_sheet` (host-backed builtins, Experimental)
+- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `collect_sheet`, `render_csv` (host-backed builtins, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`
