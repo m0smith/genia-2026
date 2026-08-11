@@ -18,7 +18,7 @@ This repository currently provides:
 - a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
 - shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
 - representation helpers (`display`, `debug_repr`, `format`) and experimental `Format` values for output representation
-- experimental immutable Sheet values for columnar/tabular data (`sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`) (**Experimental**)
+- experimental immutable Sheet values for columnar/tabular data (`sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`) (**Experimental**)
 - autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
   - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
   - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
@@ -1282,6 +1282,24 @@ report = collect_sheet([
 render_csv(report)
 ```
 
+### row_get ergonomic row access (**Experimental**, issue #363)
+
+- `row_get(row, column_name)` returns the value paired with `column_name` in a row — a `list` of `[name, value]` pairs, the same shape `rows(sheet)` returns and `where`/`derive` row functions already receive
+- it does not take a Sheet directly, so it composes inside `where`/`derive` callbacks without extra unwrapping
+- lookup uses the same column-name identity rules as `sheet`/`select`; a missing column, a non-list row, or a malformed row entry each fail clearly with a `TypeError`
+- introduces no new syntax — `row_get(row, quote(age))` is an ordinary function call over the existing pair-list row representation
+
+```genia
+people = sheet([
+  [quote(name), ["Ann", "Bob", "Cara"]],
+  [quote(age), [30, 22, 41]]
+])
+
+older = people
+  |> where((row) -> row_get(row, quote(age)) >= 30)
+  |> derive(quote(age_next), (row) -> row_get(row, quote(age)) + 1)
+```
+
 ## Autoloaded stdlib highlights
 
 - list helpers: `list`, `first`, `rest`, `append`, `length`, `reverse`, `reduce`, `map`, `filter`, `nth`, `take`, `drop`, `range`, ...
@@ -1292,7 +1310,7 @@ render_csv(report)
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
 - data parsing helpers: `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
-- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `collect_sheet`, `render_csv` (host-backed builtins, Experimental)
+- Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`, `collect_sheet`, `render_csv` (host-backed builtins, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process helpers: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - sink helpers: `write`, `writeln`, `flush`

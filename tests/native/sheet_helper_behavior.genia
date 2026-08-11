@@ -74,6 +74,23 @@ sheet_derive_appends_outcome_cells_and_preserves_original() = {
   assert_eq(shape(people), [[quote(rows), 2], [quote(columns), 2]])
 }
 
+@test "row_get returns a named cell directly and inside where/derive"
+row_get_returns_named_cell_directly_and_inside_where_derive() = {
+  people = sheet([
+    [quote(name), ["Ann", "Bob", "Cara"]],
+    [quote(age), [30, 22, 41]]
+  ])
+  older = people
+    |> where((row) -> row_get(row, quote(age)) >= 30)
+    |> derive(quote(age_next), (row) -> row_get(row, quote(age)) + 1)
+
+  assert_eq(row_get([[quote(age), 30]], quote(age)), 30)
+  assert_eq(rows(older), [
+    [[quote(name), "Ann"], [quote(age), 30], [quote(age_next), 31]],
+    [[quote(name), "Cara"], [quote(age), 41], [quote(age_next), 42]]
+  ])
+}
+
 @test "collect_sheet builds an immutable Sheet from homogeneous map records"
 collect_sheet_builds_sheet_from_homogeneous_records() = {
   empty = collect_sheet([])
