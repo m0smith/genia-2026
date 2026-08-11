@@ -31,6 +31,7 @@ For example, `examples/ants_terminal.genia` accepts `--seed`, `--ants`, `--steps
 | --- | --- |
 | row source | `stdin |> lines` |
 | flow transform | `map`, `filter`, `head`, `keep_some_else` |
+| CSV report text | `collect_sheet(records)` then `render_csv(sheet)`; emit with `write(stdout, text)` |
 | side effects | `each(print)`, `each(log)` |
 | materialize | `collect` |
 | maybe-safe parse | `parse_int`, `flat_map_some`, `unwrap_or` |

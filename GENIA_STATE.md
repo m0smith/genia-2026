@@ -1240,6 +1240,7 @@ Public helpers:
 - `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
 - `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
 - `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**, issue #395); see below
+- `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**, issue #396); see below
 
 All Sheet operations return new Sheet values. Existing Sheet values are never mutated.
 
@@ -1256,6 +1257,20 @@ All Sheet operations return new Sheet values. Existing Sheet values are never mu
   - later record missing a first-row column: `"collect_sheet expected column <name> at row <n>"`
   - later record with an extra column: `"collect_sheet expected only column(s) from the first record; found unexpected column <name> at row <n>"`
 - no column union, padding, default values, dropped fields, schema parameter, or type coercion
+
+`render_csv(sheet)` (**Experimental**, issue #396):
+
+- accepts only a Sheet and performs no I/O; compose the returned string with existing `write` or `writeln` when output is required
+- emits headers in Sheet column order and data records in Sheet row order
+- converts string contents unchanged, symbols to their names, integers/floats to display text, booleans to `true`/`false`, and nil to an empty field; other headers/cells, including non-nil Outcome values and composite values, are runtime misuse errors
+- separates fields with `,` and records with `\n`; fields containing comma, double quote, newline, or carriage return are double-quoted and embedded double quotes are doubled; other content, including whitespace, is preserved
+- a zero-column Sheet renders as `""`; a Sheet with columns always includes a header and ends every record, including the final record, with `\n`
+- preserves Sheet immutability and does not make Sheets Seq-compatible or implicitly unwrap Outcome values
+- errors (all `TypeError`, opting out of generic pipeline error wrapping):
+  - non-Sheet input: `"render_csv expected a Sheet"`
+  - unsupported header: `"render_csv expected CSV scalar header at column <n>; received <type>"`
+  - unsupported cell: `"render_csv expected CSV scalar cell at row <r>, column <c>; received <type>"`
+- row/column error indexes are zero-based; failure returns no partial string and performs no output
 
 Construction example:
 

@@ -247,3 +247,78 @@ def test_collect_sheet_does_not_mutate_source_records(run):
 def test_collect_sheet_errors_are_clear(run, source, message):
     with pytest.raises((RuntimeError, TypeError), match=message):
         run(source)
+
+
+def test_render_csv_empty_and_header_only_sheets(run):
+    result = run(
+        """
+        [
+          render_csv(sheet([])),
+          render_csv(sheet([
+            [quote(name), []],
+            [quote(age), []]
+          ]))
+        ]
+        """
+    )
+
+    assert result == ["", "name,age\n"]
+
+
+def test_render_csv_preserves_sheet_order_and_escapes_csv_fields(run):
+    result = run(
+        '''
+        report = sheet([
+          [quote(name), ["Ann", "Bob"]],
+          [quote(note), ["hello, world", "said \\"hi\\""]],
+          [quote(detail), ["line1\\nline2", "  spaced  "]]
+        ])
+        render_csv(report)
+        '''
+    )
+
+    assert result == (
+        'name,note,detail\n'
+        'Ann,"hello, world","line1\nline2"\n'
+        'Bob,"said ""hi""",  spaced  \n'
+    )
+
+
+def test_render_csv_converts_supported_scalar_cells(run):
+    result = run(
+        """
+        report = sheet([
+          ["kind", [quote(ok)]],
+          ["count", [7]],
+          ["ratio", [1.5]],
+          ["active", [true]],
+          ["missing", [nil]]
+        ])
+        render_csv(report)
+        """
+    )
+
+    assert result == "kind,count,ratio,active,missing\nok,7,1.5,true,\n"
+
+
+@pytest.mark.parametrize(
+    ("source", "message"),
+    [
+        ('render_csv("not-a-sheet")', "render_csv expected a Sheet"),
+        (
+            'render_csv(sheet([[{name: "header"}, ["value"]]]))',
+            "render_csv expected CSV scalar header at column 0; received map",
+        ),
+        (
+            'render_csv(sheet([[quote(value), [[1, 2]]]]))',
+            "render_csv expected CSV scalar cell at row 0, column 0; received list",
+        ),
+        (
+            'render_csv(sheet([[quote(value), [some("ok")]]]))',
+            "render_csv expected CSV scalar cell at row 0, column 0; received some\\(string\\)",
+        ),
+    ],
+)
+def test_render_csv_errors_are_clear(run, source, message):
+    with pytest.raises((RuntimeError, TypeError), match=message):
+        run(source)

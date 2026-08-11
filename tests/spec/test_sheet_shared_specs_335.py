@@ -20,6 +20,7 @@ SHEET_EVAL_SPECS = [
     "sheet-where-core.yaml",
     "sheet-derive-core.yaml",
     "collect-sheet-core.yaml",
+    "render-csv-core.yaml",
 ]
 
 SHEET_ERROR_SPECS = [
@@ -28,6 +29,8 @@ SHEET_ERROR_SPECS = [
     "error-sheet-derive-duplicate-column.yaml",
     "error-collect-sheet-missing-column.yaml",
     "error-collect-sheet-not-seq.yaml",
+    "error-render-csv-not-sheet.yaml",
+    "error-render-csv-unsupported-cell.yaml",
 ]
 
 

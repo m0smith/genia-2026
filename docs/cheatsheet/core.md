@@ -106,8 +106,11 @@ Classification: **Valid** (directly tested, Experimental)
 | debug string | `debug_repr(value)` |
 | template string | `format(template_or_format, values)` |
 | experimental format value | `Format(template)` |
+| Sheet CSV text | `render_csv(sheet)` — deterministic header/row order; **Experimental** |
 
 `display`, `debug_repr`, and `format` return strings. They do not write output. Representation does not affect value identity. `Format(template)` is Experimental and is for output representation, not value templates. `format` supports named placeholders (`{name}`), field-path placeholders (`{user.name}`, `{user.address.city}`) for dot-separated nested map lookup (Experimental, #290), positional placeholders (`{0}`), debug placeholders (`{name:?}`, `{0:?}`), escaped braces (`{{`, `}}`), and an experimental limited set of field specs (#169): `{field:<N}` left-align, `{field:>N}` right-align, `{field:^N}` center, `{n:.N}` precision, `{n:0N}` zero-pad, `{n:,}` comma-group. Ordinary replacements use display rendering; exact `:?` replacements use debug rendering. Field paths are lookup-only: no expressions, list indexing, optional chaining, or filters.
+
+`render_csv(sheet)` returns CSV text without writing it. It preserves Sheet column/row order, quotes comma/quote/newline/carriage-return fields, and accepts string, symbol, number, boolean, and nil fields; composite and non-nil Outcome fields are errors. Use `write(stdout, render_csv(report))` for explicit output.
 
 <!-- [case: core-format-named] -->
 ```genia
