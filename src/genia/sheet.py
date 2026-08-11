@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from .values import GeniaSymbol, symbol
+from .values import GeniaMap, GeniaSymbol, _runtime_type_name, symbol
 
 
 def _sheet_error(message: str) -> TypeError:
@@ -164,3 +164,41 @@ def sheet_derive(name: Any, function: Any, sheet_value: Any, invoke: Callable[[A
 
     derived_values = tuple(invoke(function, [row]) for row in sheet_rows(sheet))
     return GeniaSheet((*sheet.columns, (name, derived_values)), sheet.row_count)
+
+
+def collect_sheet_records(records: list[Any]) -> GeniaSheet:
+    if not records:
+        return GeniaSheet((), 0)
+
+    first = records[0]
+    if not isinstance(first, GeniaMap):
+        raise _sheet_error(
+            f"collect_sheet expected map records; received {_runtime_type_name(first)} at index 0"
+        )
+
+    schema = [raw_key for raw_key, _ in first.items()]
+    columns: list[list[Any]] = [[value] for _, value in first.items()]
+
+    for index, record in enumerate(records[1:], start=1):
+        if not isinstance(record, GeniaMap):
+            raise _sheet_error(
+                f"collect_sheet expected map records; received {_runtime_type_name(record)} at index {index}"
+            )
+
+        for name in schema:
+            if not record.has(name):
+                raise _sheet_error(
+                    f"collect_sheet expected column {_display_column_name(name)} at row {index}"
+                )
+
+        if record.count() != len(schema):
+            extra_name = next(raw_key for raw_key, _ in record.items() if not first.has(raw_key))
+            raise _sheet_error(
+                "collect_sheet expected only column(s) from the first record; "
+                f"found unexpected column {_display_column_name(extra_name)} at row {index}"
+            )
+
+        for column, name in zip(columns, schema):
+            column.append(record.get(name))
+
+    return GeniaSheet(tuple((name, tuple(values)) for name, values in zip(schema, columns)), len(records))

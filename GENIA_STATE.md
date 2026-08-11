@@ -1239,8 +1239,23 @@ Public helpers:
 - `where(predicate, sheet)` — return a new Sheet of rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; predicate must return boolean
 - `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
 - `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
+- `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**, issue #395); see below
 
 All Sheet operations return new Sheet values. Existing Sheet values are never mutated.
+
+`collect_sheet(records)` (**Experimental**, issue #395):
+
+- consumes a finite `list` or `GeniaFlow` of `GeniaMap` records, the same Seq-compatible source types accepted by `collect` and `collect_validated`
+- empty input returns the same zero-row/zero-column Sheet as `sheet([])`
+- for non-empty input, the first record's map entry order becomes the Sheet's column order; column names are the record's raw keys, unchanged and uncoerced (map-literal keys such as `{name: "Ann"}` are plain strings, not symbols, so resulting column names render as strings, unlike `sheet()`'s symbol-keyed columns)
+- every later record must have exactly the first record's key set (order-independent); values are copied as ordinary cell values with no coercion, and Outcome values (`some`/`none`/`err`) stored as a field are kept as plain cell values, not unwrapped
+- it does **not** process Outcome items itself: a bare `some(...)`/`none(...)`/`err(...)` passed as a top-level record item is rejected as "not a map," matching `collect_validated`'s separate, explicit aggregation step — use `collect_validated` first and pass its `clean` list into `collect_sheet`
+- errors (all `TypeError`, opting out of generic pipeline error wrapping):
+  - non-Seq-compatible source: `"collect_sheet expected a Seq-compatible value (list or Flow); received <type>."`
+  - non-map item at index `<n>`: `"collect_sheet expected map records; received <type> at index <n>"`
+  - later record missing a first-row column: `"collect_sheet expected column <name> at row <n>"`
+  - later record with an extra column: `"collect_sheet expected only column(s) from the first record; found unexpected column <name> at row <n>"`
+- no column union, padding, default values, dropped fields, schema parameter, or type coercion
 
 Construction example:
 
@@ -1809,7 +1824,7 @@ PYTHON REFERENCE HOST:
   - `context` is `some(ctx)` when the Outcome carried a context, or `none("nil")` when absent
 - the stable aggregate-diagnostic keys are `index`, `kind`, `reason`, and `context`; there is no guarantee that nested `context` maps share one schema across producers
 - result shape: `{clean: [...], diagnostics: [...]}`
-- does not create Sheets; Sheet conversion is explicitly deferred
+- does not create Sheets itself; pass `clean` to `collect_sheet(records)` (Experimental, issue #395) for an explicit, separate conversion to Sheet — `collect_validated` and `collect_sheet` remain two distinct terminal steps, not merged
 - does not change Outcome semantics, pipeline short-circuit behavior, `keep_some`, or existing validation helpers
 - `collect_validated` is terminal: it consumes the entire finite source to produce complete output; infinite Flow sources must be bounded before calling `collect_validated`
 - error shared specs cover wrong arity (0 args, 2 args), non-Seq source, and non-Outcome item cases

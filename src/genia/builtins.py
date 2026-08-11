@@ -65,6 +65,7 @@ if __package__ in (None, ""):
         compile_glob_pattern,
     )
     from genia.sheet import (
+        collect_sheet_records,
         make_sheet,
         sheet_columns,
         sheet_derive,
@@ -146,6 +147,7 @@ else:
         compile_glob_pattern,
     )
     from .sheet import (
+        collect_sheet_records,
         make_sheet,
         sheet_columns,
         sheet_derive,
@@ -1490,6 +1492,28 @@ def make_global_env(
                 _finalize_iterable(items, primary_error=primary_error)
 
         return GeniaMap().put("clean", clean).put("diagnostics", diagnostics)
+
+    def collect_sheet_fn(source: Any) -> Any:
+        if isinstance(source, list):
+            items: Iterable[Any] = source
+            close_source: Any = None
+        elif isinstance(source, GeniaFlow):
+            items = source.consume()
+            close_source = source
+        else:
+            _seq_compatible_error("collect_sheet", source)
+
+        primary_error = False
+        try:
+            records = list(items)
+        except Exception:
+            primary_error = True
+            raise
+        finally:
+            if isinstance(close_source, GeniaFlow) and close_source.close_on_early_termination:
+                _finalize_iterable(items, primary_error=primary_error)
+
+        return collect_sheet_records(records)
 
     def run_fn(source: Any) -> None:
         if isinstance(source, list):
@@ -3553,6 +3577,7 @@ def make_global_env(
     env.set("_pipe_run", lambda source: run_fn(_ensure_flow(source, "run")))
     env.set_internal("_collect", collect_fn)
     env.set("collect_validated", _host_function_group("collect_validated", 1, collect_validated_fn))
+    env.set("collect_sheet", _host_function_group("collect_sheet", 1, collect_sheet_fn))
     env.set("argv", argv_fn)
     env.set("help", help_fn)
     env.set("doc", doc_fn)

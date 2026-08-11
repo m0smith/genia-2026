@@ -1,0 +1,14 @@
+name: error-collect-sheet-missing-column
+category: error
+description: collect_sheet fails clearly when a later record is missing a column established by the first record.
+input:
+  source: |
+    collect_sheet([
+      {name: "Ann", age: 30},
+      {name: "Bob"}
+    ])
+expected:
+  stdout: ""
+  stderr: |
+    Error: collect_sheet expected column age at row 1
+  exit_code: 1
