@@ -21,6 +21,7 @@ SHEET_EVAL_SPECS = [
     "sheet-derive-core.yaml",
     "collect-sheet-core.yaml",
     "render-csv-core.yaml",
+    "row-get-core.yaml",
 ]
 
 SHEET_ERROR_SPECS = [
@@ -31,6 +32,8 @@ SHEET_ERROR_SPECS = [
     "error-collect-sheet-not-seq.yaml",
     "error-render-csv-not-sheet.yaml",
     "error-render-csv-unsupported-cell.yaml",
+    "error-row-get-missing-column.yaml",
+    "error-row-get-not-row.yaml",
 ]
 
 

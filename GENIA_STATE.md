@@ -1239,10 +1239,24 @@ Public helpers:
 - `where(predicate, sheet)` — return a new Sheet of rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; predicate must return boolean
 - `derive(name, function, sheet)` — return a new Sheet with a new column appended; row function receives each row as a list of `[name, value]` pairs; rejects existing column names
 - `rows(sheet)` — return a list of rows, each row as a list of `[name, value]` pairs
+- `row_get(row, column_name)` — return the value paired with `column_name` in a row (**Experimental**, issue #363); see below
 - `collect_sheet(records)` — terminal, explicit conversion of a finite Seq-compatible source (list or Flow) of homogeneous map records into an immutable Sheet (**Experimental**, issue #395); see below
 - `render_csv(sheet)` — return deterministic CSV report text for a Sheet (**Experimental**, issue #396); see below
 
 All Sheet operations return new Sheet values. Existing Sheet values are never mutated.
+
+`row_get(row, column_name)` (**Experimental**, issue #363):
+
+- takes any row value shaped like the existing `where`/`derive`/`rows` row contract: a `list` of two-item `[name, value]` pairs
+- does not take a Sheet; it reads a single already-extracted row, which is why `where` and `derive` row functions can call it directly on the row argument they receive
+- returns the value paired with `column_name`, matched using the same column-name identity rules as `sheet`/`select` (`GeniaSymbol`, string, number, boolean, nil, tuple, and list names compare by value; other name types must be hashable)
+- performs a first-match linear scan; a row with duplicate names for a requested column returns the first matching pair's value and is not itself flagged as an error — well-formed rows produced by `rows`, `where`, and `derive` never contain duplicate names, so this case only arises from hand-built rows, which is out of scope
+- pure and read-only: never mutates the row, its source Sheet, or any cell value
+- errors (all `TypeError`, opting out of generic pipeline error wrapping):
+  - row is not a `list`: `"row_get expected a row (list of [name, value] pairs)"`
+  - a row entry is not a two-item `list`: `"row_get expected a row (list of [name, value] pairs); malformed entry at index <n>"`
+  - `column_name` absent from the row: `"row_get could not find column <name>"`
+- introduces no new syntax; `row_get(row, quote(age))` is an ordinary function call using the existing pair-list row representation, not a new access form
 
 `collect_sheet(records)` (**Experimental**, issue #395):
 

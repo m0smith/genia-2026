@@ -1121,6 +1121,7 @@ For each incoming flow item `x`:
 - `select(names, sheet)` returns a new Sheet with requested columns in requested order; duplicate or missing names must fail clearly; input Sheet is never mutated.
 - `where(predicate, sheet)` returns a new Sheet containing rows where predicate returns `true`; predicate receives each row as a list of `[name, value]` pairs; non-boolean predicate results must fail clearly.
 - `derive(name, function, sheet)` returns a new Sheet with a new column appended; an existing column name must fail clearly; the row function receives each row as a list of `[name, value]` pairs.
+- `row_get(row, column_name)` (Experimental, issue #363) returns the value paired with `column_name` in a row — a plain `list` of `[name, value]` pairs, not a Sheet. It uses the same column-name identity rules as `sheet`/`select`, performs a first-match scan, never mutates its input, and must reject a non-`list` row, a malformed row entry, or a missing column with a clear `TypeError`. It introduces no new syntax and does not change the `where`/`derive`/`rows` row representation.
 - All Sheet operations return new `GeniaSheet` values; tuple-backed canonical column storage must not be mutated.
 - `some(...)`, `none(...)`, and `err(...)` values are stored as ordinary cell values; no implicit Outcome propagation is introduced across columns or rows.
 - Sheet errors must set `_genia_preserve_pipeline_error = True` to opt out of generic pipeline error wrapping.

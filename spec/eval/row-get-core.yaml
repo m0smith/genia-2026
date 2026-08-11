@@ -1,0 +1,17 @@
+name: row-get-core
+category: eval
+description: row_get returns the value paired with a column name in a row, and works inside where and derive.
+input:
+  source: |
+    people = sheet([
+      [quote(name), ["Ann", "Bob", "Cara"]],
+      [quote(age), [30, 22, 41]]
+    ])
+    older = people
+      |> where((row) -> row_get(row, quote(age)) >= 30)
+      |> derive(quote(age_next), (row) -> row_get(row, quote(age)) + 1)
+    [row_get([[quote(age), 30]], quote(age)), rows(older)]
+expected:
+  stdout: "[30, [[[name, \"Ann\"], [age, 30], [age_next, 31]], [[name, \"Cara\"], [age, 41], [age_next, 42]]]]\n"
+  stderr: ""
+  exit_code: 0

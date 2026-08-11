@@ -1,0 +1,11 @@
+name: error-row-get-not-row
+category: error
+description: row_get fails clearly when the row argument is not a list.
+input:
+  source: |
+    row_get("not-a-row", quote(age))
+expected:
+  stdout: ""
+  stderr: |
+    Error: row_get expected a row (list of [name, value] pairs)
+  exit_code: 1
