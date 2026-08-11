@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from .values import GeniaMap, GeniaSymbol, _runtime_type_name, symbol
+from .values import GeniaMap, GeniaSymbol, _is_nil_none, _runtime_type_name, symbol
 
 
 def _sheet_error(message: str) -> TypeError:
@@ -164,6 +164,54 @@ def sheet_derive(name: Any, function: Any, sheet_value: Any, invoke: Callable[[A
 
     derived_values = tuple(invoke(function, [row]) for row in sheet_rows(sheet))
     return GeniaSheet((*sheet.columns, (name, derived_values)), sheet.row_count)
+
+
+def _csv_scalar_text(value: Any, location: str) -> str:
+    if _is_nil_none(value):
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, GeniaSymbol):
+        return value.name
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    raise _sheet_error(
+        f"render_csv expected CSV scalar {location}; received {_runtime_type_name(value)}"
+    )
+
+
+def _escape_csv_field(text: str) -> str:
+    if any(character in text for character in (",", '"', "\n", "\r")):
+        return '"' + text.replace('"', '""') + '"'
+    return text
+
+
+def render_sheet_csv(sheet_value: Any) -> str:
+    sheet = _ensure_sheet(sheet_value, "render_csv")
+    if sheet.column_count == 0:
+        return ""
+
+    records = [
+        ",".join(
+            _escape_csv_field(_csv_scalar_text(name, f"header at column {column_index}"))
+            for column_index, (name, _) in enumerate(sheet.columns)
+        )
+    ]
+    for row_index in range(sheet.row_count):
+        records.append(
+            ",".join(
+                _escape_csv_field(
+                    _csv_scalar_text(
+                        values[row_index],
+                        f"cell at row {row_index}, column {column_index}",
+                    )
+                )
+                for column_index, (_, values) in enumerate(sheet.columns)
+            )
+        )
+    return "\n".join(records) + "\n"
 
 
 def collect_sheet_records(records: list[Any]) -> GeniaSheet:
