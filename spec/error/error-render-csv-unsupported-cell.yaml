@@ -1,0 +1,12 @@
+name: error-render-csv-unsupported-cell
+category: error
+description: render_csv rejects a non-scalar cell with its Sheet coordinates.
+input:
+  source: |
+    render_csv(sheet([[quote(value), [[1, 2]]]]))
+expected:
+  stdout: ""
+  stderr: |
+    Error: render_csv expected CSV scalar cell at row 0, column 0; received list
+  exit_code: 1
+notes: Experimental. Composite values are not implicitly serialized as CSV fields.

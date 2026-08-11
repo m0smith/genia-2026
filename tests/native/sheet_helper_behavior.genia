@@ -91,3 +91,16 @@ collect_sheet_builds_sheet_from_homogeneous_records() = {
     [["name", "Bob"], ["age", 22]]
   ])
 }
+
+@test "render_csv produces deterministic escaped report text"
+render_csv_produces_deterministic_escaped_report_text() = {
+  report = sheet([
+    [quote(name), ["Ann", "Bob"]],
+    [quote(note), ["hello, world", "said \"hi\""]]
+  ])
+
+  assert_eq(
+    render_csv(report),
+    "name,note\nAnn,\"hello, world\"\nBob,\"said \"\"hi\"\"\"\n"
+  )
+}

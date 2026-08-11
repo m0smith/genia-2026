@@ -1,0 +1,19 @@
+name: render-csv-core
+category: eval
+description: render_csv preserves Sheet order and renders deterministic escaped CSV text.
+input:
+  source: |
+    report = sheet([
+      [quote(name), ["Ann", "Bob"]],
+      [quote(note), ["hello, world", "said \"hi\""]]
+    ])
+    render_csv(report)
+expected:
+  stdout: '"name,note\nAnn,\"hello, world\"\nBob,\"said \"\"hi\"\"\"\n"
+
+    '
+  stderr: ""
+  exit_code: 0
+notes: >-
+  Experimental. Header and row order follow the Sheet; CSV-sensitive fields are
+  quoted and quotes are doubled.

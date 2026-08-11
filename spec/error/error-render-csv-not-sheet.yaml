@@ -1,0 +1,12 @@
+name: error-render-csv-not-sheet
+category: error
+description: render_csv rejects a non-Sheet input.
+input:
+  source: |
+    render_csv("not-a-sheet")
+expected:
+  stdout: ""
+  stderr: |
+    Error: render_csv expected a Sheet
+  exit_code: 1
+notes: Experimental. render_csv accepts only a Sheet.
