@@ -112,6 +112,24 @@ def sheet_rows(sheet_value: Any) -> list[list[list[Any]]]:
     ]
 
 
+def row_get_value(row_value: Any, column_name: Any) -> Any:
+    if not isinstance(row_value, list):
+        raise _sheet_error("row_get expected a row (list of [name, value] pairs)")
+
+    target = _freeze_column_name(column_name)
+    for index, entry in enumerate(row_value):
+        if not isinstance(entry, list) or len(entry) != 2:
+            raise _sheet_error(
+                "row_get expected a row (list of [name, value] pairs); "
+                f"malformed entry at index {index}"
+            )
+        name, value = entry
+        if _freeze_column_name(name) == target:
+            return value
+
+    raise _sheet_error(f"row_get could not find column {_display_column_name(column_name)}")
+
+
 def sheet_select(names_value: Any, sheet_value: Any) -> GeniaSheet:
     sheet = _ensure_sheet(sheet_value, "select")
     if not isinstance(names_value, list):

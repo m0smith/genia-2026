@@ -68,6 +68,7 @@ if __package__ in (None, ""):
         collect_sheet_records,
         make_sheet,
         render_sheet_csv,
+        row_get_value,
         sheet_columns,
         sheet_derive,
         sheet_rows,
@@ -151,6 +152,7 @@ else:
         collect_sheet_records,
         make_sheet,
         render_sheet_csv,
+        row_get_value,
         sheet_columns,
         sheet_derive,
         sheet_rows,
@@ -3591,6 +3593,7 @@ def make_global_env(
     env.set("where", _host_function_group("where", 2, where_fn))
     env.set("derive", _host_function_group("derive", 3, derive_fn))
     env.set("rows", _host_function_group("rows", 1, sheet_rows))
+    env.set("row_get", _host_function_group("row_get", 2, row_get_value))
     env.set("render_csv", _host_function_group("render_csv", 1, render_sheet_csv))
     env.set("pi", math.pi)
     env.set("e", math.e)

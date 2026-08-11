@@ -114,12 +114,12 @@ def test_row_get_matches_string_keyed_rows_from_collect_sheet(run):
     result = run(
         """
         report = collect_sheet([{name: "Ann", age: 30}])
-        [row] = rows(report)
-        row_get(row, "age")
+        derived = report |> derive("age_next", (row) -> row_get(row, "age") + 1)
+        rows(derived)
         """
     )
 
-    assert format_debug(result) == "30"
+    assert format_debug(result) == '[[["name", "Ann"], ["age", 30], ["age_next", 31]]]'
 
 
 def test_row_get_first_match_wins_on_duplicate_names(run):
@@ -136,7 +136,7 @@ def test_row_get_does_not_mutate_row_or_source_sheet(run):
     result = run(
         """
         people = sheet([[quote(age), [30]]])
-        [row] = rows(people)
+        row = [[quote(age), 30]]
         value = row_get(row, quote(age))
         [value, row, rows(people)]
         """
