@@ -512,7 +512,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `tap(fn, value)` runs `fn(value)` for side effects and returns `value` unchanged
   - these helpers do not force Flow materialization by themselves; they preserve explicit/lazy Flow boundaries unless user-provided side-effect callbacks consume a Flow value
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
-- public validation helper names `validate_required`, `validate_field`, `validate_optional`, `validate_record`, and `validate_each` are prelude-backed wrappers over small host-backed record checks; they return Outcome values for user-data problems and keep programmer misuse as runtime errors.
+- public validation helper names `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, and `diagnostic_field` are prelude-backed wrappers over small host-backed checks/constructors; record validation helpers return Outcome values for user-data problems, diagnostic constructors return ordinary maps, and programmer misuse remains a runtime error.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
 - public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
@@ -1707,6 +1707,10 @@ Behavior:
   - `validate_record(record, validators)` (**Experimental**)
   - `validate_record(record, validators, context)` (**Experimental**)
   - `validate_each(source, validator)` (**Experimental**)
+  - `diagnostic_error(index, field, reason, context)` (**Experimental**)
+  - `diagnostic_skipped(index, field, reason, context)` (**Experimental**)
+  - `diagnostic_reason(diagnostic)` (**Experimental**)
+  - `diagnostic_field(diagnostic)` (**Experimental**)
   - the helpers operate on one map record or list of records at a time; no schema DSL, Sheet behavior, or report helper is introduced in this phase
   - the helpers use existing Outcome values: valid records return `some(record)` or `some(clean_record, context?)`, and recoverable user-data problems return `err(reason, context)`
 
@@ -1736,6 +1740,30 @@ Behavior:
 - `validate_optional` keeps its currently documented Outcome shapes, but issue #405 does not establish one shared stable context schema across its absence, success, nested-validator error, and validator-returned-`none(...)` branches; fields beyond each branch's existing behavior remain branch-specific
 - shared specs currently cover selected validation helper behavior only: valid-record, required-field present/missing, optional-field present/absent/invalid, simple nested validation path success/missing diagnostics, invalid-field, non-callable-predicate misuse cases, selected `validate_each/2` behavior (empty list, `some(...)` preservation, and mixed `some(...)` / `none(...)` / `err(...)` preservation), and selected `validate_each/2` misuse diagnostics (non-list/non-Flow source, non-callable validator, and non-Outcome validator result)
 - multi-record splitting/collection, summary reports, Sheet integration, and broader path semantics are not implemented by these helpers
+
+### Field/index validation diagnostic helpers (**Experimental**, issue #393 contract)
+
+Implemented in the Python reference host:
+
+- public names: `diagnostic_error/4`, `diagnostic_skipped/4`, `diagnostic_reason/1`, and `diagnostic_field/1`
+- `diagnostic_error(index, field, reason, context)` returns exactly `{index: index, field: field, kind: quote(error), reason: reason, context: context}`
+- `diagnostic_skipped(index, field, reason, context)` returns exactly `{index: index, field: field, kind: quote(skipped), reason: reason, context: context}`
+- constructor arguments are ordinary Genia values and are preserved without validation, coercion, or context wrapping; only `kind` is supplied by the constructor
+- `diagnostic_reason(diagnostic)` requires a map and returns its `reason` value using existing map lookup semantics
+- `diagnostic_field(diagnostic)` requires a map and returns its `field` value using existing map lookup semantics
+- an accessor given a non-map is a runtime misuse error; an absent requested key returns `none("missing-key", {key: <key>})`
+- standard callable arity handling rejects any arity other than the public arities above
+- the helpers produce and inspect ordinary immutable maps; they perform no I/O and mutate no value
+- this helper-specific five-key shape does not replace or normalize producer-specific validation context, `validate_record` field diagnostics, or `collect_validated` aggregate diagnostics
+- `collect_validated` does not automatically consume, create, or transform these helper maps
+- no universal validation diagnostic schema, reporter framework, logging framework, Sheet behavior, Flow behavior, Outcome change, parser syntax, or Core IR change is introduced
+
+PYTHON REFERENCE HOST:
+
+- public wrappers live in `src/genia/std/prelude/validation.genia`
+- two narrow option-aware constructor primitives in `src/genia/builtins.py` preserve `none(...)` arguments instead of applying ordinary none-propagation
+- accessors reuse existing `map_get` behavior
+- shared eval/error specs cover exact constructor/accessor output, missing keys, non-map misuse, and public arities; Genia-native validation tests cover constructor value preservation and accessor behavior
 
 ### validate_record helper (**Experimental**, issue #391)
 
@@ -2202,7 +2230,7 @@ Notable autoloaded functions include:
   - `apply_raw(f, args)` — language-contract host primitive; calls `f` with list `args` as positional arguments, bypassing the automatic `none(...)` short-circuit for arguments delivered to `f`; `apply_raw` itself is subject to normal none-propagation on its own two arguments (`apply_raw(f, none("x"))` short-circuits before `apply_raw` runs); `args` must be a list or `TypeError` is raised; return value of `f` is returned as-is with no coercion; exceptions inside `f` propagate unchanged; registered directly in the env (not autoloaded)
 - cli: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
 - map: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- validation: `validate_required`, `validate_field`, `validate_optional`, `validate_record` (Experimental); `collect_validated` (host-backed builtin, Experimental)
+- validation: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
 - ref: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
 - process: `spawn`, `send`, `process_alive?`
 - io: `write`, `writeln`, `flush`, `clear_screen`, `move_cursor`, `render_grid`

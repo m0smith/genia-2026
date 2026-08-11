@@ -1,0 +1,18 @@
+name: diagnostic-helper-accessors
+category: eval
+description: Diagnostic accessors return stored values and established missing-key absence
+input:
+  source: |
+    [
+      diagnostic_reason(diagnostic_error(-1, 7, {code: 4}, none)),
+      diagnostic_field(diagnostic_skipped("row-2", quote(name), "blank", {})),
+      diagnostic_reason({field: "age"}),
+      diagnostic_field({reason: "invalid"})
+    ]
+expected:
+  stdout: "[{code: 4}, name, none(\"missing-key\", {key: \"reason\"}), none(\"missing-key\", {key: \"field\"})]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 393
+  contract: Accessors accept maps without requiring the full helper shape and reuse map missing-key semantics.

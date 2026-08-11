@@ -1,0 +1,15 @@
+name: diagnostic-skipped-wrong-arity
+category: error
+description: diagnostic_skipped rejects arities other than four
+input:
+  source: |
+    diagnostic_skipped(1, "name", "blank", {}, 5)
+expected:
+  stdout: ""
+  stderr: "Error: No matching function: diagnostic_skipped/5. Available: diagnostic_skipped/4\n"
+  exit_code: 1
+notes: |
+  issue: 393
+  error_phase: eval
+  error_category: TypeError
+  contract: diagnostic_skipped has arity four.

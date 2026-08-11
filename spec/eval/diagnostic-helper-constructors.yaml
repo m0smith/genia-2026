@@ -1,0 +1,16 @@
+name: diagnostic-helper-constructors
+category: eval
+description: Diagnostic constructors return exact field/index-aware maps
+input:
+  source: |
+    [
+      diagnostic_error(2, "age", quote(out_of_range), {actual: -1}),
+      diagnostic_skipped(3, "name", "blank", none("no-context"))
+    ]
+expected:
+  stdout: "[{index: 2, field: \"age\", kind: error, reason: out_of_range, context: {actual: -1}}, {index: 3, field: \"name\", kind: skipped, reason: \"blank\", context: none(\"no-context\")}]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 393
+  contract: Constructors return five-key maps, fix kind, and preserve caller values.

@@ -1,0 +1,15 @@
+name: diagnostic-field-non-map-error
+category: error
+description: diagnostic_field rejects non-map input through existing map lookup behavior
+input:
+  source: |
+    diagnostic_field("age")
+expected:
+  stdout: ""
+  stderr: "Error: map_get expected a map as first argument, received string\n"
+  exit_code: 1
+notes: |
+  issue: 393
+  error_phase: eval
+  error_category: TypeError
+  contract: Accessor non-map misuse propagates the established map_get error.

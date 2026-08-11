@@ -69,6 +69,7 @@ Use explicit Option helpers when you need exact wrap-vs-flat-map control.
 | JSONL record parse | `parse_jsonl_record(line)` → `some(record, ctx)` / `none("blank_line", ctx)` / `err(reason, ctx)` — **Experimental** |
 | record validation | `validate_required(field, record)`, `validate_field(field, predicate, expected, record)`, `validate_optional(field, record[, validator])`, `validate_record(record, validators[, context])` — **Experimental** |
 | batch validation | `validate_each(source, validator)` — applies a validator to each list or Flow item and returns one Outcome per item — **Experimental** |
+| diagnostic maps | `diagnostic_error(index, field, reason, context)`, `diagnostic_skipped(...)`, `diagnostic_reason(diagnostic)`, `diagnostic_field(diagnostic)` — **Experimental** |
 | pipeline collection | `collect_validated(results)` — **Experimental** |
 | recovery | `unwrap_or(default, opt)`, `or_else(opt, fallback)`, `or_else_with(opt, thunk)` |
 | metadata | `absence_reason(opt)`, `absence_context(opt)`, `absence_meta(opt)` |
@@ -78,6 +79,8 @@ Outcome values distinguish successful presence (`some(value)`), successful absen
 `validate_required` and `validate_field` are one-record map helpers for minimal Outcome-aware validation. Valid records return `some(record)`; missing or invalid fields return recoverable `err(...)` diagnostics. `field` may be a flat name or simple dot-joined nested path such as `"patient.name"` for validation helper lookup and diagnostic metadata only. Non-callable predicates remain runtime errors.
 
 Validation diagnostic fields are **Experimental** and stable per layer, not as one universal schema. Missing-field helper context has `field` and `reason`; invalid-field helper context also has `expected` and `actual`; either includes `row` only when the input record contains it. A `validate_record` field diagnostic has `field`, `status`, `reason`, and nested `context`, while `collect_validated` adds its separate `index`, `kind`, `reason`, and wrapped `context` aggregation layer.
+
+Field/index diagnostic constructors return ordinary `{index, field, kind, reason, context}` maps and preserve caller values without coercion or context wrapping. `diagnostic_reason` and `diagnostic_field` use existing map lookup behavior. They do not normalize or automatically integrate with the other diagnostic layers.
 
 `validate_optional(field, record[, validator])` (**Experimental**) validates optional record fields: missing field returns `none({field: field, reason: quote(missing_optional_field)})`; present field with no validator returns `some(value, {field: field})`; present field with validator preserves `some(...)`, keeps `err(...)` meaning while prefixing a `field` context entry to the full nested path when applicable, and normalizes validator `none(...)` to `err(quote(optional_field_validator_returned_none), ...)`. Non-map record, non-callable validator, and validator returning non-Outcome are runtime errors.
 

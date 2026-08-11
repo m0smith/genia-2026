@@ -370,6 +370,8 @@ _NONE_AWARE_PUBLIC_FUNCTIONS = frozenset(
         "cli_option",
         "cli_option_or",
         "map_put",
+        "diagnostic_error",
+        "diagnostic_skipped",
         "write",
         "writeln",
         "flush",
