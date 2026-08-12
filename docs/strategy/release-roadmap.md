@@ -335,36 +335,65 @@ Theme:
 
 Context:
 
-- Surfaced by exercising `serve_http` against a real browser client for an external consuming app. Idea capture: `docs/parking-lot/web-backend-cfm-app.md`.
-- Verified current behavior: handler-returned response headers are emitted verbatim (CORS works on real GET/POST responses), and `request("query")` is a parsed map with query-stripped path routing.
-- Verified gaps this release targets: CORS preflight (`OPTIONS`) returns 404; no `cors()` helper and no header merge into `json`/`text`; exact-path-only routing (no path params); single-threaded synchronous server; `web` surface sits outside the shared spec categories.
+- Surfaced by exercising `serve_http` against a real browser client for an external consuming app. Historical idea capture: `docs/parking-lot/web-backend-cfm-app.md`.
+- Verified current behavior remains defined by `GENIA_STATE.md`: handler-returned response headers reach the transport, `request("query")` is parsed, routing uses the query-stripped exact path, and the server is synchronous/blocking.
+- Verified release gaps: no composable response-header operation, no automatic browser CORS preflight handling, and no stabilized Python-host web capability boundary.
 
-Candidate scope (cut tracking issues before starting):
+Approved architecture:
 
-- `options(path, handler)` route constructor / preflight-aware routing so browsers can complete preflighted cross-origin requests
-- a `cors(...)` header helper, plus a way to merge extra headers into `json(...)` / `text(...)`
-- optional path-parameter routing (low priority — query-string style already covers lookups)
-- optional threaded / multi-request `serve_http` mode (only if a consumer needs concurrency)
-- stabilize the web capability: add it to the host capability registry (`docs/host-interop/capabilities.md`) and/or a spec category so consumers can depend on it durably
+```genia
+with_headers(headers, response) -> response
+cors(policy, handler) -> handler
+```
+
+- `with_headers` is the single response-header composition mechanism.
+- `cors` is a handler wrapper that decorates ordinary responses through `with_headers` and answers true browser preflight requests.
+- Do not add header-taking overloads to `json` or `text`.
+- Do not add a separate public `options(...)` route constructor for R7.
+- R8's inert `@cors` annotation binds to the R7 `cors` wrapper; it must not create a second CORS mechanism.
+
+Required issue path:
+
+1. **#526 — E-1: response header composition with `with_headers`**
+2. **#527 — E-2: CORS handler wrapper with automatic preflight**
+3. **#530 — E-3: stabilize and audit the Python-host web capability**
+
+Dependency order: **#526 → #527 → #530**.
+
+Deferred from R7:
+
+- **#528 — path-parameter routing:** closed not-planned; query parameters satisfy the demonstrated consumer. Reconsider only with concrete repeated friction.
+- **#529 — concurrent serving:** closed not-planned; the consumer has no measured concurrency need. Reconsider only with load evidence.
+- Both remain planning history and are not R7 completion work.
 
 Excludes:
 
-- a general web framework or broad "server mode" runtime
+- a general web framework, middleware framework, or broad server-mode runtime
+- `genia serve <file>` and lifecycle-activated web annotations (R8)
 - browser-native runtime
-- reopening or displacing completed R5 (native-test migration) or R6 (data-workflow hardening) work
-- documenting any of the above as implemented before it ships — `GENIA_STATE.md` remains authoritative
+- path parameters or concurrency without new evidence
+- credentials/cookies policy, dynamic origin reflection, per-route CORS overrides, authentication, or authorization
+- parser, lexer, Core IR, or unrelated host-adapter changes
+- multi-host portability claims
+- documenting planned behavior as implemented before it ships — `GENIA_STATE.md` remains authoritative
 
 Exit criteria:
 
-- A browser frontend can complete a preflighted cross-origin request against a Genia service without hand-rolled boilerplate.
-- Web serving behavior a consumer depends on is pinned via the capability registry and/or a spec category (or explicitly documented as version-pinned).
-- No completed R5 / R6 scope is reopened or regressed to deliver it.
+- A browser-shaped preflight followed by a JSON request succeeds through a real `serve_http` instance.
+- Application handlers contain no manual `access-control-*` header construction.
+- JSON content type and application status/body survive CORS response decoration.
+- Genia-native tests cover the public value/wrapper behavior, while focused Python tests cover the HTTP transport boundary.
+- Web behavior is pinned in `docs/host-interop/capabilities.md` with correct Python-host-only status.
+- `docs/releases/R7.md` provides a runnable headline example.
+- R8 binds to the landed R7 primitives without a second mechanism.
+- No completed R5/R6 behavior is reopened or regressed.
 
 Agent guidance for R7:
 
-- R7 is the active release and is infrastructure, not killer-workflow work. Classify new work against its focused scope before implementation.
-- Cut focused tracking issues before starting implementation; candidate scope does not itself authorize or define behavior.
-- Keep the surface minimal and consistent with the Core Surface Freeze — add capability, not alternative ways to express the same thing.
+- R7 is the active release and is infrastructure, not killer-workflow work.
+- Start with #526 and run the normal phase pipeline; its contract phase must confirm the exact public call shape and error semantics before implementation.
+- Do not start #527 before #526 lands, #530 before #526/#527 land, or R8 before #530 closes R7.
+- Keep the surface minimal and consistent with the Core Surface Freeze.
 
 ---
 
