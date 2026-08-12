@@ -264,9 +264,11 @@ Agent guidance for R5:
 
 ---
 
-## Release R6 — Data Workflow Hardening
+## Release R6 — Data Workflow Hardening ✓ COMPLETE
 
-**Status: Active release focus.**
+**Status: Complete.** All nine R6 issues are closed and `docs/releases/R6.md`
+carries a runnable example for each landed issue that added user-facing
+behavior.
 
 Theme:
 
@@ -276,18 +278,18 @@ This release picks up the data-workflow items deferred from R1. These items were
 
 Current R6 issue set:
 
-- **#543** — roadmap/R6 active-release alignment
+- **#543** — roadmap/R6 active-release alignment ✓ closed
 
 Deferred R1 items now targeting R6:
 
-- **#405** — post-R1 diagnostic-context hardening
-- **#393** — diagnostic helper APIs for field/index-aware validation diagnostics
-- **#394** — conditional / deferred until concrete need is proven
-- **#390** — CSV support (record ingestion from CSV files)
-- **#395** — Sheet landing zone improvements
-- **#396** — depends on #395; schedule after Sheet landing zone lands
-- **#363** — delivered; `row_get(row, column_name)` ergonomic row access
-- **#364** — depends on Sheet landing zone; schedule after #395
+- **#405** — post-R1 diagnostic-context hardening ✓ closed
+- **#393** — diagnostic helper APIs for field/index-aware validation diagnostics ✓ closed
+- **#394** — conditional / deferred until concrete need is proven — ✓ closed not-planned; `collect_validated` + `filter` already covers the partition use case, no repeated friction found
+- **#390** — CSV support (record ingestion from CSV files) ✓ closed
+- **#395** — Sheet landing zone improvements ✓ closed
+- **#396** — depends on #395; schedule after Sheet landing zone lands ✓ closed
+- **#363** — delivered; `row_get(row, column_name)` ergonomic row access ✓ closed
+- **#364** — depends on Sheet landing zone; schedule after #395 — ✓ closed completed, no code change; `rows(sheet)` already satisfies the explicit row-Seq-adapter contract
 
 Possible additional includes:
 
@@ -317,13 +319,9 @@ Excludes by default:
 
 Agent guidance for R6:
 
-- Current release focus is R6. When asked for new Genia work with no release specified, classify the work against R6 first.
-- If the work is data-workflow hardening from the deferred-item set above (#390, #393, #394, #395, #396, #363, #364, #405) or a "possible additional includes" item explicitly approved by the user, proceed through the normal phase pipeline.
-- #394 stays conditional/deferred until a concrete need is proven; do not start it speculatively.
-- #396, #363, and #364 depend on #395 (Sheet landing zone); schedule after #395 lands.
-- Do not create tickets for "possible additional includes" or "deferred candidates" items without explicit user approval — they are brainstorm/parking-lot scope, not approved tickets.
-- R6 is not a bucket for actors, browser-native runtime, a full static type system, or broad value-template implementation; those stay parked unless explicitly promoted.
-- `docs/releases/R6.md` must gain a runnable example for each landed R6 issue that adds user-facing behavior (see Release Examples above); update it in the same doc phase, not as a separate follow-up.
+- R6 is complete. When asked for new Genia work with no release specified, do not default to classifying it against R6 — check whether it fits an active release (see current status above) or belongs in a new ticket/parking lot.
+- Do not create tickets for R6's former "possible additional includes" or "deferred candidates" items without explicit user approval — they are brainstorm/parking-lot scope, not approved tickets, and are not automatically reopened by R6's closure.
+- If a concrete gap in `rows(sheet)` (#364) or a proven repeated need for a `partition_validated`-style split (#394) surfaces later, file it as a focused follow-up issue with evidence, not a reopening of the closed R6 ticket.
 
 ---
 

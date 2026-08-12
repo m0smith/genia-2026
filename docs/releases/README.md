@@ -18,7 +18,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R3 — Native Test Expansion Wave 1](R3.md)
 - [R4 — Lifecycle Generalization](R4.md)
 - [R5 — Native Test Migration / Genia-Facing Coverage Wave 1](R5.md)
-- [R6 — Data Workflow Hardening](R6.md) (in progress — updated as R6 issues land)
+- [R6 — Data Workflow Hardening](R6.md) ✓ COMPLETE
 
 ## Process
 
