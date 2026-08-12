@@ -325,9 +325,9 @@ Agent guidance for R6:
 
 ---
 
-## Release R7 — Web Serving Ergonomics
+## Release R7 — Web Serving Ergonomics — ACTIVE
 
-**Status: Planned.** Promoted from the parking lot as **explicitly approved infrastructure work**. This release does **not** strengthen the validated-data-pipeline killer workflow; it is scheduled deliberately as infrastructure and must not displace R5 or R6.
+**Status: Active release focus.** Promoted from the parking lot as **explicitly approved infrastructure work** after R6 completed. This release does **not** strengthen the validated-data-pipeline killer workflow; it is scheduled deliberately as infrastructure.
 
 Theme:
 
@@ -351,18 +351,19 @@ Excludes:
 
 - a general web framework or broad "server mode" runtime
 - browser-native runtime
-- displacing R5 (native-test migration) or R6 (data-workflow hardening)
+- reopening or displacing completed R5 (native-test migration) or R6 (data-workflow hardening) work
 - documenting any of the above as implemented before it ships — `GENIA_STATE.md` remains authoritative
 
 Exit criteria:
 
 - A browser frontend can complete a preflighted cross-origin request against a Genia service without hand-rolled boilerplate.
 - Web serving behavior a consumer depends on is pinned via the capability registry and/or a spec category (or explicitly documented as version-pinned).
-- No killer-workflow (R5 / R6) work was displaced to deliver it.
+- No completed R5 / R6 scope is reopened or regressed to deliver it.
 
 Agent guidance for R7:
 
-- R7 is infrastructure, not killer-workflow. Do not pull R7 work forward ahead of R5/R6 unless the user explicitly reprioritizes.
+- R7 is the active release and is infrastructure, not killer-workflow work. Classify new work against its focused scope before implementation.
+- Cut focused tracking issues before starting implementation; candidate scope does not itself authorize or define behavior.
 - Keep the surface minimal and consistent with the Core Surface Freeze — add capability, not alternative ways to express the same thing.
 
 ---

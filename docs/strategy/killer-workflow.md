@@ -92,7 +92,10 @@ R4 is complete.
 R5 is complete.
 
 **R6** hardens the data workflow with CSV, Sheets, report output, and richer diagnostics.
-R6 is the active release focus. It is not actors, servers, or plugins (those are parking lot).
+R6 is complete.
+
+**R7** improves web-serving ergonomics as explicitly approved infrastructure work.
+R7 is the active release focus. It does not replace the validated-data-pipeline product north star, and it is not a general web framework, browser-native runtime, or plugin system.
 
 ## Using This Document
 

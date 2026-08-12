@@ -148,8 +148,8 @@ Before proposing or implementing new feature work, read:
 Before creating new issues/tickets, also read:
 - `docs/process/08-roadmap-ticketing.md`
 
-**Current active release: R6 — Data Workflow Hardening.**
-R5 (Native Test Migration / Genia-Facing Coverage Wave 1) is complete. When asked for new Genia work with no release specified, classify work against R6 first. If it is not data-workflow hardening work from the tracked R6 issue set, mark it as non-R6 and defer, park, or classify it unless the user explicitly asked for it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for full R6 scope and agent guidance.
+**Current active release: R7 — Web Serving Ergonomics.**
+R6 (Data Workflow Hardening) is complete. R7 is explicitly approved infrastructure work focused on making the existing web / HTTP serving surface comfortable for a real browser client. When asked for new Genia work with no release specified, classify it against R7 first; unrelated work must be classified as follow-up, a later release, or parking-lot work unless the user explicitly approves it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for full R7 scope and agent guidance.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
