@@ -94,29 +94,28 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Active Release: R6 — Data Workflow Hardening
+## Active Release: R7 — Web Serving Ergonomics
 
-**Current active release is R6.**
+**Current active release is R7.**
 
-R5 (Native Test Migration / Genia-Facing Coverage Wave 1) is complete. R6 is now the active release focus.
+R6 (Data Workflow Hardening) is complete. R7 is explicitly approved infrastructure work and is now the active release focus.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
-1. Classify the work against R6 first.
-2. If the work is data-workflow hardening from the tracked deferred-item set — #390 (CSV), #393 (diagnostic helpers), #395 / #396 (Sheet landing zone + CSV output), #363 / #364 (Sheet row ergonomics/Seq adapter), #405 (diagnostic-context contract) — or a "possible additional includes" item the user has explicitly approved, proceed through the normal phase pipeline.
-3. #394 stays conditional/deferred until a concrete need is proven; do not start it speculatively.
-4. #396, #363, and #364 depend on #395 (Sheet landing zone); schedule after #395 lands.
-5. If the work is not R6, mark it as non-R6 and either defer/parking-lot it or classify it to a later release unless the user explicitly asked for it.
+1. Classify the work against R7 first.
+2. R7 targets web-serving ergonomics: CORS preflight, minimal response-header composition, optional path/concurrency work only when consumer evidence justifies it, and durable capability/spec coverage.
+3. Cut focused tracking issues before implementation; roadmap candidate scope is not an implemented contract.
+4. If the work is not R7, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
+5. Keep R7 minimal and consistent with the Core Surface Freeze; it is infrastructure work and does not redefine the validated-data-pipeline product north star.
 
-R6 is not a bucket for actors, browser-native runtime, a full static type system, or broad value-template implementation. Those stay parked unless explicitly promoted.
+R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. Those remain excluded or assigned to later releases unless explicitly promoted.
 
-R6 exclusions (do not include unless explicitly requested):
-- actors
+R7 exclusions (do not include unless explicitly requested):
+- general web framework or broad server-mode runtime
 - browser-native runtime
-- full static type system
-- broad value-template implementation
-- parser, lexer, Core IR, or host-adapter changes
-- unapproved "possible additional includes" / "deferred candidates" items from `docs/strategy/release-roadmap.md`
+- server execution mode (planned for R8)
+- parser, lexer, Core IR, or unrelated host-adapter changes
+- unapproved optional or deferred candidates from `docs/strategy/release-roadmap.md`
 
 ## Validation
 
