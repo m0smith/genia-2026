@@ -103,17 +103,21 @@ R6 (Data Workflow Hardening) is complete. R7 is explicitly approved infrastructu
 When an LLM agent is asked for new Genia work and no release is specified:
 
 1. Classify the work against R7 first.
-2. R7 targets web-serving ergonomics: CORS preflight, minimal response-header composition, optional path/concurrency work only when consumer evidence justifies it, and durable capability/spec coverage.
-3. Cut focused tracking issues before implementation; roadmap candidate scope is not an implemented contract.
-4. If the work is not R7, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
-5. Keep R7 minimal and consistent with the Core Surface Freeze; it is infrastructure work and does not redefine the validated-data-pipeline product north star.
+2. Follow the required dependency path: #526 `with_headers` → #527 `cors(policy, handler)` → #530 capability stabilization and truth audit.
+3. Treat `with_headers` as the sole response-header composition mechanism and `cors` as the sole CORS handler wrapper; do not introduce `json`/`text` header overloads, a header-only `cors`, or a public R7 `options(...)` route.
+4. Require Genia-native tests for public behavior and focused Python tests for the real HTTP transport boundary.
+5. If the work is not R7, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
+6. Keep R7 minimal and consistent with the Core Surface Freeze; it is infrastructure work and does not redefine the validated-data-pipeline product north star.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. Those remain excluded or assigned to later releases unless explicitly promoted.
 
 R7 exclusions (do not include unless explicitly requested):
-- general web framework or broad server-mode runtime
+- general web or middleware framework
 - browser-native runtime
-- server execution mode (planned for R8)
+- server execution mode and lifecycle-activated annotations (planned for R8)
+- path-parameter routing (#528 closed not-planned pending evidence)
+- concurrent serving (#529 closed not-planned pending measurements)
+- credentials/cookies policy, dynamic origin reflection, per-route CORS overrides, authentication, or authorization
 - parser, lexer, Core IR, or unrelated host-adapter changes
 - unapproved optional or deferred candidates from `docs/strategy/release-roadmap.md`
 
