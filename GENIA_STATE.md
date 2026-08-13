@@ -514,7 +514,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public validation helper names `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, and `diagnostic_field` are prelude-backed wrappers over small host-backed checks/constructors; record validation helpers return Outcome values for user-data problems, diagnostic constructors return ordinary maps, and programmer misuse remains a runtime error.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
-- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
+- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `with_headers`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
@@ -1049,6 +1049,7 @@ Case placement rules (enforced):
   - `post`
   - `route_request`
   - `response`
+  - `with_headers`
   - `json`
   - `text`
   - `ok`
@@ -1092,6 +1093,35 @@ Output sink semantics:
     - `body` (string, bytes, or `none`)
   - invalid handler return values or response-shape errors produce a `500 internal server error` response in this phase
   - the ants browser viewer uses this same HTTP surface with static HTML/CSS/JS responses, JSON state snapshots, and POST endpoints for reset/step; it does not add WebSockets, SSE, or a richer server runtime
+
+### Response header composition (**Partial**, issue #526)
+
+Implemented and verified in the Python reference host:
+
+- public Python-reference-host web-module call shape: `with_headers(headers, response) -> response`
+- `headers` is first and `response` is last so `response |> with_headers(headers)` is the canonical pipeline form
+- `headers` and `response` must be maps; `response` must contain `status`, `headers`, and `body`, and `response.headers` must be a map
+- every existing and supplied header name and value must be a string; empty strings are accepted and no trimming or HTTP token/value validation is introduced
+- every output header name is normalized with the existing `lower` string operation; header-name collisions are therefore case-insensitive
+- entries are processed in map iteration order, so the later case-insensitive spelling within one input header map wins; supplied entries are processed after existing entries, so supplied headers always win collisions with existing headers
+- the result is a new response map with a new normalized header map; every non-`headers` response entry, including `status`, `body`, and any additional entry, is preserved unchanged
+- the input response, its existing header map, and the supplied header map are not mutated
+- validation order is: supplied `headers` map; `response` map; required `status`, `headers`, and `body` response fields; `response.headers` map; existing header entries; supplied header entries
+- malformed inputs raise `TypeError` with these exact messages:
+  - `with_headers expected headers to be a map`
+  - `with_headers expected response to be a map`
+  - `with_headers expected response.status field`
+  - `with_headers expected response.headers field`
+  - `with_headers expected response.body field`
+  - `with_headers expected response.headers to be a map`
+  - `with_headers expected response header name at index <index> to be a string`
+  - `with_headers expected response header value at index <index> to be a string`
+  - `with_headers expected supplied header name at index <index> to be a string`
+  - `with_headers expected supplied header value at index <index> to be a string`
+- header-entry indexes are zero-based map-iteration indexes
+- `status`, `body`, and additional response entries are preserved without validation or coercion; transport response-shape validation remains the responsibility of the existing HTTP bridge
+- this adds no `json`/`text` overload, CORS policy, automatic preflight handling, `OPTIONS` route, middleware framework, parser syntax, Core IR node, shared-spec category, or cross-host portability claim
+- the existing `serve_http`, routing, response-constructor, `json`, and `text` behavior is otherwise unchanged
 - `print(...)` writes to `stdout`
 - `log(...)` writes to `stderr`
 - `input()` remains interactive-only and does not consume the flow/stdin source path

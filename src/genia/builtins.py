@@ -3090,6 +3090,40 @@ def make_global_env(
             headers["content-length"] = str(len(payload))
         return status, headers, payload
 
+    def with_headers_fn(headers_value: Any, response_value: Any) -> GeniaMap:
+        if not isinstance(headers_value, GeniaMap):
+            raise TypeError("with_headers expected headers to be a map")
+        if not isinstance(response_value, GeniaMap):
+            raise TypeError("with_headers expected response to be a map")
+
+        for field in ("status", "headers", "body"):
+            if not response_value.has(field):
+                raise TypeError(f"with_headers expected response.{field} field")
+
+        response_headers = response_value.get("headers")
+        if not isinstance(response_headers, GeniaMap):
+            raise TypeError("with_headers expected response.headers to be a map")
+
+        merged = GeniaMap()
+        for source_name, source_headers in (
+            ("response", response_headers),
+            ("supplied", headers_value),
+        ):
+            for index, (header_name, header_value) in enumerate(source_headers.items()):
+                if not isinstance(header_name, str):
+                    raise TypeError(
+                        f"with_headers expected {source_name} header name "
+                        f"at index {index} to be a string"
+                    )
+                if not isinstance(header_value, str):
+                    raise TypeError(
+                        f"with_headers expected {source_name} header value "
+                        f"at index {index} to be a string"
+                    )
+                merged = merged.put(header_name.lower(), header_value)
+
+        return response_value.put("headers", merged)
+
     def serve_http_fn(config_value: Any, handler: Any) -> GeniaMap:
         if not isinstance(config_value, GeniaMap):
             raise TypeError("serve_http expected config to be a map")
@@ -3721,6 +3755,7 @@ def make_global_env(
     env.set("_parse_csv_row", parse_csv_row_fn)
     env.set("_json_stringify", json_stringify_fn)
     env.set("_serve_http", serve_http_fn)
+    env.set("_with_headers", with_headers_fn)
     env.set("_zip_read", zip_read_fn)
     env.set("_zip_write", zip_write_flow_fn)
     env.set("zip_entries", zip_entries_fn)

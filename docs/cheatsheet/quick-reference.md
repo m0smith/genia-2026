@@ -179,9 +179,11 @@ Classification: **Valid** (directly tested)
 - `web.get(path, handler)` and `web.post(path, handler)` create exact-path routes
 - `web.route_request(routes)` builds a handler from those routes
 - `web.response(status, headers, body)` builds a response map directly
+- `web.with_headers(headers, response)` returns a new response with lowercase merged names; supplied headers win case-insensitive collisions
 - `web.json(body)`, `web.text(body)`, `web.ok(body)`, `web.ok_text(text)`, `web.bad_request(message)`, and `web.not_found()` build response maps
 - request maps currently include `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`
 - response maps currently include `status`, `headers`, and `body`
+- `with_headers` preserves non-header fields and does not mutate its inputs
 
 ## `@doc` Quick Reference
 

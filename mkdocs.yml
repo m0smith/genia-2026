@@ -41,6 +41,7 @@ nav:
       - "R4 — Lifecycle Generalization": releases/R4.md
       - "R5 — Native Test Migration": releases/R5.md
       - "R6 — Data Workflow Hardening": releases/R6.md
+      - "R7 — Web Serving Ergonomics": releases/R7.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
