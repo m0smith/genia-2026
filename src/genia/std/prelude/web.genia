@@ -90,6 +90,12 @@ response(status, headers, body) = {
   body: body
 }
 
+@doc """Return a new response with normalized, merged headers.
+
+Supplied headers win case-insensitive collisions. Header names are lowercased.
+The input response and header maps are not mutated."""
+with_headers(headers, response) = _with_headers(headers, response)
+
 json_headers() = {"content-type": "application/json; charset=utf-8"}
 text_headers() = {"content-type": "text/plain; charset=utf-8"}
 

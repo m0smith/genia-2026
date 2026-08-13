@@ -31,9 +31,12 @@ with_headers_preserves_response_fields_and_inputs() = {
   assert_eq(result("status"), 202)
   assert_eq(result("body"), "queued")
   assert_eq(result("marker"), some("kept"))
-  assert_eq(existing, {"X-Trace": "old"})
-  assert_eq(supplied, {"X-Request-ID": "abc123"})
-  assert_eq(original("headers"), {"X-Trace": "old"})
+  assert_eq(map_count(existing), 1)
+  assert_eq(existing("X-Trace"), "old")
+  assert_eq(map_count(supplied), 1)
+  assert_eq(supplied("X-Request-ID"), "abc123")
+  assert_eq(map_count(original("headers")), 1)
+  assert_eq(original("headers")("X-Trace"), "old")
   assert_eq(map_has?(original("headers"), "x-trace"), false)
 }
 
@@ -43,6 +46,7 @@ with_headers_handles_empty_maps_and_later_case_variants() = {
   normalized = web.with_headers({}, original)
   empty = web.with_headers({}, web.response(204, {}, ""))
 
-  assert_eq(normalized("headers"), {"x-mode": "second"})
-  assert_eq(empty("headers"), {})
+  assert_eq(map_count(normalized("headers")), 1)
+  assert_eq(normalized("headers")("x-mode"), "second")
+  assert_eq(map_count(empty("headers")), 0)
 }
