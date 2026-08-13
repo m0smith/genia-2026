@@ -1130,3 +1130,12 @@ For each incoming flow item `x`:
 - `render_csv(sheet)` (Experimental, issue #396) is a pure Sheet-to-string operation: header order must match Sheet column order, data order must match Sheet row order, and comma/quote/newline/carriage-return fields must use deterministic CSV quoting with doubled embedded quotes. A zero-column Sheet returns an empty string; every record of a non-zero-column Sheet ends with `\n`.
 - `render_csv` accepts string, symbol, integer, float, boolean, and nil headers/cells only. It must reject composite values and non-nil Outcome values with a clear zero-based location error, must not mutate the Sheet, perform I/O, make Sheet Seq-compatible, or unwrap Outcomes.
 - No new syntax, parser changes, or Core IR nodes are introduced by Sheet.
+
+## 23) Web response-header composition invariants (Python-host-only, Partial)
+
+- `web.with_headers(headers, response)` is the single public response-header composition operation; response is last for pipeline use.
+- It requires map inputs, a response containing `status`, `headers`, and `body`, a map-valued `response.headers`, and string header names and values.
+- It returns a new response and a new header map; inputs are not mutated and all non-header response entries are preserved.
+- Output header names are lowercase. Collisions are case-insensitive, later entries within one map win, and supplied headers win existing response headers.
+- Programmer misuse raises the deterministic `TypeError` behavior recorded in `GENIA_STATE.md`; it does not return an Outcome.
+- It performs no I/O and adds no CORS, preflight, route, middleware, parser, Core IR, shared-spec, or cross-host behavior.

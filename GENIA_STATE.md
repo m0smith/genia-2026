@@ -514,7 +514,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 - public Map/Ref/Process/IO helper names are also prelude-backed wrappers over host-backed runtime primitives, so `help("name")` and higher-order use follow the user-facing stdlib surface rather than raw host bindings.
 - public validation helper names `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, and `diagnostic_field` are prelude-backed wrappers over small host-backed checks/constructors; record validation helpers return Outcome values for user-data problems, diagnostic constructors return ordinary maps, and programmer misuse remains a runtime error.
 - `collect_validated` is a host-backed terminal builtin (Experimental) registered directly in the global environment; it consumes a Seq-compatible source of Outcome items and returns `{clean: [...], diagnostics: [...]}`; it does not alter Outcome semantics, pipeline short-circuit behavior, Sheet semantics, or existing validation helpers.
-- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
+- public Web helper names `serve_http`, `get`, `post`, `route_request`, `response`, `with_headers`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found` are also thin prelude wrappers in this phase; the underlying HTTP transport integration remains host-backed
 - public Flow helper names `lines`, `evolve` (experimental), `tee`, `merge`, `zip`, `scan`, `keep_some`, `keep_some_else`, `rules`, `each`, `collect`, and `run` are also thin prelude wrappers in this phase; the underlying Flow behavior remains host-backed and the related underscore kernels are internal to trusted prelude/runtime code
 - limited Python host interop is implemented in this phase:
   - it uses the existing module/import model rather than new syntax
@@ -1049,6 +1049,7 @@ Case placement rules (enforced):
   - `post`
   - `route_request`
   - `response`
+  - `with_headers`
   - `json`
   - `text`
   - `ok`
@@ -1093,9 +1094,9 @@ Output sink semantics:
   - invalid handler return values or response-shape errors produce a `500 internal server error` response in this phase
   - the ants browser viewer uses this same HTTP surface with static HTML/CSS/JS responses, JSON state snapshots, and POST endpoints for reset/step; it does not add WebSockets, SSE, or a richer server runtime
 
-### Response header composition (**Partial**, issue #526 contract)
+### Response header composition (**Partial**, issue #526)
 
-Contract-locked for issue #526; implementation is pending in this branch:
+Implemented and verified in the Python reference host:
 
 - public Python-reference-host web-module call shape: `with_headers(headers, response) -> response`
 - `headers` is first and `response` is last so `response |> with_headers(headers)` is the canonical pipeline form

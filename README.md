@@ -15,7 +15,7 @@ This repository currently provides:
 - a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`) (**Python-host-only**)
 - simulation primitives (`rng`, `rand`, `rand_int`, `rand_flow`, `rand_int_flow`, `sleep`) (**Python-host-only**)
 - terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`) (**Python-host-only**)
-- a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `ok_text`, `json`) (**Python-host-only**)
+- a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `with_headers`, `ok_text`, `json`) (**Python-host-only**)
 - shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
 - representation helpers (`display`, `debug_repr`, `format`) and experimental `Format` values for output representation
 - experimental immutable Sheet values for columnar/tabular data (`sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`) (**Experimental**)
@@ -354,6 +354,8 @@ The demo serves:
 The ants demos accept explicit seeds for reproducible runs. `examples/ants.genia` is the canonical pure simulation teaching surface: it threads RNG state through an explicit world value, advances with `step(world) -> world2`, and demonstrates nest/home regions, food pickup and return, pheromone deposit/evaporation, and weighted direction-aware movement. `examples/ants_terminal.genia` is the text developer UI for that model: it shows ants, nest, food, pheromone heat, run stats, and a legend, with CLI controls `--seed`, `--ants`, `--steps`, `--delay`, `--size`, and `--mode pure|actor`. Same seed plus same config gives the same progression for a given mode. It is still a blocking text demo built on `clear_screen`, `move_cursor`, `render_grid`, `sleep`, and `cli_parse`; it does not use `stdin_keys` and has no pause/step key controls. `examples/ants_actor.genia` runs the same colony rules using actor-based concurrency: a coordinator actor owns the world state while ant workers request sense data and submit move intents via `actor_call`. That actor mode is an optional coordination comparison, not the first simulation model.
 
 `examples/ants_web.genia` is a browser viewer over that same simulation, served through the current minimal HTTP helper. Run it with `python3 -m genia.interpreter examples/ants_web.genia --port 8082` and open `http://127.0.0.1:8082/`. It serves `GET /`, `/app.js`, `/style.css`, and `/state`, plus `POST /reset` and `/step`. The browser renders JSON snapshots with Canvas and implements run/pause by repeatedly calling `/step`; this is not a browser-native Genia runtime, a playground runtime, WebSockets, or SSE.
+
+`web.with_headers(headers, response)` (**Python-host-only**, Partial) returns a new response with lowercase merged header names. Supplied headers win case-insensitive collisions; status, body, additional response entries, and all inputs are preserved. It is the single response-header composition helper and does not add CORS or new `json`/`text` arities.
 
 ## Run the Validated Pipeline Demo (Experimental)
 
