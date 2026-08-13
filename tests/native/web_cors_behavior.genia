@@ -1,0 +1,86 @@
+import web
+
+@test "cors defaults decorate ordinary responses once"
+cors_defaults_decorate_ordinary_responses_once() = {
+  calls = ref(0)
+  handler = (request) -> {
+    ref_set(calls, ref_get(calls) + 1)
+    {status: 201, headers: {"Content-Type": "application/json", "X-Trace": "kept"}, body: "created", marker: "kept"}
+  }
+  wrapped = web.cors({}, handler)
+  result = wrapped({method: "POST", headers: {}})
+
+  assert_eq(ref_get(calls), 1)
+  assert_eq(result.status, 201)
+  assert_eq(result.body, "created")
+  assert_eq(result.marker, "kept")
+  assert_eq(result.headers("content-type"), "application/json")
+  assert_eq(result.headers("x-trace"), "kept")
+  assert_eq(result.headers("access-control-allow-origin"), "*")
+  assert_eq(result.headers("access-control-allow-methods"), "GET, POST, OPTIONS")
+  assert_eq(result.headers("access-control-allow-headers"), "content-type")
+}
+
+@test "cors explicit policy serializes and overrides collisions"
+cors_explicit_policy_serializes_and_overrides_collisions() = {
+  policy = {
+    origin: "http://localhost:5173",
+    methods: ["GET", "PATCH"],
+    headers: ["content-type", "x-request-id"]
+  }
+  original_headers = {"Access-Control-Allow-Origin": "old", "X-App": "yes"}
+  original = {status: 202, headers: original_headers, body: "queued"}
+  result = web.cors(policy, (_) -> original)({method: "GET", headers: {}})
+
+  assert_eq(result.headers("access-control-allow-origin"), "http://localhost:5173")
+  assert_eq(result.headers("access-control-allow-methods"), "GET, PATCH")
+  assert_eq(result.headers("access-control-allow-headers"), "content-type, x-request-id")
+  assert_eq(result.headers("x-app"), "yes")
+  assert_eq(original_headers("Access-Control-Allow-Origin"), "old")
+  assert_eq(policy.methods, ["GET", "PATCH"])
+}
+
+@test "cors true preflight bypasses handler"
+cors_true_preflight_bypasses_handler() = {
+  calls = ref(0)
+  wrapped = web.cors({}, (_) -> {
+    ref_set(calls, ref_get(calls) + 1)
+    web.text("wrong")
+  })
+  result = wrapped({
+    method: "OPTIONS",
+    headers: {origin: "http://client.test", "access-control-request-method": "POST"}
+  })
+
+  assert_eq(ref_get(calls), 0)
+  assert_eq(result.status, 204)
+  assert_eq(result.body, none)
+  assert_eq(result.headers("access-control-allow-origin"), "*")
+}
+
+@test "cors ordinary options delegates when origin is missing"
+cors_ordinary_options_delegates_when_origin_is_missing() = {
+  calls = ref(0)
+  wrapped = web.cors({}, (_) -> {
+    ref_set(calls, ref_get(calls) + 1)
+    web.text("delegated")
+  })
+  result = wrapped({method: "OPTIONS", headers: {"access-control-request-method": "GET"}})
+
+  assert_eq(ref_get(calls), 1)
+  assert_eq(result.status, 200)
+  assert_eq(result.body, "delegated")
+}
+
+@test "cors ordinary options delegates when requested method is missing"
+cors_ordinary_options_delegates_when_requested_method_is_missing() = {
+  calls = ref(0)
+  wrapped = web.cors({}, (_) -> {
+    ref_set(calls, ref_get(calls) + 1)
+    web.text("delegated")
+  })
+  result = wrapped({method: "OPTIONS", headers: {origin: "http://client.test"}})
+
+  assert_eq(ref_get(calls), 1)
+  assert_eq(result.body, "delegated")
+}
