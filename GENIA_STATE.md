@@ -1050,6 +1050,7 @@ Case placement rules (enforced):
   - `route_request`
   - `response`
   - `with_headers`
+  - `cors`
   - `json`
   - `text`
   - `ok`
@@ -1123,9 +1124,9 @@ Implemented and verified in the Python reference host:
 - this adds no `json`/`text` overload, CORS policy, automatic preflight handling, `OPTIONS` route, middleware framework, parser syntax, Core IR node, shared-spec category, or cross-host portability claim
 - the existing `serve_http`, routing, response-constructor, `json`, and `text` behavior is otherwise unchanged
 
-### CORS handler wrapper (**Partial**, issue #527 contract)
+### CORS handler wrapper (**Partial**, issue #527)
 
-Contract-locked for issue #527; implementation is pending in this branch:
+Implemented and verified in the Python reference host:
 
 - public Python-reference-host web-module call shape: `cors(policy, handler) -> handler`
 - `policy` is a closed Option Record Pattern with optional fields `origin`, `methods`, and `headers`; omitted fields use these defaults:

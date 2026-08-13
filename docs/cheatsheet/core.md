@@ -387,11 +387,13 @@ The ants terminal UI accepts `--seed`, `--ants`, `--steps`, `--delay`, `--size`,
 | routes | `web.get(path, handler)`, `web.post(path, handler)`, `web.route_request(routes)` |
 | response maps | `web.response(status, headers, body)` |
 | response headers | `web.with_headers(headers, response)` — lowercase merge; supplied values win case-insensitive collisions |
+| CORS | `web.cors(policy, handler)` — handler wrapper; automatic true preflight; optional `origin`, `methods`, `headers` |
 | response helpers | `web.json(body)`, `web.text(body)`, `web.ok(body)`, `web.ok_text(text)`, `web.bad_request(message)`, `web.not_found()` |
 
 Current request maps use `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`.
 Current response maps use `status`, `headers`, and `body`.
 `with_headers` returns a new response and does not mutate either input map.
+`cors` returns a handler, answers only complete browser preflight requests itself, and delegates other requests exactly once.
 
 ## CLI Entry Modes
 

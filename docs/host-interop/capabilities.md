@@ -143,7 +143,7 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 
 **Status:** Python-host-only — synchronous blocking HTTP server only; not part of the shared portable contract.
 
-**Guarantees:** Request and response are plain Genia maps with stable field names (`method`, `path`, `query`, `headers`, `body`, `raw_body`, `client` for requests; `status`, `headers`, `body` for responses). `with_headers(headers, response)` immutably composes lowercase response headers with supplied values winning case-insensitive collisions. Handler errors are normalized to a `500 internal server error` response without surfacing a language-level exception.
+**Guarantees:** Request and response are plain Genia maps with stable field names (`method`, `path`, `query`, `headers`, `body`, `raw_body`, `client` for requests; `status`, `headers`, `body` for responses). `with_headers(headers, response)` immutably composes lowercase response headers with supplied values winning case-insensitive collisions. `cors(policy, handler)` answers complete browser preflight requests and decorates ordinary responses through `with_headers`. Handler errors are normalized to a `500 internal server error` response without surfacing a language-level exception.
 
 **Not Guaranteed:** Path parameters, middleware, streaming request/response bodies, WebSocket support, async execution, or portability to non-Python hosts in the current phase.
 
@@ -156,7 +156,7 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 - **errors:**
   - invalid handler return value is normalized to a `500 internal server error` response (not a language-level error)
 - **portability:** `Python-host-only`
-- **notes:** Synchronous and blocking only. Request map fields: `method`, `path`, `query`, `headers`, `body`, `raw_body`, `client`. Response map fields: `status`, `headers`, `body`. Current limitations: exact-path routing only, no middleware, no path params, no streaming request/response bodies, no websockets, no async support. Higher-level helpers (`get`, `post`, `route_request`, `with_headers`, `ok_text`, `json`) are prelude-backed wrappers.
+- **notes:** Synchronous and blocking only. Request map fields: `method`, `path`, `query`, `headers`, `body`, `raw_body`, `client`. Response map fields: `status`, `headers`, `body`. Current limitations: exact-path routing only, no general middleware, no path params, no streaming request/response bodies, no websockets, no async support. Higher-level helpers (`get`, `post`, `route_request`, `with_headers`, `cors`, `ok_text`, `json`) are prelude-backed wrappers. CORS supports one static policy per wrapper with `origin`, `methods`, and `headers`; it does not provide credentials, reflection, allowlists, or per-route overrides.
 
 ---
 

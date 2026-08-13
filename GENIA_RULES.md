@@ -1139,3 +1139,12 @@ For each incoming flow item `x`:
 - Output header names are lowercase. Collisions are case-insensitive, later entries within one map win, and supplied headers win existing response headers.
 - Programmer misuse raises the deterministic `TypeError` behavior recorded in `GENIA_STATE.md`; it does not return an Outcome.
 - It performs no I/O and adds no CORS, preflight, route, middleware, parser, Core IR, shared-spec, or cross-host behavior.
+
+## 24) CORS handler-wrapper invariants (Python-host-only, Partial)
+
+- `web.cors(policy, handler)` is the single public CORS operation and returns a handler; there is no header-map-only CORS API or public `options(...)` route.
+- The closed policy has optional `origin`, `methods`, and `headers` fields with the exact defaults and validation behavior recorded in `GENIA_STATE.md`.
+- True preflight requires method `OPTIONS` plus `origin` and `access-control-request-method` request headers; it returns a bodyless `204` response without invoking the wrapped handler.
+- Other requests, including incomplete `OPTIONS` requests, invoke the wrapped handler exactly once.
+- Ordinary responses receive configured CORS headers solely through `with_headers`; configured CORS values win collisions while application status, body, unrelated headers, and additional fields are preserved.
+- Inputs are not mutated. Programmer misuse raises deterministic `TypeError`; no Outcome, middleware framework, parser/Core IR/shared-spec behavior, or cross-host claim is introduced.

@@ -456,4 +456,5 @@ def test_http_service_example_runs_health_endpoint():
 
     assert status == 200
     assert headers["Content-Type"] == "text/plain; charset=utf-8"
+    assert headers["Access-Control-Allow-Origin"] == "http://localhost:5173"
     assert body == "ok"
