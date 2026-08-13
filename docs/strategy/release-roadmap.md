@@ -337,7 +337,7 @@ Context:
 
 - Surfaced by exercising `serve_http` against a real browser client for an external consuming app. Historical idea capture: `docs/parking-lot/web-backend-cfm-app.md`.
 - Verified current behavior remains defined by `GENIA_STATE.md`: handler-returned response headers reach the transport, `request("query")` is parsed, routing uses the query-stripped exact path, and the server is synchronous/blocking.
-- Verified release gaps: no composable response-header operation, no automatic browser CORS preflight handling, and no stabilized Python-host web capability boundary.
+- Delivered by #526 and #527: composable response-header handling and automatic browser CORS preflight. The remaining release gap is the stabilized Python-host web capability boundary owned by #530.
 
 Approved architecture:
 
