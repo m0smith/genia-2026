@@ -6,6 +6,8 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+import pytest
+
 from genia import make_global_env, run_source
 
 
@@ -133,6 +135,74 @@ serve_http(
         "body": {"answer": 42},
     }
     assert result.get("handled_requests") == 1
+
+
+def test_serve_http_emits_headers_composed_by_with_headers():
+    port = _free_port()
+    env = make_global_env([])
+    env.set("host", "127.0.0.1")
+    env.set("port", port)
+
+    source = """
+import web
+
+serve_http = web.serve_http
+route_request = web.route_request
+get = web.get
+response_headers = {
+  "X-Request-ID": "abc123",
+  "Content-Type": "application/problem+json"
+}
+
+serve_http(
+  {host: host, port: port, max_requests: 1},
+  route_request([
+    get("/composed", (_) -> web.with_headers(
+      response_headers,
+      web.json({message: "hello"})
+    ))
+  ])
+)
+"""
+
+    thread, outcome = _start_server(source, env, filename="<http-with-headers>")
+    status, headers, body = _request("GET", f"http://127.0.0.1:{port}/composed")
+    result = _finish_server(thread, outcome)
+
+    assert status == 200
+    assert headers["Content-Type"] == "application/problem+json"
+    assert headers["X-Request-ID"] == "abc123"
+    assert json.loads(body) == {"message": "hello"}
+    assert result.get("handled_requests") == 1
+
+
+@pytest.mark.parametrize(
+    ("source", "message"),
+    [
+        ('web.with_headers([], {status: 200, headers: {}, body: "ok"})', "with_headers expected headers to be a map"),
+        ('web.with_headers({}, [])', "with_headers expected response to be a map"),
+        ('web.with_headers({}, {headers: {}, body: "ok"})', "with_headers expected response.status field"),
+        ('web.with_headers({}, {status: 200, body: "ok"})', "with_headers expected response.headers field"),
+        ('web.with_headers({}, {status: 200, headers: {}})', "with_headers expected response.body field"),
+        ('web.with_headers({}, {status: 200, headers: [], body: "ok"})', "with_headers expected response.headers to be a map"),
+        ('web.with_headers({}, {status: 200, headers: map_put({}, 7, "bad"), body: "ok"})', "with_headers expected response header name at index 0 to be a string"),
+        ('web.with_headers({}, {status: 200, headers: {"x-ok": "yes", "x-bad": 7}, body: "ok"})', "with_headers expected response header value at index 1 to be a string"),
+        ('web.with_headers(map_put({}, 7, "bad"), {status: 200, headers: {}, body: "ok"})', "with_headers expected supplied header name at index 0 to be a string"),
+        ('web.with_headers({"x-ok": "yes", "x-bad": 7}, {status: 200, headers: {}, body: "ok"})', "with_headers expected supplied header value at index 1 to be a string"),
+    ],
+)
+def test_with_headers_rejects_programmer_misuse(source, message):
+    env = make_global_env([])
+
+    with pytest.raises(TypeError, match=message):
+        run_source(f"import web\n{source}", env, filename="<with-headers-misuse>")
+
+
+def test_with_headers_validation_stops_at_first_contract_error():
+    env = make_global_env([])
+
+    with pytest.raises(TypeError, match="with_headers expected headers to be a map"):
+        run_source("import web\nweb.with_headers([], [])", env, filename="<with-headers-order>")
 
 
 def test_serve_http_request_map_includes_client_and_raw_text_body():

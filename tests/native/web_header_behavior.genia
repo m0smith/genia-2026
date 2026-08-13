@@ -1,0 +1,48 @@
+import web
+
+@test "with_headers adds normalizes and overrides headers"
+with_headers_adds_normalizes_and_overrides_headers() = {
+  original = web.response(
+    201,
+    {"Content-Type": "application/json", "X-Trace": "old"},
+    "created"
+  )
+  result = original |> web.with_headers({
+    "content-TYPE": "application/problem+json",
+    "X-Request-ID": "abc123"
+  })
+  headers = result("headers")
+
+  assert_eq(result("status"), 201)
+  assert_eq(result("body"), "created")
+  assert_eq(headers("content-type"), "application/problem+json")
+  assert_eq(headers("x-trace"), "old")
+  assert_eq(headers("x-request-id"), "abc123")
+  assert_eq(map_count(headers), 3)
+}
+
+@test "with_headers preserves response fields and inputs"
+with_headers_preserves_response_fields_and_inputs() = {
+  existing = {"X-Trace": "old"}
+  supplied = {"X-Request-ID": "abc123"}
+  original = {status: 202, headers: existing, body: "queued", marker: some("kept")}
+  result = web.with_headers(supplied, original)
+
+  assert_eq(result("status"), 202)
+  assert_eq(result("body"), "queued")
+  assert_eq(result("marker"), some("kept"))
+  assert_eq(existing, {"X-Trace": "old"})
+  assert_eq(supplied, {"X-Request-ID": "abc123"})
+  assert_eq(original("headers"), {"X-Trace": "old"})
+  assert_eq(map_has?(original("headers"), "x-trace"), false)
+}
+
+@test "with_headers handles empty maps and later case variants"
+with_headers_handles_empty_maps_and_later_case_variants() = {
+  original = web.response(200, {"X-Mode": "first", "x-mode": "second"}, "ok")
+  normalized = web.with_headers({}, original)
+  empty = web.with_headers({}, web.response(204, {}, ""))
+
+  assert_eq(normalized("headers"), {"x-mode": "second"})
+  assert_eq(empty("headers"), {})
+}
