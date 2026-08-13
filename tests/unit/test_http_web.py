@@ -233,7 +233,7 @@ web.serve_http({host: host, port: port, max_requests: 2}, handler)
     ("source", "message"),
     [
         ('web.cors([], (_) -> web.ok("ok"))', "cors expected policy to be a map"),
-        ('web.cors({extra: true}, (_) -> web.ok("ok"))', "cors unexpected policy field extra"),
+        ('web.cors({extra: true}, (_) -> web.ok("ok"))', 'cors unexpected policy field "extra"'),
         ('web.cors({origin: ""}, (_) -> web.ok("ok"))', "cors expected policy.origin to be a non-empty string"),
         ('web.cors({methods: []}, (_) -> web.ok("ok"))', "cors expected policy.methods to be a non-empty list"),
         ('web.cors({methods: ["GET", ""]}, (_) -> web.ok("ok"))', "cors expected policy.methods item at index 1 to be a non-empty string"),
