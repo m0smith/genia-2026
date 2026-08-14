@@ -96,6 +96,9 @@ Supplied headers win case-insensitive collisions. Header names are lowercased.
 The input response and header maps are not mutated."""
 with_headers(headers, response) = _with_headers(headers, response)
 
+@doc "Wrap a handler with configured CORS response headers and automatic browser preflight."
+cors(policy, handler) = _cors(policy, handler)
+
 json_headers() = {"content-type": "application/json; charset=utf-8"}
 text_headers() = {"content-type": "text/plain; charset=utf-8"}
 

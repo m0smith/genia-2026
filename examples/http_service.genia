@@ -13,11 +13,15 @@
 # Test:
 #   curl http://127.0.0.1:8080/health
 #   curl http://127.0.0.1:8080/info
+#   curl -i -X OPTIONS http://127.0.0.1:8080/info \
+#     -H 'Origin: http://localhost:5173' \
+#     -H 'Access-Control-Request-Method: GET'
 #
 # Features demonstrated:
 #   * module import and dot export access (`web.ok_text`, `web.json`)
 #   * route definition with `web.get`
 #   * JSON and plain-text responses
+#   * one CORS wrapper with automatic browser preflight
 #   * CLI argument parsing for `--port` and `--max-requests`
 #   * pattern matching with guards for config construction
 #   * `main(args)` entry-point convention
@@ -29,6 +33,7 @@ import web
 web_ok_text = web.ok_text
 web_json = web.json
 web_route_request = web.route_request
+web_cors = web.cors
 web_get = web.get
 web_serve_http = web.serve_http
 
@@ -46,7 +51,11 @@ info(_request) = web_json({
 app() = web_route_request([
   web_get("/health", health),
   web_get("/info", info)
-])
+]) |> web_cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "OPTIONS"],
+  headers: ["content-type"]
+})
 
 # -- Server configuration -------------------------------------------------
 # Guard pattern: include `max_requests` in the config map only when > 0.

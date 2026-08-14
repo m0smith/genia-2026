@@ -1050,6 +1050,7 @@ Case placement rules (enforced):
   - `route_request`
   - `response`
   - `with_headers`
+  - `cors`
   - `json`
   - `text`
   - `ok`
@@ -1122,6 +1123,42 @@ Implemented and verified in the Python reference host:
 - `status`, `body`, and additional response entries are preserved without validation or coercion; transport response-shape validation remains the responsibility of the existing HTTP bridge
 - this adds no `json`/`text` overload, CORS policy, automatic preflight handling, `OPTIONS` route, middleware framework, parser syntax, Core IR node, shared-spec category, or cross-host portability claim
 - the existing `serve_http`, routing, response-constructor, `json`, and `text` behavior is otherwise unchanged
+
+### CORS handler wrapper (**Partial**, issue #527)
+
+Implemented and verified in the Python reference host:
+
+- public Python-reference-host web-module call shape: `cors(policy, handler) -> handler`
+- `policy` is a closed Option Record Pattern with optional fields `origin`, `methods`, and `headers`; omitted fields use these defaults:
+  - `origin: "*"`
+  - `methods: ["GET", "POST", "OPTIONS"]`
+  - `headers: ["content-type"]`
+- `origin` must be a non-empty string; `methods` and `headers` must be non-empty lists whose entries are non-empty strings
+- policy strings are preserved exactly; no trimming, case normalization, duplicate removal, origin reflection, allowlist matching, HTTP token validation, or request-policy negotiation is introduced
+- methods and headers serialize in list order with `", "` between entries
+- every decorated response contains:
+  - `access-control-allow-origin: <origin>`
+  - `access-control-allow-methods: <serialized methods>`
+  - `access-control-allow-headers: <serialized headers>`
+- a request is a true CORS preflight only when its `method` field is exactly `"OPTIONS"` and its lowercased `headers` map contains both `origin` and `access-control-request-method`; header values are not otherwise interpreted
+- a true preflight does not invoke the wrapped handler and returns `response(204, cors_headers, none)`; the response is bodyless at the HTTP transport
+- an `OPTIONS` request missing either required preflight header is ordinary and delegates to the wrapped handler
+- every other request invokes the wrapped handler exactly once, then decorates its returned response solely through `with_headers(cors_headers, response)`; `with_headers` therefore owns response validation, lowercase normalization, collision precedence, preservation, and non-mutation behavior
+- configured CORS headers override case-insensitive collisions in an ordinary handler response; unrelated headers, status, body, and additional response fields are preserved
+- the policy map, policy lists, request map, handler response, and existing response headers are not mutated
+- validation occurs when `cors(policy, handler)` is called, before the returned handler exists; validation order is: policy map, unknown fields in map iteration order, `origin`, `methods`, method entries in list order, `headers`, header entries in list order, handler callable
+- malformed inputs raise `TypeError` with these exact messages:
+  - `cors expected policy to be a map`
+  - `cors unexpected policy field <field>` where `<field>` uses debug rendering
+  - `cors expected policy.origin to be a non-empty string`
+  - `cors expected policy.methods to be a non-empty list`
+  - `cors expected policy.methods item at index <index> to be a non-empty string`
+  - `cors expected policy.headers to be a non-empty list`
+  - `cors expected policy.headers item at index <index> to be a non-empty string`
+  - `cors expected handler to be callable`
+- entry indexes are zero-based
+- request-shape or wrapped-handler failures retain existing callable and response behavior; `cors` does not return an Outcome or translate failures
+- this adds no header-map-only CORS API, public `options(...)` route, `json`/`text` overload, credentials policy, origin reflection/allowlist, per-route override, general middleware chain, parser syntax, Core IR node, shared spec, or cross-host portability claim
 - `print(...)` writes to `stdout`
 - `log(...)` writes to `stderr`
 - `input()` remains interactive-only and does not consume the flow/stdin source path

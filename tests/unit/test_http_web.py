@@ -176,6 +176,86 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+def test_serve_http_cors_preflight_then_json_request():
+    port = _free_port()
+    env = make_global_env([])
+    env.set("host", "127.0.0.1")
+    env.set("port", port)
+
+    source = """
+import web
+
+handler = web.route_request([
+  web.get("/data", (_) -> web.json({message: "hello"}))
+]) |> web.cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST"],
+  headers: ["content-type", "x-request-id"]
+})
+
+web.serve_http({host: host, port: port, max_requests: 2}, handler)
+"""
+
+    thread, outcome = _start_server(source, env, filename="<http-cors>")
+    status, headers, body = _request(
+        "OPTIONS",
+        f"http://127.0.0.1:{port}/data",
+        headers={
+            "Origin": "http://localhost:5173",
+            "Access-Control-Request-Method": "GET",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+
+    assert status == 204
+    assert body == ""
+    assert headers["Access-Control-Allow-Origin"] == "http://localhost:5173"
+    assert headers["Access-Control-Allow-Methods"] == "GET, POST"
+    assert headers["Access-Control-Allow-Headers"] == "content-type, x-request-id"
+
+    status, headers, body = _request(
+        "GET",
+        f"http://127.0.0.1:{port}/data",
+        headers={"Origin": "http://localhost:5173"},
+    )
+    result = _finish_server(thread, outcome)
+
+    assert status == 200
+    assert headers["Content-Type"] == "application/json; charset=utf-8"
+    assert headers["Access-Control-Allow-Origin"] == "http://localhost:5173"
+    assert headers["Access-Control-Allow-Methods"] == "GET, POST"
+    assert headers["Access-Control-Allow-Headers"] == "content-type, x-request-id"
+    assert json.loads(body) == {"message": "hello"}
+    assert result.get("handled_requests") == 2
+
+
+@pytest.mark.parametrize(
+    ("source", "message"),
+    [
+        ('web.cors([], (_) -> web.ok("ok"))', "cors expected policy to be a map"),
+        ('web.cors({extra: true}, (_) -> web.ok("ok"))', 'cors unexpected policy field "extra"'),
+        ('web.cors({origin: ""}, (_) -> web.ok("ok"))', "cors expected policy.origin to be a non-empty string"),
+        ('web.cors({methods: []}, (_) -> web.ok("ok"))', "cors expected policy.methods to be a non-empty list"),
+        ('web.cors({methods: ["GET", ""]}, (_) -> web.ok("ok"))', "cors expected policy.methods item at index 1 to be a non-empty string"),
+        ('web.cors({headers: []}, (_) -> web.ok("ok"))', "cors expected policy.headers to be a non-empty list"),
+        ('web.cors({headers: ["content-type", 7]}, (_) -> web.ok("ok"))', "cors expected policy.headers item at index 1 to be a non-empty string"),
+        ('web.cors({}, 7)', "cors expected handler to be callable"),
+    ],
+)
+def test_cors_rejects_programmer_misuse(source, message):
+    env = make_global_env([])
+
+    with pytest.raises(TypeError, match=message):
+        run_source(f"import web\n{source}", env, filename="<cors-misuse>")
+
+
+def test_cors_validation_stops_at_first_contract_error():
+    env = make_global_env([])
+
+    with pytest.raises(TypeError, match="cors expected policy to be a map"):
+        run_source("import web\nweb.cors([], 7)", env, filename="<cors-order>")
+
+
 @pytest.mark.parametrize(
     ("source", "message"),
     [
@@ -376,4 +456,5 @@ def test_http_service_example_runs_health_endpoint():
 
     assert status == 200
     assert headers["Content-Type"] == "text/plain; charset=utf-8"
+    assert headers["Access-Control-Allow-Origin"] == "http://localhost:5173"
     assert body == "ok"
