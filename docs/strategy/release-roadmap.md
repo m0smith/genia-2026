@@ -325,9 +325,9 @@ Agent guidance for R6:
 
 ---
 
-## Release R7 — Web Serving Ergonomics — ACTIVE
+## Release R7 — Web Serving Ergonomics ✓ COMPLETE
 
-**Status: Active release focus.** Promoted from the parking lot as **explicitly approved infrastructure work** after R6 completed. This release does **not** strengthen the validated-data-pipeline killer workflow; it is scheduled deliberately as infrastructure.
+**Status: Complete.** Promoted from the parking lot as **explicitly approved infrastructure work** after R6 completed. This release does **not** strengthen the validated-data-pipeline killer workflow; it was scheduled deliberately as infrastructure.
 
 Theme:
 
@@ -337,7 +337,7 @@ Context:
 
 - Surfaced by exercising `serve_http` against a real browser client for an external consuming app. Historical idea capture: `docs/parking-lot/web-backend-cfm-app.md`.
 - Verified current behavior remains defined by `GENIA_STATE.md`: handler-returned response headers reach the transport, `request("query")` is parsed, routing uses the query-stripped exact path, and the server is synchronous/blocking.
-- Delivered by #526 and #527: composable response-header handling and automatic browser CORS preflight. The remaining release gap is the stabilized Python-host web capability boundary owned by #530.
+- Delivered by #526 and #527: composable response-header handling and automatic browser CORS preflight. Issue #530 stabilized the Python-host web capability boundary, published the runnable release example, and completed the release truth audit.
 
 Approved architecture:
 
@@ -388,18 +388,18 @@ Exit criteria:
 - R8 binds to the landed R7 primitives without a second mechanism.
 - No completed R5/R6 behavior is reopened or regressed.
 
-Agent guidance for R7:
+Final R7 disposition:
 
-- R7 is the active release and is infrastructure, not killer-workflow work.
-- Start with #526 and run the normal phase pipeline; its contract phase must confirm the exact public call shape and error semantics before implementation.
-- Do not start #527 before #526 lands, #530 before #526/#527 land, or R8 before #530 closes R7.
-- Keep the surface minimal and consistent with the Core Surface Freeze.
+- #526 and #527 completed the approved header-composition and CORS wrapper path.
+- #528 and #529 closed not-planned; path parameters and concurrency remain deferred pending evidence.
+- #530 pinned the Python-host-only capability and coverage boundary and verified the release exit criteria.
+- R8 remains planned and must be explicitly activated before implementation begins.
 
 ---
 
 ## Release R8 — Server Execution Mode
 
-**Status: Planned.** Promoted from the parking lot as **explicitly approved infrastructure work**, staged **after R7** and **depending on it**. R4 explicitly excluded server-mode implementation; this schedules it deliberately. It does **not** strengthen the validated-data-pipeline killer workflow and **must not displace R5 or R6**. Design capture: `docs/parking-lot/server-execution-mode.md`.
+**Status: Planned, not active.** Promoted from the parking lot as **explicitly approved infrastructure work** after completed R7. R4 explicitly excluded server-mode implementation; this schedules it deliberately but does not authorize implementation before explicit activation. It does **not** strengthen the validated-data-pipeline killer workflow. Design capture: `docs/parking-lot/server-execution-mode.md`.
 
 Theme:
 
@@ -433,7 +433,7 @@ Exit criteria:
 
 Agent guidance for R8:
 
-- R8 depends on R7 and is infrastructure, not killer-workflow. Do not start R8 before R7 lands or ahead of R5/R6 unless the user explicitly reprioritizes.
+- R8's R7 dependency is satisfied, but R8 remains planned rather than active. Do not start implementation without explicit activation.
 - Keep annotations inert and lifecycle-activated; do not introduce a self-executing annotation mechanism.
 
 ---

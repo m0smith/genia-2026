@@ -31,7 +31,7 @@ Browser playground adapter note:
 | `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | pipe mode |
 | REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python REPL only today |
 | Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | lazy pull-based single-use Flow |
-| HTTP serving | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | synchronous blocking HTTP server bridge with request/response maps |
+| HTTP serving | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | synchronous blocking HTTP bridge with exact-path routing, response-header composition, CORS preflight, and request/response maps |
 | refs | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
 | process primitives | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
 | bytes/json/zip | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed bridge helpers |

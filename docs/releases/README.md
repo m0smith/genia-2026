@@ -19,7 +19,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R4 — Lifecycle Generalization](R4.md)
 - [R5 — Native Test Migration / Genia-Facing Coverage Wave 1](R5.md)
 - [R6 — Data Workflow Hardening](R6.md) ✓ COMPLETE
-- [R7 — Web Serving Ergonomics](R7.md) — ACTIVE
+- [R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE
 
 ## Process
 

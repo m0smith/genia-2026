@@ -294,21 +294,32 @@ Current Python-host contract:
   - `headers`
   - `body`
 - current phase-1 routing/user-visible semantics live primarily in prelude helpers such as:
+  - `serve_http`
   - `get`
   - `post`
   - `route_request`
+  - `response`
+  - `with_headers`
+  - `cors`
   - `json`
   - `text`
+  - `ok`
   - `ok_text`
+  - `bad_request`
+  - `not_found`
 - current limitations:
   - synchronous/blocking only
   - exact-path routing only
-  - no middleware
+  - no general middleware
+  - no public `options(...)` route
+  - no header-only CORS API or extra `json`/`text` header arities
   - no path params
   - no streaming request/response bodies
   - no websockets
   - no async support
 - current invalid handler return behavior is normalized to a `500 internal server error` response rather than a large host exception surface
+- Genia-native tests cover public `with_headers`/`cors` value and wrapper behavior; focused Python tests cover the HTTP transport boundary
+- this remains Python-reference-host-only capability behavior, not a shared semantic-spec category
 
 ## Flow Contract
 
