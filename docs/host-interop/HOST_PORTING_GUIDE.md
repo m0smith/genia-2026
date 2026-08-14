@@ -104,8 +104,8 @@ Rule:
   - host-null/host-None -> Genia `none`
   - explicit host errors for exceptions
   - no implicit Flow crossing at the bridge
-- if the host implements HTTP serving, it must preserve:
-  - request/response map shapes documented in shared docs
+- if the host implements the optional HTTP serving capability, it must preserve:
+  - request/response map shapes documented in `capabilities.md`
   - synchronous blocking phase-1 behavior
   - prelude-first user-visible routing/response semantics
   - exact-path routing only unless shared docs/specs are expanded

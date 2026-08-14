@@ -112,3 +112,51 @@ def test_r8_binds_to_r7_without_a_second_cors_mechanism() -> None:
 
     assert "`@cors` → the R7 `cors` wrapper" in roadmap
     assert "No second mechanism" in roadmap
+
+
+def test_authoritative_and_host_inventories_include_landed_r7_helpers() -> None:
+    state = read_text("GENIA_STATE.md")
+    host_interop = read_text("docs/host-interop/HOST_INTEROP.md")
+
+    inventory = (
+        "`serve_http`, `get`, `post`, `route_request`, `response`, "
+        "`with_headers`, `cors`, `json`, `text`, `ok`, `ok_text`, "
+        "`bad_request`, and `not_found`"
+    )
+    assert inventory in state
+    for helper in (
+        "serve_http",
+        "get",
+        "post",
+        "route_request",
+        "response",
+        "with_headers",
+        "cors",
+        "json",
+        "text",
+        "ok",
+        "ok_text",
+        "bad_request",
+        "not_found",
+    ):
+        assert f"`{helper}`" in host_interop
+
+    assert "not a shared semantic-spec category" in host_interop
+
+
+def test_r7_completion_and_r8_planned_status_stay_synchronized() -> None:
+    roadmap = read_text("docs/strategy/release-roadmap.md")
+    killer_workflow = read_text("docs/strategy/killer-workflow.md")
+    llm_contract = read_text("docs/ai/LLM_CONTRACT.md")
+    agents = read_text("AGENTS.md")
+    releases = read_text("docs/releases/README.md")
+    r7_page = read_text("docs/releases/R7.md")
+
+    assert "Release R7 — Web Serving Ergonomics ✓ COMPLETE" in roadmap
+    assert "**Status: Planned, not active.**" in roadmap
+    assert "R7 is complete" in killer_workflow
+    assert "R8** is the next planned release, not an active release" in killer_workflow
+    assert "No release is currently active. R8 is planned, not active." in llm_contract
+    assert "No release is currently active. R8 — Server Execution Mode is planned, not active." in agents
+    assert "[R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE" in releases
+    assert "Status: **Complete.**" in r7_page

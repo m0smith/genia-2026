@@ -94,24 +94,23 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Active Release: R7 — Web Serving Ergonomics
+## Release Position: R7 Complete; R8 Planned
 
-**Current active release is R7.**
+**No release is currently active. R8 is planned, not active.**
 
-R6 (Data Workflow Hardening) is complete. R7 is explicitly approved infrastructure work and is now the active release focus.
+R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
-1. Classify the work against R7 first.
-2. Follow the required dependency path: #526 `with_headers` → #527 `cors(policy, handler)` → #530 capability stabilization and truth audit.
-3. Treat `with_headers` as the sole response-header composition mechanism and `cors` as the sole CORS handler wrapper; do not introduce `json`/`text` header overloads, a header-only `cors`, or a public R7 `options(...)` route.
-4. Require Genia-native tests for public behavior and focused Python tests for the real HTTP transport boundary.
-5. If the work is not R7, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
-6. Keep R7 minimal and consistent with the Core Surface Freeze; it is infrastructure work and does not redefine the validated-data-pipeline product north star.
+1. Classify the work against planned R8 first, but do not begin R8 implementation until it is explicitly activated.
+2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
+3. R8 descriptors must bind to the landed R7 primitives; do not introduce `json`/`text` header overloads, a header-only `cors`, or a second CORS mechanism.
+4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
+5. If the work is not planned R8, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. Those remain excluded or assigned to later releases unless explicitly promoted.
 
-R7 exclusions (do not include unless explicitly requested):
+The completed R7 boundary excludes:
 - general web or middleware framework
 - browser-native runtime
 - server execution mode and lifecycle-activated annotations (planned for R8)
