@@ -143,20 +143,32 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 
 **Status:** Python-host-only — synchronous blocking HTTP server only; not part of the shared portable contract.
 
-**Guarantees:** Request and response are plain Genia maps with stable field names (`method`, `path`, `query`, `headers`, `body`, `raw_body`, `client` for requests; `status`, `headers`, `body` for responses). `with_headers(headers, response)` immutably composes lowercase response headers with supplied values winning case-insensitive collisions. `cors(policy, handler)` answers complete browser preflight requests and decorates ordinary responses through `with_headers`. Handler errors are normalized to a `500 internal server error` response without surfacing a language-level exception.
+**Maturity:** Partial. The call shapes, map fields, and behavior below are the landed R7 Python-reference-host capability boundary. They are versioned through this registry and `GENIA_STATE.md`; they are not a cross-host guarantee. There is no shared web spec category in this phase.
 
-**Not Guaranteed:** Path parameters, middleware, streaming request/response bodies, WebSocket support, async execution, or portability to non-Python hosts in the current phase.
+**Public Genia surface:** `import web` exposes `serve_http`, `get`, `post`, `route_request`, `response`, `with_headers`, `cors`, `json`, `text`, `ok`, `ok_text`, `bad_request`, and `not_found`.
+
+**Routing and maps:** `get` and `post` create method-specific exact-path routes. `route_request` tests routes in source/list order against the query-stripped exact path and returns the existing not-found response when none match. Request maps contain `method`, `path`, `query`, `headers`, `body`, `raw_body`, and `client`; request header names are lowercase. Response maps consumed by the transport contain `status`, `headers`, and `body`.
+
+**Header composition:** `with_headers(headers, response)` is the single public response-header composition operation. It returns a new response and header map, lowercases header names, resolves collisions case-insensitively with later entries and supplied values winning, preserves non-header response entries, and does not mutate either input.
+
+**CORS:** `cors(policy, handler)` is the single public CORS operation. Its closed policy optionally accepts `origin`, `methods`, and `headers`. A true preflight requires method `OPTIONS` plus the lowercased request-header keys `origin` and `access-control-request-method`; it bypasses the wrapped handler and returns a bodyless `204` with configured CORS headers. An incomplete `OPTIONS` request delegates to the wrapped handler exactly once. Ordinary responses are decorated solely through `with_headers`.
+
+**Error boundary:** Malformed `with_headers` or `cors` programmer inputs raise the deterministic errors recorded in `GENIA_STATE.md`. Invalid handler return values and transport response-shape errors are normalized to a `500 internal server error` response rather than surfacing a language-level exception.
+
+**Coverage boundary:** Genia-native tests cover public value/wrapper behavior for `with_headers` and `cors`; focused Python tests cover the HTTP transport boundary, including request translation, response emission/error normalization, and a real preflight followed by JSON. This Python-host-only split is why no shared web spec category is added.
+
+**Not Guaranteed:** There is no public `options(...)` route, no header-only CORS API, and no extra `json`/`text` header arities. The current phase also provides no path-parameter routing, general middleware, streaming request/response bodies, WebSocket support, async or concurrent server, credentials policy, origin reflection/allowlist, per-route CORS override, R8 serve mode, or portability to non-Python hosts.
 
 #### `http.serve`
 
 - **name:** `http.serve`
 - **genia_surface:** `import web` then `web.serve_http(config, handler)`
 - **input:** `config` — Map; `handler` — Function with shape `(request_map) -> response_map`
-- **output:** none (blocking; does not return while server is running)
+- **output:** Map — `{host, port, handled_requests}` after the server stops
 - **errors:**
   - invalid handler return value is normalized to a `500 internal server error` response (not a language-level error)
 - **portability:** `Python-host-only`
-- **notes:** Synchronous and blocking only. Request map fields: `method`, `path`, `query`, `headers`, `body`, `raw_body`, `client`. Response map fields: `status`, `headers`, `body`. Current limitations: exact-path routing only, no general middleware, no path params, no streaming request/response bodies, no websockets, no async support. Higher-level helpers (`get`, `post`, `route_request`, `with_headers`, `cors`, `ok_text`, `json`) are prelude-backed wrappers. CORS supports one static policy per wrapper with `origin`, `methods`, and `headers`; it does not provide credentials, reflection, allowlists, or per-route overrides.
+- **notes:** The service is synchronous and blocking; it does not return while the server is running. `config.host` defaults to `"127.0.0.1"`, `config.port` defaults to `8000`, and optional `config.max_requests` bounds the number of handled requests. Higher-level routing, response, header, and CORS behavior is supplied by the public prelude helpers listed above.
 
 ---
 
