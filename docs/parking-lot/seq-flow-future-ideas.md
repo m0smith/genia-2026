@@ -59,6 +59,21 @@ Possible future work:
 - more precise guidance for terminal consumers such as materialization, reduction, and
   effectful traversal
 
+## Outcome-Aware State Evolution
+
+Future design question:
+
+> Can existing `evolve` be composed or minimally generalized so that an
+> Outcome-producing state transition continues on `some(next)`, terminates normally on
+> `none`, propagates `err`, and can additionally be bounded by a predicate?
+
+The intent is to explore repeated stateful pipeline work, such as ongoing conversations,
+without adding a conventional imperative `while` construct or a competing control-flow
+paradigm. Any future design should first test whether the behavior composes naturally
+with the existing Flow, Outcome, pattern-matching, and value-first models.
+
+This is a design question only. It does not define current `evolve` or Outcome behavior.
+
 ## Non-goals
 
 - no async streams yet
