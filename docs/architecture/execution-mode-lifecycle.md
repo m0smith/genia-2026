@@ -189,23 +189,23 @@ Meaning at the proposal level: a future lifecycle phase could consume declaratio
 
 ## Future-Only Examples
 
-Server mode is future-only and not implemented:
+Server mode is approved for R8 but remains unimplemented. Its canonical planned
+contract is `GENIA_STATE.md` section 9.7; this older lifecycle sketch is illustrative
+only and must not override the exact R8 descriptor, phase, ownership, result, or
+failure rules there:
 
 ```text
 server_mode_lifecycle:
-  init
-  load_server_source
-  bind_server_config
-  server_before
-  activate_listener
+  startup:
+    load_entry_source
+    discover_descriptors
+    activate_listener
   repeat:
-    accept_request
-    bind_request
-    handle_request
-    finalize_request
-  deactivate_listener
-  server_after
-  finalize
+    request:
+      route_request
+      apply_cors
+  shutdown:
+    close_owned_listener
 ```
 
 Notebook/playground mode is future-only and not implemented:
@@ -223,7 +223,9 @@ notebook_mode_lifecycle:
   finalize
 ```
 
-These examples are proposal sketches only. They do not implement server mode, notebook/playground mode, browser runtime behavior, route annotations, or new host capabilities.
+These examples are proposal sketches only. They do not implement server mode,
+notebook/playground mode, browser runtime behavior, route annotations, or new host
+capabilities. The server sketch is not the R8 contract.
 
 Actor lifecycle, plugin lifecycle, and a YAML lifecycle runner are likewise out of scope and not implemented. They are not part of this proposal and must not be read as planned R4 implementation work.
 
