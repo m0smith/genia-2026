@@ -59,20 +59,41 @@ Possible future work:
 - more precise guidance for terminal consumers such as materialization, reduction, and
   effectful traversal
 
-## Outcome-Aware State Evolution
+## Outcome-Aware Bounded Evolution
 
 Future design question:
 
-> Can existing `evolve` be composed or minimally generalized so that an
-> Outcome-producing state transition continues on `some(next)`, terminates normally on
-> `none`, propagates `err`, and can additionally be bounded by a predicate?
+> Can `evolve` remain unchanged while a separate `take_some_while(predicate)` Flow
+> combinator consumes an Outcome-producing evolution, continues while upstream produces
+> `some(value)` values satisfying the predicate, terminates normally on `none` or a
+> false predicate, and preserves observable `err` failure semantics?
 
 The intent is to explore repeated stateful pipeline work, such as ongoing conversations,
-without adding a conventional imperative `while` construct or a competing control-flow
-paradigm. Any future design should first test whether the behavior composes naturally
-with the existing Flow, Outcome, pattern-matching, and value-first models.
+without changing `evolve`, adding a conventional imperative `while` construct, or
+creating a competing control-flow paradigm.
 
-This is a design question only. It does not define current `evolve` or Outcome behavior.
+A conceptual composition to investigate is:
+
+```text
+evolve(initial_state, next_state)
+  |> take_some_while(keep_going?)
+```
+
+Design questions to resolve before promotion:
+
+- Should `take_some_while` preserve `some(value)` Outcomes in the resulting Flow rather
+  than unwrap them?
+- Does `none(...)` terminate without emission?
+- How is `err(...)` kept observable while still terminating consumption?
+- Is the predicate applied only to the value inside `some(value)`?
+- Does ordinary `take(n)` compose cleanly after or before `take_some_while` to provide a
+  separate iteration bound?
+
+The preferred direction is separation of concerns: `evolve` produces successive states;
+`take_some_while` bounds consumption according to Outcome and predicate semantics.
+
+This is a design question only. It does not define current `evolve`, Flow, or Outcome
+behavior.
 
 ## Non-goals
 
