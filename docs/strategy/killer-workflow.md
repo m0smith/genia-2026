@@ -97,7 +97,7 @@ R6 is complete.
 **R7** improves web-serving ergonomics as explicitly approved infrastructure work.
 R7 is complete. It does not replace the validated-data-pipeline product north star, and it is not a general web framework, browser-native runtime, or plugin system.
 
-**R8** is the next planned release, not an active release. Its server execution mode remains explicitly approved infrastructure planning and must not begin implementation until activated.
+**R8** is the active release. Its server execution mode is explicitly approved infrastructure work and must proceed through the repository's required contract, design, test, implementation, documentation, and audit phases.
 
 ## Using This Document
 
