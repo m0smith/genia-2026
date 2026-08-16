@@ -94,15 +94,15 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R7 Complete; R8 Planned
+## Release Position: R7 Complete; R8 Active
 
-**No release is currently active. R8 is planned, not active.**
+**R8 — Server Execution Mode is the active release.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
-1. Classify the work against planned R8 first, but do not begin R8 implementation until it is explicitly activated.
+1. Classify the work against active R8 first and follow the required contract, design, failing-test, implementation, documentation, and audit phases.
 2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
 3. R8 descriptors must bind to the landed R7 primitives; do not introduce `json`/`text` header overloads, a header-only `cors`, or a second CORS mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.

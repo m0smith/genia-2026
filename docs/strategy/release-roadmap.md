@@ -394,13 +394,13 @@ Final R7 disposition:
 - #526 and #527 completed the approved header-composition and CORS wrapper path.
 - #528 and #529 closed not-planned; path parameters and concurrency remain deferred pending evidence.
 - #530 pinned the Python-host-only capability and coverage boundary and verified the release exit criteria.
-- R8 remains planned and must be explicitly activated before implementation begins.
+- R8 was explicitly activated after R7 completion; R7 remains closed.
 
 ---
 
 ## Release R8 — Server Execution Mode
 
-**Status: Planned, not active.** Promoted from the parking lot as **explicitly approved infrastructure work** after completed R7. R4 explicitly excluded server-mode implementation; this schedules it deliberately but does not authorize implementation before explicit activation. It does **not** strengthen the validated-data-pipeline killer workflow. Design capture: `docs/parking-lot/server-execution-mode.md`.
+**Status: Active.** Explicitly activated after completed R7 as **approved infrastructure work**. R4 explicitly excluded server-mode implementation; R8 now authorizes the required phased work for server execution mode without treating planned behavior as implemented. It does **not** strengthen the validated-data-pipeline killer workflow. Design capture: `docs/parking-lot/server-execution-mode.md`.
 
 Theme:
 
@@ -411,12 +411,21 @@ Context:
 - R4 delivered the lifecycle model + annotation binding model and named the **test lifecycle as the first consumer**. R8 adds the intended **second consumer: a server / request lifecycle** activated by a dedicated serve execution mode.
 - This makes annotation-driven web config legitimate under the R4 rule that *annotations do not execute merely because they exist*: `@cors` / `@route` are inert descriptors the serve mode's lifecycle activates, exactly as `@test` is inert until `genia test` runs the test lifecycle.
 
-Candidate scope (cut tracking issues before starting):
+Approved scope and tracking issues:
 
 - a `serve` execution mode (`genia serve <file>`) alongside file / `-c` / `-p` / `test` modes
 - a server lifecycle plan reusing the R4 contract — phases: startup (config + data + bind), per-request (route → handler → response, CORS applied here), shutdown (deterministic cleanup)
 - inert annotations activated only by serve mode: `@server(...)` (config), `@route(method, path)` (handler discovery, same shape as `@test` discovery), `@cors(...)` (request-lifecycle cross-cutting)
 - **bind-down principle:** annotations are sugar over existing primitives — `@route` → `route_request`, `@cors` → the R7 `cors` wrapper, `@server` → `serve_http`. No second mechanism (Core Surface Freeze).
+
+Required issue path:
+
+1. **#558 — E8-0: contract and execution-boundary reconciliation**
+2. **#534 — E8-2: independently testable server lifecycle core**
+3. **#535 / #536 / #537 — route, server-config, and CORS annotation bindings**
+4. **#533 — E8-1: final `genia serve <file>` CLI integration**
+
+Dependency order: **#558 → #534 → (#535, #536, #537) → #533**.
 
 Excludes:
 
@@ -434,7 +443,7 @@ Exit criteria:
 
 Agent guidance for R8:
 
-- R8's R7 dependency is satisfied, but R8 remains planned rather than active. Do not start implementation without explicit activation.
+- R8's R7 dependency is satisfied and R8 is active. Follow the required phase sequence; activation does not authorize skipping directly to implementation.
 - Keep annotations inert and lifecycle-activated; do not introduce a self-executing annotation mechanism.
 
 ---
