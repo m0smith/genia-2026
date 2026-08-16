@@ -17,11 +17,12 @@ This roadmap exists to help LLM agents and maintainers keep planning, issue crea
 
 ## Release Examples
 
-Every release listed below (R1 onward) must have a published `docs/releases/<Rn>.md`
-page with one or more small, runnable examples for that release's headline
-behavior — see `docs/releases/README.md`. This is maintained during the doc
-phase of each change (`docs/process/05-doc.md` step 6a), not retrofitted at
-release close. A release is not "done" (✓ COMPLETE) until its page exists.
+Every implemented release listed below (R1 onward) must have a published
+`docs/releases/<Rn>.md` page with one or more small, runnable examples for that
+release's headline behavior — see `docs/releases/README.md`. This is maintained
+during the doc phase of each change (`docs/process/05-doc.md` step 6a), not
+created merely because a planned release is named and not retrofitted at release
+close. A release is not "done" (✓ COMPLETE) until its page exists.
 
 ## Product North Star
 
@@ -438,6 +439,274 @@ Agent guidance for R8:
 
 ---
 
+## Release R9 — Value Templates & Representations
+
+**Status: Planned, not active.** This section records proposed direction, not
+implemented language behavior. R9 requires semantic design and explicit
+activation before implementation begins.
+
+Theme:
+
+> Give Genia a structural way to describe, refine, represent, and pattern-match values without introducing nominal type machinery.
+
+R9 promotes the existing value-template design direction out of the parking lot
+and unifies four related concepts:
+
+- **Value** — what the data is.
+- **Template** — the structural/refinement contract a value satisfies.
+- **Representation** — semantically meaningful information about how a value is represented or carried across a boundary.
+- **Pattern** — how Genia recognizes and destructures values, templates, and representations.
+
+Candidate scope:
+
+- value templates and structural compatibility without nominal wrapper hierarchies
+- open and closed shapes, refinements, and template composition
+- variants where the semantic design remains consistent with the existing value-template direction
+- representation semantics, representation-aware pattern matching, and explicit preservation/propagation rules
+- JSON as a representation of ordinary Genia maps, lists, and scalars, not a parallel JSON object model
+- JSON Schema as a source of structural templates, initially limited to a useful structural subset; advanced or unsupported JSON Schema features remain outside R9 unless separately designed and approved
+- JSON/schema matching as the proving boundary use case
+
+The intended model must explain the following conceptual forms coherently:
+
+```text
+secret(x)
+json(x)
+json(Person(x))
+```
+
+Representations say how values are carried or represented. Templates say what
+shape and refinements values satisfy. Patterns may match both. The syntax above
+is conceptual and does not claim current parser or runtime support.
+
+Candidate syntax for the JSON/schema boundary may look like:
+
+```genia
+User = @json_schema("user.schema.json")
+
+response
+  |> json(User(user)) -> process(user)
+  |> json(_) -> err("unexpected JSON shape")
+```
+
+This is a planned example requiring semantic design. It must not be implemented
+as nominal `JsonResponse` / `User` object hierarchies, and JSON decoding must
+yield ordinary Genia values.
+
+Excludes by default:
+
+- a nominal type system or inheritance hierarchy
+- a second JSON-specific value model
+- a promise to implement every JSON Schema feature in R9
+- silently promoting unrelated broad contract/refinement work beyond what this release needs
+
+Exit criterion:
+
+- Genia can explain `secret(x)`, `json(x)`, and `json(Person(x))` through one coherent representation/template/pattern model rather than unrelated special cases.
+
+Issue guidance:
+
+- Existing issues **#87 / #89 / #91** are associated with broad value-template work, but their scope and status must be reviewed before any is used as an R9 blocker. This roadmap update does not modify or close them.
+
+---
+
+## Release R10 — Configuration & Secrets
+
+**Status: Planned, not active.** This section records proposed direction, not
+implemented language behavior. R10 requires semantic design and explicit
+activation before implementation begins.
+
+Theme:
+
+> Portable configuration acquisition and protected-value handling built on the R9 representation model.
+
+R10 is the first major consumer of R9 representations. Candidate forms are:
+
+```genia
+model = @config("OPENAI_MODEL")
+api_key = @secret("OPENAI_API_KEY")
+```
+
+These forms are conceptual. The string argument is the configuration **key**,
+not the secret itself. `@config("key")` resolves an ordinary configured value;
+`@secret("key")` resolves the configured value and preserves or applies the
+secret representation.
+
+Candidate scope:
+
+- configuration lookup, source/precedence rules, missing values, and defaults
+- conversion and validation at the host/environment boundary
+- annotation/config injection where it fits the established annotation and lifecycle model
+- secret representation and representation-aware pattern matching
+- secret-safe diagnostics, rendering, logging, output, and serialization policy
+- explicit propagation rules for values derived from secrets
+
+Matching or destructuring a secret must not implicitly declassify it. In the
+conceptual pattern below, `x` remains protected:
+
+```genia
+value
+  |> secret(x) -> ...
+```
+
+R10 should use the R9 representation model rather than introduce an unrelated
+`Secret` class hierarchy.
+
+Exit criterion:
+
+- Config and secret acquisition use the representation semantics established by R9, and ordinary matching, diagnostics, or rendering cannot accidentally expose secrets.
+
+---
+
+## Release R11 — AI Composition
+
+**Status: Planned, not active.** This section records proposed direction, not
+implemented language behavior. R11 requires semantic design and explicit
+activation before implementation begins.
+
+Theme:
+
+> Make AI a natural participant in Genia's existing value, function, pipeline, Flow, and Outcome model.
+
+Architectural rules:
+
+- messages are values
+- models are callables
+- prompts are functions
+- chains are pipelines
+- tools are ordinary Genia functions plus contracts/metadata
+- conversations are evolving state driven by a Flow of input events
+- Outcome carries failure and absence
+
+R11 must not create chain runtime classes, `Runnable` / `RunnableSequence`
+equivalents, prompt or message class hierarchies, `AgentExecutor`-style
+orchestration, or a second pipeline abstraction. One provider is sufficient to
+prove ordinary model invocation. Credentials and configuration come through
+R10, and structured model output uses R9 JSON/template/pattern machinery rather
+than a separate AI validation system.
+
+Conversation semantics do not own input acquisition:
+
+```text
+input producer -> Flow<UserInput> -> conversation evolution -> Flow<ConversationState>
+```
+
+Input producers may include terminal prompts, files and test fixtures, HTTP,
+WebSockets, actor/message sources, generated input, or other Flow sources. The
+same conversation implementation must work across them.
+
+Current Genia implements `evolve(init, step)` as an unbounded Flow that emits
+`init` and repeatedly applies `step(previous_value)`; it does not consume an
+input Flow. Current `scan(step, initial_state, source)` is the closer existing
+shape for evolving state from input events, with a step returning
+`[next_state, output]`. A conceptual conversation therefore looks like:
+
+```genia
+chat_turn_step(state, input) =
+  next_state = chat_turn(state, input)
+  [next_state, next_state]
+
+user_inputs
+  |> scan(chat_turn_step, initial_chat)
+```
+
+This is a conceptual roadmap example, not a claim that the surrounding AI APIs
+exist. An interactive terminal producer may use the current two-argument
+`evolve(init, step)` shape to generate prompt events, but input production must
+remain separate from conversation evolution.
+
+`take_some_while` is not part of R11. The preferred eventual expression is
+`take_while(some?)` if ordinary `take_while` semantics are designed to provide
+the required bounded termination. `take_while` itself is not currently an
+implemented Flow helper, so this remains a planned semantic gap rather than an
+implemented example or a reason to invent a special-purpose helper.
+
+R11 should also demonstrate model use inside Genia's Outcome-aware validated
+data-pipeline story.
+
+Exit criterion:
+
+- Useful AI applications look like ordinary Genia composition, and conversation logic can consume different Flow-based input sources without changing the conversation implementation.
+
+---
+
+## Release R12 — Retrieval & Grounding
+
+**Status: Planned, not active.** This section records proposed direction, not
+implemented language behavior. R12 requires semantic design and explicit
+activation before implementation begins.
+
+Theme:
+
+> Complete production-quality RAG through general retrieval and grounding capabilities rather than a separate RAG framework.
+
+R12 builds on R11. Its abstraction is **retrieval**, not `VectorDatabase`.
+
+Candidate scope:
+
+- document and chunk values that preserve provenance
+- chunking as ordinary Seq/Flow/library composition
+- provider-neutral embedding capability
+- a backend-neutral indexing/retrieval contract supporting replaceable vector, lexical, hybrid, SQL/pgvector, Databricks Vector Search, Elasticsearch, local-index, graph, and external-retrieval implementations
+- reranking as ordinary composition
+- grounded-context assembly with answer, sources, and evidence
+- Outcome-aware failure handling
+
+Conceptual composition:
+
+```genia
+documents
+  |> chunk
+  |> embed
+  |> index
+
+question
+  |> retrieve
+  |> rerank
+  |> take(...)
+  |> assemble_grounded_context
+  |> model
+  |> validate
+  |> answer + sources + evidence
+```
+
+This is proposed composition, not implemented syntax or API. Retrieved chunks
+must retain provenance rather than becoming anonymous strings too early. Genia
+does not need to own or implement a vector database to complete R12.
+
+Critical acceptance criterion:
+
+- The embedding provider, retrieval backend, reranker, and generation model can each be replaced independently without restructuring the overall Genia application.
+
+---
+
+## Planned R8–R12 Sequence and Dependencies
+
+The scheduling sequence is:
+
+```text
+R8  — Server Execution Mode
+ |
+ v
+R9  — Value Templates & Representations
+ |
+ v
+R10 — Configuration & Secrets
+ |
+ v
+R11 — AI Composition
+ |
+ v
+R12 — Retrieval & Grounding
+```
+
+This ordering does not imply that R9 technically depends on R8. The semantic
+dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
+R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
+composition. All five releases shown here remain planned and not active.
+
+---
+
 ## Parking Lot / Later
 
 These are valuable, but not part of the near roadmap unless explicitly promoted:
@@ -449,9 +718,9 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - useful as a future demo surface, not required for the first validated-data-pipeline release
 - ants / simulation teaching demos
   - useful teaching material after the data-pipeline wedge is demonstrable
-- full value-template system
-  - **#87 / #89 / #91** — broad value-template / contract roadmap issues; future / parking lot unless explicitly promoted to a release
-- refinement / shape / contract / variant roadmap
+- value-template work outside the focused R9 structural/representation scope
+  - the value-template program is now promoted to planned R9; **#87 / #89 / #91** remain useful history, but their broad scope/status must be reviewed before they become release blockers
+- refinement / shape / contract / variant work beyond the subset required to prove R9
 - validation DSL
   - do not create implementation tickets until helper-based validation proves insufficient
 - multi-host implementation beyond contract scaffolding
@@ -480,7 +749,7 @@ This section records the classification of R1-adjacent issues after R1 completio
 | #363 | R6 — delivered | `row_get(row, column_name)` ergonomic row access shipped. |
 | #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
 | #399 | Future design | Not R5; park until scope is defined. |
-| #87 / #89 / #91 | Parking lot | Future / parking lot unless explicitly promoted. |
+| #87 / #89 / #91 | Planned R9 scope review | Value-template work is promoted to planned R9; review the old broad issue scope/status before treating any issue as a release blocker. |
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |
 
 If an issue listed above is already closed, do not reopen it.

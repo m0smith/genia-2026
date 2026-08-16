@@ -59,40 +59,34 @@ Possible future work:
 - more precise guidance for terminal consumers such as materialization, reduction, and
   effectful traversal
 
-## Outcome-Aware Bounded Evolution
+## Outcome-Aware Conditional Flow Termination
 
-Future design question:
+Roadmap decision for planned R11:
 
-> Can `evolve` remain unchanged while a separate `take_some_while(predicate)` Flow
-> combinator consumes an Outcome-producing evolution, continues while upstream produces
-> `some(value)` values satisfying the predicate, terminates normally on `none` or a
-> false predicate, and preserves observable `err` failure semantics?
+- do not introduce a special-purpose `take_some_while` helper
+- prefer ordinary `take_while(some?)` if the desired operation can be expressed through
+  general `take_while` semantics
+- keep input production separate from conversation-state evolution
 
-The intent is to explore repeated stateful pipeline work, such as ongoing conversations,
-without changing `evolve`, adding a conventional imperative `while` construct, or
-creating a competing control-flow paradigm.
+`take_while` is not currently an implemented Genia Flow helper. Before promotion, its
+general semantics require design and focused tests, including whether the terminating
+item is emitted, how Outcome values remain observable, and how bounded consumption
+finalizes an upstream Flow. The R11 roadmap records this as a planned semantic gap; it
+does not authorize implementation.
 
-A conceptual composition to investigate is:
+Current `evolve(init, step)` remains unchanged: it emits `init` and repeatedly applies
+`step(previous_value)`. For state driven by an input Flow, current
+`scan(step, initial_state, source)` is the closer existing composition shape. Neither
+helper should be overloaded merely to make a conversation example shorter.
+
+A future conceptual termination stage, subject to the general `take_while` design, is:
 
 ```text
-evolve(initial_state, next_state)
-  |> take_some_while(keep_going?)
+outcome_flow
+  |> take_while(some?)
 ```
 
-Design questions to resolve before promotion:
-
-- Should `take_some_while` preserve `some(value)` Outcomes in the resulting Flow rather
-  than unwrap them?
-- Does `none(...)` terminate without emission?
-- How is `err(...)` kept observable while still terminating consumption?
-- Is the predicate applied only to the value inside `some(value)`?
-- Does ordinary `take(n)` compose cleanly after or before `take_some_while` to provide a
-  separate iteration bound?
-
-The preferred direction is separation of concerns: `evolve` produces successive states;
-`take_some_while` bounds consumption according to Outcome and predicate semantics.
-
-This is a design question only. It does not define current `evolve`, Flow, or Outcome
+This decision does not define current `evolve`, `scan`, Flow, Outcome, or `take_while`
 behavior.
 
 ## Non-goals
