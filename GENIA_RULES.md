@@ -131,6 +131,7 @@ Required constraints:
   - `@category`
   - `@test`
   - `@route` (Experimental, inert R8 descriptor metadata)
+  - `@server` (Experimental, inert R8 server-configuration metadata)
 - no annotation introduces macros, compile-time transforms, or syntax rewriting in this phase
 
 ## 8.1.2) Prefix annotation runtime semantics
@@ -172,9 +173,15 @@ Required constraints:
   - stores the validated map under metadata key `route`
   - remains inert; evaluation and discovery do not start a listener or invoke the handler
   - may not repeat on one declaration or replace existing `route` metadata through annotated rebinding
+- `@server`:
+  - evaluates its value expression after the target assignment exists
+  - requires a top-level simple-name assignment target
+  - validates and normalizes the closed optional `host`, `port`, and `max_requests` configuration map recorded in `GENIA_STATE.md` section 9.7
+  - attaches inert metadata under the canonical `server` key; the assignment value is not configuration
+  - may not repeat on one declaration or replace existing `server` metadata through annotated rebinding
 - native test metadata keys and values must be strings; non-string metadata keys or values in a `TestUnit` are discovery errors reported before test body execution; diagnostics use Genia runtime type names; existing `TestUnit.location` is appended to diagnostic text when available
 - multiple annotations merge from top to bottom
-- last annotation wins for duplicate metadata keys, except annotated rebinding cannot replace an existing canonical R8 descriptor key such as `route`
+- last annotation wins for duplicate metadata keys, except annotated rebinding cannot replace an existing canonical R8 descriptor key such as `route` or `server`
 - rebinding without annotations preserves existing binding metadata
 - rebinding with annotations merges new metadata over existing metadata for that binding
 - `doc("name")` returns the current doc string for a bound name or `none("missing-doc", {name: ...})`
@@ -1168,4 +1175,4 @@ For each incoming flow item `x`:
 - The first non-cleanup failure remains primary. Cleanup failures never replace or hide it. Startup failure skips requests, request failure skips later requests, and owned cleanup still runs.
 - The lifecycle core must be callable without CLI parsing or live sockets and must return the deterministic result shape defined in `GENIA_STATE.md` section 9.7.
 - Descriptor and result data shapes are host-independent. R8 execution is Python-reference-host-only and adds no shared host-adapter capability or cross-host server guarantee.
-- The dedicated injected lifecycle core and inert `@route` metadata/discovery/binding are implemented in the Python reference host. The runtime must continue to reject `@server` and `@cors`; `genia serve` remains unavailable until their later R8 phases land.
+- The dedicated injected lifecycle core and inert `@route` and `@server` metadata/discovery/binding are implemented in the Python reference host. The runtime must continue to reject `@cors`; `genia serve` remains unavailable until its later R8 phase lands.
