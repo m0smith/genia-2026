@@ -56,6 +56,7 @@ def discover_cors_binding(
     *,
     entry_source_identity: str,
     server_declaration_name: str,
+    server_source_index: int,
 ) -> CorsBindingResult:
     """Discover the optional entry-file CORS descriptor for one server owner."""
 
@@ -101,7 +102,10 @@ def discover_cors_binding(
             )
             for binding in valid
         )
-    elif len(valid) == 1 and valid[0].declaration_name != server_declaration_name:
+    elif len(valid) == 1 and (
+        valid[0].declaration_name != server_declaration_name
+        or valid[0].source_index != server_source_index
+    ):
         diagnostics.append(
             CorsBindingDiagnostic(
                 annotation_name="cors",
@@ -127,6 +131,7 @@ def discover_entry_file_cors_binding(
     *,
     entry_source_identity: str,
     server_declaration_name: str,
+    server_source_index: int,
 ) -> CorsBindingResult:
     """Discover canonical CORS metadata owned by entry-file assignments."""
 
@@ -150,6 +155,7 @@ def discover_entry_file_cors_binding(
         declarations,
         entry_source_identity=entry_source_identity,
         server_declaration_name=server_declaration_name,
+        server_source_index=server_source_index,
     )
 
 

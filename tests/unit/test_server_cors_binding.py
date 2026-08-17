@@ -133,6 +133,7 @@ def test_generic_cors_metadata_remains_ordinary_and_is_not_a_candidate():
         env,
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
 
     assert result.binding is None
@@ -144,6 +145,7 @@ def test_discovery_accepts_absence_and_ignores_imported_declarations():
         [_declaration("imported", source_identity="dep.genia")],
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
 
     assert result.binding is None
@@ -155,6 +157,7 @@ def test_discovery_selects_single_descriptor_on_server_owner():
         [_declaration("application", descriptor=_map(origin="*"), source_index=2)],
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=2,
     )
 
     assert result.diagnostics == []
@@ -167,6 +170,7 @@ def test_discovery_rejects_descriptor_on_different_assignment_than_server_owner(
         [_declaration("other")],
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
 
     assert result.binding is None
@@ -174,6 +178,19 @@ def test_discovery_rejects_descriptor_on_different_assignment_than_server_owner(
     assert result.diagnostics[0].reason == (
         "@cors descriptor must be attached to @server owner application"
     )
+
+
+def test_discovery_rejects_same_name_from_a_different_assignment():
+    result = _api().discover_cors_binding(
+        [_declaration("application", source_index=2)],
+        entry_source_identity="entry.genia",
+        server_declaration_name="application",
+        server_source_index=0,
+    )
+
+    assert result.binding is None
+    assert [item.declaration_name for item in result.diagnostics] == ["application"]
+    assert "must be attached to @server owner application" in result.diagnostics[0].reason
 
 
 def test_discovery_reports_multiple_descriptors_in_source_order():
@@ -185,6 +202,7 @@ def test_discovery_reports_multiple_descriptors_in_source_order():
         ],
         entry_source_identity="entry.genia",
         server_declaration_name="alpha",
+        server_source_index=1,
     )
 
     assert result.binding is None
@@ -205,6 +223,7 @@ def test_discovery_reports_payload_errors_before_cardinality():
         ],
         entry_source_identity="entry.genia",
         server_declaration_name="first",
+        server_source_index=1,
     )
 
     assert result.binding is None
@@ -233,6 +252,7 @@ def test_entry_file_discovery_uses_annotated_assignments_and_environment_metadat
         env,
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
 
     assert result.diagnostics == []
@@ -245,6 +265,7 @@ def test_bind_down_returns_same_handler_without_cors_descriptor():
         [],
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
     handler = object()
     calls = []
@@ -260,6 +281,7 @@ def test_bind_down_wraps_handler_once_through_existing_cors_shape():
         [_declaration("application", descriptor=_map(origin="*"))],
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
     handler = object()
     calls = []
@@ -279,6 +301,7 @@ def test_bind_down_never_wraps_when_discovery_has_diagnostics():
         [_declaration("other")],
         entry_source_identity="entry.genia",
         server_declaration_name="application",
+        server_source_index=0,
     )
     calls = []
 
