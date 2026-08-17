@@ -251,13 +251,13 @@ def test_route_annotation_attaches_inert_descriptor_metadata_to_function():
         @route {method: "GET", path: "/health"}
         health(request) = request
 
-        meta("health") |> get("route")
+        unwrap_or({}, meta("health") |> get("route"))
         """,
         env,
         filename="entry.genia",
     )
 
-    assert result == {"method": "GET", "path": "/health"}
+    assert sorted(result.items()) == [["method", "GET"], ["path", "/health"]]
     assert env.get("health").get(1) is not None
 
 
@@ -300,3 +300,12 @@ def test_route_annotation_rejects_annotated_rebinding_without_adding_clause():
         )
 
     assert env.get("health").sorted_arities() == [1]
+
+
+def test_meta_annotation_cannot_inject_reserved_route_metadata():
+    with pytest.raises(TypeError, match="@meta cannot set reserved route metadata"):
+        run_source(
+            '@meta {route: {method: "GET", path: "/health"}}\nhealth(request) = request\n',
+            make_global_env([]),
+            filename="entry.genia",
+        )

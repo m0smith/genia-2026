@@ -5,9 +5,11 @@ from dataclasses import replace
 import pytest
 
 from genia import make_global_env, run_source
+from genia.interpreter import Parser, lex, lower_program
 from genia.server_route_binding import (
     RouteDeclaration,
     assemble_route_handler,
+    discover_entry_file_route_bindings,
     discover_route_bindings,
     validate_route_descriptor,
 )
@@ -63,7 +65,6 @@ def test_validate_route_descriptor_accepts_exact_closed_map_without_normalizing_
         (_map(method=1, path="/items"), "method expected a string"),
         (_map(method="", path="/items"), "method must not be empty"),
         (_map(method="GET", path="items"), "path must start with /"),
-        (_map(method="PATCH", path="/items"), "unsupported method PATCH"),
     ],
 )
 def test_validate_route_descriptor_rejects_invalid_shapes(descriptor, message):
@@ -99,6 +100,30 @@ def test_discovery_accepts_different_methods_on_the_same_path():
         ("GET", "/items"),
         ("POST", "/items"),
     ]
+
+
+def test_entry_file_discovery_uses_evaluated_ir_declarations_and_environment_metadata():
+    source = """
+    @route {method: "GET", path: "/read"}
+    read(request) = request
+
+    unannotated(request) = request
+
+    @route {method: "POST", path: "/create"}
+    create(request) = request
+    """
+    env = make_global_env([])
+    run_source(source, env, filename="entry.genia")
+    nodes = lower_program(Parser(lex(source), source=source, filename="entry.genia").parse_program())
+
+    result = discover_entry_file_route_bindings(
+        nodes,
+        env,
+        entry_source_identity="entry.genia",
+    )
+
+    assert result.diagnostics == []
+    assert [route.declaration_name for route in result.routes] == ["read", "create"]
 
 
 def test_discovery_rejects_every_exact_conflict_member_in_source_order():
@@ -166,7 +191,7 @@ def test_discovery_rejects_ambiguous_and_varargs_handlers():
     assert all("exactly one fixed one-argument" in item.reason for item in result.diagnostics)
 
 
-def test_assembly_uses_existing_route_factories_in_order_and_route_request_once():
+def test_assembly_uses_existing_route_values_in_order_and_route_request_once():
     result = discover_route_bindings(
         [
             _declaration("read", method="GET", path="/read", source_index=0),
@@ -176,24 +201,20 @@ def test_assembly_uses_existing_route_factories_in_order_and_route_request_once(
     )
     calls: list[tuple] = []
 
-    def get(path, handler):
-        calls.append(("get", path, handler.name))
-        return ("GET", path, handler)
-
-    def post(path, handler):
-        calls.append(("post", path, handler.name))
-        return ("POST", path, handler)
+    def route(method, path, handler):
+        calls.append(("route", method, path, handler.name))
+        return (method, path, handler)
 
     def route_request(routes):
         calls.append(("route_request", [(method, path) for method, path, _ in routes]))
         return "assembled-handler"
 
-    assembled = assemble_route_handler(result, get=get, post=post, route_request=route_request)
+    assembled = assemble_route_handler(result, route=route, route_request=route_request)
 
     assert assembled == "assembled-handler"
     assert calls == [
-        ("get", "/read", "read"),
-        ("post", "/create", "create"),
+        ("route", "GET", "/read", "read"),
+        ("route", "POST", "/create", "create"),
         ("route_request", [("GET", "/read"), ("POST", "/create")]),
     ]
 
@@ -208,8 +229,7 @@ def test_assembly_does_not_invoke_factories_when_discovery_has_diagnostics():
     with pytest.raises(ValueError, match="cannot assemble routes with diagnostics"):
         assemble_route_handler(
             result,
-            get=lambda *_: calls.append("get"),
-            post=lambda *_: calls.append("post"),
+            route=lambda *_: calls.append("route"),
             route_request=lambda *_: calls.append("route_request"),
         )
 
