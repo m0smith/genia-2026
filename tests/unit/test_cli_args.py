@@ -81,6 +81,61 @@ def test_execution_mode_selection_records_file_shape(tmp_path, monkeypatch):
     assert mode.script_args == ["--pretty", "in.txt"]
 
 
+def test_execution_mode_selection_records_serve_shape(tmp_path, monkeypatch):
+    program = tmp_path / "server.genia"
+    program.write_text("server_owner = none", encoding="utf-8")
+
+    mode = _capture_execution_mode(monkeypatch, ["serve", str(program)])
+
+    assert _mode_kind(mode) == "serve"
+    assert mode.source is None
+    assert mode.program_path == str(program)
+    assert mode.script_args == []
+
+
+def test_serve_mode_dispatches_exactly_once_without_file_mode_main(tmp_path, monkeypatch):
+    program = tmp_path / "server.genia"
+    program.write_text("main() = error(\"must not run\")", encoding="utf-8")
+    calls = []
+
+    monkeypatch.setattr(
+        interpreter_module,
+        "_run_serve_file",
+        lambda path: calls.append(path) or 0,
+        raising=False,
+    )
+
+    assert _main(["serve", str(program)]) == 0
+    assert calls == [str(program)]
+
+
+@pytest.mark.parametrize(
+    ("argv", "message"),
+    [
+        (["serve"], "genia serve accepts exactly one file path"),
+        (["serve", "one.genia", "two.genia"], "genia serve accepts exactly one file path"),
+        (["serve", "-c", "1 + 1"], "genia serve accepts exactly one file path"),
+        (["serve", "--debug-stdio", "app.genia"], "genia serve accepts exactly one file path"),
+    ],
+)
+def test_serve_mode_rejects_missing_extra_and_conflicting_operands(argv, message, capsys):
+    with pytest.raises(SystemExit) as exc_info:
+        _main(argv)
+
+    assert exc_info.value.code == 2
+    assert message in capsys.readouterr().err
+
+
+def test_serve_mode_reports_missing_file_before_dispatch(tmp_path, capsys):
+    missing = tmp_path / "missing.genia"
+
+    with pytest.raises(SystemExit) as exc_info:
+        _main(["serve", str(missing)])
+
+    assert exc_info.value.code == 2
+    assert f"genia serve program path not found: {missing}" in capsys.readouterr().err
+
+
 def test_execution_mode_selection_records_repl_shape(monkeypatch):
     mode = _capture_execution_mode(monkeypatch, [])
 
