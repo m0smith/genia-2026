@@ -198,8 +198,9 @@ Supported built-ins in this phase:
 - `@deprecated "message"`
 - `@category "name"`
 - `@route {method: "GET", path: "/path"}` (Experimental inert R8 route descriptor; named one-argument functions only)
+- `@server {host: "127.0.0.1", port: 8000}` (Experimental inert R8 server configuration; top-level assignments only)
 
-Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, and `@route`; native test mode also consumes `@test`. `@route` validation and internal entry-file discovery are implemented, but the descriptor does not start a server and `genia serve` remains unavailable.
+Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, `@route`, and `@server`; native test mode also consumes `@test`. `@route` and `@server` validation and internal entry-file discovery are implemented, but the descriptors do not start a server and `genia serve` remains unavailable.
 Naming rule reminder: new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.
 
 Useful lookup helpers:
