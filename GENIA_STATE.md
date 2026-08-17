@@ -2678,14 +2678,14 @@ Explicit limitations:
 - No parser, lexer, Core IR, or evaluator semantic changes were made.
 - Native-test discovery is not routed through lifecycle binding; `@test` discovery is unchanged and `discover_lifecycle_participants(...)` is not used.
 - No execution-mode lifecycle dispatch is implemented.
-- No server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle is implemented; no multi-host lifecycle is implemented.
+- The native-test consumer adds no server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle. The separate focused R8 server lifecycle core is described in section 9.7; no multi-host lifecycle is implemented.
 - No changes to native-test CLI output or native-test exit codes were made.
 
-## 9.7) R8 server execution contract (planned, not implemented)
+## 9.7) R8 server execution contract (Partial)
 
-Status: Approved R8 contract, Experimental when implemented. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558. No behavior in this section is implemented yet.
+Status: Approved R8 contract. The independently callable lifecycle core is implemented as Experimental Python-reference-host-only behavior (issue #534); annotation binding, CLI dispatch, and live HTTP integration remain planned. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
 
-LANGUAGE CONTRACT (PLANNED):
+LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 
 - `genia serve <file>` is the only server-lifecycle activation boundary. Loading, importing, parsing, evaluating, or discovering a file in any other execution mode must not bind a listener, run a route handler, apply CORS, or enter server cleanup.
 - Serve mode loads and evaluates exactly one entry file without ordinary `main/0` or `main/1` dispatch. An evaluation failure is a startup failure and prevents listener activation.
@@ -2709,15 +2709,24 @@ LANGUAGE CONTRACT (PLANNED):
 - The first non-cleanup failure is always the primary failure. Cleanup never replaces or hides it. If no earlier failure exists, the first shutdown/close failure is primary and later cleanup failures remain in `cleanup_failures`. Startup failure skips request processing; request failure skips later requests; shutdown still gets its contracted opportunity for owned resources.
 - Diagnostics and result failures must identify execution mode `serve`, phase, scope, reason, and source location when available. User-facing rendering may add context, but it must preserve the deterministic primary/cleanup distinction.
 
-PYTHON REFERENCE HOST (PLANNED R8 BOUNDARY):
+PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE):
+
+- `src/genia/server_lifecycle.py` implements the dedicated, independently callable lifecycle core. `server_lifecycle_plan()` returns inert plan data for the exact `startup -> request -> shutdown` phases and `server` / `request` scopes; `validate_server_lifecycle()` validates that static descriptor through the existing lifecycle-plan normalizer without executing lifecycle work.
+- `run_server_lifecycle(application, requests, activate=..., request=..., close=...)` is the only implemented #534 activation seam. It accepts already validated/discovered application data, a finite ordered request source, and injected Python operations, so it is callable without CLI parsing or live sockets.
+- Successful activation establishes listener ownership; requests run in order without retry; request failure skips later requests; an owned listener receives exactly one close opportunity. Activation failure creates no ownership and performs no close. The first non-cleanup failure remains primary, and close failures are preserved in `cleanup_failures` without replacing it.
+- The core returns the seven-key lifecycle result map defined above. Injected-operation exceptions are normalized to failure maps containing `mode`, `phase`, `scope`, `reason`, and `source_location` when the exception provides one.
+- This is one fixed lifecycle consumer, not a lifecycle-plan runner: phase action identifiers remain inert and there is no action registry or resolver.
+- Validated by `tests/unit/test_server_lifecycle.py` (9 tests), Python reference host only.
+
+PYTHON REFERENCE HOST (REMAINING PLANNED R8 BOUNDARY):
 
 - Python remains the only R8 server execution host because `serve_http`, `route_request`, `cors`, and `with_headers` are Python-reference-host capabilities.
 - Future hosts may consume the host-independent inert descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and makes no multi-host server guarantee.
-- CLI dispatch, the dedicated coordinator, annotation bindings, and live HTTP integration are assigned to follow-on issues in dependency order `#534 -> (#535, #536, #537) -> #533`.
+- Annotation bindings and final CLI/live HTTP integration remain assigned to follow-on issues in dependency order `(#535, #536, #537) -> #533`.
 
 Explicit limitations:
 
-- No R8 server annotation, lifecycle phase execution, or `genia serve` dispatch is implemented by this contract change.
+- No R8 server annotation, `genia serve` dispatch, or live HTTP integration is implemented yet. Only the injected, independently callable lifecycle core executes the fixed lifecycle phases.
 - No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
 
 ## 10) Explicitly not implemented (current)

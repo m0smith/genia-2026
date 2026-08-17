@@ -158,8 +158,11 @@ Lifecycle annotation binding discovery is implemented in the Python reference ho
 The Python reference host native test path is the first implemented consumer of the inert R4 lifecycle contract (`src/genia/native_test_lifecycle.py`, issue #454). It describes and validates the existing native test lifecycle shape as inert lifecycle plan/scope data: the phase shape `discover -> run -> report` and the canonical scope hierarchy `execution -> suite -> module -> test`. `native_test_lifecycle_plan()`, `native_test_lifecycle_scope_tree()`, and `validate_native_test_lifecycle()` build this inert descriptor and validate it through the existing lifecycle plan/scope validators (`normalize_lifecycle_plan`, `normalize_lifecycle_scope_tree`). `validate_native_test_lifecycle()` is invoked silently on the native test file execution path in `src/genia/test_cli.py`; it produces no user-visible output unless the static internal descriptor is malformed, and observable native-test behavior is unchanged. This does not add a lifecycle runner, lifecycle phase execution, setup/teardown, `@setup`/`@teardown` annotations, generalized annotation execution, a lifecycle action registry or action resolution, a public lifecycle prelude API, parser/Core IR/evaluator changes, native-test discovery-routing through lifecycle binding, execution-mode lifecycle dispatch, or any change to native-test CLI output or exit codes. It is Experimental, Python reference host only, and an internal/inert lifecycle contract consumer. See `GENIA_STATE.md` section 9.6 for the full language contract.
 
 Generalized lifecycle plan execution is not implemented runtime behavior. R8's
-approved dedicated server lifecycle contract in `GENIA_STATE.md` section 9.7 does
-not generalize this vocabulary into a lifecycle runner and remains unimplemented.
+approved dedicated server lifecycle contract in `GENIA_STATE.md` section 9.7 now
+has one implemented focused consumer in `src/genia/server_lifecycle.py`: an inert
+fixed descriptor plus an explicitly invoked coordinator with injected operations.
+It does not execute arbitrary lifecycle plans or resolve their action identifiers.
+Server annotations, `genia serve`, and live HTTP integration remain unimplemented.
 
 Lifecycle runners are not implemented runtime behavior.
 
@@ -183,7 +186,7 @@ This issue explicitly excludes:
 - no parser syntax changes
 - no Core IR changes
 - no YAML lifecycle runner
-- no server lifecycle implementation
+- no server lifecycle implementation in R4 (the later focused R8 core is described above)
 - no actor lifecycle implementation
 - no plugin lifecycle implementation
 - no browser lifecycle implementation

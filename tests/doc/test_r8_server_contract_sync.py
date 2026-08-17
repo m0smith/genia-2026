@@ -8,13 +8,15 @@ def _read(relative_path: str) -> str:
     return (ROOT / relative_path).read_text(encoding="utf-8")
 
 
-def test_r8_server_contract_is_planned_and_not_implemented() -> None:
+def test_r8_server_contract_marks_only_lifecycle_core_implemented() -> None:
     state = _read("GENIA_STATE.md")
     rules = _read("GENIA_RULES.md")
 
-    assert "## 9.7) R8 server execution contract (planned, not implemented)" in state
-    assert "No behavior in this section is implemented yet." in state
-    assert "## 25) R8 server execution invariants (planned, not implemented)" in rules
+    assert "## 9.7) R8 server execution contract (Partial)" in state
+    assert "PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE)" in state
+    assert "The separate focused R8 server lifecycle core is described in section 9.7" in state
+    assert "## 25) R8 server execution invariants (Partial)" in rules
+    assert "The dedicated injected lifecycle core is implemented" in rules
     assert "`genia serve` remains unavailable" in rules
 
 
