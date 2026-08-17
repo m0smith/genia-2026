@@ -336,7 +336,7 @@ Classification: **Valid** (directly tested)
 | metadata lookup | `meta("name")` → map or `none("missing-meta", {name: ...})` |
 | note | `@doc` metadata takes priority over legacy inline docstrings; last annotation wins for duplicate metadata keys |
 
-Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, and Experimental `@route`, `@server`, and `@cors`. `@route` requires `{method, path}` on a named one-argument function. `@server` requires an optional `{host, port, max_requests}` map on a top-level assignment. Optional `@cors` requires the existing `{origin, methods, headers}` policy shape on that same assignment. All three remain inert because `genia serve` is not implemented.
+Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, and Experimental `@route`, `@server`, and `@cors`. `@route` requires `{method, path}` on a named one-argument function. `@server` requires an optional `{host, port, max_requests}` map on a top-level assignment. Optional `@cors` requires the existing `{origin, methods, headers}` policy shape on that same assignment. All three remain inert outside Experimental Python-host-only `genia serve <file>`.
 
 ### `@doc` Quick Reference
 
@@ -399,6 +399,7 @@ Current response maps use `status`, `headers`, and `body`.
 
 | Mode | Command | Behavior |
 | --- | --- | --- |
+| serve | `genia serve path/to/file.genia` | activate the Experimental Python-host-only server lifecycle without `main` dispatch |
 | file | `genia path/to/file.genia` | run source file |
 | command | `genia -c 'source'` | run inline source |
 | pipe | `genia -p 'stage_expr'` | runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically |

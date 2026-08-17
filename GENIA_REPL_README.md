@@ -58,6 +58,7 @@ python3 -m genia.interpreter --debug-stdio path/to/file.genia
 
 CLI contract summary (actual behavior):
 
+- serve mode: `genia serve path/to/file.genia` (Experimental, Python-host-only; exactly one existing file, no `main` dispatch)
 - file mode: `genia path/to/file.genia [args ...]`
 - command mode: `genia -c 'source' [args ...]`
 - pipe mode: `genia -p 'stage_expr' [args ...]` runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
@@ -75,7 +76,7 @@ CLI contract summary (actual behavior):
 **Limitations:**
 - Only the Python host is implemented; all CLI, REPL, and pipe behavior is enforced and tested only for Python.
 - No browser, Node.js, or other host runtimes are implemented.
-- No undocumented modes or advanced CLI features exist; only the modes above are supported.
+- No undocumented modes or advanced CLI features exist; only the modes above are supported. Server annotations remain inert outside explicit serve mode.
 
 ## Implemented today
 
