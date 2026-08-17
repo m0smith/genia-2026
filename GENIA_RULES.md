@@ -1149,7 +1149,7 @@ For each incoming flow item `x`:
 - Ordinary responses receive configured CORS headers solely through `with_headers`; configured CORS values win collisions while application status, body, unrelated headers, and additional fields are preserved.
 - Inputs are not mutated. Programmer misuse raises deterministic `TypeError`; no Outcome, middleware framework, parser/Core IR/shared-spec behavior, or cross-host claim is introduced.
 
-## 25) R8 server execution invariants (planned, not implemented)
+## 25) R8 server execution invariants (Partial)
 
 - Only explicit `genia serve <file>` activation may enter the dedicated server lifecycle. Load, import, parse, evaluation, and discovery remain inert in every other mode.
 - `@server`, `@route`, and `@cors` each take one ordinary map expression through the existing prefix-annotation grammar. No parser or Core IR extension is permitted.
@@ -1160,4 +1160,4 @@ For each incoming flow item `x`:
 - The first non-cleanup failure remains primary. Cleanup failures never replace or hide it. Startup failure skips requests, request failure skips later requests, and owned cleanup still runs.
 - The lifecycle core must be callable without CLI parsing or live sockets and must return the deterministic result shape defined in `GENIA_STATE.md` section 9.7.
 - Descriptor and result data shapes are host-independent. R8 execution is Python-reference-host-only and adds no shared host-adapter capability or cross-host server guarantee.
-- This section is an approved contract for later R8 phases, not implemented behavior. Until those phases land, the runtime must continue to reject the three annotations and `genia serve` remains unavailable.
+- The dedicated injected lifecycle core is implemented in the Python reference host. The runtime must continue to reject the three server annotations and `genia serve` remains unavailable until their later R8 phases land.
