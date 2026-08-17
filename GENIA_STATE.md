@@ -2685,7 +2685,7 @@ Explicit limitations:
 
 ## 9.7) R8 server execution contract (Partial)
 
-Status: Approved R8 contract. The independently callable lifecycle core (issue #534) and inert route, server-configuration, and CORS annotation bindings (issues #535-#537) are implemented as Experimental Python-reference-host-only behavior; CLI dispatch and live HTTP integration remain planned. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
+Status: Partial. The independently callable lifecycle core (issue #534), inert route/server/CORS annotation bindings (issues #535-#537), and explicit CLI/live HTTP integration (issue #533) are implemented as Experimental Python-reference-host-only behavior. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
 
 LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 
@@ -2746,15 +2746,17 @@ PYTHON REFERENCE HOST (IMPLEMENTED CORS ANNOTATION BINDING):
 - The shared internal policy validator in `src/genia/cors_policy.py` preserves the existing R7 validation order, defaults, and messages; it prevents a duplicate annotation-specific policy contract.
 - Validated by `tests/unit/test_server_cors_binding.py` plus existing R7 CORS tests. This is Experimental Python-reference-host internal support; there is no public CORS-discovery or server-binding prelude API.
 
-PYTHON REFERENCE HOST (REMAINING PLANNED R8 BOUNDARY):
+PYTHON REFERENCE HOST (IMPLEMENTED CLI INTEGRATION):
 
 - Python remains the only R8 server execution host because `serve_http`, `route_request`, `cors`, and `with_headers` are Python-reference-host capabilities.
+- `genia serve <file>` accepts exactly one existing entry-file path, evaluates it once without `main` dispatch, performs entry-file descriptor discovery, and prevents activation when diagnostics exist.
+- A valid application assembles source-ordered routes through `route_request`, applies optional application CORS once through `cors`, and activates `serve_http` through the dedicated lifecycle coordinator. Finite `max_requests` completion exits `0` without printing the lifecycle result; startup or lifecycle failure emits a Genia-facing `serve <phase>/<scope>` diagnostic and exits `1`.
+- Missing files, extra operands, and conflicting serve command shapes are CLI usage errors and exit `2` before evaluation or activation.
 - Future hosts may consume the host-independent inert descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and makes no multi-host server guarantee.
-- Final CLI/live HTTP integration remains assigned to follow-on issue #533.
 
 Explicit limitations:
 
-- `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented but remain inert. No `genia serve` dispatch, listener activation, or live lifecycle-to-HTTP integration is implemented yet. Only the injected, independently callable lifecycle core executes the fixed lifecycle phases.
+- `@route`, `@server`, and `@cors` metadata remain inert outside explicit `genia serve <file>` activation.
 - No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
 
 ## 10) Explicitly not implemented (current)

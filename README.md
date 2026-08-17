@@ -201,7 +201,7 @@ Supported built-ins in this phase:
 - `@server {host: "127.0.0.1", port: 8000}` (Experimental inert R8 server configuration; top-level assignments only)
 - `@cors {origin: "*", methods: ["GET"], headers: ["content-type"]}` (Experimental inert R8 application CORS policy; only on the assignment that owns `@server`)
 
-Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, `@route`, `@server`, and `@cors`; native test mode also consumes `@test`. `@route`, `@server`, and `@cors` validation and internal entry-file discovery/binding are implemented, but the descriptors do not start a server and `genia serve` remains unavailable.
+Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, `@route`, `@server`, and `@cors`; native test mode also consumes `@test`. `@route`, `@server`, and `@cors` remain inert in ordinary evaluation and activate only through Experimental Python-host-only `genia serve <file>`.
 Naming rule reminder: new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.
 
 Useful lookup helpers:
@@ -276,6 +276,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
 ## CLI behavior contract
 
 - mode selection:
+  - `genia serve path/to/file.genia` -> Experimental Python-host-only server mode
   - `genia path/to/file.genia [args ...]` -> file mode
   - `genia -c 'source' [args ...]` -> command mode
   - `genia -p 'stage_expr' [args ...]` -> pipe mode
@@ -294,6 +295,7 @@ printf '1\n2\n3\n' | genia -c 'stdin |> lines |> map(parse_int) |> keep_some |> 
 | Quick one-off expression/program from shell | `-c` | inline source without creating a file |
 
 - mode boundaries:
+  - serve mode evaluates exactly one entry file without `main` dispatch and activates only valid entry-file server descriptors
   - file/command mode evaluate source, then dispatch `main(argv())` if `main/1` exists, else `main()` if `main/0` exists, else preserve the evaluated result
   - pipe mode never dispatches `main`; it runs the stage expression over `stdin |> lines`, then consumes the final Flow automatically
   - pipe mode rejects explicit `stdin` and explicit `run` in unbound stage usage

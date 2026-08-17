@@ -162,7 +162,7 @@ approved dedicated server lifecycle contract in `GENIA_STATE.md` section 9.7 now
 has one implemented focused consumer in `src/genia/server_lifecycle.py`: an inert
 fixed descriptor plus an explicitly invoked coordinator with injected operations.
 It does not execute arbitrary lifecycle plans or resolve their action identifiers.
-Inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented as focused Python-reference-host internal support. `genia serve`, listener activation, and live lifecycle-to-HTTP integration remain unimplemented.
+Inert `@route`, `@server`, and `@cors` metadata/discovery/binding and explicit `genia serve <file>` activation are implemented as focused Python-reference-host support. The explicit mode composes the dedicated lifecycle core with the existing HTTP primitives; it does not add a generalized lifecycle runner.
 
 Lifecycle runners are not implemented runtime behavior.
 

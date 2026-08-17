@@ -42,6 +42,7 @@ nav:
       - "R5 — Native Test Migration": releases/R5.md
       - "R6 — Data Workflow Hardening": releases/R6.md
       - "R7 — Web Serving Ergonomics": releases/R7.md
+      - "R8 — Server Execution Mode": releases/R8.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md

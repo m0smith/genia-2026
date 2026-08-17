@@ -17,10 +17,11 @@ def test_r8_server_contract_marks_lifecycle_and_annotation_bindings_implemented(
     assert "PYTHON REFERENCE HOST (IMPLEMENTED ROUTE ANNOTATION BINDING)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED SERVER-CONFIG ANNOTATION BINDING)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED CORS ANNOTATION BINDING)" in state
+    assert "PYTHON REFERENCE HOST (IMPLEMENTED CLI INTEGRATION)" in state
     assert "The separate focused R8 server lifecycle core is described in section 9.7" in state
     assert "## 25) R8 server execution invariants (Partial)" in rules
     assert "inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented" in rules
-    assert "`genia serve` remains unavailable" in rules
+    assert "explicit `genia serve <file>` activation" in rules
 
 
 def test_r8_contract_preserves_activation_and_bind_down_boundaries() -> None:
@@ -46,7 +47,10 @@ def test_r8_architecture_docs_defer_to_the_canonical_contract() -> None:
 
     for text in (lifecycle, execution_modes):
         assert "`GENIA_STATE.md` section 9.7" in text
-        assert "unimplemented" in text
+        assert "`genia serve <file>`" in text
+
+    assert "does not add a generalized lifecycle runner" in lifecycle
+    assert "Future-Only Examples" in execution_modes
 
     assert "startup:" in execution_modes
     assert "request:" in execution_modes

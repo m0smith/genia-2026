@@ -1180,4 +1180,4 @@ For each incoming flow item `x`:
 - The first non-cleanup failure remains primary. Cleanup failures never replace or hide it. Startup failure skips requests, request failure skips later requests, and owned cleanup still runs.
 - The lifecycle core must be callable without CLI parsing or live sockets and must return the deterministic result shape defined in `GENIA_STATE.md` section 9.7.
 - Descriptor and result data shapes are host-independent. R8 execution is Python-reference-host-only and adds no shared host-adapter capability or cross-host server guarantee.
-- The dedicated injected lifecycle core and inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented in the Python reference host. `genia serve` remains unavailable until its later R8 phase lands.
+- The dedicated lifecycle core and inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented in the Python reference host, together with explicit `genia serve <file>` activation. Serve mode evaluates exactly one entry file without ordinary `main` dispatch and keeps the descriptors inert in every other mode.

@@ -1,0 +1,9 @@
+import web
+
+ok_text = web.ok_text
+
+@server {host: "127.0.0.1", port: 8088, max_requests: 1}
+server = none
+
+@route {method: "GET", path: "/"}
+home(request) = ok_text("hello from genia")

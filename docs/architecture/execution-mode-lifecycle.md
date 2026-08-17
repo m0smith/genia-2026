@@ -189,9 +189,8 @@ Meaning at the proposal level: a future lifecycle phase could consume declaratio
 
 ## Future-Only Examples
 
-The injected R8 server lifecycle core and inert `@route`, `@server`, and `@cors`
-metadata/discovery/binding are implemented, but server mode, listener activation, and live HTTP
-integration remain unimplemented. The canonical partial contract is
+The injected R8 server lifecycle core, inert `@route`, `@server`, and `@cors`
+metadata/discovery/binding, and explicit Python-host-only `genia serve <file>` activation are implemented. The canonical partial contract is
 `GENIA_STATE.md` section 9.7; this older lifecycle sketch is illustrative only and must
 not override the exact R8 descriptor, phase, ownership, result, or failure rules there:
 
