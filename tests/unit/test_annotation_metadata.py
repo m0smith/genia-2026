@@ -302,10 +302,30 @@ def test_route_annotation_rejects_annotated_rebinding_without_adding_clause():
     assert env.get("health").sorted_arities() == [1]
 
 
-def test_meta_annotation_cannot_inject_reserved_route_metadata():
-    with pytest.raises(TypeError, match="@meta cannot set reserved route metadata"):
+def test_meta_annotation_route_key_keeps_existing_generic_metadata_behavior():
+    result = run_source(
+        """
+        @meta {route: "ordinary metadata"}
+        health(request) = request
+        unwrap_or("missing", meta("health") |> get("route"))
+        """,
+        make_global_env([]),
+        filename="entry.genia",
+    )
+
+    assert result == "ordinary metadata"
+
+
+def test_meta_annotation_cannot_replace_existing_canonical_route_metadata():
+    with pytest.raises(TypeError, match="cannot replace @route metadata for health"):
         run_source(
-            '@meta {route: {method: "GET", path: "/health"}}\nhealth(request) = request\n',
+            """
+            @route {method: "GET", path: "/health"}
+            health(request) = request
+
+            @meta {route: "replacement"}
+            health(request, extra) = request
+            """,
             make_global_env([]),
             filename="entry.genia",
         )

@@ -658,8 +658,6 @@ class Evaluator:
             if annotation.name == "meta":
                 if not isinstance(value, GeniaMap):
                     raise _annotation_metadata_error("meta", value, "a map")
-                if value.has("route"):
-                    raise TypeError("@meta cannot set reserved route metadata")
                 metadata = _merge_metadata_maps(metadata, value)
                 continue
             if annotation.name == "route":
@@ -679,6 +677,20 @@ class Evaluator:
         annotations: list[IrAnnotation],
     ) -> None:
         if not any(annotation.name == "route" for annotation in annotations):
+            return
+        try:
+            existing = self.env.get_metadata(name)
+        except NameError:
+            return
+        if existing.has("route"):
+            raise TypeError(f"cannot replace @route metadata for {name}")
+
+    def _reject_route_metadata_replacement(
+        self,
+        name: str,
+        metadata: GeniaMap,
+    ) -> None:
+        if not metadata.has("route"):
             return
         try:
             existing = self.env.get_metadata(name)
@@ -1286,6 +1298,7 @@ class Evaluator:
                     target_name=node.name,
                     target_kind="assignment",
                 )
+                self._reject_route_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
 
@@ -1312,6 +1325,7 @@ class Evaluator:
                     target_name=node.name,
                     target_kind="function",
                 )
+                self._reject_route_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return fn
         if isinstance(node, IrNamedPatternDef):
@@ -1335,6 +1349,7 @@ class Evaluator:
                     target_name=node.name,
                     target_kind="named_pattern",
                 )
+                self._reject_route_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
         if isinstance(node, IrImport):

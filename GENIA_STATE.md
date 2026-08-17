@@ -2721,7 +2721,7 @@ PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE):
 PYTHON REFERENCE HOST (IMPLEMENTED ROUTE ANNOTATION BINDING):
 
 - The evaluator accepts `@route {method: ..., path: ...}` only on a top-level named function, validates the exact closed descriptor map, and stores it as inert `route` binding metadata. The parser, AST grammar, and Core IR are unchanged.
-- Repeated `@route` on one declaration, annotated replacement of existing `route` metadata, and `@meta` injection of the reserved `route` key fail deterministically. Existing merge behavior for other annotations remains unchanged.
+- Repeated `@route` on one declaration and annotated replacement of existing canonical `route` metadata fail deterministically. An initial `@meta` entry named `route` remains ordinary metadata and is not a canonical route candidate; existing merge behavior for other annotations remains unchanged.
 - `src/genia/server_route_binding.py` discovers only annotated `IrFuncDef` declarations from the supplied evaluated entry-file IR list and environment. It preserves source order with declaration name as tie-breaker, requires exactly one fixed one-argument function arm, aggregates descriptor diagnostics before exact `(method, path)` conflict diagnostics, and rejects every conflict member.
 - A diagnostic-free result assembles existing generic R7 route values in source order and passes them once to the existing `route_request` operation through injected call boundaries. Discovery and assembly do not start a listener or execute a route handler.
 - Validated by `tests/unit/test_server_route_binding.py` and focused annotation metadata tests. This is Experimental Python-reference-host internal support; there is no public route-discovery prelude API.

@@ -145,7 +145,6 @@ Required constraints:
   - evaluates its value expression after the target binding exists
   - the resulting value must be a map
   - merges all map entries into the binding metadata
-  - must not set the reserved R8 descriptor key `route`
 - `@since`:
   - evaluates its value expression after the target binding exists
   - the resulting value must be a string
@@ -175,7 +174,7 @@ Required constraints:
   - may not repeat on one declaration or replace existing `route` metadata through annotated rebinding
 - native test metadata keys and values must be strings; non-string metadata keys or values in a `TestUnit` are discovery errors reported before test body execution; diagnostics use Genia runtime type names; existing `TestUnit.location` is appended to diagnostic text when available
 - multiple annotations merge from top to bottom
-- last annotation wins for duplicate metadata keys except reserved R8 descriptor keys such as `route`
+- last annotation wins for duplicate metadata keys, except annotated rebinding cannot replace an existing canonical R8 descriptor key such as `route`
 - rebinding without annotations preserves existing binding metadata
 - rebinding with annotations merges new metadata over existing metadata for that binding
 - `doc("name")` returns the current doc string for a bound name or `none("missing-doc", {name: ...})`
