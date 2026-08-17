@@ -494,6 +494,102 @@ def _resolve_program_result(run_result: Any, env: Env) -> Any:
     return run_result
 
 
+def _activate_serve_application(config: Any, handler: Any, serve_http: Any) -> Any:
+    return serve_http(config, handler)
+
+
+def _format_serve_diagnostic(diagnostic: Any) -> str:
+    location = getattr(diagnostic, "source_location", None)
+    prefix = f"{location}: " if location is not None else ""
+    return f"{prefix}{diagnostic.reason}"
+
+
+def _run_serve_file(program_path: str) -> int:
+    from .server_config_binding import (
+        bind_server_config,
+        discover_entry_file_server_config_binding,
+    )
+    from .server_cors_binding import bind_cors, discover_entry_file_cors_binding
+    from .server_lifecycle import run_server_lifecycle
+    from .server_route_binding import (
+        assemble_route_handler,
+        discover_entry_file_route_bindings,
+    )
+
+    resolved_path = str(Path(program_path).resolve())
+    env = make_global_env()
+    try:
+        source = Path(program_path).read_text(encoding="utf-8")
+        tokens = lex(source)
+        ast_nodes = Parser(tokens, source=source, filename=resolved_path).parse_program()
+        ir_nodes = optimize_program(lower_program(ast_nodes), debug=False)
+        assert_portable_core_ir(ir_nodes)
+        Evaluator(env).eval_program(ir_nodes)
+
+        server_result = discover_entry_file_server_config_binding(
+            ir_nodes,
+            env,
+            entry_source_identity=resolved_path,
+        )
+        route_result = discover_entry_file_route_bindings(
+            ir_nodes,
+            env,
+            entry_source_identity=resolved_path,
+        )
+        diagnostics = list(server_result.diagnostics)
+        cors_result = None
+        if server_result.binding is not None:
+            cors_result = discover_entry_file_cors_binding(
+                ir_nodes,
+                env,
+                entry_source_identity=resolved_path,
+                server_declaration_name=server_result.binding.declaration_name,
+                server_source_index=server_result.binding.source_index,
+            )
+            diagnostics.extend(cors_result.diagnostics)
+        diagnostics.extend(route_result.diagnostics)
+        if diagnostics:
+            reasons = "; ".join(_format_serve_diagnostic(item) for item in diagnostics)
+            raise RuntimeError(reasons)
+
+        web = env.get("web")
+        handler = assemble_route_handler(
+            route_result,
+            route=web.get_export("route"),
+            route_request=web.get_export("route_request"),
+        )
+        assert cors_result is not None
+        handler = bind_cors(
+            cors_result,
+            handler,
+            cors=web.get_export("cors"),
+        )
+        assert server_result.binding is not None
+        serve_http = web.get_export("serve_http")
+        lifecycle_result = run_server_lifecycle(
+            {"config": server_result.binding.config, "handler": handler},
+            [],
+            activate=lambda application: _activate_serve_application(
+                application["config"], application["handler"], serve_http
+            ),
+            request=lambda _owned, _request: None,
+            close=lambda completed_server: completed_server,
+        )
+        if lifecycle_result.get("status") == "error":
+            failure = lifecycle_result.get("primary_failure")
+            reason = failure.get("reason")
+            phase = failure.get("phase")
+            scope = failure.get("scope")
+            _emit_error(env, f"Error: serve {phase}/{scope}: {reason}")
+            return 1
+        return 0
+    except GeniaQuietBrokenPipe:
+        return 0
+    except Exception as error:  # noqa: BLE001
+        _emit_error(env, f"Error: serve startup/server: {error}")
+        return 1
+
+
 def _run_execution_mode(mode: ExecutionMode) -> int:
     if mode.kind == "debug_stdio":
         assert mode.program_path is not None
@@ -504,6 +600,10 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
         from .test_cli import run_native_tests_from_file
 
         return run_native_tests_from_file(mode.program_path)
+
+    if mode.kind == "serve":
+        assert mode.program_path is not None
+        return _run_serve_file(mode.program_path)
 
     if mode.kind == "pipe":
         assert mode.source is not None
@@ -558,6 +658,16 @@ def _run_execution_mode(mode: ExecutionMode) -> int:
 
 def _main(argv: Optional[list[str]] = None) -> int:
     raw_argv = list(argv) if argv is not None else sys.argv[1:]
+    if raw_argv and raw_argv[0] == "serve":
+        parser = argparse.ArgumentParser(prog="genia serve")
+        parser.add_argument("file")
+        if len(raw_argv) != 2:
+            parser.error("genia serve accepts exactly one file path")
+        if not Path(raw_argv[1]).is_file():
+            parser.error(f"genia serve program path not found: {raw_argv[1]}")
+        return _run_execution_mode(
+            ExecutionMode(kind="serve", program_path=raw_argv[1])
+        )
     if raw_argv and raw_argv[0] == "test":
         if len(raw_argv) != 2:
             parser = argparse.ArgumentParser(prog="genia test")
@@ -576,9 +686,10 @@ def _main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(
         prog="genia",
         usage="genia [-h] [-V] [-c COMMAND | -p PIPE] [--debug-stdio]",
-        description="Genia CLI: file mode, command mode (-c), pipe mode (-p), or REPL.",
+        description="Genia CLI: serve, file, command (-c), pipe (-p), test, debug, or REPL mode.",
         epilog=(
             "Modes:\n"
+            "  genia serve path/to/file.genia\n"
             "  genia path/to/file.genia [args ...]\n"
             "  genia -c 'source' [args ...]\n"
             "  genia -p 'stage_expr' [args ...]\n"

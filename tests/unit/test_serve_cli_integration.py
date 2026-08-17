@@ -55,7 +55,7 @@ main() = error("serve dispatched main")
     monkeypatch.setattr(
         interpreter_module,
         "_activate_serve_application",
-        lambda config, handler: calls.append((config, handler)) or {"handled_requests": 0},
+        lambda config, handler, _serve_http: calls.append((config, handler)) or {"handled_requests": 0},
         raising=False,
     )
 
