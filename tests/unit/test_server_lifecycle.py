@@ -2,7 +2,7 @@ import importlib
 from collections.abc import Callable
 
 from genia.lifecycle_plan import normalize_lifecycle_plan
-from genia.values import GeniaMap, OPTION_NONE, symbol
+from genia.values import OPTION_NONE, symbol
 
 
 RESULT_KEYS = [
