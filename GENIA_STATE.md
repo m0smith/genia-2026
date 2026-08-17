@@ -2685,14 +2685,14 @@ Explicit limitations:
 
 ## 9.7) R8 server execution contract (Partial)
 
-Status: Approved R8 contract. The independently callable lifecycle core (issue #534), inert route annotation binding (issue #535), and inert server-configuration annotation binding (issue #536) are implemented as Experimental Python-reference-host-only behavior; CORS annotation binding, CLI dispatch, and live HTTP integration remain planned. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
+Status: Approved R8 contract. The independently callable lifecycle core (issue #534) and inert route, server-configuration, and CORS annotation bindings (issues #535-#537) are implemented as Experimental Python-reference-host-only behavior; CLI dispatch and live HTTP integration remain planned. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
 
 LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 
 - `genia serve <file>` is the only server-lifecycle activation boundary. Loading, importing, parsing, evaluating, or discovering a file in any other execution mode must not bind a listener, run a route handler, apply CORS, or enter server cleanup.
 - Serve mode loads and evaluates exactly one entry file without ordinary `main/0` or `main/1` dispatch. An evaluation failure is a startup failure and prevents listener activation.
 - R8 uses the existing prefix-annotation grammar, AST, and Core IR. Each server annotation takes one ordinary map expression on the annotation line; no call-like annotation syntax is added.
-- Server annotations store inert descriptor maps under metadata keys `server`, `route`, and `cors`. `@server` and `@route` metadata attachment are implemented; `@cors` remains planned. Descriptor value expressions are evaluated after their target binding exists, using the existing top-to-bottom annotation evaluation rule. An invalid implemented descriptor fails metadata attachment deterministically in every execution mode; a valid descriptor has no behavioral effect outside serve mode.
+- Server annotations store inert descriptor maps under metadata keys `server`, `route`, and `cors`. `@server`, `@route`, and `@cors` metadata attachment are implemented. Descriptor value expressions are evaluated after their target binding exists, using the existing top-to-bottom annotation evaluation rule. An invalid implemented descriptor fails metadata attachment deterministically in every execution mode; a valid descriptor has no behavioral effect outside serve mode.
 - `@server config` is valid only on a top-level simple-name assignment. Exactly one `@server` descriptor is required in the serve entry file. Its closed map accepts only optional `host`, `port`, and `max_requests` fields and uses the exact validation/default behavior of `serve_http`: `host` defaults to `"127.0.0.1"`, `port` defaults to `8000`, and `max_requests` remains optional. The annotated assignment is the server descriptor owner; its ordinary bound value is not server configuration and is not otherwise consumed by the lifecycle.
 - `@cors policy` is valid only on the same assignment that owns `@server`. At most one `@cors` descriptor is allowed. Its closed map accepts only optional `origin`, `methods`, and `headers` fields and uses the exact validation, defaults, and response behavior of `cors(policy, handler)`.
 - `@route descriptor` is valid only on a top-level named function. Its closed map has exactly `method` and `path` string fields. Both strings must be non-empty and `path` must start with `/`. The annotated binding must expose exactly one fixed one-argument callable arm; zero-argument, multi-argument, varargs, non-callable, or ambiguous bindings are invalid route handlers.
@@ -2737,15 +2737,24 @@ PYTHON REFERENCE HOST (IMPLEMENTED SERVER-CONFIG ANNOTATION BINDING):
 - A diagnostic-free result passes the normalized configuration and unchanged handler once to an injected operation with the existing `serve_http(config, handler)` shape. Diagnostics prevent that operation from being called. This bind-down is independently testable and does not implement CLI dispatch or live lifecycle-to-HTTP composition.
 - Validated by `tests/unit/test_server_config_binding.py`. This is Experimental Python-reference-host internal support; there is no public server-config discovery or binding prelude API.
 
+PYTHON REFERENCE HOST (IMPLEMENTED CORS ANNOTATION BINDING):
+
+- The evaluator accepts `@cors {origin: ..., methods: ..., headers: ...}` only on a top-level assignment, validates the closed descriptor through the same policy validator used by R7 `cors`, and stores the original validated map as inert `cors` binding metadata. The parser, AST grammar, and Core IR are unchanged.
+- Repeated `@cors` on one declaration and annotated replacement of existing `cors` metadata fail deterministically. An initial `@meta` entry named `cors` remains ordinary metadata and is not a canonical CORS candidate; existing merge behavior for other annotations remains unchanged.
+- `src/genia/server_cors_binding.py` discovers only annotated `IrAssign` declarations from the supplied evaluated entry-file IR list and environment. It preserves source order with declaration name as tie-breaker, accepts descriptor absence, requires any descriptor to share the selected `@server` owner, ignores imported declarations, and returns deterministic payload/cardinality/ownership diagnostics without starting a listener.
+- A diagnostic-free result with no CORS descriptor returns the unchanged assembled handler without calling a wrapper. One accepted descriptor passes its policy and the unchanged handler exactly once to an injected operation with the existing `cors(policy, handler)` shape. Diagnostics prevent that operation from being called. R7 `cors` and `with_headers` remain the sole owners of preflight and response-header behavior.
+- The shared internal policy validator in `src/genia/cors_policy.py` preserves the existing R7 validation order, defaults, and messages; it prevents a duplicate annotation-specific policy contract.
+- Validated by `tests/unit/test_server_cors_binding.py` plus existing R7 CORS tests. This is Experimental Python-reference-host internal support; there is no public CORS-discovery or server-binding prelude API.
+
 PYTHON REFERENCE HOST (REMAINING PLANNED R8 BOUNDARY):
 
 - Python remains the only R8 server execution host because `serve_http`, `route_request`, `cors`, and `with_headers` are Python-reference-host capabilities.
 - Future hosts may consume the host-independent inert descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and makes no multi-host server guarantee.
-- CORS annotation binding and final CLI/live HTTP integration remain assigned to follow-on issues in dependency order `#537 -> #533`.
+- Final CLI/live HTTP integration remains assigned to follow-on issue #533.
 
 Explicit limitations:
 
-- `@route` and `@server` metadata/discovery/binding are implemented but remain inert. No `@cors`, `genia serve` dispatch, listener activation, or live lifecycle-to-HTTP integration is implemented yet. Only the injected, independently callable lifecycle core executes the fixed lifecycle phases.
+- `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented but remain inert. No `genia serve` dispatch, listener activation, or live lifecycle-to-HTTP integration is implemented yet. Only the injected, independently callable lifecycle core executes the fixed lifecycle phases.
 - No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
 
 ## 10) Explicitly not implemented (current)

@@ -16,10 +16,10 @@ def test_r8_server_contract_marks_lifecycle_and_annotation_bindings_implemented(
     assert "PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED ROUTE ANNOTATION BINDING)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED SERVER-CONFIG ANNOTATION BINDING)" in state
+    assert "PYTHON REFERENCE HOST (IMPLEMENTED CORS ANNOTATION BINDING)" in state
     assert "The separate focused R8 server lifecycle core is described in section 9.7" in state
     assert "## 25) R8 server execution invariants (Partial)" in rules
-    assert "inert `@route` and `@server` metadata/discovery/binding are implemented" in rules
-    assert "reject `@cors`" in rules
+    assert "inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented" in rules
     assert "`genia serve` remains unavailable" in rules
 
 

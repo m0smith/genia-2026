@@ -48,6 +48,7 @@ if __package__ in (None, ""):
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from genia.server_config_binding import validate_server_descriptor
+    from genia.server_cors_binding import validate_cors_descriptor
     from genia.server_route_binding import validate_route_descriptor
 else:
     from .utf8 import format_debug, format_display
@@ -84,6 +85,7 @@ else:
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from .server_config_binding import validate_server_descriptor
+    from .server_cors_binding import validate_cors_descriptor
     from .server_route_binding import validate_route_descriptor
 
 QUOTE_OPERATOR_SYMBOLS = {
@@ -645,7 +647,7 @@ class Evaluator:
             "category": "category",
             "test": "test",
         }
-        for canonical_name in ("route", "server"):
+        for canonical_name in ("route", "server", "cors"):
             count = sum(annotation.name == canonical_name for annotation in annotations)
             if count > 1:
                 raise TypeError(f"duplicate @{canonical_name} annotation on {target_name}")
@@ -673,9 +675,14 @@ class Evaluator:
                     raise TypeError("@server annotation requires a top-level assignment")
                 metadata = metadata.put("server", validate_server_descriptor(value))
                 continue
+            if annotation.name == "cors":
+                if target_kind != "assignment":
+                    raise TypeError("@cors annotation requires a top-level assignment")
+                metadata = metadata.put("cors", validate_cors_descriptor(value))
+                continue
             raise RuntimeError(
                 "Unsupported annotation: "
-                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test, @route, @server"
+                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test, @route, @server, @cors"
             )
         return metadata
 
@@ -720,6 +727,20 @@ class Evaluator:
             return
         if existing.has("server"):
             raise TypeError(f"cannot replace @server metadata for {name}")
+
+    def _reject_cors_metadata_replacement(
+        self,
+        name: str,
+        metadata: GeniaMap,
+    ) -> None:
+        if not metadata.has("cors"):
+            return
+        try:
+            existing = self.env.get_metadata(name)
+        except NameError:
+            return
+        if existing.has("cors"):
+            raise TypeError(f"cannot replace @cors metadata for {name}")
 
     def eval_function_body(
         self,
@@ -1322,6 +1343,7 @@ class Evaluator:
                 )
                 self._reject_route_metadata_replacement(node.name, metadata)
                 self._reject_server_metadata_replacement(node.name, metadata)
+                self._reject_cors_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
 
