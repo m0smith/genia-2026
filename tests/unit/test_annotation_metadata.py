@@ -242,3 +242,61 @@ def test_meta_autoloads_prelude_function():
     result = run_source(src, make_global_env([]), filename="meta_autoload.genia")
     assert isinstance(result, str)
     assert len(result) > 0
+
+
+def test_route_annotation_attaches_inert_descriptor_metadata_to_function():
+    env = make_global_env([])
+    result = run_source(
+        """
+        @route {method: "GET", path: "/health"}
+        health(request) = request
+
+        meta("health") |> get("route")
+        """,
+        env,
+        filename="entry.genia",
+    )
+
+    assert result == {"method": "GET", "path": "/health"}
+    assert env.get("health").get(1) is not None
+
+
+def test_route_annotation_rejects_assignment_target():
+    with pytest.raises(TypeError, match="@route annotation requires a top-level named function"):
+        run_source(
+            '@route {method: "GET", path: "/health"}\nhandler = (request) -> request\n',
+            make_global_env([]),
+            filename="entry.genia",
+        )
+
+
+def test_route_annotation_rejects_duplicate_on_one_declaration():
+    with pytest.raises(TypeError, match="duplicate @route annotation on health"):
+        run_source(
+            """
+            @route {method: "GET", path: "/health"}
+            @route {method: "POST", path: "/health"}
+            health(request) = request
+            """,
+            make_global_env([]),
+            filename="entry.genia",
+        )
+
+
+def test_route_annotation_rejects_annotated_rebinding_without_adding_clause():
+    env = make_global_env([])
+
+    with pytest.raises(TypeError, match="cannot replace @route metadata for health"):
+        run_source(
+            """
+            @route {method: "GET", path: "/health"}
+            health(request) = request
+
+            @route {method: "POST", path: "/health"}
+            health(request, extra) = request
+            """,
+            env,
+            filename="entry.genia",
+        )
+
+    assert env.get("health").sorted_arities() == [1]
