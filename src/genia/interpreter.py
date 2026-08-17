@@ -506,7 +506,6 @@ def _format_serve_diagnostic(diagnostic: Any) -> str:
 
 def _run_serve_file(program_path: str) -> int:
     from .server_config_binding import (
-        bind_server_config,
         discover_entry_file_server_config_binding,
     )
     from .server_cors_binding import bind_cors, discover_entry_file_cors_binding
