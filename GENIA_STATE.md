@@ -2678,7 +2678,7 @@ Explicit limitations:
 - No parser, lexer, Core IR, or evaluator semantic changes were made.
 - Native-test discovery is not routed through lifecycle binding; `@test` discovery is unchanged and `discover_lifecycle_participants(...)` is not used.
 - No execution-mode lifecycle dispatch is implemented.
-- No server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle is implemented; no multi-host lifecycle is implemented.
+- The native-test consumer adds no server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle. The separate focused R8 server lifecycle core is described in section 9.7; no multi-host lifecycle is implemented.
 - No changes to native-test CLI output or native-test exit codes were made.
 
 ## 9.7) R8 server execution contract (Partial)

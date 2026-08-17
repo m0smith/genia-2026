@@ -14,6 +14,7 @@ def test_r8_server_contract_marks_only_lifecycle_core_implemented() -> None:
 
     assert "## 9.7) R8 server execution contract (Partial)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE)" in state
+    assert "The separate focused R8 server lifecycle core is described in section 9.7" in state
     assert "## 25) R8 server execution invariants (Partial)" in rules
     assert "The dedicated injected lifecycle core is implemented" in rules
     assert "`genia serve` remains unavailable" in rules
