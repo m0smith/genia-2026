@@ -2681,6 +2681,45 @@ Explicit limitations:
 - No server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle is implemented; no multi-host lifecycle is implemented.
 - No changes to native-test CLI output or native-test exit codes were made.
 
+## 9.7) R8 server execution contract (planned, not implemented)
+
+Status: Approved R8 contract, Experimental when implemented. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558. No behavior in this section is implemented yet.
+
+LANGUAGE CONTRACT (PLANNED):
+
+- `genia serve <file>` is the only server-lifecycle activation boundary. Loading, importing, parsing, evaluating, or discovering a file in any other execution mode must not bind a listener, run a route handler, apply CORS, or enter server cleanup.
+- Serve mode loads and evaluates exactly one entry file without ordinary `main/0` or `main/1` dispatch. An evaluation failure is a startup failure and prevents listener activation.
+- R8 uses the existing prefix-annotation grammar, AST, and Core IR. Each server annotation takes one ordinary map expression on the annotation line; no call-like annotation syntax is added.
+- The planned annotations store inert descriptor maps under metadata keys `server`, `route`, and `cors`. Their value expressions are evaluated after their target binding exists, using the existing top-to-bottom annotation evaluation rule. An invalid descriptor fails metadata attachment deterministically in every execution mode; a valid descriptor has no behavioral effect outside serve mode.
+- `@server config` is valid only on a top-level simple-name assignment. Exactly one `@server` descriptor is required in the serve entry file. Its closed map accepts only optional `host`, `port`, and `max_requests` fields and uses the exact validation/default behavior of `serve_http`: `host` defaults to `"127.0.0.1"`, `port` defaults to `8000`, and `max_requests` remains optional. The annotated assignment is the server descriptor owner; its ordinary bound value is not server configuration and is not otherwise consumed by the lifecycle.
+- `@cors policy` is valid only on the same assignment that owns `@server`. At most one `@cors` descriptor is allowed. Its closed map accepts only optional `origin`, `methods`, and `headers` fields and uses the exact validation, defaults, and response behavior of `cors(policy, handler)`.
+- `@route descriptor` is valid only on a top-level named function. Its closed map has exactly `method` and `path` string fields. Both strings must be non-empty and `path` must start with `/`. The annotated binding must expose exactly one fixed one-argument callable arm; zero-argument, multi-argument, varargs, non-callable, or ambiguous bindings are invalid route handlers.
+- Annotation names may occur at most once on one declaration. Repeating `@server`, `@cors`, or `@route` on the same target is an error rather than last-wins metadata. Annotated rebinding that would replace one of these descriptor keys is also an error. These rules do not change the existing merge behavior of other annotations.
+- Serve discovery considers only declarations owned by the evaluated entry file. Imported modules may contain valid inert server annotation metadata, but their descriptors are not activated or merged into the entry file's server lifecycle.
+- Discovery occurs after successful entry-file evaluation. Candidates are examined in source order, with declaration name as the deterministic tie-breaker. The one server descriptor is selected first, optional CORS second, and routes last. Route order passed to `route_request` is source order.
+- Two routes conflict only when their normalized discovery keys are the exact pair `(method, path)`; R8 performs no method/path normalization. Every member of a conflicting pair is rejected, and diagnostics list occurrences in source order. Different methods on the same path are allowed.
+- Descriptor failures are reported in this deterministic order: entry-file evaluation; `@server` cardinality/target/payload; `@cors` cardinality/target/payload; then each `@route` target/payload/arity in source order; then route conflicts in route source order. All descriptor diagnostics available from one completed discovery pass are returned together; listener activation does not occur when any diagnostic exists.
+- The dedicated server lifecycle has three ordered phases and two scopes: `startup` in server scope, repeated `request` in request scope, and `shutdown` in server scope. It is one focused lifecycle consumer, not a generalized lifecycle runner or action registry.
+- Startup validates/discovers descriptors, constructs exact route values from discovered handlers, passes them to `route_request`, optionally wraps the result once with `cors`, then activates the existing `serve_http` boundary with the server config. No parallel routing, CORS, header, or transport mechanism is permitted.
+- Each accepted request enters one request scope. The handler produced by `route_request` receives the unchanged request map, selects one exact route, invokes that handler exactly once, and returns its response. When configured, the single application-wide `cors` wrapper owns preflight and response decoration. A request failure does not retry a handler.
+- Server scope becomes entered before listener activation is attempted. Listener ownership begins only after activation returns an owned listener/server handle. Request scope becomes entered immediately before request routing and ends after a response or request failure. Shutdown is attempted exactly once for an owned listener after normal completion or any later primary failure; no cleanup is attempted for a listener that was never owned.
+- Lifecycle state transitions are deterministic: `created -> starting -> serving -> stopping -> stopped` on success. A failure transitions from the current state to `stopping` when owned cleanup remains, then to `failed`; without owned cleanup it transitions directly to `failed`. Requests are accepted only in `serving`.
+- The independently testable lifecycle core accepts validated/discovered descriptor data plus injected activate, request, and close operations. It does not parse CLI arguments or require a live socket. Final CLI integration may call this core; the core must not call CLI dispatch.
+- The lifecycle core returns one deterministic result map with keys `status`, `state`, `phase`, `scope`, `server`, `primary_failure`, and `cleanup_failures`. `status` is `"ok"` or `"error"`; `state` is `"stopped"` or `"failed"`; `phase` is the terminal phase (`"shutdown"` on success or the phase owning the primary failure); `scope` is `"server"` or `"request"`; `server` is the existing `serve_http` result on success and `none` on error; `primary_failure` is `none` on success and otherwise the first failure; `cleanup_failures` is a source-ordered list and is empty on success.
+- The first non-cleanup failure is always the primary failure. Cleanup never replaces or hides it. If no earlier failure exists, the first shutdown/close failure is primary and later cleanup failures remain in `cleanup_failures`. Startup failure skips request processing; request failure skips later requests; shutdown still gets its contracted opportunity for owned resources.
+- Diagnostics and result failures must identify execution mode `serve`, phase, scope, reason, and source location when available. User-facing rendering may add context, but it must preserve the deterministic primary/cleanup distinction.
+
+PYTHON REFERENCE HOST (PLANNED R8 BOUNDARY):
+
+- Python remains the only R8 server execution host because `serve_http`, `route_request`, `cors`, and `with_headers` are Python-reference-host capabilities.
+- Future hosts may consume the host-independent inert descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and makes no multi-host server guarantee.
+- CLI dispatch, the dedicated coordinator, annotation bindings, and live HTTP integration are assigned to follow-on issues in dependency order `#534 -> (#535, #536, #537) -> #533`.
+
+Explicit limitations:
+
+- No R8 server annotation, lifecycle phase execution, or `genia serve` dispatch is implemented by this contract change.
+- No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
