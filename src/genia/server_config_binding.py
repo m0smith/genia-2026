@@ -78,7 +78,7 @@ def validate_server_descriptor(value: Any) -> GeniaMap:
     normalized = GeniaMap().put("host", host).put("port", port)
     if value.has("max_requests"):
         max_requests = value.get("max_requests")
-        if not _is_nil_none(max_requests):
+        if max_requests is not None and not _is_nil_none(max_requests):
             if isinstance(max_requests, bool) or not isinstance(max_requests, int):
                 raise TypeError(
                     "@server descriptor max_requests expected a positive integer, "

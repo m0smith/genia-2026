@@ -63,9 +63,9 @@ def test_validate_server_descriptor_preserves_explicit_config():
 
 
 def test_validate_server_descriptor_treats_explicit_absence_as_omitted_limit():
-    normalized = _api().validate_server_descriptor(_map(max_requests=OPTION_NONE))
-
-    assert normalized.items() == [["host", "127.0.0.1"], ["port", 8000]]
+    for absence in (None, OPTION_NONE):
+        normalized = _api().validate_server_descriptor(_map(max_requests=absence))
+        assert normalized.items() == [["host", "127.0.0.1"], ["port", 8000]]
 
 
 def test_validate_server_descriptor_rejects_invalid_values():
