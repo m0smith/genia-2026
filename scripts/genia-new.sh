@@ -132,11 +132,10 @@ Output pre-flight to:
 ${HANDOFF_DIR}/00-preflight.md
 
 INSTRUCTIONS:
- - Do the preflight handoff for the following.  
- - If it is GO,  explain what needs to b done for the rest of the phases.  
- - If that looks good, run each of the phases.  Do not stop between phases unless there is a 
+ - Do the preflight handoff for the following.
+ - If it is GO, explain what needs to be done for the rest of the phases.
+ - If that looks good, run each of the phases.  Do not stop between phases unless there is a
    specific need
  - If you are not sure, ask for help.  Do not make assumptions about what is needed.
  - If all is well, create the PR Description
 EOF
-
