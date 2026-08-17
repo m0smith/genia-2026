@@ -6,7 +6,7 @@ import pytest
 
 from genia import make_global_env, run_source
 from genia.interpreter import Parser, lex, lower_program
-from genia.values import GeniaMap, OPTION_NONE
+from genia.values import OPTION_NONE, GeniaMap
 
 
 def _api():
