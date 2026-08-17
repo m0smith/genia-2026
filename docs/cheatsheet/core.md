@@ -15,7 +15,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | function | `f(x) = expr` | named functions are first-class |
 | lambda | `(x) -> expr`, `([a, b]) -> expr`, `(..xs) -> expr` | single-arm pattern lambdas and varargs supported |
 | assignment | `name = expr` | lexical define/rebind |
-| annotations | `@doc "..."`, `@meta {...}`, `@since "..."`, `@deprecated "..."`, `@category "..."` | top-level function/assignment metadata |
+| annotations | `@doc "..."`, `@meta {...}`, `@since "..."`, `@deprecated "..."`, `@category "..."`, `@route {...}` | top-level metadata; Experimental `@route` is function-only and inert |
 | block | `{ expr1 expr2 ... }` | returns final expression |
 | pipeline | `x |> f |> g` | explicit pipeline IR stage list |
 | quote | `quote(expr)`, `quasiquote(expr)` | programs-as-data helpers exist |
@@ -336,7 +336,7 @@ Classification: **Valid** (directly tested)
 | metadata lookup | `meta("name")` → map or `none("missing-meta", {name: ...})` |
 | note | `@doc` metadata takes priority over legacy inline docstrings; last annotation wins for duplicate metadata keys |
 
-Supported built-in annotations are `@doc`, `@meta`, `@since`, `@deprecated`, and `@category`.
+Supported built-in metadata annotations are `@doc`, `@meta`, `@since`, `@deprecated`, `@category`, and Experimental `@route`. `@route` requires `{method, path}` on a named one-argument function; it remains inert because `genia serve` is not implemented.
 
 ### `@doc` Quick Reference
 

@@ -189,8 +189,9 @@ Meaning at the proposal level: a future lifecycle phase could consume declaratio
 
 ## Future-Only Examples
 
-The injected R8 server lifecycle core is implemented, but server mode, its annotations,
-and live HTTP integration remain unimplemented. The canonical partial contract is
+The injected R8 server lifecycle core and inert `@route` metadata/discovery/binding are
+implemented, but server mode, `@server`, `@cors`, listener activation, and live HTTP
+integration remain unimplemented. The canonical partial contract is
 `GENIA_STATE.md` section 9.7; this older lifecycle sketch is illustrative only and must
 not override the exact R8 descriptor, phase, ownership, result, or failure rules there:
 
@@ -224,9 +225,9 @@ notebook_mode_lifecycle:
 ```
 
 These examples are proposal sketches only. They do not implement server mode,
-notebook/playground mode, browser runtime behavior, route annotations, or new host
-capabilities. The server sketch is not the R8 contract or the implemented lifecycle-core
-interface.
+notebook/playground mode, browser runtime behavior, route activation, or new host
+capabilities. Inert route annotation binding exists separately; the server sketch is not
+the R8 contract or the implemented lifecycle-core interface.
 
 Actor lifecycle, plugin lifecycle, and a YAML lifecycle runner are likewise out of scope and not implemented. They are not part of this proposal and must not be read as planned R4 implementation work.
 

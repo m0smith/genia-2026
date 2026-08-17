@@ -47,6 +47,7 @@ if __package__ in (None, ""):
         _callable_explicitly_handles_some,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
+    from genia.server_route_binding import validate_route_descriptor
 else:
     from .utf8 import format_debug, format_display
     from .environment import Env
@@ -81,6 +82,7 @@ else:
         _callable_explicitly_handles_some,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
+    from .server_route_binding import validate_route_descriptor
 
 QUOTE_OPERATOR_SYMBOLS = {
     "PLUS": "+",
@@ -626,7 +628,13 @@ class Evaluator:
             result = self.eval(node)
         return result
 
-    def eval_annotations(self, annotations: list[IrAnnotation]) -> GeniaMap:
+    def eval_annotations(
+        self,
+        annotations: list[IrAnnotation],
+        *,
+        target_name: str,
+        target_kind: str,
+    ) -> GeniaMap:
         metadata = GeniaMap()
         string_metadata_annotations = {
             "doc": "doc",
@@ -635,6 +643,10 @@ class Evaluator:
             "category": "category",
             "test": "test",
         }
+        route_count = sum(annotation.name == "route" for annotation in annotations)
+        if route_count > 1:
+            raise TypeError(f"duplicate @route annotation on {target_name}")
+
         for annotation in annotations:
             value = self.eval(annotation.value)
             metadata_key = string_metadata_annotations.get(annotation.name)
@@ -648,11 +660,44 @@ class Evaluator:
                     raise _annotation_metadata_error("meta", value, "a map")
                 metadata = _merge_metadata_maps(metadata, value)
                 continue
+            if annotation.name == "route":
+                if target_kind != "function":
+                    raise TypeError("@route annotation requires a top-level named function")
+                metadata = metadata.put("route", validate_route_descriptor(value))
+                continue
             raise RuntimeError(
                 "Unsupported annotation: "
-                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test"
+                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test, @route"
             )
         return metadata
+
+    def _reject_route_metadata_rebinding(
+        self,
+        name: str,
+        annotations: list[IrAnnotation],
+    ) -> None:
+        if not any(annotation.name == "route" for annotation in annotations):
+            return
+        try:
+            existing = self.env.get_metadata(name)
+        except NameError:
+            return
+        if existing.has("route"):
+            raise TypeError(f"cannot replace @route metadata for {name}")
+
+    def _reject_route_metadata_replacement(
+        self,
+        name: str,
+        metadata: GeniaMap,
+    ) -> None:
+        if not metadata.has("route"):
+            return
+        try:
+            existing = self.env.get_metadata(name)
+        except NameError:
+            return
+        if existing.has("route"):
+            raise TypeError(f"cannot replace @route metadata for {name}")
 
     def eval_function_body(
         self,
@@ -1248,11 +1293,19 @@ class Evaluator:
             value = self.eval(node.expr)
             self.env.assign(node.name, value)
             if node.annotations:
-                metadata = self.eval_annotations(node.annotations)
+                metadata = self.eval_annotations(
+                    node.annotations,
+                    target_name=node.name,
+                    target_kind="assignment",
+                )
+                self._reject_route_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
 
         if isinstance(node, IrFuncDef):
+            self._reject_route_metadata_rebinding(node.name, node.annotations)
+            if sum(annotation.name == "route" for annotation in node.annotations) > 1:
+                raise TypeError(f"duplicate @route annotation on {node.name}")
             fn = GeniaFunction(
                 node.name,
                 node.params,
@@ -1267,7 +1320,12 @@ class Evaluator:
             )
             self.env.define_function(fn)
             if node.annotations:
-                metadata = self.eval_annotations(node.annotations)
+                metadata = self.eval_annotations(
+                    node.annotations,
+                    target_name=node.name,
+                    target_kind="function",
+                )
+                self._reject_route_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return fn
         if isinstance(node, IrNamedPatternDef):
@@ -1286,7 +1344,12 @@ class Evaluator:
             value = GeniaNamedPattern(node.name, matcher)
             self.env.set(node.name, value)
             if node.annotations:
-                metadata = self.eval_annotations(node.annotations)
+                metadata = self.eval_annotations(
+                    node.annotations,
+                    target_name=node.name,
+                    target_kind="named_pattern",
+                )
+                self._reject_route_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
         if isinstance(node, IrImport):

@@ -2683,14 +2683,14 @@ Explicit limitations:
 
 ## 9.7) R8 server execution contract (Partial)
 
-Status: Approved R8 contract. The independently callable lifecycle core is implemented as Experimental Python-reference-host-only behavior (issue #534); annotation binding, CLI dispatch, and live HTTP integration remain planned. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
+Status: Approved R8 contract. The independently callable lifecycle core (issue #534) and inert route annotation binding (issue #535) are implemented as Experimental Python-reference-host-only behavior; server/CORS annotation binding, CLI dispatch, and live HTTP integration remain planned. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
 
 LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 
 - `genia serve <file>` is the only server-lifecycle activation boundary. Loading, importing, parsing, evaluating, or discovering a file in any other execution mode must not bind a listener, run a route handler, apply CORS, or enter server cleanup.
 - Serve mode loads and evaluates exactly one entry file without ordinary `main/0` or `main/1` dispatch. An evaluation failure is a startup failure and prevents listener activation.
 - R8 uses the existing prefix-annotation grammar, AST, and Core IR. Each server annotation takes one ordinary map expression on the annotation line; no call-like annotation syntax is added.
-- The planned annotations store inert descriptor maps under metadata keys `server`, `route`, and `cors`. Their value expressions are evaluated after their target binding exists, using the existing top-to-bottom annotation evaluation rule. An invalid descriptor fails metadata attachment deterministically in every execution mode; a valid descriptor has no behavioral effect outside serve mode.
+- Server annotations store inert descriptor maps under metadata keys `server`, `route`, and `cors`. `@route` metadata attachment is implemented; `@server` and `@cors` remain planned. Descriptor value expressions are evaluated after their target binding exists, using the existing top-to-bottom annotation evaluation rule. An invalid implemented descriptor fails metadata attachment deterministically in every execution mode; a valid descriptor has no behavioral effect outside serve mode.
 - `@server config` is valid only on a top-level simple-name assignment. Exactly one `@server` descriptor is required in the serve entry file. Its closed map accepts only optional `host`, `port`, and `max_requests` fields and uses the exact validation/default behavior of `serve_http`: `host` defaults to `"127.0.0.1"`, `port` defaults to `8000`, and `max_requests` remains optional. The annotated assignment is the server descriptor owner; its ordinary bound value is not server configuration and is not otherwise consumed by the lifecycle.
 - `@cors policy` is valid only on the same assignment that owns `@server`. At most one `@cors` descriptor is allowed. Its closed map accepts only optional `origin`, `methods`, and `headers` fields and uses the exact validation, defaults, and response behavior of `cors(policy, handler)`.
 - `@route descriptor` is valid only on a top-level named function. Its closed map has exactly `method` and `path` string fields. Both strings must be non-empty and `path` must start with `/`. The annotated binding must expose exactly one fixed one-argument callable arm; zero-argument, multi-argument, varargs, non-callable, or ambiguous bindings are invalid route handlers.
@@ -2718,15 +2718,23 @@ PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE):
 - This is one fixed lifecycle consumer, not a lifecycle-plan runner: phase action identifiers remain inert and there is no action registry or resolver.
 - Validated by `tests/unit/test_server_lifecycle.py` (9 tests), Python reference host only.
 
+PYTHON REFERENCE HOST (IMPLEMENTED ROUTE ANNOTATION BINDING):
+
+- The evaluator accepts `@route {method: ..., path: ...}` only on a top-level named function, validates the exact closed descriptor map, and stores it as inert `route` binding metadata. The parser, AST grammar, and Core IR are unchanged.
+- Repeated `@route` on one declaration and annotated replacement of existing canonical `route` metadata fail deterministically. An initial `@meta` entry named `route` remains ordinary metadata and is not a canonical route candidate; existing merge behavior for other annotations remains unchanged.
+- `src/genia/server_route_binding.py` discovers only annotated `IrFuncDef` declarations from the supplied evaluated entry-file IR list and environment. It preserves source order with declaration name as tie-breaker, requires exactly one fixed one-argument function arm, aggregates descriptor diagnostics before exact `(method, path)` conflict diagnostics, and rejects every conflict member.
+- A diagnostic-free result assembles existing generic R7 route values in source order and passes them once to the existing `route_request` operation through injected call boundaries. Discovery and assembly do not start a listener or execute a route handler.
+- Validated by `tests/unit/test_server_route_binding.py` and focused annotation metadata tests. This is Experimental Python-reference-host internal support; there is no public route-discovery prelude API.
+
 PYTHON REFERENCE HOST (REMAINING PLANNED R8 BOUNDARY):
 
 - Python remains the only R8 server execution host because `serve_http`, `route_request`, `cors`, and `with_headers` are Python-reference-host capabilities.
 - Future hosts may consume the host-independent inert descriptor and lifecycle-result shapes, but R8 adds no shared host-adapter capability and makes no multi-host server guarantee.
-- Annotation bindings and final CLI/live HTTP integration remain assigned to follow-on issues in dependency order `(#535, #536, #537) -> #533`.
+- Server/CORS annotation bindings and final CLI/live HTTP integration remain assigned to follow-on issues in dependency order `(#536, #537) -> #533`.
 
 Explicit limitations:
 
-- No R8 server annotation, `genia serve` dispatch, or live HTTP integration is implemented yet. Only the injected, independently callable lifecycle core executes the fixed lifecycle phases.
+- `@route` metadata/discovery/binding is implemented but remains inert. No `@server`, `@cors`, `genia serve` dispatch, listener activation, or live lifecycle-to-HTTP integration is implemented yet. Only the injected, independently callable lifecycle core executes the fixed lifecycle phases.
 - No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
 
 ## 10) Explicitly not implemented (current)
