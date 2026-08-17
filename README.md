@@ -1,40 +1,43 @@
 # Genia
 
-Genia is a small, functional-first, expression-oriented language prototype.
+Genia is a small, functional-first, expression-oriented language prototype. It explores how pattern matching, explicit Outcome values, and readable pipelines can make data-processing programs easier for people and tools to understand.
 
-This repository currently provides:
+Its first killer workflow is **outcome-aware validated data pipelines**:
 
-- a parser, evaluator, and builtin registry (`src/genia/evaluator.py`, `src/genia/builtins.py`, `src/genia/host_bridge.py`) with a CLI/REPL facade (`src/genia/interpreter.py`)
-- a tiny Core IR + AST→IR lowering pass used before evaluation
-  - pipelines lower to an explicit ordered-stage IR node rather than nested calls
-  - Option constructors lower explicitly as `some(...)` / `none(...)` IR values
-- a REPL and file runner (`python3 -m genia.interpreter`)
-- host-backed concurrency primitives with public prelude-backed process helpers (`spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`) (**Python-host-only**)
-- host-backed refs with public prelude-backed helpers (`ref`, `ref_get`, `ref_set`, `ref_update`) (**Python-host-only**)
-- raw host-backed `argv()` plus prelude-backed CLI parsing helpers (`cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`) (**Python-host-only**)
-- a minimal allowlisted Python host-interop layer via ordinary module imports (`import python`, `import python.json as pyjson`) (**Python-host-only**)
-- simulation primitives (`rng`, `rand`, `rand_int`, `rand_flow`, `rand_int_flow`, `sleep`) (**Python-host-only**)
-- terminal helpers and input sources (`clear_screen`, `move_cursor`, `render_grid`, `stdin_keys`) (**Python-host-only**)
-- a minimal host-backed HTTP serving foundation with prelude helpers (`serve_http`, `get`, `post`, `route_request`, `with_headers`, `cors`, `ok_text`, `json`) (**Python-host-only**)
-- shell pipeline stage `$(command)` for invoking host shell commands inside pipelines (**Python-host-only**, not portable; see below)
-- representation helpers (`display`, `debug_repr`, `format`) and experimental `Format` values for output representation
-- experimental immutable Sheet values for columnar/tabular data (`sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`) (**Experimental**)
-- autoloaded prelude libraries (flow helpers, lists, map/ref/process/io helpers, option/string helpers, math helpers, awk helpers, fn helpers, evaluator helpers, cells, actors)
-  - `cells` and `actors` are public prelude surfaces in the current Python reference host (**Python-host-only**)
-  - flow helpers now include stateful `scan(step, initial_state)` for running totals, buffering, and windowing
+```text
+messy records in → clear pipelines → validated shaped output / reports + useful diagnostics
+```
 
-  - Flow orchestration: the preferred style is `refine(..steps)` and `step_*` (e.g., `step_emit`).
-  - The legacy `rules(..fns)` and `rule_*` names remain fully supported and behave identically.
+The strongest end-to-end proof is the [validated pipeline demo](#run-the-validated-pipeline-demo-experimental). For the implementation and portability boundaries, see the [current language state](GENIA_STATE.md).
 
-**Note:**
-  - The preferred style for new flow orchestration code is `refine(..steps)` and `step_*`.
-  - The legacy `rules(..fns)` and `rule_*` names remain fully supported for compatibility.
-  - bundled `.genia` prelude sources are loaded from package resources, so installed `genia` tools can use the same stdlib as repo execution
-  - autoloaded function names can also be referenced as higher-order function values, not only called directly
-- debug-stdio adapter support for editor integration (**Python-host-only**)
-- runnable demos under `examples/` (including `tic-tac-toe.genia`, `ants.genia`, `ants_terminal.genia`, `ants_actor.genia`, `ants_web.genia`, `http_service.genia`, `validated_pipeline_demo.genia`, and `r3_validated_pipeline_native_tests.genia` — a native-test example for the validated-pipeline surface)
-- proper tail-call optimization for calls in tail position
-- multi-host scaffolding docs/manifests under `docs/host-interop/`, `docs/architecture/`, `spec/`, `tools/spec_runner/`, and `hosts/`
+> **Current status:** Genia is a prototype. Python is the only implemented host and the reference host. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or multi-host support.
+
+## Quick start
+
+Start the REPL from a source checkout:
+
+```bash
+PYTHONPATH=src python3 -m genia.interpreter
+```
+
+Run the validated-data-pipeline example:
+
+```bash
+PYTHONPATH=src python3 -m genia.interpreter examples/validated_pipeline_demo.genia
+```
+
+Start here:
+
+- [Working examples](#run-the-validated-pipeline-demo-experimental)
+- [Architecture and portability](#core-ir-layer)
+- [Implemented language snapshot](#language-snapshot-implemented)
+- [CLI reference](#command-line-interface-cli)
+- [Repository process and documentation](#documentation)
+- [Implementation](https://github.com/m0smith/genia-2026/tree/main/src/genia)
+
+## Repository capabilities
+
+This repository contains the Python reference interpreter and CLI/REPL, a small Core IR and AST-to-IR lowering pass, executable semantic specs, the autoloaded standard library, focused host adapters, and runnable examples. The detailed implemented inventory is maintained in [Language snapshot (implemented)](#language-snapshot-implemented), [Builtins](#builtins), and `GENIA_STATE.md` rather than duplicated in the opening.
 
 
 ## Core Surface Freeze
@@ -147,7 +150,7 @@ python -m tools.spec_runner --verbose
 - Active executable shared categories are eval, ir, cli, first-wave flow, initial error, and initial parse; coverage remains partial and category-scoped.
 - GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.
 
-## Quick start
+## Language quick start
 
 ```bash
 python3 -m genia.interpreter
@@ -458,6 +461,12 @@ uv run mkdocs build --strict
 ```
 
 The MkDocs build uses a temporary staged docs tree so the repo’s source-of-truth markdown can stay where it already lives.
+
+## License
+
+Original Genia code and documentation are licensed under the [Apache License 2.0](https://github.com/m0smith/genia-2026/blob/main/LICENSE).
+
+Third-party material remains subject to its own license and attribution requirements and must be identified separately. In particular, text or closely adapted instructional material from the [open-access edition of *Structure and Interpretation of Computer Programs*](https://mitpress.mit.edu/9780262011532/structure-and-interpretation-of-computer-programs/) is not relicensed under Apache-2.0; such material must retain its applicable CC BY-SA attribution and ShareAlike terms. The current repository does not contain a `docs/sicp` content tree.
 
 LLM instruction sync note:
 

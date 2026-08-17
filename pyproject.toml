@@ -3,6 +3,8 @@ name = "genia"
 version = "0.1.14"
 description = "Genia language prototype interpreter and regression tests"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.8"
 dependencies = [
   "PyYAML>=6.0",
@@ -34,6 +36,7 @@ include = [
   "/src/genia/std/**/*.genia",
   "/tests/**/*.py",
   "/README.md",
+  "/LICENSE",
   "/GENIA_STATE.md",
   "/GENIA_RULES.md",
   "/GENIA_REPL_README.md",
