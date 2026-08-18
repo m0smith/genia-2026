@@ -12,6 +12,13 @@ Returns `err(reason, context)` for recoverable JSON data failures.
 """
 json_decode(value) = _json_decode(value)
 
+@doc """Compile the supported JSON Schema structural subset into a Template.
+
+Accepts a `json`-represented schema map.
+Returns `some(template, context)` or a normalized schema `err(reason, context)`.
+"""
+json_schema(schema) = _json_schema(schema)
+
 @doc """Parse one JSONL object record into an Outcome.
 
 Returns `some(record, context)` for JSON objects.
