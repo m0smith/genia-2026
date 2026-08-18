@@ -33,9 +33,10 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | list + rest | `[x, ..rest]` |
 | map (partial) | `{name}`, `{name: n}` |
 | Outcome constructor | `some(x)`, `some(x, ctx)`, `none`, `none(reason)`, `none(reason, ctx)`, `err(reason)`, `err(reason, ctx)` |
+| named Template | declaration: `pattern Name(value) = body`; pattern use: `Name(inner)`; direct call: `Name(value)` |
 | guard | `(x) ? x > 0 -> ...` |
 
-Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence.
+Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence. A named Template is an Experimental first-class one-argument Outcome matcher: it can be stored, passed, returned, imported, called, or used by higher-order functions. Direct calls return the matcher Outcome unchanged.
 
 | Matcher form | Meaning |
 | --- | --- |

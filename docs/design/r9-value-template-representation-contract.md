@@ -217,8 +217,8 @@ preserve the portable observations above.
 
 Recommended order:
 
-1. E9-1: prove ordinary Outcome matchers plus only necessary inert template
-   metadata; settle open/exact structural matcher construction syntax.
+1. E9-1: implemented by #399 — named reusable patterns are ordinary callable
+   Template values; no metadata or new structural syntax was required.
 2. E9-2: implement the carrier abstraction, ordered nesting, equality, explicit
    observation/strip operations, and representation-aware matching.
 3. E9-3: implement refinement and open structural templates for validated maps.
@@ -239,8 +239,8 @@ E9-5. E9-7 depends on all implementation slices. E9-8 is last.
   assumptions removed.
 - #91 remains later/follow-up; R9 does not need general function contracts.
 - #92 remains later/follow-up; variants and exhaustiveness are not required.
-- #399 should be superseded by or narrowed into E9-1/E9-3 validated-record
-  acceptance criteria; it is not a blocker in its current form.
+- #399 implements the E9-1 callable Template foundation. E9-3 retains
+  validated-record open-shape construction.
 - #166 remains the implemented rendering/Format history and future rendering
   follow-up, not the R9 carrier-representation contract.
 

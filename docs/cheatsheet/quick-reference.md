@@ -222,6 +222,8 @@ first_or_none(xs) =
 
 Outcome matcher operators:
 
+A named reusable pattern is also an Experimental first-class Template value: an ordinary one-argument Outcome matcher. Direct calls return its `some(...)`, `none(...)`, or `err(...)` unchanged; `@?` and `@!` retain the original subject on success.
+
 | Form | Meaning |
 | --- | --- |
 | `value @? matcher` | Applies the matcher; returns `some(value)` on success and preserves `none(...)` and `err(...)` unchanged. Not boolean. |

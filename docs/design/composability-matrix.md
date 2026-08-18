@@ -13,6 +13,8 @@
 | ordinary values | patterns | patterns recognize and destructure values | Implemented |
 | Outcome | constructor patterns | `some`, `none`, and `err` distinguish success, absence, and recoverable failure | Implemented |
 | named matcher | nested pattern | `Name(inner)` applies one Outcome matcher, then matches its success payload | Implemented, Experimental |
+| template | named matcher and Outcome | a Template is an ordinary one-argument Outcome matcher; named Templates are first-class callable values | Implemented, Experimental |
+| template | `@?` / `@!` / `&` | named Templates reuse existing original-subject and short-circuit semantics | Implemented, Experimental |
 | matcher | `@?` / `@!` | check/assert while retaining the original subject on success | Implemented, Experimental |
 | matcher | matcher | `&` composes left-to-right over the original subject | Implemented, Experimental |
 | List | Seq-compatible helpers | list transforms return lists; terminal helpers consume lists | Implemented |
@@ -32,8 +34,6 @@ These rows are design constraints from
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
-| template | named matcher and Outcome | a template is an ordinary one-argument Outcome matcher, with optional inert metadata | Approved R9 design; not implemented |
-| template | `@?` / `@!` / `&` | reuse existing original-subject and short-circuit semantics | Approved R9 design; not implemented |
 | open/exact template | ordinary map/list | structural compatibility without nominal conversion or layout promises | Approved R9 design; not implemented |
 | representation facet | ordinary value | explicit ordered carrier layer; no parallel JSON/secret value hierarchy | Approved R9 design; not implemented |
 | representation pattern | nested pattern/template | consume one explicit outer facet, then match the carried value | Approved R9 design; not implemented |

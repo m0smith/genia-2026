@@ -82,6 +82,17 @@ Required constraints:
 - named patterns are valid in the same pattern positions as other implemented pattern forms
 - recursive named pattern definitions are not supported in this phase
 
+## 6.2) Template invariants (Experimental)
+
+- a Template is an ordinary callable value accepting one subject and returning an Outcome; it does not create a separate runtime category or namespace
+- a named reusable pattern value is directly callable and may be stored, passed, returned, imported, and used by higher-order functions
+- direct calls return `some(...)`, `none(...)`, or `err(...)` unchanged; in particular, a transformed `some(payload)` remains observable
+- direct calls returning a non-Outcome must fail with `named pattern <Name> returned non-Outcome value`
+- ordinary call arity rules apply to direct Template calls
+- matcher operators keep their section 9.7 behavior: `@?` and `@!` retain the original subject on success, and `&` applies both matchers to the original subject
+- named-pattern use keeps section 6.1 behavior and matches its nested pattern against the `some(...)` payload
+- no implicit Template application, metadata behavior, structural shape syntax, or representation behavior is introduced
+
 ## 7) Spread semantics
 
 - list literal spread requires list value at runtime

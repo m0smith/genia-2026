@@ -580,6 +580,7 @@ Related shared portability docs:
   - functions/lambdas are callable values
   - maps are callable lookup values
   - strings can act as callable map projectors
+  - named reusable patterns are Experimental callable Template values: one-argument Outcome matchers that may be stored, passed, returned, imported, called directly, and composed
 - Runtime capability values:
   - `stdout`
   - `stderr`
@@ -731,8 +732,11 @@ Supported pattern forms:
 - map pattern shorthand is identifier-only (`{"name"}` shorthand is invalid; use `{"name": n}`)
 - guards (`pattern ? condition -> result`)
 - duplicate bindings (`[x, x]` only matches equal values)
+- named reusable patterns (`pattern Name(value) = body` and `Name(inner_pattern)`) — Experimental
 
 Pattern forms are accepted in named function clauses, case expressions, and lambda parameter position. Lambdas remain single-arm.
+
+A named reusable pattern is also a first-class Template value. Direct calls return its `some(...)`, `none(...)`, or `err(...)` unchanged; `@?` and `@!` retain the original subject on success. Templates do not add a nominal type or separate namespace.
 
 ### Conditionals in Genia
 

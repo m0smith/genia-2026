@@ -461,6 +461,10 @@ Final R8 disposition:
 implemented language behavior. R9 begins with semantic design; activation does
 not make its candidate syntax or behavior implemented.
 
+Implemented foundation:
+
+- E9-1 / issue #399: named reusable patterns are first-class callable Template values over the existing one-argument Outcome matcher contract. Later structural-shape and representation slices remain planned.
+
 Theme:
 
 > Give Genia a structural way to describe, refine, represent, and pattern-match values without introducing nominal type machinery.
@@ -522,7 +526,8 @@ Exit criterion:
 
 Issue guidance:
 
-- Existing issues **#87 / #89 / #91** are associated with broad value-template work, but their scope and status must be reviewed before any is used as an R9 blocker. This roadmap update does not modify or close them.
+- **#399** is the implemented E9-1 Template foundation.
+- Existing issues **#89 / #91** retain broad historical scope and must be reconciled with the approved E9 sequence before use as blockers.
 
 ---
 
@@ -745,7 +750,6 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - **Web ergonomics promoted to R7**, and the **serve execution mode promoted to R8** (Server Execution Mode — the second R4 lifecycle consumer, `@server`/`@route`/`@cors` bound to R7 primitives). Idea capture: `docs/parking-lot/web-backend-cfm-app.md` (R7) and `docs/parking-lot/server-execution-mode.md` (R8). Anything beyond those two remains parked.
 - notebook mode
 - parallel native test execution
-- **#399** — future design work; not R5 or near-term; belongs in parking lot until scope is defined
 - **#102** — broad scope; should be split into smaller targeted tickets or updated before use as a release tracker; do not use as a release blocker in its current form
 
 ---
@@ -765,7 +769,7 @@ This section records the classification of R1-adjacent issues after R1 completio
 | #396 | R6 — after #395 | Keep open; depends on Sheet landing zone. |
 | #363 | R6 — delivered | `row_get(row, column_name)` ergonomic row access shipped. |
 | #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
-| #399 | Future design | Not R5; park until scope is defined. |
+| #399 | R9 E9-1 | Minimal callable Template foundation implemented over Outcome matchers. |
 | #87 / #89 / #91 | Planned R9 scope review | Value-template work is promoted to planned R9; review the old broad issue scope/status before treating any issue as a release blocker. |
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |
 
