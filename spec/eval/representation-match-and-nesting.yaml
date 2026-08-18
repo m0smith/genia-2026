@@ -3,10 +3,11 @@ category: eval
 description: Representation matchers consume exactly one ordered outer facet and compose through named patterns
 input:
   source: |
-    pattern source(value) = representation_match("source", value)
-    pattern json(value) = representation_match("json", value)
-    extract(source(json({id}))) = id
-    extract(_) = 0
+    pattern Source(value) = representation_match("source", value)
+    pattern Json(value) = representation_match("json", value)
+    extract(value) =
+      Source(Json({id})) -> id |
+      _ -> 0
     represented = represent("source", represent("json", {id: 7}))
     [
       extract(represented),
