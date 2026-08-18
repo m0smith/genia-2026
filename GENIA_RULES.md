@@ -94,7 +94,10 @@ Required constraints:
 - `refinement_match(predicate, value)` returns `some(value)` only when its callable predicate returns `true`; `false` returns `none("refinement-mismatch")`, and a non-boolean predicate result is misuse
 - `open_shape_match(fields, value)` requires an ordinary string-keyed map of callable Templates; declared fields are required, extras are allowed and preserved, and success returns the original complete map
 - open-shape specification validation and field matching follow specification insertion order; non-map and missing-field mismatches are `none`, while nested Template `none`/`err` values propagate unchanged
+- `exact_shape_match(fields, value)` uses the same field-Template specification but requires equal candidate/specification key sets; it returns distinct `none` mismatches for non-map, first missing, and first extra fields
+- exact matching validates the specification first, checks missing fields in specification order, checks extras in candidate order, and only then invokes field Templates in specification order; equal key sets match regardless of insertion order
 - a nested field Template success payload establishes compatibility but never transforms the subject
+- open and exact structural helpers are distinct: open allows extras, exact rejects them; neither adds nominal identity, copying, layout, or positional/labeled shapes
 - no implicit Template application, metadata behavior, structural declaration syntax, nominal shape category, or representation behavior is introduced
 
 ## 6.3) Carrier representation invariants (Experimental)

@@ -36,6 +36,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | named Template | declaration: `pattern Name(value) = body`; pattern use: `Name(inner)`; direct call: `Name(value)` |
 | refinement Template | `refinement_match(predicate, value)`; true preserves the subject, false is a mismatch |
 | open map Template | `open_shape_match({field: Template}, value)`; listed fields required, extras preserved |
+| exact map Template | `exact_shape_match({field: Template}, value)`; precisely listed fields required |
 | represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
 | guard | `(x) ? x > 0 -> ...` |
 
@@ -44,6 +45,16 @@ Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)
 Carrier facets are Experimental ordered layers. A representation-aware named Template returns `representation_match(...)`; matching consumes one requested outer layer, while ordinary transport preserves the represented value and generic display/debug output remains `<represented>`.
 
 Refinement and open structural helpers are Experimental and reuse existing named Templates. Open structural success preserves the complete original map rather than applying nested success payloads as transformations.
+
+Exact structural helpers are Experimental and use the same field-Template protocol. Exact matching requires equal key sets, preserves the original map, and returns distinct missing/extra mismatch Outcomes without nominal Struct values.
+
+<!-- [case: core-exact-shape-template] -->
+```genia
+pattern Present(value) = refinement_match((x) -> x != "", value)
+pattern Person(value) = exact_shape_match({name: Present}, value)
+[Person({name: "Ada"}), Person({name: "Ada", source: "csv"})]
+```
+Classification: **Valid** (directly tested, Experimental)
 
 <!-- [case: core-open-shape-template] -->
 ```genia

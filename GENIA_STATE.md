@@ -1030,9 +1030,11 @@ Template semantics (Experimental):
 - `refinement_match(predicate, value)` lifts an existing one-argument boolean predicate into a Template result: `true` returns `some(value)` and `false` returns `none("refinement-mismatch")`; a non-callable predicate or non-boolean result is runtime misuse
 - `open_shape_match(fields, value)` treats an ordinary map of string field names to callable Templates as an open structural specification; a matching ordinary map must contain every listed field, may contain extras, and returns the original complete map in `some`
 - open-shape field specifications and checks run in specification insertion order; missing fields return `none("open-shape-missing-field", {field: name})`, non-map subjects return `none("open-shape-mismatch")`, and a nested Template `none` or `err` is propagated unchanged
-- nested Template `some(payload)` establishes compatibility only; open-shape matching does not transform the field or subject
-- refinement/open-shape helpers compose through existing direct calls, `Name(inner_pattern)`, `@?`, `@!`, and `&`; they add no syntax, nominal identity, or runtime shape category
-- Template metadata, exact/closed shapes, JSON, and JSON Schema are not implemented in this phase
+- `exact_shape_match(fields, value)` uses the same specification protocol but requires the candidate map's key set to equal the specification key set; non-map, missing, and extra candidates return `none("exact-shape-mismatch")`, `none("exact-shape-missing-field", {field: name})`, and `none("exact-shape-extra-field", {field: name})` respectively
+- exact-shape specifications are validated first; missing fields are checked in specification insertion order, then extras in candidate insertion order, then field Templates in specification order
+- nested Template `some(payload)` establishes compatibility only; structural matching does not transform the field or subject, while nested `none`/`err` propagates unchanged
+- refinement/open/exact helpers compose through existing direct calls, `Name(inner_pattern)`, `@?`, `@!`, and `&`; they add no syntax, nominal identity, or runtime shape category
+- Template metadata, positional/labeled shapes, nominal Structs, JSON, and JSON Schema are not implemented in this phase
 
 Carrier representation semantics (Experimental):
 
