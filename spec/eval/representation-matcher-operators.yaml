@@ -1,0 +1,13 @@
+name: representation-matcher-operators
+category: eval
+description: Existing matcher operators retain the original represented subject on success
+input:
+  source: |
+    pattern json(value) = representation_match("json", value)
+    pattern any_json(value) = representation_match("json", value)
+    represented = represent("json", 7)
+    [represented @? json, represented @! json, represented @? (json & any_json)]
+expected:
+  stdout: "[some(<represented>), <represented>, some(<represented>)]\n"
+  stderr: ""
+  exit_code: 0

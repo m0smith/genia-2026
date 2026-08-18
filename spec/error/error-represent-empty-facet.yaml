@@ -1,0 +1,13 @@
+name: error-represent-empty-facet
+category: error
+description: Construction rejects an empty facet name
+input:
+  source: |
+    represent("", 7)
+expected:
+  stdout: ""
+  stderr: "Error: represent expected a non-empty facet string\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: ValueError

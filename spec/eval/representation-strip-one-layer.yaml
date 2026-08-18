@@ -1,0 +1,12 @@
+name: representation-strip-one-layer
+category: eval
+description: Explicit stripping removes one matching outer layer only
+input:
+  source: |
+    nested = represent("a", represent("a", 7))
+    once = strip_representation("a", nested)
+    [display(once), strip_representation("a", once)]
+expected:
+  stdout: "[<represented>, 7]\n"
+  stderr: ""
+  exit_code: 0

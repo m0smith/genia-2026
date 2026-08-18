@@ -1,0 +1,17 @@
+name: representation-match-and-nesting
+category: eval
+description: Representation matchers consume exactly one ordered outer facet and compose through named patterns
+input:
+  source: |
+    pattern source(value) = representation_match("source", value)
+    pattern json(value) = representation_match("json", value)
+    represented = represent("source", represent("json", {id: 7}))
+    [
+      represented |> source(json({id})) -> id |> _ -> 0,
+      representation_match("json", represented),
+      representation_match("source", represented)
+    ]
+expected:
+  stdout: "[7, none(\"representation-mismatch\"), some(<represented>)]\n"
+  stderr: ""
+  exit_code: 0

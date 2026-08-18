@@ -1,0 +1,13 @@
+name: error-strip-representation-wrong-outer
+category: error
+description: Stripping never searches past a different outer facet
+input:
+  source: |
+    strip_representation("inner", represent("outer", represent("inner", 7)))
+expected:
+  stdout: ""
+  stderr: "Error: strip_representation expected outer facet inner, received outer\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: ValueError

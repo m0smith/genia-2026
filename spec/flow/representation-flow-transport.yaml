@@ -1,0 +1,11 @@
+name: representation-flow-transport
+category: flow
+description: Flow transports represented values unchanged without implicit unwrapping
+input:
+  source: |
+    represented = represent("source", "row")
+    [represented] |> each((x) -> x) |> collect
+expected:
+  stdout: "[<represented>]\n"
+  stderr: ""
+  exit_code: 0
