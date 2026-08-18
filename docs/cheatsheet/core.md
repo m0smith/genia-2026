@@ -34,9 +34,21 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | map (partial) | `{name}`, `{name: n}` |
 | Outcome constructor | `some(x)`, `some(x, ctx)`, `none`, `none(reason)`, `none(reason, ctx)`, `err(reason)`, `err(reason, ctx)` |
 | named Template | declaration: `pattern Name(value) = body`; pattern use: `Name(inner)`; direct call: `Name(value)` |
+| represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
 | guard | `(x) ? x > 0 -> ...` |
 
 Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence. A named Template is an Experimental first-class one-argument Outcome matcher: it can be stored, passed, returned, imported, called, or used by higher-order functions. Direct calls return the matcher Outcome unchanged.
+
+Carrier facets are Experimental ordered layers. A representation-aware named Template returns `representation_match(...)`; matching consumes one requested outer layer, while ordinary transport preserves the represented value and generic display/debug output remains `<represented>`.
+
+<!-- [case: core-representation-match] -->
+```genia
+pattern Json(value) = representation_match("json", value)
+read(value) =
+  Json({id}) -> id
+read(represent("json", {id: 7}))
+```
+Classification: **Valid** (directly tested, Experimental)
 
 | Matcher form | Meaning |
 | --- | --- |

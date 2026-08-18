@@ -1,0 +1,15 @@
+name: representation-transport-and-derivation
+category: eval
+description: Calls collections and pipelines transport represented values while callbacks derive only explicit results
+input:
+  source: |
+    identity(x) = x
+    represented = represent("source", 7)
+    transported = represented |> identity
+    stored = [transported, {item: transported}]
+    derived = [represented] |> map((x) -> strip_representation("source", x) + 1)
+    [stored, derived]
+expected:
+  stdout: "[[<represented>, {item: <represented>}], [8]]\n"
+  stderr: ""
+  exit_code: 0

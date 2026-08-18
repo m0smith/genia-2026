@@ -98,6 +98,7 @@ if __package__ in (None, ""):
         GeniaOutputSink,
         GeniaPair,
         GeniaProcess,
+        GeniaRepresented,
         GeniaRef,
         GeniaRng,
         GeniaStdinSource,
@@ -183,6 +184,7 @@ else:
         GeniaOutputSink,
         GeniaPair,
         GeniaProcess,
+        GeniaRepresented,
         GeniaRef,
         GeniaRng,
         GeniaStdinSource,
@@ -522,6 +524,44 @@ def make_global_env(
 
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
+    def _representation_facet(value: Any, operation: str) -> str:
+        if not isinstance(value, str):
+            raise TypeError(
+                f"{operation} expected a non-empty facet string, "
+                f"received {_runtime_type_name(value)}"
+            )
+        if value == "":
+            raise ValueError(f"{operation} expected a non-empty facet string")
+        return value
+
+    def represent_fn(facet_value: Any, value: Any) -> GeniaRepresented:
+        facet = _representation_facet(facet_value, "represent")
+        return GeniaRepresented(facet, value)
+
+    def representation_match_fn(facet_value: Any, value: Any) -> Any:
+        facet = _representation_facet(facet_value, "representation_match")
+        if not isinstance(value, GeniaRepresented) or value.facet != facet:
+            return make_none("representation-mismatch")
+        return GeniaOptionSome(value.value)
+
+    def strip_representation_fn(facet_value: Any, value: Any) -> Any:
+        facet = _representation_facet(facet_value, "strip_representation")
+        if not isinstance(value, GeniaRepresented):
+            raise TypeError(
+                "strip_representation expected represented value, "
+                f"received {_runtime_type_name(value)}"
+            )
+        if value.facet != facet:
+            raise ValueError(
+                f"strip_representation expected outer facet {facet}, "
+                f"received {value.facet}"
+            )
+        return value.value
+
+    represent_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    representation_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    strip_representation_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def assert_true_fn(value: Any) -> Any:
         if not truthy(value):
@@ -3614,6 +3654,15 @@ def make_global_env(
     env.set("print", print_fn)
     env.set("display", display_fn)
     env.set("debug_repr", debug_repr_fn)
+    env.set("represent", _host_function_group("represent", 2, represent_fn))
+    env.set(
+        "representation_match",
+        _host_function_group("representation_match", 2, representation_match_fn),
+    )
+    env.set(
+        "strip_representation",
+        _host_function_group("strip_representation", 2, strip_representation_fn),
+    )
     env.set("assert_true", _host_function_group("assert_true", 1, assert_true_fn))
     env.set("assert_eq", _host_function_group("assert_eq", 2, assert_eq_fn))
     env.set("Format", format_constructor)

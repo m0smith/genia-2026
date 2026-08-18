@@ -1027,7 +1027,19 @@ Template semantics (Experimental):
 - direct Template calls return the matcher Outcome unchanged, including a transformed `some(...)` payload and any reason/context
 - direct Template calls require an Outcome result; a non-Outcome result raises `named pattern <Name> returned non-Outcome value`
 - `@?`, `@!`, `&`, and `Name(inner_pattern)` retain their implemented original-subject, short-circuit, and payload-matching behavior
-- Template metadata, open/refinement shapes, exact/closed shapes, representation carriers, JSON, and JSON Schema are not implemented in this phase
+- Template metadata, open/refinement shapes, exact/closed shapes, JSON, and JSON Schema are not implemented in this phase
+
+Carrier representation semantics (Experimental):
+
+- `represent(facet, value)` attaches one explicit outer carrier facet; `facet` must be a non-empty string
+- carrier facets are ordered nested layers around ordinary Genia values, not nominal JSON/secret classes or an unordered tag set; duplicate layers are valid
+- `representation_match(facet, value)` returns `some(carried)` only for the exact outer facet and otherwise returns `none("representation-mismatch")`
+- an existing named Template can define a representation-aware pattern with `pattern Name(value) = representation_match("facet", value)`; `Name(inner)` then uses ordinary named-pattern payload matching and may nest with other patterns
+- `strip_representation(facet, value)` explicitly removes exactly one matching outer layer; an ordinary value or different outer facet is runtime misuse
+- represented values compare by exact facet plus ordinary carried-value equality; represented and unrepresented values are unequal; supported map keys retain ordinary carried-value key restrictions
+- assignment, calls, returns, collection storage, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; operations deriving new values do not copy facets implicitly
+- `display` and `debug_repr` render every generic represented value as `<represented>`, exposing neither facet nor payload
+- no facet registry, implicit propagation/coercion, JSON boundary, structural shapes, protected `secret` behavior, declassification, parser syntax, or Core IR node is implemented by this slice
 
 Case placement rules (enforced):
 

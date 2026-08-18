@@ -2,7 +2,7 @@
 
 Status: Current Python reference host behavior unless marked Experimental.
 
-This page documents the implemented Representation System surface for display/debug strings and format templates. `GENIA_STATE.md` remains the final authority.
+This page documents the implemented rendering/Representation System surface for display/debug strings and format templates. It is separate from the Experimental R9 carrier facets constructed with `represent(...)`. `GENIA_STATE.md` remains the final authority.
 
 ## Purpose
 

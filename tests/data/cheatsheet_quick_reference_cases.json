@@ -10,6 +10,11 @@
     "expected_result": "none(\"missing-key\", {key: \"name\"})"
   },
   {
+    "id": "quick-representation-match",
+    "source": "pattern Json(value) = representation_match(\"json\", value)\nread(value) =\n  Json({id}) -> id\nread(represent(\"json\", {id: 7}))",
+    "expected_result": "7"
+  },
+  {
     "id": "quick-lists-nth",
     "source": "nth(2, [10, 20, 30])",
     "expected_result": "some(30)"

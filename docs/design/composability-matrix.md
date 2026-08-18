@@ -35,11 +35,11 @@ These rows are design constraints from
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
 | open/exact template | ordinary map/list | structural compatibility without nominal conversion or layout promises | Approved R9 design; not implemented |
-| representation facet | ordinary value | explicit ordered carrier layer; no parallel JSON/secret value hierarchy | Approved R9 design; not implemented |
-| representation pattern | nested pattern/template | consume one explicit outer facet, then match the carried value | Approved R9 design; not implemented |
-| represented value | List/map/pipeline/Seq/Flow | transport preserves the value; derivation does not propagate facets implicitly | Approved R9 design; not implemented |
-| representation facet | equality/keys | exact ordered facets participate in equality and key suitability | Approved R9 design; not implemented |
-| representation facet | explicit strip/declassification | remove one outer facet explicitly; protected facets may require authorization | Approved R9 design; not implemented |
+| representation facet | ordinary value | `represent` adds one explicit ordered carrier layer; no parallel JSON/secret value hierarchy | Implemented generic carrier, Experimental |
+| representation pattern | nested pattern/template | `representation_match` consumes one explicit outer facet through a named Template, then matches the carried value | Implemented generic matching, Experimental |
+| represented value | List/map/pipeline/Seq/Flow | transport preserves the value; derivation does not propagate facets implicitly | Implemented generic carrier rule, Experimental |
+| representation facet | equality/keys | exact ordered facets participate in equality and existing key suitability | Implemented generic carrier rule, Experimental |
+| representation facet | explicit strip/declassification | `strip_representation` removes one outer generic facet explicitly; protected declassification remains later work | Generic strip implemented; protected facets not implemented |
 | JSON | representation facet | decode to ordinary Genia values with one outer `json` facet | Planned E9-5; not implemented |
 | JSON Schema subset | template | produce ordinary structural/refinement templates; reject unsupported features | Planned E9-6; not implemented |
 | `json` representation | structural template | conceptual `json(Person(x))` proves boundary plus structure composition | Planned E9-7; not implemented |

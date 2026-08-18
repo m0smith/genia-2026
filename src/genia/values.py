@@ -55,6 +55,8 @@ def _runtime_type_name(value: Any) -> str:
         return "stdin"
     if isinstance(value, GeniaFormat):
         return "format"
+    if isinstance(value, GeniaRepresented):
+        return "represented"
     if value.__class__.__name__ == "GeniaMetaEnv":
         return "meta_env"
     if value.__class__.__name__ == "GeniaPromise":
@@ -86,6 +88,15 @@ class GeniaPair:
         return f"Pair({self.head!r}, {self.tail!r})"
 
 
+@dataclass(frozen=True)
+class GeniaRepresented:
+    facet: str
+    value: Any
+
+    def __repr__(self) -> str:
+        return "<represented>"
+
+
 _SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
 
 
@@ -105,6 +116,8 @@ def _freeze_map_key(value: Any) -> Any:
         return ("symbol", value.name)
     if isinstance(value, GeniaPair):
         return ("pair", _freeze_map_key(value.head), _freeze_map_key(value.tail))
+    if isinstance(value, GeniaRepresented):
+        return ("represented", value.facet, _freeze_map_key(value.value))
     if isinstance(value, list):
         return ("list", tuple(_freeze_map_key(item) for item in value))
     if isinstance(value, tuple):

@@ -581,6 +581,9 @@ Related shared portability docs:
   - maps are callable lookup values
   - strings can act as callable map projectors
   - named reusable patterns are Experimental callable Template values: one-argument Outcome matchers that may be stored, passed, returned, imported, called directly, and composed
+  - carrier representations are Experimental ordered value facets: `represent(facet, value)` constructs one layer, `representation_match(facet, value)` observes one requested outer layer as an Outcome, and `strip_representation(facet, value)` explicitly removes one matching outer layer
+  - representation-aware patterns reuse named Templates, for example `pattern Json(value) = representation_match("json", value)` followed by `Json(inner)`; no JSON decoder, shape syntax, secret policy, parser syntax, or Core IR node is added by this slice
+  - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
 - Runtime capability values:
   - `stdout`
   - `stderr`
@@ -620,7 +623,7 @@ Current consistency note:
 - Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
 - `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
-- `display(value)` and `debug_repr(value)` are the first public Representation System entry points: they return display/debug representation strings without writing output, and they render Outcome values directly, including `none(...)`
+- `display(value)` and `debug_repr(value)` are the first public rendering/Representation System entry points: they return display/debug strings without writing output, render Outcome values directly including `none(...)`, and remain separate from carrier representations
 - representation does not change value identity; value templates describe or constrain values, while representation formats describe output strings
 - `format(template_or_format, values)` is a public prelude-backed string helper: it returns a string, writes nothing, does not mutate inputs, uses `display(value)` for ordinary replacements, supports debug placeholders `{name:?}` / `{0:?}` using `debug_repr(value)`, supports `{name}`, `{0}`, `{{`, `}}`, field-path placeholders `{user.name}` / `{user.address.city}` for dot-separated nested map lookup (Experimental, #290), and a limited set of field format specs (Experimental, #169: alignment `<N`/`>N`/`^N`, precision `.N`, zero-pad `0N`, comma-group `,`); its first argument is a raw string template or a `Format` value
 - `Format(template)` constructs an untagged first-class representation value from a string template (Experimental, #168); `format(Format("{a}"), values)` is equivalent to `format("{a}", values)`

@@ -1,7 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; E9-1 Template foundation implemented,
-later R9 slices not implemented.**
+Status: **Approved R9 design contract; E9-1 Template foundation and E9-2
+generic carrier/matching slice implemented, later R9 slices not implemented.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for
@@ -61,6 +61,11 @@ inheritance, fixed layout, or optimized storage. Concrete declaration syntax is
 deferred to the relevant design tickets.
 
 ## Representation value model
+
+The generic carrier, one-layer observation/stripping, equality/key behavior,
+opaque rendering, transport rules, and named-pattern composition in this
+section are implemented by E9-2 / issue #570. Provider-owned facets, protected
+declassification, JSON, and structural shapes remain unimplemented.
 
 A represented value consists semantically of:
 

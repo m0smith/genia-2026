@@ -1,0 +1,13 @@
+name: error-strip-representation-unrepresented
+category: error
+description: Stripping rejects an unrepresented value
+input:
+  source: |
+    strip_representation("a", 7)
+expected:
+  stdout: ""
+  stderr: "Error: strip_representation expected represented value, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

@@ -1,0 +1,13 @@
+name: error-representation-match-facet-type
+category: error
+description: Matching rejects a non-string facet name
+input:
+  source: |
+    representation_match(1, represent("a", 7))
+expected:
+  stdout: ""
+  stderr: "Error: representation_match expected a non-empty facet string, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
