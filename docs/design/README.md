@@ -16,5 +16,6 @@ See GENIA_STATE.md for actual behavior.
 - **absence-and-structures.md** — Design note on explicit absence, composable structures, and reducing null.
 - **value-templates.md** - Design for value templates for giving structure and meaning to data
 - **ir.md** — Core IR and optimization contract: what the IR represents, what must not change (semantics), and what may change (performance).
+- **r9-value-template-representation-contract.md** — approved R9 design contract for templates, carrier representations, patterns, rendering terminology, and the JSON boundary; not implemented behavior.
 - **execution-concepts.md** — Proposed separation of file/source, module, annotation, lifecycle, unit test, and execution mode; dangerous merges to avoid.
 - **composability-matrix.md** — Proposed composability matrix for core concepts and all current/future language features.
