@@ -13,6 +13,6 @@ input:
     even = Even
     [4 @? (positive & even), 3 @? (positive & even), 4 @! positive]
 expected:
-  stdout: '[some(4), none("not-even"), 4]\n'
+  stdout: "[some(4), none(\"not-even\"), 4]\n"
   stderr: ""
   exit_code: 0

@@ -8,7 +8,6 @@ input:
     pattern Fail(n) = err("invalid", {source: n})
     [Shift(2), Miss(2), Fail(2)]
 expected:
-  stdout: '[some(3, {source: 2}), none("not-selected", {source: 2}), err("invalid", {source: 2})]\n'
+  stdout: "[some(3, {source: 2}), none(\"not-selected\", {source: 2}), err(\"invalid\", {source: 2})]\n"
   stderr: ""
   exit_code: 0
-

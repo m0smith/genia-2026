@@ -8,7 +8,6 @@ input:
     record = {id: 7, name: "Ada"}
     [template(record), record @? template]
 expected:
-  stdout: '[some(7), some({id: 7, name: "Ada"})]\n'
+  stdout: "[some(7), some({id: 7, name: \"Ada\"})]\n"
   stderr: ""
   exit_code: 0
-

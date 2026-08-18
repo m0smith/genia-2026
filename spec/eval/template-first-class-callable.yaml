@@ -11,6 +11,6 @@ input:
     templates = [identity(Positive)]
     [apply_template(templates[0], 3), map(templates[0], [2, -1])]
 expected:
-  stdout: '[some(3), [some(2), none("not-positive")]]\n'
+  stdout: "[some(3), [some(2), none(\"not-positive\")]]\n"
   stderr: ""
   exit_code: 0

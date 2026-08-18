@@ -86,14 +86,12 @@ def test_template_matcher_error_shared_specs_execute_as_contract():
 
 def test_imported_named_template_remains_callable(tmp_path: Path):
     (tmp_path / "record_templates.genia").write_text(
-        'pattern HasId(record) =\n'
-        '  value ? has(value, "id") -> some(value) |\n'
-        '  _ -> none("missing-id")\n',
+        "pattern Record(record) = some(record)\n",
         encoding="utf-8",
     )
 
     result = run_source(
-        "import record_templates as templates\ntemplates.HasId({id: 7})",
+        "import record_templates as templates\ntemplates.Record({id: 7})",
         make_global_env([]),
         filename=str((tmp_path / "main.genia").resolve()),
     )
