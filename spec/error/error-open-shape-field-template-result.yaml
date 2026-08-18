@@ -1,0 +1,13 @@
+name: error-open-shape-field-template-result
+category: error
+description: Open shape matching requires field Templates to return Outcomes
+input:
+  source: |
+    open_shape_match({age: (x) -> x > 0}, {age: 18})
+expected:
+  stdout: ""
+  stderr: "Error: open_shape_match field age Template must return Outcome, received bool\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

@@ -1,0 +1,13 @@
+name: error-refinement-match-predicate-type
+category: error
+description: Refinement matching rejects a non-callable predicate
+input:
+  source: |
+    refinement_match(1, 2)
+expected:
+  stdout: ""
+  stderr: "Error: refinement_match expected predicate function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

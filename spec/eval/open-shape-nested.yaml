@@ -1,0 +1,17 @@
+name: open-shape-nested
+category: eval
+description: Open shapes compose recursively and nested pattern binding receives the complete original map
+input:
+  source: |
+    pattern Present(value) = refinement_match((x) -> x != "", value)
+    pattern Address(value) = open_shape_match({city: Present}, value)
+    pattern Person(value) = open_shape_match({name: Present, address: Address}, value)
+    result = match {name: "Ada", address: {city: "London", zip: "SW1"}, source: "csv"} {
+      Person(record) -> [record.name, record.address.zip, record.source]
+      _ -> []
+    }
+    result
+expected:
+  stdout: "[Ada, SW1, csv]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,14 @@
+name: refinement-open-shape-operators
+category: eval
+description: Refinement and open shape Templates compose through existing matcher operators
+input:
+  source: |
+    pattern Positive(value) = refinement_match((n) -> n > 0, value)
+    pattern Even(value) = refinement_match((n) -> n % 2 == 0, value)
+    pattern Item(value) = open_shape_match({count: Positive}, value)
+    subject = {count: 2, tag: "kept"}
+    [2 @? (Positive & Even), subject @? Item, subject @! Item]
+expected:
+  stdout: "[some(2), some({count: 2, tag: kept}), {count: 2, tag: kept}]\n"
+  stderr: ""
+  exit_code: 0

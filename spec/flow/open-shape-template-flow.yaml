@@ -1,0 +1,16 @@
+name: open-shape-template-flow
+category: flow
+description: Flow maps record values through open shape Templates and keeps successful original records
+input:
+  source: |
+    pattern Positive(value) = refinement_match((n) -> n > 0, value)
+    pattern Item(value) = open_shape_match({count: Positive}, value)
+    [{count: 2, tag: "keep"}, {count: 0, tag: "drop"}]
+      |> each((x) -> x)
+      |> map(Item)
+      |> keep_some
+      |> collect
+expected:
+  stdout: "[{count: 2, tag: keep}]\n"
+  stderr: ""
+  exit_code: 0
