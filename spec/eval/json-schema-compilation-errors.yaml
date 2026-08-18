@@ -1,0 +1,17 @@
+name: json-schema-compilation-errors
+category: eval
+description: Unsupported and malformed JSON Schema content returns normalized compiler errors
+input:
+  source: |
+    compile(text) = json_decode(text) |> then_match(json_schema)
+    [
+      compile("{\"type\":\"string\",\"minLength\":1}"),
+      compile("{\"properties\":{}}"),
+      compile("{\"type\":\"object\",\"properties\":{},\"required\":[\"name\"]}"),
+      compile("{\"type\":\"array\"}"),
+      compile("{\"type\":\"object\",\"additionalProperties\":{\"type\":\"string\"}}")
+    ]
+expected:
+  stdout: "[err(unsupported_json_schema_keyword, {kind: json_schema, operation: compile, status: error, reason: unsupported_json_schema_keyword, schema_path: [], keyword: \"minLength\"}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [], detail: missing_type}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"required\", 0], detail: undeclared_required_property, property: \"name\"}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"items\"], detail: missing_items}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"additionalProperties\"], detail: invalid_additional_properties})]\n"
+  stderr: ""
+  exit_code: 0

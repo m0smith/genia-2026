@@ -1,0 +1,16 @@
+name: json-schema-recursive-types
+category: eval
+description: JSON Schema arrays and primitive types compose recursively with deterministic paths
+input:
+  source: |
+    schema = json_decode("{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"active\":{\"type\":\"boolean\"},\"score\":{\"type\":\"number\"},\"note\":{\"type\":\"null\"}},\"required\":[\"active\",\"score\",\"note\"]}}")
+    template = schema |> then_match(json_schema) |> unwrap_or((_) -> none("compile-failed"))
+    [
+      template([{active: true, score: 2, note: nil}, {active: false, score: 1.5, note: nil}]),
+      template([{active: true, score: 2, note: nil}, {active: 1, score: 2, note: nil}]),
+      template([])
+    ]
+expected:
+  stdout: "[some([{active: true, score: 2, note: none(\"nil\")}, {active: false, score: 1.5, note: none(\"nil\")}]), none(\"json-schema-type-mismatch\", {path: [1, \"active\"], expected: boolean, actual: integer}), some([])]\n"
+  stderr: ""
+  exit_code: 0
