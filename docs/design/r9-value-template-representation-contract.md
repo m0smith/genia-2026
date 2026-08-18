@@ -1,6 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; not implemented.**
+Status: **Approved R9 design contract; E9-1 Template foundation implemented,
+later R9 slices not implemented.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for
@@ -31,6 +32,9 @@ alias, migrate uses and tests incrementally, and remove the old name only in a
 later change.
 
 ## Template boundary
+
+The callable foundation in this subsection is implemented by E9-1 / issue #399.
+Template metadata and open/exact structural construction remain unimplemented.
 
 A template is not a distinct runtime category. It uses the implemented matcher
 contract:
