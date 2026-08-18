@@ -1,88 +1,20 @@
 # Refinement Templates (Value Constraints)
 
-## Purpose
+Status: **Implemented, Experimental (R9 E9-3)**
 
-Refinements constrain values.
+Refinements reuse the ordinary one-argument Outcome Template protocol. They do
+not create a nominal type or new declaration syntax.
 
-They answer:
-> “This value is valid only if it satisfies a condition.”
+```genia
+pattern NaturalNumber(value) = refinement_match((n) -> n >= 0, value)
+NaturalNumber(3)
+```
 
----
+`refinement_match(predicate, value)` invokes the predicate once. `true` returns
+`some(value)` with the original subject; `false` returns
+`none("refinement-mismatch")`. A non-callable predicate or non-boolean result is
+runtime misuse.
 
-## Core Idea
-
-A refinement is:
-
-    Value + Predicate
-
-Example:
-
-    NaturalNumber = n when n >= 0
-
----
-
-## Named Patterns
-
-Refinements are named patterns:
-
-    NaturalNumber = n when n >= 0
-
-Usage:
-
-    NaturalNumber(x)
-
----
-
-## Binding
-
-    NaturalNumber(n)
-
-binds:
-- n → matched value
-
----
-
-## Composition
-
-Refinements compose:
-
-    Positive =
-      NaturalNumber(n) when n > 0
-
-    PositiveEven =
-      Positive(n) when n % 2 == 0
-
----
-
-## Pattern Usage
-
-    fact =
-      0 -> 1
-      NaturalNumber(n) when n > 0 -> n * fact(n - 1)
-
----
-
-## Failure Behavior
-
-- Mismatch = pattern miss
-- No coercion
-- No implicit conversion
-
----
-
-## Design Principles
-
-- Pattern-first
-- Runtime evaluated
-- Composable
-- Minimal syntax
-
----
-
-## Non-Goals
-
-Refinements do NOT:
-
-- create new runtime representations
-- enforce compile-time guarantees (initially)
-- replace pattern matching
+Named refinement Templates compose through existing direct calls,
+`Name(inner)`, `@?`, `@!`, and `&` behavior. There is no coercion, implicit
+conversion, compile-time enforcement, or `when` syntax.
