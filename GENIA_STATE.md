@@ -1034,7 +1034,7 @@ Template semantics (Experimental):
 - exact-shape specifications are validated first; missing fields are checked in specification insertion order, then extras in candidate insertion order, then field Templates in specification order
 - nested Template `some(payload)` establishes compatibility only; structural matching does not transform the field or subject, while nested `none`/`err` propagates unchanged
 - refinement/open/exact helpers compose through existing direct calls, `Name(inner_pattern)`, `@?`, `@!`, and `&`; they add no syntax, nominal identity, or runtime shape category
-- Template metadata, positional/labeled shapes, nominal Structs, JSON, and JSON Schema are not implemented in this phase
+- Template metadata, positional/labeled shapes, nominal Structs, and JSON Schema are not implemented by the Template/shape slices; JSON boundary behavior is defined separately below
 
 Carrier representation semantics (Experimental):
 
@@ -1046,7 +1046,7 @@ Carrier representation semantics (Experimental):
 - represented values compare by exact facet plus ordinary carried-value equality; represented and unrepresented values are unequal; supported map keys retain ordinary carried-value key restrictions
 - assignment, calls, returns, collection storage, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; operations deriving new values do not copy facets implicitly
 - `display` and `debug_repr` render every generic represented value as `<represented>`, exposing neither facet nor payload
-- no facet registry, implicit propagation/coercion, JSON boundary, structural shapes, protected `secret` behavior, declassification, parser syntax, or Core IR node is implemented by this slice
+- no facet registry, implicit propagation/coercion, protected `secret` behavior, declassification, parser syntax, or Core IR node is implemented by the generic carrier slice; the separate Experimental JSON boundary below now uses this carrier
 
 Case placement rules (enforced):
 
@@ -2204,6 +2204,8 @@ Pattern matching note:
 - `utf8_encode(string) -> bytes`
 - internal JSON/CSV bridge primitives: `_json_parse(string) -> value|none`, `_json_stringify(value) -> string|none`, `_parse_jsonl_record(line) -> some(record, context)|none("blank_line", context)|err(reason, context)`, `_parse_csv_row(line) -> some(fields, context)|none("blank_line", context)|err(reason, context)`, `_parse_csv_row(headers, line) -> some(record, context)|none("blank_line", context)|err(reason, context)`
 - public JSON helpers from `src/genia/std/prelude/json.genia`:
+  - `json_decode(string_or_bytes) -> some(json_represented_value, context) | err(reason, context)` (**Experimental**, portable R9 boundary)
+  - `json_encode(value) -> some(json_text, context) | err(reason, context)` (**Experimental**, portable R9 boundary)
   - `json_parse(string) -> value | none("json-parse-error", context)`
   - `json_stringify(value) -> string | none("json-stringify-error", context)`
   - `json_pretty(value) -> string | none(...)` (compatibility alias)
@@ -2233,6 +2235,14 @@ Behavior:
 - JSON objects from `json_parse` are represented as persistent runtime map values (`map_*` bridge type)
 - `json_stringify`/`json_pretty` emit deterministic pretty JSON with 2-space indentation and sorted object keys
 - JSON parse/stringify failures return structured `none(...)` metadata rather than raising parse/stringify exceptions
+- `json_decode` and `json_encode` are the Experimental portable R9 JSON representation boundary; legacy `json_parse`, `json_stringify`, `json_pretty`, and `parse_jsonl_record` retain their compatibility behavior
+- successful `json_decode` returns `some(represent("json", root), context)`, where `root` is an ordinary map/list/string/number/boolean/`nil` value and nested values have no implicit representation facets; string input and strict UTF-8 bytes input are accepted, while any other input type is runtime misuse
+- successful `json_encode` returns deterministic two-space-indented JSON with sorted object member names and preserved list order; it accepts one outer `json`-represented supported value or a supported ordinary value, consuming only that optional outer layer
+- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]`, finite binary64 fractional/exponent numbers, Unicode scalar strings/names, and at most 128 nested object/array containers
+- `json_decode` rejects malformed/trailing JSON, invalid UTF-8, duplicate names, nonstandard/non-finite or out-of-range numbers, invalid Unicode scalars, and excessive nesting as `err(...)`; `json_encode` rejects unsupported values/keys/facets and the same number/Unicode/nesting violations as `err(...)`
+- boundary Outcome contexts contain `kind: quote(json)`, `operation: quote(decode|encode)`, `status: quote(decoded|encoded|error)`, and `reason`; malformed syntax adds 1-based `line`/`column`, duplicates add `key`, and unsupported encoding adds `value_type`
+- portable error reasons are `invalid_json`, `invalid_json_utf8`, `duplicate_json_key`, `json_number_out_of_range`, `invalid_json_unicode`, `json_nesting_too_deep`, and `unsupported_json_value`; host exception text is not portable
+- JSON decoding/serialization may be host-backed, but value mapping, facet placement, limits, deterministic output, Outcomes, and matching observations are portable; no parser/Core IR node or parallel JSON runtime value model is added
 - `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line and returns an Outcome with stable context metadata:
   - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
   - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed), line: <original_line>})`

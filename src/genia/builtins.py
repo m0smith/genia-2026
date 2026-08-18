@@ -20,6 +20,17 @@ from urllib.parse import parse_qsl, urlsplit
 from pathlib import Path
 from typing import Any, Callable, Iterable, Iterator, Optional
 
+
+_JSON_SAFE_INTEGER = 9_007_199_254_740_991
+_JSON_MAX_NESTING = 128
+
+
+class _JsonBoundaryFailure(Exception):
+    def __init__(self, reason: str, **context: Any):
+        super().__init__(reason)
+        self.reason = reason
+        self.context = context
+
 if __package__ in (None, ""):
     _src_root = Path(__file__).resolve().parents[1]
     if str(_src_root) not in sys.path:
@@ -783,6 +794,118 @@ def make_global_env(
                 result = result.put(k, _json_to_runtime(v))
             return result
         raise TypeError(f"json_parse produced unsupported host value: {type(value).__name__}")
+
+    def _json_boundary_context(operation: str, status: str, reason: str) -> GeniaMap:
+        return (
+            GeniaMap()
+            .put("kind", symbol("json"))
+            .put("operation", symbol(operation))
+            .put("status", symbol(status))
+            .put("reason", symbol(reason))
+        )
+
+    def _json_boundary_err(operation: str, failure: _JsonBoundaryFailure) -> GeniaOptionErr:
+        context = _json_boundary_context(operation, "error", failure.reason)
+        for key, value in failure.context.items():
+            context = context.put(key, value)
+        return GeniaOptionErr(symbol(failure.reason), context)
+
+    def _validate_json_string(value: str) -> None:
+        if any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+            raise _JsonBoundaryFailure("invalid_json_unicode")
+
+    def _strict_json_int(text: str) -> int:
+        value = int(text)
+        if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
+            raise _JsonBoundaryFailure("json_number_out_of_range")
+        return value
+
+    def _strict_json_float(text: str) -> float:
+        value = float(text)
+        if not math.isfinite(value):
+            raise _JsonBoundaryFailure("json_number_out_of_range")
+        return value
+
+    def _reject_json_constant(_text: str) -> Any:
+        raise _JsonBoundaryFailure("json_number_out_of_range")
+
+    def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise _JsonBoundaryFailure("duplicate_json_key", key=key)
+            result[key] = value
+        return result
+
+    def _strict_json_to_runtime(value: Any, depth: int = 0) -> Any:
+        if value is None:
+            return OPTION_NONE
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return value
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return value
+        if isinstance(value, str):
+            _validate_json_string(value)
+            return value
+        if isinstance(value, list):
+            next_depth = depth + 1
+            if next_depth > _JSON_MAX_NESTING:
+                raise _JsonBoundaryFailure("json_nesting_too_deep")
+            return [_strict_json_to_runtime(item, next_depth) for item in value]
+        if isinstance(value, dict):
+            next_depth = depth + 1
+            if next_depth > _JSON_MAX_NESTING:
+                raise _JsonBoundaryFailure("json_nesting_too_deep")
+            result = GeniaMap()
+            for key, item in value.items():
+                _validate_json_string(key)
+                result = result.put(key, _strict_json_to_runtime(item, next_depth))
+            return result
+        raise _JsonBoundaryFailure("invalid_json")
+
+    def _strict_json_from_runtime(value: Any, depth: int = 0) -> Any:
+        if _is_nil_none(value):
+            return None
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return value
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return value
+        if isinstance(value, str) and not isinstance(value, GeniaSymbol):
+            _validate_json_string(value)
+            return value
+        if isinstance(value, list):
+            next_depth = depth + 1
+            if next_depth > _JSON_MAX_NESTING:
+                raise _JsonBoundaryFailure("json_nesting_too_deep")
+            return [_strict_json_from_runtime(item, next_depth) for item in value]
+        if isinstance(value, GeniaMap):
+            next_depth = depth + 1
+            if next_depth > _JSON_MAX_NESTING:
+                raise _JsonBoundaryFailure("json_nesting_too_deep")
+            result: dict[str, Any] = {}
+            for key, item in value.items():
+                if not isinstance(key, str) or isinstance(key, GeniaSymbol):
+                    raise _JsonBoundaryFailure(
+                        "unsupported_json_value", value_type="map-key"
+                    )
+                _validate_json_string(key)
+                result[key] = _strict_json_from_runtime(item, next_depth)
+            return result
+        raise _JsonBoundaryFailure(
+            "unsupported_json_value", value_type=_runtime_type_name(value)
+        )
 
     def byte_length_fn(value: Any) -> int:
         return utf8_byte_length(_ensure_string(value, "byte_length"))
@@ -2945,6 +3068,46 @@ def make_global_env(
             return make_none("json-parse-error", context)
         return _json_to_runtime(parsed)
 
+    def json_decode_fn(value: Any) -> Any:
+        if isinstance(value, GeniaBytes):
+            try:
+                text = value.value.decode("utf-8")
+            except UnicodeDecodeError:
+                return _json_boundary_err(
+                    "decode", _JsonBoundaryFailure("invalid_json_utf8")
+                )
+        elif isinstance(value, str) and not isinstance(value, GeniaSymbol):
+            text = value
+        else:
+            raise TypeError(
+                "json_decode expected string or bytes, "
+                f"received {_runtime_type_name(value)}"
+            )
+
+        try:
+            parsed = json.loads(
+                text,
+                object_pairs_hook=_strict_json_object,
+                parse_int=_strict_json_int,
+                parse_float=_strict_json_float,
+                parse_constant=_reject_json_constant,
+            )
+            runtime_value = _strict_json_to_runtime(parsed)
+        except _JsonBoundaryFailure as failure:
+            return _json_boundary_err("decode", failure)
+        except json.JSONDecodeError as exc:
+            return _json_boundary_err(
+                "decode",
+                _JsonBoundaryFailure("invalid_json", line=exc.lineno, column=exc.colno),
+            )
+        except RecursionError:
+            return _json_boundary_err(
+                "decode", _JsonBoundaryFailure("json_nesting_too_deep")
+            )
+
+        context = _json_boundary_context("decode", "decoded", "decoded")
+        return GeniaOptionSome(GeniaRepresented("json", runtime_value), context)
+
     def _jsonl_context(status: str, reason: str, line: str) -> GeniaMap:
         return (
             GeniaMap()
@@ -3141,6 +3304,43 @@ def make_global_env(
                 .put("received", _runtime_type_name(value))
             )
             return make_none("json-stringify-error", context)
+
+    def json_encode_fn(value: Any) -> Any:
+        if isinstance(value, GeniaRepresented):
+            if value.facet != "json":
+                return _json_boundary_err(
+                    "encode",
+                    _JsonBoundaryFailure(
+                        "unsupported_json_value", value_type="represented"
+                    ),
+                )
+            value = value.value
+
+        try:
+            serializable = _strict_json_from_runtime(value)
+            text = json.dumps(
+                serializable,
+                indent=2,
+                ensure_ascii=False,
+                sort_keys=True,
+                allow_nan=False,
+            )
+        except _JsonBoundaryFailure as failure:
+            return _json_boundary_err("encode", failure)
+        except (TypeError, ValueError):
+            return _json_boundary_err(
+                "encode", _JsonBoundaryFailure("unsupported_json_value", value_type="unknown")
+            )
+        except RecursionError:
+            return _json_boundary_err(
+                "encode", _JsonBoundaryFailure("json_nesting_too_deep")
+            )
+
+        context = _json_boundary_context("encode", "encoded", "encoded")
+        return GeniaOptionSome(text, context)
+
+    json_decode_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    json_encode_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def _http_headers_to_runtime(headers: Iterable[tuple[str, str]]) -> GeniaMap:
         result = GeniaMap()
@@ -3951,9 +4151,11 @@ def make_global_env(
     env.set("_resource_meta", resource_meta_fn)
     env.set("_resource_capabilities", resource_capabilities_fn)
     env.set("_json_parse", json_parse_fn)
+    env.set("_json_decode", json_decode_fn)
     env.set("_parse_jsonl_record", parse_jsonl_record_fn)
     env.set("_parse_csv_row", parse_csv_row_fn)
     env.set("_json_stringify", json_stringify_fn)
+    env.set("_json_encode", json_encode_fn)
     env.set("_serve_http", serve_http_fn)
     env.set("_with_headers", with_headers_fn)
     env.set("_cors", cors_fn)
@@ -4129,10 +4331,12 @@ def make_global_env(
     env.register_autoload("parse_int", 1, "std/prelude/string.genia")
     env.register_autoload("parse_int", 2, "std/prelude/string.genia")
     env.register_autoload("json_parse", 1, "std/prelude/json.genia")
+    env.register_autoload("json_decode", 1, "std/prelude/json.genia")
     env.register_autoload("parse_jsonl_record", 1, "std/prelude/json.genia")
     env.register_autoload("parse_csv_row", 1, "std/prelude/json.genia")
     env.register_autoload("parse_csv_row", 2, "std/prelude/json.genia")
     env.register_autoload("json_stringify", 1, "std/prelude/json.genia")
+    env.register_autoload("json_encode", 1, "std/prelude/json.genia")
     env.register_autoload("json_pretty", 1, "std/prelude/json.genia")
     env.register_autoload("read_file", 1, "std/prelude/file.genia")
     env.register_autoload("write_file", 2, "std/prelude/file.genia")

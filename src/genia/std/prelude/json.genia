@@ -5,6 +5,13 @@ Returns `none("json-parse-error", context)` on parse/type failures.
 """
 json_parse(value) = _json_parse(value)
 
+@doc """Decode JSON text or UTF-8 bytes through the portable JSON representation boundary.
+
+Returns `some(represented_value, context)` on success.
+Returns `err(reason, context)` for recoverable JSON data failures.
+"""
+json_decode(value) = _json_decode(value)
+
 @doc """Parse one JSONL object record into an Outcome.
 
 Returns `some(record, context)` for JSON objects.
@@ -30,6 +37,13 @@ Object keys are sorted and output uses 2-space indentation.
 Returns `none("json-stringify-error", context)` when the value is not JSON-compatible.
 """
 json_stringify(value) = _json_stringify(value)
+
+@doc """Encode a supported ordinary or `json`-represented value as deterministic JSON.
+
+Returns `some(text, context)` on success.
+Returns `err(reason, context)` for unsupported or out-of-contract values.
+"""
+json_encode(value) = _json_encode(value)
 
 @doc "Compatibility alias for `json_stringify`."
 json_pretty(value) = json_stringify(value)

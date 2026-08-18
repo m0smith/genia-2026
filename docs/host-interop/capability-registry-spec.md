@@ -146,6 +146,8 @@ Prohibited phrasings: "will be implemented", "planned", "experimental" (without 
 | `bytes.utf8-decode` | `Python-host-only` |
 | `json.parse` | `Python-host-only` |
 | `json.stringify` | `Python-host-only` |
+| `json.decode` | `language contract` |
+| `json.encode` | `language contract` |
 | `zip.entries` | `Python-host-only` |
 | `zip.write` | `Python-host-only` |
 
@@ -412,6 +414,24 @@ Each sub-section below defines the exact contract that `capabilities.md` must re
 - **errors:** none raised — failures return structured `none("json-stringify-error", context)`, not exceptions
 - **portability:** `Python-host-only`
 - **notes:** Current output format: `indent=2`, sorted keys. `json_pretty` is a compatibility alias for `json_stringify`. Internal bridge primitive is `_json_stringify`.
+
+### 6.27a `json.decode`
+
+- **genia_surface:** `json_decode(string_or_bytes)`
+- **input:** String or opaque Bytes containing strict UTF-8 JSON
+- **output:** `some(represent("json", ordinary_value), context)` or normalized `err(reason, context)`
+- **errors:** `TypeError` for an input that is neither String nor Bytes; recoverable JSON data failures are `err` Outcomes
+- **portability:** `language contract`
+- **notes:** Duplicate keys, unsafe integers, non-finite numbers, invalid UTF-8/Unicode, malformed text, and nesting beyond 128 containers are rejected portably.
+
+### 6.27b `json.encode`
+
+- **genia_surface:** `json_encode(value)`
+- **input:** a supported ordinary JSON-domain value or one outer `json`-represented supported value
+- **output:** `some(deterministic_json_text, context)` or normalized `err(reason, context)`
+- **errors:** unsupported/out-of-contract data is an `err` Outcome
+- **portability:** `language contract`
+- **notes:** Output is two-space-indented with sorted object names and preserved array order; no other facet is implicitly stripped.
 
 ### 6.28 `zip.entries`
 

@@ -467,6 +467,7 @@ Implemented foundation:
 - E9-2 / issue #570: ordered carrier facets and one-layer representation-aware matching reuse those Templates.
 - E9-3 / issue #89: boolean refinement lifting and open ordinary-map shapes require listed fields, accept extras, and preserve the original map.
 - E9-4 / issue #90: exact ordinary-map shapes require equal field sets and preserve ordinary map values without nominal Struct/layout behavior.
+- E9-5 / issue #571: strict JSON decode/encode maps ordinary values through one outer `json` facet with normalized Outcomes and portable duplicate, number, Unicode, and nesting limits.
 
 Theme:
 
@@ -533,6 +534,7 @@ Issue guidance:
 - **#570** is the implemented E9-2 generic carrier and matching slice.
 - **#89** is the implemented E9-3 refinement/open structural Template slice.
 - **#90** is the implemented E9-4 exact/closed structural Template slice.
+- **#571** is the implemented E9-5 JSON representation boundary.
 - **#91** retains broad historical scope and must be reconciled with the approved E9 sequence before use as a blocker.
 
 ---

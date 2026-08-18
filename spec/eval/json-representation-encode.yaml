@@ -1,0 +1,18 @@
+name: json-representation-encode
+category: eval
+description: JSON encoding accepts represented or ordinary values and emits deterministic text
+input:
+  source: |
+    value = {z: [3, 2, 1], a: "é"}
+    expected = "{\n  \"a\": \"é\",\n  \"z\": [\n    3,\n    2,\n    1\n  ]\n}"
+    decoded = unwrap_or({}, json_decode(unwrap_or("", json_encode(value))))
+    roundtrip = unwrap_or({}, representation_match("json", decoded))
+    [
+      unwrap_or("", json_encode(value)) == expected,
+      unwrap_or("", json_encode(represent("json", value))) == expected,
+      roundtrip.a == "é"
+    ]
+expected:
+  stdout: "[true, true, true]\n"
+  stderr: ""
+  exit_code: 0
