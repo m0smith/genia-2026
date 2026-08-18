@@ -55,6 +55,11 @@
     "expected_result": "\"Hello Alice!\""
   },
   {
+    "id": "core-representation-match",
+    "source": "pattern Json(value) = representation_match(\"json\", value)\nread(value) =\n  Json({id}) -> id\nread(represent(\"json\", {id: 7}))",
+    "expected_result": "7"
+  },
+  {
     "id": "core-format-positional",
     "source": "format(\"Item {0} costs {1}\", [\"apple\", \"5\"])",
     "expected_result": "\"Item apple costs 5\""

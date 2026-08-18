@@ -93,6 +93,20 @@ Required constraints:
 - named-pattern use keeps section 6.1 behavior and matches its nested pattern against the `some(...)` payload
 - no implicit Template application, metadata behavior, structural shape syntax, or representation behavior is introduced
 
+## 6.3) Carrier representation invariants (Experimental)
+
+- `represent(facet, value)` requires a non-empty string and adds exactly one outer facet without mutating the carried value
+- facets are ordered nested layers; order and duplicate layers participate in equality
+- represented values are unequal to their unrepresented carried values
+- a represented map key is supported only when its carried value is supported by ordinary map-key rules; its frozen key remains distinct from the carried key
+- `representation_match(facet, value)` returns `some(carried)` for the exact outer facet and `none("representation-mismatch")` for an ordinary value or another outer facet; it never searches inner layers
+- a named Template returning `representation_match(...)` composes through existing `Name(inner)`, `@?`, `@!`, and `&` rules; nested pattern matching consumes only the explicitly matched layer
+- `strip_representation(facet, value)` removes one exact outer layer; non-represented input and wrong outer facets are runtime misuse
+- assignment, argument passing, return, collection/Sheet storage, pipeline transport, and Seq/Flow transport preserve the represented value unchanged
+- operations deriving new values do not copy carrier facets unless their own separately approved contract says so
+- generic represented values render as `<represented>` for both display and debug; facet names and carried payloads are not exposed
+- carrier representation is distinct from the existing rendering/Format system and introduces no JSON, secret protection/declassification, new syntax, or Core IR node
+
 ## 7) Spread semantics
 
 - list literal spread requires list value at runtime

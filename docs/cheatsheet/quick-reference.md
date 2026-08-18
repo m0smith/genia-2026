@@ -32,6 +32,21 @@ sum([x, ..rest]) = x + sum(rest)
 head([x, .._]) = x
 ```
 
+Experimental carrier representations reuse named Templates:
+
+[case: quick-representation-match]
+```genia
+pattern Json(value) = representation_match("json", value)
+read(value) =
+  Json({id}) -> id
+read(represent("json", {id: 7}))
+```
+Classification: **Valid** (directly tested, Experimental)
+
+`representation_match` returns `none("representation-mismatch")` for an
+ordinary mismatch. `strip_representation` explicitly removes one matching
+outer layer. Generic represented values render as `<represented>`.
+
 ## Outcome / Absence
 
 Outcome values distinguish successful presence (`some(value)`), successful absence (`none(...)`), and recoverable failure (`err(...)`). err(...) is not converted to `none(...)`.

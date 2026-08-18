@@ -172,6 +172,9 @@ CLI contract summary (actual behavior):
   - guards with `?`
   - named reusable patterns (`pattern Name(value) = body` / `Name(inner_pattern)`) — Experimental; the body must return an Outcome value: `some(...)` (match success), `none(...)` (pattern miss), or `err(...)` (recoverable failure, does not fall through as a miss)
   - Template values — Experimental; a named reusable pattern is an ordinary one-argument Outcome matcher that can be stored, passed, returned, imported, called directly, and used by higher-order functions; direct calls return the matcher Outcome unchanged, while `@?`/`@!` keep their original-subject behavior
+  - carrier representations — Experimental; `represent(facet, value)` adds one ordered outer facet, `representation_match(facet, value)` returns `some(carried)` or `none("representation-mismatch")`, and `strip_representation(facet, value)` explicitly removes one matching outer layer
+  - representation-aware matching reuses named Templates: `pattern Name(value) = representation_match("facet", value)` enables `Name(inner)` without new syntax or a second matcher namespace
+  - represented values transport unchanged through ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells; derived values do not inherit facets implicitly; generic display/debug output is opaque as `<represented>`
 - case expressions in function bodies and as final expression in a block
 - conditionals expressed only through pattern matching in function definitions/case expressions; lambdas can pattern-match a single parameter arm but do not support multi-arm lambda syntax
 - function resolution with fixed arity + varargs precedence
@@ -198,7 +201,7 @@ CLI contract summary (actual behavior):
   - prelude helper docs are Markdown docstrings and display through `help("name")`
 - builtins:
   - direct I/O/runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdout`, `stderr`, `help`
-  - first Representation System entry points:
+  - first rendering/Representation System entry points (separate from carrier representations):
     - representation renders values as strings for output and debugging
     - representation does not change value identity
     - representation is separate from value templates; value templates describe or constrain values, while representation formats describe output strings
