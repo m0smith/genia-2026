@@ -1,0 +1,13 @@
+name: json-representation-number-boundaries
+category: eval
+description: JSON uses safe integers and finite binary64 fractional numbers
+input:
+  source: |
+    low = unwrap_or(0, json_decode("-9007199254740991")) |> representation_match(quote(json)) |> unwrap_or(0)
+    high = unwrap_or(0, json_decode("9007199254740991")) |> representation_match(quote(json)) |> unwrap_or(0)
+    fraction = unwrap_or(0, json_decode("1.5")) |> representation_match(quote(json)) |> unwrap_or(0)
+    [low, high, fraction]
+expected:
+  stdout: "[-9007199254740991, 9007199254740991, 1.5]\n"
+  stderr: ""
+  exit_code: 0

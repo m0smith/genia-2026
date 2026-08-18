@@ -1,0 +1,17 @@
+name: json-representation-template-flow
+category: flow
+description: JSON boundary Outcomes compose with representation and structural Templates
+input:
+  source: |
+    pattern Present(value) = refinement_match((x) -> x != "", value)
+    pattern Person(value) = open_shape_match({name: Present}, value)
+    pattern JsonPerson(value) =
+      representation_match(quote(json), value) |> then_match(Person)
+    ["{\"name\":\"Ada\"}", "{\"name\":\"\"}", "{bad}"]
+      |> each(json_decode)
+      |> map((result) -> result |> then_match(JsonPerson))
+      |> collect
+expected:
+  stdout: "[some({name: \"Ada\"}), none(\"refinement-mismatch\"), err(invalid_json, {kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})]\n"
+  stderr: ""
+  exit_code: 0

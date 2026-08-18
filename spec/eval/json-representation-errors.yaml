@@ -1,0 +1,20 @@
+name: json-representation-errors
+category: eval
+description: JSON data failures are normalized err Outcomes
+input:
+  source: |
+    reason(result) =
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    [
+      reason(json_decode("{\"x\":")),
+      reason(json_decode("{\"x\":1,\"x\":2}")),
+      reason(json_decode("9007199254740992")),
+      reason(json_decode("1e400")),
+      reason(json_encode((x) -> x)),
+      reason(json_encode(represent(quote(csv), {x: 1})))
+    ]
+expected:
+  stdout: "[\"invalid_json\", \"duplicate_json_key\", \"json_number_out_of_range\", \"json_number_out_of_range\", \"unsupported_json_value\", \"unsupported_json_value\"]\n"
+  stderr: ""
+  exit_code: 0
