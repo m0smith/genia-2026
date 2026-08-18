@@ -1,7 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; E9-1 Template foundation through E9-4
-exact/closed structural matching implemented; later R9 slices not implemented.**
+Status: **Approved R9 design contract; E9-1 Template foundation through E9-5
+JSON representation boundary implemented; later R9 slices not implemented.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for
@@ -169,9 +169,10 @@ requires outer `json`, applies `Person` to the carried ordinary value, and binds
 recoverable decode/schema validation failure is `err`; malformed matcher use is
 a runtime error.
 
-## JSON boundary required by R9
+## JSON boundary implemented by E9-5
 
-E9-5 must provide this minimum portable behavior:
+E9-5 implements this minimum portable behavior through Experimental
+`json_decode` and `json_encode`:
 
 - Decode one JSON text/byte input to ordinary Genia map, list, string, number,
   boolean, or `nil` values and attach one outer `json` facet to the decoded root.
@@ -181,8 +182,10 @@ E9-5 must provide this minimum portable behavior:
 - Reject malformed JSON as `err(...)` with normalized boundary diagnostics.
 - Reject unsupported Genia values during encoding as `err(...)`; programmer
   misuse of the API remains a runtime error.
-- Define numeric range/precision and duplicate-object-key policy in E9-5 before
-  implementation; hosts must normalize their library behavior to that decision.
+- Reject duplicate object names. Integers use the exact interoperable range
+  `[-9007199254740991, 9007199254740991]`; fractional/exponent numbers use
+  finite binary64 semantics. Unicode must contain scalar values and nesting is
+  limited to 128 containers. Hosts normalize library behavior to these limits.
 - Keep file/network/environment acquisition outside JSON value semantics.
 
 JSON parsing/serialization may be supplied by a host capability. The value
@@ -241,7 +244,8 @@ Recommended order:
    explicit observation/strip operations, and representation-aware matching.
 3. E9-3: implemented by #89 — refinement and open structural templates for validated maps.
 4. E9-4: implemented by #90 — exact/closed structural templates without layout or nominal claims.
-5. E9-5: implement the minimum JSON boundary above.
+5. E9-5: implemented by #571 — strict Outcome-native JSON decode/encode over
+   ordinary values with one outer `json` carrier facet.
 6. E9-6: add the approved JSON Schema subset as template production.
 7. E9-7: prove `json(Person(x))` in an Outcome-aware validated pipeline.
 8. E9-8: perform release truth audit and distillation, including terminology and

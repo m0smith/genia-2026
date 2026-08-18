@@ -364,6 +364,16 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **portability:** `Python-host-only`
 - **notes:** JSON objects become runtime Map values (same family as `map_new`/`map_put`). Failures are returned as structured absence, not exceptions.
 
+#### `json.decode`
+
+- **name:** `json.decode`
+- **genia_surface:** `json_decode(string_or_bytes)`
+- **input:** String or opaque Bytes containing strict UTF-8 JSON
+- **output:** `some(represent("json", ordinary_value), context)` on success; normalized `err(reason, context)` on recoverable data failure
+- **errors:** `TypeError` for an input that is neither String nor Bytes; JSON data failures are Outcome values
+- **portability:** `language contract`
+- **notes:** The Python host supplies parsing, but duplicate rejection, safe-integer/finite-binary64 limits, Unicode scalar validation, 128-container nesting, ordinary-value mapping, outer facet placement, and Outcome observations are portable.
+
 #### `json.stringify`
 
 - **name:** `json.stringify`
@@ -373,6 +383,16 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **errors:** none raised — stringify failures return `none("json-stringify-error", context)` as structured absence
 - **portability:** `Python-host-only`
 - **notes:** Current output format uses 2-space indentation and sorted keys. `json_pretty` is a compatibility alias for `json_stringify`.
+
+#### `json.encode`
+
+- **name:** `json.encode`
+- **genia_surface:** `json_encode(value)`
+- **input:** a supported ordinary JSON-domain value or one outer `json`-represented supported value
+- **output:** `some(deterministic_json_text, context)` on success; normalized `err(reason, context)` on unsupported/out-of-contract data
+- **errors:** recoverable unsupported, number, Unicode, and nesting failures are Outcome values
+- **portability:** `language contract`
+- **notes:** Output uses two-space indentation, sorted object member names, direct Unicode scalars, and preserved array order. No other representation layer is stripped.
 
 #### `zip.entries`
 

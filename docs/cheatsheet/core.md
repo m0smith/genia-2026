@@ -38,11 +38,14 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | open map Template | `open_shape_match({field: Template}, value)`; listed fields required, extras preserved |
 | exact map Template | `exact_shape_match({field: Template}, value)`; precisely listed fields required |
 | represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
+| JSON representation boundary | `json_decode(text_or_bytes)` and `json_encode(value)` return Outcomes; decoded roots carry one outer `"json"` facet |
 | guard | `(x) ? x > 0 -> ...` |
 
 Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence. A named Template is an Experimental first-class one-argument Outcome matcher: it can be stored, passed, returned, imported, called, or used by higher-order functions. Direct calls return the matcher Outcome unchanged.
 
 Carrier facets are Experimental ordered layers. A representation-aware named Template returns `representation_match(...)`; matching consumes one requested outer layer, while ordinary transport preserves the represented value and generic display/debug output remains `<represented>`.
+
+`json_decode`/`json_encode` are the Experimental portable JSON boundary. Decode success contains one `"json"`-represented ordinary root; encode accepts that value or a supported ordinary JSON-domain value. Duplicate names, unsafe/non-finite numbers, invalid UTF-8/Unicode, nesting beyond 128 containers, malformed input, and unsupported encoding values are `err` Outcomes. Legacy `json_parse`/`json_stringify` behavior is unchanged.
 
 Refinement and open structural helpers are Experimental and reuse existing named Templates. Open structural success preserves the complete original map rather than applying nested success payloads as transformations.
 

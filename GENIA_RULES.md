@@ -898,9 +898,12 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - required builtins:
   - `utf8_decode`, `utf8_encode`
   - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
+  - internal portable JSON boundary primitives: `_json_decode`, `_json_encode`
   - `zip_entries`, `zip_write`
   - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
 - public JSON helpers are prelude-backed wrappers in `src/genia/std/prelude/json.genia`:
+  - `json_decode(string_or_bytes)` returns `some(represent("json", ordinary_value), context)` or a normalized `err(reason, context)` (**Experimental**)
+  - `json_encode(value)` returns `some(deterministic_json_text, context)` or a normalized `err(reason, context)` (**Experimental**)
   - `json_parse(string)`
   - `json_stringify(value)`
   - `json_pretty(value)` compatibility alias for `json_stringify(value)`
@@ -910,6 +913,9 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - JSON parse/stringify failures return structured `none(...)` values:
   - parse failures: `none("json-parse-error", context)`
   - stringify failures: `none("json-stringify-error", context)`
+- the portable JSON boundary rejects duplicate object names, integers outside the exact interoperable range `[-9007199254740991, 9007199254740991]`, non-finite/overflow binary64 numbers, non-scalar Unicode, invalid UTF-8 byte input, and nesting beyond 128 containers
+- `json_encode` supports ordinary JSON-domain values or exactly one outer `json` representation; it sorts object names, preserves list order, uses two-space indentation, and never silently strips another facet or coerces an unsupported value
+- portable JSON data failures are `err`; `json_decode` input types other than string/bytes are runtime misuse; legacy JSON helpers remain unchanged
 - this bridge does not introduce a generalized Flow system
 
 ## 15) Documentation + tests as contract
