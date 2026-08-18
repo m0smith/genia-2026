@@ -8,8 +8,8 @@ input:
       _ -> none("not-positive")
     identity(value) = value
     apply_template(template, value) = template(value)
-    templates = [identity(Positive)]
-    [apply_template(templates[0], 3), map(templates[0], [2, -1])]
+    templates = {positive: identity(Positive)}
+    [apply_template(templates.positive, 3), map(templates.positive, [2, -1])]
 expected:
   stdout: "[some(3), [some(2), none(\"not-positive\")]]\n"
   stderr: ""
