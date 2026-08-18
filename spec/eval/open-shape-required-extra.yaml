@@ -1,0 +1,17 @@
+name: open-shape-required-extra
+category: eval
+description: Open shapes require declared fields and preserve undeclared fields on success
+input:
+  source: |
+    pattern Present(value) = refinement_match((x) -> x != "", value)
+    pattern Adult(value) = refinement_match((age) -> age >= 18, value)
+    pattern Person(value) = open_shape_match({name: Present, age: Adult}, value)
+    [
+      Person({name: "Ada", age: 37, source: "csv"}),
+      Person({name: "Ada"}),
+      Person("Ada")
+    ]
+expected:
+  stdout: "[some({name: \"Ada\", age: 37, source: \"csv\"}), none(\"open-shape-missing-field\", {field: \"age\"}), none(\"open-shape-mismatch\")]\n"
+  stderr: ""
+  exit_code: 0

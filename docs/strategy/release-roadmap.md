@@ -463,7 +463,9 @@ not make its candidate syntax or behavior implemented.
 
 Implemented foundation:
 
-- E9-1 / issue #399: named reusable patterns are first-class callable Template values over the existing one-argument Outcome matcher contract. Later structural-shape and representation slices remain planned.
+- E9-1 / issue #399: named reusable patterns are first-class callable Template values over the existing one-argument Outcome matcher contract.
+- E9-2 / issue #570: ordered carrier facets and one-layer representation-aware matching reuse those Templates.
+- E9-3 / issue #89: boolean refinement lifting and open ordinary-map shapes require listed fields, accept extras, and preserve the original map.
 
 Theme:
 
@@ -527,7 +529,9 @@ Exit criterion:
 Issue guidance:
 
 - **#399** is the implemented E9-1 Template foundation.
-- Existing issues **#89 / #91** retain broad historical scope and must be reconciled with the approved E9 sequence before use as blockers.
+- **#570** is the implemented E9-2 generic carrier and matching slice.
+- **#89** is the implemented E9-3 refinement/open structural Template slice.
+- **#91** retains broad historical scope and must be reconciled with the approved E9 sequence before use as a blocker.
 
 ---
 

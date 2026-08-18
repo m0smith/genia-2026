@@ -1,0 +1,13 @@
+name: error-refinement-match-predicate-result
+category: error
+description: Refinement matching requires a boolean predicate result
+input:
+  source: |
+    refinement_match((x) -> x, 2)
+expected:
+  stdout: ""
+  stderr: "Error: refinement_match predicate must return bool, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

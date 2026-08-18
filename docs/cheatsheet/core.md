@@ -34,12 +34,24 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | map (partial) | `{name}`, `{name: n}` |
 | Outcome constructor | `some(x)`, `some(x, ctx)`, `none`, `none(reason)`, `none(reason, ctx)`, `err(reason)`, `err(reason, ctx)` |
 | named Template | declaration: `pattern Name(value) = body`; pattern use: `Name(inner)`; direct call: `Name(value)` |
+| refinement Template | `refinement_match(predicate, value)`; true preserves the subject, false is a mismatch |
+| open map Template | `open_shape_match({field: Template}, value)`; listed fields required, extras preserved |
 | represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
 | guard | `(x) ? x > 0 -> ...` |
 
 Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence. A named Template is an Experimental first-class one-argument Outcome matcher: it can be stored, passed, returned, imported, called, or used by higher-order functions. Direct calls return the matcher Outcome unchanged.
 
 Carrier facets are Experimental ordered layers. A representation-aware named Template returns `representation_match(...)`; matching consumes one requested outer layer, while ordinary transport preserves the represented value and generic display/debug output remains `<represented>`.
+
+Refinement and open structural helpers are Experimental and reuse existing named Templates. Open structural success preserves the complete original map rather than applying nested success payloads as transformations.
+
+<!-- [case: core-open-shape-template] -->
+```genia
+pattern Present(value) = refinement_match((x) -> x != "", value)
+pattern Person(value) = open_shape_match({name: Present}, value)
+Person({name: "Ada", source: "csv"})
+```
+Classification: **Valid** (directly tested, Experimental)
 
 <!-- [case: core-representation-match] -->
 ```genia

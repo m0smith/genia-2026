@@ -1,0 +1,15 @@
+name: open-shape-outcome-order
+category: eval
+description: Open shapes propagate the first nested failure Outcome in field specification order
+input:
+  source: |
+    pattern Miss(value) = none("first-miss", {seen: value})
+    pattern Fail(value) = err("second-error", {seen: value})
+    [
+      open_shape_match({first: Miss, second: Fail}, {first: 1, second: 2}),
+      open_shape_match({second: Fail, first: Miss}, {first: 1, second: 2})
+    ]
+expected:
+  stdout: "[none(\"first-miss\", {seen: 1}), err(\"second-error\", {seen: 2})]\n"
+  stderr: ""
+  exit_code: 0

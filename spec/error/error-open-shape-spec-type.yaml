@@ -1,0 +1,13 @@
+name: error-open-shape-spec-type
+category: error
+description: Open shape matching requires an ordinary map field specification
+input:
+  source: |
+    open_shape_match([], {})
+expected:
+  stdout: ""
+  stderr: "Error: open_shape_match expected field Templates map, received list\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

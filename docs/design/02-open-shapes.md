@@ -1,93 +1,24 @@
 # Open Shape Templates (Flexible Structure)
 
-## Purpose
+Status: **Implemented, Experimental (R9 E9-3)**
 
-Open shapes define flexible structure.
+Open shapes structurally check ordinary maps through the existing Outcome
+Template protocol.
 
-They answer:
-> “This value has at least this structure.”
+```genia
+pattern Present(value) = refinement_match((x) -> x != "", value)
+pattern Person(value) = open_shape_match({name: Present}, value)
+Person({name: "Ada", source: "csv"})
+```
 
----
+`open_shape_match(fields, value)` takes an ordinary map from string field names
+to callable Templates. Every listed field is required; extra fields are allowed
+and preserved. Success returns `some(original_map)`.
 
-## Core Idea
+Specifications and fields are checked in specification insertion order. A
+non-map or missing field is an ordinary mismatch. Nested Template `none` and
+`err` Outcomes propagate unchanged; a nested `some` payload establishes
+compatibility without transforming the record.
 
-An open shape is a set of fields:
-
-    {name, email}
-
----
-
-## Named Patterns
-
-Open shapes can be named:
-
-    User = {name, email}
-
-Usage:
-
-    User({name, email})
-
----
-
-## Matching Behavior
-
-    match value
-      User({name, email}) -> ...
-
-Extra fields are allowed.
-
----
-
-## Partial Matching
-
-Patterns may match subsets:
-
-    Named = {name}
-
-    match value
-      Named({name}) -> ...
-
----
-
-## Composition
-
-Shapes compose:
-
-    a = {name: "Matt"}
-    b = {email: "m@example.com"}
-
-    c = merge(a, b)
-
----
-
-## Key Properties
-
-- Structural (not nominal)
-- Extensible
-- Partial matching allowed
-- Field order does not matter
-
----
-
-## Use Cases
-
-- JSON data
-- API responses
-- pipeline transformations
-
----
-
-## Failure Behavior
-
-- Missing required fields → pattern miss
-
----
-
-## Non-Goals
-
-Open shapes do NOT:
-
-- guarantee layout
-- guarantee performance
-- enforce exact structure
-- replace closed shapes
+Open shapes add no declaration syntax, nominal identity, fixed layout,
+coercion, exact/closed matching, or validation-error aggregation.

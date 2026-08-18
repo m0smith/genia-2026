@@ -60,6 +60,11 @@
     "expected_result": "7"
   },
   {
+    "id": "core-open-shape-template",
+    "source": "pattern Present(value) = refinement_match((x) -> x != \"\", value)\npattern Person(value) = open_shape_match({name: Present}, value)\nPerson({name: \"Ada\", source: \"csv\"})",
+    "expected_result": "some({name: \"Ada\", source: \"csv\"})"
+  },
+  {
     "id": "core-format-positional",
     "source": "format(\"Item {0} costs {1}\", [\"apple\", \"5\"])",
     "expected_result": "\"Item apple costs 5\""

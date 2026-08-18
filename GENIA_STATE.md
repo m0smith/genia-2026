@@ -1027,7 +1027,12 @@ Template semantics (Experimental):
 - direct Template calls return the matcher Outcome unchanged, including a transformed `some(...)` payload and any reason/context
 - direct Template calls require an Outcome result; a non-Outcome result raises `named pattern <Name> returned non-Outcome value`
 - `@?`, `@!`, `&`, and `Name(inner_pattern)` retain their implemented original-subject, short-circuit, and payload-matching behavior
-- Template metadata, open/refinement shapes, exact/closed shapes, JSON, and JSON Schema are not implemented in this phase
+- `refinement_match(predicate, value)` lifts an existing one-argument boolean predicate into a Template result: `true` returns `some(value)` and `false` returns `none("refinement-mismatch")`; a non-callable predicate or non-boolean result is runtime misuse
+- `open_shape_match(fields, value)` treats an ordinary map of string field names to callable Templates as an open structural specification; a matching ordinary map must contain every listed field, may contain extras, and returns the original complete map in `some`
+- open-shape field specifications and checks run in specification insertion order; missing fields return `none("open-shape-missing-field", {field: name})`, non-map subjects return `none("open-shape-mismatch")`, and a nested Template `none` or `err` is propagated unchanged
+- nested Template `some(payload)` establishes compatibility only; open-shape matching does not transform the field or subject
+- refinement/open-shape helpers compose through existing direct calls, `Name(inner_pattern)`, `@?`, `@!`, and `&`; they add no syntax, nominal identity, or runtime shape category
+- Template metadata, exact/closed shapes, JSON, and JSON Schema are not implemented in this phase
 
 Carrier representation semantics (Experimental):
 

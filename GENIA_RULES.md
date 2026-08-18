@@ -91,7 +91,11 @@ Required constraints:
 - ordinary call arity rules apply to direct Template calls
 - matcher operators keep their section 9.7 behavior: `@?` and `@!` retain the original subject on success, and `&` applies both matchers to the original subject
 - named-pattern use keeps section 6.1 behavior and matches its nested pattern against the `some(...)` payload
-- no implicit Template application, metadata behavior, structural shape syntax, or representation behavior is introduced
+- `refinement_match(predicate, value)` returns `some(value)` only when its callable predicate returns `true`; `false` returns `none("refinement-mismatch")`, and a non-boolean predicate result is misuse
+- `open_shape_match(fields, value)` requires an ordinary string-keyed map of callable Templates; declared fields are required, extras are allowed and preserved, and success returns the original complete map
+- open-shape specification validation and field matching follow specification insertion order; non-map and missing-field mismatches are `none`, while nested Template `none`/`err` values propagate unchanged
+- a nested field Template success payload establishes compatibility but never transforms the subject
+- no implicit Template application, metadata behavior, structural declaration syntax, nominal shape category, or representation behavior is introduced
 
 ## 6.3) Carrier representation invariants (Experimental)
 
