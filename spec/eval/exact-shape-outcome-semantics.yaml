@@ -1,0 +1,17 @@
+name: exact-shape-outcome-semantics
+category: eval
+description: Exact shapes ignore nested success payloads and propagate the first nested failure unchanged
+input:
+  source: |
+    pattern Shift(value) = some(value + 1)
+    pattern Miss(value) = none("field-miss", {seen: value})
+    pattern Fail(value) = err("field-error", {seen: value})
+    [
+      exact_shape_match({count: Shift}, {count: 4}),
+      exact_shape_match({first: Miss, second: Fail}, {first: 1, second: 2}),
+      exact_shape_match({second: Fail, first: Miss}, {first: 1, second: 2})
+    ]
+expected:
+  stdout: "[some({count: 4}), none(\"field-miss\", {seen: 1}), err(\"field-error\", {seen: 2})]\n"
+  stderr: ""
+  exit_code: 0

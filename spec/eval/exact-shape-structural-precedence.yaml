@@ -1,0 +1,14 @@
+name: exact-shape-structural-precedence
+category: eval
+description: Exact shapes report ordered structural mismatch before invoking field Templates
+input:
+  source: |
+    pattern Fail(value) = err("field-ran", {seen: value})
+    [
+      exact_shape_match({first: Fail, second: Fail}, {extra1: 1, extra2: 2}),
+      exact_shape_match({first: Fail}, {first: 1, extra1: 2, extra2: 3})
+    ]
+expected:
+  stdout: "[none(\"exact-shape-missing-field\", {field: \"first\"}), none(\"exact-shape-extra-field\", {field: \"extra1\"})]\n"
+  stderr: ""
+  exit_code: 0

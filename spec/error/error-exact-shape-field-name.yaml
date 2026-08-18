@@ -1,0 +1,15 @@
+name: error-exact-shape-field-name
+category: error
+description: Exact shape matching requires string field names
+input:
+  source: |
+    pattern Any(value) = some(value)
+    fields = map_put({}, 1, Any)
+    exact_shape_match(fields, {})
+expected:
+  stdout: ""
+  stderr: "Error: exact_shape_match expected string field name, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

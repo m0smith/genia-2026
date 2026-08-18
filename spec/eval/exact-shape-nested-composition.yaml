@@ -1,0 +1,14 @@
+name: exact-shape-nested-composition
+category: eval
+description: Exact shapes compose with open shapes and refinements without transforming nested maps
+input:
+  source: |
+    pattern Present(value) = refinement_match((x) -> x != "", value)
+    pattern Adult(value) = refinement_match((age) -> age >= 18, value)
+    pattern Address(value) = open_shape_match({city: Present}, value)
+    pattern Person(value) = exact_shape_match({name: Present, age: Adult, address: Address}, value)
+    Person({name: "Ada", age: 37, address: {city: "London", source: "api"}})
+expected:
+  stdout: "some({name: \"Ada\", age: 37, address: {city: \"London\", source: \"api\"}})\n"
+  stderr: ""
+  exit_code: 0
