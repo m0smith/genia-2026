@@ -12,4 +12,3 @@ expected:
 notes: |
   error_phase: eval
   error_category: TypeError
-

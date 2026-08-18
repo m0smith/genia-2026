@@ -8,7 +8,6 @@ from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import execute_spec
 from tools.spec_runner.loader import discover_specs, load_spec
 
-
 REPO = Path(__file__).resolve().parents[2]
 
 REQUIRED_TEMPLATE_MATCHER_ERROR_SPECS = {
