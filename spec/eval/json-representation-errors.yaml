@@ -12,7 +12,7 @@ input:
       reason(json_decode("9007199254740992")),
       reason(json_decode("1e400")),
       reason(json_encode((x) -> x)),
-      reason(json_encode(represent(quote(csv), {x: 1})))
+      reason(json_encode(represent("csv", {x: 1})))
     ]
 expected:
   stdout: "[\"invalid_json\", \"duplicate_json_key\", \"json_number_out_of_range\", \"json_number_out_of_range\", \"unsupported_json_value\", \"unsupported_json_value\"]\n"

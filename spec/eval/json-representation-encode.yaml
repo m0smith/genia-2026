@@ -5,12 +5,12 @@ input:
   source: |
     value = {z: [3, 2, 1], a: "é"}
     expected = "{\n  \"a\": \"é\",\n  \"z\": [\n    3,\n    2,\n    1\n  ]\n}"
+    decoded = unwrap_or({}, json_decode(unwrap_or("", json_encode(value))))
+    roundtrip = unwrap_or({}, representation_match("json", decoded))
     [
       unwrap_or("", json_encode(value)) == expected,
-      unwrap_or("", json_encode(represent(quote(json), value))) == expected,
-      unwrap_or({}, json_decode(unwrap_or("", json_encode(value))))
-        |> representation_match(quote(json))
-        |> unwrap_or({}) == value
+      unwrap_or("", json_encode(represent("json", value))) == expected,
+      roundtrip.a == "é"
     ]
 expected:
   stdout: "[true, true, true]\n"

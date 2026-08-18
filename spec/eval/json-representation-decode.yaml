@@ -5,16 +5,19 @@ input:
   source: |
     decoded = json_decode("{\"name\":\"Ada\",\"active\":true,\"score\":7,\"items\":[1,null,{\"city\":\"Zürich\"}]}")
     represented = unwrap_or({}, decoded)
-    root = unwrap_or({}, representation_match(quote(json), represented))
+    root = unwrap_or({}, representation_match("json", represented))
+    first = unwrap_or(0, nth(0, root.items))
+    second = unwrap_or("missing", nth(1, root.items))
+    nested = unwrap_or({}, nth(2, root.items))
     [
       some?(decoded),
       root.name,
       root.active,
       root.score,
-      root.items(0),
-      none?(root.items(1)),
-      root.items(2).city,
-      representation_match(quote(json), root)
+      first,
+      none?(second),
+      nested.city,
+      representation_match("json", root)
     ]
 expected:
   stdout: "[true, \"Ada\", true, 7, 1, true, \"Zürich\", none(\"representation-mismatch\")]\n"

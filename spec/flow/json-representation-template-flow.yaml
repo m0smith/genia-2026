@@ -5,13 +5,16 @@ input:
   source: |
     pattern Present(value) = refinement_match((x) -> x != "", value)
     pattern Person(value) = open_shape_match({name: Present}, value)
-    pattern JsonPerson(value) =
-      representation_match(quote(json), value) |> then_match(Person)
+    pattern Json(value) = representation_match("json", value)
+    validate_json_person(value) =
+      Json(Person(record)) -> some(record) |
+      Json(_) -> none("json-person-mismatch") |
+      _ -> none("representation-mismatch")
     ["{\"name\":\"Ada\"}", "{\"name\":\"\"}", "{bad}"]
-      |> each(json_decode)
-      |> map((result) -> result |> then_match(JsonPerson))
+      |> map(json_decode)
+      |> ((decoded) -> validate_each(decoded, validate_json_person))
       |> collect
 expected:
-  stdout: "[some({name: \"Ada\"}), none(\"refinement-mismatch\"), err(invalid_json, {kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})]\n"
+  stdout: "[some({name: \"Ada\"}), none(\"json-person-mismatch\"), err(invalid_json, {kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})]\n"
   stderr: ""
   exit_code: 0
