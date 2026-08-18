@@ -1,0 +1,18 @@
+name: template-alias-composition
+category: eval
+description: Stored named templates compose through existing matcher operators without changing their semantics
+input:
+  source: |
+    pattern Positive(n) =
+      value ? value > 0 -> some(value) |
+      _ -> none("not-positive")
+    pattern Even(n) =
+      value ? value % 2 == 0 -> some(value) |
+      _ -> none("not-even")
+    positive = Positive
+    even = Even
+    [4 @? (positive & even), 3 @? (positive & even), 4 @! positive]
+expected:
+  stdout: '[some(4), none("not-even"), 4]\n'
+  stderr: ""
+  exit_code: 0

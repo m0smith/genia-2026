@@ -1,0 +1,15 @@
+name: error-template-direct-call-non-outcome
+category: error
+description: Direct named template calls reject a matcher body that returns a non-Outcome value
+input:
+  source: |
+    pattern Bad(value) = value > 0
+    Bad(1)
+expected:
+  stdout: ""
+  stderr: "Error: named pattern Bad returned non-Outcome value\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
+
