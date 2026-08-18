@@ -10,6 +10,6 @@ input:
       open_shape_match({second: Fail, first: Miss}, {first: 1, second: 2})
     ]
 expected:
-  stdout: "[none(first-miss, {seen: 1}), err(second-error, {seen: 2})]\n"
+  stdout: "[none(\"first-miss\", {seen: 1}), err(\"second-error\", {seen: 2})]\n"
   stderr: ""
   exit_code: 0

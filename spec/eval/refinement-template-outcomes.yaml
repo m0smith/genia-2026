@@ -6,6 +6,6 @@ input:
     pattern Adult(value) = refinement_match((age) -> age >= 18, value)
     [Adult(21), Adult(17)]
 expected:
-  stdout: "[some(21), none(refinement-mismatch)]\n"
+  stdout: "[some(21), none(\"refinement-mismatch\")]\n"
   stderr: ""
   exit_code: 0

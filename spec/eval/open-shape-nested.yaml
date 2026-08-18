@@ -6,12 +6,11 @@ input:
     pattern Present(value) = refinement_match((x) -> x != "", value)
     pattern Address(value) = open_shape_match({city: Present}, value)
     pattern Person(value) = open_shape_match({name: Present, address: Address}, value)
-    result = match {name: "Ada", address: {city: "London", zip: "SW1"}, source: "csv"} {
-      Person(record) -> [record.name, record.address.zip, record.source]
+    extract(value) =
+      Person(record) -> [record.name, "zip"(record.address), record.source] |
       _ -> []
-    }
-    result
+    extract({name: "Ada", address: {city: "London", zip: "SW1"}, source: "csv"})
 expected:
-  stdout: "[Ada, SW1, csv]\n"
+  stdout: "[\"Ada\", \"SW1\", \"csv\"]\n"
   stderr: ""
   exit_code: 0

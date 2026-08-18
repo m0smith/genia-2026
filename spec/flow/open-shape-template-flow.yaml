@@ -11,6 +11,6 @@ input:
       |> keep_some
       |> collect
 expected:
-  stdout: "[{count: 2, tag: keep}]\n"
+  stdout: "[{count: 2, tag: \"keep\"}]\n"
   stderr: ""
   exit_code: 0

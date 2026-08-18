@@ -7,6 +7,6 @@ input:
     pattern ShiftedRecord(value) = open_shape_match({count: Shift}, value)
     [open_shape_match({}, {extra: 1}), open_shape_match({}, 1), ShiftedRecord({count: 4, tag: "raw"})]
 expected:
-  stdout: "[some({extra: 1}), none(open-shape-mismatch), some({count: 4, tag: raw})]\n"
+  stdout: "[some({extra: 1}), none(\"open-shape-mismatch\"), some({count: 4, tag: \"raw\"})]\n"
   stderr: ""
   exit_code: 0

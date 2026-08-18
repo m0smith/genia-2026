@@ -12,6 +12,6 @@ input:
       Person("Ada")
     ]
 expected:
-  stdout: "[some({name: Ada, age: 37, source: csv}), none(open-shape-missing-field, {field: age}), none(open-shape-mismatch)]\n"
+  stdout: "[some({name: \"Ada\", age: 37, source: \"csv\"}), none(\"open-shape-missing-field\", {field: \"age\"}), none(\"open-shape-mismatch\")]\n"
   stderr: ""
   exit_code: 0
