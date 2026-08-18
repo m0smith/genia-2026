@@ -1,0 +1,16 @@
+name: exact-shape-template-operators
+category: eval
+description: Exact shape Templates compose through nested patterns and existing matcher operators
+input:
+  source: |
+    pattern Positive(value) = refinement_match((n) -> n > 0, value)
+    pattern Count(value) = exact_shape_match({count: Positive}, value)
+    extract(value) =
+      Count({count}) -> count |
+      _ -> 0
+    subject = {count: 2}
+    [extract(subject), subject @? Count, subject @! Count, subject @? (Count & Count)]
+expected:
+  stdout: "[2, some({count: 2}), {count: 2}, some({count: 2})]\n"
+  stderr: ""
+  exit_code: 0

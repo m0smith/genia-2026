@@ -1,0 +1,17 @@
+name: exact-shape-field-set
+category: eval
+description: Exact shapes require precisely the specified ordinary-map field set
+input:
+  source: |
+    pattern Any(value) = some(value)
+    pattern Point(value) = exact_shape_match({x: Any, y: Any}, value)
+    [
+      Point({y: 2, x: 1}),
+      Point({x: 1}),
+      Point({x: 1, y: 2, z: 3}),
+      Point([1, 2])
+    ]
+expected:
+  stdout: "[some({y: 2, x: 1}), none(\"exact-shape-missing-field\", {field: \"y\"}), none(\"exact-shape-extra-field\", {field: \"z\"}), none(\"exact-shape-mismatch\")]\n"
+  stderr: ""
+  exit_code: 0

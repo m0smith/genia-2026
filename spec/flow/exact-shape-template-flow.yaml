@@ -1,0 +1,16 @@
+name: exact-shape-template-flow
+category: flow
+description: Flow filters records through exact shape Templates while open shapes retain their distinct behavior
+input:
+  source: |
+    pattern Positive(value) = refinement_match((n) -> n > 0, value)
+    pattern ExactItem(value) = exact_shape_match({count: Positive}, value)
+    [{count: 2}, {count: 3, tag: "extra"}, {count: 0}]
+      |> each((x) -> x)
+      |> map(ExactItem)
+      |> keep_some
+      |> collect
+expected:
+  stdout: "[{count: 2}]\n"
+  stderr: ""
+  exit_code: 0

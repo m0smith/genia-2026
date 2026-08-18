@@ -1,0 +1,13 @@
+name: error-exact-shape-field-template-type
+category: error
+description: Exact shape matching requires callable field Templates
+input:
+  source: |
+    exact_shape_match({age: 18}, {age: 18})
+expected:
+  stdout: ""
+  stderr: "Error: exact_shape_match field age expected Template function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

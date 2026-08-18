@@ -1,0 +1,15 @@
+name: exact-shape-empty-and-order
+category: eval
+description: Empty exact shapes match only empty maps and key insertion order is not identity
+input:
+  source: |
+    pattern Any(value) = some(value)
+    [
+      exact_shape_match({}, {}),
+      exact_shape_match({}, {extra: 1}),
+      exact_shape_match({a: Any, b: Any}, {b: 2, a: 1})
+    ]
+expected:
+  stdout: "[some({}), none(\"exact-shape-extra-field\", {field: \"extra\"}), some({b: 2, a: 1})]\n"
+  stderr: ""
+  exit_code: 0

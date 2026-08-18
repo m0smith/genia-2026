@@ -1,85 +1,27 @@
-# Closed Shape Templates (Structs)
+# Exact/Closed Shape Templates
 
-## Purpose
+Status: **Implemented, Experimental (R9 E9-4)**
 
-Closed shapes define fixed structure.
+Exact and closed are two descriptions of the same E9-4 compatibility rule.
+Exact shapes structurally check ordinary maps through the existing Outcome
+Template protocol; they do not create Struct values.
 
-They answer:
-> “This value has exactly this structure.”
+```genia
+pattern Any(value) = some(value)
+pattern Point(value) = exact_shape_match({x: Any, y: Any}, value)
+Point({y: 2, x: 1})
+```
 
----
+`exact_shape_match(fields, value)` takes an ordinary map from string field
+names to callable Templates. Candidate and specification key sets must be
+equal, independent of insertion order. Success returns `some(original_map)`.
 
-## Core Idea
+The specification is validated first. Missing fields are reported in
+specification order, then extras in candidate order. Only an exact field set
+causes field Templates to run in specification order. Nested `none` and `err`
+Outcomes propagate unchanged; nested `some` payloads do not transform fields.
 
-A closed shape is a fixed set of fields:
-
-    Point2(x, y)
-    User(id, name, email)
-
----
-
-## Named Patterns
-
-Closed shapes define patterns automatically:
-
-    Point2(x, y)
-
-Usage:
-
-    match p
-      Point2(x, y) -> ...
-
----
-
-## Binding
-
-    Point2(x, y)
-
-binds:
-- x, y → fields
-
----
-
-## Matching Behavior
-
-- Exact structure required
-- No extra fields allowed
-
----
-
-## Key Properties
-
-- Fixed layout
-- Efficient access
-- Predictable structure
-
----
-
-## Performance Goal
-
-Closed shapes should support:
-
-- direct field access
-- compact representation
-
----
-
-## Composition
-
-Closed shapes compose by definition, not merging.
-
----
-
-## Non-Goals
-
-Closed shapes do NOT:
-
-- behave like maps
-- allow extension
-- support inheritance
-
----
-
-## Critical Rule
-
-Closed shapes are not open shapes.
+This helper adds no constructor, nominal identity, positional/labeled shape,
+fixed/compact layout, special field access, coercion, inheritance, extension,
+or performance guarantee. Open shapes remain distinct because they allow
+extra fields.

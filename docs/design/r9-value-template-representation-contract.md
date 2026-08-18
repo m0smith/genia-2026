@@ -1,8 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; E9-1 Template foundation, E9-2
-generic carrier/matching, and E9-3 refinement/open structural slices implemented;
-later R9 slices not implemented.**
+Status: **Approved R9 design contract; E9-1 Template foundation through E9-4
+exact/closed structural matching implemented; later R9 slices not implemented.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for
@@ -36,8 +35,8 @@ later change.
 
 The callable foundation in this subsection is implemented by E9-1 / issue #399.
 Boolean refinement lifting and open ordinary-map structural matching are
-implemented by E9-3 / issue #89. Template metadata and exact structural
-construction remain unimplemented.
+implemented by E9-3 / issue #89. Exact ordinary-map structural matching is
+implemented by E9-4 / issue #90. Template metadata remains unimplemented.
 
 A template is not a distinct runtime category. It uses the implemented matcher
 contract:
@@ -63,16 +62,19 @@ string field names to callable Templates: listed fields are required, extras
 are allowed, and success preserves the original complete map. These helpers
 use existing `pattern` declarations and add no structural declaration syntax.
 
-Exact/closed structural templates remain planned. Structural templates do not
-promise nominal identity, constructor objects, inheritance, fixed layout, or
-optimized storage.
+`exact_shape_match(fields, value)` uses the same specification protocol but
+requires the candidate and specification key sets to be equal. Missing fields
+are checked in specification order, extras in candidate order, and field
+Templates only after structural equality. Structural Templates do not promise
+nominal identity, constructor objects, inheritance, fixed layout, or optimized
+storage.
 
 ## Representation value model
 
 The generic carrier, one-layer observation/stripping, equality/key behavior,
 opaque rendering, transport rules, and named-pattern composition in this
 section are implemented by E9-2 / issue #570. Provider-owned facets, protected
-declassification, JSON, and exact structural shapes remain unimplemented.
+declassification and JSON remain unimplemented.
 
 A represented value consists semantically of:
 
@@ -238,7 +240,7 @@ Recommended order:
 2. E9-2: implemented by #570 — carrier abstraction, ordered nesting, equality,
    explicit observation/strip operations, and representation-aware matching.
 3. E9-3: implemented by #89 — refinement and open structural templates for validated maps.
-4. E9-4: add exact/closed structural templates without layout or nominal claims.
+4. E9-4: implemented by #90 — exact/closed structural templates without layout or nominal claims.
 5. E9-5: implement the minimum JSON boundary above.
 6. E9-6: add the approved JSON Schema subset as template production.
 7. E9-7: prove `json(Person(x))` in an Outcome-aware validated pipeline.
@@ -251,8 +253,7 @@ depends on E9-2. E9-6 depends on E9-3 through E9-5. E9-7 depends on all
 implementation slices. E9-8 is last.
 
 - #89 implements E9-3.
-- #90 should be rewritten as E9-4 with nominal `Struct`, layout, and performance
-  assumptions removed.
+- #90 implements E9-4 without nominal `Struct`, layout, or performance claims.
 - #91 remains later/follow-up; R9 does not need general function contracts.
 - #92 remains later/follow-up; variants and exhaustiveness are not required.
 - #399 implements the E9-1 callable Template foundation. E9-3 retains

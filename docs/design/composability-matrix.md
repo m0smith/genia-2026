@@ -17,6 +17,7 @@
 | template | `@?` / `@!` / `&` | named Templates reuse existing original-subject and short-circuit semantics | Implemented, Experimental |
 | refinement template | boolean predicate | `refinement_match` lifts true to `some(original)` and false to ordinary mismatch | Implemented, Experimental |
 | open template | ordinary map and field Templates | `open_shape_match` requires listed fields, accepts extras, preserves the original map, and propagates nested Outcome failures | Implemented, Experimental |
+| exact template | ordinary map and field Templates | `exact_shape_match` requires an equal key set, preserves the original map, and propagates nested Outcome failures | Implemented, Experimental |
 | matcher | `@?` / `@!` | check/assert while retaining the original subject on success | Implemented, Experimental |
 | matcher | matcher | `&` composes left-to-right over the original subject | Implemented, Experimental |
 | List | Seq-compatible helpers | list transforms return lists; terminal helpers consume lists | Implemented |
@@ -36,7 +37,6 @@ These rows are design constraints from
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
-| exact template | ordinary map/list | exact structural compatibility without nominal conversion or layout promises | Approved R9 design; not implemented |
 | representation facet | ordinary value | `represent` adds one explicit ordered carrier layer; no parallel JSON/secret value hierarchy | Implemented generic carrier, Experimental |
 | representation pattern | nested pattern/template | `representation_match` consumes one explicit outer facet through a named Template, then matches the carried value | Implemented generic matching, Experimental |
 | represented value | List/map/pipeline/Seq/Flow | transport preserves the value; derivation does not propagate facets implicitly | Implemented generic carrier rule, Experimental |

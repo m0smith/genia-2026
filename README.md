@@ -582,6 +582,7 @@ Related shared portability docs:
   - strings can act as callable map projectors
   - named reusable patterns are Experimental callable Template values: one-argument Outcome matchers that may be stored, passed, returned, imported, called directly, and composed
   - refinement/open structural Templates are Experimental: `refinement_match(predicate, value)` lifts boolean constraints, and `open_shape_match({field: Template}, value)` requires listed fields while preserving extra fields and the original map
+  - exact/closed structural Templates are Experimental: `exact_shape_match({field: Template}, value)` requires an equal ordinary-map key set, preserves the original map, and distinguishes missing from extra fields without nominal Struct values
   - carrier representations are Experimental ordered value facets: `represent(facet, value)` constructs one layer, `representation_match(facet, value)` observes one requested outer layer as an Outcome, and `strip_representation(facet, value)` explicitly removes one matching outer layer
   - representation-aware patterns reuse named Templates, for example `pattern Json(value) = representation_match("json", value)` followed by `Json(inner)`; no JSON decoder, structural declaration syntax, secret policy, parser syntax, or Core IR node is added by this slice
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
@@ -742,7 +743,7 @@ Pattern forms are accepted in named function clauses, case expressions, and lamb
 
 A named reusable pattern is also a first-class Template value. Direct calls return its `some(...)`, `none(...)`, or `err(...)` unchanged; `@?` and `@!` retain the original subject on success. Templates do not add a nominal type or separate namespace.
 
-Refinement and open structural Templates reuse that same protocol. Wrap `refinement_match` or `open_shape_match` in an existing `pattern` declaration; open shapes require declared map fields, accept extras, and preserve the original map on success. Exact/closed shapes and structural declaration syntax remain unavailable.
+Refinement, open structural, and exact structural Templates reuse that same protocol. Wrap `refinement_match`, `open_shape_match`, or `exact_shape_match` in an existing `pattern` declaration. Open shapes accept extras; exact shapes require an equal key set. Both preserve the original ordinary map. Structural declaration syntax, positional/labeled shapes, and nominal Structs remain unavailable.
 
 ### Conditionals in Genia
 
