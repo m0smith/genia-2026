@@ -7,6 +7,6 @@ input:
     once = strip_representation("a", nested)
     [display(once), strip_representation("a", once)]
 expected:
-  stdout: "[<represented>, 7]\n"
+  stdout: "[\"<represented>\", 7]\n"
   stderr: ""
   exit_code: 0

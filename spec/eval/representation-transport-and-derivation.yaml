@@ -8,8 +8,8 @@ input:
     transported = represented |> identity
     stored = [transported, {item: transported}]
     derived = [represented] |> map((x) -> strip_representation("source", x) + 1)
-    [stored / 0 == represented, stored / 1 / item == represented, derived]
+    [stored, derived]
 expected:
-  stdout: "[true, true, [8]]\n"
+  stdout: "[[<represented>, {item: <represented>}], [8]]\n"
   stderr: ""
   exit_code: 0

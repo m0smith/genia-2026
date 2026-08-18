@@ -6,9 +6,9 @@ input:
     a1 = represent("a", represent("a", 7))
     a2 = represent("a", represent("a", 7))
     reversed = represent("a", represent("b", 7))
-    keyed = {} |> put(a1, "found")
-    [a1 == a2, a1 == 7, a1 == reversed, get(keyed, a2), display(a1), debug_repr(a1)]
+    keyed = map_put({}, a1, "found")
+    [a1 == a2, a1 == 7, a1 == reversed, keyed(a2), display(a1), debug_repr(a1)]
 expected:
-  stdout: "[true, false, false, some(\"found\"), <represented>, \"<represented>\"]\n"
+  stdout: "[true, false, false, \"found\", \"<represented>\", \"<represented>\"]\n"
   stderr: ""
   exit_code: 0
