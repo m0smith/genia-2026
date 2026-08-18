@@ -4,7 +4,7 @@ description: JSON Schema object compilation produces an ordinary structural Temp
 input:
   source: |
     schema = json_decode("{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\"],\"additionalProperties\":false}")
-    template = schema |> then_match(json_schema) |> unwrap_or((_) -> none("compile-failed"))
+    template = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
     [
       template({name: "Ada", age: 37}),
       template({name: "Ada"}),

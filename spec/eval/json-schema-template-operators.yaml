@@ -4,7 +4,7 @@ description: Compiled JSON Schema Templates use existing matcher operators and p
 input:
   source: |
     schema = json_decode("{\"type\":\"number\"}")
-    Number = schema |> then_match(json_schema) |> unwrap_or((_) -> none("compile-failed"))
+    Number = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
     Positive(value) = refinement_match((n) -> n > 0, value)
     [(4 @? Number), (4 @? (Number & Positive)), (-1 @? (Number & Positive))]
 expected:

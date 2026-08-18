@@ -4,7 +4,7 @@ description: JSON Schema arrays and primitive types compose recursively with det
 input:
   source: |
     schema = json_decode("{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"active\":{\"type\":\"boolean\"},\"score\":{\"type\":\"number\"},\"note\":{\"type\":\"null\"}},\"required\":[\"active\",\"score\",\"note\"]}}")
-    template = schema |> then_match(json_schema) |> unwrap_or((_) -> none("compile-failed"))
+    template = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
     [
       template([{active: true, score: 2, note: nil}, {active: false, score: 1.5, note: nil}]),
       template([{active: true, score: 2, note: nil}, {active: 1, score: 2, note: nil}]),

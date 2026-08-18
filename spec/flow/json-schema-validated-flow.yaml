@@ -4,10 +4,14 @@ description: JSON decoding and a compiled schema Template compose in an Outcome-
 input:
   source: |
     schema = json_decode("{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}},\"required\":[\"id\"]}")
-    template = schema |> then_match(json_schema) |> unwrap_or((_) -> none("compile-failed"))
+    template = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
+    pattern Json(value) = representation_match("json", value)
+    validate(value) =
+      Json(inner) -> template(inner) |
+      _ -> none("representation-mismatch")
     ["{\"id\":1}", "{\"id\":1.5}", "{bad}"]
-      |> each(json_decode)
-      |> map((decoded) -> decoded |> then_match((represented) -> representation_match("json", represented)) |> then_match(template))
+      |> map(json_decode)
+      |> ((decoded) -> validate_each(decoded, validate))
       |> collect
 expected:
   stdout: "[some({id: 1}), none(\"json-schema-type-mismatch\", {path: [\"id\"], expected: integer, actual: number}), err(invalid_json, {kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})]\n"

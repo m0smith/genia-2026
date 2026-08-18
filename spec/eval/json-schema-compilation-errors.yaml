@@ -3,7 +3,7 @@ category: eval
 description: Unsupported and malformed JSON Schema content returns normalized compiler errors
 input:
   source: |
-    compile(text) = json_decode(text) |> then_match(json_schema)
+    compile(text) = json_schema(unwrap_or({}, json_decode(text)))
     [
       compile("{\"type\":\"string\",\"minLength\":1}"),
       compile("{\"properties\":{}}"),
