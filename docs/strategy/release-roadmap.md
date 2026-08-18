@@ -400,7 +400,7 @@ Final R7 disposition:
 
 ## Release R8 — Server Execution Mode
 
-**Status: Active.** Explicitly activated after completed R7 as **approved infrastructure work**. R4 explicitly excluded server-mode implementation; R8 now authorizes the required phased work for server execution mode without treating planned behavior as implemented. It does **not** strengthen the validated-data-pipeline killer workflow. Design capture: `docs/parking-lot/server-execution-mode.md`.
+**Status: Complete.** Explicitly approved infrastructure work delivered after R7. R8 implemented server execution mode as the second R4 lifecycle consumer without broadening it into a general web framework. It does **not** strengthen the validated-data-pipeline killer workflow. Design capture: `docs/parking-lot/server-execution-mode.md`.
 
 Theme:
 
@@ -443,16 +443,23 @@ Exit criteria:
 
 Agent guidance for R8:
 
-- R8's R7 dependency is satisfied and R8 is active. Follow the required phase sequence; activation does not authorize skipping directly to implementation.
+- R8 is complete. Preserve its Python-reference-host-only boundary and its binding to the R7 primitives.
 - Keep annotations inert and lifecycle-activated; do not introduce a self-executing annotation mechanism.
+
+Final R8 disposition:
+
+- #558, #534, #535, #536, #537, and #533 delivered the reconciled contract, lifecycle core, inert annotation bindings, and explicit `genia serve <file>` integration.
+- #561 completed the non-blocking repository metadata and README release polish.
+- `docs/releases/R8.md` provides the runnable headline example, and the release truth audit verified the exit criteria.
+- R9 was explicitly activated after R8 completion; R8 remains closed.
 
 ---
 
 ## Release R9 — Value Templates & Representations
 
-**Status: Planned, not active.** This section records proposed direction, not
-implemented language behavior. R9 requires semantic design and explicit
-activation before implementation begins.
+**Status: Active.** This section records approved release direction, not
+implemented language behavior. R9 begins with semantic design; activation does
+not make its candidate syntax or behavior implemented.
 
 Theme:
 
@@ -712,7 +719,8 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. All five releases shown here remain planned and not active.
+composition. R8 is complete, R9 is active, and R10-R12 remain planned and not
+active.
 
 ---
 

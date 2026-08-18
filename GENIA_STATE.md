@@ -2683,9 +2683,9 @@ Explicit limitations:
 - The native-test consumer adds no server, actor, plugin, YAML, browser, notebook, or data-workflow lifecycle. The separate focused R8 server lifecycle core is described in section 9.7; no multi-host lifecycle is implemented.
 - No changes to native-test CLI output or native-test exit codes were made.
 
-## 9.7) R8 server execution contract (Partial)
+## 9.7) R8 server execution contract
 
-Status: Partial. The independently callable lifecycle core (issue #534), inert route/server/CORS annotation bindings (issues #535-#537), and explicit CLI/live HTTP integration (issue #533) are implemented as Experimental Python-reference-host-only behavior. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
+Status: Implemented. The independently callable lifecycle core (issue #534), inert route/server/CORS annotation bindings (issues #535-#537), and explicit CLI/live HTTP integration (issue #533) are implemented as Experimental Python-reference-host-only behavior. The descriptor and lifecycle-result shapes are host-independent; execution remains Python-reference-host-only in R8. Defined in issue #558.
 
 LANGUAGE CONTRACT (PARTIALLY IMPLEMENTED):
 

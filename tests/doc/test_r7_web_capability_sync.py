@@ -144,7 +144,7 @@ def test_authoritative_and_host_inventories_include_landed_r7_helpers() -> None:
     assert "not a shared semantic-spec category" in host_interop
 
 
-def test_r7_completion_and_r8_active_status_stay_synchronized() -> None:
+def test_r8_completion_and_r9_active_status_stay_synchronized() -> None:
     roadmap = read_text("docs/strategy/release-roadmap.md")
     killer_workflow = read_text("docs/strategy/killer-workflow.md")
     llm_contract = read_text("docs/ai/LLM_CONTRACT.md")
@@ -154,10 +154,12 @@ def test_r7_completion_and_r8_active_status_stay_synchronized() -> None:
 
     assert "Release R7 — Web Serving Ergonomics ✓ COMPLETE" in roadmap
     assert "Release R8 — Server Execution Mode" in roadmap
-    assert "**Status: Active.**" in roadmap
+    assert "**Status: Complete.** Explicitly approved infrastructure work delivered after R7." in roadmap
+    assert "Release R9 — Value Templates & Representations" in roadmap
+    assert "**Status: Active.** This section records approved release direction" in roadmap
     assert "R7 is complete" in killer_workflow
-    assert "R8** is the active release" in killer_workflow
-    assert "R8 — Server Execution Mode is the active release." in llm_contract
-    assert "R8 — Server Execution Mode is the active release." in agents
+    assert "R9** is the active release" in killer_workflow
+    assert "R9 — Value Templates & Representations is the active release." in llm_contract
+    assert "R9 — Value Templates & Representations is the active release." in agents
     assert "[R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE" in releases
     assert "Status: **Complete.**" in r7_page

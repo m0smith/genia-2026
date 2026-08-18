@@ -94,26 +94,26 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R7 Complete; R8 Active
+## Release Position: R8 Complete; R9 Active
 
-**R8 — Server Execution Mode is the active release.**
+**R9 — Value Templates & Representations is the active release.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
-1. Classify the work against active R8 first and follow the required contract, design, failing-test, implementation, documentation, and audit phases.
+1. Classify the work against active R9 first and follow the required contract, design, failing-test, implementation, documentation, and audit phases.
 2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
-3. R8 descriptors must bind to the landed R7 primitives; do not introduce `json`/`text` header overloads, a header-only `cors`, or a second CORS mechanism.
+3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
-5. If the work is not planned R8, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
+5. If the work is not planned R9, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
 
-R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. Those remain excluded or assigned to later releases unless explicitly promoted.
+R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 
 The completed R7 boundary excludes:
 - general web or middleware framework
 - browser-native runtime
-- server execution mode and lifecycle-activated annotations (planned for R8)
+- server execution mode and lifecycle-activated annotations (delivered separately by R8)
 - path-parameter routing (#528 closed not-planned pending evidence)
 - concurrent serving (#529 closed not-planned pending measurements)
 - credentials/cookies policy, dynamic origin reflection, per-route CORS overrides, authentication, or authorization

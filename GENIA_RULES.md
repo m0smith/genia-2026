@@ -1169,7 +1169,7 @@ For each incoming flow item `x`:
 - Ordinary responses receive configured CORS headers solely through `with_headers`; configured CORS values win collisions while application status, body, unrelated headers, and additional fields are preserved.
 - Inputs are not mutated. Programmer misuse raises deterministic `TypeError`; no Outcome, middleware framework, parser/Core IR/shared-spec behavior, or cross-host claim is introduced.
 
-## 25) R8 server execution invariants (Partial)
+## 25) R8 server execution invariants
 
 - Only explicit `genia serve <file>` activation may enter the dedicated server lifecycle. Load, import, parse, evaluation, and discovery remain inert in every other mode.
 - `@server`, `@route`, and `@cors` each take one ordinary map expression through the existing prefix-annotation grammar. No parser or Core IR extension is permitted.
