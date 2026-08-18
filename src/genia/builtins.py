@@ -545,6 +545,64 @@ def make_global_env(
             return make_none("representation-mismatch")
         return GeniaOptionSome(value.value)
 
+    def _template_callable(value: Any) -> bool:
+        return Evaluator(env, env.debug_hooks, env.debug_mode).is_matcher_callable(value)
+
+    def refinement_match_fn(predicate: Any, value: Any) -> Any:
+        if not _template_callable(predicate):
+            raise TypeError(
+                "refinement_match expected predicate function, "
+                f"received {_runtime_type_name(predicate)}"
+            )
+        result = _invoke_raw_from_builtin(predicate, [value])
+        if not isinstance(result, bool):
+            raise TypeError(
+                "refinement_match predicate must return bool, "
+                f"received {_runtime_type_name(result)}"
+            )
+        if result:
+            return GeniaOptionSome(value)
+        return make_none("refinement-mismatch")
+
+    def open_shape_match_fn(fields: Any, value: Any) -> Any:
+        if not isinstance(fields, GeniaMap):
+            raise TypeError(
+                "open_shape_match expected field Templates map, "
+                f"received {_runtime_type_name(fields)}"
+            )
+
+        for field, template in fields.items():
+            if not isinstance(field, str):
+                raise TypeError(
+                    "open_shape_match expected string field name, "
+                    f"received {_runtime_type_name(field)}"
+                )
+            if not _template_callable(template):
+                raise TypeError(
+                    f"open_shape_match field {field} expected Template function, "
+                    f"received {_runtime_type_name(template)}"
+                )
+
+        if not isinstance(value, GeniaMap):
+            return make_none("open-shape-mismatch")
+
+        for field, template in fields.items():
+            if not value.has(field):
+                return make_none(
+                    "open-shape-missing-field",
+                    GeniaMap().put("field", field),
+                )
+            result = _invoke_raw_from_builtin(template, [value.get(field)])
+            if not isinstance(result, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+                raise TypeError(
+                    f"open_shape_match field {field} Template must return Outcome, "
+                    f"received {_runtime_type_name(result)}"
+                )
+            if isinstance(result, (GeniaOptionNone, GeniaOptionErr)):
+                return result
+
+        return GeniaOptionSome(value)
+
     def strip_representation_fn(facet_value: Any, value: Any) -> Any:
         facet = _representation_facet(facet_value, "strip_representation")
         if not isinstance(value, GeniaRepresented):
@@ -561,6 +619,8 @@ def make_global_env(
 
     represent_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     representation_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    refinement_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    open_shape_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     strip_representation_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def assert_true_fn(value: Any) -> Any:
@@ -3658,6 +3718,14 @@ def make_global_env(
     env.set(
         "representation_match",
         _host_function_group("representation_match", 2, representation_match_fn),
+    )
+    env.set(
+        "refinement_match",
+        _host_function_group("refinement_match", 2, refinement_match_fn),
+    )
+    env.set(
+        "open_shape_match",
+        _host_function_group("open_shape_match", 2, open_shape_match_fn),
     )
     env.set(
         "strip_representation",
