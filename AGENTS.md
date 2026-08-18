@@ -148,8 +148,8 @@ Before proposing or implementing new feature work, read:
 Before creating new issues/tickets, also read:
 - `docs/process/08-roadmap-ticketing.md`
 
-**R8 — Server Execution Mode is the active release.**
-R7 (Web Serving Ergonomics) is complete. Classify new Genia work with no release specified against the active R8 scope first. R8 activation authorizes its required process work, but does not skip contract, design, failing-test, implementation, documentation, or audit phases. Unrelated work must be classified as follow-up, a later release, or parking-lot work unless the user explicitly approves it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the completed R7 boundary and active R8 scope.
+**R9 — Value Templates & Representations is the active release.**
+R8 (Server Execution Mode) is complete. Classify new Genia work with no release specified against the active R9 scope first. R9 activation authorizes semantic design and the required process work, but does not make its planned syntax or behavior implemented and does not skip contract, design, failing-test, implementation, documentation, or audit phases. Unrelated work must be classified as follow-up, a later release, or parking-lot work unless the user explicitly approves it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the completed R8 boundary and active R9 scope.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

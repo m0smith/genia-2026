@@ -12,14 +12,15 @@ def test_r8_server_contract_marks_lifecycle_and_annotation_bindings_implemented(
     state = _read("GENIA_STATE.md")
     rules = _read("GENIA_RULES.md")
 
-    assert "## 9.7) R8 server execution contract (Partial)" in state
+    assert "## 9.7) R8 server execution contract" in state
+    assert "Status: Implemented." in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED LIFECYCLE CORE)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED ROUTE ANNOTATION BINDING)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED SERVER-CONFIG ANNOTATION BINDING)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED CORS ANNOTATION BINDING)" in state
     assert "PYTHON REFERENCE HOST (IMPLEMENTED CLI INTEGRATION)" in state
     assert "The separate focused R8 server lifecycle core is described in section 9.7" in state
-    assert "## 25) R8 server execution invariants (Partial)" in rules
+    assert "## 25) R8 server execution invariants" in rules
     assert "inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented" in rules
     assert "explicit `genia serve <file>` activation" in rules
 
