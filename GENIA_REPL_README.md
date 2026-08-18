@@ -171,6 +171,7 @@ CLI contract summary (actual behavior):
   - duplicate-binding equality semantics (`[x, x]`)
   - guards with `?`
   - named reusable patterns (`pattern Name(value) = body` / `Name(inner_pattern)`) — Experimental; the body must return an Outcome value: `some(...)` (match success), `none(...)` (pattern miss), or `err(...)` (recoverable failure, does not fall through as a miss)
+  - Template values — Experimental; a named reusable pattern is an ordinary one-argument Outcome matcher that can be stored, passed, returned, imported, called directly, and used by higher-order functions; direct calls return the matcher Outcome unchanged, while `@?`/`@!` keep their original-subject behavior
 - case expressions in function bodies and as final expression in a block
 - conditionals expressed only through pattern matching in function definitions/case expressions; lambdas can pattern-match a single parameter arm but do not support multi-arm lambda syntax
 - function resolution with fixed arity + varargs precedence

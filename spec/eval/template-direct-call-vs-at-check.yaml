@@ -1,0 +1,13 @@
+name: template-direct-call-vs-at-check
+category: eval
+description: Direct template calls expose the matcher payload while @? retains the original subject
+input:
+  source: |
+    pattern Id(record) = some(record.id)
+    template = Id
+    record = {id: 7, name: "Ada"}
+    [template(record), record @? template]
+expected:
+  stdout: "[some(7), some({id: 7, name: \"Ada\"})]\n"
+  stderr: ""
+  exit_code: 0

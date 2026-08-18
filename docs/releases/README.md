@@ -21,6 +21,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R6 — Data Workflow Hardening](R6.md) ✓ COMPLETE
 - [R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE
 - [R8 — Server Execution Mode](R8.md) ✓ COMPLETE
+- [R9 — Value Templates & Representations](R9.md) — ACTIVE; E9-1 implemented
 
 ## Process
 

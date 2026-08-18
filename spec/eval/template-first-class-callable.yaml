@@ -1,0 +1,16 @@
+name: template-first-class-callable
+category: eval
+description: A named template remains callable when stored, passed, returned, and used by a higher-order helper
+input:
+  source: |
+    pattern Positive(n) =
+      value ? value > 0 -> some(value) |
+      _ -> none("not-positive")
+    identity(value) = value
+    apply_template(template, value) = template(value)
+    templates = {positive: identity(Positive)}
+    [apply_template(templates.positive, 3), map(templates.positive, [2, -1])]
+expected:
+  stdout: "[some(3), [some(2), none(\"not-positive\")]]\n"
+  stderr: ""
+  exit_code: 0

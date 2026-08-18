@@ -1020,6 +1020,15 @@ Named reusable pattern semantics (Experimental):
 - named pattern declarations do not introduce a separate namespace; `Name` is bound in the normal lexical environment
 - recursive named patterns are not supported in this phase
 
+Template semantics (Experimental):
+
+- a Template is an ordinary one-argument Outcome matcher; it is not a distinct runtime category, namespace, or nominal type
+- a value declared by `pattern Name(value) = body` is directly callable and may be stored, passed, returned, imported, and used by higher-order functions like any other callable value
+- direct Template calls return the matcher Outcome unchanged, including a transformed `some(...)` payload and any reason/context
+- direct Template calls require an Outcome result; a non-Outcome result raises `named pattern <Name> returned non-Outcome value`
+- `@?`, `@!`, `&`, and `Name(inner_pattern)` retain their implemented original-subject, short-circuit, and payload-matching behavior
+- Template metadata, open/refinement shapes, exact/closed shapes, representation carriers, JSON, and JSON Schema are not implemented in this phase
+
 Case placement rules (enforced):
 
 - allowed in function body
