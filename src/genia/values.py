@@ -258,6 +258,12 @@ class GeniaNamedPattern:
     name: str
     matcher: Any
 
+    def __call__(self, *args: Any) -> Any:
+        result = self.matcher(*args)
+        if not isinstance(result, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+            raise TypeError(f"named pattern {self.name} returned non-Outcome value")
+        return result
+
     def __repr__(self) -> str:
         return f"<pattern {self.name}>"
 
