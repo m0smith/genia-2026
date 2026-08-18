@@ -49,6 +49,8 @@ def format_display(value: Any) -> str:
         return _format_sheet(value, format_display)
     if _is_format(value):
         return "<format>"
+    if _is_represented(value):
+        return "<represented>"
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -87,6 +89,8 @@ def format_debug(value: Any) -> str:
         return _format_sheet(value, format_debug)
     if _is_format(value):
         return "<format>"
+    if _is_represented(value):
+        return "<represented>"
     if isinstance(value, str):
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
@@ -132,6 +136,14 @@ def _is_option_err(value: Any) -> bool:
 
 def _is_format(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaFormat" and hasattr(value, "template")
+
+
+def _is_represented(value: Any) -> bool:
+    return (
+        value.__class__.__name__ == "GeniaRepresented"
+        and isinstance(getattr(value, "facet", None), str)
+        and hasattr(value, "value")
+    )
 
 
 def _is_sheet(value: Any) -> bool:
