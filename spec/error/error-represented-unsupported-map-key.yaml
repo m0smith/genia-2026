@@ -1,0 +1,13 @@
+name: error-represented-unsupported-map-key
+category: error
+description: Represented map keys retain the carried value's existing key suitability rules
+input:
+  source: |
+    map_put({}, represent("facet", {}), 1)
+expected:
+  stdout: ""
+  stderr: "Error: map key type is not supported: GeniaMap\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

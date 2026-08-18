@@ -19,6 +19,7 @@ REQUIRED = {
     "error": {
         "error-represent-empty-facet",
         "error-representation-match-facet-type",
+        "error-represented-unsupported-map-key",
         "error-strip-representation-unrepresented",
         "error-strip-representation-wrong-outer",
     },
