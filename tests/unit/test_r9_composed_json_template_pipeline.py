@@ -5,7 +5,6 @@ from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import execute_spec
 from tools.spec_runner.loader import load_spec
 
-
 REPO = Path(__file__).resolve().parents[2]
 CLI_SPEC = REPO / "spec/cli/r9-composed-json-template-pipeline.yaml"
 NATIVE_FIXTURE = REPO / "tests/native/r9_composed_json_template_pipeline.genia"
