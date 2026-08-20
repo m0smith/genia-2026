@@ -39,6 +39,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | exact map Template | `exact_shape_match({field: Template}, value)`; precisely listed fields required |
 | represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
 | JSON representation boundary | `json_decode(text_or_bytes)` and `json_encode(value)` return Outcomes; decoded roots carry one outer `"json"` facet |
+| JSON Schema Template | `json_schema(json_represented_schema)` compiles the supported structural subset into an Outcome containing a callable Template |
 | guard | `(x) ? x > 0 -> ...` |
 
 Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence. A named Template is an Experimental first-class one-argument Outcome matcher: it can be stored, passed, returned, imported, called, or used by higher-order functions. Direct calls return the matcher Outcome unchanged.
@@ -47,9 +48,19 @@ Carrier facets are Experimental ordered layers. A representation-aware named Tem
 
 `json_decode`/`json_encode` are the Experimental portable JSON boundary. Decode success contains one `"json"`-represented ordinary root; encode accepts that value or a supported ordinary JSON-domain value. Duplicate names, unsafe/non-finite numbers, invalid UTF-8/Unicode, nesting beyond 128 containers, malformed input, and unsupported encoding values are `err` Outcomes. Legacy `json_parse`/`json_stringify` behavior is unchanged.
 
+`json_schema` is Experimental and intentionally limited: each schema node requires `type`; object `properties`/`required`, array `items`, primitive types, and boolean `additionalProperties` are supported. Unsupported keywords fail compilation and are never ignored.
+
 Refinement and open structural helpers are Experimental and reuse existing named Templates. Open structural success preserves the complete original map rather than applying nested success payloads as transformations.
 
 Exact structural helpers are Experimental and use the same field-Template protocol. Exact matching requires equal key sets, preserves the original map, and returns distinct missing/extra mismatch Outcomes without nominal Struct values.
+
+<!-- [case: core-json-schema-template] -->
+```genia
+schema = json_decode("{\"type\":\"integer\"}")
+Integer = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
+[Integer(7), Integer(1.5)]
+```
+Classification: **Valid** (directly tested, Experimental)
 
 <!-- [case: core-exact-shape-template] -->
 ```genia

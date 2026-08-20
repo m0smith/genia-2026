@@ -1184,6 +1184,7 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 - `utf8_decode(bytes) -> string`
 - `json_decode(string_or_bytes) -> some(json_represented_value, context) | err(reason, context)` — strict portable JSON representation boundary (**Experimental**)
 - `json_encode(value) -> some(json_text, context) | err(reason, context)` — deterministic portable JSON encoding (**Experimental**)
+- `json_schema(json_represented_schema) -> some(template, context) | err(reason, context)` — compile the supported JSON Schema structural subset into an ordinary Template (**Experimental**)
 - `json_parse(string) -> value | none("json-parse-error", context)`
 - `json_stringify(value) -> string | none("json-stringify-error", context)`
 - `json_pretty(value) -> string | none(...)` (compatibility alias for `json_stringify`)
@@ -1202,6 +1203,8 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 This is a minimal host-backed bridge for pipeline-first archive transforms; it is **not** the full Flow runtime system.
 
 `json_decode` attaches exactly one outer `"json"` facet to an ordinary decoded root. It rejects duplicate object names, invalid UTF-8/Unicode, integers outside ±9007199254740991, non-finite binary64 numbers, malformed input, and nesting beyond 128 containers as recoverable `err` Outcomes. `json_encode` accepts that represented root or a supported ordinary value and emits sorted, two-space-indented JSON while preserving array order. The older parse/stringify/JSONL helpers remain compatibility surfaces and do not attach representation facets.
+
+`json_schema` consumes a `json`-represented schema map and returns an ordinary callable Outcome Template. Its deliberately closed subset requires `type` (`object`, `array`, `string`, `number`, `integer`, `boolean`, or `null`) and supports only type-appropriate `properties`, `required`, `items`, and boolean `additionalProperties`. Unsupported keywords and malformed schemas are explicit `err` Outcomes; references, unions/combinators, constraints, formats, defaults, coercion, recursion, and full JSON Schema conformance are not implemented.
 
 `parse_csv_row` is a one-row helper, not a CSV framework. It supports comma-delimited rows, double-quoted fields, quoted commas, doubled quotes, and empty fields; it does not trim fields, infer types, read whole files, support multiline fields, expose dialect options, or create Sheets. Malformed row data returns `err(quote(invalid_csv_row), context)`, header/field count mismatch returns `err(quote(csv_header_mismatch), context)`, and invalid argument/header shapes are runtime misuse errors.
 
@@ -1341,7 +1344,7 @@ older = people
 - fn helpers: `apply`, `apply_raw`, `compose`
   - `apply_raw(f, args)` — calls `f` with list `args` as positional arguments, bypassing automatic `none(...)` propagation; `args` must be a list
 - map helpers: `map_new`, `map_get`, `map_put`, `map_has?`, `map_remove`, `map_count`, `map_items`, `map_item_key`, `map_item_value`, `map_keys`, `map_values`, `pairs`
-- data parsing helpers: `json_decode`, `json_encode` (Experimental portable boundary), `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
+- data parsing helpers: `json_decode`, `json_encode`, `json_schema` (Experimental portable boundaries), `json_parse`, `json_stringify`, `json_pretty`, `parse_jsonl_record` (Experimental), `parse_csv_row` (Experimental)
 - validation helpers: `validate_required`, `validate_field`, `validate_optional`, `validate_record`, `validate_each`, `diagnostic_error`, `diagnostic_skipped`, `diagnostic_reason`, `diagnostic_field` (Experimental); `collect_validated` (host-backed builtin, Experimental)
 - Sheet helpers: `sheet`, `shape`, `columns`, `select`, `where`, `derive`, `rows`, `row_get`, `collect_sheet`, `render_csv` (host-backed builtins, Experimental)
 - ref helpers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`

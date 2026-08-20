@@ -1,0 +1,17 @@
+name: json-schema-keyword-shape-errors
+category: eval
+description: Supported JSON Schema keywords reject malformed shapes deterministically
+input:
+  source: |
+    compile(text) = json_schema(unwrap_or({}, json_decode(text)))
+    [
+      compile("{\"type\":\"object\",\"properties\":[]}"),
+      compile("{\"type\":\"object\",\"properties\":{\"x\":{\"type\":\"string\"}},\"required\":[\"x\",\"x\"]}"),
+      compile("{\"type\":\"array\",\"items\":[]}"),
+      compile("{\"type\":\"string\",\"required\":[]}"),
+      compile("{\"type\":\"decimal\"}")
+    ]
+expected:
+  stdout: "[err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"properties\"], detail: invalid_properties}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"required\", 1], detail: duplicate_required_name, property: \"x\"}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"items\"], detail: invalid_items}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"required\"], detail: keyword_not_allowed_for_type}), err(invalid_json_schema, {kind: json_schema, operation: compile, status: error, reason: invalid_json_schema, schema_path: [\"type\"], detail: unsupported_type, type: \"decimal\"})]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,7 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; E9-1 Template foundation through E9-5
-JSON representation boundary implemented; later R9 slices not implemented.**
+Status: **Approved R9 design contract; E9-1 Template foundation through E9-6
+JSON Schema structural subset implemented; later R9 slices not implemented.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for
@@ -192,9 +192,14 @@ JSON parsing/serialization may be supplied by a host capability. The value
 mapping, facet application, matching, error categories, and normalized
 observations are portable.
 
-JSON Schema is not part of E9-5. E9-6 may translate only an explicitly listed
-subset into ordinary templates. Unsupported keywords must fail clearly rather
-than being ignored.
+E9-6 implements Experimental `json_schema` compilation from one outer
+`json`-represented schema map into an ordinary callable Outcome Template. The
+closed subset requires one `type` (`object`, `array`, `string`, `number`,
+`integer`, `boolean`, or `null`) and permits only type-appropriate
+`properties`, `required`, `items`, and boolean `additionalProperties`.
+Unsupported keywords and malformed schema shapes fail compilation explicitly;
+references, recursion, combinators, constraints, annotations, coercion, and
+standards-completeness claims remain excluded.
 
 ## Portability and Core IR
 
@@ -246,7 +251,7 @@ Recommended order:
 4. E9-4: implemented by #90 — exact/closed structural templates without layout or nominal claims.
 5. E9-5: implemented by #571 — strict Outcome-native JSON decode/encode over
    ordinary values with one outer `json` carrier facet.
-6. E9-6: add the approved JSON Schema subset as template production.
+6. E9-6: implemented by #572 — compile the closed JSON Schema structural subset into ordinary Outcome Templates.
 7. E9-7: prove `json(Person(x))` in an Outcome-aware validated pipeline.
 8. E9-8: perform release truth audit and distillation, including terminology and
    composability-matrix review.

@@ -1,0 +1,19 @@
+name: json-schema-validated-flow
+category: flow
+description: JSON decoding and a compiled schema Template compose in an Outcome-aware flow
+input:
+  source: |
+    schema = json_decode("{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"}},\"required\":[\"id\"]}")
+    template = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
+    pattern Json(value) = representation_match("json", value)
+    validate(value) =
+      Json(inner) -> template(inner) |
+      _ -> none("representation-mismatch")
+    ["{\"id\":1}", "{\"id\":1.5}", "{bad}"]
+      |> map(json_decode)
+      |> ((decoded) -> validate_each(decoded, validate))
+      |> collect
+expected:
+  stdout: "[some({id: 1}), none(\"json-schema-type-mismatch\", {path: [\"id\"], expected: integer, actual: number}), err(invalid_json, {kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})]\n"
+  stderr: ""
+  exit_code: 0

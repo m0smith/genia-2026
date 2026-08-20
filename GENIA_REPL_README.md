@@ -830,6 +830,7 @@ These are blocking/runtime primitives only; they do not introduce scheduler/asyn
 - `json_pretty(value)` remains a compatibility alias for `json_stringify(value)`.
 - `json_decode(string_or_bytes)` (**Experimental**) is the portable R9 boundary. Success is `some(represent("json", ordinary_root), context)`; malformed JSON, invalid UTF-8, duplicate names, out-of-range numbers, invalid Unicode, or excessive nesting are normalized `err` Outcomes.
 - `json_encode(value)` (**Experimental**) accepts a supported ordinary value or one outer `json`-represented value and returns `some(text, context)`. Unsupported values return `err`; output is two-space-indented with sorted object names and preserved array order.
+- `json_schema(json_represented_schema)` (**Experimental**) compiles the closed structural subset `type`/`properties`/`required`/`items`/boolean `additionalProperties` into an ordinary callable Outcome Template. Unsupported keywords and malformed schemas return normalized `err` Outcomes rather than being ignored.
 - The portable domain uses safe integers through ±9007199254740991, finite binary64 fractional values, Unicode scalar strings, string object names, and at most 128 nested containers. It adds no JSON-specific runtime value class or Core IR node.
 - `json_parse`, `json_stringify`, `json_pretty`, and `parse_jsonl_record` retain their existing compatibility behavior; they are not aliases for the representation-aware boundary.
 - `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line into an Outcome for record-oriented pipelines:

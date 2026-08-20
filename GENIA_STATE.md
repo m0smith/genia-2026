@@ -1034,7 +1034,7 @@ Template semantics (Experimental):
 - exact-shape specifications are validated first; missing fields are checked in specification insertion order, then extras in candidate insertion order, then field Templates in specification order
 - nested Template `some(payload)` establishes compatibility only; structural matching does not transform the field or subject, while nested `none`/`err` propagates unchanged
 - refinement/open/exact helpers compose through existing direct calls, `Name(inner_pattern)`, `@?`, `@!`, and `&`; they add no syntax, nominal identity, or runtime shape category
-- Template metadata, positional/labeled shapes, nominal Structs, and JSON Schema are not implemented by the Template/shape slices; JSON boundary behavior is defined separately below
+- Template metadata, positional/labeled shapes, and nominal Structs are not implemented by the Template/shape slices; the separate Experimental JSON Schema boundary below compiles only its locked structural subset
 
 Carrier representation semantics (Experimental):
 
@@ -2206,6 +2206,7 @@ Pattern matching note:
 - public JSON helpers from `src/genia/std/prelude/json.genia`:
   - `json_decode(string_or_bytes) -> some(json_represented_value, context) | err(reason, context)` (**Experimental**, portable R9 boundary)
   - `json_encode(value) -> some(json_text, context) | err(reason, context)` (**Experimental**, portable R9 boundary)
+  - `json_schema(json_represented_schema) -> some(template, context) | err(reason, context)` (**Experimental**, portable R9 structural-subset compiler)
   - `json_parse(string) -> value | none("json-parse-error", context)`
   - `json_stringify(value) -> string | none("json-stringify-error", context)`
   - `json_pretty(value) -> string | none(...)` (compatibility alias)
@@ -2243,6 +2244,14 @@ Behavior:
 - boundary Outcome contexts contain `kind: quote(json)`, `operation: quote(decode|encode)`, `status: quote(decoded|encoded|error)`, and `reason`; malformed syntax adds 1-based `line`/`column`, duplicates add `key`, and unsupported encoding adds `value_type`
 - portable error reasons are `invalid_json`, `invalid_json_utf8`, `duplicate_json_key`, `json_number_out_of_range`, `invalid_json_unicode`, `json_nesting_too_deep`, and `unsupported_json_value`; host exception text is not portable
 - JSON decoding/serialization may be host-backed, but value mapping, facet placement, limits, deterministic output, Outcomes, and matching observations are portable; no parser/Core IR node or parallel JSON runtime value model is added
+- `json_schema` accepts exactly one outer `json`-represented schema map and compiles it into an ordinary one-argument Outcome Template; unrepresented input, another outer facet, or a represented non-map root is runtime misuse
+- every schema node requires one string `type`: `object`, `array`, `string`, `number`, `integer`, `boolean`, or `null`; the only other supported keywords are `properties`, `required`, `items`, and boolean `additionalProperties`
+- object `properties` default to `{}`, `required` defaults to `[]`, and `additionalProperties` defaults to `true`; required names must be unique and declared in `properties`; optional declared properties are checked only when present
+- array schemas require one schema-valued `items`; object-only keywords on other types, array-only keywords on other types, malformed supported-keyword values, unsupported type names, and every unlisted keyword fail compilation rather than being ignored
+- successful compilation returns `some(template, {kind: quote(json_schema), operation: quote(compile), status: quote(compiled), reason: quote(compiled)})`; unsupported keywords return `err(quote(unsupported_json_schema_keyword), context)`, while malformed subset schemas return `err(quote(invalid_json_schema), context)` with deterministic `schema_path` and detail fields
+- a compiled Template returns `some(original_subject)` on success; type, missing-required-property, and forbidden-additional-property mismatches return `none("json-schema-type-mismatch"|"json-schema-required-property"|"json-schema-additional-property", context)` at the first deterministic subject path
+- object matching checks type, required names in `required` order, forbidden extras in candidate insertion order, then present properties in specification order; array matching checks items by increasing index; nested success payloads never transform the subject
+- JSON Schema `number` accepts finite integers/floats except booleans, `integer` accepts integers except booleans, `string` excludes symbols, and `null` matches Genia `nil`; compilation/matching adds no syntax, Core IR node, schema-specific runtime hierarchy, coercion, defaults, references, recursion, acquisition, or standards-completeness claim
 - `parse_jsonl_record(line)` (**Experimental**) parses one JSONL string line and returns an Outcome with stable context metadata:
   - every recoverable Outcome context includes the exact original input string as `line: <original_line>`
   - valid JSON object: `some(parsed_record, {kind: quote(jsonl_record), status: quote(parsed), reason: quote(parsed), line: <original_line>})`

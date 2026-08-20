@@ -3108,6 +3108,297 @@ def make_global_env(
         context = _json_boundary_context("decode", "decoded", "decoded")
         return GeniaOptionSome(GeniaRepresented("json", runtime_value), context)
 
+    _JSON_SCHEMA_KEYWORDS = frozenset(
+        {"type", "properties", "required", "items", "additionalProperties"}
+    )
+    _JSON_SCHEMA_TYPES = frozenset(
+        {"object", "array", "string", "number", "integer", "boolean", "null"}
+    )
+
+    def _json_schema_context(
+        reason: str,
+        schema_path: list[Any],
+        **details: Any,
+    ) -> GeniaMap:
+        context = (
+            GeniaMap()
+            .put("kind", symbol("json_schema"))
+            .put("operation", symbol("compile"))
+            .put("status", symbol("error"))
+            .put("reason", symbol(reason))
+            .put("schema_path", list(schema_path))
+        )
+        for key, value in details.items():
+            context = context.put(key, value)
+        return context
+
+    def _json_schema_invalid(
+        schema_path: list[Any],
+        detail: str,
+        **details: Any,
+    ) -> GeniaOptionErr:
+        return GeniaOptionErr(
+            symbol("invalid_json_schema"),
+            _json_schema_context(
+                "invalid_json_schema",
+                schema_path,
+                detail=symbol(detail),
+                **details,
+            ),
+        )
+
+    def _json_schema_unsupported(
+        schema_path: list[Any], keyword: Any
+    ) -> GeniaOptionErr:
+        return GeniaOptionErr(
+            symbol("unsupported_json_schema_keyword"),
+            _json_schema_context(
+                "unsupported_json_schema_keyword",
+                schema_path,
+                keyword=keyword,
+            ),
+        )
+
+    def _compile_json_schema_node(schema: Any, schema_path: list[Any]) -> Any:
+        if not isinstance(schema, GeniaMap):
+            return _json_schema_invalid(schema_path, "invalid_property_schema")
+
+        for keyword, _value in schema.items():
+            if not isinstance(keyword, str) or isinstance(keyword, GeniaSymbol):
+                return _json_schema_unsupported(schema_path, keyword)
+            if keyword not in _JSON_SCHEMA_KEYWORDS:
+                return _json_schema_unsupported(schema_path, keyword)
+
+        if not schema.has("type"):
+            return _json_schema_invalid(schema_path, "missing_type")
+        type_name = schema.get("type")
+        if not isinstance(type_name, str) or isinstance(type_name, GeniaSymbol):
+            return _json_schema_invalid(schema_path + ["type"], "invalid_type_keyword")
+        if type_name not in _JSON_SCHEMA_TYPES:
+            return _json_schema_invalid(
+                schema_path + ["type"], "unsupported_type", type=type_name
+            )
+
+        allowed = {"type"}
+        if type_name == "object":
+            allowed.update({"properties", "required", "additionalProperties"})
+        elif type_name == "array":
+            allowed.add("items")
+        for keyword, _value in schema.items():
+            if keyword not in allowed:
+                return _json_schema_invalid(
+                    schema_path + [keyword], "keyword_not_allowed_for_type"
+                )
+
+        if type_name == "object":
+            properties = schema.get("properties") if schema.has("properties") else GeniaMap()
+            if not isinstance(properties, GeniaMap):
+                return _json_schema_invalid(
+                    schema_path + ["properties"], "invalid_properties"
+                )
+
+            required = schema.get("required") if schema.has("required") else []
+            if not isinstance(required, list):
+                return _json_schema_invalid(schema_path + ["required"], "invalid_required")
+            seen_required: set[str] = set()
+            normalized_required: list[str] = []
+            for index, property_name in enumerate(required):
+                required_path = schema_path + ["required", index]
+                if not isinstance(property_name, str) or isinstance(property_name, GeniaSymbol):
+                    return _json_schema_invalid(
+                        required_path, "invalid_required_name"
+                    )
+                if property_name in seen_required:
+                    return _json_schema_invalid(
+                        required_path,
+                        "duplicate_required_name",
+                        property=property_name,
+                    )
+                if not properties.has(property_name):
+                    return _json_schema_invalid(
+                        required_path,
+                        "undeclared_required_property",
+                        property=property_name,
+                    )
+                seen_required.add(property_name)
+                normalized_required.append(property_name)
+
+            additional = (
+                schema.get("additionalProperties")
+                if schema.has("additionalProperties")
+                else True
+            )
+            if not isinstance(additional, bool):
+                return _json_schema_invalid(
+                    schema_path + ["additionalProperties"],
+                    "invalid_additional_properties",
+                )
+
+            compiled_properties: list[tuple[str, Any]] = []
+            for property_name, property_schema in properties.items():
+                property_path = schema_path + ["properties", property_name]
+                if not isinstance(property_name, str) or isinstance(property_name, GeniaSymbol):
+                    return _json_schema_invalid(
+                        property_path, "invalid_property_schema"
+                    )
+                if not isinstance(property_schema, GeniaMap):
+                    return _json_schema_invalid(
+                        property_path, "invalid_property_schema"
+                    )
+                compiled = _compile_json_schema_node(property_schema, property_path)
+                if isinstance(compiled, GeniaOptionErr):
+                    return compiled
+                compiled_properties.append((property_name, compiled))
+
+            return {
+                "type": type_name,
+                "properties": compiled_properties,
+                "property_names": frozenset(name for name, _ in compiled_properties),
+                "required": normalized_required,
+                "additional": additional,
+            }
+
+        if type_name == "array":
+            if not schema.has("items"):
+                return _json_schema_invalid(schema_path + ["items"], "missing_items")
+            items = schema.get("items")
+            if not isinstance(items, GeniaMap):
+                return _json_schema_invalid(schema_path + ["items"], "invalid_items")
+            compiled_items = _compile_json_schema_node(items, schema_path + ["items"])
+            if isinstance(compiled_items, GeniaOptionErr):
+                return compiled_items
+            return {"type": type_name, "items": compiled_items}
+
+        return {"type": type_name}
+
+    def _json_schema_actual_type(value: Any) -> str:
+        if _is_nil_none(value):
+            return "null"
+        if isinstance(value, bool):
+            return "boolean"
+        if isinstance(value, int):
+            return "integer"
+        if isinstance(value, float):
+            return "number"
+        if isinstance(value, GeniaSymbol):
+            return "symbol"
+        if isinstance(value, str):
+            return "string"
+        if isinstance(value, GeniaMap):
+            return "object"
+        if isinstance(value, list):
+            return "array"
+        if isinstance(value, GeniaRepresented):
+            return "represented"
+        if callable(value):
+            return "function"
+        return "other"
+
+    def _json_schema_type_matches(type_name: str, value: Any) -> bool:
+        if type_name == "null":
+            return _is_nil_none(value)
+        if type_name == "boolean":
+            return isinstance(value, bool)
+        if type_name == "integer":
+            return isinstance(value, int) and not isinstance(value, bool)
+        if type_name == "number":
+            return (
+                isinstance(value, (int, float))
+                and not isinstance(value, bool)
+                and (not isinstance(value, float) or math.isfinite(value))
+            )
+        if type_name == "string":
+            return isinstance(value, str) and not isinstance(value, GeniaSymbol)
+        if type_name == "object":
+            return isinstance(value, GeniaMap)
+        if type_name == "array":
+            return isinstance(value, list)
+        return False
+
+    def _match_json_schema_node(compiled: Any, value: Any, path: list[Any]) -> Any:
+        type_name = compiled["type"]
+        if not _json_schema_type_matches(type_name, value):
+            context = (
+                GeniaMap()
+                .put("path", list(path))
+                .put("expected", symbol(type_name))
+                .put("actual", symbol(_json_schema_actual_type(value)))
+            )
+            return make_none("json-schema-type-mismatch", context)
+
+        if type_name == "object":
+            for property_name in compiled["required"]:
+                if not value.has(property_name):
+                    return make_none(
+                        "json-schema-required-property",
+                        GeniaMap()
+                        .put("path", list(path))
+                        .put("property", property_name),
+                    )
+            if not compiled["additional"]:
+                for property_name, _property_value in value.items():
+                    if property_name not in compiled["property_names"]:
+                        return make_none(
+                            "json-schema-additional-property",
+                            GeniaMap()
+                            .put("path", list(path))
+                            .put("property", property_name),
+                        )
+            for property_name, property_schema in compiled["properties"]:
+                if not value.has(property_name):
+                    continue
+                result = _match_json_schema_node(
+                    property_schema,
+                    value.get(property_name),
+                    path + [property_name],
+                )
+                if isinstance(result, GeniaOptionNone):
+                    return result
+
+        if type_name == "array":
+            for index, item in enumerate(value):
+                result = _match_json_schema_node(compiled["items"], item, path + [index])
+                if isinstance(result, GeniaOptionNone):
+                    return result
+
+        return GeniaOptionSome(value)
+
+    def json_schema_fn(value: Any) -> Any:
+        if not isinstance(value, GeniaRepresented):
+            raise TypeError(
+                "json_schema expected json-represented schema, "
+                f"received {_runtime_type_name(value)}"
+            )
+        if value.facet != "json":
+            raise ValueError(
+                "json_schema expected outer json representation, "
+                f"received {value.facet}"
+            )
+        if not isinstance(value.value, GeniaMap):
+            raise TypeError(
+                "json_schema expected represented schema map, "
+                f"received {_runtime_type_name(value.value)}"
+            )
+
+        compiled = _compile_json_schema_node(value.value, [])
+        if isinstance(compiled, GeniaOptionErr):
+            return compiled
+
+        def template(subject: Any) -> Any:
+            return _match_json_schema_node(compiled, subject, [])
+
+        template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        context = (
+            GeniaMap()
+            .put("kind", symbol("json_schema"))
+            .put("operation", symbol("compile"))
+            .put("status", symbol("compiled"))
+            .put("reason", symbol("compiled"))
+        )
+        return GeniaOptionSome(template, context)
+
+    json_schema_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
     def _jsonl_context(status: str, reason: str, line: str) -> GeniaMap:
         return (
             GeniaMap()
@@ -4152,6 +4443,7 @@ def make_global_env(
     env.set("_resource_capabilities", resource_capabilities_fn)
     env.set("_json_parse", json_parse_fn)
     env.set("_json_decode", json_decode_fn)
+    env.set("_json_schema", json_schema_fn)
     env.set("_parse_jsonl_record", parse_jsonl_record_fn)
     env.set("_parse_csv_row", parse_csv_row_fn)
     env.set("_json_stringify", json_stringify_fn)
@@ -4332,6 +4624,7 @@ def make_global_env(
     env.register_autoload("parse_int", 2, "std/prelude/string.genia")
     env.register_autoload("json_parse", 1, "std/prelude/json.genia")
     env.register_autoload("json_decode", 1, "std/prelude/json.genia")
+    env.register_autoload("json_schema", 1, "std/prelude/json.genia")
     env.register_autoload("parse_jsonl_record", 1, "std/prelude/json.genia")
     env.register_autoload("parse_csv_row", 1, "std/prelude/json.genia")
     env.register_autoload("parse_csv_row", 2, "std/prelude/json.genia")

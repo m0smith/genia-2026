@@ -1,0 +1,13 @@
+name: json-schema-template-operators
+category: eval
+description: Compiled JSON Schema Templates use existing matcher operators and preserve subjects
+input:
+  source: |
+    schema = json_decode("{\"type\":\"number\"}")
+    Number = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
+    Positive(value) = refinement_match((n) -> n > 0, value)
+    [(4 @? Number), (4 @? (Number & Positive)), (-1 @? (Number & Positive))]
+expected:
+  stdout: "[some(4), some(4), none(\"refinement-mismatch\")]\n"
+  stderr: ""
+  exit_code: 0

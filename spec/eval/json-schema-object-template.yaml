@@ -1,0 +1,18 @@
+name: json-schema-object-template
+category: eval
+description: JSON Schema object compilation produces an ordinary structural Template
+input:
+  source: |
+    schema = json_decode("{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\"],\"additionalProperties\":false}")
+    template = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none("compile-failed"))
+    [
+      template({name: "Ada", age: 37}),
+      template({name: "Ada"}),
+      template({age: 37}),
+      template({name: "Ada", extra: true}),
+      template({name: "Ada", age: 1.5})
+    ]
+expected:
+  stdout: "[some({name: \"Ada\", age: 37}), some({name: \"Ada\"}), none(\"json-schema-required-property\", {path: [], property: \"name\"}), none(\"json-schema-additional-property\", {path: [], property: \"extra\"}), none(\"json-schema-type-mismatch\", {path: [\"age\"], expected: integer, actual: number})]\n"
+  stderr: ""
+  exit_code: 0
