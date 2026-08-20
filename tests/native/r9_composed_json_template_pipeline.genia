@@ -1,0 +1,41 @@
+person_schema = json_decode("{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\",\"age\"],\"additionalProperties\":false}")
+
+Person =
+  json_schema(unwrap_or({}, person_schema))
+    |> unwrap_or((_) -> none("schema-compile-failed"))
+
+pattern Json(value) = representation_match("json", value)
+
+validate_json_person(value) =
+  Json(person) -> Person(person) |
+  _ -> none("representation-mismatch")
+
+run_composed_pipeline(lines) =
+  lines
+    |> map(json_decode)
+    |> ((decoded) -> validate_each(decoded, validate_json_person))
+    |> collect_validated
+
+test("composed JSON Template pipeline keeps clean records and diagnostics", () -> {
+  result = run_composed_pipeline([
+    "{\"name\":\"Ada\",\"age\":37}",
+    "{\"name\":\"Bob\",\"age\":\"unknown\"}",
+    "{bad}",
+    "[1,2]",
+    "{\"name\":\"Grace\",\"age\":41}"
+  ])
+
+  diagnostics = result("diagnostics")
+  field_mismatch = diagnostics |> nth(0) |> unwrap_or({})
+  malformed = diagnostics |> nth(1) |> unwrap_or({})
+  shape_mismatch = diagnostics |> nth(2) |> unwrap_or({})
+
+  assert_eq(display(result("clean")), "[{name: Ada, age: 37}, {name: Grace, age: 41}]")
+  assert_eq(count(diagnostics), 3)
+  assert_eq(display(field_mismatch("kind")), "skipped")
+  assert_eq(display(field_mismatch("reason")), "json-schema-type-mismatch")
+  assert_eq(display(malformed("kind")), "error")
+  assert_eq(display(malformed("reason")), "invalid_json")
+  assert_eq(display(shape_mismatch("kind")), "skipped")
+  assert_eq(display(shape_mismatch("reason")), "json-schema-type-mismatch")
+})
