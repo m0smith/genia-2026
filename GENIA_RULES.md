@@ -98,6 +98,9 @@ Required constraints:
 - exact matching validates the specification first, checks missing fields in specification order, checks extras in candidate order, and only then invokes field Templates in specification order; equal key sets match regardless of insertion order
 - a nested field Template success payload establishes compatibility but never transforms the subject
 - open and exact structural helpers are distinct: open allows extras, exact rejects them; neither adds nominal identity, copying, layout, or positional/labeled shapes
+- `json_schema(schema)` requires one outer `json`-represented schema map and returns an Outcome containing an ordinary callable Template; the supported vocabulary is closed to required `type`, plus type-appropriate `properties`, `required`, `items`, and boolean `additionalProperties`
+- compiled schema Templates preserve the original subject on success; object checks run required names, forbidden extras, then present declared properties in their defined orders, and array checks run by increasing index
+- unsupported schema keywords and malformed supported-keyword shapes are deterministic compile-time `err` Outcomes; schema compiler input-shape/facet violations are runtime misuse, and unsupported keywords are never ignored
 - no implicit Template application, metadata behavior, structural declaration syntax, nominal shape category, or representation behavior is introduced
 
 ## 6.3) Carrier representation invariants (Experimental)
@@ -898,12 +901,13 @@ This protects helper-based and pattern-based Option handling from silent semanti
 - required builtins:
   - `utf8_decode`, `utf8_encode`
   - internal JSON bridge primitives: `_json_parse`, `_json_stringify`
-  - internal portable JSON boundary primitives: `_json_decode`, `_json_encode`
+  - internal portable JSON boundary primitives: `_json_decode`, `_json_encode`, `_json_schema`
   - `zip_entries`, `zip_write`
   - `entry_name`, `entry_bytes`, `set_entry_bytes`, `update_entry_bytes`, `entry_json`
 - public JSON helpers are prelude-backed wrappers in `src/genia/std/prelude/json.genia`:
   - `json_decode(string_or_bytes)` returns `some(represent("json", ordinary_value), context)` or a normalized `err(reason, context)` (**Experimental**)
   - `json_encode(value)` returns `some(deterministic_json_text, context)` or a normalized `err(reason, context)` (**Experimental**)
+  - `json_schema(json_represented_schema)` returns `some(template, context)` or a normalized schema `err(reason, context)` (**Experimental**)
   - `json_parse(string)`
   - `json_stringify(value)`
   - `json_pretty(value)` compatibility alias for `json_stringify(value)`

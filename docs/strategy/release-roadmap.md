@@ -468,6 +468,7 @@ Implemented foundation:
 - E9-3 / issue #89: boolean refinement lifting and open ordinary-map shapes require listed fields, accept extras, and preserve the original map.
 - E9-4 / issue #90: exact ordinary-map shapes require equal field sets and preserve ordinary map values without nominal Struct/layout behavior.
 - E9-5 / issue #571: strict JSON decode/encode maps ordinary values through one outer `json` facet with normalized Outcomes and portable duplicate, number, Unicode, and nesting limits.
+- E9-6 / issue #572: the closed JSON Schema structural subset compiles represented schema maps into ordinary callable Outcome Templates and rejects unsupported keywords explicitly.
 
 Theme:
 
@@ -535,6 +536,7 @@ Issue guidance:
 - **#89** is the implemented E9-3 refinement/open structural Template slice.
 - **#90** is the implemented E9-4 exact/closed structural Template slice.
 - **#571** is the implemented E9-5 JSON representation boundary.
+- **#572** is the implemented E9-6 JSON Schema structural-subset compiler.
 - **#91** retains broad historical scope and must be reconciled with the approved E9 sequence before use as a blocker.
 
 ---

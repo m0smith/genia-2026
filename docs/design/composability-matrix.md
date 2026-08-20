@@ -43,7 +43,7 @@ These rows are design constraints from
 | representation facet | equality/keys | exact ordered facets participate in equality and existing key suitability | Implemented generic carrier rule, Experimental |
 | representation facet | explicit strip/declassification | `strip_representation` removes one outer generic facet explicitly; protected declassification remains later work | Generic strip implemented; protected facets not implemented |
 | JSON | representation facet | `json_decode` returns an ordinary Genia root with one outer `json` facet; `json_encode` consumes that layer or a supported ordinary value | Implemented E9-5, Experimental |
-| JSON Schema subset | template | produce ordinary structural/refinement templates; reject unsupported features | Planned E9-6; not implemented |
+| JSON Schema subset | template | `json_schema` compiles the closed structural subset into ordinary callable Outcome Templates and rejects unsupported keywords | Implemented E9-6, Experimental |
 | `json` representation | structural template | conceptual `json(Person(x))` proves boundary plus structure composition | Planned E9-7; not implemented |
 | future `secret` | representation facet | reuse the carrier abstraction while retaining protection during matching | R10 constraint; not implemented |
 | rendering | representation facet | separate concerns; rendering policy may hide protected payloads | Approved boundary; facet behavior not implemented |

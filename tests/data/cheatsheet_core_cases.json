@@ -70,6 +70,11 @@
     "expected_result": "[some({name: \"Ada\"}), none(\"exact-shape-extra-field\", {field: \"source\"})]"
   },
   {
+    "id": "core-json-schema-template",
+    "source": "schema = json_decode(\"{\\\"type\\\":\\\"integer\\\"}\")\nInteger = json_schema(unwrap_or({}, schema)) |> unwrap_or((_) -> none(\"compile-failed\"))\n[Integer(7), Integer(1.5)]",
+    "expected_result": "[some(7), none(\"json-schema-type-mismatch\", {path: [], expected: integer, actual: number})]"
+  },
+  {
     "id": "core-format-positional",
     "source": "format(\"Item {0} costs {1}\", [\"apple\", \"5\"])",
     "expected_result": "\"Item apple costs 5\""
