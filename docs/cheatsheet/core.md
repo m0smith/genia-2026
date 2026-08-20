@@ -50,6 +50,8 @@ Carrier facets are Experimental ordered layers. A representation-aware named Tem
 
 `json_schema` is Experimental and intentionally limited: each schema node requires `type`; object `properties`/`required`, array `items`, primitive types, and boolean `additionalProperties` are supported. Unsupported keywords fail compilation and are never ignored.
 
+For the complete boundary → representation match → schema Template → Outcome aggregation composition, run [`examples/r9_composed_json_template_pipeline.genia`](../../examples/r9_composed_json_template_pipeline.genia). Classification: **Valid** (directly tested, Experimental integration example).
+
 Refinement and open structural helpers are Experimental and reuse existing named Templates. Open structural success preserves the complete original map rather than applying nested success payloads as transformations.
 
 Exact structural helpers are Experimental and use the same field-Template protocol. Exact matching requires equal key sets, preserves the original map, and returns distinct missing/extra mismatch Outcomes without nominal Struct values.

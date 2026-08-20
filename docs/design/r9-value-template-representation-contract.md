@@ -1,7 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; E9-1 Template foundation through E9-6
-JSON Schema structural subset implemented; later R9 slices not implemented.**
+Status: **Approved R9 design contract; E9-1 Template foundation through E9-7
+composed proving case implemented; later R9 slices not implemented.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for
@@ -252,7 +252,8 @@ Recommended order:
 5. E9-5: implemented by #571 — strict Outcome-native JSON decode/encode over
    ordinary values with one outer `json` carrier facet.
 6. E9-6: implemented by #572 — compile the closed JSON Schema structural subset into ordinary Outcome Templates.
-7. E9-7: prove `json(Person(x))` in an Outcome-aware validated pipeline.
+7. E9-7: implemented by #573 — prove the JSON representation plus JSON
+   Schema-derived `Person` Template composition in an Outcome-aware validated pipeline.
 8. E9-8: perform release truth audit and distillation, including terminology and
    composability-matrix review.
 
