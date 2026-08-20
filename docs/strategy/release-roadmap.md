@@ -457,9 +457,9 @@ Final R8 disposition:
 
 ## Release R9 — Value Templates & Representations
 
-**Status: Active.** This section records approved release direction, not
-implemented language behavior. R9 begins with semantic design; activation does
-not make its candidate syntax or behavior implemented.
+**Status: Complete.** E9-1 through E9-7 delivered the approved behavior, and
+E9-8 completed the release truth audit. Implemented surfaces retain their
+documented Experimental maturity.
 
 Implemented foundation:
 
@@ -483,17 +483,16 @@ and unifies four related concepts:
 - **Representation** — semantically meaningful information about how a value is represented or carried across a boundary.
 - **Pattern** — how Genia recognizes and destructures values, templates, and representations.
 
-Candidate scope:
+Delivered scope:
 
 - value templates and structural compatibility without nominal wrapper hierarchies
 - open and closed shapes, refinements, and template composition
-- variants where the semantic design remains consistent with the existing value-template direction
 - representation semantics, representation-aware pattern matching, and explicit preservation/propagation rules
 - JSON as a representation of ordinary Genia maps, lists, and scalars, not a parallel JSON object model
 - JSON Schema as a source of structural templates, initially limited to a useful structural subset; advanced or unsupported JSON Schema features remain outside R9 unless separately designed and approved
 - JSON/schema matching as the proving boundary use case
 
-The intended model must explain the following conceptual forms coherently:
+The release model explains the following conceptual forms coherently:
 
 ```text
 secret(x)
@@ -501,23 +500,11 @@ json(x)
 json(Person(x))
 ```
 
-Representations say how values are carried or represented. Templates say what
-shape and refinements values satisfy. Patterns may match both. The syntax above
-is conceptual and does not claim current parser or runtime support.
-
-Candidate syntax for the JSON/schema boundary may look like:
-
-```genia
-User = @json_schema("user.schema.json")
-
-response
-  |> json(User(user)) -> process(user)
-  |> json(_) -> err("unexpected JSON shape")
-```
-
-This is a planned example requiring semantic design. It must not be implemented
-as nominal `JsonResponse` / `User` object hierarchies, and JSON decoding must
-yield ordinary Genia values.
+Representations say how values are carried. Templates say what shape and
+refinements values satisfy. Patterns may match both. `json(x)` and
+`json(Person(x))` are implemented through named representation-aware Templates;
+`secret(x)` remains a conceptual R10 use of the same carrier mechanism, not
+implemented syntax or secret acquisition.
 
 Excludes by default:
 
@@ -526,9 +513,16 @@ Excludes by default:
 - a promise to implement every JSON Schema feature in R9
 - silently promoting unrelated broad contract/refinement work beyond what this release needs
 
-Exit criterion:
+Exit criteria — met:
 
 - Genia can explain `secret(x)`, `json(x)`, and `json(Person(x))` through one coherent representation/template/pattern model rather than unrelated special cases.
+- JSON decoding yields ordinary values, the approved JSON Schema subset compiles
+  ordinary Outcome Templates, and representation-aware matching composes with
+  the existing matcher model.
+- The executable R9 pipeline proves the boundary without nominal types,
+  implicit coercion, broad contracts, or variants.
+- Authoritative docs, specs/tests, roadmap, and composability matrix passed the
+  E9-8 truth review.
 
 Issue guidance:
 
@@ -539,7 +533,8 @@ Issue guidance:
 - **#571** is the implemented E9-5 JSON representation boundary.
 - **#572** is the implemented E9-6 JSON Schema structural-subset compiler.
 - **#573** is the implemented E9-7 composed JSON Template proving case.
-- **#91** retains broad historical scope and must be reconciled with the approved E9 sequence before use as a blocker.
+- **#91** is later-release/follow-up contract work and is not an R9 blocker.
+- **#92** is later-release/follow-up variant work and is not an R9 blocker.
 
 ---
 
@@ -713,7 +708,7 @@ Critical acceptance criterion:
 
 ---
 
-## Planned R8–R12 Sequence and Dependencies
+## R8–R12 Sequence and Dependencies
 
 The scheduling sequence is:
 
@@ -736,8 +731,7 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8 is complete, R9 is active, and R10-R12 remain planned and not
-active.
+composition. R8 and R9 are complete; R10-R12 remain planned and not active.
 
 ---
 
@@ -753,7 +747,7 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - ants / simulation teaching demos
   - useful teaching material after the data-pipeline wedge is demonstrable
 - value-template work outside the focused R9 structural/representation scope
-  - the value-template program is now promoted to planned R9; **#87 / #89 / #91** remain useful history, but their broad scope/status must be reviewed before they become release blockers
+  - R9 is complete; new Template work requires later-release or follow-up classification
 - refinement / shape / contract / variant work beyond the subset required to prove R9
 - validation DSL
   - do not create implementation tickets until helper-based validation proves insufficient
@@ -781,8 +775,9 @@ This section records the classification of R1-adjacent issues after R1 completio
 | #396 | R6 — after #395 | Keep open; depends on Sheet landing zone. |
 | #363 | R6 — delivered | `row_get(row, column_name)` ergonomic row access shipped. |
 | #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
-| #399 | R9 E9-1 | Minimal callable Template foundation implemented over Outcome matchers. |
-| #87 / #89 / #91 | Planned R9 scope review | Value-template work is promoted to planned R9; review the old broad issue scope/status before treating any issue as a release blocker. |
+| #399 | R9 E9-1 — delivered | Minimal callable Template foundation implemented over Outcome matchers. |
+| #87 / #89 / #90 | R9 — delivered | R9 epic, open-shape, and exact-shape work completed through the approved E9 sequence. |
+| #91 / #92 | Later release / follow-up | Broad contracts and variants were not required by R9 and are not release blockers. |
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |
 
 If an issue listed above is already closed, do not reopen it.

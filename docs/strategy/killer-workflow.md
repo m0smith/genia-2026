@@ -99,7 +99,10 @@ R7 is complete. It does not replace the validated-data-pipeline product north st
 
 **R8** completed the explicitly approved server-execution-mode infrastructure work.
 
-**R9** is the active release. Its value-template and representation work supports the validated-data-pipeline direction and must proceed through the repository's required contract, design, test, implementation, documentation, and audit phases.
+**R9** completed the value-template and representation work that supports the
+validated-data-pipeline direction. **R10** is planned but not active; future
+release work still requires explicit activation and the repository's contract,
+design, test, implementation, documentation, and audit phases.
 
 ## Using This Document
 

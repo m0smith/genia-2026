@@ -1,9 +1,9 @@
 # Composability Matrix
 
 > **Status: PROPOSED / EXPLORATORY**
-> This design aid mixes implemented foundations with planned R9 relationships.
-> The Status column identifies each row. It does not define implemented
-> behavior; `GENIA_STATE.md` is final authority.
+> This design aid records implemented foundations alongside explicit
+> later-release constraints. The Status column identifies each row. It does not
+> define implemented behavior; `GENIA_STATE.md` is final authority.
 
 ## Current foundation
 
@@ -30,10 +30,10 @@
 | lifecycle descriptors | test/serve consumers | consumers activate their explicit lifecycle; annotations do not self-execute | Implemented foundation |
 | rendering | output | `display`, `debug_repr`, `Format`, and `format` produce strings; sinks perform I/O | Implemented; some Format parts Experimental |
 
-## Approved R9 relationships
+## R9 relationships
 
-These rows are design constraints from
-`r9-value-template-representation-contract.md`, not implemented behavior.
+These rows summarize the implemented R9 boundaries and the explicitly marked
+future-secret constraint from `r9-value-template-representation-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
@@ -46,7 +46,7 @@ These rows are design constraints from
 | JSON Schema subset | template | `json_schema` compiles the closed structural subset into ordinary callable Outcome Templates and rejects unsupported keywords | Implemented E9-6, Experimental |
 | `json` representation | structural template | `Json(person)` consumes one outer facet and the JSON Schema-derived `Person(person)` Template validates the carried ordinary value in an Outcome-aware pipeline | Implemented E9-7 proving case, Experimental |
 | future `secret` | representation facet | reuse the carrier abstraction while retaining protection during matching | R10 constraint; not implemented |
-| rendering | representation facet | separate concerns; rendering policy may hide protected payloads | Approved boundary; facet behavior not implemented |
+| rendering | representation facet | separate concerns; generic facets render opaquely, while protected rendering policy remains later work | Generic opacity implemented; protected policy not implemented |
 
 ## Isolation rules
 
@@ -63,5 +63,5 @@ These rows are design constraints from
 | execution mode | new language semantics | modes select host/runtime execution behavior |
 | Sheet | implicit Seq or Outcome conversion | conversions and aggregation remain explicit |
 
-The matrix must be reviewed again during E9-8 and whenever a later release
-changes one of these composition boundaries.
+The matrix was reviewed during E9-8 and must be reviewed whenever a later
+release changes one of these composition boundaries.

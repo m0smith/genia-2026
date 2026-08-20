@@ -1,7 +1,7 @@
 # R9 Value Template and Representation Contract
 
-Status: **Approved R9 design contract; E9-1 Template foundation through E9-7
-composed proving case implemented; later R9 slices not implemented.**
+Status: **Approved R9 design contract; E9-1 through E9-7 implemented; E9-8
+release truth audit complete.**
 
 This document constrains later R9 design and implementation. Conceptual forms
 shown here are not current syntax. `GENIA_STATE.md` remains final authority for

@@ -148,8 +148,15 @@ Before proposing or implementing new feature work, read:
 Before creating new issues/tickets, also read:
 - `docs/process/08-roadmap-ticketing.md`
 
-**R9 — Value Templates & Representations is the active release.**
-R8 (Server Execution Mode) is complete. Classify new Genia work with no release specified against the active R9 scope first. R9 activation authorizes semantic design and the required process work, but does not make its planned syntax or behavior implemented and does not skip contract, design, failing-test, implementation, documentation, or audit phases. Unrelated work must be classified as follow-up, a later release, or parking-lot work unless the user explicitly approves it. See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the completed R8 boundary and active R9 scope.
+**R9 — Value Templates & Representations is complete.**
+R10 (Configuration & Secrets) is planned but not active. For new Genia work
+with no release specified, consult the release roadmap and classify it as a
+follow-up, a later release, infrastructure, or parking-lot work unless the user
+explicitly approves and activates a release scope. Release planning never makes
+candidate syntax or behavior implemented and never skips contract, design,
+failing-test, implementation, documentation, or audit phases. See
+`docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the completed
+R9 boundary and planned R10 scope.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
