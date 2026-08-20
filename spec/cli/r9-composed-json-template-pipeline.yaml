@@ -1,0 +1,20 @@
+id: r9-composed-json-template-pipeline
+name: r9-composed-json-template-pipeline
+category: cli
+description: File mode proves JSON representation, schema Template, Outcome validation, and diagnostic aggregation compose end to end.
+input:
+  source: "examples/r9_composed_json_template_pipeline.genia"
+  file: "examples/r9_composed_json_template_pipeline.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "{clean: [{name: \"Ada\", age: 37}, {name: \"Grace\", age: 41}], diagnostics: [{index: 1, kind: skipped, reason: \"json-schema-type-mismatch\", context: some({path: [\"age\"], expected: integer, actual: string})}, {index: 2, kind: error, reason: invalid_json, context: some({kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})}, {index: 3, kind: skipped, reason: \"json-schema-type-mismatch\", context: some({path: [], expected: object, actual: array})}]}"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 573
+  classification: Experimental integration example over implemented E9-1 through E9-6 behavior.
+  fixture: implementation phase adds examples/r9_composed_json_template_pipeline.genia.
+  non_goal: no new syntax, runtime helper, schema behavior, diagnostic behavior, or host capability.

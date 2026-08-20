@@ -1,0 +1,22 @@
+person_schema = json_decode("{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"age\":{\"type\":\"integer\"}},\"required\":[\"name\",\"age\"],\"additionalProperties\":false}")
+
+Person =
+  json_schema(unwrap_or({}, person_schema))
+    |> unwrap_or((_) -> none("schema-compile-failed"))
+
+pattern Json(value) = representation_match("json", value)
+
+validate_json_person(value) =
+  Json(person) -> Person(person) |
+  _ -> none("representation-mismatch")
+
+[
+  "{\"name\":\"Ada\",\"age\":37}",
+  "{\"name\":\"Bob\",\"age\":\"unknown\"}",
+  "{bad}",
+  "[1,2]",
+  "{\"name\":\"Grace\",\"age\":41}"
+]
+  |> map(json_decode)
+  |> ((decoded) -> validate_each(decoded, validate_json_person))
+  |> collect_validated

@@ -469,6 +469,7 @@ Implemented foundation:
 - E9-4 / issue #90: exact ordinary-map shapes require equal field sets and preserve ordinary map values without nominal Struct/layout behavior.
 - E9-5 / issue #571: strict JSON decode/encode maps ordinary values through one outer `json` facet with normalized Outcomes and portable duplicate, number, Unicode, and nesting limits.
 - E9-6 / issue #572: the closed JSON Schema structural subset compiles represented schema maps into ordinary callable Outcome Templates and rejects unsupported keywords explicitly.
+- E9-7 / issue #573: an executable Outcome-aware pipeline proves composition of the JSON boundary, a JSON Schema-derived exact `Person` Template, representation-aware nested matching, and validated aggregation without adding semantics.
 
 Theme:
 
@@ -537,6 +538,7 @@ Issue guidance:
 - **#90** is the implemented E9-4 exact/closed structural Template slice.
 - **#571** is the implemented E9-5 JSON representation boundary.
 - **#572** is the implemented E9-6 JSON Schema structural-subset compiler.
+- **#573** is the implemented E9-7 composed JSON Template proving case.
 - **#91** retains broad historical scope and must be reconciled with the approved E9 sequence before use as a blocker.
 
 ---

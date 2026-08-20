@@ -1206,6 +1206,8 @@ This is a minimal host-backed bridge for pipeline-first archive transforms; it i
 
 `json_schema` consumes a `json`-represented schema map and returns an ordinary callable Outcome Template. Its deliberately closed subset requires `type` (`object`, `array`, `string`, `number`, `integer`, `boolean`, or `null`) and supports only type-appropriate `properties`, `required`, `items`, and boolean `additionalProperties`. Unsupported keywords and malformed schemas are explicit `err` Outcomes; references, unions/combinators, constraints, formats, defaults, coercion, recursion, and full JSON Schema conformance are not implemented.
 
+The directly tested `examples/r9_composed_json_template_pipeline.genia` combines this boundary and Template with representation-aware matching, `validate_each`, and `collect_validated`. It is an integration example and adds no new language behavior.
+
 `parse_csv_row` is a one-row helper, not a CSV framework. It supports comma-delimited rows, double-quoted fields, quoted commas, doubled quotes, and empty fields; it does not trim fields, infer types, read whole files, support multiline fields, expose dialect options, or create Sheets. Malformed row data returns `err(quote(invalid_csv_row), context)`, header/field count mismatch returns `err(quote(csv_header_mismatch), context)`, and invalid argument/header shapes are runtime misuse errors.
 
 Example archive rewrite pipeline (list-based in this phase):
