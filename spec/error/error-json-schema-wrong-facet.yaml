@@ -1,0 +1,13 @@
+name: error-json-schema-wrong-facet
+category: error
+description: JSON Schema compilation requires the outer json carrier facet
+input:
+  source: |
+    json_schema(represent("csv", {type: "string"}))
+expected:
+  stdout: ""
+  stderr: "Error: json_schema expected outer json representation, received csv\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: ValueError

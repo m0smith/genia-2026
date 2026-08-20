@@ -12,10 +12,15 @@ REQUIRED = {
         "json-schema-object-template",
         "json-schema-recursive-types",
         "json-schema-compilation-errors",
+        "json-schema-keyword-shape-errors",
         "json-schema-template-operators",
     },
     "flow": {"json-schema-validated-flow"},
-    "error": {"error-json-schema-input"},
+    "error": {
+        "error-json-schema-input",
+        "error-json-schema-root-type",
+        "error-json-schema-wrong-facet",
+    },
 }
 
 
