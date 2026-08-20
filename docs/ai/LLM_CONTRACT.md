@@ -94,19 +94,21 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R8 Complete; R9 Active
+## Release Position: R9 Complete; R10 Planned
 
-**R9 — Value Templates & Representations is the active release.**
+**R9 — Value Templates & Representations is complete. R10 is not active.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
-1. Classify the work against active R9 first and follow the required contract, design, failing-test, implementation, documentation, and audit phases.
+1. Consult the roadmap and classify the work as a follow-up, later release,
+   infrastructure, or parking-lot item; do not activate R10 implicitly.
 2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
 3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
-5. If the work is not planned R9, classify it as follow-up, a later release, or parking-lot work unless the user explicitly asked for it.
+5. Preserve the completed R9 Template/representation boundary; R10
+   configuration and secret acquisition remain planned until explicitly activated.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 
