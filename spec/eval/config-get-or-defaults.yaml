@@ -1,0 +1,21 @@
+name: config-get-or-defaults
+category: eval
+description: Missing lookup invokes one lazy default while found and empty values bypass it
+input:
+  source: |
+    calls = ref(0)
+    fallback() = {
+      ref_update(calls, (n) -> n + 1)
+      "fallback"
+    }
+    provider = config_provider([{kind: quote(values), values: {FOUND: "value", EMPTY: ""}}]) |> unwrap_or(none)
+    [
+      config_get_or(provider, "FOUND", fallback),
+      config_get_or(provider, "EMPTY", fallback),
+      config_get_or(provider, "MISSING", fallback),
+      ref_get(calls)
+    ]
+expected:
+  stdout: '[some("value"), some(""), some("fallback"), 1]\n'
+  stderr: ""
+  exit_code: 0
