@@ -188,6 +188,97 @@ def test_invalid_environment_snapshot_is_normalized_without_raw_data():
     assert "42" not in rendered
 
 
+def test_config_get_or_invokes_default_once_only_for_missing_lookup():
+    result = _run(
+        """
+        calls = ref(0)
+        fallback() = {
+          ref_update(calls, (n) -> n + 1)
+          "fallback"
+        }
+        provider = config_provider([{kind: quote(values), values: {FOUND: "value", EMPTY: ""}}]) |> unwrap_or(none)
+        [
+          config_get_or(provider, "FOUND", fallback),
+          config_get_or(provider, "EMPTY", fallback),
+          config_get_or(provider, "MISSING", fallback),
+          ref_get(calls)
+        ]
+        """
+    )
+
+    assert [item.value for item in result[:3]] == ["value", "", "fallback"]
+    assert result[3] == 1
+
+
+def test_config_get_or_flattens_outcome_defaults_and_wraps_falsey_values():
+    result = _run(
+        """
+        provider = config_provider([]) |> unwrap_or(none)
+        [
+          config_get_or(provider, "A", () -> some("ready")),
+          config_get_or(provider, "B", () -> none("not-available")),
+          config_get_or(provider, "C", () -> err("default-failed")),
+          config_get_or(provider, "D", () -> false),
+          config_get_or(provider, "E", () -> 0),
+          config_get_or(provider, "F", () -> "")
+        ]
+        """
+    )
+
+    assert isinstance(result[0], GeniaOptionSome) and result[0].value == "ready"
+    assert isinstance(result[1], GeniaOptionNone) and result[1].reason == "not-available"
+    assert isinstance(result[2], GeniaOptionErr) and result[2].reason == "default-failed"
+    assert isinstance(result[3], GeniaOptionSome) and result[3].value is False
+    assert isinstance(result[4], GeniaOptionSome) and result[4].value == 0
+    assert isinstance(result[5], GeniaOptionSome) and result[5].value == ""
+
+
+def test_config_get_or_composes_explicit_conversion_and_callable_template():
+    result = _run(
+        """
+        pattern Port(value) = refinement_match((n) -> n > 0, value)
+        provider = config_provider([{kind: quote(values), values: {GOOD: "8080", BAD: "not-int", RANGE: "70000"}}]) |> unwrap_or(none)
+        [
+          config_get_or(provider, "GOOD", () -> "3000") |> parse_int |> Port,
+          config_get_or(provider, "MISSING", () -> "3000") |> parse_int |> Port,
+          config_get_or(provider, "BAD", () -> "3000") |> parse_int |> Port,
+          config_get_or(provider, "RANGE", () -> "3000") |> parse_int |> ((n) -> refinement_match((x) -> x <= 65535, n))
+        ]
+        """
+    )
+
+    assert isinstance(result[0], GeniaOptionSome) and result[0].value == 8080
+    assert isinstance(result[1], GeniaOptionSome) and result[1].value == 3000
+    assert isinstance(result[2], GeniaOptionNone) and result[2].reason == "parse-error"
+    assert isinstance(result[3], GeniaOptionNone) and result[3].reason == "refinement-mismatch"
+
+
+def test_config_get_or_default_misuse_is_lazy_and_missing_branch_only():
+    found = _run(
+        """
+        provider = config_provider([{kind: quote(values), values: {FOUND: "value"}}]) |> unwrap_or(none)
+        [config_get_or(provider, "FOUND", 42), config_get_or(provider, "FOUND", (x) -> x)]
+        """
+    )
+    assert [item.value for item in found] == ["value", "value"]
+
+    with pytest.raises(TypeError, match="callable value"):
+        _run(
+            """
+            provider = config_provider([]) |> unwrap_or(none)
+            config_get_or(provider, "MISSING", 42)
+            """
+        )
+
+    with pytest.raises(TypeError, match="lambda expected 1 args, got 0"):
+        _run(
+            """
+            provider = config_provider([]) |> unwrap_or(none)
+            config_get_or(provider, "MISSING", (x) -> x)
+            """
+        )
+
+
 def _symbol(name: str):
     from genia.values import symbol
 

@@ -402,16 +402,20 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- Configuration provider (Experimental, issue #589)
+- Configuration provider and defaults (Experimental, issues #589 and #590)
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
   - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
   - source order is highest to lowest precedence; the first source containing a key wins
   - all descriptors and literal string keys/values are validated before any host-backed snapshot is acquired
   - `config_get(provider, key)` returns `some(exact_string)`, including `some("")`, or context-free `none("config-missing")`
+  - `config_get_or(provider, key, default)` preserves found values including empty; only `none("config-missing")` invokes the zero-argument default, exactly once
+  - an ordinary default result is wrapped in `some(...)`; a default `some(...)`, `none(...)`, or `err(...)` is preserved without nesting
+  - default callability/arity is checked only if missing selects the default branch; other lookup Outcomes bypass the default unchanged
+  - conversion remains an explicit ordinary Outcome-returning callable, and validation reuses existing callable Templates through ordinary Outcome-aware pipelines
   - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
   - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
   - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
-  - no ambient provider, implicit environment fallback, refresh, defaults, conversion, Template validation addition, secret handling, annotation, parser, or Core IR change is implemented
+  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, secret handling, annotation, parser, or Core IR change is implemented
   - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
   - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
 
@@ -1079,7 +1083,9 @@ Case placement rules (enforced):
 
 - `config_provider(sources)` — explicit immutable provider construction over ordered quoted-kind descriptors
 - `config_get(provider, key)` — exact raw-string lookup through an explicit provider
-- this E10-1 surface adds ordinary calls only; `config_get_or`, defaults, conversion, validation additions, secrets, protection, declassification, and injection are not implemented
+- `config_get_or(provider, key, default)` — missing-only lazy defaulting; found/empty values bypass the zero-argument default, and selected defaults run exactly once
+- default ordinary values are lifted into `some(...)`, while default Outcomes remain unchanged; explicit converter Outcomes and callable Template validation compose through existing pipeline rules
+- this E10-1/E10-2 surface adds ordinary calls only; implicit conversion, validation additions, secrets, protection, declassification, and injection are not implemented
 
 ### Core I/O and utilities
 

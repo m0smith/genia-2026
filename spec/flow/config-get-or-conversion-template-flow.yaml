@@ -1,0 +1,17 @@
+name: config-get-or-conversion-template-flow
+category: flow
+description: Configuration defaults compose with explicit Outcome conversion and callable Template validation
+input:
+  source: |
+    pattern Port(value) = refinement_match((n) -> n > 0, value)
+    provider = config_provider([{kind: quote(values), values: {GOOD: "8080", BAD: "not-int", RANGE: "70000"}}]) |> unwrap_or(none)
+    [
+      config_get_or(provider, "GOOD", () -> "3000") |> parse_int |> Port,
+      config_get_or(provider, "MISSING", () -> "3000") |> parse_int |> Port,
+      config_get_or(provider, "BAD", () -> "3000") |> parse_int |> Port,
+      config_get_or(provider, "RANGE", () -> "3000") |> parse_int |> ((n) -> refinement_match((x) -> x <= 65535, n))
+    ] |> each((outcome) -> outcome) |> collect
+expected:
+  stdout: "[some(8080), some(3000), none(\"parse-error\", {source: \"parse_int\", expected: \"integer_string\", received: \"not-int\", base: 10}), none(\"refinement-mismatch\")]\n"
+  stderr: ""
+  exit_code: 0

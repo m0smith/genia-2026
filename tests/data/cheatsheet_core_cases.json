@@ -6,8 +6,8 @@
   },
   {
     "id": "core-config-provider-literal",
-    "source": "provider = config_provider([{kind: quote(values), values: {PORT: \"8080\"}}]) |> unwrap_or(none)\n[config_get(provider, \"PORT\"), config_get(provider, \"MISSING\")]",
-    "expected_result": "[some(\"8080\"), none(\"config-missing\")]"
+    "source": "provider = config_provider([{kind: quote(values), values: {PORT: \"8080\"}}]) |> unwrap_or(none)\n[config_get(provider, \"PORT\"), config_get_or(provider, \"MISSING\", () -> \"3000\")]",
+    "expected_result": "[some(\"8080\"), some(\"3000\")]"
   },
   {
     "id": "core-min-fields-nth-parse",

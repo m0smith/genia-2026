@@ -1031,7 +1031,16 @@ provider = config_provider([
 config_get(provider, "PORT")
 ```
 
-The result is `some("9000")`. Lookup returns exact strings, treats `""` as present, and returns `none("config-missing")` when absent. Construction snapshots once, first source wins, and diagnostics do not include configuration keys or source values. This E10-1 slice has no ambient lookup, defaults, conversion/Template additions, secrets, annotations, or new syntax/Core IR.
+The result is `some("9000")`. Lookup returns exact strings, treats `""` as present, and returns `none("config-missing")` when absent. Construction snapshots once, first source wins, and diagnostics do not include configuration keys or source values.
+
+`config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
+
+```genia
+pattern Positive(value) = refinement_match((n) -> n > 0, value)
+config_get_or(provider, "TIMEOUT", () -> "30") |> parse_int |> Positive
+```
+
+This E10-1/E10-2 surface has no ambient lookup, implicit conversion/coercion, new validation system, secrets, annotations, or new syntax/Core IR.
 
 ### Core
 

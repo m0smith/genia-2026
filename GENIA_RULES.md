@@ -448,17 +448,20 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ### Explicit configuration acquisition (Experimental)
 
-- `config_provider(sources)` and `config_get(provider, key)` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
+- `config_provider(sources)`, `config_get(provider, key)`, and `config_get_or(provider, key, default)` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
 - source descriptor kinds must be explicit symbols produced with `quote(values)` or `quote(environment)`; no global `values` or `environment` binding is introduced.
 - `sources` must be an explicit list ordered highest to lowest precedence; the first snapshot containing the key wins.
 - provider construction must validate every descriptor and every literal key/value before acquiring any host-backed snapshot.
 - literal and host-backed sources must be copied during construction; providers are immutable and lookup must not access or refresh host state.
 - configuration keys must be non-empty strings containing no NUL; acquired values are exact strings and empty is present.
 - found returns `some(exact_string)`; absent returns `none("config-missing")` without context.
+- `config_get_or` returns a found `some(...)` unchanged, including `some("")`; only `none("config-missing")` invokes its zero-argument default, exactly once.
+- an ordinary default result is wrapped once in `some(...)`; a default Outcome is preserved unchanged. Non-callable or wrong-arity defaults are runtime misuse only when missing selects the default branch.
+- conversion is explicit through an ordinary Outcome-returning callable; validation uses existing callable Templates and existing Outcome-aware pipeline propagation.
 - unavailable environment capability returns `err("config-source-unavailable", {source_index})`; acquisition failure returns `err("config-provider-failure", {source_index})`.
 - normalized acquisition failures and runtime misuse must not include the key, source contents, raw value, or raw host failure.
 - providers are opaque identity values: display/debug is `<config-provider>` and ordinary map-key, host-conversion, and serialization boundaries reject them.
-- there is no ambient lookup or implicit environment fallback. Defaults, conversion/Template validation additions, secrets, protected values, declassification, and injection remain unimplemented.
+- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, secrets, protected values, declassification, and injection remain unimplemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

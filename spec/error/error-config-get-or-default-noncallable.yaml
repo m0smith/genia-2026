@@ -1,0 +1,14 @@
+name: error-config-get-or-default-noncallable
+category: error
+description: A non-callable default is runtime misuse only when missing lookup selects it
+input:
+  source: |
+    provider = config_provider([]) |> unwrap_or(none)
+    config_get_or(provider, "MISSING", 42)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage expected a callable value, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
