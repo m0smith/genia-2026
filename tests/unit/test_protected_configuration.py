@@ -1,3 +1,5 @@
+import threading
+
 import pytest
 
 from genia.builtins import make_global_env
@@ -9,6 +11,7 @@ from genia.values import (
     GeniaOptionErr,
     GeniaOptionNone,
     GeniaOptionSome,
+    GeniaProcess,
     GeniaProtected,
     GeniaSymbol,
 )
@@ -197,6 +200,19 @@ def test_exact_protected_leaf_transports_through_containers_pipeline_flow_sheet_
     assert isinstance(
         run_source('sheet([["credential", [protected_fixture]]])', env), GeniaSheet
     )
+
+    received = []
+    delivered = threading.Event()
+
+    def handler(message):
+        received.append(message)
+        delivered.set()
+
+    process = GeniaProcess(handler)
+    process.send(protected)
+    assert delivered.wait(timeout=1)
+    assert received == [protected]
+    assert received[0] is protected
 
 
 def test_protected_leaf_is_opaque_to_ordinary_derivation_and_all_observations_are_sentinel_free():
