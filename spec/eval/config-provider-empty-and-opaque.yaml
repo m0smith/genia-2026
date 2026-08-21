@@ -1,0 +1,11 @@
+name: config-provider-empty-and-opaque
+category: eval
+description: Zero-source providers are valid opaque values with stable missing lookup
+input:
+  source: |
+    provider = config_provider([]) |> unwrap_or(none)
+    [display(provider), debug_repr(provider), config_get(provider, "A"), config_get(provider, "A")]
+expected:
+  stdout: "[\"<config-provider>\", \"<config-provider>\", none(\"config-missing\"), none(\"config-missing\")]\n"
+  stderr: ""
+  exit_code: 0

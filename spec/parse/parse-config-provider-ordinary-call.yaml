@@ -1,0 +1,10 @@
+name: parse-config-provider-ordinary-call
+category: parse
+description: Configuration provider construction uses the existing ordinary call surface
+input:
+  source: "config_provider([])"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Call
