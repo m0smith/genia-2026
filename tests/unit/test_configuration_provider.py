@@ -139,6 +139,54 @@ def test_provider_is_opaque_identity_and_rejected_by_host_conversion():
     with pytest.raises(TypeError, match="map key type is not supported"):
         GeniaMap().put(first, "value")
 
+    env = make_global_env([])
+    encoded = env.get("_json_encode")(first)
+    assert isinstance(encoded, GeniaOptionErr)
+    assert str(encoded.reason) == "unsupported_json_value"
+    assert "config-provider" in format_debug(encoded)
+    legacy_encoded = env.get("_json_stringify")(first)
+    assert isinstance(legacy_encoded, GeniaOptionNone)
+    assert legacy_encoded.reason == "json-stringify-error"
+    assert "config-provider" in format_debug(legacy_encoded)
+
+
+@pytest.mark.parametrize(
+    ("source", "message"),
+    [
+        ("config_provider(1)", "expected a list of source descriptors, received int"),
+        ("config_provider([1])", "expected a source descriptor map at index 0, received int"),
+        ("config_provider([{}])", "expected a source kind symbol at index 0, received none"),
+        (
+            'config_provider([{kind: "values", values: {}}])',
+            "expected a source kind symbol at index 0, received string",
+        ),
+        (
+            "config_provider([{kind: quote(remote)}])",
+            "received unsupported source kind at index 0",
+        ),
+        (
+            "config_get(1, \"A\")",
+            "config_get expected a configuration provider, received int",
+        ),
+    ],
+)
+def test_provider_programmer_misuse_is_exact_and_non_revealing(source, message):
+    with pytest.raises(TypeError, match=message):
+        _run(source)
+
+
+def test_invalid_environment_snapshot_is_normalized_without_raw_data():
+    result = _run(
+        "config_provider([{kind: quote(environment)}])",
+        environment_snapshot_provider=lambda: {"SENSITIVE_ENVIRONMENT_KEY": 42},
+    )
+
+    assert isinstance(result, GeniaOptionErr)
+    assert result.reason == "config-provider-failure"
+    rendered = format_debug(result)
+    assert "SENSITIVE_ENVIRONMENT_KEY" not in rendered
+    assert "42" not in rendered
+
 
 def _symbol(name: str):
     from genia.values import symbol
