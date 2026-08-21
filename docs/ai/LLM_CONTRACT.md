@@ -94,16 +94,19 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9 Complete; R10 Planned
+## Release Position: R9 Complete; R10 Contract Approved
 
 **R9 — Value Templates & Representations is complete. R10 is not active.**
+R10 now has an approved non-implemented contract and is authorized for E10-1
+preflight only; it is not active for design or implementation.
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work and no release is specified:
 
 1. Consult the roadmap and classify the work as a follow-up, later release,
-   infrastructure, or parking-lot item; do not activate R10 implicitly.
+   infrastructure, or parking-lot item; do not expand R10 beyond its approved
+   E10-1 preflight gate implicitly.
 2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
 3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.

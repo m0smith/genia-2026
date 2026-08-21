@@ -540,25 +540,26 @@ Issue guidance:
 
 ## Release R10 — Configuration & Secrets
 
-**Status: Planned, not active.** This section records proposed direction, not
-implemented language behavior. R10 requires semantic design and explicit
-activation before implementation begins.
+**Status: Active for E10-1 preflight only.** Issue #586 approved the durable R10
+configuration/protected-value contract. This section still records planned,
+not implemented language behavior; later work requires its own phase gates.
 
 Theme:
 
 > Portable configuration acquisition and protected-value handling built on the R9 representation model.
 
-R10 is the first major consumer of R9 representations. Candidate forms are:
+R10 is the first major consumer of R9 representations. The earlier candidate
+forms were:
 
 ```genia
 model = @config("OPENAI_MODEL")
 api_key = @secret("OPENAI_API_KEY")
 ```
 
-These forms are conceptual. The string argument is the configuration **key**,
-not the secret itself. `@config("key")` resolves an ordinary configured value;
-`@secret("key")` resolves the configured value and preserves or applies the
-secret representation.
+Issue #586 rejected these forms because existing prefix annotations are binding
+metadata, not expressions. The approved contract uses ordinary explicit calls
+over an immutable provider snapshot, adds no syntax or Core IR node, and treats
+the string argument as a configuration **key**, not the configured value.
 
 Candidate scope:
 
@@ -577,8 +578,12 @@ value
   |> secret(x) -> ...
 ```
 
-R10 should use the R9 representation model rather than introduce an unrelated
-`Secret` class hierarchy.
+R10 uses the R9 representation model rather than an unrelated `Secret` class
+hierarchy. The reserved protected facet cannot be constructed, matched, or
+stripped through generic carrier operations; protected matching retains the
+protected subject, sinks reject recursively, and explicit authority-gated
+declassification is the only payload-revealing operation. See
+`docs/design/r10-configuration-protected-value-contract.md`.
 
 Exit criterion:
 
@@ -731,7 +736,9 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8 and R9 are complete; R10-R12 remain planned and not active.
+composition. R8 and R9 are complete; R10-R12 remain planned and not active for
+implementation. R10 alone has an approved contract and E10-1 preflight gate;
+R11-R12 have no active gate.
 
 ---
 

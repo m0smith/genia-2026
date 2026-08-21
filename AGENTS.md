@@ -149,14 +149,14 @@ Before creating new issues/tickets, also read:
 - `docs/process/08-roadmap-ticketing.md`
 
 **R9 — Value Templates & Representations is complete.**
-R10 (Configuration & Secrets) is planned but not active. For new Genia work
-with no release specified, consult the release roadmap and classify it as a
-follow-up, a later release, infrastructure, or parking-lot work unless the user
-explicitly approves and activates a release scope. Release planning never makes
-candidate syntax or behavior implemented and never skips contract, design,
-failing-test, implementation, documentation, or audit phases. See
-`docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the completed
-R9 boundary and planned R10 scope.
+R10 (Configuration & Secrets) has an approved non-implemented contract and is
+active for E10-1 preflight only. For new Genia work with no release specified,
+consult the release roadmap and classify it as a follow-up, a later release,
+infrastructure, or parking-lot item; do not expand R10 implicitly. Release
+planning never makes candidate syntax or behavior implemented and never skips
+contract, design, failing-test, implementation, documentation, or audit phases.
+See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the
+completed R9 boundary and approved R10 contract gate.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
