@@ -68,7 +68,8 @@
     "bytes_json_zip",
     "debugger_stdio",
     "shell_stage",
-    "resource_io"
+    "resource_io",
+    "configuration_environment_snapshot"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"

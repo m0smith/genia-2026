@@ -1,9 +1,10 @@
 # R10 Configuration and Protected-Value Contract
 
-Status: **Approved R10 contract; not implemented.**
+Status: **Approved R10 contract; E10-1 provider/ordinary acquisition implemented; later slices not implemented.**
 
-`GENIA_STATE.md` remains final authority for implemented behavior. Nothing in
-this document is available until a later ticket implements and verifies it.
+`GENIA_STATE.md` remains final authority for implemented behavior. Only the
+E10-1 provider/ordinary acquisition subset is available; later sections remain
+contracted but unavailable until their own tickets implement and verify them.
 
 ## Purpose
 
@@ -80,8 +81,8 @@ The first release supports exactly these source descriptors:
 
 | Source | Descriptor | Portable meaning | Python reference host |
 |---|---|---|---|
-| literal values | `{kind: values, values: map}` | snapshot of explicit string keys and string values | supported |
-| process environment | `{kind: environment}` | snapshot supplied by an advertised host capability | snapshot of the process environment |
+| literal values | `{kind: quote(values), values: map}` | snapshot of explicit string keys and string values | supported |
+| process environment | `{kind: quote(environment)}` | snapshot supplied by an advertised host capability | snapshot of the process environment |
 
 `sources` is an explicit list ordered from highest to lowest precedence. The
 first source containing the key wins. No ambient source, implicit environment
@@ -344,7 +345,7 @@ asserted not to contain the sentinel or fixture key.
 Minimal configuration:
 
 ```genia
-provider = config_provider([{kind: values, values: {PORT: "8080"}}]) |> unwrap_or(none)
+provider = config_provider([{kind: quote(values), values: {PORT: "8080"}}]) |> unwrap_or(none)
 config_get(provider, "PORT") |> parse_port |> Port
 ```
 
@@ -396,8 +397,9 @@ explicit provider snapshot
 
 ## Reconciled R10 sequence
 
-1. **E10-1 — provider and ordinary acquisition:** literal/environment snapshots,
-   explicit precedence, missing/empty/provider errors, no defaults or secrets.
+1. **E10-1 — provider and ordinary acquisition (implemented, Experimental):**
+   literal/environment snapshots, explicit precedence, missing/empty/provider
+   errors, no defaults or secrets.
 2. **E10-2 — defaults, conversion, and validation:** lazy `config_get_or` plus
    proving composition with existing converters, Outcomes, and Templates.
 3. **E10-3 — protected carrier and matching:** `secret_get`, `secret_get_or`,
@@ -424,6 +426,5 @@ later follow-up, not an R10 exit requirement.
 
 ## Gate
 
-**GO for E10-1 preflight only.** The contract is precise enough to scope the
-ordinary provider/acquisition slice. It does not authorize E10-1 design or
-implementation without that ticket's own phase gates, and issue #586 stops here.
+**E10-1 implemented through issue #589.** This contract does not activate E10-2
+or any later slice; each still requires its own ticket and phase gates.

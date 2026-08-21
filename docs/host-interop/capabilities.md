@@ -20,6 +20,20 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 
 ## Capability Groups
 
+### Group: Configuration Source Snapshots
+
+#### `config.environment-snapshot`
+
+- **name:** `config.environment-snapshot`
+- **genia_surface:** `{kind: quote(environment)}` within explicit `config_provider(sources)` construction
+- **input:** none; the descriptor position supplies only precedence
+- **output:** an immutable copied mapping of valid non-empty, NUL-free string keys to exact string values, captured during provider construction
+- **errors:**
+  - `err("config-source-unavailable", {source_index})` when the host does not advertise the capability
+  - `err("config-provider-failure", {source_index})` when acquisition or returned snapshot validation fails
+- **portability:** `Python-host-only`
+- **notes:** The Python host snapshots `os.environ`. Portable provider semantics allow a future host to advertise an equivalent capability or return normalized unavailable; this row records implementation status today. No environment access occurs during `config_get`; no host may silently substitute an ambient or different source. Literal `{kind: quote(values), values: map}` sources are portable ordinary values and require no host capability.
+
 ### Group: I/O Substrate
 
 Capabilities connecting Genia programs to the host I/O streams. These are `language contract` capabilities — all hosts must provide them.
