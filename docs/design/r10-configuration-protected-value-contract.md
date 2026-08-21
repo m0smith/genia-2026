@@ -1,10 +1,11 @@
 # R10 Configuration and Protected-Value Contract
 
-Status: **Approved R10 contract; E10-1 provider/ordinary acquisition implemented; later slices not implemented.**
+Status: **Approved R10 contract; E10-1 provider acquisition and E10-2 defaults/conversion validation implemented; later slices not implemented.**
 
-`GENIA_STATE.md` remains final authority for implemented behavior. Only the
-E10-1 provider/ordinary acquisition subset is available; later sections remain
-contracted but unavailable until their own tickets implement and verify them.
+`GENIA_STATE.md` remains final authority for implemented behavior. The E10-1
+provider/ordinary acquisition and E10-2 defaults/conversion-validation subsets
+are available; later sections remain contracted but unavailable until their own
+tickets implement and verify them.
 
 ## Purpose
 
@@ -400,8 +401,9 @@ explicit provider snapshot
 1. **E10-1 — provider and ordinary acquisition (implemented, Experimental):**
    literal/environment snapshots, explicit precedence, missing/empty/provider
    errors, no defaults or secrets.
-2. **E10-2 — defaults, conversion, and validation:** lazy `config_get_or` plus
-   proving composition with existing converters, Outcomes, and Templates.
+2. **E10-2 — defaults, conversion, and validation (implemented, Experimental):**
+   lazy `config_get_or` plus proven composition with existing converters,
+   Outcomes, and Templates.
 3. **E10-3 — protected carrier and matching:** `secret_get`, `secret_get_or`,
    reserved facet restrictions, equality/key rules, `protected_match`, transport.
 4. **E10-4 — protected sinks:** rendering/redaction and recursive rejection for
@@ -426,5 +428,6 @@ later follow-up, not an R10 exit requirement.
 
 ## Gate
 
-**E10-1 implemented through issue #589.** This contract does not activate E10-2
-or any later slice; each still requires its own ticket and phase gates.
+**E10-1 and E10-2 implemented through issues #589 and #590.** This contract does
+not activate E10-3 or any later slice; each still requires its own ticket and
+phase gates.

@@ -105,7 +105,7 @@ CLI contract summary (actual behavior):
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
-- explicit configuration acquisition (Experimental): `config_provider([{kind: quote(values), values: {...}}])` and `config_get(provider, key)`; source kinds are quoted symbols, not new global names
+- explicit configuration acquisition/defaults (Experimental): `config_provider([{kind: quote(values), values: {...}}])`, `config_get(provider, key)`, and missing-only `config_get_or(provider, key, default)`; source kinds are quoted symbols, not new global names
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
 - variables and lexical assignment (`name = expr`)
@@ -228,7 +228,9 @@ CLI contract summary (actual behavior):
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - `config_provider(sources)` constructs an explicit immutable opaque provider; supported descriptors are `{kind: quote(values), values: map}` and Python-host `{kind: quote(environment)}`
-  - `config_get(provider, key)` returns `some(exact_string)` (including empty) or `none("config-missing")`; no ambient lookup, defaults, conversion, secrets, or injection are implemented
+  - `config_get(provider, key)` returns `some(exact_string)` (including empty) or `none("config-missing")`
+  - `config_get_or(provider, key, default)` preserves found/empty values; only missing invokes the zero-argument default exactly once, wrapping ordinary results in `some(...)` and preserving returned Outcomes
+  - conversion stays explicit through ordinary Outcome-returning callables such as `parse_int`; callable Templates validate converted successes through existing pipeline rules. No ambient lookup, implicit conversion, secrets, or injection are implemented
   - raw CLI primitive: `argv`
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
