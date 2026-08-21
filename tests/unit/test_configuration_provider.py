@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from genia.builtins import make_global_env

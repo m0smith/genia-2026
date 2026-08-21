@@ -51,6 +51,8 @@ def format_display(value: Any) -> str:
         return "<format>"
     if _is_represented(value):
         return "<represented>"
+    if _is_config_provider(value):
+        return "<config-provider>"
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -91,6 +93,8 @@ def format_debug(value: Any) -> str:
         return "<format>"
     if _is_represented(value):
         return "<represented>"
+    if _is_config_provider(value):
+        return "<config-provider>"
     if isinstance(value, str):
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
@@ -144,6 +148,10 @@ def _is_represented(value: Any) -> bool:
         and isinstance(getattr(value, "facet", None), str)
         and hasattr(value, "value")
     )
+
+
+def _is_config_provider(value: Any) -> bool:
+    return value.__class__.__name__ == "GeniaConfigProvider"
 
 
 def _is_sheet(value: Any) -> bool:

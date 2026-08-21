@@ -57,6 +57,8 @@ def _runtime_type_name(value: Any) -> str:
         return "format"
     if isinstance(value, GeniaRepresented):
         return "represented"
+    if isinstance(value, GeniaConfigProvider):
+        return "config-provider"
     if value.__class__.__name__ == "GeniaMetaEnv":
         return "meta_env"
     if value.__class__.__name__ == "GeniaPromise":
@@ -95,6 +97,25 @@ class GeniaRepresented:
 
     def __repr__(self) -> str:
         return "<represented>"
+
+
+class GeniaConfigProvider:
+    """Opaque immutable configuration source snapshots."""
+
+    __slots__ = ("_identity", "_snapshots")
+
+    def __init__(self, snapshots: tuple[Any, ...]):
+        self._identity = object()
+        self._snapshots = snapshots
+
+    def lookup(self, key: str, missing: Any) -> Any:
+        for snapshot in self._snapshots:
+            if key in snapshot:
+                return snapshot[key]
+        return missing
+
+    def __repr__(self) -> str:
+        return "<config-provider>"
 
 
 _SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
