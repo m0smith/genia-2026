@@ -589,6 +589,14 @@ Exit criterion:
 
 - Config and secret acquisition use the representation semantics established by R9, and ordinary matching, diagnostics, or rendering cannot accidentally expose secrets.
 
+Issue guidance:
+
+- **#585** is the active R10 epic.
+- **#586** is E10-0 and the required pre-flight/contract gate.
+- E10-1 through E10-8 remain candidate sequencing only. Do not create or use
+  them as implementation-ready tickets until #586 records GO and reconciles
+  their exact boundaries.
+
 ---
 
 ## Release R11 — AI Composition
