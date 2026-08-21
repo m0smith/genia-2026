@@ -94,26 +94,24 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9 Complete; R10 Contract Active
+## Release Position: R9 Complete; R10 Contract Approved
 
-**R9 — Value Templates & Representations is complete. R10 is active for pre-flight and contract work only.**
+**R9 — Value Templates & Representations is complete. R10 has an approved
+non-implemented contract and is active for E10-1 preflight only.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work:
 
-1. Consult the roadmap and classify the work as current R10 contract work,
-   follow-up, later release, infrastructure, or parking-lot work.
-2. Keep R10 within epic #585 and the E10-0 contract gate in #586. Do not begin
-   design, failing tests, implementation, or implemented-behavior documentation
-   until #586 records an explicit GO and reconciles the later ticket sequence.
-3. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
-4. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
-5. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
-6. Preserve the completed R9 Template/representation boundary. Candidate R10
-   `@config` / `@secret` forms and all configuration or protected-secret
-   semantics remain unimplemented until separately contracted, tested, and
-   implemented.
+1. Consult the roadmap and classify the work as a follow-up, later release,
+   infrastructure, or parking-lot item; do not expand R10 beyond its approved
+   E10-1 preflight gate implicitly.
+2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
+3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
+4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
+5. Preserve the completed R9 Template/representation boundary; R10
+   behavior remains unimplemented until separately designed, tested, and
+   implemented through the reconciled E10 sequence.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 

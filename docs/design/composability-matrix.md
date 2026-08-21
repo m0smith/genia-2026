@@ -45,8 +45,12 @@ future-secret constraint from `r9-value-template-representation-contract.md`.
 | JSON | representation facet | `json_decode` returns an ordinary Genia root with one outer `json` facet; `json_encode` consumes that layer or a supported ordinary value | Implemented E9-5, Experimental |
 | JSON Schema subset | template | `json_schema` compiles the closed structural subset into ordinary callable Outcome Templates and rejects unsupported keywords | Implemented E9-6, Experimental |
 | `json` representation | structural template | `Json(person)` consumes one outer facet and the JSON Schema-derived `Person(person)` Template validates the carried ordinary value in an Outcome-aware pipeline | Implemented E9-7 proving case, Experimental |
-| future `secret` | representation facet | reuse the carrier abstraction while retaining protection during matching | R10 constraint; not implemented |
-| rendering | representation facet | separate concerns; generic facets render opaquely, while protected rendering policy remains later work | Generic opacity implemented; protected policy not implemented |
+| future `secret` | representation facet | approved R10 contract reserves one protected outer carrier policy; generic construction, matching, and stripping cannot access it | R10 contract approved; not implemented |
+| future `secret` | named Template / pattern | the proposed protected-match operation returns the original protected subject, so `Secret(x)` binds protected `x` and reuses existing named-pattern, `@?`, `@!`, and `&` rules without implicit declassification | R10 contract approved; not implemented |
+| future configuration | Outcome / Template | explicit provider lookup returns an Outcome; defaults, conversion, and validation compose through existing callables and Templates rather than a second schema or error model | R10 contract approved; not implemented |
+| future protected value | List/map/pipeline/Seq/Flow/Sheet | transport preserves protected leaves; containers do not gain hidden taint, and recursive sinks reject protected leaves | R10 contract approved; not implemented |
+| rendering | representation facet | separate concerns; generic facets render opaquely, while the approved protected policy renders `<protected>` diagnostically and rejects output/serialization sinks | Generic opacity implemented; protected policy contracted, not implemented |
+| future protected value | explicit declassification | only an opaque host-injected matching authority may remove the protected layer; generic `strip_representation` rejects it | R10 contract approved; not implemented |
 
 ## Isolation rules
 

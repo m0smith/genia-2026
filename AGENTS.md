@@ -149,16 +149,14 @@ Before creating new issues/tickets, also read:
 - `docs/process/08-roadmap-ticketing.md`
 
 **R9 — Value Templates & Representations is complete.**
-R10 (Configuration & Secrets) is active for pre-flight and contract work only
-under epic #585. Issue #586 is the required contract gate. Do not begin R10
-design, failing tests, implementation, or implemented-behavior documentation
-until #586 records an explicit GO and reconciles the later ticket sequence.
-Candidate `@config` / `@secret` forms and all configuration or protected-secret
-semantics remain unimplemented. Release activation never makes candidate syntax
-or behavior implemented and never skips contract, design, failing-test,
-implementation, documentation, or audit phases. See
-`docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the completed
-R9 boundary and active R10 contract scope.
+R10 (Configuration & Secrets) has an approved non-implemented contract and is
+active for E10-1 preflight only. For new Genia work with no release specified,
+consult the release roadmap and classify it as a follow-up, a later release,
+infrastructure, or parking-lot item; do not expand R10 implicitly. Release
+planning never makes candidate syntax or behavior implemented and never skips
+contract, design, failing-test, implementation, documentation, or audit phases.
+See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the
+completed R9 boundary and approved R10 contract gate.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
