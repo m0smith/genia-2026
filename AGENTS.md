@@ -285,6 +285,50 @@ Agents must run `pytest tests/test_cheatsheet_*.py` after editing any cheatsheet
 
 ---
 
+## Composability Matrix Sync Rule (CRITICAL)
+
+`docs/design/composability-matrix.md` is a very important facet of Genia: it
+is the one place that explains, for value templates, refinements, shapes,
+representations, and patterns, what composes with what and why — the
+mechanism that keeps `secret(x)`, `json(x)`, and `json(Person(x))` legible as
+one coherent model instead of unrelated special cases. It is a design aid
+(`GENIA_STATE.md` remains final authority), but it must stay accurate.
+
+`tests/doc/test_composability_matrix_sync.py` enforces this automatically: it
+re-derives the full Template/representation/matcher family (every `*_match`
+helper, plus `represent`, `strip_representation`, `json_decode`,
+`json_encode`, and `json_schema`) directly from `src/genia/builtins.py` and
+`src/genia/std/prelude/*.genia` — not from a hand-maintained list — and fails
+if any member is missing from the matrix, missing from `GENIA_STATE.md`, or
+if the matrix mentions a family-shaped name that no longer exists in code.
+
+Agents must:
+
+* run `pytest tests/doc/test_composability_matrix_sync.py` after adding,
+  renaming, or removing any Template/representation/matcher-family builtin
+  (a `*_match` helper, a new representation/carrier primitive, or a new
+  structural-source compiler like `json_schema`), and after editing the
+  matrix itself
+* when the test reports a missing name, update the matrix's "Current
+  foundation" or the relevant release-relationships table (for example "R9
+  relationships") to describe how the new/changed builtin composes with
+  existing Template, representation, and pattern concepts — not just add the
+  bare name
+* when a later release changes a composition boundary the matrix already
+  documents, review and update the matrix in the same change, per its own
+  "must be reviewed whenever a later release changes one of these
+  composition boundaries" instruction
+* never let the matrix claim to be authoritative; it must keep its
+  `PROPOSED / EXPLORATORY` status and `GENIA_STATE.md` is final authority
+  disclaimer
+
+This rule exists because the family-derivation test only catches missing or
+stale *names* — it cannot verify that the matrix's prose about a builtin is
+still correct. Treat a passing test as a floor, not a substitute for reading
+the relevant matrix row when composability behavior changes.
+
+---
+
 ## SICP Validation Rule (CRITICAL)
 
 `docs/sicp/*` is an executable learning surface when present.
