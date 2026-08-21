@@ -65,3 +65,16 @@ future-secret constraint from `r9-value-template-representation-contract.md`.
 
 The matrix was reviewed during E9-8 and must be reviewed whenever a later
 release changes one of these composition boundaries.
+
+## Keeping this matrix in sync
+
+`tests/doc/test_composability_matrix_sync.py` automatically re-derives the
+full Template/representation/matcher family (every `*_match` helper, plus
+`represent`, `strip_representation`, `json_decode`, `json_encode`, and
+`json_schema`) from `src/genia/builtins.py` and
+`src/genia/std/prelude/*.genia`, and fails if any member is missing from this
+matrix, missing from `GENIA_STATE.md`, or if this matrix still mentions a
+family-shaped name that no longer exists in code. See AGENTS.md's
+"Composability Matrix Sync Rule" for what to do when it fails — the test
+only guards names, not the accuracy of the composition described for each
+one.

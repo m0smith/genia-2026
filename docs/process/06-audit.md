@@ -188,6 +188,22 @@ Reference: docs/strategy/killer-workflow.md
 
 ---
 
+COMPOSABILITY MATRIX DRIFT CHECK
+
+- Did this change add, rename, or remove a Template/representation/matcher-
+  family builtin (any `*_match` helper, `represent`, `strip_representation`,
+  `json_decode`, `json_encode`, `json_schema`, or similar)?
+- If yes: run `pytest tests/doc/test_composability_matrix_sync.py` and
+  confirm it passes.
+- Does `docs/design/composability-matrix.md` actually describe how the new
+  or changed builtin composes (not just contain its name)?
+- Does the matrix still carry its `PROPOSED / EXPLORATORY` status and
+  `GENIA_STATE.md` is final authority disclaimer?
+
+Reference: docs/design/composability-matrix.md
+
+---
+
 FINAL VERDICT:
 
 Ready to merge?

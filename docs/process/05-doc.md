@@ -71,6 +71,7 @@ Core:
 
 Supporting (if needed):
 - docs/design/*
+- docs/design/composability-matrix.md (see step 6b — required when this change adds, renames, or removes a Template/representation/matcher-family builtin, or changes a composition boundary the matrix already documents)
 - docs/cheatsheet/*
 - docs/host-interop/*
 - docs/releases/* (see step 6a — required when this change lands or extends the active release's headline behavior)
@@ -144,6 +145,29 @@ optional polish.
 
 ---
 
+6b. COMPOSABILITY MATRIX (`docs/design/composability-matrix.md`)
+
+If this change adds, renames, or removes a Template/representation/
+matcher-family builtin (any `*_match` helper, `represent`,
+`strip_representation`, `json_decode`, `json_encode`, `json_schema`, or a
+future builtin following that naming convention), or changes how an existing
+matrix row composes:
+
+- Run `pytest tests/doc/test_composability_matrix_sync.py`. It re-derives
+  the family from `src/genia/builtins.py` and
+  `src/genia/std/prelude/*.genia` and will name exactly which builtin the
+  matrix (or `GENIA_STATE.md`) is missing.
+- Update the matrix's "Current foundation" table and the relevant
+  release-relationships section (e.g. "R9 relationships") to describe the
+  actual composition — not just add the bare name to satisfy the test.
+- Keep the matrix's `PROPOSED / EXPLORATORY` status and its
+  `GENIA_STATE.md` is final authority disclaimer intact.
+
+This is a very important facet of Genia's design surface — treat drift here
+the same as drift in GENIA_STATE.md itself.
+
+---
+
 7. CONSISTENCY CHECK
 
 Verify alignment across:
@@ -153,6 +177,7 @@ Verify alignment across:
 - README.md
 - examples
 - docs/releases/<Rn>.md (if step 6a applied)
+- docs/design/composability-matrix.md (if step 6b applied)
 
 No contradictions.
 
