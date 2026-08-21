@@ -542,6 +542,15 @@ def make_global_env(
     def config_get_fn(provider: Any, key: Any) -> Any:
         return get_configuration(provider, key)
 
+    def config_get_or_fn(provider: Any, key: Any, default: Any) -> Any:
+        result = get_configuration(provider, key)
+        if not isinstance(result, GeniaOptionNone) or result.reason != "config-missing":
+            return result
+        fallback = _invoke_raw_from_builtin(default, [])
+        if isinstance(fallback, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+            return fallback
+        return GeniaOptionSome(fallback)
+
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
@@ -4265,6 +4274,7 @@ def make_global_env(
     env.set("debug_repr", debug_repr_fn)
     env.set("config_provider", _host_function_group("config_provider", 1, config_provider_fn))
     env.set("config_get", _host_function_group("config_get", 2, config_get_fn))
+    env.set("config_get_or", _host_function_group("config_get_or", 3, config_get_or_fn))
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
         "representation_match",
