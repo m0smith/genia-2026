@@ -39,7 +39,12 @@ if __package__ in (None, ""):
         _mark_handles_none,
         _mark_handles_some,
     )
-    from genia.configuration import construct_provider, get_configuration
+    from genia.configuration import (
+        construct_provider,
+        get_configuration,
+        get_secret_configuration,
+        protect_secret_default,
+    )
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
         DebugHooks,
@@ -110,6 +115,7 @@ if __package__ in (None, ""):
         GeniaOutputSink,
         GeniaPair,
         GeniaProcess,
+        GeniaProtected,
         GeniaRepresented,
         GeniaRef,
         GeniaRng,
@@ -126,7 +132,12 @@ else:
         _mark_handles_none,
         _mark_handles_some,
     )
-    from .configuration import construct_provider, get_configuration
+    from .configuration import (
+        construct_provider,
+        get_configuration,
+        get_secret_configuration,
+        protect_secret_default,
+    )
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
         DebugHooks,
@@ -197,6 +208,7 @@ else:
         GeniaOutputSink,
         GeniaPair,
         GeniaProcess,
+        GeniaProtected,
         GeniaRepresented,
         GeniaRef,
         GeniaRng,
@@ -551,6 +563,16 @@ def make_global_env(
             return fallback
         return GeniaOptionSome(fallback)
 
+    def secret_get_fn(provider: Any, key: Any, purpose: Any) -> Any:
+        return get_secret_configuration(provider, key, purpose)
+
+    def secret_get_or_fn(provider: Any, key: Any, purpose: Any, default: Any) -> Any:
+        result = get_secret_configuration(provider, key, purpose)
+        if not isinstance(result, GeniaOptionNone) or result.reason != "config-missing":
+            return result
+        fallback = _invoke_raw_from_builtin(default, [])
+        return protect_secret_default(provider, purpose, fallback)
+
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
@@ -566,13 +588,27 @@ def make_global_env(
 
     def represent_fn(facet_value: Any, value: Any) -> GeniaRepresented:
         facet = _representation_facet(facet_value, "represent")
+        if facet == "secret":
+            raise TypeError('represent cannot use reserved protected facet "secret"')
         return GeniaRepresented(facet, value)
 
     def representation_match_fn(facet_value: Any, value: Any) -> Any:
         facet = _representation_facet(facet_value, "representation_match")
+        if facet == "secret":
+            raise TypeError(
+                'representation_match cannot use reserved protected facet "secret"'
+            )
         if not isinstance(value, GeniaRepresented) or value.facet != facet:
             return make_none("representation-mismatch")
         return GeniaOptionSome(value.value)
+
+    def protected_match_fn(facet_value: Any, value: Any) -> Any:
+        facet = _representation_facet(facet_value, "protected_match")
+        if facet != "secret":
+            raise TypeError('protected_match expected reserved protected facet "secret"')
+        if not isinstance(value, GeniaProtected):
+            return make_none("representation-mismatch")
+        return GeniaOptionSome(value)
 
     def _template_callable(value: Any) -> bool:
         return Evaluator(env, env.debug_hooks, env.debug_mode).is_matcher_callable(value)
@@ -682,6 +718,10 @@ def make_global_env(
 
     def strip_representation_fn(facet_value: Any, value: Any) -> Any:
         facet = _representation_facet(facet_value, "strip_representation")
+        if facet == "secret":
+            raise TypeError(
+                'strip_representation cannot use reserved protected facet "secret"'
+            )
         if not isinstance(value, GeniaRepresented):
             raise TypeError(
                 "strip_representation expected represented value, "
@@ -696,6 +736,7 @@ def make_global_env(
 
     represent_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     representation_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    protected_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     refinement_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     open_shape_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     exact_shape_match_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -4275,11 +4316,14 @@ def make_global_env(
     env.set("config_provider", _host_function_group("config_provider", 1, config_provider_fn))
     env.set("config_get", _host_function_group("config_get", 2, config_get_fn))
     env.set("config_get_or", _host_function_group("config_get_or", 3, config_get_or_fn))
+    env.set("secret_get", _host_function_group("secret_get", 3, secret_get_fn))
+    env.set("secret_get_or", _host_function_group("secret_get_or", 4, secret_get_or_fn))
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
         "representation_match",
         _host_function_group("representation_match", 2, representation_match_fn),
     )
+    env.set("protected_match", _host_function_group("protected_match", 2, protected_match_fn))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),

@@ -41,6 +41,8 @@ def _display_column_name(name: Any) -> str:
 
 
 def _freeze_column_name(name: Any) -> Any:
+    if name.__class__.__name__ == "GeniaProtected":
+        raise TypeError("protected values cannot be Sheet column names")
     if name is None or isinstance(name, (bool, int, float, str)):
         return name
     if isinstance(name, GeniaSymbol):

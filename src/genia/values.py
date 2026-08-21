@@ -57,6 +57,8 @@ def _runtime_type_name(value: Any) -> str:
         return "format"
     if isinstance(value, GeniaRepresented):
         return "represented"
+    if isinstance(value, GeniaProtected):
+        return "protected"
     if isinstance(value, GeniaConfigProvider):
         return "config-provider"
     if value.__class__.__name__ == "GeniaMetaEnv":
@@ -99,6 +101,30 @@ class GeniaRepresented:
         return "<represented>"
 
 
+class GeniaProtected:
+    """Opaque protected carrier used only by trusted acquisition code."""
+
+    __slots__ = ("__provider_identity", "__purpose", "__value")
+
+    def __init__(self, value: Any, provider_identity: object, purpose: GeniaSymbol):
+        self.__value = value
+        self.__provider_identity = provider_identity
+        self.__purpose = purpose
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, GeniaProtected)
+            and self.__provider_identity is other.__provider_identity
+            and self.__purpose == other.__purpose
+            and self.__value == other.__value
+        )
+
+    __hash__ = None
+
+    def __repr__(self) -> str:
+        return "<protected>"
+
+
 class GeniaConfigProvider:
     """Opaque immutable configuration source snapshots."""
 
@@ -113,6 +139,9 @@ class GeniaConfigProvider:
             if key in snapshot:
                 return snapshot[key]
         return missing
+
+    def protect(self, value: Any, purpose: GeniaSymbol) -> GeniaProtected:
+        return GeniaProtected(value, self._identity, purpose)
 
     def __repr__(self) -> str:
         return "<config-provider>"
@@ -139,6 +168,8 @@ def _freeze_map_key(value: Any) -> Any:
         return ("pair", _freeze_map_key(value.head), _freeze_map_key(value.tail))
     if isinstance(value, GeniaRepresented):
         return ("represented", value.facet, _freeze_map_key(value.value))
+    if isinstance(value, GeniaProtected):
+        raise TypeError("protected values cannot be map keys")
     if isinstance(value, list):
         return ("list", tuple(_freeze_map_key(item) for item in value))
     if isinstance(value, tuple):

@@ -51,6 +51,8 @@ def format_display(value: Any) -> str:
         return "<format>"
     if _is_represented(value):
         return "<represented>"
+    if _is_protected(value):
+        return "<protected>"
     if _is_config_provider(value):
         return "<config-provider>"
     if isinstance(value, str):
@@ -93,6 +95,8 @@ def format_debug(value: Any) -> str:
         return "<format>"
     if _is_represented(value):
         return "<represented>"
+    if _is_protected(value):
+        return "<protected>"
     if _is_config_provider(value):
         return "<config-provider>"
     if isinstance(value, str):
@@ -148,6 +152,10 @@ def _is_represented(value: Any) -> bool:
         and isinstance(getattr(value, "facet", None), str)
         and hasattr(value, "value")
     )
+
+
+def _is_protected(value: Any) -> bool:
+    return value.__class__.__name__ == "GeniaProtected"
 
 
 def _is_config_provider(value: Any) -> bool:

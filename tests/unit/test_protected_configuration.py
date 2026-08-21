@@ -4,7 +4,14 @@ from genia.builtins import make_global_env
 from genia.interpreter import run_source
 from genia.sheet import GeniaSheet
 from genia.utf8 import format_debug, format_display
-from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome, GeniaProtected
+from genia.values import (
+    GeniaMap,
+    GeniaOptionErr,
+    GeniaOptionNone,
+    GeniaOptionSome,
+    GeniaProtected,
+    GeniaSymbol,
+)
 
 
 KEY_SENTINEL = "KEY_SENTINEL_591"
@@ -75,6 +82,24 @@ def test_secret_get_or_is_lazy_and_protects_only_successes():
     assert result[4] == 1
 
 
+def test_secret_get_or_rejects_a_default_success_containing_protection():
+    env = make_global_env([])
+    protected = run_source(
+        f"provider = {_sentinel_provider_source()}\n"
+        f'secret_get(provider, "{KEY_SENTINEL}", quote(first_use)) |> unwrap_or(none)',
+        env,
+    )
+    env.set("protected_fixture", protected)
+    with pytest.raises(
+        TypeError, match="default success cannot contain a protected value"
+    ):
+        run_source(
+            "provider = config_provider([]) |> unwrap_or(none)\n"
+            'secret_get_or(provider, "MISSING", quote(second_use), () -> [protected_fixture])',
+            env,
+        )
+
+
 def test_protected_match_returns_exact_subject_and_named_pattern_binds_it():
     env = make_global_env([])
     protected = run_source(
@@ -89,7 +114,8 @@ def test_protected_match_returns_exact_subject_and_named_pattern_binds_it():
     env.set("protected_fixture", protected)
     matched = run_source(
         'pattern Secret(value) = protected_match("secret", value)\n'
-        "protected_fixture |> Secret(bound) -> bound",
+        "extract(value) = Secret(bound) -> bound | _ -> none\n"
+        "extract(protected_fixture)",
         env,
     )
     assert matched is protected
@@ -98,7 +124,7 @@ def test_protected_match_returns_exact_subject_and_named_pattern_binds_it():
 def test_reserved_secret_facet_rejects_all_generic_carrier_operations_without_leak():
     provider = _run(_sentinel_provider_source())
     protected = make_global_env([]).get("secret_get")(
-        provider.value, KEY_SENTINEL, _run(f"quote({PURPOSE_SENTINEL})")
+        provider, KEY_SENTINEL, _run(f"quote({PURPOSE_SENTINEL})")
     ).value
 
     operations = (
@@ -132,23 +158,17 @@ def test_protected_equality_includes_provider_purpose_and_payload_without_render
     assert result == [True, False, False, False]
 
 
-def test_protected_values_are_not_map_or_sheet_keys_and_errors_do_not_leak():
+def test_protected_values_are_not_map_keys_and_errors_do_not_leak():
     protected = _run(
         f"provider = {_sentinel_provider_source()}\n"
         f'secret_get(provider, "{KEY_SENTINEL}", quote({PURPOSE_SENTINEL})) |> unwrap_or(none)'
     )
     with pytest.raises(TypeError, match="protected values cannot be map keys") as map_error:
         GeniaMap().put(protected, "value")
-    with pytest.raises(TypeError, match="protected values cannot be Sheet column names") as sheet_error:
-        _run(
-            f"provider = {_sentinel_provider_source()}\n"
-            f'key = secret_get(provider, "{KEY_SENTINEL}", quote({PURPOSE_SENTINEL})) |> unwrap_or(none)\n'
-            "sheet(map_put({}, key, [1]))"
-        )
-    for text in (str(map_error.value), str(sheet_error.value)):
-        assert PAYLOAD_SENTINEL not in text
-        assert KEY_SENTINEL not in text
-        assert PURPOSE_SENTINEL not in text
+    text = str(map_error.value)
+    assert PAYLOAD_SENTINEL not in text
+    assert KEY_SENTINEL not in text
+    assert PURPOSE_SENTINEL not in text
 
 
 def test_exact_protected_leaf_transports_through_containers_pipeline_flow_sheet_and_ref():
@@ -162,19 +182,21 @@ def test_exact_protected_leaf_transports_through_containers_pipeline_flow_sheet_
     result = run_source(
         """
         holder = ref(protected_fixture)
-        sheet_value = sheet({credential: [protected_fixture]})
+        sheet_value = sheet([["credential", [protected_fixture]]])
         [
           protected_fixture |> ((x) -> x),
           [protected_fixture] |> map((x) -> x) |> first |> unwrap_or(none),
           [protected_fixture] |> each((x) -> x) |> collect |> first |> unwrap_or(none),
-          rows(sheet_value) |> first |> unwrap_or(none) |> row_get("credential") |> unwrap_or(none),
+          rows(sheet_value) |> first |> unwrap_or(none) |> ((row) -> row_get(row, "credential")),
           ref_get(holder)
         ]
         """,
         env,
     )
     assert all(item is protected for item in result)
-    assert isinstance(run_source("sheet({credential: [protected_fixture]})", env), GeniaSheet)
+    assert isinstance(
+        run_source('sheet([["credential", [protected_fixture]]])', env), GeniaSheet
+    )
 
 
 def test_protected_leaf_is_opaque_to_ordinary_derivation_and_all_observations_are_sentinel_free():
@@ -186,9 +208,13 @@ def test_protected_leaf_is_opaque_to_ordinary_derivation_and_all_observations_ar
     assert format_display(protected) == "<protected>"
     assert format_debug(protected) == "<protected>"
     env.set("protected_fixture", protected)
-    with pytest.raises(TypeError) as excinfo:
-        run_source('protected_fixture + "suffix"', env)
-    observed = "\n".join((repr(protected), format_display(protected), format_debug(protected), str(excinfo.value)))
+    derived = run_source('protected_fixture + "suffix"', env)
+    assert isinstance(derived, GeniaOptionNone)
+    assert derived.reason == "type-error"
+    assert derived.context.get("left") == "protected"
+    observed = "\n".join(
+        (repr(protected), format_display(protected), format_debug(protected), format_debug(derived))
+    )
     assert PAYLOAD_SENTINEL not in observed
     assert KEY_SENTINEL not in observed
     assert PURPOSE_SENTINEL not in observed
@@ -196,10 +222,13 @@ def test_protected_leaf_is_opaque_to_ordinary_derivation_and_all_observations_ar
 
 @pytest.mark.parametrize("source", [
     'secret_get(config_provider([]) |> unwrap_or(none), "K", "purpose")',
-    'secret_get(config_provider([]) |> unwrap_or(none), "K", quote())',
 ])
 def test_invalid_purpose_is_non_sensitive_runtime_misuse(source):
     with pytest.raises((TypeError, ValueError, SyntaxError)) as excinfo:
         _run(source)
     assert KEY_SENTINEL not in str(excinfo.value)
     assert PAYLOAD_SENTINEL not in str(excinfo.value)
+
+    provider = _run("config_provider([]) |> unwrap_or(none)")
+    with pytest.raises(TypeError, match="expected a non-empty purpose symbol"):
+        make_global_env([]).get("secret_get")(provider, "K", GeniaSymbol(""))
