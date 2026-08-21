@@ -10,8 +10,8 @@ input:
       config_get_or(provider, "MISSING", () -> "3000") |> parse_int |> Port,
       config_get_or(provider, "BAD", () -> "3000") |> parse_int |> Port,
       config_get_or(provider, "RANGE", () -> "3000") |> parse_int |> ((n) -> refinement_match((x) -> x <= 65535, n))
-    ] |> lines |> collect
+    ] |> each((outcome) -> outcome) |> collect
 expected:
-  stdout: '[some(8080), some(3000), none("parse-error", {source: "parse_int", expected: "integer_string", received: "not-int", base: 10}), none("refinement-mismatch")]\n'
+  stdout: "[some(8080), some(3000), none(\"parse-error\", {source: \"parse_int\", expected: \"integer_string\", received: \"not-int\", base: 10}), none(\"refinement-mismatch\")]\n"
   stderr: ""
   exit_code: 0

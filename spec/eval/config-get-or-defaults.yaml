@@ -16,6 +16,6 @@ input:
       ref_get(calls)
     ]
 expected:
-  stdout: '[some("value"), some(""), some("fallback"), 1]\n'
+  stdout: "[some(\"value\"), some(\"\"), some(\"fallback\"), 1]\n"
   stderr: ""
   exit_code: 0
