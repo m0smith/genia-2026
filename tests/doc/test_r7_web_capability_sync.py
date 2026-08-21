@@ -144,7 +144,7 @@ def test_authoritative_and_host_inventories_include_landed_r7_helpers() -> None:
     assert "not a shared semantic-spec category" in host_interop
 
 
-def test_r9_completion_and_r10_planned_status_stay_synchronized() -> None:
+def test_r9_completion_and_r10_contract_activation_stay_synchronized() -> None:
     roadmap = read_text("docs/strategy/release-roadmap.md")
     killer_workflow = read_text("docs/strategy/killer-workflow.md")
     llm_contract = read_text("docs/ai/LLM_CONTRACT.md")
@@ -157,11 +157,18 @@ def test_r9_completion_and_r10_planned_status_stay_synchronized() -> None:
     assert "**Status: Complete.** Explicitly approved infrastructure work delivered after R7." in roadmap
     assert "Release R9 — Value Templates & Representations" in roadmap
     assert "**Status: Complete.** E9-1 through E9-7 delivered" in roadmap
-    assert "R10-R12 remain planned and not active" in roadmap
+    assert "**Status: Active for pre-flight and contract work only.**" in roadmap
+    assert "#585" in roadmap
+    assert "#586" in roadmap
+    assert "R11-R12 remain planned and not active" in roadmap
     assert "R7 is complete" in killer_workflow
     assert "R9** completed the value-template and representation work" in killer_workflow
-    assert "R9 — Value Templates & Representations is complete. R10 is not active." in llm_contract
+    assert "R10** is active for pre-flight and contract" in killer_workflow
+    assert "R9 — Value Templates & Representations is complete. R10 is active for pre-flight and contract work only." in llm_contract
+    assert "E10-0 contract gate in #586" in llm_contract
     assert "R9 — Value Templates & Representations is complete." in agents
+    assert "R10 (Configuration & Secrets) is active for pre-flight and contract work only" in agents
+    assert "Issue #586 is the required contract gate" in agents
     assert "[R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE" in releases
     assert "[R9 — Value Templates & Representations](R9.md) ✓ COMPLETE" in releases
     assert "Status: **Complete.**" in r7_page

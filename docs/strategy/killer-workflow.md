@@ -100,9 +100,10 @@ R7 is complete. It does not replace the validated-data-pipeline product north st
 **R8** completed the explicitly approved server-execution-mode infrastructure work.
 
 **R9** completed the value-template and representation work that supports the
-validated-data-pipeline direction. **R10** is planned but not active; future
-release work still requires explicit activation and the repository's contract,
-design, test, implementation, documentation, and audit phases.
+validated-data-pipeline direction. **R10** is active for pre-flight and contract
+work only under epic #585 and gate #586. Configuration and protected-secret
+behavior remain unimplemented; design, tests, implementation, documentation of
+implemented behavior, and audit remain blocked until the contract records GO.
 
 ## Using This Document
 

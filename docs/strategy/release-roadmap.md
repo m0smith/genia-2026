@@ -540,9 +540,11 @@ Issue guidance:
 
 ## Release R10 — Configuration & Secrets
 
-**Status: Planned, not active.** This section records proposed direction, not
-implemented language behavior. R10 requires semantic design and explicit
-activation before implementation begins.
+**Status: Active for pre-flight and contract work only.** Epic #585 activates
+R10 planning, and #586 is the required E10-0 contract gate. This section records
+proposed direction, not implemented language behavior. Design, failing tests,
+implementation, and implemented-behavior documentation remain blocked until
+#586 records an explicit GO and reconciles the later ticket sequence.
 
 Theme:
 
@@ -583,6 +585,14 @@ R10 should use the R9 representation model rather than introduce an unrelated
 Exit criterion:
 
 - Config and secret acquisition use the representation semantics established by R9, and ordinary matching, diagnostics, or rendering cannot accidentally expose secrets.
+
+Issue guidance:
+
+- **#585** is the active R10 epic.
+- **#586** is E10-0 and the required pre-flight/contract gate.
+- E10-1 through E10-8 remain candidate sequencing only. Do not create or use
+  them as implementation-ready tickets until #586 records GO and reconciles
+  their exact boundaries.
 
 ---
 
@@ -731,7 +741,8 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8 and R9 are complete; R10-R12 remain planned and not active.
+composition. R8 and R9 are complete; R10 is active for pre-flight and contract
+work only, while R11-R12 remain planned and not active.
 
 ---
 
