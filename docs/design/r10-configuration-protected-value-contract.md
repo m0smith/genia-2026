@@ -1,9 +1,9 @@
 # R10 Configuration and Protected-Value Contract
 
-Status: **Approved R10 contract; E10-1 provider acquisition and E10-2 defaults/conversion validation implemented; later slices not implemented.**
+Status: **Approved R10 contract; E10-1 through E10-3 provider/default/protected-carrier slices implemented; later slices not implemented.**
 
 `GENIA_STATE.md` remains final authority for implemented behavior. The E10-1
-provider/ordinary acquisition and E10-2 defaults/conversion-validation subsets
+provider/ordinary acquisition, E10-2 defaults/conversion-validation, and E10-3 protected-carrier/matching subsets
 are available; later sections remain contracted but unavailable until their own
 tickets implement and verify them.
 
@@ -404,7 +404,7 @@ explicit provider snapshot
 2. **E10-2 — defaults, conversion, and validation (implemented, Experimental):**
    lazy `config_get_or` plus proven composition with existing converters,
    Outcomes, and Templates.
-3. **E10-3 — protected carrier and matching:** `secret_get`, `secret_get_or`,
+3. **E10-3 — protected carrier and matching (implemented, Experimental):** `secret_get`, `secret_get_or`,
    reserved facet restrictions, equality/key rules, `protected_match`, transport.
 4. **E10-4 — protected sinks:** rendering/redaction and recursive rejection for
    formatting, output, diagnostics, tests, JSON, reports, resources, HTTP, host.
@@ -428,6 +428,6 @@ later follow-up, not an R10 exit requirement.
 
 ## Gate
 
-**E10-1 and E10-2 implemented through issues #589 and #590.** This contract does
-not activate E10-3 or any later slice; each still requires its own ticket and
+**E10-1 through E10-3 implemented through issues #589-#591.** This contract does
+not activate E10-4 or any later slice; each still requires its own ticket and
 phase gates.
