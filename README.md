@@ -587,6 +587,7 @@ Related shared portability docs:
   - representation-aware patterns reuse named Templates, for example `pattern Json(value) = representation_match("json", value)` followed by `Json(inner)`; no JSON decoder, structural declaration syntax, secret policy, parser syntax, or Core IR node is added by this slice
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
 - Runtime capability values:
+  - explicit immutable configuration provider (`<config-provider>`, Experimental)
   - `stdout`
   - `stderr`
   - MetaEnv
@@ -1016,6 +1017,21 @@ actor_call(a, 3)
 - actors are public Python-host behavior in this phase, not a shared-host contract surface
 
 ## Builtins
+
+### Explicit configuration acquisition (Experimental)
+
+`config_provider(sources)` constructs an opaque immutable provider from an explicit highest-to-lowest source list. Literal and Python-host environment descriptors use quoted symbols, so no `values` or `environment` global names are added:
+
+```genia
+provider = config_provider([
+  {kind: quote(values), values: {PORT: "9000"}},
+  {kind: quote(environment)}
+]) |> unwrap_or(none)
+
+config_get(provider, "PORT")
+```
+
+The result is `some("9000")`. Lookup returns exact strings, treats `""` as present, and returns `none("config-missing")` when absent. Construction snapshots once, first source wins, and diagnostics do not include configuration keys or source values. This E10-1 slice has no ambient lookup, defaults, conversion/Template additions, secrets, annotations, or new syntax/Core IR.
 
 ### Core
 

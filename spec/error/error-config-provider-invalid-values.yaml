@@ -1,0 +1,13 @@
+name: error-config-provider-invalid-values
+category: error
+description: Literal provider validation reports only the source index
+input:
+  source: |
+    config_provider([{kind: quote(values), values: {SENSITIVE_KEY: 42}}])
+expected:
+  stdout: ""
+  stderr: "Error: config_provider expected valid string keys and string values at source index 0\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

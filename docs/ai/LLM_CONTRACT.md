@@ -94,24 +94,24 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9 Complete; R10 Contract Approved
+## Release Position: R9 Complete; R10 E10-1 Implemented
 
 **R9 — Value Templates & Representations is complete. R10 has an approved
-non-implemented contract and is active for E10-1 preflight only.**
+contract and its E10-1 provider/ordinary acquisition slice is implemented.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work:
 
 1. Consult the roadmap and classify the work as a follow-up, later release,
-   infrastructure, or parking-lot item; do not expand R10 beyond its approved
-   E10-1 preflight gate implicitly.
+   infrastructure, or parking-lot item; do not expand R10 beyond implemented
+   E10-1 provider/ordinary acquisition implicitly.
 2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
 3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
-5. Preserve the completed R9 Template/representation boundary; R10
-   behavior remains unimplemented until separately designed, tested, and
-   implemented through the reconciled E10 sequence.
+5. Preserve the completed R9 Template/representation boundary and implemented
+   R10 E10-1 provider/acquisition boundary; later R10 behavior remains
+   unimplemented until separately designed, tested, and implemented.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 

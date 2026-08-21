@@ -18,7 +18,7 @@ from collections import deque
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qsl, urlsplit
 from pathlib import Path
-from typing import Any, Callable, Iterable, Iterator, Optional
+from typing import Any, Callable, Iterable, Iterator, Mapping, Optional
 
 
 _JSON_SAFE_INTEGER = 9_007_199_254_740_991
@@ -39,6 +39,7 @@ if __package__ in (None, ""):
         _mark_handles_none,
         _mark_handles_some,
     )
+    from genia.configuration import construct_provider, get_configuration
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
         DebugHooks,
@@ -125,6 +126,7 @@ else:
         _mark_handles_none,
         _mark_handles_some,
     )
+    from .configuration import construct_provider, get_configuration
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
         DebugHooks,
@@ -218,6 +220,7 @@ def make_global_env(
     stderr_stream: Any = None,
     output_handler: Optional[Callable[[str], None]] = None,
     stdin_keys_provider: Optional[Callable[[], Iterable[str]]] = None,
+    environment_snapshot_provider: Optional[Callable[[], Mapping[str, str]]] = os.environ.copy,
 ) -> Env:
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
@@ -532,6 +535,12 @@ def make_global_env(
 
     def debug_repr_fn(value: Any) -> str:
         return format_debug(value)
+
+    def config_provider_fn(sources: Any) -> Any:
+        return construct_provider(sources, environment_snapshot_provider)
+
+    def config_get_fn(provider: Any, key: Any) -> Any:
+        return get_configuration(provider, key)
 
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -4254,6 +4263,8 @@ def make_global_env(
     env.set("print", print_fn)
     env.set("display", display_fn)
     env.set("debug_repr", debug_repr_fn)
+    env.set("config_provider", _host_function_group("config_provider", 1, config_provider_fn))
+    env.set("config_get", _host_function_group("config_get", 2, config_get_fn))
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
         "representation_match",

@@ -44,6 +44,7 @@ nav:
       - "R7 — Web Serving Ergonomics": releases/R7.md
       - "R8 — Server Execution Mode": releases/R8.md
       - "R9 — Value Templates & Representations": releases/R9.md
+      - "R10 — Configuration & Secrets": releases/R10.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md

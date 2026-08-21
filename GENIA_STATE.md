@@ -402,6 +402,19 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
+- Configuration provider (Experimental, issue #589)
+  - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
+  - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
+  - source order is highest to lowest precedence; the first source containing a key wins
+  - all descriptors and literal string keys/values are validated before any host-backed snapshot is acquired
+  - `config_get(provider, key)` returns `some(exact_string)`, including `some("")`, or context-free `none("config-missing")`
+  - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
+  - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
+  - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
+  - no ambient provider, implicit environment fallback, refresh, defaults, conversion, Template validation addition, secret handling, annotation, parser, or Core IR change is implemented
+  - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
+  - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
+
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
   - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
@@ -1061,6 +1074,12 @@ Case placement rules (enforced):
 - `decide` has been removed from the language
 
 ## 6) Builtins (runtime)
+
+### Configuration acquisition (Experimental)
+
+- `config_provider(sources)` — explicit immutable provider construction over ordered quoted-kind descriptors
+- `config_get(provider, key)` — exact raw-string lookup through an explicit provider
+- this E10-1 surface adds ordinary calls only; `config_get_or`, defaults, conversion, validation additions, secrets, protection, declassification, and injection are not implemented
 
 ### Core I/O and utilities
 

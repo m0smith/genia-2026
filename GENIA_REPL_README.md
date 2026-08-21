@@ -97,6 +97,7 @@ CLI contract summary (actual behavior):
   - callable behaviors layered on values: functions/lambdas, callable maps, callable string projectors
   - runtime capability values:
     - shared/runtime-surface values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented)
+    - explicit opaque configuration providers (Experimental): portable literal snapshots plus a Python-host environment snapshot capability
     - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, dot map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
@@ -104,6 +105,7 @@ CLI contract summary (actual behavior):
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
+- explicit configuration acquisition (Experimental): `config_provider([{kind: quote(values), values: {...}}])` and `config_get(provider, key)`; source kinds are quoted symbols, not new global names
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
 - variables and lexical assignment (`name = expr`)
@@ -225,6 +227,8 @@ CLI contract summary (actual behavior):
     - see `docs/design/representation-system-and-format.md` for the focused representation and `Format` documentation
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
+  - `config_provider(sources)` constructs an explicit immutable opaque provider; supported descriptors are `{kind: quote(values), values: map}` and Python-host `{kind: quote(environment)}`
+  - `config_get(provider, key)` returns `some(exact_string)` (including empty) or `none("config-missing")`; no ambient lookup, defaults, conversion, secrets, or injection are implemented
   - raw CLI primitive: `argv`
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`

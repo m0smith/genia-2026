@@ -5,6 +5,11 @@
     "expected_result": "\"Genia\""
   },
   {
+    "id": "core-config-provider-literal",
+    "source": "provider = config_provider([{kind: quote(values), values: {PORT: \"8080\"}}]) |> unwrap_or(none)\n[config_get(provider, \"PORT\"), config_get(provider, \"MISSING\")]",
+    "expected_result": "[some(\"8080\"), none(\"config-missing\")]"
+  },
+  {
     "id": "core-min-fields-nth-parse",
     "source": "fields(\"a b c d 5 x\") |> nth(5) |> parse_int |> unwrap_or(0)",
     "expected_result": "5"

@@ -1,0 +1,14 @@
+name: error-config-get-invalid-key
+category: error
+description: Invalid configuration keys are rejected without rendering the key
+input:
+  source: |
+    provider = config_provider([]) |> unwrap_or(none)
+    config_get(provider, "SENSITIVE\u0000KEY")
+expected:
+  stdout: ""
+  stderr: "Error: config_get expected a non-empty configuration key string without NUL, received string\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

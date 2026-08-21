@@ -540,9 +540,10 @@ Issue guidance:
 
 ## Release R10 — Configuration & Secrets
 
-**Status: Active for E10-1 preflight only.** Issue #586 approved the durable R10
-configuration/protected-value contract. This section still records planned,
-not implemented language behavior; later work requires its own phase gates.
+**Status: Active; E10-1 implemented.** Issue #586 approved the durable R10
+configuration/protected-value contract and issue #589 implemented the
+Experimental provider/ordinary acquisition slice. Later R10 behavior remains
+planned and requires its own ticket and phase gates.
 
 Theme:
 
@@ -592,10 +593,10 @@ Exit criterion:
 Issue guidance:
 
 - **#585** is the active R10 epic.
-- **#586** is E10-0 and the required pre-flight/contract gate.
-- E10-1 through E10-8 remain candidate sequencing only. Do not create or use
-  them as implementation-ready tickets until #586 records GO and reconciles
-  their exact boundaries.
+- **#586** is the completed E10-0 contract gate.
+- **#589** is the implemented E10-1 provider/ordinary acquisition slice.
+- E10-2 through E10-8 are not activated by E10-1 completion; use their own
+  reconciled tickets and phase gates.
 
 ---
 
@@ -745,8 +746,8 @@ This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
 composition. R8 and R9 are complete; R10-R12 remain planned and not active for
-implementation. R10 alone has an approved contract and E10-1 preflight gate;
-R11-R12 have no active gate.
+implementation. R10 alone has an approved contract and implemented E10-1
+provider/acquisition slice; later R10 slices and R11-R12 require their own gates.
 
 ---
 

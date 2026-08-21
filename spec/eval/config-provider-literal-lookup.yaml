@@ -1,0 +1,14 @@
+name: config-provider-literal-lookup
+category: eval
+description: Explicit literal providers preserve precedence and distinguish empty from missing
+input:
+  source: |
+    provider = config_provider([
+      {kind: quote(values), values: {PORT: "9000", EMPTY: ""}},
+      {kind: quote(values), values: {PORT: "8080", LATER: "yes"}}
+    ]) |> unwrap_or(none)
+    [config_get(provider, "PORT"), config_get(provider, "EMPTY"), config_get(provider, "LATER"), config_get(provider, "MISSING")]
+expected:
+  stdout: "[some(\"9000\"), some(\"\"), some(\"yes\"), none(\"config-missing\")]\n"
+  stderr: ""
+  exit_code: 0

@@ -40,6 +40,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
 | JSON representation boundary | `json_decode(text_or_bytes)` and `json_encode(value)` return Outcomes; decoded roots carry one outer `"json"` facet |
 | JSON Schema Template | `json_schema(json_represented_schema)` compiles the supported structural subset into an Outcome containing a callable Template |
+| configuration provider | `config_provider([{kind: quote(values), values: map}, {kind: quote(environment)}])`; lookup with `config_get(provider, key)` — **Experimental** |
 | guard | `(x) ? x > 0 -> ...` |
 
 Outcome matcher bodies return `some(...)`, `none(...)`, or `err(...)`; `err(...)` is recoverable failure and does not fall through as absence. A named Template is an Experimental first-class one-argument Outcome matcher: it can be stored, passed, returned, imported, called, or used by higher-order functions. Direct calls return the matcher Outcome unchanged.
@@ -51,6 +52,15 @@ Carrier facets are Experimental ordered layers. A representation-aware named Tem
 `json_schema` is Experimental and intentionally limited: each schema node requires `type`; object `properties`/`required`, array `items`, primitive types, and boolean `additionalProperties` are supported. Unsupported keywords fail compilation and are never ignored.
 
 For the complete boundary → representation match → schema Template → Outcome aggregation composition, run `examples/r9_composed_json_template_pipeline.genia`. Classification: **Valid** (directly tested, Experimental integration example).
+
+Configuration acquisition is explicit and Experimental. Provider sources are immutable snapshots ordered highest to lowest precedence; `config_get` returns exact-string `some(...)` (including empty) or `none("config-missing")`. Descriptor kinds use `quote(values)` / `quote(environment)` and do not create global names. Defaults, conversion, secrets, and injection are not implemented.
+
+<!-- [case: core-config-provider-literal] -->
+```genia
+provider = config_provider([{kind: quote(values), values: {PORT: "8080"}}]) |> unwrap_or(none)
+[config_get(provider, "PORT"), config_get(provider, "MISSING")]
+```
+Classification: **Valid** (directly tested, Experimental)
 
 Refinement and open structural helpers are Experimental and reuse existing named Templates. Open structural success preserves the complete original map rather than applying nested success payloads as transformations.
 

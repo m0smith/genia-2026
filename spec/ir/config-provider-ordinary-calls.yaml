@@ -1,0 +1,24 @@
+name: config-provider-ordinary-calls
+category: ir
+description: Configuration construction and lookup lower through existing ordinary call IR
+input:
+  source: |
+    config_get(config_provider([]), "PORT")
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrVar
+          name: config_get
+        args:
+          - node: IrCall
+            fn:
+              node: IrVar
+              name: config_provider
+            args:
+              - node: IrList
+                items: []
+          - node: IrLiteral
+            value: PORT
