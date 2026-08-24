@@ -402,19 +402,23 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- AI model invocation (Experimental, R11 E11-1, issue #611)
+- AI model invocation (Experimental, R11 E11-1/E11-2, issues #611/#612)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
-  - E11-1 is text-only and deterministic-fixture-only: there is no real provider adapter, network operation, JSON structured output, retry, streaming, tool/agent runtime, or conversation runtime
+  - E11-1/E11-2 remain deterministic-fixture-only: there is no real provider adapter, network operation, retry, streaming, tool/agent runtime, or conversation runtime
   - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
   - `config` is the closed map `{id: nonempty string, timeout_ms: integer 1..300000}`
   - a request is the closed map `{messages, output}` with a nonempty message list, closed text messages using `system|user|assistant` roles, and `{kind: quote(text)}` output
+  - E11-2 also accepts the closed output requirement `{kind: quote(json), schema, template}`: `schema` has exactly one outer R9 `json` representation and must be accepted by existing `json_schema`; `template` is an explicit callable one-argument Outcome Template
   - construction validates its inputs without declassification, audit, or provider attempt; invocation validates the complete request before declassification or attempt
   - a valid invocation declassifies the R10 protected string credential at the authorized boundary, records the existing R10 audit, and makes exactly one synchronous provider attempt; there is no implicit retry
   - success is `some({message, finish_reason, usage})`; the response is closed, its message is assistant text, finish reason is `stop|length|filtered|other`, and usage is exact nonnegative token counts or `none("model-usage-unavailable")`
+  - structured success processes the single provider assistant text through existing `json_decode`, invokes the explicit Template once on the decoded carried ordinary value, ignores the Template success payload, and returns assistant content `{kind: quote(json), value: represented_value}` retaining exactly one outer `json` facet
+  - decode or Template `none(...)`/`err(...)` becomes exactly `err("model-structured-output-invalid", {stage: quote(json_decode)|quote(template), outcome: original_outcome})`; a non-Outcome Template result is runtime callback misuse
+  - there is no repair, trimming, prose/fence extraction, coercion, second parse, reprompt, partial acceptance, or retry
   - absence is exactly `none("model-no-response")`; normalized failures use `model-timeout`, `model-rate-limited`, `model-rejected`, `model-transport-failure`, or `model-response-invalid` with the closed contexts defined in `GENIA_RULES.md`
   - malformed fixture observations become `err("model-response-invalid", {stage: quote(provider_response)})` (or the precise response stage); fixture exceptions become non-sensitive transport failure with `kind: quote(other)`
   - shared eval/error specs opt into the Python fixture explicitly with `fixtures: [r11_model]`; ordinary eval, file, command, pipe, import, native-test, and serve execution gain no fixture bindings
-  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, and normalized Outcomes are the E11-1 portable boundary
+  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, and normalized Outcomes are the implemented E11-1/E11-2 portable boundary
   - PYTHON REFERENCE HOST: only the deterministic offline test fixture is implemented; shared/multi-host conformance remains Partial
 
 - Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)

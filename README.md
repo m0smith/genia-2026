@@ -1019,18 +1019,22 @@ actor_call(a, 3)
 
 ## Builtins
 
-### AI model invocation (Experimental E11-1)
+### AI model invocation (Experimental E11-1/E11-2)
 
 `model(provider, config, credential, authority)` returns an ordinary callable
-whose text request produces an existing Outcome. E11-1 validates closed ordinary
-message/request/response maps, declassifies the R10 protected string credential
-only at invocation, and makes exactly one synchronous provider attempt.
+whose text or explicit R9-structured request produces an existing Outcome.
+E11-1/E11-2 validate closed ordinary message/request/response maps, declassify
+the R10 protected string credential only at invocation, and make exactly one
+synchronous provider attempt. Structured output uses existing `json_schema`,
+`json_decode`, and an explicit callable Template; invalid decode/Template
+Outcomes are preserved inside `model-structured-output-invalid` without repair
+or retry.
 
 The current implementation is deliberately offline: only the Python reference
 host's explicitly selected deterministic test fixture can supply the provider,
 credential, and authority. Ordinary CLI/file/import/test/serve execution has no
-ambient bindings. JSON structured output, a real network/provider adapter,
-retry, streaming, tools/agents, conversations, and retrieval are not implemented.
+ambient bindings. A real network/provider adapter, retry, streaming,
+tools/agents, conversations, and retrieval are not implemented.
 
 ### Explicit configuration acquisition (Experimental)
 

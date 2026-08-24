@@ -477,18 +477,20 @@ No additional member/index/flow operators should be introduced without explicitl
 - serve startup must finish entry evaluation and explicit snapshot construction before listener activation; request handling performs no automatic refresh.
 - there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, and annotation injection remain unimplemented.
 
-### AI model invocation (Experimental E11-1)
+### AI model invocation (Experimental E11-1/E11-2)
 
 - `model(provider, config, credential, authority)` is an ordinary call and returns an ordinary one-argument callable; it adds no syntax, annotation behavior, AST form, or Core IR node.
 - `provider` must be an opaque host-injected model-provider capability, `credential` must be protected, and `authority` must be a declassification authority. `config` must be exactly `{id, timeout_ms}`, with a nonempty string id and an integer timeout in `1..300000`.
-- Calling the model requires exactly `{messages, output}`. Messages must be a nonempty list of exact `{role, content}` maps; roles are `system`, `user`, or `assistant`, and content is exactly `{kind: quote(text), text: string}`. Output is exactly `{kind: quote(text)}`.
+- Calling the model requires exactly `{messages, output}`. Messages must be a nonempty list of exact `{role, content}` maps; roles are `system`, `user`, or `assistant`, and request content is exactly `{kind: quote(text), text: string}`. Output is exactly `{kind: quote(text)}` or `{kind: quote(json), schema, template}`.
+- Structured `schema` must have one outer R9 `json` representation and be accepted by existing `json_schema`; `template` must be an explicit callable one-argument Outcome Template. Both are validated before declassification or an attempt.
 - Request validation, including recursive protected-value rejection, occurs before declassification, audit, or provider attempt. Construction performs none of those effects.
 - After validation, the protected credential is declassified with the supplied authority and must reveal a string. The provider is then attempted synchronously exactly once. No retry, fallback, queue, or timeout executor is implied.
-- Accepted success is `some` of exact `{message, finish_reason, usage}`: assistant text message; finish reason `stop|length|filtered|other`; and either `some({input_tokens, output_tokens, total_tokens})` with nonnegative integers whose total is the sum, or context-free `none("model-usage-unavailable")`.
+- Accepted success is `some` of exact `{message, finish_reason, usage}`: assistant message; finish reason `stop|length|filtered|other`; and either `some({input_tokens, output_tokens, total_tokens})` with nonnegative integers whose total is the sum, or context-free `none("model-usage-unavailable")`. Text output keeps text content. JSON output strictly decodes the single provider text through existing `json_decode`, applies the Template once to the carried ordinary value, and retains the original represented value as `{kind: quote(json), value}`; a Template success payload does not transform it.
 - Accepted absence is context-free `none("model-no-response")`.
-- Accepted errors are exact: `model-timeout` with `{timeout_ms}` equal to config; `model-rate-limited` with `{retry_after_ms: some(nonnegative integer)|none("model-retry-after-unavailable")}`; `model-rejected` or `model-transport-failure` with `{kind: authentication|permission|policy|request|unavailable|other}`; and `model-response-invalid` with `{stage: message|finish_reason|usage|provider_response}`.
+- Accepted errors are exact: `model-timeout` with `{timeout_ms}` equal to config; `model-rate-limited` with `{retry_after_ms: some(nonnegative integer)|none("model-retry-after-unavailable")}`; `model-rejected` or `model-transport-failure` with `{kind: authentication|permission|policy|request|unavailable|other}`; `model-response-invalid` with `{stage: message|finish_reason|usage|provider_response}`; and `model-structured-output-invalid` with `{stage: json_decode|template, outcome: original none|err}`.
+- A structured Template returning a non-Outcome is runtime callback misuse. Structured processing performs no repair, extraction, coercion, second parse, reprompt, partial acceptance, or retry.
 - Malformed observations normalize to response-invalid; provider exceptions normalize to transport-failure/other and their text must not escape.
-- E11-1 supports only an explicitly injected deterministic Python fixture. JSON structured output, a real provider/network adapter, tools, agents, streaming, retries, conversations, and retrieval are not implemented.
+- E11-1/E11-2 support only an explicitly injected deterministic Python fixture. A real provider/network adapter, tools, agents, streaming, retries, conversations, and retrieval are not implemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
