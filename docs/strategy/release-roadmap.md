@@ -750,7 +750,202 @@ Critical acceptance criterion:
 
 ---
 
-## R8–R12 Sequence and Dependencies
+## Release R13 — Configuration Resolution Ergonomics
+
+**Status: Planned, not active.** This section records approved product direction,
+not implemented language behavior. R13 refines the completed R10 configuration
+surface without reopening R10 protected-value semantics.
+
+Theme:
+
+> Make configuration resolution concise, namespaced, and predictable while preserving explicit providers and protected-value safety.
+
+R10 established the portable configuration/protected-value model. R13 addresses
+the ergonomic friction that remains when real applications need several sources,
+repeated common settings, multiple values with the same local name, and standard
+host-backed provider patterns.
+
+Candidate scope:
+
+- concise composition of standard provider sources rather than verbose provider construction
+- standard provider presets/adapters for common sources such as command-line options, environment snapshots, and `.env`-style files when host capability support is explicitly available
+- deterministic provider precedence and fallback that remain visible in the configuration value/model
+- namespaced or prefixed resolution so multiple settings such as `PORT` can coexist cleanly without global-name collisions
+- dynamic resolution of provider prefixes/namespaces through ordinary values rather than one global ambient configuration namespace
+- ergonomic ordinary-value and protected-secret lookup that reuses R10 conversion, Template validation, Outcome, and protected-carrier semantics
+- clear separation between configuration key names, source/provider identity, namespaces/prefixes, and resolved values
+- diagnostics that expose enough source/key context to be useful without exposing protected payloads
+
+R13 must prefer library/value composition over new syntax. Candidate shorthand or
+annotation forms are not approved merely by appearing in discussion; any public
+surface must pass the Core Surface Freeze and the normal contract/design gates.
+
+Architectural rules:
+
+- R10 remains the semantic authority for providers, missing/default behavior,
+  conversion/Template validation, protected carriers, sinks, and declassification
+- R13 reduces call-site ceremony; it does not introduce a second configuration system
+- standard providers must have deterministic precedence and explicit host/portable boundaries
+- provider/source names and namespaces must be ordinary inspectable configuration metadata/values where safe, not hidden ambient state
+- protected values remain protected through all new ergonomic resolution paths
+
+Critical acceptance criterion:
+
+- An application can define a small, readable configuration-resolution policy once and then resolve ordinary and protected values from multiple standard providers/namespaces without repeating provider plumbing or introducing ambiguous global names.
+
+Explicit non-goals:
+
+- changing R10 protected-secret semantics
+- implicit global environment lookup as an uninspectable default
+- dependency injection
+- a new configuration annotation/macro system without a separately approved contract
+- vault/rotation/authentication systems
+- HTTP-specific configuration lookup; R14 consumes R13 rather than extending it ad hoc
+
+---
+
+## Release R14 — Composable HTTP Lifecycles
+
+**Status: Planned, not active.** R14 is explicitly approved infrastructure work.
+The release epic is **#619**. No R14 behavior is implemented merely because the
+roadmap and issues exist.
+
+Theme:
+
+> Make lifecycle an execution-scope model that composes naturally, with inbound server requests and outbound HTTP operations as the first end-to-end proving case.
+
+R14 extends the completed R4 lifecycle contract and R8 server lifecycle. A
+lifecycle is an execution scope, not an application-wide mode. Long-lived parent
+instances may own shorter-lived child lifecycle instances:
+
+```text
+execution
+└── server
+    └── request
+        └── http-client
+```
+
+Core design rules:
+
+- lifecycle definitions describe phases/scopes/policy
+- lifecycle instances own active execution, resources, result/failure, and optional parent/children
+- creating a child does not replace or mutate a global "current lifecycle"
+- parent remains active while child work executes
+- child completion returns control/result to the parent
+- child failure does not implicitly terminate the parent
+- child-owned resources finalize with the child; parent-owned resources remain parent-owned
+- inherited context is readable according to contract but cannot be silently mutated by children
+- annotations remain inert descriptors until an explicit lifecycle consumes/invokes them
+- importing/loading an HTTP-annotated declaration performs no network IO
+
+Outbound HTTP is the proving lifecycle consumer. One common HTTP operation model
+must underlie method-specific ergonomics:
+
+```text
+HttpOperation {
+  method
+  base_url
+  path
+  headers
+  query
+  body
+  response
+}
+```
+
+The conceptual client lifecycle is:
+
+```text
+prepare
+→ authorize
+→ send
+→ receive
+→ decode
+→ finalize
+```
+
+The lifecycle semantics belong to Genia. The Python reference host supplies only
+the narrow outbound transport capability required to touch the network. Future
+hosts must implement the same contract rather than redefining lifecycle/HTTP
+behavior.
+
+R14 may add declarative method annotations such as `@get` only after the common
+operation and lifecycle model exist. Such annotations are metadata/operation
+descriptors, not self-executing IO. Static policy belongs in descriptors;
+dynamic request values remain ordinary Genia values.
+
+R14 also integrates R10/R13 protected configuration with authorized HTTP
+credential sinks. A protected API key may cross an explicitly authorized
+transport header boundary without becoming an ordinary printable/serializable
+value or requiring ad hoc application-level declassification.
+
+Proving application:
+
+- a Genia REST service accepts an array of canonical Bible references
+- R13/R10 resolve a configured YouVersion base URL, Bible/version ID, and protected API credential
+- an inbound R8 request creates one or more outbound HTTP client child lifecycle instances
+- responses are decoded and returned as structured JSON
+- automated tests use a controlled local upstream and fake credentials; CI does not depend on YouVersion or public network access
+- the example proves composition only; it does not create Bible-specific language semantics or human-reference parsing
+
+Approved R14 issue path:
+
+1. **#620 — E14-0:** release contract and roadmap alignment
+2. **#621 — E14-1:** lifecycle instance model and parent-child scope execution
+3. **#622 — E14-2:** common HTTP operation representation contract
+4. **#623 — E14-3:** Python host outbound HTTP transport capability
+5. **#624 — E14-4:** outbound HTTP client lifecycle
+6. **#625 — E14-5:** protected HTTP credential sinks
+7. **#626 — E14-6:** declarative outbound HTTP annotations
+8. **#627 — E14-7:** compose server request and outbound HTTP client lifecycles
+9. **#628 — E14-8:** YouVersion Bible proxy proving application
+10. **#629 — E14-9:** documentation sync and release example
+11. **#630 — E14-10:** release truth audit and closure
+
+Recommended dependency order:
+
+```text
+#620
+  ↓
+#621 + #622
+  ↓
+#623
+  ↓
+#624
+  ↓
+#625
+  ↓
+#626
+  ↓
+#627
+  ↓
+#628
+  ↓
+#629
+  ↓
+#630
+```
+
+Explicit non-goals:
+
+- a general async/await model or scheduler
+- actor supervision or distributed lifecycle execution
+- WebSockets, SSE, or HTTP/2-specific semantics
+- connection-pool configuration, retries, circuit breakers, or an auth framework
+- dependency injection
+- a second server/routing/CORS mechanism
+- a second configuration, Template, representation, Outcome, validation, or error model
+- self-executing annotations
+- global mutable lifecycle state
+- human-language Bible-reference parsing or YouVersion-specific language APIs
+
+Critical acceptance criterion:
+
+- A real Genia server request can execute protected/configured outbound HTTP as a child lifecycle, return the decoded result, correctly contain child failure/resource ownership, and leave the long-lived server lifecycle healthy.
+
+---
+
+## R8–R14 Sequence and Dependencies
 
 The scheduling sequence is:
 
@@ -768,15 +963,27 @@ R11 — AI Composition
  |
  v
 R12 — Retrieval & Grounding
+ |
+ v
+R13 — Configuration Resolution Ergonomics
+ |
+ v
+R14 — Composable HTTP Lifecycles
 ```
 
-This ordering does not imply that R9 technically depends on R8. The semantic
-dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
-R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8, R9, and R10 are complete. R11 has an approved planning
-contract but no implemented behavior and awaits explicit issue #607 GO for
-E11-1 preflight; R12 remains planned. R10 follow-ups and R11-R12 require their own gates;
-for R11, that applies to every behavior slice after this planning contract.
+This ordering does not imply that every release is a strict technical dependency
+of the next. The main semantic chain begins with R9: R10 consumes R9
+representations; R11 consumes R9 structured values plus R10
+configuration/secrets; R12 builds on R11 AI composition. R13 is a focused
+post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
+configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
+foundation while preserving R10 protected-value boundaries.
+
+R8, R9, and R10 are complete. R11 has an approved planning contract but no
+implemented behavior and awaits explicit issue #607 GO for E11-1 preflight.
+R12, R13, and R14 remain planned. Each requires its own contract/design/test/
+implementation/documentation/audit gates; roadmap placement is not implementation
+authority.
 
 ---
 
