@@ -6,6 +6,7 @@ from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.host_bridge import _wrap_python_host_callable
 from genia.interpreter import run_source
+from genia.native_test_runner import run_native_tests
 from genia.utf8 import format_display
 from genia.values import GeniaOptionErr, symbol
 
@@ -161,3 +162,17 @@ def test_protected_host_submission_and_provider_failure_are_effect_free_and_norm
     assert str(provider_result.reason) == "config-provider-failure"
     assert provider_result.context.get("source_index") == 0
     _assert_no_sentinels(provider_result)
+
+
+def test_native_genia_proving_fixture_passes(capsys):
+    fixture = ROOT / "tests" / "native" / "r10_validated_pipeline_proving_case.genia"
+
+    exit_code = run_native_tests(str(fixture))
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out == (
+        "[PASS] R10 configuration and protected values compose with validated records\n"
+        "Summary: total=1 passed=1 failed=0 errors=0\n"
+    )
+    assert captured.err == ""
