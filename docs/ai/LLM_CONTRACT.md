@@ -94,9 +94,15 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9 and R10 Complete
+## Release Position: R9 and R10 Complete; R11 Contracted Only
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
+
+**R11 — AI Composition has an approved planning contract but no implemented
+behavior and awaits explicit issue #607 GO for E11-1 preflight.** The contract
+adds no current model/provider API. Later work is limited to the ordinary
+callable/value/Outcome/R9/R10/Flow composition in
+`docs/design/r11-ai-composition-contract.md`.
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
@@ -110,6 +116,10 @@ When an LLM agent is asked for new Genia work:
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
 5. Preserve the completed R9 Template/representation boundary and completed
    R10 provider/defaulting/protected-carrier/sink/declassification/cross-mode/composed-proof boundary; follow-up behavior remains unimplemented until separately contracted, designed, tested, and implemented.
+6. Do not describe R11 as implemented, create AI value/class hierarchies or an
+   agent executor, or infer streaming, retry, tools, or retrieval behavior.
+   Issue #607 authorizes its contract only; later tickets require explicit GO
+   and their own phase gates.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 

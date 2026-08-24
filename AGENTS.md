@@ -155,8 +155,12 @@ consult the release roadmap and classify it as a follow-up, a later release,
 infrastructure, or parking-lot item; do not expand R10 implicitly. Release
 planning never makes candidate syntax or behavior implemented and never skips
 contract, design, failing-test, implementation, documentation, or audit phases.
-See `docs/strategy/release-roadmap.md` and `docs/ai/LLM_CONTRACT.md` for the
-completed R9 and R10 boundaries.
+**R11 — AI Composition has an approved planning contract but no implemented
+behavior and awaits explicit issue #607 GO for E11-1 preflight.** It permits
+only the ordinary callable/value/Outcome/R9/R10/Flow boundary recorded in
+`docs/design/r11-ai-composition-contract.md`; do not infer model APIs from the
+roadmap. See `docs/strategy/release-roadmap.md` and
+`docs/ai/LLM_CONTRACT.md` for release boundaries.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
