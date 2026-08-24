@@ -52,6 +52,7 @@ future-secret constraint from `r9-value-template-representation-contract.md`.
 | rendering | representation facet | separate concerns; generic facets render opaquely, while the protected policy renders `<protected>` diagnostically and rejects output/serialization sinks | Generic opacity and protected policy implemented, Experimental |
 | protected value | explicit declassification | only an opaque host-injected matching authority may remove the protected layer; generic `strip_representation` rejects it | R10 E10-5 implemented, Experimental |
 | configuration/protection | execution modes | ordinary eval, file, command, pipe, import, native-test, and serve-entry paths preserve explicit values; modes and annotations add no ambient acquisition, and serve snapshots precede activation without request refresh | R10 E10-6 implemented, Experimental; serve mechanics Python-host-only |
+| configuration/protection | validated record pipeline / authorized boundary | the E10-7 proving case composes explicit converter/Template Outcomes, exact protected matching, `validate_each`/`collect_validated`, and declassification immediately in an injected authorized fixture call; it adds no helper or alternate framework | R10 E10-7 proving case implemented, Experimental; authority/host fixture Python-host-only |
 
 ## Isolation rules
 

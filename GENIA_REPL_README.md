@@ -236,6 +236,7 @@ CLI contract summary (actual behavior):
   - `declassify(authority, protected_value)` is the sole reveal operation and requires an exact host-injected provider/purpose-scoped authority; success audits and returns an ordinary value
   - file, command, pipe, import, native-test, and serve-entry evaluation preserve the same explicit semantics; modes create no ambient provider, imports acquire only through explicit calls, serve snapshots precede activation, and requests do not refresh automatically
   - conversion stays explicit through ordinary Outcome-returning callables such as `parse_int`; callable Templates validate converted successes through existing pipeline rules. No ambient lookup or annotation injection is implemented
+  - `examples/r10_validated_pipeline_proving_case.genia` is the executable E10-7 source-visible composition proof; authority injection and the authorized outbound fixture remain Python-reference-host test capabilities
   - raw CLI primitive: `argv`
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
