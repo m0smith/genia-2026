@@ -30,11 +30,11 @@ ALLOWED_TOP_LEVEL_KEYS = {
 }
 
 ALLOWED_INPUT_KEYS_BY_CATEGORY = {
-    "eval": {"source", "stdin"},
+    "eval": {"source", "stdin", "fixtures"},
     "ir": {"source"},
     "cli": {"source", "file", "command", "test", "stdin", "argv", "debug_stdio"},
     "flow": {"source", "stdin"},
-    "error": {"source", "stdin"},
+    "error": {"source", "stdin", "fixtures"},
     "parse": {"source"},
 }
 
@@ -69,6 +69,7 @@ class LoadedSpec:
     debug_stdio: bool = False
     spec_id: str | None = None
     expected_parse: Any | None = None
+    fixtures: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -125,6 +126,14 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
     if category in ("eval", "error"):
         if "stdin" in input_data and not isinstance(input_data["stdin"], str):
             raise ValueError("input.stdin must be a string")
+        fixtures = input_data.get("fixtures", [])
+        if (
+            not isinstance(fixtures, list)
+            or not all(isinstance(item, str) for item in fixtures)
+            or any(item != "r11_model" for item in fixtures)
+            or len(set(fixtures)) != len(fixtures)
+        ):
+            raise ValueError("input.fixtures must be a unique list containing only r11_model")
         return
 
     if category in ("ir", "parse"):
@@ -282,6 +291,7 @@ def load_spec(path: Path) -> LoadedSpec:
         debug_stdio=input_data.get("debug_stdio", False),
         spec_id=data.get("id"),
         expected_parse=expected_data.get("parse"),
+        fixtures=tuple(input_data.get("fixtures", [])),
     )
 
 

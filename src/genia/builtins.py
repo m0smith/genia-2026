@@ -50,6 +50,7 @@ if __package__ in (None, ""):
         reject_protected,
         reject_declassification_authority,
     )
+    from genia.model import construct_model
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
         DebugHooks,
@@ -148,6 +149,7 @@ else:
         reject_protected,
         reject_declassification_authority,
     )
+    from .model import construct_model
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
         DebugHooks,
@@ -4379,6 +4381,7 @@ def make_global_env(
     )
     env.set("protected_match", _host_function_group("protected_match", 2, protected_match_fn))
     env.set("declassify", _host_function_group("declassify", 2, declassify))
+    env.set("model", _host_function_group("model", 4, construct_model))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),

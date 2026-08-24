@@ -63,6 +63,10 @@ def _runtime_type_name(value: Any) -> str:
         return "declassification-authority"
     if isinstance(value, GeniaConfigProvider):
         return "config-provider"
+    if value.__class__.__name__ == "GeniaModelProvider":
+        return "model-provider"
+    if value.__class__.__name__ == "GeniaModel":
+        return "function"
     if value.__class__.__name__ == "GeniaMetaEnv":
         return "meta_env"
     if value.__class__.__name__ == "GeniaPromise":

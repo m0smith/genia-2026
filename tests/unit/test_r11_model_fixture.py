@@ -3,6 +3,7 @@ import pytest
 from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.interpreter import run_source
+from genia.utf8 import format_display
 from genia.values import (
     GeniaMap,
     GeniaOptionErr,
@@ -105,7 +106,10 @@ def test_model_fixture_success_is_one_attempt_and_one_audit():
 
     result = run_source(_model_source(VALID_REQUEST_SOURCE), env)
 
-    assert result == GeniaOptionSome(_response())
+    assert format_display(result) == (
+        "some({message: {role: assistant, content: {kind: text, text: fixture reply}}, "
+        'finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})})'
+    )
     assert fixture.attempt_count == 1
     assert len(audits) == 1 and audits[0]["success"] is True
     assert KEY not in repr(result) and PAYLOAD not in repr(result)
@@ -164,9 +168,7 @@ def test_invalid_request_fails_before_declassification_or_attempt(request_source
 def test_malformed_fixture_response_normalizes_without_leaking_or_retrying():
     env, fixture, audits = _fixture_env(GeniaOptionSome(_response(usage=GeniaOptionSome(_usage(total_tokens=99)))))
     result = run_source(_model_source(VALID_REQUEST_SOURCE), env)
-    assert result == GeniaOptionErr(
-        "model-response-invalid", _map(stage=symbol("provider_response"))
-    )
+    assert format_display(result) == 'err("model-response-invalid", {stage: usage})'
     assert fixture.attempt_count == 1
     assert len(audits) == 1
 
@@ -182,9 +184,7 @@ def test_fixture_exception_becomes_non_sensitive_transport_failure_once():
     fixture = create_fixture_model_provider(fail)
     env.set("model_provider_fixture", fixture)
     result = run_source(_model_source(VALID_REQUEST_SOURCE), env)
-    assert result == GeniaOptionErr(
-        "model-transport-failure", _map(kind=symbol("other"))
-    )
+    assert format_display(result) == 'err("model-transport-failure", {kind: other})'
     assert fixture.attempt_count == 1
     assert len(audits) == 1
     assert KEY not in repr(result) and PAYLOAD not in repr(result)
