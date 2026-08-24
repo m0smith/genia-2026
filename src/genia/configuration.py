@@ -151,26 +151,48 @@ def get_secret_configuration(provider: Any, key: Any, purpose: Any) -> Any:
     return GeniaOptionSome(provider.protect(result.value, validated_purpose), result.context)
 
 
-def contains_protected(value: Any) -> bool:
+def contains_protected(value: Any, _seen: set[int] | None = None) -> bool:
     if isinstance(value, GeniaProtected):
         return True
+    if _seen is None:
+        _seen = set()
+    value_id = id(value)
+    if value_id in _seen:
+        return False
     if isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
-        return contains_protected(getattr(value, "value", None)) or contains_protected(
-            value.context
+        _seen.add(value_id)
+        return (
+            contains_protected(getattr(value, "value", None), _seen)
+            or contains_protected(getattr(value, "reason", None), _seen)
+            or contains_protected(value.context, _seen)
         )
     if isinstance(value, (list, tuple)):
-        return any(contains_protected(item) for item in value)
+        _seen.add(value_id)
+        return any(contains_protected(item, _seen) for item in value)
     if isinstance(value, GeniaMap):
+        _seen.add(value_id)
         return any(
-            contains_protected(key) or contains_protected(item)
+            contains_protected(key, _seen) or contains_protected(item, _seen)
             for key, item in value.items()
         )
+    if value.__class__.__name__ == "GeniaPair":
+        _seen.add(value_id)
+        return contains_protected(value.head, _seen) or contains_protected(
+            value.tail, _seen
+        )
     if value.__class__.__name__ == "GeniaSheet":
+        _seen.add(value_id)
         return any(
-            contains_protected(name) or contains_protected(list(column))
+            contains_protected(name, _seen)
+            or contains_protected(list(column), _seen)
             for name, column in value.columns
         )
     return False
+
+
+def reject_protected(value: Any, operation: str) -> None:
+    if contains_protected(value):
+        raise TypeError(f"protected-value: {operation}")
 
 
 def protect_secret_default(provider: Any, purpose: Any, result: Any) -> Any:

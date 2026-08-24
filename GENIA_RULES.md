@@ -464,11 +464,13 @@ No additional member/index/flow operators should be introduced without explicitl
 - generic `represent`, `representation_match`, and `strip_representation` must reject the reserved `secret` facet.
 - protected equality uses provider identity, purpose, and carried-value equality without revealing them; protected values must not be map keys.
 - transport preserves exact protected leaves without tainting containers; unsupported ordinary derivation uses existing type failure.
-- E10-3 does not implement comprehensive sink enforcement/redaction or declassification.
+- diagnostic renderers recursively substitute exactly `<protected>`; this redaction does not authorize output.
+- Format replacements, output sinks, JSON encoding, Sheet CSV rendering, resource writes, HTTP responses, and ordinary host conversion must reject recursively before effects; `json_encode` returns `err("protected-value", {operation: "json-encode"})`.
+- E10-4 does not implement declassification.
 - unavailable environment capability returns `err("config-source-unavailable", {source_index})`; acquisition failure returns `err("config-provider-failure", {source_index})`.
 - normalized acquisition failures and runtime misuse must not include the key, source contents, raw value, or raw host failure.
 - providers are opaque identity values: display/debug is `<config-provider>` and ordinary map-key, host-conversion, and serialization boundaries reject them.
-- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, comprehensive protected sink policy, declassification, and injection remain unimplemented.
+- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, declassification, and injection remain unimplemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

@@ -41,9 +41,11 @@ if __package__ in (None, ""):
     )
     from genia.configuration import (
         construct_provider,
+        contains_protected,
         get_configuration,
         get_secret_configuration,
         protect_secret_default,
+        reject_protected,
     )
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
@@ -134,9 +136,11 @@ else:
     )
     from .configuration import (
         construct_provider,
+        contains_protected,
         get_configuration,
         get_secret_configuration,
         protect_secret_default,
+        reject_protected,
     )
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
@@ -326,6 +330,7 @@ def make_global_env(
         return GeniaMetaEnv(base)
 
     def _sink_write_display(sink: GeniaOutputSink, value: Any, *, newline: bool) -> Any:
+        reject_protected(value, "output")
         text = format_display(value)
         if newline:
             text += "\n"
@@ -400,6 +405,7 @@ def make_global_env(
         return None
 
     def render_grid_fn(grid_value: Any) -> Any:
+        reject_protected(grid_value, "render-grid")
         if not isinstance(grid_value, list):
             raise TypeError(f"render_grid expected a list, received {_runtime_type_name(grid_value)}")
         lines: list[str] = []
@@ -533,11 +539,13 @@ def make_global_env(
         )
 
     def log(*args: Any) -> Any:
+        reject_protected(args, "log")
         output = " ".join(format_display(arg) for arg in args)
         stderr_sink.write_text(output + "\n")
         return args[-1] if args else None
 
     def print_fn(*args: Any) -> Any:
+        reject_protected(args, "print")
         output = " ".join(format_display(arg) for arg in args)
         stdout_sink.write_text(output + "\n")
         return args[-1] if args else None
@@ -1028,6 +1036,7 @@ def make_global_env(
                 pieces.append(part.text)
             else:
                 resolved = resolve_format_placeholder(values, part.field)
+                reject_protected(resolved, "format")
                 if part.spec is not None:
                     pieces.append(apply_format_spec(resolved, part.spec))
                 else:
@@ -3644,6 +3653,10 @@ def make_global_env(
         return GeniaOptionSome(runtime_value, _jsonl_context("parsed", "parsed", text))
 
     def json_stringify_fn(value: Any) -> Any:
+        if contains_protected(value):
+            return make_none(
+                "protected-value", GeniaMap().put("operation", "json-stringify")
+            )
         try:
             return json.dumps(_json_from_runtime(value), indent=2, ensure_ascii=False, sort_keys=True)
         except (TypeError, ValueError) as exc:
@@ -3665,6 +3678,11 @@ def make_global_env(
                     ),
                 )
             value = value.value
+
+        if contains_protected(value):
+            return GeniaOptionErr(
+                "protected-value", GeniaMap().put("operation", "json-encode")
+            )
 
         try:
             serializable = _strict_json_from_runtime(value)
@@ -3751,6 +3769,7 @@ def make_global_env(
         return headers
 
     def _http_response_triplet(value: Any) -> tuple[int, dict[str, str], bytes]:
+        reject_protected(value, "http-response")
         if not isinstance(value, GeniaMap):
             raise TypeError(
                 "serve_http handler must return a response map with status, headers, and body fields"
@@ -4036,6 +4055,10 @@ def make_global_env(
             return make_none("resource-read-error", ctx)
 
     def resource_write_text_fn(ref_map: Any, text: Any) -> Any:
+        if contains_protected((ref_map, text)):
+            return make_none(
+                "protected-value", GeniaMap().put("operation", "resource-write-text")
+            )
         validated = _validate_resource_ref(ref_map, "write_text")
         if is_none(validated):
             return validated
@@ -4051,6 +4074,10 @@ def make_global_env(
             return make_none("resource-write-error", ctx)
 
     def resource_write_bytes_fn(ref_map: Any, bytes_val: Any) -> Any:
+        if contains_protected((ref_map, bytes_val)):
+            return make_none(
+                "protected-value", GeniaMap().put("operation", "resource-write-bytes")
+            )
         validated = _validate_resource_ref(ref_map, "write_bytes")
         if is_none(validated):
             return validated

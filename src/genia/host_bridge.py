@@ -27,6 +27,7 @@ if __package__ in (None, ""):
         ModuleValue,
         is_none,
     )
+    from genia.configuration import reject_protected
 else:
     from .values import (
         OPTION_NONE,
@@ -39,6 +40,7 @@ else:
         ModuleValue,
         is_none,
     )
+    from .configuration import reject_protected
 
 # ---------------------------------------------------------------------------
 # Group 1: module loading helpers
@@ -112,6 +114,7 @@ def _genia_map_key_to_host(value: Any) -> Any:
 
 
 def _genia_to_python_host(value: Any) -> Any:
+    reject_protected(value, "host-call")
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
     if is_none(value):
