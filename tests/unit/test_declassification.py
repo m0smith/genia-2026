@@ -7,7 +7,7 @@ from genia.configuration import create_declassification_authority
 from genia.host_bridge import _wrap_python_host_callable
 from genia.interpreter import run_source
 from genia.utf8 import format_debug, format_display
-from genia.values import GeniaOptionErr, GeniaProcess, symbol
+from genia.values import GeniaMap, GeniaOptionErr, GeniaProcess, symbol
 
 
 KEY = "DECLASSIFY_KEY_SENTINEL_593"
@@ -140,3 +140,36 @@ def test_narrow_host_boundary_receives_only_explicitly_declassified_payload():
     assert result == "ok"
     assert calls == [PAYLOAD]
     assert len(events) == 1 and events[0]["success"] is True
+
+
+def test_audit_failure_fails_closed_and_authority_factory_is_not_source_visible():
+    env = make_global_env([])
+    provider, token = _provider_and_token(env)
+
+    def broken_audit(event):
+        raise RuntimeError("audit unavailable")
+
+    authority = create_declassification_authority(
+        provider, [symbol(PURPOSE)], broken_audit
+    )
+    env.set("authority_fixture", authority)
+    env.set("token_fixture", token)
+
+    with pytest.raises(RuntimeError, match="audit unavailable") as excinfo:
+        run_source("declassify(authority_fixture, token_fixture)", env)
+    with pytest.raises(NameError, match="Undefined name"):
+        run_source("create_declassification_authority", env)
+
+    _assert_no_secret(excinfo.value)
+
+
+def test_nested_authority_is_rejected_from_process_transport():
+    env = make_global_env([])
+    provider, _ = _provider_and_token(env)
+    authority = create_declassification_authority(
+        provider, [symbol(PURPOSE)], lambda event: None
+    )
+    process = GeniaProcess(lambda message: None)
+
+    with pytest.raises(TypeError, match="authority"):
+        process.send([GeniaMap().put("nested", authority)])
