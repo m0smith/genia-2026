@@ -5,6 +5,7 @@ import pytest
 from genia.builtins import make_global_env
 from genia.host_bridge import _wrap_python_host_callable
 from genia.interpreter import run_source
+from genia.test_cli import format_test_suite_report
 from genia.utf8 import format_debug, format_display
 from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionNone
 
@@ -88,7 +89,7 @@ def test_json_boundaries_reject_recursively_with_exact_encode_shape():
     encoded = run_source("json_encode({nested: [protected_fixture]})", env)
     assert isinstance(encoded, GeniaOptionErr)
     assert str(encoded.reason) == "protected-value"
-    assert list(encoded.context.items()) == [("operation", "json-encode")]
+    assert list(encoded.context.items()) == [["operation", "json-encode"]]
     _assert_no_sentinel(format_debug(encoded))
 
     stringified = run_source("json_stringify({nested: protected_fixture})", env)
@@ -138,3 +139,28 @@ def test_python_host_callable_is_not_invoked_for_nested_protected_argument():
 
     assert calls == []
     _assert_no_sentinel(excinfo.value)
+
+
+def test_native_test_report_redacts_protected_actual_and_expected_values():
+    _, protected = _env_with_protected()
+    suite = {
+        "total": 1,
+        "passed": 0,
+        "failed": 1,
+        "errored": 0,
+        "results": [
+            {
+                "kind": "fail",
+                "name": "protected assertion",
+                "phase": "run",
+                "reason": "assertion failed",
+                "expected": protected,
+                "actual": GeniaMap().put("nested", protected),
+            }
+        ],
+    }
+
+    report = format_test_suite_report(suite)
+
+    assert report.count("<protected>") == 2
+    _assert_no_sentinel(report)
