@@ -106,6 +106,7 @@ CLI contract summary (actual behavior):
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
 - explicit configuration/protected acquisition (Experimental): `config_provider`, `config_get`, `config_get_or`, `secret_get`, `secret_get_or`, and `protected_match`; source/purpose names are quoted symbols, not new global names
+  - R10 is release-complete, but this surface remains Experimental; only the Python reference host is implemented
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
 - variables and lexical assignment (`name = expr`)

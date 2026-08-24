@@ -1020,6 +1020,8 @@ actor_call(a, 3)
 
 ### Explicit configuration acquisition (Experimental)
 
+R10 — Configuration & Secrets is release-complete through E10-8. Release completion means the approved acquisition/protection scope and its truth audit are complete; these APIs remain Experimental, shared conformance is Partial, and Python remains the only implemented host.
+
 `config_provider(sources)` constructs an opaque immutable provider from an explicit highest-to-lowest source list. Literal and Python-host environment descriptors use quoted symbols, so no `values` or `environment` global names are added:
 
 ```genia

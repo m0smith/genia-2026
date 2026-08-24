@@ -1,9 +1,9 @@
 # R10 Configuration and Protected-Value Contract
 
-Status: **Approved R10 contract; E10-1 through E10-7 implemented; E10-8 release truth audit in progress.**
+Status: **Approved R10 contract; E10-1 through E10-8 complete.**
 
 `GENIA_STATE.md` remains final authority for implemented behavior. The E10-1
-provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, E10-6 cross-mode-hardening, and E10-7 composed-proving-case subsets are available. E10-8 audits and distills that implemented boundary; it adds no behavior.
+provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, E10-6 cross-mode-hardening, and E10-7 composed-proving-case subsets are available. E10-8 audited and distilled that implemented boundary; it added no behavior.
 
 ## Purpose
 
@@ -411,7 +411,7 @@ explicit provider snapshot
 6. **E10-6 — cross-mode hardening (implemented, Experimental):** CLI/import/test/server snapshot boundaries;
    no annotation injection.
 7. **E10-7 — composed validated-pipeline proving case (implemented, Experimental).**
-8. **E10-8 — release truth audit and distillation (in progress).**
+8. **E10-8 — release truth audit and distillation (complete).**
 
 Each behavior ticket performs its own repository phase workflow. E10-6's former
 annotation/injection scope is replaced by cross-mode hardening. Injection is a
@@ -426,4 +426,4 @@ later follow-up, not an R10 exit requirement.
 
 ## Gate
 
-**E10-1 through E10-7 are implemented through issues #589-#595.** Issue #596 is the active E10-8 release truth audit and distillation gate. It does not authorize new behavior.
+**E10-1 through E10-8 are complete through issues #589-#596.** The release audit added no behavior. Any follow-up requires its own contract and phase gates.

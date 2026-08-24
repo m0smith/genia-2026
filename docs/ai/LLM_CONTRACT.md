@@ -94,24 +94,22 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9 Complete; R10 E10-1/E10-7 Implemented
+## Release Position: R9 and R10 Complete
 
-**R9 — Value Templates & Representations is complete. R10 has an approved
-contract and its E10-1 provider acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, E10-6 cross-mode-hardening slices are implemented, and E10-7 composed validated-pipeline proving case is implemented.**
+**R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
 When an LLM agent is asked for new Genia work:
 
 1. Consult the roadmap and classify the work as a follow-up, later release,
-   infrastructure, or parking-lot item; do not expand R10 beyond implemented
-   E10-1/E10-3 configuration/protected-carrier behavior implicitly.
+   infrastructure, or parking-lot item; do not expand the completed R10
+   configuration/protected-value boundary implicitly.
 2. Preserve the completed R7 boundary: `with_headers` is the sole response-header composition mechanism and `cors` is the sole CORS handler wrapper.
 3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
-5. Preserve the completed R9 Template/representation boundary and implemented
-   R10 E10-1/E10-7 provider/defaulting/protected-carrier/sink/declassification/cross-mode/composed-proof boundary; later R10 behavior remains
-   unimplemented until separately designed, tested, and implemented.
+5. Preserve the completed R9 Template/representation boundary and completed
+   R10 provider/defaulting/protected-carrier/sink/declassification/cross-mode/composed-proof boundary; follow-up behavior remains unimplemented until separately contracted, designed, tested, and implemented.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 
