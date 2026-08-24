@@ -56,6 +56,8 @@ For the complete boundary → representation match → schema Template → Outco
 
 Configuration/protected acquisition is explicit and Experimental. Provider sources are immutable snapshots ordered highest to lowest precedence; `config_get` returns exact-string `some(...)` (including empty) or `none("config-missing")`. `config_get_or` invokes a zero-argument default exactly once only for missing lookup, wraps ordinary defaults in `some(...)`, and preserves default Outcomes. `secret_get`/`secret_get_or` protect successes once, and `protected_match("secret", value)` returns the exact protected subject. Generic carrier operations reject `"secret"`; protected values are not map keys and transport without container taint. Diagnostic rendering substitutes `<protected>`; output and serialization boundaries reject protected leaves before effects. `declassify` requires a host-injected matching authority, audits, and returns an ordinary value. Conversion stays explicit. Annotation injection is not implemented.
 
+For the tested configuration → Template validation → protected match → validated-record aggregation composition, run `examples/r10_validated_pipeline_proving_case.genia`. Classification: **Valid** (directly tested, Experimental integration example). Authority injection and the authorized outbound fixture are Python-reference-host test boundaries.
+
 <!-- [case: core-config-provider-literal] -->
 ```genia
 provider = config_provider([{kind: quote(values), values: {PORT: "8080", TOKEN: "fixture"}}]) |> unwrap_or(none)

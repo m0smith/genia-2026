@@ -157,18 +157,21 @@ def test_r9_completion_and_r10_contract_gate_stay_synchronized() -> None:
     assert "**Status: Complete.** Explicitly approved infrastructure work delivered after R7." in roadmap
     assert "Release R9 — Value Templates & Representations" in roadmap
     assert "**Status: Complete.** E9-1 through E9-7 delivered" in roadmap
-    assert "**Status: Active; E10-1 through E10-6 implemented.**" in roadmap
+    assert "**Status: Active; E10-1 through E10-7 implemented.**" in roadmap
     assert "Issue #586 approved" in roadmap
     assert "later R10 slices and R11-R12 require their own gates" in roadmap
     assert "R7 is complete" in killer_workflow
     assert "R9** completed the value-template and representation work" in killer_workflow
     assert "E10-6 cross-mode hardening" in killer_workflow
+    assert "E10-7 composed validated-pipeline proof" in killer_workflow
     assert "R10 has an approved" in llm_contract
     assert "E10-6 cross-mode-hardening slices are implemented" in llm_contract
+    assert "E10-7 composed validated-pipeline proving case" in llm_contract
     assert "R9 — Value Templates & Representations is complete." in agents
     assert "R10 (Configuration & Secrets) has an approved contract" in agents
     assert "implemented E10-1" in agents
     assert "E10-6 cross-mode hardening" in agents
+    assert "E10-7 composed validated-pipeline proving case" in agents
     assert "[R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE" in releases
     assert "[R9 — Value Templates & Representations](R9.md) ✓ COMPLETE" in releases
     assert "Status: **Complete.**" in r7_page

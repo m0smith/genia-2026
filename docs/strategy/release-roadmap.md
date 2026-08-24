@@ -540,10 +540,10 @@ Issue guidance:
 
 ## Release R10 — Configuration & Secrets
 
-**Status: Active; E10-1 through E10-6 implemented.** Issue #586 approved the durable
+**Status: Active; E10-1 through E10-7 implemented.** Issue #586 approved the durable
 R10 configuration/protected-value contract; issue #589 implemented the
 Experimental provider/ordinary acquisition slice, issue #590 implemented
-missing-only defaults plus explicit converter/Template composition, and issue #591 implemented protected carrier acquisition/matching/transport. Later R10
+missing-only defaults plus explicit converter/Template composition, issue #591 implemented protected carrier acquisition/matching/transport, and issues #592 through #595 completed protected sinks, explicit declassification, cross-mode hardening, and the composed validated-pipeline proving case. Later R10
 behavior remains planned and requires its own ticket and phase gates.
 
 Theme:
@@ -601,8 +601,8 @@ Issue guidance:
 - **#592** is the implemented E10-4 protected rendering/sink-safety slice.
 - **#593** is the implemented E10-5 explicit-declassification authority slice.
 - **#594** is the implemented E10-6 cross-mode-hardening slice.
-- E10-4 through E10-8 are not activated by E10-3 completion; use their own
-  reconciled tickets and phase gates.
+- **#595** is the implemented E10-7 composed validated-pipeline proving case.
+- E10-8 is not activated by E10-7 completion; use its own reconciled ticket and phase gate.
 
 ---
 
@@ -752,8 +752,8 @@ This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
 composition. R8 and R9 are complete; R10-R12 remain planned and not active for
-implementation. R10 alone has an approved contract and implemented E10-1 through E10-6
-configuration/protected-carrier slices; later R10 slices and R11-R12 require their own gates.
+implementation. R10 alone has an approved contract and implemented E10-1 through E10-7
+configuration/protected-carrier/composed-proof slices; later R10 slices and R11-R12 require their own gates.
 
 ---
 

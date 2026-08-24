@@ -1,0 +1,20 @@
+id: r10-validated-pipeline-proving-case
+name: r10-validated-pipeline-proving-case
+category: cli
+description: File mode proves explicit configuration, Template validation, protected matching, and Outcome-aware record diagnostics compose end to end.
+input:
+  source: "examples/r10_validated_pipeline_proving_case.genia"
+  file: "examples/r10_validated_pipeline_proving_case.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "{port: some(8080), endpoint: some(\"https://fixture.invalid/v1\"), clean: [{id: 1, name: \"Ada\"}, {id: 2, name: \"Grace\"}], diagnostics: [{index: 1, kind: skipped, reason: \"blank_line\", context: none(\"nil\")}, {index: 2, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: \"name\", status: error, reason: \"missing required field\", context: {field: \"name\", reason: \"missing required field\"}}]})}], credential: \"<protected>\", protected_match: true}"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 595
+  classification: Experimental integration example over implemented E10-1 through E10-6 behavior.
+  host_boundary: matching authority injection and the authorized fixture call are Python-reference-host tests, not shared CLI behavior.
+  non_goal: no new syntax, runtime helper, configuration framework, validation semantics, or host capability.

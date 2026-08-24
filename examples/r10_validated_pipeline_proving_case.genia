@@ -1,0 +1,99 @@
+"""
+# R10 Validated Pipeline Proving Case
+
+Composes explicit configuration, validation, protected credentials, and record diagnostics without adding a framework.
+
+## Run
+
+```bash
+genia examples/r10_validated_pipeline_proving_case.genia
+```
+
+## Features Demonstrated
+
+* explicit immutable configuration provider
+* Outcome conversion and callable Template validation
+* protected credential acquisition and matching
+* validated records with clean output and diagnostics
+* authority-gated fixture boundary (exercised by the Python host tests)
+"""
+
+pattern Port(value) = refinement_match((number) -> number > 0 && number <= 65535, value)
+pattern Endpoint(value) = refinement_match((text) -> text != "", value)
+
+validated_port(provider_value) = {
+  result = config_get(provider_value, "PORT") |> parse_int |> Port
+  result
+}
+
+validated_endpoint(provider_value) = {
+  result = config_get(provider_value, "ENDPOINT") |> Endpoint
+  result
+}
+
+valid_record(record) =
+  validate_record(record, {
+    id: (value) -> validate_required("id", value),
+    name: (value) -> validate_required("name", value)
+  })
+
+validated_records(records) =
+  records |> ((items) -> validate_each(items, valid_record)) |> collect_validated
+
+protected_credential(provider_value) =
+  secret_get(
+    provider_value,
+    "R10_PROVING_KEY_SENTINEL_595",
+    quote(validated_pipeline_outbound)
+  )
+
+dispatch_outbound(values) =
+  [authority, collected, some(endpoint_value), some(port_value), some(protected_value)] -> outbound_fixture(
+      endpoint_value,
+      port_value,
+      declassify(authority, protected_value),
+      collected("clean")
+    ) |
+  [_, _, none(reason), _, _] -> none(reason) |
+  [_, _, err(reason), _, _] -> err(reason) |
+  [_, _, _, none(reason), _] -> none(reason) |
+  [_, _, _, err(reason), _] -> err(reason) |
+  [_, _, _, _, none(reason)] -> none(reason) |
+  [_, _, _, _, err(reason)] -> err(reason)
+
+authorized_outbound(authority, provider_value, records) = {
+  endpoint = validated_endpoint(provider_value)
+  port = validated_port(provider_value)
+  credential = protected_credential(provider_value)
+  collected = validated_records(records)
+
+  dispatch_outbound([authority, collected, endpoint, port, credential])
+}
+
+provider = config_provider([{
+  kind: quote(values),
+  values: {
+    PORT: "8080",
+    ENDPOINT: "https://fixture.invalid/v1",
+    R10_PROVING_KEY_SENTINEL_595: "R10_PROVING_PAYLOAD_SENTINEL_595"
+  }
+}]) |> unwrap_or(none)
+
+fixture_records = [
+  {id: 1, name: "Ada"},
+  none("blank_line"),
+  {id: 9},
+  {id: 2, name: "Grace"}
+]
+
+collected = validated_records(fixture_records)
+credential = protected_credential(provider) |> unwrap_or(none)
+
+{
+  port: validated_port(provider),
+  endpoint: validated_endpoint(provider),
+  clean: collected("clean"),
+  diagnostics: collected("diagnostics"),
+  credential: display(credential),
+  protected_match: protected_match("secret", credential) |> some?
+}
