@@ -22,4 +22,7 @@ def exec_flow(case) -> dict:
     if stdin is not None and not isinstance(stdin, str):
         raise TypeError("flow case stdin must be a string when present")
 
+    fixtures = getattr(case, "fixtures", ())
+    if fixtures:
+        return run_eval_subprocess(source, stdin or None, fixtures)
     return run_eval_subprocess(source, stdin or None)

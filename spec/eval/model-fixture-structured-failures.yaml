@@ -1,0 +1,15 @@
+name: model-fixture-structured-failures
+category: eval
+description: Structured model failures preserve exact R9 decode and Template Outcomes
+input:
+  fixtures: [r11_model]
+  source: |
+    schema = json_decode("{\"type\":\"integer\"}") |> unwrap_or({})
+    mismatch = (_) -> none("fixture-mismatch", {field: "id"})
+    malformed = model(model_provider_fixture, {id: "fixture-malformed-json", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    valid = model(model_provider_fixture, {id: "fixture-json", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    [malformed({messages: [{role: quote(user), content: {kind: quote(text), text: "x"}}], output: {kind: quote(json), schema: schema, template: mismatch}}), valid({messages: [{role: quote(user), content: {kind: quote(text), text: "x"}}], output: {kind: quote(json), schema: schema, template: mismatch}})]
+expected:
+  stdout: "[err(\"model-structured-output-invalid\", {stage: json_decode, outcome: err(invalid_json, {kind: json, operation: decode, status: error, reason: invalid_json, line: 1, column: 2})}), err(\"model-structured-output-invalid\", {stage: template, outcome: none(\"fixture-mismatch\", {field: \"id\"})})]\n"
+  stderr: ""
+  exit_code: 0

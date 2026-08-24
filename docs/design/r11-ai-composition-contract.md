@@ -1,9 +1,9 @@
 # R11 AI Composition Contract
 
-Status: **Approved contract; E11-1 implemented as Experimental, later slices planned.**
+Status: **Approved contract; E11-1/E11-2 implemented as Experimental, later slices planned.**
 
-This document fixes the semantic boundary for R11 tickets. E11-1 now implements
-the text-only `model/4` deterministic-fixture subset. This design document must
+This document fixes the semantic boundary for R11 tickets. E11-1/E11-2 now implement
+the text and R9-validated JSON `model/4` deterministic-fixture subset. This design document must
 not be cited as the authority for current language behavior.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
@@ -464,8 +464,8 @@ phase gates.
 
 1. **E11-1 — ordinary values, `model/4`, deterministic fixture (implemented):**
    validators, callable behavior, one-attempt Outcomes, no network.
-2. **E11-2 — R9 structured output:** schema/Template request, strict decode,
-   response/failure normalization.
+2. **E11-2 — R9 structured output (implemented):** schema/Template request,
+   strict decode, response/failure normalization.
 3. **E11-3 — R10 boundary and one Python provider adapter:** explicit
    capability, purpose, just-in-time declassification, timeout, mapping, audit,
    and leak scans.
@@ -483,6 +483,6 @@ implementation. E11-7 reconciles implemented slices; docs never lead behavior.
 
 ## Gate
 
-Issue #607 recorded explicit approval and issue #611 delivered E11-1. Later
+Issue #607 recorded explicit approval; issues #611/#612 delivered E11-1/E11-2. Later
 behavior slices still require their own tickets and phase gates; this document
-does not authorize E11-2 or later implementation.
+does not authorize E11-3 or later implementation.

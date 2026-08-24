@@ -98,7 +98,7 @@ CLI contract summary (actual behavior):
   - runtime capability values:
     - shared/runtime-surface values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented)
     - explicit opaque configuration providers (Experimental): portable literal snapshots plus a Python-host environment snapshot capability
-    - Experimental text-only model callables created by `model/4` from an explicitly host-injected provider, protected credential, and authority; only the offline Python deterministic fixture exists in E11-1
+    - Experimental text or R9-validated JSON model callables created by `model/4` from an explicitly host-injected provider, protected credential, and authority; only the offline Python deterministic fixture exists in E11-1/E11-2
     - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, dot map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`

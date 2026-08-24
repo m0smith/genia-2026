@@ -33,7 +33,7 @@ ALLOWED_INPUT_KEYS_BY_CATEGORY = {
     "eval": {"source", "stdin", "fixtures"},
     "ir": {"source"},
     "cli": {"source", "file", "command", "test", "stdin", "argv", "debug_stdio"},
-    "flow": {"source", "stdin"},
+    "flow": {"source", "stdin", "fixtures"},
     "error": {"source", "stdin", "fixtures"},
     "parse": {"source"},
 }
@@ -123,7 +123,7 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
     if not isinstance(input_data["source"], str):
         raise ValueError("input.source must be a string")
 
-    if category in ("eval", "error"):
+    if category in ("eval", "error", "flow"):
         if "stdin" in input_data and not isinstance(input_data["stdin"], str):
             raise ValueError("input.stdin must be a string")
         fixtures = input_data.get("fixtures", [])
@@ -134,14 +134,13 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
             or len(set(fixtures)) != len(fixtures)
         ):
             raise ValueError("input.fixtures must be a unique list containing only r11_model")
-        return
+        if category != "flow":
+            return
 
     if category in ("ir", "parse"):
         return
 
     if category == "flow":
-        if "stdin" in input_data and not isinstance(input_data["stdin"], str):
-            raise ValueError("input.stdin must be a string")
         if not FLOW_TERMINAL_PATTERN.search(input_data["source"]):
             raise ValueError("flow spec input.source must explicitly consume the flow with collect or run")
         return

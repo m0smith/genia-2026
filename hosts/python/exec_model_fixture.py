@@ -10,7 +10,7 @@ from genia.configuration import (
     create_declassification_authority,
     get_secret_configuration,
 )
-from genia.interpreter import run_source
+from genia import interpreter as genia_interpreter
 from genia.model import create_fixture_model_provider
 from genia.utf8 import format_debug
 from genia.values import GeniaMap, GeniaOptionSome, symbol
@@ -39,19 +39,23 @@ def _build_env():
     authority = create_declassification_authority(
         config_provider, [symbol("model_call")], lambda event: None
     )
-    response = _map(
-        message=_map(
-            role=symbol("assistant"),
-            content=_map(kind=symbol("text"), text="fixture reply"),
-        ),
-        finish_reason=symbol("stop"),
-        usage=GeniaOptionSome(
-            _map(input_tokens=2, output_tokens=3, total_tokens=5)
-        ),
-    )
-    model_provider = create_fixture_model_provider(
-        lambda config, request, secret: GeniaOptionSome(response)
-    )
+    def fixture_response(config, request, secret):
+        output_kind = request.get("output").get("kind")
+        text = "fixture reply"
+        if output_kind == symbol("json"):
+            text = "{" if config.get("id") == "fixture-malformed-json" else "7"
+        response = _map(
+            message=_map(
+                role=symbol("assistant"),
+                content=_map(kind=symbol("text"), text=text),
+            ),
+            finish_reason=symbol("stop"),
+            usage=GeniaOptionSome(
+                _map(input_tokens=2, output_tokens=3, total_tokens=5)
+            ),
+        )
+        return GeniaOptionSome(response)
+    model_provider = create_fixture_model_provider(fixture_response)
     env.set("model_provider_fixture", model_provider)
     env.set("model_credential_fixture", credential_result.value)
     env.set("model_authority_fixture", authority)
@@ -62,7 +66,9 @@ def main() -> int:
     source = sys.argv[1]
     env = _build_env()
     try:
-        result = run_source(source, env, filename="<shared-r11-model-fixture>")
+        result = genia_interpreter.run_source(
+            source, env, filename="<shared-r11-model-fixture>"
+        )
         if result is not None:
             sys.stdout.write(format_debug(result) + "\n")
         return 0

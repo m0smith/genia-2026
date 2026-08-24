@@ -4381,7 +4381,23 @@ def make_global_env(
     )
     env.set("protected_match", _host_function_group("protected_match", 2, protected_match_fn))
     env.set("declassify", _host_function_group("declassify", 2, declassify))
-    env.set("model", _host_function_group("model", 4, construct_model))
+
+    def model_fn(provider: Any, config: Any, credential: Any, authority: Any) -> Any:
+        evaluator = Evaluator(env, env.debug_hooks, env.debug_mode)
+        return construct_model(
+            provider,
+            config,
+            credential,
+            authority,
+            compile_json_schema=json_schema_fn,
+            json_decode=json_decode_fn,
+            is_template_callable=evaluator.is_matcher_callable,
+            invoke_template=lambda template, value: _invoke_raw_from_builtin(
+                template, [value]
+            ),
+        )
+
+    env.set("model", _host_function_group("model", 4, model_fn))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),
