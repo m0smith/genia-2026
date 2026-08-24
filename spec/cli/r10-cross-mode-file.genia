@@ -1,0 +1,2 @@
+provider = config_provider([{kind: quote(values), values: {R10_CROSS_MODE_KEY_SENTINEL_594: "R10_CROSS_MODE_PAYLOAD_SENTINEL_594"}}]) |> unwrap_or(none)
+secret_get(provider, "R10_CROSS_MODE_KEY_SENTINEL_594", quote(fixture_use)) |> unwrap_or(none)

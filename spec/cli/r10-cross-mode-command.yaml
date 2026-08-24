@@ -11,6 +11,6 @@ input:
   argv: []
   debug_stdio: false
 expected:
-  stdout: "<protected>\n"
+  stdout: "<protected>"
   stderr: ""
   exit_code: 0

@@ -8,5 +8,5 @@ input:
     print(token)
 expected:
   stdout: ""
-  stderr: "Error: print rejected protected-value\n"
+  stderr: "Error: protected-value: print\n"
   exit_code: 1

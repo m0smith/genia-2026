@@ -1,0 +1,18 @@
+name: r10-cross-mode-pipe
+category: cli
+description: Pipe mode rejects protected stdout without disclosing explicit fixture sentinels
+input:
+  source: &source |
+    map((line) -> {
+      provider = config_provider([{kind: quote(values), values: {R10_CROSS_MODE_KEY_SENTINEL_594: "R10_CROSS_MODE_PAYLOAD_SENTINEL_594"}}]) |> unwrap_or(none)
+      secret_get(provider, "R10_CROSS_MODE_KEY_SENTINEL_594", quote(fixture_use)) |> unwrap_or(none)
+    }) |> each(print)
+  file: null
+  command: *source
+  stdin: "row\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 4 failed in Flow mode at _pipe_run [<pipe>:5]: stage received flow; protected-value: print. Pipe mode stages receive a Flow, not one row at a time. Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...); use -c/--command for reducers such as sum or count."
+  exit_code: 1

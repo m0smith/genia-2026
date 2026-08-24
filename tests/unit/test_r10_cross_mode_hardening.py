@@ -110,6 +110,8 @@ def test_native_test_harness_accepts_explicit_provider_and_authority_fixtures(tm
     assert exit_code == 0
     assert "passed=1" in stdout.getvalue()
     assert stderr.getvalue() == ""
+    _assert_sentinels_absent(stdout.getvalue())
+    _assert_sentinels_absent(stderr.getvalue())
 
 
 def test_native_test_fixture_authority_mismatch_is_redacted():
