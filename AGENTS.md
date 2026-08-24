@@ -150,7 +150,7 @@ Before creating new issues/tickets, also read:
 
 **R9 — Value Templates & Representations is complete.**
 R10 (Configuration & Secrets) has an approved contract and implemented E10-1
-provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, and E10-4 protected-sink slices. For new Genia work with no release specified,
+provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected sinks, and E10-5 explicit declassification slices. For new Genia work with no release specified,
 consult the release roadmap and classify it as a follow-up, a later release,
 infrastructure, or parking-lot item; do not expand R10 implicitly. Release
 planning never makes candidate syntax or behavior implemented and never skips

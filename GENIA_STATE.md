@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- Configuration provider, defaults, protected acquisition, and sink safety (Experimental, issues #589-#592)
+- Configuration provider, protected acquisition/sinks, and explicit declassification (Experimental, issues #589-#593)
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
   - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
   - source order is highest to lowest precedence; the first source containing a key wins
@@ -419,7 +419,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - protected equality includes provider identity, purpose, and carried-value equality without exposing them; protected values are not map keys
   - calls, returns, containers, pipelines, Seq, Flow, Sheet cells, refs, and process messages transport exact protected leaves; containers gain no hidden taint and unsupported ordinary derivation returns existing type failure
   - diagnostic rendering recursively substitutes `<protected>`; Format replacements, output sinks, JSON, Sheet CSV, resource writes, HTTP responses, and ordinary host conversion reject protected leaves before effects
-  - `json_encode` returns `err("protected-value", {operation: "json-encode"})`; resource rejection writes zero payload bytes; declassification remains unimplemented E10-5 work
+  - `json_encode` returns `err("protected-value", {operation: "json-encode"})`; resource rejection writes zero payload bytes
+  - `declassify(authority, protected_value)` is the sole payload-revealing operation; a host-injected opaque authority must match the exact provider identity and allow the protected purpose
+  - successful declassification removes exactly one protected layer, returns an ordinary untainted value, and records a host-local non-sensitive audit event; mismatches reveal nothing and audit failure fails closed
+  - authority displays as `<declassification-authority>`, cannot be copied or used as a map key, and is rejected by output/format/serialization/Sheet/resource/HTTP/process/ordinary-host boundaries
   - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
   - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
   - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
@@ -1097,7 +1100,8 @@ Case placement rules (enforced):
 - `protected_match("secret", value)` — matches only protected values and returns the exact protected subject
 - default ordinary values are lifted into `some(...)`, while default Outcomes remain unchanged; explicit converter Outcomes and callable Template validation compose through existing pipeline rules
 - generic carrier construction, matching, and stripping reject the reserved `secret` facet; protected values compare without exposing payloads, are not map keys, and transport as exact leaves without container taint
-- this E10-1/E10-4 surface adds ordinary calls and protected enforcement at existing boundaries only; declassification, injection, and syntax/Core IR changes are not implemented
+- `declassify(authority, protected_value)` reveals only with an exact host-injected provider/purpose-scoped authority and records a non-sensitive audit event
+- this E10-1/E10-5 surface adds ordinary calls and enforcement at existing boundaries only; annotation injection and syntax/Core IR changes are not implemented
 
 ### Core I/O and utilities
 

@@ -59,6 +59,8 @@ def _runtime_type_name(value: Any) -> str:
         return "represented"
     if isinstance(value, GeniaProtected):
         return "protected"
+    if isinstance(value, GeniaDeclassificationAuthority):
+        return "declassification-authority"
     if isinstance(value, GeniaConfigProvider):
         return "config-provider"
     if value.__class__.__name__ == "GeniaMetaEnv":
@@ -124,6 +126,54 @@ class GeniaProtected:
     def __repr__(self) -> str:
         return "<protected>"
 
+    def _declassify_with(
+        self, authority: "GeniaDeclassificationAuthority"
+    ) -> tuple[bool, str, Any]:
+        purpose = self.__purpose.name
+        allowed = authority._allows(self.__provider_identity, purpose)
+        return allowed, purpose, self.__value if allowed else None
+
+
+class GeniaDeclassificationAuthority:
+    """Opaque host-injected authority for one provider and purpose allowlist."""
+
+    __slots__ = ("__provider_identity", "__purposes", "__audit_recorder")
+
+    def __init__(
+        self,
+        provider_identity: object,
+        purposes: frozenset[str],
+        audit_recorder: Callable[[dict[str, Any]], Any],
+    ):
+        self.__provider_identity = provider_identity
+        self.__purposes = purposes
+        self.__audit_recorder = audit_recorder
+
+    def _allows(self, provider_identity: object, purpose: str) -> bool:
+        return (
+            self.__provider_identity is provider_identity
+            and purpose in self.__purposes
+        )
+
+    def _audit(self, purpose: str | None, success: bool) -> None:
+        event = {
+            "provider_identity": self.__provider_identity,
+            "purpose": purpose,
+            "success": success,
+        }
+        self.__audit_recorder(event)
+
+    def __copy__(self) -> Any:
+        raise TypeError("declassification authority cannot be copied")
+
+    def __deepcopy__(self, memo: Any) -> Any:
+        raise TypeError("declassification authority cannot be copied")
+
+    __hash__ = None
+
+    def __repr__(self) -> str:
+        return "<declassification-authority>"
+
 
 class GeniaConfigProvider:
     """Opaque immutable configuration source snapshots."""
@@ -147,6 +197,43 @@ class GeniaConfigProvider:
         return "<config-provider>"
 
 
+def contains_declassification_authority_value(
+    value: Any, seen: set[int] | None = None
+) -> bool:
+    if isinstance(value, GeniaDeclassificationAuthority):
+        return True
+    if seen is None:
+        seen = set()
+    value_id = id(value)
+    if value_id in seen:
+        return False
+    if isinstance(value, (list, tuple)):
+        seen.add(value_id)
+        return any(contains_declassification_authority_value(item, seen) for item in value)
+    if isinstance(value, GeniaMap):
+        seen.add(value_id)
+        return any(
+            contains_declassification_authority_value(key, seen)
+            or contains_declassification_authority_value(item, seen)
+            for key, item in value.items()
+        )
+    if isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+        seen.add(value_id)
+        return (
+            contains_declassification_authority_value(getattr(value, "value", None), seen)
+            or contains_declassification_authority_value(getattr(value, "reason", None), seen)
+            or contains_declassification_authority_value(value.context, seen)
+        )
+    if value.__class__.__name__ == "GeniaSheet":
+        seen.add(value_id)
+        return any(
+            contains_declassification_authority_value(name, seen)
+            or contains_declassification_authority_value(list(column), seen)
+            for name, column in value.columns
+        )
+    return False
+
+
 _SYMBOL_INTERN_TABLE: dict[str, GeniaSymbol] = {}
 
 
@@ -160,6 +247,8 @@ def symbol(name: str) -> GeniaSymbol:
 
 
 def _freeze_map_key(value: Any) -> Any:
+    if isinstance(value, GeniaDeclassificationAuthority):
+        raise TypeError("declassification authority cannot be a map key")
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
     if isinstance(value, GeniaSymbol):
@@ -593,6 +682,8 @@ class GeniaProcess:
                 return
 
     def send(self, message: Any) -> None:
+        if contains_declassification_authority_value(message):
+            raise TypeError("declassification authority cannot be sent to a process")
         with self._lock:
             if self._failed:
                 raise RuntimeError(f"Process has failed: {self._error}")

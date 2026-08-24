@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .values import GeniaMap, GeniaSymbol, _is_nil_none, _runtime_type_name, symbol
-from .configuration import contains_protected
+from .configuration import contains_declassification_authority, contains_protected
 
 
 def _sheet_error(message: str) -> TypeError:
@@ -66,6 +66,8 @@ def _ensure_sheet(value: Any, operation: str) -> GeniaSheet:
 
 
 def make_sheet(columns_value: Any) -> GeniaSheet:
+    if contains_declassification_authority(columns_value):
+        raise _sheet_error("declassification authority cannot be stored in a Sheet")
     if not isinstance(columns_value, list):
         raise _sheet_error("sheet expected a list of [name, values] column pairs")
 

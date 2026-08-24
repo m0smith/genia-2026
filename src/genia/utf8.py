@@ -53,6 +53,8 @@ def format_display(value: Any) -> str:
         return "<represented>"
     if _is_protected(value):
         return "<protected>"
+    if _is_declassification_authority(value):
+        return "<declassification-authority>"
     if _is_config_provider(value):
         return "<config-provider>"
     if isinstance(value, str):
@@ -97,6 +99,8 @@ def format_debug(value: Any) -> str:
         return "<represented>"
     if _is_protected(value):
         return "<protected>"
+    if _is_declassification_authority(value):
+        return "<declassification-authority>"
     if _is_config_provider(value):
         return "<config-provider>"
     if isinstance(value, str):
@@ -156,6 +160,10 @@ def _is_represented(value: Any) -> bool:
 
 def _is_protected(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaProtected"
+
+
+def _is_declassification_authority(value: Any) -> bool:
+    return value.__class__.__name__ == "GeniaDeclassificationAuthority"
 
 
 def _is_config_provider(value: Any) -> bool:

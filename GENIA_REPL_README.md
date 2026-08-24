@@ -233,7 +233,8 @@ CLI contract summary (actual behavior):
   - `secret_get(provider, key, purpose)` and `secret_get_or(provider, key, purpose, default)` protect successful values once; `protected_match("secret", value)` returns the exact protected subject
   - generic representation construction/matching/stripping reject `"secret"`; protected values are not map keys and transport unchanged without container taint
   - diagnostic rendering recursively substitutes `<protected>`; output/format/serialization/resource/HTTP/host boundaries reject protected leaves before effects
-  - conversion stays explicit through ordinary Outcome-returning callables such as `parse_int`; callable Templates validate converted successes through existing pipeline rules. No ambient lookup, implicit conversion, declassification, or injection is implemented
+  - `declassify(authority, protected_value)` is the sole reveal operation and requires an exact host-injected provider/purpose-scoped authority; success audits and returns an ordinary value
+  - conversion stays explicit through ordinary Outcome-returning callables such as `parse_int`; callable Templates validate converted successes through existing pipeline rules. No ambient lookup or annotation injection is implemented
   - raw CLI primitive: `argv`
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
