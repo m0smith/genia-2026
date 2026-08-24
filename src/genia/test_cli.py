@@ -69,10 +69,17 @@ def format_test_suite_report(suite: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def make_test_env() -> tuple[Any, list[TestUnit]]:
+def make_test_env(
+    *,
+    fixture_bindings: dict[str, Any] | None = None,
+    **global_env_kwargs: Any,
+) -> tuple[Any, list[TestUnit]]:
     tests: list[TestUnit] = []
-    env = make_global_env(cli_args=[])
+    env = make_global_env(cli_args=[], **global_env_kwargs)
     setattr(env, "_native_test_units", tests)
+
+    for name, value in (fixture_bindings or {}).items():
+        env.set(name, value)
 
     def register_test(name: Any, body: Any) -> None:
         tests.append(TestUnit(name, body))
@@ -279,8 +286,16 @@ def _write_stderr(env: Any, message: str) -> None:
         return
 
 
-def run_native_tests_from_file(program_path: str) -> int:
-    env, _ = make_test_env()
+def run_native_tests_from_file(
+    program_path: str,
+    *,
+    fixture_bindings: dict[str, Any] | None = None,
+    **global_env_kwargs: Any,
+) -> int:
+    env, _ = make_test_env(
+        fixture_bindings=fixture_bindings,
+        **global_env_kwargs,
+    )
     try:
         validate_native_test_lifecycle()
         path = Path(program_path)
