@@ -155,11 +155,12 @@ consult the release roadmap and classify it as a follow-up, a later release,
 infrastructure, or parking-lot item; do not expand R10 implicitly. Release
 planning never makes candidate syntax or behavior implemented and never skips
 contract, design, failing-test, implementation, documentation, or audit phases.
-**R11 — AI Composition has an approved planning contract but no implemented
-behavior and awaits explicit issue #607 GO for E11-1 preflight.** It permits
-only the ordinary callable/value/Outcome/R9/R10/Flow boundary recorded in
-`docs/design/r11-ai-composition-contract.md`; do not infer model APIs from the
-roadmap. See `docs/strategy/release-roadmap.md` and
+**R11 — AI Composition is active and E11-1 is implemented.** Its Experimental
+Python-host deterministic fixture provides text-only `model/4` ordinary-callable
+and Outcome behavior; it is not a real provider/network adapter. E11-2 and later
+slices remain unimplemented and require their own gates. Preserve the ordinary
+callable/value/Outcome/R9/R10/Flow boundary recorded in
+`docs/design/r11-ai-composition-contract.md`. See `docs/strategy/release-roadmap.md` and
 `docs/ai/LLM_CONTRACT.md` for release boundaries.
 
 Prefer work that strengthens Genia's first killer workflow:

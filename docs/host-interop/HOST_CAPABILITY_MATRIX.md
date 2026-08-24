@@ -32,6 +32,7 @@ Browser playground adapter note:
 | REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python REPL only today |
 | Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | lazy pull-based single-use Flow |
 | configuration environment snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python snapshots `os.environ` only during explicit immutable provider construction; portable hosts may report capability unavailable |
+| deterministic model fixture | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Offline E11-1 fixture injected only for explicitly selected shared-spec/test environments; no real provider or ambient binding |
 | HTTP serving | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | synchronous blocking HTTP bridge with exact-path routing, response-header composition, CORS preflight, and request/response maps |
 | refs | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |
 | process primitives | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | host-backed runtime primitive with prelude wrappers |

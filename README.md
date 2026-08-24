@@ -588,6 +588,7 @@ Related shared portability docs:
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
 - Runtime capability values:
   - explicit immutable configuration provider (`<config-provider>`, Experimental)
+  - explicitly injected model provider and returned callable model (`model/4`, Experimental E11-1; deterministic Python fixture only)
   - `stdout`
   - `stderr`
   - MetaEnv
@@ -1017,6 +1018,19 @@ actor_call(a, 3)
 - actors are public Python-host behavior in this phase, not a shared-host contract surface
 
 ## Builtins
+
+### AI model invocation (Experimental E11-1)
+
+`model(provider, config, credential, authority)` returns an ordinary callable
+whose text request produces an existing Outcome. E11-1 validates closed ordinary
+message/request/response maps, declassifies the R10 protected string credential
+only at invocation, and makes exactly one synchronous provider attempt.
+
+The current implementation is deliberately offline: only the Python reference
+host's explicitly selected deterministic test fixture can supply the provider,
+credential, and authority. Ordinary CLI/file/import/test/serve execution has no
+ambient bindings. JSON structured output, a real network/provider adapter,
+retry, streaming, tools/agents, conversations, and retrieval are not implemented.
 
 ### Explicit configuration acquisition (Experimental)
 

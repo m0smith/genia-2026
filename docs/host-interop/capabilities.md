@@ -34,6 +34,18 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 - **portability:** `Python-host-only`
 - **notes:** The Python host snapshots `os.environ`. Portable provider semantics allow a future host to advertise an equivalent capability or return normalized unavailable; this row records implementation status today. No environment access occurs during `config_get`; no host may silently substitute an ambient or different source. Literal `{kind: quote(values), values: map}` sources are portable ordinary values and require no host capability.
 
+### Group: Model Test Fixture
+
+#### `model.deterministic-fixture`
+
+- **name:** `model.deterministic-fixture`
+- **genia_surface:** opaque host-injected provider passed to `model(provider, config, credential, authority)`
+- **input:** one validated text request, exact config, and an authorized declassified string credential at the private host boundary
+- **output:** one existing Outcome containing the closed E11-1 text response, absence, or normalized failure
+- **errors:** malformed observations normalize to `model-response-invalid`; fixture exceptions normalize to non-sensitive `model-transport-failure` with `kind: quote(other)`
+- **portability:** `Python-host-only`
+- **notes:** This is an offline shared-spec/test fixture, not a real model provider adapter. It is injected only for cases explicitly declaring `fixtures: [r11_model]`; ordinary execution has no ambient fixture. Each valid invocation attempts it exactly once.
+
 ### Group: I/O Substrate
 
 Capabilities connecting Genia programs to the host I/O streams. These are `language contract` capabilities — all hosts must provide them.

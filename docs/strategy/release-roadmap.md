@@ -613,9 +613,10 @@ Completion qualifications:
 
 ## Release R11 — AI Composition
 
-**Status: Contract approved; awaiting explicit issue #607 GO for E11-1
-preflight.** This section records planned, not implemented language behavior.
-No R11 runtime/API is implemented. See
+**Status: Active; E11-1 implemented, E11-2 and later planned.** The Experimental
+E11-1 Python reference-host boundary provides text-only `model/4` over an
+explicit deterministic fixture with no network. The remaining section records
+planned, not implemented behavior. See
 `docs/design/r11-ai-composition-contract.md` for the approved boundary.
 
 Theme:
@@ -684,7 +685,7 @@ Exit criterion:
 
 Approved sequence:
 
-1. E11-1 — ordinary values, `model/4`, and deterministic fixture
+1. E11-1 — ordinary values, `model/4`, and deterministic fixture — **implemented (Experimental; Python fixture only)**
 2. E11-2 — R9 structured output
 3. E11-3 — R10 boundary and one Python provider adapter
 4. E11-4 — shared conformance and cross-mode hardening
@@ -693,10 +694,11 @@ Approved sequence:
 7. E11-7 — release examples and truth sync
 8. E11-8 — final truth audit and distillation
 
-Streaming, model-call cancellation, automatic retry/fallback, tools/agents,
+JSON structured output and a real provider adapter remain unimplemented along
+with streaming, model-call cancellation, automatic retry/fallback, tools/agents,
 multimodal content, persistent memory, and general AI observability/evaluation
 infrastructure are excluded. Retrieval, embeddings, grounding, and citations
-remain R12. Later tickets require explicit issue #607 GO and their own gates.
+remain R12. Later tickets require their own gates.
 
 ---
 
@@ -773,10 +775,10 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8, R9, and R10 are complete. R11 has an approved planning
-contract but no implemented behavior and awaits explicit issue #607 GO for
-E11-1 preflight; R12 remains planned. R10 follow-ups and R11-R12 require their own gates;
-for R11, that applies to every behavior slice after this planning contract.
+composition. R8, R9, and R10 are complete. R11 is active with Experimental
+E11-1 text-only deterministic-fixture behavior implemented; E11-2 and later
+slices and R12 remain planned. R10 follow-ups and R11-R12 require their own gates;
+for R11, that applies to every behavior slice after E11-1.
 
 ---
 
