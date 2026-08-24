@@ -72,6 +72,19 @@ future-secret constraint from `r9-value-template-representation-contract.md`.
 The matrix was reviewed during E9-8 and must be reviewed whenever a later
 release changes one of these composition boundaries.
 
+## R11 planned relationships
+
+These rows constrain later R11 work. They are approved planning boundaries,
+not implemented behavior; see `r11-ai-composition-contract.md`.
+
+| Concept | Composes with | Required relationship | Status |
+|---|---|---|---|
+| model | ordinary callable / Outcome | `model/4` returns one ordinary callable; each call makes at most one synchronous provider attempt and returns an existing Outcome | Planned; not implemented |
+| prompt and chain | function / pipeline | prompts build ordinary request values and chains use ordinary functions and `|>`; no second chain runtime or executor | Planned; not implemented |
+| structured model output | R9 JSON / Template | strict `json_decode` plus an explicit callable Template validates one represented JSON result; no AI schema/repair system | Planned; not implemented |
+| model credential | R10 protected value / authority | explicit `secret_get(..., quote(model_call))` stays protected until declassification immediately before one authorized adapter attempt | Planned; not implemented |
+| conversation | external list/Flow / `scan` | an application step evolves exact ordinary state from external events; input acquisition, termination, and cancellation are not hidden in a conversation runtime | Planned; not implemented |
+
 ## Keeping this matrix in sync
 
 `tests/doc/test_composability_matrix_sync.py` automatically re-derives the

@@ -613,9 +613,10 @@ Completion qualifications:
 
 ## Release R11 — AI Composition
 
-**Status: Planned, not active.** This section records proposed direction, not
-implemented language behavior. R11 requires semantic design and explicit
-activation before implementation begins.
+**Status: Contract approved; awaiting explicit issue #607 GO for E11-1
+preflight.** This section records planned, not implemented language behavior.
+No R11 runtime/API is implemented. See
+`docs/design/r11-ai-composition-contract.md` for the approved boundary.
 
 Theme:
 
@@ -680,6 +681,22 @@ data-pipeline story.
 Exit criterion:
 
 - Useful AI applications look like ordinary Genia composition, and conversation logic can consume different Flow-based input sources without changing the conversation implementation.
+
+Approved sequence:
+
+1. E11-1 — ordinary values, `model/4`, and deterministic fixture
+2. E11-2 — R9 structured output
+3. E11-3 — R10 boundary and one Python provider adapter
+4. E11-4 — shared conformance and cross-mode hardening
+5. E11-5 — Flow/`scan` conversation composition
+6. E11-6 — Outcome-aware validated-pipeline proving case
+7. E11-7 — release examples and truth sync
+8. E11-8 — final truth audit and distillation
+
+Streaming, model-call cancellation, automatic retry/fallback, tools/agents,
+multimodal content, persistent memory, and general AI observability/evaluation
+infrastructure are excluded. Retrieval, embeddings, grounding, and citations
+remain R12. Later tickets require explicit issue #607 GO and their own gates.
 
 ---
 
@@ -756,7 +773,10 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8, R9, and R10 are complete; R11-R12 remain planned and not active for implementation. R10 has an approved contract and completed E10-1 through E10-8 configuration/protected-carrier/composed-proof/audit slices; R10 follow-ups and R11-R12 require their own gates.
+composition. R8, R9, and R10 are complete. R11 has an approved planning
+contract but no implemented behavior and awaits explicit issue #607 GO for
+E11-1 preflight; R12 remains planned. R10 follow-ups and R11-R12 require their own gates;
+for R11, that applies to every behavior slice after this planning contract.
 
 ---
 
