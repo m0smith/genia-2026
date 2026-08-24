@@ -8,12 +8,14 @@ from typing import Any
 
 from .values import (
     GeniaConfigProvider,
+    GeniaDeclassificationAuthority,
     GeniaMap,
     GeniaOptionErr,
     GeniaOptionNone,
     GeniaOptionSome,
     GeniaProtected,
     GeniaSymbol,
+    contains_declassification_authority_value,
     _runtime_type_name,
     make_none,
 )
@@ -193,6 +195,49 @@ def contains_protected(value: Any, _seen: set[int] | None = None) -> bool:
 def reject_protected(value: Any, operation: str) -> None:
     if contains_protected(value):
         raise TypeError(f"protected-value: {operation}")
+
+
+def contains_declassification_authority(
+    value: Any, _seen: set[int] | None = None
+) -> bool:
+    return contains_declassification_authority_value(value, _seen)
+
+
+def reject_declassification_authority(value: Any, operation: str) -> None:
+    if contains_declassification_authority(value):
+        raise TypeError(f"declassification authority cannot cross {operation}")
+
+
+def create_declassification_authority(
+    provider: Any,
+    purposes: Any,
+    audit_recorder: Any,
+) -> GeniaDeclassificationAuthority:
+    if not isinstance(provider, GeniaConfigProvider):
+        raise TypeError("authority factory expected a configuration provider")
+    if not isinstance(purposes, list) or not purposes:
+        raise TypeError("authority factory expected a non-empty purpose list")
+    names: set[str] = set()
+    for purpose in purposes:
+        names.add(_validated_purpose(purpose, "authority factory").name)
+    if not callable(audit_recorder):
+        raise TypeError("authority factory expected an audit recorder")
+    return GeniaDeclassificationAuthority(
+        provider._identity, frozenset(names), audit_recorder
+    )
+
+
+def declassify(authority: Any, protected_value: Any) -> Any:
+    if not isinstance(authority, GeniaDeclassificationAuthority):
+        raise TypeError("declassify expected a declassification authority")
+    if not isinstance(protected_value, GeniaProtected):
+        authority._audit(None, False)
+        raise TypeError("declassify expected a protected value")
+    allowed, purpose, value = protected_value._declassify_with(authority)
+    authority._audit(purpose, allowed)
+    if not allowed:
+        raise TypeError("declassify authority does not permit protected value")
+    return value
 
 
 def protect_secret_default(provider: Any, purpose: Any, result: Any) -> Any:

@@ -42,10 +42,13 @@ if __package__ in (None, ""):
     from genia.configuration import (
         construct_provider,
         contains_protected,
+        contains_declassification_authority,
+        declassify,
         get_configuration,
         get_secret_configuration,
         protect_secret_default,
         reject_protected,
+        reject_declassification_authority,
     )
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
@@ -137,10 +140,13 @@ else:
     from .configuration import (
         construct_provider,
         contains_protected,
+        contains_declassification_authority,
+        declassify,
         get_configuration,
         get_secret_configuration,
         protect_secret_default,
         reject_protected,
+        reject_declassification_authority,
     )
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
@@ -330,6 +336,7 @@ def make_global_env(
         return GeniaMetaEnv(base)
 
     def _sink_write_display(sink: GeniaOutputSink, value: Any, *, newline: bool) -> Any:
+        reject_declassification_authority(value, "output")
         reject_protected(value, "output")
         text = format_display(value)
         if newline:
@@ -539,12 +546,14 @@ def make_global_env(
         )
 
     def log(*args: Any) -> Any:
+        reject_declassification_authority(args, "log")
         reject_protected(args, "log")
         output = " ".join(format_display(arg) for arg in args)
         stderr_sink.write_text(output + "\n")
         return args[-1] if args else None
 
     def print_fn(*args: Any) -> Any:
+        reject_declassification_authority(args, "print")
         reject_protected(args, "print")
         output = " ".join(format_display(arg) for arg in args)
         stdout_sink.write_text(output + "\n")
@@ -1036,6 +1045,7 @@ def make_global_env(
                 pieces.append(part.text)
             else:
                 resolved = resolve_format_placeholder(values, part.field)
+                reject_declassification_authority(resolved, "format")
                 reject_protected(resolved, "format")
                 if part.spec is not None:
                     pieces.append(apply_format_spec(resolved, part.spec))
@@ -3679,6 +3689,14 @@ def make_global_env(
                 )
             value = value.value
 
+        if contains_declassification_authority(value):
+            return _json_boundary_err(
+                "encode",
+                _JsonBoundaryFailure(
+                    "unsupported_json_value", value_type="declassification-authority"
+                ),
+            )
+
         if contains_protected(value):
             return GeniaOptionErr(
                 "protected-value", GeniaMap().put("operation", "json-encode")
@@ -3769,6 +3787,7 @@ def make_global_env(
         return headers
 
     def _http_response_triplet(value: Any) -> tuple[int, dict[str, str], bytes]:
+        reject_declassification_authority(value, "http-response")
         reject_protected(value, "http-response")
         if not isinstance(value, GeniaMap):
             raise TypeError(
@@ -4055,6 +4074,10 @@ def make_global_env(
             return make_none("resource-read-error", ctx)
 
     def resource_write_text_fn(ref_map: Any, text: Any) -> Any:
+        if contains_declassification_authority((ref_map, text)):
+            return make_none(
+                "authority-value", GeniaMap().put("operation", "resource-write-text")
+            )
         if contains_protected((ref_map, text)):
             return make_none(
                 "protected-value", GeniaMap().put("operation", "resource-write-text")
@@ -4074,6 +4097,10 @@ def make_global_env(
             return make_none("resource-write-error", ctx)
 
     def resource_write_bytes_fn(ref_map: Any, bytes_val: Any) -> Any:
+        if contains_declassification_authority((ref_map, bytes_val)):
+            return make_none(
+                "authority-value", GeniaMap().put("operation", "resource-write-bytes")
+            )
         if contains_protected((ref_map, bytes_val)):
             return make_none(
                 "protected-value", GeniaMap().put("operation", "resource-write-bytes")
@@ -4351,6 +4378,7 @@ def make_global_env(
         _host_function_group("representation_match", 2, representation_match_fn),
     )
     env.set("protected_match", _host_function_group("protected_match", 2, protected_match_fn))
+    env.set("declassify", _host_function_group("declassify", 2, declassify))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),
