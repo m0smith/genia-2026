@@ -94,10 +94,10 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9 Complete; R10 E10-1/E10-6 Implemented
+## Release Position: R9 Complete; R10 E10-1/E10-7 Implemented
 
 **R9 — Value Templates & Representations is complete. R10 has an approved
-contract and its E10-1 provider acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, and E10-6 cross-mode-hardening slices are implemented.**
+contract and its E10-1 provider acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, E10-6 cross-mode-hardening slices are implemented, and E10-7 composed validated-pipeline proving case is implemented.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
@@ -110,7 +110,7 @@ When an LLM agent is asked for new Genia work:
 3. R8 is complete; preserve its binding to the landed R7 primitives and do not introduce a second routing, CORS, header-composition, or HTTP-serving mechanism.
 4. Keep Python-host-only web behavior outside shared semantic-spec categories unless a later approved contract changes that boundary.
 5. Preserve the completed R9 Template/representation boundary and implemented
-   R10 E10-1/E10-6 provider/defaulting/protected-carrier/sink/declassification/cross-mode boundary; later R10 behavior remains
+   R10 E10-1/E10-7 provider/defaulting/protected-carrier/sink/declassification/cross-mode/composed-proof boundary; later R10 behavior remains
    unimplemented until separately designed, tested, and implemented.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.

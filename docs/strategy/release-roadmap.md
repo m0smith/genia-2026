@@ -752,8 +752,8 @@ This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
 composition. R8 and R9 are complete; R10-R12 remain planned and not active for
-implementation. R10 alone has an approved contract and implemented E10-1 through E10-6
-configuration/protected-carrier slices; later R10 slices and R11-R12 require their own gates.
+implementation. R10 alone has an approved contract and implemented E10-1 through E10-7
+configuration/protected-carrier/composed-proof slices; later R10 slices and R11-R12 require their own gates.
 
 ---
 
