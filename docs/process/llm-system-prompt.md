@@ -42,14 +42,22 @@ Rules:
 - Distillation must extract durable documentation into canonical docs, then remove or mark handoffs for deletion.
 
 Testing note:
+This repository is managed by `uv`. Always invoke pytest through the project
+environment with `uv run pytest`; never use bare `pytest`, because it may resolve
+to a system installation without the locked development dependencies.
+
+The development dependency group includes `pytest-xdist` and PyYAML. Do not
+infer that either is unavailable until the equivalent `uv run` command fails.
+
 This repo supports parallel pytest execution.
 
 For full regression testing, prefer:
 
-  pytest -n auto -q
+  uv run pytest -n auto -q
 
 Use narrower targeted tests during development, but before audit/merge run the full parallel regression command when practical.
 
-If `pytest -n auto` fails because pytest-xdist is unavailable, report that clearly and fall back to:
+If `uv run pytest -n auto -q` specifically reports that xdist or `-n` is
+unavailable, report that clearly and fall back to:
 
-  pytest  -q
+  uv run pytest -q

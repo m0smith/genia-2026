@@ -423,7 +423,7 @@ CI tests against Python 3.8 through 3.14. Python 3.15 (stable release expected 2
 Run tests:
 
 ```bash
-pytest -q
+uv run pytest -n auto -q
 ```
 
 Test suite note:
