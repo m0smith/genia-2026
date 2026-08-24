@@ -153,7 +153,7 @@ matcher-family builtin (any `*_match` helper, `represent`,
 future builtin following that naming convention), or changes how an existing
 matrix row composes:
 
-- Run `pytest tests/doc/test_composability_matrix_sync.py`. It re-derives
+- Run `uv run pytest tests/doc/test_composability_matrix_sync.py`. It re-derives
   the family from `src/genia/builtins.py` and
   `src/genia/std/prelude/*.genia` and will name exactly which builtin the
   matrix (or `GENIA_STATE.md`) is missing.

@@ -281,7 +281,7 @@ JSON case entry shape:
 }
 ```
 
-Agents must run `pytest tests/test_cheatsheet_*.py` after editing any cheatsheet to catch drift.
+Agents must run `uv run pytest tests/test_cheatsheet_*.py` after editing any cheatsheet to catch drift.
 
 ---
 
@@ -304,7 +304,7 @@ if the matrix mentions a family-shaped name that no longer exists in code.
 
 Agents must:
 
-* run `pytest tests/doc/test_composability_matrix_sync.py` after adding,
+* run `uv run pytest tests/doc/test_composability_matrix_sync.py` after adding,
   renaming, or removing any Template/representation/matcher-family builtin
   (a `*_match` helper, a new representation/carrier primitive, or a new
   structural-source compiler like `json_schema`), and after editing the
@@ -338,7 +338,7 @@ Runnable Genia blocks in SICP chapters must follow the fence/expected-output con
 When editing SICP chapters, agents must:
 
 * keep `docs/sicp/index.md` aligned with the published chapter set
-* run `pytest tests/test_sicp_code_blocks.py`
+* run `uv run pytest tests/test_sicp_code_blocks.py`
 
 ---
 
@@ -354,7 +354,7 @@ When editing any of these files:
 agents must run:
 
 ```
-pytest tests/test_doc_style_sync.py
+uv run pytest tests/test_doc_style_sync.py
 ```
 
 This validates that:
@@ -504,6 +504,13 @@ Tests must:
 - fail on regression
 
 No vague assertions.
+
+This repository is managed by `uv`. Run pytest as `uv run pytest ...`, never as
+bare `pytest ...`; a bare command may select a system environment without the
+locked development dependencies. Full regression uses
+`uv run pytest -n auto -q`. `pytest-xdist` and PyYAML are declared project
+dependencies, so treat them as unavailable only if the corresponding `uv run`
+command fails.
 
 ---
 
