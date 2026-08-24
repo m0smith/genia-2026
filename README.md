@@ -1049,7 +1049,7 @@ credential = secret_get(provider, "API_TOKEN", quote(outbound_api))
 
 Successful acquisition creates one reserved protected `secret` carrier. `Secret(x)` binds the protected subject, generic `represent`/`representation_match`/`strip_representation` reject `"secret"`, protected values are not map keys, and ordinary transport preserves exact protected leaves without tainting containers. Diagnostic rendering recursively substitutes `<protected>`; Format, output, JSON, Sheet CSV, resource, HTTP, and ordinary host boundaries reject protected leaves before effects. `declassify(authority, token)` is the sole reveal operation and succeeds only for an exact host-injected provider/purpose-scoped authority, recording a non-sensitive audit event before returning an ordinary value.
 
-This E10-1/E10-5 surface has no ambient lookup, implicit conversion/coercion, new validation system, annotation injection, or new syntax/Core IR.
+This E10-1/E10-6 surface has no ambient lookup, implicit conversion/coercion, new validation system, annotation injection, or new syntax/Core IR. File, command, pipe, import, native-test, and serve-entry evaluation retain the same explicit semantics: imports acquire only through explicit calls, serve snapshots finish before listener activation, and requests do not refresh configuration automatically.
 
 ### Core
 

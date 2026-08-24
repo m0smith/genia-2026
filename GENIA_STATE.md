@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- Configuration provider, protected acquisition/sinks, and explicit declassification (Experimental, issues #589-#593)
+- Configuration provider, protected acquisition/sinks, explicit declassification, and cross-mode hardening (Experimental, issues #589-#594)
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
   - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
   - source order is highest to lowest precedence; the first source containing a key wins
@@ -426,7 +426,11 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
   - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
   - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
-  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, declassification, annotation, parser, or Core IR change is implemented
+  - ordinary eval, file, command, pipe, import, native-test, and serve-entry evaluation preserve these explicit provider/protection semantics; modes create no ambient provider or authority
+  - imports acquire only when evaluated module code explicitly constructs and uses a provider; existing annotations do not acquire or inject configuration
+  - the Python native-test harness accepts explicit fixture bindings and environment-capability/output test seams; it constructs no fixture provider or authority implicitly
+  - serve entry evaluation and any explicit provider snapshot complete before listener activation; requests do not refresh configuration automatically
+  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, annotation injection, parser, or Core IR change is implemented
   - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
   - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
 
@@ -1101,7 +1105,7 @@ Case placement rules (enforced):
 - default ordinary values are lifted into `some(...)`, while default Outcomes remain unchanged; explicit converter Outcomes and callable Template validation compose through existing pipeline rules
 - generic carrier construction, matching, and stripping reject the reserved `secret` facet; protected values compare without exposing payloads, are not map keys, and transport as exact leaves without container taint
 - `declassify(authority, protected_value)` reveals only with an exact host-injected provider/purpose-scoped authority and records a non-sensitive audit event
-- this E10-1/E10-5 surface adds ordinary calls and enforcement at existing boundaries only; annotation injection and syntax/Core IR changes are not implemented
+- this E10-1/E10-6 surface adds ordinary calls, enforcement, and cross-mode conformance at existing boundaries only; annotation injection and syntax/Core IR changes are not implemented
 
 ### Core I/O and utilities
 

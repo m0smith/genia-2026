@@ -22,7 +22,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE
 - [R8 — Server Execution Mode](R8.md) ✓ COMPLETE
 - [R9 — Value Templates & Representations](R9.md) ✓ COMPLETE
-- [R10 — Configuration & Secrets](R10.md) — ACTIVE; E10-1 through E10-5 implemented
+- [R10 — Configuration & Secrets](R10.md) — ACTIVE; E10-1 through E10-6 implemented
 
 ## Process
 

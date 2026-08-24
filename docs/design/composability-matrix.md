@@ -49,8 +49,9 @@ future-secret constraint from `r9-value-template-representation-contract.md`.
 | `secret` | named Template / pattern | `protected_match` returns the exact protected subject, so `Secret(x)` binds protected `x` and reuses existing named-pattern, `@?`, `@!`, and `&` rules without implicit declassification | R10 E10-3 implemented, Experimental |
 | configuration provider | Outcome / Template | explicit immutable lookup returns exact-string `some(...)` or missing `none(...)`; `config_get_or` lazily supplies only missing values, explicit converters return existing Outcomes, and callable Templates validate converted successes without a second schema or error model | R10 E10-1/E10-2 implemented, Experimental |
 | protected value | List/map/pipeline/Seq/Flow/Sheet | E10-3 transport preserves exact protected leaves and containers do not gain hidden taint; E10-4 diagnostic rendering redacts recursively and existing output/serialization sinks reject before effects | Transport and sinks implemented, Experimental |
-| rendering | representation facet | separate concerns; generic facets render opaquely, while the approved protected policy renders `<protected>` diagnostically and rejects output/serialization sinks | Generic opacity implemented; protected policy contracted, not implemented |
-| future protected value | explicit declassification | only an opaque host-injected matching authority may remove the protected layer; generic `strip_representation` rejects it | R10 contract approved; not implemented |
+| rendering | representation facet | separate concerns; generic facets render opaquely, while the protected policy renders `<protected>` diagnostically and rejects output/serialization sinks | Generic opacity and protected policy implemented, Experimental |
+| protected value | explicit declassification | only an opaque host-injected matching authority may remove the protected layer; generic `strip_representation` rejects it | R10 E10-5 implemented, Experimental |
+| configuration/protection | execution modes | ordinary eval, file, command, pipe, import, native-test, and serve-entry paths preserve explicit values; modes and annotations add no ambient acquisition, and serve snapshots precede activation without request refresh | R10 E10-6 implemented, Experimental; serve mechanics Python-host-only |
 
 ## Isolation rules
 

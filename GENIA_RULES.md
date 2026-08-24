@@ -472,6 +472,9 @@ No additional member/index/flow operators should be introduced without explicitl
 - unavailable environment capability returns `err("config-source-unavailable", {source_index})`; acquisition failure returns `err("config-provider-failure", {source_index})`.
 - normalized acquisition failures and runtime misuse must not include the key, source contents, raw value, or raw host failure.
 - providers are opaque identity values: display/debug is `<config-provider>` and ordinary map-key, host-conversion, and serialization boundaries reject them.
+- execution modes must not construct an ambient provider or authority; file, command, pipe, import, native-test, and serve-entry evaluation preserve the same explicit values and Outcomes as ordinary evaluation.
+- imports acquire configuration only when evaluated module code explicitly constructs and uses a provider; annotations do not acquire or inject configuration.
+- serve startup must finish entry evaluation and explicit snapshot construction before listener activation; request handling performs no automatic refresh.
 - there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, and annotation injection remain unimplemented.
 
 - symbols are runtime values distinct from strings
