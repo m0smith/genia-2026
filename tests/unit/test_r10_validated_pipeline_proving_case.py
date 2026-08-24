@@ -60,7 +60,7 @@ def test_example_missing_and_invalid_configuration_preserve_existing_outcomes():
         env,
     )
 
-    assert format_display(invalid) == 'none("invalid-integer")'
+    assert format_display(invalid) == 'none("parse-error", {source: parse_int, expected: integer_string, received: not-int, base: 10})'
     assert format_display(out_of_range) == 'none("refinement-mismatch")'
     _assert_no_sentinels([invalid, out_of_range])
 
@@ -91,7 +91,10 @@ def test_matching_authority_declassifies_at_fixture_boundary_and_returns_ordinar
     assert result == "accepted"
     assert len(calls) == 1
     assert calls[0][0:3] == ["https://fixture.invalid/v1", 8080, PAYLOAD]
-    assert format_display(calls[0][3]) == "[{id: 1, name: Ada}, {id: 2, name: Grace}]"
+    assert calls[0][3] == [
+        {"id": 1, "name": "Ada"},
+        {"id": 2, "name": "Grace"},
+    ]
     assert len(events) == 1 and events[0]["success"] is True
     _assert_no_sentinels({k: v for k, v in events[0].items() if k != "provider_identity"})
 
