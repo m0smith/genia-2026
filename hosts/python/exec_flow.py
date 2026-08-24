@@ -23,4 +23,6 @@ def exec_flow(case) -> dict:
         raise TypeError("flow case stdin must be a string when present")
 
     fixtures = getattr(case, "fixtures", ())
-    return run_eval_subprocess(source, stdin or None, fixtures)
+    if fixtures:
+        return run_eval_subprocess(source, stdin or None, fixtures)
+    return run_eval_subprocess(source, stdin or None)
