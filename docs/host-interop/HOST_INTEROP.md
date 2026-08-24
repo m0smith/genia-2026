@@ -393,7 +393,7 @@ Current repository note:
 
 ## Shared Spec Contract
 
-The shared spec suite under `spec/` is the authoritative cross-host validation layer within its implemented scope. The current implemented shared case coverage is `eval` plus `ir` in the Python reference host. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
+The shared spec suite under `spec/` is the authoritative cross-host validation layer within its implemented scope. The current Python reference-host runner executes `parse`, `ir`, `eval`, `cli`, `flow`, and `error` cases; coverage within those categories remains Partial as described by `GENIA_STATE.md`. Host-local tests are valuable, but do not override shared spec results. Other hosts are not implemented yet.
 
 
 ## Documentation Rule

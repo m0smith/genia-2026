@@ -151,6 +151,9 @@ def test_r9_completion_and_r10_contract_gate_stay_synchronized() -> None:
     agents = read_text("AGENTS.md")
     releases = read_text("docs/releases/README.md")
     r7_page = read_text("docs/releases/R7.md")
+    r10_contract = read_text("docs/design/r10-configuration-protected-value-contract.md")
+    design_index = read_text("docs/design/README.md")
+    host_interop = read_text("docs/host-interop/HOST_INTEROP.md")
 
     assert "Release R7 — Web Serving Ergonomics ✓ COMPLETE" in roadmap
     assert "Release R8 — Server Execution Mode" in roadmap
@@ -172,6 +175,11 @@ def test_r9_completion_and_r10_contract_gate_stay_synchronized() -> None:
     assert "implemented E10-1" in agents
     assert "E10-6 cross-mode hardening" in agents
     assert "E10-7 composed validated-pipeline proving case" in agents
+    assert "E10-1 through E10-7 implemented" in r10_contract
+    assert "E10-8 release truth audit in progress" in r10_contract
+    assert "E10-1 through E10-7 implemented" in design_index
+    assert "`parse`, `ir`, `eval`, `cli`, `flow`, and `error` cases" in host_interop
     assert "[R7 — Web Serving Ergonomics](R7.md) ✓ COMPLETE" in releases
     assert "[R9 — Value Templates & Representations](R9.md) ✓ COMPLETE" in releases
+    assert "[R10 — Configuration & Secrets](R10.md) — ACTIVE; E10-1 through E10-7 implemented" in releases
     assert "Status: **Complete.**" in r7_page

@@ -1,11 +1,9 @@
 # R10 Configuration and Protected-Value Contract
 
-Status: **Approved R10 contract; E10-1 through E10-6 provider/default/protected-carrier/sink/declassification/cross-mode slices implemented; later slices not implemented.**
+Status: **Approved R10 contract; E10-1 through E10-7 implemented; E10-8 release truth audit in progress.**
 
 `GENIA_STATE.md` remains final authority for implemented behavior. The E10-1
-provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, and E10-6 cross-mode-hardening subsets
-are available; later sections remain contracted but unavailable until their own
-tickets implement and verify them.
+provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, E10-6 cross-mode-hardening, and E10-7 composed-proving-case subsets are available. E10-8 audits and distills that implemented boundary; it adds no behavior.
 
 ## Purpose
 
@@ -406,14 +404,14 @@ explicit provider snapshot
    Outcomes, and Templates.
 3. **E10-3 — protected carrier and matching (implemented, Experimental):** `secret_get`, `secret_get_or`,
    reserved facet restrictions, equality/key rules, `protected_match`, transport.
-4. **E10-4 — protected sinks:** rendering/redaction and recursive rejection for
+4. **E10-4 — protected sinks (implemented, Experimental):** rendering/redaction and recursive rejection for
    formatting, output, diagnostics, tests, JSON, reports, resources, HTTP, host.
-5. **E10-5 — explicit declassification:** opaque scoped authority, exact checks,
+5. **E10-5 — explicit declassification (implemented, Experimental):** opaque scoped authority, exact checks,
    audit record, and narrow authorized-host-boundary proof.
 6. **E10-6 — cross-mode hardening (implemented, Experimental):** CLI/import/test/server snapshot boundaries;
    no annotation injection.
-7. **E10-7 — composed validated-pipeline proving case.**
-8. **E10-8 — release truth audit and distillation.**
+7. **E10-7 — composed validated-pipeline proving case (implemented, Experimental).**
+8. **E10-8 — release truth audit and distillation (in progress).**
 
 Each behavior ticket performs its own repository phase workflow. E10-6's former
 annotation/injection scope is replaced by cross-mode hardening. Injection is a
@@ -428,6 +426,4 @@ later follow-up, not an R10 exit requirement.
 
 ## Gate
 
-**E10-1 through E10-6 implemented through issues #589-#594.** This contract does
-not activate E10-7 or any later slice; each still requires its own ticket and
-phase gates.
+**E10-1 through E10-7 are implemented through issues #589-#595.** Issue #596 is the active E10-8 release truth audit and distillation gate. It does not authorize new behavior.
