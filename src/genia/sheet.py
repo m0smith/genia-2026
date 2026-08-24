@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable
 
 from .values import GeniaMap, GeniaSymbol, _is_nil_none, _runtime_type_name, symbol
+from .configuration import contains_protected
 
 
 def _sheet_error(message: str) -> TypeError:
@@ -187,6 +188,8 @@ def sheet_derive(name: Any, function: Any, sheet_value: Any, invoke: Callable[[A
 
 
 def _csv_scalar_text(value: Any, location: str) -> str:
+    if contains_protected(value):
+        raise _sheet_error(f"protected-value: render-csv {location}")
     if _is_nil_none(value):
         return ""
     if isinstance(value, str):
