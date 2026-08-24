@@ -403,6 +403,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 ### Runtime capability values
 
 - Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)
+  - R10 E10-1 through E10-8 are release-complete; completion records the delivered and audited scope, while the APIs remain Experimental and shared/multi-host conformance remains Partial
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
   - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
   - source order is highest to lowest precedence; the first source containing a key wins

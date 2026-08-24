@@ -538,13 +538,12 @@ Issue guidance:
 
 ---
 
-## Release R10 — Configuration & Secrets
+## Release R10 — Configuration & Secrets ✓ COMPLETE
 
-**Status: Active; E10-1 through E10-7 implemented.** Issue #586 approved the durable
+**Status: Complete. E10-1 through E10-8 delivered and audited.** Issue #586 approved the durable
 R10 configuration/protected-value contract; issue #589 implemented the
 Experimental provider/ordinary acquisition slice, issue #590 implemented
-missing-only defaults plus explicit converter/Template composition, issue #591 implemented protected carrier acquisition/matching/transport, and issues #592 through #595 completed protected sinks, explicit declassification, cross-mode hardening, and the composed validated-pipeline proving case. Later R10
-behavior remains planned and requires its own ticket and phase gates.
+missing-only defaults plus explicit converter/Template composition, issue #591 implemented protected carrier acquisition/matching/transport, and issues #592 through #595 completed protected sinks, explicit declassification, cross-mode hardening, and the composed validated-pipeline proving case. Issue #596 completed the release truth audit and distillation. Follow-up behavior requires its own contract and phase gates.
 
 Theme:
 
@@ -563,11 +562,11 @@ metadata, not expressions. The approved contract uses ordinary explicit calls
 over an immutable provider snapshot, adds no syntax or Core IR node, and treats
 the string argument as a configuration **key**, not the configured value.
 
-Candidate scope:
+Delivered scope:
 
 - configuration lookup, source/precedence rules, missing values, and defaults
 - conversion and validation at the host/environment boundary
-- annotation/config injection where it fits the established annotation and lifecycle model
+- explicit acquisition across execution modes; annotation/config injection was rejected and remains deferred
 - secret representation and representation-aware pattern matching
 - secret-safe diagnostics, rendering, logging, output, and serialization policy
 - explicit propagation rules for values derived from secrets
@@ -593,7 +592,7 @@ Exit criterion:
 
 Issue guidance:
 
-- **#585** is the active R10 epic.
+- **#585** is the completed R10 epic.
 - **#586** is the completed E10-0 contract gate.
 - **#589** is the implemented E10-1 provider/ordinary acquisition slice.
 - **#590** is the implemented E10-2 defaults/conversion/Template-validation slice.
@@ -602,7 +601,13 @@ Issue guidance:
 - **#593** is the implemented E10-5 explicit-declassification authority slice.
 - **#594** is the implemented E10-6 cross-mode-hardening slice.
 - **#595** is the implemented E10-7 composed validated-pipeline proving case.
-- E10-8 is not activated by E10-7 completion; use its own reconciled ticket and phase gate.
+- **#596** completed the E10-8 release truth audit and distillation.
+
+Completion qualifications:
+
+- Configuration/protected-value APIs remain Experimental.
+- Shared conformance remains Partial and Python is the only implemented host.
+- Completion does not claim absolute security, memory erasure, vault/rotation/authentication support, annotation injection, ambient providers, R11, or R12 behavior.
 
 ---
 
@@ -739,7 +744,7 @@ R8  — Server Execution Mode
 R9  — Value Templates & Representations
  |
  v
-R10 — Configuration & Secrets
+R10 — Configuration & Secrets ✓ COMPLETE
  |
  v
 R11 — AI Composition
@@ -751,9 +756,7 @@ R12 — Retrieval & Grounding
 This ordering does not imply that R9 technically depends on R8. The semantic
 dependency chain begins with R9: R10 consumes R9 representations, R11 consumes
 R9 structured values plus R10 configuration/secrets, and R12 builds on R11 AI
-composition. R8 and R9 are complete; R10-R12 remain planned and not active for
-implementation. R10 alone has an approved contract and implemented E10-1 through E10-7
-configuration/protected-carrier/composed-proof slices; later R10 slices and R11-R12 require their own gates.
+composition. R8, R9, and R10 are complete; R11-R12 remain planned and not active for implementation. R10 has an approved contract and completed E10-1 through E10-8 configuration/protected-carrier/composed-proof/audit slices; R10 follow-ups and R11-R12 require their own gates.
 
 ---
 
