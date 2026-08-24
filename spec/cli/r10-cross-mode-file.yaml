@@ -1,0 +1,14 @@
+name: r10-cross-mode-file
+category: cli
+description: File mode preserves explicit provider semantics and redacts the protected final value
+input:
+  source: "spec/cli/r10-cross-mode-file.genia"
+  file: "spec/cli/r10-cross-mode-file.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "<protected>"
+  stderr: ""
+  exit_code: 0

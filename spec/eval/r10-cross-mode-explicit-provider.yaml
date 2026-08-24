@@ -1,0 +1,11 @@
+name: r10-cross-mode-explicit-provider
+category: eval
+description: Ordinary evaluation uses only an explicitly constructed literal provider and redacts its protected final value
+input:
+  source: |
+    provider = config_provider([{kind: quote(values), values: {R10_CROSS_MODE_KEY_SENTINEL_594: "R10_CROSS_MODE_PAYLOAD_SENTINEL_594"}}]) |> unwrap_or(none)
+    secret_get(provider, "R10_CROSS_MODE_KEY_SENTINEL_594", quote(fixture_use)) |> unwrap_or(none)
+expected:
+  stdout: "<protected>\n"
+  stderr: ""
+  exit_code: 0

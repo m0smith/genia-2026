@@ -1,9 +1,9 @@
 # R10 Configuration and Protected-Value Contract
 
-Status: **Approved R10 contract; E10-1 through E10-5 provider/default/protected-carrier/sink/declassification slices implemented; later slices not implemented.**
+Status: **Approved R10 contract; E10-1 through E10-6 provider/default/protected-carrier/sink/declassification/cross-mode slices implemented; later slices not implemented.**
 
 `GENIA_STATE.md` remains final authority for implemented behavior. The E10-1
-provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, and E10-5 explicit-declassification subsets
+provider/ordinary acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, E10-5 explicit-declassification, and E10-6 cross-mode-hardening subsets
 are available; later sections remain contracted but unavailable until their own
 tickets implement and verify them.
 
@@ -410,7 +410,7 @@ explicit provider snapshot
    formatting, output, diagnostics, tests, JSON, reports, resources, HTTP, host.
 5. **E10-5 — explicit declassification:** opaque scoped authority, exact checks,
    audit record, and narrow authorized-host-boundary proof.
-6. **E10-6 — cross-mode hardening:** CLI/import/test/server snapshot boundaries;
+6. **E10-6 — cross-mode hardening (implemented, Experimental):** CLI/import/test/server snapshot boundaries;
    no annotation injection.
 7. **E10-7 — composed validated-pipeline proving case.**
 8. **E10-8 — release truth audit and distillation.**
@@ -428,6 +428,6 @@ later follow-up, not an R10 exit requirement.
 
 ## Gate
 
-**E10-1 through E10-5 implemented through issues #589-#593.** This contract does
-not activate E10-6 or any later slice; each still requires its own ticket and
+**E10-1 through E10-6 implemented through issues #589-#594.** This contract does
+not activate E10-7 or any later slice; each still requires its own ticket and
 phase gates.
