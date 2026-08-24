@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- Configuration provider and defaults (Experimental, issues #589 and #590)
+- Configuration provider, defaults, and protected acquisition (Experimental, issues #589-#591)
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
   - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
   - source order is highest to lowest precedence; the first source containing a key wins
@@ -412,10 +412,17 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - an ordinary default result is wrapped in `some(...)`; a default `some(...)`, `none(...)`, or `err(...)` is preserved without nesting
   - default callability/arity is checked only if missing selects the default branch; other lookup Outcomes bypass the default unchanged
   - conversion remains an explicit ordinary Outcome-returning callable, and validation reuses existing callable Templates through ordinary Outcome-aware pipelines
+  - `secret_get(provider, key, purpose)` protects found exact strings, including empty, in one reserved outer `secret` carrier; purpose is a non-empty symbol
+  - `secret_get_or(provider, key, purpose, default)` uses the same missing-only, exactly-once default rule; ordinary/`some` successes are protected once and `none`/`err` are preserved
+  - `protected_match("secret", value)` returns `some(value)` containing the exact protected subject; ordinary/non-secret values return `none("representation-mismatch")`
+  - generic `represent`, `representation_match`, and `strip_representation` reject the reserved `secret` facet
+  - protected equality includes provider identity, purpose, and carried-value equality without exposing them; protected values are not map keys
+  - calls, returns, containers, pipelines, Seq, Flow, Sheet cells, refs, and process messages transport exact protected leaves; containers gain no hidden taint and unsupported ordinary derivation returns existing type failure
+  - protected leaves display/debug as `<protected>`; comprehensive recursive sink rejection/redaction and declassification remain unimplemented E10-4/E10-5 work
   - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
   - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
   - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
-  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, secret handling, annotation, parser, or Core IR change is implemented
+  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, sink-wide protected policy, declassification, annotation, parser, or Core IR change is implemented
   - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
   - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
 
@@ -1084,8 +1091,12 @@ Case placement rules (enforced):
 - `config_provider(sources)` — explicit immutable provider construction over ordered quoted-kind descriptors
 - `config_get(provider, key)` — exact raw-string lookup through an explicit provider
 - `config_get_or(provider, key, default)` — missing-only lazy defaulting; found/empty values bypass the zero-argument default, and selected defaults run exactly once
+- `secret_get(provider, key, purpose)` — exact lookup whose success is one protected `secret` carrier
+- `secret_get_or(provider, key, purpose, default)` — missing-only lazy defaulting whose ordinary/`some` success is protected once
+- `protected_match("secret", value)` — matches only protected values and returns the exact protected subject
 - default ordinary values are lifted into `some(...)`, while default Outcomes remain unchanged; explicit converter Outcomes and callable Template validation compose through existing pipeline rules
-- this E10-1/E10-2 surface adds ordinary calls only; implicit conversion, validation additions, secrets, protection, declassification, and injection are not implemented
+- generic carrier construction, matching, and stripping reject the reserved `secret` facet; protected values compare without exposing payloads, are not map keys, and transport as exact leaves without container taint
+- this E10-1/E10-3 surface adds ordinary calls only; sink-wide enforcement, declassification, injection, and syntax/Core IR changes are not implemented
 
 ### Core I/O and utilities
 

@@ -1040,7 +1040,16 @@ pattern Positive(value) = refinement_match((n) -> n > 0, value)
 config_get_or(provider, "TIMEOUT", () -> "30") |> parse_int |> Positive
 ```
 
-This E10-1/E10-2 surface has no ambient lookup, implicit conversion/coercion, new validation system, secrets, annotations, or new syntax/Core IR.
+E10-3 also provides explicit protected acquisition and matching:
+
+```genia
+pattern Secret(value) = protected_match("secret", value)
+credential = secret_get(provider, "API_TOKEN", quote(outbound_api))
+```
+
+Successful acquisition creates one reserved protected `secret` carrier. `Secret(x)` binds the protected subject, generic `represent`/`representation_match`/`strip_representation` reject `"secret"`, protected values are not map keys, and ordinary transport preserves exact protected leaves without tainting containers. Protected display/debug is `<protected>`; comprehensive sink enforcement and declassification are later R10 slices.
+
+This E10-1/E10-3 surface has no ambient lookup, implicit conversion/coercion, new validation system, annotations, or new syntax/Core IR.
 
 ### Core
 

@@ -10,7 +10,9 @@ from .values import (
     GeniaConfigProvider,
     GeniaMap,
     GeniaOptionErr,
+    GeniaOptionNone,
     GeniaOptionSome,
+    GeniaProtected,
     GeniaSymbol,
     _runtime_type_name,
     make_none,
@@ -114,18 +116,78 @@ def construct_provider(
     return GeniaOptionSome(GeniaConfigProvider(tuple(snapshots)))
 
 
-def get_configuration(provider: Any, key: Any) -> GeniaOptionSome | Any:
+def _get_configuration(provider: Any, key: Any, operation: str) -> GeniaOptionSome | Any:
     if not isinstance(provider, GeniaConfigProvider):
         raise TypeError(
-            "config_get expected a configuration provider, "
+            f"{operation} expected a configuration provider, "
             f"received {_runtime_type_name(provider)}"
         )
     if not _valid_key(key):
         raise TypeError(
-            "config_get expected a non-empty configuration key string without NUL, "
+            f"{operation} expected a non-empty configuration key string without NUL, "
             f"received {_runtime_type_name(key)}"
         )
     value = provider.lookup(key, _MISSING)
     if value is _MISSING:
         return make_none("config-missing")
     return GeniaOptionSome(value)
+
+
+def get_configuration(provider: Any, key: Any) -> GeniaOptionSome | Any:
+    return _get_configuration(provider, key, "config_get")
+
+
+def _validated_purpose(purpose: Any, operation: str) -> GeniaSymbol:
+    if not isinstance(purpose, GeniaSymbol) or purpose.name == "":
+        raise TypeError(f"{operation} expected a non-empty purpose symbol")
+    return purpose
+
+
+def get_secret_configuration(provider: Any, key: Any, purpose: Any) -> Any:
+    validated_purpose = _validated_purpose(purpose, "secret_get")
+    result = _get_configuration(provider, key, "secret_get")
+    if not isinstance(result, GeniaOptionSome):
+        return result
+    return GeniaOptionSome(provider.protect(result.value, validated_purpose), result.context)
+
+
+def contains_protected(value: Any) -> bool:
+    if isinstance(value, GeniaProtected):
+        return True
+    if isinstance(value, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+        return contains_protected(getattr(value, "value", None)) or contains_protected(
+            value.context
+        )
+    if isinstance(value, (list, tuple)):
+        return any(contains_protected(item) for item in value)
+    if isinstance(value, GeniaMap):
+        return any(
+            contains_protected(key) or contains_protected(item)
+            for key, item in value.items()
+        )
+    if value.__class__.__name__ == "GeniaSheet":
+        return any(
+            contains_protected(name) or contains_protected(list(column))
+            for name, column in value.columns
+        )
+    return False
+
+
+def protect_secret_default(provider: Any, purpose: Any, result: Any) -> Any:
+    if not isinstance(provider, GeniaConfigProvider):
+        raise TypeError(
+            "secret_get_or expected a configuration provider, "
+            f"received {_runtime_type_name(provider)}"
+        )
+    validated_purpose = _validated_purpose(purpose, "secret_get_or")
+    if isinstance(result, (GeniaOptionNone, GeniaOptionErr)):
+        return result
+    if isinstance(result, GeniaOptionSome):
+        if contains_protected(result.value):
+            raise TypeError("secret_get_or default success cannot contain a protected value")
+        return GeniaOptionSome(
+            provider.protect(result.value, validated_purpose), result.context
+        )
+    if contains_protected(result):
+        raise TypeError("secret_get_or default success cannot contain a protected value")
+    return GeniaOptionSome(provider.protect(result, validated_purpose))

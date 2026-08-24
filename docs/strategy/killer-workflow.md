@@ -101,8 +101,8 @@ R7 is complete. It does not replace the validated-data-pipeline product north st
 
 **R9** completed the value-template and representation work that supports the
 validated-data-pipeline direction. **R10** has an approved non-implemented
-configuration/protected-value contract and E10-1 provider/ordinary acquisition
-plus E10-2 defaults/conversion/Template validation are implemented; later work still requires the repository's contract, design, test,
+configuration/protected-value contract and E10-1 provider/ordinary acquisition,
+E10-2 defaults/conversion/Template validation, and E10-3 protected-carrier/matching are implemented; later work still requires the repository's contract, design, test,
 implementation, documentation, and audit gates.
 
 ## Using This Document

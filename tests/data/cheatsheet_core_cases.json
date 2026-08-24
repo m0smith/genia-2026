@@ -6,8 +6,8 @@
   },
   {
     "id": "core-config-provider-literal",
-    "source": "provider = config_provider([{kind: quote(values), values: {PORT: \"8080\"}}]) |> unwrap_or(none)\n[config_get(provider, \"PORT\"), config_get_or(provider, \"MISSING\", () -> \"3000\")]",
-    "expected_result": "[some(\"8080\"), some(\"3000\")]"
+    "source": "provider = config_provider([{kind: quote(values), values: {PORT: \"8080\", TOKEN: \"fixture\"}}]) |> unwrap_or(none)\ntoken = secret_get(provider, \"TOKEN\", quote(outbound)) |> unwrap_or(none)\n[config_get(provider, \"PORT\"), config_get_or(provider, \"MISSING\", () -> \"3000\"), display(token), protected_match(\"secret\", token) |> some?]",
+    "expected_result": "[some(\"8080\"), some(\"3000\"), \"<protected>\", true]"
   },
   {
     "id": "core-min-fields-nth-parse",

@@ -448,7 +448,7 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ### Explicit configuration acquisition (Experimental)
 
-- `config_provider(sources)`, `config_get(provider, key)`, and `config_get_or(provider, key, default)` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
+- `config_provider`, `config_get`, `config_get_or`, `secret_get`, `secret_get_or`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
 - source descriptor kinds must be explicit symbols produced with `quote(values)` or `quote(environment)`; no global `values` or `environment` binding is introduced.
 - `sources` must be an explicit list ordered highest to lowest precedence; the first snapshot containing the key wins.
 - provider construction must validate every descriptor and every literal key/value before acquiring any host-backed snapshot.
@@ -458,10 +458,17 @@ No additional member/index/flow operators should be introduced without explicitl
 - `config_get_or` returns a found `some(...)` unchanged, including `some("")`; only `none("config-missing")` invokes its zero-argument default, exactly once.
 - an ordinary default result is wrapped once in `some(...)`; a default Outcome is preserved unchanged. Non-callable or wrong-arity defaults are runtime misuse only when missing selects the default branch.
 - conversion is explicit through an ordinary Outcome-returning callable; validation uses existing callable Templates and existing Outcome-aware pipeline propagation.
+- `secret_get(provider, key, purpose)` requires a non-empty purpose symbol and protects a found exact string, including empty, in exactly one reserved `secret` carrier.
+- `secret_get_or(provider, key, purpose, default)` invokes the default exactly once only for missing; ordinary/`some` successes are protected once, `none`/`err` are preserved, and a success already containing protection is runtime misuse.
+- `protected_match("secret", value)` returns `some(value)` with the exact protected subject; ordinary/non-secret values return `none("representation-mismatch")`; other facets are runtime misuse.
+- generic `represent`, `representation_match`, and `strip_representation` must reject the reserved `secret` facet.
+- protected equality uses provider identity, purpose, and carried-value equality without revealing them; protected values must not be map keys.
+- transport preserves exact protected leaves without tainting containers; unsupported ordinary derivation uses existing type failure.
+- E10-3 does not implement comprehensive sink enforcement/redaction or declassification.
 - unavailable environment capability returns `err("config-source-unavailable", {source_index})`; acquisition failure returns `err("config-provider-failure", {source_index})`.
 - normalized acquisition failures and runtime misuse must not include the key, source contents, raw value, or raw host failure.
 - providers are opaque identity values: display/debug is `<config-provider>` and ordinary map-key, host-conversion, and serialization boundaries reject them.
-- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, secrets, protected values, declassification, and injection remain unimplemented.
+- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, comprehensive protected sink policy, declassification, and injection remain unimplemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
