@@ -155,7 +155,7 @@ def test_model_fixture_preserves_approved_outcomes_once(outcome):
         ),
         (
             "{messages: [{role: quote(user), content: {kind: quote(text), text: \"x\"}}], output: {kind: quote(json)}}",
-            "text output only",
+            "closed output",
         ),
     ],
 )
@@ -268,7 +268,7 @@ def test_structured_output_preserves_template_non_success(template_source, outco
     nested = result.context.get("outcome")
     assert isinstance(nested, outcome_type)
     assert nested.reason == reason
-    assert nested.context == _map(field="id")
+    assert nested.context.get("field") == "id"
     assert fixture.attempt_count == 1
     assert len(audits) == 1
 

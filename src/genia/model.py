@@ -13,6 +13,7 @@ from .values import (
     GeniaOptionNone,
     GeniaOptionSome,
     GeniaProtected,
+    GeniaRepresented,
     GeniaSymbol,
     _runtime_type_name,
     symbol,
@@ -101,7 +102,11 @@ def _validate_message(message: Any, *, response: bool = False) -> GeniaMap:
     return message
 
 
-def _validate_request(request: Any) -> GeniaMap:
+def _validate_request(
+    request: Any,
+    compile_json_schema: Callable[[Any], Any],
+    is_template_callable: Callable[[Any], bool],
+) -> GeniaMap:
     if contains_protected(request):
         raise TypeError("protected-value: model-request")
     request = _closed_map(request, {"messages", "output"}, "request")
@@ -110,10 +115,32 @@ def _validate_request(request: Any) -> GeniaMap:
         raise TypeError("model request expected a non-empty messages list")
     for message in messages:
         _validate_message(message)
-    output = _closed_map(request.get("output"), {"kind"}, "output")
+    output_value = request.get("output")
+    if not isinstance(output_value, GeniaMap):
+        raise TypeError(
+            "model expected output map, "
+            f"received {_runtime_type_name(output_value)}"
+        )
+    output_kind = output_value.get("kind")
+    kind_name = _symbol_name(output_kind, "output kind", {"json", "text"})
+    expected_keys = {"kind"} if kind_name == "text" else {"kind", "schema", "template"}
+    output = _closed_map(output_value, expected_keys, "output")
     kind = output.get("kind")
-    if not isinstance(kind, GeniaSymbol) or kind.name != "text":
-        raise TypeError("model E11-1 supports text output only")
+    if kind.name == "json":
+        try:
+            compiled = compile_json_schema(output.get("schema"))
+        except (TypeError, ValueError) as exc:
+            raise TypeError(
+                "model expected output schema accepted by json_schema"
+            ) from exc
+        if not isinstance(compiled, GeniaOptionSome):
+            raise TypeError("model expected output schema accepted by json_schema")
+        template = output.get("template")
+        if not is_template_callable(template):
+            raise TypeError(
+                "model expected output template function, "
+                f"received {_runtime_type_name(template)}"
+            )
     return request
 
 
@@ -144,7 +171,19 @@ def _invalid_response(stage: str) -> GeniaOptionErr:
     return GeniaOptionErr("model-response-invalid", _map(stage=symbol(stage)))
 
 
-def _validate_response(value: Any) -> GeniaOptionSome | GeniaOptionErr:
+def _structured_invalid(stage: str, outcome: Any) -> GeniaOptionErr:
+    return GeniaOptionErr(
+        "model-structured-output-invalid",
+        _map(stage=symbol(stage), outcome=outcome),
+    )
+
+
+def _validate_response(
+    value: Any,
+    output: GeniaMap,
+    json_decode: Callable[[Any], Any],
+    invoke_template: Callable[[Any, Any], Any],
+) -> GeniaOptionSome | GeniaOptionErr:
     try:
         response = _closed_map(value, {"message", "finish_reason", "usage"}, "response")
     except TypeError:
@@ -161,6 +200,32 @@ def _validate_response(value: Any) -> GeniaOptionSome | GeniaOptionErr:
         _validate_usage(response.get("usage"))
     except ValueError:
         return _invalid_response("usage")
+    if output.get("kind") == symbol("json"):
+        text = response.get("message").get("content").get("text")
+        decoded = json_decode(text)
+        if isinstance(decoded, (GeniaOptionNone, GeniaOptionErr)):
+            return _structured_invalid("json_decode", decoded)
+        if (
+            not isinstance(decoded, GeniaOptionSome)
+            or not isinstance(decoded.value, GeniaRepresented)
+            or decoded.value.facet != "json"
+        ):
+            raise TypeError("model json_decode callback must return a JSON Outcome")
+        template_result = invoke_template(output.get("template"), decoded.value.value)
+        if isinstance(template_result, (GeniaOptionNone, GeniaOptionErr)):
+            return _structured_invalid("template", template_result)
+        if not isinstance(template_result, GeniaOptionSome):
+            raise TypeError(
+                "model output Template must return Outcome, "
+                f"received {_runtime_type_name(template_result)}"
+            )
+        response = response.put(
+            "message",
+            _map(
+                role=symbol("assistant"),
+                content=_map(kind=symbol("json"), value=decoded.value),
+            ),
+        )
     return GeniaOptionSome(response)
 
 
@@ -223,7 +288,16 @@ class GeniaModelProvider:
 class GeniaModel:
     """Ordinary one-argument callable model value."""
 
-    __slots__ = ("_provider", "_config", "_credential", "_authority")
+    __slots__ = (
+        "_provider",
+        "_config",
+        "_credential",
+        "_authority",
+        "_compile_json_schema",
+        "_json_decode",
+        "_is_template_callable",
+        "_invoke_template",
+    )
 
     def __init__(
         self,
@@ -231,14 +305,24 @@ class GeniaModel:
         config: GeniaMap,
         credential: GeniaProtected,
         authority: GeniaDeclassificationAuthority,
+        compile_json_schema: Callable[[Any], Any],
+        json_decode: Callable[[Any], Any],
+        is_template_callable: Callable[[Any], bool],
+        invoke_template: Callable[[Any, Any], Any],
     ):
         self._provider = provider
         self._config = config
         self._credential = credential
         self._authority = authority
+        self._compile_json_schema = compile_json_schema
+        self._json_decode = json_decode
+        self._is_template_callable = is_template_callable
+        self._invoke_template = invoke_template
 
     def __call__(self, request: Any) -> Any:
-        request = _validate_request(request)
+        request = _validate_request(
+            request, self._compile_json_schema, self._is_template_callable
+        )
         ordinary_credential = declassify(self._authority, self._credential)
         if not isinstance(ordinary_credential, str):
             raise TypeError("model expected protected credential to carry a string")
@@ -253,7 +337,12 @@ class GeniaModel:
         if isinstance(observation, GeniaOptionSome):
             if observation.context is not None:
                 return _invalid_response("provider_response")
-            return _validate_response(observation.value)
+            return _validate_response(
+                observation.value,
+                request.get("output"),
+                self._json_decode,
+                self._invoke_template,
+            )
         if isinstance(observation, GeniaOptionNone):
             if observation.reason == "model-no-response" and observation.context is None:
                 return observation
@@ -277,7 +366,15 @@ def create_fixture_model_provider(
 
 
 def construct_model(
-    provider: Any, config: Any, credential: Any, authority: Any
+    provider: Any,
+    config: Any,
+    credential: Any,
+    authority: Any,
+    *,
+    compile_json_schema: Callable[[Any], Any],
+    json_decode: Callable[[Any], Any],
+    is_template_callable: Callable[[Any], bool],
+    invoke_template: Callable[[Any, Any], Any],
 ) -> GeniaModel:
     if not isinstance(provider, GeniaModelProvider):
         raise TypeError(
@@ -289,4 +386,13 @@ def construct_model(
         raise TypeError("model expected a protected credential")
     if not isinstance(authority, GeniaDeclassificationAuthority):
         raise TypeError("model expected a declassification authority")
-    return GeniaModel(provider, validated_config, credential, authority)
+    return GeniaModel(
+        provider,
+        validated_config,
+        credential,
+        authority,
+        compile_json_schema,
+        json_decode,
+        is_template_callable,
+        invoke_template,
+    )
