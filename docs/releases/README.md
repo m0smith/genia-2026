@@ -1,7 +1,7 @@
 # Release Examples
 
-Status: Published. One page per completed release with runnable examples for the
-release's headline behavior.
+Status: Published. One page per completed release, plus explicitly labeled
+active-release pages for delivered slices, with runnable examples.
 
 Each release page shows one or more small, copy-pasteable examples for what that
 release actually delivered — enough to run in under a minute and see the behavior
@@ -23,6 +23,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R8 — Server Execution Mode](R8.md) ✓ COMPLETE
 - [R9 — Value Templates & Representations](R9.md) ✓ COMPLETE
 - [R10 — Configuration & Secrets](R10.md) ✓ COMPLETE
+- [R11 — AI Composition](R11.md) — ACTIVE; E11-1 delivered
 
 ## Process
 

@@ -1,9 +1,10 @@
 # R11 AI Composition Contract
 
-Status: **Approved planning contract; no R11 behavior is implemented.**
+Status: **Approved contract; E11-1 implemented as Experimental, later slices planned.**
 
-This document fixes the semantic boundary for later R11 tickets. It does not
-activate implementation and must not be cited as current language behavior.
+This document fixes the semantic boundary for R11 tickets. E11-1 now implements
+the text-only `model/4` deterministic-fixture subset. This design document must
+not be cited as the authority for current language behavior.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
 ## Purpose
@@ -458,10 +459,11 @@ caching, persistent memory, and general AI observability/evaluation systems.
 
 ## Reconciled R11 sequence
 
-Later issues are created only after issue #607 records explicit contract GO.
+Issue #607 recorded the contract GO; each later issue still requires its own
+phase gates.
 
-1. **E11-1 — ordinary values, `model/4`, deterministic fixture:** validators,
-   callable behavior, one-attempt Outcomes, no network.
+1. **E11-1 — ordinary values, `model/4`, deterministic fixture (implemented):**
+   validators, callable behavior, one-attempt Outcomes, no network.
 2. **E11-2 — R9 structured output:** schema/Template request, strict decode,
    response/failure normalization.
 3. **E11-3 — R10 boundary and one Python provider adapter:** explicit
@@ -481,6 +483,6 @@ implementation. E11-7 reconciles implemented slices; docs never lead behavior.
 
 ## Gate
 
-**GO for E11-1 preflight only**, after issue #607 records explicit approval of
-this contract. This document itself authorizes no implementation, tests, later
-ticket creation, or implemented-behavior documentation.
+Issue #607 recorded explicit approval and issue #611 delivered E11-1. Later
+behavior slices still require their own tickets and phase gates; this document
+does not authorize E11-2 or later implementation.

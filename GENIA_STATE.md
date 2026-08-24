@@ -402,6 +402,21 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
+- AI model invocation (Experimental, R11 E11-1, issue #611)
+  - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
+  - E11-1 is text-only and deterministic-fixture-only: there is no real provider adapter, network operation, JSON structured output, retry, streaming, tool/agent runtime, or conversation runtime
+  - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
+  - `config` is the closed map `{id: nonempty string, timeout_ms: integer 1..300000}`
+  - a request is the closed map `{messages, output}` with a nonempty message list, closed text messages using `system|user|assistant` roles, and `{kind: quote(text)}` output
+  - construction validates its inputs without declassification, audit, or provider attempt; invocation validates the complete request before declassification or attempt
+  - a valid invocation declassifies the R10 protected string credential at the authorized boundary, records the existing R10 audit, and makes exactly one synchronous provider attempt; there is no implicit retry
+  - success is `some({message, finish_reason, usage})`; the response is closed, its message is assistant text, finish reason is `stop|length|filtered|other`, and usage is exact nonnegative token counts or `none("model-usage-unavailable")`
+  - absence is exactly `none("model-no-response")`; normalized failures use `model-timeout`, `model-rate-limited`, `model-rejected`, `model-transport-failure`, or `model-response-invalid` with the closed contexts defined in `GENIA_RULES.md`
+  - malformed fixture observations become `err("model-response-invalid", {stage: quote(provider_response)})` (or the precise response stage); fixture exceptions become non-sensitive transport failure with `kind: quote(other)`
+  - shared eval/error specs opt into the Python fixture explicitly with `fixtures: [r11_model]`; ordinary eval, file, command, pipe, import, native-test, and serve execution gain no fixture bindings
+  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, and normalized Outcomes are the E11-1 portable boundary
+  - PYTHON REFERENCE HOST: only the deterministic offline test fixture is implemented; shared/multi-host conformance remains Partial
+
 - Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)
   - R10 E10-1 through E10-8 are release-complete; completion records the delivered and audited scope, while the APIs remain Experimental and shared/multi-host conformance remains Partial
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`

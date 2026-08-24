@@ -69,7 +69,8 @@
     "debugger_stdio",
     "shell_stage",
     "resource_io",
-    "configuration_environment_snapshot"
+    "configuration_environment_snapshot",
+    "model_deterministic_fixture"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"

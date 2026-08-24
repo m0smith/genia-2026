@@ -1,0 +1,22 @@
+name: model-ordinary-call
+category: ir
+description: Model construction lowers through the existing ordinary call Core IR
+input:
+  source: "model(provider, config, credential, authority)"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrVar
+          name: model
+        args:
+          - node: IrVar
+            name: provider
+          - node: IrVar
+            name: config
+          - node: IrVar
+            name: credential
+          - node: IrVar
+            name: authority

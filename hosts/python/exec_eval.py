@@ -11,7 +11,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
-def run_eval_subprocess(source: str, stdin: str | None) -> dict[str, object]:
+def run_eval_subprocess(
+    source: str, stdin: str | None, fixtures: tuple[str, ...] = ()
+) -> dict[str, object]:
     interpreter_path = REPO_ROOT / "src" / "genia" / "interpreter.py"
     env = dict(os.environ)
     pythonpath = str(REPO_ROOT / "src")
@@ -19,8 +21,16 @@ def run_eval_subprocess(source: str, stdin: str | None) -> dict[str, object]:
     env["PYTHONPATH"] = (
         pythonpath if not existing_pythonpath else os.pathsep.join([pythonpath, existing_pythonpath])
     )
+    command = [sys.executable, str(interpreter_path), "-c", source]
+    if fixtures:
+        if fixtures != ("r11_model",):
+            raise ValueError(f"unsupported eval fixtures: {fixtures!r}")
+        command = [sys.executable, "-m", "hosts.python.exec_model_fixture", source]
+        env["PYTHONPATH"] = os.pathsep.join(
+            [str(REPO_ROOT), env["PYTHONPATH"]]
+        )
     completed = subprocess.run(
-        [sys.executable, str(interpreter_path), "-c", source],
+        command,
         cwd=str(REPO_ROOT),
         input=stdin if stdin is not None else None,
         capture_output=True,
