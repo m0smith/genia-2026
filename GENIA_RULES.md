@@ -466,11 +466,13 @@ No additional member/index/flow operators should be introduced without explicitl
 - transport preserves exact protected leaves without tainting containers; unsupported ordinary derivation uses existing type failure.
 - diagnostic renderers recursively substitute exactly `<protected>`; this redaction does not authorize output.
 - Format replacements, output sinks, JSON encoding, Sheet CSV rendering, resource writes, HTTP responses, and ordinary host conversion must reject recursively before effects; `json_encode` returns `err("protected-value", {operation: "json-encode"})`.
-- E10-4 does not implement declassification.
+- `declassify(authority, protected_value)` is the sole reveal operation; authority must be host-injected, match provider identity, and allow the protected purpose.
+- successful declassification removes one protected layer, audits before returning, and yields an ordinary value without hidden taint; failed matching reveals nothing.
+- declassification authority is opaque, noncopyable, nonserializable, and rejected from ordinary output, storage, process, and host-data boundaries.
 - unavailable environment capability returns `err("config-source-unavailable", {source_index})`; acquisition failure returns `err("config-provider-failure", {source_index})`.
 - normalized acquisition failures and runtime misuse must not include the key, source contents, raw value, or raw host failure.
 - providers are opaque identity values: display/debug is `<config-provider>` and ordinary map-key, host-conversion, and serialization boundaries reject them.
-- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, declassification, and injection remain unimplemented.
+- there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, and annotation injection remain unimplemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

@@ -1047,9 +1047,9 @@ pattern Secret(value) = protected_match("secret", value)
 credential = secret_get(provider, "API_TOKEN", quote(outbound_api))
 ```
 
-Successful acquisition creates one reserved protected `secret` carrier. `Secret(x)` binds the protected subject, generic `represent`/`representation_match`/`strip_representation` reject `"secret"`, protected values are not map keys, and ordinary transport preserves exact protected leaves without tainting containers. Diagnostic rendering recursively substitutes `<protected>`; Format, output, JSON, Sheet CSV, resource, HTTP, and ordinary host boundaries reject protected leaves before effects. Declassification remains a later R10 slice.
+Successful acquisition creates one reserved protected `secret` carrier. `Secret(x)` binds the protected subject, generic `represent`/`representation_match`/`strip_representation` reject `"secret"`, protected values are not map keys, and ordinary transport preserves exact protected leaves without tainting containers. Diagnostic rendering recursively substitutes `<protected>`; Format, output, JSON, Sheet CSV, resource, HTTP, and ordinary host boundaries reject protected leaves before effects. `declassify(authority, token)` is the sole reveal operation and succeeds only for an exact host-injected provider/purpose-scoped authority, recording a non-sensitive audit event before returning an ordinary value.
 
-This E10-1/E10-4 surface has no ambient lookup, implicit conversion/coercion, new validation system, declassification, annotations, or new syntax/Core IR.
+This E10-1/E10-5 surface has no ambient lookup, implicit conversion/coercion, new validation system, annotation injection, or new syntax/Core IR.
 
 ### Core
 

@@ -97,7 +97,7 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 ## Release Position: R9 Complete; R10 E10-1/E10-3 Implemented
 
 **R9 — Value Templates & Representations is complete. R10 has an approved
-contract and its E10-1 provider acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, and E10-4 protected-sink slices are implemented.**
+contract and its E10-1 provider acquisition, E10-2 defaults/conversion-validation, E10-3 protected-carrier/matching, E10-4 protected-sink, and E10-5 explicit-declassification slices are implemented.**
 
 R7 (Web Serving Ergonomics) is complete. It delivered explicitly approved Python-reference-host infrastructure without changing the validated-data-pipeline product north star.
 
