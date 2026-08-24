@@ -1,0 +1,13 @@
+name: error-model-structured-template
+category: error
+description: Structured request rejects a non-callable Template before fixture invocation
+input:
+  fixtures: [r11_model]
+  source: |
+    schema = json_decode("{\"type\":\"integer\"}") |> unwrap_or({})
+    m = model(model_provider_fixture, {id: "fixture-json", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    m({messages: [{role: quote(user), content: {kind: quote(text), text: "x"}}], output: {kind: quote(json), schema: schema, template: 42}})
+expected:
+  stdout: ""
+  stderr: "Error: model expected output template function, received int\n"
+  exit_code: 1

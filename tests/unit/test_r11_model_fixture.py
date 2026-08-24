@@ -7,7 +7,9 @@ from genia.utf8 import format_display
 from genia.values import (
     GeniaMap,
     GeniaOptionErr,
+    GeniaOptionNone,
     GeniaOptionSome,
+    GeniaRepresented,
     make_none,
     symbol,
 )
@@ -40,9 +42,9 @@ def _usage(input_tokens=2, output_tokens=3, total_tokens=5):
     )
 
 
-def _response(*, usage=None):
+def _response(*, text="fixture reply", usage=None):
     return _map(
-        message=_message("assistant", "fixture reply"),
+        message=_message("assistant", text),
         finish_reason=symbol("stop"),
         usage=GeniaOptionSome(_usage()) if usage is None else usage,
     )
@@ -206,3 +208,103 @@ def test_model_config_is_closed_and_validated_without_side_effects():
         )
     assert fixture.attempt_count == 0
     assert audits == []
+
+
+def _json_request_source(template_source="(_) -> some(\"ignored payload\")"):
+    return (
+        "{messages: [{role: quote(user), content: {kind: quote(text), text: \"return 7\"}}], "
+        "output: {kind: quote(json), "
+        'schema: json_decode("{\\"type\\":\\"integer\\"}") |> unwrap_or({}), '
+        f"template: ({template_source})}}}}"
+    )
+
+
+def test_structured_output_decodes_validates_and_retains_represented_value_once():
+    env, fixture, audits = _fixture_env(GeniaOptionSome(_response(text="7")))
+
+    result = run_source(_model_source(_json_request_source()), env)
+
+    assert isinstance(result, GeniaOptionSome)
+    content = result.value.get("message").get("content")
+    assert content.get("kind") == symbol("json")
+    represented = content.get("value")
+    assert isinstance(represented, GeniaRepresented)
+    assert represented.facet == "json"
+    assert represented.value == 7
+    assert fixture.attempt_count == 1
+    assert len(audits) == 1
+
+
+def test_structured_output_preserves_json_decode_error_as_nested_outcome():
+    env, fixture, audits = _fixture_env(GeniaOptionSome(_response(text="{")))
+
+    result = run_source(_model_source(_json_request_source()), env)
+
+    assert isinstance(result, GeniaOptionErr)
+    assert result.reason == "model-structured-output-invalid"
+    assert result.context.get("stage") == symbol("json_decode")
+    nested = result.context.get("outcome")
+    assert isinstance(nested, GeniaOptionErr)
+    assert nested.reason == symbol("invalid_json")
+    assert fixture.attempt_count == 1
+    assert len(audits) == 1
+
+
+@pytest.mark.parametrize(
+    "template_source, outcome_type, reason",
+    [
+        ('(_) -> none("structured-mismatch", {field: "id"})', GeniaOptionNone, "structured-mismatch"),
+        ('(_) -> err("structured-template-error", {field: "id"})', GeniaOptionErr, "structured-template-error"),
+    ],
+)
+def test_structured_output_preserves_template_non_success(template_source, outcome_type, reason):
+    env, fixture, audits = _fixture_env(GeniaOptionSome(_response(text="7")))
+
+    result = run_source(_model_source(_json_request_source(template_source)), env)
+
+    assert isinstance(result, GeniaOptionErr)
+    assert result.reason == "model-structured-output-invalid"
+    assert result.context.get("stage") == symbol("template")
+    nested = result.context.get("outcome")
+    assert isinstance(nested, outcome_type)
+    assert nested.reason == reason
+    assert nested.context == _map(field="id")
+    assert fixture.attempt_count == 1
+    assert len(audits) == 1
+
+
+@pytest.mark.parametrize(
+    "output_source, message",
+    [
+        (
+            '{kind: quote(json), schema: json_decode("{\\"type\\":\\"integer\\",\\"minimum\\":0}") |> unwrap_or({}), template: (_) -> some(true)}',
+            "output schema accepted by json_schema",
+        ),
+        (
+            '{kind: quote(json), schema: json_decode("{\\"type\\":\\"integer\\"}") |> unwrap_or({}), template: 42}',
+            "output template function",
+        ),
+    ],
+)
+def test_invalid_structured_request_fails_before_declassification_or_attempt(output_source, message):
+    env, fixture, audits = _fixture_env(GeniaOptionSome(_response(text="7")))
+    request = (
+        "{messages: [{role: quote(user), content: {kind: quote(text), text: \"hello\"}}], "
+        f"output: {output_source}}}"
+    )
+
+    with pytest.raises(TypeError, match=message):
+        run_source(_model_source(request), env)
+
+    assert fixture.attempt_count == 0
+    assert audits == []
+
+
+def test_structured_template_must_return_outcome_without_retry():
+    env, fixture, audits = _fixture_env(GeniaOptionSome(_response(text="7")))
+
+    with pytest.raises(TypeError, match="output Template must return Outcome"):
+        run_source(_model_source(_json_request_source("(_) -> true")), env)
+
+    assert fixture.attempt_count == 1
+    assert len(audits) == 1

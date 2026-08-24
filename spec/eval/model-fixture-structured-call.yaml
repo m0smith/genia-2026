@@ -1,0 +1,15 @@
+name: model-fixture-structured-call
+category: eval
+description: Structured model output reuses R9 decode and an explicit callable Template
+input:
+  fixtures: [r11_model]
+  source: |
+    schema = json_decode("{\"type\":\"integer\"}") |> unwrap_or({})
+    Integer = json_schema(schema) |> unwrap_or((_) -> none("compile-failed"))
+    m = model(model_provider_fixture, {id: "fixture-json", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    response = m({messages: [{role: quote(user), content: {kind: quote(text), text: "return 7"}}], output: {kind: quote(json), schema: schema, template: Integer}}) |> unwrap_or({})
+    response.message.content.value |> representation_match("json") |> unwrap_or(-1)
+expected:
+  stdout: "7\n"
+  stderr: ""
+  exit_code: 0

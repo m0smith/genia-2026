@@ -1,0 +1,16 @@
+name: model-fixture-structured-flow
+category: flow
+description: Structured model calls compose as ordinary Outcome-producing Flow stages
+input:
+  fixtures: [r11_model]
+  source: |
+    schema = json_decode("{\"type\":\"integer\"}") |> unwrap_or({})
+    Integer = json_schema(schema) |> unwrap_or((_) -> none("compile-failed"))
+    m = model(model_provider_fixture, {id: "fixture-json", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    ["first", "second"]
+      |> map((prompt) -> m({messages: [{role: quote(user), content: {kind: quote(text), text: prompt}}], output: {kind: quote(json), schema: schema, template: Integer}}))
+      |> collect
+expected:
+  stdout: "[some({message: {role: assistant, content: {kind: json, value: <represented>}}, finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})}), some({message: {role: assistant, content: {kind: json, value: <represented>}}, finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})})]\n"
+  stderr: ""
+  exit_code: 0
