@@ -1,0 +1,12 @@
+name: error-model-empty-messages
+category: error
+description: Model request validation rejects empty messages before fixture invocation
+input:
+  fixtures: [r11_model]
+  source: |
+    m = model(model_provider_fixture, {id: "fixture-text", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    m({messages: [], output: {kind: quote(text)}})
+expected:
+  stdout: ""
+  stderr: "Error: model request expected a non-empty messages list\n"
+  exit_code: 1

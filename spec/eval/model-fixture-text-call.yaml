@@ -1,0 +1,12 @@
+name: model-fixture-text-call
+category: eval
+description: Explicit deterministic model fixture produces one normalized text response
+input:
+  fixtures: [r11_model]
+  source: |
+    m = model(model_provider_fixture, {id: "fixture-text", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    m({messages: [{role: quote(user), content: {kind: quote(text), text: "hello"}}], output: {kind: quote(text)}})
+expected:
+  stdout: "some({message: {role: assistant, content: {kind: text, text: \"fixture reply\"}}, finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})})\n"
+  stderr: ""
+  exit_code: 0

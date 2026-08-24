@@ -1,0 +1,10 @@
+name: parse-model-ordinary-call
+category: parse
+description: Model construction uses the existing ordinary call surface
+input:
+  source: "model(provider, config, credential, authority)"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Call
