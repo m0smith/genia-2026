@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- Configuration provider, defaults, and protected acquisition (Experimental, issues #589-#591)
+- Configuration provider, defaults, protected acquisition, and sink safety (Experimental, issues #589-#592)
   - `config_provider(sources)` constructs an explicit opaque immutable provider snapshot and returns `some(provider)` or a normalized `err(...)`
   - supported descriptors are `{kind: quote(values), values: map}` and capability-backed `{kind: quote(environment)}`
   - source order is highest to lowest precedence; the first source containing a key wins
@@ -418,11 +418,12 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - generic `represent`, `representation_match`, and `strip_representation` reject the reserved `secret` facet
   - protected equality includes provider identity, purpose, and carried-value equality without exposing them; protected values are not map keys
   - calls, returns, containers, pipelines, Seq, Flow, Sheet cells, refs, and process messages transport exact protected leaves; containers gain no hidden taint and unsupported ordinary derivation returns existing type failure
-  - protected leaves display/debug as `<protected>`; comprehensive recursive sink rejection/redaction and declassification remain unimplemented E10-4/E10-5 work
+  - diagnostic rendering recursively substitutes `<protected>`; Format replacements, output sinks, JSON, Sheet CSV, resource writes, HTTP responses, and ordinary host conversion reject protected leaves before effects
+  - `json_encode` returns `err("protected-value", {operation: "json-encode"})`; resource rejection writes zero payload bytes; declassification remains unimplemented E10-5 work
   - valid keys are non-empty strings without NUL; normalized diagnostics never include the key, source contents, raw value, or host exception detail
   - providers display/debug as `<config-provider>`, compare by identity, are not map keys, and are rejected by ordinary host conversion and JSON serialization
   - construction copies every source once; later literal/environment mutation is invisible and lookup performs no host access
-  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, sink-wide protected policy, declassification, annotation, parser, or Core IR change is implemented
+  - no ambient provider, implicit environment fallback, refresh, implicit conversion/coercion, new validation system, declassification, annotation, parser, or Core IR change is implemented
   - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
   - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
 
@@ -1096,7 +1097,7 @@ Case placement rules (enforced):
 - `protected_match("secret", value)` — matches only protected values and returns the exact protected subject
 - default ordinary values are lifted into `some(...)`, while default Outcomes remain unchanged; explicit converter Outcomes and callable Template validation compose through existing pipeline rules
 - generic carrier construction, matching, and stripping reject the reserved `secret` facet; protected values compare without exposing payloads, are not map keys, and transport as exact leaves without container taint
-- this E10-1/E10-3 surface adds ordinary calls only; sink-wide enforcement, declassification, injection, and syntax/Core IR changes are not implemented
+- this E10-1/E10-4 surface adds ordinary calls and protected enforcement at existing boundaries only; declassification, injection, and syntax/Core IR changes are not implemented
 
 ### Core I/O and utilities
 

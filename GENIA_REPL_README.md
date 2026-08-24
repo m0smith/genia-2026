@@ -232,8 +232,8 @@ CLI contract summary (actual behavior):
   - `config_get_or(provider, key, default)` preserves found/empty values; only missing invokes the zero-argument default exactly once, wrapping ordinary results in `some(...)` and preserving returned Outcomes
   - `secret_get(provider, key, purpose)` and `secret_get_or(provider, key, purpose, default)` protect successful values once; `protected_match("secret", value)` returns the exact protected subject
   - generic representation construction/matching/stripping reject `"secret"`; protected values are not map keys and transport unchanged without container taint
-  - protected leaves display/debug as `<protected>`; comprehensive sink enforcement and declassification are not implemented
-  - conversion stays explicit through ordinary Outcome-returning callables such as `parse_int`; callable Templates validate converted successes through existing pipeline rules. No ambient lookup, implicit conversion, protected sink policy, declassification, or injection is implemented
+  - diagnostic rendering recursively substitutes `<protected>`; output/format/serialization/resource/HTTP/host boundaries reject protected leaves before effects
+  - conversion stays explicit through ordinary Outcome-returning callables such as `parse_int`; callable Templates validate converted successes through existing pipeline rules. No ambient lookup, implicit conversion, declassification, or injection is implemented
   - raw CLI primitive: `argv`
   - public Python-host-only CLI helpers from `src/genia/std/prelude/cli.genia`: `cli_parse`, `cli_flag?`, `cli_option`, `cli_option_or`
   - Python-host-only ref runtime helpers are exposed publicly through prelude-backed wrappers: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
