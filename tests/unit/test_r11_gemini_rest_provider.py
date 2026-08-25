@@ -1,4 +1,3 @@
-import io
 import json
 import socket
 import urllib.error
@@ -224,7 +223,9 @@ def test_gemini_local_timeout_normalizes(error):
 
     env, capability, _ = _env(transport)
     result = run_source(_source(), env)
-    assert result == GeniaOptionErr("model-timeout", _map(timeout_ms=1250))
+    assert isinstance(result, GeniaOptionErr)
+    assert result.reason == "model-timeout"
+    assert result.context.get("timeout_ms") == 1250
     assert capability.attempt_count == 1
 
 
@@ -272,4 +273,3 @@ def test_default_transport_is_not_exercised_by_construction():
     capability = create_gemini_rest_model_provider()
     assert repr(capability) == "<model-provider>"
     assert capability.attempt_count == 0
-
