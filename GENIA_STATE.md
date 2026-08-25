@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- AI model invocation (Experimental, R11 E11-1 through E11-4, issues #611-#614)
+- AI model invocation and Flow conversation composition (Experimental, R11 E11-1 through E11-5, issues #611-#615)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
   - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path
   - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
@@ -421,7 +421,13 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - malformed provider observations become `err("model-response-invalid", {stage: quote(provider_response)})` (or the precise response stage); Gemini HTTP/transport failures normalize to the existing timeout/rate-limit/rejected/transport Outcomes without retaining raw bodies, headers other than parsed retry delay, request IDs, exception text, keys, or credentials
   - shared eval/error/Flow/CLI specs opt into the Python fixture explicitly with `fixtures: [r11_model]`; CLI fixture routing is private shared-spec harness behavior for command/file/pipe observations, while ordinary eval, file, command, pipe, import, native-test, and serve execution gain no fixture bindings
   - parse and Core IR shared specs retain the existing ordinary `Call`/`IrCall` shapes; E11-4 adds no syntax, node, execution mode, flag, annotation, lifecycle consumer, ambient capability, or retry/tool/streaming surface
-  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, normalized Outcomes, and explicit cross-mode boundary are the implemented E11-1 through E11-4 portable boundary
+  - E11-5 implements conversation as application-owned ordinary state evolution through existing `scan(step, initial_state, source)`: input is exactly `{kind: quote(message), message: {role: quote(user), content}}` or `{kind: quote(stop), reason: string}`; initial state is exactly `{messages: [], turn: 0, status: quote(active), last: none("conversation-not-started")}`
+  - the application-defined step returns `[next_state, next_state]`; an active message appends the user message, calls an ordinary prompt over the full ordered history, calls the model once, increments `turn`, records the exact Outcome, and appends one assistant message only for `some(response)`; `none`/`err` sets failed status without an assistant append
+  - active stop preserves history/turn, records stopped status plus `none("conversation-stopped", {reason})`, and makes no model call; stopped/failed states return unchanged for later input with no call
+  - list input returns an eager state list and Flow input returns a lazy single-use Flow with equivalent consumed states; `scan` emits no initial state, and source completion or existing downstream bounds terminate consumption without a new Flow helper
+  - `examples/r11_flow_conversation.genia` is the executable application composition proof; it uses existing `apply_raw` only to deliberately dispatch model Outcomes as data rather than triggering ordinary Option short-circuiting
+  - conversation owns neither input acquisition nor model/provider configuration and adds no runtime object, hidden memory, retry/reprompt/tool loop, streaming, cancellation, `take_while`, syntax, annotation, or Core IR node
+  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, normalized Outcomes, explicit cross-mode boundary, and application-owned list/Flow `scan` composition are the implemented E11-1 through E11-5 portable boundary
   - PYTHON REFERENCE HOST: the offline deterministic fixture and one explicitly constructed Gemini REST capability are implemented; automated adapter tests inject a fake transport and perform no network access; shared/multi-host conformance remains Partial
 
 - Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)
