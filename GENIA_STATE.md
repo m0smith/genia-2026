@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- AI model invocation (Experimental, R11 E11-1/E11-3, issues #611-#613)
+- AI model invocation (Experimental, R11 E11-1 through E11-4, issues #611-#614)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
   - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path
   - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
@@ -419,8 +419,9 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - there is no repair, trimming, prose/fence extraction, coercion, second parse, reprompt, partial acceptance, or retry
   - absence is exactly `none("model-no-response")`; normalized failures use `model-timeout`, `model-rate-limited`, `model-rejected`, `model-transport-failure`, or `model-response-invalid` with the closed contexts defined in `GENIA_RULES.md`
   - malformed provider observations become `err("model-response-invalid", {stage: quote(provider_response)})` (or the precise response stage); Gemini HTTP/transport failures normalize to the existing timeout/rate-limit/rejected/transport Outcomes without retaining raw bodies, headers other than parsed retry delay, request IDs, exception text, keys, or credentials
-  - shared eval/error specs opt into the Python fixture explicitly with `fixtures: [r11_model]`; ordinary eval, file, command, pipe, import, native-test, and serve execution gain no fixture bindings
-  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, and normalized Outcomes are the implemented E11-1/E11-3 portable boundary
+  - shared eval/error/Flow/CLI specs opt into the Python fixture explicitly with `fixtures: [r11_model]`; CLI fixture routing is private shared-spec harness behavior for command/file/pipe observations, while ordinary eval, file, command, pipe, import, native-test, and serve execution gain no fixture bindings
+  - parse and Core IR shared specs retain the existing ordinary `Call`/`IrCall` shapes; E11-4 adds no syntax, node, execution mode, flag, annotation, lifecycle consumer, ambient capability, or retry/tool/streaming surface
+  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, normalized Outcomes, and explicit cross-mode boundary are the implemented E11-1 through E11-4 portable boundary
   - PYTHON REFERENCE HOST: the offline deterministic fixture and one explicitly constructed Gemini REST capability are implemented; automated adapter tests inject a fake transport and perform no network access; shared/multi-host conformance remains Partial
 
 - Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)

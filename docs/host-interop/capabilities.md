@@ -44,7 +44,7 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 - **output:** one existing Outcome containing the closed E11-1 text response, absence, or normalized failure
 - **errors:** malformed observations normalize to `model-response-invalid`; fixture exceptions normalize to non-sensitive `model-transport-failure` with `kind: quote(other)`
 - **portability:** `Python-host-only`
-- **notes:** This is an offline shared-spec/test fixture, not a real model provider adapter. It is injected only for cases explicitly declaring `fixtures: [r11_model]`; ordinary execution has no ambient fixture. Each valid invocation attempts it exactly once.
+- **notes:** This is an offline shared-spec/test fixture, not a real model provider adapter. It is injected only for eval, error, Flow, or CLI cases explicitly declaring `fixtures: [r11_model]`; CLI command/file/pipe routing is private harness behavior and ordinary execution has no ambient fixture. Each valid invocation attempts it exactly once.
 
 ### Group: Gemini Model REST Adapter
 

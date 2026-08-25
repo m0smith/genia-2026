@@ -1019,11 +1019,11 @@ actor_call(a, 3)
 
 ## Builtins
 
-### AI model invocation (Experimental E11-1/E11-3)
+### AI model invocation (Experimental E11-1 through E11-4)
 
 `model(provider, config, credential, authority)` returns an ordinary callable
 whose text or explicit R9-structured request produces an existing Outcome.
-E11-1/E11-3 validate closed ordinary message/request/response maps, declassify
+E11-1 through E11-4 validate closed ordinary message/request/response maps, declassify
 the R10 protected string credential only at invocation, and make exactly one
 synchronous provider attempt. Structured output uses existing `json_schema`,
 `json_decode`, and an explicit callable Template; invalid decode/Template
@@ -1038,6 +1038,9 @@ Automated tests inject a fake transport and remain offline. Ordinary
 CLI/file/import/test/serve execution has no ambient provider, credential, or
 authority binding; general HTTP, provider discovery/fallback, streaming,
 tools/agents, conversations, and retrieval are not implemented.
+Shared eval, error, Flow, and CLI conformance cases can explicitly select the
+private deterministic fixture; this does not add a user CLI flag or ambient
+binding. Parse and Core IR coverage confirms `model/4` remains an ordinary call.
 
 ### Explicit configuration acquisition (Experimental)
 

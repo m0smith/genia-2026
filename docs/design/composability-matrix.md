@@ -74,12 +74,12 @@ release changes one of these composition boundaries.
 
 ## R11 relationships
 
-These rows record the implemented E11-1/E11-3 foundation and constrain later R11
+These rows record the implemented E11-1 through E11-4 foundation and constrain later R11
 work; see `r11-ai-composition-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
-| model | ordinary callable / Outcome | `model/4` returns one ordinary callable; after local validation and authorized credential declassification, each call makes exactly one synchronous fixture or Gemini REST attempt and returns an existing Outcome | E11-1/E11-3 implemented, Experimental; providers Python-host-only |
+| model | ordinary callable / Outcome | `model/4` returns one ordinary callable; after local validation and authorized credential declassification, each call makes exactly one synchronous fixture or Gemini REST attempt and returns an existing Outcome; explicit shared eval/error/Flow/CLI fixture observations preserve that relationship without ambient bindings | E11-1 through E11-4 implemented, Experimental; providers Python-host-only |
 | prompt and chain | function / pipeline | prompts build ordinary request values and chains use ordinary functions and `|>`; no second chain runtime or executor | Planned; not implemented |
 | structured model output | R9 JSON / Template | a closed request carries one R9 JSON schema plus an explicit callable Template; strict `json_decode` validates the single provider text observation, the Template checks its carried ordinary value once, and success retains the original represented value; no AI schema/repair/retry system | E11-2 implemented, Experimental; fixture Python-host-only |
 | model credential | R10 protected value / authority | explicit `secret_get(..., quote(model_call))` stays protected until declassification immediately before one authorized adapter attempt; the Gemini adapter places the revealed string only in its private API-key header | E11-3 implemented, Experimental; Gemini adapter Python-host-only |
