@@ -1,7 +1,5 @@
 from pathlib import Path
 
-import pytest
-
 from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.interpreter import run_source
