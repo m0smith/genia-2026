@@ -1,0 +1,15 @@
+name: r11-flow-conversation-flow
+category: flow
+description: Equivalent external Flow input evolves lazily through existing scan
+input:
+  source: |
+    initial = {messages: [], turn: 0, status: quote(active), last: none("conversation-not-started")}
+    step(state, text) = {
+      next = {messages: state.messages + [{role: quote(user), content: {kind: quote(text), text: text}}], turn: state.turn + 1, status: quote(active), last: none("model-no-response")}
+      [next, next]
+    }
+    ["one", "two"] |> each((_) -> none) |> scan(step, initial) |> take(1) |> collect
+expected:
+  stdout: "[{messages: [{role: user, content: {kind: text, text: \"one\"}}], turn: 1, status: active, last: none(\"model-no-response\")}]\n"
+  stderr: ""
+  exit_code: 0

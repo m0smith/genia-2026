@@ -588,7 +588,7 @@ Related shared portability docs:
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
 - Runtime capability values:
   - explicit immutable configuration provider (`<config-provider>`, Experimental)
-  - explicitly injected model provider and returned callable model (`model/4`, Experimental E11-1; deterministic Python fixture only)
+    - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-5; E11-5 conversation remains application code over existing `scan`)
   - `stdout`
   - `stderr`
   - MetaEnv
@@ -1019,7 +1019,7 @@ actor_call(a, 3)
 
 ## Builtins
 
-### AI model invocation (Experimental E11-1 through E11-4)
+### AI model invocation and Flow conversation composition (Experimental E11-1 through E11-5)
 
 `model(provider, config, credential, authority)` returns an ordinary callable
 whose text or explicit R9-structured request produces an existing Outcome.
@@ -1037,7 +1037,11 @@ REST with one configured-timeout attempt, no SDK, no redirect, and no retry.
 Automated tests inject a fake transport and remain offline. Ordinary
 CLI/file/import/test/serve execution has no ambient provider, credential, or
 authority binding; general HTTP, provider discovery/fallback, streaming,
-tools/agents, conversations, and retrieval are not implemented.
+tools/agents, a conversation runtime, and retrieval are not implemented. E11-5
+instead provides `examples/r11_flow_conversation.genia`, an application-defined
+ordinary state machine consumed by existing list/Flow `scan`. It owns no input
+source, memory, retry, or termination helper; stop and failed states are inert,
+and only a successful `some(response)` appends an assistant message.
 Shared eval, error, Flow, and CLI conformance cases can explicitly select the
 private deterministic fixture; this does not add a user CLI flag or ambient
 binding. Parse and Core IR coverage confirms `model/4` remains an ordinary call.

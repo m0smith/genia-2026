@@ -613,7 +613,7 @@ Completion qualifications:
 
 ## Release R11 — AI Composition
 
-**Status: Active; E11-1 through E11-4 implemented, E11-5 and later planned.** The Experimental
+**Status: Active; E11-1 through E11-5 implemented, E11-6 and later planned.** The Experimental
 E11-1/E11-3 Python reference-host boundary provides text and R9-validated JSON
 `model/4` over an explicit deterministic fixture and one explicit Google Gemini
 direct-REST capability. The remaining section records
@@ -690,7 +690,7 @@ Approved sequence:
 2. E11-2 — R9 structured output — **implemented (Experimental; Python fixture only)**
 3. E11-3 — R10 boundary and one Python provider adapter — **implemented (Experimental; Python Gemini REST only)**
 4. E11-4 — shared conformance and cross-mode hardening — **implemented (Experimental; Python fixture harness)**
-5. E11-5 — Flow/`scan` conversation composition
+5. E11-5 — Flow/`scan` conversation composition — **implemented (Experimental; application-owned ordinary state)**
 6. E11-6 — Outcome-aware validated-pipeline proving case
 7. E11-7 — release examples and truth sync
 8. E11-8 — final truth audit and distillation
