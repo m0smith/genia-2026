@@ -46,6 +46,18 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 - **portability:** `Python-host-only`
 - **notes:** This is an offline shared-spec/test fixture, not a real model provider adapter. It is injected only for cases explicitly declaring `fixtures: [r11_model]`; ordinary execution has no ambient fixture. Each valid invocation attempts it exactly once.
 
+### Group: Gemini Model REST Adapter
+
+#### `model.gemini-rest`
+
+- **name:** `model.gemini-rest`
+- **genia_surface:** opaque explicitly host-constructed provider passed to `model(provider, config, credential, authority)`
+- **input:** one validated text or R9-structured request, exact `{id, timeout_ms}` config, and the authorized declassified string credential at the private host boundary
+- **output:** one existing model Outcome after direct `v1beta models.generateContent` request/response normalization
+- **errors:** HTTP deadline, rate-limit, rejection, availability, malformed response, and structured failures normalize to the existing closed model errors; raw provider data and exception text do not cross the boundary
+- **portability:** `Python-host-only`
+- **notes:** E11-3 uses the Python standard library, one synchronous attempt, no redirects or retries, no provider SDK, and no general HTTP API. Automated tests inject an offline fake transport; ordinary execution has no ambient Gemini capability, credential, or authority.
+
 ### Group: I/O Substrate
 
 Capabilities connecting Genia programs to the host I/O streams. These are `language contract` capabilities — all hosts must provide them.

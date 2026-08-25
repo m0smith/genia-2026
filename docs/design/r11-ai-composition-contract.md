@@ -1,8 +1,8 @@
 # R11 AI Composition Contract
 
-Status: **Approved contract; E11-1/E11-2 implemented as Experimental, later slices planned.**
+Status: **Approved contract; E11-1/E11-3 implemented as Experimental, later slices planned.**
 
-This document fixes the semantic boundary for R11 tickets. E11-1/E11-2 now implement
+This document fixes the semantic boundary for R11 tickets. E11-1/E11-3 now implement
 the text and R9-validated JSON `model/4` deterministic-fixture subset. This design document must
 not be cited as the authority for current language behavior.
 `GENIA_STATE.md` remains final authority for implemented behavior.
@@ -59,7 +59,7 @@ Validation reveals no protected data. Construction does not declassify,
 contact a provider, or record a declassification audit event.
 
 The provider capability factory is host API, not another Genia public
-function. The Python proof supplies one provider-specific capability and one
+function. The Python proof supplies one Google Gemini direct-REST capability and one
 deterministic fixture capability through a harness/application boundary. There
 is no provider registry, name dispatch, general outbound HTTP function,
 ambient provider, or implicit configuration read.
@@ -271,11 +271,12 @@ arbitrary reveal callbacks, or claim memory erasure.
 | credential | R10 protected value/authority | just-in-time declassification |
 | execution | one synchronous finite attempt | Python deadline/cleanup |
 | errors | exact Outcomes | provider details removed |
-| testing | deterministic fixture observations | no network or sleeping |
+| testing | deterministic fixture observations | injected fake transport; no automated network or sleeping |
 
-The release proof implements one Python provider-specific adapter. Its SDK,
-endpoint, headers, wire JSON, authentication convention, request IDs, and error
-types are not Genia semantics. It may use host HTTP internally, but R11 exposes
+The release proof implements one Python Google Gemini `v1beta
+models.generateContent` adapter using standard-library REST. Its endpoint,
+headers, wire JSON, authentication convention, request IDs, and error types are
+not Genia semantics. It uses host HTTP internally, but R11 exposes
 no general networking capability and changes no current HTTP/server behavior.
 
 Model-provider capabilities differ from R10 configuration providers: one
@@ -466,7 +467,7 @@ phase gates.
    validators, callable behavior, one-attempt Outcomes, no network.
 2. **E11-2 — R9 structured output (implemented):** schema/Template request,
    strict decode, response/failure normalization.
-3. **E11-3 — R10 boundary and one Python provider adapter:** explicit
+3. **E11-3 — R10 boundary and one Python provider adapter (implemented):** explicit
    capability, purpose, just-in-time declassification, timeout, mapping, audit,
    and leak scans.
 4. **E11-4 — conformance/cross-mode hardening:** eval/flow/error/CLI plus
@@ -483,6 +484,6 @@ implementation. E11-7 reconciles implemented slices; docs never lead behavior.
 
 ## Gate
 
-Issue #607 recorded explicit approval; issues #611/#612 delivered E11-1/E11-2. Later
-behavior slices still require their own tickets and phase gates; this document
-does not authorize E11-3 or later implementation.
+Issue #607 recorded explicit approval; issues #611-#613 delivered E11-1/E11-3.
+Later behavior slices still require their own tickets and phase gates; this
+document does not authorize E11-4 or later implementation.

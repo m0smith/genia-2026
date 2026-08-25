@@ -175,6 +175,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "Flow phase 1": "flow_phase_1",
         "configuration environment snapshot": "configuration_environment_snapshot",
         "deterministic model fixture": "model_deterministic_fixture",
+        "Gemini model REST adapter": "model_gemini_rest",
         "HTTP serving": "http_server",
         "refs": "refs",
         "process primitives": "process_primitives",
