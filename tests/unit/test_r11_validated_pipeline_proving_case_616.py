@@ -6,6 +6,7 @@ from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.interpreter import run_source
 from genia.model import create_fixture_model_provider
+from genia.native_test_runner import run_native_tests
 from genia.utf8 import format_display
 from genia.values import (
     GeniaMap,
@@ -189,3 +190,17 @@ def test_raw_fixture_exception_normalizes_without_retry_or_leak():
     assert result.get("clean") == []
     assert "model-transport-failure" in format_display(result.get("diagnostics"))
     _assert_no_sentinels(result)
+
+
+def test_native_genia_source_visible_composition_passes(capsys):
+    fixture = ROOT / "tests/native/r11_validated_pipeline_proving_case.genia"
+
+    exit_code = run_native_tests(str(fixture))
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert captured.out == (
+        "[PASS] R11 model-shaped Outcomes compose with validated JSONL records\n"
+        "Summary: total=1 passed=1 failed=0 errors=0\n"
+    )
+    assert captured.err == ""

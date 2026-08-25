@@ -52,12 +52,14 @@ pipeline_model = model(
   model_authority_fixture
 )
 
+@doc "Validate the required fields of one parsed input record."
 validate_input_record(record) =
   validate_record(record, {
     id: (value) -> validate_required("id", value),
     name: (value) -> validate_required("name", value)
   })
 
+@doc "Build one closed structured model request from a validated record."
 prompt(record) = {
   messages: [{
     role: quote(user),
@@ -73,11 +75,13 @@ process_validated_record(value, original_outcome) =
   (err(_), original_outcome) -> original_outcome |
   (err(_, _), original_outcome) -> original_outcome
 
+@doc "Parse, validate, and enrich one JSONL line as an Outcome."
 process_line(line) = {
   parsed_and_validated = parse_jsonl_record(line) |> validate_input_record
   apply_raw(process_validated_record, [parsed_and_validated, parsed_and_validated])
 }
 
+@doc "Collect clean structured results and diagnostics from JSONL lines."
 run_validated_model_pipeline(lines) =
   lines
     |> ((items) -> validate_each(items, process_line))

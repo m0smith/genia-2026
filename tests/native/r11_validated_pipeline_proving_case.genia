@@ -1,0 +1,50 @@
+native_validate_input(record) =
+  validate_record(record, {
+    id: (value) -> validate_required("id", value),
+    name: (value) -> validate_required("name", value)
+  })
+
+native_prompt(record) = {
+  messages: [{role: quote(user), content: {kind: quote(text), text: display(record)}}],
+  output: {kind: quote(json)}
+}
+
+native_model(request) =
+  some({
+    message: {
+      role: quote(assistant),
+      content: {
+        kind: quote(json),
+        value: json_decode("{\"id\":7,\"label\":\"fixture\"}") |> unwrap_or({})
+      }
+    },
+    finish_reason: quote(stop),
+    usage: none("model-usage-unavailable")
+  })
+
+native_validated_record(value, original_outcome) =
+  (some(record), _) -> native_model(native_prompt(record)) |> "message" |> "content" |> "value" |
+  (none(_), original_outcome) -> original_outcome |
+  (none(_, _), original_outcome) -> original_outcome |
+  (err(_), original_outcome) -> original_outcome |
+  (err(_, _), original_outcome) -> original_outcome
+
+native_process_line(line) = {
+  parsed = parse_jsonl_record(line) |> native_validate_input
+  apply_raw(native_validated_record, [parsed, parsed])
+}
+
+test("R11 model-shaped Outcomes compose with validated JSONL records", () -> {
+  collected = [
+    "{\"id\":1,\"name\":\"Ada\"}",
+    "",
+    "not-json",
+    "{\"id\":9}"
+  ]
+    |> ((lines) -> validate_each(lines, native_process_line))
+    |> collect_validated
+
+  assert_eq(count(collected("clean")), 1)
+  assert_eq(display(collected("clean")), "[<represented>]")
+  assert_eq(count(collected("diagnostics")), 3)
+})
