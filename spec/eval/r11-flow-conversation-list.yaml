@@ -1,0 +1,16 @@
+name: r11-flow-conversation-list
+category: eval
+description: Conversation state is an ordinary list scan with no initial emission
+input:
+  source: |
+    initial = {messages: [], turn: 0, status: quote(active), last: none("conversation-not-started")}
+    step(state, text) = {
+      response = {message: {role: quote(assistant), content: {kind: quote(text), text: "reply"}}, finish_reason: quote(stop), usage: none("model-usage-unavailable")}
+      next = {messages: state.messages + [{role: quote(user), content: {kind: quote(text), text: text}}, response.message], turn: state.turn + 1, status: quote(active), last: some(response)}
+      [next, next]
+    }
+    ["one", "two"] |> scan(step, initial)
+expected:
+  stdout: "[{messages: [{role: user, content: {kind: text, text: \"one\"}}, {role: assistant, content: {kind: text, text: \"reply\"}}], turn: 1, status: active, last: some({message: {role: assistant, content: {kind: text, text: \"reply\"}}, finish_reason: stop, usage: none(\"model-usage-unavailable\")})}, {messages: [{role: user, content: {kind: text, text: \"one\"}}, {role: assistant, content: {kind: text, text: \"reply\"}}, {role: user, content: {kind: text, text: \"two\"}}, {role: assistant, content: {kind: text, text: \"reply\"}}], turn: 2, status: active, last: some({message: {role: assistant, content: {kind: text, text: \"reply\"}}, finish_reason: stop, usage: none(\"model-usage-unavailable\")})}]\n"
+  stderr: ""
+  exit_code: 0

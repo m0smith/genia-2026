@@ -1,0 +1,85 @@
+"""
+# R11 Flow Conversation Composition
+
+Defines application-owned conversation state evolution over existing `scan`.
+The caller must explicitly supply a model, prompt function, and input source.
+
+## Run
+
+```bash
+uv run pytest -q tests/unit/test_r11_flow_conversation_615.py
+```
+
+## Features Demonstrated
+
+* ordinary map and Outcome values for conversation state
+* pattern-first state transitions
+* explicit model and prompt functions
+* list/Flow composition through existing `scan`
+* terminal states without hidden input or retry loops
+"""
+
+conversation_initial_state = {
+  messages: [],
+  turn: 0,
+  status: quote(active),
+  last: none("conversation-not-started")
+}
+
+conversation_outcome(messages, turn, outcome) =
+  (messages, turn, some(response)) -> {
+    messages: messages + [response.message],
+    turn: turn,
+    status: quote(active),
+    last: some(response)
+  } |
+  (messages, turn, none(reason)) -> {
+    messages: messages,
+    turn: turn,
+    status: quote(failed),
+    last: none(reason)
+  } |
+  (messages, turn, none(reason, context)) -> {
+    messages: messages,
+    turn: turn,
+    status: quote(failed),
+    last: none(reason, context)
+  } |
+  (messages, turn, err(reason)) -> {
+    messages: messages,
+    turn: turn,
+    status: quote(failed),
+    last: err(reason)
+  } |
+  (messages, turn, err(reason, context)) -> {
+    messages: messages,
+    turn: turn,
+    status: quote(failed),
+    last: err(reason, context)
+  }
+
+conversation_active_message(model, prompt, messages, turn, user_message) = {
+  next_messages = messages + [user_message]
+  outcome = model(prompt(next_messages))
+  conversation_outcome(next_messages, turn + 1, outcome)
+}
+
+conversation_status_transition(values) =
+  [_, _, state, _, status, _] ? status == quote(stopped) -> state |
+  [_, _, state, _, status, _] ? status == quote(failed) -> state |
+  [_, _, {messages: messages, turn: turn}, {reason: reason}, status, kind] ? status == quote(active) && kind == quote(stop) -> {
+    messages: messages,
+    turn: turn,
+    status: quote(stopped),
+    last: none("conversation-stopped", {reason: reason})
+  } |
+  [model, prompt, {messages: messages, turn: turn}, {message: user_message}, status, kind] ? status == quote(active) && kind == quote(message) -> conversation_active_message(model, prompt, messages, turn, user_message)
+
+conversation_transition(values) =
+  [model, prompt, state, input] -> conversation_status_transition([model, prompt, state, input, state.status, input.kind])
+
+@doc "Evolve one exact conversation state from one external input event."
+conversation_step(model, prompt, state, input) = {
+  next_state = conversation_transition([model, prompt, state, input])
+  [next_state, next_state]
+}

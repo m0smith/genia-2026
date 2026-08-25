@@ -1,0 +1,16 @@
+name: r11-flow-conversation-model-failure
+category: error
+description: Model failure remains the last Outcome and appends no assistant message
+input:
+  source: |
+    initial = {messages: [], turn: 0, status: quote(active), last: none("conversation-not-started")}
+    step(state, text) = {
+      outcome = err("model-timeout", {timeout_ms: 1000})
+      next = {messages: state.messages + [{role: quote(user), content: {kind: quote(text), text: text}}], turn: state.turn + 1, status: quote(failed), last: outcome}
+      [next, next]
+    }
+    ["one"] |> scan(step, initial)
+expected:
+  stdout: "[{messages: [{role: user, content: {kind: text, text: \"one\"}}], turn: 1, status: failed, last: err(\"model-timeout\", {timeout_ms: 1000})}]\n"
+  stderr: ""
+  exit_code: 0
