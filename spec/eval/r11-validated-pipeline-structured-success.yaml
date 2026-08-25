@@ -1,0 +1,15 @@
+name: r11-validated-pipeline-structured-success
+category: eval
+description: R11 structured success retains the R9 represented value through an ordinary model stage
+input:
+  fixtures: [r11_model]
+  source: |
+    schema = json_decode("{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"label\":{\"type\":\"string\"}},\"required\":[\"id\",\"label\"],\"additionalProperties\":false}") |> unwrap_or({})
+    Output = json_schema(schema) |> unwrap_or((_) -> none("compile-failed"))
+    m = model(model_provider_fixture, {id: "fixture-r11-pipeline", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    response = m({messages: [{role: quote(user), content: {kind: quote(text), text: "enrich"}}], output: {kind: quote(json), schema: schema, template: Output}}) |> unwrap_or({})
+    response |> "message" |> "content" |> "value"
+expected:
+  stdout: "<represented>\n"
+  stderr: ""
+  exit_code: 0

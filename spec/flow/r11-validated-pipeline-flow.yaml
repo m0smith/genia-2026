@@ -1,0 +1,18 @@
+name: r11-validated-pipeline-flow
+category: flow
+description: Ordinary structured model stages remain lazy and ordered in Flow
+input:
+  fixtures: [r11_model]
+  source: |
+    schema = json_decode("{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"integer\"},\"label\":{\"type\":\"string\"}},\"required\":[\"id\",\"label\"],\"additionalProperties\":false}") |> unwrap_or({})
+    Output = json_schema(schema) |> unwrap_or((_) -> none("compile-failed"))
+    m = model(model_provider_fixture, {id: "fixture-r11-pipeline", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+    ["one", "two"]
+      |> each((_) -> none)
+      |> map((text) -> m({messages: [{role: quote(user), content: {kind: quote(text), text: text}}], output: {kind: quote(json), schema: schema, template: Output}}))
+      |> collect
+expected:
+  stdout: |
+    [some({message: {role: assistant, content: {kind: json, value: <represented>}}, finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})}), some({message: {role: assistant, content: {kind: json, value: <represented>}}, finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})})]
+  stderr: ""
+  exit_code: 0
