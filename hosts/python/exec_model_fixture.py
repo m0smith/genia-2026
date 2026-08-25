@@ -82,7 +82,7 @@ def main() -> int:
         result = genia_interpreter.run_source(
             source, env, filename=filename
         )
-        if result is not None:
+        if mode != "--pipe" and result is not None:
             sys.stdout.write(format_debug(result) + "\n")
         return 0
     except Exception as error:  # noqa: BLE001 - command boundary normalization
