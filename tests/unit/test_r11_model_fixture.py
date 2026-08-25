@@ -210,6 +210,20 @@ def test_model_config_is_closed_and_validated_without_side_effects():
     assert audits == []
 
 
+def test_global_environment_has_no_ambient_model_fixture_bindings():
+    env = make_global_env([])
+
+    for name in (
+        "model_provider_fixture",
+        "model_credential_fixture",
+        "model_authority_fixture",
+        "model_stream",
+        "model_retry",
+        "model_tools",
+    ):
+        assert name not in env.values
+
+
 def _json_request_source(template_source="(_) -> some(\"ignored payload\")"):
     return (
         "{messages: [{role: quote(user), content: {kind: quote(text), text: \"return 7\"}}], "

@@ -477,7 +477,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - serve startup must finish entry evaluation and explicit snapshot construction before listener activation; request handling performs no automatic refresh.
 - there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, and annotation injection remain unimplemented.
 
-### AI model invocation (Experimental E11-1/E11-3)
+### AI model invocation (Experimental E11-1 through E11-4)
 
 - `model(provider, config, credential, authority)` is an ordinary call and returns an ordinary one-argument callable; it adds no syntax, annotation behavior, AST form, or Core IR node.
 - `provider` must be an opaque host-injected model-provider capability, `credential` must be protected, and `authority` must be a declassification authority. `config` must be exactly `{id, timeout_ms}`, with a nonempty string id and an integer timeout in `1..300000`.
@@ -492,6 +492,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - Malformed observations normalize to response-invalid; provider exceptions normalize to transport-failure/other and their text must not escape.
 - E11-3 also permits one explicitly host-constructed Python Gemini REST capability. It uses direct standard-library `v1beta models.generateContent`, sends the declassified credential only as `x-goog-api-key`, refuses redirects, and makes one attempt with the configured timeout; provider wire details are not portable semantics.
 - Automated Gemini adapter tests use an injected fake transport. No provider SDK, ambient binding, source-visible factory, general HTTP API, provider discovery, retry/fallback, tools, agents, streaming, conversations, or retrieval is implemented.
+- Shared eval, error, Flow, and CLI cases may explicitly select the private deterministic `r11_model` test fixture. That harness selection is not a CLI flag or runtime binding; ordinary command, file, pipe, import, native-test, and serve execution remain without ambient model capabilities.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

@@ -24,16 +24,40 @@ def exec_cli(spec) -> dict:
     stdin_text = getattr(spec, "stdin", "")
     debug_stdio = getattr(spec, "debug_stdio", False)
     trailing_args = getattr(spec, "argv", [])
+    fixtures = getattr(spec, "fixtures", ())
 
-    argv = [
-        sys.executable,
-        "-c",
-        "from genia.interpreter import _main; raise SystemExit(_main())",
-    ]
-    if debug_stdio:
-        argv.append("--debug-stdio")
+    if fixtures:
+        if fixtures != ("r11_model",):
+            raise ValueError(f"unsupported CLI fixtures: {fixtures!r}")
+        argv = [
+            sys.executable,
+            "-m",
+            "hosts.python.exec_model_fixture",
+        ]
+        if file:
+            argv.extend(["--file", file])
+            stdin = None
+        elif command and stdin_text == "":
+            argv.extend(["--command", command])
+            stdin = None
+        elif command:
+            argv.extend(["--pipe", command])
+            stdin = stdin_text
+        else:
+            raise ValueError("R11 CLI fixture supports file, command, or pipe mode")
+        env["PYTHONPATH"] = os.pathsep.join([str(REPO_ROOT), env["PYTHONPATH"]])
+    else:
+        argv = [
+            sys.executable,
+            "-c",
+            "from genia.interpreter import _main; raise SystemExit(_main())",
+        ]
+        if debug_stdio:
+            argv.append("--debug-stdio")
 
-    if test and not file and not command and stdin_text == "" and not trailing_args:
+    if fixtures:
+        pass
+    elif test and not file and not command and stdin_text == "" and not trailing_args:
         argv.extend(["--test", test])
         stdin = None
 
