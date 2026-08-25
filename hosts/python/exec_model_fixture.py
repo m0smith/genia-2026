@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 from genia.builtins import make_global_env
 from genia.configuration import (
@@ -23,8 +24,8 @@ def _map(**values):
     return result
 
 
-def _build_env():
-    env = make_global_env([])
+def _build_env(*, stdin_data=None):
+    env = make_global_env(stdin_data or [])
     descriptor = _map(
         kind=symbol("values"),
         values=_map(R11_MODEL_FIXTURE_KEY="R11_MODEL_FIXTURE_PAYLOAD"),
@@ -63,11 +64,23 @@ def _build_env():
 
 
 def main() -> int:
-    source = sys.argv[1]
-    env = _build_env()
+    args = sys.argv[1:]
+    if len(args) == 1:
+        mode, value = "--command", args[0]
+    elif len(args) == 2 and args[0] in ("--command", "--file", "--pipe"):
+        mode, value = args
+    else:
+        raise SystemExit("expected source or --command/--file/--pipe VALUE")
+    stdin_data = sys.stdin.read().splitlines() if mode == "--pipe" else []
+    env = _build_env(stdin_data=stdin_data)
+    source = Path(value).read_text(encoding="utf-8") if mode == "--file" else value
+    filename = str(Path(value).resolve()) if mode == "--file" else "<shared-r11-model-fixture>"
+    if mode == "--pipe":
+        source = genia_interpreter._wrap_pipe_mode_expr(source)
+        filename = "<pipe>"
     try:
         result = genia_interpreter.run_source(
-            source, env, filename="<shared-r11-model-fixture>"
+            source, env, filename=filename
         )
         if result is not None:
             sys.stdout.write(format_debug(result) + "\n")
