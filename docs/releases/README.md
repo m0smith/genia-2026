@@ -23,7 +23,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R8 — Server Execution Mode](R8.md) ✓ COMPLETE
 - [R9 — Value Templates & Representations](R9.md) ✓ COMPLETE
 - [R10 — Configuration & Secrets](R10.md) ✓ COMPLETE
-- [R11 — AI Composition](R11.md) — ACTIVE; E11-1/E11-2 delivered
+- [R11 — AI Composition](R11.md) — ACTIVE; E11-1/E11-3 delivered
 
 ## Process
 

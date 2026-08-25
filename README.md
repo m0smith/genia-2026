@@ -1019,21 +1019,24 @@ actor_call(a, 3)
 
 ## Builtins
 
-### AI model invocation (Experimental E11-1/E11-2)
+### AI model invocation (Experimental E11-1/E11-3)
 
 `model(provider, config, credential, authority)` returns an ordinary callable
 whose text or explicit R9-structured request produces an existing Outcome.
-E11-1/E11-2 validate closed ordinary message/request/response maps, declassify
+E11-1/E11-3 validate closed ordinary message/request/response maps, declassify
 the R10 protected string credential only at invocation, and make exactly one
 synchronous provider attempt. Structured output uses existing `json_schema`,
 `json_decode`, and an explicit callable Template; invalid decode/Template
 Outcomes are preserved inside `model-structured-output-invalid` without repair
 or retry.
 
-The current implementation is deliberately offline: only the Python reference
-host's explicitly selected deterministic test fixture can supply the provider,
-credential, and authority. Ordinary CLI/file/import/test/serve execution has no
-ambient bindings. A real network/provider adapter, retry, streaming,
+The Python reference host supports the explicitly selected deterministic test
+fixture and one explicitly constructed Google Gemini Developer API capability.
+The Gemini adapter uses direct standard-library `v1beta models.generateContent`
+REST with one configured-timeout attempt, no SDK, no redirect, and no retry.
+Automated tests inject a fake transport and remain offline. Ordinary
+CLI/file/import/test/serve execution has no ambient provider, credential, or
+authority binding; general HTTP, provider discovery/fallback, streaming,
 tools/agents, conversations, and retrieval are not implemented.
 
 ### Explicit configuration acquisition (Experimental)

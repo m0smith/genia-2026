@@ -613,9 +613,10 @@ Completion qualifications:
 
 ## Release R11 — AI Composition
 
-**Status: Active; E11-1 and E11-2 implemented, E11-3 and later planned.** The Experimental
-E11-1/E11-2 Python reference-host boundary provides text and R9-validated JSON
-`model/4` over an explicit deterministic fixture with no network. The remaining section records
+**Status: Active; E11-1 through E11-3 implemented, E11-4 and later planned.** The Experimental
+E11-1/E11-3 Python reference-host boundary provides text and R9-validated JSON
+`model/4` over an explicit deterministic fixture and one explicit Google Gemini
+direct-REST capability. The remaining section records
 planned, not implemented behavior. See
 `docs/design/r11-ai-composition-contract.md` for the approved boundary.
 
@@ -687,15 +688,15 @@ Approved sequence:
 
 1. E11-1 — ordinary values, `model/4`, and deterministic fixture — **implemented (Experimental; Python fixture only)**
 2. E11-2 — R9 structured output — **implemented (Experimental; Python fixture only)**
-3. E11-3 — R10 boundary and one Python provider adapter
+3. E11-3 — R10 boundary and one Python provider adapter — **implemented (Experimental; Python Gemini REST only)**
 4. E11-4 — shared conformance and cross-mode hardening
 5. E11-5 — Flow/`scan` conversation composition
 6. E11-6 — Outcome-aware validated-pipeline proving case
 7. E11-7 — release examples and truth sync
 8. E11-8 — final truth audit and distillation
 
-One real provider adapter remains unimplemented along with streaming,
-model-call cancellation, automatic retry/fallback, tools/agents,
+The implemented Gemini adapter is one narrow provider proof, not a framework.
+Streaming, model-call cancellation, automatic retry/fallback, tools/agents,
 multimodal content, persistent memory, and general AI observability/evaluation
 infrastructure are excluded. Retrieval, embeddings, grounding, and citations
 remain R12. Later tickets require their own gates.
@@ -981,9 +982,9 @@ post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
 configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
 foundation while preserving R10 protected-value boundaries.
 
-R8, R9, and R10 are complete. R11 is active with Experimental E11-1/E11-2 text
-and R9-validated JSON deterministic-fixture behavior implemented; E11-3 and later slices remain
-planned. R12, R13, and R14 remain planned.
+R8, R9, and R10 are complete. R11 is active with Experimental E11-1/E11-3 text,
+R9-validated JSON, deterministic-fixture, and explicit Python Gemini REST behavior
+implemented; E11-4 and later slices remain planned. R12, R13, and R14 remain planned.
 R10 follow-ups and R11-R12 require their own gates; R13 and R14 do as well.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap
