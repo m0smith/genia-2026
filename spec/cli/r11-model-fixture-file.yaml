@@ -1,0 +1,13 @@
+name: r11-model-fixture-file
+category: cli
+description: File mode observes the explicitly injected deterministic model fixture
+input:
+  fixtures: [r11_model]
+  source: spec/cli/r11-model-fixture-file.genia
+  file: spec/cli/r11-model-fixture-file.genia
+  stdin: ""
+  argv: []
+expected:
+  stdout: 'some({message: {role: assistant, content: {kind: text, text: "fixture reply"}}, finish_reason: stop, usage: some({input_tokens: 2, output_tokens: 3, total_tokens: 5})})'
+  stderr: ""
+  exit_code: 0

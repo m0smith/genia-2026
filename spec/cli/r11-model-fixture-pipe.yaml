@@ -1,0 +1,14 @@
+name: r11-model-fixture-pipe
+category: cli
+description: Pipe mode observes an explicitly injected fixture model as an ordinary stage
+input:
+  fixtures: [r11_model]
+  source: &source |
+    model(model_provider_fixture, {id: "fixture-text", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)({messages: [{role: quote(user), content: {kind: quote(text), text: "hello"}}], output: {kind: quote(text)}}) |> (_) -> lines
+  command: *source
+  stdin: "one\ntwo\n"
+  argv: []
+expected:
+  stdout: "one\ntwo"
+  stderr: ""
+  exit_code: 0

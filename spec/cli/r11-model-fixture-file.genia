@@ -1,0 +1,2 @@
+m = model(model_provider_fixture, {id: "fixture-text", timeout_ms: 1000}, model_credential_fixture, model_authority_fixture)
+m({messages: [{role: quote(user), content: {kind: quote(text), text: "file"}}], output: {kind: quote(text)}})
