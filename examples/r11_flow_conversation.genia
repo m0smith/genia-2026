@@ -26,42 +26,44 @@ conversation_initial_state = {
   last: none("conversation-not-started")
 }
 
-conversation_outcome(messages, turn, outcome) =
-  (messages, turn, some(response)) -> {
+conversation_outcome_case(values, original_outcome) =
+  ([messages, turn, some(response)], original_outcome) -> {
     messages: messages + [response.message],
     turn: turn,
     status: quote(active),
-    last: some(response)
+    last: original_outcome
   } |
-  (messages, turn, none(reason)) -> {
+  ([messages, turn, none(_)], original_outcome) -> {
     messages: messages,
     turn: turn,
     status: quote(failed),
-    last: none(reason)
+    last: original_outcome
   } |
-  (messages, turn, none(reason, context)) -> {
+  ([messages, turn, none(_, _)], original_outcome) -> {
     messages: messages,
     turn: turn,
     status: quote(failed),
-    last: none(reason, context)
+    last: original_outcome
   } |
-  (messages, turn, err(reason)) -> {
+  ([messages, turn, err(_)], original_outcome) -> {
     messages: messages,
     turn: turn,
     status: quote(failed),
-    last: err(reason)
+    last: original_outcome
   } |
-  (messages, turn, err(reason, context)) -> {
+  ([messages, turn, err(_, _)], original_outcome) -> {
     messages: messages,
     turn: turn,
     status: quote(failed),
-    last: err(reason, context)
+    last: original_outcome
   }
+
+conversation_outcome(messages, turn, outcome) = apply_raw(conversation_outcome_case, [[messages, turn, outcome], outcome])
 
 conversation_active_message(model, prompt, messages, turn, user_message) = {
   next_messages = messages + [user_message]
   outcome = model(prompt(next_messages))
-  conversation_outcome(next_messages, turn + 1, outcome)
+  apply_raw(conversation_outcome, [next_messages, turn + 1, outcome])
 }
 
 conversation_status_transition(values) =

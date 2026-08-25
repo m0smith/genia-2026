@@ -6,7 +6,8 @@ from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.interpreter import run_source
 from genia.model import create_fixture_model_provider
-from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionSome, symbol
+from genia.utf8 import format_display
+from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionSome, make_none, symbol
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -80,15 +81,15 @@ def test_list_and_flow_sources_produce_equal_exact_state_sequences():
             + """
 inputs = [message("one"), message("two"), {kind: quote(stop), reason: "done"}, message("ignored")]
 list_states = scan(step, conversation_initial_state, inputs)
-flow_states = inputs |> lines |> scan(step, conversation_initial_state) |> collect
-[list_states == flow_states, list_states]
+flow_states = inputs |> each((_) -> none) |> scan(step, conversation_initial_state) |> collect
+[list_states, flow_states]
 """
         ),
         env,
     )
-    assert result[0] is True
+    assert format_display(result[0]) == format_display(result[1])
     assert fixture.attempt_count == 4
-    states = result[1]
+    states = result[0]
     assert len(states) == 4
     assert states[1].get("turn") == 2
     assert states[2].get("status") == symbol("stopped")
@@ -109,7 +110,44 @@ def test_failed_model_outcome_appends_no_assistant_and_later_input_is_inert():
     assert result[0].get("status") == symbol("failed")
     assert result[0].get("turn") == 1
     assert len(result[0].get("messages")) == 1
-    assert result[0] == result[1]
+    assert result[0] is result[1]
+
+
+def test_absent_model_outcome_appends_no_assistant_and_later_input_is_inert():
+    env, fixture = _env(
+        lambda config, request, secret: make_none("model-no-response")
+    )
+    result = run_source(
+        _source(
+            MODEL_AND_PROMPT
+            + 'scan(step, conversation_initial_state, [message("one"), message("ignored")])'
+        ),
+        env,
+    )
+    assert fixture.attempt_count == 1
+    assert result[0].get("status") == symbol("failed")
+    assert result[0].get("last") == make_none("model-no-response")
+    assert len(result[0].get("messages")) == 1
+    assert result[0] is result[1]
+
+
+def test_stop_records_exact_outcome_without_turn_or_model_call():
+    env, fixture = _env(lambda config, request, secret: GeniaOptionSome(_response()))
+    result = run_source(
+        _source(
+            MODEL_AND_PROMPT
+            + 'scan(step, conversation_initial_state, [{kind: quote(stop), reason: "done"}, message("ignored")])'
+        ),
+        env,
+    )
+    assert fixture.attempt_count == 0
+    assert result[0].get("messages") == []
+    assert result[0].get("turn") == 0
+    assert result[0].get("status") == symbol("stopped")
+    assert format_display(result[0].get("last")) == (
+        'none("conversation-stopped", {reason: done})'
+    )
+    assert result[0] is result[1]
 
 
 def test_lazy_flow_attempts_only_for_consumed_active_messages():
@@ -117,7 +155,7 @@ def test_lazy_flow_attempts_only_for_consumed_active_messages():
     run_source(
         _source(
             MODEL_AND_PROMPT
-            + 'states = [message("one"), message("two")] |> lines |> scan(step, conversation_initial_state)'
+            + 'states = [message("one"), message("two")] |> each((_) -> none) |> scan(step, conversation_initial_state)'
         ),
         env,
     )
@@ -127,7 +165,7 @@ def test_lazy_flow_attempts_only_for_consumed_active_messages():
     result = run_source(
         _source(
             MODEL_AND_PROMPT
-            + '[message("one"), message("two")] |> lines |> scan(step, conversation_initial_state) |> take(1) |> collect'
+            + '[message("one"), message("two")] |> each((_) -> none) |> scan(step, conversation_initial_state) |> take(1) |> collect'
         ),
         env,
     )
@@ -147,4 +185,4 @@ def test_distinct_deterministic_fixture_producers_are_source_independent():
         )
         observed.append(run_source(expression, env))
         assert fixture.attempt_count == 1
-    assert observed[0] == observed[1]
+    assert format_display(observed[0]) == format_display(observed[1])
