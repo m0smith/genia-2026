@@ -98,7 +98,7 @@ CLI contract summary (actual behavior):
   - runtime capability values:
     - shared/runtime-surface values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented)
     - explicit opaque configuration providers (Experimental): portable literal snapshots plus a Python-host environment snapshot capability
-    - Experimental text or R9-validated JSON model callables created by `model/4` from an explicitly host-injected provider, protected credential, and authority; E11-3 adds one explicitly constructed Python-host Gemini REST capability alongside the offline deterministic fixture, and E11-5 demonstrates application-owned list/Flow conversation state through existing `scan`, with no ambient REPL binding or conversation runtime
+    - Experimental text or R9-validated JSON model callables created by `model/4` from an explicitly host-injected provider, protected credential, and authority; E11-3 adds one explicitly constructed Python-host Gemini REST capability alongside the offline deterministic fixture, E11-5 demonstrates application-owned list/Flow conversation state, and E11-6 proves composition with JSONL validation and collected diagnostics, with no ambient REPL binding or AI framework runtime
     - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, dot map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
