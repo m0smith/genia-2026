@@ -4,9 +4,10 @@ description: Chunk constructs ordered provenance from original document code-poi
 input:
   source: |
     doc = {id: "doc-1", text: "A😀éZ", meta: represent("json", {source: "fixture"})}
-    result = chunk((_text) -> [{offset: 1, length: 2}, {offset: 0, length: 3}, {offset: 1, length: 2}], doc)
-    result |> map((chunks) -> chunks |> map((item) -> [item.text, item.source]))
+    chunk((_text) -> [{offset: 1, length: 2}, {offset: 0, length: 3}, {offset: 1, length: 2}], doc)
+      |> unwrap_or([])
+      |> map((item) -> [item.text, item.source])
 expected:
-  stdout: "some([[\"😀é\", {doc_id: \"doc-1\", offset: 1, length: 2}], [\"A😀é\", {doc_id: \"doc-1\", offset: 0, length: 3}], [\"😀é\", {doc_id: \"doc-1\", offset: 1, length: 2}]])\n"
+  stdout: "[[\"😀é\", {doc_id: \"doc-1\", offset: 1, length: 2}], [\"A😀é\", {doc_id: \"doc-1\", offset: 0, length: 3}], [\"😀é\", {doc_id: \"doc-1\", offset: 1, length: 2}]]\n"
   stderr: ""
   exit_code: 0
