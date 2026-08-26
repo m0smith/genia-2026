@@ -46,6 +46,7 @@ nav:
       - "R9 — Value Templates & Representations": releases/R9.md
       - "R10 — Configuration & Secrets": releases/R10.md
       - "R11 — AI Composition": releases/R11.md
+      - "R12 — Retrieval & Grounding": releases/R12.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md

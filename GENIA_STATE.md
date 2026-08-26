@@ -402,6 +402,19 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
+- Document chunking with exact provenance (Experimental, R12 E12-1, issue #643)
+  - `chunk(chunker, document)` is an ordinary portable call over existing values, callables, R9 representation, and Outcomes; it adds no capability, syntax, annotation, parser/AST/Core IR/lifecycle behavior, or second pipeline
+  - `document` is the exact closed map `{id: nonempty string, text: string, meta: json_represented_object}`; metadata is an ordinary existing R9 JSON-domain map beneath exactly one outer `json` representation
+  - `chunker` is invoked exactly once with `document.text` and must return a list of exact closed `{offset, length}` maps; offsets are nonnegative integers, lengths are positive integers, and booleans are not integers
+  - offsets and lengths count Unicode code points; each span must lie wholly within the original text, returned order is preserved, and overlapping/repeated spans are allowed
+  - `chunk/2` alone constructs exact closed chunks `{text, source, meta}` from the original document; source is `{doc_id, offset, length}`, text is the exact original slice, and every chunk retains the exact represented metadata value without merge, augmentation, unwrap, or rewrap
+  - valid empty span lists return `some([])`, including for nonempty documents; an empty document can produce only an empty valid span list
+  - the first malformed or out-of-bounds span returns `err("chunk-invalid", {stage: quote(span), index})`; malformed document/non-callable chunker and callback exception/non-list result are runtime misuse
+  - shared eval/error/Flow specs plus Python tests cover closed validation, exact construction, Unicode slicing, ordering/overlap/repetition, zero results, metadata identity, callback count, and misuse; existing parse/Core IR coverage confirms an ordinary call
+  - LANGUAGE CONTRACT: the closed values, one-call callback boundary, code-point slicing, exact provenance, metadata preservation, and Outcome/misuse behavior above are the implemented portable E12-1 boundary
+  - PYTHON REFERENCE HOST: the portable boundary is implemented locally with no host capability or provider attempt; shared/multi-host conformance remains Partial and no non-Python host is implemented
+  - embedding, vectors, indexing, handles, retrieval, scores, reranking, grounding, model changes, credentials/declassification, provider behavior, and citation rendering remain unimplemented R12 work
+
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
   - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path

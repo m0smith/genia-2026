@@ -502,6 +502,17 @@ No additional member/index/flow operators should be introduced without explicitl
 - E11-7 changes no semantics; it verifies runnable public examples and synchronizes the implemented E11-1 through E11-6 behavior, maturity, portability, and exclusions.
 - E11-8 changes no semantics; it completes the release truth audit and distillation. R11 is release-complete, while these APIs remain Experimental, Python remains the only implemented host, and shared/multi-host conformance remains Partial.
 
+### Document chunking and exact provenance (Experimental R12 E12-1)
+
+- `chunk(chunker, document)` is an ordinary two-argument call and adds no syntax, annotation, AST/Core IR node, capability, or pipeline rule.
+- `document` must be exactly `{id, text, meta}`: nonempty string id, string text, and one outer `json` representation carrying an existing R9 JSON-domain ordinary object. Missing/extra keys or malformed fields are runtime misuse.
+- `chunker` must be callable. After document and callability validation it is invoked exactly once with `document.text`; an exception propagates as callback misuse and a non-list result is callback-contract misuse.
+- Every returned list item must be exactly `{offset, length}`. Both values are integers excluding booleans; offset is nonnegative, length is positive, and `offset + length` may not exceed the original text's Unicode-code-point length.
+- The first malformed or out-of-bounds span returns `err("chunk-invalid", {stage: quote(span), index})` with its zero-based list index; no partial success list is returned.
+- Successful chunks preserve span order and are exactly `{text, source, meta}`. Text is the original code-point slice, source is exactly `{doc_id: document.id, offset, length}`, and meta is the exact represented document value without unwrap, copy, merge, augmentation, or rewrap.
+- Overlapping and repeated spans are valid. Any valid document may return zero chunks as `some([])`; no positive-length span is valid for empty text.
+- The chunker cannot provide text, document identity, source, or metadata. No provider call, credential, authority, declassification, embedding, indexing, retrieval, reranking, grounding, or citation behavior participates.
+
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
 - `quote(expr)` must not evaluate `expr`
