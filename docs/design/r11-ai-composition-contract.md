@@ -1,6 +1,6 @@
 # R11 AI Composition Contract
 
-Status: **Approved contract; E11-1 through E11-7 implemented as Experimental, E11-8 planned.**
+Status: **Approved contract; E11-1 through E11-8 complete. Implemented APIs remain Experimental.**
 
 This document fixes the semantic boundary for R11 tickets. E11-1/E11-3 now implement
 the text and R9-validated JSON `model/4` deterministic-fixture subset. This design document must
@@ -477,13 +477,14 @@ phase gates.
 6. **E11-6 — validated-pipeline proving case (implemented).**
 7. **E11-7 — release examples and truth sync (implemented):** implemented-behavior docs and
    `docs/releases/R11.md` runnable examples; no runtime behavior.
-8. **E11-8 — final truth audit and distillation.**
+8. **E11-8 — final truth audit and distillation (complete):** release-wide evidence,
+   canonical status synchronization, and final distillation; no runtime behavior.
 
 Each behavior issue runs its own phase workflow. Failing tests precede
 implementation. E11-7 reconciles implemented slices; docs never lead behavior.
 
 ## Gate
 
-Issue #607 recorded explicit approval; issues #611-#613 delivered E11-1/E11-3.
-E11-8 still requires its own ticket and phase gates; this design record does
-not make planned behavior implemented.
+Issue #607 recorded explicit approval; issues #611-#618 delivered E11-1/E11-8.
+R11 is release-complete, but this design record does not make excluded or
+later-release behavior implemented.

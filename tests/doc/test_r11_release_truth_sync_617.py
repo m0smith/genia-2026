@@ -24,24 +24,25 @@ def _run_fixture(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_r11_status_is_synchronized_after_e11_7() -> None:
+def test_r11_status_remains_synchronized_after_release_completion() -> None:
     required = {
-        "GENIA_STATE.md": "E11-1 through E11-7",
-        "README.md": "E11-1 through E11-7",
-        "GENIA_REPL_README.md": "E11-1 through E11-7",
-        "GENIA_RULES.md": "E11-1 through E11-7",
-        "docs/ai/LLM_CONTRACT.md": "E11-1 through E11-7",
-        "docs/design/README.md": "E11-1 through E11-7",
-        "docs/design/r11-ai-composition-contract.md": "E11-1 through E11-7",
-        "docs/releases/R11.md": "E11-1 through E11-7 delivered",
-        "docs/releases/README.md": "E11-1 through E11-7 delivered",
-        "docs/strategy/release-roadmap.md": "E11-1 through E11-7 implemented",
+        "GENIA_STATE.md": "R11 E11-1 through E11-8",
+        "README.md": "R11 E11-1 through E11-8",
+        "GENIA_REPL_README.md": "R11 E11-1 through E11-8",
+        "GENIA_RULES.md": "R11 E11-1 through E11-8",
+        "docs/ai/LLM_CONTRACT.md": "E11-1 through E11-8 are complete",
+        "docs/design/README.md": "E11-1 through E11-8 are complete",
+        "docs/design/r11-ai-composition-contract.md": "E11-1 through E11-8 complete",
+        "docs/releases/R11.md": "E11-1 through E11-8 delivered",
+        "docs/releases/README.md": "E11-1 through E11-8 delivered",
+        "docs/strategy/release-roadmap.md": "E11-1 through E11-8 complete",
     }
     for path, expected in required.items():
-        assert expected in _read(path), f"{path} must record completed E11-7 truth sync"
+        assert expected in _read(path), f"{path} must preserve synchronized R11 truth"
 
     release = RELEASE.read_text(encoding="utf-8")
-    assert "E11-8 remains planned" in release
+    assert "Status: **Complete" in release
+    assert "E11-8 remains planned" not in release
     assert "E11-7 through E11-8 remain planned" not in release
 
 

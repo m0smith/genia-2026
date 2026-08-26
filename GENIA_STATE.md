@@ -402,7 +402,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
 
 ### Runtime capability values
 
-- AI model invocation, Flow conversation composition, validated-pipeline proof, and release-example truth sync (Experimental, R11 E11-1 through E11-7, issues #611-#617)
+- AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
   - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path
   - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
@@ -431,7 +431,8 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - the deterministic proof attempts the model only for parse/validation successes, at most once per invocation; no-response, normalized provider failures, invalid structured output, Template mismatch, and protected-boundary failure use existing Outcomes/errors without retry, repair, reprompt, fallback, or sensitive leakage
   - E11-6 adds no helper, schema/validation system, provider behavior, syntax, annotation, or Core IR node; its shared CLI/eval/Flow/error cases and native/Python tests are conformance/proving artifacts over existing behavior
   - E11-7 adds no runtime behavior: `docs/releases/R11.md` and focused documentation tests synchronize runnable text, structured-output, Flow-conversation, and validated-pipeline examples with the implemented boundary and keep maturity, portability, and exclusions explicit
-  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, normalized Outcomes, explicit cross-mode boundary, application-owned list/Flow `scan` composition, and Outcome-aware validated-pipeline composition are the implemented E11-1 through E11-7 portable boundary; E11-7 is documentation and executable-example verification only
+  - E11-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, sensitive-data exclusions, and canonical release status; R11 is release-complete while its APIs remain Experimental, Python remains the only implemented host, and shared/multi-host conformance remains Partial
+  - LANGUAGE CONTRACT: the ordinary closed value shapes, callable behavior, validation ordering, one-attempt rule, R9 structured composition, normalized Outcomes, explicit cross-mode boundary, application-owned list/Flow `scan` composition, and Outcome-aware validated-pipeline composition are the implemented R11 E11-1 through E11-8 portable boundary; E11-7 is documentation/executable-example verification and E11-8 is audit/distillation only
   - PYTHON REFERENCE HOST: the offline deterministic fixture and one explicitly constructed Gemini REST capability are implemented; automated adapter tests inject a fake transport and perform no network access; shared/multi-host conformance remains Partial
 
 - Configuration provider, protected acquisition/sinks, explicit declassification, cross-mode hardening, and composed validated-pipeline proving case (Experimental, issues #589-#595)
