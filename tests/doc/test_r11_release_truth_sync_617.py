@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -64,6 +65,21 @@ def test_r11_public_truth_keeps_maturity_portability_and_exclusions_explicit() -
         "rag",
     ):
         assert required in normalized, f"R11 release truth is missing {required!r}"
+
+
+def test_r11_semantic_fact_records_the_ordinary_composition_boundary() -> None:
+    facts = json.loads(_read("docs/contract/semantic_facts.json"))
+    fact = facts["r11_ordinary_composition_boundary"].lower()
+    for required in (
+        "ordinary values",
+        "prompts are functions",
+        "models are callable",
+        "chains are pipelines",
+        "application-owned",
+        "scan",
+        "python-host-only",
+    ):
+        assert required in fact
 
 
 def test_r11_text_and_structured_release_examples_execute_exactly() -> None:

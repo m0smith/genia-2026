@@ -74,7 +74,7 @@ release changes one of these composition boundaries.
 
 ## R11 relationships
 
-These rows record the implemented E11-1 through E11-6 foundation and constrain later R11
+These rows record the implemented E11-1 through E11-7 foundation and constrain later R11
 work; see `r11-ai-composition-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
@@ -85,6 +85,7 @@ work; see `r11-ai-composition-contract.md`.
 | model credential | R10 protected value / authority | explicit `secret_get(..., quote(model_call))` stays protected until declassification immediately before one authorized adapter attempt; the Gemini adapter places the revealed string only in its private API-key header | E11-3 implemented, Experimental; Gemini adapter Python-host-only |
 | conversation | external list/Flow / `scan` | an application step evolves exact ordinary state from external events; list and Flow produce equivalent consumed states, terminal states make later events inert, and input acquisition, termination, and cancellation are not hidden in a conversation runtime | E11-5 implemented, Experimental; no new builtin |
 | model structured Outcome | JSONL validation / `collect_validated` | only parse/validation successes invoke the ordinary model stage; R9 represented successes become clean values and existing normalized failures become diagnostics without retry, repair, or a second collection framework | E11-6 proving case implemented, Experimental; fixture Python-host-only |
+| R11 public examples | callable / R9 / R10 / Outcome / `scan` | executable text, structured-output, conversation, and validated-pipeline examples verify the existing composition boundaries without adding a helper or alternate framework | E11-7 documentation verification implemented; no runtime behavior |
 
 ## Keeping this matrix in sync
 
