@@ -164,6 +164,12 @@ require their own gates. Preserve the ordinary
 callable/value/Outcome/R9/R10/Flow boundary recorded in
 `docs/design/r11-ai-composition-contract.md`. See `docs/strategy/release-roadmap.md` and
 `docs/ai/LLM_CONTRACT.md` for release boundaries.
+**R12 — Retrieval & Grounding has an approved E12-0 contract, but no R12
+behavior is implemented.** Only E12-1 preflight is activated. Preserve the
+ordinary value/callable/Outcome/R9/R10/R11 boundary in
+`docs/design/r12-retrieval-grounding-contract.md`; do not infer a RAG or
+vector-store framework, hidden query embedding, citation rendering semantics,
+or later-ticket implementation authority.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

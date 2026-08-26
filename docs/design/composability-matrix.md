@@ -87,6 +87,21 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 | model structured Outcome | JSONL validation / `collect_validated` | only parse/validation successes invoke the ordinary model stage; R9 represented successes become clean values and existing normalized failures become diagnostics without retry, repair, or a second collection framework | E11-6 proving case implemented, Experimental; fixture Python-host-only |
 | R11 public examples | callable / R9 / R10 / Outcome / `scan` | executable text, structured-output, conversation, and validated-pipeline examples verify the existing composition boundaries without adding a helper or alternate framework | E11-7 documentation verification implemented; no runtime behavior |
 
+## R12 relationships
+
+These rows record the approved R12 contract boundary. No R12 behavior is
+implemented; only E12-1 preflight is active. See
+`r12-retrieval-grounding-contract.md`.
+
+| Concept | Composes with | Required relationship | Status |
+|---|---|---|---|
+| document/chunk provenance | R9 JSON representation / callable Templates | closed ordinary values retain exact represented metadata; `chunk/2` owns source slicing and provenance rather than trusting chunker-produced text | Approved contract; not implemented |
+| embedding input | ordinary variant values / Outcome | explicit chunk and query variants share one embedder without fabricating query provenance or hiding embedding in retrieval | Approved contract; not implemented |
+| embedding | index/retrieve compatibility | finite vectors carry explicit dimension and application-owned compatibility space; compatibility does not claim equal results across providers | Approved contract; not implemented |
+| index/retrieve | opaque host capabilities / ordinary callables | indexing returns an opaque paired handle; retrieval checks capability, space, and dimensions before one attempt | Approved contract; not implemented |
+| provider reranking | retrieved evidence / R10 authority | `rerank/4` may reorder and replace finite scores but preserves the exact evidence multiset; pure local rerankers remain ordinary differently named functions | Approved contract; not implemented |
+| grounded context/answer | R11 content and `model/4` | pure assembly retains ordered evidence and first-occurrence sources; generation uses unchanged `model/4`; citation rendering is application-owned | Approved contract; not implemented |
+
 ## Keeping this matrix in sync
 
 `tests/doc/test_composability_matrix_sync.py` automatically re-derives the

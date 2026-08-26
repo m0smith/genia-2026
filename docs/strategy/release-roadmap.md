@@ -707,9 +707,11 @@ remain R12. Later tickets require their own gates.
 
 ## Release R12 — Retrieval & Grounding
 
-**Status: Planned, not active.** This section records proposed direction, not
-implemented language behavior. R12 requires semantic design and explicit
-activation before implementation begins.
+**Status: Active for E12-1 preflight only; no R12 behavior is implemented.**
+Issue #641 approved the semantic boundary in
+`docs/design/r12-retrieval-grounding-contract.md`. Each behavior slice still
+requires its own complete phase workflow. This section is planning, not
+implemented language behavior.
 
 Theme:
 
@@ -717,7 +719,7 @@ Theme:
 
 R12 builds on R11. Its abstraction is **retrieval**, not `VectorDatabase`.
 
-Candidate scope:
+Approved contract scope:
 
 - document and chunk values that preserve provenance
 - chunking as ordinary Seq/Flow/library composition
@@ -736,6 +738,7 @@ documents
   |> index
 
 question
+  |> embed
   |> retrieve
   |> rerank
   |> take(...)
@@ -752,6 +755,23 @@ does not need to own or implement a vector database to complete R12.
 Critical acceptance criterion:
 
 - The embedding provider, retrieval backend, reranker, and generation model can each be replaced independently without restructuring the overall Genia application.
+
+Replaceability is interface compatibility, not identical vectors, scores,
+ordering, evidence, or answers across implementations. The approved sequence is:
+
+1. E12-1 — document/chunk/provenance
+2. E12-2 — unified corpus/query embedding fixture
+3. E12-3 — indexing capability and opaque handle
+4. E12-4 — retrieval capability and compatibility guards
+5. E12-5 — provider reranking and provenance integrity
+6. E12-6 — grounded context/answer composition with unchanged R11 `model/4`
+7. E12-7 — R10 boundary, cross-mode conformance, and grounded proving case
+8. E12-8 — release examples and implemented-truth synchronization
+9. E12-9 — release truth audit and distillation
+
+Only E12-1 preflight is authorized by the E12-0 gate. The contract explicitly
+excludes a RAG/vector-store framework, hidden query embedding, citation
+rendering semantics, retry/streaming, and syntax/Core IR/lifecycle expansion.
 
 ---
 
