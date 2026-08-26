@@ -105,11 +105,12 @@ configuration/protected-value contract and E10-1 provider/ordinary acquisition,
 E10-2 defaults/conversion/Template validation, E10-3 protected-carrier/matching, E10-4 protected-sink safety, E10-5 explicit declassification, E10-6 cross-mode hardening, E10-7 composed validated-pipeline proof, and E10-8 release truth audit are complete. Later work still requires the repository's contract, design, test,
 implementation, documentation, and audit gates.
 
-**R11** is active through E11-7. Its Experimental ordinary model callable,
+**R11** is complete through E11-8. Its Experimental ordinary model callable,
 R9-structured output, R10 credential boundary, application-owned Flow/`scan`
 conversation composition, and validated-pipeline proving case are implemented;
 E11-7 synchronizes runnable release examples and implemented truth without adding
-runtime behavior. E11-8 remains planned.
+runtime behavior; E11-8 completes the release truth audit and distillation without
+adding runtime behavior.
 
 ## Using This Document
 

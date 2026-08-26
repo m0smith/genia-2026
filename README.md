@@ -588,7 +588,7 @@ Related shared portability docs:
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
 - Runtime capability values:
   - explicit immutable configuration provider (`<config-provider>`, Experimental)
-    - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-7; conversation and validated-pipeline proofs remain application code over existing composition, and E11-7 adds documentation/example verification only)
+    - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
   - `stderr`
   - MetaEnv
@@ -1019,7 +1019,7 @@ actor_call(a, 3)
 
 ## Builtins
 
-### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental E11-1 through E11-7)
+### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 
 `model(provider, config, credential, authority)` returns an ordinary callable
 whose text or explicit R9-structured request produces an existing Outcome.
@@ -1055,6 +1055,9 @@ and adds no repair, retry, helper, or AI framework.
 
 E11-7 adds no runtime behavior. It synchronizes the runnable public examples and
 the implemented/portable/Python-host-only labels in [the R11 release page](docs/releases/R11.md).
+E11-8 also adds no runtime behavior; its truth audit makes R11 release-complete
+while the APIs remain Experimental, Python remains the only implemented host,
+and shared/multi-host conformance remains Partial.
 
 ### Explicit configuration acquisition (Experimental)
 

@@ -74,8 +74,8 @@ release changes one of these composition boundaries.
 
 ## R11 relationships
 
-These rows record the implemented E11-1 through E11-7 foundation and constrain later R11
-work; see `r11-ai-composition-contract.md`.
+These rows record the release-complete E11-1 through E11-8 foundation; E11-8 is
+audit/distillation only. See `r11-ai-composition-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|

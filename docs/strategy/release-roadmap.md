@@ -611,9 +611,9 @@ Completion qualifications:
 
 ---
 
-## Release R11 — AI Composition
+## Release R11 — AI Composition ✓ COMPLETE
 
-**Status: Active; E11-1 through E11-7 implemented, E11-8 planned.** The Experimental
+**Status: Complete; E11-1 through E11-8 complete.** The Experimental
 E11-1/E11-3 Python reference-host boundary provides text and R9-validated JSON
 `model/4` over an explicit deterministic fixture and one explicit Google Gemini
 direct-REST capability. E11-5/E11-6 provide the application-owned conversation
@@ -695,7 +695,7 @@ Approved sequence:
 5. E11-5 — Flow/`scan` conversation composition — **implemented (Experimental; application-owned ordinary state)**
 6. E11-6 — Outcome-aware validated-pipeline proving case — **implemented (Experimental; deterministic fixture proof)**
 7. E11-7 — release examples and truth sync — **implemented (documentation and runnable-example verification; no runtime behavior)**
-8. E11-8 — final truth audit and distillation
+8. E11-8 — final truth audit and distillation — **complete (no runtime behavior)**
 
 The implemented Gemini adapter is one narrow provider proof, not a framework.
 Streaming, model-call cancellation, automatic retry/fallback, tools/agents,
@@ -984,10 +984,10 @@ post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
 configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
 foundation while preserving R10 protected-value boundaries.
 
-R8, R9, and R10 are complete. R11 is active with Experimental E11-1 through
-E11-6 behavior/proving slices implemented and E11-7 release examples and truth
-sync complete; E11-8 remains planned. R12, R13, and R14 remain planned.
-R10 follow-ups and R11-R12 require their own gates; R13 and R14 do as well.
+R8, R9, R10, and R11 are complete. R11's APIs remain Experimental, Python is
+the only implemented host, and shared/multi-host conformance remains Partial.
+R12, R13, and R14 remain planned. R10/R11 follow-ups and R12 require their own
+gates; R13 and R14 do as well.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap
 placement is not implementation authority.

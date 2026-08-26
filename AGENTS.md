@@ -155,12 +155,12 @@ consult the release roadmap and classify it as a follow-up, a later release,
 infrastructure, or parking-lot item; do not expand R10 implicitly. Release
 planning never makes candidate syntax or behavior implemented and never skips
 contract, design, failing-test, implementation, documentation, or audit phases.
-**R11 — AI Composition is active and E11-1 through E11-7 are implemented.** Its Experimental
+**R11 — AI Composition is complete.** E11-1 through E11-8 are complete. Its Experimental
 Python-host boundary provides text and R9-validated JSON `model/4` ordinary-callable
 and Outcome behavior through an offline deterministic fixture plus one explicit
 Google Gemini direct-REST capability, with shared conformance and cross-mode
-fixture hardening, E11-5 application-owned list/Flow `scan` conversation composition, E11-6 Outcome-aware validated-pipeline proving case, and E11-7 release-example truth synchronization. E11-8 remains unimplemented
-and require their own gates. Preserve the ordinary
+fixture hardening, E11-5 application-owned list/Flow `scan` conversation composition, E11-6 Outcome-aware validated-pipeline proving case, E11-7 release-example truth synchronization, and E11-8 release truth audit/distillation. Follow-ups and later releases
+require their own gates. Preserve the ordinary
 callable/value/Outcome/R9/R10/Flow boundary recorded in
 `docs/design/r11-ai-composition-contract.md`. See `docs/strategy/release-roadmap.md` and
 `docs/ai/LLM_CONTRACT.md` for release boundaries.
