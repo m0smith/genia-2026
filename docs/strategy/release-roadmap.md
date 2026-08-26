@@ -613,11 +613,12 @@ Completion qualifications:
 
 ## Release R11 — AI Composition
 
-**Status: Active; E11-1 through E11-6 implemented, E11-7 and later planned.** The Experimental
+**Status: Active; E11-1 through E11-7 implemented, E11-8 planned.** The Experimental
 E11-1/E11-3 Python reference-host boundary provides text and R9-validated JSON
 `model/4` over an explicit deterministic fixture and one explicit Google Gemini
-direct-REST capability. The remaining section records
-planned, not implemented behavior. See
+direct-REST capability. E11-5/E11-6 provide the application-owned conversation
+and validated-pipeline proofs, and E11-7 synchronizes runnable examples. Any
+future or excluded material below remains unimplemented. See
 `docs/design/r11-ai-composition-contract.md` for the approved boundary.
 
 Theme:
@@ -666,8 +667,9 @@ user_inputs
   |> scan(chat_turn_step, initial_chat)
 ```
 
-This is a conceptual roadmap example, not a claim that the surrounding AI APIs
-exist. An interactive terminal producer may use the current two-argument
+This remains conceptual pseudocode because `chat_turn` is not a public helper;
+the implemented application example defines its own step over `model/4` and
+existing `scan`. An interactive terminal producer may use the current two-argument
 `evolve(init, step)` shape to generate prompt events, but input production must
 remain separate from conversation evolution.
 
@@ -677,8 +679,8 @@ the required bounded termination. `take_while` itself is not currently an
 implemented Flow helper, so this remains a planned semantic gap rather than an
 implemented example or a reason to invent a special-purpose helper.
 
-R11 should also demonstrate model use inside Genia's Outcome-aware validated
-data-pipeline story.
+R11 also demonstrates model use inside Genia's Outcome-aware validated
+data-pipeline story through the implemented E11-6 proving case.
 
 Exit criterion:
 
@@ -692,7 +694,7 @@ Approved sequence:
 4. E11-4 — shared conformance and cross-mode hardening — **implemented (Experimental; Python fixture harness)**
 5. E11-5 — Flow/`scan` conversation composition — **implemented (Experimental; application-owned ordinary state)**
 6. E11-6 — Outcome-aware validated-pipeline proving case — **implemented (Experimental; deterministic fixture proof)**
-7. E11-7 — release examples and truth sync
+7. E11-7 — release examples and truth sync — **implemented (documentation and runnable-example verification; no runtime behavior)**
 8. E11-8 — final truth audit and distillation
 
 The implemented Gemini adapter is one narrow provider proof, not a framework.
@@ -982,10 +984,9 @@ post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
 configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
 foundation while preserving R10 protected-value boundaries.
 
-R8, R9, and R10 are complete. R11 is active with Experimental E11-1/E11-3 text,
-R9-validated JSON, deterministic-fixture, and explicit Python Gemini REST behavior
-implemented, with E11-4 shared conformance/cross-mode fixture hardening; E11-5
-and later slices remain planned. R12, R13, and R14 remain planned.
+R8, R9, and R10 are complete. R11 is active with Experimental E11-1 through
+E11-6 behavior/proving slices implemented and E11-7 release examples and truth
+sync complete; E11-8 remains planned. R12, R13, and R14 remain planned.
 R10 follow-ups and R11-R12 require their own gates; R13 and R14 do as well.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap

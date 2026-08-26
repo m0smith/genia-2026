@@ -54,8 +54,9 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "naming_rule",
         "annotation_builtins",
         "native_test_annotation_discovery",
-        "native_test_metadata_string_boundary",
-        CANONICAL_FIELD_PATH_SEPARATOR_FACT,
+            "native_test_metadata_string_boundary",
+            "r11_ordinary_composition_boundary",
+            CANONICAL_FIELD_PATH_SEPARATOR_FACT,
         CANONICAL_NAMED_ACCESS_SEPARATOR_FACT,
     }
     assert set(FACTS) == expected_keys

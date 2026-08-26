@@ -36,6 +36,9 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 
 ### Group: Model Test Fixture
 
+R11 E11-7 verifies the runnable fixture examples and synchronizes their public
+portability labels. It adds or changes no host capability.
+
 #### `model.deterministic-fixture`
 
 - **name:** `model.deterministic-fixture`

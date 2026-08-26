@@ -477,7 +477,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - serve startup must finish entry evaluation and explicit snapshot construction before listener activation; request handling performs no automatic refresh.
 - there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, and annotation injection remain unimplemented.
 
-### AI model invocation, Flow conversation, and validated-pipeline composition (Experimental E11-1 through E11-6)
+### AI model invocation, Flow conversation, and validated-pipeline composition (Experimental E11-1 through E11-7)
 
 - `model(provider, config, credential, authority)` is an ordinary call and returns an ordinary one-argument callable; it adds no syntax, annotation behavior, AST form, or Core IR node.
 - `provider` must be an opaque host-injected model-provider capability, `credential` must be protected, and `authority` must be a declassification authority. `config` must be exactly `{id, timeout_ms}`, with a nonempty string id and an integer timeout in `1..300000`.
@@ -499,6 +499,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - Existing `scan` is the sole composition mechanism: list and Flow inputs produce equivalent consumed state sequences, Flow remains lazy/single-use, and the initial state is not emitted. No conversation runtime, input producer, hidden memory, retry/reprompt/tool loop, or new Flow termination helper is added.
 - E11-6 composes existing JSONL parsing and record validation before the ordinary model stage, so malformed/blank/invalid records create existing diagnostics and make no model attempt. Structured successes retain one R9 `json` representation and existing `collect_validated` separates them from existing normalized diagnostics.
 - The proving case uses explicit ordinary model configuration and explicitly injected R10 protected credential/authority/provider values. At most one attempt occurs for each valid invocation; normalized failure, invalid structured output, Template mismatch, and protected-boundary failure add no retry, repair, reprompt, fallback, or new error/diagnostic shape.
+- E11-7 changes no semantics; it verifies runnable public examples and synchronizes the implemented E11-1 through E11-6 behavior, maturity, portability, and exclusions.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

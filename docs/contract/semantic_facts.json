@@ -16,5 +16,6 @@
   "canonical_format_field_path_separator": "Dot (`.`) is the canonical field-path separator for representation/format placeholders; slash (`/`) is not the format field-path separator and remains limited to existing slash operator/Core IR wording.",
   "canonical_named_access_separator": "Dot (`.`) is the canonical named-access separator; legacy slash named access has been removed and is not general field-path lookup.",
   "native_test_annotation_discovery": "`@test \"description\"` annotates zero-argument functions for native test discovery; discovery runs after legacy `test(name, body)` registrations; duplicate native-test names across explicit and annotated tests are discovery errors.",
-  "native_test_metadata_string_boundary": "Native test metadata keys and values must be strings. Non-string metadata keys or values are reported as deterministic discovery errors before test body execution. Diagnostics use Genia runtime type names and append existing TestUnit.location when available."
+  "native_test_metadata_string_boundary": "Native test metadata keys and values must be strings. Non-string metadata keys or values are reported as deterministic discovery errors before test body execution. Diagnostics use Genia runtime type names and append existing TestUnit.location when available.",
+  "r11_ordinary_composition_boundary": "R11 messages and requests are ordinary values, prompts are functions, models are callable, chains are pipelines, and conversations are application-owned composition over existing scan; provider adapters are Python-host-only."
 }
