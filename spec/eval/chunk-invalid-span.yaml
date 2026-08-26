@@ -1,0 +1,11 @@
+name: chunk-invalid-span
+category: eval
+description: First malformed or out-of-bounds span returns indexed chunk-invalid
+input:
+  source: |
+    doc = {id: "doc-1", text: "abc", meta: represent("json", {})}
+    chunk((_text) -> [{offset: 0, length: 1}, {offset: 2, length: 2}], doc)
+expected:
+  stdout: "err(chunk-invalid, {stage: span, index: 1})\n"
+  stderr: ""
+  exit_code: 0
