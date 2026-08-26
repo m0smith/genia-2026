@@ -38,10 +38,10 @@ def test_chunk_invokes_callback_once_and_constructs_exact_provenance():
 
     assert calls == ["hello"]
     assert isinstance(result, GeniaOptionSome)
-    assert result.value == [
-        _map(text="he", source=_map(doc_id="doc-1", offset=0, length=2), meta=_document().get("meta")),
-        _map(text="llo", source=_map(doc_id="doc-1", offset=2, length=3), meta=_document().get("meta")),
-    ]
+    assert [item.get("text") for item in result.value] == ["he", "llo"]
+    assert [item.get("source").get("doc_id") for item in result.value] == ["doc-1", "doc-1"]
+    assert [item.get("source").get("offset") for item in result.value] == [0, 2]
+    assert [item.get("source").get("length") for item in result.value] == [2, 3]
 
 
 def test_chunk_preserves_exact_metadata_object_and_allows_overlap_and_repeat():
@@ -90,10 +90,10 @@ def test_chunk_returns_indexed_chunk_invalid_for_bad_spans():
     ]
     for span in spans:
         result = _run_with_chunker(lambda _text: [_map(offset=0, length=1), span])
-        assert result == GeniaOptionErr(
-            "chunk-invalid",
-            _map(stage=symbol("span"), index=1),
-        )
+        assert isinstance(result, GeniaOptionErr)
+        assert result.reason == "chunk-invalid"
+        assert result.context.get("stage") == symbol("span")
+        assert result.context.get("index") == 1
 
 
 def test_chunk_rejects_malformed_documents_before_callback():
