@@ -1,0 +1,17 @@
+name: r11-validated-pipeline-proving-case
+category: cli
+description: Executable R11 model use composes with JSONL validation, R9 structured output, R10 credentials, and collected diagnostics
+input:
+  fixtures: [r11_model]
+  source: "examples/r11_validated_pipeline_proving_case.genia"
+  file: "examples/r11_validated_pipeline_proving_case.genia"
+  stdin: ""
+  argv: []
+expected:
+  stdout: '{clean: [<represented>, <represented>], diagnostics: [{index: 1, kind: skipped, reason: "blank_line", context: some({kind: jsonl_record, status: skipped, reason: blank_line, line: ""})}, {index: 2, kind: error, reason: invalid_jsonl_record, context: some({kind: jsonl_record, status: error, reason: invalid_jsonl_record, line: "not-json", message: "Expecting value", column: 1})}, {index: 3, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: "name", status: error, reason: "missing required field", context: {field: "name", reason: "missing required field"}}]})}]}'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 616
+  classification: Experimental composition proof over implemented E11-1 through E11-5 and existing R9/R10/validation behavior.
+  non_goal: no new syntax, helper, framework, retry, repair, or provider behavior.

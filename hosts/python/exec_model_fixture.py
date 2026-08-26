@@ -44,7 +44,12 @@ def _build_env(*, stdin_data=None):
         output_kind = request.get("output").get("kind")
         text = "fixture reply"
         if output_kind == symbol("json"):
-            text = "{" if config.get("id") == "fixture-malformed-json" else "7"
+            if config.get("id") == "fixture-malformed-json":
+                text = "{"
+            elif config.get("id") == "fixture-r11-pipeline":
+                text = '{"id":7,"label":"fixture"}'
+            else:
+                text = "7"
         response = _map(
             message=_map(
                 role=symbol("assistant"),

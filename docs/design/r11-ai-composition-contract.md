@@ -1,6 +1,6 @@
 # R11 AI Composition Contract
 
-Status: **Approved contract; E11-1 through E11-5 implemented as Experimental, later slices planned.**
+Status: **Approved contract; E11-1 through E11-6 implemented as Experimental, later slices planned.**
 
 This document fixes the semantic boundary for R11 tickets. E11-1/E11-3 now implement
 the text and R9-validated JSON `model/4` deterministic-fixture subset. This design document must
@@ -474,7 +474,7 @@ phase gates.
    parse/IR regression and import/test/serve non-ambient proof.
 5. **E11-5 — Flow conversation (implemented):** list/Flow equivalence, terminal behavior,
    source independence.
-6. **E11-6 — validated-pipeline proving case.**
+6. **E11-6 — validated-pipeline proving case (implemented).**
 7. **E11-7 — release examples and truth sync:** implemented-behavior docs and
    `docs/releases/R11.md` runnable examples.
 8. **E11-8 — final truth audit and distillation.**
