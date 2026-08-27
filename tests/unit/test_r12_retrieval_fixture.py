@@ -109,7 +109,7 @@ def _env(handler, corpus=None):
     corpus = [_embedded()] if corpus is None else corpus
     env.set("embedded_corpus_fixture", corpus)
     handle = run_source(
-        f'i = index(index_provider_fixture, {{id: "index", timeout_ms: 1000}}, '
+        'i = index(index_provider_fixture, {id: "index", timeout_ms: 1000}, '
         "index_credential_fixture, index_authority_fixture)\n"
         "i(embedded_corpus_fixture) |> unwrap_or(none)",
         env,

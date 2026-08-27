@@ -533,13 +533,27 @@ class _FixtureIndexResult:
 class GeniaIndexHandle:
     """Opaque host-produced index compatibility handle."""
 
-    __slots__ = ("__backend_ref", "__compatibility_identity", "__dims", "__space")
+    __slots__ = (
+        "__backend_ref",
+        "__compatibility_identity",
+        "__corpus_chunks",
+        "__dims",
+        "__space",
+    )
 
-    def __init__(self, compatibility_identity: object, space: str, dims: int, backend_ref: Any):
+    def __init__(
+        self,
+        compatibility_identity: object,
+        space: str,
+        dims: int,
+        backend_ref: Any,
+        corpus_chunks: tuple[Any, ...],
+    ):
         self.__compatibility_identity = compatibility_identity
         self.__space = space
         self.__dims = dims
         self.__backend_ref = backend_ref
+        self.__corpus_chunks = corpus_chunks
 
     def __eq__(self, other: object) -> bool:
         raise TypeError("index handles cannot be compared")
@@ -637,6 +651,7 @@ class GeniaIndexer:
                 space,
                 dims,
                 observation.value.backend_ref,
+                tuple(embedded.get("chunk") for embedded in corpus),
             )
         )
 
@@ -673,3 +688,275 @@ def construct_index(
     if not isinstance(authority, GeniaDeclassificationAuthority):
         raise TypeError("index expected a declassification authority")
     return GeniaIndexer(provider, validated_config, credential, authority)
+
+
+_RETRIEVE_ERROR_KINDS = _EMBED_ERROR_KINDS
+
+
+def _validate_retrieve_config(value: Any) -> GeniaMap:
+    config = _embed_closed_map(value, {"id", "timeout_ms"}, "config")
+    if not isinstance(config.get("id"), str) or config.get("id") == "":
+        raise TypeError("retrieve expected config id to be a non-empty string")
+    timeout = config.get("timeout_ms")
+    if (
+        isinstance(timeout, bool)
+        or not isinstance(timeout, int)
+        or timeout < 1
+        or timeout > 300_000
+    ):
+        raise TypeError(
+            "retrieve expected config timeout_ms to be an integer in 1..300000"
+        )
+    return config
+
+
+def _validate_query_embedding(value: Any) -> tuple[str, int]:
+    if contains_protected(value):
+        raise TypeError("protected-value: retrieve-input")
+    query = _embed_closed_map(value, {"embedding", "text"}, "query embedding")
+    text = query.get("text")
+    if not isinstance(text, str) or text == "":
+        raise TypeError("retrieve expected query text to be a non-empty string")
+    embedding = _embed_closed_map(
+        query.get("embedding"), {"dims", "space", "vector"}, "embedding"
+    )
+    vector = embedding.get("vector")
+    if (
+        not isinstance(vector, list)
+        or not vector
+        or any(
+            isinstance(item, bool)
+            or not isinstance(item, (int, float))
+            or not math.isfinite(item)
+            for item in vector
+        )
+    ):
+        raise TypeError("retrieve expected embedding vector to be non-empty and finite")
+    dims = embedding.get("dims")
+    if (
+        isinstance(dims, bool)
+        or not isinstance(dims, int)
+        or dims <= 0
+        or dims != len(vector)
+    ):
+        raise TypeError("retrieve expected embedding dims to equal vector length")
+    space = embedding.get("space")
+    if not isinstance(space, str) or space == "":
+        raise TypeError("retrieve expected embedding space to be a non-empty string")
+    return space, dims
+
+
+def _retrieve_invalid(stage: str) -> GeniaOptionErr:
+    return GeniaOptionErr("retrieve-response-invalid", _map(stage=symbol(stage)))
+
+
+def _valid_retrieve_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    context = value.context
+    if value.reason == "retrieve-timeout":
+        return (
+            isinstance(context, GeniaMap)
+            and _keys(context) == {"timeout_ms"}
+            and context.get("timeout_ms") == timeout_ms
+            and not isinstance(context.get("timeout_ms"), bool)
+        )
+    if value.reason == "retrieve-rate-limited":
+        if not isinstance(context, GeniaMap) or _keys(context) != {"retry_after_ms"}:
+            return False
+        retry = context.get("retry_after_ms")
+        if isinstance(retry, GeniaOptionSome):
+            return (
+                retry.context is None
+                and isinstance(retry.value, int)
+                and not isinstance(retry.value, bool)
+                and retry.value >= 0
+            )
+        return (
+            isinstance(retry, GeniaOptionNone)
+            and retry.reason == "retrieve-retry-after-unavailable"
+            and retry.context is None
+        )
+    if value.reason in {"retrieve-rejected", "retrieve-transport-failure"}:
+        return (
+            isinstance(context, GeniaMap)
+            and _keys(context) == {"kind"}
+            and isinstance(context.get("kind"), GeniaSymbol)
+            and context.get("kind").name in _RETRIEVE_ERROR_KINDS
+        )
+    return False
+
+
+class _FixtureRetrieveResult:
+    __slots__ = ("results",)
+
+    def __init__(self, results: Any):
+        self.results = results
+
+
+class GeniaRetrieveProvider:
+    """Opaque Python-host deterministic retrieval capability."""
+
+    __slots__ = ("_attempt_count", "_compatibility_identity", "_handler")
+
+    def __init__(
+        self,
+        compatibility_identity: object,
+        handler: Callable[[GeniaMap, Any, GeniaMap, int, str], Any],
+    ):
+        self._compatibility_identity = compatibility_identity
+        self._handler = handler
+        self._attempt_count = 0
+
+    @property
+    def attempt_count(self) -> int:
+        return self._attempt_count
+
+    def _attempt(
+        self,
+        config: GeniaMap,
+        backend_ref: Any,
+        query: GeniaMap,
+        k: int,
+        credential: str,
+    ) -> Any:
+        self._attempt_count += 1
+        return self._handler(config, backend_ref, query, k, credential)
+
+    def __repr__(self) -> str:
+        return "<retrieve-provider>"
+
+
+class GeniaRetriever:
+    """Ordinary three-argument retrieval callable."""
+
+    __slots__ = ("_authority", "_config", "_credential", "_provider")
+
+    def __init__(
+        self,
+        provider: GeniaRetrieveProvider,
+        config: GeniaMap,
+        credential: GeniaProtected,
+        authority: GeniaDeclassificationAuthority,
+    ):
+        self._provider = provider
+        self._config = config
+        self._credential = credential
+        self._authority = authority
+
+    def __call__(self, handle: Any, query: Any, k: Any) -> Any:
+        space, dims = _validate_query_embedding(query)
+        if isinstance(k, bool) or not isinstance(k, int) or k < 1 or k > 1000:
+            raise TypeError("retrieve expected k to be an integer in 1..1000")
+        if not isinstance(handle, GeniaIndexHandle):
+            raise TypeError("retrieve expected an index handle")
+        if (
+            handle._GeniaIndexHandle__compatibility_identity
+            is not self._provider._compatibility_identity
+        ):
+            return GeniaOptionErr(
+                "retrieve-capability-incompatible",
+                _map(kind=symbol("index_handle")),
+            )
+        if handle._GeniaIndexHandle__space != space:
+            return GeniaOptionErr(
+                "retrieve-embedding-incompatible", _map(kind=symbol("space"))
+            )
+        if handle._GeniaIndexHandle__dims != dims:
+            return GeniaOptionErr(
+                "retrieve-embedding-incompatible", _map(kind=symbol("dimension"))
+            )
+        ordinary_credential = declassify(self._authority, self._credential)
+        if not isinstance(ordinary_credential, str):
+            raise TypeError("retrieve expected protected credential to carry a string")
+        try:
+            observation = self._provider._attempt(
+                self._config,
+                handle._GeniaIndexHandle__backend_ref,
+                query,
+                k,
+                ordinary_credential,
+            )
+        except Exception:
+            return GeniaOptionErr(
+                "retrieve-transport-failure", _map(kind=symbol("other"))
+            )
+        if isinstance(observation, GeniaOptionErr):
+            if _valid_retrieve_error(observation, self._config.get("timeout_ms")):
+                return observation
+            return _retrieve_invalid("provider_response")
+        if not isinstance(observation, GeniaOptionSome) or observation.context is not None:
+            return _retrieve_invalid("provider_response")
+        if not isinstance(observation.value, _FixtureRetrieveResult):
+            return _retrieve_invalid("provider_response")
+        results = observation.value.results
+        if not isinstance(results, list):
+            return _retrieve_invalid("result")
+        if len(results) > k:
+            return _retrieve_invalid("limit")
+        corpus_chunks = list(handle._GeniaIndexHandle__corpus_chunks)
+        used: list[int] = []
+        normalized: list[GeniaMap] = []
+        for result in results:
+            if not isinstance(result, GeniaMap) or _keys(result) != {"chunk", "score"}:
+                return _retrieve_invalid("result")
+            chunk = result.get("chunk")
+            if not _valid_chunk(chunk):
+                return _retrieve_invalid("chunk")
+            score = result.get("score")
+            if (
+                isinstance(score, bool)
+                or not isinstance(score, (int, float))
+                or not math.isfinite(score)
+            ):
+                return _retrieve_invalid("score")
+            occurrence = next(
+                (
+                    index
+                    for index, indexed_chunk in enumerate(corpus_chunks)
+                    if index not in used and chunk == indexed_chunk
+                ),
+                None,
+            )
+            if occurrence is None:
+                return _retrieve_invalid("provenance")
+            used.append(occurrence)
+            normalized.append(_map(chunk=corpus_chunks[occurrence], score=score))
+        if not normalized:
+            return GeniaOptionNone("retrieval-no-results")
+        return GeniaOptionSome(normalized)
+
+    def __repr__(self) -> str:
+        return "<function>"
+
+
+def create_fixture_retrieve_provider(
+    index_provider: Any,
+    handler: Callable[[GeniaMap, Any, GeniaMap, int, str], Any],
+) -> GeniaRetrieveProvider:
+    if not isinstance(index_provider, GeniaIndexProvider):
+        raise TypeError("fixture retrieve provider expected an index provider")
+    if not callable(handler):
+        raise TypeError("fixture retrieve provider expected a callable handler")
+    return GeniaRetrieveProvider(index_provider._compatibility_identity, handler)
+
+
+def create_fixture_retrieve_result(results: Any) -> _FixtureRetrieveResult:
+    return _FixtureRetrieveResult(results)
+
+
+def construct_retrieve(
+    provider: Any,
+    config: Any,
+    credential: Any,
+    authority: Any,
+) -> GeniaRetriever:
+    if not isinstance(provider, GeniaRetrieveProvider):
+        raise TypeError(
+            "retrieve expected a retrieve provider capability, "
+            f"received {_runtime_type_name(provider)}"
+        )
+    validated_config = _validate_retrieve_config(config)
+    if not isinstance(credential, GeniaProtected):
+        raise TypeError("retrieve expected a protected credential")
+    if not isinstance(authority, GeniaDeclassificationAuthority):
+        raise TypeError("retrieve expected a declassification authority")
+    return GeniaRetriever(provider, validated_config, credential, authority)

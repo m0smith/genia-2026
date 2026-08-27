@@ -336,7 +336,6 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "index_provider_fixture",
         "index_credential_fixture",
         "index_authority_fixture",
-        "retrieve",
         "index_retry",
         "index_batch",
     ):
