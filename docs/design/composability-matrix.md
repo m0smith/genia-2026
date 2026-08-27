@@ -89,16 +89,17 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 
 ## R12 relationships
 
-These rows record the approved R12 contract boundary. E12-1 and E12-2 are
-implemented as Experimental; E12-3 and later remain unimplemented. See
+These rows record the approved R12 contract boundary. E12-1 through E12-3 are
+implemented as Experimental; E12-4 and later remain unimplemented. See
 `r12-retrieval-grounding-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
 | document/chunk provenance | R9 JSON representation / ordinary callable | closed ordinary values retain the exact represented metadata value; `chunk/2` invokes one ordinary span chunker exactly once, then owns Unicode-code-point source slicing and provenance rather than trusting chunker-produced text; it adds no new Template or representation semantics | E12-1 implemented, Experimental |
 | embedding input | ordinary variant values / Outcome | explicit chunk and query variants share one `embed/4` callable without fabricating query provenance or hiding embedding in retrieval; exact input identity is retained across the opaque provider boundary | E12-2 implemented, Experimental; deterministic fixture Python-host-only |
-| embedding | R10 protected value / later index/retrieve compatibility | finite vectors carry exact dimensions and application-owned compatibility space; the explicit credential remains protected until one authorized `quote(embed_call)` attempt, and compatibility does not claim equal results across providers | E12-2 implemented, Experimental; index/retrieve relationship remains contract-only |
-| index/retrieve | opaque host capabilities / ordinary callables | indexing returns an opaque paired handle; retrieval checks capability, space, and dimensions before one attempt | Approved contract; not implemented |
+| embedding | R10 protected value / index/retrieve compatibility | finite vectors carry exact dimensions and application-owned compatibility space; indexing validates exact corpus dimensions/space before its authorized attempt, and compatibility does not claim equal results across providers | E12-2/E12-3 implemented, Experimental; retrieval relationship remains contract-only |
+| indexing | R10 protected value / Outcome / opaque host capability | `index/4` accepts a nonempty compatible embedded corpus, keeps the credential protected until one `quote(index_call)` attempt, and returns only an opaque non-comparable/non-serializable handle rather than exposing backend storage | E12-3 implemented, Experimental; deterministic fixture Python-host-only |
+| index/retrieve | opaque host capabilities / ordinary callables | the implemented index handle privately retains capability identity, space, and dimensions; later retrieval must check those exact obligations before one attempt | Index side implemented by E12-3; retrieval contract not implemented |
 | provider reranking | retrieved evidence / R10 authority | `rerank/4` may reorder and replace finite scores but preserves the exact evidence multiset; pure local rerankers remain ordinary differently named functions | Approved contract; not implemented |
 | grounded context/answer | R11 content and `model/4` | pure assembly retains ordered evidence and first-occurrence sources; generation uses unchanged `model/4`; citation rendering is application-owned | Approved contract; not implemented |
 

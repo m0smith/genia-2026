@@ -1,6 +1,6 @@
 # R12 Retrieval & Grounding Contract
 
-Status: **Approved contract; E12-1 and E12-2 implemented as Experimental. E12-3 and later are not implemented.**
+Status: **Approved contract; E12-1 through E12-3 implemented as Experimental. E12-4 and later are not implemented.**
 
 This document fixes the semantic boundary for later R12 tickets. It does not
 define current language behavior and must not be cited as implementation
@@ -417,12 +417,11 @@ and recursive leak scanning. Generated sentinel keys and payloads must be absent
 from stdout, stderr, exceptions, Outcomes, diagnostics, rendering, reports,
 provider observations, audits, buffers, resources, and test output.
 
-The composability matrix records R12 relationships. E12-1 implements `chunk/2`
-and E12-2 implements `embed/4` without adding a Template/representation/matcher-
-family builtin. Their classified executable coverage and `docs/releases/R12.md`
-examples describe only the landed document/chunk/provenance and explicit
-embedding boundaries; later planned examples must not appear as implemented
-before their behavior lands.
+The composability matrix records R12 relationships. E12-1 implements `chunk/2`,
+E12-2 implements `embed/4`, and E12-3 implements `index/4` plus its opaque
+handle without adding a Template/representation/matcher-family builtin. Their
+classified executable coverage and `docs/releases/R12.md` examples describe
+only landed boundaries; later planned examples must not appear as implemented.
 
 ## Reconciled release sequence
 
@@ -468,6 +467,6 @@ written from this contract rather than copied from the earlier proposal.
 ## Gate
 
 Issue #641 approved this contract and stopped after the contract phase. Issues
-#643 and #644 completed E12-1 and E12-2 through their own phase gates. Those
-implementations do not authorize E12-3 or later work, which remains
-unimplemented and requires its own ticket workflow.
+#643, #644, and #645 completed E12-1 through E12-3 through their own phase
+gates. Those implementations do not authorize E12-4 or later work, which
+remains unimplemented and requires its own ticket workflow.
