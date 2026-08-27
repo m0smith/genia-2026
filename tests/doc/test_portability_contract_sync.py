@@ -176,6 +176,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "configuration environment snapshot": "configuration_environment_snapshot",
         "deterministic model fixture": "model_deterministic_fixture",
         "Gemini model REST adapter": "model_gemini_rest",
+        "deterministic embedding fixture": "embedding_deterministic_fixture",
         "HTTP serving": "http_server",
         "refs": "refs",
         "process primitives": "process_primitives",

@@ -124,12 +124,14 @@ When an LLM agent is asked for new Genia work:
   or retrieval behavior. E11-5 is application-owned ordinary state over existing
   list/Flow `scan`, not a conversation runtime; E11-6 is one existing-mechanism
   validated-pipeline proof, not a framework; follow-ups and later releases require their own phase gates.
-7. R12 has an approved contract and E12-1 `chunk/2` is implemented as
+7. R12 has an approved contract and E12-1 `chunk/2` plus E12-2 `embed/4` are implemented as
    Experimental ordinary value/callable/Outcome behavior with exact closed
    document/span validation, Unicode-code-point slicing, source-owned
-   provenance, and exact R9 represented metadata preservation. E12-2 and later
-   remain unimplemented and require their own gates. Preserve explicit
-   corpus/query embedding variants, opaque index/retrieval compatibility, the
+   provenance, and exact R9 represented metadata preservation. E12-2 adds one
+   explicit opaque deterministic Python fixture, exact corpus/query variants,
+   identity-preserving finite embeddings, R10 `quote(embed_call)` authority,
+   and one-attempt/no-retry normalization. E12-3 and later remain unimplemented
+   and require their own gates. Preserve opaque index/retrieval compatibility, the
    provider-backed `rerank/4` versus ordinary pure-function distinction, and
    unchanged R11 `model/4`. Do not infer a RAG/vector-store framework, hidden
    query embedding, score normalization, citation rendering, retries,

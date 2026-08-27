@@ -61,6 +61,18 @@ portability labels. It adds or changes no host capability.
 - **portability:** `Python-host-only`
 - **notes:** E11-3 uses the Python standard library, one synchronous attempt, no redirects or retries, no provider SDK, and no general HTTP API. Automated tests inject an offline fake transport; ordinary execution has no ambient Gemini capability, credential, or authority.
 
+### Group: Embedding Test Fixture
+
+#### `embedding.deterministic-fixture`
+
+- **name:** `embedding.deterministic-fixture`
+- **genia_surface:** opaque host-injected provider passed to `embed(provider, config, credential, authority)`
+- **input:** one validated exact chunk/query variant, exact `{id, space, timeout_ms}` config, and an authorized declassified string credential at the private host boundary
+- **output:** one existing Outcome containing the corresponding exact identity-preserving embedded chunk/query value or normalized failure
+- **errors:** malformed observations normalize to `embed-response-invalid`; fixture exceptions normalize to non-sensitive `embed-transport-failure` with `kind: quote(other)`
+- **portability:** `Python-host-only`
+- **notes:** This is the offline E12-2 fixture, not a network embedding adapter. It is explicitly injected only by Python tests, is never ambient or source-constructible, and performs at most one attempt per valid invocation with no retry.
+
 ### Group: I/O Substrate
 
 Capabilities connecting Genia programs to the host I/O streams. These are `language contract` capabilities — all hosts must provide them.
