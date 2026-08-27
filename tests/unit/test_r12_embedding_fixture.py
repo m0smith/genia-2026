@@ -5,7 +5,7 @@ import pytest
 from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.interpreter import run_source
-from genia.utf8 import format_display
+from genia.utf8 import format_debug, format_display
 from genia.values import (
     GeniaMap,
     GeniaOptionErr,
@@ -146,6 +146,12 @@ def test_constructor_is_inert_and_provider_is_opaque():
 
     assert repr(result) == "<function>"
     assert repr(fixture) == "<embed-provider>"
+    assert format_display(fixture) == "<embed-provider>"
+    assert format_debug(fixture) == "<embed-provider>"
+    encoded = run_source("json_encode(embed_provider_fixture)", env)
+    assert isinstance(encoded, GeniaOptionErr)
+    with pytest.raises(TypeError, match="map key type is not supported"):
+        GeniaMap().put(fixture, True)
     assert fixture.attempt_count == 0
     assert audits == []
 
