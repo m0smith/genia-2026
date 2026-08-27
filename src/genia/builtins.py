@@ -51,7 +51,7 @@ if __package__ in (None, ""):
         reject_declassification_authority,
     )
     from genia.model import construct_model
-    from genia.retrieval import construct_chunks, construct_embed
+    from genia.retrieval import construct_chunks, construct_embed, construct_index
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
         DebugHooks,
@@ -151,7 +151,7 @@ else:
         reject_declassification_authority,
     )
     from .model import construct_model
-    from .retrieval import construct_chunks, construct_embed
+    from .retrieval import construct_chunks, construct_embed, construct_index
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
         DebugHooks,
@@ -4401,6 +4401,7 @@ def make_global_env(
 
     env.set("model", _host_function_group("model", 4, model_fn))
     env.set("embed", _host_function_group("embed", 4, construct_embed))
+    env.set("index", _host_function_group("index", 4, construct_index))
 
     def chunk_fn(chunker: Any, document: Any) -> Any:
         evaluator = Evaluator(env, env.debug_hooks, env.debug_mode)

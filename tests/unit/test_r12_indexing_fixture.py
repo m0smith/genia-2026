@@ -304,7 +304,8 @@ def test_handle_cannot_be_hashed_keyed_copied_or_serialized():
     encoded = run_source("json_encode(index_handle_fixture)", env)
     assert isinstance(encoded, GeniaOptionErr)
     assert format_display(encoded) == (
-        'err("unsupported-json-value", {value_type: index-handle})'
+        "err(unsupported_json_value, {kind: json, operation: encode, status: error, "
+        "reason: unsupported_json_value, value_type: index-handle})"
     )
 
 

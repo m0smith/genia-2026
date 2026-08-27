@@ -57,6 +57,8 @@ def format_display(value: Any) -> str:
         return "<declassification-authority>"
     if _is_config_provider(value):
         return "<config-provider>"
+    if _is_index_handle(value):
+        return "<index-handle>"
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -103,6 +105,8 @@ def format_debug(value: Any) -> str:
         return "<declassification-authority>"
     if _is_config_provider(value):
         return "<config-provider>"
+    if _is_index_handle(value):
+        return "<index-handle>"
     if isinstance(value, str):
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
@@ -168,6 +172,10 @@ def _is_declassification_authority(value: Any) -> bool:
 
 def _is_config_provider(value: Any) -> bool:
     return value.__class__.__name__ == "GeniaConfigProvider"
+
+
+def _is_index_handle(value: Any) -> bool:
+    return value.__class__.__name__ == "GeniaIndexHandle"
 
 
 def _is_sheet(value: Any) -> bool:

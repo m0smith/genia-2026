@@ -65,6 +65,8 @@ def _runtime_type_name(value: Any) -> str:
         return "config-provider"
     if value.__class__.__name__ == "GeniaModelProvider":
         return "model-provider"
+    if value.__class__.__name__ == "GeniaIndexHandle":
+        return "index-handle"
     if value.__class__.__name__ == "GeniaModel":
         return "function"
     if value.__class__.__name__ == "GeniaMetaEnv":
@@ -251,6 +253,8 @@ def symbol(name: str) -> GeniaSymbol:
 
 
 def _freeze_map_key(value: Any) -> Any:
+    if value.__class__.__name__ == "GeniaIndexHandle":
+        raise TypeError("index handles cannot be map keys")
     if isinstance(value, GeniaDeclassificationAuthority):
         raise TypeError("declassification authority cannot be a map key")
     if value is None or isinstance(value, (bool, int, float, str)):
