@@ -590,6 +590,7 @@ Related shared portability docs:
     - ordinary provenance-owned document chunking (`chunk/2`, Experimental R12 E12-1; local portable value/callable/Outcome behavior with no provider capability)
     - explicitly injected embed provider and returned callable embedder (`embed/4`, Experimental R12 E12-2; explicit chunk/query variants, exact identity, finite vector/dimension/space validation, one deterministic offline attempt, and no ambient capability)
     - explicitly injected index provider and returned callable indexer (`index/4`, Experimental R12 E12-3; nonempty compatible embedded corpus, validation before one authorized offline attempt, and opaque non-serializable `<index-handle>` result)
+    - explicitly paired retrieval provider and returned callable retriever (`retrieve/4`, Experimental R12 E12-4; explicit query embedding and `k`, identity/space/dimension guards before one authorized offline attempt, ordered exact indexed evidence, and exact no-results absence)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1051,7 +1052,7 @@ offline fixture. Construction is inert; locally invalid input makes no attempt;
 one valid invocation declassifies the R10 protected string credential just in
 time through `quote(embed_call)` and makes one synchronous attempt with no
 retry. The capability is opaque, non-ambient, and not source-constructible.
-There is no network embed adapter, retrieval, reranking, grounding,
+There is no network embed adapter, reranking, grounding,
 implicit query embedding, persistence, or provider registry in E12-2.
 
 See [the active R12 release page](docs/releases/R12.md) for its executable proof.
@@ -1066,8 +1067,25 @@ chunk/vector and exact corpus dimensions/space before declassifying through
 Success exposes only `some(<index-handle>)`. The host-produced handle is fixed-
 rendering and cannot be source-constructed, inspected, compared, keyed, copied,
 serialized, or persisted. The fixture retains a private compatibility identity
-for later paired retrieval, but E12-3 adds no retrieval API, vector database,
-network adapter, public index storage, retry, or provider registry.
+used by the separate E12-4 paired retrieval boundary; E12-3 itself adds no
+retrieval attempt, vector database, network adapter, public index storage,
+retry, or provider registry.
+
+See [the active R12 release page](docs/releases/R12.md) for its executable proof.
+
+### Retrieval capability and compatibility guards (Experimental R12 E12-4)
+
+`retrieve(provider, config, credential, authority)` returns an ordinary callable
+that accepts one opaque E12-3 index handle, one explicit E12-2 query embedding,
+and `k` in `1..1000`. Before declassification it checks the paired private
+capability identity, exact embedding space, and exact dimensions in that order.
+
+One valid call declassifies through `quote(retrieve_call)` and makes one
+deterministic offline fixture attempt. Nonempty success preserves provider
+best-first order and returns at most `k` finite-scored exact indexed chunks;
+empty success is `none("retrieval-no-results")`. The fixture adds no implicit
+embedding, reranking, grounding, networking, persistence/vector database,
+score normalization, retry, or provider registry.
 
 See [the active R12 release page](docs/releases/R12.md) for its executable proof.
 
