@@ -102,12 +102,16 @@ def test_query_embedding_preserves_text_and_attempts_once():
     env, fixture, audits = _env(handler)
     result = run_source(_source(QUERY_SOURCE), env)
 
-    assert result == GeniaOptionSome(_query_response())
+    assert isinstance(result, GeniaOptionSome)
     assert result.value.get("text") == "hello"
+    assert result.value.get("embedding").get("vector") == [0.25, -1, 3.5]
+    assert result.value.get("embedding").get("dims") == 3
+    assert result.value.get("embedding").get("space") == SPACE
     assert "chunk" not in [key for key, _ in result.value.items()]
     assert fixture.attempt_count == 1
     assert len(audits) == 1 and audits[0]["success"] is True
-    assert seen[0][1] == _map(kind=symbol("query"), text="hello")
+    assert seen[0][1].get("kind") == symbol("query")
+    assert seen[0][1].get("text") == "hello"
     assert seen[0][2] == PAYLOAD
 
 
@@ -314,7 +318,7 @@ def test_authority_mismatch_prevents_attempt():
             provider, [symbol("model_call")], audits.append
         ),
     )
-    with pytest.raises(TypeError, match="declassification authority mismatch"):
+    with pytest.raises(TypeError, match="authority does not permit"):
         run_source(_source(QUERY_SOURCE), env)
     assert fixture.attempt_count == 0
     assert len(audits) == 1 and audits[0]["success"] is False

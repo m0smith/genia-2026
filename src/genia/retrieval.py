@@ -6,10 +6,14 @@ import math
 from collections.abc import Callable
 from typing import Any
 
+from .configuration import contains_protected, declassify
 from .values import (
+    GeniaDeclassificationAuthority,
     GeniaMap,
     GeniaOptionErr,
+    GeniaOptionNone,
     GeniaOptionSome,
+    GeniaProtected,
     GeniaRepresented,
     GeniaSymbol,
     _is_nil_none,
@@ -43,6 +47,14 @@ def _closed_map(value: Any, expected: set[str], label: str) -> GeniaMap:
         raise TypeError(f"chunk expected {label} map, received {_runtime_type_name(value)}")
     if _keys(value) != expected:
         raise TypeError(f"chunk expected closed {label} with keys {sorted(expected)}")
+    return value
+
+
+def _embed_closed_map(value: Any, expected: set[str], label: str) -> GeniaMap:
+    if not isinstance(value, GeniaMap):
+        raise TypeError(f"embed expected {label} map, received {_runtime_type_name(value)}")
+    if _keys(value) != expected:
+        raise TypeError(f"embed expected closed {label} with keys {sorted(expected)}")
     return value
 
 
@@ -104,6 +116,35 @@ def _span_coordinates(value: Any, text_length: int) -> tuple[int, int] | None:
     return offset, length
 
 
+def _valid_chunk(value: Any) -> bool:
+    if not isinstance(value, GeniaMap) or _keys(value) != {"meta", "source", "text"}:
+        return False
+    text = value.get("text")
+    if not isinstance(text, str) or text == "":
+        return False
+    source = value.get("source")
+    if not isinstance(source, GeniaMap) or _keys(source) != {"doc_id", "length", "offset"}:
+        return False
+    doc_id = source.get("doc_id")
+    offset = source.get("offset")
+    length = source.get("length")
+    if not isinstance(doc_id, str) or doc_id == "":
+        return False
+    if isinstance(offset, bool) or not isinstance(offset, int) or offset < 0:
+        return False
+    if isinstance(length, bool) or not isinstance(length, int) or length <= 0:
+        return False
+    if length != len(text):
+        return False
+    meta = value.get("meta")
+    return (
+        isinstance(meta, GeniaRepresented)
+        and meta.facet == "json"
+        and isinstance(meta.value, GeniaMap)
+        and _valid_json_value(meta.value)
+    )
+
+
 def construct_chunks(
     chunker: Any,
     document_value: Any,
@@ -146,3 +187,227 @@ def construct_chunks(
             )
         )
     return GeniaOptionSome(chunks)
+
+
+_EMBED_ERROR_KINDS = {
+    "authentication",
+    "permission",
+    "policy",
+    "request",
+    "unavailable",
+    "other",
+}
+
+
+def _validate_embed_config(value: Any) -> GeniaMap:
+    config = _embed_closed_map(value, {"id", "space", "timeout_ms"}, "config")
+    if not isinstance(config.get("id"), str) or config.get("id") == "":
+        raise TypeError("embed expected config id to be a non-empty string")
+    if not isinstance(config.get("space"), str) or config.get("space") == "":
+        raise TypeError("embed expected config space to be a non-empty string")
+    timeout = config.get("timeout_ms")
+    if (
+        isinstance(timeout, bool)
+        or not isinstance(timeout, int)
+        or timeout < 1
+        or timeout > 300_000
+    ):
+        raise TypeError("embed expected config timeout_ms to be an integer in 1..300000")
+    return config
+
+
+def _validate_embedding_input(value: Any) -> tuple[str, Any] | GeniaOptionErr:
+    if contains_protected(value):
+        raise TypeError("protected-value: embed-input")
+    if not isinstance(value, GeniaMap):
+        raise TypeError(
+            f"embed expected input map, received {_runtime_type_name(value)}"
+        )
+    kind = value.get("kind")
+    if not isinstance(kind, GeniaSymbol) or kind.name not in {"chunk", "query"}:
+        raise TypeError("embed expected input kind symbol in [chunk, query]")
+    if kind.name == "query":
+        value = _embed_closed_map(value, {"kind", "text"}, "query input")
+        text = value.get("text")
+        if not isinstance(text, str) or text == "":
+            raise TypeError("embed expected query text to be a non-empty string")
+        return "query", text
+    value = _embed_closed_map(value, {"chunk", "kind"}, "chunk input")
+    chunk = value.get("chunk")
+    if not _valid_chunk(chunk):
+        return GeniaOptionErr("chunk-invalid", _map(stage=symbol("document")))
+    return "chunk", chunk
+
+
+def _embed_invalid(stage: str) -> GeniaOptionErr:
+    return GeniaOptionErr("embed-response-invalid", _map(stage=symbol(stage)))
+
+
+def _valid_embed_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    context = value.context
+    if value.reason == "embed-timeout":
+        return (
+            isinstance(context, GeniaMap)
+            and _keys(context) == {"timeout_ms"}
+            and context.get("timeout_ms") == timeout_ms
+            and not isinstance(context.get("timeout_ms"), bool)
+        )
+    if value.reason == "embed-rate-limited":
+        if not isinstance(context, GeniaMap) or _keys(context) != {"retry_after_ms"}:
+            return False
+        retry = context.get("retry_after_ms")
+        if isinstance(retry, GeniaOptionSome):
+            return (
+                retry.context is None
+                and isinstance(retry.value, int)
+                and not isinstance(retry.value, bool)
+                and retry.value >= 0
+            )
+        return (
+            isinstance(retry, GeniaOptionNone)
+            and retry.reason == "embed-retry-after-unavailable"
+            and retry.context is None
+        )
+    if value.reason in {"embed-rejected", "embed-transport-failure"}:
+        return (
+            isinstance(context, GeniaMap)
+            and _keys(context) == {"kind"}
+            and isinstance(context.get("kind"), GeniaSymbol)
+            and context.get("kind").name in _EMBED_ERROR_KINDS
+        )
+    return False
+
+
+def _validate_embedding(value: Any, configured_space: str) -> tuple[list[Any], int] | GeniaOptionErr:
+    if not isinstance(value, GeniaMap) or _keys(value) != {"dims", "space", "vector"}:
+        return _embed_invalid("provider_response")
+    vector = value.get("vector")
+    if (
+        not isinstance(vector, list)
+        or not vector
+        or any(
+            isinstance(item, bool)
+            or not isinstance(item, (int, float))
+            or not math.isfinite(item)
+            for item in vector
+        )
+    ):
+        return _embed_invalid("vector")
+    dims = value.get("dims")
+    if isinstance(dims, bool) or not isinstance(dims, int) or dims <= 0 or dims != len(vector):
+        return _embed_invalid("dims")
+    space = value.get("space")
+    if not isinstance(space, str) or space == "" or space != configured_space:
+        return _embed_invalid("space")
+    return vector, dims
+
+
+class GeniaEmbedProvider:
+    """Opaque Python-host deterministic embedding capability."""
+
+    __slots__ = ("_handler", "_attempt_count")
+
+    def __init__(self, handler: Callable[[GeniaMap, GeniaMap, str], Any]):
+        self._handler = handler
+        self._attempt_count = 0
+
+    @property
+    def attempt_count(self) -> int:
+        return self._attempt_count
+
+    def _attempt(self, config: GeniaMap, value: GeniaMap, credential: str) -> Any:
+        self._attempt_count += 1
+        return self._handler(config, value, credential)
+
+    def __repr__(self) -> str:
+        return "<embed-provider>"
+
+
+class GeniaEmbedder:
+    """Ordinary one-argument embedding callable."""
+
+    __slots__ = ("_authority", "_config", "_credential", "_provider")
+
+    def __init__(
+        self,
+        provider: GeniaEmbedProvider,
+        config: GeniaMap,
+        credential: GeniaProtected,
+        authority: GeniaDeclassificationAuthority,
+    ):
+        self._provider = provider
+        self._config = config
+        self._credential = credential
+        self._authority = authority
+
+    def __call__(self, value: Any) -> Any:
+        validated = _validate_embedding_input(value)
+        if isinstance(validated, GeniaOptionErr):
+            return validated
+        kind, identity = validated
+        ordinary_credential = declassify(self._authority, self._credential)
+        if not isinstance(ordinary_credential, str):
+            raise TypeError("embed expected protected credential to carry a string")
+        try:
+            observation = self._provider._attempt(
+                self._config, value, ordinary_credential
+            )
+        except Exception:
+            return GeniaOptionErr(
+                "embed-transport-failure", _map(kind=symbol("other"))
+            )
+        if isinstance(observation, GeniaOptionErr):
+            if _valid_embed_error(observation, self._config.get("timeout_ms")):
+                return observation
+            return _embed_invalid("provider_response")
+        if not isinstance(observation, GeniaOptionSome) or observation.context is not None:
+            return _embed_invalid("provider_response")
+        response = observation.value
+        expected_keys = {"embedding", "text"} if kind == "query" else {"chunk", "embedding"}
+        if not isinstance(response, GeniaMap) or _keys(response) != expected_keys:
+            return _embed_invalid("provider_response")
+        response_identity = response.get("text" if kind == "query" else "chunk")
+        if response_identity != identity:
+            return _embed_invalid("input_identity")
+        embedding = _validate_embedding(response.get("embedding"), self._config.get("space"))
+        if isinstance(embedding, GeniaOptionErr):
+            return embedding
+        vector, dims = embedding
+        normalized_embedding = _map(
+            vector=vector,
+            dims=dims,
+            space=self._config.get("space"),
+        )
+        if kind == "query":
+            return GeniaOptionSome(_map(text=identity, embedding=normalized_embedding))
+        return GeniaOptionSome(_map(chunk=identity, embedding=normalized_embedding))
+
+    def __repr__(self) -> str:
+        return "<function>"
+
+
+def create_fixture_embed_provider(
+    handler: Callable[[GeniaMap, GeniaMap, str], Any],
+) -> GeniaEmbedProvider:
+    if not callable(handler):
+        raise TypeError("fixture embed provider expected a callable handler")
+    return GeniaEmbedProvider(handler)
+
+
+def construct_embed(
+    provider: Any,
+    config: Any,
+    credential: Any,
+    authority: Any,
+) -> GeniaEmbedder:
+    if not isinstance(provider, GeniaEmbedProvider):
+        raise TypeError(
+            "embed expected an embed provider capability, "
+            f"received {_runtime_type_name(provider)}"
+        )
+    validated_config = _validate_embed_config(config)
+    if not isinstance(credential, GeniaProtected):
+        raise TypeError("embed expected a protected credential")
+    if not isinstance(authority, GeniaDeclassificationAuthority):
+        raise TypeError("embed expected a declassification authority")
+    return GeniaEmbedder(provider, validated_config, credential, authority)
