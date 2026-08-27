@@ -522,7 +522,16 @@ No additional member/index/flow operators should be introduced without explicitl
 - A valid call declassifies the captured protected string immediately before one synchronous attempt through the exact matching R10 `quote(embed_call)` authority. There is no retry, fallback, hidden batching, stream, cache, or background work.
 - Success corresponds exactly to input kind and preserves the exact original chunk/text. Embeddings are exactly `{vector, dims, space}` with a nonempty finite-number vector excluding booleans, positive non-boolean dims equal to vector length, and exact configured space.
 - Malformed provider success/observations normalize to exact non-sensitive `embed-response-invalid` stages; approved embed timeout/rate-limit/rejection/transport errors use the R12 contract contexts. Provider exceptions become one `embed-transport-failure` with `kind: quote(other)`.
-- The deterministic Python fixture is explicit, opaque, offline, non-ambient, and source cannot construct it. No network embed adapter, indexing, retrieval, reranking, grounding, implicit query embedding, persistence, or provider registry is implemented.
+- The deterministic Python fixture is explicit, opaque, offline, non-ambient, and source cannot construct it. No network embed adapter, retrieval, reranking, grounding, implicit query embedding, persistence, or provider registry is implemented; indexing is the separate E12-3 boundary below.
+
+### Indexing capability and opaque handle (Experimental R12 E12-3)
+
+- `index(provider, config, credential, authority)` returns an ordinary one-argument callable. Construction validates exact `{id, timeout_ms}` config and captured capability/protected credential/authority without declassification, audit, or attempt.
+- Invocation requires a nonempty list of exact embedded chunks. Every vector must be valid, and all embeddings must share exact `dims` and `space`; mixed values return exact `index-embedding-incompatible` errors before declassification.
+- A valid call declassifies immediately before one synchronous attempt through exact matching R10 `quote(index_call)` authority. There is no retry, fallback, exposed batching, stream, cache, or background work.
+- Success is only `some(index_handle)`. The opaque host-produced handle renders `<index-handle>` and cannot be constructed, inspected, compared, keyed, copied, serialized, or persisted by source.
+- Provider errors normalize to the exact R12 index families without provider bodies or identities. The deterministic Python fixture is offline, explicit, non-ambient, and introduces no vector database or public storage API.
+- Retrieval, `k`, reranking, grounding, persistence, networking, provider registry, and source-visible compatibility identity remain unimplemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

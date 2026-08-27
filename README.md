@@ -589,6 +589,7 @@ Related shared portability docs:
   - Runtime capability values:
     - ordinary provenance-owned document chunking (`chunk/2`, Experimental R12 E12-1; local portable value/callable/Outcome behavior with no provider capability)
     - explicitly injected embed provider and returned callable embedder (`embed/4`, Experimental R12 E12-2; explicit chunk/query variants, exact identity, finite vector/dimension/space validation, one deterministic offline attempt, and no ambient capability)
+    - explicitly injected index provider and returned callable indexer (`index/4`, Experimental R12 E12-3; nonempty compatible embedded corpus, validation before one authorized offline attempt, and opaque non-serializable `<index-handle>` result)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1050,8 +1051,23 @@ offline fixture. Construction is inert; locally invalid input makes no attempt;
 one valid invocation declassifies the R10 protected string credential just in
 time through `quote(embed_call)` and makes one synchronous attempt with no
 retry. The capability is opaque, non-ambient, and not source-constructible.
-There is no network embed adapter, indexing, retrieval, reranking, grounding,
+There is no network embed adapter, retrieval, reranking, grounding,
 implicit query embedding, persistence, or provider registry in E12-2.
+
+See [the active R12 release page](docs/releases/R12.md) for its executable proof.
+
+### Indexing capability and opaque handle (Experimental R12 E12-3)
+
+`index(provider, config, credential, authority)` returns an ordinary callable
+that accepts one nonempty list of exact embedded chunks. It validates every
+chunk/vector and exact corpus dimensions/space before declassifying through
+`quote(index_call)`, then makes one deterministic offline fixture attempt.
+
+Success exposes only `some(<index-handle>)`. The host-produced handle is fixed-
+rendering and cannot be source-constructed, inspected, compared, keyed, copied,
+serialized, or persisted. The fixture retains a private compatibility identity
+for later paired retrieval, but E12-3 adds no retrieval API, vector database,
+network adapter, public index storage, retry, or provider registry.
 
 See [the active R12 release page](docs/releases/R12.md) for its executable proof.
 
