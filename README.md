@@ -588,6 +588,7 @@ Related shared portability docs:
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
   - Runtime capability values:
     - ordinary provenance-owned document chunking (`chunk/2`, Experimental R12 E12-1; local portable value/callable/Outcome behavior with no provider capability)
+    - explicitly injected embed provider and returned callable embedder (`embed/4`, Experimental R12 E12-2; explicit chunk/query variants, exact identity, finite vector/dimension/space validation, one deterministic offline attempt, and no ambient capability)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1035,6 +1036,24 @@ local and portable; embedding, indexing, retrieval, reranking, providers,
 grounding, model changes, and citation rendering are not implemented by it.
 
 See [the active R12 release page](docs/releases/R12.md) for a runnable example.
+
+### Unified corpus/query embedding fixture (Experimental R12 E12-2)
+
+`embed(provider, config, credential, authority)` returns an ordinary callable
+for exactly one explicit chunk or query variant. Successful results preserve the
+exact input chunk/text and carry a nonempty finite vector, matching dimensions,
+and the exact application-configured compatibility space. Query embedding never
+fabricates chunk provenance.
+
+The Python reference host implements one explicitly injected deterministic
+offline fixture. Construction is inert; locally invalid input makes no attempt;
+one valid invocation declassifies the R10 protected string credential just in
+time through `quote(embed_call)` and makes one synchronous attempt with no
+retry. The capability is opaque, non-ambient, and not source-constructible.
+There is no network embed adapter, indexing, retrieval, reranking, grounding,
+implicit query embedding, persistence, or provider registry in E12-2.
+
+See [the active R12 release page](docs/releases/R12.md) for its executable proof.
 
 ### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 

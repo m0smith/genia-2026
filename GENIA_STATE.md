@@ -413,7 +413,21 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - shared eval/error/Flow specs plus Python tests cover closed validation, exact construction, Unicode slicing, ordering/overlap/repetition, zero results, metadata identity, callback count, and misuse; existing parse/Core IR coverage confirms an ordinary call
   - LANGUAGE CONTRACT: the closed values, one-call callback boundary, code-point slicing, exact provenance, metadata preservation, and Outcome/misuse behavior above are the implemented portable E12-1 boundary
   - PYTHON REFERENCE HOST: the portable boundary is implemented locally with no host capability or provider attempt; shared/multi-host conformance remains Partial and no non-Python host is implemented
-  - embedding, vectors, indexing, handles, retrieval, scores, reranking, grounding, model changes, credentials/declassification, provider behavior, and citation rendering remain unimplemented R12 work
+  - indexing, handles, retrieval, scores, reranking, grounding, model changes, and citation rendering remain unimplemented R12 work
+
+- Unified corpus/query embedding fixture (Experimental, R12 E12-2, issue #644)
+  - `embed(provider, config, credential, authority)` validates and captures one explicit opaque embed capability, exact closed `{id, space, timeout_ms}` config, one R10 protected credential, and one declassification authority, then returns an ordinary one-argument callable without declassification, audit, or provider attempt
+  - config `id` and `space` are nonempty strings; `timeout_ms` is an integer in `1..300000` excluding booleans; missing/extra keys are runtime misuse
+  - the callable accepts exactly `{kind: quote(chunk), chunk}` or `{kind: quote(query), text}`; query text is nonempty, a chunk is the exact E12-1 closed value, and protected ordinary input fields are runtime misuse
+  - malformed nested chunk input returns `err("chunk-invalid", {stage: quote(document)})` before declassification or attempt; other locally detectable invalid inputs are runtime misuse and likewise make no attempt
+  - a valid invocation declassifies the protected string credential just in time through the exact R10 `quote(embed_call)` authority and makes one synchronous deterministic fixture attempt under the configured finite timeout; there is no retry, fallback, batching contract, stream, cache, background work, clock, randomness, environment, filesystem, sleep, or network dependency
+  - success is exactly `some({chunk: exact_input_chunk, embedding})` or `some({text: exact_input_text, embedding})` according to the input variant; queries never fabricate provenance and provider output cannot replace application-owned chunk/text identity
+  - `embedding` is exactly `{vector, dims, space}`; vector is a nonempty list of finite numbers excluding booleans, dims is a positive integer excluding booleans equal to exact vector length, and space exactly equals the constructor config space
+  - invalid successful provider values normalize to `err("embed-response-invalid", {stage})` with stage `provider_response|vector|dims|space|input_identity`; approved timeout/rate-limit/rejection/transport errors retain the exact R12 contexts, and provider exceptions normalize once to non-sensitive `embed-transport-failure/{kind: quote(other)}`
+  - no result or diagnostic retains credentials, config id/space, provider identity, bodies, exception text, headers, or request identifiers; the fixture capability renders as `<embed-provider>` and is never ambient or source-constructible
+  - LANGUAGE CONTRACT: the exact ordinary input/output variants, identity, vector/dimension/space validation, Outcome normalization, local-validation ordering, and one-attempt/no-retry boundary are portable E12-2 obligations
+  - PYTHON REFERENCE HOST: one explicitly injected opaque deterministic offline fixture proves the boundary and attempt/audit instrumentation; shared/multi-host conformance remains Partial and no non-Python host or network embedding adapter is implemented
+  - indexing, handles, retrieval, `k`, reranking, grounding/model invocation, persistence/vector databases, implicit query embedding, and provider registries remain unimplemented R12 work
 
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable

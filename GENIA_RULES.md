@@ -513,6 +513,17 @@ No additional member/index/flow operators should be introduced without explicitl
 - Overlapping and repeated spans are valid. Any valid document may return zero chunks as `some([])`; no positive-length span is valid for empty text.
 - The chunker cannot provide text, document identity, source, or metadata. No provider call, credential, authority, declassification, embedding, indexing, retrieval, reranking, grounding, or citation behavior participates.
 
+### Unified corpus/query embedding (Experimental R12 E12-2)
+
+- `embed(provider, config, credential, authority)` returns an ordinary one-argument callable. Construction validates and captures values but performs no declassification, audit, or provider attempt.
+- Config is exactly `{id, space, timeout_ms}` with nonempty string id/space and a non-boolean integer timeout in `1..300000`.
+- Input is exactly `{kind: quote(chunk), chunk}` or `{kind: quote(query), text}`. Query text is nonempty; chunk is the exact E12-1 value. Queries never fabricate chunk provenance.
+- Locally invalid public shapes and protected ordinary input fields are runtime misuse and make no attempt. A malformed nested chunk returns `err("chunk-invalid", {stage: quote(document)})` before declassification or attempt.
+- A valid call declassifies the captured protected string immediately before one synchronous attempt through the exact matching R10 `quote(embed_call)` authority. There is no retry, fallback, hidden batching, stream, cache, or background work.
+- Success corresponds exactly to input kind and preserves the exact original chunk/text. Embeddings are exactly `{vector, dims, space}` with a nonempty finite-number vector excluding booleans, positive non-boolean dims equal to vector length, and exact configured space.
+- Malformed provider success/observations normalize to exact non-sensitive `embed-response-invalid` stages; approved embed timeout/rate-limit/rejection/transport errors use the R12 contract contexts. Provider exceptions become one `embed-transport-failure` with `kind: quote(other)`.
+- The deterministic Python fixture is explicit, opaque, offline, non-ambient, and source cannot construct it. No network embed adapter, indexing, retrieval, reranking, grounding, implicit query embedding, persistence, or provider registry is implemented.
+
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
 - `quote(expr)` must not evaluate `expr`

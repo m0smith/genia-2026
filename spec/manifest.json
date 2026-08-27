@@ -71,7 +71,8 @@
     "resource_io",
     "configuration_environment_snapshot",
     "model_deterministic_fixture",
-    "model_gemini_rest"
+    "model_gemini_rest",
+    "embedding_deterministic_fixture"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"

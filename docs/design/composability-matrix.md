@@ -89,15 +89,15 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 
 ## R12 relationships
 
-These rows record the approved R12 contract boundary. E12-1 is implemented as
-Experimental; E12-2 and later remain unimplemented. See
+These rows record the approved R12 contract boundary. E12-1 and E12-2 are
+implemented as Experimental; E12-3 and later remain unimplemented. See
 `r12-retrieval-grounding-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
 | document/chunk provenance | R9 JSON representation / ordinary callable | closed ordinary values retain the exact represented metadata value; `chunk/2` invokes one ordinary span chunker exactly once, then owns Unicode-code-point source slicing and provenance rather than trusting chunker-produced text; it adds no new Template or representation semantics | E12-1 implemented, Experimental |
-| embedding input | ordinary variant values / Outcome | explicit chunk and query variants share one embedder without fabricating query provenance or hiding embedding in retrieval | Approved contract; not implemented |
-| embedding | index/retrieve compatibility | finite vectors carry explicit dimension and application-owned compatibility space; compatibility does not claim equal results across providers | Approved contract; not implemented |
+| embedding input | ordinary variant values / Outcome | explicit chunk and query variants share one `embed/4` callable without fabricating query provenance or hiding embedding in retrieval; exact input identity is retained across the opaque provider boundary | E12-2 implemented, Experimental; deterministic fixture Python-host-only |
+| embedding | R10 protected value / later index/retrieve compatibility | finite vectors carry exact dimensions and application-owned compatibility space; the explicit credential remains protected until one authorized `quote(embed_call)` attempt, and compatibility does not claim equal results across providers | E12-2 implemented, Experimental; index/retrieve relationship remains contract-only |
 | index/retrieve | opaque host capabilities / ordinary callables | indexing returns an opaque paired handle; retrieval checks capability, space, and dimensions before one attempt | Approved contract; not implemented |
 | provider reranking | retrieved evidence / R10 authority | `rerank/4` may reorder and replace finite scores but preserves the exact evidence multiset; pure local rerankers remain ordinary differently named functions | Approved contract; not implemented |
 | grounded context/answer | R11 content and `model/4` | pure assembly retains ordered evidence and first-occurrence sources; generation uses unchanged `model/4`; citation rendering is application-owned | Approved contract; not implemented |

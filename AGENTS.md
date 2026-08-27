@@ -164,11 +164,14 @@ require their own gates. Preserve the ordinary
 callable/value/Outcome/R9/R10/Flow boundary recorded in
 `docs/design/r11-ai-composition-contract.md`. See `docs/strategy/release-roadmap.md` and
 `docs/ai/LLM_CONTRACT.md` for release boundaries.
-**R12 — Retrieval & Grounding has an approved E12-0 contract and E12-1 is
+**R12 — Retrieval & Grounding has an approved E12-0 contract and E12-1/E12-2 are
 implemented as Experimental.** Its ordinary `chunk/2` boundary validates exact
 document/span values and owns Unicode-code-point slicing, provenance, and exact
-R9 represented metadata preservation without a provider capability. E12-2 and
-later remain unimplemented and require their own gates. Preserve the
+R9 represented metadata preservation without a provider capability. Its
+`embed/4` boundary adds explicit chunk/query variants, exact identity-preserving
+finite embeddings, R10 `quote(embed_call)` authority, and one deterministic
+opaque Python fixture attempt without retry or networking. E12-3 and later
+remain unimplemented and require their own gates. Preserve the
 ordinary value/callable/Outcome/R9/R10/R11 boundary in
 `docs/design/r12-retrieval-grounding-contract.md`; do not infer a RAG or
 vector-store framework, hidden query embedding, citation rendering semantics,
