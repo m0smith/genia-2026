@@ -89,13 +89,13 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 
 ## R12 relationships
 
-These rows record the approved R12 contract boundary. No R12 behavior is
-implemented; only E12-1 preflight is active. See
+These rows record the approved R12 contract boundary. E12-1 is implemented as
+Experimental; E12-2 and later remain unimplemented. See
 `r12-retrieval-grounding-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
-| document/chunk provenance | R9 JSON representation / callable Templates | closed ordinary values retain exact represented metadata; `chunk/2` owns source slicing and provenance rather than trusting chunker-produced text | Approved contract; not implemented |
+| document/chunk provenance | R9 JSON representation / ordinary callable | closed ordinary values retain the exact represented metadata value; `chunk/2` invokes one ordinary span chunker exactly once, then owns Unicode-code-point source slicing and provenance rather than trusting chunker-produced text; it adds no new Template or representation semantics | E12-1 implemented, Experimental |
 | embedding input | ordinary variant values / Outcome | explicit chunk and query variants share one embedder without fabricating query provenance or hiding embedding in retrieval | Approved contract; not implemented |
 | embedding | index/retrieve compatibility | finite vectors carry explicit dimension and application-owned compatibility space; compatibility does not claim equal results across providers | Approved contract; not implemented |
 | index/retrieve | opaque host capabilities / ordinary callables | indexing returns an opaque paired handle; retrieval checks capability, space, and dimensions before one attempt | Approved contract; not implemented |

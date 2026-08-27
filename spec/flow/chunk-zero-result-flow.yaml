@@ -1,0 +1,16 @@
+name: chunk-zero-result-flow
+category: flow
+description: Valid documents compose through Flow with zero chunks as some empty list
+input:
+  source: |
+    stdin
+      |> lines
+      |> map((text) -> chunk((_text) -> [], {id: text, text: text, meta: represent("json", {})}))
+      |> collect
+  stdin: |
+    first
+    second
+expected:
+  stdout: "[some([]), some([])]\n"
+  stderr: ""
+  exit_code: 0

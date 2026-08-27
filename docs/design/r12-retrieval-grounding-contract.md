@@ -1,6 +1,6 @@
 # R12 Retrieval & Grounding Contract
 
-Status: **Approved contract; no R12 behavior implemented. E12-1 preflight is GO.**
+Status: **Approved contract; E12-1 implemented as Experimental. E12-2 and later are not implemented.**
 
 This document fixes the semantic boundary for later R12 tickets. It does not
 define current language behavior and must not be cited as implementation
@@ -417,9 +417,10 @@ and recursive leak scanning. Generated sentinel keys and payloads must be absent
 from stdout, stderr, exceptions, Outcomes, diagnostics, rendering, reports,
 provider observations, audits, buffers, resources, and test output.
 
-The composability matrix records planned R12 rows. No R12 family builtin is
-added by this contract. Later public examples require classified executable
-coverage and `docs/releases/R12.md`; planned examples must not appear as
+The composability matrix records R12 relationships. E12-1 implements `chunk/2`
+without adding a Template/representation/matcher-family builtin. Its classified
+executable coverage and `docs/releases/R12.md` example describe only the landed
+document/chunk/provenance boundary; later planned examples must not appear as
 implemented before their behavior lands.
 
 ## Reconciled release sequence
@@ -465,7 +466,7 @@ written from this contract rather than copied from the earlier proposal.
 
 ## Gate
 
-Issue #641 approves this contract and stops after the contract phase. It
-authorizes E12-1 preflight only. No R12 behavior is implemented, and E12-2 or
-later work is not implicitly authorized by this document. E12-1 must complete
-its own preflight and all required phase gates before implementation.
+Issue #641 approved this contract and stopped after the contract phase. Issue
+#643 completed E12-1 through its own phase gates. That implementation does not
+authorize E12-2 or later work, which remains unimplemented and requires its own
+ticket workflow.

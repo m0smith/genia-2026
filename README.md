@@ -586,8 +586,9 @@ Related shared portability docs:
   - carrier representations are Experimental ordered value facets: `represent(facet, value)` constructs one layer, `representation_match(facet, value)` observes one requested outer layer as an Outcome, and `strip_representation(facet, value)` explicitly removes one matching outer layer
   - representation-aware patterns reuse named Templates, for example `pattern Json(value) = representation_match("json", value)` followed by `Json(inner)`; no JSON decoder, structural declaration syntax, secret policy, parser syntax, or Core IR node is added by this slice
   - ordinary calls, collections, pipelines, Seq, Flow, and Sheet cells transport represented values unchanged; derived results receive no facet implicitly, and generic display/debug output is the opaque `<represented>`
-- Runtime capability values:
-  - explicit immutable configuration provider (`<config-provider>`, Experimental)
+  - Runtime capability values:
+    - ordinary provenance-owned document chunking (`chunk/2`, Experimental R12 E12-1; local portable value/callable/Outcome behavior with no provider capability)
+    - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
   - `stderr`
@@ -1018,6 +1019,22 @@ actor_call(a, 3)
 - actors are public Python-host behavior in this phase, not a shared-host contract surface
 
 ## Builtins
+
+### Document chunking with exact provenance (Experimental R12 E12-1)
+
+`chunk(chunker, document)` validates one exact closed document, calls the
+ordinary chunker exactly once with its text, validates the returned ordered
+Unicode-code-point spans, and constructs exact source-bearing chunks from the
+original document. Metadata must be an existing R9 `json`-represented object
+and is preserved exactly. Valid zero results are `some([])`; malformed or
+out-of-bounds spans return indexed `chunk-invalid`.
+
+The chunker supplies only `{offset, length}` spans and cannot inject text,
+source, document identity, or metadata. This Experimental E12-1 boundary is
+local and portable; embedding, indexing, retrieval, reranking, providers,
+grounding, model changes, and citation rendering are not implemented by it.
+
+See [the active R12 release page](docs/releases/R12.md) for a runnable example.
 
 ### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 

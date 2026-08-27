@@ -1,0 +1,11 @@
+name: error-chunk-callback-non-list
+category: error
+description: Chunk rejects a callback-contract non-list result as runtime misuse
+input:
+  source: |
+    doc = {id: "doc-1", text: "abc", meta: represent("json", {})}
+    chunk((_text) -> {offset: 0, length: 1}, doc)
+expected:
+  stdout: ""
+  stderr: "Error: chunk chunker must return a list\n"
+  exit_code: 1

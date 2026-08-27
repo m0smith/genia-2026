@@ -99,6 +99,7 @@ CLI contract summary (actual behavior):
     - shared/runtime-surface values: `stdout`, `stderr`, MetaEnv, Flow (runtime Phase 1 is implemented)
     - explicit opaque configuration providers (Experimental): portable literal snapshots plus a Python-host environment snapshot capability
     - Experimental text or R9-validated JSON model callables created by `model/4` from an explicitly host-injected provider, protected credential, and authority; R11 E11-1 through E11-8 are release-complete across the implemented callable boundary, conformance, application-owned list/Flow conversation state, validated JSONL composition, runnable truth synchronization, and final audit, with no ambient REPL binding or AI framework runtime
+    - Experimental R12 E12-1 `chunk/2` ordinary behavior validates exact documents and spans, slices original text by Unicode code points, and constructs exact provenance while preserving R9 represented metadata; it uses no provider capability and E12-2/later behavior is unimplemented
     - Python-host-only capability values: Ref, Process handle, Bytes wrapper, Zip entry wrapper, blocking HTTP server bridge
   - maybe/absence behavior is unified: canonical helpers such as `get`, `first`, `last`, `nth`, string `find`, `find_opt`, `parse_int`, `map_get`, callable map/string lookup, dot map access, and `cli_option` all use structured `none...` for missing/absent results
   - compatibility aliases retained: `get?`, `first_opt`, `nth_opt`
