@@ -462,6 +462,16 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - PYTHON REFERENCE HOST: one explicitly injected deterministic offline fixture proves attempts, audits, duplicate-aware integrity, and non-leakage; shared/multi-host conformance remains Partial and no non-Python host or network rerank adapter is implemented
   - pure local rerankers remain ordinary application/library functions under other explicit names; score normalization/comparability, grounding/model invocation, citation rendering, persistence/vector databases, and provider registries remain unimplemented
 
+- Grounded context and answer composition (Experimental, R12 E12-6, issue #648)
+  - the importable `examples/r12_grounded_context_answer.genia` module defines application-owned `assemble_grounded_context/3`, `assemble_grounded_answer/2`, `grounded_request/1`, and `generate_grounded_answer/2`; these are ordinary composition functions, not new public builtins or provider boundaries
+  - grounded context is the exact closed `{question, content, evidence}` shape with a nonempty unprotected question, exact R11 text/JSON content, and a list of exact finite-scored E12 retrieved chunks; assembly validates locally and makes zero provider/model attempts
+  - grounded answer is the exact closed `{answer, sources, evidence}` shape; it is assembled only from an exact successful R11 `some(response)`, retains the exact context evidence list/order, and takes answer content only from `response.message.content`
+  - `sources` traverses evidence in order and retains the first occurrence of each exact-equal closed `{doc_id, offset, length}` source; later exact duplicates are removed, while different spans from the same document remain distinct
+  - `none(...)` and `err(...)` model Outcomes propagate unchanged and produce no grounded answer; the application-owned generation wrapper validates the exact context, constructs one existing R11 text request, and invokes its supplied unchanged model callable once
+  - LANGUAGE CONTRACT: exact closed shapes, local validation, zero-attempt assembly, exact evidence preservation, ordered first-occurrence source deduplication, successful-Outcome-only answer assembly, and unchanged R11 `model/4` composition are portable E12-6 obligations
+  - PYTHON REFERENCE HOST: private validation bridges and deterministic tests prove the ordinary application module; shared/multi-host conformance remains Partial and no non-Python host grounding proof is implemented
+  - R12 standardizes provenance/evidence substrate only; citation labels, numbering, generated-prose citation spans/validation/rendering, prompt runtime, RAG framework objects, agents/tools/memory, retry, and later E12-7 proving/hardening behavior remain unimplemented
+
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
   - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path

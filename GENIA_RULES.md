@@ -551,6 +551,15 @@ No additional member/index/flow operators should be introduced without explicitl
 - The deterministic Python fixture is explicit, opaque, offline, non-ambient, and source cannot construct it. Pure local reranking remains ordinary application/library code under names other than `rerank/4`; no local reranking runtime API, grounding, citation, persistence, networking, or provider registry is added.
 - Reranking, grounding/model invocation, persistence, networking, provider registry, score normalization/thresholds, and citation rendering remain unimplemented.
 
+### Grounded context and answer composition (Experimental R12 E12-6)
+
+- Grounding remains ordinary application/library composition. The example module validates exact closed grounded-context and grounded-answer shapes through private host bridges; it adds no public builtin, capability, provider adapter, syntax, or Core IR node.
+- Context assembly requires a nonempty unprotected question, exact R11 content, and exact E12 retrieved evidence. It preserves the exact evidence list/order and makes no provider or model attempt.
+- Answer assembly accepts only the exact context and an existing R11 Outcome. `some(response)` supplies the exact answer content; `none(...)` and `err(...)` propagate unchanged without constructing an answer.
+- Sources are exact chunk-source values visited in evidence order. Retain the first exact `{doc_id, offset, length}` occurrence and remove only later exact duplicates; do not deduplicate by document identity alone.
+- The application-owned generation wrapper validates context, constructs one existing text request, invokes its supplied unchanged R11 model callable once, and performs no retry, repair, fallback, hidden retrieval, or second model call.
+- Provenance/evidence is implemented substrate, not citation presentation. Citation labels, prose spans, validation, numbering, and rendering remain application-owned and unstandardized.
+
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
 - `quote(expr)` must not evaluate `expr`

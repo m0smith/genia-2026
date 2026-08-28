@@ -124,7 +124,7 @@ When an LLM agent is asked for new Genia work:
   or retrieval behavior. E11-5 is application-owned ordinary state over existing
   list/Flow `scan`, not a conversation runtime; E11-6 is one existing-mechanism
   validated-pipeline proof, not a framework; follow-ups and later releases require their own phase gates.
-7. R12 has an approved contract and E12-1 through E12-5 are implemented as
+7. R12 has an approved contract and E12-1 through E12-6 are implemented as
    Experimental ordinary value/callable/Outcome behavior with exact closed
    document/span validation, Unicode-code-point slicing, source-owned
    provenance, and exact R9 represented metadata preservation. E12-2 adds one
@@ -134,7 +134,10 @@ When an LLM agent is asked for new Genia work:
    E12-4 checks explicit retrieval capability/space/dimensions and returns exact
    ordered indexed evidence or no-results absence, and E12-5 provider-backed
    `rerank/4` preserves the exact duplicate-aware chunk/provenance multiset while
-   changing only order and finite scores. E12-6 and later remain unimplemented
+   changing only order and finite scores. E12-6 adds pure application-owned
+   grounded context/answer assembly with exact evidence order, first-occurrence
+   exact-source deduplication, non-success Outcome propagation, and one supplied
+   unchanged R11 model call. E12-7 and later remain unimplemented
    and require their own gates. Preserve opaque index/retrieval compatibility, the
    provider-backed `rerank/4` versus ordinary pure-function distinction, and
    unchanged R11 `model/4`. Do not infer a RAG/vector-store framework, hidden
