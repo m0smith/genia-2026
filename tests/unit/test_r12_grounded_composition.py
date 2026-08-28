@@ -133,6 +133,6 @@ def test_generate_invokes_supplied_model_once_and_uses_success_only():
         'context = grounding.assemble_grounded_context("Who?", '
         '{kind: quote(text), text: "Use evidence"}, [])\n'
         'answer = grounding.generate_grounded_answer(fake_model, context)\n'
-        '[ref_get(calls), answer.answer.text, answer.evidence]'
+        '[ref_get(calls), answer.answer |> "text", answer.evidence]'
     )
     assert result == [1, "grounded", []]

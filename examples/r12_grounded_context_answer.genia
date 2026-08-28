@@ -1,0 +1,27 @@
+"""
+R12 E12-6 ordinary grounded-context and grounded-answer composition.
+
+These application-owned functions preserve exact evidence and reuse a supplied
+unchanged R11 model callable. Citation presentation remains application-owned.
+"""
+
+assemble_grounded_context(question, content, evidence) =
+  _assemble_grounded_context(question, content, evidence)
+
+assemble_grounded_answer(context, model_outcome) =
+  _assemble_grounded_answer(context, model_outcome)
+
+grounded_request(context) = {
+  messages: [{role: quote(user), content: context.content}],
+  output: {kind: quote(text)}
+}
+
+generate_grounded_answer(model_call, context) = {
+  checked = assemble_grounded_context(
+    context.question,
+    context.content,
+    context.evidence
+  )
+  outcome = apply_raw(model_call, [grounded_request(checked)])
+  apply_raw(assemble_grounded_answer, [checked, outcome])
+}
