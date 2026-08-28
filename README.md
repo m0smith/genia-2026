@@ -593,6 +593,7 @@ Related shared portability docs:
     - explicitly paired retrieval provider and returned callable retriever (`retrieve/4`, Experimental R12 E12-4; explicit query embedding and `k`, identity/space/dimension guards before one authorized offline attempt, ordered exact indexed evidence, and exact no-results absence)
     - explicitly injected rerank provider and returned callable reranker (`rerank/4`, Experimental R12 E12-5; empty zero-attempt short path, one authorized offline attempt otherwise, finite score replacement, and exact duplicate-aware evidence/provenance multiset preservation)
     - application-owned grounded context/answer composition (Experimental R12 E12-6; exact evidence preservation, ordered first-occurrence exact-source deduplication, successful-R11-Outcome gate, and one supplied unchanged model call with no new public builtin/provider boundary)
+    - cross-mode grounded hardening and proving case (Experimental R12 E12-7; concern-specific R10 authorities, bounded demand, recursive non-leakage, existing parse/Core IR forms, and explicit validated composition through unchanged R11 `model/4`; no new semantics)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1122,6 +1123,19 @@ callable once. This adds no public grounding builtin or provider boundary and
 does not standardize citation labels, prose validation, numbering, or rendering.
 
 See [the active R12 release page](docs/releases/R12.md) for its executable proof.
+
+### Cross-mode grounded proving (Experimental R12 E12-7)
+
+`examples/r12_cross_mode_grounded_proving.genia` explicitly composes existing
+validation/diagnostics, chunking, corpus/query embedding, indexing, retrieval,
+provider reranking, grounded context, and one unchanged R11 model call. The
+deterministic Python fixture proof keeps each R10 concern authority separate,
+checks bounded Flow demand and recursive non-leakage, and retains exact source
+provenance in the final grounded answer.
+
+E12-7 adds conformance evidence and application-owned composition only. It adds
+no public helper, provider behavior, retry, network adapter, citation policy,
+syntax, or Core IR node. See [the active R12 release page](docs/releases/R12.md).
 
 ### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 

@@ -470,7 +470,17 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `none(...)` and `err(...)` model Outcomes propagate unchanged and produce no grounded answer; the application-owned generation wrapper validates the exact context, constructs one existing R11 text request, and invokes its supplied unchanged model callable once
   - LANGUAGE CONTRACT: exact closed shapes, local validation, zero-attempt assembly, exact evidence preservation, ordered first-occurrence source deduplication, successful-Outcome-only answer assembly, and unchanged R11 `model/4` composition are portable E12-6 obligations
   - PYTHON REFERENCE HOST: private validation bridges and deterministic tests prove the ordinary application module; shared/multi-host conformance remains Partial and no non-Python host grounding proof is implemented
-  - R12 standardizes provenance/evidence substrate only; citation labels, numbering, generated-prose citation spans/validation/rendering, prompt runtime, RAG framework objects, agents/tools/memory, retry, and later E12-7 proving/hardening behavior remain unimplemented
+  - R12 standardizes provenance/evidence substrate only; citation labels, numbering, generated-prose citation spans/validation/rendering, prompt runtime, RAG framework objects, agents/tools/memory, and retry remain unimplemented
+
+- R12 cross-mode hardening and grounded proving case (Experimental, R12 E12-7, issue #649)
+  - existing E12-1 through E12-6 and unchanged R11 `model/4` boundaries are proved through explicit deterministic shared eval/Flow/error/CLI fixtures plus existing parse/Core IR forms; E12-7 adds no public function, provider semantic, syntax, or Core IR node
+  - `embed_call`, `index_call`, `retrieve_call`, `rerank_call`, and `model_call` use distinct protected credentials and exact matching R10 authorities; constructors remain inert, local checks precede just-in-time declassification, and each consumed valid stage makes at most one synchronous attempt without retry, fallback, sleep, queue, race, or background work
+  - bounded downstream Flow consumption is demand-driven and makes no attempt for unconsumed items; deterministic fixtures use no network, clock, randomness, environment, filesystem, or sleep
+  - paired in-memory index/retrieve compatibility remains private; compatible injected capabilities keep the same ordinary call/value contracts without promising identical vectors, scores, evidence order, or answers
+  - recursive tests scan results, Outcomes, rendering, audits, provider observations, buffers, resources, stdout/stderr, and test output for credential/payload sentinels
+  - `examples/r12_cross_mode_grounded_proving.genia` explicitly composes validation/diagnostics, chunking, corpus/query embedding, indexing, retrieval, provider reranking, grounded context, one unchanged R11 model call, and grounded answer while retaining exact provenance
+  - LANGUAGE CONTRACT: E12-7 adds cross-mode conformance evidence and an ordinary composition proof for existing R10/R11/R12 obligations only; it adds no new behavior
+  - PYTHON REFERENCE HOST: the explicit offline fixture runner and instrumentation are host proof mechanics, not portable APIs; shared/multi-host conformance remains Partial and no non-Python host is implemented
 
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
