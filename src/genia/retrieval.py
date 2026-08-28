@@ -960,3 +960,223 @@ def construct_retrieve(
     if not isinstance(authority, GeniaDeclassificationAuthority):
         raise TypeError("retrieve expected a declassification authority")
     return GeniaRetriever(provider, validated_config, credential, authority)
+
+
+_RERANK_ERROR_KINDS = _EMBED_ERROR_KINDS
+
+
+def _validate_rerank_config(value: Any) -> GeniaMap:
+    config = _embed_closed_map(value, {"id", "timeout_ms"}, "config")
+    if not isinstance(config.get("id"), str) or config.get("id") == "":
+        raise TypeError("rerank expected config id to be a non-empty string")
+    timeout = config.get("timeout_ms")
+    if (
+        isinstance(timeout, bool)
+        or not isinstance(timeout, int)
+        or timeout < 1
+        or timeout > 300_000
+    ):
+        raise TypeError(
+            "rerank expected config timeout_ms to be an integer in 1..300000"
+        )
+    return config
+
+
+def _validate_retrieved_chunks(value: Any) -> list[GeniaMap]:
+    if contains_protected(value):
+        raise TypeError("protected-value: rerank-input")
+    if not isinstance(value, list):
+        raise TypeError("rerank expected a list of retrieved chunks")
+    for retrieved in value:
+        if not isinstance(retrieved, GeniaMap) or _keys(retrieved) != {"chunk", "score"}:
+            raise TypeError(
+                "rerank expected each retrieved chunk to have keys ['chunk', 'score']"
+            )
+        if not _valid_chunk(retrieved.get("chunk")):
+            raise TypeError("rerank expected a valid retrieved chunk")
+        score = retrieved.get("score")
+        if (
+            isinstance(score, bool)
+            or not isinstance(score, (int, float))
+            or not math.isfinite(score)
+        ):
+            raise TypeError("rerank expected each score to be finite")
+    return value
+
+
+def _rerank_invalid(stage: str) -> GeniaOptionErr:
+    return GeniaOptionErr("rerank-response-invalid", _map(stage=symbol(stage)))
+
+
+def _valid_rerank_error(value: GeniaOptionErr, timeout_ms: int) -> bool:
+    context = value.context
+    if value.reason == "rerank-timeout":
+        return (
+            isinstance(context, GeniaMap)
+            and _keys(context) == {"timeout_ms"}
+            and context.get("timeout_ms") == timeout_ms
+            and not isinstance(context.get("timeout_ms"), bool)
+        )
+    if value.reason == "rerank-rate-limited":
+        if not isinstance(context, GeniaMap) or _keys(context) != {"retry_after_ms"}:
+            return False
+        retry = context.get("retry_after_ms")
+        if isinstance(retry, GeniaOptionSome):
+            return (
+                retry.context is None
+                and isinstance(retry.value, int)
+                and not isinstance(retry.value, bool)
+                and retry.value >= 0
+            )
+        return (
+            isinstance(retry, GeniaOptionNone)
+            and retry.reason == "rerank-retry-after-unavailable"
+            and retry.context is None
+        )
+    if value.reason in {"rerank-rejected", "rerank-transport-failure"}:
+        return (
+            isinstance(context, GeniaMap)
+            and _keys(context) == {"kind"}
+            and isinstance(context.get("kind"), GeniaSymbol)
+            and context.get("kind").name in _RERANK_ERROR_KINDS
+        )
+    return False
+
+
+class _FixtureRerankResult:
+    __slots__ = ("results",)
+
+    def __init__(self, results: Any):
+        self.results = results
+
+
+class GeniaRerankProvider:
+    """Opaque Python-host deterministic reranking capability."""
+
+    __slots__ = ("_handler", "_attempt_count")
+
+    def __init__(self, handler: Callable[[GeniaMap, str, list[Any], str], Any]):
+        self._handler = handler
+        self._attempt_count = 0
+
+    @property
+    def attempt_count(self) -> int:
+        return self._attempt_count
+
+    def _attempt(
+        self, config: GeniaMap, query: str, evidence: list[Any], credential: str
+    ) -> Any:
+        self._attempt_count += 1
+        return self._handler(config, query, evidence, credential)
+
+    def __repr__(self) -> str:
+        return "<rerank-provider>"
+
+
+class GeniaReranker:
+    """Ordinary two-argument provider-backed reranking callable."""
+
+    __slots__ = ("_authority", "_config", "_credential", "_provider")
+
+    def __init__(
+        self,
+        provider: GeniaRerankProvider,
+        config: GeniaMap,
+        credential: GeniaProtected,
+        authority: GeniaDeclassificationAuthority,
+    ):
+        self._provider = provider
+        self._config = config
+        self._credential = credential
+        self._authority = authority
+
+    def __call__(self, query: Any, evidence_value: Any) -> Any:
+        if contains_protected(query):
+            raise TypeError("protected-value: rerank-input")
+        if not isinstance(query, str) or query == "":
+            raise TypeError("rerank expected query to be a non-empty string")
+        evidence = _validate_retrieved_chunks(evidence_value)
+        if not evidence:
+            return GeniaOptionSome([])
+
+        ordinary_credential = declassify(self._authority, self._credential)
+        if not isinstance(ordinary_credential, str):
+            raise TypeError("rerank expected protected credential to carry a string")
+        try:
+            observation = self._provider._attempt(
+                self._config, query, evidence, ordinary_credential
+            )
+        except Exception:
+            return GeniaOptionErr(
+                "rerank-transport-failure", _map(kind=symbol("other"))
+            )
+        if isinstance(observation, GeniaOptionErr):
+            if _valid_rerank_error(observation, self._config.get("timeout_ms")):
+                return observation
+            return _rerank_invalid("provider_response")
+        if not isinstance(observation, GeniaOptionSome) or observation.context is not None:
+            return _rerank_invalid("provider_response")
+        response = observation.value
+        if not isinstance(response, _FixtureRerankResult):
+            return _rerank_invalid("provider_response")
+        if not isinstance(response.results, list):
+            return _rerank_invalid("result")
+
+        unmatched = [item.get("chunk") for item in evidence]
+        normalized: list[GeniaMap] = []
+        for result in response.results:
+            if not isinstance(result, GeniaMap) or _keys(result) != {"chunk", "score"}:
+                return _rerank_invalid("result")
+            score = result.get("score")
+            if (
+                isinstance(score, bool)
+                or not isinstance(score, (int, float))
+                or not math.isfinite(score)
+            ):
+                return _rerank_invalid("result")
+            provider_chunk = result.get("chunk")
+            matched_index = next(
+                (index for index, chunk in enumerate(unmatched) if chunk == provider_chunk),
+                None,
+            )
+            if matched_index is None:
+                return _rerank_invalid("result")
+            exact_chunk = unmatched.pop(matched_index)
+            normalized.append(_map(chunk=exact_chunk, score=score))
+        if unmatched:
+            return _rerank_invalid("result")
+        return GeniaOptionSome(normalized)
+
+    def __repr__(self) -> str:
+        return "<function>"
+
+
+def create_fixture_rerank_provider(
+    handler: Callable[[GeniaMap, str, list[Any], str], Any],
+) -> GeniaRerankProvider:
+    if not callable(handler):
+        raise TypeError("fixture rerank provider expected a callable handler")
+    return GeniaRerankProvider(handler)
+
+
+def create_fixture_rerank_result(results: Any) -> _FixtureRerankResult:
+    return _FixtureRerankResult(results)
+
+
+def construct_rerank(
+    provider: Any,
+    config: Any,
+    credential: Any,
+    authority: Any,
+) -> GeniaReranker:
+    if not isinstance(provider, GeniaRerankProvider):
+        raise TypeError(
+            "rerank expected a rerank provider capability, "
+            f"received {_runtime_type_name(provider)}"
+        )
+    validated_config = _validate_rerank_config(config)
+    if not isinstance(credential, GeniaProtected):
+        raise TypeError("rerank expected a protected credential")
+    if not isinstance(authority, GeniaDeclassificationAuthority):
+        raise TypeError("rerank expected a declassification authority")
+    return GeniaReranker(provider, validated_config, credential, authority)
