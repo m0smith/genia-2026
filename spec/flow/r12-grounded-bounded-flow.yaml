@@ -7,7 +7,7 @@ input:
     e = embed(embed_provider_fixture, {id: "e", space: "fixture-space-v1", timeout_ms: 1000}, embed_credential_fixture, embed_authority_fixture)
     evolve("first", (_) -> "later") |> map((text) -> e({kind: quote(query), text: text}) |> "text" |> unwrap_or("")) |> take(1) |> collect
 expected:
-  stdout: '["first"]\n'
+  stdout: "[\"first\"]\n"
   stderr: ""
   exit_code: 0
 notes: |
