@@ -413,7 +413,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - shared eval/error/Flow specs plus Python tests cover closed validation, exact construction, Unicode slicing, ordering/overlap/repetition, zero results, metadata identity, callback count, and misuse; existing parse/Core IR coverage confirms an ordinary call
   - LANGUAGE CONTRACT: the closed values, one-call callback boundary, code-point slicing, exact provenance, metadata preservation, and Outcome/misuse behavior above are the implemented portable E12-1 boundary
   - PYTHON REFERENCE HOST: the portable boundary is implemented locally with no host capability or provider attempt; shared/multi-host conformance remains Partial and no non-Python host is implemented
-  - indexing and retrieval are implemented separately by E12-3/E12-4; reranking, grounding, model changes, and citation rendering remain later R12 work
+  - indexing, retrieval, and provider-backed reranking are implemented separately by E12-3/E12-4/E12-5; grounding, model changes, and citation rendering remain later R12 work
 
 - Unified corpus/query embedding fixture (Experimental, R12 E12-2, issue #644)
   - `embed(provider, config, credential, authority)` validates and captures one explicit opaque embed capability, exact closed `{id, space, timeout_ms}` config, one R10 protected credential, and one declassification authority, then returns an ordinary one-argument callable without declassification, audit, or provider attempt
@@ -427,7 +427,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - no result or diagnostic retains credentials, config id/space, provider identity, bodies, exception text, headers, or request identifiers; the fixture capability renders as `<embed-provider>` and is never ambient or source-constructible
   - LANGUAGE CONTRACT: the exact ordinary input/output variants, identity, vector/dimension/space validation, Outcome normalization, local-validation ordering, and one-attempt/no-retry boundary are portable E12-2 obligations
   - PYTHON REFERENCE HOST: one explicitly injected opaque deterministic offline fixture proves the boundary and attempt/audit instrumentation; shared/multi-host conformance remains Partial and no non-Python host or network embedding adapter is implemented
-  - indexing and explicit retrieval are implemented separately by E12-3/E12-4; reranking, grounding/model invocation, persistence/vector databases, implicit query embedding, and provider registries remain unimplemented R12 work
+  - indexing, explicit retrieval, and provider-backed reranking are implemented separately by E12-3/E12-4/E12-5; grounding/model invocation, persistence/vector databases, implicit query embedding, and provider registries remain unimplemented R12 work
 
 - Indexing capability and opaque handle (Experimental, R12 E12-3, issue #645)
   - `index(provider, config, credential, authority)` validates and captures one explicit opaque index capability, exact closed `{id, timeout_ms}` config, one R10 protected credential, and one authority, then returns an ordinary one-argument callable without declassification, audit, or attempt
@@ -438,7 +438,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - approved timeout/rate-limit/rejection/transport observations retain exact R12 contexts; malformed observations normalize to non-sensitive `index-response-invalid`, and provider exceptions normalize once to `index-transport-failure/{kind: quote(other)}`
   - LANGUAGE CONTRACT: exact config/input validation, compatibility ordering, one-attempt Outcome normalization, fixed opacity/rendering, and private compatibility obligations are portable E12-3 behavior
   - PYTHON REFERENCE HOST: one explicitly injected deterministic offline in-memory fixture proves the capability/handle boundary; shared/multi-host conformance remains Partial and no non-Python host, network index adapter, or public storage object is implemented
-  - retrieval is implemented separately by E12-4; reranking, grounding/model invocation, persistence/vector databases, public handle inspection, and provider registries remain unimplemented R12 work
+  - retrieval and provider-backed reranking are implemented separately by E12-4/E12-5; grounding/model invocation, persistence/vector databases, public handle inspection, and provider registries remain unimplemented R12 work
 
 - Retrieval capability and compatibility guards (Experimental, R12 E12-4, issue #646)
   - `retrieve(provider, config, credential, authority)` validates and captures one explicit opaque retrieval capability, exact closed `{id, timeout_ms}` config, one R10 protected credential, and one authority, then returns an ordinary three-argument callable without declassification, audit, or attempt
@@ -450,7 +450,17 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - the paired index/retrieve capabilities share one private compatibility identity; the opaque handle privately retains corpus space/dims, backend reference, and exact indexed chunk occurrences needed for provenance validation, none of which becomes source-visible
   - LANGUAGE CONTRACT: exact config/input/`k` validation, identity-space-dimension ordering, one-attempt Outcome normalization, ordered bounded evidence, exact indexed provenance, empty-result absence, and private compatibility obligations are portable E12-4 behavior
   - PYTHON REFERENCE HOST: one explicitly paired deterministic offline in-memory fixture proves capability/handle compatibility, attempts, audits, and provenance; shared/multi-host conformance remains Partial and no non-Python host, network retrieval adapter, vector database, or public storage API is implemented
-  - reranking, grounding/model invocation, persistence/vector databases, implicit query embedding, provider registries, score normalization/thresholds, and citation rendering remain unimplemented R12 work
+  - provider-backed reranking is implemented separately by E12-5; grounding/model invocation, persistence/vector databases, implicit query embedding, provider registries, score normalization/thresholds, and citation rendering remain unimplemented R12 work
+
+- Provider reranking and provenance integrity (Experimental, R12 E12-5, issue #647)
+  - `rerank(provider, config, credential, authority)` validates and captures one explicit opaque rerank capability, exact closed `{id, timeout_ms}` config, one R10 protected credential, and one authority, then returns an ordinary two-argument callable without declassification, audit, or attempt
+  - the callable requires a nonempty query string and a list of exact E12 retrieved chunks; malformed/protected input is runtime misuse and local validation precedes declassification
+  - valid empty evidence returns `some([])` with zero declassification/audit/attempt; nonempty evidence declassifies just in time through exact `quote(rerank_call)` authority and makes one synchronous deterministic fixture attempt without retry, fallback, stream, cache, background work, or networking
+  - success may reorder occurrences and replace scores with finite reranker-native numbers only; it preserves the exact multiset of exact chunk values, including repeated occurrences, and therefore cannot add, drop, duplicate, replace, or mutate text/source/represented metadata provenance
+  - malformed/non-preserving success returns exact non-sensitive `rerank-response-invalid/{stage: quote(result)}`; malformed observations use `quote(provider_response)`, approved rerank timeout/rate-limit/rejection/transport contexts pass through, and provider exceptions normalize once to `rerank-transport-failure/{kind: quote(other)}`
+  - LANGUAGE CONTRACT: exact config/input validation, inert construction/empty short path, one-attempt Outcome normalization, finite-score replacement, authoritative output order, and exact evidence-multiset/provenance preservation are portable E12-5 obligations
+  - PYTHON REFERENCE HOST: one explicitly injected deterministic offline fixture proves attempts, audits, duplicate-aware integrity, and non-leakage; shared/multi-host conformance remains Partial and no non-Python host or network rerank adapter is implemented
+  - pure local rerankers remain ordinary application/library functions under other explicit names; score normalization/comparability, grounding/model invocation, citation rendering, persistence/vector databases, and provider registries remain unimplemented
 
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
