@@ -342,7 +342,6 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "embed_authority_fixture",
         "embed_retry",
         "embed_batch",
-        "retrieve",
     ):
         assert name not in env.values
     assert "index" in env.values

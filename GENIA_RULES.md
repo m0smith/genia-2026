@@ -531,7 +531,17 @@ No additional member/index/flow operators should be introduced without explicitl
 - A valid call declassifies immediately before one synchronous attempt through exact matching R10 `quote(index_call)` authority. There is no retry, fallback, exposed batching, stream, cache, or background work.
 - Success is only `some(index_handle)`. The opaque host-produced handle renders `<index-handle>` and cannot be constructed, inspected, compared, keyed, copied, serialized, or persisted by source.
 - Provider errors normalize to the exact R12 index families without provider bodies or identities. The deterministic Python fixture is offline, explicit, non-ambient, and introduces no vector database or public storage API.
-- Retrieval, `k`, reranking, grounding, persistence, networking, provider registry, and source-visible compatibility identity remain unimplemented.
+- Retrieval is implemented separately by E12-4; reranking, grounding, persistence, networking, provider registry, and source-visible compatibility identity remain unimplemented.
+
+### Retrieval capability and compatibility guards (Experimental R12 E12-4)
+
+- `retrieve(provider, config, credential, authority)` returns an ordinary three-argument callable. Construction validates exact `{id, timeout_ms}` config and captured capability/protected credential/authority without declassification, audit, or attempt.
+- Invocation requires one host-produced index handle, one exact explicit query embedding `{text, embedding}`, and non-boolean integer `k` in `1..1000`. Query embedding is never implicit.
+- Local checks occur before declassification in exact handle/capability identity, embedding `space`, then embedding `dims` order. Mismatches return the exact `retrieve-capability-incompatible` or `retrieve-embedding-incompatible` Outcome and make zero attempts.
+- A valid call declassifies immediately before one synchronous attempt through exact matching R10 `quote(retrieve_call)` authority. There is no retry, fallback, stream, cache, background work, networking, or hidden embedding.
+- Nonempty success is at most `k` exact indexed chunks with finite opaque backend-native scores in provider best-first order. Retrieval cannot replace chunk text, source, or represented metadata; valid empty success is exact `none("retrieval-no-results")`.
+- Provider errors normalize to the exact R12 retrieve families without provider bodies or identities. The paired deterministic Python fixture is offline, explicit, non-ambient, and introduces no vector database or public storage API.
+- Reranking, grounding/model invocation, persistence, networking, provider registry, score normalization/thresholds, and citation rendering remain unimplemented.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
