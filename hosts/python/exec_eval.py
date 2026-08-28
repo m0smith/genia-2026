@@ -23,9 +23,13 @@ def run_eval_subprocess(
     )
     command = [sys.executable, str(interpreter_path), "-c", source]
     if fixtures:
-        if fixtures != ("r11_model",):
+        fixture_modules = {
+            ("r11_model",): "hosts.python.exec_model_fixture",
+            ("r12_grounded",): "hosts.python.exec_r12_grounded_fixture",
+        }
+        if fixtures not in fixture_modules:
             raise ValueError(f"unsupported eval fixtures: {fixtures!r}")
-        command = [sys.executable, "-m", "hosts.python.exec_model_fixture", source]
+        command = [sys.executable, "-m", fixture_modules[fixtures], source]
         env["PYTHONPATH"] = os.pathsep.join(
             [str(REPO_ROOT), env["PYTHONPATH"]]
         )

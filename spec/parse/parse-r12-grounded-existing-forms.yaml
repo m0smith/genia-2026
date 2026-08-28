@@ -1,0 +1,13 @@
+name: parse-r12-grounded-existing-forms
+category: parse
+description: R12 provider construction is an existing ordinary call form
+input:
+  source: 'embed(provider, {id: "e", space: "s", timeout_ms: 1}, credential, authority)'
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Call
+notes: |
+  issue: 649
+  classification: No new syntax.

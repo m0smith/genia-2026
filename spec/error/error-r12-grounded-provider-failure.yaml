@@ -1,0 +1,15 @@
+name: error-r12-grounded-provider-failure
+category: error
+description: R12 local validation fails before provider declassification
+input:
+  fixtures: [r12_grounded]
+  source: |
+    e = embed(embed_provider_fixture, {id: "e", space: "fixture-space-v1", timeout_ms: 1000}, embed_credential_fixture, embed_authority_fixture)
+    e({kind: quote(query), text: ""})
+expected:
+  stdout: ""
+  stderr: "Error: embed expected query text to be a non-empty string\n"
+  exit_code: 1
+notes: |
+  issue: 649
+  classification: Existing local validation ordering; no new error.
