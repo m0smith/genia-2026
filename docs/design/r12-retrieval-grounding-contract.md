@@ -419,7 +419,7 @@ provider observations, audits, buffers, resources, and test output.
 
 The composability matrix records R12 relationships. E12-1 implements `chunk/2`,
 E12-2 implements `embed/4`, E12-3 implements `index/4` plus its opaque handle,
-E12-4 implements `retrieve/4`, and E12-5 implements `rerank/4` without adding a Template/representation/matcher-family builtin. Their
+E12-4 implements `retrieve/4`, E12-5 implements `rerank/4`, and E12-6 implements the ordinary application-owned grounded context/answer module without adding a Template/representation/matcher-family builtin. Their
 classified executable coverage and `docs/releases/R12.md` examples describe
 only landed boundaries; later planned examples must not appear as implemented.
 

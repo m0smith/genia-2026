@@ -165,7 +165,7 @@ callable/value/Outcome/R9/R10/Flow boundary recorded in
 `docs/design/r11-ai-composition-contract.md`. See `docs/strategy/release-roadmap.md` and
 `docs/ai/LLM_CONTRACT.md` for release boundaries.
 **R12 — Retrieval & Grounding has an approved E12-0 contract and E12-1 through
-E12-5 are implemented as Experimental.** Its ordinary `chunk/2` boundary validates exact
+E12-6 are implemented as Experimental.** Its ordinary `chunk/2` boundary validates exact
 document/span values and owns Unicode-code-point slicing, provenance, and exact
 R9 represented metadata preservation without a provider capability. Its
 `embed/4` boundary adds explicit chunk/query variants, exact identity-preserving
@@ -174,7 +174,10 @@ opaque Python fixture attempt without retry or networking. `index/4` returns an
 opaque compatibility-bearing handle, `retrieve/4` consumes an explicit query
 embedding and returns exact ordered indexed evidence or no-results absence, and
 provider-backed `rerank/4` preserves the exact duplicate-aware evidence/provenance
-multiset while changing only order and finite scores. E12-6 and later remain
+multiset while changing only order and finite scores. E12-6 adds pure ordinary
+grounded context/answer composition with exact ordered evidence, first-occurrence
+exact-source deduplication, successful-R11-Outcome gating, and one supplied
+unchanged model call; it adds no public grounding builtin or citation policy. E12-7 and later remain
 unimplemented and require their own gates. Preserve the
 ordinary value/callable/Outcome/R9/R10/R11 boundary in
 `docs/design/r12-retrieval-grounding-contract.md`; do not infer a RAG or

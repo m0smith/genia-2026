@@ -592,6 +592,7 @@ Related shared portability docs:
     - explicitly injected index provider and returned callable indexer (`index/4`, Experimental R12 E12-3; nonempty compatible embedded corpus, validation before one authorized offline attempt, and opaque non-serializable `<index-handle>` result)
     - explicitly paired retrieval provider and returned callable retriever (`retrieve/4`, Experimental R12 E12-4; explicit query embedding and `k`, identity/space/dimension guards before one authorized offline attempt, ordered exact indexed evidence, and exact no-results absence)
     - explicitly injected rerank provider and returned callable reranker (`rerank/4`, Experimental R12 E12-5; empty zero-attempt short path, one authorized offline attempt otherwise, finite score replacement, and exact duplicate-aware evidence/provenance multiset preservation)
+    - application-owned grounded context/answer composition (Experimental R12 E12-6; exact evidence preservation, ordered first-occurrence exact-source deduplication, successful-R11-Outcome gate, and one supplied unchanged model call with no new public builtin/provider boundary)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1104,6 +1105,21 @@ metadata is preserved; providers cannot add, drop, duplicate, replace, or
 mutate evidence. Pure local rerankers remain differently named ordinary
 application/library functions. E12-5 adds no score normalization, grounding,
 citation rendering, networking, persistence, retry, or provider registry.
+
+See [the active R12 release page](docs/releases/R12.md) for its executable proof.
+
+### Grounded context and answer composition (Experimental R12 E12-6)
+
+The importable `examples/r12_grounded_context_answer.genia` module assembles
+exact closed grounded contexts and answers over ordinary values. Context
+assembly makes no provider/model attempt and preserves exact evidence order.
+Answer assembly accepts only an existing R11 Outcome: `some(response)` supplies
+the exact answer content, while `none(...)` and `err(...)` propagate unchanged.
+
+Sources retain the first exact `{doc_id, offset, length}` occurrence in evidence
+order. The module's generation wrapper invokes a supplied unchanged R11 model
+callable once. This adds no public grounding builtin or provider boundary and
+does not standardize citation labels, prose validation, numbering, or rendering.
 
 See [the active R12 release page](docs/releases/R12.md) for its executable proof.
 

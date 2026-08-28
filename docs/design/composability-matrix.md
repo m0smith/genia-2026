@@ -89,8 +89,8 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 
 ## R12 relationships
 
-These rows record the approved R12 contract boundary. E12-1 through E12-5 are
-implemented as Experimental; E12-6 and later remain unimplemented. See
+These rows record the approved R12 contract boundary. E12-1 through E12-6 are
+implemented as Experimental; E12-7 and later remain unimplemented. See
 `r12-retrieval-grounding-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
@@ -101,7 +101,7 @@ implemented as Experimental; E12-6 and later remain unimplemented. See
 | indexing | R10 protected value / Outcome / opaque host capability | `index/4` accepts a nonempty compatible embedded corpus, keeps the credential protected until one `quote(index_call)` attempt, and returns only an opaque non-comparable/non-serializable handle rather than exposing backend storage | E12-3 implemented, Experimental; deterministic fixture Python-host-only |
 | index/retrieve | opaque host capabilities / ordinary callables / Outcome | the index handle privately retains paired capability identity, space, dimensions, backend reference, and indexed provenance; `retrieve/4` checks identity then space then dimensions before one authorized attempt and returns provider-ordered exact indexed evidence or no-results absence | E12-3/E12-4 implemented, Experimental; deterministic fixtures Python-host-only |
 | provider reranking | retrieved evidence / R10 authority / Outcome | `rerank/4` keeps the credential protected through empty/local validation, makes one authorized attempt only for nonempty evidence, and may reorder occurrences and replace finite scores while preserving the exact duplicate-aware chunk/provenance multiset; pure local rerankers remain ordinary differently named functions | E12-5 implemented, Experimental; deterministic fixture Python-host-only |
-| grounded context/answer | R11 content and `model/4` | pure assembly retains ordered evidence and first-occurrence sources; generation uses unchanged `model/4`; citation rendering is application-owned | Approved contract; not implemented |
+| grounded context/answer | R11 content / Outcome / `model/4` | the importable application module validates exact closed context/answer values, retains the exact ordered evidence list, derives first-occurrence exact-equal sources, propagates non-success Outcomes, and invokes one supplied unchanged model callable; citation rendering remains application-owned | E12-6 implemented, Experimental; private validation proof Python-host-only |
 
 ## Keeping this matrix in sync
 

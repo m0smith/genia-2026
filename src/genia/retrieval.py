@@ -1004,6 +1004,122 @@ def _validate_retrieved_chunks(value: Any) -> list[GeniaMap]:
     return value
 
 
+def _validate_grounded_content(value: Any, label: str) -> GeniaMap:
+    if not isinstance(value, GeniaMap):
+        raise TypeError(f"grounding expected {label} content map")
+    kind = value.get("kind")
+    if kind == symbol("text"):
+        if _keys(value) != {"kind", "text"}:
+            raise TypeError(f"grounding expected closed content for {label}")
+        if not isinstance(value.get("text"), str):
+            raise TypeError(f"grounding expected {label} text to be a string")
+        return value
+    if kind == symbol("json"):
+        if _keys(value) != {"kind", "value"}:
+            raise TypeError(f"grounding expected closed {label} content")
+        represented = value.get("value")
+        if not isinstance(represented, GeniaRepresented) or represented.facet != "json":
+            raise TypeError(
+                f"grounding expected {label} JSON content to retain representation"
+            )
+        return value
+    raise TypeError(f"grounding expected {label} content kind in [json, text]")
+
+
+def assemble_grounded_context(
+    question: Any, content: Any, evidence_value: Any
+) -> GeniaMap:
+    """Construct one exact E12 grounded context without a provider attempt."""
+
+    if contains_protected(question) or contains_protected(content) or contains_protected(
+        evidence_value
+    ):
+        raise TypeError("protected-value: grounding-input")
+    if not isinstance(question, str) or question == "":
+        raise TypeError("grounding expected a non-empty question string")
+    validated_content = _validate_grounded_content(content, "context")
+    try:
+        evidence = _validate_retrieved_chunks(evidence_value)
+    except TypeError as exc:
+        message = str(exc)
+        if "score to be finite" in message:
+            raise TypeError("grounding expected a finite score") from exc
+        raise TypeError(message.replace("rerank expected", "grounding expected")) from exc
+    return _map(question=question, content=validated_content, evidence=evidence)
+
+
+def _validate_grounded_context(value: Any) -> GeniaMap:
+    if contains_protected(value):
+        raise TypeError("protected-value: grounding-input")
+    if not isinstance(value, GeniaMap) or _keys(value) != {
+        "question",
+        "content",
+        "evidence",
+    }:
+        raise TypeError(
+            "grounding expected closed context with keys ['content', 'evidence', 'question']"
+        )
+    return assemble_grounded_context(
+        value.get("question"), value.get("content"), value.get("evidence")
+    )
+
+
+def _validate_grounded_response(value: Any) -> GeniaMap:
+    if not isinstance(value, GeniaMap) or _keys(value) != {
+        "finish_reason",
+        "message",
+        "usage",
+    }:
+        raise TypeError("grounding expected a closed R11 response")
+    message = value.get("message")
+    if not isinstance(message, GeniaMap) or _keys(message) != {"content", "role"}:
+        raise TypeError("grounding expected a closed R11 response message")
+    if message.get("role") != symbol("assistant"):
+        raise TypeError("grounding expected an assistant response message")
+    _validate_grounded_content(message.get("content"), "answer")
+    finish_reason = value.get("finish_reason")
+    if not isinstance(finish_reason, GeniaSymbol) or finish_reason.name not in {
+        "stop",
+        "length",
+        "filtered",
+        "other",
+    }:
+        raise TypeError("grounding expected a valid R11 finish reason")
+    from .model import _validate_usage
+
+    try:
+        _validate_usage(value.get("usage"))
+    except ValueError as exc:
+        raise TypeError("grounding expected valid R11 usage") from exc
+    return value
+
+
+def assemble_grounded_answer(context_value: Any, model_outcome: Any) -> Any:
+    """Assemble an answer only from one exact R11 successful Outcome."""
+
+    context = _validate_grounded_context(context_value)
+    if isinstance(model_outcome, (GeniaOptionNone, GeniaOptionErr)):
+        return model_outcome
+    if not isinstance(model_outcome, GeniaOptionSome) or model_outcome.context is not None:
+        raise TypeError("grounding expected an R11 model Outcome")
+    response = _validate_grounded_response(model_outcome.value)
+    sources: list[GeniaMap] = []
+    for retrieved in context.get("evidence"):
+        source = retrieved.get("chunk").get("source")
+        if not any(
+            existing.get("doc_id") == source.get("doc_id")
+            and existing.get("offset") == source.get("offset")
+            and existing.get("length") == source.get("length")
+            for existing in sources
+        ):
+            sources.append(source)
+    return _map(
+        answer=response.get("message").get("content"),
+        sources=sources,
+        evidence=context.get("evidence"),
+    )
+
+
 def _rerank_invalid(stage: str) -> GeniaOptionErr:
     return GeniaOptionErr("rerank-response-invalid", _map(stage=symbol(stage)))
 
