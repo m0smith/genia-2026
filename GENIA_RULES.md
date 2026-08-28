@@ -531,7 +531,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - A valid call declassifies immediately before one synchronous attempt through exact matching R10 `quote(index_call)` authority. There is no retry, fallback, exposed batching, stream, cache, or background work.
 - Success is only `some(index_handle)`. The opaque host-produced handle renders `<index-handle>` and cannot be constructed, inspected, compared, keyed, copied, serialized, or persisted by source.
 - Provider errors normalize to the exact R12 index families without provider bodies or identities. The deterministic Python fixture is offline, explicit, non-ambient, and introduces no vector database or public storage API.
-- Retrieval is implemented separately by E12-4; reranking, grounding, persistence, networking, provider registry, and source-visible compatibility identity remain unimplemented.
+- Retrieval and provider-backed reranking are implemented separately by E12-4/E12-5; grounding, persistence, networking, provider registry, and source-visible compatibility identity remain unimplemented.
 
 ### Retrieval capability and compatibility guards (Experimental R12 E12-4)
 
@@ -541,6 +541,14 @@ No additional member/index/flow operators should be introduced without explicitl
 - A valid call declassifies immediately before one synchronous attempt through exact matching R10 `quote(retrieve_call)` authority. There is no retry, fallback, stream, cache, background work, networking, or hidden embedding.
 - Nonempty success is at most `k` exact indexed chunks with finite opaque backend-native scores in provider best-first order. Retrieval cannot replace chunk text, source, or represented metadata; valid empty success is exact `none("retrieval-no-results")`.
 - Provider errors normalize to the exact R12 retrieve families without provider bodies or identities. The paired deterministic Python fixture is offline, explicit, non-ambient, and introduces no vector database or public storage API.
+
+### Provider reranking and provenance integrity (Experimental R12 E12-5)
+
+- `rerank(provider, config, credential, authority)` returns an ordinary two-argument callable. Construction validates exact `{id, timeout_ms}` config and captured capability/protected credential/authority without declassification, audit, or attempt.
+- Invocation validates a nonempty query and a list of exact finite-scored retrieved chunks before declassification. Valid empty evidence returns `some([])` without declassification or attempt; nonempty evidence uses exact `quote(rerank_call)` authority immediately before one synchronous attempt.
+- Successful output preserves the exact multiset of exact input chunk values, including repeated occurrences. It may reorder occurrences and replace scores with finite numbers only; output order is authoritative and scores have no normalization or cross-reranker comparability guarantee.
+- Added, dropped, duplicated, replaced, or mutated chunks/provenance and malformed/non-finite results normalize to `rerank-response-invalid/{stage: quote(result)}`. Other provider failures use the exact non-sensitive R12 rerank families; no retry, fallback, stream, cache, background work, or provider detail retention occurs.
+- The deterministic Python fixture is explicit, opaque, offline, non-ambient, and source cannot construct it. Pure local reranking remains ordinary application/library code under names other than `rerank/4`; no local reranking runtime API, grounding, citation, persistence, networking, or provider registry is added.
 - Reranking, grounding/model invocation, persistence, networking, provider registry, score normalization/thresholds, and citation rendering remain unimplemented.
 
 - symbols are runtime values distinct from strings

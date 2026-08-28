@@ -591,6 +591,7 @@ Related shared portability docs:
     - explicitly injected embed provider and returned callable embedder (`embed/4`, Experimental R12 E12-2; explicit chunk/query variants, exact identity, finite vector/dimension/space validation, one deterministic offline attempt, and no ambient capability)
     - explicitly injected index provider and returned callable indexer (`index/4`, Experimental R12 E12-3; nonempty compatible embedded corpus, validation before one authorized offline attempt, and opaque non-serializable `<index-handle>` result)
     - explicitly paired retrieval provider and returned callable retriever (`retrieve/4`, Experimental R12 E12-4; explicit query embedding and `k`, identity/space/dimension guards before one authorized offline attempt, ordered exact indexed evidence, and exact no-results absence)
+    - explicitly injected rerank provider and returned callable reranker (`rerank/4`, Experimental R12 E12-5; empty zero-attempt short path, one authorized offline attempt otherwise, finite score replacement, and exact duplicate-aware evidence/provenance multiset preservation)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1086,6 +1087,23 @@ best-first order and returns at most `k` finite-scored exact indexed chunks;
 empty success is `none("retrieval-no-results")`. The fixture adds no implicit
 embedding, reranking, grounding, networking, persistence/vector database,
 score normalization, retry, or provider registry.
+
+See [the active R12 release page](docs/releases/R12.md) for its executable proof.
+
+### Provider reranking and provenance integrity (Experimental R12 E12-5)
+
+`rerank(provider, config, credential, authority)` returns an ordinary callable
+accepting a nonempty query and exact retrieved evidence. Valid empty evidence
+returns `some([])` without declassification or an attempt. Otherwise one valid
+call declassifies through `quote(rerank_call)` and makes one deterministic
+offline fixture attempt.
+
+Success may reorder occurrences and replace scores with finite numbers only.
+The exact duplicate-aware multiset of chunk text, source, and represented
+metadata is preserved; providers cannot add, drop, duplicate, replace, or
+mutate evidence. Pure local rerankers remain differently named ordinary
+application/library functions. E12-5 adds no score normalization, grounding,
+citation rendering, networking, persistence, retry, or provider registry.
 
 See [the active R12 release page](docs/releases/R12.md) for its executable proof.
 

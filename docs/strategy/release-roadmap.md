@@ -707,7 +707,7 @@ remain R12. Later tickets require their own gates.
 
 ## Release R12 — Retrieval & Grounding
 
-**Status: Active; E12-1 document/chunk/provenance, E12-2 unified corpus/query embedding, E12-3 indexing/opaque handle, and E12-4 retrieval/compatibility guards are implemented as Experimental. E12-5 and later are not implemented.**
+**Status: Active; E12-1 document/chunk/provenance through E12-5 provider reranking/provenance integrity are implemented as Experimental. E12-6 and later are not implemented.**
 Issue #641 approved the semantic boundary in
 `docs/design/r12-retrieval-grounding-contract.md`. Each behavior slice still
 requires its own complete phase workflow. This section is planning, not
@@ -769,7 +769,7 @@ ordering, evidence, or answers across implementations. The approved sequence is:
 8. E12-8 — release examples and implemented-truth synchronization
 9. E12-9 — release truth audit and distillation
 
-E12-1 through E12-4 completed their per-ticket workflows in issues #643, #644, #645, and #646. E12-5 and later require
+E12-1 through E12-5 completed their per-ticket workflows in issues #643 through #647. E12-6 and later require
 their own gates. The contract explicitly excludes a RAG/vector-store framework,
 hidden query embedding, citation rendering semantics, retry/streaming, and
 syntax/Core IR/lifecycle expansion.

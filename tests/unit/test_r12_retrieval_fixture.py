@@ -415,6 +415,5 @@ def test_fixture_factory_and_global_environment_are_narrow():
         "retrieve_authority_fixture",
         "retrieve_retry",
         "retrieve_and_embed",
-        "rerank",
     ):
         assert name not in env.values
