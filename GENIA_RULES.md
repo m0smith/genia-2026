@@ -560,6 +560,12 @@ No additional member/index/flow operators should be introduced without explicitl
 - The application-owned generation wrapper validates context, constructs one existing text request, invokes its supplied unchanged R11 model callable once, and performs no retry, repair, fallback, hidden retrieval, or second model call.
 - Provenance/evidence is implemented substrate, not citation presentation. Citation labels, prose spans, validation, numbering, and rendering remain application-owned and unstandardized.
 
+### Cross-mode grounded proving (Experimental R12 E12-7)
+
+- E12-7 changes no E12-1 through E12-6 rule. It proves their existing validation-before-declassification, exact-purpose authority, zero-or-one synchronous attempt, Outcome, compatibility, order, provenance, and non-leakage obligations across applicable eval/Flow/error/CLI observations.
+- Provider work remains explicitly demand-driven in Flow composition: bounded downstream consumption does not invoke an unconsumed provider stage. Compatible capability replacement preserves the same ordinary constructor/call/value contract, not identical results.
+- The complete proving example owns orchestration as ordinary application code. Only successful validated inputs reach provider stages, every provider stage is explicit, and no retrieval/model failure fabricates a grounded answer.
+
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call
 - `quote(expr)` must not evaluate `expr`

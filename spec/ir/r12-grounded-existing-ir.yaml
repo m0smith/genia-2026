@@ -1,0 +1,37 @@
+name: r12-grounded-existing-ir
+category: ir
+description: R12 provider construction lowers through existing ordinary call nodes
+input:
+  source: 'embed(provider, {id: "e", space: "s", timeout_ms: 1}, credential, authority)'
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrVar
+          name: embed
+        args:
+          - node: IrVar
+            name: provider
+          - node: IrMap
+            items:
+              - key: id
+                value:
+                  node: IrLiteral
+                  value: e
+              - key: space
+                value:
+                  node: IrLiteral
+                  value: s
+              - key: timeout_ms
+                value:
+                  node: IrLiteral
+                  value: 1
+          - node: IrVar
+            name: credential
+          - node: IrVar
+            name: authority
+notes: |
+  issue: 649
+  classification: No new Core IR node.

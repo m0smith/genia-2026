@@ -1,0 +1,74 @@
+"""
+R12 E12-7 complete ordinary grounded proving case.
+
+The host supplies explicit deterministic fixture capabilities, protected
+credentials, and authorities. Every provider stage remains an ordinary call.
+"""
+
+import r12_grounded_context_answer as grounding
+
+validate_document(record) =
+  validate_record(record, {
+    id: (value) -> validate_required("id", value),
+    text: (value) -> validate_required("text", value)
+  })
+
+validated_records(records) =
+  records |> ((items) -> validate_each(items, validate_document)) |> collect_validated
+
+whole_text(_text) = [{offset: 0, length: 16}]
+
+embed_call = embed(
+  embed_provider_fixture,
+  {id: "fixture-embed", space: "fixture-space-v1", timeout_ms: 1000},
+  embed_credential_fixture,
+  embed_authority_fixture
+)
+
+index_call = index(
+  index_provider_fixture,
+  {id: "fixture-index", timeout_ms: 1000},
+  index_credential_fixture,
+  index_authority_fixture
+)
+
+retrieve_call = retrieve(
+  retrieve_provider_fixture,
+  {id: "fixture-retrieve", timeout_ms: 1000},
+  retrieve_credential_fixture,
+  retrieve_authority_fixture
+)
+
+rerank_call = rerank(
+  rerank_provider_fixture,
+  {id: "fixture-rerank", timeout_ms: 1000},
+  rerank_credential_fixture,
+  rerank_authority_fixture
+)
+
+model_call = model(
+  model_provider_fixture,
+  {id: "fixture-text", timeout_ms: 1000},
+  model_credential_fixture,
+  model_authority_fixture
+)
+
+document = {
+  id: "doc-ada",
+  text: "Ada wrote notes.",
+  meta: json_decode("{\"origin\":\"validated-record\"}") |> unwrap_or({})
+}
+
+chunks = chunk(whole_text, document) |> unwrap_or([])
+embedded = chunks |> map((item) -> apply_raw(embed_call, [{kind: quote(chunk), chunk: item}]) |> unwrap_or({}))
+handle = apply_raw(index_call, [embedded]) |> unwrap_or(none)
+query = apply_raw(embed_call, [{kind: quote(query), text: "Who wrote notes?"}]) |> unwrap_or({})
+evidence = apply_raw(retrieve_call, [handle, query, 3]) |> unwrap_or([])
+ranked = apply_raw(rerank_call, ["Who wrote notes?", evidence]) |> unwrap_or([])
+context = grounding.assemble_grounded_context(
+  "Who wrote notes?",
+  {kind: quote(text), text: "Answer only from evidence."},
+  ranked
+)
+
+grounding.generate_grounded_answer(model_call, context)

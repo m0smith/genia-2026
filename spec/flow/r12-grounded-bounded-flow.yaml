@@ -1,0 +1,15 @@
+name: r12-grounded-bounded-flow
+category: flow
+description: R12 fixture calls compose in existing ordered Flow evaluation
+input:
+  fixtures: [r12_grounded]
+  source: |
+    e = embed(embed_provider_fixture, {id: "e", space: "fixture-space-v1", timeout_ms: 1000}, embed_credential_fixture, embed_authority_fixture)
+    evolve("first", (_) -> "later") |> map((text) -> e({kind: quote(query), text: text}) |> "text" |> unwrap_or("")) |> take(1) |> collect
+expected:
+  stdout: "[\"first\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 649
+  classification: Existing Flow ordering with explicit deterministic provider calls.

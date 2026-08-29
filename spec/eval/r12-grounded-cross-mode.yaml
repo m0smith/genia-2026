@@ -1,0 +1,15 @@
+name: r12-grounded-cross-mode
+category: eval
+description: Explicit R12 fixture embedding remains an ordinary authorized call
+input:
+  fixtures: [r12_grounded]
+  source: |
+    e = embed(embed_provider_fixture, {id: "e", space: "fixture-space-v1", timeout_ms: 1000}, embed_credential_fixture, embed_authority_fixture)
+    e({kind: quote(query), text: "Who?"})
+expected:
+  stdout: "some({text: \"Who?\", embedding: {vector: [1.0, 0.0], dims: 2, space: \"fixture-space-v1\"}})\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 649
+  classification: Experimental cross-mode proof over existing E12-2 behavior.

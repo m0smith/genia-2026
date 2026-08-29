@@ -27,12 +27,16 @@ def exec_cli(spec) -> dict:
     fixtures = getattr(spec, "fixtures", ())
 
     if fixtures:
-        if fixtures != ("r11_model",):
+        fixture_modules = {
+            ("r11_model",): "hosts.python.exec_model_fixture",
+            ("r12_grounded",): "hosts.python.exec_r12_grounded_fixture",
+        }
+        if fixtures not in fixture_modules:
             raise ValueError(f"unsupported CLI fixtures: {fixtures!r}")
         argv = [
             sys.executable,
             "-m",
-            "hosts.python.exec_model_fixture",
+            fixture_modules[fixtures],
         ]
         if file:
             argv.extend(["--file", file])
@@ -44,7 +48,7 @@ def exec_cli(spec) -> dict:
             argv.extend(["--pipe", command])
             stdin = stdin_text
         else:
-            raise ValueError("R11 CLI fixture supports file, command, or pipe mode")
+            raise ValueError("CLI fixture supports file, command, or pipe mode")
         env["PYTHONPATH"] = os.pathsep.join([str(REPO_ROOT), env["PYTHONPATH"]])
     else:
         argv = [

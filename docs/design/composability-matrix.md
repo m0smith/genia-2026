@@ -89,8 +89,8 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 
 ## R12 relationships
 
-These rows record the approved R12 contract boundary. E12-1 through E12-6 are
-implemented as Experimental; E12-7 and later remain unimplemented. See
+These rows record the approved R12 contract boundary. E12-1 through E12-7 are
+implemented as Experimental; E12-8 and later remain unimplemented. See
 `r12-retrieval-grounding-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
@@ -102,6 +102,7 @@ implemented as Experimental; E12-7 and later remain unimplemented. See
 | index/retrieve | opaque host capabilities / ordinary callables / Outcome | the index handle privately retains paired capability identity, space, dimensions, backend reference, and indexed provenance; `retrieve/4` checks identity then space then dimensions before one authorized attempt and returns provider-ordered exact indexed evidence or no-results absence | E12-3/E12-4 implemented, Experimental; deterministic fixtures Python-host-only |
 | provider reranking | retrieved evidence / R10 authority / Outcome | `rerank/4` keeps the credential protected through empty/local validation, makes one authorized attempt only for nonempty evidence, and may reorder occurrences and replace finite scores while preserving the exact duplicate-aware chunk/provenance multiset; pure local rerankers remain ordinary differently named functions | E12-5 implemented, Experimental; deterministic fixture Python-host-only |
 | grounded context/answer | R11 content / Outcome / `model/4` | the importable application module validates exact closed context/answer values, retains the exact ordered evidence list, derives first-occurrence exact-equal sources, propagates non-success Outcomes, and invokes one supplied unchanged model callable; citation rendering remains application-owned | E12-6 implemented, Experimental; private validation proof Python-host-only |
+| complete grounded composition | R10 authorities / Flow / validation diagnostics / E12 evidence / R11 `model/4` | explicit ordinary stages keep each provider concern separately authorized, make attempts only under demand, preserve exact provenance into the grounded answer, and gate later provider/model work on existing successful Outcomes; compatible replacement preserves call/value contracts rather than identical results | E12-7 proving case implemented, Experimental; deterministic fixtures Python-host-only |
 
 ## Keeping this matrix in sync
 

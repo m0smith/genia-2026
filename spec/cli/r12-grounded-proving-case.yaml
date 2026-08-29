@@ -1,0 +1,16 @@
+name: r12-grounded-proving-case
+category: cli
+description: Complete explicit R12 grounded composition preserves provenance
+input:
+  fixtures: [r12_grounded]
+  source: examples/r12_cross_mode_grounded_proving.genia
+  file: examples/r12_cross_mode_grounded_proving.genia
+  stdin: ""
+  argv: []
+expected:
+  stdout: '{answer: {kind: text, text: "Ada wrote notes."}, sources: [{doc_id: "doc-ada", offset: 0, length: 16}], evidence: [{chunk: {text: "Ada wrote notes.", source: {doc_id: "doc-ada", offset: 0, length: 16}, meta: <represented>}, score: 1.0}]}'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 649
+  classification: Experimental proving case over existing R10/R11/R12 behavior.
