@@ -549,7 +549,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - Successful output preserves the exact multiset of exact input chunk values, including repeated occurrences. It may reorder occurrences and replace scores with finite numbers only; output order is authoritative and scores have no normalization or cross-reranker comparability guarantee.
 - Added, dropped, duplicated, replaced, or mutated chunks/provenance and malformed/non-finite results normalize to `rerank-response-invalid/{stage: quote(result)}`. Other provider failures use the exact non-sensitive R12 rerank families; no retry, fallback, stream, cache, background work, or provider detail retention occurs.
 - The deterministic Python fixture is explicit, opaque, offline, non-ambient, and source cannot construct it. Pure local reranking remains ordinary application/library code under names other than `rerank/4`; no local reranking runtime API, grounding, citation, persistence, networking, or provider registry is added.
-- Reranking, grounding/model invocation, persistence, networking, provider registry, score normalization/thresholds, and citation rendering remain unimplemented.
+- Grounding/model invocation is implemented separately by E12-6; persistence, networking, provider registry, score normalization/thresholds, and citation rendering remain unimplemented.
 
 ### Grounded context and answer composition (Experimental R12 E12-6)
 

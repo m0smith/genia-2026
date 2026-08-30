@@ -112,6 +112,11 @@ E11-7 synchronizes runnable release examples and implemented truth without addin
 runtime behavior; E11-8 completes the release truth audit and distillation without
 adding runtime behavior.
 
+**R12** is active through E12-8. E12-1 through E12-7 implement and prove the
+Experimental ordinary retrieval/grounding composition used by the validated
+grounded pipeline; E12-8 synchronizes runnable examples and implemented truth
+without runtime behavior. E12-9 remains separately gated.
+
 ## Using This Document
 
 Agents and contributors should read this document before proposing or implementing new work.

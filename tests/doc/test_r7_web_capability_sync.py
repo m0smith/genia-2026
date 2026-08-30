@@ -163,7 +163,7 @@ def test_completed_release_status_stays_synchronized() -> None:
     assert "Release R10 — Configuration & Secrets ✓ COMPLETE" in roadmap
     assert "**Status: Complete. E10-1 through E10-8 delivered and audited.**" in roadmap
     assert "Issue #586 approved" in roadmap
-    assert "R10/R11 follow-ups and R12 require their own" in roadmap
+    assert "R10/R11 follow-ups and remaining R12 work require their own" in roadmap
     assert "R7 is complete" in killer_workflow
     assert "R9** completed the value-template and representation work" in killer_workflow
     assert "E10-6 cross-mode hardening" in killer_workflow

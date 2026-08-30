@@ -707,7 +707,7 @@ remain R12. Later tickets require their own gates.
 
 ## Release R12 — Retrieval & Grounding
 
-**Status: Active; E12-1 document/chunk/provenance through E12-7 cross-mode grounded proving are implemented as Experimental. E12-8 and later are not implemented.**
+**Status: Active; E12-1 through E12-8 are implemented as Experimental. E12-8 is documentation and runnable-example verification only; E12-9 is not implemented.**
 Issue #641 approved the semantic boundary in
 `docs/design/r12-retrieval-grounding-contract.md`. Each behavior slice still
 requires its own complete phase workflow. This section is planning, not
@@ -766,11 +766,11 @@ ordering, evidence, or answers across implementations. The approved sequence is:
 5. E12-5 — provider reranking and provenance integrity
 6. E12-6 — grounded context/answer composition with unchanged R11 `model/4`
 7. E12-7 — R10 boundary, cross-mode conformance, and grounded proving case
-8. E12-8 — release examples and implemented-truth synchronization
+8. E12-8 — release examples and implemented-truth synchronization — **implemented (documentation and runnable-example verification; no runtime behavior)**
 9. E12-9 — release truth audit and distillation
 
-E12-1 through E12-7 completed their per-ticket workflows in issues #643 through #649. E12-8 and later require
-their own gates. The contract explicitly excludes a RAG/vector-store framework,
+E12-1 through E12-8 completed their per-ticket workflows in issues #643 through #650. E12-9 requires
+its own gate. The contract explicitly excludes a RAG/vector-store framework,
 hidden query embedding, citation rendering semantics, retry/streaming, and
 syntax/Core IR/lifecycle expansion.
 
@@ -1007,8 +1007,9 @@ foundation while preserving R10 protected-value boundaries.
 
 R8, R9, R10, and R11 are complete. R11's APIs remain Experimental, Python is
 the only implemented host, and shared/multi-host conformance remains Partial.
-R12, R13, and R14 remain planned. R10/R11 follow-ups and R12 require their own
-gates; R13 and R14 do as well.
+R12 is active through E12-8; E12-9 remains planned. R13 and R14 remain planned.
+R10/R11 follow-ups and remaining R12 work require their own gates; R13 and R14
+do as well.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap
 placement is not implementation authority.

@@ -94,7 +94,7 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9, R10, and R11 Complete
+## Release Position: R9, R10, and R11 Complete; R12 E12-1 through E12-8 Implemented
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -124,7 +124,7 @@ When an LLM agent is asked for new Genia work:
   or retrieval behavior. E11-5 is application-owned ordinary state over existing
   list/Flow `scan`, not a conversation runtime; E11-6 is one existing-mechanism
   validated-pipeline proof, not a framework; follow-ups and later releases require their own phase gates.
-7. R12 has an approved contract and E12-1 through E12-6 are implemented as
+7. R12 has an approved contract and E12-1 through E12-8 are implemented as
    Experimental ordinary value/callable/Outcome behavior with exact closed
    document/span validation, Unicode-code-point slicing, source-owned
    provenance, and exact R9 represented metadata preservation. E12-2 adds one
@@ -137,8 +137,10 @@ When an LLM agent is asked for new Genia work:
    changing only order and finite scores. E12-6 adds pure application-owned
    grounded context/answer assembly with exact evidence order, first-occurrence
    exact-source deduplication, non-success Outcome propagation, and one supplied
-   unchanged R11 model call. E12-7 and later remain unimplemented
-   and require their own gates. Preserve opaque index/retrieval compatibility, the
+   unchanged R11 model call. E12-7 adds cross-mode hardening and one complete
+   grounded proving case without new semantics; E12-8 adds documentation and
+   runnable-example verification only. E12-9 remains unimplemented and requires
+   its own gate. Preserve opaque index/retrieval compatibility, the
    provider-backed `rerank/4` versus ordinary pure-function distinction, and
    unchanged R11 `model/4`. Do not infer a RAG/vector-store framework, hidden
    query embedding, score normalization, citation rendering, retries,
