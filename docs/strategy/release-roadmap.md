@@ -705,9 +705,9 @@ remain R12. Later tickets require their own gates.
 
 ---
 
-## Release R12 — Retrieval & Grounding
+## Release R12 — Retrieval & Grounding ✓ COMPLETE
 
-**Status: Active; E12-1 through E12-8 are implemented as Experimental. E12-8 is documentation and runnable-example verification only; E12-9 is not implemented.**
+**Status: Complete; E12-1 through E12-9 complete.** E12-1 through E12-7 retain their Experimental implementation status. E12-8 is documentation/runnable-example verification and E12-9 is audit/distillation only.
 Issue #641 approved the semantic boundary in
 `docs/design/r12-retrieval-grounding-contract.md`. Each behavior slice still
 requires its own complete phase workflow. This section is planning, not
@@ -767,10 +767,9 @@ ordering, evidence, or answers across implementations. The approved sequence is:
 6. E12-6 — grounded context/answer composition with unchanged R11 `model/4`
 7. E12-7 — R10 boundary, cross-mode conformance, and grounded proving case
 8. E12-8 — release examples and implemented-truth synchronization — **implemented (documentation and runnable-example verification; no runtime behavior)**
-9. E12-9 — release truth audit and distillation
+9. E12-9 — release truth audit and distillation — **complete (no runtime behavior)**
 
-E12-1 through E12-8 completed their per-ticket workflows in issues #643 through #650. E12-9 requires
-its own gate. The contract explicitly excludes a RAG/vector-store framework,
+E12-1 through E12-9 completed their per-ticket workflows in issues #643 through #651. The contract explicitly excludes a RAG/vector-store framework,
 hidden query embedding, citation rendering semantics, retry/streaming, and
 syntax/Core IR/lifecycle expansion.
 
@@ -1005,10 +1004,10 @@ post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
 configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
 foundation while preserving R10 protected-value boundaries.
 
-R8, R9, R10, and R11 are complete. R11's APIs remain Experimental, Python is
-the only implemented host, and shared/multi-host conformance remains Partial.
-R12 is active through E12-8; E12-9 remains planned. R13 and R14 remain planned.
-R10/R11 follow-ups and remaining R12 work require their own gates; R13 and R14
+R8, R9, R10, R11, and R12 are complete. R11 and R12 APIs remain Experimental,
+Python is the only implemented host, and shared/multi-host conformance remains
+Partial. R13 and R14 remain planned.
+R10/R11/R12 follow-ups require their own gates; R13 and R14
 do as well.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap

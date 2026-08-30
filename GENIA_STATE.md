@@ -486,7 +486,8 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E12-8 adds no runtime behavior: `docs/releases/R12.md` and focused documentation tests synchronize runnable chunking and complete grounded-composition examples with the implemented E12-1 through E12-7 boundary
   - the synchronized public account keeps ordinary values/callables/Outcomes, exact provenance, explicit query embedding, opaque index/retrieval compatibility, backend-native scores, unchanged R11 `model/4`, Python-host-only proof mechanics, and excluded citation rendering distinct
   - LANGUAGE CONTRACT: E12-8 is documentation and executable-example verification only; the implemented portable behavior remains exactly E12-1 through E12-6, while E12-7 remains conformance/proving evidence without new semantics
-  - R12 remains Active and Experimental; shared/multi-host conformance remains Partial, Python is the only implemented host, and E12-9 release audit/distillation remains separately gated
+  - E12-9 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-provider exclusions, and canonical release status
+  - R12 is release-complete through E12-9 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
 
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable

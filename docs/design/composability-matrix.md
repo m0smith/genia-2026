@@ -89,9 +89,9 @@ audit/distillation only. See `r11-ai-composition-contract.md`.
 
 ## R12 relationships
 
-These rows record the approved R12 contract boundary. E12-1 through E12-8 are
+These rows record the release-complete R12 boundary. E12-1 through E12-8 are
 implemented as Experimental; E12-8 is documentation verification only and
-E12-9 remains unimplemented. See
+E12-9 is audit/distillation only. See
 `r12-retrieval-grounding-contract.md`.
 
 | Concept | Composes with | Required relationship | Status |
