@@ -24,7 +24,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R9 — Value Templates & Representations](R9.md) ✓ COMPLETE
 - [R10 — Configuration & Secrets](R10.md) ✓ COMPLETE
 - [R11 — AI Composition](R11.md) — COMPLETE; E11-1 through E11-8 delivered
-- [R12 — Retrieval & Grounding](R12.md) — ACTIVE; E12-1 through E12-8 delivered
+- [R12 — Retrieval & Grounding](R12.md) — COMPLETE; E12-1 through E12-9 delivered
 
 ## Process
 

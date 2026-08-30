@@ -565,6 +565,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - E12-7 changes no E12-1 through E12-6 rule. It proves their existing validation-before-declassification, exact-purpose authority, zero-or-one synchronous attempt, Outcome, compatibility, order, provenance, and non-leakage obligations across applicable eval/Flow/error/CLI observations.
 - Provider work remains explicitly demand-driven in Flow composition: bounded downstream consumption does not invoke an unconsumed provider stage. Compatible capability replacement preserves the same ordinary constructor/call/value contract, not identical results.
 - The complete proving example owns orchestration as ordinary application code. Only successful validated inputs reach provider stages, every provider stage is explicit, and no retrieval/model failure fabricates a grounded answer.
+- E12-8 changes no semantics; it verifies runnable release examples and synchronizes implemented truth. E12-9 changes no semantics; it completes the release truth audit and distillation. R12 is release-complete while its APIs remain Experimental, Python remains the only implemented host, and shared/multi-host conformance remains Partial.
 
 - symbols are runtime values distinct from strings
 - `quote(expr)` is a special form, not an ordinary function call

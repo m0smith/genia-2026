@@ -34,26 +34,25 @@ def _run_genia(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_r12_e12_8_status_is_synchronized_without_precompleting_e12_9() -> None:
+def test_r12_status_remains_synchronized_after_release_completion() -> None:
     required = {
         "AGENTS.md": "E12-8 release-example truth synchronization",
         "GENIA_STATE.md": "R12 E12-8, issue #650",
         "README.md": "R12 E12-8",
-        "GENIA_REPL_README.md": "R12 E12-8",
-        "docs/ai/LLM_CONTRACT.md": "E12-1 through E12-8 are implemented",
-        "docs/design/composability-matrix.md": "E12-8 documentation verification implemented",
-        "docs/design/r12-retrieval-grounding-contract.md": "E12-1 through E12-8 implemented",
-        "docs/releases/R12.md": "E12-1 through E12-8 delivered",
-        "docs/releases/README.md": "E12-1 through E12-8 delivered",
-        "docs/strategy/release-roadmap.md": "E12-1 through E12-8 are implemented",
+        "GENIA_REPL_README.md": "E12-8 synchronizes runnable release examples",
+        "docs/ai/LLM_CONTRACT.md": "R9, R10, R11, and R12 Complete",
+        "docs/design/composability-matrix.md": "release-complete R12 boundary",
+        "docs/design/r12-retrieval-grounding-contract.md": "E12-1 through E12-9 complete",
+        "docs/releases/R12.md": "E12-1 through E12-9 delivered",
+        "docs/releases/README.md": "E12-1 through E12-9 delivered",
+        "docs/strategy/release-roadmap.md": "E12-1 through E12-9 complete",
     }
     for path, expected in required.items():
         assert expected in _read(path), f"{path} must preserve synchronized R12 truth"
 
     release = RELEASE.read_text(encoding="utf-8")
-    assert "Status: **Active" in release
-    assert "E12-9 remains separately gated" in release
-    assert "Status: **Complete" not in release
+    assert "Status: **Complete" in release
+    assert "E12-9 remains separately gated" not in release
 
 
 def test_r12_public_truth_keeps_maturity_portability_and_exclusions_explicit() -> None:
