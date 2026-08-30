@@ -1,6 +1,6 @@
 # R12 Retrieval & Grounding Contract
 
-Status: **Approved contract; E12-1 through E12-7 implemented as Experimental. E12-8 and later are not implemented.**
+Status: **Approved contract; E12-1 through E12-8 implemented as Experimental. E12-8 is documentation verification only; E12-9 is not implemented.**
 
 This document fixes the semantic boundary for later R12 tickets. It does not
 define current language behavior and must not be cited as implementation
@@ -469,5 +469,6 @@ written from this contract rather than copied from the earlier proposal.
 Issue #641 approved this contract and stopped after the contract phase. Issues
 #643 through #647 completed E12-1 through E12-5 through their own phase gates.
 Issues #643 through #649 implemented E12-1 through E12-7 through separate
-ticket workflows. E12-8 and later remain unimplemented and require their own
-gates.
+ticket workflows. Issue #650 completed E12-8 documentation and executable-example
+verification without runtime behavior. E12-9 remains unimplemented and requires
+its own gate.

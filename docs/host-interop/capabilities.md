@@ -73,6 +73,42 @@ portability labels. It adds or changes no host capability.
 - **portability:** `Python-host-only`
 - **notes:** This is the offline E12-2 fixture, not a network embedding adapter. It is explicitly injected only by Python tests, is never ambient or source-constructible, and performs at most one attempt per valid invocation with no retry.
 
+### Group: Indexing Test Fixture
+
+#### `indexing.deterministic-fixture`
+
+- **name:** `indexing.deterministic-fixture`
+- **genia_surface:** opaque host-injected provider passed to `index(provider, config, credential, authority)`
+- **input:** one validated nonempty compatible embedded corpus, exact `{id, timeout_ms}` config, and an authorized declassified string credential at the private host boundary
+- **output:** one existing Outcome containing only an opaque `<index-handle>` or normalized failure
+- **errors:** malformed observations normalize to `index-response-invalid`; fixture exceptions normalize to non-sensitive `index-transport-failure` with `kind: quote(other)`
+- **portability:** `Python-host-only`
+- **notes:** This offline E12-3 fixture retains private compatibility identity, corpus dimensions/space, backend reference, and exact indexed occurrences. The handle is not source-constructible, inspectable, comparable, serializable, or persistent; there is no network adapter or public vector-store API.
+
+### Group: Retrieval Test Fixture
+
+#### `retrieval.deterministic-fixture`
+
+- **name:** `retrieval.deterministic-fixture`
+- **genia_surface:** opaque paired provider passed to `retrieve(provider, config, credential, authority)`
+- **input:** one opaque paired index handle, one explicit exact query embedding, bounded `k`, exact `{id, timeout_ms}` config, and an authorized declassified string credential at the private host boundary
+- **output:** one existing Outcome containing provider-ordered exact indexed evidence, exact `none("retrieval-no-results")`, or normalized failure
+- **errors:** malformed observations normalize to `retrieve-response-invalid`; fixture exceptions normalize to non-sensitive `retrieve-transport-failure` with `kind: quote(other)`
+- **portability:** `Python-host-only`
+- **notes:** This offline E12-4 fixture is explicitly paired with the index fixture. It checks private identity, space, and dimensions before one attempt and performs no hidden query embedding, networking, persistence, or score normalization.
+
+### Group: Reranking Test Fixture
+
+#### `reranking.deterministic-fixture`
+
+- **name:** `reranking.deterministic-fixture`
+- **genia_surface:** opaque host-injected provider passed to `rerank(provider, config, credential, authority)`
+- **input:** one nonempty query string, exact retrieved evidence, exact `{id, timeout_ms}` config, and an authorized declassified string credential at the private host boundary
+- **output:** one existing Outcome containing reordered evidence with finite reranker-native scores or normalized failure; valid empty evidence returns `some([])` without an attempt
+- **errors:** malformed observations normalize to `rerank-response-invalid`; fixture exceptions normalize to non-sensitive `rerank-transport-failure` with `kind: quote(other)`
+- **portability:** `Python-host-only`
+- **notes:** This offline E12-5 fixture preserves the exact duplicate-aware chunk/provenance multiset. It adds no local reranking API, normalized score contract, network adapter, persistence, or provider registry.
+
 ### Group: I/O Substrate
 
 Capabilities connecting Genia programs to the host I/O streams. These are `language contract` capabilities — all hosts must provide them.

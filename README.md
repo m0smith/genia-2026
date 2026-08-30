@@ -594,6 +594,7 @@ Related shared portability docs:
     - explicitly injected rerank provider and returned callable reranker (`rerank/4`, Experimental R12 E12-5; empty zero-attempt short path, one authorized offline attempt otherwise, finite score replacement, and exact duplicate-aware evidence/provenance multiset preservation)
     - application-owned grounded context/answer composition (Experimental R12 E12-6; exact evidence preservation, ordered first-occurrence exact-source deduplication, successful-R11-Outcome gate, and one supplied unchanged model call with no new public builtin/provider boundary)
     - cross-mode grounded hardening and proving case (Experimental R12 E12-7; concern-specific R10 authorities, bounded demand, recursive non-leakage, existing parse/Core IR forms, and explicit validated composition through unchanged R11 `model/4`; no new semantics)
+    - runnable release examples and implemented-truth synchronization (Experimental R12 E12-8; documentation verification only, with E12-9 still gated)
     - explicit immutable configuration provider (`<config-provider>`, Experimental)
     - explicitly injected model provider and returned callable model (`model/4`, Experimental R11 E11-1 through E11-8; R11 is release-complete, conversation and validated-pipeline proofs remain application code over existing composition, E11-7 adds documentation/example verification only, and E11-8 adds audit/distillation only)
   - `stdout`
@@ -1136,6 +1137,11 @@ provenance in the final grounded answer.
 E12-7 adds conformance evidence and application-owned composition only. It adds
 no public helper, provider behavior, retry, network adapter, citation policy,
 syntax, or Core IR node. See [the active R12 release page](docs/releases/R12.md).
+
+R12 E12-8 adds no runtime behavior. It synchronizes that release page and
+focused executable documentation coverage with the implemented E12-1 through
+E12-7 boundary. R12 remains Active and Experimental; E12-9 remains separately
+gated.
 
 ### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 
