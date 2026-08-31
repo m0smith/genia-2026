@@ -37,6 +37,7 @@ sys.path.insert(0, str(SRC))
 from genia.builtins import make_global_env  # noqa: E402
 from genia.docstrings import render_markdown_docstring  # noqa: E402
 from genia.callable import GeniaFunction, GeniaFunctionGroup  # noqa: E402
+from genia.host_builtin_docs import public_host_builtin_docs  # noqa: E402
 
 
 def slug(name: str) -> str:
@@ -133,6 +134,30 @@ def collect():
             "arities": arities_label(value),
             "doc_raw": doc_raw or "",
             "summary": summary,
+            "source_kind": "prelude",
+        })
+    prelude_names = {record["name"] for record in records}
+    for entry in public_host_builtin_docs():
+        if entry.name in prelude_names:
+            raise ValueError(f"duplicate public function documentation name: {entry.name}")
+        summary = next(
+            (line.strip() for line in entry.doc.strip().splitlines() if line.strip()),
+            "",
+        )
+        records.append({
+            "name": entry.name,
+            "slug": slug(entry.name),
+            "category": entry.category,
+            "module": "Python reference host",
+            "since": entry.since,
+            "deprecated": entry.deprecated,
+            "stability": entry.stability,
+            "see_also": list(entry.see_also) or None,
+            "signatures": list(entry.signatures),
+            "arities": "",
+            "doc_raw": entry.doc,
+            "summary": summary,
+            "source_kind": "python-host",
         })
     records.sort(key=lambda r: r["name"].lower())
     return records
@@ -149,13 +174,9 @@ def render_index(records) -> str:
     out.append("# Function Reference")
     out.append("")
     out.append(f"Alphabetical index of the **{n}** out-of-the-box Genia functions available "
-               "from the autoloaded prelude. Every entry is generated from the `@doc` / "
-               "`@category` metadata in the source -- see "
+               "from the autoloaded prelude and Python reference host. Every entry is generated "
+               "from canonical documentation metadata -- see "
                "[the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.")
-    out.append("")
-    out.append("!!! note")
-    out.append("    Host built-in functions (e.g. `print`, `parse_int`) are documented via a")
-    out.append("    host doc registry in a follow-up phase and will appear here once available.")
     out.append("")
     out.append("## All functions (A-Z)")
     out.append("")
@@ -217,8 +238,9 @@ def render_page(r, name_to_slug) -> str:
         out.append("")
     out.append("---")
     out.append("")
-    out.append(f"_Source: `{r['module']}` &middot; category `{r['category']}`. "
-               "Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._")
+    source = r["module"]
+    out.append(f"_Source: `{source}` &middot; category `{r['category']}`. "
+               "Generated from canonical metadata by `tools/gen_function_docs.py`._")
     out.append("")
     out.append("[<- Back to the Function Reference](../index.md)")
     return "\n".join(out).rstrip() + "\n"
