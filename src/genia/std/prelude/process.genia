@@ -1,10 +1,13 @@
 @doc "Create a process handle backed by a host-thread mailbox worker."
+@category "process"
 spawn(handler) = _spawn(handler)
 
 @doc "Enqueue `message` for a process mailbox."
+@category "process"
 send(process, message) = _send(process, message)
 
 @doc "Check whether a process worker is still alive."
+@category "process"
 process_alive?(process) = _process_alive?(process)
 
 @doc "Check whether a process has failed due to a handler exception."

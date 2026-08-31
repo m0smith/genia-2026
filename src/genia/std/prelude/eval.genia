@@ -7,6 +7,7 @@
 - the fresh environment can see current builtins and autoloaded stdlib names
 - ordinary lexical definitions remain local to that environment chain
 """
+@category "eval"
 empty_env() = _meta_empty_env()
 
 @doc """Look up a symbol in a metacircular evaluation environment.
@@ -15,6 +16,7 @@ empty_env() = _meta_empty_env()
 - `env`: metacircular environment
 - `name`: symbol or string name
 """
+@category "eval"
 lookup(env, name) = _meta_lookup(env, name)
 
 @doc """Define a name in the current metacircular environment frame.
@@ -22,6 +24,7 @@ lookup(env, name) = _meta_lookup(env, name)
 ## Returns
 - the same environment value
 """
+@category "eval"
 define(env, name, value) = _meta_define(env, name, value)
 
 @doc """Rebind the nearest existing lexical name in a metacircular environment chain, or define it in the current frame when missing.
@@ -29,6 +32,7 @@ define(env, name, value) = _meta_define(env, name, value)
 ## Returns
 - assigned value
 """
+@category "eval"
 set(env, name, value) = _meta_set(env, name, value)
 
 @doc """Create a child metacircular environment with lambda parameters bound to argument values.
@@ -37,6 +41,7 @@ set(env, name, value) = _meta_set(env, name, value)
 - `params` uses the quoted lambda parameter representation
 - `args` must be an ordinary list of evaluated argument values
 """
+@category "eval"
 extend(env, params, args) = _meta_extend(env, params, args)
 
 @doc """Evaluate a quoted Genia expression in a metacircular environment.
@@ -45,6 +50,7 @@ extend(env, params, args) = _meta_extend(env, params, args)
 Implemented forms: self-evaluating literals, symbols, quoted expressions,
 assignment, lambda, match/case, application, and blocks.
 """
+@category "eval"
 eval(expr, env) = eval_dispatch(expr, env)
 
 eval_dispatch(expr, env) =

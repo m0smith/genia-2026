@@ -3,6 +3,7 @@
 Returns parsed value on success.
 Returns `none("json-parse-error", context)` on parse/type failures.
 """
+@category "json"
 json_parse(value) = _json_parse(value)
 
 @doc """Decode JSON text or UTF-8 bytes through the portable JSON representation boundary.
@@ -10,6 +11,7 @@ json_parse(value) = _json_parse(value)
 Returns `some(represented_value, context)` on success.
 Returns `err(reason, context)` for recoverable JSON data failures.
 """
+@category "json"
 json_decode(value) = _json_decode(value)
 
 @doc """Compile the supported JSON Schema structural subset into a Template.
@@ -17,6 +19,7 @@ json_decode(value) = _json_decode(value)
 Accepts a `json`-represented schema map.
 Returns `some(template, context)` or a normalized schema `err(reason, context)`.
 """
+@category "json"
 json_schema(schema) = _json_schema(schema)
 
 @doc """Parse one JSONL object record into an Outcome.
@@ -25,6 +28,7 @@ Returns `some(record, context)` for JSON objects.
 Returns `none(context)` for blank lines.
 Returns `err(reason, context)` for malformed JSON or non-object JSON values.
 """
+@category "json"
 parse_jsonl_record(line) = _parse_jsonl_record(line)
 
 @doc """Parse one CSV row into an Outcome.
@@ -34,6 +38,7 @@ Returns `some(record, context)` when headers are provided.
 Returns `none("blank_line", context)` for blank lines.
 Returns `err(reason, context)` for malformed rows or header mismatches.
 """
+@category "json"
 parse_csv_row(line) = _parse_csv_row(line)
 
 parse_csv_row(headers, line) = _parse_csv_row(headers, line)
@@ -43,6 +48,7 @@ parse_csv_row(headers, line) = _parse_csv_row(headers, line)
 Object keys are sorted and output uses 2-space indentation.
 Returns `none("json-stringify-error", context)` when the value is not JSON-compatible.
 """
+@category "json"
 json_stringify(value) = _json_stringify(value)
 
 @doc """Encode a supported ordinary or `json`-represented value as deterministic JSON.
@@ -50,7 +56,9 @@ json_stringify(value) = _json_stringify(value)
 Returns `some(text, context)` on success.
 Returns `err(reason, context)` for unsupported or out-of-contract values.
 """
+@category "json"
 json_encode(value) = _json_encode(value)
 
 @doc "Compatibility alias for `json_stringify`."
+@category "json"
 json_pretty(value) = json_stringify(value)

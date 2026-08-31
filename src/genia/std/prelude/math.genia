@@ -1,27 +1,33 @@
 pi = pi
 
 @doc "Increment a number by one."
+@category "math"
 inc(x) = x + 1
 
 @doc "Decrement a number by one."
+@category "math"
 dec(x) = x - 1
 
 @doc "Return the remainder of `a / b`."
+@category "math"
 mod(a, b) = a % b
 
 @doc "Return the absolute value of a number."
+@category "math"
 abs(x) = abs_impl(x)
 abs_impl(x) =
   (x) ? x < 0 -> 0 - x |
   (x) -> x
 
 @doc "Return the smaller of two numbers."
+@category "math"
 min(a, b) = min_impl(a, b)
 min_impl(a, b) =
   (a, b) ? a <= b -> a |
   (a, b) -> b
 
 @doc "Return the larger of two numbers."
+@category "math"
 max(a, b) = max_impl(a, b)
 max_impl(a, b) =
   (a, b) ? a >= b -> a |
@@ -36,4 +42,5 @@ sum_reduce(f, acc, xs) =
 `sum` expects plain numbers.
 Filter or recover Option values explicitly before calling it.
 """
+@category "math"
 sum(xs) = _sum(xs)

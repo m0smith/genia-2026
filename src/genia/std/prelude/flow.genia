@@ -1,186 +1,349 @@
-@doc "Create a Flow from `stdin`, an incoming Flow, or a list of strings."
+@doc """Create a Flow from `stdin`, an incoming Flow, or a list of strings.
+
+## Arguments
+- `source`: `stdin`, an existing Flow, or a list of strings to read lines from
+
+## Returns
+- a Flow of the source lines
+
+## Notes
+- the Flow is lazy and pull-based, consumed once as items are demanded
+"""
+@category "flow"
 lines(source) = _lines(source)
 
 @doc """Create a Flow by repeatedly applying `step` to the previous value.
 
-The first emitted item is `init`.
-Each later item is `step(previous_value)`.
+The first emitted item is `init`; each later item is `step(previous_value)`.
 
-Use `evolve(0, (n) -> n + 1)` for unbounded integer steps.
-Use `take`/`head` for explicit bounded progression.
+## Arguments
+- `init`: the first item emitted by the Flow
+- `step`: function mapping the previous value to the next value
+
+## Returns
+- a lazy Flow of successive values starting at `init`
+
+## Notes
+- the Flow is unbounded; bound it with `take`/`head`
+- lazy and pull-based, computing one step at a time as items are demanded
 """
+@category "flow"
 evolve(init, step) = _evolve(init, step)
 
 @doc """Split one input flow into two lazy branch flows.
 
-The source flow is still consumed once, and buffered only as needed
-when one branch lags behind the other.
+## Arguments
+- `flow`: the source Flow to split
+
+## Returns
+- a pair of two lazy branch Flows over the same source items
+
+## Notes
+- the source Flow is consumed once, buffered only as needed when one branch lags behind the other
+- both branches are lazy and pull-based
 """
+@category "flow"
 tee(flow) = _tee(flow)
 
 @doc """Concatenate two flows into one output flow.
 
 `merge(flow1, flow2)` emits items from `flow1` first, then `flow2`.
-`merge(pair)` unpacks a pair from `tee(flow)` and combines them.
+`merge(pair)` unpacks a `[flow1, flow2]` pair, e.g. from `tee`.
+
+## Arguments
+- `flow1`: Flow whose items are emitted first
+- `flow2`: Flow whose items are emitted after `flow1` is exhausted
+- `pair`: a `[flow1, flow2]` pair, as an alternative to passing the two flows separately
+
+## Returns
+- a lazy Flow emitting all of `flow1` followed by all of `flow2`
+
+## Notes
+- lazy and pull-based; `flow2` is not consumed until `flow1` is exhausted
 """
+@category "flow"
 merge(flow1, flow2) = _merge(flow1, flow2)
 
 @doc """Concatenate two flows into one output flow.
 
 `merge(flow1, flow2)` emits items from `flow1` first, then `flow2`.
-`merge(pair)` unpacks a pair from `tee(flow)` and combines them.
+`merge(pair)` unpacks a `[flow1, flow2]` pair, e.g. from `tee`.
+
+## Arguments
+- `flow1`: Flow whose items are emitted first
+- `flow2`: Flow whose items are emitted after `flow1` is exhausted
+- `pair`: a `[flow1, flow2]` pair, as an alternative to passing the two flows separately
+
+## Returns
+- a lazy Flow emitting all of `flow1` followed by all of `flow2`
+
+## Notes
+- lazy and pull-based; `flow2` is not consumed until `flow1` is exhausted
 """
+@category "flow"
 merge(pair) = _merge(pair)
 
 @doc """Combine two flows into a flow of pairs.
 
 `zip(flow1, flow2)` pairs items from both flows at each step.
-`zip(pair)` unpacks a pair from `tee(flow)` and combines them.
+`zip(pair)` unpacks a `[flow1, flow2]` pair, e.g. from `tee`.
 
-Each output item is `[left, right]`, preserving lockstep order.
-The output stops when either input flow is exhausted.
+## Arguments
+- `flow1`: Flow supplying the left element of each pair
+- `flow2`: Flow supplying the right element of each pair
+- `pair`: a `[flow1, flow2]` pair, as an alternative to passing the two flows separately
+
+## Returns
+- a lazy Flow whose items are `[left, right]`, preserving lockstep order
+
+## Notes
+- output stops as soon as either input Flow is exhausted
+- lazy and pull-based
 """
+@category "flow"
 zip(flow1, flow2) = _zip(flow1, flow2)
 
 @doc """Combine two flows into a flow of pairs.
 
 `zip(flow1, flow2)` pairs items from both flows at each step.
-`zip(pair)` unpacks a pair from `tee(flow)` and combines them.
+`zip(pair)` unpacks a `[flow1, flow2]` pair, e.g. from `tee`.
 
-Each output item is `[left, right]`, preserving lockstep order.
-The output stops when either input flow is exhausted.
+## Arguments
+- `flow1`: Flow supplying the left element of each pair
+- `flow2`: Flow supplying the right element of each pair
+- `pair`: a `[flow1, flow2]` pair, as an alternative to passing the two flows separately
+
+## Returns
+- a lazy Flow whose items are `[left, right]`, preserving lockstep order
+
+## Notes
+- output stops as soon as either input Flow is exhausted
+- lazy and pull-based
 """
+@category "flow"
 zip(pair) = _zip(pair)
 
 @doc """Explicitly adapt a list or string into a Seq-compatible ordered source.
 
-Lists are returned as ordered elements without flattening.
-Strings are decomposed into one-character strings only through this helper.
+## Arguments
+- `value`: a list or string to adapt
+
+## Returns
+- an ordered, Seq-compatible source over `value`
+
+## Notes
+- lists are yielded as ordered elements without flattening
+- strings are decomposed into one-character strings only through this helper
 """
+@category "flow"
 as_seq(value) = _as_seq(value)
 
-@doc """Stateful flow transform.
+@doc """Stateful flow transform driven by `step`.
 
 `step(state, item)` must return `[next_state, output]`.
-`next_state` stays internal to this operator and is not exposed externally.
-
 Use this for running totals, buffering, and fixed-size windowing.
+
+## Arguments
+- `step`: function receiving the current state and an item, returning `[next_state, output]`
+- `initial_state`: the state passed to `step` for the first item
+- `flow`: the input Flow (omit to get a reusable stage)
+
+## Returns
+- with `flow`: a lazy Flow of the `output` values produced by `step`
+- without `flow`: a stage `(flow) -> flow` that applies the transform when given a Flow
+
+## Notes
+- `next_state` stays internal to this operator and is not exposed externally
+- lazy and pull-based
 """
+@category "flow"
 scan(step, initial_state) = (flow) -> _scan(step, initial_state, flow)
 
-@doc """Stateful flow transform.
+@doc """Stateful flow transform driven by `step`.
 
 `step(state, item)` must return `[next_state, output]`.
-`next_state` stays internal to this operator and is not exposed externally.
-
 Use this for running totals, buffering, and fixed-size windowing.
+
+## Arguments
+- `step`: function receiving the current state and an item, returning `[next_state, output]`
+- `initial_state`: the state passed to `step` for the first item
+- `flow`: the input Flow (omit to get a reusable stage)
+
+## Returns
+- with `flow`: a lazy Flow of the `output` values produced by `step`
+- without `flow`: a stage `(flow) -> flow` that applies the transform when given a Flow
+
+## Notes
+- `next_state` stays internal to this operator and is not exposed externally
+- lazy and pull-based
 """
+@category "flow"
 scan(step, initial_state, flow) = _scan(step, initial_state, flow)
 
 @doc """Keep only successful Option values from a flow.
 
-Use `keep_some(flow)` when upstream already produced Option items.
-Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
+`keep_some(flow)` filters a Flow that already holds Option items.
+`keep_some(stage, flow)` applies an Option-returning `stage` to each item inline.
 
-`some(value)` is unwrapped to `value` inside this helper only.
-`none(...)` is dropped.
+## Arguments
+- `stage`: optional Option-returning function applied to each item before filtering
+- `flow`: the input Flow
 
-Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
+## Returns
+- a lazy Flow of the values inside each `some(value)`
+
+## Notes
+- `some(value)` is unwrapped to `value`; `none(...)` items are dropped
+- equivalent to `keep_some_else(stage, (_) -> nil, flow)`
+- lazy and pull-based
 """
+@category "flow"
 keep_some(flow) = _keep_some(flow)
 
 @doc """Keep only successful Option values from a flow.
 
-Use `keep_some(flow)` when upstream already produced Option items.
-Use `keep_some(stage, flow)` to apply an Option-returning stage inline.
+`keep_some(flow)` filters a Flow that already holds Option items.
+`keep_some(stage, flow)` applies an Option-returning `stage` to each item inline.
 
-`some(value)` is unwrapped to `value` inside this helper only.
-`none(...)` is dropped.
+## Arguments
+- `stage`: optional Option-returning function applied to each item before filtering
+- `flow`: the input Flow
 
-Equivalent to `keep_some_else(stage, (_) -> nil, flow)`.
+## Returns
+- a lazy Flow of the values inside each `some(value)`
+
+## Notes
+- `some(value)` is unwrapped to `value`; `none(...)` items are dropped
+- equivalent to `keep_some_else(stage, (_) -> nil, flow)`
+- lazy and pull-based
 """
+@category "flow"
 keep_some(stage, flow) = _keep_some_else(stage, (_) -> nil, flow)
 
-@doc """Apply an Option-returning `stage` to each flow item.
+@doc """Apply an Option-returning `stage` to each flow item, routing failures to `dead_handler`.
 
-`some(value)` continues on the main flow as `value`.
-`none(...)` drops that item from the main flow and calls `dead_handler`
-with the original input item.
+## Arguments
+- `stage`: Option-returning function; it receives the original raw flow item
+- `dead_handler`: called with the original item whenever `stage` returns `none(...)`
+- `flow`: the input Flow (omit to get a reusable stage)
 
-`stage` itself still receives the original raw flow item.
+## Returns
+- with `flow`: a lazy Flow of the values from each `some(value)`
+- without `flow`: a stage `(flow) -> flow`
 
-This helper is explicit dead-letter routing for Flow pipelines.
-It does not change ordinary `|>` semantics outside this helper.
+## Notes
+- `some(value)` continues on the main Flow as `value`; `none(...)` drops the item and invokes `dead_handler`
+- explicit dead-letter routing; it does not change ordinary `|>` semantics outside this helper
+- lazy and pull-based
 """
+@category "flow"
 keep_some_else(stage, dead_handler) = (flow) -> _keep_some_else(stage, dead_handler, flow)
 
-@doc """Apply an Option-returning `stage` to each flow item.
+@doc """Apply an Option-returning `stage` to each flow item, routing failures to `dead_handler`.
 
-`some(value)` continues on the main flow as `value`.
-`none(...)` drops that item from the main flow and calls `dead_handler`
-with the original input item.
+## Arguments
+- `stage`: Option-returning function; it receives the original raw flow item
+- `dead_handler`: called with the original item whenever `stage` returns `none(...)`
+- `flow`: the input Flow (omit to get a reusable stage)
 
-`stage` itself still receives the original raw flow item.
+## Returns
+- with `flow`: a lazy Flow of the values from each `some(value)`
+- without `flow`: a stage `(flow) -> flow`
 
-This helper is explicit dead-letter routing for Flow pipelines.
-It does not change ordinary `|>` semantics outside this helper.
+## Notes
+- `some(value)` continues on the main Flow as `value`; `none(...)` drops the item and invokes `dead_handler`
+- explicit dead-letter routing; it does not change ordinary `|>` semantics outside this helper
+- lazy and pull-based
 """
+@category "flow"
 keep_some_else(stage, dead_handler, flow) = _keep_some_else(stage, dead_handler, flow)
 
 
 @doc """Apply rule functions left-to-right to each incoming flow item.
 
-Rule orchestration, defaulting, and contract validation live in prelude in this phase.
-Legacy/compatibility name; see also `refine` (preferred).
+## Arguments
+- `fns`: variadic rule functions, applied in order to each item; a Flow may be passed as the final argument to run immediately
+
+## Returns
+- a Flow stage `(flow) -> flow`, or the transformed Flow when a Flow is supplied as the last argument
+
+## Notes
+- rule orchestration, defaulting, and contract validation live in the prelude in this phase
+- legacy/compatibility name; prefer `refine`
+- lazy and pull-based
 """
+@category "flow"
 rules(..fns) = rules_dispatch(fns)
 
 @doc """Apply step functions left-to-right to each incoming flow item.
 
-Preferred alias for `rules(..steps)`; see also `rules` (compatibility).
+## Arguments
+- `steps`: variadic step functions, applied in order to each item; a Flow may be passed as the final argument to run immediately
+
+## Returns
+- a Flow stage `(flow) -> flow`, or the transformed Flow when a Flow is supplied as the last argument
+
+## Notes
+- preferred alias for `rules(..steps)`; see also `rules` (compatibility)
+- lazy and pull-based
 """
+@category "flow"
 refine(..steps) = rules(..steps)
 
 @doc "Return `none` for a `rules(..fns)` rule with no effect.\nLegacy/compatibility name; see also `step_skip` (preferred)."
+@category "flow"
 rule_skip() = none
 
 @doc "Emit one output value from a `rules(..fns)` rule.\nLegacy/compatibility name; see also `step_emit` (preferred)."
+@category "flow"
 rule_emit(x) = some({ emit: [x] })
 
 @doc "Emit a list of output values from a `rules(..fns)` rule.\nLegacy/compatibility name; see also `step_emit_many` (preferred)."
+@category "flow"
 rule_emit_many(xs) = some({ emit: xs })
 
 @doc "Replace the current record for later `rules(..fns)` rules on the same input item.\nLegacy/compatibility name; see also `step_set` (preferred)."
+@category "flow"
 rule_set(record) = some({ record: record })
 
 @doc "Replace the running `ctx` for later `rules(..fns)` rules and later input items.\nLegacy/compatibility name; see also `step_ctx` (preferred)."
+@category "flow"
 rule_ctx(ctx) = some({ ctx: ctx })
 
 @doc "Stop later `rules(..fns)` rules for the current input item.\nLegacy/compatibility name; see also `step_halt` (preferred)."
+@category "flow"
 rule_halt() = some({ halt: true })
 
 @doc "Replace `record`, replace `ctx`, and emit `out` in one `rules(..fns)` step.\nLegacy/compatibility name; see also `step_step` (preferred)."
+@category "flow"
 rule_step(record, ctx, out) = some({ record: record, ctx: ctx, emit: out })
 
 @doc "Return `none` for a `refine(..steps)` step with no effect.\nPreferred alias for `rule_skip()`."
+@category "flow"
 step_skip() = rule_skip()
 
 @doc "Emit one output value from a `refine(..steps)` step.\nPreferred alias for `rule_emit(x)`."
+@category "flow"
 step_emit(x) = rule_emit(x)
 
 @doc "Emit a list of output values from a `refine(..steps)` step.\nPreferred alias for `rule_emit_many(xs)`."
+@category "flow"
 step_emit_many(xs) = rule_emit_many(xs)
 
 @doc "Replace the current record for later `refine(..steps)` steps on the same input item.\nPreferred alias for `rule_set(record)`."
+@category "flow"
 step_set(record) = rule_set(record)
 
 @doc "Replace the running `ctx` for later `refine(..steps)` steps and later input items.\nPreferred alias for `rule_ctx(ctx)`."
+@category "flow"
 step_ctx(ctx) = rule_ctx(ctx)
 
 @doc "Stop later `refine(..steps)` steps for the current input item.\nPreferred alias for `rule_halt()`."
+@category "flow"
 step_halt() = rule_halt()
 
 @doc "Replace `record`, replace `ctx`, and emit `out` in one `refine(..steps)` step.\nPreferred alias for `rule_step(record, ctx, out)`."
+@category "flow"
 step_step(record, ctx, out) = rule_step(record, ctx, out)
 
 rules_dispatch(args) =
@@ -312,11 +475,46 @@ rules_list?(value) =
   (none) -> false |
   (v) -> list?(v)
 
-@doc "Return a lazy Flow stage that runs `fn` for each list or Flow item and passes original items through when consumed."
+@doc """Run `fn` for each item of a list or Flow, passing the original items through.
+
+## Arguments
+- `fn`: function invoked for each item, for its side effects
+- `source`: a list or Flow to traverse
+
+## Returns
+- a lazy Flow stage that yields the original items unchanged when consumed
+
+## Notes
+- `fn` runs for an item only when that item is consumed downstream
+- lazy and pull-based
+"""
+@category "flow"
 each(fn, source) = _each(fn, source)
 
-@doc "Return list data from a list or by materializing a Flow."
+@doc """Return list data from a list or by materializing a Flow.
+
+## Arguments
+- `source`: a list or Flow to materialize
+
+## Returns
+- a list containing every item of `source`
+
+## Notes
+- materializing a Flow consumes it to completion; a Flow is single-use
+"""
+@category "flow"
 collect(source) = _collect(source)
 
-@doc "Consume or traverse a list or Flow to completion and return nil."
+@doc """Consume or traverse a list or Flow to completion and return nil.
+
+## Arguments
+- `source`: a list or Flow to run for its effects
+
+## Returns
+- nil
+
+## Notes
+- consumes a Flow to completion; a Flow is single-use
+"""
+@category "flow"
 run(source) = _run(source)

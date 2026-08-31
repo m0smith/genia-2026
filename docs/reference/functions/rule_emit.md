@@ -1,0 +1,16 @@
+# `rule_emit`
+
+**Category:** `flow` &nbsp;|&nbsp; **Arity:** 1
+
+```genia
+rule_emit(x)
+```
+
+Emit one output value from a `rules(..fns)` rule.
+Legacy/compatibility name; see also `step_emit` (preferred).
+
+---
+
+_Source: `std/prelude/flow.genia` &middot; category `flow`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+
+[<- Back to the Function Reference](../index.md)

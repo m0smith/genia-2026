@@ -1,40 +1,50 @@
 @doc "Create a ready cell with initial state and no cached error."
+@category "cell"
 cell(initial) = _cell_new(initial)
 
 @doc "Create a ready cell backed by the provided ref."
+@category "cell"
 cell_with_state(state) = _cell_with_state(state)
 
 @doc """Queue an asynchronous state update function for a cell.
 
 If the cell is failed, this raises immediately.
 """
+@category "cell"
 cell_send(cell, update) = _cell_send(cell, update)
 
 @doc """Read the current cell state.
 
 If the cell is failed, this raises immediately.
 """
+@category "cell"
 cell_get(cell) = _cell_get(cell)
 
 @doc "Alias for `cell_get`."
+@category "cell"
 cell_state(cell) = _cell_get(cell)
 
 @doc "Check whether a cell is currently failed."
+@category "cell"
 cell_failed?(cell) = _cell_failed?(cell)
 
 @doc "Return `none` when the cell is ready, or `some(error)` when failed."
+@category "cell"
 cell_error(cell) = _cell_error(cell)
 
 @doc """Replace the cell state, clear cached failure, and mark the cell ready again.
 
 Phase 1 restart discards queued updates that were pending before restart.
 """
+@category "cell"
 restart_cell(cell, new_state) = _restart_cell(cell, new_state)
 
 @doc """Return `"ready"` or `"failed"`."""
+@category "cell"
 cell_status(cell) = _cell_status(cell)
 
 @doc "Check whether the cell worker thread is alive."
+@category "cell"
 cell_alive?(cell) = _cell_alive?(cell)
 
 @doc """Gracefully stop a cell after draining its mailbox.
@@ -43,4 +53,5 @@ Queued updates are processed before the worker exits.
 After stop, `cell_send` raises and `cell_status` returns `"stopped"`.
 `cell_get` still returns the last state.
 """
+@category "cell"
 cell_stop(cell) = _cell_stop(cell)

@@ -4,6 +4,7 @@ This applies ordinary callable values directly.
 
 If `proc` is a metacircular compound procedure produced by `eval`, this also evaluates its body in the captured lexical environment.
 """
+@category "fn"
 apply(proc, args) = apply_dispatch(proc, args)
 
 apply_dispatch(proc, args) =
@@ -58,18 +59,22 @@ _eval_guarded_branch(guard_value, branch, branch_env, rest, args, env, expr) =
   (_, _, _, rest, args, env, expr) -> _eval_match_branches(rest, args, env, expr)
 
 @doc "Compose functions right-to-left into one callable."
+@category "fn"
 compose(..fns) = (..args) -> compose_apply(fns, args)
 
 @doc """Log `value` for debugging and return it unchanged.
 
 Useful in `|>` pipelines as a non-transforming stage.
 """
+@category "fn"
 inspect(value) = log(value)
 
 @doc "Log `label` and `value` for pipeline debugging, then return `value` unchanged."
+@category "fn"
 trace(label, value) = log(label, value)
 
 @doc "Call `fn(value)` for side effects and return `value` unchanged."
+@category "fn"
 tap(fn, value) = {
   fn(value)
   value

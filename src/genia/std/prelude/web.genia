@@ -41,6 +41,7 @@ request_method(request) = request("method", "")
 request_path(request) = request("path", "")
 
 @doc "Create a GET route."
+@category "web"
 get = (path, handler) -> route("GET", path, handler)
 
 @doc "Create a POST route."

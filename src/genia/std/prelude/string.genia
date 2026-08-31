@@ -1,62 +1,133 @@
 @doc "Return the UTF-8 byte length of a string."
+@category "string"
 byte_length(value) = _byte_length(value)
 
 @doc "Check whether a string is empty."
+@category "string"
 is_empty(value) = _is_empty(value)
 
 @doc "Concatenate two strings."
+@category "string"
 concat(left, right) = _concat(left, right)
 
 @doc "Check whether `needle` occurs inside `haystack`."
+@category "string"
 contains(haystack, needle) = _contains(haystack, needle)
 
 @doc "Check whether a string starts with a prefix."
+@category "string"
 starts_with(value, prefix) = _starts_with(value, prefix)
 
 @doc "Check whether a string ends with a suffix."
+@category "string"
 ends_with(value, suffix) = _ends_with(value, suffix)
 
-@doc "Canonical maybe-aware string search helper."
+@doc """
+Find the first index of `needle` within `value`.
+
+## Arguments
+- `value`: string to search
+- `needle`: substring to locate
+
+## Returns
+- `some(index)` with the zero-based index of the first match
+- `none("not-found", ...)` when `needle` does not occur in `value`
+"""
+@category "string"
 find(value, needle) = _find(value, needle)
 
-@doc "Split a string on an explicit separator."
+@doc """
+Split `value` on the explicit separator `sep`.
+
+## Arguments
+- `value`: string to split
+- `sep`: separator substring to split on
+
+## Returns
+- list of the substrings between separators
+- leading and trailing empty segments are dropped
+"""
+@category "string"
 split(value, sep) = _split(value, sep)
 
 @doc "Split a string on runs of whitespace."
+@category "string"
 split_whitespace(value) = _split_whitespace(value)
 
-@doc "Join a list of strings with a separator."
+@doc """
+Join the strings in `xs` with `sep` between elements.
+
+## Arguments
+- `sep`: separator placed between adjacent elements
+- `xs`: list of strings to join
+
+## Returns
+- a single string of the elements joined by `sep`
+
+## Errors
+- rejects a non-list `xs`, or a list containing any non-string element
+"""
+@category "string"
 join(sep, xs) = _join(sep, xs)
 
-@doc "Format a string template with named or positional placeholders."
+@doc """
+Render `template` by substituting placeholders from `values`.
+
+## Arguments
+- `template`: a string template, or a Format value, containing named or positional placeholders
+- `values`: a map supplying named placeholders, or a list supplying positional ones
+
+## Returns
+- the rendered string with every placeholder resolved from `values`
+"""
+@category "string"
 format(template, values) = _format(template, values)
 
-@doc "Compose an ordered list of string templates and Format values into a reusable Format."
+@doc """
+Compose string templates and Format values into one reusable Format.
+
+## Arguments
+- `parts`: list of string templates and/or Format values, rendered in order
+
+## Returns
+- a Format value that renders each part in sequence when later formatted
+
+## Errors
+- rejects a non-list `parts`, or any element that is not a string or Format
+"""
+@category "string"
 format_compose(parts) = _format_compose(parts)
 
 @doc "Trim leading and trailing whitespace."
+@category "string"
 trim(value) = _trim(value)
 
 @doc "Trim leading whitespace."
+@category "string"
 trim_start(value) = _trim_start(value)
 
 @doc "Trim trailing whitespace."
+@category "string"
 trim_end(value) = _trim_end(value)
 
 @doc "Convert a string to lowercase."
+@category "string"
 lower(value) = _lower(value)
 
 @doc "Convert a string to uppercase."
+@category "string"
 upper(value) = _upper(value)
 
 @doc """Parse an integer from a string, with optional explicit base.
 
 Returns `some(int)` on success and `none("parse-error", context)` for invalid integer text.
 """
+@category "string"
 parse_int(value) = _parse_int(value)
 
 @doc """Parse an integer from a string, with optional explicit base.
 
 Returns `some(int)` on success and `none("parse-error", context)` for invalid integer text.
 """
+@category "string"
 parse_int(value, base) = _parse_int(value, base)

@@ -9,6 +9,7 @@
 
 * `some(record)` when the field is present
 * `err("missing required field", context)` when the field is absent"""
+@category "validation"
 validate_required(field, record) = _validate_required(field, record)
 
 @doc """Validate an optional record field and return an Outcome.
@@ -26,6 +27,7 @@ validate_required(field, record) = _validate_required(field, record)
 * the validator's `some(...)` unchanged when supplied
 * the validator's `err(...)` with the same meaning and full nested `field` context when applicable
 * `err(quote(optional_field_validator_returned_none), context)` when a present field validator returns `none(...)`"""
+@category "validation"
 validate_optional(field, record) = _validate_optional(field, record)
 
 validate_optional(field, record, validator) = _validate_optional(field, record, validator)
@@ -53,6 +55,7 @@ validate_optional(field, record, validator) = _validate_optional(field, record, 
 
 * `validate_each` does not aggregate; use `collect_validated` for aggregation
 * `validate_each/3` is not implemented"""
+@category "validation"
 validate_each(source, validator) = _validate_each(source, validator)
 
 @doc """Compose field validators over one record and return a record-level Outcome.
@@ -71,6 +74,7 @@ validate_each(source, validator) = _validate_each(source, validator)
 ## Errors
 
 * raises when `record` is not a map, `validators` is not a map, a validator is not callable, or a validator returns a non-Outcome"""
+@category "validation"
 validate_record(record, validators) = _validate_record(record, validators)
 
 validate_record(record, validators, context) = _validate_record(record, validators, context)
@@ -87,6 +91,7 @@ validate_record(record, validators, context) = _validate_record(record, validato
 ## Returns
 
 * an error diagnostic map with `index`, `field`, `kind`, `reason`, and `context`"""
+@category "validation"
 diagnostic_error(index, field, reason, context) =
   _diagnostic_error(index, field, reason, context)
 
@@ -102,6 +107,7 @@ diagnostic_error(index, field, reason, context) =
 ## Returns
 
 * a skipped diagnostic map with `index`, `field`, `kind`, `reason`, and `context`"""
+@category "validation"
 diagnostic_skipped(index, field, reason, context) =
   _diagnostic_skipped(index, field, reason, context)
 
@@ -118,6 +124,7 @@ diagnostic_skipped(index, field, reason, context) =
 ## Errors
 
 * raises when `diagnostic` is not a map"""
+@category "validation"
 diagnostic_reason(diagnostic) = map_get(diagnostic, "reason")
 
 @doc """Return a diagnostic map's field.
@@ -133,6 +140,7 @@ diagnostic_reason(diagnostic) = map_get(diagnostic, "reason")
 ## Errors
 
 * raises when `diagnostic` is not a map"""
+@category "validation"
 diagnostic_field(diagnostic) = map_get(diagnostic, "field")
 
 @doc """Validate a record field with a predicate and return an Outcome.
@@ -153,4 +161,5 @@ diagnostic_field(diagnostic) = map_get(diagnostic, "field")
 ## Errors
 
 * raises when `predicate` is not callable"""
+@category "validation"
 validate_field(field, predicate, expected, record) = _validate_field(field, predicate, expected, record)

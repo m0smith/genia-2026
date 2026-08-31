@@ -356,7 +356,7 @@ def lint_doc(text: str) -> List[LintFinding]:
 # Pattern to extract @doc strings and the following binding name
 _TRIPLE_DOC_RE = re.compile(r'@doc\s+"""(.*?)"""', re.DOTALL)
 _SINGLE_DOC_RE = re.compile(r'@doc\s+"([^"]*)"')
-_BINDING_NAME_RE = re.compile(r'^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*[\(=]')
+_BINDING_NAME_RE = re.compile(r'^\s*([a-zA-Z_][a-zA-Z0-9_]*[?!]?)\s*[\(=]')
 
 
 def _extract_docs_from_file(path: str) -> List[dict]:
@@ -398,6 +398,135 @@ def _extract_docs_from_file(path: str) -> List[dict]:
     return docs
 
 
+# ---------------------------------------------------------------------------
+# Coverage rules (DOC008 / DOC009) -- binding-level, opt-in via --require-coverage
+# ---------------------------------------------------------------------------
+
+# Top-level binding: a name at column 0 followed by '(' or '='.
+_TOPLEVEL_BINDING_RE = re.compile(r'^([A-Za-z][A-Za-z0-9_]*[?!]?)\s*[\(=]')
+_META_BLOCK_RE = re.compile(r'^\s*@meta\b')
+
+
+def _is_internal_name(name: str) -> bool:
+    """Helpers not part of the public surface: underscore-prefixed or _impl-suffixed."""
+    return name.startswith("_") or name.endswith("_impl")
+
+
+def _public_bindings(path: str) -> List[dict]:
+    """Return public top-level bindings with their attached annotation state.
+
+    Each entry: {name, line, has_doc, has_category, internal_meta}. A binding's
+    annotations are the contiguous run of lines directly above it that begin with
+    an at-sign, including multi-line triple-quoted @doc blocks.
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.read().split("\n")
+
+    bindings: List[dict] = []
+    seen: set = set()
+    i = 0
+    n = len(lines)
+    in_triple = False   # inside a triple-quoted @doc string
+    in_fence = False    # inside a ``` fenced code block
+    while i < n:
+        line = lines[i]
+        stripped_line = line.strip()
+        # Track fenced code blocks (may appear inside @doc bodies).
+        if stripped_line.startswith("```"):
+            in_fence = not in_fence
+            i += 1
+            continue
+        # Track triple-quoted strings: toggle on each line containing an odd count.
+        triple_count = line.count('"""')
+        currently_shielded = in_triple or in_fence
+        if triple_count % 2 == 1:
+            in_triple = not in_triple
+        if currently_shielded:
+            # Line belongs to a @doc body or fence; never a real binding.
+            i += 1
+            continue
+        m = _TOPLEVEL_BINDING_RE.match(line)
+        if not m:
+            i += 1
+            continue
+        name = m.group(1)
+        has_doc = has_category = internal_meta = False
+        j = i - 1
+        in_triple = False
+        while j >= 0:
+            up = lines[j]
+            stripped = up.strip()
+            if in_triple:
+                if stripped.startswith("@doc") or ('"' * 3) in stripped:
+                    in_triple = False
+                    if stripped.startswith("@doc"):
+                        has_doc = True
+                j -= 1
+                continue
+            if stripped.endswith('"' * 3) and not stripped.startswith("@doc"):
+                in_triple = True
+                j -= 1
+                continue
+            if stripped.startswith("@doc"):
+                has_doc = True
+                j -= 1
+                continue
+            if stripped.startswith("@category"):
+                has_category = True
+                j -= 1
+                continue
+            if _META_BLOCK_RE.match(up):
+                if '"internal"' in stripped or "'internal'" in stripped:
+                    internal_meta = True
+                if "category" in stripped:
+                    has_category = True
+                j -= 1
+                continue
+            if stripped.startswith("@"):
+                j -= 1
+                continue
+            if stripped == "":
+                break
+            break
+        if name not in seen:
+            seen.add(name)
+            bindings.append({
+                "name": name, "line": i + 1,
+                "has_doc": has_doc, "has_category": has_category,
+                "internal_meta": internal_meta,
+            })
+        i += 1
+    return bindings
+
+
+def lint_file_coverage(path: str, public_names: Optional[set] = None) -> List[dict]:
+    """Return DOC008/DOC009 coverage findings for a .genia file.
+
+    Each finding: {rule_id, severity, message, line, binding}.
+    """
+    out: List[dict] = []
+    for b in _public_bindings(path):
+        if _is_internal_name(b["name"]) or b["internal_meta"]:
+            continue
+        if public_names is not None and b["name"] not in public_names:
+            # A concrete public-surface list was supplied; only check exported names.
+            continue
+        if not b["has_doc"]:
+            out.append({
+                "rule_id": "DOC008", "severity": "error", "line": b["line"],
+                "binding": b["name"],
+                "message": "Public binding '" + b["name"] + "' has no @doc.",
+            })
+            continue
+        if not b["has_category"]:
+            out.append({
+                "rule_id": "DOC009", "severity": "error", "line": b["line"],
+                "binding": b["name"],
+                "message": "Public binding '" + b["name"] + "' is missing @category.",
+            })
+    return out
+
+
 def _finding_to_dict(f: LintFinding) -> dict:
     """Convert a LintFinding to a JSON-serializable dict."""
     d: dict = {"rule_id": f.rule_id, "severity": f.severity.value, "message": f.message}
@@ -414,7 +543,7 @@ def _format_finding_human(path: str, file_line: int, binding: Optional[str],
     return f"{path}:{file_line}{loc}{name}: {f}"
 
 
-def _scan_dir(dirpath: str, json_mode: bool) -> int:
+def _scan_dir(dirpath: str, json_mode: bool, require_coverage: bool = False, public_names: Optional[set] = None) -> int:
     """Scan all .genia files in a directory and report findings."""
     import glob
     import json
@@ -454,6 +583,23 @@ def _scan_dir(dirpath: str, json_mode: bool) -> int:
                         print(_format_finding_human(
                             filepath, doc_entry["line"], doc_entry["binding"], f))
 
+    if require_coverage:
+        for filepath in files:
+            for c in lint_file_coverage(filepath, public_names):
+                error_count += 1
+                files_with_errors.append(filepath)
+                if json_mode:
+                    all_results.append({
+                        "file": filepath,
+                        "doc_line": c["line"],
+                        "binding": c["binding"],
+                        "findings": [{k: c[k] for k in ("rule_id", "severity", "message", "line")}],
+                    })
+                else:
+                    print("{}:{} ({}): [{}] {}: {}".format(
+                        filepath, c["line"], c["binding"],
+                        c["severity"], c["rule_id"], c["message"]))
+
     if json_mode:
         json.dump({
             "files_scanned": len(files),
@@ -483,19 +629,27 @@ def main(argv: Optional[List[str]] = None) -> int:
             "Usage:\n"
             "  lint_doc.py DOC_STRING\n"
             "  lint_doc.py --file FILE [--json]\n"
-            "  lint_doc.py --scan-dir DIR [--json]\n",
+            "  lint_doc.py --scan-dir DIR [--json] [--require-coverage]\n",
             file=sys.stderr,
         )
         return 1
 
     json_mode = "--json" in args
-    args = [a for a in args if a != "--json"]
+    require_coverage = "--require-coverage" in args
+    public_names = None
+    if "--public-names" in args:
+        _i = args.index("--public-names")
+        _pn_path = args[_i + 1]
+        with open(_pn_path, encoding="utf-8") as _pf:
+            public_names = {ln.strip() for ln in _pf if ln.strip()}
+        del args[_i:_i + 2]
+    args = [a for a in args if a not in ("--json", "--require-coverage")]
 
     if args[0] == "--scan-dir":
         if len(args) < 2:
             print("Missing directory path after --scan-dir", file=sys.stderr)
             return 1
-        return _scan_dir(args[1], json_mode)
+        return _scan_dir(args[1], json_mode, require_coverage, public_names)
 
     if args[0] == "--file":
         if len(args) < 2:
