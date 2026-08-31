@@ -550,6 +550,18 @@ locked development dependencies. Full regression uses
 dependencies, so treat them as unavailable only if the corresponding `uv run`
 command fails.
 
+In environments that restrict local sockets, full regression is the union of
+these two required partitions:
+
+```
+uv run pytest -n auto -q -m "not loopback"
+uv run pytest -n auto -q -m loopback
+```
+
+Run the `loopback` partition with local loopback socket permission. Do not treat
+the sandbox-safe partition alone as full regression, and do not convert socket
+permission failures into skips.
+
 ---
 
 # 🧩 PHILOSOPHY

@@ -57,6 +57,16 @@ For full regression testing, prefer:
 
 Use narrower targeted tests during development, but before audit/merge run the full parallel regression command when practical.
 
+In environments that restrict local sockets, run both complementary partitions
+on the first attempt; together they are the full regression:
+
+  uv run pytest -n auto -q -m "not loopback"
+  uv run pytest -n auto -q -m loopback
+
+Run the `loopback` partition with local loopback socket permission. The
+sandbox-safe partition alone is not full regression, and socket permission
+failures must remain visible rather than becoming skips.
+
 If `uv run pytest -n auto -q` specifically reports that xdist or `-n` is
 unavailable, report that clearly and fall back to:
 

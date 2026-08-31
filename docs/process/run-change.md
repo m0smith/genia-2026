@@ -24,3 +24,17 @@ For every issue:
 17. Commit the updated docs
 
 Do not merge until audit passes.
+
+## Full regression in socket-restricted environments
+
+Run both partitions on the first attempt:
+
+```
+uv run pytest -n auto -q -m "not loopback"
+uv run pytest -n auto -q -m loopback
+```
+
+The second command requires local loopback socket permission. The two commands
+together are equivalent to ordinary full-suite selection; neither partition
+alone is full regression. Do not automatically skip loopback tests when socket
+permission is unavailable.
