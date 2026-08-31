@@ -19,7 +19,6 @@ Usage:
 from __future__ import annotations
 
 import collections
-import os
 import re
 import sys
 from pathlib import Path
@@ -308,7 +307,6 @@ def write_all(records):
 
 def check(records) -> int:
     """Return 1 if regenerating would change any tracked output."""
-    import io, tempfile, difflib
     name_to_slug = {r["name"]: r["slug"] for r in records}
     changed = []
     def cmp(path: Path, new: str):
