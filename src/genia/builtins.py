@@ -1987,7 +1987,7 @@ def make_global_env(
         kind = "host-backed runtime function" if callable(value) else "named value"
         lines = [name]
         documented = metadata is not None and _metadata_doc(metadata) is not None
-        if not documented:
+        if not callable(value) or not documented:
             lines.extend(["", f"{name} is a {kind} in this phase."])
         if metadata is not None:
             doc_text = _metadata_doc(metadata)
