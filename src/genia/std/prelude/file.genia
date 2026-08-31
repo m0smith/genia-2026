@@ -1,39 +1,71 @@
 @doc """Read a UTF-8 text file from `path`.
 
-Returns file content on success.
-Returns `none("file-not-found", context)` or `none("file-read-error", context)` on failure.
+## Arguments
+- `path`: filesystem path string
+
+## Returns
+- file content on success
+- `none("file-not-found", context)` or `none("file-read-error", context)` on failure
 """
 @category "file"
 read_file(path) = _read_file(path)
 
 @doc """Write UTF-8 text content to `path`.
 
-Returns `path` on success.
-Returns `none("file-write-error", context)` on failure.
+## Arguments
+- `path`: filesystem path string
+- `text`: UTF-8 text content
+
+## Returns
+- `path` on success
+- `none("file-write-error", context)` on failure
 """
 @category "file"
 write_file(path, text) = _write_file(path, text)
 
 @doc """Create a lazy Flow of zip entries from `path`.
 
-Each item is `[filename, bytes]` where `bytes` is the opaque bytes runtime value.
-Returns `none("file-not-found", context)` or `none("zip-read-error", context)` on failure.
+## Arguments
+- `path`: zip archive path string
+
+## Returns
+- lazy Flow of `[filename, bytes]` entries
+- `none("file-not-found", context)` or `none("zip-read-error", context)` on failure
+
+## Notes
+- `bytes` is the opaque bytes runtime value
 """
 @category "file"
 zip_read(path) = _zip_read(path)
 
 @doc """Write zip items to `path` from a Flow or list.
 
-Accepted item forms are `[filename, bytes]`, `[filename, string]`, or zip entries.
-Returns `path` on success or `none("zip-write-error", context)` on failure.
+## Arguments
+- `path`: destination zip archive path string
+- `items`: Flow or list supplied to the returned writer function
+
+## Returns
+- writer function accepting `items`
+- the writer returns `path` on success or `none("zip-write-error", context)` on failure
+
+## Notes
+- accepted item forms are `[filename, bytes]`, `[filename, string]`, or zip entries
 """
 @category "file"
 zip_write(path) = (items) -> _zip_write(path, items)
 
 @doc """Write zip items to `path` from a Flow or list.
 
-Accepted item forms are `[filename, bytes]`, `[filename, string]`, or zip entries.
-Returns `path` on success or `none("zip-write-error", context)` on failure.
+## Arguments
+- `path`: destination zip archive path string
+- `items`: Flow or list of zip items
+
+## Returns
+- `path` on success
+- `none("zip-write-error", context)` on failure
+
+## Notes
+- accepted item forms are `[filename, bytes]`, `[filename, string]`, or zip entries
 """
 @category "file"
 zip_write(path, items) = _zip_write(path, items)

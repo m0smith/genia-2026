@@ -8,7 +8,17 @@ rng(seed)
 
 Create an explicit deterministic RNG state from `seed`.
 
-Use this when you want reproducible random sequences in tests or demos.
+## Arguments
+- `seed`: non-negative integer seed
+
+## Returns
+- explicit deterministic RNG state
+
+## Errors
+- raises a type or value error when `seed` is not a non-negative integer
+
+## Notes
+- use this when you want reproducible random sequences in tests or demos
 
 ---
 

@@ -8,8 +8,12 @@ json_parse(value)
 
 Parse JSON text into Genia runtime data.
 
-Returns parsed value on success.
-Returns `none("json-parse-error", context)` on parse/type failures.
+## Arguments
+- `value`: JSON text
+
+## Returns
+- parsed Genia value on success
+- `none("json-parse-error", context)` on parse or type failure
 
 ---
 

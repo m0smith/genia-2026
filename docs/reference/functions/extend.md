@@ -8,6 +8,14 @@ extend(env, params, args)
 
 Create a child metacircular environment with lambda parameters bound to argument values.
 
+## Arguments
+- `env`: parent metacircular environment
+- `params`: quoted lambda parameter representation
+- `args`: list of evaluated argument values
+
+## Returns
+- child metacircular environment
+
 ## Notes
 - `params` uses the quoted lambda parameter representation
 - `args` must be an ordinary list of evaluated argument values

@@ -8,9 +8,15 @@ eval(expr, env)
 
 Evaluate a quoted Genia expression in a metacircular environment.
 
+## Arguments
+- `expr`: quoted Genia expression
+- `env`: metacircular environment
+
+## Returns
+- evaluated value
+
 ## Notes
-Implemented forms: self-evaluating literals, symbols, quoted expressions,
-assignment, lambda, match/case, application, and blocks.
+- implemented forms are self-evaluating literals, symbols, quoted expressions, assignment, lambda, match/case, application, and blocks
 
 ---
 

@@ -8,7 +8,11 @@ render_grid(grid)
 
 Render a simple text grid to stdout.
 
-Each row may be a string or a list of displayable values.
+## Arguments
+- `grid`: list whose rows are strings or lists of displayable values
+
+## Returns
+- `grid`
 
 ---
 

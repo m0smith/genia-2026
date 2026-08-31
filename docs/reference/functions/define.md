@@ -8,6 +8,11 @@ define(env, name, value)
 
 Define a name in the current metacircular environment frame.
 
+## Arguments
+- `env`: metacircular environment
+- `name`: symbol or string name
+- `value`: value to bind
+
 ## Returns
 - the same environment value
 

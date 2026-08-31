@@ -8,8 +8,12 @@ read_file(path)
 
 Read a UTF-8 text file from `path`.
 
-Returns file content on success.
-Returns `none("file-not-found", context)` or `none("file-read-error", context)` on failure.
+## Arguments
+- `path`: filesystem path string
+
+## Returns
+- file content on success
+- `none("file-not-found", context)` or `none("file-read-error", context)` on failure
 
 ---
 

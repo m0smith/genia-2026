@@ -8,8 +8,12 @@ json_schema(schema)
 
 Compile the supported JSON Schema structural subset into a Template.
 
-Accepts a `json`-represented schema map.
-Returns `some(template, context)` or a normalized schema `err(reason, context)`.
+## Arguments
+- `schema`: `json`-represented schema map
+
+## Returns
+- `some(template, context)` on success
+- normalized schema `err(reason, context)` on validation failure
 
 ---
 

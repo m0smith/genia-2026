@@ -8,8 +8,13 @@ write_file(path, text)
 
 Write UTF-8 text content to `path`.
 
-Returns `path` on success.
-Returns `none("file-write-error", context)` on failure.
+## Arguments
+- `path`: filesystem path string
+- `text`: UTF-8 text content
+
+## Returns
+- `path` on success
+- `none("file-write-error", context)` on failure
 
 ---
 

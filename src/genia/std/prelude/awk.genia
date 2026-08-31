@@ -1,4 +1,11 @@
-@doc "Split a row into whitespace-separated fields, keeping the original row first."
+@doc """Split a row into whitespace-separated fields, keeping the original row first.
+
+## Arguments
+- `row`: string row
+
+## Returns
+- list containing `row` followed by its whitespace-separated fields
+"""
 @category "awk"
 fields(row) = [row, ..split_whitespace(row)]
 
@@ -23,15 +30,39 @@ awkify(odd, ["a", "b", "c"]) -> ["a", "c"]
 @category "awk"
 awkify(fn, xs) = awkify_from(fn, xs, 1, [])
 
-@doc "Filter rows with an AWK-style predicate."
+@doc """Filter rows with an AWK-style predicate.
+
+## Arguments
+- `predicate`: function receiving `(line_number, row)`
+- `xs`: list of rows
+
+## Returns
+- list of rows for which `predicate` returns `true`
+"""
 @category "awk"
 awk_filter(predicate, xs) = awkify((n, row) -> awk_filter_pick(predicate(n, row), row), xs)
 
-@doc "Map rows with AWK-style line numbering."
+@doc """Map rows with AWK-style line numbering.
+
+## Arguments
+- `fn`: function receiving `(line_number, row)`
+- `xs`: list of rows
+
+## Returns
+- list of mapped non-`nil` results
+"""
 @category "awk"
 awk_map(fn, xs) = awkify((n, row) -> fn(n, row), xs)
 
-@doc "Count rows that satisfy an AWK-style predicate."
+@doc """Count rows that satisfy an AWK-style predicate.
+
+## Arguments
+- `predicate`: function receiving `(line_number, row)`
+- `xs`: list of rows
+
+## Returns
+- number of rows for which `predicate` returns `true`
+"""
 @category "awk"
 awk_count(predicate, xs) = length(awk_filter(predicate, xs))
 

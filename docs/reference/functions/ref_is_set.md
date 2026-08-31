@@ -8,6 +8,12 @@ ref_is_set(ref_value)
 
 Check whether a ref currently holds a value.
 
+## Arguments
+- `ref_value`: synchronized ref
+
+## Returns
+- `true` when the ref is set, otherwise `false`
+
 ---
 
 _Source: `std/prelude/ref.genia` &middot; category `ref`. Generated from canonical metadata by `tools/gen_function_docs.py`._

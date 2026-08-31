@@ -1,42 +1,96 @@
 @doc """Create an explicit deterministic RNG state from `seed`.
 
-Use this when you want reproducible random sequences in tests or demos.
+## Arguments
+- `seed`: non-negative integer seed
+
+## Returns
+- explicit deterministic RNG state
+
+## Errors
+- raises a type or value error when `seed` is not a non-negative integer
+
+## Notes
+- use this when you want reproducible random sequences in tests or demos
 """
 @category "random"
 rng(seed) = _rng(seed)
 
 @doc """Return a convenience host-backed random float in `[0, 1)`.
 
-Use `rand(rng_state)` when you need reproducible seeded randomness.
+## Arguments
+- `rng_state`: optional explicit RNG state
+
+## Returns
+- host-backed random float in `[0, 1)` when called without arguments
+- `[next_rng_state, float]` when called with an explicit RNG state
+
+## Errors
+- raises a type error when the explicit argument is not an RNG state
+
+## Notes
+- use `rand(rng_state)` when you need reproducible seeded randomness
 """
 @category "random"
 rand() = _rand()
 
 @doc """Advance an explicit RNG state and return `[next_rng_state, float]`.
 
-The float is deterministic for a given seed and is always in `[0, 1)`.
+## Arguments
+- `rng_state`: explicit RNG state
+
+## Returns
+- `[next_rng_state, float]`, with a deterministic float in `[0, 1)`
+
+## Errors
+- raises a type error when `rng_state` is not an RNG state
 """
 @category "random"
 rand(rng_state) = _rand_seeded(rng_state)
 
 @doc """Return a convenience host-backed random integer in `[0, n)`.
 
-Use `rand_int(rng_state, n)` when you need reproducible seeded randomness.
+## Arguments
+- `n`: positive exclusive upper bound
+
+## Returns
+- host-backed random integer in `[0, n)`
+
+## Errors
+- raises a type or value error when `n` is not a positive integer
+
+## Notes
+- use `rand_int(rng_state, n)` when you need reproducible seeded randomness
 """
 @category "random"
 rand_int(n) = _rand_int(n)
 
 @doc """Advance an explicit RNG state and return `[next_rng_state, int]`.
 
-The integer is deterministic for a given seed and is always in `[0, n)`.
+## Arguments
+- `rng_state`: explicit RNG state
+- `n`: positive exclusive upper bound
+
+## Returns
+- `[next_rng_state, int]`, with a deterministic integer in `[0, n)`
+
+## Errors
+- raises a type error when `rng_state` is not an RNG state
+- raises a type or value error when `n` is not a positive integer
 """
 @category "random"
 rand_int(rng_state, n) = _rand_int_seeded(rng_state, n)
 
 @doc """Return a lazy seeded Flow of floats in `[0, 1)`.
 
-The same seed produces the same bounded output in the Python reference host.
-Use `take` or another limiter before `collect` or `run`.
+## Arguments
+- `seed`: non-negative integer seed
+
+## Returns
+- lazy seeded Flow of deterministic floats in `[0, 1)`
+
+## Notes
+- the same seed produces the same bounded output in the Python reference host
+- use `take` or another limiter before `collect` or `run`
 """
 @category "random"
 rand_flow(seed) = rand_flow_from(rng(seed))
@@ -48,8 +102,16 @@ rand_flow_from(state) =
 
 @doc """Return a lazy seeded Flow of integers in `[0, n)`.
 
-The same seed and `n` produce the same bounded output in the Python reference host.
-Use `take` or another limiter before `collect` or `run`.
+## Arguments
+- `seed`: non-negative integer seed
+- `n`: positive exclusive upper bound
+
+## Returns
+- lazy seeded Flow of deterministic integers in `[0, n)`
+
+## Notes
+- the same seed and `n` produce the same bounded output in the Python reference host
+- use `take` or another limiter before `collect` or `run`
 """
 @category "random"
 rand_int_flow(seed, n) = rand_int_flow_from(rng(seed), n)

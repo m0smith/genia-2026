@@ -8,6 +8,12 @@ json_pretty(value)
 
 Compatibility alias for `json_stringify`.
 
+## Arguments
+- `value`: value to render
+
+## Returns
+- the result of `json_stringify(value)`
+
 ---
 
 _Source: `std/prelude/json.genia` &middot; category `json`. Generated from canonical metadata by `tools/gen_function_docs.py`._

@@ -58,7 +58,7 @@ Alphabetical index of the **278** out-of-the-box Genia functions available from 
 | [`chunk`](functions/chunk.md) | Retrieval | `chunk(chunker, document)` | Construct exact ordered chunks from a validated document and chunker callback. |
 | [`clear_screen`](functions/clear_screen.md) | io | `clear_screen()` | Clear the terminal screen and move the cursor to the top-left corner. |
 | [`cli_flag?`](functions/cli_flag-p.md) | cli | `cli_flag?(opts, name)` | Check whether parsed options contain a truthy flag value. |
-| [`cli_option`](functions/cli_option.md) | cli | `cli_option(opts, name)` | Return a parsed option value or `none("missing-key", {key: name})` when absent. |
+| [`cli_option`](functions/cli_option.md) | cli | `cli_option(opts, name)` | Return a parsed option value when present. |
 | [`cli_option_or`](functions/cli_option_or.md) | cli | `cli_option_or(opts, name, default)` | Return a parsed option value or `default` when the option is missing. |
 | [`cli_parse`](functions/cli_parse.md) | cli | `cli_parse(args)` | Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map. |
 | [`collect`](functions/collect.md) | flow | `collect(source)` | Return list data from a list or by materializing a Flow. |
@@ -434,7 +434,7 @@ Alphabetical index of the **278** out-of-the-box Genia functions available from 
 ### cli
 
 - [`cli_flag?`](functions/cli_flag-p.md) - Check whether parsed options contain a truthy flag value.
-- [`cli_option`](functions/cli_option.md) - Return a parsed option value or `none("missing-key", {key: name})` when absent.
+- [`cli_option`](functions/cli_option.md) - Return a parsed option value when present.
 - [`cli_option_or`](functions/cli_option_or.md) - Return a parsed option value or `default` when the option is missing.
 - [`cli_parse`](functions/cli_parse.md) - Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
 

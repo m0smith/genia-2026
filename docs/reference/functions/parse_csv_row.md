@@ -9,10 +9,18 @@ parse_csv_row(headers, line)
 
 Parse one CSV row into an Outcome.
 
-Returns `some(fields, context)` for a valid row.
-Returns `some(record, context)` when headers are provided.
-Returns `none("blank_line", context)` for blank lines.
-Returns `err(reason, context)` for malformed rows or header mismatches.
+## Arguments
+- `line`: one CSV text row
+- `headers`: optional list of unique non-empty string field names
+
+## Returns
+- `some(fields, context)` for a valid row without headers
+- `some(record, context)` for a valid row with headers
+- `none("blank_line", context)` for a blank line
+- `err(reason, context)` for a malformed row or header-count mismatch
+
+## Errors
+- raises a type or value error for invalid `line` or `headers` arguments
 
 ---
 

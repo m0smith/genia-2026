@@ -1,32 +1,33 @@
 @doc """Start a minimal synchronous HTTP server.
 
 ## Arguments
-
-* `config`: map with optional `host`, `port`, and `max_requests`
-* `handler`: function that receives a request map and returns a response map
+- `config`: map with optional `host`, `port`, and `max_requests`
+- `handler`: function that receives a request map and returns a response map
 
 ## Returns
-
-* server info map after the server stops
+- server info map after the server stops
 
 ## Notes
-
-* `host` defaults to `"127.0.0.1"`
-* `port` defaults to `8000`
-* `max_requests` is optional and is mainly useful for tests and one-shot demos
-* request headers are lowercased string keys
-* request `body` is parsed JSON when the content type starts with `application/json`; otherwise decoded text
-* request `raw_body` is always the decoded request text
-* invalid handler results produce a `500 internal server error` response"""
+- `host` defaults to `"127.0.0.1"`
+- `port` defaults to `8000`
+- `max_requests` is optional and is mainly useful for tests and one-shot demos
+- request headers are lowercased string keys
+- request `body` is parsed JSON when the content type starts with `application/json`; otherwise decoded text
+- request `raw_body` is always the decoded request text
+- invalid handler results produce a `500 internal server error` response
+"""
 serve_http(config, handler) = _serve_http(config, handler)
 
 @doc """Build a route value from method, path, and handler.
 
 ## Arguments
+- `method`: HTTP method string
+- `path`: URL path string
+- `handler`: function receiving a request map
 
-* `method`: HTTP method string
-* `path`: URL path string
-* `handler`: function receiving a request map"""
+## Returns
+- route map with `method`, `path`, and `handler`
+"""
 route(method, path, handler) = {
   method: method,
   path: path,
@@ -40,11 +41,27 @@ route_handler(route) = route("handler", (_) -> not_found())
 request_method(request) = request("method", "")
 request_path(request) = request("path", "")
 
-@doc "Create a GET route."
+@doc """Create a GET route.
+
+## Arguments
+- `path`: URL path string
+- `handler`: function receiving a request map
+
+## Returns
+- route map with method `GET`
+"""
 @category "web"
 get = (path, handler) -> route("GET", path, handler)
 
-@doc "Create a POST route."
+@doc """Create a POST route.
+
+## Arguments
+- `path`: URL path string
+- `handler`: function receiving a request map
+
+## Returns
+- route map with method `POST`
+"""
 post = (path, handler) -> route("POST", path, handler)
 
 route_matches?(route, request) = route_method(route) == request_method(request) && route_path(route) == request_path(request)
@@ -58,12 +75,11 @@ find_route_handler(routes, request) = (
 @doc """Build a request handler from a list of exact-path route values.
 
 ## Arguments
-
-* `routes`: list of route values created by `get(...)` or `post(...)`
+- `routes`: list of route values created by `get(...)` or `post(...)`
 
 ## Returns
-
-* handler function suitable for `serve_http(config, handler)`"""
+- handler function suitable for `serve_http(config, handler)`
+"""
 route_request(routes) = make_route_handler(routes)
 
 make_route_handler(routes) = {
@@ -81,10 +97,13 @@ route_request_handler(result, request) = (
 @doc """Construct one HTTP response map.
 
 ## Arguments
+- `status`: integer HTTP status code
+- `headers`: map of string header names to string values
+- `body`: string, bytes, or `none`
 
-* `status`: integer HTTP status code
-* `headers`: map of string header names to string values
-* `body`: string, bytes, or `none`"""
+## Returns
+- response map with `status`, `headers`, and `body`
+"""
 response(status, headers, body) = {
   status: status,
   headers: headers,
@@ -93,30 +112,86 @@ response(status, headers, body) = {
 
 @doc """Return a new response with normalized, merged headers.
 
-Supplied headers win case-insensitive collisions. Header names are lowercased.
-The input response and header maps are not mutated."""
+## Arguments
+- `headers`: headers to merge into the response
+- `response`: response map
+
+## Returns
+- new response with normalized, merged headers
+
+## Notes
+- supplied headers win case-insensitive collisions and header names are lowercased
+- the input response and header maps are not mutated
+"""
 with_headers(headers, response) = _with_headers(headers, response)
 
-@doc "Wrap a handler with configured CORS response headers and automatic browser preflight."
+@doc """Wrap a handler with configured CORS response headers and automatic browser preflight.
+
+## Arguments
+- `policy`: CORS policy map
+- `handler`: request handler function
+
+## Returns
+- wrapped request handler
+"""
 cors(policy, handler) = _cors(policy, handler)
 
 json_headers() = {"content-type": "application/json; charset=utf-8"}
 text_headers() = {"content-type": "text/plain; charset=utf-8"}
 
-@doc "Return a `200` JSON response."
+@doc """Return a `200` JSON response.
+
+## Arguments
+- `body`: JSON-compatible response value
+
+## Returns
+- response map with JSON content type and stringified body
+"""
 json(body) = response(200, json_headers(), json_stringify(body))
 
-@doc "Return a `200` plain-text response."
+@doc """Return a `200` plain-text response.
+
+## Arguments
+- `body`: response body
+
+## Returns
+- response map with plain-text content type
+"""
 text(body) = response(200, text_headers(), body)
 
-@doc "Return a `200` response without forcing a content type."
+@doc """Return a `200` response without forcing a content type.
+
+## Arguments
+- `body`: response body
+
+## Returns
+- response map with empty headers
+"""
 ok(body) = response(200, {}, body)
 
-@doc "Return a `200` plain-text response."
+@doc """Return a `200` plain-text response.
+
+## Arguments
+- `body`: response body
+
+## Returns
+- response map with plain-text content type
+"""
 ok_text(body) = text(body)
 
-@doc "Return a `400` plain-text response."
+@doc """Return a `400` plain-text response.
+
+## Arguments
+- `message`: response body text
+
+## Returns
+- response map with status `400` and plain-text content type
+"""
 bad_request(message) = response(400, text_headers(), message)
 
-@doc "Return a `404` plain-text response."
+@doc """Return a `404` plain-text response.
+
+## Returns
+- response map with status `404`, plain-text content type, and body `"not found"`
+"""
 not_found() = response(404, text_headers(), "not found")

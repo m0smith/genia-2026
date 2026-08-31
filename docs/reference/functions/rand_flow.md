@@ -8,8 +8,15 @@ rand_flow(seed)
 
 Return a lazy seeded Flow of floats in `[0, 1)`.
 
-The same seed produces the same bounded output in the Python reference host.
-Use `take` or another limiter before `collect` or `run`.
+## Arguments
+- `seed`: non-negative integer seed
+
+## Returns
+- lazy seeded Flow of deterministic floats in `[0, 1)`
+
+## Notes
+- the same seed produces the same bounded output in the Python reference host
+- use `take` or another limiter before `collect` or `run`
 
 ---
 
