@@ -8,6 +8,12 @@ spawn(handler)
 
 Create a process handle backed by a host-thread mailbox worker.
 
+## Arguments
+- `handler`: function invoked for each mailbox message
+
+## Returns
+- process handle
+
 ---
 
 _Source: `std/prelude/process.genia` &middot; category `process`. Generated from canonical metadata by `tools/gen_function_docs.py`._

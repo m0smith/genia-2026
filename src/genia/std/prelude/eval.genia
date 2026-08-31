@@ -15,11 +15,19 @@ empty_env() = _meta_empty_env()
 ## Arguments
 - `env`: metacircular environment
 - `name`: symbol or string name
+
+## Returns
+- value bound to `name`
 """
 @category "eval"
 lookup(env, name) = _meta_lookup(env, name)
 
 @doc """Define a name in the current metacircular environment frame.
+
+## Arguments
+- `env`: metacircular environment
+- `name`: symbol or string name
+- `value`: value to bind
 
 ## Returns
 - the same environment value
@@ -29,6 +37,11 @@ define(env, name, value) = _meta_define(env, name, value)
 
 @doc """Rebind the nearest existing lexical name in a metacircular environment chain, or define it in the current frame when missing.
 
+## Arguments
+- `env`: metacircular environment
+- `name`: symbol or string name
+- `value`: value to assign
+
 ## Returns
 - assigned value
 """
@@ -36,6 +49,14 @@ define(env, name, value) = _meta_define(env, name, value)
 set(env, name, value) = _meta_set(env, name, value)
 
 @doc """Create a child metacircular environment with lambda parameters bound to argument values.
+
+## Arguments
+- `env`: parent metacircular environment
+- `params`: quoted lambda parameter representation
+- `args`: list of evaluated argument values
+
+## Returns
+- child metacircular environment
 
 ## Notes
 - `params` uses the quoted lambda parameter representation
@@ -46,9 +67,15 @@ extend(env, params, args) = _meta_extend(env, params, args)
 
 @doc """Evaluate a quoted Genia expression in a metacircular environment.
 
+## Arguments
+- `expr`: quoted Genia expression
+- `env`: metacircular environment
+
+## Returns
+- evaluated value
+
 ## Notes
-Implemented forms: self-evaluating literals, symbols, quoted expressions,
-assignment, lambda, match/case, application, and blocks.
+- implemented forms are self-evaluating literals, symbols, quoted expressions, assignment, lambda, match/case, application, and blocks
 """
 @category "eval"
 eval(expr, env) = eval_dispatch(expr, env)

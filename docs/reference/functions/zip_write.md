@@ -9,8 +9,16 @@ zip_write(path, items)
 
 Write zip items to `path` from a Flow or list.
 
-Accepted item forms are `[filename, bytes]`, `[filename, string]`, or zip entries.
-Returns `path` on success or `none("zip-write-error", context)` on failure.
+## Arguments
+- `path`: destination zip archive path string
+- `items`: Flow or list of zip items
+
+## Returns
+- `path` on success
+- `none("zip-write-error", context)` on failure
+
+## Notes
+- accepted item forms are `[filename, bytes]`, `[filename, string]`, or zip entries
 
 ---
 

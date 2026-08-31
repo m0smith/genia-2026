@@ -8,8 +8,16 @@ rand_int_flow(seed, n)
 
 Return a lazy seeded Flow of integers in `[0, n)`.
 
-The same seed and `n` produce the same bounded output in the Python reference host.
-Use `take` or another limiter before `collect` or `run`.
+## Arguments
+- `seed`: non-negative integer seed
+- `n`: positive exclusive upper bound
+
+## Returns
+- lazy seeded Flow of deterministic integers in `[0, n)`
+
+## Notes
+- the same seed and `n` produce the same bounded output in the Python reference host
+- use `take` or another limiter before `collect` or `run`
 
 ---
 

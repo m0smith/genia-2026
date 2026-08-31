@@ -1,5 +1,15 @@
 @doc """Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
 
+## Arguments
+- `args`: list of raw argument strings
+- `spec`: optional map containing `flags`, `options`, and `aliases`
+
+## Returns
+- `[opts, positionals]`, where `opts` is a map and `positionals` preserves input order
+
+## Errors
+- raises deterministic type or value errors for invalid inputs, malformed specs, ambiguous short-option groups, or missing option values
+
 ## Notes
 - `argv()` remains the raw host-backed CLI primitive
 - parsing semantics live in prelude in this phase
@@ -9,6 +19,16 @@ cli_parse(args) = cli_parse_from(args, _cli_spec(nil), map_new(), [], true)
 
 @doc """Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
 
+## Arguments
+- `args`: list of raw argument strings
+- `spec`: map containing optional `flags`, `options`, and `aliases`
+
+## Returns
+- `[opts, positionals]`, where `opts` is a map and `positionals` preserves input order
+
+## Errors
+- raises deterministic type or value errors for invalid inputs, malformed specs, ambiguous short-option groups, or missing option values
+
 ## Notes
 - `argv()` remains the raw host-backed CLI primitive
 - parsing semantics live in prelude in this phase
@@ -16,15 +36,41 @@ cli_parse(args) = cli_parse_from(args, _cli_spec(nil), map_new(), [], true)
 @category "cli"
 cli_parse(args, spec) = cli_parse_from(args, _cli_spec(spec), map_new(), [], true)
 
-@doc "Check whether parsed options contain a truthy flag value."
+@doc """Check whether parsed options contain a truthy flag value.
+
+## Arguments
+- `opts`: parsed options map
+- `name`: option name string
+
+## Returns
+- `true` when the named option is truthy, otherwise `false`
+"""
 @category "cli"
 cli_flag?(opts, name) = _cli_flag?(opts, name)
 
-@doc """Return a parsed option value or `none("missing-key", {key: name})` when absent."""
+@doc """Return a parsed option value when present.
+
+## Arguments
+- `opts`: parsed options map
+- `name`: option name string
+
+## Returns
+- parsed option value when present
+- `none("missing-key", {key: name})` when absent
+"""
 @category "cli"
 cli_option(opts, name) = _cli_option(opts, name)
 
-@doc "Return a parsed option value or `default` when the option is missing."
+@doc """Return a parsed option value or `default` when the option is missing.
+
+## Arguments
+- `opts`: parsed options map
+- `name`: option name string
+- `default`: fallback value
+
+## Returns
+- parsed option value when present, otherwise `default`
+"""
 @category "cli"
 cli_option_or(opts, name, default) = _cli_option_or(opts, name, default)
 

@@ -1,42 +1,69 @@
 @doc """Parse JSON text into Genia runtime data.
 
-Returns parsed value on success.
-Returns `none("json-parse-error", context)` on parse/type failures.
+## Arguments
+- `value`: JSON text
+
+## Returns
+- parsed Genia value on success
+- `none("json-parse-error", context)` on parse or type failure
 """
 @category "json"
 json_parse(value) = _json_parse(value)
 
 @doc """Decode JSON text or UTF-8 bytes through the portable JSON representation boundary.
 
-Returns `some(represented_value, context)` on success.
-Returns `err(reason, context)` for recoverable JSON data failures.
+## Arguments
+- `value`: JSON text or UTF-8 bytes
+
+## Returns
+- `some(represented_value, context)` on success
+- `err(reason, context)` for recoverable JSON data failures
+
+## Errors
+- raises a type error when `value` is neither text nor bytes
 """
 @category "json"
 json_decode(value) = _json_decode(value)
 
 @doc """Compile the supported JSON Schema structural subset into a Template.
 
-Accepts a `json`-represented schema map.
-Returns `some(template, context)` or a normalized schema `err(reason, context)`.
+## Arguments
+- `schema`: `json`-represented schema map
+
+## Returns
+- `some(template, context)` on success
+- normalized schema `err(reason, context)` on validation failure
 """
 @category "json"
 json_schema(schema) = _json_schema(schema)
 
 @doc """Parse one JSONL object record into an Outcome.
 
-Returns `some(record, context)` for JSON objects.
-Returns `none(context)` for blank lines.
-Returns `err(reason, context)` for malformed JSON or non-object JSON values.
+## Arguments
+- `line`: one JSONL text line
+
+## Returns
+- `some(record, context)` for a JSON object
+- `none(context)` for a blank line
+- `err(reason, context)` for malformed JSON or a non-object JSON value
 """
 @category "json"
 parse_jsonl_record(line) = _parse_jsonl_record(line)
 
 @doc """Parse one CSV row into an Outcome.
 
-Returns `some(fields, context)` for a valid row.
-Returns `some(record, context)` when headers are provided.
-Returns `none("blank_line", context)` for blank lines.
-Returns `err(reason, context)` for malformed rows or header mismatches.
+## Arguments
+- `line`: one CSV text row
+- `headers`: optional list of unique non-empty string field names
+
+## Returns
+- `some(fields, context)` for a valid row without headers
+- `some(record, context)` for a valid row with headers
+- `none("blank_line", context)` for a blank line
+- `err(reason, context)` for a malformed row or header-count mismatch
+
+## Errors
+- raises a type or value error for invalid `line` or `headers` arguments
 """
 @category "json"
 parse_csv_row(line) = _parse_csv_row(line)
@@ -45,20 +72,35 @@ parse_csv_row(headers, line) = _parse_csv_row(headers, line)
 
 @doc """Render a Genia value as deterministic pretty JSON.
 
-Object keys are sorted and output uses 2-space indentation.
-Returns `none("json-stringify-error", context)` when the value is not JSON-compatible.
+## Arguments
+- `value`: value to render
+
+## Returns
+- JSON text with sorted object keys and 2-space indentation
+- `none("json-stringify-error", context)` when `value` is not JSON-compatible
 """
 @category "json"
 json_stringify(value) = _json_stringify(value)
 
 @doc """Encode a supported ordinary or `json`-represented value as deterministic JSON.
 
-Returns `some(text, context)` on success.
-Returns `err(reason, context)` for unsupported or out-of-contract values.
+## Arguments
+- `value`: supported ordinary or `json`-represented value
+
+## Returns
+- `some(text, context)` on success
+- `err(reason, context)` for unsupported or out-of-contract values
 """
 @category "json"
 json_encode(value) = _json_encode(value)
 
-@doc "Compatibility alias for `json_stringify`."
+@doc """Compatibility alias for `json_stringify`.
+
+## Arguments
+- `value`: value to render
+
+## Returns
+- the result of `json_stringify(value)`
+"""
 @category "json"
 json_pretty(value) = json_stringify(value)

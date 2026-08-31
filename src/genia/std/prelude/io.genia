@@ -1,26 +1,65 @@
-@doc "Write the display form of `value` to `sink` without a trailing newline."
+@doc """Write the display form of `value` to `sink` without a trailing newline.
+
+## Arguments
+- `sink`: output sink
+- `value`: value to display
+
+## Returns
+- `value`
+"""
 @category "io"
 write(sink, value) = _write(sink, value)
 
-@doc "Write the display form of `value` to `sink` followed by a newline."
+@doc """Write the display form of `value` to `sink` followed by a newline.
+
+## Arguments
+- `sink`: output sink
+- `value`: value to display
+
+## Returns
+- `value`
+"""
 @category "io"
 writeln(sink, value) = _writeln(sink, value)
 
-@doc "Flush an output sink."
+@doc """Flush an output sink.
+
+## Arguments
+- `sink`: output sink
+
+## Returns
+- `nil`
+"""
 @category "io"
 flush(sink) = _flush(sink)
 
-@doc "Clear the terminal screen and move the cursor to the top-left corner."
+@doc """Clear the terminal screen and move the cursor to the top-left corner.
+
+## Returns
+- `nil`
+"""
 @category "io"
 clear_screen() = _clear_screen()
 
-@doc "Move the terminal cursor to column `x`, row `y`."
+@doc """Move the terminal cursor to column `x`, row `y`.
+
+## Arguments
+- `x`: non-negative integer column
+- `y`: non-negative integer row
+
+## Returns
+- `nil`
+"""
 @category "io"
 move_cursor(x, y) = _move_cursor(x, y)
 
 @doc """Render a simple text grid to stdout.
 
-Each row may be a string or a list of displayable values.
+## Arguments
+- `grid`: list whose rows are strings or lists of displayable values
+
+## Returns
+- `grid`
 """
 @category "io"
 render_grid(grid) = _render_grid(grid)

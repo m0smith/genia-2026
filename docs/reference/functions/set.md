@@ -8,6 +8,11 @@ set(env, name, value)
 
 Rebind the nearest existing lexical name in a metacircular environment chain, or define it in the current frame when missing.
 
+## Arguments
+- `env`: metacircular environment
+- `name`: symbol or string name
+- `value`: value to assign
+
 ## Returns
 - assigned value
 

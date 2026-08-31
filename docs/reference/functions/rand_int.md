@@ -9,7 +9,16 @@ rand_int(rng_state, n)
 
 Advance an explicit RNG state and return `[next_rng_state, int]`.
 
-The integer is deterministic for a given seed and is always in `[0, n)`.
+## Arguments
+- `rng_state`: explicit RNG state
+- `n`: positive exclusive upper bound
+
+## Returns
+- `[next_rng_state, int]`, with a deterministic integer in `[0, n)`
+
+## Errors
+- raises a type error when `rng_state` is not an RNG state
+- raises a type or value error when `n` is not a positive integer
 
 ---
 

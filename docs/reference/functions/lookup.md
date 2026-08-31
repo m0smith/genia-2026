@@ -12,6 +12,9 @@ Look up a symbol in a metacircular evaluation environment.
 - `env`: metacircular environment
 - `name`: symbol or string name
 
+## Returns
+- value bound to `name`
+
 ---
 
 _Source: `std/prelude/eval.genia` &middot; category `eval`. Generated from canonical metadata by `tools/gen_function_docs.py`._

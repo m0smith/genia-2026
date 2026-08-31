@@ -9,7 +9,14 @@ rand(rng_state)
 
 Advance an explicit RNG state and return `[next_rng_state, float]`.
 
-The float is deterministic for a given seed and is always in `[0, 1)`.
+## Arguments
+- `rng_state`: explicit RNG state
+
+## Returns
+- `[next_rng_state, float]`, with a deterministic float in `[0, 1)`
+
+## Errors
+- raises a type error when `rng_state` is not an RNG state
 
 ---
 

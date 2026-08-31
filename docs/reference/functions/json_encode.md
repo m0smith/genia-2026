@@ -8,8 +8,12 @@ json_encode(value)
 
 Encode a supported ordinary or `json`-represented value as deterministic JSON.
 
-Returns `some(text, context)` on success.
-Returns `err(reason, context)` for unsupported or out-of-contract values.
+## Arguments
+- `value`: supported ordinary or `json`-represented value
+
+## Returns
+- `some(text, context)` on success
+- `err(reason, context)` for unsupported or out-of-contract values
 
 ---
 

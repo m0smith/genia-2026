@@ -8,8 +8,15 @@ json_decode(value)
 
 Decode JSON text or UTF-8 bytes through the portable JSON representation boundary.
 
-Returns `some(represented_value, context)` on success.
-Returns `err(reason, context)` for recoverable JSON data failures.
+## Arguments
+- `value`: JSON text or UTF-8 bytes
+
+## Returns
+- `some(represented_value, context)` on success
+- `err(reason, context)` for recoverable JSON data failures
+
+## Errors
+- raises a type error when `value` is neither text nor bytes
 
 ---
 

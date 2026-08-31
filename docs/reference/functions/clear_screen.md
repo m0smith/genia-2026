@@ -8,6 +8,9 @@ clear_screen()
 
 Clear the terminal screen and move the cursor to the top-left corner.
 
+## Returns
+- `nil`
+
 ---
 
 _Source: `std/prelude/io.genia` &middot; category `io`. Generated from canonical metadata by `tools/gen_function_docs.py`._

@@ -6,7 +6,15 @@
 cli_option(opts, name)
 ```
 
-Return a parsed option value or `none("missing-key", {key: name})` when absent.
+Return a parsed option value when present.
+
+## Arguments
+- `opts`: parsed options map
+- `name`: option name string
+
+## Returns
+- parsed option value when present
+- `none("missing-key", {key: name})` when absent
 
 ---
 

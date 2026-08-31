@@ -8,8 +8,15 @@ zip_read(path)
 
 Create a lazy Flow of zip entries from `path`.
 
-Each item is `[filename, bytes]` where `bytes` is the opaque bytes runtime value.
-Returns `none("file-not-found", context)` or `none("zip-read-error", context)` on failure.
+## Arguments
+- `path`: zip archive path string
+
+## Returns
+- lazy Flow of `[filename, bytes]` entries
+- `none("file-not-found", context)` or `none("zip-read-error", context)` on failure
+
+## Notes
+- `bytes` is the opaque bytes runtime value
 
 ---
 

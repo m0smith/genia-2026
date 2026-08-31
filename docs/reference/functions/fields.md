@@ -8,6 +8,12 @@ fields(row)
 
 Split a row into whitespace-separated fields, keeping the original row first.
 
+## Arguments
+- `row`: string row
+
+## Returns
+- list containing `row` followed by its whitespace-separated fields
+
 ---
 
 _Source: `std/prelude/awk.genia` &middot; category `awk`. Generated from canonical metadata by `tools/gen_function_docs.py`._

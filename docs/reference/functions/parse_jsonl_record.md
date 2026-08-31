@@ -8,9 +8,13 @@ parse_jsonl_record(line)
 
 Parse one JSONL object record into an Outcome.
 
-Returns `some(record, context)` for JSON objects.
-Returns `none(context)` for blank lines.
-Returns `err(reason, context)` for malformed JSON or non-object JSON values.
+## Arguments
+- `line`: one JSONL text line
+
+## Returns
+- `some(record, context)` for a JSON object
+- `none(context)` for a blank line
+- `err(reason, context)` for malformed JSON or a non-object JSON value
 
 ---
 

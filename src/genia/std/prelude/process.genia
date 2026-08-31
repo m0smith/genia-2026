@@ -1,22 +1,54 @@
-@doc "Create a process handle backed by a host-thread mailbox worker."
+@doc """Create a process handle backed by a host-thread mailbox worker.
+
+## Arguments
+- `handler`: function invoked for each mailbox message
+
+## Returns
+- process handle
+"""
 @category "process"
 spawn(handler) = _spawn(handler)
 
-@doc "Enqueue `message` for a process mailbox."
+@doc """Enqueue `message` for a process mailbox.
+
+## Arguments
+- `process`: process handle
+- `message`: value to enqueue
+
+## Returns
+- `nil`
+"""
 @category "process"
 send(process, message) = _send(process, message)
 
-@doc "Check whether a process worker is still alive."
+@doc """Check whether a process worker is still alive.
+
+## Arguments
+- `process`: process handle
+
+## Returns
+- `true` while the worker is alive, otherwise `false`
+"""
 @category "process"
 process_alive?(process) = _process_alive?(process)
 
-@doc "Check whether a process has failed due to a handler exception."
+@doc """Check whether a process has failed due to a handler exception.
+
+## Arguments
+- `process`: process handle
+
+## Returns
+- `true` when the handler has failed, otherwise `false`
+"""
 process_failed?(process) = _process_failed?(process)
 
 @doc """Return the process error option.
 
-## Returns
+## Arguments
+- `process`: process handle
 
-`none` when the process is healthy, or `some(error_string)` when failed.
+## Returns
+- `none` when the process is healthy
+- `some(error_string)` when the handler has failed
 """
 process_error(process) = _process_error(process)

@@ -1,23 +1,73 @@
-@doc "Create a synchronized ref, optionally with an initial value."
+@doc """Create a synchronized ref, optionally with an initial value.
+
+## Arguments
+- `initial`: optional initial value
+
+## Returns
+- synchronized ref, unset when no initial value is supplied
+"""
 @category "ref"
 ref() = _ref()
 
-@doc "Create a synchronized ref, optionally with an initial value."
+@doc """Create a synchronized ref, optionally with an initial value.
+
+## Arguments
+- `initial`: optional initial value
+
+## Returns
+- synchronized ref containing `initial`
+"""
 @category "ref"
 ref(initial) = _ref(initial)
 
-@doc "Read the current value from a ref."
+@doc """Read the current value from a ref.
+
+## Arguments
+- `ref_value`: synchronized ref
+
+## Returns
+- current stored value
+
+## Notes
+- reading an unset ref blocks until a value is set
+"""
 @category "ref"
 ref_get(ref_value) = _ref_get(ref_value)
 
-@doc "Set a ref to `value` and return `value`."
+@doc """Set a ref to `value` and return `value`.
+
+## Arguments
+- `ref_value`: synchronized ref
+- `value`: value to store
+
+## Returns
+- `value`
+"""
 @category "ref"
 ref_set(ref_value, value) = _ref_set(ref_value, value)
 
-@doc "Check whether a ref currently holds a value."
+@doc """Check whether a ref currently holds a value.
+
+## Arguments
+- `ref_value`: synchronized ref
+
+## Returns
+- `true` when the ref is set, otherwise `false`
+"""
 @category "ref"
 ref_is_set(ref_value) = _ref_is_set(ref_value)
 
-@doc "Apply `updater` to the current ref value atomically and store the result."
+@doc """Apply `updater` to the current ref value atomically and store the result.
+
+## Arguments
+- `ref_value`: synchronized ref
+- `updater`: function from the current value to the replacement value
+
+## Returns
+- replacement value produced by `updater`
+
+## Notes
+- reading and updating occur under the ref's synchronization boundary
+"""
 @category "ref"
 ref_update(ref_value, updater) = _ref_update(ref_value, updater)
