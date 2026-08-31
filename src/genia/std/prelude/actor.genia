@@ -21,6 +21,7 @@ Supported effect shapes:
 
 Handler failures or invalid return shapes mark the actor as failed.
 """
+@category "actor"
 actor(initial_state, handler) = {
   _cell: cell(initial_state),
   _handler: handler
@@ -42,6 +43,7 @@ For fire-and-forget sends, any reply value is discarded.
 
 Raises if the actor has already failed or stopped.
 """
+@category "actor"
 actor_send(a, msg) = {
   h = a("_handler")
   c = a("_cell")
@@ -68,6 +70,7 @@ actor enters failed state.
 The response value from the handler's `["reply", new_state, response]` effect,
 or the new state from `["ok", new_state]`.
 """
+@category "actor"
 actor_call(a, msg) = {
   h = a("_handler")
   c = a("_cell")
@@ -82,6 +85,7 @@ actor_call(a, msg) = {
 
 `true` if the backing cell worker is alive, `false` otherwise.
 """
+@category "actor"
 actor_alive?(a) = cell_alive?(a("_cell"))
 
 @doc """Gracefully stop an actor after draining its mailbox.
@@ -90,6 +94,7 @@ Queued messages are processed before the worker exits.
 After stop, `actor_send` and `actor_call` raise.
 `cell_get` on the backing cell still returns the last state.
 """
+@category "actor"
 actor_stop(a) = cell_stop(a("_cell"))
 
 @doc """Restart a failed or stopped actor with a new initial state.
@@ -107,6 +112,7 @@ The handler is preserved.
 
 The actor (unchanged reference).
 """
+@category "actor"
 actor_restart(a, new_state) = {
   restart_cell(a("_cell"), new_state)
   a
@@ -116,6 +122,7 @@ actor_restart(a, new_state) = {
 
 Returns the last committed state. Raises if the actor has failed.
 """
+@category "actor"
 actor_state(a) = cell_get(a("_cell"))
 
 @doc """Check whether an actor has failed.
@@ -124,6 +131,7 @@ actor_state(a) = cell_get(a("_cell"))
 
 `true` if the backing cell is in failed state, `false` otherwise.
 """
+@category "actor"
 actor_failed?(a) = cell_failed?(a("_cell"))
 
 @doc """Return the actor error option.
@@ -132,6 +140,7 @@ actor_failed?(a) = cell_failed?(a("_cell"))
 
 `none` when the actor is healthy, or `some(error_string)` when failed.
 """
+@category "actor"
 actor_error(a) = cell_error(a("_cell"))
 
 @doc """Return the actor status string.
@@ -140,4 +149,5 @@ actor_error(a) = cell_error(a("_cell"))
 
 `"ready"`, `"failed"`, or `"stopped"`.
 """
+@category "actor"
 actor_status(a) = cell_status(a("_cell"))

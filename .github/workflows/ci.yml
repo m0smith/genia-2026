@@ -8,6 +8,23 @@ on:
   pull_request:
 
 jobs:
+  docs-coverage:
+    name: Docs coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --dev
+      - name: Check function reference is current
+        run: uv run python tools/gen_function_docs.py --check
+      - name: Doc coverage + style lint
+        run: uv run python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
+
   cheatsheet:
     name: Cheatsheet validation
     runs-on: ubuntu-latest

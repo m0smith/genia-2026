@@ -1,93 +1,292 @@
-@doc "Wrap a present value in the Option success form."
+@doc """Wrap a present value in the Option success form `some(value)`.
+
+## Arguments
+- `value`: the value to wrap as present
+- `context`: optional metadata carried alongside the value
+
+## Returns
+- `some(value)`, carrying `context` when it is supplied
+
+## Errors
+- raises when called with other than one or two arguments
+"""
+@category "option"
 some(..args) = _some(..args)
 
-@doc "Construct a recoverable Outcome failure value."
+@doc """Construct a recoverable Outcome failure value `err(reason)`.
+
+## Arguments
+- `reason`: the failure reason value
+- `context`: optional metadata describing the failure
+
+## Returns
+- `err(reason)`, carrying `context` when it is supplied
+
+## Notes
+- Distinct from `none(...)`; both `none?` and `some?` report `false` for an `err` value
+
+## Errors
+- raises when called with other than one or two arguments
+"""
+@category "option"
 err(..args) = _err(..args)
 
 @doc "Check whether a value is any `none...` Option form."
+@category "option"
 none?(value) = _none?(value)
 
 @doc "Check whether a value is `some(...)`."
+@category "option"
 some?(value) = _some?(value)
 
-@doc "Canonical maybe-aware lookup helper for maps and nested Option targets."
+@doc """Look up `key` in a map target, returning an absence-aware Option.
+
+Unwraps a `some(map)` target and propagates a `none(...)` target unchanged, so
+it composes over nested Option results.
+
+## Arguments
+- `key`: the map key to look up
+- `target`: a map, `some(map)`, or `none(...)`
+
+## Returns
+- `some(value)` when `key` is present in the map
+- `none("missing-key", ...)` with the key in context when `key` is absent
+- the incoming `none(...)` unchanged when `target` is already `none(...)`
+
+## Errors
+- raises when `target` is not a map, `some(map)`, or `none(...)`
+"""
+@category "option"
 get(key, target) = _get(key, target)
 
 @doc "Compatibility alias for `get(key, target)`."
+@category "option"
 get?(key, target) = _get?(key, target)
 
-@doc """Apply `f` to the inner value of `some(value)` and return `some(result)`.
-Preserve `none(...)` unchanged.
+@doc """Apply `f` to the inner value of `some(value)`, returning `some(result)`.
 
-`f` receives the unwrapped inner value only when `opt` is `some(value)`.
+## Arguments
+- `f`: function applied to the unwrapped inner value; called only for `some(value)`
+- `opt`: the Option to transform
 
-Useful in `|>` pipelines when the current value is an Option:
+## Returns
+- `some(f(value))` when `opt` is `some(value)`
+- the incoming `none(...)` unchanged when `opt` is `none(...)`
+
+## Errors
+- raises when `opt` is not an Option value
+
+## Examples
 
     "42" |> parse_int |> map_some((n) -> n * 2)
 
-results in `some(84)`, and a parse failure gives `none("parse-error", ...)`.
+yields `some(84)`, and a parse failure yields `none("parse-error", ...)`.
 """
+@category "option"
 map_some(f, opt) = _map_some(f, opt)
 
-@doc """Apply `f` to the inner value of `some(value)` when `f` itself returns an Option.
-Preserve `none(...)` unchanged.
+@doc """Apply the Option-returning function `f` to the inner value of `some(value)`.
 
-`f` receives the unwrapped inner value only when `opt` is `some(value)`,
-and `f` must return an Option value.
+## Arguments
+- `f`: function applied to the unwrapped inner value; must itself return an Option, and is called only for `some(value)`
+- `opt`: the Option to chain from
 
-Useful in `|>` pipelines for chaining Option-returning functions:
+## Returns
+- the Option returned by `f(value)` when `opt` is `some(value)`
+- the incoming `none(...)` unchanged when `opt` is `none(...)`
+
+## Errors
+- raises when `opt` is not an Option value
+- raises when `f` returns a non-Option value
+
+## Examples
 
     "42" |> parse_int |> flat_map_some(validate_positive)
 
 where `validate_positive` returns `some(n)` or `none("negative", ...)`.
 """
+@category "option"
 flat_map_some(f, opt) = _flat_map_some(f, opt)
 
-@doc "Explicit maybe-aware lookup over `get` for raw map targets, `some(map)`, or `none(...)`."
+@doc """Look up `key` in a map target within a pipeline, returning an Option.
+
+Accepts its arguments in either order so it composes in `|>` chains where the
+target arrives as the piped value.
+
+## Arguments
+- `key`: the map key to look up
+- `target`: a map, `some(map)`, or `none(...)`
+
+## Returns
+- `some(value)` when `key` is present in the map
+- `none("missing-key", ...)` with the key in context when `key` is absent
+- the incoming `none(...)` unchanged when `target` is already `none(...)`
+
+## Errors
+- raises when `target` is not a map, `some(map)`, or `none(...)`
+"""
+@category "option"
 then_get(key, target) = _then_get(key, target)
 
-@doc "Explicit maybe-aware lookup over the first element of a raw list target, `some(list)`, or `none(...)`."
+@doc """Take the first element of a list target within a pipeline, as an Option.
+
+## Arguments
+- `target`: a list, `some(list)`, or `none(...)`
+
+## Returns
+- `some(value)` for the first element of a non-empty list
+- `none("empty-list")` when the list is empty
+- the incoming `none(...)` unchanged when `target` is already `none(...)`
+
+## Errors
+- raises when `target` is not a list, `some(list)`, or `none(...)`
+"""
+@category "option"
 then_first(target) = _then_first(target)
 
-@doc "Explicit maybe-aware lookup over a raw list target, `some(list)`, or `none(...)`."
+@doc """Take the element at `index` of a list target within a pipeline, as an Option.
+
+Accepts its arguments in either order so it composes in `|>` chains.
+
+## Arguments
+- `index`: zero-based integer position to read
+- `target`: a list, `some(list)`, or `none(...)`
+
+## Returns
+- `some(value)` for the element at `index`
+- `none("index-out-of-bounds", ...)` with `index` and `length` in context when out of range
+- the incoming `none(...)` unchanged when `target` is already `none(...)`
+
+## Errors
+- raises when `index` is not an integer
+- raises when `target` is not a list, `some(list)`, or `none(...)`
+"""
+@category "option"
 then_nth(index, target) = _then_nth(index, target)
 
-@doc "Explicit maybe-aware string search for raw string targets, `some(string)`, or `none(...)`."
+@doc """Find `needle` in a string target within a pipeline, returning its index as an Option.
+
+Accepts its arguments in either order so it composes in `|>` chains.
+
+## Arguments
+- `needle`: the substring to search for
+- `target`: a string, `some(string)`, or `none(...)`
+
+## Returns
+- `some(index)` with the index where `needle` first occurs
+- `none("not-found", ...)` with the needle in context when it does not occur
+- the incoming `none(...)` unchanged when `target` is already `none(...)`
+
+## Errors
+- raises when `needle` is not a string
+- raises when `target` is not a string, `some(string)`, or `none(...)`
+"""
+@category "option"
 then_find(needle, target) = _then_find(needle, target)
 
-@doc """Return the wrapped value for `some(...)`, otherwise return `fallback`.
+@doc """Unwrap `some(...)`, falling back to `fallback` for `none(...)`.
 
-For `|>` pipelines, recover by wrapping the whole pipeline result with `or_else(...)` or `unwrap_or(...)`.
+Accepts the Option and fallback in either order so it can wrap a whole `|>`
+pipeline result at the recovery point.
+
+## Arguments
+- `opt`: the Option to unwrap
+- `fallback`: value returned when `opt` is `none(...)`
+
+## Returns
+- the wrapped value when `opt` is `some(value)`
+- `fallback` when `opt` is `none(...)`
+
+## Errors
+- raises when `opt` is neither `some(...)` nor `none(...)`
 """
+@category "option"
 or_else(opt, fallback) = _or_else(opt, fallback)
 
-@doc """Return the wrapped value for `some(...)`, otherwise call `thunk()`.
+@doc """Unwrap `some(...)`, calling `thunk()` for `none(...)`.
 
-For `|>` pipelines, recover by wrapping the whole pipeline result with `or_else_with(...)` or `unwrap_or(...)`.
+Accepts the Option and thunk in either order so it can wrap a whole `|>`
+pipeline result at the recovery point.
+
+## Arguments
+- `opt`: the Option to unwrap
+- `thunk`: zero-argument function called only when `opt` is `none(...)`
+
+## Returns
+- the wrapped value when `opt` is `some(value)`
+- the result of `thunk()` when `opt` is `none(...)`
+
+## Errors
+- raises when `opt` is neither `some(...)` nor `none(...)`
 """
+@category "option"
 or_else_with(opt, thunk) = _or_else_with(opt, thunk)
 
-@doc """Return the wrapped value for `some(...)`, otherwise return `default`.
+@doc """Unwrap `some(...)`, returning `default` for `none(...)`.
 
-This is the canonical recovery helper around Option-aware pipelines.
-It unwraps only at this explicit recovery point.
+The canonical recovery point for Option-aware pipelines; it unwraps only here.
+
+## Arguments
+- `default`: value returned when `opt` is `none(...)`
+- `opt`: the Option to unwrap
+
+## Returns
+- the wrapped value when `opt` is `some(value)`
+- `default` when `opt` is `none(...)`
+
+## Errors
+- raises when `opt` is neither `some(...)` nor `none(...)`
 """
+@category "option"
 unwrap_or(default, opt) = _unwrap_or(default, opt)
 
-@doc "Inspect the reason metadata of a structured `none(...)` value."
+@doc """Read the reason label of a structured `none(...)` value.
+
+## Arguments
+- `opt`: a `none(...)` value to inspect
+
+## Returns
+- `some(reason)` wrapping the none value's reason string
+
+## Errors
+- raises when `opt` is not a `none(...)` value
+"""
+@category "option"
 absence_reason(opt) = _absence_reason(opt)
 
-@doc "Inspect the context metadata of a structured `none(...)` value."
+@doc """Read the optional context metadata of a structured `none(...)` value.
+
+## Arguments
+- `opt`: a `none(...)` value to inspect
+
+## Returns
+- `some(context)` when the none value carries context metadata
+- `none(...)` when the none value has no context
+
+## Errors
+- raises when `opt` is not a `none(...)` value
+"""
+@category "option"
 absence_context(opt) = _absence_context(opt)
 
-@doc """Inspect complete metadata for a structured `none(...)` value as a map.
+@doc """Read the full metadata of a structured `none(...)` value as a map.
 
-The map always includes `reason`, and includes `context` when present.
+## Arguments
+- `opt`: a `none(...)` value to inspect
+
+## Returns
+- `some(map)` whose map always includes `reason`, and includes `context` when present
+
+## Errors
+- raises when `opt` is not a `none(...)` value
 """
+@category "option"
 absence_meta(opt) = _absence_meta(opt)
 
 @doc "Alias for `some?(opt)`."
+@category "option"
 is_some?(opt) = _is_some?(opt)
 
 @doc "Alias for `none?(opt)`."
+@category "option"
 is_none?(opt) = _is_none?(opt)

@@ -1,20 +1,26 @@
 @doc "Write the display form of `value` to `sink` without a trailing newline."
+@category "io"
 write(sink, value) = _write(sink, value)
 
 @doc "Write the display form of `value` to `sink` followed by a newline."
+@category "io"
 writeln(sink, value) = _writeln(sink, value)
 
 @doc "Flush an output sink."
+@category "io"
 flush(sink) = _flush(sink)
 
 @doc "Clear the terminal screen and move the cursor to the top-left corner."
+@category "io"
 clear_screen() = _clear_screen()
 
 @doc "Move the terminal cursor to column `x`, row `y`."
+@category "io"
 move_cursor(x, y) = _move_cursor(x, y)
 
 @doc """Render a simple text grid to stdout.
 
 Each row may be a string or a list of displayable values.
 """
+@category "io"
 render_grid(grid) = _render_grid(grid)

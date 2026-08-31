@@ -1,4 +1,5 @@
 @doc "Split a row into whitespace-separated fields, keeping the original row first."
+@category "awk"
 fields(row) = [row, ..split_whitespace(row)]
 
 @doc """Apply an AWK-style row function over a list of rows.
@@ -19,15 +20,19 @@ odd(n, row) = n % 2 == 1 -> row | _ -> nil
 awkify(odd, ["a", "b", "c"]) -> ["a", "c"]
 ```
 """
+@category "awk"
 awkify(fn, xs) = awkify_from(fn, xs, 1, [])
 
 @doc "Filter rows with an AWK-style predicate."
+@category "awk"
 awk_filter(predicate, xs) = awkify((n, row) -> awk_filter_pick(predicate(n, row), row), xs)
 
 @doc "Map rows with AWK-style line numbering."
+@category "awk"
 awk_map(fn, xs) = awkify((n, row) -> fn(n, row), xs)
 
 @doc "Count rows that satisfy an AWK-style predicate."
+@category "awk"
 awk_count(predicate, xs) = length(awk_filter(predicate, xs))
 
 awk_filter_pick(ok, row) =

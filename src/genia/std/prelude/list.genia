@@ -7,6 +7,7 @@
 ## Returns
 
 * list containing all provided values"""
+@category "list"
 list(..xs) = xs
 
 @doc """Return the first element as structured absence-aware Option.
@@ -19,6 +20,7 @@ list(..xs) = xs
 
 * `some(value)` for the first element
 * `none("empty-list")` for `[]`"""
+@category "list"
 first(xs) =
   [] -> none("empty-list") |
   [x, .._] -> some(x)
@@ -33,6 +35,7 @@ first(xs) =
 
 * `some(value)` for the first element
 * `none("empty-list")` for `[]`"""
+@category "list"
 first_opt(xs) = first(xs)
 
 @doc """Return the last element as an Option.
@@ -45,6 +48,7 @@ first_opt(xs) = first(xs)
 
 * `some(value)` for the last element
 * `none("empty-list")` for `[]`"""
+@category "list"
 last(xs) =
   [] -> none("empty-list") |
   [x] -> some(x) |
@@ -59,6 +63,7 @@ last(xs) =
 ## Returns
 
 * tail of `xs`"""
+@category "list"
 rest(xs) = [_, ..tail] -> tail
 
 @doc """Check whether a list has no elements.
@@ -70,6 +75,7 @@ rest(xs) = [_, ..tail] -> tail
 ## Returns
 
 * `true` for `[]`, otherwise `false`"""
+@category "list"
 empty?(xs) =
   [] -> true |
   _ -> false
@@ -83,13 +89,16 @@ empty?(xs) =
 ## Returns
 
 * `true` when `x` is `nil`, otherwise `false`"""
+@category "list"
 nil?(x) =
   nil -> true |
   _ -> false
 
 @doc "Concatenate zero or more lists."
+@category "list"
 append() = []
 @doc "Concatenate zero or more lists."
+@category "list"
 append(xs) = xs
 @doc "Concatenate zero or more lists."
 append(xs, ys) =
@@ -98,24 +107,28 @@ append(xs, ys) =
   (xs, ys) -> [..xs, ..ys]
 
 @doc "Count elements in a list."
+@category "list"
 length(xs) = length_acc(xs, 0)
 length_acc(xs, acc) =
   ([], acc) -> acc |
   ([_, ..rest], acc) -> length_acc(rest, acc + 1)
 
 @doc "Return a list with elements in reverse order."
+@category "list"
 reverse(xs) = reverse_acc(xs, [])
 reverse_acc(xs, acc) =
   ([], acc) -> acc |
   ([x, ..rest], acc) -> reverse_acc(rest, [x] + acc)
 
 @doc "Fold a list from left to right."
+@category "list"
 reduce(f, acc, xs) =
   (f, acc, []) -> acc |
   (f, acc, [x, ..rest]) -> reduce(f, apply_raw(f, [acc, x]), rest) |
   (f, acc, xs) -> _seq_reduce(f, acc, xs)
 
 @doc "Apply a function to every list element."
+@category "list"
 map(f, xs) = map_acc(f, xs, [])
 
 map_acc(f, xs, acc) =
@@ -124,6 +137,7 @@ map_acc(f, xs, acc) =
   (f, xs, _) -> _seq_type_error("map", xs)
 
 @doc "Keep elements where `predicate(x)` is `true`."
+@category "list"
 filter(predicate, xs) = filter_acc(predicate, xs, [])
 
 filter_acc(predicate, xs, acc) =
@@ -133,6 +147,7 @@ filter_acc(predicate, xs, acc) =
   (predicate, xs, _) -> _seq_type_error("filter", xs)
 
 @doc "Count elements in a list."
+@category "list"
 count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
 
 @doc """Canonical maybe-returning predicate-search helper for lists.
@@ -146,12 +161,14 @@ count(xs) = reduce((acc, _) -> acc + 1, 0, xs)
 
 * `some(value)` for the first matching element
 * `none("no-match")` when no element matches"""
+@category "list"
 find_opt(predicate, xs) =
   (_, []) -> none("no-match") |
   (predicate, [x, .._]) ? predicate(x) == true -> some(x) |
   (predicate, [_, ..rest]) -> find_opt(predicate, rest)
 
 @doc "Return `true` when any element satisfies a predicate."
+@category "list"
 any?(predicate, xs) =
   (predicate, []) -> false |
   (predicate, [x, ..rest]) ? predicate(x) == true -> true |
@@ -168,6 +185,7 @@ any?(predicate, xs) =
 
 * `some(value)` when the index exists
 * `none("index-out-of-bounds")` when the index is missing"""
+@category "list"
 nth(n, xs) = nth_impl(n, xs, 0, length(xs))
 nth_impl(target, xs, current, size) =
   (target, _, _, size) ? target < 0 -> none("index-out-of-bounds", { index: target, length: size }) |
@@ -186,9 +204,11 @@ nth_impl(target, xs, current, size) =
 
 * `some(value)` when the index exists
 * `none("index-out-of-bounds")` when the index is missing"""
+@category "list"
 nth_opt(n, xs) = nth(n, xs)
 
 @doc "Take the first `n` items from a list."
+@category "list"
 take(n, xs) = take_acc(n, xs, [])
 take_acc(n, xs, acc) =
   (_, [], acc) -> acc |
@@ -197,11 +217,14 @@ take_acc(n, xs, acc) =
   (_, xs, _) -> _seq_type_error("take", xs)
 
 @doc "Convenience alias for `take`."
+@category "list"
 head(xs) = take(1, xs)
 @doc "Convenience alias for `take`."
+@category "list"
 head(n, xs) = take(n, xs)
 
 @doc "Drop the first `n` items from a list."
+@category "list"
 drop(n, xs) =
   (_, []) -> [] |
   (0, xs) -> xs |
@@ -209,8 +232,10 @@ drop(n, xs) =
   (_, xs) -> _seq_type_error("drop", xs)
 
 @doc "Build a numeric range."
+@category "list"
 range(stop) = range(0, stop - 1, 1)
 @doc "Build a numeric range."
+@category "list"
 range(start, stop) = range(start, stop, 1)
 @doc "Build a numeric range."
 range(start, stop, step) = range_acc(start, stop, step, [])

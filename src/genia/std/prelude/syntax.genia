@@ -8,12 +8,15 @@
 
 * `true` for numbers, strings, booleans, `nil`, and `none`
 * `false` otherwise"""
+@category "syntax"
 self_evaluating?(expr) = _syntax_self_evaluating(expr)
 
 @doc "Check whether a quoted expression is a symbol/variable expression."
+@category "syntax"
 symbol_expr?(expr) = _syntax_symbol_expr(expr)
 
 @doc "Check whether `expr` is a pair chain whose first item equals `tag`."
+@category "syntax"
 tagged_list?(expr, tag) = tagged_list_impl(expr, tag)
 
 tagged_list_impl(expr, tag) =
@@ -21,42 +24,55 @@ tagged_list_impl(expr, tag) =
   (_, _) -> false
 
 @doc "Check whether `expr` is a quoted form `(quote ...)`."
+@category "syntax"
 quoted_expr?(expr) = tagged_list?(expr, quote(quote))
 
 @doc "Check whether `expr` is a quasiquoted form `(quasiquote ...)`."
+@category "syntax"
 quasiquoted_expr?(expr) = tagged_list?(expr, quote(quasiquote))
 
 @doc "Check whether `expr` is an assignment form `(assign name value)`."
+@category "syntax"
 assignment_expr?(expr) = tagged_list?(expr, quote(assign))
 
 @doc "Check whether `expr` is a lambda form."
+@category "syntax"
 lambda_expr?(expr) = tagged_list?(expr, quote(lambda))
 
 @doc "Check whether `expr` is a quoted application form `(app operator operand1 operand2 ...)`."
+@category "syntax"
 application_expr?(expr) = tagged_list?(expr, quote(app))
 
 @doc "Check whether `expr` is a block form `(block ...)`."
+@category "syntax"
 block_expr?(expr) = tagged_list?(expr, quote(block))
 
 @doc "Check whether `expr` is a quoted pattern-match form `(match ...)`."
+@category "syntax"
 match_expr?(expr) = tagged_list?(expr, quote(match))
 
 @doc "Return the quoted branch sequence of a match expression."
+@category "syntax"
 match_branches(expr) = cdr(syntax_expect_tagged(expr, quote(match), "match_branches", "a match expression"))
 
 @doc "Return the quoted pattern of a match branch."
+@category "syntax"
 branch_pattern(branch) = syntax_pair_nth(syntax_expect_match_branch(branch, "branch_pattern"), 1, "branch_pattern")
 
 @doc "Check whether a quoted match branch carries a guard expression."
+@category "syntax"
 branch_has_guard?(branch) = syntax_match_branch_size(branch, "branch_has_guard?") == 3
 
 @doc "Return the quoted guard of a guarded match branch."
+@category "syntax"
 branch_guard(branch) = branch_guard_from_size(syntax_match_branch_size(branch, "branch_guard"), branch)
 
 @doc "Return the quoted result/body expression of a match branch."
+@category "syntax"
 branch_body(branch) = branch_body_from_size(syntax_match_branch_size(branch, "branch_body"), branch)
 
 @doc "Return the contents of a quoted form."
+@category "syntax"
 text_of_quotation(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(quote), "text_of_quotation", "a quoted expression"),
   1,
@@ -64,6 +80,7 @@ text_of_quotation(expr) = syntax_pair_nth(
 )
 
 @doc "Return the assigned symbol from a quoted assignment expression."
+@category "syntax"
 assignment_name(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(assign), "assignment_name", "an assignment expression"),
   1,
@@ -71,6 +88,7 @@ assignment_name(expr) = syntax_pair_nth(
 )
 
 @doc "Return the value expression from a quoted assignment expression."
+@category "syntax"
 assignment_value(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(assign), "assignment_value", "an assignment expression"),
   2,
@@ -78,6 +96,7 @@ assignment_value(expr) = syntax_pair_nth(
 )
 
 @doc "Return the quoted lambda parameter structure."
+@category "syntax"
 lambda_params(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(lambda), "lambda_params", "a lambda expression"),
   1,
@@ -85,6 +104,7 @@ lambda_params(expr) = syntax_pair_nth(
 )
 
 @doc "Return the quoted lambda body."
+@category "syntax"
 lambda_body(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(lambda), "lambda_body", "a lambda expression"),
   2,
@@ -92,6 +112,7 @@ lambda_body(expr) = syntax_pair_nth(
 )
 
 @doc "Return the operator/callee part of a quoted application expression."
+@category "syntax"
 operator(expr) = syntax_pair_nth(
   syntax_expect_tagged(expr, quote(app), "operator", "an application expression"),
   1,
@@ -99,6 +120,7 @@ operator(expr) = syntax_pair_nth(
 )
 
 @doc "Return the operand tail of a quoted application expression as a pair-chain sequence."
+@category "syntax"
 operands(expr) = syntax_pair_rest(
   syntax_expect_tagged(expr, quote(app), "operands", "an application expression"),
   1,
@@ -106,6 +128,7 @@ operands(expr) = syntax_pair_rest(
 )
 
 @doc "Return the tail of a quoted block expression as a pair-chain sequence of subexpressions."
+@category "syntax"
 block_expressions(expr) = cdr(syntax_expect_tagged(expr, quote(block), "block_expressions", "a block expression"))
 
 syntax_expect_tagged(expr, tag, name, expected) =

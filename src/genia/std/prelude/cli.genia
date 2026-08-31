@@ -4,6 +4,7 @@
 - `argv()` remains the raw host-backed CLI primitive
 - parsing semantics live in prelude in this phase
 """
+@category "cli"
 cli_parse(args) = cli_parse_from(args, _cli_spec(nil), map_new(), [], true)
 
 @doc """Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags` / `options` / `aliases` spec map.
@@ -12,15 +13,19 @@ cli_parse(args) = cli_parse_from(args, _cli_spec(nil), map_new(), [], true)
 - `argv()` remains the raw host-backed CLI primitive
 - parsing semantics live in prelude in this phase
 """
+@category "cli"
 cli_parse(args, spec) = cli_parse_from(args, _cli_spec(spec), map_new(), [], true)
 
 @doc "Check whether parsed options contain a truthy flag value."
+@category "cli"
 cli_flag?(opts, name) = _cli_flag?(opts, name)
 
 @doc """Return a parsed option value or `none("missing-key", {key: name})` when absent."""
+@category "cli"
 cli_option(opts, name) = _cli_option(opts, name)
 
 @doc "Return a parsed option value or `default` when the option is missing."
+@category "cli"
 cli_option_or(opts, name, default) = _cli_option_or(opts, name, default)
 
 cli_parse_from(args, spec, opts, positionals_rev, parsing_options) =

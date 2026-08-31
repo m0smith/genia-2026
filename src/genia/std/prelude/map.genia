@@ -1,45 +1,111 @@
 @doc "Create an empty persistent map value."
+@category "map"
 map_new(..xs) = _map_new(..xs)
 
 @doc """Return the stored value for `key`, or `none("missing-key", {key: key})` when absent.
 
 Prefer `get(key, map)` for maybe-aware lookup in new code.
+
+## Arguments
+- `map`: the map to look up in
+- `key`: the key to find
+
+## Returns
+- the stored value when `key` is present
+- `none("missing-key", {key: key})` when `key` is absent
 """
+@category "map"
 map_get(map, key) = _map_get(map, key)
 
-@doc "Return a new map with `key` set to `value`."
+@doc """Return a new map with `key` set to `value`.
+
+## Arguments
+- `map`: the source map (returned unchanged)
+- `key`: the key to set
+- `value`: the value to associate with `key`
+
+## Returns
+- a new map with `key` mapped to `value`
+"""
+@category "map"
 map_put(map, key, value) = _map_put(map, key, value)
 
-@doc "Check whether a map contains `key`."
+@doc """Report whether a map contains `key`.
+
+## Arguments
+- `map`: the map to check
+- `key`: the key to look for
+
+## Returns
+- `true` when `key` is present, otherwise `false`
+"""
+@category "map"
 map_has?(map, key) = _map_has?(map, key)
 
-@doc "Return a new map with `key` removed."
+@doc """Return a new map with `key` removed.
+
+## Arguments
+- `map`: the source map (returned unchanged)
+- `key`: the key to remove
+
+## Returns
+- a new map without `key`
+"""
+@category "map"
 map_remove(map, key) = _map_remove(map, key)
 
 @doc "Return the number of entries in a map."
+@category "map"
 map_count(map) = _map_count(map)
 
-@doc "Return the entries in a map."
+@doc """Return the entries of a map as a list of `[key, value]` pairs.
+
+## Arguments
+- `map`: the map whose entries to return
+
+## Returns
+- a list of `[key, value]` pairs, one per entry
+"""
+@category "map"
 map_items(map) = _map_items(map)
 
 @doc "Return the key from a map item `[key, value]` pair."
+@category "map"
 map_item_key(mi) = [k, _] -> k
 
 @doc "Return the value from a map item `[key, value]` pair."
+@category "map"
 map_item_value(mi) = [_, v] -> v
 
 @doc "Return a list of all keys in a map."
+@category "map"
 map_keys(m) = map(map_item_key, map_items(m))
 
 @doc "Return a list of all values in a map."
+@category "map"
 map_values(m) = map(map_item_value, map_items(m))
 
 @doc """Zip two lists into a list of `[x, y]` pairs, bounded by the shorter input.
 
-    pairs([1, 2], [3, 4])  # => [[1, 3], [2, 4]]
-    pairs([1], [10, 20])   # => [[1, 10]]
-    pairs([], [1, 2])      # => []
+## Arguments
+- `xs`: the first list; supplies the `x` of each pair
+- `ys`: the second list; supplies the `y` of each pair
+
+## Returns
+- a list of `[x, y]` pairs, one per index up to the length of the shorter list
+- `[]` when either list is empty
+
+## Errors
+- rejects an argument that is not a list
+
+## Examples
+```genia
+pairs([1, 2], [3, 4])  # => [[1, 3], [2, 4]]
+pairs([1], [10, 20])   # => [[1, 10]]
+pairs([], [1, 2])      # => []
+```
 """
+@category "map"
 pairs(xs, ys) = pairs_checked(xs, ys, pairs_list?(xs), pairs_list?(ys))
 
 pairs_list?(xs) =

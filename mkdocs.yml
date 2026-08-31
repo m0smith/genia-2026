@@ -63,3 +63,245 @@ nav:
       - Capabilities: host-interop/capabilities.md
       - Capability Registry Design: host-interop/capability-registry-design.md
       - Capability Registry Spec: host-interop/capability-registry-spec.md
+  # >>> BEGIN generated function reference (tools/gen_function_docs.py) >>>
+  - Function Reference:
+      - Overview: reference/index.md
+      - actor:
+          - "actor": reference/functions/actor.md
+          - "actor_alive?": reference/functions/actor_alive-p.md
+          - "actor_call": reference/functions/actor_call.md
+          - "actor_error": reference/functions/actor_error.md
+          - "actor_failed?": reference/functions/actor_failed-p.md
+          - "actor_restart": reference/functions/actor_restart.md
+          - "actor_send": reference/functions/actor_send.md
+          - "actor_state": reference/functions/actor_state.md
+          - "actor_status": reference/functions/actor_status.md
+          - "actor_stop": reference/functions/actor_stop.md
+      - awk:
+          - "awk_count": reference/functions/awk_count.md
+          - "awk_filter": reference/functions/awk_filter.md
+          - "awk_map": reference/functions/awk_map.md
+          - "awkify": reference/functions/awkify.md
+          - "fields": reference/functions/fields.md
+      - cell:
+          - "cell": reference/functions/cell.md
+          - "cell_alive?": reference/functions/cell_alive-p.md
+          - "cell_error": reference/functions/cell_error.md
+          - "cell_failed?": reference/functions/cell_failed-p.md
+          - "cell_get": reference/functions/cell_get.md
+          - "cell_send": reference/functions/cell_send.md
+          - "cell_state": reference/functions/cell_state.md
+          - "cell_status": reference/functions/cell_status.md
+          - "cell_stop": reference/functions/cell_stop.md
+          - "cell_with_state": reference/functions/cell_with_state.md
+          - "restart_cell": reference/functions/restart_cell.md
+      - cli:
+          - "cli_flag?": reference/functions/cli_flag-p.md
+          - "cli_option": reference/functions/cli_option.md
+          - "cli_option_or": reference/functions/cli_option_or.md
+          - "cli_parse": reference/functions/cli_parse.md
+      - eval:
+          - "define": reference/functions/define.md
+          - "empty_env": reference/functions/empty_env.md
+          - "eval": reference/functions/eval.md
+          - "extend": reference/functions/extend.md
+          - "lookup": reference/functions/lookup.md
+          - "set": reference/functions/set.md
+      - file:
+          - "read_file": reference/functions/read_file.md
+          - "write_file": reference/functions/write_file.md
+          - "zip_read": reference/functions/zip_read.md
+          - "zip_write": reference/functions/zip_write.md
+      - flow:
+          - "as_seq": reference/functions/as_seq.md
+          - "collect": reference/functions/collect.md
+          - "each": reference/functions/each.md
+          - "evolve": reference/functions/evolve.md
+          - "keep_some": reference/functions/keep_some.md
+          - "keep_some_else": reference/functions/keep_some_else.md
+          - "lines": reference/functions/lines.md
+          - "merge": reference/functions/merge.md
+          - "refine": reference/functions/refine.md
+          - "rule_ctx": reference/functions/rule_ctx.md
+          - "rule_emit": reference/functions/rule_emit.md
+          - "rule_emit_many": reference/functions/rule_emit_many.md
+          - "rule_halt": reference/functions/rule_halt.md
+          - "rule_set": reference/functions/rule_set.md
+          - "rule_skip": reference/functions/rule_skip.md
+          - "rule_step": reference/functions/rule_step.md
+          - "rules": reference/functions/rules.md
+          - "run": reference/functions/run.md
+          - "scan": reference/functions/scan.md
+          - "step_ctx": reference/functions/step_ctx.md
+          - "step_emit": reference/functions/step_emit.md
+          - "step_emit_many": reference/functions/step_emit_many.md
+          - "step_halt": reference/functions/step_halt.md
+          - "step_set": reference/functions/step_set.md
+          - "step_skip": reference/functions/step_skip.md
+          - "step_step": reference/functions/step_step.md
+          - "tee": reference/functions/tee.md
+          - "zip": reference/functions/zip.md
+      - fn:
+          - "apply": reference/functions/apply.md
+          - "compose": reference/functions/compose.md
+          - "inspect": reference/functions/inspect.md
+          - "tap": reference/functions/tap.md
+          - "trace": reference/functions/trace.md
+      - io:
+          - "clear_screen": reference/functions/clear_screen.md
+          - "flush": reference/functions/flush.md
+          - "move_cursor": reference/functions/move_cursor.md
+          - "render_grid": reference/functions/render_grid.md
+          - "write": reference/functions/write.md
+          - "writeln": reference/functions/writeln.md
+      - json:
+          - "json_decode": reference/functions/json_decode.md
+          - "json_encode": reference/functions/json_encode.md
+          - "json_parse": reference/functions/json_parse.md
+          - "json_pretty": reference/functions/json_pretty.md
+          - "json_schema": reference/functions/json_schema.md
+          - "json_stringify": reference/functions/json_stringify.md
+          - "parse_csv_row": reference/functions/parse_csv_row.md
+          - "parse_jsonl_record": reference/functions/parse_jsonl_record.md
+      - list:
+          - "any?": reference/functions/any-p.md
+          - "append": reference/functions/append.md
+          - "count": reference/functions/count.md
+          - "drop": reference/functions/drop.md
+          - "empty?": reference/functions/empty-p.md
+          - "filter": reference/functions/filter.md
+          - "find_opt": reference/functions/find_opt.md
+          - "first": reference/functions/first.md
+          - "first_opt": reference/functions/first_opt.md
+          - "head": reference/functions/head.md
+          - "last": reference/functions/last.md
+          - "length": reference/functions/length.md
+          - "list": reference/functions/list.md
+          - "map": reference/functions/map.md
+          - "nil?": reference/functions/nil-p.md
+          - "nth": reference/functions/nth.md
+          - "nth_opt": reference/functions/nth_opt.md
+          - "range": reference/functions/range.md
+          - "reduce": reference/functions/reduce.md
+          - "rest": reference/functions/rest.md
+          - "reverse": reference/functions/reverse.md
+          - "take": reference/functions/take.md
+      - map:
+          - "map_count": reference/functions/map_count.md
+          - "map_get": reference/functions/map_get.md
+          - "map_has?": reference/functions/map_has-p.md
+          - "map_item_key": reference/functions/map_item_key.md
+          - "map_item_value": reference/functions/map_item_value.md
+          - "map_items": reference/functions/map_items.md
+          - "map_keys": reference/functions/map_keys.md
+          - "map_new": reference/functions/map_new.md
+          - "map_put": reference/functions/map_put.md
+          - "map_remove": reference/functions/map_remove.md
+          - "map_values": reference/functions/map_values.md
+          - "pairs": reference/functions/pairs.md
+      - math:
+          - "abs": reference/functions/abs.md
+          - "dec": reference/functions/dec.md
+          - "inc": reference/functions/inc.md
+          - "max": reference/functions/max.md
+          - "min": reference/functions/min.md
+          - "mod": reference/functions/mod.md
+          - "sum": reference/functions/sum.md
+      - option:
+          - "absence_context": reference/functions/absence_context.md
+          - "absence_meta": reference/functions/absence_meta.md
+          - "absence_reason": reference/functions/absence_reason.md
+          - "err": reference/functions/err.md
+          - "flat_map_some": reference/functions/flat_map_some.md
+          - "get": reference/functions/get.md
+          - "get?": reference/functions/get-p.md
+          - "is_none?": reference/functions/is_none-p.md
+          - "is_some?": reference/functions/is_some-p.md
+          - "map_some": reference/functions/map_some.md
+          - "none?": reference/functions/none-p.md
+          - "or_else": reference/functions/or_else.md
+          - "or_else_with": reference/functions/or_else_with.md
+          - "some": reference/functions/some.md
+          - "some?": reference/functions/some-p.md
+          - "then_find": reference/functions/then_find.md
+          - "then_first": reference/functions/then_first.md
+          - "then_get": reference/functions/then_get.md
+          - "then_nth": reference/functions/then_nth.md
+          - "unwrap_or": reference/functions/unwrap_or.md
+      - process:
+          - "process_alive?": reference/functions/process_alive-p.md
+          - "send": reference/functions/send.md
+          - "spawn": reference/functions/spawn.md
+      - random:
+          - "rand": reference/functions/rand.md
+          - "rand_flow": reference/functions/rand_flow.md
+          - "rand_int": reference/functions/rand_int.md
+          - "rand_int_flow": reference/functions/rand_int_flow.md
+          - "rng": reference/functions/rng.md
+      - ref:
+          - "ref": reference/functions/ref.md
+          - "ref_get": reference/functions/ref_get.md
+          - "ref_is_set": reference/functions/ref_is_set.md
+          - "ref_set": reference/functions/ref_set.md
+          - "ref_update": reference/functions/ref_update.md
+      - stream:
+          - "stream_cons": reference/functions/stream_cons.md
+          - "stream_filter": reference/functions/stream_filter.md
+          - "stream_head": reference/functions/stream_head.md
+          - "stream_map": reference/functions/stream_map.md
+          - "stream_tail": reference/functions/stream_tail.md
+          - "stream_take": reference/functions/stream_take.md
+      - string:
+          - "byte_length": reference/functions/byte_length.md
+          - "concat": reference/functions/concat.md
+          - "contains": reference/functions/contains.md
+          - "ends_with": reference/functions/ends_with.md
+          - "find": reference/functions/find.md
+          - "format": reference/functions/format.md
+          - "format_compose": reference/functions/format_compose.md
+          - "is_empty": reference/functions/is_empty.md
+          - "join": reference/functions/join.md
+          - "lower": reference/functions/lower.md
+          - "parse_int": reference/functions/parse_int.md
+          - "split": reference/functions/split.md
+          - "split_whitespace": reference/functions/split_whitespace.md
+          - "starts_with": reference/functions/starts_with.md
+          - "trim": reference/functions/trim.md
+          - "trim_end": reference/functions/trim_end.md
+          - "trim_start": reference/functions/trim_start.md
+          - "upper": reference/functions/upper.md
+      - syntax:
+          - "application_expr?": reference/functions/application_expr-p.md
+          - "assignment_expr?": reference/functions/assignment_expr-p.md
+          - "assignment_name": reference/functions/assignment_name.md
+          - "assignment_value": reference/functions/assignment_value.md
+          - "block_expr?": reference/functions/block_expr-p.md
+          - "block_expressions": reference/functions/block_expressions.md
+          - "branch_body": reference/functions/branch_body.md
+          - "branch_guard": reference/functions/branch_guard.md
+          - "branch_has_guard?": reference/functions/branch_has_guard-p.md
+          - "branch_pattern": reference/functions/branch_pattern.md
+          - "lambda_body": reference/functions/lambda_body.md
+          - "lambda_expr?": reference/functions/lambda_expr-p.md
+          - "lambda_params": reference/functions/lambda_params.md
+          - "match_branches": reference/functions/match_branches.md
+          - "match_expr?": reference/functions/match_expr-p.md
+          - "operands": reference/functions/operands.md
+          - "operator": reference/functions/operator.md
+          - "quasiquoted_expr?": reference/functions/quasiquoted_expr-p.md
+          - "quoted_expr?": reference/functions/quoted_expr-p.md
+          - "self_evaluating?": reference/functions/self_evaluating-p.md
+          - "symbol_expr?": reference/functions/symbol_expr-p.md
+          - "tagged_list?": reference/functions/tagged_list-p.md
+          - "text_of_quotation": reference/functions/text_of_quotation.md
+      - validation:
+          - "diagnostic_error": reference/functions/diagnostic_error.md
+          - "diagnostic_field": reference/functions/diagnostic_field.md
+          - "diagnostic_reason": reference/functions/diagnostic_reason.md
+          - "diagnostic_skipped": reference/functions/diagnostic_skipped.md
+          - "validate_each": reference/functions/validate_each.md
+          - "validate_field": reference/functions/validate_field.md
+          - "validate_optional": reference/functions/validate_optional.md
+          - "validate_record": reference/functions/validate_record.md
+          - "validate_required": reference/functions/validate_required.md
+  # <<< END generated function reference <<<

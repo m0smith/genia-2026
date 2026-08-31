@@ -7,12 +7,15 @@
 ## Returns
 - pair whose tail is a delayed promise
 """
+@category "stream"
 stream_cons(head, tail_fn) = cons(head, delay(tail_fn()))
 
 @doc "Return the head value of a stream pair."
+@category "stream"
 stream_head(s) = car(s)
 
 @doc "Force and return the tail of a stream pair."
+@category "stream"
 stream_tail(s) = force(cdr(s))
 
 @doc """Lazily map a function over a stream.
@@ -24,6 +27,7 @@ stream_tail(s) = force(cdr(s))
 ## Returns
 - new lazy stream
 """
+@category "stream"
 stream_map(f, s) = stream_map_impl(f, s)
 stream_map_impl(f, s) =
   (_, nil) -> nil |
@@ -38,6 +42,7 @@ stream_map_impl(f, s) =
 ## Returns
 - list of the first `n` elements, or fewer if the stream ends at `nil`
 """
+@category "stream"
 stream_take(n, s) = stream_take_acc(n, s, [])
 stream_take_acc(n, s, acc) =
   (n, _, acc) ? n == 0 -> acc |
@@ -53,6 +58,7 @@ stream_take_acc(n, s, acc) =
 ## Returns
 - new lazy stream
 """
+@category "stream"
 stream_filter(pred, s) = stream_filter_impl(pred, s)
 stream_filter_impl(pred, s) =
   (_, nil) -> nil |

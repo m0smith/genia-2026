@@ -114,7 +114,7 @@ def test_help_autoloads_option_wrapper_docstring():
     run_source('help("get")\n', env, filename="help_option.genia")
     out = "".join(outputs)
     assert "get/2" in out
-    assert "Canonical maybe-aware lookup helper" in out
+    assert "Look up `key` in a map target, returning an absence-aware Option." in out
 
 
 def test_help_autoloads_string_wrapper_docstring():
@@ -195,7 +195,7 @@ def test_help_autoloads_keep_some_else_flow_wrapper_docstring():
     run_source('help("keep_some_else")\n', env, filename="help_keep_some_else.genia")
     out = "".join(outputs)
     assert "keep_some_else/2, 3" in out
-    assert "dead-letter routing for Flow pipelines" in out
+    assert "routing failures to `dead_handler`" in out
 
 
 def test_help_autoloads_keep_some_flow_wrapper_docstring():
@@ -213,7 +213,7 @@ def test_help_autoloads_rules_wrapper_docstring():
     run_source('help("rules")\n', env, filename="help_rules.genia")
     out = "".join(outputs)
     assert "rules/0+" in out
-    assert "Rule orchestration, defaulting, and contract validation live in prelude" in out
+    assert "Apply rule functions left-to-right to each incoming flow item." in out
 
 
 def test_help_autoloads_cli_wrapper_docstring():

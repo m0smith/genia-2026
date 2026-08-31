@@ -19,6 +19,7 @@ DOC_DIRS = [
     "docs/style",
     "docs/design",
     "docs/releases",
+    "docs/reference",
 ]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
