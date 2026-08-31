@@ -57,6 +57,7 @@ def _finish_server(thread: threading.Thread, outcome: dict[str, object]):
     return outcome["result"]
 
 
+@pytest.mark.loopback
 def test_serve_http_plain_text_response():
     port = _free_port()
     env = make_global_env([])
@@ -89,6 +90,7 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+@pytest.mark.loopback
 def test_serve_http_json_response_and_request_body_parsing():
     port = _free_port()
     env = make_global_env([])
@@ -137,6 +139,7 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+@pytest.mark.loopback
 def test_serve_http_emits_headers_composed_by_with_headers():
     port = _free_port()
     env = make_global_env([])
@@ -176,6 +179,7 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+@pytest.mark.loopback
 def test_serve_http_cors_preflight_then_json_request():
     port = _free_port()
     env = make_global_env([])
@@ -285,6 +289,7 @@ def test_with_headers_validation_stops_at_first_contract_error():
         run_source("import web\nweb.with_headers([], [])", env, filename="<with-headers-order>")
 
 
+@pytest.mark.loopback
 def test_serve_http_request_map_includes_client_and_raw_text_body():
     port = _free_port()
     env = make_global_env([])
@@ -335,6 +340,7 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+@pytest.mark.loopback
 def test_serve_http_json_body_parse_failure_stays_in_request_body_as_absence():
     port = _free_port()
     env = make_global_env([])
@@ -381,6 +387,7 @@ serve_http(
     assert result.get("handled_requests") == 1
 
 
+@pytest.mark.loopback
 def test_serve_http_route_request_returns_not_found_response():
     port = _free_port()
     env = make_global_env([])
@@ -412,6 +419,7 @@ serve_http(
     assert body == "not found"
 
 
+@pytest.mark.loopback
 def test_serve_http_invalid_handler_result_returns_500():
     port = _free_port()
     env = make_global_env([])
@@ -442,6 +450,7 @@ serve_http(
     assert body == "internal server error"
 
 
+@pytest.mark.loopback
 def test_http_service_example_runs_health_endpoint():
     port = _free_port()
     source_path = Path("examples/http_service.genia")

@@ -161,6 +161,7 @@ def test_ants_web_static_assets_are_small_browser_ui():
     assert result == [True, True, True, True]
 
 
+@pytest.mark.loopback
 def test_ants_web_http_routes_serve_assets_and_state_updates():
     port = _free_port()
     env = make_global_env([])
