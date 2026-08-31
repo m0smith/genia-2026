@@ -12,6 +12,6 @@ Each row may be a string or a list of displayable values.
 
 ---
 
-_Source: `std/prelude/io.genia` &middot; category `io`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/io.genia` &middot; category `io`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

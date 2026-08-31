@@ -309,8 +309,8 @@ The public surface must be fully documented. Two coverage rules run over the sou
 `@doc` string, so ordinary `lint_doc(text)` behavior is unchanged.
 
 - **DOC008 (error):** every public binding must carry a `@doc`. "Public" = a name
-  exported by an autoloaded prelude module, or a non-`internal` host builtin once the
-  host doc registry lands. Internal helpers (e.g. `*_impl`) and names marked
+  exported by an autoloaded prelude module, or a non-`internal` host builtin in the
+  canonical Python-host registry. Internal helpers (e.g. `*_impl`) and names marked
   `stability: "internal"` are exempt.
 - **DOC009 (error):** every public `@doc` must be paired with `@category`.
 
@@ -321,5 +321,6 @@ The public surface must be fully documented. Two coverage rules run over the sou
 python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
 ```
 
-Rollout is phased: coverage is enforced on the prelude surface first; host builtins join
-the gate when their doc registry is added.
+Coverage is enforced over both the registered prelude surface and the non-internal
+Python-host builtin registry. The generated function reference consumes the same two
+surfaces; generated pages are not a documentation source.

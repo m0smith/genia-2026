@@ -24,6 +24,6 @@ Raises if the actor has already failed or stopped.
 
 ---
 
-_Source: `std/prelude/actor.genia` &middot; category `actor`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/actor.genia` &middot; category `actor`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

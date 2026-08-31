@@ -14,6 +14,6 @@ Returns `path` on success or `none("zip-write-error", context)` on failure.
 
 ---
 
-_Source: `std/prelude/file.genia` &middot; category `file`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/file.genia` &middot; category `file`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

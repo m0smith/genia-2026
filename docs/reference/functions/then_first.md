@@ -21,6 +21,6 @@ Take the first element of a list target within a pipeline, as an Option.
 
 ---
 
-_Source: `std/prelude/option.genia` &middot; category `option`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/option.genia` &middot; category `option`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

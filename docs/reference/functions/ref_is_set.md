@@ -10,6 +10,6 @@ Check whether a ref currently holds a value.
 
 ---
 
-_Source: `std/prelude/ref.genia` &middot; category `ref`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/ref.genia` &middot; category `ref`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

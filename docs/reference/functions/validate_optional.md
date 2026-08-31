@@ -25,6 +25,6 @@ Validate an optional record field and return an Outcome.
 
 ---
 
-_Source: `std/prelude/validation.genia` &middot; category `validation`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/validation.genia` &middot; category `validation`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

@@ -225,8 +225,13 @@ Implemented today:
 - CLI modes:
   - inline: `python tools/lint_doc.py "doc string"`
   - file: `python tools/lint_doc.py --file path.genia`
-  - directory scan: `python tools/lint_doc.py --scan-dir dir/`
+- directory scan: `python tools/lint_doc.py --scan-dir dir/`
   - all modes support `--json` for machine-readable output
+- `--require-coverage` derives the public surface from registered prelude autoloads
+  plus the canonical non-internal Python-host builtin registry
+- DOC008 requires canonical documentation for every derived public binding;
+  DOC009 requires its category; registry entries with `stability: "internal"`
+  are excluded
 - file/scan modes extract binding names and include them in output
 - `--scan-dir` prints a summary (files scanned, doc count, error/warning counts) to stderr
 
@@ -2618,7 +2623,15 @@ Core IR shape currently includes:
   - the overview keeps only a small host-written scaffold; public family names are grouped from registered prelude autoloads
   - all autoloaded prelude families (including Actor) are discovered dynamically from the autoload registry
   - `@doc` metadata is the primary source of truth for help content; legacy inline docstrings serve as fallback only
-- `help("name")` for a string that resolves to a non-Genia host-backed runtime name prints a generic bridge note instead of maintaining a separate raw-host documentation registry
+- public Python-host callables have one canonical registry in
+  `src/genia/host_builtin_docs.py`; environment construction attaches its `doc`,
+  `category`, and `stability` metadata through the existing binding path
+- `help("name")` and `doc("name")` expose that canonical metadata for registered
+  public host callables; internal bridges carry `stability: "internal"` in the
+  registry and are excluded from public coverage and generated reference output
+- `tools/gen_function_docs.py` generates the deterministic union of documented
+  prelude autoloads and registered public Python-host callables; generated pages
+  are outputs rather than a second documentation source
 - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
 
 ### Native test layer boundaries (Python reference host, Experimental)

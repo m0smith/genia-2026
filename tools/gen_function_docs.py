@@ -159,6 +159,15 @@ def collect():
             "summary": summary,
             "source_kind": "python-host",
         })
+    by_slug = collections.defaultdict(list)
+    for record in records:
+        by_slug[record["slug"].casefold()].append(record)
+    for collision in by_slug.values():
+        if len(collision) < 2:
+            continue
+        for record in collision:
+            if record["source_kind"] == "python-host":
+                record["slug"] += "-host"
     records.sort(key=lambda r: r["name"].lower())
     return records
 

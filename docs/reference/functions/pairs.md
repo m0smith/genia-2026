@@ -28,6 +28,6 @@ pairs([], [1, 2])      # => []
 
 ---
 
-_Source: `std/prelude/map.genia` &middot; category `map`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/map.genia` &middot; category `map`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

@@ -78,6 +78,7 @@ def test_generator_collects_public_host_entries_and_excludes_internal_entries():
     by_name = {record["name"]: record for record in records}
     assert by_name["print"]["source_kind"] == "python-host"
     assert by_name["parse_int"]["source_kind"] == "prelude"
+    assert by_name["Format"]["slug"].casefold() != by_name["format"]["slug"].casefold()
     assert "_parse_int" not in by_name
     assert "_seq_transform" not in by_name
     assert len(by_name) == len(records)

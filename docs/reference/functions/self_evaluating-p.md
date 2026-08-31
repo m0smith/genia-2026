@@ -19,6 +19,6 @@ Check whether a quoted expression is self-evaluating.
 
 ---
 
-_Source: `std/prelude/syntax.genia` &middot; category `syntax`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/syntax.genia` &middot; category `syntax`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

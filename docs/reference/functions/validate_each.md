@@ -32,6 +32,6 @@ Apply a validator to each item in a list or Flow and return Outcomes.
 
 ---
 
-_Source: `std/prelude/validation.genia` &middot; category `validation`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/validation.genia` &middot; category `validation`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

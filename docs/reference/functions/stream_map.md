@@ -17,6 +17,6 @@ Lazily map a function over a stream.
 
 ---
 
-_Source: `std/prelude/stream.genia` &middot; category `stream`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/stream.genia` &middot; category `stream`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)
