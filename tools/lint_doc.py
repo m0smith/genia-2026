@@ -527,6 +527,25 @@ def lint_file_coverage(path: str, public_names: Optional[set] = None) -> List[di
     return out
 
 
+def _runtime_public_prelude_names() -> set:
+    """Return the public names autoloaded from the standard prelude."""
+    try:
+        from genia.builtins import make_global_env
+
+        autoloads = make_global_env([]).root().autoloads
+    except (ImportError, ModuleNotFoundError) as exc:
+        raise RuntimeError(
+            "cannot derive public prelude names because the genia package "
+            "could not be imported"
+        ) from exc
+
+    return {
+        name_arity[0]
+        for name_arity, path in autoloads.items()
+        if path.startswith("std/prelude/")
+    }
+
+
 def _finding_to_dict(f: LintFinding) -> dict:
     """Convert a LintFinding to a JSON-serializable dict."""
     d: dict = {"rule_id": f.rule_id, "severity": f.severity.value, "message": f.message}
@@ -643,6 +662,12 @@ def main(argv: Optional[List[str]] = None) -> int:
         with open(_pn_path, encoding="utf-8") as _pf:
             public_names = {ln.strip() for ln in _pf if ln.strip()}
         del args[_i:_i + 2]
+    elif require_coverage:
+        try:
+            public_names = _runtime_public_prelude_names()
+        except RuntimeError as exc:
+            print(f"Error: {exc}.", file=sys.stderr)
+            return 1
     args = [a for a in args if a not in ("--json", "--require-coverage")]
 
     if args[0] == "--scan-dir":

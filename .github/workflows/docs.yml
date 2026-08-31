@@ -45,6 +45,12 @@ jobs:
       - name: Validate docs and semantic sync
         run: uv run pytest -q tests/doc/test_semantic_doc_sync.py tests/unit/test_doc_style_sync.py tests/unit/test_cheatsheet_*.py
 
+      - name: Check function reference is current
+        run: uv run python tools/gen_function_docs.py --check
+
+      - name: Doc coverage + style lint
+        run: uv run python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
+
       - name: Build docs
         run: uv run mkdocs build --strict
 
@@ -66,3 +72,27 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Check out repository for wiki publish
+        if: ${{ secrets.WIKI_TOKEN != '' }}
+        uses: actions/checkout@v6
+
+      - name: Set up Python for wiki publish
+        if: ${{ secrets.WIKI_TOKEN != '' }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv for wiki publish
+        if: ${{ secrets.WIKI_TOKEN != '' }}
+        uses: astral-sh/setup-uv@v7
+
+      - name: Sync dependencies for wiki publish
+        if: ${{ secrets.WIKI_TOKEN != '' }}
+        run: uv sync --dev
+
+      - name: Publish function reference to GitHub Wiki
+        if: ${{ secrets.WIKI_TOKEN != '' }}
+        env:
+          WIKI_REMOTE: https://x-access-token:${{ secrets.WIKI_TOKEN }}@github.com/${{ github.repository }}.wiki.git
+        run: uv run tools/publish_wiki.sh

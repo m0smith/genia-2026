@@ -369,6 +369,19 @@ When editing SICP chapters, agents must:
 
 ## `@doc` Style Validation Rule
 
+`docs/style/doc-style.md` §11–§12 is the source of truth for public function
+metadata and documentation coverage. Every public prelude function must carry
+both `@doc` and `@category`.
+
+When a public prelude function is added, or its `@doc` or `@meta` changes,
+agents must run `python tools/gen_function_docs.py` in the same change and
+commit the resulting `docs/reference/**` pages and `mkdocs.yml` navigation.
+CI enforces both `tools/gen_function_docs.py --check` and
+`tools/lint_doc.py --require-coverage`.
+
+The GitHub Wiki function reference is a generated mirror published by
+`tools/publish_wiki.sh`. Never edit the generated Wiki pages by hand.
+
 When editing any of these files:
 
 * `docs/style/doc-style.md`
