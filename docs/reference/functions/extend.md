@@ -14,6 +14,6 @@ Create a child metacircular environment with lambda parameters bound to argument
 
 ---
 
-_Source: `std/prelude/eval.genia` &middot; category `eval`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/eval.genia` &middot; category `eval`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

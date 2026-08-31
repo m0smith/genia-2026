@@ -152,7 +152,9 @@ CLI contract summary (actual behavior):
   - lambdas do not support docstrings
   - `help(name)` renders docstrings as lightweight Markdown text (headings, lists, inline code, fenced code blocks)
   - `help()` prints a small overview centered on the public prelude-backed stdlib surface, with family names grouped from registered prelude autoloads
-  - `help("name")` for raw host-backed names such as `print` falls back to a generic bridge note instead of a separate host-doc registry
+  - public Python-host callables such as `print` use canonical `doc`, `category`,
+    and `stability` metadata from the host-builtin registry; internal bridges are
+    excluded from the public help/reference surface
   - `help("missing")` prints a short missing-name note instead of raising an undefined-name traceback
   - help output normalizes docstring indentation/blank lines and strips optional outer triple-quote wrappers in docstring text
   - official docstring style/templates live in `docs/style/doc-style.md` and the current cheatsheets
@@ -744,7 +746,7 @@ Current behavior:
 - `:env`
 - `:quit`
 - `help()` for the public stdlib/help overview
-- `help(name)` to inspect named-function/prelude metadata or get a generic note for a host-backed runtime name
+- `help(name)` to inspect named-function, prelude, or registered public Python-host metadata
 
 ## Tail calls
 

@@ -13,6 +13,6 @@ The float is deterministic for a given seed and is always in `[0, 1)`.
 
 ---
 
-_Source: `std/prelude/random.genia` &middot; category `random`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/random.genia` &middot; category `random`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

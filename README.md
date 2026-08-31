@@ -633,7 +633,9 @@ Current consistency note:
 - public Flow helper names such as `lines`, `evolve` (experimental), `rules`, `each`, `collect`, and `run` are also prelude-backed; the host keeps the lazy Flow kernel while `rules` orchestration/defaulting live in prelude
 - `_seq_transform(initial_state, step, source)` is an internal kernel primitive for shared list/Flow transformation mechanics; it preserves source kind, is not an ordinary user-callable Genia name, and does not create a public `Seq` value/type/helper
 - Flow reuse and invalid flow-source failures are surfaced as clear Genia-facing runtime errors rather than raw Python iterator errors
-- `help()` now points users toward the public prelude-backed stdlib surface, while raw host-backed runtime names remain intentionally generic
+- `help()` points users toward the public stdlib surface; registered public
+  Python-host callables expose canonical documentation metadata while internal
+  bridges remain excluded
 - REPL/debug output now renders structured absence with visible context metadata, for example `none("missing-key", {key: "name"})`
 - `display(value)` and `debug_repr(value)` are the first public rendering/Representation System entry points: they return display/debug strings without writing output, render Outcome values directly including `none(...)`, and remain separate from carrier representations
 - representation does not change value identity; value templates describe or constrain values, while representation formats describe output strings
@@ -1231,7 +1233,10 @@ Run `genia examples/r10_validated_pipeline_proving_case.genia` for the executabl
 - `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
 - `help()` prints a compact overview of the public prelude-backed stdlib families, with public family names grouped from registered prelude autoloads
 - `help("name")` can autoload registered prelude helpers before rendering their docstrings
-- `help("name")` for raw host-backed names prints a generic bridge note rather than a separate Python reference host doc registry
+- `help("name")` for a registered public Python-host callable renders canonical
+  host-registry documentation, category, and stability metadata
+- internal host bridges are explicitly registry-classified with
+  `stability: "internal"` and excluded from public coverage and generated reference output
 - `help("missing")` prints a short missing-name note rather than an undefined-name traceback
 - stdlib prelude helpers include Markdown docstrings for learn-by-inspection via `help("name")`
 - constants: `pi`, `e`, `true`, `false`, legacy alias `nil`

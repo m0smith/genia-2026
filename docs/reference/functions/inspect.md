@@ -12,6 +12,6 @@ Useful in `|>` pipelines as a non-transforming stage.
 
 ---
 
-_Source: `std/prelude/fn.genia` &middot; category `fn`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/fn.genia` &middot; category `fn`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

@@ -12,6 +12,6 @@ Use this when you want reproducible random sequences in tests or demos.
 
 ---
 
-_Source: `std/prelude/random.genia` &middot; category `random`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/random.genia` &middot; category `random`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

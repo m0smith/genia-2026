@@ -66,6 +66,83 @@ nav:
   # >>> BEGIN generated function reference (tools/gen_function_docs.py) >>>
   - Function Reference:
       - Overview: reference/index.md
+      - AI composition:
+          - "model": reference/functions/model.md
+      - CLI:
+          - "argv": reference/functions/argv.md
+      - Configuration:
+          - "config_get": reference/functions/config_get.md
+          - "config_get_or": reference/functions/config_get_or.md
+          - "config_provider": reference/functions/config_provider.md
+          - "declassify": reference/functions/declassify.md
+          - "protected_match": reference/functions/protected_match.md
+          - "secret_get": reference/functions/secret_get.md
+          - "secret_get_or": reference/functions/secret_get_or.md
+      - Documentation:
+          - "doc": reference/functions/doc.md
+          - "help": reference/functions/help.md
+          - "meta": reference/functions/meta.md
+      - Encoding:
+          - "utf8_decode": reference/functions/utf8_decode.md
+          - "utf8_encode": reference/functions/utf8_encode.md
+      - Evaluation:
+          - "force": reference/functions/force.md
+      - File / zip:
+          - "entry_bytes": reference/functions/entry_bytes.md
+          - "entry_json": reference/functions/entry_json.md
+          - "entry_name": reference/functions/entry_name.md
+          - "set_entry_bytes": reference/functions/set_entry_bytes.md
+          - "update_entry_bytes": reference/functions/update_entry_bytes.md
+          - "zip_entries": reference/functions/zip_entries.md
+      - Function helpers:
+          - "apply_raw": reference/functions/apply_raw.md
+      - I/O:
+          - "debug_repr": reference/functions/debug_repr.md
+          - "display": reference/functions/display.md
+          - "input": reference/functions/input.md
+          - "log": reference/functions/log.md
+          - "print": reference/functions/print.md
+          - "stdin": reference/functions/stdin.md
+      - Pairs:
+          - "car": reference/functions/car.md
+          - "cdr": reference/functions/cdr.md
+          - "cons": reference/functions/cons.md
+          - "null?": reference/functions/null-p.md
+          - "pair?": reference/functions/pair-p.md
+      - Retrieval:
+          - "chunk": reference/functions/chunk.md
+          - "embed": reference/functions/embed.md
+          - "index": reference/functions/index.md
+          - "rerank": reference/functions/rerank.md
+          - "retrieve": reference/functions/retrieve.md
+      - Sheets:
+          - "collect_sheet": reference/functions/collect_sheet.md
+          - "columns": reference/functions/columns.md
+          - "derive": reference/functions/derive.md
+          - "render_csv": reference/functions/render_csv.md
+          - "row_get": reference/functions/row_get.md
+          - "rows": reference/functions/rows.md
+          - "select": reference/functions/select.md
+          - "shape": reference/functions/shape.md
+          - "sheet": reference/functions/sheet.md
+          - "where": reference/functions/where.md
+      - Simulation:
+          - "sleep": reference/functions/sleep.md
+      - Testing:
+          - "assert_eq": reference/functions/assert_eq.md
+          - "assert_true": reference/functions/assert_true.md
+      - Validation:
+          - "collect_validated": reference/functions/collect_validated.md
+      - Value templates:
+          - "exact_shape_match": reference/functions/exact_shape_match.md
+          - "Format": reference/functions/Format-host.md
+          - "format_tag": reference/functions/format_tag.md
+          - "format_template": reference/functions/format_template.md
+          - "open_shape_match": reference/functions/open_shape_match.md
+          - "refinement_match": reference/functions/refinement_match.md
+          - "represent": reference/functions/represent.md
+          - "representation_match": reference/functions/representation_match.md
+          - "strip_representation": reference/functions/strip_representation.md
       - actor:
           - "actor": reference/functions/actor.md
           - "actor_alive?": reference/functions/actor_alive-p.md

@@ -13,6 +13,6 @@ Returns `none("json-stringify-error", context)` when the value is not JSON-compa
 
 ---
 
-_Source: `std/prelude/json.genia` &middot; category `json`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/json.genia` &middot; category `json`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

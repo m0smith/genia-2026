@@ -243,15 +243,22 @@ def test_help_autoloads_syntax_wrapper_docstring():
     assert "quoted branch sequence of a match expression" in out
 
 
-def test_help_for_host_primitive_name_points_back_to_public_surface():
+def test_help_for_host_primitive_uses_canonical_registry_metadata():
     outputs: list[str] = []
     env = make_global_env([], output_handler=outputs.append)
     run_source('help("print")\n', env, filename="help_host.genia")
     out = "".join(outputs)
     assert "print" in out
-    assert "host-backed runtime function" in out
-    assert "public Genia/prelude functions" in out
-    assert '`help("name")` for documented prelude helpers' in out
+    assert "Write values to standard output" in out
+    assert "Category: I/O" in out
+    assert "Stability:" in out
+    assert "host-backed runtime function" not in out
+
+
+def test_doc_for_host_primitive_returns_registry_doc():
+    result = run_source('doc("print")\n', make_global_env([]), filename="doc_host.genia")
+    assert isinstance(result, str)
+    assert result.startswith("Write values to standard output")
 
 
 def test_help_for_missing_name_fails_gracefully():

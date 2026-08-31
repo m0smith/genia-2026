@@ -527,8 +527,29 @@ def lint_file_coverage(path: str, public_names: Optional[set] = None) -> List[di
     return out
 
 
+def _runtime_public_names() -> set:
+    """Return documented public prelude and Python-host callable names."""
+    try:
+        from genia.builtins import make_global_env
+        from genia.host_builtin_docs import public_host_builtin_docs
+
+        autoloads = make_global_env([]).root().autoloads
+    except (ImportError, ModuleNotFoundError) as exc:
+        raise RuntimeError(
+            "cannot derive public prelude names because the genia package "
+            "could not be imported"
+        ) from exc
+
+    prelude_names = {
+        name_arity[0]
+        for name_arity, path in autoloads.items()
+        if path.startswith("std/prelude/")
+    }
+    return prelude_names | {entry.name for entry in public_host_builtin_docs()}
+
+
 def _runtime_public_prelude_names() -> set:
-    """Return the public names autoloaded from the standard prelude."""
+    """Compatibility helper returning only public standard-prelude names."""
     try:
         from genia.builtins import make_global_env
 
@@ -538,12 +559,34 @@ def _runtime_public_prelude_names() -> set:
             "cannot derive public prelude names because the genia package "
             "could not be imported"
         ) from exc
-
     return {
         name_arity[0]
         for name_arity, path in autoloads.items()
         if path.startswith("std/prelude/")
     }
+
+
+def lint_host_builtin_coverage(entries=None) -> List[dict]:
+    """Return coverage findings for public Python-host registry entries."""
+    if entries is None:
+        from genia.host_builtin_docs import public_host_builtin_docs
+
+        entries = public_host_builtin_docs()
+    findings: List[dict] = []
+    for entry in entries:
+        if entry.stability == "internal":
+            continue
+        if not entry.doc.strip():
+            findings.append({
+                "rule_id": "DOC008", "severity": "error", "binding": entry.name,
+                "message": f"Public binding '{entry.name}' has no @doc.",
+            })
+        if not entry.category.strip():
+            findings.append({
+                "rule_id": "DOC009", "severity": "error", "binding": entry.name,
+                "message": f"Public binding '{entry.name}' is missing @category.",
+            })
+    return findings
 
 
 def _finding_to_dict(f: LintFinding) -> dict:
@@ -618,6 +661,17 @@ def _scan_dir(dirpath: str, json_mode: bool, require_coverage: bool = False, pub
                     print("{}:{} ({}): [{}] {}: {}".format(
                         filepath, c["line"], c["binding"],
                         c["severity"], c["rule_id"], c["message"]))
+        for c in lint_host_builtin_coverage():
+            error_count += 1
+            if json_mode:
+                all_results.append({
+                    "file": "src/genia/host_builtin_docs.py",
+                    "binding": c["binding"],
+                    "findings": [{k: c[k] for k in ("rule_id", "severity", "message")}],
+                })
+            else:
+                print("src/genia/host_builtin_docs.py ({}): [{}] {}: {}".format(
+                    c["binding"], c["severity"], c["rule_id"], c["message"]))
 
     if json_mode:
         json.dump({
@@ -664,7 +718,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         del args[_i:_i + 2]
     elif require_coverage:
         try:
-            public_names = _runtime_public_prelude_names()
+            public_names = _runtime_public_names()
         except RuntimeError as exc:
             print(f"Error: {exc}.", file=sys.stderr)
             return 1

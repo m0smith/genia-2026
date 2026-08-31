@@ -13,6 +13,6 @@ Define a name in the current metacircular environment frame.
 
 ---
 
-_Source: `std/prelude/eval.genia` &middot; category `eval`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/eval.genia` &middot; category `eval`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

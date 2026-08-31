@@ -18,6 +18,6 @@ Split `value` on the explicit separator `sep`.
 
 ---
 
-_Source: `std/prelude/string.genia` &middot; category `string`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/string.genia` &middot; category `string`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

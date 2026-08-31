@@ -15,6 +15,6 @@ Parse raw CLI args into `[opts, positionals]`, optionally using a minimal `flags
 
 ---
 
-_Source: `std/prelude/cli.genia` &middot; category `cli`. Generated from `@doc`/`@meta` by `tools/gen_function_docs.py`._
+_Source: `std/prelude/cli.genia` &middot; category `cli`. Generated from canonical metadata by `tools/gen_function_docs.py`._
 
 [<- Back to the Function Reference](../index.md)

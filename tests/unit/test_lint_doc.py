@@ -15,7 +15,20 @@ from lint_doc import (
     LintFinding,
     _extract_docs_from_file,
     _finding_to_dict,
+    _runtime_public_names,
+    lint_host_builtin_coverage,
 )
+
+
+def test_runtime_public_names_include_host_registry_and_prelude_surfaces():
+    names = _runtime_public_names()
+    assert "print" in names
+    assert "parse_int" in names
+    assert "_parse_int" not in names
+
+
+def test_host_builtin_registry_passes_required_coverage():
+    assert lint_host_builtin_coverage() == []
 
 
 

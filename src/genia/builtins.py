@@ -73,6 +73,7 @@ if __package__ in (None, ""):
         TemplateLiteral,
     )
     from genia.docstrings import render_markdown_docstring
+    from genia.host_builtin_docs import host_builtin_docs
     from genia.cors_policy import resolve_cors_policy
     from genia.lexer import SourceSpan
     from genia.pattern_match import (
@@ -173,6 +174,7 @@ else:
         TemplateLiteral,
     )
     from .docstrings import render_markdown_docstring
+    from .host_builtin_docs import host_builtin_docs
     from .cors_policy import resolve_cors_policy
     from .lexer import SourceSpan
     from .pattern_match import (
@@ -1951,6 +1953,7 @@ def make_global_env(
     def _metadata_summary_lines(metadata: GeniaMap) -> list[str]:
         labels = (
             ("category", "Category"),
+            ("stability", "Stability"),
             ("since", "Since"),
             ("deprecated", "Deprecated"),
         )
@@ -1982,11 +1985,10 @@ def make_global_env(
 
     def _describe_runtime_name(name: str, value: Any, metadata: GeniaMap | None = None) -> str:
         kind = "host-backed runtime function" if callable(value) else "named value"
-        lines = [
-            name,
-            "",
-            f"{name} is a {kind} in this phase.",
-        ]
+        lines = [name]
+        documented = metadata is not None and _metadata_doc(metadata) is not None
+        if not callable(value) or not documented:
+            lines.extend(["", f"{name} is a {kind} in this phase."])
         if metadata is not None:
             doc_text = _metadata_doc(metadata)
             if doc_text is not None:
@@ -1994,13 +1996,14 @@ def make_global_env(
             metadata_lines = _metadata_summary_lines(metadata)
             if metadata_lines:
                 lines.extend(["", *metadata_lines])
-        lines.extend(
-            [
-                "",
-                "Detailed docstrings are attached to public Genia/prelude functions instead of raw host bridge names.",
-                'Use `help()` for the public surface overview and `help("name")` for documented prelude helpers.',
-            ]
-        )
+        if metadata is None or _metadata_doc(metadata) is None:
+            lines.extend(
+                [
+                    "",
+                    "No canonical documentation is registered for this runtime name.",
+                    "Use `help()` for the public surface overview.",
+                ]
+            )
         return "\n".join(lines)
 
     def _public_autoload_paths() -> list[str]:
@@ -4870,4 +4873,23 @@ def make_global_env(
     env.register_autoload("actor_error", 1, "std/prelude/actor.genia")
     env.register_autoload("actor_status", 1, "std/prelude/actor.genia")
     env.trusted_autoloads.update(env.autoloads.keys())
+
+    # Host-callable documentation is attached only after the existing binding
+    # inventory is complete. This changes metadata, never values or visibility.
+    for entry in host_builtin_docs():
+        if entry.stability == "internal":
+            continue
+        metadata = (
+            GeniaMap()
+            .put("doc", entry.doc)
+            .put("category", entry.category)
+            .put("stability", entry.stability)
+        )
+        if entry.since is not None:
+            metadata = metadata.put("since", entry.since)
+        if entry.deprecated is not None:
+            metadata = metadata.put("deprecated", entry.deprecated)
+        if entry.see_also:
+            metadata = metadata.put("see_also", list(entry.see_also))
+        env.merge_binding_metadata(entry.name, metadata)
     return env
