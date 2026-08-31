@@ -201,6 +201,8 @@ Implemented today:
 - GitHub Actions docs workflow behavior is:
   - on pull requests: stage, validate, and build docs without deployment
   - on pushes to `main`: stage, validate, build, and deploy to GitHub Pages
+  - after a successful Pages deployment, publish the generated Function Reference mirror to the GitHub Wiki only when the optional `WIKI_TOKEN` repository secret is configured
+  - when `WIKI_TOKEN` is absent, skip all Wiki-specific setup and publishing steps without failing the Pages deployment
 - docs validation in this phase includes:
   - strict MkDocs builds
   - semantic doc sync tests for protected cross-doc semantic facts
@@ -212,6 +214,7 @@ Implemented today:
 Clarifications:
 
 - the staging tree is a build artifact only; source-of-truth docs remain in their existing repository locations
+- source annotations and the host documentation registry consumed by `tools/gen_function_docs.py` remain authoritative for both `docs/reference/**` and the generated Wiki mirror; generated pages must not be edited by hand
 - the docs workflow is repository tooling, not part of the Genia language/runtime semantics
 
 ## 0.3) `@doc` linter (`tools/lint_doc.py`)
