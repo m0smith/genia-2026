@@ -64,6 +64,8 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    env:
+      WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -74,25 +76,25 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Check out repository for wiki publish
-        if: ${{ secrets.WIKI_TOKEN != '' }}
+        if: env.WIKI_TOKEN != ''
         uses: actions/checkout@v6
 
       - name: Set up Python for wiki publish
-        if: ${{ secrets.WIKI_TOKEN != '' }}
+        if: env.WIKI_TOKEN != ''
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Set up uv for wiki publish
-        if: ${{ secrets.WIKI_TOKEN != '' }}
+        if: env.WIKI_TOKEN != ''
         uses: astral-sh/setup-uv@v7
 
       - name: Sync dependencies for wiki publish
-        if: ${{ secrets.WIKI_TOKEN != '' }}
+        if: env.WIKI_TOKEN != ''
         run: uv sync --dev
 
       - name: Publish function reference to GitHub Wiki
-        if: ${{ secrets.WIKI_TOKEN != '' }}
+        if: env.WIKI_TOKEN != ''
         env:
-          WIKI_REMOTE: https://x-access-token:${{ secrets.WIKI_TOKEN }}@github.com/${{ github.repository }}.wiki.git
+          WIKI_REMOTE: https://x-access-token:${{ env.WIKI_TOKEN }}@github.com/${{ github.repository }}.wiki.git
         run: uv run tools/publish_wiki.sh
