@@ -1,7 +1,6 @@
 import pytest
 
 from genia.builtins import make_global_env
-from genia.interpreter import run_source
 from genia.utf8 import format_debug, format_display
 from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionSome, GeniaProtected, GeniaSymbol
 
