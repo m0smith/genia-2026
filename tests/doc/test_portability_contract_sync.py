@@ -174,6 +174,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "REPL": "repl",
         "Flow phase 1": "flow_phase_1",
         "configuration environment snapshot": "configuration_environment_snapshot",
+        "configuration `.env` snapshot": "configuration_dotenv_snapshot",
         "deterministic model fixture": "model_deterministic_fixture",
         "Gemini model REST adapter": "model_gemini_rest",
         "deterministic embedding fixture": "embedding_deterministic_fixture",

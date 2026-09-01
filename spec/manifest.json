@@ -70,6 +70,7 @@
     "shell_stage",
     "resource_io",
     "configuration_environment_snapshot",
+    "configuration_dotenv_snapshot",
     "model_deterministic_fixture",
     "model_gemini_rest",
     "embedding_deterministic_fixture",

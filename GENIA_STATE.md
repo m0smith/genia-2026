@@ -573,7 +573,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `config_view` returns the exact `config_get` Outcome; `secret_view` returns the exact `secret_get` Outcome and preserves provider identity, purpose, protected carrier, sinks, authority, audit, and declassification behavior
   - views add no caching, fallback, precedence, defaulting, conversion, Template validation, ambient lookup, named access, syntax, annotation, parser/AST/Core IR node, lifecycle binding, or host capability
   - normalized misuse does not include the prefix, logical name, physical key, provider identity, purpose, source content/value, or protected payload
-  - `.env` acquisition, conventional provider composition, cross-mode hardening, and proving/release-completion slices remain unimplemented
+  - conventional provider composition, cross-mode hardening, and proving/release-completion slices remain unimplemented
   - LANGUAGE CONTRACT: construction/callability, validation, exact concatenation, and exact one-call R10 delegation are portable ordinary-call behavior
   - PYTHON REFERENCE HOST: the two constructors use the existing callable and R10 provider implementation; no new host capability is introduced and shared/multi-host conformance remains Partial
 
@@ -588,6 +588,18 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-2 adds no schema, boolean encoding, conversion, provider construction, host acquisition capability, syntax, annotation, parser/AST/Core IR node, named access, lifecycle binding, or ambient lookup
   - LANGUAGE CONTRACT: explicit-input grammar, normalization, collision handling, descriptor/Outcome shapes, atomic failure, and snapshot behavior are portable pure ordinary-call behavior
   - PYTHON REFERENCE HOST: the ordinary callable is registered over existing runtime values; raw process arguments remain available only through the unchanged explicit `argv()` boundary and shared/multi-host conformance remains Partial
+
+- Narrow `.env` configuration source (Experimental, issue #673)
+  - R13 E13-3 adds `{kind: quote(dotenv), path, required}` as an R10-compatible descriptor; `path` is a non-empty NUL-free string and `required` is boolean, with descriptor misuse rejected before any host acquisition
+  - provider construction validates every descriptor first, then reads each `.env` path at most once in source-list order and copies parsed exact strings into the existing immutable provider snapshot; lookup never reads or refreshes the file
+  - optional absence contributes an empty source at its fixed index; required absence and host read failure return `config-provider-failure`, unavailable capability returns `config-source-unavailable`, and invalid UTF-8/grammar returns `config-source-invalid`
+  - `.env` failure context contains only `source_index`, `source_kind: quote(dotenv)`, and `stage: quote(acquire|decode|parse)`; paths, keys, values, content, partial providers, and raw host details do not escape
+  - UTF-8 accepts one leading BOM, LF/CRLF, a final unterminated line, blank/full-comment lines, ASCII space/tab around entries, ASCII identifier keys, exact duplicate rejection, and unquoted/single-quoted/double-quoted values with only `\\`, `\"`, `\n`, `\r`, and `\t` double-quote escapes
+  - empty values are present exact strings; interpolation, expansion, command substitution, multiline values, `export`, continuation, discovery, profiles/cascades, other formats, and watch/refresh are not implemented
+  - existing source precedence and R10 `config_get`/`secret_get` Outcomes, protected carriers, sinks, authority, audit, and declassification remain unchanged
+  - E13-3 adds no `config_standard`, conventional precedence helper, public parser, syntax, annotation, parser/AST/Core IR node, named access, lifecycle binding, or ambient lookup
+  - LANGUAGE CONTRACT: descriptor validation, grammar, normalized Outcomes, fixed indices, acquisition ordering, and immutable snapshot behavior are portable
+  - PYTHON REFERENCE HOST: `config.dotenv-snapshot` reads bytes from exactly the supplied path during provider construction; future hosts may report capability unavailable, and shared/multi-host conformance remains Partial
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
