@@ -1,0 +1,29 @@
+name: config-views-ordinary-calls
+category: ir
+description: Qualified configuration views lower through existing ordinary call IR
+input:
+  source: |
+    config_view(config_provider([]), "SERVER_")("PORT")
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrCall
+          fn:
+            node: IrVar
+            name: config_view
+          args:
+            - node: IrCall
+              fn:
+                node: IrVar
+                name: config_provider
+              args:
+                - node: IrList
+                  items: []
+            - node: IrLiteral
+              value: SERVER_
+        args:
+          - node: IrLiteral
+            value: PORT

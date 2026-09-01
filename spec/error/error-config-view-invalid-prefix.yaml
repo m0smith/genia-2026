@@ -1,0 +1,11 @@
+name: error-config-view-invalid-prefix
+category: error
+description: Configuration view prefix misuse does not reveal rejected content
+input:
+  source: |
+    provider = config_provider([]) |> unwrap_or(none)
+    config_view(provider, "PREFIX_SENTINEL\u0000HIDDEN")
+expected:
+  stdout: ""
+  stderr: "Error: config_view expected a prefix string without NUL, received string\n"
+  exit_code: 1

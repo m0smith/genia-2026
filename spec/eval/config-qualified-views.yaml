@@ -1,0 +1,18 @@
+name: config-qualified-views
+category: eval
+description: Qualified configuration views map exact prefixes and preserve R10 Outcomes
+input:
+  source: |
+    provider = config_provider([{
+      kind: quote(values),
+      values: {SERVER_PORT: "8080", DB_PORT: "5432", DIRECT: "", Server_PORT: "case"}
+    }]) |> unwrap_or(none)
+    server = config_view(provider, "SERVER_")
+    database = config_view(provider, "DB_")
+    direct = config_view(provider, "")
+    mixed = config_view(provider, "Server_")
+    [server("PORT"), database("PORT"), direct("DIRECT"), mixed("PORT"), server("MISSING"), ["PORT"] |> map(server)]
+expected:
+  stdout: "[some(\"8080\"), some(\"5432\"), some(\"\"), some(\"case\"), none(\"config-missing\"), [some(\"8080\")]]\n"
+  stderr: ""
+  exit_code: 0
