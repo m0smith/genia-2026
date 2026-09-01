@@ -25,6 +25,10 @@ _JSON_SAFE_INTEGER = 9_007_199_254_740_991
 _JSON_MAX_NESTING = 128
 
 
+def _read_dotenv_snapshot(path: str) -> bytes:
+    return Path(path).read_bytes()
+
+
 class _JsonBoundaryFailure(Exception):
     def __init__(self, reason: str, **context: Any):
         super().__init__(reason)
@@ -255,6 +259,7 @@ def make_global_env(
     output_handler: Optional[Callable[[str], None]] = None,
     stdin_keys_provider: Optional[Callable[[], Iterable[str]]] = None,
     environment_snapshot_provider: Optional[Callable[[], Mapping[str, str]]] = os.environ.copy,
+    dotenv_snapshot_provider: Optional[Callable[[str], bytes]] = _read_dotenv_snapshot,
 ) -> Env:
     env = Env()
     env.debug_hooks = debug_hooks or NOOP_DEBUG_HOOKS
@@ -578,7 +583,9 @@ def make_global_env(
         return format_debug(value)
 
     def config_provider_fn(sources: Any) -> Any:
-        return construct_provider(sources, environment_snapshot_provider)
+        return construct_provider(
+            sources, environment_snapshot_provider, dotenv_snapshot_provider
+        )
 
     def config_args_fn(args: Any) -> Any:
         return normalize_config_args(args)

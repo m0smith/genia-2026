@@ -22,6 +22,11 @@ from .values import (
 
 
 _MISSING = object()
+_DOTENV_FIELDS = {"kind", "path", "required"}
+
+
+class _DotenvParseError(Exception):
+    pass
 
 
 def _valid_key(value: Any) -> bool:
@@ -90,6 +95,115 @@ def _provider_error(reason: str, index: int) -> GeniaOptionErr:
     return GeniaOptionErr(reason, _source_context(index))
 
 
+def _dotenv_context(index: int, stage: str) -> GeniaMap:
+    return (
+        GeniaMap()
+        .put("source_index", index)
+        .put("source_kind", GeniaSymbol("dotenv"))
+        .put("stage", GeniaSymbol(stage))
+    )
+
+
+def _dotenv_error(reason: str, index: int, stage: str) -> GeniaOptionErr:
+    return GeniaOptionErr(reason, _dotenv_context(index, stage))
+
+
+def _is_ascii_alpha(char: str) -> bool:
+    return "A" <= char <= "Z" or "a" <= char <= "z"
+
+
+def _is_dotenv_key_char(char: str) -> bool:
+    return _is_ascii_alpha(char) or "0" <= char <= "9" or char == "_"
+
+
+def _skip_hws(line: str, index: int) -> int:
+    while index < len(line) and line[index] in " \t":
+        index += 1
+    return index
+
+
+def _finish_quoted_dotenv_value(line: str, index: int) -> None:
+    index = _skip_hws(line, index)
+    if index < len(line) and line[index] == "#":
+        return
+    if index != len(line):
+        raise _DotenvParseError
+
+
+def _parse_dotenv_value(line: str, index: int) -> str:
+    if index == len(line):
+        return ""
+
+    quote = line[index]
+    if quote == "'":
+        closing = line.find("'", index + 1)
+        if closing < 0:
+            raise _DotenvParseError
+        value = line[index + 1 : closing]
+        if "\r" in value or "\n" in value:
+            raise _DotenvParseError
+        _finish_quoted_dotenv_value(line, closing + 1)
+        return value
+
+    if quote == '"':
+        output: list[str] = []
+        index += 1
+        escapes = {"\\": "\\", '"': '"', "n": "\n", "r": "\r", "t": "\t"}
+        while index < len(line):
+            char = line[index]
+            if char == '"':
+                _finish_quoted_dotenv_value(line, index + 1)
+                return "".join(output)
+            if char in "\r\n":
+                raise _DotenvParseError
+            if char == "\\":
+                index += 1
+                if index >= len(line) or line[index] not in escapes:
+                    raise _DotenvParseError
+                output.append(escapes[line[index]])
+            else:
+                output.append(char)
+            index += 1
+        raise _DotenvParseError
+
+    start = index
+    while index < len(line):
+        char = line[index]
+        if char == "#":
+            if index == start or line[index - 1] in " \t":
+                return line[start:index].rstrip(" \t")
+            raise _DotenvParseError
+        if char in "\r\n'\"\\" or char == "\ufeff":
+            raise _DotenvParseError
+        index += 1
+    return line[start:].rstrip(" \t")
+
+
+def _parse_dotenv(text: str) -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in text.split("\n"):
+        if "\r" in line:
+            raise _DotenvParseError
+        index = _skip_hws(line, 0)
+        if index == len(line) or line[index] == "#":
+            continue
+        if not (_is_ascii_alpha(line[index]) or line[index] == "_"):
+            raise _DotenvParseError
+        key_start = index
+        index += 1
+        while index < len(line) and _is_dotenv_key_char(line[index]):
+            index += 1
+        key = line[key_start:index]
+        index = _skip_hws(line, index)
+        if index >= len(line) or line[index] != "=":
+            raise _DotenvParseError
+        if key in values:
+            raise _DotenvParseError
+        index = _skip_hws(line, index + 1)
+        values[key] = _parse_dotenv_value(line, index)
+    return values
+
+
 def _validate_literal_values(values: GeniaMap, index: int) -> dict[str, str]:
     copied: dict[str, str] = {}
     for key, value in values.items():
@@ -105,6 +219,7 @@ def _validate_literal_values(values: GeniaMap, index: int) -> dict[str, str]:
 def construct_provider(
     sources: Any,
     environment_snapshot_provider: Callable[[], Mapping[str, str]] | None,
+    dotenv_snapshot_provider: Callable[[str], bytes] | None = None,
 ) -> GeniaOptionSome | GeniaOptionErr:
     if not isinstance(sources, list):
         raise TypeError(
@@ -112,7 +227,7 @@ def construct_provider(
             f"received {_runtime_type_name(sources)}"
         )
 
-    validated: list[tuple[str, dict[str, str] | None]] = []
+    validated: list[tuple[str, Any]] = []
     for index, descriptor in enumerate(sources):
         if not isinstance(descriptor, GeniaMap):
             raise TypeError(
@@ -144,30 +259,73 @@ def construct_provider(
             validated.append(("values", _validate_literal_values(values, index)))
         elif kind.name == "environment":
             validated.append(("environment", None))
+        elif kind.name == "dotenv":
+            fields = {key for key, _ in descriptor.items() if isinstance(key, str)}
+            path = descriptor.get("path") if descriptor.has("path") else None
+            required = descriptor.get("required") if descriptor.has("required") else None
+            if (
+                fields != _DOTENV_FIELDS
+                or not isinstance(path, str)
+                or not _valid_key(path)
+                or not isinstance(required, bool)
+            ):
+                raise TypeError(
+                    "config_provider expected a valid dotenv descriptor "
+                    f"at source index {index}"
+                )
+            validated.append(("dotenv", (path, required)))
         else:
             raise TypeError(
                 f"config_provider received unsupported source kind at index {index}"
             )
 
     snapshots: list[Mapping[str, str]] = []
-    for index, (kind, literal) in enumerate(validated):
+    for index, (kind, source_data) in enumerate(validated):
         if kind == "values":
-            snapshots.append(MappingProxyType(dict(literal or {})))
+            snapshots.append(MappingProxyType(dict(source_data or {})))
             continue
-        if environment_snapshot_provider is None:
-            return _provider_error("config-source-unavailable", index)
-        try:
-            acquired = environment_snapshot_provider()
-            if not isinstance(acquired, Mapping):
-                raise TypeError("invalid environment snapshot")
-            copied: dict[str, str] = {}
-            for key, value in acquired.items():
-                if not _valid_key(key) or not isinstance(value, str):
+        if kind == "environment":
+            if environment_snapshot_provider is None:
+                return _provider_error("config-source-unavailable", index)
+            try:
+                acquired = environment_snapshot_provider()
+                if not isinstance(acquired, Mapping):
                     raise TypeError("invalid environment snapshot")
-                copied[key] = value
-            snapshots.append(MappingProxyType(copied))
+                copied: dict[str, str] = {}
+                for key, value in acquired.items():
+                    if not _valid_key(key) or not isinstance(value, str):
+                        raise TypeError("invalid environment snapshot")
+                    copied[key] = value
+                snapshots.append(MappingProxyType(copied))
+            except Exception:
+                return _provider_error("config-provider-failure", index)
+            continue
+
+        path, required = source_data
+        if dotenv_snapshot_provider is None:
+            return _dotenv_error("config-source-unavailable", index, "acquire")
+        try:
+            content = dotenv_snapshot_provider(path)
+            if not isinstance(content, bytes):
+                raise TypeError("invalid dotenv snapshot")
+        except FileNotFoundError:
+            if not required:
+                snapshots.append(MappingProxyType({}))
+                continue
+            return _dotenv_error("config-provider-failure", index, "acquire")
         except Exception:
-            return _provider_error("config-provider-failure", index)
+            return _dotenv_error("config-provider-failure", index, "acquire")
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError:
+            return _dotenv_error("config-source-invalid", index, "decode")
+        if text.startswith("\ufeff"):
+            text = text[1:]
+        try:
+            parsed = _parse_dotenv(text.replace("\r\n", "\n"))
+        except _DotenvParseError:
+            return _dotenv_error("config-source-invalid", index, "parse")
+        snapshots.append(MappingProxyType(dict(parsed)))
 
     return GeniaOptionSome(GeniaConfigProvider(tuple(snapshots)))
 
