@@ -448,7 +448,7 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ### Explicit configuration acquisition (Experimental)
 
-- `config_provider`, `config_get`, `config_get_or`, `secret_get`, `secret_get_or`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
+- `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
 - source descriptor kinds must be explicit symbols produced with `quote(values)` or `quote(environment)`; no global `values` or `environment` binding is introduced.
 - `sources` must be an explicit list ordered highest to lowest precedence; the first snapshot containing the key wins.
 - provider construction must validate every descriptor and every literal key/value before acquiring any host-backed snapshot.
@@ -460,6 +460,9 @@ No additional member/index/flow operators should be introduced without explicitl
 - conversion is explicit through an ordinary Outcome-returning callable; validation uses existing callable Templates and existing Outcome-aware pipeline propagation.
 - `secret_get(provider, key, purpose)` requires a non-empty purpose symbol and protects a found exact string, including empty, in exactly one reserved `secret` carrier.
 - `secret_get_or(provider, key, purpose, default)` invokes the default exactly once only for missing; ordinary/`some` successes are protected once, `none`/`err` are preserved, and a success already containing protection is runtime misuse.
+- `config_view(provider, prefix)` and `secret_view(provider, prefix, purpose)` validate and capture an explicit provider and exact prefix without lookup or host effects; an empty prefix is valid and NUL is invalid.
+- each view accepts one non-empty NUL-free logical-name string, concatenates `prefix + logical_name` exactly, performs one existing `config_get` or `secret_get`, and returns its exact Outcome; secret identity, purpose, carrier, sinks, authority, audit, and declassification remain unchanged.
+- views add no cache, fallback, precedence, default, conversion, Template validation, ambient lookup, named access, syntax, Core IR, lifecycle binding, or host capability; misuse diagnostics must not expose captured or requested names, identity, purpose, or values.
 - `protected_match("secret", value)` returns `some(value)` with the exact protected subject; ordinary/non-secret values return `none("representation-mismatch")`; other facets are runtime misuse.
 - generic `represent`, `representation_match`, and `strip_representation` must reject the reserved `secret` facet.
 - protected equality uses provider identity, purpose, and carried-value equality without revealing them; protected values must not be map keys.

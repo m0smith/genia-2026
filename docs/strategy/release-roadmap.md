@@ -777,7 +777,7 @@ syntax/Core IR/lifecycle expansion.
 
 ## Release R13 — Configuration Resolution Ergonomics
 
-**Status: Next release; ready for E13-0 pre-flight, not implementation.** This
+**Status: Active; E13-0 approved and E13-1 implemented.** This
 section records approved product direction, not implemented language behavior.
 R13 refines the completed R10 configuration surface without reopening R10
 protected-value semantics.
@@ -842,8 +842,8 @@ Explicit non-goals:
 
 Approved ticket sequence under epic #608:
 
-1. **#670 — E13-0:** configuration-resolution ergonomics contract
-2. **#671 — E13-1:** qualified configuration and secret views
+1. **#670 — E13-0:** configuration-resolution ergonomics contract — complete
+2. **#671 — E13-1:** qualified configuration and secret views — implemented
 3. **#672 — E13-2:** explicit CLI configuration source
 4. **#673 — E13-3:** narrow `.env` source capability
 5. **#674 — E13-4:** conventional provider composition
@@ -854,8 +854,8 @@ Approved ticket sequence under epic #608:
 
 `docs/strategy/r13-configuration-resolution-ergonomics.md` owns the detailed
 scope, decision list, portability posture, ticket acceptance baseline, and exit
-criterion. **GO for E13-0 pre-flight only; implementation remains blocked until
-the contract is explicitly approved.**
+criterion. E13-0 is explicitly approved; E13-1 is the first implemented slice.
+Later tickets remain gated by their declared dependencies and phase workflows.
 
 ---
 

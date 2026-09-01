@@ -182,15 +182,16 @@ ordinary value/callable/Outcome/R9/R10/R11 boundary in
 `docs/design/r12-retrieval-grounding-contract.md`; do not infer a RAG or
 vector-store framework, hidden query embedding, citation rendering semantics,
 or later-ticket implementation authority.
-**R13 — Configuration Resolution Ergonomics is the next release (epic #608) and
-is ready for E13-0 issue #670 pre-flight only.** Its approved planning boundary is ordinary callable
+**R13 — Configuration Resolution Ergonomics is active (epic #608); E13-0 is
+approved and E13-1 qualified configuration/secret views are implemented.** Its approved boundary is ordinary callable
 configuration/secret views over an explicit R10 provider, explicit program-CLI
 adaptation, one narrow `.env` source capability, and deterministic conventional
 provider composition. It must preserve R10 Outcomes, immutable snapshots,
 protected carriers/sinks/declassification, lexical lookup, and map/module-only
-named access. It adds no syntax, Core IR, lifecycle provider binding, dependency
-injection, or ambient lookup. Do not implement R13 behavior before #670 completes
-pre-flight and its contract is explicitly approved. See
+named access. E13-1 adds only inert qualified view construction and exact one-call
+R10 delegation; later source, composition, hardening, proving, and release-close
+slices remain gated. It adds no syntax, Core IR, lifecycle provider binding,
+dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 
 Prefer work that strengthens Genia's first killer workflow:
