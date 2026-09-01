@@ -233,8 +233,9 @@ CLI contract summary (actual behavior):
     - see `docs/design/representation-system-and-format.md` for the focused representation and `Format` documentation
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
-  - `config_provider(sources)` constructs an explicit immutable opaque provider; supported descriptors are `{kind: quote(values), values: map}` and Python-host `{kind: quote(environment)}`
-  - `config_args(args)` purely normalizes an explicit string list such as `argv()` into `some({kind: quote(values), values: map})`; it accepts long option/value pairs, stops at `--`, and returns non-sensitive `config-source-invalid` for malformed string data
+    - `config_provider(sources)` constructs an explicit immutable opaque provider; supported descriptors are `{kind: quote(values), values: map}`, Python-host `{kind: quote(environment)}`, and Python-host `{kind: quote(dotenv), path, required}`
+    - `config_args(args)` purely normalizes an explicit string list such as `argv()` into `some({kind: quote(values), values: map})`; it accepts long option/value pairs, stops at `--`, and returns non-sensitive `config-source-invalid` for malformed string data
+    - `.env` descriptors read the exact path once during construction using the narrow deterministic E13-3 grammar; optional absence is an empty source, required absence/read failure is `config-provider-failure`, unavailable capability is `config-source-unavailable`, and invalid UTF-8/grammar is `config-source-invalid`
   - `config_get(provider, key)` returns `some(exact_string)` (including empty) or `none("config-missing")`
   - `config_get_or(provider, key, default)` preserves found/empty values; only missing invokes the zero-argument default exactly once, wrapping ordinary results in `some(...)` and preserving returned Outcomes
   - `config_view(provider, prefix)` returns an inert one-argument callable; each call concatenates the exact prefix and logical name, delegates once to `config_get`, and preserves its Outcome

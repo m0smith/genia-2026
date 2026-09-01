@@ -453,7 +453,9 @@ No additional member/index/flow operators should be introduced without explicitl
 - A configuration argument name is ASCII letter-led alphanumeric segments separated by single hyphens. Normalization replaces hyphens with underscores and uppercases ASCII letters; unknown valid names are accepted, and a normalized key may occur only once.
 - `config_args` success is `some({kind: quote(values), values: normalized_map})`. Malformed string-list data fails atomically as `err("config-source-invalid", {source_kind: quote(arguments), stage: quote(parse)})`; non-list or non-string-member input is runtime misuse.
 - `config_args` accepts no short/grouped option, flag without a value, equals form, underscore/non-ASCII name, positional token before `--`, schema, boolean encoding, implicit conversion, or host acquisition.
-- source descriptor kinds must be explicit symbols produced with `quote(values)` or `quote(environment)`; no global `values` or `environment` binding is introduced.
+- source descriptor kinds must be explicit symbols produced with `quote(values)`, `quote(environment)`, or `quote(dotenv)`; no corresponding global binding is introduced.
+- a `.env` descriptor is exactly `{kind: quote(dotenv), path, required}` with a non-empty NUL-free string path and boolean `required`; invalid descriptors are runtime misuse before host acquisition.
+- `.env` snapshots use the implemented deterministic UTF-8/BOM, line, comment, ASCII-key, whitespace, quoting, and escape grammar; duplicates and malformed input fail atomically, with no interpolation, expansion, multiline, discovery, or refresh behavior.
 - `sources` must be an explicit list ordered highest to lowest precedence; the first snapshot containing the key wins.
 - provider construction must validate every descriptor and every literal key/value before acquiring any host-backed snapshot.
 - literal and host-backed sources must be copied during construction; providers are immutable and lookup must not access or refresh host state.
@@ -476,7 +478,8 @@ No additional member/index/flow operators should be introduced without explicitl
 - `declassify(authority, protected_value)` is the sole reveal operation; authority must be host-injected, match provider identity, and allow the protected purpose.
 - successful declassification removes one protected layer, audits before returning, and yields an ordinary value without hidden taint; failed matching reveals nothing.
 - declassification authority is opaque, noncopyable, nonserializable, and rejected from ordinary output, storage, process, and host-data boundaries.
-- unavailable environment capability returns `err("config-source-unavailable", {source_index})`; acquisition failure returns `err("config-provider-failure", {source_index})`.
+- unavailable environment capability returns `err("config-source-unavailable", {source_index})`; its acquisition failure returns `err("config-provider-failure", {source_index})`.
+- unavailable `.env` capability returns `config-source-unavailable`; required absence/read failure returns `config-provider-failure`; invalid UTF-8/grammar returns `config-source-invalid`. Context is limited to source index, `dotenv` source kind, and acquire/decode/parse stage; optional absence contributes an empty fixed-position source.
 - normalized acquisition failures and runtime misuse must not include the key, source contents, raw value, or raw host failure.
 - providers are opaque identity values: display/debug is `<config-provider>` and ordinary map-key, host-conversion, and serialization boundaries reject them.
 - execution modes must not construct an ambient provider or authority; file, command, pipe, import, native-test, and serve-entry evaluation preserve the same explicit values and Outcomes as ordinary evaluation.

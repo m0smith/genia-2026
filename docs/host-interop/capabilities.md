@@ -34,6 +34,19 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 - **portability:** `Python-host-only`
 - **notes:** The Python host snapshots `os.environ`. Portable provider semantics allow a future host to advertise an equivalent capability or return normalized unavailable; this row records implementation status today. No environment access occurs during `config_get`; no host may silently substitute an ambient or different source. Literal `{kind: quote(values), values: map}` sources are portable ordinary values and require no host capability.
 
+#### `config.dotenv-snapshot`
+
+- **name:** `config.dotenv-snapshot`
+- **genia_surface:** `{kind: quote(dotenv), path, required}` within explicit `config_provider(sources)` construction
+- **input:** one exact validated non-empty NUL-free path string; no discovery or alternate path is attempted
+- **output:** bytes acquired at most once during provider construction; portable semantics strictly decode UTF-8, parse the E13-3 grammar, and copy the resulting exact string map into the immutable provider
+- **errors:**
+  - `err("config-source-unavailable", {source_index, source_kind: quote(dotenv), stage: quote(acquire)})` when unavailable
+  - optional absence contributes an empty source; required absence or host read failure returns `config-provider-failure` at acquire
+  - invalid UTF-8 returns `config-source-invalid` at decode; invalid grammar returns it at parse
+- **portability:** `Python-host-only`
+- **notes:** The Python host reads bytes from exactly the supplied path. Observable descriptor, grammar, failure, ordering, and snapshot obligations are portable. Paths, keys, values, source content, and raw host details never appear in normalized failures; lookup performs no later host access.
+
 ### Group: Model Test Fixture
 
 R11 E11-7 verifies the runnable fixture examples and synchronizes their public

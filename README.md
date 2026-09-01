@@ -1191,7 +1191,7 @@ and shared/multi-host conformance remains Partial.
 
 R10 — Configuration & Secrets is release-complete through E10-8. Release completion means the approved acquisition/protection scope and its truth audit are complete; these APIs remain Experimental, shared conformance is Partial, and Python remains the only implemented host.
 
-`config_provider(sources)` constructs an opaque immutable provider from an explicit highest-to-lowest source list. Literal and Python-host environment descriptors use quoted symbols, so no `values` or `environment` global names are added:
+`config_provider(sources)` constructs an opaque immutable provider from an explicit highest-to-lowest source list. Literal, Python-host environment, and Python-host `.env` descriptors use quoted symbols, so no source-kind global names are added:
 
 ```genia
 provider = config_provider([
@@ -1222,7 +1222,19 @@ R13 E13-2 adds pure adaptation of explicit raw program arguments into the existi
 config_args(["--server-port", "8080", "--", "input.jsonl"])
 ```
 
-This returns `some({kind: values, values: {SERVER_PORT: "8080"}})`. Long option names normalize to uppercase underscore keys, values remain exact, and standalone `--` ignores the remaining strings. Malformed string data returns non-sensitive `config-source-invalid`; invalid input types are runtime misuse. `config_args` does not read `argv()` itself, parse interpreter flags, construct a provider, convert values, or add a host capability. The remaining `.env`, conventional-provider, hardening, proving, and release-close slices are not implemented by E13-2.
+This returns `some({kind: values, values: {SERVER_PORT: "8080"}})`. Long option names normalize to uppercase underscore keys, values remain exact, and standalone `--` ignores the remaining strings. Malformed string data returns non-sensitive `config-source-invalid`; invalid input types are runtime misuse. `config_args` does not read `argv()` itself, parse interpreter flags, construct a provider, convert values, or add a host capability.
+
+R13 E13-3 adds one explicit `.env` snapshot source:
+
+```genia
+provider = config_provider([
+  {kind: quote(dotenv), path: "examples/r13_dotenv_example.env", required: true}
+]) |> unwrap_or(none)
+
+config_get(provider, "SERVER_PORT")
+```
+
+The Python host reads that exact path once during construction. The deterministic grammar supports UTF-8 with an optional leading BOM, LF/CRLF, blank and full-comment lines, ASCII identifier keys, unquoted/single-quoted/double-quoted values, and the documented narrow double-quote escapes. Optional absence is an empty source; required absence/read failure, unavailable capability, and invalid UTF-8/grammar remain distinct non-sensitive Outcomes. There is no discovery, interpolation, expansion, multiline value, refresh, or conventional-provider helper. The conventional-provider, hardening, proving, and release-close slices remain unimplemented.
 
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 
