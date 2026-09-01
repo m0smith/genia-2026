@@ -183,14 +183,16 @@ ordinary value/callable/Outcome/R9/R10/R11 boundary in
 vector-store framework, hidden query embedding, citation rendering semantics,
 or later-ticket implementation authority.
 **R13 — Configuration Resolution Ergonomics is active (epic #608); E13-0 is
-approved and E13-1 qualified configuration/secret views are implemented.** Its approved boundary is ordinary callable
+approved and E13-1 qualified views plus E13-2 explicit CLI adaptation are implemented.** Its approved boundary is ordinary callable
 configuration/secret views over an explicit R10 provider, explicit program-CLI
 adaptation, one narrow `.env` source capability, and deterministic conventional
 provider composition. It must preserve R10 Outcomes, immutable snapshots,
 protected carriers/sinks/declassification, lexical lookup, and map/module-only
-named access. E13-1 adds only inert qualified view construction and exact one-call
-R10 delegation; later source, composition, hardening, proving, and release-close
-slices remain gated. It adds no syntax, Core IR, lifecycle provider binding,
+named access. E13-1 adds inert qualified view construction and exact one-call
+R10 delegation; E13-2 purely normalizes explicit string arguments into the
+existing literal source descriptor without acquiring process state. `.env`,
+composition, hardening, proving, and release-close slices remain gated. R13
+adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 
