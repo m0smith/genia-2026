@@ -1,6 +1,6 @@
 # R13 — Configuration Resolution Ergonomics
 
-Status: **Active release; E13-0 approved and E13-1 implemented.** This
+Status: **Active release; E13-0 approved and E13-1/E13-2 implemented.** This
 document records approved release direction only. It does not define implemented
 language behavior. `GENIA_STATE.md` remains final authority.
 
@@ -267,7 +267,7 @@ release epic is #608.
    - Contract only; no tests or implementation.
 2. **#671 — E13-1: qualified configuration and secret views — implemented**
    - Implement the smallest ordinary closure/value surface over unchanged `config_get` and `secret_get` behavior.
-3. **#672 — E13-2: explicit CLI configuration source**
+3. **#672 — E13-2: explicit CLI configuration source — implemented**
    - Normalize explicit program arguments into one immutable R10-compatible string source.
 4. **#673 — E13-3: narrow `.env` source capability**
    - Implement the contracted grammar, exact missing/malformed distinction, and immutable host-backed snapshot.

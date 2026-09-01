@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **280** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **281** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -67,6 +67,7 @@ Alphabetical index of the **280** out-of-the-box Genia functions available from 
 | [`columns`](functions/columns.md) | Sheets | `columns(sheet)` | Return a Sheet's column names in deterministic order. |
 | [`compose`](functions/compose.md) | fn | `compose(..fns)` | Compose functions right-to-left into one callable. |
 | [`concat`](functions/concat.md) | string | `concat(left, right)` | Concatenate two strings. |
+| [`config_args`](functions/config_args.md) | Configuration | `config_args(arguments)` | Normalize explicit program arguments into an R10 values-source descriptor. |
 | [`config_get`](functions/config_get.md) | Configuration | `config_get(provider, key)` | Read and validate one configuration value through a provider. |
 | [`config_get_or`](functions/config_get_or.md) | Configuration | `config_get_or(provider, key, default)` | Read and validate one configuration value or use an explicit default. |
 | [`config_provider`](functions/config_provider.md) | Configuration | `config_provider(source)` | Construct an ordinary configuration provider from an explicit source. |
@@ -299,6 +300,7 @@ Alphabetical index of the **280** out-of-the-box Genia functions available from 
 
 ### Configuration
 
+- [`config_args`](functions/config_args.md) - Normalize explicit program arguments into an R10 values-source descriptor.
 - [`config_get`](functions/config_get.md) - Read and validate one configuration value through a provider.
 - [`config_get_or`](functions/config_get_or.md) - Read and validate one configuration value or use an explicit default.
 - [`config_provider`](functions/config_provider.md) - Construct an ordinary configuration provider from an explicit source.

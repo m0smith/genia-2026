@@ -1214,7 +1214,15 @@ server("PORT")
 openai("API_KEY")
 ```
 
-Construction is inert. Each call concatenates the exact prefix and non-empty logical name, performs one existing `config_get` or `secret_get`, and returns its exact Outcome. Empty prefixes are valid; views add no caching, fallback, precedence, defaulting, conversion, named access, source acquisition, or ambient lookup. Secret views preserve the existing provider identity, purpose, protected sinks, authority, audit, and declassification boundary. The remaining R13 source and conventional-provider slices are not implemented by E13-1.
+Construction is inert. Each call concatenates the exact prefix and non-empty logical name, performs one existing `config_get` or `secret_get`, and returns its exact Outcome. Empty prefixes are valid; views add no caching, fallback, precedence, defaulting, conversion, named access, source acquisition, or ambient lookup. Secret views preserve the existing provider identity, purpose, protected sinks, authority, audit, and declassification boundary.
+
+R13 E13-2 adds pure adaptation of explicit raw program arguments into the existing literal descriptor shape:
+
+```genia
+config_args(["--server-port", "8080", "--", "input.jsonl"])
+```
+
+This returns `some({kind: values, values: {SERVER_PORT: "8080"}})`. Long option names normalize to uppercase underscore keys, values remain exact, and standalone `--` ignores the remaining strings. Malformed string data returns non-sensitive `config-source-invalid`; invalid input types are runtime misuse. `config_args` does not read `argv()` itself, parse interpreter flags, construct a provider, convert values, or add a host capability. The remaining `.env`, conventional-provider, hardening, proving, and release-close slices are not implemented by E13-2.
 
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 

@@ -108,7 +108,7 @@ CLI contract summary (actual behavior):
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
-- explicit configuration/protected acquisition and qualified views (Experimental): `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match`; source/purpose names are quoted symbols, not new global names
+- explicit configuration/protected acquisition, CLI adaptation, and qualified views (Experimental): `config_args`, `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match`; source/purpose names are quoted symbols, not new global names
   - R10 is release-complete, but this surface remains Experimental; only the Python reference host is implemented
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
@@ -234,6 +234,7 @@ CLI contract summary (actual behavior):
   - public flow helpers are prelude-backed wrappers: `lines`, `keep_some_else`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
   - public sink helpers are prelude-backed wrappers: `write`, `writeln`, `flush`
   - `config_provider(sources)` constructs an explicit immutable opaque provider; supported descriptors are `{kind: quote(values), values: map}` and Python-host `{kind: quote(environment)}`
+  - `config_args(args)` purely normalizes an explicit string list such as `argv()` into `some({kind: quote(values), values: map})`; it accepts long option/value pairs, stops at `--`, and returns non-sensitive `config-source-invalid` for malformed string data
   - `config_get(provider, key)` returns `some(exact_string)` (including empty) or `none("config-missing")`
   - `config_get_or(provider, key, default)` preserves found/empty values; only missing invokes the zero-argument default exactly once, wrapping ordinary results in `some(...)` and preserving returned Outcomes
   - `config_view(provider, prefix)` returns an inert one-argument callable; each call concatenates the exact prefix and logical name, delegates once to `config_get`, and preserves its Outcome
