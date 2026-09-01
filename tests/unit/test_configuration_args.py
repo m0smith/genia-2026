@@ -19,13 +19,13 @@ def test_config_args_normalizes_explicit_arguments():
         ([], []),
         (["--"], []),
         (["--", "8080"], []),
-        (["--port", "8080"], [("PORT", "8080")]),
+        (["--port", "8080"], [["PORT", "8080"]]),
         (
             ["--db-port", "5432", "--Db-Host2", "primary"],
-            [("DB_PORT", "5432"), ("DB_HOST2", "primary")],
+            [["DB_PORT", "5432"], ["DB_HOST2", "primary"]],
         ),
-        (["--empty", "", "--option-looking", "--value"], [("EMPTY", ""), ("OPTION_LOOKING", "--value")]),
-        (["--unknown9", "value", "--", "ignored", "--bad_name"], [("UNKNOWN9", "value")]),
+        (["--empty", "", "--option-looking", "--value"], [["EMPTY", ""], ["OPTION_LOOKING", "--value"]]),
+        (["--unknown9", "value", "--", "ignored", "--bad_name"], [["UNKNOWN9", "value"]]),
     ]
     for args, expected in cases:
         result = _config_args(args)
@@ -56,8 +56,8 @@ def test_config_args_malformed_data_returns_exact_non_sensitive_error():
         assert isinstance(result, GeniaOptionErr)
         assert result.reason == "config-source-invalid"
         assert result.context.items() == [
-            ("source_kind", GeniaSymbol("arguments")),
-            ("stage", GeniaSymbol("parse")),
+            ["source_kind", GeniaSymbol("arguments")],
+            ["stage", GeniaSymbol("parse")],
         ]
         rendered = repr(result)
         for sentinel in ("position", "port", "8080", "bad_name", "pórt", "Db-Port"):

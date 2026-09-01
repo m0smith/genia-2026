@@ -48,6 +48,7 @@ if __package__ in (None, ""):
         declassify,
         get_configuration,
         get_secret_configuration,
+        normalize_config_args,
         protect_secret_default,
         reject_protected,
         reject_declassification_authority,
@@ -151,6 +152,7 @@ else:
         declassify,
         get_configuration,
         get_secret_configuration,
+        normalize_config_args,
         protect_secret_default,
         reject_protected,
         reject_declassification_authority,
@@ -577,6 +579,9 @@ def make_global_env(
 
     def config_provider_fn(sources: Any) -> Any:
         return construct_provider(sources, environment_snapshot_provider)
+
+    def config_args_fn(args: Any) -> Any:
+        return normalize_config_args(args)
 
     def config_get_fn(provider: Any, key: Any) -> Any:
         return get_configuration(provider, key)
@@ -4385,6 +4390,7 @@ def make_global_env(
     env.set("display", display_fn)
     env.set("debug_repr", debug_repr_fn)
     env.set("config_provider", _host_function_group("config_provider", 1, config_provider_fn))
+    env.set("config_args", _host_function_group("config_args", 1, config_args_fn))
     env.set("config_get", _host_function_group("config_get", 2, config_get_fn))
     env.set("config_get_or", _host_function_group("config_get_or", 3, config_get_or_fn))
     env.set("config_view", _host_function_group("config_view", 2, config_view_fn))

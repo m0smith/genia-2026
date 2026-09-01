@@ -28,6 +28,60 @@ def _valid_key(value: Any) -> bool:
     return isinstance(value, str) and value != "" and "\0" not in value
 
 
+def _config_args_error() -> GeniaOptionErr:
+    context = (
+        GeniaMap()
+        .put("source_kind", GeniaSymbol("arguments"))
+        .put("stage", GeniaSymbol("parse"))
+    )
+    return GeniaOptionErr("config-source-invalid", context)
+
+
+def _valid_config_arg_name(name: str) -> bool:
+    segments = name.split("-")
+    return all(
+        segment != ""
+        and ("A" <= segment[0] <= "Z" or "a" <= segment[0] <= "z")
+        and all(
+            "A" <= char <= "Z"
+            or "a" <= char <= "z"
+            or "0" <= char <= "9"
+            for char in segment[1:]
+        )
+        for segment in segments
+    )
+
+
+def normalize_config_args(args: Any) -> GeniaOptionSome | GeniaOptionErr:
+    if not isinstance(args, list):
+        raise TypeError(
+            "config_args expected a list of strings, "
+            f"received {_runtime_type_name(args)}"
+        )
+    if any(not isinstance(arg, str) for arg in args):
+        raise TypeError("config_args expected a list containing only strings")
+
+    values = GeniaMap()
+    index = 0
+    while index < len(args):
+        option = args[index]
+        if option == "--":
+            break
+        if not option.startswith("--"):
+            return _config_args_error()
+        name = option[2:]
+        if not _valid_config_arg_name(name) or index + 1 >= len(args):
+            return _config_args_error()
+        normalized = name.replace("-", "_").upper()
+        if values.has(normalized):
+            return _config_args_error()
+        values = values.put(normalized, args[index + 1])
+        index += 2
+
+    descriptor = GeniaMap().put("kind", GeniaSymbol("values")).put("values", values)
+    return GeniaOptionSome(descriptor)
+
+
 def _source_context(index: int) -> GeniaMap:
     return GeniaMap().put("source_index", index)
 
