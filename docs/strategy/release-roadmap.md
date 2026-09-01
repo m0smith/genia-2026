@@ -777,9 +777,10 @@ syntax/Core IR/lifecycle expansion.
 
 ## Release R13 — Configuration Resolution Ergonomics
 
-**Status: Planned, not active.** This section records approved product direction,
-not implemented language behavior. R13 refines the completed R10 configuration
-surface without reopening R10 protected-value semantics.
+**Status: Next release; ready for E13-0 pre-flight, not implementation.** This
+section records approved product direction, not implemented language behavior.
+R13 refines the completed R10 configuration surface without reopening R10
+protected-value semantics.
 
 Theme:
 
@@ -790,16 +791,21 @@ the ergonomic friction that remains when real applications need several sources,
 repeated common settings, multiple values with the same local name, and standard
 host-backed provider patterns.
 
-Candidate scope:
+Approved planning boundary:
 
-- concise composition of standard provider sources rather than verbose provider construction
-- standard provider presets/adapters for common sources such as command-line options, environment snapshots, and `.env`-style files when host capability support is explicitly available
-- deterministic provider precedence and fallback that remain visible in the configuration value/model
-- namespaced or prefixed resolution so multiple settings such as `PORT` can coexist cleanly without global-name collisions
-- dynamic resolution of provider prefixes/namespaces through ordinary values rather than one global ambient configuration namespace
+- ordinary callable configuration/secret views that explicitly capture one R10
+  provider, a physical key prefix, and, for secrets, one R10 purpose
+- explicit program-argument adaptation, one process-environment snapshot, one
+  narrow `.env`-style source capability, and optional explicit overrides
+- deterministic conventional precedence: explicit overrides, then program CLI,
+  then process environment, then `.env`
+- callable prefixed resolution such as `server("PORT")`; current map/module-only
+  `lhs.name` behavior remains unchanged
 - ergonomic ordinary-value and protected-secret lookup that reuses R10 conversion, Template validation, Outcome, and protected-carrier semantics
 - clear separation between configuration key names, source/provider identity, namespaces/prefixes, and resolved values
-- diagnostics that expose enough source/key context to be useful without exposing protected payloads
+- normalized diagnostics that may expose approved non-sensitive source
+  kind/index/stage but never keys, prefixes, source contents, host details, or
+  protected payloads
 
 R13 must prefer library/value composition over new syntax. Candidate shorthand or
 annotation forms are not approved merely by appearing in discussion; any public
@@ -813,19 +819,43 @@ Architectural rules:
 - standard providers must have deterministic precedence and explicit host/portable boundaries
 - provider/source names and namespaces must be ordinary inspectable configuration metadata/values where safe, not hidden ambient state
 - protected values remain protected through all new ergonomic resolution paths
+- R13 adds no syntax, Core IR, named-access, lifecycle-binding, or dependency-injection behavior
 
 Critical acceptance criterion:
 
-- An application can define a small, readable configuration-resolution policy once and then resolve ordinary and protected values from multiple standard providers/namespaces without repeating provider plumbing or introducing ambiguous global names.
+- An application can define one explicit configuration-resolution policy and
+  immutable provider, construct concise qualified ordinary/secret views, and
+  resolve values from standard sources without repeated provider plumbing,
+  ambiguous global names, or weakened R10 behavior.
 
 Explicit non-goals:
 
 - changing R10 protected-secret semantics
 - implicit global environment lookup as an uninspectable default
 - dependency injection
+- lifecycle-owned provider injection (deferred to R14 lifecycle contract work)
+- broadening `lhs.name` beyond its implemented map/module boundary
 - a new configuration annotation/macro system without a separately approved contract
 - vault/rotation/authentication systems
+- `.env` discovery cascades, interpolation, profiles, or configuration schemas
 - HTTP-specific configuration lookup; R14 consumes R13 rather than extending it ad hoc
+
+Approved ticket sequence under epic #608:
+
+1. **#670 — E13-0:** configuration-resolution ergonomics contract
+2. **#671 — E13-1:** qualified configuration and secret views
+3. **#672 — E13-2:** explicit CLI configuration source
+4. **#673 — E13-3:** narrow `.env` source capability
+5. **#674 — E13-4:** conventional provider composition
+6. **#675 — E13-5:** cross-mode, diagnostic, and protected-boundary hardening
+7. **#676 — E13-6:** Outcome-aware validated-pipeline proving case
+8. **#677 — E13-7:** release examples and implemented-truth synchronization
+9. **#678 — E13-8:** release truth audit and distillation
+
+`docs/strategy/r13-configuration-resolution-ergonomics.md` owns the detailed
+scope, decision list, portability posture, ticket acceptance baseline, and exit
+criterion. **GO for E13-0 pre-flight only; implementation remains blocked until
+the contract is explicitly approved.**
 
 ---
 
@@ -1006,7 +1036,8 @@ foundation while preserving R10 protected-value boundaries.
 
 R8, R9, R10, R11, and R12 are complete. R11 and R12 APIs remain Experimental,
 Python is the only implemented host, and shared/multi-host conformance remains
-Partial. R13 and R14 remain planned.
+Partial. R13 is the next release and is ready for E13-0 pre-flight only; R14
+remains planned.
 R10/R11/R12 follow-ups require their own gates; R13 and R14
 do as well.
 Each later behavior slice requires its
