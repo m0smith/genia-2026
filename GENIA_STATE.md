@@ -573,7 +573,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `config_view` returns the exact `config_get` Outcome; `secret_view` returns the exact `secret_get` Outcome and preserves provider identity, purpose, protected carrier, sinks, authority, audit, and declassification behavior
   - views add no caching, fallback, precedence, defaulting, conversion, Template validation, ambient lookup, named access, syntax, annotation, parser/AST/Core IR node, lifecycle binding, or host capability
   - normalized misuse does not include the prefix, logical name, physical key, provider identity, purpose, source content/value, or protected payload
-  - conventional provider composition, cross-mode hardening, and proving/release-completion slices remain unimplemented
+  - E13-1 itself adds no conventional provider composition; E13-4 supplies that composition, while cross-mode hardening and proving/release-completion slices remain unimplemented
   - LANGUAGE CONTRACT: construction/callability, validation, exact concatenation, and exact one-call R10 delegation are portable ordinary-call behavior
   - PYTHON REFERENCE HOST: the two constructors use the existing callable and R10 provider implementation; no new host capability is introduced and shared/multi-host conformance remains Partial
 
@@ -600,6 +600,17 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-3 adds no `config_standard`, conventional precedence helper, public parser, syntax, annotation, parser/AST/Core IR node, named access, lifecycle binding, or ambient lookup
   - LANGUAGE CONTRACT: descriptor validation, grammar, normalized Outcomes, fixed indices, acquisition ordering, and immutable snapshot behavior are portable
   - PYTHON REFERENCE HOST: `config.dotenv-snapshot` reads bytes from exactly the supplied path during provider construction; future hosts may report capability unavailable, and shared/multi-host conformance remains Partial
+
+- Conventional configuration provider composition (Experimental, issue #674)
+  - R13 E13-4 adds ordinary `config_standard(overrides, args)` and `config_standard(overrides, args, dotenv_path)` calls
+  - the two-argument form selects optional `.env`; the three-argument form requires the exact supplied non-empty NUL-free path
+  - construction normalizes explicit arguments, then delegates to the existing provider with fixed sources: overrides at index 0, arguments at 1, environment at 2, and `.env` at 3
+  - fixed precedence is overrides > arguments > environment > `.env`; empty or optionally absent sources retain their indices
+  - invalid explicit types/values are runtime misuse before acquisition; malformed argument syntax returns its exact non-sensitive `config-source-invalid` Outcome before environment or filesystem acquisition
+  - the result is the exact existing provider Outcome; construction is atomic, snapshots once, and preserves unchanged ordinary/secret views and every R10 protected boundary
+  - E13-4 adds no provider model, capability, ambient lookup/refresh, defaults source, schema/conversion, syntax, annotation, parser/AST/Core IR node, named access, or lifecycle binding
+  - LANGUAGE CONTRACT: arities, validation ordering, fixed source order/indices, precedence, optional/required path policy, exact Outcomes, atomicity, and snapshot behavior are portable
+  - PYTHON REFERENCE HOST: composition reuses the existing environment and `.env` snapshot capabilities; Python remains the only implemented host and shared/multi-host conformance remains Partial
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
@@ -1265,6 +1276,7 @@ Case placement rules (enforced):
 
 - `config_args(args)` — pure normalization of explicit raw program strings into an existing R10 literal values-source descriptor Outcome
 - `config_provider(sources)` — explicit immutable provider construction over ordered quoted-kind descriptors
+- `config_standard(overrides, args[, dotenv_path])` — conventional four-source provider composition with fixed precedence and snapshot timing
 - `config_get(provider, key)` — exact raw-string lookup through an explicit provider
 - `config_get_or(provider, key, default)` — missing-only lazy defaulting; found/empty values bypass the zero-argument default, and selected defaults run exactly once
 - `config_view(provider, prefix)` — inert qualified ordinary lookup callable using exact prefix/name concatenation and one existing `config_get`

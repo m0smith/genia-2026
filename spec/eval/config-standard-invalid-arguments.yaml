@@ -1,0 +1,11 @@
+name: config-standard-invalid-arguments
+category: eval
+description: Conventional provider composition preserves malformed argument Outcome
+input:
+  source: |
+    config_standard({}, ["--bad_name", "value"])
+expected:
+  stdout: |
+    err("config-source-invalid", {source_kind: arguments, stage: parse})
+  stderr: ""
+  exit_code: 0
