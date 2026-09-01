@@ -147,14 +147,15 @@ When an LLM agent is asked for new Genia work:
    query embedding, score normalization, citation rendering, retries,
    streaming, syntax, Core IR, or lifecycle expansion.
 8. R13 is active (epic #608): E13-0 is approved and E13-1 ordinary qualified
-   configuration/secret views are implemented. Preserve its boundary: views explicitly
+   views plus E13-2 explicit CLI adaptation are implemented. Preserve its boundary: views explicitly
    capture an R10 provider and prefix/purpose; explicit program arguments,
    process environment, one narrow `.env` capability, and optional overrides
    compose in deterministic order; R10 Outcomes, snapshots, protected values,
    sinks, and declassification remain unchanged. Do not broaden map/module-only
    named access, add syntax/Core IR, bind providers through lifecycle, introduce
-   dependency injection, or infer later R13 source/composition behavior from the
-   implemented E13-1 slice. Follow
+   dependency injection, or infer later `.env`/composition behavior from the
+   implemented slices. E13-2 purely normalizes an explicit string list into the
+   existing R10 literal descriptor; it adds no process-state acquisition. Follow
    `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.

@@ -573,9 +573,21 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `config_view` returns the exact `config_get` Outcome; `secret_view` returns the exact `secret_get` Outcome and preserves provider identity, purpose, protected carrier, sinks, authority, audit, and declassification behavior
   - views add no caching, fallback, precedence, defaulting, conversion, Template validation, ambient lookup, named access, syntax, annotation, parser/AST/Core IR node, lifecycle binding, or host capability
   - normalized misuse does not include the prefix, logical name, physical key, provider identity, purpose, source content/value, or protected payload
-  - R13 source adapters, `.env` acquisition, conventional provider composition, cross-mode hardening, and proving/release-completion slices remain unimplemented
+  - `.env` acquisition, conventional provider composition, cross-mode hardening, and proving/release-completion slices remain unimplemented
   - LANGUAGE CONTRACT: construction/callability, validation, exact concatenation, and exact one-call R10 delegation are portable ordinary-call behavior
   - PYTHON REFERENCE HOST: the two constructors use the existing callable and R10 provider implementation; no new host capability is introduced and shared/multi-host conformance remains Partial
+
+- Explicit CLI configuration source (Experimental, issue #672)
+  - R13 E13-2 adds `config_args(args)` as an ordinary one-argument callable over an explicit plain list of strings, normally `argv()`; it never reads process arguments or interpreter mode flags itself
+  - before the first standalone `--`, input is exact long-option/value pairs; names use ASCII letter-led alphanumeric segments separated by single hyphens, and values are the next exact strings, including empty or option-looking strings
+  - standalone `--` terminates configuration parsing and every later string is ignored; empty and terminator-only input produce an empty values map
+  - names normalize by replacing hyphens with underscores and uppercasing ASCII letters; unknown valid names are accepted, while repeated or normalization-colliding keys fail atomically
+  - success is `some({kind: quote(values), values: normalized_map})`, using the existing R10 literal source descriptor shape and fresh snapshot data
+  - malformed string-list data returns exactly `err("config-source-invalid", {source_kind: quote(arguments), stage: quote(parse)})`; no option spelling, argument index, value, or partial map is exposed
+  - a non-list input or any non-string list member is runtime misuse; short/grouped options, flags without values, `--name=value`, underscores, non-ASCII names, and positionals before `--` are not accepted
+  - E13-2 adds no schema, boolean encoding, conversion, provider construction, host acquisition capability, syntax, annotation, parser/AST/Core IR node, named access, lifecycle binding, or ambient lookup
+  - LANGUAGE CONTRACT: explicit-input grammar, normalization, collision handling, descriptor/Outcome shapes, atomic failure, and snapshot behavior are portable pure ordinary-call behavior
+  - PYTHON REFERENCE HOST: the ordinary callable is registered over existing runtime values; raw process arguments remain available only through the unchanged explicit `argv()` boundary and shared/multi-host conformance remains Partial
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
@@ -1239,6 +1251,7 @@ Case placement rules (enforced):
 
 ### Configuration acquisition (Experimental)
 
+- `config_args(args)` — pure normalization of explicit raw program strings into an existing R10 literal values-source descriptor Outcome
 - `config_provider(sources)` — explicit immutable provider construction over ordered quoted-kind descriptors
 - `config_get(provider, key)` — exact raw-string lookup through an explicit provider
 - `config_get_or(provider, key, default)` — missing-only lazy defaulting; found/empty values bypass the zero-argument default, and selected defaults run exactly once

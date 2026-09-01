@@ -47,6 +47,7 @@ nav:
       - "R10 — Configuration & Secrets": releases/R10.md
       - "R11 — AI Composition": releases/R11.md
       - "R12 — Retrieval & Grounding": releases/R12.md
+      - "R13 — Configuration Resolution Ergonomics": releases/R13.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
@@ -71,6 +72,7 @@ nav:
       - CLI:
           - "argv": reference/functions/argv.md
       - Configuration:
+          - "config_args": reference/functions/config_args.md
           - "config_get": reference/functions/config_get.md
           - "config_get_or": reference/functions/config_get_or.md
           - "config_provider": reference/functions/config_provider.md

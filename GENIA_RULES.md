@@ -448,7 +448,11 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ### Explicit configuration acquisition (Experimental)
 
-- `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
+- `config_args`, `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
+- `config_args(args)` requires an explicit plain list containing only strings and never reads `argv()` itself. Before the first standalone `--`, every token pair is `--name` followed by one exact string value; the terminator and later strings are ignored.
+- A configuration argument name is ASCII letter-led alphanumeric segments separated by single hyphens. Normalization replaces hyphens with underscores and uppercases ASCII letters; unknown valid names are accepted, and a normalized key may occur only once.
+- `config_args` success is `some({kind: quote(values), values: normalized_map})`. Malformed string-list data fails atomically as `err("config-source-invalid", {source_kind: quote(arguments), stage: quote(parse)})`; non-list or non-string-member input is runtime misuse.
+- `config_args` accepts no short/grouped option, flag without a value, equals form, underscore/non-ASCII name, positional token before `--`, schema, boolean encoding, implicit conversion, or host acquisition.
 - source descriptor kinds must be explicit symbols produced with `quote(values)` or `quote(environment)`; no global `values` or `environment` binding is introduced.
 - `sources` must be an explicit list ordered highest to lowest precedence; the first snapshot containing the key wins.
 - provider construction must validate every descriptor and every literal key/value before acquiring any host-backed snapshot.

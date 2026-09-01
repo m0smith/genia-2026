@@ -45,6 +45,7 @@ _PUBLIC_DOCS = (
     _public("collect_sheet", "Collect homogeneous map records into an immutable Sheet.", "Sheets", "collect_sheet(records)", stability="Experimental"),
     _public("collect_validated", "Collect Outcome values into clean values and diagnostics.", "Validation", "collect_validated(results)", stability="Experimental"),
     _public("columns", "Return a Sheet's column names in deterministic order.", "Sheets", "columns(sheet)", stability="Experimental"),
+    _public("config_args", "Normalize explicit program arguments into an R10 values-source descriptor.", "Configuration", "config_args(arguments)", stability="Experimental"),
     _public("config_get", "Read and validate one configuration value through a provider.", "Configuration", "config_get(provider, key)", stability="Experimental"),
     _public("config_get_or", "Read and validate one configuration value or use an explicit default.", "Configuration", "config_get_or(provider, key, default)", stability="Experimental"),
     _public("config_provider", "Construct an ordinary configuration provider from an explicit source.", "Configuration", "config_provider(source)", stability="Experimental"),
