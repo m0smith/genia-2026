@@ -1,6 +1,6 @@
 # R13 Configuration Resolution Contract
 
-Status: **APPROVED / EXPERIMENTAL — E13-0 contract; E13-1 through E13-3 implemented.**
+Status: **APPROVED / EXPERIMENTAL — E13-0 contract; E13-1 through E13-4 implemented.**
 Later R13 behavior in this document is not implemented merely because this contract exists.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
@@ -389,7 +389,7 @@ server("PORT")
 
 Expected future result: `some("8080")`.
 
-Proposed conventional composition:
+Implemented conventional composition:
 
 ```genia
 provider = config_standard(

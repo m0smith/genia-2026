@@ -76,6 +76,7 @@ nav:
           - "config_get": reference/functions/config_get.md
           - "config_get_or": reference/functions/config_get_or.md
           - "config_provider": reference/functions/config_provider.md
+          - "config_standard": reference/functions/config_standard.md
           - "config_view": reference/functions/config_view.md
           - "declassify": reference/functions/declassify.md
           - "protected_match": reference/functions/protected_match.md

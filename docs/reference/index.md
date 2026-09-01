@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **281** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **282** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -71,6 +71,7 @@ Alphabetical index of the **281** out-of-the-box Genia functions available from 
 | [`config_get`](functions/config_get.md) | Configuration | `config_get(provider, key)` | Read and validate one configuration value through a provider. |
 | [`config_get_or`](functions/config_get_or.md) | Configuration | `config_get_or(provider, key, default)` | Read and validate one configuration value or use an explicit default. |
 | [`config_provider`](functions/config_provider.md) | Configuration | `config_provider(source)` | Construct an ordinary configuration provider from an explicit source. |
+| [`config_standard`](functions/config_standard.md) | Configuration | `config_standard(overrides, arguments)` | Construct the conventional ordered configuration provider snapshot. |
 | [`config_view`](functions/config_view.md) | Configuration | `config_view(provider, prefix)` | Construct a qualified configuration lookup callable over an explicit provider. |
 | [`cons`](functions/cons.md) | Pairs | `cons(first, second)` | Construct a pair from two values. |
 | [`contains`](functions/contains.md) | string | `contains(haystack, needle)` | Check whether `needle` occurs inside `haystack`. |
@@ -304,6 +305,7 @@ Alphabetical index of the **281** out-of-the-box Genia functions available from 
 - [`config_get`](functions/config_get.md) - Read and validate one configuration value through a provider.
 - [`config_get_or`](functions/config_get_or.md) - Read and validate one configuration value or use an explicit default.
 - [`config_provider`](functions/config_provider.md) - Construct an ordinary configuration provider from an explicit source.
+- [`config_standard`](functions/config_standard.md) - Construct the conventional ordered configuration provider snapshot.
 - [`config_view`](functions/config_view.md) - Construct a qualified configuration lookup callable over an explicit provider.
 - [`declassify`](functions/declassify.md) - Declassify a protected value with matching explicit authority.
 - [`protected_match`](functions/protected_match.md) - Match a value while preserving the protected carrier boundary.

@@ -40,7 +40,7 @@ Validation: runnable snippets include `[case: <id>]` markers and are executed by
 | represented value | `represent(facet, value)`; observe with `representation_match(facet, value)`; explicitly remove with `strip_representation(facet, value)` |
 | JSON representation boundary | `json_decode(text_or_bytes)` and `json_encode(value)` return Outcomes; decoded roots carry one outer `"json"` facet |
 | JSON Schema Template | `json_schema(json_represented_schema)` compiles the supported structural subset into an Outcome containing a callable Template |
-| configuration provider | adapt explicit raw args with `config_args(args)`; construct with literal, environment, or explicit `{kind: quote(dotenv), path, required}` snapshots; lookup with `config_get(provider, key)` or missing-only `config_get_or(provider, key, default)`; qualify with `config_view(provider, prefix)` or protected `secret_view(provider, prefix, purpose)` — **Experimental** |
+| configuration provider | adapt explicit raw args with `config_args(args)`; construct explicit sources with `config_provider` or fixed conventional sources with `config_standard(overrides, args[, dotenv_path])`; lookup with `config_get`/`config_get_or`; qualify with `config_view` or protected `secret_view` — **Experimental** |
 | protected secret | `secret_get(provider, key, purpose)`, missing-only `secret_get_or(provider, key, purpose, default)`, and `protected_match("secret", value)` — **Experimental** |
 | guard | `(x) ? x > 0 -> ...` |
 

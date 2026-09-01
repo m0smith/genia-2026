@@ -153,7 +153,7 @@ When an LLM agent is asked for new Genia work:
    compose in deterministic order; R10 Outcomes, snapshots, protected values,
    sinks, and declassification remain unchanged. Do not broaden map/module-only
    named access, add syntax/Core IR, bind providers through lifecycle, introduce
-   dependency injection, or infer later conventional composition from the
+   dependency injection, or infer later lifecycle composition from the
    implemented slices. E13-2 purely normalizes an explicit string list into the
    existing R10 literal descriptor; E13-3 snapshots one exact path with no discovery,
    interpolation, or refresh. Follow

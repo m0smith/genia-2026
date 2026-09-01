@@ -448,7 +448,7 @@ No additional member/index/flow operators should be introduced without explicitl
 
 ### Explicit configuration acquisition (Experimental)
 
-- `config_args`, `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
+- `config_args`, `config_provider`, `config_standard`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match` are ordinary calls; they add no syntax, annotation behavior, or Core IR node.
 - `config_args(args)` requires an explicit plain list containing only strings and never reads `argv()` itself. Before the first standalone `--`, every token pair is `--name` followed by one exact string value; the terminator and later strings are ignored.
 - A configuration argument name is ASCII letter-led alphanumeric segments separated by single hyphens. Normalization replaces hyphens with underscores and uppercases ASCII letters; unknown valid names are accepted, and a normalized key may occur only once.
 - `config_args` success is `some({kind: quote(values), values: normalized_map})`. Malformed string-list data fails atomically as `err("config-source-invalid", {source_kind: quote(arguments), stage: quote(parse)})`; non-list or non-string-member input is runtime misuse.
@@ -456,6 +456,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - source descriptor kinds must be explicit symbols produced with `quote(values)`, `quote(environment)`, or `quote(dotenv)`; no corresponding global binding is introduced.
 - a `.env` descriptor is exactly `{kind: quote(dotenv), path, required}` with a non-empty NUL-free string path and boolean `required`; invalid descriptors are runtime misuse before host acquisition.
 - `.env` snapshots use the implemented deterministic UTF-8/BOM, line, comment, ASCII-key, whitespace, quoting, and escape grammar; duplicates and malformed input fail atomically, with no interpolation, expansion, multiline, discovery, or refresh behavior.
+- `config_standard(overrides, args)` and `config_standard(overrides, args, dotenv_path)` compose fixed sources at indices 0 through 3: overrides, normalized explicit arguments, environment, and `.env`. The two-argument form uses optional `.env`; an explicit path is required. Malformed arguments short-circuit host acquisition, and the exact existing provider Outcome is returned.
 - `sources` must be an explicit list ordered highest to lowest precedence; the first snapshot containing the key wins.
 - provider construction must validate every descriptor and every literal key/value before acquiring any host-backed snapshot.
 - literal and host-backed sources must be copied during construction; providers are immutable and lookup must not access or refresh host state.

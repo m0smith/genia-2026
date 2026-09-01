@@ -1234,7 +1234,9 @@ provider = config_provider([
 config_get(provider, "SERVER_PORT")
 ```
 
-The Python host reads that exact path once during construction. The deterministic grammar supports UTF-8 with an optional leading BOM, LF/CRLF, blank and full-comment lines, ASCII identifier keys, unquoted/single-quoted/double-quoted values, and the documented narrow double-quote escapes. Optional absence is an empty source; required absence/read failure, unavailable capability, and invalid UTF-8/grammar remain distinct non-sensitive Outcomes. There is no discovery, interpolation, expansion, multiline value, refresh, or conventional-provider helper. The conventional-provider, hardening, proving, and release-close slices remain unimplemented.
+The Python host reads that exact path once during construction. The deterministic grammar supports UTF-8 with an optional leading BOM, LF/CRLF, blank and full-comment lines, ASCII identifier keys, unquoted/single-quoted/double-quoted values, and the documented narrow double-quote escapes. Optional absence is an empty source; required absence/read failure, unavailable capability, and invalid UTF-8/grammar remain distinct non-sensitive Outcomes. There is no discovery, interpolation, expansion, multiline value, or refresh.
+
+R13 E13-4 adds `config_standard(overrides, args)` and its explicit-path three-argument form. They preserve four fixed indices and precedence: overrides > normalized explicit arguments > environment > `.env`. Two arguments use optional `.env`; a supplied path is required. Construction returns the exact existing provider Outcome, snapshots once, and leaves ordinary/secret views and protected boundaries unchanged. Hardening, proving, and release-close slices remain unimplemented.
 
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 

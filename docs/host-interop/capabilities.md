@@ -32,7 +32,7 @@ A host capability is a named, host-backed service exposed to Genia programs thro
   - `err("config-source-unavailable", {source_index})` when the host does not advertise the capability
   - `err("config-provider-failure", {source_index})` when acquisition or returned snapshot validation fails
 - **portability:** `Python-host-only`
-- **notes:** The Python host snapshots `os.environ`. Portable provider semantics allow a future host to advertise an equivalent capability or return normalized unavailable; this row records implementation status today. No environment access occurs during `config_get`; no host may silently substitute an ambient or different source. Literal `{kind: quote(values), values: map}` sources are portable ordinary values and require no host capability.
+- **notes:** The Python host snapshots `os.environ`. Portable provider semantics allow a future host to advertise an equivalent capability or return normalized unavailable; this row records implementation status today. No environment access occurs during lookup; `config_standard` invokes this existing capability at fixed source index 2 and adds no capability. Literal `{kind: quote(values), values: map}` sources are portable ordinary values and require no host capability.
 
 #### `config.dotenv-snapshot`
 
@@ -45,7 +45,7 @@ A host capability is a named, host-backed service exposed to Genia programs thro
   - optional absence contributes an empty source; required absence or host read failure returns `config-provider-failure` at acquire
   - invalid UTF-8 returns `config-source-invalid` at decode; invalid grammar returns it at parse
 - **portability:** `Python-host-only`
-- **notes:** The Python host reads bytes from exactly the supplied path. Observable descriptor, grammar, failure, ordering, and snapshot obligations are portable. Paths, keys, values, source content, and raw host details never appear in normalized failures; lookup performs no later host access.
+- **notes:** The Python host reads bytes from exactly the supplied path. `config_standard` uses this existing capability at fixed source index 3: optional `.env` for two arguments or a required explicit path for three. Observable descriptor, grammar, failure, ordering, and snapshot obligations are portable. Paths, keys, values, source content, and raw host details never appear in normalized failures; lookup performs no later host access.
 
 ### Group: Model Test Fixture
 
