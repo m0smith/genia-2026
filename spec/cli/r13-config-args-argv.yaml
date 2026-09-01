@@ -3,11 +3,11 @@ name: r13-config-args-argv
 category: cli
 description: File mode can explicitly adapt raw trailing argv into an R10 values descriptor
 input:
-  source: "print(config_args(argv()))"
-  command: "print(config_args(argv()))"
+  source: "config_args(argv())"
+  command: "config_args(argv())"
   stdin: ""
-  argv: ["--server-port", "8080", "--", "input.jsonl"]
+  argv: ["--", "--server-port", "8080", "--", "input.jsonl"]
 expected:
-  stdout: 'some({kind: values, values: {SERVER_PORT: "8080"}})\n'
+  stdout: 'some({kind: values, values: {SERVER_PORT: "8080"}})'
   stderr: ""
   exit_code: 0

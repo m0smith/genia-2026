@@ -9,6 +9,7 @@ input:
       config_args(["--empty", "", "--option-looking", "--value", "--", "ignored", "--bad_name"])
     ]
 expected:
-  stdout: '[some({kind: values, values: {}}), some({kind: values, values: {DB_PORT: "5432", DB_HOST2: "primary"}}), some({kind: values, values: {EMPTY: "", OPTION_LOOKING: "--value"}})]\n'
+  stdout: |
+    [some({kind: values, values: {}}), some({kind: values, values: {DB_PORT: "5432", DB_HOST2: "primary"}}), some({kind: values, values: {EMPTY: "", OPTION_LOOKING: "--value"}})]
   stderr: ""
   exit_code: 0
