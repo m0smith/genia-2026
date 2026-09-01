@@ -1,0 +1,17 @@
+name: config-standard-composition
+category: eval
+description: Conventional configuration composition preserves fixed precedence and qualified views
+input:
+  source: |
+    provider = config_standard(
+      {SERVER_PORT: "override", OVERRIDE_ONLY: "yes"},
+      ["--server-port", "arguments", "--db-port", "5432"]
+    ) |> unwrap_or(none)
+    server = config_view(provider, "SERVER_")
+    database = config_view(provider, "DB_")
+    [server("PORT"), database("PORT"), config_get(provider, "OVERRIDE_ONLY")]
+expected:
+  stdout: |
+    [some("override"), some("5432"), some("yes")]
+  stderr: ""
+  exit_code: 0
