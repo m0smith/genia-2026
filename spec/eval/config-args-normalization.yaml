@@ -1,0 +1,14 @@
+name: config-args-normalization
+category: eval
+description: Explicit CLI configuration arguments normalize into an R10 values descriptor
+input:
+  source: |
+    [
+      config_args([]),
+      config_args(["--db-port", "5432", "--Db-Host2", "primary"]),
+      config_args(["--empty", "", "--option-looking", "--value", "--", "ignored", "--bad_name"])
+    ]
+expected:
+  stdout: '[some({kind: values, values: {}}), some({kind: values, values: {DB_PORT: "5432", DB_HOST2: "primary"}}), some({kind: values, values: {EMPTY: "", OPTION_LOOKING: "--value"}})]\n'
+  stderr: ""
+  exit_code: 0

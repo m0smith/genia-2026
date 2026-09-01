@@ -1,0 +1,10 @@
+name: error-config-args-malformed
+category: error
+description: Malformed explicit CLI configuration arguments return one non-sensitive recoverable error
+input:
+  source: |
+    config_args(["--SENTINEL-port", "VALUE_SENTINEL", "--sentinel-Port", "OTHER_SENTINEL"])
+expected:
+  stdout: 'err("config-source-invalid", {source_kind: arguments, stage: parse})\n'
+  stderr: ""
+  exit_code: 0
