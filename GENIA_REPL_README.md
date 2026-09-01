@@ -108,7 +108,7 @@ CLI contract summary (actual behavior):
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
 - quote special form: `quote(expr)` for syntax-as-data
-- explicit configuration/protected acquisition (Experimental): `config_provider`, `config_get`, `config_get_or`, `secret_get`, `secret_get_or`, and `protected_match`; source/purpose names are quoted symbols, not new global names
+- explicit configuration/protected acquisition and qualified views (Experimental): `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match`; source/purpose names are quoted symbols, not new global names
   - R10 is release-complete, but this surface remains Experimental; only the Python reference host is implemented
 - quasiquote special form: `quasiquote(expr)` with `unquote(...)` and list-context `unquote_splicing(...)`
 - delay special form: `delay(expr)` for delayed ordinary values
@@ -236,7 +236,9 @@ CLI contract summary (actual behavior):
   - `config_provider(sources)` constructs an explicit immutable opaque provider; supported descriptors are `{kind: quote(values), values: map}` and Python-host `{kind: quote(environment)}`
   - `config_get(provider, key)` returns `some(exact_string)` (including empty) or `none("config-missing")`
   - `config_get_or(provider, key, default)` preserves found/empty values; only missing invokes the zero-argument default exactly once, wrapping ordinary results in `some(...)` and preserving returned Outcomes
+  - `config_view(provider, prefix)` returns an inert one-argument callable; each call concatenates the exact prefix and logical name, delegates once to `config_get`, and preserves its Outcome
   - `secret_get(provider, key, purpose)` and `secret_get_or(provider, key, purpose, default)` protect successful values once; `protected_match("secret", value)` returns the exact protected subject
+  - `secret_view(provider, prefix, purpose)` is the protected counterpart and preserves the exact R10 provider/purpose/carrier boundary; views add no source acquisition, defaults, conversion, caching, named access, or ambient lookup
   - generic representation construction/matching/stripping reject `"secret"`; protected values are not map keys and transport unchanged without container taint
   - diagnostic rendering recursively substitutes `<protected>`; output/format/serialization/resource/HTTP/host boundaries reject protected leaves before effects
   - `declassify(authority, protected_value)` is the sole reveal operation and requires an exact host-injected provider/purpose-scoped authority; success audits and returns an ordinary value

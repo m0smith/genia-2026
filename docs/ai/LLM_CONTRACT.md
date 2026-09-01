@@ -94,7 +94,7 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9, R10, R11, and R12 Complete; R13 Next
+## Release Position: R9, R10, R11, and R12 Complete; R13 Active
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -146,16 +146,15 @@ When an LLM agent is asked for new Genia work:
    unchanged R11 `model/4`. Do not infer a RAG/vector-store framework, hidden
    query embedding, score normalization, citation rendering, retries,
    streaming, syntax, Core IR, or lifecycle expansion.
-8. R13 is the next release (epic #608) and is ready for E13-0 issue #670
-   pre-flight only. Preserve its
-   planning boundary: ordinary callable configuration/secret views explicitly
+8. R13 is active (epic #608): E13-0 is approved and E13-1 ordinary qualified
+   configuration/secret views are implemented. Preserve its boundary: views explicitly
    capture an R10 provider and prefix/purpose; explicit program arguments,
    process environment, one narrow `.env` capability, and optional overrides
    compose in deterministic order; R10 Outcomes, snapshots, protected values,
    sinks, and declassification remain unchanged. Do not broaden map/module-only
    named access, add syntax/Core IR, bind providers through lifecycle, introduce
-   dependency injection, or implement behavior before an approved #670 E13-0
-   contract. Follow
+   dependency injection, or infer later R13 source/composition behavior from the
+   implemented E13-1 slice. Follow
    `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.

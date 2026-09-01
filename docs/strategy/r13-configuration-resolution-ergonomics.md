@@ -1,6 +1,6 @@
 # R13 — Configuration Resolution Ergonomics
 
-Status: **Next release; ready for E13-0 pre-flight, not implementation.** This
+Status: **Active release; E13-0 approved and E13-1 implemented.** This
 document records approved release direction only. It does not define implemented
 language behavior. `GENIA_STATE.md` remains final authority.
 
@@ -262,10 +262,10 @@ analysis must complete every field again against its final locked scope.
 Every behavior issue runs its own complete repository phase workflow. The
 release epic is #608.
 
-1. **#670 — E13-0: configuration-resolution ergonomics contract**
+1. **#670 — E13-0: configuration-resolution ergonomics contract — complete**
    - Lock view call shapes, CLI normalization, `.env` grammar, standard-provider arguments/precedence, diagnostics, capability boundaries, and exclusions.
    - Contract only; no tests or implementation.
-2. **#671 — E13-1: qualified configuration and secret views**
+2. **#671 — E13-1: qualified configuration and secret views — implemented**
    - Implement the smallest ordinary closure/value surface over unchanged `config_get` and `secret_get` behavior.
 3. **#672 — E13-2: explicit CLI configuration source**
    - Normalize explicit program arguments into one immutable R10-compatible string source.

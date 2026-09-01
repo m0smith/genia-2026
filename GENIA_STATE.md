@@ -565,6 +565,18 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - LANGUAGE CONTRACT: explicit ordering, immutable snapshot semantics, literal sources, lookup Outcomes, opacity, and normalized failures are portable
   - PYTHON REFERENCE HOST: `{kind: quote(environment)}` snapshots `os.environ` during construction; a host may report the capability unavailable rather than substitute another source
 
+- Qualified configuration and secret views (Experimental, issue #671)
+  - R13 E13-1 adds `config_view(provider, prefix)` and `secret_view(provider, prefix, purpose)` as ordinary constructors returning one-argument callables
+  - construction validates and captures the existing R10 provider and exact string prefix; secret views also validate and capture one existing non-empty R10 purpose symbol
+  - an empty prefix is valid; a prefix containing NUL is runtime misuse; construction performs no lookup, source acquisition, refresh, conversion, validation, protection, declassification, audit, or host operation
+  - each returned callable requires one non-empty logical-name string without NUL, forms the physical key by exact `prefix + logical_name` concatenation, and performs exactly one existing R10 lookup
+  - `config_view` returns the exact `config_get` Outcome; `secret_view` returns the exact `secret_get` Outcome and preserves provider identity, purpose, protected carrier, sinks, authority, audit, and declassification behavior
+  - views add no caching, fallback, precedence, defaulting, conversion, Template validation, ambient lookup, named access, syntax, annotation, parser/AST/Core IR node, lifecycle binding, or host capability
+  - normalized misuse does not include the prefix, logical name, physical key, provider identity, purpose, source content/value, or protected payload
+  - R13 source adapters, `.env` acquisition, conventional provider composition, cross-mode hardening, and proving/release-completion slices remain unimplemented
+  - LANGUAGE CONTRACT: construction/callability, validation, exact concatenation, and exact one-call R10 delegation are portable ordinary-call behavior
+  - PYTHON REFERENCE HOST: the two constructors use the existing callable and R10 provider implementation; no new host capability is introduced and shared/multi-host conformance remains Partial
+
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
   - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
@@ -1230,8 +1242,10 @@ Case placement rules (enforced):
 - `config_provider(sources)` — explicit immutable provider construction over ordered quoted-kind descriptors
 - `config_get(provider, key)` — exact raw-string lookup through an explicit provider
 - `config_get_or(provider, key, default)` — missing-only lazy defaulting; found/empty values bypass the zero-argument default, and selected defaults run exactly once
+- `config_view(provider, prefix)` — inert qualified ordinary lookup callable using exact prefix/name concatenation and one existing `config_get`
 - `secret_get(provider, key, purpose)` — exact lookup whose success is one protected `secret` carrier
 - `secret_get_or(provider, key, purpose, default)` — missing-only lazy defaulting whose ordinary/`some` success is protected once
+- `secret_view(provider, prefix, purpose)` — inert qualified secret lookup callable using one existing `secret_get` with unchanged protection
 - `protected_match("secret", value)` — matches only protected values and returns the exact protected subject
 - default ordinary values are lifted into `some(...)`, while default Outcomes remain unchanged; explicit converter Outcomes and callable Template validation compose through existing pipeline rules
 - generic carrier construction, matching, and stripping reject the reserved `secret` facet; protected values compare without exposing payloads, are not map keys, and transport as exact leaves without container taint

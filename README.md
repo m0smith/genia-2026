@@ -1204,6 +1204,18 @@ config_get(provider, "PORT")
 
 The result is `some("9000")`. Lookup returns exact strings, treats `""` as present, and returns `none("config-missing")` when absent. Construction snapshots once, first source wins, and diagnostics do not include configuration keys or source values.
 
+R13 E13-1 adds Experimental qualified views over that unchanged provider:
+
+```genia
+server = config_view(provider, "SERVER_")
+openai = secret_view(provider, "OPENAI_", quote(model_call))
+
+server("PORT")
+openai("API_KEY")
+```
+
+Construction is inert. Each call concatenates the exact prefix and non-empty logical name, performs one existing `config_get` or `secret_get`, and returns its exact Outcome. Empty prefixes are valid; views add no caching, fallback, precedence, defaulting, conversion, named access, source acquisition, or ambient lookup. Secret views preserve the existing provider identity, purpose, protected sinks, authority, audit, and declassification boundary. The remaining R13 source and conventional-provider slices are not implemented by E13-1.
+
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 
 ```genia

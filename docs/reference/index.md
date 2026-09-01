@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **278** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **280** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -70,6 +70,7 @@ Alphabetical index of the **278** out-of-the-box Genia functions available from 
 | [`config_get`](functions/config_get.md) | Configuration | `config_get(provider, key)` | Read and validate one configuration value through a provider. |
 | [`config_get_or`](functions/config_get_or.md) | Configuration | `config_get_or(provider, key, default)` | Read and validate one configuration value or use an explicit default. |
 | [`config_provider`](functions/config_provider.md) | Configuration | `config_provider(source)` | Construct an ordinary configuration provider from an explicit source. |
+| [`config_view`](functions/config_view.md) | Configuration | `config_view(provider, prefix)` | Construct a qualified configuration lookup callable over an explicit provider. |
 | [`cons`](functions/cons.md) | Pairs | `cons(first, second)` | Construct a pair from two values. |
 | [`contains`](functions/contains.md) | string | `contains(haystack, needle)` | Check whether `needle` occurs inside `haystack`. |
 | [`count`](functions/count.md) | list | `count(xs)` | Count elements in a list. |
@@ -222,6 +223,7 @@ Alphabetical index of the **278** out-of-the-box Genia functions available from 
 | [`scan`](functions/scan.md) | flow | `scan(step, initial_state)` | Stateful flow transform driven by `step`. |
 | [`secret_get`](functions/secret_get.md) | Configuration | `secret_get(provider, key, authority)` | Read and validate one protected secret through a provider. |
 | [`secret_get_or`](functions/secret_get_or.md) | Configuration | `secret_get_or(provider, key, default, authority)` | Read and validate one protected secret or use an explicit protected default. |
+| [`secret_view`](functions/secret_view.md) | Configuration | `secret_view(provider, prefix, purpose)` | Construct a qualified protected-secret lookup callable over an explicit provider. |
 | [`select`](functions/select.md) | Sheets | `select(sheet, columns)` | Return a Sheet containing selected columns. |
 | [`self_evaluating?`](functions/self_evaluating-p.md) | syntax | `self_evaluating?(expr)` | Check whether a quoted expression is self-evaluating. |
 | [`send`](functions/send.md) | process | `send(process, message)` | Enqueue `message` for a process mailbox. |
@@ -300,10 +302,12 @@ Alphabetical index of the **278** out-of-the-box Genia functions available from 
 - [`config_get`](functions/config_get.md) - Read and validate one configuration value through a provider.
 - [`config_get_or`](functions/config_get_or.md) - Read and validate one configuration value or use an explicit default.
 - [`config_provider`](functions/config_provider.md) - Construct an ordinary configuration provider from an explicit source.
+- [`config_view`](functions/config_view.md) - Construct a qualified configuration lookup callable over an explicit provider.
 - [`declassify`](functions/declassify.md) - Declassify a protected value with matching explicit authority.
 - [`protected_match`](functions/protected_match.md) - Match a value while preserving the protected carrier boundary.
 - [`secret_get`](functions/secret_get.md) - Read and validate one protected secret through a provider.
 - [`secret_get_or`](functions/secret_get_or.md) - Read and validate one protected secret or use an explicit protected default.
+- [`secret_view`](functions/secret_view.md) - Construct a qualified protected-secret lookup callable over an explicit provider.
 
 ### Documentation
 
