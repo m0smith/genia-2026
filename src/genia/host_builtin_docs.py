@@ -49,6 +49,7 @@ _PUBLIC_DOCS = (
     _public("config_get", "Read and validate one configuration value through a provider.", "Configuration", "config_get(provider, key)", stability="Experimental"),
     _public("config_get_or", "Read and validate one configuration value or use an explicit default.", "Configuration", "config_get_or(provider, key, default)", stability="Experimental"),
     _public("config_provider", "Construct an ordinary configuration provider from an explicit source.", "Configuration", "config_provider(source)", stability="Experimental"),
+    _public("config_standard", "Construct the conventional ordered configuration provider snapshot.", "Configuration", "config_standard(overrides, arguments)", "config_standard(overrides, arguments, dotenv_path)", stability="Experimental"),
     _public("config_view", "Construct a qualified configuration lookup callable over an explicit provider.", "Configuration", "config_view(provider, prefix)", stability="Experimental"),
     _public("cons", "Construct a pair from two values.", "Pairs", "cons(first, second)"),
     _public("debug_repr", "Return the deterministic debug representation of a value.", "I/O", "debug_repr(value)"),

@@ -20,24 +20,31 @@ def test_config_standard_uses_fixed_precedence_and_optional_conventional_dotenv(
 
     def environment():
         calls.append("environment")
-        return {"PAIR_23": "environment", "PAIR_12": "environment"}
+        return {"PAIR_TWO_THREE": "environment", "PAIR_ONE_TWO": "environment"}
 
     def dotenv(path):
         calls.append(("dotenv", path))
-        return b"PAIR_23=dotenv\nONLY_DOTENV=dotenv"
+        return b"PAIR_TWO_THREE=dotenv\nONLY_DOTENV=dotenv"
 
     env, standard = _standard(environment=environment, dotenv=dotenv)
     result = standard(
-        GeniaMap().put("PAIR_01", "overrides").put("ALL", "overrides"),
-        ["--pair-01", "arguments", "--pair-12", "arguments", "--all", "arguments"],
+        GeniaMap().put("PAIR_ZERO_ONE", "overrides").put("ALL", "overrides"),
+        [
+            "--pair-zero-one",
+            "arguments",
+            "--pair-one-two",
+            "arguments",
+            "--all",
+            "arguments",
+        ],
     )
 
     assert isinstance(result, GeniaOptionSome)
     provider = result.value
     get = env.get("config_get")
-    assert get(provider, "PAIR_01").value == "overrides"
-    assert get(provider, "PAIR_12").value == "arguments"
-    assert get(provider, "PAIR_23").value == "environment"
+    assert get(provider, "PAIR_ZERO_ONE").value == "overrides"
+    assert get(provider, "PAIR_ONE_TWO").value == "arguments"
+    assert get(provider, "PAIR_TWO_THREE").value == "environment"
     assert get(provider, "ONLY_DOTENV").value == "dotenv"
     assert get(provider, "ALL").value == "overrides"
     assert calls == ["environment", ("dotenv", ".env")]
@@ -146,4 +153,3 @@ def test_config_standard_snapshots_inputs_and_views_consume_provider_unchanged()
     assert isinstance(protected, GeniaProtected)
     assert format_display(protected) == "<protected>"
     assert "secret-before" not in format_debug(protected)
-

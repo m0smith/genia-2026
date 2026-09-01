@@ -590,6 +590,65 @@ def make_global_env(
     def config_args_fn(args: Any) -> Any:
         return normalize_config_args(args)
 
+    def _config_standard(
+        overrides: Any, args: Any, dotenv_path: Any, required: bool
+    ) -> Any:
+        if not isinstance(overrides, GeniaMap):
+            raise TypeError(
+                "config_standard expected an overrides map, "
+                f"received {_runtime_type_name(overrides)}"
+            )
+        for key, value in overrides.items():
+            if (
+                not isinstance(key, str)
+                or key == ""
+                or "\0" in key
+                or not isinstance(value, str)
+            ):
+                raise TypeError(
+                    "config_standard expected valid string keys and string values "
+                    "in overrides"
+                )
+        if not isinstance(args, list):
+            raise TypeError(
+                "config_standard expected an argument list of strings, "
+                f"received {_runtime_type_name(args)}"
+            )
+        if any(not isinstance(arg, str) for arg in args):
+            raise TypeError("config_standard expected an argument list containing only strings")
+        if (
+            not isinstance(dotenv_path, str)
+            or dotenv_path == ""
+            or "\0" in dotenv_path
+        ):
+            raise TypeError(
+                "config_standard expected a non-empty dotenv path string without NUL"
+            )
+
+        normalized = normalize_config_args(args)
+        if isinstance(normalized, GeniaOptionErr):
+            return normalized
+        sources = [
+            GeniaMap()
+            .put("kind", GeniaSymbol("values"))
+            .put("values", overrides),
+            normalized.value,
+            GeniaMap().put("kind", GeniaSymbol("environment")),
+            GeniaMap()
+            .put("kind", GeniaSymbol("dotenv"))
+            .put("path", dotenv_path)
+            .put("required", required),
+        ]
+        return construct_provider(
+            sources, environment_snapshot_provider, dotenv_snapshot_provider
+        )
+
+    def config_standard_default_fn(overrides: Any, args: Any) -> Any:
+        return _config_standard(overrides, args, ".env", False)
+
+    def config_standard_path_fn(overrides: Any, args: Any, dotenv_path: Any) -> Any:
+        return _config_standard(overrides, args, dotenv_path, True)
+
     def config_get_fn(provider: Any, key: Any) -> Any:
         return get_configuration(provider, key)
 
@@ -4398,6 +4457,13 @@ def make_global_env(
     env.set("debug_repr", debug_repr_fn)
     env.set("config_provider", _host_function_group("config_provider", 1, config_provider_fn))
     env.set("config_args", _host_function_group("config_args", 1, config_args_fn))
+    config_standard_group = _host_function_group(
+        "config_standard", 2, config_standard_default_fn
+    )
+    config_standard_group.add_clause(
+        _HostFunction("config_standard", 3, config_standard_path_fn)
+    )
+    env.set("config_standard", config_standard_group)
     env.set("config_get", _host_function_group("config_get", 2, config_get_fn))
     env.set("config_get_or", _host_function_group("config_get_or", 3, config_get_or_fn))
     env.set("config_view", _host_function_group("config_view", 2, config_view_fn))
