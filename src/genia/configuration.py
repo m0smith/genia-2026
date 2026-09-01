@@ -139,6 +139,44 @@ def get_configuration(provider: Any, key: Any) -> GeniaOptionSome | Any:
     return _get_configuration(provider, key, "config_get")
 
 
+def _validate_view_provider(provider: Any, operation: str) -> GeniaConfigProvider:
+    if not isinstance(provider, GeniaConfigProvider):
+        raise TypeError(
+            f"{operation} expected a configuration provider, "
+            f"received {_runtime_type_name(provider)}"
+        )
+    return provider
+
+
+def _validate_view_prefix(prefix: Any, operation: str) -> str:
+    if not isinstance(prefix, str) or "\0" in prefix:
+        raise TypeError(
+            f"{operation} expected a prefix string without NUL, "
+            f"received {_runtime_type_name(prefix)}"
+        )
+    return prefix
+
+
+def _validate_logical_name(logical_name: Any, operation: str) -> str:
+    if not _valid_key(logical_name):
+        raise TypeError(
+            f"{operation} expected a non-empty logical name string without NUL, "
+            f"received {_runtime_type_name(logical_name)}"
+        )
+    return logical_name
+
+
+def construct_config_view(provider: Any, prefix: Any) -> Callable[[Any], Any]:
+    captured_provider = _validate_view_provider(provider, "config_view")
+    captured_prefix = _validate_view_prefix(prefix, "config_view")
+
+    def view(logical_name: Any) -> Any:
+        name = _validate_logical_name(logical_name, "config_view")
+        return get_configuration(captured_provider, captured_prefix + name)
+
+    return view
+
+
 def _validated_purpose(purpose: Any, operation: str) -> GeniaSymbol:
     if not isinstance(purpose, GeniaSymbol) or purpose.name == "":
         raise TypeError(f"{operation} expected a non-empty purpose symbol")
@@ -151,6 +189,22 @@ def get_secret_configuration(provider: Any, key: Any, purpose: Any) -> Any:
     if not isinstance(result, GeniaOptionSome):
         return result
     return GeniaOptionSome(provider.protect(result.value, validated_purpose), result.context)
+
+
+def construct_secret_view(
+    provider: Any, prefix: Any, purpose: Any
+) -> Callable[[Any], Any]:
+    captured_provider = _validate_view_provider(provider, "secret_view")
+    captured_prefix = _validate_view_prefix(prefix, "secret_view")
+    captured_purpose = _validated_purpose(purpose, "secret_view")
+
+    def view(logical_name: Any) -> Any:
+        name = _validate_logical_name(logical_name, "secret_view")
+        return get_secret_configuration(
+            captured_provider, captured_prefix + name, captured_purpose
+        )
+
+    return view
 
 
 def contains_protected(value: Any, _seen: set[int] | None = None) -> bool:

@@ -40,7 +40,9 @@ if __package__ in (None, ""):
         _mark_handles_some,
     )
     from genia.configuration import (
+        construct_config_view,
         construct_provider,
+        construct_secret_view,
         contains_protected,
         contains_declassification_authority,
         declassify,
@@ -141,7 +143,9 @@ else:
         _mark_handles_some,
     )
     from .configuration import (
+        construct_config_view,
         construct_provider,
+        construct_secret_view,
         contains_protected,
         contains_declassification_authority,
         declassify,
@@ -586,6 +590,9 @@ def make_global_env(
             return fallback
         return GeniaOptionSome(fallback)
 
+    def config_view_fn(provider: Any, prefix: Any) -> Any:
+        return construct_config_view(provider, prefix)
+
     def secret_get_fn(provider: Any, key: Any, purpose: Any) -> Any:
         return get_secret_configuration(provider, key, purpose)
 
@@ -595,6 +602,9 @@ def make_global_env(
             return result
         fallback = _invoke_raw_from_builtin(default, [])
         return protect_secret_default(provider, purpose, fallback)
+
+    def secret_view_fn(provider: Any, prefix: Any, purpose: Any) -> Any:
+        return construct_secret_view(provider, prefix, purpose)
 
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -4377,8 +4387,10 @@ def make_global_env(
     env.set("config_provider", _host_function_group("config_provider", 1, config_provider_fn))
     env.set("config_get", _host_function_group("config_get", 2, config_get_fn))
     env.set("config_get_or", _host_function_group("config_get_or", 3, config_get_or_fn))
+    env.set("config_view", _host_function_group("config_view", 2, config_view_fn))
     env.set("secret_get", _host_function_group("secret_get", 3, secret_get_fn))
     env.set("secret_get_or", _host_function_group("secret_get_or", 4, secret_get_or_fn))
+    env.set("secret_view", _host_function_group("secret_view", 3, secret_view_fn))
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
         "representation_match",
