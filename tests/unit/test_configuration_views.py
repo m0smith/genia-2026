@@ -49,6 +49,24 @@ def test_secret_view_preserves_provider_identity_purpose_and_protected_value():
     assert result.value == direct.value
 
 
+def test_secret_view_construction_is_inert_and_delegates_exactly_once(monkeypatch):
+    provider = _provider()
+    purpose = GeniaSymbol("model_call")
+    calls = []
+    expected = GeniaOptionSome("protected-result")
+
+    def lookup(actual_provider, key, actual_purpose):
+        calls.append((actual_provider, key, actual_purpose))
+        return expected
+
+    monkeypatch.setattr(configuration, "get_secret_configuration", lookup)
+    view = make_global_env([]).get("secret_view")(provider, "OPENAI_", purpose)
+
+    assert calls == []
+    assert view("TOKEN") is expected
+    assert calls == [(provider, "OPENAI_TOKEN", purpose)]
+
+
 def test_empty_prefix_and_missing_are_exact_r10_results():
     provider = _provider()
     view = make_global_env([]).get("config_view")(provider, "")
