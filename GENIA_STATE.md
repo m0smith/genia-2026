@@ -573,7 +573,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `config_view` returns the exact `config_get` Outcome; `secret_view` returns the exact `secret_get` Outcome and preserves provider identity, purpose, protected carrier, sinks, authority, audit, and declassification behavior
   - views add no caching, fallback, precedence, defaulting, conversion, Template validation, ambient lookup, named access, syntax, annotation, parser/AST/Core IR node, lifecycle binding, or host capability
   - normalized misuse does not include the prefix, logical name, physical key, provider identity, purpose, source content/value, or protected payload
-  - E13-1 itself adds no conventional provider composition; E13-4 supplies that composition, while cross-mode hardening and proving/release-completion slices remain unimplemented
+  - E13-1 itself adds no conventional provider composition; E13-4 supplies that composition, E13-5 verifies the complete implemented boundary across relevant modes, and proving/release-completion slices remain unimplemented
   - LANGUAGE CONTRACT: construction/callability, validation, exact concatenation, and exact one-call R10 delegation are portable ordinary-call behavior
   - PYTHON REFERENCE HOST: the two constructors use the existing callable and R10 provider implementation; no new host capability is introduced and shared/multi-host conformance remains Partial
 
@@ -611,6 +611,15 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-4 adds no provider model, capability, ambient lookup/refresh, defaults source, schema/conversion, syntax, annotation, parser/AST/Core IR node, named access, or lifecycle binding
   - LANGUAGE CONTRACT: arities, validation ordering, fixed source order/indices, precedence, optional/required path policy, exact Outcomes, atomicity, and snapshot behavior are portable
   - PYTHON REFERENCE HOST: composition reuses the existing environment and `.env` snapshot capabilities; Python remains the only implemented host and shared/multi-host conformance remains Partial
+
+- R13 cross-mode, diagnostic, and protected-boundary hardening (Experimental, issue #675)
+  - E13-5 adds conformance proof only; it adds no public helper, value, error shape, source, capability, syntax, annotation, parser/AST/Core IR node, or execution-mode behavior
+  - shared eval/error/CLI cases verify explicit standard-provider construction, exact existing Outcomes, non-sensitive malformed-argument failure, command-mode behavior, and existing ordinary parse/Core IR call forms
+  - Python reference-host tests verify standard sources snapshot once before view use, imports acquire only through explicit module construction, serve snapshots precede activation and requests do not refresh, and malformed explicit data prevents later host acquisition
+  - credentials acquired through standard composition and `secret_view` retain exact R10 provider identity, purpose, carrier, matching authority, audit-before-return, redaction, and protected-sink behavior; successful host-local audits retain their existing non-sensitive purpose field but no protected payload or raw host detail
+  - focused sentinel scans cover normalized Outcomes, misuse diagnostics, protected rendering, and host audit observations; the existing R10 recursive sink/report/resource/HTTP/ordinary-host suites remain the protection authority and pass unchanged
+  - file, command, pipe, import, native-test, and serve-entry behavior remains explicit and non-ambient; the E13-5 additions do not create a provider or authority fixture visible to ordinary source
+  - Python remains the only implemented host and shared/multi-host conformance remains Partial; E13-6 proving and E13-7/E13-8 release-close slices remain unimplemented
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values

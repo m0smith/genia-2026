@@ -1,0 +1,17 @@
+id: r13-cross-mode-file
+name: r13-cross-mode-file
+category: cli
+description: File mode requires explicit R13 construction and preserves qualified lookup Outcomes
+input:
+  source: "spec/cli/r13-cross-mode-file.genia"
+  file: "spec/cli/r13-cross-mode-file.genia"
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: 'some("8080")'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 675
+  classification: Experimental file-mode observation over ordinary calls.

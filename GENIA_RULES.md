@@ -486,6 +486,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - execution modes must not construct an ambient provider or authority; file, command, pipe, import, native-test, and serve-entry evaluation preserve the same explicit values and Outcomes as ordinary evaluation.
 - imports acquire configuration only when evaluated module code explicitly constructs and uses a provider; annotations do not acquire or inject configuration.
 - serve startup must finish entry evaluation and explicit snapshot construction before listener activation; request handling performs no automatic refresh.
+- R13 E13-5 verifies these existing mode, normalized-diagnostic, protected-boundary, and ordinary-call/Core IR rules without adding semantics; successful host-local declassification audits retain the existing non-sensitive purpose field while excluding protected payload and raw host detail.
 - there is no ambient lookup or implicit environment fallback. Implicit conversion/coercion, new Template/validation semantics, and annotation injection remain unimplemented.
 
 ### AI model invocation, Flow conversation, and validated-pipeline composition (Experimental R11 E11-1 through E11-8)

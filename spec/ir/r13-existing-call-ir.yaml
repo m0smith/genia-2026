@@ -1,0 +1,21 @@
+name: r13-existing-call-ir
+category: ir
+description: R13 conventional provider construction lowers through an existing ordinary call node
+input:
+  source: 'config_standard({}, [])'
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrVar
+          name: config_standard
+        args:
+          - node: IrMap
+            items: []
+          - node: IrList
+            items: []
+notes: |
+  issue: 675
+  classification: No new Core IR node.
