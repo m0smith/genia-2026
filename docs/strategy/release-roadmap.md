@@ -1000,7 +1000,326 @@ Critical acceptance criterion:
 
 ---
 
-## R8–R14 Sequence and Dependencies
+## Release R15 — Validated Value Modeling
+
+**Status: Reserved; detailed scope is not yet merged.** Prior roadmap direction
+reserves R15 for Validated Value Modeling. This reservation prevents unrelated
+work from taking the release number; it does not define syntax, behavior, or an
+implementation sequence.
+
+The complete R15 scope must be added through its own roadmap review before
+ticketing or implementation. In particular, the eventual release must state
+which Pydantic-like modeling capabilities strengthen existing R9 Templates,
+shapes, representations, patterns, and Outcomes, and which capabilities remain
+explicit non-goals. It must not introduce a second validation or model system by
+accident.
+
+---
+
+## Release R16 — Multi-Host Spec Runner
+
+**Status: Planned required infrastructure, not active.** This release changes
+conformance infrastructure, not Genia language behavior.
+
+Theme:
+
+> Give any second host one honest, repeatable way to prove conformance.
+
+The current shared runner calls the Python reference-host adapter directly and
+in process. A second host therefore cannot participate without a one-off shim.
+R16 replaces that single-host assumption with a generic, versioned subprocess
+adapter protocol while retaining Python as the semantic reference host.
+
+Candidate scope:
+
+- define one versioned host-adapter protocol covering the existing `parse`,
+  `lower`/`ir`, `eval`, and `cli` operations
+- use a machine-readable request and response envelope with normalized results,
+  errors, stdout, stderr, and exit status where applicable
+- keep protocol output separate from evaluated-program stdout/stderr so a host
+  cannot corrupt the transport by printing ordinary program output
+- define deterministic handling for malformed responses, timeouts, crashes,
+  unsupported operations, and protocol-version mismatch
+- add explicit per-host capability advertisement and per-case capability
+  requirements so unsupported Python-host-only fixtures are reported honestly,
+  never treated as conformance passes and never silently skipped
+- let `tools/spec_runner` select a host adapter or host command without embedding
+  C++-specific knowledge
+- route the Python reference host through the subprocess protocol as a proving
+  implementation while retaining any in-process path only as a clearly labeled
+  transition or developer optimization
+- update `spec/manifest.json`, `tools/spec_runner/README.md`, and
+  `docs/host-interop/HOST_PORTING_GUIDE.md` to record the executable contract
+
+Critical acceptance criterion:
+
+- The same selected capability-compatible spec cases can be run through the
+  generic protocol against the Python reference host and a fixture host, with
+  deterministic pass, fail, unsupported, crash, and protocol-error reporting.
+
+Explicit non-goals:
+
+- a second production host
+- changing Core IR or language semantics
+- claiming that an unsupported or unexecuted case passed
+- expanding the meaning of current spec categories merely to build the runner
+
+---
+
+## Release R17 — Numeric and Ordered-Map Portability Contract
+
+**Status: Planned contract hardening, not active.** R17 may proceed in parallel
+with R18 after its own contract approval. R19 depends on both.
+
+Theme:
+
+> Replace Python implementation assumptions with explicit numeric and ordered-map semantics.
+
+Candidate scope:
+
+- decide and document general Genia integer range and arithmetic-overflow
+  behavior outside the separately bounded JSON representation boundary
+- preserve current observable Python behavior unless an explicitly approved
+  language-contract change says otherwise; a C++ implementation must not narrow
+  integers accidentally
+- state map order as a portable runtime contract across literal construction,
+  `map_put`, replacement, removal, reinsertion, iteration, accessors, and
+  display/debug representation where order is observable
+- distinguish map order from map equality, matching, and JSON object-name
+  sorting so those concepts do not become conflated
+- add shared eval/error cases for large-integer arithmetic and boundary behavior
+- add shared cases for map insertion, replacement, removal/reinsertion, and the
+  existing `map_items`/`map_keys`/`map_values` ordering guarantees
+- update `GENIA_STATE.md`, `GENIA_RULES.md`, and affected portability docs only
+  when the contract and executable evidence land
+
+Critical acceptance criterion:
+
+- A non-Python host can choose an integer and ordered-map representation from the
+  written contract alone and pass the same observable cases without consulting
+  Python container or arithmetic behavior.
+
+Explicit non-goals:
+
+- changing the R9 JSON safe-integer limit
+- selecting a C++ library or container implementation in the language contract
+- C++ host implementation
+
+---
+
+## Release R18 — Unicode, Float, and Diagnostic Portability Contract
+
+**Status: Planned contract hardening, not active.** R18 may proceed in parallel
+with R17 after its own contract approval. R19 depends on both.
+
+Theme:
+
+> Specify the byte-exact string, number-display, and diagnostic surfaces shared specs already observe.
+
+Candidate scope:
+
+- define the portable public string model, including Unicode scalar/code-point
+  behavior, UTF-8 byte length and boundary checks, code-point iteration and
+  slicing, invalid UTF-8 handling, and debug escaping
+- define exact float display/debug formatting, including shortest-round-trip
+  expectations or another explicitly chosen algorithm, exponent spelling,
+  integral-looking floats, negative zero, and non-finite values where supported
+- inventory the exact diagnostic text currently asserted by shared eval, error,
+  parse, and CLI specs and distinguish exact-text contracts from typed/category
+  contracts and substring matches
+- centralize stable diagnostic templates only where the inventory justifies one
+  language-neutral catalog or generation source; do not require runtime data-file
+  loading merely to avoid duplicated implementation constants
+- add shared Unicode and float edge cases plus representative diagnostic drift
+  guards at the observable boundaries
+- update the source-of-truth and portability docs when each clarified contract
+  is approved and implemented in the Python reference host
+
+Critical acceptance criterion:
+
+- A non-Python host can reproduce normalized string slicing, display/debug text,
+  and contracted diagnostics byte-for-byte without using Python `str` or `repr`
+  as undocumented specifications.
+
+Explicit non-goals:
+
+- redesigning error categories
+- locale-sensitive formatting
+- requiring ICU or any specific C++ library
+- C++ host implementation
+
+---
+
+## Release R19 — C++ Minimal Conforming Host
+
+**Status: Planned, not active.** R19 is the first C++ implementation release and
+depends on R16, R17, and R18.
+
+Theme:
+
+> Bring up the smallest useful C++ host over the frozen portable Core IR boundary.
+
+Candidate scope:
+
+- choose and document the C++ build, dependency, test, formatting, and lint
+  toolchain; replace every TODO command in `hosts/cpp/README.md` and
+  `hosts/cpp/AGENTS.md` with commands that work in CI
+- implement the current documented lexer/parser surface and normalized parse
+  adapter operation
+- lower into only the frozen minimal portable Core IR node and pattern families
+  before any host-local optimization
+- implement Core IR evaluation for capability-light ordinary values and control
+  behavior: literals, collections, Outcomes, operators, pipelines,
+  case/pattern matching, lambdas, assignments, and function definitions
+- implement integers, ordered maps, Unicode strings, float formatting, and
+  diagnostics according to R17/R18 rather than C++ defaults
+- implement file mode, `-c` command mode, raw `argv()`, prelude loading/autoload,
+  and the currently required `help(name)` surface; resolve any capability-matrix
+  classification conflict before claiming minimal-host conformance
+- copy the template capability-status artifact into `hosts/cpp/` and update it
+  plus `HOST_CAPABILITY_MATRIX.md` only as code and shared evidence land
+- pass the R16-declared capability-light parse, IR, eval, error, and CLI case
+  subsets through the generic runner; the release must publish exact counts and
+  unsupported-case reasons rather than claiming an entire mixed-capability
+  category passed
+
+Critical acceptance criterion:
+
+- A Genia program within the declared minimal capability set has the same
+  normalized parse/Core-IR shape and observable result under the C++ and Python
+  hosts for every applicable shared case.
+
+Explicit non-goals:
+
+- `-p`/pipe mode or REPL
+- Flow phase 1
+- refs, cells, or processes
+- HTTP serving or outbound HTTP
+- allowlisted host interop, resource IO, model/embedding fixtures, or provider adapters
+- bytes/JSON/ZIP bridge and debugger stdio
+
+---
+
+## Release R20 — C++ Stateful Runtime and Concurrency
+
+**Status: Planned, not active.** R20 depends on R19. Any currently
+Python-host-only stateful surface requires an explicit portability-promotion
+contract before its C++ implementation is treated as shared behavior.
+
+Theme:
+
+> Add stateful capabilities only after C++ ownership, cycles, cleanup, and concurrency are explicit.
+
+Candidate scope:
+
+- document the host-local C++ ownership/lifetime strategy for values, closures,
+  environments, refs, cells, process handles, and cycles
+- promote only approved ref/cell/process observations from Python-host-only
+  status into a shared contract, keeping scheduler strategy host-local
+- map threading, mutex, condition-variable, mailbox, failure, and cleanup
+  behavior to the approved portable observations
+- implement refs, cells, and process primitives in C++ after those contract gates
+- add deterministic stress/race tests for concurrent access, lifecycle cleanup,
+  process failure observation, and cycles that Python refcounting/GC or the GIL
+  may have masked
+- preserve only currently implemented lifecycle truth, including R4 and R8
+  boundaries; R14 remains planned and cannot be imported into R20 before R14's
+  own implementation gates complete
+- update host capability status only for behavior with code and evidence
+
+Critical acceptance criterion:
+
+- Stateful C++ programs satisfy the promoted observable contracts under normal,
+  failure, cleanup, cyclic-reference, and concurrent-access tests without leaks,
+  use-after-free behavior, deadlock, or host-visible semantic drift.
+
+Explicit non-goals:
+
+- a language-level scheduler, async/await, supervision tree, or distributed actors
+- redesigning lifecycle semantics
+- implementing planned R14 behavior early
+- HTTP, resource IO, or debugger transport
+
+---
+
+## Release R21 — C++ REPL and Data Bridges
+
+**Status: Planned, not active.** R21 depends on R19. Its tracks may be ticketed
+independently; every Python-host-only bridge requires a portability-promotion
+contract before implementation.
+
+Theme:
+
+> Extend the minimal host with interactive evaluation and deterministic data boundaries.
+
+Candidate scope:
+
+- implement the REPL with current observable interactive behavior
+- promote and implement the approved bytes/UTF-8, strict JSON, and ZIP bridge
+  contracts without inheriting a third-party library's permissive defaults
+- preserve duplicate-key rejection, JSON safe-integer and finite-binary64 limits,
+  Unicode validation, the 128-container nesting cap, deterministic JSON output,
+  and normalized Outcome/error behavior
+- add capability-tagged shared CLI and bridge cases runnable through R16
+- keep `hosts/cpp/CAPABILITY_STATUS.md` and the shared matrix evidence-based
+
+Critical acceptance criterion:
+
+- The C++ host matches the Python reference host on every applicable shared REPL
+  transcript, UTF-8, JSON, and ZIP case within the promoted contracts.
+
+Explicit non-goals:
+
+- `-p`/`--pipe` and Flow phase 1; pipe mode is Flow-backed and belongs in R22
+- HTTP serving, resource IO, allowlisted host interop, or debugger stdio
+- loosening JSON/UTF-8 behavior to match a chosen library
+
+---
+
+## Release R22 — C++ Flow, Pipe Mode, and HTTP Serving
+
+**Status: Planned, not active.** R22 depends on R19; its HTTP track also depends
+on any R20 stateful-runtime behavior the approved design actually requires, and
+its data boundaries may consume R21. Flow and HTTP remain separately gated
+tracks even when grouped in one host-parity release.
+
+Theme:
+
+> Complete the largest remaining portable runtime surfaces without turning C++ internals into Genia semantics.
+
+Candidate scope:
+
+- implement the current lazy, pull-based, single-use Flow phase 1 contract and
+  pass applicable `spec/flow` cases through R16
+- implement `-p`/`--pipe` over that Flow runtime and pass applicable shared CLI
+  cases; do not create a second pipe-specific streaming abstraction
+- define and approve any required portability promotion for the currently
+  Python-host-only HTTP-serving boundary before implementing it in C++
+- implement synchronous blocking HTTP serving with the documented
+  request/response maps, exact-path routing, response headers, CORS preflight,
+  and current R8 server execution/lifecycle behavior
+- review every C++ capability-matrix entry and support claim against code,
+  host-local tests, and applicable shared cases
+- run a final differential audit over all capability-compatible active shared
+  cases and publish passed, failed, and unsupported counts by category/capability
+
+Critical acceptance criterion:
+
+- The C++ host matches the Python reference host across every shared capability
+  it claims, including Flow and HTTP/server execution, while every remaining
+  unsupported or Python-host-only capability stays explicitly marked.
+
+Explicit non-goals:
+
+- Python-host-only model, Gemini, embedding, allowlisted-interoperability, or
+  resource-IO capabilities without separate promotion decisions
+- R14 outbound HTTP or parent-child lifecycle behavior before R14 is implemented
+- debugger stdio
+- claiming complete host parity merely because all capability-compatible cases pass
+
+---
+
+## R8–R22 Sequence and Dependencies
 
 The scheduling sequence is:
 
@@ -1024,6 +1343,26 @@ R13 — Configuration Resolution Ergonomics
  |
  v
 R14 — Composable HTTP Lifecycles
+ |
+ v
+R15 — Validated Value Modeling (reserved; detailed scope pending)
+ |
+ v
+R16 — Multi-Host Spec Runner
+ |
+ +----> R17 — Numeric & Ordered-Map Portability Contract
+ |
+ +----> R18 — Unicode, Float & Diagnostic Portability Contract
+           |
+           v
+R19 — C++ Minimal Conforming Host
+ |
+ +----> R20 — C++ Stateful Runtime & Concurrency
+ |
++----> R21 — C++ REPL & Data Bridges
+           |
+           v
+R22 — C++ Flow, Pipe Mode & HTTP Serving
 ```
 
 This ordering does not imply that every release is a strict technical dependency
@@ -1032,13 +1371,19 @@ representations; R11 consumes R9 structured values plus R10
 configuration/secrets; R12 builds on R11 AI composition. R13 is a focused
 post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
 configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
-foundation while preserving R10 protected-value boundaries.
+foundation while preserving R10 protected-value boundaries. R15 remains
+reserved for separately reviewed Validated Value Modeling. R16 is generic
+required infrastructure for every second host. R17 and R18 harden shared
+contracts in parallel; R19 depends on all three. R20 and R21 extend the C++ host
+along mostly independent stateful and REPL/data-bridge tracks. R22
+consumes the implemented contracts it needs and closes only the C++ capabilities
+it can prove.
 
 R8, R9, R10, R11, R12, and R13 are complete. R11, R12, and R13 APIs remain Experimental,
 Python is the only implemented host, and shared/multi-host conformance remains
-Partial. R14 remains planned.
-R10/R11/R12/R13 follow-ups require their own gates; R14
-do as well.
+Partial. R14 remains planned. R15 is reserved but not scoped in this document.
+R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
+every later release does as well.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap
 placement is not implementation authority.
@@ -1061,7 +1406,9 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - refinement / shape / contract / variant work beyond the subset required to prove R9
 - validation DSL
   - do not create implementation tickets until helper-based validation proves insufficient
-- multi-host implementation beyond contract scaffolding
+- Node, Java, Rust, and Go host implementation beyond contract scaffolding
+  - generic runner and shared portability hardening are promoted to R16–R18
+  - C++ host implementation is promoted to R19–R22
 - server mode
   - **Web ergonomics promoted to R7**, and the **serve execution mode promoted to R8** (Server Execution Mode — the second R4 lifecycle consumer, `@server`/`@route`/`@cors` bound to R7 primitives). Idea capture: `docs/parking-lot/web-backend-cfm-app.md` (R7) and `docs/parking-lot/server-execution-mode.md` (R8). Anything beyond those two remains parked.
 - notebook mode
