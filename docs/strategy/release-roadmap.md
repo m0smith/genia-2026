@@ -777,7 +777,7 @@ syntax/Core IR/lifecycle expansion.
 
 ## Release R13 — Configuration Resolution Ergonomics
 
-**Status: Active; E13-0 approved and E13-1 through E13-6 implemented.** This
+**Status: Active; E13-0 approved and E13-1 through E13-7 are implemented. E13-7 is documentation and runnable-example verification only; E13-8 is not implemented.** This
 section records approved product direction, not implemented language behavior.
 R13 refines the completed R10 configuration surface without reopening R10
 protected-value semantics.
@@ -849,13 +849,13 @@ Approved ticket sequence under epic #608:
 5. **#674 — E13-4:** conventional provider composition — implemented
 6. **#675 — E13-5:** cross-mode, diagnostic, and protected-boundary hardening — implemented
 7. **#676 — E13-6:** Outcome-aware validated-pipeline proving case — implemented
-8. **#677 — E13-7:** release examples and implemented-truth synchronization
+8. **#677 — E13-7:** release examples and implemented-truth synchronization — **implemented (documentation and runnable-example verification; no runtime behavior)**
 9. **#678 — E13-8:** release truth audit and distillation
 
 `docs/strategy/r13-configuration-resolution-ergonomics.md` owns the detailed
 scope, decision list, portability posture, ticket acceptance baseline, and exit
-criterion. E13-0 is explicitly approved; E13-1 through E13-6 are implemented.
-Later tickets remain gated by their declared dependencies and phase workflows.
+criterion. E13-0 is explicitly approved; E13-1 through E13-7 are implemented.
+E13-8 remains gated by its declared dependencies and phase workflow.
 
 ---
 
@@ -1036,7 +1036,7 @@ foundation while preserving R10 protected-value boundaries.
 
 R8, R9, R10, R11, and R12 are complete. R11 and R12 APIs remain Experimental,
 Python is the only implemented host, and shared/multi-host conformance remains
-Partial. R13 is active through E13-6; E13-7 and later slices remain gated, and
+Partial. R13 is active through E13-7; E13-8 remains gated, and
 R14 remains planned.
 R10/R11/R12 follow-ups require their own gates; R13 and R14
 do as well.

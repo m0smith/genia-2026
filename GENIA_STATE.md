@@ -619,7 +619,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - credentials acquired through standard composition and `secret_view` retain exact R10 provider identity, purpose, carrier, matching authority, audit-before-return, redaction, and protected-sink behavior; successful host-local audits retain their existing non-sensitive purpose field but no protected payload or raw host detail
   - focused sentinel scans cover normalized Outcomes, misuse diagnostics, protected rendering, and host audit observations; the existing R10 recursive sink/report/resource/HTTP/ordinary-host suites remain the protection authority and pass unchanged
   - file, command, pipe, import, native-test, and serve-entry behavior remains explicit and non-ambient; the E13-5 additions do not create a provider or authority fixture visible to ordinary source
-  - Python remains the only implemented host and shared/multi-host conformance remains Partial; E13-7/E13-8 release-close slices remain unimplemented
+  - Python remains the only implemented host and shared/multi-host conformance remains Partial; E13-7/E13-8 release-close slices add no runtime behavior
 
 - R13 Outcome-aware validated-pipeline proving case (Experimental, issue #676)
   - `examples/r13_validated_pipeline_proving_case.genia` is the executable E13-6 application composition proof: one conventional provider feeds distinct server, database, and metrics qualified `PORT` views through explicit `parse_int` conversion and a callable Template, while existing `validate_each`/`collect_validated` produce clean records plus ordered structured diagnostics
@@ -629,6 +629,12 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-6 adds no public helper, provider/source model, validation or diagnostic behavior, protected/declassification rule, network behavior, retry/fallback, syntax, annotation, parser/AST/Core IR node, ambient lookup, or lifecycle injection
   - LANGUAGE CONTRACT: explicit qualified lookup, Outcome propagation, callable Template validation, record collection, and protected transport compose using the already implemented R10/R13 portable ordinary-call boundary
   - PYTHON REFERENCE HOST: tests inject deterministic snapshot capabilities, one matching or mismatching authority, a non-sensitive audit observer, and an outbound fixture; Python remains the only implemented host and shared/multi-host conformance remains Partial
+
+- R13 release examples and implemented-truth synchronization (Experimental, R13 E13-7, issue #677)
+  - E13-7 adds no runtime behavior: `docs/releases/R13.md` and focused documentation tests synchronize runnable qualified-view and complete validated-pipeline examples with the implemented E13-1 through E13-6 boundary
+  - the synchronized public account keeps ordinary explicit providers, callables, Outcomes, immutable snapshots, fixed source precedence, explicit conversion/callable Template validation, R10 protected transport, and Python-host-only acquisition/test mechanics distinct
+  - LANGUAGE CONTRACT: E13-7 is documentation and executable-example verification only; implemented portable behavior remains exactly E13-1 through E13-4, while E13-5/E13-6 remain conformance and application-composition proof without new semantics
+  - R13 remains Active and Experimental; shared/multi-host conformance remains Partial, Python is the only implemented host, and E13-8 release audit/distillation remains separately gated
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values

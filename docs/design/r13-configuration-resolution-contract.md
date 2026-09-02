@@ -1,6 +1,6 @@
 # R13 Configuration Resolution Contract
 
-Status: **APPROVED / EXPERIMENTAL — E13-0 contract; E13-1 through E13-6 implemented.**
+Status: **APPROVED / EXPERIMENTAL — E13-0 contract; E13-1 through E13-7 implemented. E13-7 is documentation verification only; E13-8 is not implemented.**
 Later R13 behavior in this document is not implemented merely because this contract exists.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
@@ -433,9 +433,9 @@ application proof over this boundary.
 This contract is implementation-ready for the scoped R13 sequence only after
 explicit approval.
 
-**E13-1 (#671) through E13-6 (#676) are implemented through their separate phase
-workflows.** Their delivered behavior is authoritative only where recorded in
-`GENIA_STATE.md`.
+**E13-1 (#671) through E13-7 (#677) are implemented through their separate phase
+workflows; E13-7 is documentation and executable-example verification only.**
+Their delivered behavior is authoritative only where recorded in `GENIA_STATE.md`.
 
-**NO-GO for E13-7 through E13-8 until their declared dependencies and
-per-ticket phase gates are satisfied.**
+**NO-GO for E13-8 until its declared dependencies and per-ticket phase gate are
+satisfied.**
