@@ -1,0 +1,95 @@
+"""
+# R13 Validated Pipeline Proving Case
+
+Composes the conventional provider, qualified views, explicit conversion,
+callable Template validation, record diagnostics, and an authorized protected
+boundary without adding runtime behavior.
+
+Run from the repository root:
+
+```bash
+genia examples/r13_validated_pipeline_proving_case.genia
+```
+"""
+
+pattern R13Port(value) = refinement_match((number) -> number > 0 && number <= 65535, value)
+
+qualified_port(provider_value, prefix) = {
+  result = config_view(provider_value, prefix)("PORT") |> parse_int |> R13Port
+  result
+}
+
+r13_valid_record(record) =
+  validate_record(record, {
+    id: (value) -> validate_required("id", value),
+    name: (value) -> validate_required("name", value)
+  })
+
+r13_validated_records(records) =
+  records |> ((items) -> validate_each(items, r13_valid_record)) |> collect_validated
+
+protected_credential(provider_value) =
+  secret_view(
+    provider_value,
+    "R13_PROVING_",
+    quote(validated_pipeline_outbound)
+  )("KEY_SENTINEL_676")
+
+r13_dispatch(values) =
+  [authority, collected, some(server_port), some(database_port), some(metrics_port), some(credential)] -> outbound_fixture(
+      server_port,
+      database_port,
+      metrics_port,
+      declassify(authority, credential),
+      collected("clean")
+    ) |
+  [_, _, none(reason), _, _, _] -> none(reason) |
+  [_, _, err(reason), _, _, _] -> err(reason) |
+  [_, _, _, none(reason), _, _] -> none(reason) |
+  [_, _, _, err(reason), _, _] -> err(reason) |
+  [_, _, _, _, none(reason), _] -> none(reason) |
+  [_, _, _, _, err(reason), _] -> err(reason) |
+  [_, _, _, _, _, none(reason)] -> none(reason) |
+  [_, _, _, _, _, err(reason)] -> err(reason)
+
+authorized_outbound(authority, provider_value, records) = {
+  collected = r13_validated_records(records)
+  r13_dispatch([
+    authority,
+    collected,
+    qualified_port(provider_value, "SERVER_"),
+    qualified_port(provider_value, "DB_"),
+    qualified_port(provider_value, "METRICS_"),
+    protected_credential(provider_value)
+  ])
+}
+
+provider = config_standard(
+  {
+    SERVER_PORT: "8080",
+    METRICS_PORT: "9100",
+    R13_PROVING_KEY_SENTINEL_676: "R13_PROVING_PAYLOAD_SENTINEL_676"
+  },
+  ["--db-port", "5432"],
+  "examples/r13_validated_pipeline_proving_case.env"
+) |> unwrap_or(none)
+
+fixture_records = [
+  {id: 1, name: "Ada"},
+  none("blank_line"),
+  {id: 9},
+  {id: 2, name: "Grace"}
+]
+
+collected = r13_validated_records(fixture_records)
+credential = protected_credential(provider) |> unwrap_or(none)
+
+{
+  server_port: qualified_port(provider, "SERVER_"),
+  database_port: qualified_port(provider, "DB_"),
+  metrics_port: qualified_port(provider, "METRICS_"),
+  clean: collected("clean"),
+  diagnostics: collected("diagnostics"),
+  credential: display(credential),
+  protected_match: protected_match("secret", credential) |> some?
+}

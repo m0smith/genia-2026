@@ -1,6 +1,6 @@
 # R13 — Configuration Resolution Ergonomics
 
-Status: **Active release; E13-0 approved and E13-1 through E13-5 implemented.** This
+Status: **Active release; E13-0 approved and E13-1 through E13-6 implemented.** This
 document records approved release direction only. It does not define implemented
 language behavior. `GENIA_STATE.md` remains final authority.
 
@@ -275,7 +275,7 @@ release epic is #608.
    - Compose overrides, CLI, process environment, and `.env` in the approved order without a second provider model.
 6. **#675 — E13-5: cross-mode, diagnostic, and protected-boundary hardening — implemented**
    - Prove snapshot timing, non-refresh, non-leakage, capability-unavailable behavior, and unchanged syntax/Core IR across relevant modes.
-7. **#676 — E13-6: Outcome-aware validated-pipeline proving case**
+7. **#676 — E13-6: Outcome-aware validated-pipeline proving case — implemented**
    - Compose multiple qualified `PORT` values, conversion/Template validation, clean diagnostics, and one protected credential at an authorized boundary.
 8. **#677 — E13-7: release examples and implemented-truth synchronization**
    - Documentation and runnable-example verification only; no runtime behavior.

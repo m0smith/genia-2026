@@ -1,6 +1,6 @@
 # R13 Configuration Resolution Contract
 
-Status: **APPROVED / EXPERIMENTAL — E13-0 contract; E13-1 through E13-5 implemented.**
+Status: **APPROVED / EXPERIMENTAL — E13-0 contract; E13-1 through E13-6 implemented.**
 Later R13 behavior in this document is not implemented merely because this contract exists.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
@@ -406,8 +406,9 @@ database("PORT")
 openai("API_KEY")
 ```
 
-Classification: proposed R13 contract examples, not currently runnable R13
-behavior.
+Classification: the minimal view and conventional composition are implemented;
+`examples/r13_validated_pipeline_proving_case.genia` is the runnable E13-6
+application proof over this boundary.
 
 ## Non-goals
 
@@ -432,9 +433,9 @@ behavior.
 This contract is implementation-ready for the scoped R13 sequence only after
 explicit approval.
 
-**E13-1 (#671) through E13-5 (#675) are implemented through their separate phase
+**E13-1 (#671) through E13-6 (#676) are implemented through their separate phase
 workflows.** Their delivered behavior is authoritative only where recorded in
 `GENIA_STATE.md`.
 
-**NO-GO for E13-6 through E13-8 until their declared dependencies and
+**NO-GO for E13-7 through E13-8 until their declared dependencies and
 per-ticket phase gates are satisfied.**

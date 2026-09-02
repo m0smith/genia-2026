@@ -1,0 +1,18 @@
+name: r13-validated-pipeline-flow
+category: flow
+description: Qualified configuration Outcomes compose with existing ordered Flow collection
+input:
+  source: |
+    provider = config_standard({SERVER_PORT: "8080", METRICS_PORT: "9100"}, ["--db-port", "5432"]) |> unwrap_or(none)
+    ["SERVER_", "DB_", "METRICS_"]
+      |> each((_) -> none)
+      |> map((prefix) -> config_view(provider, prefix)("PORT") |> parse_int)
+      |> collect
+expected:
+  stdout: |
+    [some(8080), some(5432), some(9100)]
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 676
+  classification: Existing Flow and Outcome behavior; no R13 Flow API.

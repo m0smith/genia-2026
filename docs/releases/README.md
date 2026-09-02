@@ -25,7 +25,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R10 — Configuration & Secrets](R10.md) ✓ COMPLETE
 - [R11 — AI Composition](R11.md) — COMPLETE; E11-1 through E11-8 delivered
 - [R12 — Retrieval & Grounding](R12.md) — COMPLETE; E12-1 through E12-9 delivered
-- [R13 — Configuration Resolution Ergonomics](R13.md) — ACTIVE; E13-1 through E13-5 delivered
+- [R13 — Configuration Resolution Ergonomics](R13.md) — ACTIVE; E13-1 through E13-6 delivered
 
 ## Process
 
