@@ -17,7 +17,7 @@ def test_r12_release_completion_is_synchronized_after_e12_9() -> None:
         "GENIA_RULES.md": "R12 is release-complete",
         "GENIA_REPL_README.md": "E12-9 completes audit/distillation",
         "README.md": "truth audit makes R12",
-        "docs/ai/LLM_CONTRACT.md": "R9, R10, R11, and R12 Complete",
+        "docs/ai/LLM_CONTRACT.md": "R9, R10, R11, R12, and R13 Complete",
         "docs/design/composability-matrix.md": "release-complete R12 boundary",
         "docs/design/r12-retrieval-grounding-contract.md": "E12-1 through E12-9 complete",
         "docs/releases/R12.md": "Status: **Complete",

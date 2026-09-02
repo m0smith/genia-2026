@@ -40,7 +40,7 @@ def test_r12_status_remains_synchronized_after_release_completion() -> None:
         "GENIA_STATE.md": "R12 E12-8, issue #650",
         "README.md": "R12 E12-8",
         "GENIA_REPL_README.md": "E12-8 synchronizes runnable release examples",
-        "docs/ai/LLM_CONTRACT.md": "R9, R10, R11, and R12 Complete",
+        "docs/ai/LLM_CONTRACT.md": "R9, R10, R11, R12, and R13 Complete",
         "docs/design/composability-matrix.md": "release-complete R12 boundary",
         "docs/design/r12-retrieval-grounding-contract.md": "E12-1 through E12-9 complete",
         "docs/releases/R12.md": "E12-1 through E12-9 delivered",
