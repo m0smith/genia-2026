@@ -1,0 +1,13 @@
+name: error-r13-standard-source-failure
+category: error
+description: Malformed explicit arguments short-circuit standard-provider acquisition without disclosing rejected data
+input:
+  source: 'config_standard({}, ["--bad_name", "SOURCE_VALUE_SENTINEL_675"])'
+expected:
+  stdout: |
+    err("config-source-invalid", {source_kind: arguments, stage: parse})
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 675
+  classification: Portable normalized Outcome with no host acquisition.

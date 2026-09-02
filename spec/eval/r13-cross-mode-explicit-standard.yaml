@@ -1,0 +1,15 @@
+name: r13-cross-mode-explicit-standard
+category: eval
+description: Explicit standard construction and qualified lookup use existing ordinary Outcomes
+input:
+  source: |
+    provider = config_standard({SERVER_PORT: "8080"}, []) |> unwrap_or(none)
+    config_view(provider, "SERVER_")("PORT")
+expected:
+  stdout: |
+    some("8080")
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 675
+  classification: Experimental portable explicit-construction and Outcome observation.
