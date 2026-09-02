@@ -118,10 +118,11 @@ grounded pipeline; E12-8 synchronizes runnable examples and implemented truth
 without runtime behavior; E12-9 completes the release truth audit and
 distillation without runtime behavior.
 
-**R13** is active through E13-7. E13-1 through E13-6 implement and prove the
+**R13** is complete through E13-8. E13-1 through E13-6 implement and prove the
 Experimental explicit configuration-resolution composition used by validated
 pipelines; E13-7 synchronizes runnable examples and implemented truth without
-runtime behavior. E13-8 remains separately gated.
+runtime behavior; E13-8 completes the release truth audit and distillation
+without runtime behavior.
 
 ## Using This Document
 

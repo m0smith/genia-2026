@@ -182,15 +182,15 @@ ordinary value/callable/Outcome/R9/R10/R11 boundary in
 `docs/design/r12-retrieval-grounding-contract.md`; do not infer a RAG or
 vector-store framework, hidden query embedding, citation rendering semantics,
 or later-ticket implementation authority.
-**R13 — Configuration Resolution Ergonomics is active (epic #608); E13-0 is
-approved and E13-1 through E13-7 are implemented.** Its approved boundary is ordinary callable
+**R13 — Configuration Resolution Ergonomics is complete (epic #608); E13-0 is
+approved and E13-1 through E13-8 are complete.** Its approved boundary is ordinary callable
 configuration/secret views over an explicit R10 provider, explicit program-CLI
 adaptation, one narrow `.env` source capability, and deterministic conventional
 provider composition. It must preserve R10 Outcomes, immutable snapshots,
 protected carriers/sinks/declassification, lexical lookup, and map/module-only
 named access. E13-1 adds inert qualified view construction and exact one-call
 R10 delegation; E13-2 purely normalizes explicit string arguments into the
-existing literal source descriptor without acquiring process state; E13-3 reads one exact explicit path once with deterministic parsing and no discovery, interpolation, or refresh; E13-4 composes the fixed conventional provider; E13-5 verifies cross-mode, diagnostic, protected-boundary, and ordinary-call/Core IR preservation without new semantics; E13-6 proves the Outcome-aware validated-pipeline composition without new semantics; and E13-7 release-example truth synchronization adds documentation verification only. E13-8 remains gated. R13
+existing literal source descriptor without acquiring process state; E13-3 reads one exact explicit path once with deterministic parsing and no discovery, interpolation, or refresh; E13-4 composes the fixed conventional provider; E13-5 verifies cross-mode, diagnostic, protected-boundary, and ordinary-call/Core IR preservation without new semantics; E13-6 proves the Outcome-aware validated-pipeline composition without new semantics; E13-7 release-example truth synchronization adds documentation verification only; and E13-8 completes the release truth audit/distillation without runtime behavior. R13
 adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.

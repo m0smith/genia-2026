@@ -72,4 +72,6 @@ def test_r13_completion_preserves_r10_and_the_approved_composition_boundary() ->
     assert "immutable snapshot" in state
     assert "one existing `config_get` or `secret_get`, and returns its exact Outcome" in rules
     assert "protected" in state.lower()
-    assert "no syntax, Core IR" in release
+    contract = _read("docs/design/r13-configuration-resolution-contract.md")
+    assert "No new syntax" in contract
+    assert "Core IR node" in contract
