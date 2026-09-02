@@ -1,0 +1,20 @@
+name: r13-validated-pipeline-qualified-ports
+category: eval
+description: Qualified views keep identically named PORT settings unambiguous through explicit conversion and Template validation
+input:
+  source: |
+    pattern Port(value) = refinement_match((number) -> number > 0 && number <= 65535, value)
+    provider = config_standard({SERVER_PORT: "8080", METRICS_PORT: "9100"}, ["--db-port", "5432"]) |> unwrap_or(none)
+    port(prefix) = {
+      result = config_view(provider, prefix)("PORT") |> parse_int |> Port
+      result
+    }
+    [port("SERVER_"), port("DB_"), port("METRICS_")]
+expected:
+  stdout: |
+    [some(8080), some(5432), some(9100)]
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 676
+  classification: Experimental composition proof over implemented R13 and existing Template behavior.

@@ -1,0 +1,16 @@
+name: r13-validated-pipeline-proving-case
+category: cli
+description: Executable R13 conventional configuration composes with qualified ports, validation, protected values, and diagnostics
+input:
+  source: "examples/r13_validated_pipeline_proving_case.genia"
+  file: "examples/r13_validated_pipeline_proving_case.genia"
+  stdin: ""
+  argv: []
+expected:
+  stdout: '{server_port: some(8080), database_port: some(5432), metrics_port: some(9100), clean: [{id: 1, name: "Ada"}, {id: 2, name: "Grace"}], diagnostics: [{index: 1, kind: skipped, reason: "blank_line", context: none("nil")}, {index: 2, kind: error, reason: record_validation_failed, context: some({diagnostics: [{field: "name", status: error, reason: "missing required field", context: {field: "name", reason: "missing required field"}}]})}], credential: "<protected>", protected_match: true}'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 676
+  classification: Experimental proving composition over E13-1 through E13-5 and existing R10/validation behavior.
+  non_goal: no new API, syntax, provider behavior, retry, fallback, network, or lifecycle behavior.

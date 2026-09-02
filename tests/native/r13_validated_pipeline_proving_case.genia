@@ -1,0 +1,33 @@
+pattern R13NativePort(value) = refinement_match((number) -> number > 0 && number <= 65535, value)
+
+r13_native_record(record) =
+  validate_record(record, {
+    id: (value) -> validate_required("id", value),
+    name: (value) -> validate_required("name", value)
+  })
+
+r13_native_port(provider, prefix) = {
+  result = config_view(provider, prefix)("PORT") |> parse_int |> R13NativePort
+  result
+}
+
+test("R13 qualified configuration composes with validated records", () -> {
+  provider = config_standard(
+    {SERVER_PORT: "8080", METRICS_PORT: "9100", TOKEN: "native-fixture"},
+    ["--db-port", "5432"]
+  ) |> unwrap_or(none)
+  server = r13_native_port(provider, "SERVER_")
+  database = r13_native_port(provider, "DB_")
+  metrics = r13_native_port(provider, "METRICS_")
+  token = secret_view(provider, "", quote(native_outbound))("TOKEN") |> unwrap_or(none)
+  result =
+    [{id: 1, name: "Ada"}, none("blank_line"), {id: 2}]
+      |> ((records) -> validate_each(records, r13_native_record))
+      |> collect_validated
+
+  assert_eq(display([server, database, metrics]), "[some(8080), some(5432), some(9100)]")
+  assert_eq(display(result("clean")), "[{id: 1, name: Ada}]")
+  assert_eq(count(result("diagnostics")), 2)
+  assert_eq(display(token), "<protected>")
+  assert_eq(protected_match("secret", token) |> some?, true)
+})

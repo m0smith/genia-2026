@@ -1,0 +1,13 @@
+name: r13-validated-pipeline-config-failure
+category: error
+description: Malformed explicit configuration preserves the existing normalized non-sensitive Outcome
+input:
+  source: 'config_standard({}, ["--bad_name", "R13_CONFIG_VALUE_SENTINEL_676"])'
+expected:
+  stdout: |
+    err("config-source-invalid", {source_kind: arguments, stage: parse})
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 676
+  classification: Existing R13 malformed-argument Outcome with no value leakage.

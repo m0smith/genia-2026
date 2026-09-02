@@ -81,7 +81,7 @@ def test_example_returns_qualified_ports_clean_records_diagnostics_and_safe_secr
     assert result.get("credential") == "<protected>"
     assert result.get("protected_match") is True
     assert environment_calls == ["environment"]
-    assert dotenv_calls == [str(DOTENV)]
+    assert dotenv_calls == ["examples/r13_validated_pipeline_proving_case.env"]
     _assert_no_sentinels(format_display(result))
 
 
