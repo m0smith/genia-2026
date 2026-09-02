@@ -20,6 +20,9 @@ A host capability is a named, host-backed service exposed to Genia programs thro
 
 ## Capability Groups
 
+R13 E13-7 verifies the runnable configuration examples and synchronizes their
+public portability labels. It adds or changes no host capability.
+
 ### Group: Configuration Source Snapshots
 
 #### `config.environment-snapshot`

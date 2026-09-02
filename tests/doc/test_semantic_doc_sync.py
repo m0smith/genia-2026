@@ -57,11 +57,12 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "native_test_metadata_string_boundary",
         "r11_ordinary_composition_boundary",
         "r12_ordinary_composition_boundary",
+        "r13_ordinary_composition_boundary",
         CANONICAL_FIELD_PATH_SEPARATOR_FACT,
         CANONICAL_NAMED_ACCESS_SEPARATOR_FACT,
     }
     assert set(FACTS) == expected_keys
-    assert len(FACTS) <= 20, "semantic facts surface should stay intentionally small"
+    assert len(FACTS) <= 21, "semantic facts surface should stay intentionally small"
 
 
 def test_authoritative_docs_capture_pipeline_option_contract() -> None:
