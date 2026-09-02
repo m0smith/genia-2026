@@ -630,11 +630,12 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - LANGUAGE CONTRACT: explicit qualified lookup, Outcome propagation, callable Template validation, record collection, and protected transport compose using the already implemented R10/R13 portable ordinary-call boundary
   - PYTHON REFERENCE HOST: tests inject deterministic snapshot capabilities, one matching or mismatching authority, a non-sensitive audit observer, and an outbound fixture; Python remains the only implemented host and shared/multi-host conformance remains Partial
 
-- R13 release examples and implemented-truth synchronization (Experimental, R13 E13-7, issue #677)
+- R13 release examples, implemented-truth synchronization, and release audit (Experimental, R13 E13-7/E13-8, issues #677/#678)
   - E13-7 adds no runtime behavior: `docs/releases/R13.md` and focused documentation tests synchronize runnable qualified-view and complete validated-pipeline examples with the implemented E13-1 through E13-6 boundary
   - the synchronized public account keeps ordinary explicit providers, callables, Outcomes, immutable snapshots, fixed source precedence, explicit conversion/callable Template validation, R10 protected transport, and Python-host-only acquisition/test mechanics distinct
   - LANGUAGE CONTRACT: E13-7 is documentation and executable-example verification only; implemented portable behavior remains exactly E13-1 through E13-4, while E13-5/E13-6 remain conformance and application-composition proof without new semantics
-  - R13 remains Active and Experimental; shared/multi-host conformance remains Partial, Python is the only implemented host, and E13-8 release audit/distillation remains separately gated
+  - E13-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-value exclusions, and canonical release status
+  - R13 is release-complete through E13-8 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values

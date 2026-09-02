@@ -27,19 +27,19 @@ def _run_genia(*args: str) -> subprocess.CompletedProcess[str]:
 def test_r13_status_remains_synchronized_after_release_truth_sync() -> None:
     required = {
         "AGENTS.md": "E13-7 release-example truth synchronization",
-        "GENIA_STATE.md": "R13 E13-7, issue #677",
+        "GENIA_STATE.md": "R13 E13-7/E13-8, issues #677/#678",
         "GENIA_RULES.md": "E13-7 changes no semantics",
         "README.md": "R13 E13-7",
         "GENIA_REPL_README.md": "E13-7 synchronizes runnable release examples",
-        "docs/ai/LLM_CONTRACT.md": "E13-1 through E13-7 are implemented",
+        "docs/ai/LLM_CONTRACT.md": "E13-1 through E13-8 are complete",
         "docs/design/composability-matrix.md": "R13 public examples",
         "docs/design/r13-configuration-resolution-contract.md": (
-            "E13-1 through E13-7 implemented"
+            "E13-1 through E13-8 complete"
         ),
-        "docs/releases/R13.md": "E13-1 through E13-7 delivered",
-        "docs/releases/README.md": "E13-1 through E13-7 delivered",
+        "docs/releases/R13.md": "E13-1 through E13-8 delivered",
+        "docs/releases/README.md": "E13-1 through E13-8 delivered",
         "docs/strategy/release-roadmap.md": (
-            "E13-1 through E13-7 are implemented"
+            "E13-1 through E13-8 are complete"
         ),
         "docs/strategy/r13-configuration-resolution-ergonomics.md": (
             "E13-7 documentation and executable-example verification"
@@ -49,8 +49,8 @@ def test_r13_status_remains_synchronized_after_release_truth_sync() -> None:
         assert expected in _read(path), f"{path} must preserve synchronized R13 truth"
 
     release = RELEASE.read_text(encoding="utf-8")
-    assert "Status: **Active" in release
-    assert "E13-8 remains separately gated" in release
+    assert "Status: **Complete" in release
+    assert "E13-1 through E13-8 delivered" in release
     assert "E13-7 and E13-8 remain gated" not in release
 
 

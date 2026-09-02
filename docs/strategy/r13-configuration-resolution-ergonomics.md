@@ -1,6 +1,6 @@
 # R13 — Configuration Resolution Ergonomics
 
-Status: **Active release; E13-0 approved and E13-1 through E13-7 implemented. E13-7 is documentation verification only; E13-8 is not implemented.** This
+Status: **Complete release; E13-0 approved and E13-1 through E13-8 complete. E13-7 is documentation verification and E13-8 is audit/distillation only.** This
 document records approved release direction only. It does not define implemented
 language behavior. `GENIA_STATE.md` remains final authority.
 
@@ -279,7 +279,7 @@ release epic is #608.
    - Compose multiple qualified `PORT` values, conversion/Template validation, clean diagnostics, and one protected credential at an authorized boundary.
 8. **#677 — E13-7: release examples and implemented-truth synchronization — implemented**
    - E13-7 documentation and executable-example verification synchronizes public truth only; it adds no runtime behavior.
-9. **#678 — E13-8: release truth audit and distillation**
+9. **#678 — E13-8: release truth audit and distillation — complete**
    - Audit the complete approved boundary and remove process artifacts; no runtime behavior.
 
 ## Ticket acceptance baseline
