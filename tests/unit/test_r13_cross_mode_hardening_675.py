@@ -16,6 +16,8 @@ SHARED_CASES = (
     ROOT / "spec/eval/r13-cross-mode-explicit-standard.yaml",
     ROOT / "spec/error/error-r13-standard-source-failure.yaml",
     ROOT / "spec/cli/r13-cross-mode-command.yaml",
+    ROOT / "spec/cli/r13-cross-mode-file.yaml",
+    ROOT / "spec/cli/r13-cross-mode-pipe.yaml",
     ROOT / "spec/parse/parse-r13-existing-call-forms.yaml",
     ROOT / "spec/ir/r13-existing-call-ir.yaml",
 )
@@ -138,6 +140,39 @@ def test_import_without_construction_is_inert_and_explicit_module_standard_snaps
     )
     assert isinstance(result, GeniaOptionSome) and result.value == "8080"
     assert calls == ["environment", ("dotenv", ".env")]
+
+
+def test_native_test_requires_explicit_standard_construction_and_snapshots_once(tmp_path):
+    program = tmp_path / "configuration_native_tests.genia"
+    program.write_text(
+        '''
+provider = config_standard({}, []) |> unwrap_or(none)
+server = config_view(provider, "SERVER_")
+
+@test "explicit standard provider"
+explicit_standard() = assert_eq(server("PORT"), some("8080"))
+''',
+        encoding="utf-8",
+    )
+    calls = []
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+
+    from genia.test_cli import run_native_tests_from_file
+
+    exit_code = run_native_tests_from_file(
+        str(program),
+        environment_snapshot_provider=lambda: calls.append("environment")
+        or {"SERVER_PORT": "8080"},
+        dotenv_snapshot_provider=lambda path: calls.append(("dotenv", path)) or b"",
+        stdout_stream=stdout,
+        stderr_stream=stderr,
+    )
+
+    assert exit_code == 0
+    assert calls == ["environment", ("dotenv", ".env")]
+    assert "passed=1" in stdout.getvalue()
+    assert stderr.getvalue() == ""
 
 
 def test_serve_standard_snapshot_precedes_activation_and_request_does_not_refresh(
