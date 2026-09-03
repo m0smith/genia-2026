@@ -58,6 +58,7 @@ if __package__ in (None, ""):
         reject_declassification_authority,
     )
     from genia.model import construct_model
+    from genia.lifecycle_runtime import lifecycle_context, run_lifecycle_child, run_lifecycle_scope
     from genia.retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from genia.callable import (
@@ -162,6 +163,7 @@ else:
         reject_declassification_authority,
     )
     from .model import construct_model
+    from .lifecycle_runtime import lifecycle_context, run_lifecycle_child, run_lifecycle_scope
     from .retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
     from .callable import (
@@ -4516,7 +4518,29 @@ def make_global_env(
             invoke=lambda callback, args: _invoke_raw_from_builtin(callback, args),
         )
 
+    def lifecycle_scope_fn(peers: Any, work: Any) -> Any:
+        evaluator = Evaluator(env, env.debug_hooks, env.debug_mode)
+        return run_lifecycle_scope(
+            peers,
+            work,
+            invoke=lambda callback, args: _invoke_raw_from_builtin(callback, args),
+            is_callable=evaluator.is_matcher_callable,
+        )
+
+    def lifecycle_child_fn(parent: Any, peers: Any, work: Any) -> Any:
+        evaluator = Evaluator(env, env.debug_hooks, env.debug_mode)
+        return run_lifecycle_child(
+            parent,
+            peers,
+            work,
+            invoke=lambda callback, args: _invoke_raw_from_builtin(callback, args),
+            is_callable=evaluator.is_matcher_callable,
+        )
+
     env.set("chunk", _host_function_group("chunk", 2, chunk_fn))
+    env.set("lifecycle_scope", _host_function_group("lifecycle_scope", 2, lifecycle_scope_fn))
+    env.set("lifecycle_child", _host_function_group("lifecycle_child", 3, lifecycle_child_fn))
+    env.set("lifecycle_context", _host_function_group("lifecycle_context", 2, lifecycle_context))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),
