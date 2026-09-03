@@ -1349,7 +1349,93 @@ Explicit non-goals:
 
 ---
 
-## R8–R22 Sequence and Dependencies
+## Release R23 — Sheet Record Pipelines
+
+**Status: Planned, not active.** R23 is a focused killer-workflow release. Its
+roadmap placement does not define implemented syntax or behavior, and exact
+public call shapes remain for the normal contract gate.
+
+Theme:
+
+> Make immutable Sheets explicit sources and destinations for AWK-like,
+> Outcome-aware record pipelines without making Sheets implicitly
+> Seq-compatible or introducing an AWK execution mode.
+
+R23 builds on the current Experimental Sheet foundation: `rows`, `where`,
+`derive`, `select`, `row_get`, `collect_sheet`, and `render_csv`. It also
+preserves the existing list-only AWK prelude helpers (`fields`, `awkify`,
+`awk_filter`, `awk_map`, and `awk_count`) rather than replacing them with a
+second transformation system.
+
+Candidate scope:
+
+- contract one explicit Sheet-to-record-sequence boundary that preserves row
+  order, column order, column-name identity, cell values, and immutable Sheet
+  ownership without making Sheet an implicit Seq-compatible source
+- define eager and bounded-lazy behavior explicitly, including early
+  termination, single-use behavior where Flow is involved, source
+  finalization, and when row materialization occurs
+- provide ordinary per-record context equivalent to AWK-style record number,
+  field count, complete record, ordered fields, and column names; exact names
+  and call shapes belong to the contract, and no field becomes mutable lexical
+  or process-global state
+- compose that context with R14's repeated element scopes and peer lifecycle
+  attachments for metrics and diagnostics; if the required R14 behavior has
+  not landed, R23 must not implement a Sheet-specific substitute lifecycle
+- keep transformation state in ordinary values and existing `scan`/`reduce`
+  composition rather than lifecycle state
+- define separate schema-preserving filtering/derivation and explicit
+  schema-changing record reshaping, with deterministic reconstruction through
+  the existing exact-shape `collect_sheet` boundary or a narrowly contracted
+  extension
+- preserve the `some` / `none` / `err` distinction through row processing and
+  compose with existing validation/diagnostic aggregation without treating
+  `nil` or a cell-level Outcome as an implicit request to drop a row
+- preserve protected-cell transport and rejection at unauthorized
+  output/serialization boundaries
+- add shared eval/flow/error coverage and capability declarations through the
+  R16 runner; hosts must report unsupported Sheet capabilities honestly rather
+  than silently skipping or claiming them
+
+Proving application:
+
+- consume a realistically messy finite tabular dataset as a Sheet
+- expose deterministic row number, field count, ordered fields, column names,
+  and complete-row context to ordinary pipeline work
+- apply at least two peer per-row lifecycle concerns, including metrics and
+  diagnostics, while preserving cleanup on failure and bounded early stop
+- validate and partition records through existing Outcome semantics
+- filter, derive, and explicitly reshape accepted records
+- produce a correctly ordered immutable Sheet plus useful diagnostics and
+  deterministic CSV output
+
+Critical acceptance criterion:
+
+- A finite immutable Sheet can pass through an explicitly entered,
+  lifecycle-aware record pipeline with deterministic indexed context,
+  Outcome-aware validation, filtering, derivation, and explicit reconstruction
+  into a correctly shaped Sheet without hidden mutation, expired-context
+  leakage, implicit Seq conversion, or a competing pipeline model.
+
+Explicit non-goals:
+
+- special `$0`, `$1`, `NR`, `NF`, `BEGIN`, or `END` syntax or mutable bindings
+- an AWK execution mode, parser/AST/Core-IR additions merely for AWK notation,
+  or complete GNU/POSIX AWK compatibility
+- making Sheet implicitly acceptable to every Seq/Flow helper
+- replacing `where`, `derive`, `map`, `filter`, `scan`, `reduce`, `refine`, or
+  `rules` with Sheet-specific equivalents
+- silently padding, unioning, dropping, renaming, or reordering columns
+- automatic cell coercion, inferred column types, spreadsheet formulas, joins,
+  grouping, pivoting, sorting, window functions, or a dataframe/query DSL
+- mutable global row counters, lifecycle-owned aggregation state, or lazy
+  values that retain expired row context
+- a second Outcome, Template, validation, diagnostic, representation, or error
+  model
+
+---
+
+## R8–R23 Sequence and Dependencies
 
 The scheduling sequence is:
 
@@ -1393,6 +1479,9 @@ R19 — C++ Minimal Conforming Host
            |
            v
 R22 — C++ Flow, Pipe Mode & HTTP Serving
+ |
+ v
+R23 — Sheet Record Pipelines
 ```
 
 This ordering does not imply that every release is a strict technical dependency
@@ -1408,13 +1497,18 @@ required infrastructure for every second host. R17 and R18 harden shared
 contracts in parallel; R19 depends on all three. R20 and R21 extend the C++ host
 along mostly independent stateful and REPL/data-bridge tracks. R22
 consumes the implemented contracts it needs and closes only the C++ capabilities
-it can prove.
+it can prove. R23 consumes the explicit Sheet boundaries, existing
+Flow/Outcome/validation composition, R14 repeated element lifecycle semantics,
+R15 validated-value modeling where applicable, and R16 capability-aware shared
+execution. Its placement after R22 avoids renumbering the C++ release arc; it
+does not make every C++ implementation release a semantic prerequisite for the
+R23 contract.
 
 R8, R9, R10, R11, R12, and R13 are complete. R11, R12, and R13 APIs remain Experimental,
 Python is the only implemented host, and shared/multi-host conformance remains
 Partial. R14 and R15 remain planned and not active.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
-every later release does as well.
+R23 is planned and not active. Every later release requires its own gates.
 Each later behavior slice requires its
 own contract/design/test/implementation/documentation/audit gates; roadmap
 placement is not implementation authority.
