@@ -859,42 +859,62 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ---
 
-## Release R14 — Composable HTTP Lifecycles
+## Release R14 — Composable Lifecycles
 
-**Status: Planned, not active.** R14 is explicitly approved infrastructure work.
-The release epic is **#619**. No R14 behavior is implemented merely because the
-roadmap and issues exist.
+**Status: Planned, not active.** R14 is explicitly approved infrastructure work
+with one direct record-pipeline proving path. The release epic is **#619**. No
+R14 behavior is implemented merely because the roadmap and issues exist.
 
 Theme:
 
-> Make lifecycle an execution-scope model that composes naturally, with inbound server requests and outbound HTTP operations as the first end-to-end proving case.
+> Make lifecycle an execution-scope model that composes vertically and
+> horizontally, then prove it around repeated records and inbound/outbound HTTP.
 
-R14 extends the completed R4 lifecycle contract and R8 server lifecycle. A
-lifecycle is an execution scope, not an application-wide mode. Long-lived parent
-instances may own shorter-lived child lifecycle instances:
+R14 extends the completed R4 lifecycle vocabulary and R8 server lifecycle. It
+must distinguish lifecycle definitions, execution scopes, and active lifecycle
+instances without turning arbitrary R4 plan data into an implicit global runner.
+
+Required composition dimensions:
+
+- **vertical:** a parent scope remains active while child work executes, child
+  results return to the parent, child failure is contained unless explicitly
+  propagated, and resource ownership stays with the owning scope
+- **horizontal:** one execution scope owns multiple peer lifecycle attachments
+  with deterministic enter order, reverse unwind order, partial-entry cleanup,
+  and isolation between peer-owned state/context/resources
+- **repeated:** eager and lazy pipelines may create fresh element scopes, each
+  with multiple attachments, while preserving existing Flow/Seq laziness,
+  bounded pulling, single-use, finalization, and transformation semantics
 
 ```text
 execution
 └── server
     └── request
         └── http-client
+
+pipeline/session
+└── element #42
+    ├── record-context
+    ├── metrics
+    └── diagnostics
 ```
 
-Core design rules:
+Lifecycle context is scoped execution context, not mutable lexical-environment
+injection. Reads may see enclosing layers only as the contract allows; writes
+remain owned by the creating scope/instance. Element-local context expires when
+the element scope exits, and lazy values must not implicitly retain it. Values
+that outlive the scope must be captured as ordinary values. Ordinary pipeline
+state remains value/`scan` state.
 
-- lifecycle definitions describe phases/scopes/policy
-- lifecycle instances own active execution, resources, result/failure, and optional parent/children
-- creating a child does not replace or mutate a global "current lifecycle"
-- parent remains active while child work executes
-- child completion returns control/result to the parent
-- child failure does not implicitly terminate the parent
-- child-owned resources finalize with the child; parent-owned resources remain parent-owned
-- inherited context is readable according to contract but cannot be silently mutated by children
-- annotations remain inert descriptors until an explicit lifecycle consumes/invokes them
-- importing/loading an HTTP-annotated declaration performs no network IO
+R14 promotes the R13 lifecycle/provider-binding follow-up into an explicit
+ticket. One explicitly constructed immutable provider may be bound to an
+approved execution scope without adding ambient lookup, bare configuration
+names, provider refresh, mutable provider replacement, or dependency injection.
+R10/R13 identity, precedence, snapshots, Outcomes, purposes, protected carriers,
+sinks, audit, and declassification remain authoritative.
 
-Outbound HTTP is the proving lifecycle consumer. One common HTTP operation model
-must underlie method-specific ergonomics:
+Outbound HTTP is the vertical proving consumer. One common inert HTTP operation
+model underlies every supported method:
 
 ```text
 HttpOperation {
@@ -908,95 +928,86 @@ HttpOperation {
 }
 ```
 
-The conceptual client lifecycle is:
+The client lifecycle is conceptually `prepare → authorize → send → receive →
+decode → finalize`. Genia owns portable lifecycle and HTTP semantics. The Python
+reference host supplies only the narrow outbound transport capability. Method
+annotations may land only as inert descriptors over the common operation and
+lifecycle; importing/loading them performs no IO.
 
-```text
-prepare
-→ authorize
-→ send
-→ receive
-→ decode
-→ finalize
-```
+R14 provides two proving applications:
 
-The lifecycle semantics belong to Genia. The Python reference host supplies only
-the narrow outbound transport capability required to touch the network. Future
-hosts must implement the same contract rather than redefining lifecycle/HTTP
-behavior.
-
-R14 may add declarative method annotations such as `@get` only after the common
-operation and lifecycle model exist. Such annotations are metadata/operation
-descriptors, not self-executing IO. Static policy belongs in descriptors;
-dynamic request values remain ordinary Genia values.
-
-R14 also integrates R10/R13 protected configuration with authorized HTTP
-credential sinks. A protected API key may cross an explicitly authorized
-transport header boundary without becoming an ordinary printable/serializable
-value or requiring ad hoc application-level declassification.
-
-Proving application:
-
-- a Genia REST service accepts an array of canonical Bible references
-- R13/R10 resolve a configured YouVersion base URL, Bible/version ID, and protected API credential
-- an inbound R8 request creates one or more outbound HTTP client child lifecycle instances
-- responses are decoded and returned as structured JSON
-- automated tests use a controlled local upstream and fake credentials; CI does not depend on YouVersion or public network access
-- the example proves composition only; it does not create Bible-specific language semantics or human-reference parsing
+- a generic Outcome-aware record pipeline with one session scope, repeated
+  element scopes, at least two peer lifecycles per element, AWK-like
+  record/fields/index context, and correct early-stop cleanup, without AWK
+  syntax or a new execution mode
+- a Genia REST service that accepts canonical Bible references, resolves
+  YouVersion configuration through R13/R10, sends a protected credential only
+  through an authorized HTTP sink, performs outbound client child lifecycles,
+  and returns decoded structured JSON without making CI depend on public
+  network access or a real credential
 
 Approved R14 issue path:
 
-1. **#620 — E14-0:** release contract and roadmap alignment
-2. **#621 — E14-1:** lifecycle instance model and parent-child scope execution
-3. **#622 — E14-2:** common HTTP operation representation contract
-4. **#623 — E14-3:** Python host outbound HTTP transport capability
-5. **#624 — E14-4:** outbound HTTP client lifecycle
-6. **#625 — E14-5:** protected HTTP credential sinks
-7. **#626 — E14-6:** declarative outbound HTTP annotations
-8. **#627 — E14-7:** compose server request and outbound HTTP client lifecycles
-9. **#628 — E14-8:** YouVersion Bible proxy proving application
-10. **#629 — E14-9:** documentation sync and release example
-11. **#630 — E14-10:** release truth audit and closure
+1. **#620 — E14-0:** composable lifecycle and HTTP contract
+2. **#621 — E14-1:** lifecycle instance and parent/child execution scopes
+3. **#692 — E14-2:** peer lifecycle attachment and deterministic unwind
+4. **#693 — E14-3:** repeated element-scoped lifecycle execution
+5. **#694 — E14-4:** lifecycle-owned configuration provider binding
+6. **#622 — E14-5:** common HTTP operation representation
+7. **#623 — E14-6:** Python host outbound HTTP transport capability
+8. **#624 — E14-7:** outbound HTTP client lifecycle
+9. **#625 — E14-8:** protected HTTP credential sinks
+10. **#626 — E14-9:** declarative outbound HTTP annotations
+11. **#627 — E14-10:** server/request/outbound-client composition
+12. **#695 — E14-11:** repeated record lifecycle proving case
+13. **#628 — E14-12:** YouVersion Bible proxy proving application
+14. **#696 — E14-13:** cross-mode lifecycle and HTTP hardening
+15. **#629 — E14-14:** release examples and implemented-truth synchronization
+16. **#630 — E14-15:** release truth audit and distillation
 
-Recommended dependency order:
+Supporting documentation infrastructure issue **#697** publishes this roadmap
+to the MkDocs site from its single repository source. It may proceed independently
+of #620 and does not define R14 behavior.
+
+Recommended dependency shape:
 
 ```text
 #620
-  ↓
-#621 + #622
-  ↓
-#623
-  ↓
-#624
-  ↓
-#625
-  ↓
-#626
-  ↓
-#627
-  ↓
-#628
-  ↓
-#629
-  ↓
-#630
+├── #621 → #692 → #693 → #695
+│             └── #694
+└── #622 → #623
+          #621 + #622 + #623 → #624 → #625 → #626
+          #692 + #624 + #626 → #627
+          #694 + #627 → #628
+
+#693 + #694 + #627 + #628 + #695 → #696 → #629 → #630
 ```
 
 Explicit non-goals:
 
-- a general async/await model or scheduler
-- actor supervision or distributed lifecycle execution
-- WebSockets, SSE, or HTTP/2-specific semantics
-- connection-pool configuration, retries, circuit breakers, or an auth framework
-- dependency injection
-- a second server/routing/CORS mechanism
-- a second configuration, Template, representation, Outcome, validation, or error model
-- self-executing annotations
-- global mutable lifecycle state
+- an AWK language mode or `$0`/`$1`/`NR`/`NF` syntax
+- lifecycle mutation of lexical bindings or implicit context capture by lazy values
+- lifecycle as a second `map`/`filter`/`scan`/`refine`/`rules` mechanism
+- a general async/await model, scheduler, actor supervision, or distributed execution
+- WebSockets, SSE, streaming APIs, or HTTP/2-specific semantics
+- connection-pool configuration, retries, circuit breakers, cookies, or an auth framework
+- dependency injection or a second server/routing/CORS/configuration system
+- self-executing annotations or global mutable lifecycle state
 - human-language Bible-reference parsing or YouVersion-specific language APIs
 
 Critical acceptance criterion:
 
-- A real Genia server request can execute protected/configured outbound HTTP as a child lifecycle, return the decoded result, correctly contain child failure/resource ownership, and leave the long-lived server lifecycle healthy.
+- Tested programs use one lifecycle model to compose parent/child scopes,
+  multiple peers on one scope, and repeated per-element stacks; bind explicit
+  configuration without ambient lookup; preserve Flow/Seq and R10/R13 laws; and
+  execute protected/configured outbound HTTP from an R8 request without leaking
+  context/credentials or terminating the long-lived server.
+
+`docs/strategy/r14-composable-lifecycles.md` owns the detailed scope, decision
+list, portability posture, ticket acceptance baseline, dependency graph, and
+exit criterion. **GO for E14-0 preflight only.** Implementation remains blocked
+until #620 completes the current repository preflight, mandatory portability
+analysis, and an explicitly approved contract.
 
 ---
 
@@ -1372,7 +1383,7 @@ R12 — Retrieval & Grounding
 R13 — Configuration Resolution Ergonomics
  |
  v
-R14 — Composable HTTP Lifecycles
+R14 — Composable Lifecycles
  |
  v
 R15 — Validated Value Modeling

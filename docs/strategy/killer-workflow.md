@@ -124,6 +124,13 @@ pipelines; E13-7 synchronizes runnable examples and implemented truth without
 runtime behavior; E13-8 completes the release truth audit and distillation
 without runtime behavior.
 
+**R14** is planned, not active. It is explicitly approved lifecycle
+infrastructure with a direct record-pipeline proving path: multiple lifecycle
+concerns may surround each consumed element while existing Flow/Seq and Outcome
+transformations remain authoritative. Its outbound HTTP slice is an indirect
+application-integration proof. Only E14-0 preflight may begin; no R14 behavior is
+implemented until its contract and later phase gates complete.
+
 ## Using This Document
 
 Agents and contributors should read this document before proposing or implementing new work.
