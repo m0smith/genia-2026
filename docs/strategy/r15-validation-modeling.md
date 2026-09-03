@@ -227,7 +227,7 @@ R15 depends semantically on the completed R9 Template/representation foundation.
 Recommended roadmap placement:
 
 ```text
-R14 — Composable HTTP Lifecycles
+R14 — Composable Lifecycles
  |
  v
 R15 — Validated Value Modeling

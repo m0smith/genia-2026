@@ -96,6 +96,8 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
+R14 is planned, not active.
+
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
 **R11 — AI Composition is complete; E11-1 through E11-8 are complete.** The Experimental
@@ -157,6 +159,18 @@ When an LLM agent is asked for new Genia work:
    existing R10 literal descriptor; E13-3 snapshots one exact path with no discovery,
    interpolation, or refresh; E13-4 provides fixed conventional composition; E13-5 adds cross-mode, diagnostic, protected-boundary, parse, and Core IR proof without new semantics; and E13-6 proves the Outcome-aware validated-pipeline composition without new semantics.
    E13-7 adds documentation and runnable-example verification only; E13-8 is audit/distillation only and adds no runtime behavior. Follow `docs/strategy/r13-configuration-resolution-ergonomics.md`.
+9. R14 is planned, not active (epic #619), and E14-0 is not yet approved. Only
+   E14-0 preflight may begin. Do not infer implemented parent/child scopes, peer
+   lifecycle attachment, repeated element scopes, lifecycle-owned provider
+   binding, outbound HTTP, protected HTTP sinks, or HTTP annotations from the
+   roadmap. Preserve the planned boundary: one lifecycle model, no global
+   mutable current lifecycle, attachment order distinct from parentage, scoped
+   context distinct from lexical bindings, no lazy escape of expired element
+   context, Flow/Seq/Outcome transformations unchanged, inert annotations, no
+   import/load activation, R10/R13 configuration and protection unchanged, and
+   Python limited to a narrow future transport capability. The AWK-like record
+   example is a future-regret pressure test, not approval for `$1`, `NR`, or an
+   AWK mode. Follow `docs/strategy/r14-composable-lifecycles.md`.
 
 R7 is not a general web framework, browser-native runtime, server execution mode, plugin system, or broad runtime rewrite. R8 subsequently delivered the narrowly scoped server execution mode; the other boundaries remain excluded or assigned to later releases unless explicitly promoted.
 

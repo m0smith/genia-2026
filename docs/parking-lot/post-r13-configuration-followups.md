@@ -30,7 +30,7 @@ relaxes, so the boundary being moved is explicit.
 
 ### Priority 1 — genuine ergonomic gaps
 
-**C-1. Lifecycle/provider binding.**
+**C-1. Lifecycle/provider binding — promoted to planned R14 issue #694.**
 
 Relaxes the R13 non-goal: *"lifecycle binding, provider injection."*
 
@@ -41,11 +41,9 @@ qualified views without repeatedly passing the provider. Multiple lifecycles
 may coexist on each pipeline element; configuration binding must compose with
 them and must not become ambient process state or bare-name lookup.
 
-Proposed home: the planned R14 Composable HTTP Lifecycles epic (#619), which
-already says it consumes R13 configuration ergonomics. E14-0 must explicitly
-assign this behavior to an R14 issue or defer it to a separate gated follow-up;
-the current R14 issue list must not leave it implicit between lifecycle scope
-and protected HTTP credential work.
+Planned home: R14 Composable Lifecycles epic #619, with an explicit owner in
+#694. E14-0 must still contract the binding boundary before implementation.
+Roadmap placement and ticket creation do not make the behavior implemented.
 
 **C-2. Explicit typed/schema-mapped access.**
 
@@ -145,7 +143,7 @@ non-goal *"unknown-option validation."*
 - `docs/strategy/r13-configuration-resolution-ergonomics.md` — original R13
   direction, including the deferred lifecycle-binding idea.
 - `docs/releases/R13.md` — implemented-truth account.
-- `docs/strategy/release-roadmap.md` — planned R14 Composable HTTP Lifecycles
+- `docs/strategy/release-roadmap.md` — planned R14 Composable Lifecycles
   epic (#619) and issue path.
 - `docs/parking-lot/lifecycle-future-ideas.md` — historical lifecycle promotion
   pointer.
