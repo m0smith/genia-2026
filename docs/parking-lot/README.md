@@ -70,6 +70,7 @@ Start with one note per idea family:
 - `rust-friendly-portability.md`
 - `sheets-future-ideas.md`
 - `lifecycle-future-ideas.md`
+- `post-r13-configuration-followups.md`
 - `seq-flow-future-ideas.md`
 
 Keep notes short enough to be useful. If a note becomes implementation-ready, promote it into a normal issue and pre-flight artifact instead of expanding it forever.
