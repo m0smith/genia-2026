@@ -1,0 +1,13 @@
+name: lifecycle-expired-scope
+category: error
+description: A scope handle cannot be used after its synchronous lifetime ends
+input:
+  source: |
+    holder = ref()
+    lifecycle_scope([], (scope) -> ref_set(holder, scope))
+    lifecycle_context(ref_get(holder), quote(missing))
+expected:
+  stdout: ""
+  stderr: |
+    Error: lifecycle-scope-expired
+  exit_code: 1

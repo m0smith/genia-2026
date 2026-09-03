@@ -1,0 +1,20 @@
+name: lifecycle-root-result
+category: eval
+description: An explicit empty root scope returns the exact completed lifecycle result fields
+input:
+  source: |
+    result = lifecycle_scope([], (_) -> 42)
+    [
+      result.status,
+      result.state,
+      result.scope,
+      result.phase,
+      result.peer,
+      result.result,
+      result.primary_failure,
+      result.cleanup_failures
+    ]
+expected:
+  stdout: "[ok, completed, root, exit, none(\"lifecycle-no-peer\"), some(42), none(\"lifecycle-no-failure\"), []]\n"
+  stderr: ""
+  exit_code: 0

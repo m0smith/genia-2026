@@ -1,0 +1,19 @@
+name: lifecycle-child-context-contained
+category: eval
+description: A child reads parent context and returns its own result without implicitly failing the parent
+input:
+  source: |
+    parent = {
+      name: quote(parent),
+      enter: (_) -> some("ctx"),
+      exit: (_, _) -> some("nil")
+    }
+    root = lifecycle_scope([parent], (scope) ->
+      lifecycle_child(scope, [], (child) -> lifecycle_context(child, quote(parent)))
+    )
+    child = root.result |> unwrap_or(none)
+    [root.status, child.status, child.scope, child.result]
+expected:
+  stdout: "[ok, ok, child, some(some(\"ctx\"))]\n"
+  stderr: ""
+  exit_code: 0
