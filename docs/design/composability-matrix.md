@@ -107,6 +107,20 @@ E12-9 is audit/distillation only. See
 | complete grounded composition | R10 authorities / Flow / validation diagnostics / E12 evidence / R11 `model/4` | explicit ordinary stages keep each provider concern separately authorized, make attempts only under demand, preserve exact provenance into the grounded answer, and gate later provider/model work on existing successful Outcomes; compatible replacement preserves call/value contracts rather than identical results | E12-7 proving case implemented, Experimental; deterministic fixtures Python-host-only |
 | R12 public examples | ordinary values / callables / Outcomes / R9 / R10 / R11 / Flow | executable chunking and complete grounded examples verify the existing composition boundaries while keeping backend-native scores distinct from citation rendering and adding no helper or alternate framework | E12-8 documentation verification implemented; no runtime behavior |
 
+## R14 planned relationships
+
+These rows constrain later R14 work. They are an approved planning boundary,
+not implemented behavior; see `r14-composable-lifecycle-contract.md`.
+
+| Concept | Composes with | Required relationship | Status |
+|---|---|---|---|
+| parent/child execution scope | ordinary callable / `LifecycleResult` | `lifecycle_child` runs a fully synchronous nested entry/work/unwind algorithm and always returns an ordinary result value to the parent's `work`; propagating a child failure is the parent's explicit choice, never automatic | Planned; not implemented |
+| peer lifecycle attachment | ordered `LifecycleDefinition` list / `LifecycleResult` | peers on one scope enter in list order and unwind in strict reverse order; attachment order is not parentage and a peer cannot mutate another peer's owned context/state/resources | Planned; not implemented |
+| repeated element scopes | List / Flow / `LifecycleResult` | `lifecycle_repeat` preserves existing eager exhaustiveness and lazy one-pull-per-element/no-over-pull Flow laws; each element gets one fresh fully entered-and-unwound scope with reserved one-based `element`/`index` context | Planned; not implemented |
+| lifecycle context | ordinary value / explicit scope handle | context is read only through `lifecycle_context(handle, name)`, never injected into lexical bindings; a handle used outside its scope's active lifetime raises the existing Flow-style already-consumed error | Planned; not implemented |
+| lifecycle-owned configuration | R10 provider / R13 view | `lifecycle_config` captures one already-constructed immutable provider and exposes it inward-only and non-shadowable; it performs no acquisition, refresh, or ambient lookup and changes no R10/R13 Outcome/protection semantics | Planned; not implemented |
+| outbound HTTP operation/client | R9 JSON / R10 protected value / Outcome | `http_operation` builds one inert closed value with no IO; `web.http_send` makes exactly one synchronous attempt, treats any received status as an ordinary successful response, and declassifies a protected header only immediately before transmission via the existing R10 authority/declassify mechanism | Planned; not implemented |
+
 ## Keeping this matrix in sync
 
 `tests/doc/test_composability_matrix_sync.py` automatically re-derives the

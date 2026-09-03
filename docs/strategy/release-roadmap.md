@@ -861,9 +861,11 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ## Release R14 — Composable Lifecycles
 
-**Status: Planned, not active.** R14 is explicitly approved infrastructure work
-with one direct record-pipeline proving path. The release epic is **#619**. No
-R14 behavior is implemented merely because the roadmap and issues exist.
+**Status: Planned, not active; E14-0 contract approved.** R14 is explicitly
+approved infrastructure work with one direct record-pipeline proving path.
+The release epic is **#619**. Its contract is
+`docs/design/r14-composable-lifecycle-contract.md`. No R14 behavior is
+implemented merely because the roadmap, issues, or contract exist.
 
 Theme:
 
@@ -1005,9 +1007,11 @@ Critical acceptance criterion:
 
 `docs/strategy/r14-composable-lifecycles.md` owns the detailed scope, decision
 list, portability posture, ticket acceptance baseline, dependency graph, and
-exit criterion. **GO for E14-0 preflight only.** Implementation remains blocked
-until #620 completes the current repository preflight, mandatory portability
-analysis, and an explicitly approved contract.
+exit criterion; `docs/design/r14-composable-lifecycle-contract.md` is the
+implementation-ready E14-0 contract. **GO for E14-1 preflight only.**
+Implementation remains blocked until each later ticket completes its own
+preflight, design, failing-test, implementation, documentation, and audit
+phases.
 
 ---
 

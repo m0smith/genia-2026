@@ -19,5 +19,8 @@ See GENIA_STATE.md for actual behavior.
 - **r9-value-template-representation-contract.md** — approved R9 design contract; E9-1 through E9-7 are implemented and E9-8 completed the release truth audit.
 - **r10-configuration-protected-value-contract.md** — approved R10 configuration and protected-value contract; E10-1 through E10-8 are complete.
 - **r11-ai-composition-contract.md** — approved R11 contract; E11-1 through E11-8 are complete, with E11-8 limited to the final truth audit and distillation.
+- **r12-retrieval-grounding-contract.md** — approved R12 contract; E12-1 through E12-9 are complete, with E12-9 limited to the final truth audit and distillation.
+- **r13-configuration-resolution-contract.md** — approved R13 contract; E13-1 through E13-8 are complete, with E13-8 limited to the final truth audit and distillation.
+- **r14-composable-lifecycle-contract.md** — approved planning contract; no R14 behavior is implemented.
 - **execution-concepts.md** — Proposed separation of file/source, module, annotation, lifecycle, unit test, and execution mode; dangerous merges to avoid.
 - **composability-matrix.md** — Non-authoritative matrix of implemented composition boundaries and explicit later-release constraints.

@@ -1,8 +1,9 @@
 # R14 — Composable Lifecycles
 
-Status: **Planned release; E14-0 contract gate not yet approved.** This document
-records approved release direction only. It does not define implemented language
-behavior. `GENIA_STATE.md` remains final authority.
+Status: **Planned release; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`).**
+No R14 behavior is implemented. This document records approved release
+direction only; the contract document is the implementation-ready boundary.
+`GENIA_STATE.md` remains final authority.
 
 ## Theme
 
@@ -460,11 +461,14 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-0 preflight only.** Implementation remains blocked until #620
-completes the current preflight in `docs/process/00-preflight.md`, the mandatory
-portability analysis, and an explicitly approved contract. The supplied
-`GENIA-PRE-FLIGHT.txt` is an older template and must not replace the repository's
-current process prompt.
+**GO for E14-1 preflight only**, now that #620 has completed the current
+preflight in `docs/process/00-preflight.md`, the mandatory portability
+analysis, and the explicitly approved contract in
+`docs/design/r14-composable-lifecycle-contract.md`. Implementation of E14-1
+and later tickets remains blocked until each completes its own preflight,
+design, failing-test, implementation, documentation, and audit phases. The
+supplied `GENIA-PRE-FLIGHT.txt` is an older template and must not replace the
+repository's current process prompt.
 
 ## Exit criterion
 
