@@ -1002,17 +1002,47 @@ Critical acceptance criterion:
 
 ## Release R15 — Validated Value Modeling
 
-**Status: Reserved; detailed scope is not yet merged.** Prior roadmap direction
-reserves R15 for Validated Value Modeling. This reservation prevents unrelated
-work from taking the release number; it does not define syntax, behavior, or an
-implementation sequence.
+**Status: Planned, not active.** The reviewed planning scope is recorded in
+`docs/strategy/r15-validation-modeling.md`. Roadmap placement does not define
+implemented syntax or behavior and does not authorize ticketing or
+implementation without the repository's normal gates.
 
-The complete R15 scope must be added through its own roadmap review before
-ticketing or implementation. In particular, the eventual release must state
-which Pydantic-like modeling capabilities strengthen existing R9 Templates,
-shapes, representations, patterns, and Outcomes, and which capabilities remain
-explicit non-goals. It must not introduce a second validation or model system by
-accident.
+Theme:
+
+> Extend R9 Templates into a practical, Pydantic-class validated-value toolset
+> without model instances, implicit coercion, nominal variants, or a second
+> validation system.
+
+Candidate scope:
+
+- inert inspectable descriptions for supported Template constructors while
+  arbitrary callable Templates remain valid but opaque
+- explicit missing-only defaults and normalization composed before
+  non-coercive Template validation
+- explicitly requested accumulated, deterministic field/index/path diagnostics
+  without changing ordinary pattern short-circuit behavior
+- faithful Template-to-JSON-Schema generation for an explicitly supported
+  subset, with unsupported or opaque behavior rejected rather than approximated
+- structurally discriminated ordinary alternatives, not nominal variant values
+- bounded named Template references for recursive tree-shaped ordinary data
+- one composed messy-record proving case plus shared-conformance, portability,
+  documentation, composability, audit, and distillation gates
+
+R15 preserves ordinary values, callable Outcome Templates, patterns,
+representations, and the `some` / `none` / `err` distinction. It excludes a
+`BaseModel` equivalent, model classes or inheritance, broad automatic coercion,
+mutable model instances, decorator-driven validation lifecycles, complete
+Pydantic or JSON Schema compatibility, approximate schema generation, nominal
+variant constructors/exhaustiveness, arbitrary cyclic object graphs, a general
+validation DSL, and unrelated type-system work.
+
+Critical acceptance criterion:
+
+- A real Genia application can explicitly normalize and default a messy nested
+  external value, collect deterministic path-aware validation failures, retain
+  an ordinary value on success, export faithful JSON Schema when representable,
+  validate structural alternatives, and validate a bounded recursive tree
+  without introducing model instances or a parallel validation/result model.
 
 ---
 
@@ -1345,7 +1375,7 @@ R13 — Configuration Resolution Ergonomics
 R14 — Composable HTTP Lifecycles
  |
  v
-R15 — Validated Value Modeling (reserved; detailed scope pending)
+R15 — Validated Value Modeling
  |
  v
 R16 — Multi-Host Spec Runner
@@ -1371,8 +1401,9 @@ representations; R11 consumes R9 structured values plus R10
 configuration/secrets; R12 builds on R11 AI composition. R13 is a focused
 post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
 configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
-foundation while preserving R10 protected-value boundaries. R15 remains
-reserved for separately reviewed Validated Value Modeling. R16 is generic
+foundation while preserving R10 protected-value boundaries. R15 extends R9's
+Template foundation with explicitly planned validated-value modeling while
+remaining independent of R14's HTTP implementation. R16 is generic
 required infrastructure for every second host. R17 and R18 harden shared
 contracts in parallel; R19 depends on all three. R20 and R21 extend the C++ host
 along mostly independent stateful and REPL/data-bridge tracks. R22
@@ -1381,7 +1412,7 @@ it can prove.
 
 R8, R9, R10, R11, R12, and R13 are complete. R11, R12, and R13 APIs remain Experimental,
 Python is the only implemented host, and shared/multi-host conformance remains
-Partial. R14 remains planned. R15 is reserved but not scoped in this document.
+Partial. R14 and R15 remain planned and not active.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
 every later release does as well.
 Each later behavior slice requires its

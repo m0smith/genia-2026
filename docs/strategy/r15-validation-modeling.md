@@ -27,7 +27,31 @@ messy records in
 
 ## Candidate scope
 
-### 1. Defaults and explicit normalization
+### 1. Inert, inspectable Template descriptions
+
+Implement the descriptive foundation that R9 deliberately left optional. The
+supported structural Template constructors may carry immutable, inert metadata
+describing their validation structure while remaining ordinary one-argument
+Outcome callables.
+
+Required direction:
+
+- metadata does not affect Template callability, identity, matching, or
+  original-subject preservation
+- only Templates built from explicitly supported constructors are inspectable;
+  arbitrary callable Templates remain valid but opaque
+- operations that require inspection reject or report an unsupported opaque
+  Template explicitly rather than guessing
+- descriptions use existing values/callables where practical and require no new
+  Core IR node unless a later preflight proves that impossible
+- descriptions provide one shared foundation for accumulated diagnostics,
+  defaults, JSON Schema generation, alternatives, and recursive references
+
+This slice is foundational. Generating schema or traversing validation structure
+directly from opaque host closures would leak semantics into the reference host
+and make future hosts reverse-engineer implementation details.
+
+### 2. Defaults and explicit normalization
 
 Define how missing fields may receive explicit defaults and how normalization may be composed with validation without turning Template matching into implicit coercion.
 
@@ -39,7 +63,7 @@ Required direction:
 - Template matching itself remains non-coercive
 - original-value preservation rules are explicit when validation-only matching is used
 
-### 2. Rich validation diagnostics and accumulation
+### 3. Rich validation diagnostics and accumulation
 
 Add a principled way to report more than the first structural validation failure when the caller requests accumulated diagnostics.
 
@@ -54,7 +78,7 @@ Candidate capabilities:
 
 This must not replace ordinary first-match pattern semantics. Accumulating validation is an explicit validation operation, not a hidden change to pattern matching.
 
-### 3. Template → JSON Schema generation
+### 4. Template → JSON Schema generation
 
 Complement R9's implemented JSON Schema → Template direction with a deliberately bounded reverse mapping for Templates that have a faithful JSON Schema representation.
 
@@ -66,34 +90,48 @@ Goals:
 - support HTTP/API contracts, AI structured-output contracts, tooling, and external integration without making JSON Schema the language's type system
 
 Round-tripping must only be claimed for the explicitly supported subset.
+Callable refinements, transformations, and opaque Templates that cannot be
+represented faithfully must fail schema generation explicitly; R15 must not
+emit an approximation that accepts different values from the source Template.
 
-### 4. Closed variants / discriminated alternatives
+### 5. Structural discriminated alternatives
 
-Promote the later-release variant work deferred from R9 into an R15 candidate, but only as a coherent extension of Templates and patterns.
+Promote only the validation-oriented part of the later-release variant work
+deferred from R9. R15 alternatives are structurally discriminated ordinary
+values, not a new nominal value category.
 
 Goals:
 
-- closed named alternatives
+- closed named alternatives selected by an explicit discriminator field
 - ordinary value payloads
-- pattern-matchable variant identity
+- pattern-matchable alternative Templates over the unchanged ordinary value
 - deterministic validation of discriminated structured alternatives
 - JSON Schema interoperability where representable
 
-This should absorb/reclassify the intent behind issue #92 rather than creating a competing variant mechanism.
+General nominal variant identity, constructors, and exhaustiveness checking
+remain deferred. R15 should reclassify only the structural-validation portion
+of issue #92 rather than silently absorbing that issue's broader language-design
+questions.
 
-### 5. Recursive Templates
+### 6. Bounded recursive Template references
 
-Design and implement safe recursive validation for self-referential and mutually recursive data structures where practical.
+Design and implement safe named Template references for recursive tree-shaped
+ordinary data where practical.
 
 Examples include trees, nested document structures, recursive API payloads, and recursive JSON Schema definitions within the approved subset.
 
 Requirements:
 
-- explicit recursion semantics
-- cycle/recursion guards where needed
+- explicit named-reference resolution semantics
+- deterministic unresolved-reference diagnostics
+- bounded recursion with deterministic limit diagnostics
 - clear failure diagnostics
 - no hidden nominal object graph model
 - no requirement that ordinary recursive data become model instances
+
+R15 does not promise arbitrary cyclic runtime object graphs or unrestricted
+mutual recursion. Those capabilities require separate evidence and approval if
+the bounded proving cases do not require them.
 
 ## Architectural rules
 
@@ -106,6 +144,8 @@ Requirements:
 - Outcome remains the failure/absence carrier; do not invent a parallel validation-result hierarchy.
 - JSON Schema is an interoperability representation/contract source, not Genia's semantic authority.
 - New behavior must update and preserve `docs/design/composability-matrix.md` where Template/representation composition changes.
+- Template descriptions are inert structure, not a second Template identity or
+  an authority that may execute effects.
 
 ## Explicit non-goals
 
@@ -120,6 +160,10 @@ Requirements:
 - a full static type system
 - support for every JSON Schema keyword
 - arbitrary code generation from schemas
+- approximate or best-effort Template-to-schema generation
+- nominal variant objects, constructors, or exhaustiveness checking
+- arbitrary cyclic object-graph validation
+- unrestricted mutual recursion
 - replacing R9 Templates, Outcomes, representations, or patterns
 
 ## Proving cases
@@ -141,28 +185,38 @@ Recommended proving cases:
    - use that schema at an external/AI/API boundary
    - validate returned data with the original Template
 
-3. **Closed alternative**
-   - validate and pattern-match a discriminated union such as success/error or event variants
+3. **Structural alternative**
+   - validate and pattern-match an ordinary map discriminated by a field such as
+     `"kind"`, without constructing a nominal variant value
 
 4. **Recursive data**
-   - validate a bounded recursive tree/document shape with useful path diagnostics
+   - validate a tree/document through bounded named Template references with
+     useful path diagnostics
 
 ## Critical acceptance criterion
 
-A real Genia application can validate complex external structured data with explicit defaults/normalization, rich path-aware diagnostics, closed alternatives, and recursive structures; expose a faithful JSON Schema when the Template is representable; and do all of this while retaining ordinary Genia values, Outcomes, Templates, and patterns rather than introducing model classes or implicit coercion.
+A real Genia application can take a messy nested external value, explicitly
+normalize it, apply missing-only defaults, report every independent validation
+problem through deterministic paths, and retain an ordinary Genia value on
+success. It can expose a faithful JSON Schema when its inspectable Template is
+representable, validate structurally discriminated alternatives, and validate a
+bounded recursive tree through named Template references—all without model
+instances, implicit coercion, nominal variants, or a second validation-result
+system.
 
 ## Recommended release slices
 
-1. **E15-0 — contract and roadmap alignment**
-2. **E15-1 — explicit defaults and normalization composition**
-3. **E15-2 — accumulated path-aware validation diagnostics**
-4. **E15-3 — supported Template → JSON Schema generation**
-5. **E15-4 — closed variant identity and discriminated alternatives**
-6. **E15-5 — recursive Template support**
-7. **E15-6 — composed validated-data proving case**
-8. **E15-7 — cross-mode/shared-conformance hardening**
-9. **E15-8 — documentation, release examples, and composability sync**
-10. **E15-9 — final truth audit and distillation**
+1. **E15-0 — contract, roadmap reconciliation, and capability inventory**
+2. **E15-1 — inert inspectable Template descriptions**
+3. **E15-2 — explicit missing-field defaults and normalization composition**
+4. **E15-3 — accumulated path-aware validation diagnostics**
+5. **E15-4 — faithful supported Template → JSON Schema generation**
+6. **E15-5 — structural discriminated alternatives**
+7. **E15-6 — bounded named recursive Template references**
+8. **E15-7 — composed messy-record validated-data proving case**
+9. **E15-8 — cross-mode/shared-conformance and portability hardening**
+10. **E15-9 — documentation, release examples, composability sync, final
+    truth audit, and distillation**
 
 The exact issue breakdown must be created through `docs/process/08-roadmap-ticketing.md` when R15 ticketing is explicitly requested.
 
@@ -186,8 +240,9 @@ This sequence is planning order, not a claim that R15 technically depends on all
 R15 promotes the following previously deferred directions into planned release scope:
 
 - value-template work outside R9 that is specifically needed for richer validation
-- closed variant work deferred from R9 / issue #92
-- recursive Template validation
+- the structural-discrimination portion of variant work deferred from R9 /
+  issue #92; nominal variants and exhaustiveness remain deferred
+- bounded named recursive Template validation
 - richer validation diagnostics when explicit accumulation is requested
 - Template → JSON Schema interchange
 
