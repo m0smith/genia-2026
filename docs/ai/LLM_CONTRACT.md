@@ -96,7 +96,7 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
-R14 is planned; its E14-0 contract is approved, but no R14 behavior is implemented.
+R14 is active; its E14-0 contract is approved and E14-1 root/child execution scopes are implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -159,9 +159,9 @@ When an LLM agent is asked for new Genia work:
    existing R10 literal descriptor; E13-3 snapshots one exact path with no discovery,
    interpolation, or refresh; E13-4 provides fixed conventional composition; E13-5 adds cross-mode, diagnostic, protected-boundary, parse, and Core IR proof without new semantics; and E13-6 proves the Outcome-aware validated-pipeline composition without new semantics.
    E13-7 adds documentation and runnable-example verification only; E13-8 is audit/distillation only and adds no runtime behavior. Follow `docs/strategy/r13-configuration-resolution-ergonomics.md`.
-9. R14 is planned (epic #619), its E14-0 contract is approved, and E14-1 (#621)
-   is the first implementation gate. Do not infer implemented parent/child scopes,
-   peer lifecycle attachment, repeated element scopes, lifecycle-owned provider
+9. R14 is active (epic #619), its E14-0 contract is approved, and E14-1 (#621)
+   implements only explicit root/child scopes and inward context lookup. Do not
+   infer broader peer lifecycle attachment, repeated element scopes, lifecycle-owned provider
    binding, outbound HTTP, protected HTTP sinks, or HTTP annotations from the
    roadmap or contract. Preserve the planned boundary: one lifecycle model, no global
    mutable current lifecycle, attachment order distinct from parentage, scoped

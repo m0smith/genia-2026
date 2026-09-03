@@ -3067,6 +3067,34 @@ Explicit limitations:
 - `@route`, `@server`, and `@cors` metadata remain inert outside explicit `genia serve <file>` activation.
 - No generalized lifecycle runner, middleware system, plugin system, dependency injection, path parameters, concurrent serving, streaming, WebSockets, authentication, authorization, credential policy, per-route CORS, graceful signal protocol, parser/Core IR change, or second web mechanism is defined.
 
+## 9.8) R14 root/child execution scopes (Experimental)
+
+Status: Experimental portable lifecycle semantics with a Python reference-host implementation. Implemented in issue #621 under the approved R14 contract from issue #620.
+
+LANGUAGE CONTRACT:
+
+- `lifecycle_scope(peers, work)` explicitly runs one root execution scope. `lifecycle_child(parent, peers, work)` explicitly runs one synchronous child while `parent` is active inside its work callback. `lifecycle_context(scope, name)` reads context through an explicit live scope handle.
+- `peers` is an ordered list of closed lifecycle-definition maps with exactly `name`, `enter`, and `exit`. `name` is a unique quoted symbol, `enter(scope)` returns `some(context)` or `err(reason, context)`, and `exit(scope, primary_summary)` returns `some("nil")` or `err(reason, context)`.
+- An execution-scope handle is opaque and valid only while its scope is entering, active, or exiting. Using it after completion/failure raises `lifecycle-scope-expired`. A child can be created only synchronously from its active parent's work callback.
+- Peers enter in list order. Work runs only after every peer enters. Entered peers exit exactly once in reverse order; an unentered peer never exits. Context from a successful enter is readable inward through the explicit handle. Child lookup searches its own contexts and then ancestors nearest-first; duplicate local names and ancestor shadowing are rejected.
+- Work return values, including Outcome values, remain ordinary result data. A child always returns an ordinary `LifecycleResult`; child failure does not implicitly fail its parent. Propagation requires the parent work callable to raise explicitly.
+- The first enter/work/exit failure is primary. If entry or work already failed, exit failures are appended as cleanup failures. If work succeeded, the first reverse-order exit failure becomes primary and later exit failures are appended. Cleanup continues after failures and never replaces an earlier primary.
+- Each root/child call returns the exact closed map `{status, state, scope, phase, peer, result, primary_failure, cleanup_failures}`. Tags are quoted symbols; `peer` and `result` use `some`/`none`; `primary_failure` is `none("lifecycle-no-failure")` or the direct closed failure map `{peer, phase, reason, context}`.
+- Lifecycle definitions remain inert until an explicit scope call consumes them. Import/load, annotation metadata, and construction do not activate lifecycle work. No mutable/global current-scope lookup exists.
+- These functions use existing calls, values, functions, maps, symbols, and Outcomes. They add no syntax, parser, AST, Core IR, host capability, Flow/Seq behavior, generalized R4 plan execution, or R8 server behavior.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/lifecycle_runtime.py` implements the opaque `ExecutionScope`, internal lifecycle-instance ownership, shared root/child state machine, context lookup, and deterministic result/failure assembly.
+- `src/genia/builtins.py` exposes `lifecycle_scope/2`, `lifecycle_child/3`, and `lifecycle_context/2` through the existing callable dispatcher. Python exceptions from lifecycle callbacks are normalized into ordinary failure maps and do not cross the public result boundary.
+- Validated by `tests/unit/test_lifecycle_runtime.py` and shared eval/error cases `lifecycle-root-result`, `lifecycle-child-context-contained`, and `lifecycle-expired-scope`.
+
+Explicit limitations:
+
+- `lifecycle_repeat`, lifecycle-owned configuration binding, outbound HTTP operations/transport/client scopes, protected HTTP sinks, HTTP annotations, and server/request composition are not implemented.
+- General arbitrary lifecycle-plan/action execution, ambient context, lexical injection, dependency injection, async/concurrent children, cancellation, dependency/priority graphs, and multi-host implementations are not implemented.
+- E14-2 owns the broader peer-attachment slice; E14-1 implements only the ordered entry/reverse-unwind behavior required to execute explicit root/child scopes.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

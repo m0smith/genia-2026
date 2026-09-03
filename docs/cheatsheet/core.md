@@ -352,6 +352,14 @@ Python-host-only runtime helpers in the current reference host; not part of the 
 | inspection | `actor_state(actor)`, `actor_status(actor)`, `actor_alive?(actor)` |
 | health | `actor_failed?(actor)`, `actor_error(actor)` |
 
+### Explicit execution scopes (Experimental)
+
+- `lifecycle_scope(peers, work)` — run one root scope
+- `lifecycle_child(parent, peers, work)` — run one synchronous child of an active parent
+- `lifecycle_context(scope, name)` — read inward-visible context through a live opaque handle
+- Lifecycle definitions use exactly `{name, enter, exit}`; imports and construction remain inert
+- Child failure is returned as ordinary `LifecycleResult` data and never propagates implicitly
+
 Handler shape: `handler(state, msg, ctx) -> ["ok", new_state]`, `["reply", new_state, response]`, or `["stop", reason, new_state]`.
 All three shapes work with both `actor_send` and `actor_call`.
 `actor_call` with `["ok", new_state]` replies with `new_state`.

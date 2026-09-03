@@ -164,7 +164,16 @@ fixed descriptor plus an explicitly invoked coordinator with injected operations
 It does not execute arbitrary lifecycle plans or resolve their action identifiers.
 Inert `@route`, `@server`, and `@cors` metadata/discovery/binding and explicit `genia serve <file>` activation are implemented as focused Python-reference-host support. The explicit mode composes the dedicated lifecycle core with the existing HTTP primitives; it does not add a generalized lifecycle runner.
 
-Lifecycle runners are not implemented runtime behavior.
+R14 E14-1 adds the first portable explicit execution-scope behavior, implemented
+by the Python reference host in `src/genia/lifecycle_runtime.py` and exposed as
+ordinary `lifecycle_scope`, `lifecycle_child`, and `lifecycle_context` calls.
+Definitions remain inert until an explicit scope call consumes them. Root and
+synchronous child scopes use opaque lifetime-bounded handles, inward read-only
+context lookup, ordered entry, reverse unwind, contained child results, and
+deterministic primary/cleanup failure values. This core does not execute R4 plan
+data or action identifiers and is separate from R8's fixed server coordinator.
+
+Generalized lifecycle plan runners are not implemented runtime behavior.
 
 Phase graph execution is not implemented runtime behavior.
 
@@ -180,7 +189,7 @@ Native test behavior remains the current behavior documented in `GENIA_STATE.md`
 
 This issue explicitly excludes:
 
-- no lifecycle runner implementation
+- no generalized lifecycle-plan runner implementation
 - no runtime execution-mode refactor
 - no setup/teardown execution
 - no parser syntax changes
@@ -191,8 +200,7 @@ This issue explicitly excludes:
 - no plugin lifecycle implementation
 - no browser lifecycle implementation
 - no notebook/playground lifecycle implementation
-- no module instance lifecycle implementation
-- no module instance lifecycle behavior
+- no module lifecycle activation
 - no hidden import/start behavior
 - no host adapter rewrite
 - no Flow/Seq behavior changes

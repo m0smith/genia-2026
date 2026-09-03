@@ -1357,3 +1357,13 @@ For each incoming flow item `x`:
 - The lifecycle core must be callable without CLI parsing or live sockets and must return the deterministic result shape defined in `GENIA_STATE.md` section 9.7.
 - Descriptor and result data shapes are host-independent. R8 execution is Python-reference-host-only and adds no shared host-adapter capability or cross-host server guarantee.
 - The dedicated lifecycle core and inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented in the Python reference host, together with explicit `genia serve <file>` activation. Serve mode evaluates exactly one entry file without ordinary `main` dispatch and keeps the descriptors inert in every other mode.
+
+## 26) R14 root/child execution-scope invariants
+
+- `lifecycle_scope` and `lifecycle_child` are the only implemented R14 activation calls. Definitions, annotations, import, and load remain inert.
+- Scope handles are explicit, opaque, synchronous, and valid only while entering, active, or exiting. There is no ambient/global current scope.
+- A child may run only inside its active parent's work callback. It completes and unwinds before returning its ordinary `LifecycleResult`; failure propagation is explicit, never automatic.
+- Peer entry follows list order and entered-peer exit follows strict reverse order. An unentered peer never exits, and every entered peer receives exactly one exit attempt.
+- Context reads search inward from the current scope to its ancestors. Local duplicate names and ancestor shadowing are rejected; context is never injected into lexical bindings.
+- Work Outcomes are ordinary data. Only raised work exceptions are lifecycle failures. The first failure remains primary, cleanup continues, and later exit failures remain ordered cleanup failures.
+- The implemented E14-1 core adds no generalized R4 plan runner, Flow/Seq integration, provider binding, HTTP behavior, syntax, Core IR node, host capability, concurrency, or cancellation.

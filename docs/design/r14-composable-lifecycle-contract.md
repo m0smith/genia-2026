@@ -1,6 +1,6 @@
 # R14 Composable Lifecycle Contract
 
-Status: **Approved planning contract; no R14 behavior is implemented.**
+Status: **Approved planning contract; E14-1 root/child scopes are implemented.**
 
 This document fixes the semantic boundary for later R14 tickets. It does not
 activate implementation and must not be cited as current language behavior.
@@ -840,7 +840,8 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-1 preflight only**, after issue #620 records explicit approval
+**E14-1 implemented by issue #621.** Later tickets proceed only after their own
+preflight and dependency gates. Issue #620 recorded explicit approval
 of this contract. This document itself authorizes no implementation, tests,
 later ticket creation, or implemented-behavior documentation. Every later
 E14 ticket must name #620 and its own earlier dependencies, distinguish

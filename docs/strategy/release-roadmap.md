@@ -861,11 +861,12 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ## Release R14 — Composable Lifecycles
 
-**Status: Planned, not active; E14-0 contract approved.** R14 is explicitly
+**Status: Active; E14-0 contract approved and E14-1 implemented.** R14 is explicitly
 approved infrastructure work with one direct record-pipeline proving path.
 The release epic is **#619**. Its contract is
-`docs/design/r14-composable-lifecycle-contract.md`. No R14 behavior is
-implemented merely because the roadmap, issues, or contract exist.
+`docs/design/r14-composable-lifecycle-contract.md`. Only E14-1 root/child
+execution scopes are implemented; later behavior is not implemented merely
+because the roadmap, issues, or contract exist.
 
 Theme:
 
@@ -1008,7 +1009,7 @@ Critical acceptance criterion:
 `docs/strategy/r14-composable-lifecycles.md` owns the detailed scope, decision
 list, portability posture, ticket acceptance baseline, dependency graph, and
 exit criterion; `docs/design/r14-composable-lifecycle-contract.md` is the
-implementation-ready E14-0 contract. **GO for E14-1 preflight only.**
+implementation-ready E14-0 contract. **E14-1 is implemented by #621.**
 Implementation remains blocked until each later ticket completes its own
 preflight, design, failing-test, implementation, documentation, and audit
 phases.
@@ -1267,9 +1268,9 @@ Candidate scope:
 - add deterministic stress/race tests for concurrent access, lifecycle cleanup,
   process failure observation, and cycles that Python refcounting/GC or the GIL
   may have masked
-- preserve only currently implemented lifecycle truth, including R4 and R8
-  boundaries; R14 remains planned and cannot be imported into R20 before R14's
-  own implementation gates complete
+- preserve only currently implemented lifecycle truth, including R4, R8, and
+  the E14-1 root/child boundary; later R14 slices cannot be imported into R20
+  before their own implementation gates complete
 - update host capability status only for behavior with code and evidence
 
 Critical acceptance criterion:
@@ -1358,7 +1359,7 @@ Explicit non-goals:
 
 - Python-host-only model, Gemini, embedding, allowlisted-interoperability, or
   resource-IO capabilities without separate promotion decisions
-- R14 outbound HTTP or parent-child lifecycle behavior before R14 is implemented
+- R14 outbound HTTP or later lifecycle behavior before its gated slice is implemented
 - debugger stdio
 - claiming complete host parity merely because all capability-compatible cases pass
 
@@ -1519,9 +1520,9 @@ execution. Its placement after R22 avoids renumbering the C++ release arc; it
 does not make every C++ implementation release a semantic prerequisite for the
 R23 contract.
 
-R8, R9, R10, R11, R12, and R13 are complete. R11, R12, and R13 APIs remain Experimental,
+R8, R9, R10, R11, R12, and R13 are complete. R11, R12, R13, and the implemented R14 E14-1 APIs remain Experimental,
 Python is the only implemented host, and shared/multi-host conformance remains
-Partial. R14 and R15 remain planned and not active.
+Partial. R14 is active with E14-1 implemented; R15 remains planned and not active.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
 R23 is planned and not active. Every later release requires its own gates.
 Each later behavior slice requires its

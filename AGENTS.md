@@ -194,8 +194,11 @@ existing literal source descriptor without acquiring process state; E13-3 reads 
 adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
-**R14 — Composable Lifecycles is planned, not active (epic #619); E14-0 is
-approved.** R14 is scoped to one lifecycle model with parent/child execution
+**R14 — Composable Lifecycles is active (epic #619); E14-0 is approved and
+E14-1 is implemented.** The Experimental E14-1 surface provides explicit
+`lifecycle_scope`, synchronous `lifecycle_child`, and inward-only
+`lifecycle_context` behavior through opaque lifetime-bounded handles and
+ordinary deterministic results. R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes over
 eager and lazy pipelines, one explicit R10/R13 provider binding, and outbound
 HTTP as the vertical proving consumer. The record-oriented proving case must
@@ -204,8 +207,8 @@ Flow/Seq/Outcome transformations. Preserve the boundaries that lifecycle context
 is not mutable lexical state, attachment order is not parentage, expired element
 context does not leak through lazy values, annotations remain inert, import/load
 performs no lifecycle or network activation, and protected HTTP sinks do not
-weaken R10. No R14 behavior is implemented merely because its roadmap, issues,
-or contract exist. E14-1 (#621) is the next gate. See
+weaken R10. No later R14 behavior is implemented merely because its roadmap,
+issues, or contract exist. E14-2 (#692) is the next lifecycle-composition gate. See
 `docs/design/r14-composable-lifecycle-contract.md` and
 `docs/strategy/r14-composable-lifecycles.md`.
 

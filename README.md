@@ -1242,6 +1242,23 @@ Run `genia examples/r13_validated_pipeline_proving_case.genia` for the E13-6 off
 
 R13 E13-7 adds no runtime behavior. It synchronizes the release page and focused executable documentation coverage with the implemented E13-1 through E13-6 boundary. E13-8 also adds no runtime behavior; its truth audit makes R13 release-complete. The APIs remain Experimental, Python is the only implemented host, and shared/multi-host conformance remains Partial.
 
+### Explicit root and child lifecycles (Experimental)
+
+R14 E14-1 adds `lifecycle_scope(peers, work)`,
+`lifecycle_child(parent, peers, work)`, and
+`lifecycle_context(scope, name)`. Lifecycle definitions are closed ordinary
+maps whose `enter` and `exit` callables run only when an explicit scope call
+consumes them. Children run synchronously, inherit context inward through their
+explicit opaque handle, unwind before returning, and return failure as ordinary
+`LifecycleResult` data without implicitly failing their parent.
+
+Peers enter in list order and entered peers exit exactly once in reverse order.
+The first failure remains primary and later exit failures remain ordered cleanup
+failures. Handles expire when their scope completes. This slice adds no ambient
+scope, generalized R4 plan runner, Flow/Seq integration, configuration binding,
+HTTP behavior, concurrency, cancellation, syntax, or Core IR node. See the
+[active R14 release page](docs/releases/R14.md) for a runnable example.
+
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 
 ```genia
@@ -1267,6 +1284,7 @@ Run `genia examples/r10_validated_pipeline_proving_case.genia` for the executabl
 - direct runtime names: `log`, `print`, `display`, `debug_repr`, `input`, `stdin`, `stdout`, `stderr`, `help`
 - public flow helpers from `src/genia/std/prelude/flow.genia`: `lines`, `rules`, `refine`, `each`, `collect`, `run`, plus `rule_*` compatibility constructors and preferred `step_*` constructors
 - public sink helpers from `src/genia/std/prelude/io.genia`: `write`, `writeln`, `flush`
+- Experimental lifecycle calls: `lifecycle_scope(peers, work)`, `lifecycle_child(parent, peers, work)`, `lifecycle_context(scope, name)`
 - special form: `quote(expr)`
 - pair builtins: `cons`, `car`, `cdr`, `pair?`, `null?`
 - `help(name)` prints named-function/prelude metadata when available (`name/shape`, source if available, rendered docstring, or undocumented fallback)
