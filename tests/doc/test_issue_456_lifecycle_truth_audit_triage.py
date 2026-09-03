@@ -81,10 +81,10 @@ def test_issue_456_lifecycle_doc_keeps_proposal_vs_current_boundary() -> None:
         [
             "not implemented runtime behavior",
             "Generalized lifecycle plan execution is not implemented runtime behavior.",
-            "Lifecycle runners are not implemented runtime behavior.",
+            "Generalized lifecycle plan runners are not implemented runtime behavior.",
             "Setup/teardown lifecycle hooks are not implemented runtime behavior.",
             "Generalized annotation binding execution is not implemented runtime behavior.",
-            "no lifecycle runner implementation",
+            "no generalized lifecycle-plan runner implementation",
             "no annotation execution behavior",
         ],
         "docs/architecture/lifecycle.md",
