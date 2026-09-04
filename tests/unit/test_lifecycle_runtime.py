@@ -371,9 +371,18 @@ def test_child_peer_name_cannot_shadow_ancestor_context():
     def work(handle):
         child_peers = [_peer("x", _ok_enter(), _ok_exit())]
         run_lifecycle_child(handle, child_peers, lambda h: None, _invoke)
+        return "unreachable"
 
-    with pytest.raises(TypeError):
-        run_lifecycle_scope(peers, work, _invoke)
+    # The shadowing TypeError is raised synchronously inside the parent's own
+    # `work` callable, so — exactly like any other exception a work callable
+    # raises — it is normalized into the *parent's own* work-phase primary
+    # failure rather than escaping as a raw Python exception (matching "the
+    # only way work causes a lifecycle failure is by raising").
+    result = run_lifecycle_scope(peers, work, _invoke)
+
+    assert result.get("status") == symbol("error")
+    assert result.get("phase") == symbol("work")
+    assert "shadows context" in _failure(result, "reason")
 
 
 # --- misuse / malformed shapes ---------------------------------------------
