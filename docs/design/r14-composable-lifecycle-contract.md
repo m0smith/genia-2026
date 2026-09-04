@@ -1,7 +1,8 @@
 # R14 Composable Lifecycle Contract
 
-Status: **Approved contract. E14-1 (issue #621) is implemented against this
-document; E14-2 and later slices remain not implemented.**
+Status: **Approved contract. E14-1 (issue #621) and E14-2 (issue #692) are
+implemented against this document; E14-3 and later slices remain not
+implemented.**
 
 This document fixes the semantic boundary for R14 tickets. It is not itself
 implemented-behavior documentation — see `GENIA_STATE.md` section 9.8 for
@@ -795,8 +796,10 @@ as "Current release: R14" only after this contract records explicit GO.
    contract's own "Vertical composition" section); #692 owns proving
    broader multi-peer attachment/ordering breadth, not introducing peers
    for the first time.
-3. **#692 — E14-2:** peer lifecycle attachment and deterministic unwind
-   (multi-peer `peers` lists, the partial-entry/failure matrix).
+3. **#692 — E14-2 (implemented):** peer lifecycle attachment and
+   deterministic unwind (multi-peer `peers` lists, the partial-entry/failure
+   matrix), proven at three-or-more-peer breadth over the same E14-1
+   algorithm with no runtime-code change.
 4. **#693 — E14-3:** repeated element-scoped lifecycle execution
    (`lifecycle_repeat` over List and Flow, reserved element/index context).
 5. **#694 — E14-4:** lifecycle-owned configuration provider binding
@@ -847,12 +850,12 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-2 preflight only**, now that issue #621 has implemented and
-tested E14-1 against this contract. This document itself authorizes no
+**GO for E14-3 preflight only**, now that issue #692 has implemented and
+tested E14-2 against this contract. This document itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
-documentation beyond what #621 has already landed and `GENIA_STATE.md`
-section 9.8 records. Every later E14 ticket must name #620/#621 and its own
-earlier dependencies, distinguish
+documentation beyond what #621 and #692 have already landed and
+`GENIA_STATE.md` sections 9.8/9.9 record. Every later E14 ticket must name
+#620/#621/#692 and its own earlier dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10
 protected semantics, and R13 provider/view semantics exactly as this

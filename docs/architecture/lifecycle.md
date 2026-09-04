@@ -173,10 +173,13 @@ and `lifecycle_context(scope_handle, name)`, implemented in
 entry/work/unwind algorithm over an explicit caller-supplied peer list — not
 a generalized lifecycle-plan/action-identifier runner, not annotation-driven,
 and not an arbitrary phase-graph executor. It proves vertical (parent/child)
-composition only; horizontal peer-attachment breadth (#692), repeated
-element-scoped execution over Flow/Seq (#693), and lifecycle-owned
-configuration-provider binding (#694) remain separate, later tickets. See
-`GENIA_STATE.md` section 9.8 for the full language contract.
+composition; horizontal peer-attachment breadth is proven over this same
+core by issue #692 (three-or-more peers, deterministic enter/reverse-unwind
+order, the partial-entry/failure matrix, peer isolation) with no
+runtime-code change. Repeated element-scoped execution over Flow/Seq (#693)
+and lifecycle-owned configuration-provider binding (#694) remain separate,
+later tickets. See `GENIA_STATE.md` sections 9.8-9.9 for the full language
+contract.
 
 Lifecycle runners are not implemented runtime behavior. (This remains true in
 the generalized, arbitrary lifecycle-plan/action-identifier-executor sense;
