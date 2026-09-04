@@ -415,6 +415,16 @@ def test_exit_must_return_some_or_err():
         run_lifecycle_scope(peers, lambda handle: None, _invoke)
 
 
+def test_err_context_must_be_a_map_when_present():
+    def enter_bad_context(handle):
+        return GeniaOptionErr("boom", "not-a-map")
+
+    peers = [_peer("x", enter_bad_context, _ok_exit())]
+
+    with pytest.raises(TypeError):
+        run_lifecycle_scope(peers, lambda handle: None, _invoke)
+
+
 # --- scope-expired handle misuse -------------------------------------------
 
 
