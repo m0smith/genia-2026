@@ -452,3 +452,220 @@ def test_stale_handle_after_completion_cannot_create_a_child():
 
     with pytest.raises(RuntimeError):
         run_lifecycle_child(captured["handle"], [], lambda h: None, _invoke)
+
+
+# --- three-peer breadth (issue #692: E14-2 peer attachment) ----------------
+#
+# _run_scope's enter/work/unwind loops already iterate an arbitrary-length
+# peer list generically (see src/genia/lifecycle_runtime.py); the two-peer
+# tests above already prove the algorithm's shape. These tests prove the
+# same contract-defined algorithm (docs/design/r14-composable-lifecycle-
+# contract.md, "Horizontal composition" + "Partial-entry / failure matrix")
+# holds at N=3, plus explicit peer-isolation and attachment-vs-ancestry
+# proofs issue #692 calls for.
+
+
+def test_three_peers_enter_order_and_reverse_unwind_order():
+    calls: list[str] = []
+    peers = [
+        _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+        _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+        _peer("c", _ok_enter(calls=calls, tag="C"), _ok_exit(calls=calls, tag="C")),
+    ]
+
+    def work(handle):
+        calls.append("work")
+
+    result = run_lifecycle_scope(peers, work, _invoke)
+
+    assert calls == ["A.enter", "B.enter", "C.enter", "work", "C.exit", "B.exit", "A.exit"]
+    assert result.get("status") == symbol("ok")
+    assert result.get("cleanup_failures") == []
+
+
+def test_three_peer_context_visible_only_to_later_peers_and_work():
+    seen: dict[str, object] = {}
+
+    def enter_a(handle):
+        seen["a_sees_b"] = lookup_lifecycle_context(handle, symbol("b"))
+        seen["a_sees_c"] = lookup_lifecycle_context(handle, symbol("c"))
+        return GeniaOptionSome("a-value")
+
+    def enter_b(handle):
+        seen["b_sees_a"] = lookup_lifecycle_context(handle, symbol("a"))
+        seen["b_sees_c"] = lookup_lifecycle_context(handle, symbol("c"))
+        return GeniaOptionSome("b-value")
+
+    def enter_c(handle):
+        seen["c_sees_a"] = lookup_lifecycle_context(handle, symbol("a"))
+        seen["c_sees_b"] = lookup_lifecycle_context(handle, symbol("b"))
+        return GeniaOptionSome("c-value")
+
+    peers = [
+        _peer("a", enter_a, _ok_exit()),
+        _peer("b", enter_b, _ok_exit()),
+        _peer("c", enter_c, _ok_exit()),
+    ]
+
+    result = run_lifecycle_scope(peers, lambda handle: "done", _invoke)
+
+    # An earlier peer never sees a later peer's context (not yet entered).
+    assert isinstance(seen["a_sees_b"], GeniaOptionNone)
+    assert isinstance(seen["a_sees_c"], GeniaOptionNone)
+    # A later peer sees every already-entered earlier peer's context.
+    assert seen["b_sees_a"] == GeniaOptionSome("a-value")
+    assert isinstance(seen["b_sees_c"], GeniaOptionNone)
+    assert seen["c_sees_a"] == GeniaOptionSome("a-value")
+    assert seen["c_sees_b"] == GeniaOptionSome("b-value")
+    assert result.get("status") == symbol("ok")
+
+
+def test_three_peers_entry_failure_at_first_skips_unwind_entirely():
+    calls: list[str] = []
+    peers = [
+        _peer("a", _err_enter("a-boom", calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+        _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+        _peer("c", _ok_enter(calls=calls, tag="C"), _ok_exit(calls=calls, tag="C")),
+    ]
+
+    result = run_lifecycle_scope(peers, lambda handle: pytest.fail("work must not run"), _invoke)
+
+    assert calls == ["A.enter"]
+    assert _failure(result, "peer") == GeniaOptionSome(symbol("a"))
+    assert result.get("cleanup_failures") == []
+
+
+def test_three_peers_entry_failure_at_middle_unwinds_only_entered_before_it():
+    calls: list[str] = []
+    peers = [
+        _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+        _peer("b", _err_enter("b-boom", calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+        _peer("c", _ok_enter(calls=calls, tag="C"), _ok_exit(calls=calls, tag="C")),
+    ]
+
+    result = run_lifecycle_scope(peers, lambda handle: pytest.fail("work must not run"), _invoke)
+
+    assert calls == ["A.enter", "B.enter", "A.exit"]
+    assert "C.enter" not in calls
+    assert _failure(result, "peer") == GeniaOptionSome(symbol("b"))
+    assert result.get("cleanup_failures") == []
+
+
+def test_three_peers_entry_failure_at_last_unwinds_both_prior_in_reverse():
+    calls: list[str] = []
+    peers = [
+        _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+        _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+        _peer("c", _err_enter("c-boom", calls=calls, tag="C"), _ok_exit(calls=calls, tag="C")),
+    ]
+
+    result = run_lifecycle_scope(peers, lambda handle: pytest.fail("work must not run"), _invoke)
+
+    assert calls == ["A.enter", "B.enter", "C.enter", "B.exit", "A.exit"]
+    assert _failure(result, "peer") == GeniaOptionSome(symbol("c"))
+    assert result.get("cleanup_failures") == []
+
+
+def test_three_peers_two_exit_failures_promoted_and_appended_in_reverse_call_order():
+    peers = [
+        _peer("a", _ok_enter(), _err_exit("a-broke")),
+        _peer("b", _ok_enter(), _ok_exit()),
+        _peer("c", _ok_enter(), _err_exit("c-broke")),
+    ]
+
+    result = run_lifecycle_scope(peers, lambda handle: None, _invoke)
+
+    # Reverse unwind order is C, B, A. C fails first and is promoted; B
+    # succeeds (no failure recorded, but its exit still ran); A fails second
+    # and is appended — proving a non-failing peer sandwiched between two
+    # failing peers does not disturb promotion/append ordering.
+    assert _failure(result, "peer") == GeniaOptionSome(symbol("c"))
+    assert _failure(result, "reason") == "c-broke"
+    cleanup = result.get("cleanup_failures")
+    assert len(cleanup) == 1
+    assert cleanup[0].get("peer") == GeniaOptionSome(symbol("a"))
+    assert cleanup[0].get("reason") == "a-broke"
+
+
+def test_exit_primary_summary_never_carries_peer_context_for_any_peer():
+    seen_summaries: list[tuple[str, list[str]]] = []
+
+    def make_exit(tag):
+        def exit_(handle, summary):
+            seen_summaries.append((tag, sorted(key for key, _value in summary.items())))
+            return GeniaOptionSome("nil")
+
+        return exit_
+
+    peers = [
+        _peer("a", _ok_enter(value="secret-a"), make_exit("A")),
+        _peer("b", _ok_enter(value="secret-b"), make_exit("B")),
+        _peer("c", _ok_enter(value="secret-c"), make_exit("C")),
+    ]
+
+    run_lifecycle_scope(peers, lambda handle: None, _invoke)
+
+    assert [tag for tag, _keys in seen_summaries] == ["C", "B", "A"]
+    for _tag, keys in seen_summaries:
+        # Exactly {status, phase, peer} — never "context" or another peer's
+        # exposed value under any key.
+        assert keys == ["peer", "phase", "status"]
+
+
+def test_peer_cannot_mutate_another_peers_exposed_context():
+    def enter_a(handle):
+        return GeniaOptionSome(GeniaMap().put("count", 1))
+
+    def enter_b(handle):
+        a_ctx = lookup_lifecycle_context(handle, symbol("a")).value
+        # GeniaMap.put is persistent: it returns a new map and never mutates
+        # the map already stored as peer "a"'s exposed context. B can derive
+        # its own value from A's context but cannot write back into it.
+        mutated = a_ctx.put("count", 999)
+        return GeniaOptionSome(mutated)
+
+    peers = [_peer("a", enter_a, _ok_exit()), _peer("b", enter_b, _ok_exit())]
+
+    def work(handle):
+        return lookup_lifecycle_context(handle, symbol("a")).value.get("count")
+
+    result = run_lifecycle_scope(peers, work, _invoke)
+
+    # A's own exposed context is untouched by B's derived "mutated" copy.
+    assert result.get("result") == GeniaOptionSome(1)
+
+
+def test_three_peer_child_attachment_order_independent_of_ancestor_depth():
+    calls: list[str] = []
+
+    parent_peers = [
+        _peer("root_cfg", _ok_enter(calls=calls, tag="ROOT"), _ok_exit(calls=calls, tag="ROOT")),
+    ]
+
+    def work(handle):
+        child_peers = [
+            _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+            _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+            _peer("c", _ok_enter(calls=calls, tag="C"), _ok_exit(calls=calls, tag="C")),
+        ]
+        return run_lifecycle_child(handle, child_peers, lambda h: None, _invoke)
+
+    result = run_lifecycle_scope(parent_peers, work, _invoke)
+
+    # The child's own three-peer attachment/unwind order is exactly A,B,C /
+    # C,B,A regardless of the one root ancestor peer surrounding it —
+    # attachment order is a per-scope-operation property, not derived from
+    # position in an ancestor chain.
+    assert calls == [
+        "ROOT.enter",
+        "A.enter",
+        "B.enter",
+        "C.enter",
+        "C.exit",
+        "B.exit",
+        "A.exit",
+        "ROOT.exit",
+    ]
+    child_result = result.get("result").value
+    assert child_result.get("scope") == symbol("child")
+    assert child_result.get("status") == symbol("ok")
