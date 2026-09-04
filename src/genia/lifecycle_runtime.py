@@ -19,7 +19,6 @@ from typing import Any, Callable
 from .values import (
     GeniaMap,
     GeniaOptionErr,
-    GeniaOptionNone,
     GeniaOptionSome,
     GeniaSymbol,
     make_none,
