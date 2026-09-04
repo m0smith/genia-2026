@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **282** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **285** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -140,6 +140,9 @@ Alphabetical index of the **282** out-of-the-box Genia functions available from 
 | [`lambda_params`](functions/lambda_params.md) | syntax | `lambda_params(expr)` | Return the quoted lambda parameter structure. |
 | [`last`](functions/last.md) | list | `last(xs)` | Return the last element as an Option. |
 | [`length`](functions/length.md) | list | `length(xs)` | Count elements in a list. |
+| [`lifecycle_child`](functions/lifecycle_child.md) | Lifecycle | `lifecycle_child(scope_handle, peers, work)` | Run a child execution scope nested under an active parent scope handle. |
+| [`lifecycle_context`](functions/lifecycle_context.md) | Lifecycle | `lifecycle_context(scope_handle, name)` | Read inward-only lifecycle context exposed by an entered peer or an ancestor scope. |
+| [`lifecycle_scope`](functions/lifecycle_scope.md) | Lifecycle | `lifecycle_scope(peers, work)` | Run a fresh root execution scope through explicit peer definitions and one work callable. |
 | [`lines`](functions/lines.md) | flow | `lines(source)` | Create a Flow from `stdin`, an incoming Flow, or a list of strings. |
 | [`list`](functions/list.md) | list | `list(..xs)` | Build a list from all provided arguments. |
 | [`log`](functions/log.md) | I/O | `log(..values)` | Write values to standard error with a trailing newline. |
@@ -349,6 +352,12 @@ Alphabetical index of the **282** out-of-the-box Genia functions available from 
 - [`log`](functions/log.md) - Write values to standard error with a trailing newline.
 - [`print`](functions/print.md) - Write values to standard output with a trailing newline.
 - [`stdin`](functions/stdin.md) - Return the Python-host standard-input source capability.
+
+### Lifecycle
+
+- [`lifecycle_child`](functions/lifecycle_child.md) - Run a child execution scope nested under an active parent scope handle.
+- [`lifecycle_context`](functions/lifecycle_context.md) - Read inward-only lifecycle context exposed by an entered peer or an ancestor scope.
+- [`lifecycle_scope`](functions/lifecycle_scope.md) - Run a fresh root execution scope through explicit peer definitions and one work callable.
 
 ### Pairs
 
