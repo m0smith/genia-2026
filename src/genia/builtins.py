@@ -57,6 +57,11 @@ if __package__ in (None, ""):
         reject_protected,
         reject_declassification_authority,
     )
+    from genia.lifecycle_runtime import (
+        lookup_lifecycle_context,
+        run_lifecycle_child,
+        run_lifecycle_scope,
+    )
     from genia.model import construct_model
     from genia.retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -160,6 +165,11 @@ else:
         protect_secret_default,
         reject_protected,
         reject_declassification_authority,
+    )
+    from .lifecycle_runtime import (
+        lookup_lifecycle_context,
+        run_lifecycle_child,
+        run_lifecycle_scope,
     )
     from .model import construct_model
     from .retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
@@ -676,6 +686,15 @@ def make_global_env(
 
     def secret_view_fn(provider: Any, prefix: Any, purpose: Any) -> Any:
         return construct_secret_view(provider, prefix, purpose)
+
+    def lifecycle_scope_fn(peers: Any, work: Any) -> Any:
+        return run_lifecycle_scope(peers, work, _invoke_raw_from_builtin)
+
+    def lifecycle_child_fn(scope_handle: Any, peers: Any, work: Any) -> Any:
+        return run_lifecycle_child(scope_handle, peers, work, _invoke_raw_from_builtin)
+
+    def lifecycle_context_fn(scope_handle: Any, name: Any) -> Any:
+        return lookup_lifecycle_context(scope_handle, name)
 
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -4470,6 +4489,11 @@ def make_global_env(
     env.set("secret_get", _host_function_group("secret_get", 3, secret_get_fn))
     env.set("secret_get_or", _host_function_group("secret_get_or", 4, secret_get_or_fn))
     env.set("secret_view", _host_function_group("secret_view", 3, secret_view_fn))
+    env.set("lifecycle_scope", _host_function_group("lifecycle_scope", 2, lifecycle_scope_fn))
+    env.set("lifecycle_child", _host_function_group("lifecycle_child", 3, lifecycle_child_fn))
+    env.set(
+        "lifecycle_context", _host_function_group("lifecycle_context", 2, lifecycle_context_fn)
+    )
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
         "representation_match",

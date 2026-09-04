@@ -26,6 +26,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R11 — AI Composition](R11.md) — COMPLETE; E11-1 through E11-8 delivered
 - [R12 — Retrieval & Grounding](R12.md) — COMPLETE; E12-1 through E12-9 delivered
 - [R13 — Configuration Resolution Ergonomics](R13.md) — COMPLETE; E13-1 through E13-8 delivered
+- [R14 — Composable Lifecycles](R14.md) — IN PROGRESS; E14-1 delivered
 
 ## Process
 

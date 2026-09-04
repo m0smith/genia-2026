@@ -49,6 +49,7 @@ nav:
       - "R11 — AI Composition": releases/R11.md
       - "R12 — Retrieval & Grounding": releases/R12.md
       - "R13 — Configuration Resolution Ergonomics": releases/R13.md
+      - "R14 — Composable Lifecycles": releases/R14.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
@@ -109,6 +110,10 @@ nav:
           - "log": reference/functions/log.md
           - "print": reference/functions/print.md
           - "stdin": reference/functions/stdin.md
+      - Lifecycle:
+          - "lifecycle_child": reference/functions/lifecycle_child.md
+          - "lifecycle_context": reference/functions/lifecycle_context.md
+          - "lifecycle_scope": reference/functions/lifecycle_scope.md
       - Pairs:
           - "car": reference/functions/car.md
           - "cdr": reference/functions/cdr.md
