@@ -164,7 +164,24 @@ fixed descriptor plus an explicitly invoked coordinator with injected operations
 It does not execute arbitrary lifecycle plans or resolve their action identifiers.
 Inert `@route`, `@server`, and `@cors` metadata/discovery/binding and explicit `genia serve <file>` activation are implemented as focused Python-reference-host support. The explicit mode composes the dedicated lifecycle core with the existing HTTP primitives; it does not add a generalized lifecycle runner.
 
-Lifecycle runners are not implemented runtime behavior.
+R14 E14-1 implements the first public, general (non-HTTP-specific) lifecycle
+instance/execution-scope core, per the approved R14 contract
+(`docs/design/r14-composable-lifecycle-contract.md`, issue #621):
+`lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`,
+and `lifecycle_context(scope_handle, name)`, implemented in
+`src/genia/lifecycle_runtime.py`. This is still one small, fixed
+entry/work/unwind algorithm over an explicit caller-supplied peer list — not
+a generalized lifecycle-plan/action-identifier runner, not annotation-driven,
+and not an arbitrary phase-graph executor. It proves vertical (parent/child)
+composition only; horizontal peer-attachment breadth (#692), repeated
+element-scoped execution over Flow/Seq (#693), and lifecycle-owned
+configuration-provider binding (#694) remain separate, later tickets. See
+`GENIA_STATE.md` section 9.8 for the full language contract.
+
+Lifecycle runners are not implemented runtime behavior. (This remains true in
+the generalized, arbitrary lifecycle-plan/action-identifier-executor sense;
+R14 E14-1 above is one small, fixed algorithm over an explicit caller-supplied
+peer list, not a generalized runner.)
 
 Phase graph execution is not implemented runtime behavior.
 

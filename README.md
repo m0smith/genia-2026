@@ -1243,6 +1243,17 @@ Run `genia examples/r13_validated_pipeline_proving_case.genia` for the E13-6 off
 
 R13 E13-7 adds no runtime behavior. It synchronizes the release page and focused executable documentation coverage with the implemented E13-1 through E13-6 boundary. E13-8 also adds no runtime behavior; its truth audit makes R13 release-complete. The APIs remain Experimental, Python is the only implemented host, and shared/multi-host conformance remains Partial.
 
+R14 E14-1 adds an Experimental lifecycle instance/execution-scope core over ordinary calls and values — `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_context(scope_handle, name)`:
+
+```genia
+config = {name: quote(config), enter: (h) -> some("prod"), exit: (h, s) -> some("nil")}
+lifecycle_scope([config], (root) ->
+  lifecycle_child(root, [], (req) -> lifecycle_context(req, quote(config)) |> unwrap_or(none))
+)
+```
+
+A peer is an ordinary closed map `{name, enter, exit}`; peers enter in list order and unwind in strict reverse order, and `work`'s return value is carried into the result verbatim (never inspected). `lifecycle_child` runs a nested scope synchronously from inside the parent's own `work`; a child's `LifecycleResult` comes back as ordinary data, so a failed child never implicitly fails the parent. `lifecycle_context` reads inward-only, checking the calling scope then each ancestor in turn — it never writes and never becomes a lexical binding. A scope handle is valid only for the duration of its own operation; later use raises the same "already consumed" family of error as a stale Flow. E14-1 adds no `lifecycle_repeat`, `lifecycle_config`, HTTP surface, or new syntax; see `docs/releases/R14.md` and `GENIA_STATE.md` section 9.8 for the complete contract.
+
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 
 ```genia

@@ -861,11 +861,14 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ## Release R14 — Composable Lifecycles
 
-**Status: Planned, not active; E14-0 contract approved.** R14 is explicitly
-approved infrastructure work with one direct record-pipeline proving path.
-The release epic is **#619**. Its contract is
-`docs/design/r14-composable-lifecycle-contract.md`. No R14 behavior is
-implemented merely because the roadmap, issues, or contract exist.
+**Status: In progress; E14-0 contract approved and E14-1 implemented (issue
+#621).** R14 is explicitly approved infrastructure work with one direct
+record-pipeline proving path. The release epic is **#619**. Its contract is
+`docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements only the
+HTTP-free lifecycle instance/parent-child execution-scope core
+(`lifecycle_scope`, `lifecycle_child`, `lifecycle_context`); no R14 behavior
+beyond that is implemented merely because the roadmap, issues, or contract
+exist. See `GENIA_STATE.md` section 9.8.
 
 Theme:
 

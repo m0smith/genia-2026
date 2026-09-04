@@ -1,9 +1,9 @@
 # R14 — Composable Lifecycles
 
-Status: **Planned release; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`).**
-No R14 behavior is implemented. This document records approved release
-direction only; the contract document is the implementation-ready boundary.
-`GENIA_STATE.md` remains final authority.
+Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
+and E14-1 implemented (issue #621).** E14-2 through E14-15 remain planned,
+not implemented. This document records approved release direction; `GENIA_STATE.md`
+remains final authority for implemented behavior.
 
 ## Theme
 
@@ -375,8 +375,10 @@ release epic is #619.
 1. **#620 — E14-0: composable lifecycle and HTTP contract**
    - Complete current preflight and lock every portable/runtime/capability
      boundary. Contract only; no tests or implementation.
-2. **#621 — E14-1: lifecycle instance and parent/child execution scopes**
-   - Implement the smallest HTTP-free instance/scope core.
+2. **#621 — E14-1: lifecycle instance and parent/child execution scopes — implemented**
+   - Implemented the smallest HTTP-free instance/scope core:
+     `lifecycle_scope`, `lifecycle_child`, `lifecycle_context`, the entry/
+     work/unwind algorithm, and the scope lifetime state machine.
 3. **#692 — E14-2: peer lifecycle attachment and deterministic unwind**
    - Add horizontal composition without encoding peers as parents.
 4. **#693 — E14-3: repeated element-scoped lifecycle execution**
@@ -461,10 +463,10 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-1 preflight only**, now that #620 has completed the current
-preflight in `docs/process/00-preflight.md`, the mandatory portability
-analysis, and the explicitly approved contract in
-`docs/design/r14-composable-lifecycle-contract.md`. Implementation of E14-1
+**GO for E14-2 preflight only**, now that #621 has completed its own
+preflight, design, failing-test, implementation, and documentation phases
+and implemented the instance/scope core over the contract in
+`docs/design/r14-composable-lifecycle-contract.md`. Implementation of E14-2
 and later tickets remains blocked until each completes its own preflight,
 design, failing-test, implementation, documentation, and audit phases. The
 supplied `GENIA-PRE-FLIGHT.txt` is an older template and must not replace the

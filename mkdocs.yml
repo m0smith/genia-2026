@@ -49,6 +49,7 @@ nav:
       - "R11 — AI Composition": releases/R11.md
       - "R12 — Retrieval & Grounding": releases/R12.md
       - "R13 — Configuration Resolution Ergonomics": releases/R13.md
+      - "R14 — Composable Lifecycles": releases/R14.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
