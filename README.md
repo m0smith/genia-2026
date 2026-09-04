@@ -29,6 +29,7 @@ PYTHONPATH=src python3 -m genia.interpreter examples/validated_pipeline_demo.gen
 Start here:
 
 - [Function Reference](https://m0smith.github.io/genia-2026/reference/)
+- [Release Roadmap](https://m0smith.github.io/genia-2026/strategy/release-roadmap/) (planning guidance, not implemented behavior)
 - [Working examples](#run-the-validated-pipeline-demo-experimental)
 - [Architecture and portability](#core-ir-layer)
 - [Implemented language snapshot](#language-snapshot-implemented)
