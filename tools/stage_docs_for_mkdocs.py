@@ -21,6 +21,14 @@ DOC_DIRS = [
     "docs/releases",
     "docs/reference",
 ]
+# Individually staged files from directories that are not otherwise published
+# wholesale. docs/strategy/ holds planning-only material (parking-lot notes,
+# per-release strategy drafts); only the release roadmap is approved for
+# publication, so it is staged one file at a time rather than by adding
+# docs/strategy to DOC_DIRS above.
+STRATEGY_DOCS = [
+    "docs/strategy/release-roadmap.md",
+]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
     "(docs/architecture/": "(architecture/",
@@ -49,6 +57,13 @@ def stage_root_doc(filename: str) -> None:
     target.write_text(text, encoding="utf-8")
 
 
+def stage_strategy_doc(relpath: str) -> None:
+    source = REPO_ROOT / relpath
+    target = STAGING_ROOT / Path(relpath).relative_to("docs")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(source, target)
+
+
 def stage_doc_tree(directory: str) -> None:
     source_root = REPO_ROOT / directory
     target_root = STAGING_ROOT / source_root.name
@@ -67,6 +82,8 @@ def main() -> None:
         stage_root_doc(filename)
     for directory in DOC_DIRS:
         stage_doc_tree(directory)
+    for relpath in STRATEGY_DOCS:
+        stage_strategy_doc(relpath)
     print(f"Staged docs for MkDocs in {STAGING_ROOT}")
 
 

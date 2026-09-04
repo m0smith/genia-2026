@@ -198,6 +198,7 @@ Implemented today:
   - `docs/cheatsheet/*`
   - public-facing host interop docs under `docs/host-interop/`
   - per-release runnable examples under `docs/releases/` (see `docs/releases/README.md`)
+  - `docs/strategy/release-roadmap.md`, staged individually as `strategy/release-roadmap.md` with a top-level Roadmap navigation entry; it remains non-authoritative planning guidance and no other `docs/strategy/*` file is published
 - GitHub Actions docs workflow behavior is:
   - on pull requests: stage, validate, and build docs without deployment
   - on pushes to `main`: stage, validate, build, and deploy to GitHub Pages
