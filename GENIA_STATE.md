@@ -638,16 +638,17 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-value exclusions, and canonical release status
   - R13 is release-complete through E13-8 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
 
-- R14 lifecycle instance and parent/child execution scopes (Experimental, issue #621)
+- R14 lifecycle instance, parent/child execution scopes, and peer attachment breadth (Experimental, issues #621, #692)
   - R14 E14-1 adds `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_context(scope_handle, name)` as the first implemented slice of the approved E14-0 composable-lifecycle contract (`docs/design/r14-composable-lifecycle-contract.md`)
   - a peer is an ordinary closed map `{name: symbol, enter: callable/1, exit: callable/2}`; peers on one scope operation enter in list order and unwind in strict reverse order, every entered peer's `exit` runs exactly once regardless of earlier exit failures, and the first non-cleanup failure is always the scope's one `primary_failure` while every later exit failure is preserved in `cleanup_failures`
   - `work`'s return value is carried into the closed `LifecycleResult` verbatim and is never inspected for `some`/`none`/`err`; the only way `work` produces a lifecycle failure is by raising, normalized exactly like R8 lifecycle exceptions
   - `lifecycle_child` may be called only synchronously from an active parent scope's own `work`; a child's result/failure is ordinary data returned to the parent and never implicitly raised into it, and a child's peers/resources are entirely separate from the parent's
   - `lifecycle_context` is inward-only and read-only: it checks the calling scope's own entered-peer context, then each ancestor scope in turn, and never exposes a later-attached peer's context to an earlier one; a peer name colliding with any name already exposed by an ancestor scope is rejected before any `enter` runs
   - a scope handle is valid only while its scope is `entering`/`active`/`exiting`; any later use (or `lifecycle_child` on a handle that is not `active`) raises a runtime-misuse `RuntimeError`, the same family as an already-consumed Flow
-  - E14-1 adds no `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#692-#630)
+  - R14 E14-2 (issue #692) proves the same entry/work/unwind algorithm at three-or-more-peer breadth: deterministic enter/reverse-unwind order, entry failure at any position unwinding only the already-entered prefix, multiple exit failures promoting the first encountered and appending the rest in exit-call order, later-only context visibility, an `exit` `primary_summary` that never carries another peer's context, and attachment order proven independent of ancestor depth — see section 9.9. E14-2 adds no new public function or runtime behavior; `src/genia/lifecycle_runtime.py` is unchanged from E14-1
+  - E14-1/E14-2 add no `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#693-#630)
   - LANGUAGE CONTRACT: the six required default invariants (no global mutable current-scope switch; contained child failure; explicit child result/failure propagation; child-owned resource finalization inside one synchronous call; untouched parent-owned resources; inward-only non-shadowed context) are implemented exactly as locked by the E14-0 contract
-  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (24 tests), Python reference host only; shared/multi-host conformance remains Partial
+  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (34 tests, including the 9 E14-2 peer-breadth tests), Python reference host only; shared/multi-host conformance remains Partial
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
@@ -3088,7 +3089,7 @@ Explicit limitations:
 
 ## 9.8) R14 E14-1 lifecycle instance and parent/child execution scopes
 
-Status: Implemented. The vertical-composition instance/scope core (issue #621) is implemented as Experimental, portable, Python-reference-host-only behavior. It is the first implemented slice of the approved R14 contract (`docs/design/r14-composable-lifecycle-contract.md`, approved by issue #620). Horizontal peer-attachment breadth remains #692, `lifecycle_repeat`/element scopes remain #693, provider binding remains #694, and HTTP remains #622-#628 — none of that is implemented yet.
+Status: Implemented. The vertical-composition instance/scope core (issue #621) is implemented as Experimental, portable, Python-reference-host-only behavior. It is the first implemented slice of the approved R14 contract (`docs/design/r14-composable-lifecycle-contract.md`, approved by issue #620). Horizontal peer-attachment breadth is proven by issue #692 over this same core — see section 9.9. `lifecycle_repeat`/element scopes remain #693, provider binding remains #694, and HTTP remains #622-#628 — none of that is implemented yet.
 
 LANGUAGE CONTRACT:
 
@@ -3116,7 +3117,31 @@ PYTHON REFERENCE HOST:
 
 Explicit limitations:
 
-- No `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, peer-attachment breadth beyond what one shared algorithm already proves, element scopes, reserved element/index/config context names, or provider binding is implemented.
+- No `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, element scopes, reserved element/index/config context names, or provider binding is implemented. Peer-attachment breadth (multiple `LifecycleDefinition`s on one scope) is now proven at three-or-more peers by issue #692 — see section 9.9.
+- No generalized lifecycle-plan/action-identifier runner, dependency injection, scheduler, actor supervision, or concurrent peer/child execution is defined.
+
+## 9.9) R14 E14-2 peer lifecycle attachment and deterministic unwind
+
+Status: Proven. Issue #692 adds no new public function, value shape, or runtime behavior. It extends `tests/unit/test_lifecycle_runtime.py` with nine focused tests proving the E14-1 entry/work/unwind algorithm (section 9.8, `src/genia/lifecycle_runtime.py`) at three-or-more-peer breadth, exactly matching the horizontal-composition contract approved by issue #620 (`docs/design/r14-composable-lifecycle-contract.md`). `src/genia/lifecycle_runtime.py`, `src/genia/builtins.py`, and `src/genia/host_builtin_docs.py` are unchanged from E14-1: `_run_scope`'s enter/work/unwind loops already iterate a plain Python list of arbitrary length with no hardcoded peer count.
+
+LANGUAGE CONTRACT (already true of `lifecycle_scope`/`lifecycle_child` as documented in section 9.8; this section records what #692 additionally proves at breadth):
+
+- The peer list is not limited to one or two entries: any number of `LifecycleDefinition` peers enter in list order and unwind, in strict reverse, only the peers that actually entered.
+- Entry failure at any position in a longer peer list unwinds exactly the already-entered prefix in reverse, and never attempts a peer positioned after the one that failed.
+- Exactly one `primary_failure` is recorded across an arbitrarily long unwind: the first exit failure encountered in reverse-call order is promoted, every later exit failure (including one that occurs after a peer whose own exit succeeded) is appended to `cleanup_failures` in exit-call order, and every entered peer's `exit` still runs exactly once.
+- Context visibility stays inward/later-only at any peer-list length: a peer's exposed context is invisible to every earlier peer in the same list and visible to every later peer and to `work`.
+- `exit`'s `primary_summary` argument carries only `{status, phase, peer}` for every peer regardless of list length — no peer's `exit` callable ever receives another peer's exposed context or resources.
+- A peer that reads another peer's exposed context and derives a locally modified value (via `GeniaMap.put`, which is persistent and returns a new map rather than mutating in place) cannot cause that derived value to appear under the original peer's own name — peer isolation holds structurally, not merely by the absence of a write API.
+- Attachment order and parent/child ownership remain independent relationships at any peer-list length: a multi-peer child scope's own attachment/unwind order is unaffected by how many ancestor scopes or ancestor peers exist above it.
+
+PYTHON REFERENCE HOST:
+
+- No change to `src/genia/lifecycle_runtime.py`, `src/genia/builtins.py`, or `src/genia/host_builtin_docs.py`.
+- Validated by nine additional tests in `tests/unit/test_lifecycle_runtime.py` (34 tests total in that file), Python reference host only. No host capability is introduced; shared/multi-host conformance remains Partial.
+
+Explicit limitations:
+
+- No `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, element scopes, reserved element/index/config context names, or provider binding is implemented (unchanged from section 9.8; see issues #693, #694, #622-#628).
 - No generalized lifecycle-plan/action-identifier runner, dependency injection, scheduler, actor supervision, or concurrent peer/child execution is defined.
 
 ## 10) Explicitly not implemented (current)

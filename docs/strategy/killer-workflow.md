@@ -124,12 +124,14 @@ pipelines; E13-7 synchronizes runnable examples and implemented truth without
 runtime behavior; E13-8 completes the release truth audit and distillation
 without runtime behavior.
 
-**R14** is planned, not active. It is explicitly approved lifecycle
+**R14** is in progress through E14-2. It is explicitly approved lifecycle
 infrastructure with a direct record-pipeline proving path: multiple lifecycle
 concerns may surround each consumed element while existing Flow/Seq and Outcome
-transformations remain authoritative. Its outbound HTTP slice is an indirect
-application-integration proof. Only E14-0 preflight may begin; no R14 behavior is
-implemented until its contract and later phase gates complete.
+transformations remain authoritative. E14-0 through E14-2 (issues #620, #621,
+#692) implement and prove the Experimental parent/child instance/scope core
+and its horizontal peer-attachment breadth; E14-3 and later slices —
+repeated element-scoped execution, provider binding, and the outbound HTTP
+application-integration proof — remain planned, not implemented.
 
 ## Using This Document
 
