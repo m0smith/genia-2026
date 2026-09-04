@@ -15,6 +15,7 @@ import pytest
 from genia.lifecycle_runtime import (
     lookup_lifecycle_context,
     run_lifecycle_child,
+    run_lifecycle_element,
     run_lifecycle_scope,
 )
 from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome, symbol
@@ -669,3 +670,128 @@ def test_three_peer_child_attachment_order_independent_of_ancestor_depth():
     child_result = result.get("result").value
     assert child_result.get("scope") == symbol("child")
     assert child_result.get("status") == symbol("ok")
+
+
+# --- element scopes (issue #693: E14-3 repeated element-scoped execution) --
+#
+# run_lifecycle_element(peers, element, index, work, invoke) runs one fresh
+# "element" scope through the same unchanged entry/work/unwind algorithm
+# exercised above, with the two reserved context names populated before any
+# attached peer's own enter runs. These tests exercise it directly, with no
+# Flow/List dispatch involved (that lives in genia.builtins and is covered
+# by tests/unit/test_lifecycle_repeat.py); this file stays List/Flow-free,
+# matching the peer-composition core's own scope.
+
+
+def test_element_scope_is_tagged_element_and_carries_reserved_context():
+    def work(handle):
+        elem = lookup_lifecycle_context(handle, symbol("element"))
+        idx = lookup_lifecycle_context(handle, symbol("index"))
+        return [elem, idx]
+
+    result = run_lifecycle_element([], "row-A", 1, work, _invoke)
+
+    assert result.get("scope") == symbol("element")
+    assert result.get("status") == symbol("ok")
+    elem, idx = result.get("result").value
+    assert elem == GeniaOptionSome("row-A")
+    assert idx == GeniaOptionSome(1)
+
+
+def test_element_scope_reserved_context_visible_inside_a_peers_own_enter():
+    seen = {}
+
+    def enter(handle):
+        seen["element"] = lookup_lifecycle_context(handle, symbol("element"))
+        seen["index"] = lookup_lifecycle_context(handle, symbol("index"))
+        return GeniaOptionSome("ctx")
+
+    peers = [_peer("diagnostics", enter, _ok_exit())]
+
+    run_lifecycle_element(peers, "row-B", 3, lambda handle: None, _invoke)
+
+    assert seen["element"] == GeniaOptionSome("row-B")
+    assert seen["index"] == GeniaOptionSome(3)
+
+
+def test_element_scope_peer_named_element_is_rejected_before_any_enter():
+    calls: list[str] = []
+    peers = [_peer("element", _ok_enter(calls=calls, tag="X"), _ok_exit(calls=calls, tag="X"))]
+
+    with pytest.raises(TypeError):
+        run_lifecycle_element(peers, "row", 1, lambda handle: None, _invoke)
+    assert calls == []
+
+
+def test_element_scope_peer_named_index_is_rejected_before_any_enter():
+    calls: list[str] = []
+    peers = [_peer("index", _ok_enter(calls=calls, tag="X"), _ok_exit(calls=calls, tag="X"))]
+
+    with pytest.raises(TypeError):
+        run_lifecycle_element(peers, "row", 1, lambda handle: None, _invoke)
+    assert calls == []
+
+
+def test_element_scope_two_peers_enter_and_reverse_unwind_order():
+    calls: list[str] = []
+    peers = [
+        _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+        _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+    ]
+
+    def work(handle):
+        calls.append("work")
+
+    run_lifecycle_element(peers, "row", 1, work, _invoke)
+
+    assert calls == ["A.enter", "B.enter", "work", "B.exit", "A.exit"]
+
+
+def test_element_scope_has_no_parent_and_does_not_leak_across_independent_calls():
+    def enter_first(handle):
+        return GeniaOptionSome("only-in-first")
+
+    first_peers = [_peer("only_first", enter_first, _ok_exit())]
+
+    def work_second(handle):
+        return lookup_lifecycle_context(handle, symbol("only_first"))
+
+    run_lifecycle_element(first_peers, "row-1", 1, lambda handle: None, _invoke)
+    second_result = run_lifecycle_element([], "row-2", 2, work_second, _invoke)
+
+    assert second_result.get("result") == GeniaOptionSome(GeniaOptionNone("lifecycle-context-absent"))
+
+
+def test_element_scope_work_failure_produces_element_scoped_result():
+    def work(handle):
+        raise RuntimeError("row broke")
+
+    result = run_lifecycle_element([], "row", 1, work, _invoke)
+
+    assert result.get("scope") == symbol("element")
+    assert result.get("status") == symbol("error")
+    assert result.get("phase") == symbol("work")
+    assert _failure(result, "reason") == "row broke"
+
+
+def test_element_scope_stale_handle_after_completion_raises_on_context_lookup():
+    captured = {}
+
+    def work(handle):
+        captured["handle"] = handle
+        return "ok"
+
+    run_lifecycle_element([], "row", 1, work, _invoke)
+
+    with pytest.raises(RuntimeError, match="lifecycle-scope-expired"):
+        lookup_lifecycle_context(captured["handle"], symbol("element"))
+
+
+def test_element_scope_supports_a_nested_lifecycle_child():
+    def work(handle):
+        child_result = run_lifecycle_child(handle, [], lambda h: "child-of-element", _invoke)
+        return child_result.get("result").value
+
+    result = run_lifecycle_element([], "row", 1, work, _invoke)
+
+    assert result.get("result") == GeniaOptionSome("child-of-element")
