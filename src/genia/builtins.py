@@ -60,6 +60,7 @@ if __package__ in (None, ""):
     from genia.lifecycle_runtime import (
         lookup_lifecycle_context,
         run_lifecycle_child,
+        run_lifecycle_element,
         run_lifecycle_scope,
     )
     from genia.model import construct_model
@@ -169,6 +170,7 @@ else:
     from .lifecycle_runtime import (
         lookup_lifecycle_context,
         run_lifecycle_child,
+        run_lifecycle_element,
         run_lifecycle_scope,
     )
     from .model import construct_model
@@ -695,6 +697,39 @@ def make_global_env(
 
     def lifecycle_context_fn(scope_handle: Any, name: Any) -> Any:
         return lookup_lifecycle_context(scope_handle, name)
+
+    def lifecycle_repeat_fn(peers: Any, source: Any, element_work: Any) -> Any:
+        ensure_seq_compatible_fn("lifecycle_repeat", source)
+        if isinstance(source, list):
+            return [
+                run_lifecycle_element(peers, item, idx, element_work, _invoke_raw_from_builtin)
+                for idx, item in enumerate(source, start=1)
+            ]
+
+        upstream = source
+
+        def iterator() -> Iterable[Any]:
+            items = iter(upstream.consume())
+            idx = 0
+            primary_error = False
+            try:
+                for item in items:
+                    idx += 1
+                    yield run_lifecycle_element(
+                        peers, item, idx, element_work, _invoke_raw_from_builtin
+                    )
+            except Exception:
+                primary_error = True
+                raise
+            finally:
+                if upstream.close_on_early_termination:
+                    _finalize_iterable(items, primary_error=primary_error)
+
+        return GeniaFlow(
+            iterator,
+            label="lifecycle_repeat",
+            close_on_early_termination=upstream.close_on_early_termination,
+        )
 
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -4493,6 +4528,9 @@ def make_global_env(
     env.set("lifecycle_child", _host_function_group("lifecycle_child", 3, lifecycle_child_fn))
     env.set(
         "lifecycle_context", _host_function_group("lifecycle_context", 2, lifecycle_context_fn)
+    )
+    env.set(
+        "lifecycle_repeat", _host_function_group("lifecycle_repeat", 3, lifecycle_repeat_fn)
     )
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(

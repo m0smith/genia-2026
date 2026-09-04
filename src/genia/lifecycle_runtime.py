@@ -1,15 +1,17 @@
-"""R14 E14-1 lifecycle instance and parent/child execution scope core.
+"""R14 E14-1/E14-2/E14-3 lifecycle instance, scope, and element core.
 
 Implements the portable entry/work/unwind algorithm and scope lifetime state
 machine locked by the approved R14 contract
 (``docs/design/r14-composable-lifecycle-contract.md``). The algorithm is
-peer-list general from the start — it is the exact same algorithm later
-reused, unchanged, by horizontal peer attachment (issue #692) and by each
-fresh element scope of ``lifecycle_repeat`` (issue #693) — but this module
-exposes only vertical composition (``lifecycle_scope`` / ``lifecycle_child``)
-and read-only context lookup (``lifecycle_context``). It adds no
-``lifecycle_repeat``, ``lifecycle_config``, or HTTP behavior; those remain
-later tickets.
+peer-list general from the start — it is the exact same algorithm reused,
+unchanged, by vertical composition (``lifecycle_scope``/``lifecycle_child``,
+issue #621), horizontal peer attachment breadth (issue #692), and each fresh
+element scope of ``lifecycle_repeat`` (``run_lifecycle_element``, issue
+#693). This module knows nothing about ``list``/``Flow``/iteration:
+dispatching one ``run_lifecycle_element`` call per consumed element, eagerly
+or lazily, is ``genia.builtins``'s ``lifecycle_repeat_fn``'s concern, not
+this module's. It adds no ``lifecycle_config`` or HTTP behavior; those
+remain later tickets (#694, #622-#628).
 """
 
 from __future__ import annotations
@@ -91,8 +93,20 @@ def _peer_name(peer: Any, operation: str) -> str:
 
 
 def _validate_peers(
-    peers: Any, parent: GeniaLifecycleScope | None, operation: str
+    peers: Any, scope: GeniaLifecycleScope, operation: str
 ) -> list[tuple[str, GeniaMap]]:
+    """Validate one scope operation's peer list before any ``enter`` runs.
+
+    ``scope`` is the scope being entered, checked inclusive of itself: an
+    element scope's reserved ``quote(element)``/``quote(index)`` context is
+    pre-seeded into ``scope.context`` by its caller before this runs, so a
+    peer name colliding with a reserved name is caught here as a
+    self-collision, using the same walk that already climbs ``scope.parent``
+    for ancestor non-shadowing. For a root/child scope, ``scope.context`` is
+    always empty at this point, so checking it first is a no-op and this
+    behaves exactly as before this scope-inclusive walk was introduced.
+    """
+
     if not isinstance(peers, list):
         raise TypeError(
             f"{operation} expected a list of lifecycle definitions, "
@@ -107,12 +121,12 @@ def _validate_peers(
                 f"{operation} received duplicate peer name {name!r} in one peer list"
             )
         seen.add(name)
-        ancestor = parent
+        ancestor: GeniaLifecycleScope | None = scope
         while ancestor is not None:
             if name in ancestor.context:
                 raise TypeError(
                     f"{operation} peer name {name!r} shadows context already "
-                    "exposed by an ancestor scope"
+                    "exposed by this scope or an ancestor scope"
                 )
             ancestor = ancestor.parent
         validated.append((name, peer))
@@ -159,17 +173,30 @@ def _primary_summary(primary: GeniaMap | None) -> GeniaMap:
     )
 
 
+_OPERATION_BY_KIND = {
+    "root": "lifecycle_scope",
+    "child": "lifecycle_child",
+    "element": "lifecycle_repeat",
+}
+
+
 def _run_scope(
     kind: str,
     parent: GeniaLifecycleScope | None,
     peers: Any,
     work: Any,
     invoke: Invoke,
+    *,
+    preset_context: dict[str, Any] | None = None,
 ) -> GeniaMap:
-    operation = "lifecycle_scope" if kind == "root" else "lifecycle_child"
-    validated_peers = _validate_peers(peers, parent, operation)
+    operation = _OPERATION_BY_KIND[kind]
 
     scope = GeniaLifecycleScope(kind, parent)
+    if preset_context:
+        scope.context.update(preset_context)
+
+    validated_peers = _validate_peers(peers, scope, operation)
+
     scope.lifetime = "entering"
 
     entered: list[tuple[str, GeniaMap]] = []
@@ -289,6 +316,37 @@ def run_lifecycle_child(parent_handle: Any, peers: Any, work: Any, invoke: Invok
             f"received lifetime {parent.lifetime!r}"
         )
     return _run_scope("child", parent, peers, work, invoke)
+
+
+def run_lifecycle_element(
+    peers: Any, element: Any, index: int, work: Any, invoke: Invoke
+) -> GeniaMap:
+    """Run one fresh element scope for ``lifecycle_repeat``'s caller.
+
+    Reserved context ``quote(element)`` (the consumed ``element`` value) and
+    ``quote(index)`` (its 1-based pull ordinal) are populated before any
+    attached peer's own ``enter`` runs, readable by every peer and by
+    ``work`` through the existing ``lifecycle_context`` accessor. A peer
+    named ``element`` or ``index`` is construction-time misuse, rejected by
+    the same non-shadowing mechanism ``_validate_peers`` already uses for
+    ancestor context — see its docstring.
+
+    An element scope has no R14 parent (``scope: quote(element)``, like a
+    root scope): ``lifecycle_repeat`` itself has no lifecycle scope of its
+    own, so each element scope is independent and never leaks context to
+    another. This module has no knowledge of ``list``/``Flow``/iteration —
+    dispatching one call of this function per consumed element, eagerly or
+    lazily, is entirely genia.builtins's `lifecycle_repeat_fn`'s concern.
+    """
+
+    return _run_scope(
+        "element",
+        None,
+        peers,
+        work,
+        invoke,
+        preset_context={"element": element, "index": index},
+    )
 
 
 def lookup_lifecycle_context(handle: Any, name: Any) -> Any:
