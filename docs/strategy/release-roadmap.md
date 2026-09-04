@@ -861,16 +861,20 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ## Release R14 — Composable Lifecycles
 
-**Status: In progress; E14-0 contract approved and E14-1/E14-2 implemented
-(issues #621, #692).** R14 is explicitly approved infrastructure work with
-one direct record-pipeline proving path. The release epic is **#619**. Its
-contract is `docs/design/r14-composable-lifecycle-contract.md`. E14-1
-implements the HTTP-free lifecycle instance/parent-child execution-scope
-core (`lifecycle_scope`, `lifecycle_child`, `lifecycle_context`); E14-2
-proves that same core's horizontal peer-attachment breadth at
-three-or-more peers with no runtime-code change. No R14 behavior beyond
-E14-1/E14-2 is implemented merely because the roadmap, issues, or contract
-exist. See `GENIA_STATE.md` sections 9.8-9.9.
+**Status: In progress; E14-0 contract approved and E14-1/E14-2/E14-3
+implemented (issues #621, #692, #693).** R14 is explicitly approved
+infrastructure work with one direct record-pipeline proving path. The
+release epic is **#619**. Its contract is
+`docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements the
+HTTP-free lifecycle instance/parent-child execution-scope core
+(`lifecycle_scope`, `lifecycle_child`, `lifecycle_context`); E14-2 proves
+that same core's horizontal peer-attachment breadth at three-or-more peers
+with no runtime-code change; E14-3 adds `lifecycle_repeat` for repeated
+element-scoped execution over eager List and lazy Flow sources, composing
+the same unchanged algorithm with existing Flow/Seq laziness and
+finalization. No R14 behavior beyond E14-1/E14-2/E14-3 is implemented
+merely because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
+sections 9.8-9.10.
 
 Theme:
 
@@ -958,7 +962,7 @@ Approved R14 issue path:
 1. **#620 — E14-0:** composable lifecycle and HTTP contract
 2. **#621 — E14-1 (implemented):** lifecycle instance and parent/child execution scopes
 3. **#692 — E14-2 (implemented):** peer lifecycle attachment and deterministic unwind
-4. **#693 — E14-3:** repeated element-scoped lifecycle execution
+4. **#693 — E14-3 (implemented):** repeated element-scoped lifecycle execution
 5. **#694 — E14-4:** lifecycle-owned configuration provider binding
 6. **#622 — E14-5:** common HTTP operation representation
 7. **#623 — E14-6:** Python host outbound HTTP transport capability

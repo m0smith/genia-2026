@@ -195,30 +195,36 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1/E14-2 are implemented (issues #621, #692).** R14 is scoped to one
-lifecycle model with parent/child execution scopes, deterministic peer
-lifecycle attachments, repeated element scopes over eager and lazy
-pipelines, one explicit R10/R13 provider binding, and outbound HTTP as the
-vertical proving consumer. E14-1 implements the HTTP-free instance/scope
-core: `lifecycle_scope`, `lifecycle_child`, `lifecycle_context`, the scope
-lifetime state machine, and the entry/work/unwind algorithm with its
-partial-entry/failure matrix. E14-2 proves that same algorithm at
-three-or-more-peer breadth (deterministic enter/reverse-unwind order, every
-partial-entry/failure-matrix row, later-only context visibility, peer
-isolation, and attachment order independent of ancestor depth) with no
-runtime-code change — it adds no new public function. The record-oriented
-proving case must still show multiple peer lifecycles per element without
-adding AWK syntax or replacing Flow/Seq/Outcome transformations. Preserve
-the boundaries that lifecycle context is not mutable lexical state,
-attachment order is not parentage, expired element context does not leak
-through lazy values, annotations remain inert, import/load performs no
-lifecycle or network activation, and protected HTTP sinks do not weaken R10.
-No R14 behavior beyond E14-1/E14-2 is implemented merely because its
-roadmap, issues, or contract exist. E14-3 (#693, repeated element-scoped
-lifecycle execution) is the next gate. See
+and E14-1/E14-2/E14-3 are implemented (issues #621, #692, #693).** R14 is
+scoped to one lifecycle model with parent/child execution scopes,
+deterministic peer lifecycle attachments, repeated element scopes over
+eager and lazy pipelines, one explicit R10/R13 provider binding, and
+outbound HTTP as the vertical proving consumer. E14-1 implements the
+HTTP-free instance/scope core: `lifecycle_scope`, `lifecycle_child`,
+`lifecycle_context`, the scope lifetime state machine, and the
+entry/work/unwind algorithm with its partial-entry/failure matrix. E14-2
+proves that same algorithm at three-or-more-peer breadth (deterministic
+enter/reverse-unwind order, every partial-entry/failure-matrix row,
+later-only context visibility, peer isolation, and attachment order
+independent of ancestor depth) with no runtime-code change — it adds no new
+public function. E14-3 adds `lifecycle_repeat(peers, source, element_work)`:
+one fresh element scope per consumed List (eager, exhaustive) or Flow (lazy,
+no-over-pull, single-use) element, with reserved `quote(element)`/
+`quote(index)` context populated before any peer's own `enter` runs, and
+early-close cleanup reduced to the existing Flow finalization rule — no new
+list/Flow mechanism. The record-oriented proving case (#695) must still
+show multiple peer lifecycles per element without adding AWK syntax or
+replacing Flow/Seq/Outcome transformations. Preserve the boundaries that
+lifecycle context is not mutable lexical state, attachment order is not
+parentage, expired element context does not leak through lazy values,
+annotations remain inert, import/load performs no lifecycle or network
+activation, and protected HTTP sinks do not weaken R10. No R14 behavior
+beyond E14-1/E14-2/E14-3 is implemented merely because its roadmap, issues,
+or contract exist. E14-4 (#694, lifecycle-owned configuration provider
+binding) is the next gate. See
 `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.9.
+9.8-9.10.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

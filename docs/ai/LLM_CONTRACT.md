@@ -96,9 +96,9 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
-R14 is in progress; its E14-0 contract is approved and E14-1/E14-2 (issues
-#621, #692) are implemented — see the R14 entry below. E14-3 and later
-slices remain planned, not implemented.
+R14 is in progress; its E14-0 contract is approved and E14-1/E14-2/E14-3
+(issues #621, #692, #693) are implemented — see the R14 entry below. E14-4
+and later slices remain planned, not implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -162,12 +162,15 @@ When an LLM agent is asked for new Genia work:
    interpolation, or refresh; E13-4 provides fixed conventional composition; E13-5 adds cross-mode, diagnostic, protected-boundary, parse, and Core IR proof without new semantics; and E13-6 proves the Outcome-aware validated-pipeline composition without new semantics.
    E13-7 adds documentation and runnable-example verification only; E13-8 is audit/distillation only and adds no runtime behavior. Follow `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 9. R14 is in progress (epic #619), its E14-0 contract is approved, and
-   E14-1 (#621, parent/child instance/scope core) and E14-2 (#692, peer
-   attachment breadth over that same core, with no runtime-code change) are
-   implemented. E14-3 (#693) is the next implementation gate. Do not infer
-   implemented repeated element scopes, lifecycle-owned provider binding,
-   outbound HTTP, protected HTTP sinks, or HTTP annotations from the
-   roadmap or contract — those remain planned. Preserve the implemented/planned
+   E14-1 (#621, parent/child instance/scope core), E14-2 (#692, peer
+   attachment breadth over that same core, with no runtime-code change),
+   and E14-3 (#693, `lifecycle_repeat` over eager List and lazy Flow
+   sources with reserved element/index context, composed from the
+   unchanged algorithm plus existing Flow finalization) are implemented.
+   E14-4 (#694) is the next implementation gate. Do not infer
+   lifecycle-owned provider binding, outbound HTTP, protected HTTP sinks,
+   or HTTP annotations from the roadmap or contract — those remain
+   planned. Preserve the implemented/planned
    boundary: one lifecycle model, no global mutable current lifecycle,
    attachment order distinct from parentage, scoped context distinct from
    lexical bindings, no lazy escape of expired element context, Flow/Seq/Outcome

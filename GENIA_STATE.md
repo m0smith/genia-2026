@@ -638,7 +638,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-value exclusions, and canonical release status
   - R13 is release-complete through E13-8 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
 
-- R14 lifecycle instance, parent/child execution scopes, and peer attachment breadth (Experimental, issues #621, #692)
+- R14 lifecycle instance, parent/child execution scopes, peer attachment breadth, and repeated element scopes (Experimental, issues #621, #692, #693)
   - R14 E14-1 adds `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_context(scope_handle, name)` as the first implemented slice of the approved E14-0 composable-lifecycle contract (`docs/design/r14-composable-lifecycle-contract.md`)
   - a peer is an ordinary closed map `{name: symbol, enter: callable/1, exit: callable/2}`; peers on one scope operation enter in list order and unwind in strict reverse order, every entered peer's `exit` runs exactly once regardless of earlier exit failures, and the first non-cleanup failure is always the scope's one `primary_failure` while every later exit failure is preserved in `cleanup_failures`
   - `work`'s return value is carried into the closed `LifecycleResult` verbatim and is never inspected for `some`/`none`/`err`; the only way `work` produces a lifecycle failure is by raising, normalized exactly like R8 lifecycle exceptions
@@ -646,9 +646,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `lifecycle_context` is inward-only and read-only: it checks the calling scope's own entered-peer context, then each ancestor scope in turn, and never exposes a later-attached peer's context to an earlier one; a peer name colliding with any name already exposed by an ancestor scope is rejected before any `enter` runs
   - a scope handle is valid only while its scope is `entering`/`active`/`exiting`; any later use (or `lifecycle_child` on a handle that is not `active`) raises a runtime-misuse `RuntimeError`, the same family as an already-consumed Flow
   - R14 E14-2 (issue #692) proves the same entry/work/unwind algorithm at three-or-more-peer breadth: deterministic enter/reverse-unwind order, entry failure at any position unwinding only the already-entered prefix, multiple exit failures promoting the first encountered and appending the rest in exit-call order, later-only context visibility, an `exit` `primary_summary` that never carries another peer's context, and attachment order proven independent of ancestor depth — see section 9.9. E14-2 adds no new public function or runtime behavior; `src/genia/lifecycle_runtime.py` is unchanged from E14-1
-  - E14-1/E14-2 add no `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#693-#630)
+  - R14 E14-3 (issue #693) adds `lifecycle_repeat(peers, source, element_work)`: a fresh "element" scope per consumed `list` (eager, exhaustive) or `Flow` (lazy, single-use, no-over-pull) element, running the same unchanged entry/work/unwind algorithm with two reserved context names — `quote(element)` (the consumed value) and `quote(index)`, its 1-based pull ordinal — populated before any attached peer's own `enter` runs. A peer literally named `element` or `index` is rejected before any `enter`, by the same non-shadowing mechanism as ancestor context. Early Flow termination reduces to the existing Flow/source `close_on_early_termination` finalization rule — no new finalization mechanism — because each yielded `LifecycleResult` reflects an element scope already fully entered and unwound before it is yielded. See section 9.10
+  - E14-1/E14-2/E14-3 add no `lifecycle_config`, HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#694-#630)
   - LANGUAGE CONTRACT: the six required default invariants (no global mutable current-scope switch; contained child failure; explicit child result/failure propagation; child-owned resource finalization inside one synchronous call; untouched parent-owned resources; inward-only non-shadowed context) are implemented exactly as locked by the E14-0 contract
-  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (34 tests, including the 9 E14-2 peer-breadth tests), Python reference host only; shared/multi-host conformance remains Partial
+  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (43 tests) and `tests/unit/test_lifecycle_repeat.py` (15 tests), Python reference host only; shared/multi-host conformance remains Partial
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
@@ -3137,12 +3138,115 @@ LANGUAGE CONTRACT (already true of `lifecycle_scope`/`lifecycle_child` as docume
 PYTHON REFERENCE HOST:
 
 - No change to `src/genia/lifecycle_runtime.py`, `src/genia/builtins.py`, or `src/genia/host_builtin_docs.py`.
-- Validated by nine additional tests in `tests/unit/test_lifecycle_runtime.py` (34 tests total in that file), Python reference host only. No host capability is introduced; shared/multi-host conformance remains Partial.
+- Validated by nine additional tests in `tests/unit/test_lifecycle_runtime.py` (34 tests total in that file, at the time of E14-2; 43 after E14-3's own additions — see section 9.10), Python reference host only. No host capability is introduced; shared/multi-host conformance remains Partial.
 
 Explicit limitations:
 
-- No `lifecycle_repeat`, `lifecycle_config`, HTTP operation/client, element scopes, reserved element/index/config context names, or provider binding is implemented (unchanged from section 9.8; see issues #693, #694, #622-#628).
+- No `lifecycle_config`, HTTP operation/client, reserved config context name, or provider binding is implemented (see issues #694, #622-#628). `lifecycle_repeat` and element scopes are implemented by issue #693 — see section 9.10.
 - No generalized lifecycle-plan/action-identifier runner, dependency injection, scheduler, actor supervision, or concurrent peer/child execution is defined.
+
+## 9.10) R14 E14-3 repeated element-scoped lifecycle execution
+
+Status: Implemented. Issue #693 adds one new ordinary function,
+`lifecycle_repeat(peers, source, element_work)`, composing the unchanged
+E14-1/E14-2 entry/work/unwind algorithm (sections 9.8-9.9) with the
+existing Flow/Seq lazy-pull/finalization machinery, per the approved R14
+contract's "Repeated element-scoped execution" section
+(`docs/design/r14-composable-lifecycle-contract.md`).
+
+LANGUAGE CONTRACT:
+
+- `lifecycle_repeat(peers, source, element_work)` accepts `source` as
+  either an ordinary `list` (eager) or a `Flow` (lazy), and returns
+  `[LifecycleResult, ...]` or `Flow<LifecycleResult>` respectively; any
+  other `source` shape raises the existing "expected a Seq-compatible
+  value (list or Flow)" `TypeError` before any element scope is touched.
+- Each consumed element gets one fresh **element scope**
+  (`scope: quote(element)`) running the exact same entry/work/unwind
+  algorithm as `lifecycle_scope`/`lifecycle_child`, with no R14 parent —
+  `lifecycle_repeat` itself has no lifecycle scope of its own.
+- Two reserved context names are populated in every element scope before
+  any attached peer's own `enter` runs, readable through the existing
+  `lifecycle_context(scope_handle, name)` accessor by any peer or by
+  `element_work`: `quote(element)` (the consumed element value) and
+  `quote(index)` (its 1-based ordinal among elements actually pulled from
+  `source` so far — the pull order, not source position).
+- A peer literally named `element` or `index` is construction-time misuse,
+  rejected with a `TypeError` before any `enter` runs — the same
+  non-shadowing mechanism `lifecycle_scope`/`lifecycle_child` already use
+  for ancestor context, now also checking a scope's own pre-seeded
+  reserved context.
+- **Eager (`list`) source:** every element is processed, in order,
+  regardless of any individual element's `LifecycleResult` status —
+  `lifecycle_repeat` never short-circuits a `list` source, exactly like
+  `map` processing every item.
+- **Lazy (`Flow`) source:** `lifecycle_repeat` over a `Flow` returns a
+  lazy, single-use `Flow<LifecycleResult>` and performs no work until
+  pulled. Pulling one item from the returned Flow pulls exactly one item
+  from `source` (no over-pull, no read-ahead), runs that element's
+  complete entry/work/unwind algorithm synchronously, and yields its
+  `LifecycleResult`. Because each element scope is fully entered and
+  unwound *before* its result is yielded, bounded early termination
+  (`take`, a manual break, downstream short-circuit) never leaves an
+  element scope partially entered — the most recently yielded element's
+  cleanup already ran. Early-close cleanup is exactly the existing Flow
+  `close_on_early_termination` + upstream-`close()` finalization rule
+  already used by `map`/`filter`/`take`; no new finalization mechanism is
+  introduced.
+- `element_work` returning `none(...)`/`err(...)` as ordinary data is not
+  treated specially: per the general work-return rule (section 9.8), it is
+  exactly `result: some(none(...))`/`result: some(err(...))` on an
+  otherwise `completed` `LifecycleResult`. There is no dedicated filtering
+  primitive.
+- An element scope's handle becomes invalid (raising the existing
+  `RuntimeError("lifecycle-scope-expired")` on later `lifecycle_context`/
+  `lifecycle_child` use) the instant its own `LifecycleResult` is produced
+  — the same single-valid-lifetime mechanism sections 9.8-9.9 already
+  document, with no new expiry concept.
+- Any scope `element_work` creates via `lifecycle_child` is a shorter
+  nested lifetime under that element scope, exactly like existing vertical
+  composition — this required no change, since `lifecycle_child` only
+  checks that its parent handle's scope is `active`, not its `kind`.
+- No cross-element context leakage: each element scope is an independent
+  `_run_scope` call with no parent, so nothing exposed in one element's
+  scope is ever visible from another element's scope.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/lifecycle_runtime.py`: `run_lifecycle_element(peers, element,
+  index, work, invoke)` runs one element scope via the existing `_run_scope`,
+  now taking an optional `preset_context` keyword that seeds `scope.context`
+  before peer validation/entry (used only by this function; root/child
+  scopes never pass it, so their behavior is unchanged — confirmed by the
+  existing 34 E14-1/E14-2 tests staying green). This module still has zero
+  `list`/`Flow`/iteration knowledge.
+- `src/genia/builtins.py`: `lifecycle_repeat_fn` dispatches `isinstance(source,
+  list)` (eager, a plain list comprehension over `enumerate(source, start=1)`)
+  vs. `isinstance(source, GeniaFlow)` (lazy, a generator wrapped in
+  `GeniaFlow`, reusing the exact `try/finally` + `_finalize_iterable(items,
+  primary_error=...)` idiom already used by `map`/`filter`/`take`).
+  Registered as `lifecycle_repeat`, documented in `host_builtin_docs.py`.
+- Validated by 9 additional tests in `tests/unit/test_lifecycle_runtime.py`
+  (43 tests total in that file, Flow-free, exercising
+  `run_lifecycle_element` directly) and 15 tests in the new
+  `tests/unit/test_lifecycle_repeat.py` (through real Genia source via
+  `run_source`, covering eager/lazy dispatch, no-over-pull, close-once-on-
+  early-stop, and deterministic two-peer-per-element ordering for both
+  source kinds), Python reference host only. No host capability is
+  introduced; shared/multi-host conformance remains Partial.
+
+Explicit limitations:
+
+- No `lifecycle_config`, HTTP operation/client, or provider binding is
+  implemented (see issues #694, #622-#628).
+- No AWK syntax, `$0`/`$1`/`NR`/`NF` binding, or record-shape derivation —
+  `quote(element)`/`quote(index)` are read through the ordinary
+  `lifecycle_context` accessor only; a future record-oriented lifecycle
+  derives `record`/`fields`/`nr`/`nf` as ordinary values from these, not as
+  new syntax (see issue #695).
+- No generalized lifecycle-plan/action-identifier runner, dependency
+  injection, scheduler, actor supervision, or concurrent element
+  processing is defined.
 
 ## 10) Explicitly not implemented (current)
 
