@@ -221,3 +221,22 @@ not_found() = response(404, text_headers(), "not found")
   explicit step, never automatic
 """
 http_send(operation, authority, timeout_ms) = _http_send(operation, authority, timeout_ms)
+
+@doc """Invoke a `@get`/`@post`-annotated function as one outbound HTTP call.
+
+## Arguments
+- `fn`: a top-level named zero-argument function annotated with `@get {path}`
+  or `@post {path}`, returning `{headers, query, body}`
+- `base_url`: the request's base URL string
+- `authority`: `none(...)` or `some(authority)`, as for `http_send`
+- `timeout_ms`: integer timeout in `1..300000`
+
+## Returns
+- the same Outcome `http_send` itself returns
+
+## Notes
+- calling `fn` directly never performs network IO; only `send_annotated`
+  does, by composing the existing `http_operation` and `http_send`
+- each call creates a fresh, independent HTTP client lifecycle instance
+"""
+send_annotated(fn, base_url, authority, timeout_ms) = _send_annotated(fn, base_url, authority, timeout_ms)

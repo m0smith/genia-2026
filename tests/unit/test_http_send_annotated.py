@@ -4,7 +4,7 @@ from genia.builtins import make_global_env
 from genia.http_annotation_binding import perform_send_annotated
 from genia.http_transport import HttpTransportResponse
 from genia.interpreter import run_source
-from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
+from genia.values import GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
 
 def _invoke(fn, args):
