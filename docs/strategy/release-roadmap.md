@@ -862,8 +862,8 @@ E13-8 completed the release audit/distillation without runtime behavior.
 ## Release R14 — Composable Lifecycles
 
 **Status: In progress; E14-0 contract approved and
-E14-1/E14-2/E14-3/E14-4/E14-5/E14-6 implemented (issues #621, #692, #693,
-#694, #622, #623).** R14 is explicitly approved infrastructure work with one direct
+E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7 implemented (issues #621, #692, #693,
+#694, #622, #623, #624).** R14 is explicitly approved infrastructure work with one direct
 record-pipeline proving path. The release epic is **#619**. Its contract
 is `docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements
 the HTTP-free lifecycle instance/parent-child execution-scope core
@@ -880,10 +880,13 @@ closed `HttpOperation` value with zero network IO, the first R14-HTTP
 ticket and the first to add no host capability at all; E14-6 adds the one
 narrow Python-host outbound HTTP transport capability (one synchronous
 `urllib.request` attempt, closed timeout/connect/tls/dns/other failure
-kind), with no Genia-visible surface of its own. No R14 behavior
-beyond E14-1/E14-2/E14-3/E14-4/E14-5/E14-6 is implemented merely because the
-roadmap, issues, or contract exist. See `GENIA_STATE.md` sections
-9.8-9.13.
+kind), with no Genia-visible surface of its own; E14-7 adds
+`web.http_send(operation, authority, timeout_ms)`, composing E14-1/E14-5/
+E14-6 into the first outbound HTTP call reachable from Genia source, with
+no new lifecycle primitive or protected-value mechanism. No R14 behavior
+beyond E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7 is implemented merely
+because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
+sections 9.8-9.14.
 
 Theme:
 
@@ -975,7 +978,7 @@ Approved R14 issue path:
 5. **#694 — E14-4 (implemented):** lifecycle-owned configuration provider binding
 6. **#622 — E14-5 (implemented):** common HTTP operation representation
 7. **#623 — E14-6 (implemented):** Python host outbound HTTP transport capability
-8. **#624 — E14-7:** outbound HTTP client lifecycle
+8. **#624 — E14-7 (implemented):** outbound HTTP client lifecycle
 9. **#625 — E14-8:** protected HTTP credential sinks
 10. **#626 — E14-9:** declarative outbound HTTP annotations
 11. **#627 — E14-10:** server/request/outbound-client composition

@@ -20,6 +20,7 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_http_transport.py::test_send_http_request_does_not_follow_redirect",
     "tests/unit/test_http_transport.py::test_send_http_request_connect_refused_returns_connect_failure",
     "tests/unit/test_http_transport.py::test_send_http_request_timeout_against_slow_server_returns_timeout_failure",
+    "tests/unit/test_http_send.py::test_http_send_via_genia_source_against_real_local_server",
 }
 
 

@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1/E14-2/E14-3/E14-4/E14-5/E14-6 are implemented (issues #621, #692,
-#693, #694, #622, #623).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -236,14 +236,24 @@ capability making exactly one synchronous `urllib.request` attempt, no
 redirects/retries, normalizing every failure to a closed
 `kind` in `{timeout, connect, tls, dns, other}` with no raw exception text
 crossing the boundary. It adds no Genia-visible surface at all — no
-builtin, no `import` entry — and is consumed only privately by the later
-`web.http_send` ticket. No R14 behavior beyond
-E14-1/E14-2/E14-3/E14-4/E14-5/E14-6
+builtin, no `import` entry — and is consumed only privately by
+`web.http_send`. E14-7 adds `web.http_send(operation, authority,
+timeout_ms) -> some(HttpResponse) | err(reason, context)` in
+`src/genia/http_client.py`: composes the unchanged E14-1 lifecycle core,
+E14-5's `HttpOperation`, and E14-6's transport capability into the first
+outbound HTTP call reachable from Genia source. All misuse validation
+(operation/authority/timeout_ms shape, protected-header declassification
+via the existing `declassify`) runs before any internal lifecycle scope
+opens, so misuse raises directly rather than being normalized into an
+ordinary failure; only the one transport attempt runs inside the internal
+scope. It adds no new lifecycle primitive, protected-value mechanism, or
+host capability. No R14 behavior beyond
+E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7
 is implemented merely because its roadmap, issues, or contract exist.
-E14-7 (#624, outbound HTTP client lifecycle) is the next
+E14-8 (#625, protected HTTP credential sinks) is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.13.
+9.8-9.14.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

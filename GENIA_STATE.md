@@ -3517,6 +3517,143 @@ Explicit limitations:
   ticket — this capability returns only a closed `kind`; mapping that into
   R14's `err(...)` shapes is #624's composition, not owned here.
 
+## 9.14) R14 E14-7 outbound HTTP client lifecycle
+
+Status: Implemented. Issue #624 adds `web.http_send(operation, authority,
+timeout_ms) -> some(HttpResponse) | err(reason, context)` per the approved
+R14 contract's "Outbound HTTP client lifecycle" section
+(`docs/design/r14-composable-lifecycle-contract.md`). It composes four
+already-implemented, unchanged mechanisms — the E14-1 lifecycle core, the
+`HttpOperation` representation (#622), the host transport capability
+(#623), and R10's `declassify` boundary — adding no new lifecycle
+primitive, protected-value mechanism, or host transport mechanics.
+
+LANGUAGE CONTRACT:
+
+- `web.http_send(operation, authority, timeout_ms)` executes one
+  `LifecycleInstance` internally per call: *prepare* (the already-inert
+  `operation` value), *authorize* (declassifying any protected header via
+  the existing `declassify(authority, protected_value)`, immediately
+  before the one transport attempt), *send*/*receive* (exactly one
+  synchronous host transport attempt), *decode* (left entirely to the
+  caller's own explicit `utf8_decode`/`json_decode` over `response.body`
+  — never automatic), and *finalize* (the internal scope's own `exit`,
+  plus the transport's own already-guaranteed resource release).
+- `authority` is `none(...)` when `operation.headers` carries no
+  protected value, or `some(authority)` — an opaque R10
+  `GeniaDeclassificationAuthority` — when it does; a `GeniaProtected`
+  header value with a missing (`none`) or identity/purpose-mismatched
+  authority is runtime misuse (a raised error), exactly as `declassify`
+  itself already enforces — `web.http_send` adds no new matching logic,
+  it only calls the existing `declassify` once per protected header. A
+  malformed `operation`/`authority`/`timeout_ms` argument is likewise
+  runtime misuse, raised before any transport attempt is made.
+- `timeout_ms` is a required plain integer in `1..300000`, mirroring
+  R11's model-call `timeout_ms` contract exactly.
+- Any status the transport actually receives (100..599) normalizes to an
+  ordinary `some({status, headers, body})` — never a failure; only a
+  failure to obtain any response at all is `err(...)`. `headers` keys are
+  lowercased; `body` is always an opaque `GeniaBytes` value, never
+  auto-decoded or auto-parsed.
+- Recoverable failures are exactly `err("http-timeout", {timeout_ms})`
+  (from `HttpTransportFailure(kind="timeout")`) and
+  `err("http-transport-failure", {kind: quote(connect)|quote(tls)|
+  quote(dns)|quote(other)})` (from every other `HttpTransportFailure`
+  kind). `err("http-response-invalid", {stage})` is contract-reserved
+  vocabulary this ticket never constructs: #623's transport response is
+  always structurally well-formed by construction (an `int` status, a
+  `dict[str,str]` headers map, `bytes` body), and #624 performs no
+  automatic decode/validation of `response.body` that could discover an
+  "invalid" observation — decode is explicitly the caller's own later
+  step.
+- The query string is assembled deterministically from `operation.query`:
+  entries sorted by key, each `key=value` pair with every byte outside
+  `ALPHA/DIGIT/-._~` percent-encoded from its UTF-8 bytes (space becomes
+  `%20`), pairs joined by `&`, the whole thing prefixed with `?` only
+  when `query` is non-empty — the exact table the E14-0 contract reserved
+  for this ticket. `operation.body`'s `{kind: quote(text), text}` encodes
+  as UTF-8 bytes; `{kind: quote(json), value}` encodes through the same
+  `json_encode` capability #622 already used once to fail fast at
+  construction time (called again here to obtain the actual bytes, since
+  `http_operation` does not persist pre-encoded bytes); `none(...)`
+  encodes as zero bytes. `operation.headers`' implicit-vs-explicit
+  content-type precedence was already resolved by `http_operation` (#622)
+  and is not revisited here.
+- `web.http_send` has no scope-handle argument and creates no
+  ambient/global lifecycle: its internal `LifecycleInstance` has no
+  caller-visible parent (there is nothing in the fixed 3-argument
+  signature to attach to as a literal parent-linked child); "one HTTP
+  operation executes as one child lifecycle instance" is satisfied by
+  running exactly one complete entry/work/unwind cycle per call, with
+  containment of any resulting failure coming from the ordinary
+  Outcome-returning-value composition already used when `web.http_send`
+  is called from inside another scope's `work` (the shape #627 proves) —
+  R14 adds no second pipeline state machine or HTTP-specific scope kind.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/http_client.py` (new): `perform_http_send(operation,
+  authority, timeout_ms, json_encode, invoke, transport=None)` implements
+  the algorithm above. `json_encode`/`invoke` are injected dependencies
+  (the same style `construct_http_operation`/`run_lifecycle_scope`
+  already use); `declassify` and `send_http_request` are imported
+  directly, since both are standalone functions with no `builtins.py`
+  closure dependency. All misuse validation (operation/authority/
+  timeout_ms shape, protected-header declassification) runs *before* any
+  internal lifecycle scope opens, so a raised `TypeError` propagates
+  directly to the caller rather than being silently normalized into an
+  ordinary `LifecycleResult` by the scope machinery's own
+  exception-to-`primary_failure` handling — only the one transport
+  attempt (a genuinely recoverable failure mode) runs inside the internal
+  `run_lifecycle_scope` call, in a single reserved peer whose `enter`
+  performs the send/receive and whose `work` reads the captured result
+  back via the existing `lifecycle_context` accessor.
+- `src/genia/builtins.py`: `http_send_fn` delegates to `perform_http_send`
+  and is registered as the private `_http_send` (mirroring
+  `_serve_http`/`_with_headers`/`_cors`'s existing
+  underscore-prefixed-builtin pattern; no `host_builtin_docs.py`
+  `_PUBLIC_DOCS` entry, matching those three). Set
+  `__genia_handles_none__ = True` — required because a legitimate
+  `none("nil")` `authority` argument is the *common* case (any call with
+  no protected header), not an edge case, so without this marker Genia's
+  general none-propagation convention would silently short-circuit every
+  such call into `none("nil")` instead of performing the request (the
+  same bug class #622 caught with `json_encode`/`http_operation`).
+  `src/genia/std/prelude/web.genia` adds the public
+  `http_send(operation, authority, timeout_ms) = _http_send(...)` wrapper
+  with its own `@doc` block, exactly mirroring `serve_http`/
+  `with_headers`/`cors`.
+- Validated by 26 tests in the new `tests/unit/test_http_send.py`: any
+  received status returns an ordinary response (never a failure); exactly
+  one transport call per `http_send` invocation; all 5
+  `HttpTransportFailure` kinds mapped to the correct reason; malformed
+  `operation`/`authority`/`timeout_ms` raise (not normalized); a
+  protected header with a missing or mismatched authority raises via the
+  existing `declassify`; a protected header with a matching authority is
+  declassified, reaches the fake transport as its plain string, and never
+  appears in the returned response or any string rendering of it; exact
+  query percent-encoding (reserved characters, space, `/`, `&`); exact
+  `text`/`json`/`none` body encoding; response header keys lowercased;
+  response body is `GeniaBytes` not a plain string; and one real
+  `run_source` + real-loopback-server end-to-end test (registered in
+  `tests/doc/test_loopback_pytest_partition.py`'s exact inventory). No
+  change to `lifecycle_runtime.py`, `http_operation.py`,
+  `http_transport.py`, or `configuration.py`. No new host capability is
+  introduced (#624 only consumes #623's existing one); shared/multi-host
+  conformance remains Partial.
+
+Explicit limitations:
+
+- No `@get`/`@post` verb annotations, inbound server/request integration,
+  or YouVersion-specific behavior (see #625-#628).
+- No retries, circuit breakers, redirect-following beyond "none",
+  connection pooling, or streaming client API — one synchronous attempt
+  only, per the approved contract's non-goals.
+- Constructing a `GeniaDeclassificationAuthority` from ordinary Genia
+  source is not possible — exactly like R11's `model` credential/
+  authority, it is always an opaque, externally host-injected value; this
+  is unchanged by #624 and is not a gap this ticket needs to close.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
