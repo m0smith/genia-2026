@@ -127,6 +127,7 @@ if __package__ in (None, ""):
         _stage_cell_action,
         GeniaBytes,
         GeniaCell,
+        GeniaConfigProvider,
         GeniaFlow,
         GeniaFormat,
         GeniaOptionErr,
@@ -237,6 +238,7 @@ else:
         _stage_cell_action,
         GeniaBytes,
         GeniaCell,
+        GeniaConfigProvider,
         GeniaFlow,
         GeniaFormat,
         GeniaOptionErr,
@@ -697,6 +699,21 @@ def make_global_env(
 
     def lifecycle_context_fn(scope_handle: Any, name: Any) -> Any:
         return lookup_lifecycle_context(scope_handle, name)
+
+    def lifecycle_config_fn(provider: Any) -> Any:
+        if not isinstance(provider, GeniaConfigProvider):
+            raise TypeError(
+                f"lifecycle_config expected a configuration provider, "
+                f"received {_runtime_type_name(provider)}"
+            )
+
+        def enter(scope_handle: Any) -> Any:
+            return GeniaOptionSome(provider)
+
+        def exit_(scope_handle: Any, primary_summary: Any) -> Any:
+            return GeniaOptionSome("nil")
+
+        return GeniaMap().put("name", symbol("config")).put("enter", enter).put("exit", exit_)
 
     def lifecycle_repeat_fn(peers: Any, source: Any, element_work: Any) -> Any:
         ensure_seq_compatible_fn("lifecycle_repeat", source)
@@ -4531,6 +4548,9 @@ def make_global_env(
     )
     env.set(
         "lifecycle_repeat", _host_function_group("lifecycle_repeat", 3, lifecycle_repeat_fn)
+    )
+    env.set(
+        "lifecycle_config", _host_function_group("lifecycle_config", 1, lifecycle_config_fn)
     )
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(

@@ -30,10 +30,11 @@ def test_lifecycle_config_view_matches_hand_threaded_provider():
     src = """
     provider = config_provider([{kind: quote(values), values: {SERVER_PORT: "8080"}}]) |> unwrap_or(none)
     peer = lifecycle_config(provider)
-    lifecycle_scope([peer], (root) -> {
+    outcome = lifecycle_scope([peer], (root) -> {
       bound = unwrap_or(none, lifecycle_context(root, quote(config)))
       config_view(bound, "SERVER_")("PORT")
-    }).result
+    })
+    outcome.result
     """
     value = _run(src)
 
@@ -46,10 +47,11 @@ def test_lifecycle_config_secret_view_matches_hand_threaded_provider_and_redacts
     env.set("provider", provider)
     src = """
     peer = lifecycle_config(provider)
-    lifecycle_scope([peer], (root) -> {
+    outcome = lifecycle_scope([peer], (root) -> {
       bound = unwrap_or(none, lifecycle_context(root, quote(config)))
       secret_view(bound, "OPENAI_", quote(model_call))("TOKEN")
-    }).result
+    })
+    outcome.result
     """
     value = _run(src, env)
 
@@ -72,13 +74,14 @@ def test_lifecycle_config_minimal_end_to_end_through_child_scope():
     src = """
     provider = config_provider([{kind: quote(values), values: {APP_PORT: "9090"}}]) |> unwrap_or(none)
     config_peer = lifecycle_config(provider)
-    lifecycle_scope([config_peer], (root) -> {
+    outcome = lifecycle_scope([config_peer], (root) -> {
       child_result = lifecycle_child(root, [], (req) -> {
         bound = unwrap_or(none, lifecycle_context(req, quote(config)))
         config_view(bound, "APP_")("PORT")
       })
       child_result.result
-    }).result
+    })
+    outcome.result
     """
     value = _run(src)
 

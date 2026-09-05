@@ -69,6 +69,7 @@ _PUBLIC_DOCS = (
     _public("index", "Construct an opaque retrieval index through an explicit provider boundary.", "Retrieval", "index(provider, config, credential, authority)", stability="Experimental"),
     _public("input", "Read one line from standard input.", "I/O", "input()"),
     _public("lifecycle_child", "Run a child execution scope nested under an active parent scope handle.", "Lifecycle", "lifecycle_child(scope_handle, peers, work)", stability="Experimental"),
+    _public("lifecycle_config", "Bind an already-constructed configuration provider as a reserved, non-shadowable lifecycle peer.", "Lifecycle", "lifecycle_config(provider)", stability="Experimental"),
     _public("lifecycle_context", "Read inward-only lifecycle context exposed by an entered peer or an ancestor scope.", "Lifecycle", "lifecycle_context(scope_handle, name)", stability="Experimental"),
     _public("lifecycle_repeat", "Run a fresh element execution scope for each consumed list or flow element, exposing reserved element/index context.", "Lifecycle", "lifecycle_repeat(peers, source, element_work)", stability="Experimental"),
     _public("lifecycle_scope", "Run a fresh root execution scope through explicit peer definitions and one work callable.", "Lifecycle", "lifecycle_scope(peers, work)", stability="Experimental"),
