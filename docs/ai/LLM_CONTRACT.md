@@ -97,8 +97,8 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
 R14 is in progress; its E14-0 contract is approved and
-E14-1 through E14-9 (issues #621, #692, #693, #694,
-#622, #623, #624, #625, #626) are implemented — see the R14 entry below. E14-10 and
+E14-1 through E14-10 (issues #621, #692, #693, #694,
+#622, #623, #624, #625, #626, #627) are implemented — see the R14 entry below. E14-11 and
 later slices remain planned, not implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
@@ -191,12 +191,18 @@ When an LLM agent is asked for new Genia work:
    does not lock E14-9's exact shape, so #626 designed it itself,
    following `@route`'s established annotation precedent: annotating a
    function never changes how it is called, only the explicit
-   `send_annotated` call performs IO)
-   are implemented. E14-10 (#627, server/request/outbound-client
-   composition) is the next implementation gate.
-   Do not infer any verb beyond `get`/`post`, or server/request/outbound-client
-   composition from the
-   roadmap or contract — those remain planned. Preserve the
+   `send_annotated` call performs IO), and E14-10 (#627,
+   server/request/outbound-client composition — proof, with **zero
+   runtime-code change**, that an R8 route handler can call
+   `web.http_send`/`web.send_annotated` any number of times per request
+   while the server stays active; `server_lifecycle.py` and
+   `lifecycle_runtime.py` remain architecturally separate, confirmed by
+   direct code reading, not merged or rewired)
+   are implemented. E14-11 is the next implementation gate.
+   Do not infer any verb beyond `get`/`post`, concurrent serving
+   guarantees, or a literal nested-scope rewire of the server lifecycle
+   from the
+   roadmap or contract — those remain planned or explicitly rejected. Preserve the
    implemented/planned
    boundary: one lifecycle model, no global mutable current lifecycle,
    attachment order distinct from parentage, scoped context distinct from
@@ -204,11 +210,12 @@ When an LLM agent is asked for new Genia work:
    transformations unchanged, inert annotations (including `@get`/`@post`,
    which never trigger IO merely by existing or being loaded), no
    import/load activation,
-   R10/R13 configuration and protection unchanged, and the outbound
+   R10/R13 configuration and protection unchanged, R7/R8 server/routing/CORS
+   behavior unchanged, and the outbound
    transport/client/annotation capability limited to the narrow mechanism
    E14-6/E14-7/E14-9
    implemented (no retries, redirects, pooling, further verbs, or
-   server integration). The AWK-like record example is a
+   a second server/routing mechanism). The AWK-like record example is a
    future-regret pressure test, not approval for `$1`, `NR`, or an AWK mode.
    Follow `docs/design/r14-composable-lifecycle-contract.md` and
    `docs/strategy/r14-composable-lifecycles.md`.

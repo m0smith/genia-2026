@@ -862,8 +862,8 @@ E13-8 completed the release audit/distillation without runtime behavior.
 ## Release R14 — Composable Lifecycles
 
 **Status: In progress; E14-0 contract approved and
-E14-1 through E14-9 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626).** R14 is explicitly approved infrastructure work with one direct
+E14-1 through E14-10 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627).** R14 is explicitly approved infrastructure work with one direct
 record-pipeline proving path. The release epic is **#619**. Its contract
 is `docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements
 the HTTP-free lifecycle instance/parent-child execution-scope core
@@ -888,11 +888,15 @@ resulting protected-HTTP-credential-sink behavior at comprehensive
 regression breadth with zero runtime-code change; E14-9 adds `@get`/
 `@post` inert declarative annotations plus `web.send_annotated`,
 composing the unchanged E14-5/E14-7 surface, designing the exact
-annotation shape itself since the contract left it unspecified. No R14
+annotation shape itself since the contract left it unspecified; E14-10
+proves an R8 route handler can create outbound HTTP client lifecycle
+instances while the server stays active, with zero runtime-code change
+— R8's `server_lifecycle.py` and R14's `lifecycle_runtime.py` remain
+architecturally separate. No R14
 behavior
-beyond E14-1 through E14-9 is implemented merely
+beyond E14-1 through E14-10 is implemented merely
 because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
-sections 9.8-9.16.
+sections 9.8-9.17.
 
 Theme:
 
@@ -987,7 +991,7 @@ Approved R14 issue path:
 8. **#624 — E14-7 (implemented):** outbound HTTP client lifecycle
 9. **#625 — E14-8 (implemented, zero runtime-code change):** protected HTTP credential sinks
 10. **#626 — E14-9 (implemented):** declarative outbound HTTP annotations
-11. **#627 — E14-10:** server/request/outbound-client composition
+11. **#627 — E14-10 (implemented, zero runtime-code change):** server/request/outbound-client composition
 12. **#695 — E14-11:** repeated record lifecycle proving case
 13. **#628 — E14-12:** YouVersion Bible proxy proving application
 14. **#696 — E14-13:** cross-mode lifecycle and HTTP hardening

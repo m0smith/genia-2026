@@ -830,8 +830,14 @@ as "Current release: R14" only after this contract records explicit GO.
     IO. The exact annotation shape was not locked by this contract and
     was designed by #626 itself, following `@route`'s established
     precedent; see `GENIA_STATE.md` section 9.16.
-11. **#627 — E14-10:** server/request/outbound-client composition (nesting
-    E14-7 client children under R8 request scopes via E14-1/E14-2).
+11. **#627 — E14-10 (implemented, zero runtime-code change):**
+    server/request/outbound-client composition — proved that an R8
+    route handler (an ordinary function) can call `web.http_send`/
+    `web.send_annotated` any number of times without the server's own
+    `server_lifecycle.py` needing any dependency on E14-1's
+    `lifecycle_runtime.py` (confirmed architecturally separate by direct
+    code reading); composition is behavioral, not a literal object-graph
+    nesting of scopes.
 12. **#695 — E14-11:** repeated record lifecycle proving case (over E14-3 +
     E14-2, no AWK syntax).
 13. **#628 — E14-12:** YouVersion Bible proxy proving application (over
@@ -866,17 +872,18 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-10 preflight only**, now that issue #626 has implemented and
-tested E14-9 against this contract — the exact `@get`/`@post`/
-`send_annotated` shape was designed by #626 itself, since this contract
-did not lock it, following `@route`'s established annotation precedent.
+**GO for E14-11 preflight only**, now that issue #627 has proven E14-10
+against this contract (zero runtime-code change; `server_lifecycle.py`
+and `lifecycle_runtime.py` remain architecturally separate, and
+composition works because R8 route handlers are ordinary functions).
 This document
 itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
 documentation beyond what #621, #692, #693, #694, #622, #623, #624, #625,
-and #626 have already landed and `GENIA_STATE.md` sections 9.8-9.16 record.
+#626, and #627 have already landed and `GENIA_STATE.md` sections 9.8-9.17
+record.
 Every later E14 ticket must name
-#620/#621/#692/#693/#694/#622/#623/#624/#625/#626 and its own
+#620/#621/#692/#693/#694/#622/#623/#624/#625/#626/#627 and its own
 earlier dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10

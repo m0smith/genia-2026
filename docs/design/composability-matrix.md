@@ -111,12 +111,17 @@ E12-9 is audit/distillation only. See
 
 These rows constrain R14 work. Each row's Status column records whether
 that composition boundary is implemented or still planning-only, per
-`GENIA_STATE.md` sections 9.8-9.16 (final authority); see
+`GENIA_STATE.md` sections 9.8-9.17 (final authority); see
 `r14-composable-lifecycle-contract.md` for the full approved contract.
 E14-6 (#623) adds one narrow Python-host outbound HTTP transport
 capability with no Genia-visible surface of its own — it composes with no
 Genia value and adds no row to this matrix; see `GENIA_STATE.md` section
 9.13 and `docs/host-interop/capabilities.md`'s `http.transport` entry.
+E14-10 (#627) proves the "parent/child execution scope" and "outbound
+HTTP operation/client" rows below compose correctly when an R8 route
+handler invokes the latter — a behavioral proof over the existing rows,
+adding no new Genia value relationship and no new row; see
+`GENIA_STATE.md` section 9.17.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
