@@ -8,7 +8,7 @@ from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
 from genia.http_client import perform_http_send
 from genia.http_operation import construct_http_operation
-from genia.http_transport import HttpTransportFailure, HttpTransportRequest, HttpTransportResponse
+from genia.http_transport import HttpTransportFailure, HttpTransportResponse
 from genia.interpreter import run_source
 from genia.values import (
     GeniaBytes,

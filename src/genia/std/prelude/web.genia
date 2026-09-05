@@ -195,3 +195,29 @@ bad_request(message) = response(400, text_headers(), message)
 - response map with status `404`, plain-text content type, and body `"not found"`
 """
 not_found() = response(404, text_headers(), "not found")
+
+@doc """Perform one outbound HTTP request as one lifecycle instance.
+
+## Arguments
+- `operation`: an `HttpOperation` value built by `http_operation(...)`
+- `authority`: `none(...)` when `operation`'s headers carry no protected
+  value, or `some(authority)` — an opaque R10 declassification authority —
+  when they do
+- `timeout_ms`: integer timeout in `1..300000`
+
+## Returns
+- `some({status, headers, body})` for any status the server actually
+  returned (`body` is an opaque bytes value), or a normalized
+  `err("http-timeout", {timeout_ms})` / `err("http-transport-failure",
+  {kind})` / `err("http-response-invalid", {stage})` failure
+
+## Notes
+- exactly one synchronous transport attempt is made: no retry, no
+  redirect, no connection pooling
+- a protected header value is declassified only immediately before that
+  one attempt; a missing or mismatched `authority` when a protected
+  header is present is runtime misuse, not a normalized failure
+- decoding `body` (`utf8_decode`, `json_decode`, ...) is the caller's own
+  explicit step, never automatic
+"""
+http_send(operation, authority, timeout_ms) = _http_send(operation, authority, timeout_ms)
