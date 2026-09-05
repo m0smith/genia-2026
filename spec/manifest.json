@@ -62,6 +62,7 @@
     "repl",
     "flow_phase_1",
     "http_server",
+    "http_outbound_transport",
     "allowlisted_host_interop",
     "refs",
     "process_primitives",

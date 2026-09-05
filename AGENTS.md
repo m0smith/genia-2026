@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1/E14-2/E14-3/E14-4/E14-5 are implemented (issues #621, #692, #693,
-#694, #622).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1/E14-2/E14-3/E14-4/E14-5/E14-6 are implemented (issues #621, #692,
+#693, #694, #622, #623).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -230,12 +230,20 @@ validating all six fields in declared order (method/base_url/path/
 headers/query/body) and injecting an implicit `content-type` header only
 when `body` validates and none is already set. This is the first R14-HTTP
 ticket and adds no host capability at all — `web.http_send`/transport
-remain later tickets. No R14 behavior beyond E14-1/E14-2/E14-3/E14-4/E14-5
+remain later tickets. E14-6 adds `send_http_request(request,
+transport=None)` in `src/genia/http_transport.py`: one narrow Python-host
+capability making exactly one synchronous `urllib.request` attempt, no
+redirects/retries, normalizing every failure to a closed
+`kind` in `{timeout, connect, tls, dns, other}` with no raw exception text
+crossing the boundary. It adds no Genia-visible surface at all — no
+builtin, no `import` entry — and is consumed only privately by the later
+`web.http_send` ticket. No R14 behavior beyond
+E14-1/E14-2/E14-3/E14-4/E14-5/E14-6
 is implemented merely because its roadmap, issues, or contract exist.
-E14-6 (#623, Python host outbound HTTP transport capability) is the next
+E14-7 (#624, outbound HTTP client lifecycle) is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.12.
+9.8-9.13.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
