@@ -112,6 +112,7 @@ nav:
           - "stdin": reference/functions/stdin.md
       - Lifecycle:
           - "lifecycle_child": reference/functions/lifecycle_child.md
+          - "lifecycle_config": reference/functions/lifecycle_config.md
           - "lifecycle_context": reference/functions/lifecycle_context.md
           - "lifecycle_repeat": reference/functions/lifecycle_repeat.md
           - "lifecycle_scope": reference/functions/lifecycle_scope.md

@@ -1,12 +1,12 @@
 # R14 Composable Lifecycle Contract
 
-Status: **Approved contract. E14-1 (issue #621), E14-2 (issue #692), and
-E14-3 (issue #693) are implemented against this document; E14-4 and later
-slices remain not implemented.**
+Status: **Approved contract. E14-1 (issue #621), E14-2 (issue #692), E14-3
+(issue #693), and E14-4 (issue #694) are implemented against this document;
+E14-5 and later slices remain not implemented.**
 
 This document fixes the semantic boundary for R14 tickets. It is not itself
-implemented-behavior documentation — see `GENIA_STATE.md` sections 9.8-9.10
-for what E14-1 through E14-3 actually implement.
+implemented-behavior documentation — see `GENIA_STATE.md` sections 9.8-9.11
+for what E14-1 through E14-4 actually implement.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
 ## Purpose
@@ -804,8 +804,11 @@ as "Current release: R14" only after this contract records explicit GO.
    execution (`lifecycle_repeat` over List and Flow, reserved
    element/index context), composed with no change to the E14-1/E14-2
    entry/work/unwind algorithm.
-5. **#694 — E14-4:** lifecycle-owned configuration provider binding
-   (`lifecycle_config`, reservation/non-shadowing, R10/R13 preservation).
+5. **#694 — E14-4 (implemented):** lifecycle-owned configuration provider
+   binding (`lifecycle_config`, reservation/non-shadowing, R10/R13
+   preservation), with no change to the E14-1/E14-2/E14-3 core — the
+   reserved-name enforcement is inherited entirely from the existing
+   non-shadowing mechanism.
 6. **#622 — E14-5:** common HTTP operation representation (`http_operation`,
    `HttpOperation`, construction grammar, no IO).
 7. **#623 — E14-6:** Python host outbound HTTP transport capability (the one
@@ -852,12 +855,12 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-4 preflight only**, now that issue #693 has implemented and
-tested E14-3 against this contract. This document itself authorizes no
+**GO for E14-5 preflight only**, now that issue #694 has implemented and
+tested E14-4 against this contract. This document itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
-documentation beyond what #621, #692, and #693 have already landed and
-`GENIA_STATE.md` sections 9.8-9.10 record. Every later E14 ticket must name
-#620/#621/#692/#693 and its own earlier dependencies, distinguish
+documentation beyond what #621, #692, #693, and #694 have already landed and
+`GENIA_STATE.md` sections 9.8-9.11 record. Every later E14 ticket must name
+#620/#621/#692/#693/#694 and its own earlier dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10
 protected semantics, and R13 provider/view semantics exactly as this

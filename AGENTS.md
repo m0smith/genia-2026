@@ -195,10 +195,10 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1/E14-2/E14-3 are implemented (issues #621, #692, #693).** R14 is
-scoped to one lifecycle model with parent/child execution scopes,
-deterministic peer lifecycle attachments, repeated element scopes over
-eager and lazy pipelines, one explicit R10/R13 provider binding, and
+and E14-1/E14-2/E14-3/E14-4 are implemented (issues #621, #692, #693,
+#694).** R14 is scoped to one lifecycle model with parent/child execution
+scopes, deterministic peer lifecycle attachments, repeated element scopes
+over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
 HTTP-free instance/scope core: `lifecycle_scope`, `lifecycle_child`,
 `lifecycle_context`, the scope lifetime state machine, and the
@@ -212,19 +212,24 @@ one fresh element scope per consumed List (eager, exhaustive) or Flow (lazy,
 no-over-pull, single-use) element, with reserved `quote(element)`/
 `quote(index)` context populated before any peer's own `enter` runs, and
 early-close cleanup reduced to the existing Flow finalization rule — no new
-list/Flow mechanism. The record-oriented proving case (#695) must still
-show multiple peer lifecycles per element without adding AWK syntax or
-replacing Flow/Seq/Outcome transformations. Preserve the boundaries that
-lifecycle context is not mutable lexical state, attachment order is not
-parentage, expired element context does not leak through lazy values,
-annotations remain inert, import/load performs no lifecycle or network
-activation, and protected HTTP sinks do not weaken R10. No R14 behavior
-beyond E14-1/E14-2/E14-3 is implemented merely because its roadmap, issues,
-or contract exist. E14-4 (#694, lifecycle-owned configuration provider
-binding) is the next gate. See
+list/Flow mechanism. E14-4 adds `lifecycle_config(provider)`: a pure
+factory validating an already-constructed R10/R13 `GeniaConfigProvider` and
+returning one reserved `quote(config)` peer whose `enter` captures (never
+acquires) the provider; reserved-name non-shadowing is inherited entirely
+from the existing peer-list mechanism, so this adds zero change to
+`lifecycle_runtime.py` or `configuration.py`. The record-oriented proving
+case (#695) must still show multiple peer lifecycles per element without
+adding AWK syntax or replacing Flow/Seq/Outcome transformations. Preserve
+the boundaries that lifecycle context is not mutable lexical state,
+attachment order is not parentage, expired element context does not leak
+through lazy values, annotations remain inert, import/load performs no
+lifecycle or network activation, and protected HTTP sinks do not weaken
+R10. No R14 behavior beyond E14-1/E14-2/E14-3/E14-4 is implemented merely
+because its roadmap, issues, or contract exist. E14-5 (#622, common HTTP
+operation representation) is the next gate. See
 `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.10.
+9.8-9.11.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

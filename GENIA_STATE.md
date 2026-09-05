@@ -638,7 +638,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - E13-8 adds no runtime behavior: its release-wide truth audit verifies the approved boundary, focused/shared/native/documentation/full-suite evidence, protected-value exclusions, and canonical release status
   - R13 is release-complete through E13-8 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
 
-- R14 lifecycle instance, parent/child execution scopes, peer attachment breadth, and repeated element scopes (Experimental, issues #621, #692, #693)
+- R14 lifecycle instance, parent/child execution scopes, peer attachment breadth, repeated element scopes, and configuration provider binding (Experimental, issues #621, #692, #693, #694)
   - R14 E14-1 adds `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_context(scope_handle, name)` as the first implemented slice of the approved E14-0 composable-lifecycle contract (`docs/design/r14-composable-lifecycle-contract.md`)
   - a peer is an ordinary closed map `{name: symbol, enter: callable/1, exit: callable/2}`; peers on one scope operation enter in list order and unwind in strict reverse order, every entered peer's `exit` runs exactly once regardless of earlier exit failures, and the first non-cleanup failure is always the scope's one `primary_failure` while every later exit failure is preserved in `cleanup_failures`
   - `work`'s return value is carried into the closed `LifecycleResult` verbatim and is never inspected for `some`/`none`/`err`; the only way `work` produces a lifecycle failure is by raising, normalized exactly like R8 lifecycle exceptions
@@ -647,9 +647,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - a scope handle is valid only while its scope is `entering`/`active`/`exiting`; any later use (or `lifecycle_child` on a handle that is not `active`) raises a runtime-misuse `RuntimeError`, the same family as an already-consumed Flow
   - R14 E14-2 (issue #692) proves the same entry/work/unwind algorithm at three-or-more-peer breadth: deterministic enter/reverse-unwind order, entry failure at any position unwinding only the already-entered prefix, multiple exit failures promoting the first encountered and appending the rest in exit-call order, later-only context visibility, an `exit` `primary_summary` that never carries another peer's context, and attachment order proven independent of ancestor depth — see section 9.9. E14-2 adds no new public function or runtime behavior; `src/genia/lifecycle_runtime.py` is unchanged from E14-1
   - R14 E14-3 (issue #693) adds `lifecycle_repeat(peers, source, element_work)`: a fresh "element" scope per consumed `list` (eager, exhaustive) or `Flow` (lazy, single-use, no-over-pull) element, running the same unchanged entry/work/unwind algorithm with two reserved context names — `quote(element)` (the consumed value) and `quote(index)`, its 1-based pull ordinal — populated before any attached peer's own `enter` runs. A peer literally named `element` or `index` is rejected before any `enter`, by the same non-shadowing mechanism as ancestor context. Early Flow termination reduces to the existing Flow/source `close_on_early_termination` finalization rule — no new finalization mechanism — because each yielded `LifecycleResult` reflects an element scope already fully entered and unwound before it is yielded. See section 9.10
-  - E14-1/E14-2/E14-3 add no `lifecycle_config`, HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#694-#630)
+  - R14 E14-4 (issue #694) adds `lifecycle_config(provider) -> LifecycleDefinition`: a pure factory validating `provider` is an already-constructed `GeniaConfigProvider` and returning one ordinary peer reserved under `name: quote(config)`, whose `enter` always returns `some(provider)` (capture, no acquisition) and whose `exit` always returns `some("nil")` (nothing to release). The bound provider is read inward-only via the unchanged `lifecycle_context(handle, quote(config))`, then used exactly as an explicitly hand-threaded provider would be — `config_view`/`secret_view`/`config_get`/`secret_get`, Outcomes, protected carriers, sinks, authority, and declassification are entirely unchanged. At most one `lifecycle_config` peer may exist anywhere in one root/child/element ancestry chain — enforced entirely by the *existing*, unmodified duplicate-peer-name and ancestor-non-shadowing checks, since `lifecycle_config` always hardcodes the reserved name; sibling scope trees may each bind their own. `src/genia/lifecycle_runtime.py` and `src/genia/configuration.py` are unchanged. See section 9.11
+  - E14-1/E14-2/E14-3/E14-4 add no HTTP operation/client, peer-attachment ordering syntax, parser/AST/Core IR change, or ambient/global current-scope state; those remain later R14 tickets (#622-#630)
   - LANGUAGE CONTRACT: the six required default invariants (no global mutable current-scope switch; contained child failure; explicit child result/failure propagation; child-owned resource finalization inside one synchronous call; untouched parent-owned resources; inward-only non-shadowed context) are implemented exactly as locked by the E14-0 contract
-  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (43 tests) and `tests/unit/test_lifecycle_repeat.py` (15 tests), Python reference host only; shared/multi-host conformance remains Partial
+  - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (53 tests), `tests/unit/test_lifecycle_repeat.py` (15 tests), and `tests/unit/test_lifecycle_config.py` (4 tests), Python reference host only; shared/multi-host conformance remains Partial
 
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
@@ -3090,7 +3091,7 @@ Explicit limitations:
 
 ## 9.8) R14 E14-1 lifecycle instance and parent/child execution scopes
 
-Status: Implemented. The vertical-composition instance/scope core (issue #621) is implemented as Experimental, portable, Python-reference-host-only behavior. It is the first implemented slice of the approved R14 contract (`docs/design/r14-composable-lifecycle-contract.md`, approved by issue #620). Horizontal peer-attachment breadth is proven by issue #692 over this same core — see section 9.9. `lifecycle_repeat`/element scopes remain #693, provider binding remains #694, and HTTP remains #622-#628 — none of that is implemented yet.
+Status: Implemented. The vertical-composition instance/scope core (issue #621) is implemented as Experimental, portable, Python-reference-host-only behavior. It is the first implemented slice of the approved R14 contract (`docs/design/r14-composable-lifecycle-contract.md`, approved by issue #620). Horizontal peer-attachment breadth is proven by issue #692 over this same core — see section 9.9. `lifecycle_repeat`/element scopes are implemented by issue #693 — see section 9.10. Provider binding is implemented by issue #694 — see section 9.11. HTTP remains #622-#628 — not implemented yet.
 
 LANGUAGE CONTRACT:
 
@@ -3142,7 +3143,7 @@ PYTHON REFERENCE HOST:
 
 Explicit limitations:
 
-- No `lifecycle_config`, HTTP operation/client, reserved config context name, or provider binding is implemented (see issues #694, #622-#628). `lifecycle_repeat` and element scopes are implemented by issue #693 — see section 9.10.
+- No HTTP operation/client is implemented (see issues #622-#628). `lifecycle_repeat` and element scopes are implemented by issue #693 — see section 9.10. `lifecycle_config`/provider binding is implemented by issue #694 — see section 9.11.
 - No generalized lifecycle-plan/action-identifier runner, dependency injection, scheduler, actor supervision, or concurrent peer/child execution is defined.
 
 ## 9.10) R14 E14-3 repeated element-scoped lifecycle execution
@@ -3237,8 +3238,9 @@ PYTHON REFERENCE HOST:
 
 Explicit limitations:
 
-- No `lifecycle_config`, HTTP operation/client, or provider binding is
-  implemented (see issues #694, #622-#628).
+- No HTTP operation/client is implemented (see issues #622-#628).
+  `lifecycle_config`/provider binding is implemented by issue #694 — see
+  section 9.11.
 - No AWK syntax, `$0`/`$1`/`NR`/`NF` binding, or record-shape derivation —
   `quote(element)`/`quote(index)` are read through the ordinary
   `lifecycle_context` accessor only; a future record-oriented lifecycle
@@ -3247,6 +3249,93 @@ Explicit limitations:
 - No generalized lifecycle-plan/action-identifier runner, dependency
   injection, scheduler, actor supervision, or concurrent element
   processing is defined.
+
+## 9.11) R14 E14-4 lifecycle-owned configuration provider binding
+
+Status: Implemented. Issue #694 adds one new ordinary function,
+`lifecycle_config(provider) -> LifecycleDefinition`, a pure factory
+composing the *unmodified* E14-1/E14-2/E14-3 peer machinery (sections
+9.8-9.10) with the existing R10/R13 `GeniaConfigProvider` type, per the
+approved R14 contract's "Lifecycle-owned configuration binding" section
+(`docs/design/r14-composable-lifecycle-contract.md`). This promotes
+candidate C-1 from `docs/parking-lot/post-r13-configuration-followups.md`
+(the R13 lifecycle/provider-binding gap deliberately deferred at the time).
+
+LANGUAGE CONTRACT:
+
+- `lifecycle_config(provider)` validates that `provider` is an existing,
+  already-constructed `GeniaConfigProvider` value — the unwrapped result
+  of a successful `config_provider`/`config_standard` call — and returns
+  exactly one closed peer map `{name: quote(config), enter: callable/1,
+  exit: callable/2}`. Any other argument shape (a plain map, a string,
+  `none`, an un-unwrapped `some(provider)`, an `err(...)`) raises
+  `TypeError` before any scope/peer machinery runs.
+- `enter(scope_handle)` always returns `some(provider)`: it captures the
+  exact provider reference and performs no lookup, no source acquisition,
+  no host capability call, and no provider refresh — binding is
+  attachment, not acquisition.
+- `exit(scope_handle, primary_summary)` always returns `some("nil")`:
+  there is nothing to release.
+- The bound provider is read, inward-only, by any peer or `work`/
+  `element_work` in the same scope or any descendant scope, through the
+  unchanged `lifecycle_context(handle, quote(config))` accessor — no new
+  accessor is introduced. The value returned is the exact provider object
+  (not a copy), so `config_view`/`secret_view` construction,
+  `config_get`/`secret_get`, existing Outcomes, protected carriers, sinks,
+  authority, and declassification behave exactly as an explicitly
+  hand-threaded provider would.
+- `quote(config)` is a reserved, non-shadowable peer name: at most one
+  `lifecycle_config` peer may exist anywhere in one root/child/element
+  ancestry chain. A second attempt anywhere in that chain is
+  construction-time misuse. This is enforced entirely by the *already-
+  implemented, unmodified* `_validate_peers` duplicate-peer-name-in-one-list
+  check and ancestor-non-shadowing check (sections 9.8-9.9) — because
+  `lifecycle_config` always hardcodes `name: quote(config)`, no new
+  reserved-name mechanism was needed. Sibling scope trees (not
+  ancestor-related) may each bind their own provider independently.
+  Element scopes have no R14 parent (section 9.10), so a provider bound at
+  an outer scope is not automatically inherited into `lifecycle_repeat`'s
+  per-element scopes; an application wanting every element to see a
+  provider attaches `lifecycle_config(provider)` inside the same `peers`
+  list passed to `lifecycle_repeat`.
+- A missing binding (`lifecycle_context` on `quote(config)` with no
+  `lifecycle_config` peer anywhere in the chain) returns the existing
+  generic `none("lifecycle-context-absent")` — no new failure reason.
+- No bare configuration name, ambient lookup, or `server.PORT`-style named
+  access is introduced. This is R14's entire configuration surface: one
+  explicit, immutable, non-refreshable binding — not dependency injection,
+  not a service container, and not a second provider implementation.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/builtins.py`: `lifecycle_config_fn` validates
+  `isinstance(provider, GeniaConfigProvider)` and constructs the peer map
+  with trivial Python-closure `enter`/`exit` (no genia source involved in
+  their construction). Registered as `lifecycle_config`, documented in
+  `host_builtin_docs.py`. **No change to `src/genia/lifecycle_runtime.py`
+  or `src/genia/configuration.py`.**
+- Validated by 9 additional tests in `tests/unit/test_lifecycle_runtime.py`
+  (53 tests total in that file — peer shape, non-provider rejection, exact-
+  object context identity, grandchild visibility, duplicate/shadowing
+  rejection in both a shared list and across parent/child, sibling
+  scope-tree independence, element-scope binding, missing-binding absence,
+  and N-peer composition, all via the trivial injected invoker) and 4 tests
+  in the new `tests/unit/test_lifecycle_config.py` (through real Genia
+  source via `run_source`: `config_view`/`secret_view` parity with a
+  hand-threaded provider, protected-secret redaction under `display`/
+  `debug_repr`, an end-to-end bind-then-read-from-child-scope proof, and
+  rejection of an unwrapped `some(provider)` argument), Python reference
+  host only. No host capability is introduced; shared/multi-host
+  conformance remains Partial.
+
+Explicit limitations:
+
+- No HTTP operation/client is implemented (see issues #622-#628).
+- No provider refresh, mutation, service container, or dependency-injection
+  framework is defined — `lifecycle_config` is one explicit, immutable
+  binding, nothing more.
+- No change to `config_view`, `secret_view`, `config_standard`,
+  `config_provider`, or any R10/R13 lookup/protection semantic.
 
 ## 10) Explicitly not implemented (current)
 

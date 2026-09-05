@@ -183,9 +183,13 @@ single-use, no-over-pull) element, with reserved `quote(element)`/
 `quote(index)` context populated before any peer's own `enter` runs — again
 composing the same unchanged algorithm, this time with the existing Flow/Seq
 lazy-pull/finalization machinery rather than inventing a second one.
-Lifecycle-owned configuration-provider binding (#694) remains a separate,
-later ticket. See `GENIA_STATE.md` sections 9.8-9.10 for the full language
-contract.
+Lifecycle-owned configuration-provider binding is implemented by issue
+#694's `lifecycle_config(provider)`: a pure factory validating an
+already-constructed R10/R13 provider and returning one reserved
+`quote(config)` peer whose `enter` captures (never acquires) it — reserved-
+name non-shadowing is inherited entirely from the existing peer-list
+mechanism, so this adds zero change to `src/genia/lifecycle_runtime.py`.
+See `GENIA_STATE.md` sections 9.8-9.11 for the full language contract.
 
 Lifecycle runners are not implemented runtime behavior. (This remains true in
 the generalized, arbitrary lifecycle-plan/action-identifier-executor sense;
