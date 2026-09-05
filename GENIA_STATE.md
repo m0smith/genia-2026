@@ -3447,6 +3447,76 @@ Explicit limitations:
 - No new schema/Template/validation framework — reuses existing Outcome,
   `GeniaMap`, `GeniaProtected`, and `json_encode` conventions verbatim.
 
+## 9.13) R14 E14-6 outbound HTTP transport capability
+
+Status: Implemented. Issue #623 adds one narrow Python-host outbound HTTP
+transport capability per the approved R14 contract's "Portability
+boundary" section (`docs/design/r14-composable-lifecycle-contract.md`).
+This ticket adds **no Genia-visible surface**: the capability is not a
+builtin, has no `import` entry, and is consumed privately by a later
+ticket (`web.http_send`, E14-7, #624), exactly like
+`create_gemini_rest_model_provider`/`_default_transport` in
+`src/genia/gemini_rest.py` have no `builtins.py` registration of their
+own. This section therefore has no LANGUAGE CONTRACT block.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/http_transport.py` (new): `send_http_request(request,
+  transport=None) -> HttpTransportResponse | HttpTransportFailure` makes
+  exactly one synchronous transport attempt via an injectable
+  `HttpTransport = Callable[[HttpTransportRequest], HttpTransportResponse]`,
+  defaulting to `_default_transport` (a `urllib.request`-based opener
+  built with a no-redirect handler, mirroring `gemini_rest.py`'s own
+  `_NoRedirect`/`_default_transport` pattern but generic over method/URL
+  instead of one fixed Gemini endpoint).
+- `HttpTransportRequest` is a private frozen dataclass:
+  `method, url, headers, body: bytes, timeout_seconds`. `HttpTransportResponse`
+  is `status, headers, body: bytes`. `HttpTransportFailure` is a single
+  closed field `kind: str`, one of `timeout`, `connect`, `tls`, `dns`, or
+  `other`. No Genia value (`GeniaMap`, `GeniaOptionErr`, `GeniaProtected`,
+  etc.) appears anywhere in this module.
+- Any status the wrapped server actually returns (including 4xx/5xx)
+  normalizes to an ordinary `HttpTransportResponse` via `urllib.error.HTTPError`
+  treated as a received response, not a failure — matching `http_operation`'s
+  own contract framing that transport-layer success is independent of
+  status code. No redirect is ever followed.
+- Every other exception raised by the selected transport is caught once at
+  `send_http_request`'s own boundary and classified by `_classify`, which
+  never re-raises and never retains the original exception's message,
+  type name, or traceback: `TimeoutError`/`socket.timeout` maps to
+  `timeout`; `ssl.SSLError` (including `SSLCertVerificationError`) maps to
+  `tls`; `socket.gaierror` maps to `dns`; `ConnectionRefusedError` and any
+  other `OSError` map to `connect`; anything else maps to `other`; a
+  `urllib.error.URLError` is classified recursively from its own
+  `.reason`.
+- Validated by 13 tests in the new `tests/unit/test_http_transport.py`: 5
+  real-loopback tests (a Python `http.server` fixture as the server, this
+  capability as the client, marked `@pytest.mark.loopback`) proving exact
+  method/URL/header/body round-trip, an HTTP-error-status response
+  returned as ordinary (not failure), redirect non-following, real
+  connect-refused classification, and a real short-timeout classification
+  against a server that accepts but never responds; 8 injected-fake-
+  transport tests (no real socket) proving dns/tls/timeout/connect/other
+  classification including the recursive `URLError.reason` unwrap, and
+  byte-exact non-UTF-8/empty body pass-through. The five new loopback test
+  IDs are registered in `tests/doc/test_loopback_pytest_partition.py`'s
+  exact inventory. No host capability existed for generic outbound
+  HTTP before this ticket (only the fixed-endpoint Gemini adapter and the
+  inbound R7/R8 server existed); shared/multi-host conformance remains
+  Partial.
+
+Explicit limitations:
+
+- No `web.http_send`, outbound client lifecycle composition, or Genia
+  builtin/prelude surface (see #624).
+- No retries, redirect following, connection pooling, streaming API,
+  OAuth, cookies, or async IO — one synchronous attempt only, per the
+  approved contract's non-goals.
+- No portable failure-reason vocabulary (`http-timeout`/
+  `http-transport-failure`/`http-response-invalid`) is constructed by this
+  ticket — this capability returns only a closed `kind`; mapping that into
+  R14's `err(...)` shapes is #624's composition, not owned here.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

@@ -182,6 +182,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "deterministic paired retrieval fixture": "retrieval_deterministic_fixture",
         "deterministic reranking fixture": "reranking_deterministic_fixture",
         "HTTP serving": "http_server",
+        "HTTP outbound transport": "http_outbound_transport",
         "refs": "refs",
         "process primitives": "process_primitives",
         "bytes/json/zip": "bytes_json_zip",

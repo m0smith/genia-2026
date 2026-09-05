@@ -279,6 +279,20 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 
 ---
 
+### Group: HTTP Outbound Transport
+
+#### `http.transport`
+
+- **name:** `http.transport`
+- **genia_surface:** none — this is a private Python-host capability with no Genia builtin, prelude entry, or `import` surface of its own. It is consumed internally by a later ticket (`web.http_send`, R14 E14-7, issue #624), which alone performs `HttpOperation` declassification/encoding before calling this capability.
+- **input:** one already-normalized request: an HTTP method string, an absolute URL string, a plain string header map, and a `bytes` body — no `HttpOperation`, `GeniaProtected`, or other Genia value ever crosses this boundary
+- **output:** a normalized response (`status`, headers, `bytes` body) for any status the server actually returns, including 4xx/5xx — the transport layer treats any received status as an ordinary response, not a failure
+- **errors:** a normalized transport failure carrying only a closed `kind` in `{timeout, connect, tls, dns, other}` — never the underlying exception's message, type name, or traceback
+- **portability:** `Python-host-only`
+- **notes:** R14 E14-6 uses the Python standard library (`urllib.request`), one synchronous attempt per call, no redirects, no retries, no connection pooling, and no provider SDK — mirroring `model.gemini-rest`'s own mechanics but generic over method/URL instead of one fixed endpoint. Automated tests inject an offline fake transport for DNS/TLS/timeout classification and use a real local loopback server fixture for the happy path, an HTTP-error-status response, redirect-non-following, and connect-refused; no external network access is required. A future host must supply an equivalent narrow capability or report it unavailable.
+
+---
+
 ### Group: Process / Mailbox
 
 **Status:** Python-host-only — host-thread process model only; not part of the shared portable contract.
