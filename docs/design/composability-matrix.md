@@ -111,7 +111,7 @@ E12-9 is audit/distillation only. See
 
 These rows constrain R14 work. Each row's Status column records whether
 that composition boundary is implemented or still planning-only, per
-`GENIA_STATE.md` sections 9.8-9.14 (final authority); see
+`GENIA_STATE.md` sections 9.8-9.15 (final authority); see
 `r14-composable-lifecycle-contract.md` for the full approved contract.
 E14-6 (#623) adds one narrow Python-host outbound HTTP transport
 capability with no Genia-visible surface of its own — it composes with no

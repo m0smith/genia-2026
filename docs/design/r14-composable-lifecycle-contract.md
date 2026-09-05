@@ -819,8 +819,11 @@ as "Current release: R14" only after this contract records explicit GO.
    (`web.http_send` over E14-5 + E14-6, composed with the unchanged E14-1
    lifecycle core), adding no new lifecycle primitive or protected-value
    mechanism.
-9. **#625 — E14-8:** protected HTTP credential sinks (the `quote(http_send)`
-   purpose, declassification timing, and non-leakage proof over E10).
+9. **#625 — E14-8 (implemented, zero runtime-code change):** protected
+   HTTP credential sinks — comprehensive regression proof that the
+   `quote(http_send)` purpose, declassification timing, and non-leakage
+   already implemented by E14-5/E14-7 satisfy this contract's own
+   "Protected HTTP sinks" section over E10.
 10. **#626 — E14-9:** declarative outbound HTTP annotations (inert method
     metadata over the E14-5/E14-7 surface; still no self-executing IO).
 11. **#627 — E14-10:** server/request/outbound-client composition (nesting
@@ -859,12 +862,15 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-8 preflight only**, now that issue #624 has implemented and
-tested E14-7 against this contract. This document itself authorizes no
+**GO for E14-9 preflight only**, now that issue #625 has proven E14-8
+against this contract (zero runtime-code change; comprehensive regression
+proof over E14-5/E14-7's already-correct implementation). This document
+itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
-documentation beyond what #621, #692, #693, #694, #622, #623, and #624 have
-already landed and `GENIA_STATE.md` sections 9.8-9.14 record. Every later
-E14 ticket must name #620/#621/#692/#693/#694/#622/#623/#624 and its own
+documentation beyond what #621, #692, #693, #694, #622, #623, #624, and
+#625 have already landed and `GENIA_STATE.md` sections 9.8-9.15 record.
+Every later E14 ticket must name
+#620/#621/#692/#693/#694/#622/#623/#624/#625 and its own
 earlier dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10
