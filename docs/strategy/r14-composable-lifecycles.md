@@ -1,12 +1,15 @@
 # R14 — Composable Lifecycles
 
 Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
-and E14-1 through E14-8 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625).** E14-6 adds no Genia-visible surface — it is a private
+and E14-1 through E14-9 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626).** E14-6 adds no Genia-visible surface — it is a private
 Python-host outbound HTTP transport capability consumed by E14-7's
 `web.http_send`, the first outbound HTTP call actually reachable from
 Genia source. E14-8 proves the protected-HTTP-credential-sink contract
 already implemented by E14-5/E14-7 with zero runtime-code change. E14-9
+adds `@get`/`@post` declarative annotations and `web.send_annotated`,
+designed by #626 itself since this contract did not lock their exact
+shape, following `@route`'s established precedent. E14-10
 through E14-15 remain planned, not implemented. This
 document records approved release direction; `GENIA_STATE.md` remains
 final authority for implemented behavior.
@@ -416,8 +419,10 @@ release epic is #619.
    - Proved the already-implemented E14-5/E14-7 declassify-immediately-
      before-transport behavior at comprehensive regression breadth; no
      new R10 mechanism.
-10. **#626 — E14-9: declarative outbound HTTP annotations**
-    - Bind inert method metadata to the common operation/lifecycle.
+10. **#626 — E14-9: declarative outbound HTTP annotations — implemented**
+    - Bound inert `@get`/`@post` method metadata to the common
+      operation/lifecycle via `web.send_annotated`; the exact shape was
+      designed by #626 itself since the contract left it unspecified.
 11. **#627 — E14-10: server/request/outbound-client composition**
     - Integrate the R8 server path with nested R14 scopes.
 12. **#695 — E14-11: repeated record lifecycle proving case**
@@ -486,8 +491,8 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-9 preflight only**, now that #621, #692, #693, #694, #622,
-#623, #624, and #625 have each completed their own preflight, design,
+**GO for E14-10 preflight only**, now that #621, #692, #693, #694, #622,
+#623, #624, #625, and #626 have each completed their own preflight, design,
 failing-test, implementation, and documentation phases: #621 implemented
 the instance/scope core, #692 proved horizontal peer-attachment breadth
 over it, #693 implemented `lifecycle_repeat` over both, #694 implemented
@@ -496,11 +501,14 @@ three, #622 implemented `http_operation` as R14's first HTTP-track
 ticket, adding no host capability, #623 implemented the narrow outbound
 HTTP transport capability with no Genia-visible surface of its own,
 #624 composed all of the above into `web.http_send`, the first outbound
-HTTP call reachable from Genia source, and #625 proved the resulting
+HTTP call reachable from Genia source, #625 proved the resulting
 protected-HTTP-credential-sink behavior at comprehensive regression
-breadth with zero runtime-code change, all against the contract in
+breadth with zero runtime-code change, and #626 added `@get`/`@post`
+declarative annotations and `web.send_annotated` over that same
+unchanged surface, designing the exact annotation shape itself since
+this contract left it unspecified, all against the contract in
 `docs/design/r14-composable-lifecycle-contract.md`. Implementation of
-E14-9 and later tickets remains blocked until each completes its own
+E14-10 and later tickets remains blocked until each completes its own
 preflight, design, failing-test, implementation, documentation, and audit
 phases. The supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
 not replace the repository's current process prompt.

@@ -3739,6 +3739,115 @@ Explicit limitations:
 - No change to R10 protected semantics outside this narrow, already-landed
   integration.
 
+## 9.16) R14 E14-9 declarative outbound HTTP annotations
+
+Status: Implemented. Issue #626 adds `@get {path}` and `@post {path}`
+inert descriptive annotations and `web.send_annotated(fn, base_url,
+authority, timeout_ms)`, the sole function that binds annotation metadata
+to the existing `HttpOperation`/`web.http_send` surface. Unlike every
+other R14 ticket, the approved E14-0 contract does not specify this
+feature's exact shape — it is explicitly listed under the contract's own
+"Non-goals" as "planned no earlier than roadmap #626... still inert
+descriptors, not self-executing IO" — so this section records design
+decisions #626 itself made, following the existing `@route` annotation's
+established shape as closely as possible, not a pre-locked contract.
+
+LANGUAGE CONTRACT:
+
+- `@get {path: string}` / `@post {path: string}` are valid only on a
+  top-level named function with a fixed zero-argument arm; any other
+  target (assignment, named pattern, wrong arity) is a deterministic
+  diagnostic. `path` must be a non-empty string starting with `/`; any
+  other descriptor shape (missing/extra keys, wrong type) is a
+  deterministic diagnostic. `method` is never a descriptor field — it is
+  implied by the annotation's own name, matching how `web.genia`'s
+  existing `get`/`post` prelude functions already derive method from
+  function name.
+- `@get` and `@post` share one cardinality slot per declaration: at most
+  one of either may appear, combined — a function cannot coherently be
+  both a GET and a POST operation. Repeating either, or annotating both
+  on one declaration, is a deterministic diagnostic. Annotated rebinding
+  that would replace existing `http_annotation` metadata is also a
+  deterministic diagnostic — mirrors `@route`'s exact
+  rebinding/replacement rules.
+- Annotating a function **never changes how it is called** — this is the
+  same invariant every existing annotation (`@route`, `@server`, `@cors`)
+  already upholds. Calling an annotated function with ordinary Genia call
+  syntax never performs network IO; only the separate, explicit
+  `web.send_annotated(fn, base_url, authority, timeout_ms)` call does.
+  Loading, importing, or evaluating a declaration carrying `@get`/`@post`
+  performs zero network IO, exactly like every other annotation.
+- `web.send_annotated` reads the annotated function's `{verb, path}`
+  descriptor, calls the function with no arguments to obtain its dynamic
+  `{headers, query, body}` map (any other return shape is deterministic
+  misuse), builds the operation via the unchanged
+  `http_operation(verb, base_url, path, headers, query, body)`, and calls
+  the unchanged `web.http_send(operation, authority, timeout_ms)` —
+  composing exactly these two already-implemented functions. No new
+  transport or lifecycle mechanism exists; `base_url`/`authority`/
+  `timeout_ms` are ordinary call-time arguments, never annotation-static,
+  matching how neither `@server`'s host/port nor R11's `model` config are
+  annotation-static either. Each call to `send_annotated` creates a
+  fresh, independent lifecycle instance (a fresh `send_http_request`
+  attempt every time — no caching, no shared state across calls). An
+  `http_operation` construction failure (a malformed dynamic `query`/
+  `body`) propagates unchanged as `err("http-operation-invalid",
+  {stage})`.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/evaluator.py`: two new dispatch branches in
+  `eval_annotations` (mirroring `@route`'s exact placement), a
+  duplicate-cardinality check treating `get`/`post` as one shared group,
+  two new rebinding/replacement guard methods
+  (`_reject_http_annotation_metadata_rebinding`/`_replacement`) called at
+  every declaration-processing site `@route`'s own guards are already
+  called at, and an updated unsupported-annotation whitelist message.
+  This is the first R14 ticket to touch this shared, sensitive dispatch
+  file; the full existing `@route`/`@server`/`@cors` test suites
+  (`test_server_route_binding.py`, `test_server_config_binding.py`,
+  `test_server_cors_binding.py`, 53 tests) were re-run and confirmed
+  unaffected.
+- `src/genia/http_annotation_binding.py` (new):
+  `validate_http_annotation_descriptor(verb_name, value)` (mirrors
+  `validate_route_descriptor`'s exact structure/error style),
+  `resolve_http_annotation(fn)` (reads the descriptor directly off the
+  `GeniaFunctionGroup` value's own `.metadata` attribute — confirmed via
+  `environment.py`'s `merge_binding_metadata` that a function group's
+  metadata is stored both in the environment's binding-metadata table
+  and directly on the function-group object itself, so no whole-file
+  discovery pass or name-based lookup is needed, unlike `@route`'s own
+  `server_route_binding.py` discovery module), and
+  `perform_send_annotated(fn, base_url, authority, timeout_ms,
+  json_encode, invoke, transport=None)` implementing the composition
+  above.
+- `src/genia/builtins.py`: `send_annotated_fn` delegates to
+  `perform_send_annotated`, registered as the private `_send_annotated`
+  (mirroring `_http_send`), with `__genia_handles_none__ = True` for the
+  same reason as `_http_send` (a legitimate `none("nil")` `authority`
+  argument is the common case). `src/genia/std/prelude/web.genia` adds
+  the public `send_annotated(fn, base_url, authority, timeout_ms)`
+  wrapper with its own `@doc` block.
+- Validated by 21 tests: 13 in the new `tests/unit/test_http_annotations.py`
+  (evaluator-level attachment/validation/rebinding, and structural proof
+  that mere evaluation and direct ordinary calling never perform IO) and
+  8 in the new `tests/unit/test_http_send_annotated.py`
+  (`perform_send_annotated`'s own composition behavior via an injected
+  fake transport, matching #624's own testing style). No change to
+  `http_operation.py`, `http_transport.py`, `http_client.py`'s
+  `perform_http_send`, or `configuration.py`. No new host capability.
+
+Explicit limitations:
+
+- No verb beyond `get`/`post` — the only two the contract's own
+  non-goals sentence names; put/patch/delete/head/options annotations
+  remain unimplemented.
+- No server `@route` replacement, middleware/auth/retry DSL, macro,
+  compile-time transform, or general annotation framework.
+- No change to R10 protected semantics, the E14-1 lifecycle core, or the
+  E14-5/E14-7 `HttpOperation`/`web.http_send` surface — this ticket only
+  adds a new way to construct calls into that unchanged surface.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
