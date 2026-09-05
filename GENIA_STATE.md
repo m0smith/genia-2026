@@ -3654,6 +3654,91 @@ Explicit limitations:
   authority, it is always an opaque, externally host-injected value; this
   is unchanged by #624 and is not a gap this ticket needs to close.
 
+## 9.15) R14 E14-8 protected HTTP credential sinks
+
+Status: Implemented, with **zero runtime-code change**. Issue #625
+proves, at comprehensive regression breadth, the contract-approved
+"Protected HTTP sinks" section (`docs/design/r14-composable-lifecycle-contract.md`)
+that #622 and #624 already implement correctly. This is the same
+"already-correct mechanism, proven not built" shape as E14-2 (#692) and
+E14-4 (#694).
+
+LANGUAGE CONTRACT (proven, not newly introduced):
+
+- A protected header value placed in `http_operation`'s `headers` field
+  stays protected through construction, storage inside the resulting
+  `HttpOperation` map, and any later `display`, `debug_repr`, or
+  `json_encode` attempt (which fails closed with
+  `err("protected-value", {operation: "json-encode"})`, recursively
+  detecting the nested protected leaf) — R10's existing recursive
+  sink-scan rules apply exactly as to any other map holding a protected
+  leaf, with no special case for `HttpOperation`.
+- Generic representation-family operations — `represent`,
+  `representation_match`, `strip_representation` — reject the reserved
+  `secret` facet identically whether the protected value under test is a
+  bare one or one specifically carried inside an `HttpOperation`'s
+  `headers` field; the raised diagnostic text contains no trace of the
+  protected value's identity, purpose, or payload.
+- The only place a protected header's carried string is ever read is
+  inside `web.http_send`'s private host implementation
+  (`_resolve_headers` in `src/genia/http_client.py`), immediately before
+  the one transport attempt, through the existing `declassify(authority,
+  protected_value)`; this is `web.http_send`'s new sink family and the
+  new `quote(http_send)` declassification purpose convention, exactly the
+  extension shape R11 used for `quote(model_call)` — R10 gains no new
+  protected-value mechanism.
+- A missing (`none`) authority, a mismatched-identity authority, or a
+  mismatched-purpose authority, each with a protected header present,
+  fails deterministically (a raised `TypeError`, matching `declassify`'s
+  own existing behavior) with no protected payload, key, or purpose
+  appearing in the raised diagnostic text — proven for all three cases,
+  not just the one #624 already exercised.
+- `HttpResponse` values are always ordinary: response status/headers/body
+  are built entirely from primitive `str`/`int`/`bytes` values returned
+  by the host transport, so they structurally cannot carry R10/R14
+  protection — this reuses R10's existing "a boundary that produces a
+  value from external bytes never manufactures protection" rule, proven
+  directly rather than only reasoned about.
+
+PYTHON REFERENCE HOST:
+
+- No change to `src/genia/http_client.py`, `http_transport.py`,
+  `http_operation.py`, `configuration.py`, or `values.py` — confirmed via
+  `git diff origin/main..HEAD` showing only a new test file.
+- Validated by 7 tests in the new `tests/unit/test_http_protected_sinks.py`:
+  display/debug_repr/failed-json_encode sentinel-free survival of a
+  real-`secret_get`-constructed protected header inside an
+  `HttpOperation`; generic representation-family rejection of the same
+  header-carried protected value; one full real round trip (`secret_get`
+  → `http_operation` → `perform_http_send` with a matching authority)
+  proving the plain credential reaches only the fake transport and
+  appears in no returned value, operation rendering, or audit event;
+  three parametrized unauthorized-placement failure cases (mismatched
+  purpose, mismatched provider, missing authority), each swept for
+  sentinel leakage in the raised diagnostic; and one structural
+  confirmation that an ordinary `HttpResponse` never carries a
+  `<protected>` marker. All sentinel constants follow this codebase's
+  established synthetic-naming convention (never realistic-looking
+  secret text), matching `tests/unit/test_declassification.py`'s and
+  `tests/unit/test_protected_configuration.py`'s existing discipline.
+- `GENIA_RULES.md`'s sink-invariant enumeration gains one new sentence
+  distinguishing this **authorized** outbound-HTTP-header sink (accepts a
+  protected value, reveals it only through `declassify` at one point)
+  from the pre-existing **rejecting** sinks already listed there (output,
+  JSON encoding, Sheet/CSV rendering, resource writes, the R7 server's
+  own inbound `http-response` guard) — the same authorized-sink shape
+  R11's `model` credential argument already uses.
+
+Explicit limitations:
+
+- No vault, key rotation, encryption-at-rest, OAuth, or cookie/session
+  policy — out of scope per the issue's own non-goals.
+- No broad information-flow/taint tracking; no change making all HTTP
+  headers secret-aware by default — only `headers` (never `query`, which
+  #622 already rejects protected values in outright).
+- No change to R10 protected semantics outside this narrow, already-landed
+  integration.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

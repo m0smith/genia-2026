@@ -476,6 +476,7 @@ No additional member/index/flow operators should be introduced without explicitl
 - transport preserves exact protected leaves without tainting containers; unsupported ordinary derivation uses existing type failure.
 - diagnostic renderers recursively substitute exactly `<protected>`; this redaction does not authorize output.
 - Format replacements, output sinks, JSON encoding, Sheet CSV rendering, resource writes, HTTP responses, and ordinary host conversion must reject recursively before effects; `json_encode` returns `err("protected-value", {operation: "json-encode"})`.
+- Outbound HTTP request headers (`http_operation`'s `headers` field) are an authorized sink, not a rejecting one: a protected value may be placed there and stays protected through construction, storage, and any inspection or serialization; it is revealed only inside `web.http_send`'s private implementation, immediately before the one transport attempt, through the existing `declassify` operation — the same authorized-sink shape R11's `model` credential argument already uses.
 - `declassify(authority, protected_value)` is the sole reveal operation; authority must be host-injected, match provider identity, and allow the protected purpose.
 - successful declassification removes one protected layer, audits before returning, and yields an ordinary value without hidden taint; failed matching reveals nothing.
 - declassification authority is opaque, noncopyable, nonserializable, and rejected from ordinary output, storage, process, and host-data boundaries.

@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1 through E14-8 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -247,13 +247,24 @@ via the existing `declassify`) runs before any internal lifecycle scope
 opens, so misuse raises directly rather than being normalized into an
 ordinary failure; only the one transport attempt runs inside the internal
 scope. It adds no new lifecycle primitive, protected-value mechanism, or
-host capability. No R14 behavior beyond
-E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7
+host capability. E14-8 (#625) proves, with **zero runtime-code change**,
+that E14-5's construction-time protection and E14-7's
+declassify-immediately-before-transport already satisfy the contract's
+"Protected HTTP sinks" section: a header-embedded protected value stays
+opaque through `display`/`debug_repr`/`json_encode`, generic
+`represent`/`representation_match`/`strip_representation` reject it
+exactly like a bare protected value, and a full real
+`secret_get`-to-transport round trip reveals the credential only to the
+transport with no sentinel leak anywhere — extending
+`tests/unit/test_declassification.py`'s and
+`tests/unit/test_protected_configuration.py`'s established sentinel-proof
+patterns rather than building new mechanism. No R14 behavior beyond
+E14-1 through E14-8
 is implemented merely because its roadmap, issues, or contract exist.
-E14-8 (#625, protected HTTP credential sinks) is the next
+E14-9 (#626, declarative outbound HTTP annotations) is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.14.
+9.8-9.15.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
