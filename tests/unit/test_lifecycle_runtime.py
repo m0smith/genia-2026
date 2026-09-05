@@ -12,12 +12,21 @@ from __future__ import annotations
 
 import pytest
 
+from genia.builtins import make_global_env
 from genia.lifecycle_runtime import (
     lookup_lifecycle_context,
     run_lifecycle_child,
+    run_lifecycle_element,
     run_lifecycle_scope,
 )
-from genia.values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome, symbol
+from genia.values import (
+    GeniaConfigProvider,
+    GeniaMap,
+    GeniaOptionErr,
+    GeniaOptionNone,
+    GeniaOptionSome,
+    symbol,
+)
 
 
 def _invoke(fn, args):
@@ -669,3 +678,284 @@ def test_three_peer_child_attachment_order_independent_of_ancestor_depth():
     child_result = result.get("result").value
     assert child_result.get("scope") == symbol("child")
     assert child_result.get("status") == symbol("ok")
+
+
+# --- element scopes (issue #693: E14-3 repeated element-scoped execution) --
+#
+# run_lifecycle_element(peers, element, index, work, invoke) runs one fresh
+# "element" scope through the same unchanged entry/work/unwind algorithm
+# exercised above, with the two reserved context names populated before any
+# attached peer's own enter runs. These tests exercise it directly, with no
+# Flow/List dispatch involved (that lives in genia.builtins and is covered
+# by tests/unit/test_lifecycle_repeat.py); this file stays List/Flow-free,
+# matching the peer-composition core's own scope.
+
+
+def test_element_scope_is_tagged_element_and_carries_reserved_context():
+    def work(handle):
+        elem = lookup_lifecycle_context(handle, symbol("element"))
+        idx = lookup_lifecycle_context(handle, symbol("index"))
+        return [elem, idx]
+
+    result = run_lifecycle_element([], "row-A", 1, work, _invoke)
+
+    assert result.get("scope") == symbol("element")
+    assert result.get("status") == symbol("ok")
+    elem, idx = result.get("result").value
+    assert elem == GeniaOptionSome("row-A")
+    assert idx == GeniaOptionSome(1)
+
+
+def test_element_scope_reserved_context_visible_inside_a_peers_own_enter():
+    seen = {}
+
+    def enter(handle):
+        seen["element"] = lookup_lifecycle_context(handle, symbol("element"))
+        seen["index"] = lookup_lifecycle_context(handle, symbol("index"))
+        return GeniaOptionSome("ctx")
+
+    peers = [_peer("diagnostics", enter, _ok_exit())]
+
+    run_lifecycle_element(peers, "row-B", 3, lambda handle: None, _invoke)
+
+    assert seen["element"] == GeniaOptionSome("row-B")
+    assert seen["index"] == GeniaOptionSome(3)
+
+
+def test_element_scope_peer_named_element_is_rejected_before_any_enter():
+    calls: list[str] = []
+    peers = [_peer("element", _ok_enter(calls=calls, tag="X"), _ok_exit(calls=calls, tag="X"))]
+
+    with pytest.raises(TypeError):
+        run_lifecycle_element(peers, "row", 1, lambda handle: None, _invoke)
+    assert calls == []
+
+
+def test_element_scope_peer_named_index_is_rejected_before_any_enter():
+    calls: list[str] = []
+    peers = [_peer("index", _ok_enter(calls=calls, tag="X"), _ok_exit(calls=calls, tag="X"))]
+
+    with pytest.raises(TypeError):
+        run_lifecycle_element(peers, "row", 1, lambda handle: None, _invoke)
+    assert calls == []
+
+
+def test_element_scope_two_peers_enter_and_reverse_unwind_order():
+    calls: list[str] = []
+    peers = [
+        _peer("a", _ok_enter(calls=calls, tag="A"), _ok_exit(calls=calls, tag="A")),
+        _peer("b", _ok_enter(calls=calls, tag="B"), _ok_exit(calls=calls, tag="B")),
+    ]
+
+    def work(handle):
+        calls.append("work")
+
+    run_lifecycle_element(peers, "row", 1, work, _invoke)
+
+    assert calls == ["A.enter", "B.enter", "work", "B.exit", "A.exit"]
+
+
+def test_element_scope_has_no_parent_and_does_not_leak_across_independent_calls():
+    def enter_first(handle):
+        return GeniaOptionSome("only-in-first")
+
+    first_peers = [_peer("only_first", enter_first, _ok_exit())]
+
+    def work_second(handle):
+        return lookup_lifecycle_context(handle, symbol("only_first"))
+
+    run_lifecycle_element(first_peers, "row-1", 1, lambda handle: None, _invoke)
+    second_result = run_lifecycle_element([], "row-2", 2, work_second, _invoke)
+
+    assert second_result.get("result") == GeniaOptionSome(GeniaOptionNone("lifecycle-context-absent"))
+
+
+def test_element_scope_work_failure_produces_element_scoped_result():
+    def work(handle):
+        raise RuntimeError("row broke")
+
+    result = run_lifecycle_element([], "row", 1, work, _invoke)
+
+    assert result.get("scope") == symbol("element")
+    assert result.get("status") == symbol("error")
+    assert result.get("phase") == symbol("work")
+    assert _failure(result, "reason") == "row broke"
+
+
+def test_element_scope_stale_handle_after_completion_raises_on_context_lookup():
+    captured = {}
+
+    def work(handle):
+        captured["handle"] = handle
+        return "ok"
+
+    run_lifecycle_element([], "row", 1, work, _invoke)
+
+    with pytest.raises(RuntimeError, match="lifecycle-scope-expired"):
+        lookup_lifecycle_context(captured["handle"], symbol("element"))
+
+
+def test_element_scope_supports_a_nested_lifecycle_child():
+    def work(handle):
+        child_result = run_lifecycle_child(handle, [], lambda h: "child-of-element", _invoke)
+        return child_result.get("result").value
+
+    result = run_lifecycle_element([], "row", 1, work, _invoke)
+
+    assert result.get("result") == GeniaOptionSome("child-of-element")
+
+
+# --- lifecycle_config binding (issue #694: E14-4 provider binding) ---------
+#
+# lifecycle_config(provider) is a pure factory in genia.builtins, not
+# genia.lifecycle_runtime -- it produces an ordinary {name, enter, exit}
+# peer map that flows through the unchanged _run_scope/_validate_peers
+# machinery exercised above. These tests fetch the real builtin via
+# make_global_env() and feed the peer it returns into
+# run_lifecycle_scope/run_lifecycle_child/run_lifecycle_element directly,
+# exercising both the real builtin and the real unchanged algorithm
+# together with the file's existing trivial injected invoker.
+
+
+def _lifecycle_config():
+    return make_global_env().get("lifecycle_config")
+
+
+def _provider(snapshot=None):
+    return GeniaConfigProvider((snapshot or {"KEY": "value"},))
+
+
+def test_lifecycle_config_returns_a_closed_peer_map_named_config():
+    peer = _lifecycle_config()(_provider())
+
+    assert isinstance(peer, GeniaMap)
+    assert peer.get("name") == symbol("config")
+    assert callable(peer.get("enter"))
+    assert callable(peer.get("exit"))
+
+
+def test_lifecycle_config_rejects_non_provider_arguments():
+    lifecycle_config = _lifecycle_config()
+    for bad in (GeniaMap(), "not-a-provider", None, GeniaOptionSome(_provider())):
+        with pytest.raises(TypeError):
+            lifecycle_config(bad)
+
+
+def test_lifecycle_config_exposes_the_exact_provider_object_via_context():
+    provider = _provider()
+    peer = _lifecycle_config()(provider)
+
+    def work(handle):
+        return lookup_lifecycle_context(handle, symbol("config"))
+
+    result = run_lifecycle_scope([peer], work, _invoke)
+
+    exposed = result.get("result").value
+    assert isinstance(exposed, GeniaOptionSome)
+    assert exposed.value is provider
+
+
+def test_lifecycle_config_visible_to_grandchild():
+    provider = _provider()
+    peer = _lifecycle_config()(provider)
+
+    def work(handle):
+        def child_work(child_handle):
+            def grandchild_work(gh):
+                return lookup_lifecycle_context(gh, symbol("config"))
+
+            grandchild = run_lifecycle_child(child_handle, [], grandchild_work, _invoke)
+            return grandchild.get("result").value
+
+        child_result = run_lifecycle_child(handle, [], child_work, _invoke)
+        return child_result.get("result").value
+
+    result = run_lifecycle_scope([peer], work, _invoke)
+
+    exposed = result.get("result").value
+    assert exposed.value is provider
+
+
+def test_lifecycle_config_second_attempt_in_same_list_is_rejected():
+    provider = _provider()
+    lifecycle_config = _lifecycle_config()
+    peers = [lifecycle_config(provider), lifecycle_config(provider)]
+
+    with pytest.raises(TypeError):
+        run_lifecycle_scope(peers, lambda h: None, _invoke)
+
+
+def test_lifecycle_config_second_attempt_in_child_scope_is_rejected():
+    provider = _provider()
+    lifecycle_config = _lifecycle_config()
+    root_peer = lifecycle_config(provider)
+
+    def work(handle):
+        child_peer = lifecycle_config(provider)
+        run_lifecycle_child(handle, [child_peer], lambda h: None, _invoke)
+        return "unreachable"
+
+    result = run_lifecycle_scope([root_peer], work, _invoke)
+
+    # As with any other exception a work callable raises (see the earlier
+    # ancestor-shadowing test), this is normalized into the parent's own
+    # work-phase primary failure rather than escaping raw.
+    assert result.get("status") == symbol("error")
+    assert result.get("phase") == symbol("work")
+    assert "shadows context" in _failure(result, "reason")
+
+
+def test_lifecycle_config_sibling_scope_trees_may_each_bind_their_own():
+    provider_a = _provider({"A": "1"})
+    provider_b = _provider({"B": "2"})
+    lifecycle_config = _lifecycle_config()
+
+    def work(handle):
+        return lookup_lifecycle_context(handle, symbol("config"))
+
+    result_a = run_lifecycle_scope([lifecycle_config(provider_a)], work, _invoke)
+    result_b = run_lifecycle_scope([lifecycle_config(provider_b)], work, _invoke)
+
+    assert result_a.get("result").value.value is provider_a
+    assert result_b.get("result").value.value is provider_b
+
+
+def test_lifecycle_config_works_inside_an_element_scope_with_no_ancestor_chain():
+    provider = _provider()
+    peer = _lifecycle_config()(provider)
+
+    def work(handle):
+        return lookup_lifecycle_context(handle, symbol("config"))
+
+    result = run_lifecycle_element([peer], "row", 1, work, _invoke)
+
+    exposed = result.get("result").value
+    assert exposed.value is provider
+
+
+def test_lifecycle_config_missing_binding_returns_context_absent():
+    result = run_lifecycle_scope(
+        [], lambda h: lookup_lifecycle_context(h, symbol("config")), _invoke
+    )
+
+    assert result.get("result") == GeniaOptionSome(GeniaOptionNone("lifecycle-context-absent"))
+
+
+def test_lifecycle_config_composes_with_at_least_two_other_peers():
+    provider = _provider()
+    calls: list[str] = []
+    lifecycle_config = _lifecycle_config()
+    peers = [
+        lifecycle_config(provider),
+        _peer("metrics", _ok_enter(calls=calls, tag="METRICS"), _ok_exit(calls=calls, tag="METRICS")),
+        _peer("diagnostics", _ok_enter(calls=calls, tag="DIAG"), _ok_exit(calls=calls, tag="DIAG")),
+    ]
+
+    def work(handle):
+        calls.append("work")
+        return lookup_lifecycle_context(handle, symbol("config"))
+
+    result = run_lifecycle_scope(peers, work, _invoke)
+
+    assert calls == ["METRICS.enter", "DIAG.enter", "work", "DIAG.exit", "METRICS.exit"]
+    assert result.get("result").value.value is provider

@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **285** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **288** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -119,6 +119,7 @@ Alphabetical index of the **285** out-of-the-box Genia functions available from 
 | [`get?`](functions/get-p.md) | option | `get?(key, target)` | Compatibility alias for `get(key, target)`. |
 | [`head`](functions/head.md) | list | `head(xs)` | Convenience alias for `take`. |
 | [`help`](functions/help.md) | Documentation | `help()` | Show the public help overview or documentation for one bound name. |
+| [`http_operation`](functions/http_operation.md) | HTTP | `http_operation(method, base_url, path, headers, query, body)` | Construct one inert, closed HTTP operation value with no network IO. |
 | [`inc`](functions/inc.md) | math | `inc(x)` | Increment a number by one. |
 | [`index`](functions/index.md) | Retrieval | `index(provider, config, credential, authority)` | Construct an opaque retrieval index through an explicit provider boundary. |
 | [`input`](functions/input.md) | I/O | `input()` | Read one line from standard input. |
@@ -141,7 +142,9 @@ Alphabetical index of the **285** out-of-the-box Genia functions available from 
 | [`last`](functions/last.md) | list | `last(xs)` | Return the last element as an Option. |
 | [`length`](functions/length.md) | list | `length(xs)` | Count elements in a list. |
 | [`lifecycle_child`](functions/lifecycle_child.md) | Lifecycle | `lifecycle_child(scope_handle, peers, work)` | Run a child execution scope nested under an active parent scope handle. |
+| [`lifecycle_config`](functions/lifecycle_config.md) | Lifecycle | `lifecycle_config(provider)` | Bind an already-constructed configuration provider as a reserved, non-shadowable lifecycle peer. |
 | [`lifecycle_context`](functions/lifecycle_context.md) | Lifecycle | `lifecycle_context(scope_handle, name)` | Read inward-only lifecycle context exposed by an entered peer or an ancestor scope. |
+| [`lifecycle_repeat`](functions/lifecycle_repeat.md) | Lifecycle | `lifecycle_repeat(peers, source, element_work)` | Run a fresh element execution scope for each consumed list or flow element, exposing reserved element/index context. |
 | [`lifecycle_scope`](functions/lifecycle_scope.md) | Lifecycle | `lifecycle_scope(peers, work)` | Run a fresh root execution scope through explicit peer definitions and one work callable. |
 | [`lines`](functions/lines.md) | flow | `lines(source)` | Create a Flow from `stdin`, an incoming Flow, or a list of strings. |
 | [`list`](functions/list.md) | list | `list(..xs)` | Build a list from all provided arguments. |
@@ -344,6 +347,10 @@ Alphabetical index of the **285** out-of-the-box Genia functions available from 
 
 - [`apply_raw`](functions/apply_raw.md) - Call a function with a list of positional arguments without automatic absence propagation.
 
+### HTTP
+
+- [`http_operation`](functions/http_operation.md) - Construct one inert, closed HTTP operation value with no network IO.
+
 ### I/O
 
 - [`debug_repr`](functions/debug_repr.md) - Return the deterministic debug representation of a value.
@@ -356,7 +363,9 @@ Alphabetical index of the **285** out-of-the-box Genia functions available from 
 ### Lifecycle
 
 - [`lifecycle_child`](functions/lifecycle_child.md) - Run a child execution scope nested under an active parent scope handle.
+- [`lifecycle_config`](functions/lifecycle_config.md) - Bind an already-constructed configuration provider as a reserved, non-shadowable lifecycle peer.
 - [`lifecycle_context`](functions/lifecycle_context.md) - Read inward-only lifecycle context exposed by an entered peer or an ancestor scope.
+- [`lifecycle_repeat`](functions/lifecycle_repeat.md) - Run a fresh element execution scope for each consumed list or flow element, exposing reserved element/index context.
 - [`lifecycle_scope`](functions/lifecycle_scope.md) - Run a fresh root execution scope through explicit peer definitions and one work callable.
 
 ### Pairs

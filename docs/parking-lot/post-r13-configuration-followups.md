@@ -30,20 +30,19 @@ relaxes, so the boundary being moved is explicit.
 
 ### Priority 1 — genuine ergonomic gaps
 
-**C-1. Lifecycle/provider binding — promoted to planned R14 issue #694.**
+**C-1. Lifecycle/provider binding — delivered by R14 issue #694 (E14-4).**
 
-Relaxes the R13 non-goal: *"lifecycle binding, provider injection."*
+Relaxed the R13 non-goal: *"lifecycle binding, provider injection."*
 
-Today the provider is threaded by hand through every `config_view` and
-`secret_view` construction. Bind an explicitly constructed provider through an
-application or pipeline lifecycle so participating stages can construct
-qualified views without repeatedly passing the provider. Multiple lifecycles
-may coexist on each pipeline element; configuration binding must compose with
-them and must not become ambient process state or bare-name lookup.
-
-Planned home: R14 Composable Lifecycles epic #619, with an explicit owner in
-#694. E14-0 must still contract the binding boundary before implementation.
-Roadmap placement and ticket creation do not make the behavior implemented.
+`lifecycle_config(provider)` binds an explicitly constructed provider as
+one reserved lifecycle peer, so participating stages read it through the
+existing `lifecycle_context` accessor and construct qualified
+`config_view`/`secret_view` values without repeatedly passing the provider
+by hand. It composes with multiple peer lifecycles on the same scope and
+remains one explicit, immutable, non-refreshable binding — not ambient
+process state, not bare-name lookup, not dependency injection. See
+`GENIA_STATE.md` section 9.11 and `docs/releases/R14.md` for the
+implemented contract and a runnable example.
 
 **C-2. Explicit typed/schema-mapped access.**
 

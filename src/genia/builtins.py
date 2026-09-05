@@ -60,8 +60,10 @@ if __package__ in (None, ""):
     from genia.lifecycle_runtime import (
         lookup_lifecycle_context,
         run_lifecycle_child,
+        run_lifecycle_element,
         run_lifecycle_scope,
     )
+    from genia.http_operation import construct_http_operation
     from genia.model import construct_model
     from genia.retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -126,6 +128,7 @@ if __package__ in (None, ""):
         _stage_cell_action,
         GeniaBytes,
         GeniaCell,
+        GeniaConfigProvider,
         GeniaFlow,
         GeniaFormat,
         GeniaOptionErr,
@@ -169,8 +172,10 @@ else:
     from .lifecycle_runtime import (
         lookup_lifecycle_context,
         run_lifecycle_child,
+        run_lifecycle_element,
         run_lifecycle_scope,
     )
+    from .http_operation import construct_http_operation
     from .model import construct_model
     from .retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -235,6 +240,7 @@ else:
         _stage_cell_action,
         GeniaBytes,
         GeniaCell,
+        GeniaConfigProvider,
         GeniaFlow,
         GeniaFormat,
         GeniaOptionErr,
@@ -695,6 +701,61 @@ def make_global_env(
 
     def lifecycle_context_fn(scope_handle: Any, name: Any) -> Any:
         return lookup_lifecycle_context(scope_handle, name)
+
+    def lifecycle_config_fn(provider: Any) -> Any:
+        if not isinstance(provider, GeniaConfigProvider):
+            raise TypeError(
+                f"lifecycle_config expected a configuration provider, "
+                f"received {_runtime_type_name(provider)}"
+            )
+
+        def enter(scope_handle: Any) -> Any:
+            return GeniaOptionSome(provider)
+
+        def exit_(scope_handle: Any, primary_summary: Any) -> Any:
+            return GeniaOptionSome("nil")
+
+        return GeniaMap().put("name", symbol("config")).put("enter", enter).put("exit", exit_)
+
+    def http_operation_fn(
+        method: Any, base_url: Any, path: Any, headers: Any, query: Any, body: Any
+    ) -> Any:
+        return construct_http_operation(method, base_url, path, headers, query, body, json_encode_fn)
+
+    http_operation_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
+    def lifecycle_repeat_fn(peers: Any, source: Any, element_work: Any) -> Any:
+        ensure_seq_compatible_fn("lifecycle_repeat", source)
+        if isinstance(source, list):
+            return [
+                run_lifecycle_element(peers, item, idx, element_work, _invoke_raw_from_builtin)
+                for idx, item in enumerate(source, start=1)
+            ]
+
+        upstream = source
+
+        def iterator() -> Iterable[Any]:
+            items = iter(upstream.consume())
+            idx = 0
+            primary_error = False
+            try:
+                for item in items:
+                    idx += 1
+                    yield run_lifecycle_element(
+                        peers, item, idx, element_work, _invoke_raw_from_builtin
+                    )
+            except Exception:
+                primary_error = True
+                raise
+            finally:
+                if upstream.close_on_early_termination:
+                    _finalize_iterable(items, primary_error=primary_error)
+
+        return GeniaFlow(
+            iterator,
+            label="lifecycle_repeat",
+            close_on_early_termination=upstream.close_on_early_termination,
+        )
 
     display_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     debug_repr_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -4493,6 +4554,15 @@ def make_global_env(
     env.set("lifecycle_child", _host_function_group("lifecycle_child", 3, lifecycle_child_fn))
     env.set(
         "lifecycle_context", _host_function_group("lifecycle_context", 2, lifecycle_context_fn)
+    )
+    env.set(
+        "lifecycle_repeat", _host_function_group("lifecycle_repeat", 3, lifecycle_repeat_fn)
+    )
+    env.set(
+        "lifecycle_config", _host_function_group("lifecycle_config", 1, lifecycle_config_fn)
+    )
+    env.set(
+        "http_operation", _host_function_group("http_operation", 6, http_operation_fn)
     )
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
