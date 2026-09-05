@@ -131,7 +131,7 @@ _ref_is_set _ref_set _ref_update _render_grid _resource_capabilities
 _resource_copy _resource_delete _resource_discover _resource_meta
 _resource_read_bytes _resource_read_text _resource_write_bytes
 _resource_write_text _restart_cell _rng _rules_error _rules_kernel
-_rules_prepare _run _scan _send _seq_reduce _seq_transform _seq_type_error
+_rules_prepare _run _scan _send _send_annotated _seq_reduce _seq_transform _seq_type_error
 _serve_http _some _some? _spawn _split _split_whitespace _starts_with _sum
 _syntax_error _syntax_self_evaluating _syntax_symbol_expr _tee _then_find
 _then_first _then_get _then_nth _trim _trim_end _trim_start _unwrap_or

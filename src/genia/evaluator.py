@@ -50,6 +50,7 @@ if __package__ in (None, ""):
     from genia.server_config_binding import validate_server_descriptor
     from genia.server_cors_binding import validate_cors_descriptor
     from genia.server_route_binding import validate_route_descriptor
+    from genia.http_annotation_binding import validate_http_annotation_descriptor
 else:
     from .utf8 import format_debug, format_display
     from .environment import Env
@@ -87,6 +88,7 @@ else:
     from .server_config_binding import validate_server_descriptor
     from .server_cors_binding import validate_cors_descriptor
     from .server_route_binding import validate_route_descriptor
+    from .http_annotation_binding import validate_http_annotation_descriptor
 
 QUOTE_OPERATOR_SYMBOLS = {
     "PLUS": "+",
@@ -651,6 +653,8 @@ class Evaluator:
             count = sum(annotation.name == canonical_name for annotation in annotations)
             if count > 1:
                 raise TypeError(f"duplicate @{canonical_name} annotation on {target_name}")
+        if sum(annotation.name in ("get", "post") for annotation in annotations) > 1:
+            raise TypeError(f"duplicate outbound HTTP annotation on {target_name}")
 
         for annotation in annotations:
             value = self.eval(annotation.value)
@@ -680,9 +684,19 @@ class Evaluator:
                     raise TypeError("@cors annotation requires a top-level assignment")
                 metadata = metadata.put("cors", validate_cors_descriptor(value))
                 continue
+            if annotation.name in ("get", "post"):
+                if target_kind != "function":
+                    raise TypeError(
+                        f"@{annotation.name} annotation requires a top-level named function"
+                    )
+                metadata = metadata.put(
+                    "http_annotation",
+                    validate_http_annotation_descriptor(annotation.name, value),
+                )
+                continue
             raise RuntimeError(
                 "Unsupported annotation: "
-                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test, @route, @server, @cors"
+                f"@{annotation.name}. Supported annotations: @doc, @meta, @since, @deprecated, @category, @test, @route, @server, @cors, @get, @post"
             )
         return metadata
 
@@ -713,6 +727,34 @@ class Evaluator:
             return
         if existing.has("route"):
             raise TypeError(f"cannot replace @route metadata for {name}")
+
+    def _reject_http_annotation_metadata_rebinding(
+        self,
+        name: str,
+        annotations: list[IrAnnotation],
+    ) -> None:
+        if not any(annotation.name in ("get", "post") for annotation in annotations):
+            return
+        try:
+            existing = self.env.get_metadata(name)
+        except NameError:
+            return
+        if existing.has("http_annotation"):
+            raise TypeError(f"cannot replace @http_annotation metadata for {name}")
+
+    def _reject_http_annotation_metadata_replacement(
+        self,
+        name: str,
+        metadata: GeniaMap,
+    ) -> None:
+        if not metadata.has("http_annotation"):
+            return
+        try:
+            existing = self.env.get_metadata(name)
+        except NameError:
+            return
+        if existing.has("http_annotation"):
+            raise TypeError(f"cannot replace @http_annotation metadata for {name}")
 
     def _reject_server_metadata_replacement(
         self,
@@ -1344,11 +1386,13 @@ class Evaluator:
                 self._reject_route_metadata_replacement(node.name, metadata)
                 self._reject_server_metadata_replacement(node.name, metadata)
                 self._reject_cors_metadata_replacement(node.name, metadata)
+                self._reject_http_annotation_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
 
         if isinstance(node, IrFuncDef):
             self._reject_route_metadata_rebinding(node.name, node.annotations)
+            self._reject_http_annotation_metadata_rebinding(node.name, node.annotations)
             if sum(annotation.name == "route" for annotation in node.annotations) > 1:
                 raise TypeError(f"duplicate @route annotation on {node.name}")
             fn = GeniaFunction(
@@ -1371,6 +1415,7 @@ class Evaluator:
                     target_kind="function",
                 )
                 self._reject_route_metadata_replacement(node.name, metadata)
+                self._reject_http_annotation_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return fn
         if isinstance(node, IrNamedPatternDef):
@@ -1395,6 +1440,7 @@ class Evaluator:
                     target_kind="named_pattern",
                 )
                 self._reject_route_metadata_replacement(node.name, metadata)
+                self._reject_http_annotation_metadata_replacement(node.name, metadata)
                 self.env.merge_binding_metadata(node.name, metadata)
             return value
         if isinstance(node, IrImport):

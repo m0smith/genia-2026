@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1 through E14-8 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624, #625).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1 through E14-9 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625, #626).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -258,13 +258,26 @@ exactly like a bare protected value, and a full real
 transport with no sentinel leak anywhere — extending
 `tests/unit/test_declassification.py`'s and
 `tests/unit/test_protected_configuration.py`'s established sentinel-proof
-patterns rather than building new mechanism. No R14 behavior beyond
-E14-1 through E14-8
+patterns rather than building new mechanism. E14-9 (#626) adds `@get
+{path}`/`@post {path}` inert declarative annotations and
+`web.send_annotated(fn, base_url, authority, timeout_ms)` — the sole
+function binding them to the unchanged `http_operation`/`web.http_send`
+surface. Unlike every other R14 ticket, this contract does not lock
+E14-9's exact shape (it is named only as a future, unspecified slice in
+this contract's own Non-goals); #626 designed the shape itself, following
+`@route`'s established annotation-attachment precedent as closely as
+possible: annotating a function never changes how it is called (only the
+explicit `send_annotated` call performs IO), `@get`/`@post` share one
+cardinality slot, and the required evaluator.py dispatch/whitelist change
+was the first in this R14 sequence to touch that shared file — the full
+existing `@route`/`@server`/`@cors` regression suite was re-confirmed
+unaffected. No R14 behavior beyond
+E14-1 through E14-9
 is implemented merely because its roadmap, issues, or contract exist.
-E14-9 (#626, declarative outbound HTTP annotations) is the next
+E14-10 (#627, server/request/outbound-client composition) is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.15.
+9.8-9.16.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

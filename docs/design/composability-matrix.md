@@ -111,7 +111,7 @@ E12-9 is audit/distillation only. See
 
 These rows constrain R14 work. Each row's Status column records whether
 that composition boundary is implemented or still planning-only, per
-`GENIA_STATE.md` sections 9.8-9.15 (final authority); see
+`GENIA_STATE.md` sections 9.8-9.16 (final authority); see
 `r14-composable-lifecycle-contract.md` for the full approved contract.
 E14-6 (#623) adds one narrow Python-host outbound HTTP transport
 capability with no Genia-visible surface of its own — it composes with no
@@ -126,6 +126,7 @@ Genia value and adds no row to this matrix; see `GENIA_STATE.md` section
 | lifecycle context | ordinary value / explicit scope handle | context is read only through `lifecycle_context(handle, name)`, never injected into lexical bindings; a handle used outside its scope's active lifetime raises the existing Flow-style already-consumed error | E14-1 implemented, Experimental |
 | lifecycle-owned configuration | R10 provider / R13 view | `lifecycle_config` captures one already-constructed immutable provider and exposes it inward-only and non-shadowable; it performs no acquisition, refresh, or ambient lookup and changes no R10/R13 Outcome/protection semantics | E14-4 implemented, Experimental |
 | outbound HTTP operation/client | R9 JSON / R10 protected value / Outcome | `http_operation` builds one inert closed value with no IO; `web.http_send` makes exactly one synchronous attempt, treats any received status as an ordinary successful response, and declassifies a protected header only immediately before transmission via the existing R10 authority/declassify mechanism | E14-5 (`http_operation`) and E14-7 (`web.http_send`, #624) implemented, Experimental |
+| declarative outbound HTTP annotation | `HttpOperation` / `web.http_send` | `@get`/`@post` attach one inert `{verb, path}` descriptor to a top-level zero-argument function, never changing how it is called; `web.send_annotated` is the sole function that reads the descriptor, calls the function for its dynamic `{headers, query, body}`, and composes the unchanged `http_operation` + `web.http_send` — no new transport/lifecycle mechanism | E14-9 (`@get`/`@post`, `web.send_annotated`, #626) implemented, Experimental |
 
 ## Keeping this matrix in sync
 

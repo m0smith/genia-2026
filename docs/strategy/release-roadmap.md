@@ -862,8 +862,8 @@ E13-8 completed the release audit/distillation without runtime behavior.
 ## Release R14 — Composable Lifecycles
 
 **Status: In progress; E14-0 contract approved and
-E14-1 through E14-8 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625).** R14 is explicitly approved infrastructure work with one direct
+E14-1 through E14-9 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626).** R14 is explicitly approved infrastructure work with one direct
 record-pipeline proving path. The release epic is **#619**. Its contract
 is `docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements
 the HTTP-free lifecycle instance/parent-child execution-scope core
@@ -885,10 +885,14 @@ kind), with no Genia-visible surface of its own; E14-7 adds
 E14-6 into the first outbound HTTP call reachable from Genia source, with
 no new lifecycle primitive or protected-value mechanism; E14-8 proves the
 resulting protected-HTTP-credential-sink behavior at comprehensive
-regression breadth with zero runtime-code change. No R14 behavior
-beyond E14-1 through E14-8 is implemented merely
+regression breadth with zero runtime-code change; E14-9 adds `@get`/
+`@post` inert declarative annotations plus `web.send_annotated`,
+composing the unchanged E14-5/E14-7 surface, designing the exact
+annotation shape itself since the contract left it unspecified. No R14
+behavior
+beyond E14-1 through E14-9 is implemented merely
 because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
-sections 9.8-9.15.
+sections 9.8-9.16.
 
 Theme:
 
@@ -982,7 +986,7 @@ Approved R14 issue path:
 7. **#623 — E14-6 (implemented):** Python host outbound HTTP transport capability
 8. **#624 — E14-7 (implemented):** outbound HTTP client lifecycle
 9. **#625 — E14-8 (implemented, zero runtime-code change):** protected HTTP credential sinks
-10. **#626 — E14-9:** declarative outbound HTTP annotations
+10. **#626 — E14-9 (implemented):** declarative outbound HTTP annotations
 11. **#627 — E14-10:** server/request/outbound-client composition
 12. **#695 — E14-11:** repeated record lifecycle proving case
 13. **#628 — E14-12:** YouVersion Bible proxy proving application
