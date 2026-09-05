@@ -79,7 +79,7 @@ def test_perform_http_send_returns_response_for_any_received_status():
     assert isinstance(result, GeniaOptionSome)
     response = result.value
     assert response.get("status") == 404
-    assert response.get("headers").get("X-Test") == "1"
+    assert response.get("headers").get("x-test") == "1"
     assert isinstance(response.get("body"), GeniaBytes)
     assert response.get("body").value == b"missing"
     assert len(calls) == 1
@@ -298,7 +298,7 @@ def test_perform_http_send_none_body_sends_empty_bytes():
     assert calls[0].body == b""
 
 
-def test_perform_http_send_response_headers_are_returned_as_supplied():
+def test_perform_http_send_response_header_keys_are_lowercased():
     transport = _fake_transport(
         response=HttpTransportResponse(status=200, headers={"X-Foo": "bar"}, body=b"")
     )
@@ -309,7 +309,8 @@ def test_perform_http_send_response_headers_are_returned_as_supplied():
         json_encode=_json_encode, invoke=_invoke, transport=transport,
     )
 
-    assert result.value.get("headers").get("X-Foo") == "bar"
+    assert result.value.get("headers").get("x-foo") == "bar"
+    assert isinstance(result.value.get("headers").get("X-Foo"), GeniaOptionNone)
 
 
 def test_perform_http_send_timeout_seconds_derived_from_timeout_ms():

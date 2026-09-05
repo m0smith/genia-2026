@@ -97,9 +97,9 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
 R14 is in progress; its E14-0 contract is approved and
-E14-1/E14-2/E14-3/E14-4/E14-5/E14-6 (issues #621, #692, #693, #694, #622,
-#623) are implemented — see the R14 entry below. E14-7 and later slices
-remain planned, not implemented.
+E14-1/E14-2/E14-3/E14-4/E14-5/E14-6/E14-7 (issues #621, #692, #693, #694,
+#622, #623, #624) are implemented — see the R14 entry below. E14-8 and
+later slices remain planned, not implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -171,13 +171,19 @@ When an LLM agent is asked for new Genia work:
    `lifecycle_config` — a pure factory binding an already-constructed
    provider as one reserved peer, with zero change to the algorithm), and
    E14-5 (#622, `http_operation` — one inert closed `HttpOperation` value
-   with zero network IO, adding no host capability), and E14-6 (#623, one
+   with zero network IO, adding no host capability), E14-6 (#623, one
    narrow Python-host outbound HTTP transport capability —
    `send_http_request`, one synchronous `urllib.request` attempt, closed
    timeout/connect/tls/dns/other failure kind, adding no Genia-visible
-   surface) are implemented. E14-7 (#624) is the next implementation gate.
-   Do not infer `web.http_send`, the outbound HTTP client lifecycle,
-   protected HTTP sinks, or HTTP annotations from the
+   surface), and E14-7 (#624, `web.http_send(operation, authority,
+   timeout_ms)` — composing the unchanged E14-1 core, E14-5, and E14-6
+   into the first outbound HTTP call reachable from Genia source, with
+   all misuse validation happening before any internal lifecycle scope
+   opens so it raises rather than normalizing into an ordinary failure)
+   are implemented. E14-8 (#625, protected HTTP credential sinks) is the
+   next implementation gate.
+   Do not infer `@get`/`@post` annotations, deeper protected-HTTP-sink
+   proving breadth, or server/request/outbound-client composition from the
    roadmap or contract — those remain planned. Preserve the
    implemented/planned
    boundary: one lifecycle model, no global mutable current lifecycle,
@@ -185,9 +191,9 @@ When an LLM agent is asked for new Genia work:
    lexical bindings, no lazy escape of expired element context, Flow/Seq/Outcome
    transformations unchanged, inert annotations, no import/load activation,
    R10/R13 configuration and protection unchanged, and the outbound
-   transport capability limited to the narrow host mechanism E14-6
-   implemented (no retries, redirects, pooling, or Genia surface). The
-   AWK-like record example is a
+   transport/client capability limited to the narrow mechanism E14-6/E14-7
+   implemented (no retries, redirects, pooling, `@get`/`@post` sugar, or
+   server integration). The AWK-like record example is a
    future-regret pressure test, not approval for `$1`, `NR`, or an AWK mode.
    Follow `docs/design/r14-composable-lifecycle-contract.md` and
    `docs/strategy/r14-composable-lifecycles.md`.

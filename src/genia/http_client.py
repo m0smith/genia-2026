@@ -127,7 +127,7 @@ def _failure_reason(kind: str, timeout_ms: int) -> tuple[str, GeniaMap]:
 def _to_http_response_map(response: HttpTransportResponse) -> GeniaMap:
     headers = GeniaMap()
     for key, value in response.headers.items():
-        headers = headers.put(key, value)
+        headers = headers.put(key.lower(), value)
     return (
         GeniaMap()
         .put("status", response.status)
