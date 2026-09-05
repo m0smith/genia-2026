@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1 through E14-9 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624, #625, #626).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1 through E14-10 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625, #626, #627).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -271,13 +271,21 @@ explicit `send_annotated` call performs IO), `@get`/`@post` share one
 cardinality slot, and the required evaluator.py dispatch/whitelist change
 was the first in this R14 sequence to touch that shared file — the full
 existing `@route`/`@server`/`@cors` regression suite was re-confirmed
-unaffected. No R14 behavior beyond
-E14-1 through E14-9
+unaffected. E14-10 (#627) proves, also with **zero runtime-code change**,
+that an R8 route handler (an ordinary function) can call
+`web.http_send`/`web.send_annotated` any number of times per request
+while the server stays active: `server_lifecycle.py` has zero dependency
+on `lifecycle_runtime.py` (confirmed architecturally separate by direct
+code reading), so composition is already correct — a failed outbound
+call normalizes to the existing `err(...)` Outcome the handler itself
+handles, and the server's own listener ownership is entirely unaffected.
+No R14 behavior beyond
+E14-1 through E14-10
 is implemented merely because its roadmap, issues, or contract exist.
-E14-10 (#627, server/request/outbound-client composition) is the next
+E14-11 is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.16.
+9.8-9.17.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

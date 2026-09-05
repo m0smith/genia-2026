@@ -124,11 +124,11 @@ pipelines; E13-7 synchronizes runnable examples and implemented truth without
 runtime behavior; E13-8 completes the release truth audit and distillation
 without runtime behavior.
 
-**R14** is in progress through E14-9. It is explicitly approved lifecycle
+**R14** is in progress through E14-10. It is explicitly approved lifecycle
 infrastructure with a direct record-pipeline proving path: multiple lifecycle
 concerns may surround each consumed element while existing Flow/Seq and Outcome
-transformations remain authoritative. E14-0 through E14-9 (issues #620, #621,
-#692, #693, #694, #622, #623, #624, #625, #626) implement and prove the Experimental parent/child
+transformations remain authoritative. E14-0 through E14-10 (issues #620, #621,
+#692, #693, #694, #622, #623, #624, #625, #626, #627) implement and prove the Experimental parent/child
 instance/scope core, its horizontal peer-attachment breadth, repeated
 element-scoped execution over eager List and lazy Flow sources, a
 lifecycle-owned configuration provider binding that promotes an R13
@@ -138,9 +138,11 @@ narrow Python-host outbound HTTP transport capability with no Genia-visible
 surface of its own, `web.http_send` composing all of the above into
 the first outbound HTTP call reachable from Genia source, comprehensive
 regression proof that the protected-HTTP-credential-sink contract is
-already satisfied with zero additional runtime code, and `@get`/`@post`
+already satisfied with zero additional runtime code, `@get`/`@post`
 declarative annotations plus `web.send_annotated` over that same
-unchanged surface; E14-10 and later
+unchanged surface, and proof that an R8 route handler can create
+outbound HTTP client lifecycle instances while the server stays active,
+also with zero additional runtime code; E14-11 and later
 slices — the
 application-integration proof — remain planned, not implemented.
 

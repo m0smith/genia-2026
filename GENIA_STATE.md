@@ -3848,6 +3848,77 @@ Explicit limitations:
   E14-5/E14-7 `HttpOperation`/`web.http_send` surface — this ticket only
   adds a new way to construct calls into that unchanged surface.
 
+## 9.17) R14 E14-10 server/request/outbound-client composition
+
+Status: Implemented, with **zero runtime-code change**. Issue #627
+proves the central R14 record-pipeline-adjacent claim: an inbound R8
+server request can create one or more outbound HTTP client lifecycle
+instances while the server remains active and resource/failure ownership
+stays correct. Direct code reading confirms `src/genia/server_lifecycle.py`
+(R8) has zero dependency on `src/genia/lifecycle_runtime.py` (R14's E14-1
+core) — they are, and remain, architecturally separate. Composition is
+possible because an R8 route handler is an ordinary one-argument
+function and `web.http_send`/`web.send_annotated` (E14-7/E14-9) impose no
+caller-context precondition; this section records the proof, not a new
+mechanism, mirroring E14-2 (#692) and E14-8 (#625)'s own established
+"proven, not built" shape.
+
+LANGUAGE CONTRACT (proven, not newly introduced):
+
+- A route handler registered through the existing `web.route_request`
+  may call `web.http_send` or `web.send_annotated` any number of times
+  during its own invocation; each call independently runs its own
+  complete E14-1 entry/work/unwind cycle and finalizes its own
+  transport-level resources, entirely independent of the R8 request
+  scope's own lifetime.
+- A transport failure from an outbound call (e.g. connection refused)
+  normalizes to the existing `err("http-transport-failure", {kind})`
+  Outcome exactly as it would from any other caller; the handler
+  receives it as ordinary data and decides how to respond — it never
+  implicitly terminates the request or the server. The server continues
+  accepting and completing further requests afterward.
+- One request handler may make multiple sequential outbound calls; each
+  is entirely independent (no shared transport state, no caching).
+- The server's own listener remains owned exclusively by the existing
+  R8 server scope; an outbound call's own transport resources are never
+  visible to, and cannot affect, that ownership.
+- No second server, routing, or CORS mechanism is introduced; existing
+  R7/R8 `route_request`/`with_headers`/`cors`/`serve_http` behavior is
+  entirely unchanged.
+
+PYTHON REFERENCE HOST:
+
+- No change to `server_lifecycle.py`, `lifecycle_runtime.py`,
+  `http_client.py`, `http_transport.py`, `http_operation.py`,
+  `http_annotation_binding.py`, or any R7/R8 routing/CORS module —
+  confirmed via `git diff origin/main..HEAD` showing only a new test
+  file and documentation.
+- Validated by 4 real-loopback tests in the new
+  `tests/unit/test_http_server_client_composition.py` (a real R8 server
+  under test, driven by real inbound HTTP requests, whose route handler
+  calls out to a second real local downstream fixture server): a
+  successful outbound call with the server completing two successive
+  requests; a failing outbound call (real connect-refused) contained by
+  the handler with the server still completing both requests; one
+  handler making two sequential outbound calls in a single request; and
+  the same success shape composed through `web.send_annotated` instead
+  of direct `http_operation`/`web.http_send`. The existing R7/R8
+  regression suite (`test_server_lifecycle.py`,
+  `test_server_route_binding.py`, `test_server_config_binding.py`,
+  `test_server_cors_binding.py`, `test_http_web.py`, 82 tests) was
+  re-confirmed unaffected.
+
+Explicit limitations:
+
+- No concurrent-serving guarantee beyond R8's existing one; no
+  distributed tracing, request cancellation API beyond the approved
+  contract, retries, circuit breakers, or new inbound HTTP syntax.
+- No protected-credential-specific integration case is proven here
+  beyond what #625 already established generically — a credentialed
+  outbound call from a route handler composes the same way as any other
+  `web.http_send` call, with no additional server-specific behavior.
+- No domain-specific proving application (that is #628's job).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
