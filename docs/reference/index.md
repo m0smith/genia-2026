@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **287** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **288** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -119,6 +119,7 @@ Alphabetical index of the **287** out-of-the-box Genia functions available from 
 | [`get?`](functions/get-p.md) | option | `get?(key, target)` | Compatibility alias for `get(key, target)`. |
 | [`head`](functions/head.md) | list | `head(xs)` | Convenience alias for `take`. |
 | [`help`](functions/help.md) | Documentation | `help()` | Show the public help overview or documentation for one bound name. |
+| [`http_operation`](functions/http_operation.md) | HTTP | `http_operation(method, base_url, path, headers, query, body)` | Construct one inert, closed HTTP operation value with no network IO. |
 | [`inc`](functions/inc.md) | math | `inc(x)` | Increment a number by one. |
 | [`index`](functions/index.md) | Retrieval | `index(provider, config, credential, authority)` | Construct an opaque retrieval index through an explicit provider boundary. |
 | [`input`](functions/input.md) | I/O | `input()` | Read one line from standard input. |
@@ -345,6 +346,10 @@ Alphabetical index of the **287** out-of-the-box Genia functions available from 
 ### Function helpers
 
 - [`apply_raw`](functions/apply_raw.md) - Call a function with a list of positional arguments without automatic absence propagation.
+
+### HTTP
+
+- [`http_operation`](functions/http_operation.md) - Construct one inert, closed HTTP operation value with no network IO.
 
 ### I/O
 

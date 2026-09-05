@@ -1,10 +1,10 @@
 # R14 — Composable Lifecycles
 
 Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
-and E14-1/E14-2/E14-3/E14-4 implemented (issues #621, #692, #693, #694).**
-E14-5 through E14-15 remain planned, not implemented. This document
-records approved release direction; `GENIA_STATE.md` remains final
-authority for implemented behavior.
+and E14-1/E14-2/E14-3/E14-4/E14-5 implemented (issues #621, #692, #693,
+#694, #622).** E14-6 through E14-15 remain planned, not implemented. This
+document records approved release direction; `GENIA_STATE.md` remains
+final authority for implemented behavior.
 
 ## Theme
 
@@ -395,8 +395,10 @@ release epic is #619.
      `lifecycle_config(provider)` factory over the unchanged peer
      machinery, with reserved-name non-shadowing inherited entirely from
      the existing mechanism (no new code path).
-6. **#622 — E14-5: common HTTP operation representation**
-   - Implement inert normalized HTTP operation values without IO.
+6. **#622 — E14-5: common HTTP operation representation — implemented**
+   - Implemented inert normalized `HttpOperation` values with zero IO:
+     six-field validation, implicit-vs-explicit content-type precedence,
+     and no new host capability (the first R14-HTTP ticket to add none).
 7. **#623 — E14-6: Python host outbound HTTP transport capability**
    - Supply the narrow host-only network boundary.
 8. **#624 — E14-7: outbound HTTP client lifecycle**
@@ -473,18 +475,19 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-5 preflight only**, now that #621, #692, #693, and #694 have
-each completed their own preflight, design, failing-test, implementation,
-and documentation phases: #621 implemented the instance/scope core, #692
-proved horizontal peer-attachment breadth over it, #693 implemented
-`lifecycle_repeat` over both, and #694 implemented `lifecycle_config` as a
-pure factory requiring no change to any of the three, all against the
-contract in `docs/design/r14-composable-lifecycle-contract.md`.
-Implementation of E14-5 and later tickets remains blocked until each
-completes its own preflight, design, failing-test, implementation,
-documentation, and audit phases. The supplied `GENIA-PRE-FLIGHT.txt` is an
-older template and must not replace the repository's current process
-prompt.
+**GO for E14-6 preflight only**, now that #621, #692, #693, #694, and #622
+have each completed their own preflight, design, failing-test,
+implementation, and documentation phases: #621 implemented the
+instance/scope core, #692 proved horizontal peer-attachment breadth over
+it, #693 implemented `lifecycle_repeat` over both, #694 implemented
+`lifecycle_config` as a pure factory requiring no change to any of the
+three, and #622 implemented `http_operation` as R14's first HTTP-track
+ticket, adding no host capability, all against the contract in
+`docs/design/r14-composable-lifecycle-contract.md`. Implementation of
+E14-6 and later tickets remains blocked until each completes its own
+preflight, design, failing-test, implementation, documentation, and audit
+phases. The supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
+not replace the repository's current process prompt.
 
 ## Exit criterion
 

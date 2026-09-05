@@ -96,9 +96,10 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
-R14 is in progress; its E14-0 contract is approved and E14-1/E14-2/E14-3/
-E14-4 (issues #621, #692, #693, #694) are implemented — see the R14 entry
-below. E14-5 and later slices remain planned, not implemented.
+R14 is in progress; its E14-0 contract is approved and
+E14-1/E14-2/E14-3/E14-4/E14-5 (issues #621, #692, #693, #694, #622) are
+implemented — see the R14 entry below. E14-6 and later slices remain
+planned, not implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -166,11 +167,13 @@ When an LLM agent is asked for new Genia work:
    attachment breadth over that same core, with no runtime-code change),
    E14-3 (#693, `lifecycle_repeat` over eager List and lazy Flow
    sources with reserved element/index context, composed from the
-   unchanged algorithm plus existing Flow finalization), and E14-4 (#694,
+   unchanged algorithm plus existing Flow finalization), E14-4 (#694,
    `lifecycle_config` — a pure factory binding an already-constructed
-   provider as one reserved peer, with zero change to the algorithm) are
-   implemented. E14-5 (#622) is the next implementation gate. Do not infer
-   outbound HTTP, protected HTTP sinks, or HTTP annotations from the
+   provider as one reserved peer, with zero change to the algorithm), and
+   E14-5 (#622, `http_operation` — one inert closed `HttpOperation` value
+   with zero network IO, adding no host capability) are implemented.
+   E14-6 (#623) is the next implementation gate. Do not infer outbound
+   HTTP transport, protected HTTP sinks, or HTTP annotations from the
    roadmap or contract — those remain planned. Preserve the
    implemented/planned
    boundary: one lifecycle model, no global mutable current lifecycle,

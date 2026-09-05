@@ -1,12 +1,12 @@
 # R14 Composable Lifecycle Contract
 
 Status: **Approved contract. E14-1 (issue #621), E14-2 (issue #692), E14-3
-(issue #693), and E14-4 (issue #694) are implemented against this document;
-E14-5 and later slices remain not implemented.**
+(issue #693), E14-4 (issue #694), and E14-5 (issue #622) are implemented
+against this document; E14-6 and later slices remain not implemented.**
 
 This document fixes the semantic boundary for R14 tickets. It is not itself
-implemented-behavior documentation — see `GENIA_STATE.md` sections 9.8-9.11
-for what E14-1 through E14-4 actually implement.
+implemented-behavior documentation — see `GENIA_STATE.md` sections 9.8-9.12
+for what E14-1 through E14-5 actually implement.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
 ## Purpose
@@ -809,8 +809,9 @@ as "Current release: R14" only after this contract records explicit GO.
    preservation), with no change to the E14-1/E14-2/E14-3 core — the
    reserved-name enforcement is inherited entirely from the existing
    non-shadowing mechanism.
-6. **#622 — E14-5:** common HTTP operation representation (`http_operation`,
-   `HttpOperation`, construction grammar, no IO).
+6. **#622 — E14-5 (implemented):** common HTTP operation representation
+   (`http_operation`, `HttpOperation`, construction grammar, no IO), the
+   first R14-HTTP ticket, adding no host capability at all.
 7. **#623 — E14-6:** Python host outbound HTTP transport capability (the one
    narrow advertised capability `web.http_send` calls internally).
 8. **#624 — E14-7:** outbound HTTP client lifecycle (`web.http_send` over
@@ -855,12 +856,13 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-5 preflight only**, now that issue #694 has implemented and
-tested E14-4 against this contract. This document itself authorizes no
+**GO for E14-6 preflight only**, now that issue #622 has implemented and
+tested E14-5 against this contract. This document itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
-documentation beyond what #621, #692, #693, and #694 have already landed and
-`GENIA_STATE.md` sections 9.8-9.11 record. Every later E14 ticket must name
-#620/#621/#692/#693/#694 and its own earlier dependencies, distinguish
+documentation beyond what #621, #692, #693, #694, and #622 have already
+landed and `GENIA_STATE.md` sections 9.8-9.12 record. Every later E14
+ticket must name #620/#621/#692/#693/#694/#622 and its own earlier
+dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10
 protected semantics, and R13 provider/view semantics exactly as this

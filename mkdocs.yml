@@ -103,6 +103,8 @@ nav:
           - "zip_entries": reference/functions/zip_entries.md
       - Function helpers:
           - "apply_raw": reference/functions/apply_raw.md
+      - HTTP:
+          - "http_operation": reference/functions/http_operation.md
       - I/O:
           - "debug_repr": reference/functions/debug_repr.md
           - "display": reference/functions/display.md

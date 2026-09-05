@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1/E14-2/E14-3/E14-4 are implemented (issues #621, #692, #693,
-#694).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1/E14-2/E14-3/E14-4/E14-5 are implemented (issues #621, #692, #693,
+#694, #622).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -224,12 +224,18 @@ the boundaries that lifecycle context is not mutable lexical state,
 attachment order is not parentage, expired element context does not leak
 through lazy values, annotations remain inert, import/load performs no
 lifecycle or network activation, and protected HTTP sinks do not weaken
-R10. No R14 behavior beyond E14-1/E14-2/E14-3/E14-4 is implemented merely
-because its roadmap, issues, or contract exist. E14-5 (#622, common HTTP
-operation representation) is the next gate. See
-`docs/design/r14-composable-lifecycle-contract.md`,
+R10. E14-5 adds `http_operation(method, base_url, path, headers, query,
+body)`: one inert, closed `HttpOperation` value with zero network IO,
+validating all six fields in declared order (method/base_url/path/
+headers/query/body) and injecting an implicit `content-type` header only
+when `body` validates and none is already set. This is the first R14-HTTP
+ticket and adds no host capability at all — `web.http_send`/transport
+remain later tickets. No R14 behavior beyond E14-1/E14-2/E14-3/E14-4/E14-5
+is implemented merely because its roadmap, issues, or contract exist.
+E14-6 (#623, Python host outbound HTTP transport capability) is the next
+gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.11.
+9.8-9.12.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

@@ -861,12 +861,12 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ## Release R14 — Composable Lifecycles
 
-**Status: In progress; E14-0 contract approved and E14-1/E14-2/E14-3/E14-4
-implemented (issues #621, #692, #693, #694).** R14 is explicitly approved
-infrastructure work with one direct record-pipeline proving path. The
-release epic is **#619**. Its contract is
-`docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements the
-HTTP-free lifecycle instance/parent-child execution-scope core
+**Status: In progress; E14-0 contract approved and
+E14-1/E14-2/E14-3/E14-4/E14-5 implemented (issues #621, #692, #693, #694,
+#622).** R14 is explicitly approved infrastructure work with one direct
+record-pipeline proving path. The release epic is **#619**. Its contract
+is `docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements
+the HTTP-free lifecycle instance/parent-child execution-scope core
 (`lifecycle_scope`, `lifecycle_child`, `lifecycle_context`); E14-2 proves
 that same core's horizontal peer-attachment breadth at three-or-more peers
 with no runtime-code change; E14-3 adds `lifecycle_repeat` for repeated
@@ -875,9 +875,12 @@ the same unchanged algorithm with existing Flow/Seq laziness and
 finalization; E14-4 adds `lifecycle_config` as a pure factory binding an
 already-constructed R10/R13 provider as one reserved peer, with zero change
 to the algorithm and reserved-name enforcement inherited entirely from the
-existing non-shadowing mechanism. No R14 behavior beyond
-E14-1/E14-2/E14-3/E14-4 is implemented merely because the roadmap, issues,
-or contract exist. See `GENIA_STATE.md` sections 9.8-9.11.
+existing non-shadowing mechanism; E14-5 adds `http_operation`, one inert
+closed `HttpOperation` value with zero network IO, the first R14-HTTP
+ticket and the first to add no host capability at all. No R14 behavior
+beyond E14-1/E14-2/E14-3/E14-4/E14-5 is implemented merely because the
+roadmap, issues, or contract exist. See `GENIA_STATE.md` sections
+9.8-9.12.
 
 Theme:
 
@@ -967,7 +970,7 @@ Approved R14 issue path:
 3. **#692 — E14-2 (implemented):** peer lifecycle attachment and deterministic unwind
 4. **#693 — E14-3 (implemented):** repeated element-scoped lifecycle execution
 5. **#694 — E14-4 (implemented):** lifecycle-owned configuration provider binding
-6. **#622 — E14-5:** common HTTP operation representation
+6. **#622 — E14-5 (implemented):** common HTTP operation representation
 7. **#623 — E14-6:** Python host outbound HTTP transport capability
 8. **#624 — E14-7:** outbound HTTP client lifecycle
 9. **#625 — E14-8:** protected HTTP credential sinks

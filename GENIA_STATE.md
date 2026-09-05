@@ -652,6 +652,14 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - LANGUAGE CONTRACT: the six required default invariants (no global mutable current-scope switch; contained child failure; explicit child result/failure propagation; child-owned resource finalization inside one synchronous call; untouched parent-owned resources; inward-only non-shadowed context) are implemented exactly as locked by the E14-0 contract
   - PYTHON REFERENCE HOST: implemented in `src/genia/lifecycle_runtime.py` as ordinary calls over `values.py` types with no new host capability; validated by `tests/unit/test_lifecycle_runtime.py` (53 tests), `tests/unit/test_lifecycle_repeat.py` (15 tests), and `tests/unit/test_lifecycle_config.py` (4 tests), Python reference host only; shared/multi-host conformance remains Partial
 
+- R14 common HTTP operation representation (Experimental, issue #622)
+  - `http_operation(method, base_url, path, headers, query, body) -> some(HttpOperation) | err("http-operation-invalid", {stage})` validates all six fields in declared order with zero network IO; the first invalid field stops validation and reports its own `stage` symbol
+  - `method` is one of the five approved symbols; `base_url` is exactly `scheme://host[:port]`; `path` starts with `/` and passes through byte-for-byte; `headers` keys are lowercased with case-insensitive collision as construction-time misuse and values a plain string or one `GeniaProtected`; `query` accepts plain string keys/values only, rejecting any protected value; `body` is `none(...)` (normalized to `none("http-no-body")`), `{kind: quote(text), text}`, or `{kind: quote(json), value}` (validated via the existing `json_encode` capability, purely to fail fast)
+  - an implicit `content-type` header is added only when `body` validates and `headers` doesn't already set one; an explicit header always wins
+  - `HttpOperation` is an ordinary closed `GeniaMap` with no `response` field; it composes with `display`/diagnostics/any container operation exactly like any other map holding a possibly-protected leaf, per R10's existing recursive sink-scan rules — no special-casing needed
+  - this is the first R14-HTTP ticket and adds no host capability at all — `web.http_send`, the outbound transport, and protected credential sinks remain later tickets (#623-#628)
+  - LANGUAGE CONTRACT and PYTHON REFERENCE HOST: see section 9.12
+
 - Stdout / Stderr
   - `stdout` and `stderr` are first-class host-backed output sink values
   - they are opaque runtime capability values (`<stdout>`, `<stderr>`)
@@ -3330,12 +3338,114 @@ PYTHON REFERENCE HOST:
 
 Explicit limitations:
 
-- No HTTP operation/client is implemented (see issues #622-#628).
+- No HTTP client/transport is implemented (see issues #623-#628). The
+  common `HttpOperation` representation is implemented by issue #622 —
+  see section 9.12.
 - No provider refresh, mutation, service container, or dependency-injection
   framework is defined — `lifecycle_config` is one explicit, immutable
   binding, nothing more.
 - No change to `config_view`, `secret_view`, `config_standard`,
   `config_provider`, or any R10/R13 lookup/protection semantic.
+
+## 9.12) R14 E14-5 common HTTP operation representation
+
+Status: Implemented. Issue #622 adds one new ordinary function,
+`http_operation(method, base_url, path, headers, query, body) ->
+some(HttpOperation) | err("http-operation-invalid", {stage})`, per the
+approved R14 contract's "HTTP operation representation" section
+(`docs/design/r14-composable-lifecycle-contract.md`). Construction
+performs **zero network IO** of any kind — this is the first R14-HTTP
+ticket, and it adds no host capability at all (that arrives in #623).
+
+LANGUAGE CONTRACT:
+
+- `method`, `base_url`, `path`, `headers`, `query`, and `body` are
+  validated in that declared order; the first invalid field stops
+  validation immediately and produces
+  `err("http-operation-invalid", {stage: quote(<field>)})` — no partial or
+  multi-error result is ever returned.
+- `method` must be exactly one of `quote(get)`, `quote(post)`,
+  `quote(put)`, `quote(patch)`, or `quote(delete)`. `HEAD`, `OPTIONS`,
+  `CONNECT`, and `TRACE` are not in the approved R14 method set.
+- `base_url` must match `scheme://host[:port]` exactly, `scheme` in
+  `{http, https}`, `host` one-or-more ASCII letters/digits/`-`/`.`, `port`
+  (if present) one-or-more ASCII digits; any userinfo, path, query, or
+  fragment, or an unsupported scheme, is invalid.
+- `path` must start with `/` and must not contain `?` or `#`. Path bytes
+  pass through exactly as supplied — no percent-encoding, normalization,
+  or trailing-slash handling.
+- `headers` keys are normalized to lowercase ASCII; two entries whose
+  lowercased names collide is construction-time misuse (not last-wins). A
+  header value is a plain string or exactly one R10 `GeniaProtected`
+  value — any other shape is invalid. (Purpose restriction to
+  `quote(http_send)` is #625's declassification-time concern, not
+  construction.)
+- `query` accepts plain string keys and values only — a `GeniaProtected`
+  value in `query` is rejected at construction; a credential must be
+  carried in `headers`. Query keys are **not** lowercased.
+- `body` is `none(...)` (any reason; normalized to
+  `none("http-no-body")` in the result), `{kind: quote(text), text:
+  string}`, or `{kind: quote(json), value}`. A `json`-kind body's `value`
+  is passed through the existing `json_encode` capability purely to fail
+  fast — a `json_encode` failure (including a protected leaf inside
+  `value`, which `json_encode` already rejects) surfaces as this
+  function's own `err(..., {stage: quote(body)})`, before any later
+  ticket's child scope or transport exists. The constructed `body` field
+  keeps its original `{kind, text|value}` descriptor shape — `http_operation`
+  does not store pre-encoded bytes; actual wire encoding is `web.http_send`'s
+  job (#624).
+- An implicit `content-type` header (`text/plain; charset=utf-8` for
+  `text`, `application/json` for `json`) is added to the result's
+  `headers` only when `body` validates successfully and `headers` does
+  not already set `content-type` (case-insensitively) — an explicit
+  caller-supplied header always wins; R14 never silently discards it.
+  A `none` body adds no implicit content-type.
+- The constructed `HttpOperation` is an ordinary closed `GeniaMap` with
+  keys `method, base_url, path, headers, query, body` — no new value
+  class. It composes with `display`, diagnostics, and any container
+  operation exactly like any other map holding a possibly-protected leaf,
+  per R10's existing recursive sink-scan rules — no special-casing was
+  needed. `HttpOperation` carries no `response` field.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/http_operation.py` (new): `construct_http_operation(method,
+  base_url, path, headers, query, body, json_encode)` implements the
+  algorithm above. `json_encode` is an injected dependency (the same
+  style `run_lifecycle_scope` already uses for `invoke`), so this module
+  has no closure dependency on `builtins.py` and no `list`/`Flow`/
+  lifecycle knowledge.
+- `src/genia/builtins.py`: `http_operation_fn` delegates to
+  `construct_http_operation(..., json_encode_fn)`. Registered as
+  `http_operation`, documented in `host_builtin_docs.py` under a new
+  "HTTP" category. Set `__genia_handles_none__ = True` (the same opt-out
+  `json_encode`/`json_decode`/`display` already use) so that passing
+  `none(...)` as the `body` argument reaches the function body instead of
+  short-circuiting the whole call via Genia's general none-propagation
+  convention — required precisely because the contract's own `body`
+  shape includes `none("http-no-body")`.
+- Validated by 55 tests in the new `tests/unit/test_http_operation.py`:
+  every method; every `base_url`/`path` validation rule; header
+  lowercasing/collision/protected-value handling; query shape and
+  protected-value rejection; every `body` shape and implicit-vs-explicit
+  content-type precedence; a `json`-body-with-protected-leaf rejection;
+  declared-order first-failure determinism; and one R10 redaction
+  regression proof (a protected header built from a real `secret_get`
+  call never appears in `display`/`debug_repr` output), Python reference
+  host only. No host capability is introduced; shared/multi-host
+  conformance remains Partial.
+
+Explicit limitations:
+
+- No host transport, outbound client lifecycle, protected HTTP credential
+  sink purpose, or declarative HTTP annotations are implemented (see
+  issues #623-#628).
+- No percent-encoding or URL serialization of `query` is performed by
+  `http_operation` itself — the query percent-encoding table is portable
+  contract text for `web.http_send` (#624) to obey when it builds the
+  real URL.
+- No new schema/Template/validation framework — reuses existing Outcome,
+  `GeniaMap`, `GeniaProtected`, and `json_encode` conventions verbatim.
 
 ## 10) Explicitly not implemented (current)
 
