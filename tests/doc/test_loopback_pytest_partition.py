@@ -15,6 +15,11 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_http_web.py::test_serve_http_plain_text_response",
     "tests/unit/test_http_web.py::test_serve_http_request_map_includes_client_and_raw_text_body",
     "tests/unit/test_http_web.py::test_serve_http_route_request_returns_not_found_response",
+    "tests/unit/test_http_transport.py::test_send_http_request_returns_exact_status_headers_body_from_real_server",
+    "tests/unit/test_http_transport.py::test_send_http_request_http_error_status_returns_ordinary_response_not_failure",
+    "tests/unit/test_http_transport.py::test_send_http_request_does_not_follow_redirect",
+    "tests/unit/test_http_transport.py::test_send_http_request_connect_refused_returns_connect_failure",
+    "tests/unit/test_http_transport.py::test_send_http_request_timeout_against_slow_server_returns_timeout_failure",
 }
 
 
