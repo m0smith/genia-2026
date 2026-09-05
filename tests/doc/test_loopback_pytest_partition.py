@@ -21,6 +21,10 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_http_transport.py::test_send_http_request_connect_refused_returns_connect_failure",
     "tests/unit/test_http_transport.py::test_send_http_request_timeout_against_slow_server_returns_timeout_failure",
     "tests/unit/test_http_send.py::test_http_send_via_genia_source_against_real_local_server",
+    "tests/unit/test_http_server_client_composition.py::test_request_handler_outbound_call_success_and_server_stays_active",
+    "tests/unit/test_http_server_client_composition.py::test_request_handler_outbound_call_failure_does_not_stop_server",
+    "tests/unit/test_http_server_client_composition.py::test_request_handler_makes_two_sequential_outbound_calls",
+    "tests/unit/test_http_server_client_composition.py::test_request_handler_using_send_annotated_composes_too",
 }
 
 
