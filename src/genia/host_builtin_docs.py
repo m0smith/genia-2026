@@ -66,6 +66,7 @@ _PUBLIC_DOCS = (
     _public("format_tag", "Return the tag of a representation template.", "Value templates", "format_tag(format)", stability="Experimental"),
     _public("format_template", "Return the inner template of a representation template.", "Value templates", "format_template(format)", stability="Experimental"),
     _public("help", "Show the public help overview or documentation for one bound name.", "Documentation", "help()", "help(name)"),
+    _public("http_operation", "Construct one inert, closed HTTP operation value with no network IO.", "HTTP", "http_operation(method, base_url, path, headers, query, body)", stability="Experimental"),
     _public("index", "Construct an opaque retrieval index through an explicit provider boundary.", "Retrieval", "index(provider, config, credential, authority)", stability="Experimental"),
     _public("input", "Read one line from standard input.", "I/O", "input()"),
     _public("lifecycle_child", "Run a child execution scope nested under an active parent scope handle.", "Lifecycle", "lifecycle_child(scope_handle, peers, work)", stability="Experimental"),

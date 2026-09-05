@@ -63,6 +63,7 @@ if __package__ in (None, ""):
         run_lifecycle_element,
         run_lifecycle_scope,
     )
+    from genia.http_operation import construct_http_operation
     from genia.model import construct_model
     from genia.retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -174,6 +175,7 @@ else:
         run_lifecycle_element,
         run_lifecycle_scope,
     )
+    from .http_operation import construct_http_operation
     from .model import construct_model
     from .retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -714,6 +716,13 @@ def make_global_env(
             return GeniaOptionSome("nil")
 
         return GeniaMap().put("name", symbol("config")).put("enter", enter).put("exit", exit_)
+
+    def http_operation_fn(
+        method: Any, base_url: Any, path: Any, headers: Any, query: Any, body: Any
+    ) -> Any:
+        return construct_http_operation(method, base_url, path, headers, query, body, json_encode_fn)
+
+    http_operation_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def lifecycle_repeat_fn(peers: Any, source: Any, element_work: Any) -> Any:
         ensure_seq_compatible_fn("lifecycle_repeat", source)
@@ -4551,6 +4560,9 @@ def make_global_env(
     )
     env.set(
         "lifecycle_config", _host_function_group("lifecycle_config", 1, lifecycle_config_fn)
+    )
+    env.set(
+        "http_operation", _host_function_group("http_operation", 6, http_operation_fn)
     )
     env.set("represent", _host_function_group("represent", 2, represent_fn))
     env.set(
