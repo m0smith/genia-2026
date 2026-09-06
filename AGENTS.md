@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1 through E14-12 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624, #625, #626, #627, #695, #628).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1 through E14-13 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625, #626, #627, #695, #628, #696).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -297,13 +297,23 @@ sink send the credential through the authorized sink, and an R8 `POST
 canonical reference — no real network or credential dependency exists
 in automated tests, and minting a declassification authority remains a
 privileged host-side operation never reachable from pure Genia source.
+E14-13 (#696) proves, also with **zero runtime-code change**, the
+combined cross-cutting hardening gate over all of E14-1 through E14-12:
+import/native-test-discovery inertness for modules defining but never
+invoking lifecycle/HTTP functions, serve-mode annotation registration
+never self-executing, sentinel-free rendering across protected values
+and lifecycle context together, a combined multi-peer/multi-exit-failure
+matrix, bounded Flow termination with no leak, Python-exception detail
+never reaching a portable diagnostic, combined server/request/
+outbound-client resilience, and a parse-only regression confirming no
+new parser/AST/Core IR node.
 No R14 behavior beyond
-E14-1 through E14-12
+E14-1 through E14-13
 is implemented merely because its roadmap, issues, or contract exist.
-E14-13 is the next
+E14-14 is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.19.
+9.8-9.20.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
