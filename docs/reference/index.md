@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **293** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **294** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -10,6 +10,7 @@ Alphabetical index of the **293** out-of-the-box Genia functions available from 
 | [`absence_context`](functions/absence_context.md) | option | `absence_context(opt)` | Read the optional context metadata of a structured `none(...)` value. |
 | [`absence_meta`](functions/absence_meta.md) | option | `absence_meta(opt)` | Read the full metadata of a structured `none(...)` value as a map. |
 | [`absence_reason`](functions/absence_reason.md) | option | `absence_reason(opt)` | Read the reason label of a structured `none(...)` value. |
+| [`accumulate`](functions/accumulate.md) | Value templates | `accumulate(template, value)` | Validate a value against an inspectable Template, accumulating every independent path-aware diagnostic. |
 | [`actor`](functions/actor.md) | actor | `actor(initial_state, handler)` | Create an actor with initial state and a message handler. |
 | [`actor_alive?`](functions/actor_alive-p.md) | actor | `actor_alive?(a)` | Check whether an actor's worker thread is alive. |
 | [`actor_call`](functions/actor_call.md) | actor | `actor_call(a, msg)` | Send a message and wait for a reply (synchronous request-reply). |
@@ -417,6 +418,7 @@ Alphabetical index of the **293** out-of-the-box Genia functions available from 
 
 ### Value templates
 
+- [`accumulate`](functions/accumulate.md) - Validate a value against an inspectable Template, accumulating every independent path-aware diagnostic.
 - [`default_field`](functions/default_field.md) - Wrap a field Template with an explicit missing-only default.
 - [`exact_shape`](functions/exact_shape.md) - Construct an inspectable exact-shape Template from a field Templates map.
 - [`exact_shape_match`](functions/exact_shape_match.md) - Match a value against an exact shape template.

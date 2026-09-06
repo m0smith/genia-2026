@@ -763,6 +763,8 @@ Refinement, open structural, and exact structural Templates reuse that same prot
 
 `default_field(default, template)` (**Experimental**, R15 E15-2, issue #729) wraps a field Template with an explicit missing-only default for use inside `open_shape`/`exact_shape`: a present field is always validated by `template` and never falls back to `default`, while a missing field validates `default` itself before inserting it. A shape with no applied defaults returns the exact original subject; one with applied defaults returns a new map extending it. Explicit normalization needs no new builtin — `record |> normalize_fn |> Shape` is already ordinary pipeline composition.
 
+`accumulate(template, value)` (**Experimental**, R15 E15-3, issue #730) validates `value` against an inspectable Template, collecting every independent field/index failure instead of short-circuiting on the first one. It recurses depth-first into nested `open_shape`/`exact_shape` structure (a bare `refinement` or other inspectable Template is one leaf check); each diagnostic is `{path, kind, reason}` with `path` built only from the Template's own specification and `reason` never carrying the underlying Outcome's context, so protected/represented payloads can never leak through. Zero diagnostics returns the real Template's own success value; otherwise it returns `err(quote(accumulated-validation-failed), {diagnostics})`. `accumulate` changes no pattern-dispatch, `@?`/`@!`/`&`, or Template direct-call semantics, and touches no Flow/Seq state itself.
+
 ### Conditionals in Genia
 
 - Genia does **not** use `if` or `switch`

@@ -150,6 +150,7 @@ nav:
       - Validation:
           - "collect_validated": reference/functions/collect_validated.md
       - Value templates:
+          - "accumulate": reference/functions/accumulate.md
           - "default_field": reference/functions/default_field.md
           - "exact_shape": reference/functions/exact_shape.md
           - "exact_shape_match": reference/functions/exact_shape_match.md

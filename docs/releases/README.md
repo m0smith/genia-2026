@@ -27,7 +27,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R12 — Retrieval & Grounding](R12.md) — COMPLETE; E12-1 through E12-9 delivered
 - [R13 — Configuration Resolution Ergonomics](R13.md) — COMPLETE; E13-1 through E13-8 delivered
 - [R14 — Composable Lifecycles](R14.md) — COMPLETE; E14-1 through E14-15 delivered
-- [R15 — Validated Value Modeling](R15.md) — ACTIVE; E15-1, E15-2 delivered
+- [R15 — Validated Value Modeling](R15.md) — ACTIVE; E15-1, E15-2, E15-3 delivered
 
 ## Process
 

@@ -1,0 +1,11 @@
+name: template-accumulate-multi-field-failures
+category: eval
+description: accumulate reports every independent field failure in one call, in specification order
+input:
+  source: |
+    Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})
+    accumulate(Person, {name: "", age: -1})
+expected:
+  stdout: "err(accumulated-validation-failed, {diagnostics: [{path: [\"name\"], kind: mismatch, reason: \"refinement-mismatch\"}, {path: [\"age\"], kind: mismatch, reason: \"refinement-mismatch\"}]})\n"
+  stderr: ""
+  exit_code: 0
