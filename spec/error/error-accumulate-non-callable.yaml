@@ -1,0 +1,13 @@
+name: error-accumulate-non-callable
+category: error
+description: accumulate rejects a non-callable Template argument
+input:
+  source: |
+    accumulate(1, {})
+expected:
+  stdout: ""
+  stderr: "Error: accumulate expected callable Template, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

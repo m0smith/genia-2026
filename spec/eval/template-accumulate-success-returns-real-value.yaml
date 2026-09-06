@@ -1,0 +1,11 @@
+name: template-accumulate-success-returns-real-value
+category: eval
+description: A zero-diagnostic accumulate call returns the exact real Template success value, including applied defaults
+input:
+  source: |
+    Config = open_shape({host: default_field("localhost", refinement((x) -> x != "")), port: refinement((x) -> x > 0)})
+    accumulate(Config, {port: 9000})
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,12 @@
+name: template-accumulate-nested-depth-first
+category: eval
+description: accumulate recurses depth-first into nested structural Templates with path-aware diagnostics
+input:
+  source: |
+    Address = exact_shape({city: refinement((x) -> x != "")})
+    Person = exact_shape({name: refinement((x) -> x != ""), address: Address})
+    accumulate(Person, {name: "Ada", address: {city: ""}})
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

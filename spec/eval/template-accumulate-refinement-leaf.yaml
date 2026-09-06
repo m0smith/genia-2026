@@ -1,0 +1,11 @@
+name: template-accumulate-refinement-leaf
+category: eval
+description: accumulate over a bare refinement Template performs one leaf check
+input:
+  source: |
+    Positive = refinement((x) -> x > 0)
+    [accumulate(Positive, 5), accumulate(Positive, -1)]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

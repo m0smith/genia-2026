@@ -1,0 +1,13 @@
+name: error-accumulate-opaque-template
+category: error
+description: accumulate rejects an opaque Template (arbitrary callable with no description)
+input:
+  source: |
+    accumulate((x) -> some(x), {})
+expected:
+  stdout: ""
+  stderr: "Error: accumulate expected inspectable Template, received opaque Template\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

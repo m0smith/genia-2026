@@ -1,0 +1,11 @@
+name: template-accumulate-exact-missing-extra-order
+category: eval
+description: accumulate over exact_shape orders missing-field diagnostics before extra-field diagnostics before per-field validation diagnostics
+input:
+  source: |
+    Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})
+    accumulate(Person, {age: -1, extra: 1})
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

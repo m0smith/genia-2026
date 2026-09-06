@@ -1,0 +1,12 @@
+name: template-accumulate-default-field
+category: eval
+description: accumulate validates a missing default_field's default value, succeeding when the default passes and reporting a diagnostic when it does not
+input:
+  source: |
+    Ok = exact_shape({age: default_field(0, refinement((x) -> x >= 0))})
+    Bad = exact_shape({age: default_field(-1, refinement((x) -> x >= 0))})
+    [accumulate(Ok, {}), accumulate(Bad, {})]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0
