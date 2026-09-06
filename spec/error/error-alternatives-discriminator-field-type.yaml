@@ -1,0 +1,13 @@
+name: error-alternatives-discriminator-field-type
+category: error
+description: alternatives rejects a non-string discriminator field name
+input:
+  source: |
+    alternatives(1, {circle: refinement((x) -> true)})
+expected:
+  stdout: ""
+  stderr: "Error: alternatives expected non-empty discriminator field string, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

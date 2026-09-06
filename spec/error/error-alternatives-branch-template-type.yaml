@@ -1,0 +1,13 @@
+name: error-alternatives-branch-template-type
+category: error
+description: alternatives rejects a non-callable branch Template
+input:
+  source: |
+    alternatives("kind", {circle: 1})
+expected:
+  stdout: ""
+  stderr: "Error: alternatives branch circle expected Template function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

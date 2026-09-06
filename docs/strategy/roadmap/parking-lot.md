@@ -46,7 +46,8 @@ This section records the classification of R1-adjacent issues after R1 completio
 | #364 | R6 — after Sheet landing zone | Keep open; schedule after #395. |
 | #399 | R9 E9-1 — delivered | Minimal callable Template foundation implemented over Outcome matchers. |
 | #87 / #89 / #90 | R9 — delivered | R9 epic, open-shape, and exact-shape work completed through the approved E9 sequence. |
-| #91 / #92 | Later release / follow-up | Broad contracts and variants were not required by R9 and are not release blockers. |
+| #91 | Later release / follow-up | Broad function contracts were not required by R9 and are not a release blocker. |
+| #92 | Partially delivered (R15 E15-5 / #732); remainder deferred | Only structural discriminator-directed validation was promoted into R15 as `alternatives(discriminator, branches)`. Nominal variant identity, constructor objects/syntax, sealed/closed nominal hierarchies, and exhaustiveness checking remain deferred and are not implemented. |
 | #102 | Needs split or update | Do not use as a broad release blocker; split first. |
 
 If an issue listed above is already closed, do not reopen it.

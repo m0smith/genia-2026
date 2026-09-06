@@ -767,6 +767,8 @@ Refinement, open structural, and exact structural Templates reuse that same prot
 
 `template_schema(template)` (**Experimental**, R15 E15-4, issue #731) is the bounded reverse of `json_schema`: pure inspection over `template_description` data that never invokes `template` or executes a refinement predicate. A `json_schema`-compiled Template's own description, and any `open_shape`/`exact_shape` whose fields all recursively convert, generate a faithful schema; an opaque Template, a bare `refinement` field (no derivable type), or a `default_field` (JSON Schema `default` is an annotation, not an insertion transform) fail deterministically as `err(quote(unsupported-template), {path, kind})` rather than approximating.
 
+`alternatives(discriminator, branches)` (**Experimental**, R15 E15-5, issue #732) selects exactly one branch by reading an explicit string discriminator field, then validates only that branch against the full original value — ordinary map/value payloads only, never a nominal variant object. Missing/invalid/unknown discriminators produce deterministic `none(...)` diagnostics; a branch's own mismatch/error surfaces unchanged and no other branch is ever attempted. It composes with named patterns and `@?`/`@!`/`&` exactly like any other Template, is inspectable via `template_description`, recurses into `accumulate`, and is deterministically unsupported by `template_schema`. Only the structural-validation portion of issue #92 is absorbed here; nominal variant identity, constructors, sealed hierarchies, and exhaustiveness remain deferred.
+
 ### Conditionals in Genia
 
 - Genia does **not** use `if` or `switch`

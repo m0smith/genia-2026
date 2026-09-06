@@ -36,6 +36,7 @@ def _public(
 _PUBLIC_DOCS = (
     _public("Format", "Construct a tagged representation template.", "Value templates", "Format(template, tag)", stability="Experimental"),
     _public("accumulate", "Validate a value against an inspectable Template, accumulating every independent path-aware diagnostic.", "Value templates", "accumulate(template, value)", stability="Experimental"),
+    _public("alternatives", "Construct a structural discriminated-alternative Template selecting one branch by an explicit string discriminator field.", "Value templates", "alternatives(discriminator, branches)", stability="Experimental"),
     _public("apply_raw", "Call a function with a list of positional arguments without automatic absence propagation.", "Function helpers", "apply_raw(function, arguments)"),
     _public("argv", "Return the trailing command-line arguments as a list of strings.", "CLI", "argv()"),
     _public("assert_eq", "Assert that two values are equal.", "Testing", "assert_eq(actual, expected)", stability="Experimental"),

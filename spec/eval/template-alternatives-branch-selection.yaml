@@ -1,0 +1,13 @@
+name: template-alternatives-branch-selection
+category: eval
+description: alternatives selects exactly one branch by its explicit discriminator and validates only that branch against the full original value
+input:
+  source: |
+    Circle = open_shape({radius: refinement((x) -> x > 0)})
+    Square = open_shape({side: refinement((x) -> x > 0)})
+    Shape = alternatives("kind", {circle: Circle, square: Square})
+    [Shape({kind: "circle", radius: 5}), Shape({kind: "square", side: 3})]
+expected:
+  stdout: "[some({kind: \"circle\", radius: 5}), some({kind: \"square\", side: 3})]\n"
+  stderr: ""
+  exit_code: 0

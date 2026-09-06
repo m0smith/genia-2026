@@ -1,0 +1,16 @@
+name: template-alternatives-pattern-composition
+category: eval
+description: alternatives composes with named patterns and matcher operators exactly like any other Template
+input:
+  source: |
+    Circle = open_shape({radius: refinement((x) -> x > 0)})
+    Square = open_shape({side: refinement((x) -> x > 0)})
+    pattern Shape(value) = alternatives("kind", {circle: Circle, square: Square})(value)
+    area(value) =
+      Shape(record) -> "matched: " + record.kind |
+      _ -> "no-match"
+    [area({kind: "circle", radius: 5}), area({kind: "triangle", a: 1}), {kind: "square", side: 4} @? Shape]
+expected:
+  stdout: "[\"matched: circle\", \"no-match\", some({kind: \"square\", side: 4})]\n"
+  stderr: ""
+  exit_code: 0
