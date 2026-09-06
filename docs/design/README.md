@@ -22,6 +22,7 @@ See GENIA_STATE.md for actual behavior.
 - **r12-retrieval-grounding-contract.md** — approved R12 contract; E12-1 through E12-9 are complete, with E12-9 limited to the final truth audit and distillation.
 - **r13-configuration-resolution-contract.md** — approved R13 contract; E13-1 through E13-8 are complete, with E13-8 limited to the final truth audit and distillation.
 - **r14-composable-lifecycle-contract.md** — approved R14 contract; E14-1 through E14-15 are complete, with E14-14 documentation-only and E14-15 limited to the final truth audit and distillation.
+- **r15-validated-value-modeling-contract.md** — E15-0 R15 contract candidate; constrains planned E15-1 through E15-6 behavior and adds no runtime behavior.
 - **execution-concepts.md** — Proposed separation of file/source, module, annotation, lifecycle, unit test, and execution mode; dangerous merges to avoid.
 - **composability-matrix.md** — Non-authoritative matrix of implemented composition boundaries and explicit later-release constraints.
 - **facet-identity-named-patterns-swot.md** — Exploration/SWOT (not adopted): replacing string-identified carrier facets with named-Pattern identity, plus a related `GeniaNamedPattern` introspection gap.
