@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **288** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **292** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -99,6 +99,7 @@ Alphabetical index of the **288** out-of-the-box Genia functions available from 
 | [`err`](functions/err.md) | option | `err(..args)` | Construct a recoverable Outcome failure value `err(reason)`. |
 | [`eval`](functions/eval.md) | eval | `eval(expr, env)` | Evaluate a quoted Genia expression in a metacircular environment. |
 | [`evolve`](functions/evolve.md) | flow | `evolve(init, step)` | Create a Flow by repeatedly applying `step` to the previous value. |
+| [`exact_shape`](functions/exact_shape.md) | Value templates | `exact_shape(fields)` | Construct an inspectable exact-shape Template from a field Templates map. |
 | [`exact_shape_match`](functions/exact_shape_match.md) | Value templates | `exact_shape_match(shape, value)` | Match a value against an exact shape template. |
 | [`extend`](functions/extend.md) | eval | `extend(env, params, args)` | Create a child metacircular environment with lambda parameters bound to argument values. |
 | [`fields`](functions/fields.md) | awk | `fields(row)` | Split a row into whitespace-separated fields, keeping the original row first. |
@@ -178,6 +179,7 @@ Alphabetical index of the **288** out-of-the-box Genia functions available from 
 | [`nth`](functions/nth.md) | list | `nth(n, xs)` | Return the element at zero-based index `n` as structured absence-aware Option. |
 | [`nth_opt`](functions/nth_opt.md) | list | `nth_opt(n, xs)` | Compatibility alias for `nth(index, list)`. |
 | [`null?`](functions/null-p.md) | Pairs | `null?(value)` | Return whether a value is the empty pair-list terminator. |
+| [`open_shape`](functions/open_shape.md) | Value templates | `open_shape(fields)` | Construct an inspectable open-shape Template from a field Templates map. |
 | [`open_shape_match`](functions/open_shape_match.md) | Value templates | `open_shape_match(shape, value)` | Match a value against an open shape template. |
 | [`operands`](functions/operands.md) | syntax | `operands(expr)` | Return the operand tail of a quoted application expression as a pair-chain sequence. |
 | [`operator`](functions/operator.md) | syntax | `operator(expr)` | Return the operator/callee part of a quoted application expression. |
@@ -206,6 +208,7 @@ Alphabetical index of the **288** out-of-the-box Genia functions available from 
 | [`ref_set`](functions/ref_set.md) | ref | `ref_set(ref_value, value)` | Set a ref to `value` and return `value`. |
 | [`ref_update`](functions/ref_update.md) | ref | `ref_update(ref_value, updater)` | Apply `updater` to the current ref value atomically and store the result. |
 | [`refine`](functions/refine.md) | flow | `refine(..steps)` | Apply step functions left-to-right to each incoming flow item. |
+| [`refinement`](functions/refinement.md) | Value templates | `refinement(predicate)` | Construct an inspectable refinement Template from a boolean predicate. |
 | [`refinement_match`](functions/refinement_match.md) | Value templates | `refinement_match(template, value)` | Match a value against a refinement template. |
 | [`render_csv`](functions/render_csv.md) | Sheets | `render_csv(sheet)` | Render an immutable Sheet as deterministic CSV text. |
 | [`render_grid`](functions/render_grid.md) | io | `render_grid(grid)` | Render a simple text grid to stdout. |
@@ -267,6 +270,7 @@ Alphabetical index of the **288** out-of-the-box Genia functions available from 
 | [`take`](functions/take.md) | list | `take(n, xs)` | Take the first `n` items from a list. |
 | [`tap`](functions/tap.md) | fn | `tap(fn, value)` | Call `fn(value)` for side effects and return `value` unchanged. |
 | [`tee`](functions/tee.md) | flow | `tee(flow)` | Split one input flow into two lazy branch flows. |
+| [`template_description`](functions/template_description.md) | Value templates | `template_description(template)` | Return the inert structural description of a supported Template, or absence for an opaque Template. |
 | [`text_of_quotation`](functions/text_of_quotation.md) | syntax | `text_of_quotation(expr)` | Return the contents of a quoted form. |
 | [`then_find`](functions/then_find.md) | option | `then_find(needle, target)` | Find `needle` in a string target within a pipeline, returning its index as an Option. |
 | [`then_first`](functions/then_first.md) | option | `then_first(target)` | Take the first element of a list target within a pipeline, as an Option. |
@@ -412,15 +416,19 @@ Alphabetical index of the **288** out-of-the-box Genia functions available from 
 
 ### Value templates
 
+- [`exact_shape`](functions/exact_shape.md) - Construct an inspectable exact-shape Template from a field Templates map.
 - [`exact_shape_match`](functions/exact_shape_match.md) - Match a value against an exact shape template.
 - [`Format`](functions/Format-host.md) - Construct a tagged representation template.
 - [`format_tag`](functions/format_tag.md) - Return the tag of a representation template.
 - [`format_template`](functions/format_template.md) - Return the inner template of a representation template.
+- [`open_shape`](functions/open_shape.md) - Construct an inspectable open-shape Template from a field Templates map.
 - [`open_shape_match`](functions/open_shape_match.md) - Match a value against an open shape template.
+- [`refinement`](functions/refinement.md) - Construct an inspectable refinement Template from a boolean predicate.
 - [`refinement_match`](functions/refinement_match.md) - Match a value against a refinement template.
 - [`represent`](functions/represent.md) - Attach a first-class representation facet to a value.
 - [`representation_match`](functions/representation_match.md) - Match a represented value against a representation template.
 - [`strip_representation`](functions/strip_representation.md) - Remove one matching representation facet from a represented value.
+- [`template_description`](functions/template_description.md) - Return the inert structural description of a supported Template, or absence for an opaque Template.
 
 ### actor
 

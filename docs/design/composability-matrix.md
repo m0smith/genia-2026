@@ -18,6 +18,7 @@
 | refinement template | boolean predicate | `refinement_match` lifts true to `some(original)` and false to ordinary mismatch | Implemented, Experimental |
 | open template | ordinary map and field Templates | `open_shape_match` requires listed fields, accepts extras, preserves the original map, and propagates nested Outcome failures | Implemented, Experimental |
 | exact template | ordinary map and field Templates | `exact_shape_match` requires an equal key set, preserves the original map, and propagates nested Outcome failures | Implemented, Experimental |
+| Template description | `refinement` / `open_shape` / `exact_shape` / `json_schema` | `template_description` returns the inert, host-independent structure of a Template built by one of these; every other callable/named-pattern Template stays opaque; descriptions never affect identity, matching, or `@?`/`@!`/`&` | Implemented R15 E15-1, Experimental |
 | matcher | `@?` / `@!` | check/assert while retaining the original subject on success | Implemented, Experimental |
 | matcher | matcher | `&` composes left-to-right over the original subject | Implemented, Experimental |
 | List | Seq-compatible helpers | list transforms return lists; terminal helpers consume lists | Implemented |
@@ -153,6 +154,16 @@ adding no new Genia value relationship and no new row; see
 | lifecycle-owned configuration | R10 provider / R13 view | `lifecycle_config` captures one already-constructed immutable provider and exposes it inward-only and non-shadowable; it performs no acquisition, refresh, or ambient lookup and changes no R10/R13 Outcome/protection semantics | E14-4 implemented, Experimental |
 | outbound HTTP operation/client | R9 JSON / R10 protected value / Outcome | `http_operation` builds one inert closed value with no IO; `web.http_send` makes exactly one synchronous attempt, treats any received status as an ordinary successful response, and declassifies a protected header only immediately before transmission via the existing R10 authority/declassify mechanism | E14-5 (`http_operation`) and E14-7 (`web.http_send`, #624) implemented, Experimental |
 | declarative outbound HTTP annotation | `HttpOperation` / `web.http_send` | `@get`/`@post` attach one inert `{verb, path}` descriptor to a top-level zero-argument function, never changing how it is called; `web.send_annotated` is the sole function that reads the descriptor, calls the function for its dynamic `{headers, query, body}`, and composes the unchanged `http_operation` + `web.http_send` — no new transport/lifecycle mechanism | E14-9 (`@get`/`@post`, `web.send_annotated`, #626) implemented, Experimental |
+
+## R15 relationships
+
+R15 extends the R9 Template/representation foundation from a reconciled
+E15-0 contract; see `r15-validated-value-modeling-contract.md`. E15-1 is the
+first implemented slice.
+
+| Concept | Composes with | Required relationship | Status |
+|---|---|---|---|
+| Template description | `refinement` / `open_shape` / `exact_shape` / `json_schema` / `template_description` | `refinement`, `open_shape`, and `exact_shape` are curried one-argument builders behaving identically to the existing two-argument `*_match` helper; a Template they build, and a Template `json_schema` compiles, carries an inert host-independent description; `template_description` returns `some(description)` for those and `none("opaque-template")` for every other callable/named-pattern Template; descriptions never affect callable identity, equality, matching, dispatch, `@?`/`@!`/`&`, or original-subject semantics, and construction/inspection perform no effects | E15-1 (issue #728) implemented, Experimental |
 
 ## Keeping this matrix in sync
 

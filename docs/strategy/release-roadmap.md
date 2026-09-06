@@ -1067,13 +1067,14 @@ phases.
 
 ## Release R15 — Validated Value Modeling
 
-**Status: Active release — E15-0 contract gate in review.** R14 is complete.
-Epic **#725** tracks R15 and **#726** is the current contract/roadmap/capability
-inventory gate. Its contract candidate is
-`docs/design/r15-validated-value-modeling-contract.md`. Activating the roadmap,
-creating tickets, or writing the contract does **not** implement R15 runtime
-behavior. After #726 is approved and merged, the next authorized step is
-**#728 / E15-1 preflight only**.
+**Status: Active release — E15-0 contract approved and merged (#726/#738); E15-1
+delivered (issue #728).** R14 is complete. Epic **#725** tracks R15. The
+approved contract is `docs/design/r15-validated-value-modeling-contract.md`.
+E15-1 implements inert inspectable Template descriptions
+(`refinement`/`open_shape`/`exact_shape` builders plus `template_description`
+and a matching `json_schema` description) exactly as scoped by that contract;
+no later R15 behavior (E15-2 onward) is implemented merely because this
+roadmap or its issues exist.
 
 Theme:
 
@@ -1595,8 +1596,10 @@ R23 contract.
 
 R8, R9, R10, R11, R12, R13, and R14 are complete. R11, R12, R13, and R14 APIs remain
 Experimental, Python is the only implemented host, and shared/multi-host conformance
-remains Partial. R15 is the active release at its E15-0 contract gate; no R15
-runtime behavior is implemented yet.
+remains Partial. R15 is the active release; its E15-0 contract is approved and E15-1 is
+implemented (inert inspectable Template descriptions, issue #728). No R15
+behavior beyond E15-1 is implemented merely because this roadmap or its
+issues exist.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
 R23 is planned and not active. Every later release requires its own gates.
 Each later behavior slice requires its

@@ -759,6 +759,8 @@ A named reusable pattern is also a first-class Template value. Direct calls retu
 
 Refinement, open structural, and exact structural Templates reuse that same protocol. Wrap `refinement_match`, `open_shape_match`, or `exact_shape_match` in an existing `pattern` declaration. Open shapes accept extras; exact shapes require an equal key set. Both preserve the original ordinary map. Structural declaration syntax, positional/labeled shapes, and nominal Structs remain unavailable.
 
+`refinement(predicate)`, `open_shape(fields)`, and `exact_shape(fields)` (**Experimental**, R15 E15-1, issue #728) are curried builders that return a Template directly, with the same behavior as the corresponding `*_match` helper. Templates built this way, and Templates returned by `json_schema`, carry an inert, host-independent description that `template_description(template)` returns as `some(description)`; every other Template (arbitrary callables and named patterns) remains fully callable but returns `none("opaque-template")`. Descriptions never affect callability, identity, matching, or `@?`/`@!`/`&` semantics, and construction/inspection perform no effects.
+
 ### Conditionals in Genia
 
 - Genia does **not** use `if` or `switch`

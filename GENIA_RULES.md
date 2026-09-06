@@ -101,7 +101,17 @@ Required constraints:
 - `json_schema(schema)` requires one outer `json`-represented schema map and returns an Outcome containing an ordinary callable Template; the supported vocabulary is closed to required `type`, plus type-appropriate `properties`, `required`, `items`, and boolean `additionalProperties`
 - compiled schema Templates preserve the original subject on success; object checks run required names, forbidden extras, then present declared properties in their defined orders, and array checks run by increasing index
 - unsupported schema keywords and malformed supported-keyword shapes are deterministic compile-time `err` Outcomes; schema compiler input-shape/facet violations are runtime misuse, and unsupported keywords are never ignored
-- no implicit Template application, metadata behavior, structural declaration syntax, nominal shape category, or representation behavior is introduced
+- no implicit Template application, structural declaration syntax, nominal shape category, or representation behavior is introduced
+
+### 6.2.1) Inert inspectable Template descriptions (Experimental, R15 E15-1)
+
+- `refinement(predicate)`, `open_shape(fields)`, and `exact_shape(fields)` are curried one-argument Template builders; each validates its argument eagerly (the same validation `refinement_match`/`open_shape_match`/`exact_shape_match` perform) and returns a new one-argument Template whose direct-call behavior is identical to calling the corresponding two-argument `*_match` helper with the same argument
+- a Template built by `refinement`, `open_shape`, `exact_shape`, or produced by `json_schema` carries an immutable, inert, host-independent description; every other callable Template (arbitrary callables and named patterns declared with `pattern Name(value) = ...`, even when the body calls `refinement_match`/`open_shape_match`/`exact_shape_match` directly) remains a fully valid but opaque Template with no description
+- `template_description(template)` requires a callable Template and returns `some(description)` for an inspectable Template or `none("opaque-template")` for an opaque one; a non-callable argument is misuse
+- description shapes: `refinement` -> `{kind: quote(refinement)}` (the predicate is never introspected or exposed); `open_shape`/`exact_shape` -> `{kind: quote(open_shape)|quote(exact_shape), fields: {name: field_description_or_quote(opaque), ...}}` in the fields map's insertion order; a `json_schema`-compiled Template's scalar node -> `{kind: quote(json_schema_scalar), type: quote(<type>)}`, object node -> `{kind: quote(json_schema_object), properties: {...}, required: [...], additional: bool}`, array node -> `{kind: quote(json_schema_array), items: description}`
+- descriptions do not participate in equality, hashing, callable identity, pattern identity, matching, dispatch, or original-subject semantics; two Templates built from equal specifications are distinct callables with equal-shaped descriptions
+- construction and inspection perform no effects: no user-data validation, no arbitrary callable execution, no config/lifecycle lookup, no filesystem/network IO, and no import-time activation
+- no protected or represented payload can appear inside a description; field/property descriptions contribute only their own description shape or the `quote(opaque)` marker
 
 ## 6.3) Carrier representation invariants (Experimental)
 
