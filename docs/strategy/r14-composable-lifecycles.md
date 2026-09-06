@@ -1,8 +1,8 @@
 # R14 — Composable Lifecycles
 
 Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
-and E14-1 through E14-11 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626, #627, #695).** E14-6 adds no Genia-visible surface — it is a private
+and E14-1 through E14-12 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627, #695, #628).** E14-6 adds no Genia-visible surface — it is a private
 Python-host outbound HTTP transport capability consumed by E14-7's
 `web.http_send`, the first outbound HTTP call actually reachable from
 Genia source. E14-8 proves the protected-HTTP-credential-sink contract
@@ -17,7 +17,12 @@ architecturally separate. E14-11 proves, also with zero runtime-code
 change, that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
 already compose into a repeated record-processing pipeline with
 `record`/`fields`/`nr`/`nf`-style values derived as ordinary data, no AWK
-syntax. E14-12
+syntax. E14-12 proves, also with zero runtime-code change, the
+YouVersion Bible proxy proving application — `config_view`/`secret_view`,
+`http_operation`/`web.http_send`, the protected HTTP header sink, and
+`web.serve_http`/`web.route_request` compose into a complete end-to-end
+proving application with no real network/credential dependency in
+automated tests. E14-13
 through E14-15 remain planned, not implemented. This
 document records approved release direction; `GENIA_STATE.md` remains
 final authority for implemented behavior.
@@ -440,8 +445,12 @@ release epic is #619.
     - Proved that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
       already compose into a record-processing pipeline with two peer
       lifecycles per element and no AWK syntax.
-13. **#628 — E14-12: YouVersion Bible proxy proving application**
-    - Prove the configured, protected vertical HTTP path.
+13. **#628 — E14-12: YouVersion Bible proxy proving application — implemented, zero runtime-code change**
+    - Proved that `config_view`/`secret_view`, `http_operation`/
+      `web.http_send`, the protected HTTP header sink, and
+      `web.serve_http`/`web.route_request` already compose the configured,
+      protected vertical HTTP path, with no real network/credential
+      dependency in automated tests.
 14. **#696 — E14-13: cross-mode lifecycle and HTTP hardening**
     - Prove inertness, cleanup/failure matrices, laziness, diagnostics,
       protection, capability normalization, and parse/Core IR preservation.
@@ -504,8 +513,8 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-12 preflight only**, now that #621, #692, #693, #694, #622,
-#623, #624, #625, #626, #627, and #695 have each completed their own preflight, design,
+**GO for E14-13 preflight only**, now that #621, #692, #693, #694, #622,
+#623, #624, #625, #626, #627, #695, and #628 have each completed their own preflight, design,
 failing-test, implementation, and documentation phases: #621 implemented
 the instance/scope core, #692 proved horizontal peer-attachment breadth
 over it, #693 implemented `lifecycle_repeat` over both, #694 implemented
@@ -522,12 +531,17 @@ unchanged surface, designing the exact annotation shape itself since
 this contract left it unspecified, #627 proved the
 server/request/outbound-client composition shape with zero
 runtime-code change, confirming R8's server lifecycle and R14's
-lifecycle core remain architecturally separate, and #695 proved the
+lifecycle core remain architecturally separate, #695 proved the
 repeated-record proving case with zero runtime-code change, confirming
 `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context` already compose
-into a record-processing pipeline, all against the contract in
+into a record-processing pipeline, and #628 proved the YouVersion Bible
+proxy proving application with zero runtime-code change, confirming
+`config_view`/`secret_view`, `http_operation`/`web.http_send`, the
+protected HTTP header sink, and `web.serve_http`/`web.route_request`
+already compose into a complete end-to-end proving application, all
+against the contract in
 `docs/design/r14-composable-lifecycle-contract.md`. Implementation of
-E14-12 and later tickets remains blocked until each completes its own
+E14-13 and later tickets remains blocked until each completes its own
 preflight, design, failing-test, implementation, documentation, and audit
 phases. The supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
 not replace the repository's current process prompt.

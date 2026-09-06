@@ -862,8 +862,8 @@ E13-8 completed the release audit/distillation without runtime behavior.
 ## Release R14 — Composable Lifecycles
 
 **Status: In progress; E14-0 contract approved and
-E14-1 through E14-10 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626, #627).** R14 is explicitly approved infrastructure work with one direct
+E14-1 through E14-12 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627, #695, #628).** R14 is explicitly approved infrastructure work with one direct
 record-pipeline proving path. The release epic is **#619**. Its contract
 is `docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements
 the HTTP-free lifecycle instance/parent-child execution-scope core
@@ -896,11 +896,16 @@ architecturally separate; E14-11 proves, also with zero runtime-code
 change, that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
 already compose into a repeated record-processing pipeline with
 `record`/`fields`/`nr`/`nf`-style values derived as ordinary data, no AWK
-syntax. No R14
+syntax; E14-12 proves, also with zero runtime-code change, the
+YouVersion Bible proxy proving application — `config_view`/`secret_view`,
+`http_operation`/`web.http_send`, the protected HTTP header sink, and
+`web.serve_http`/`web.route_request` compose into a complete end-to-end
+proving application with no real network/credential dependency in
+automated tests. No R14
 behavior
-beyond E14-1 through E14-11 is implemented merely
+beyond E14-1 through E14-12 is implemented merely
 because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
-sections 9.8-9.18.
+sections 9.8-9.19.
 
 Theme:
 
@@ -997,7 +1002,7 @@ Approved R14 issue path:
 10. **#626 — E14-9 (implemented):** declarative outbound HTTP annotations
 11. **#627 — E14-10 (implemented, zero runtime-code change):** server/request/outbound-client composition
 12. **#695 — E14-11 (implemented, zero runtime-code change):** repeated record lifecycle proving case
-13. **#628 — E14-12:** YouVersion Bible proxy proving application
+13. **#628 — E14-12 (implemented, zero runtime-code change):** YouVersion Bible proxy proving application
 14. **#696 — E14-13:** cross-mode lifecycle and HTTP hardening
 15. **#629 — E14-14:** release examples and implemented-truth synchronization
 16. **#630 — E14-15:** release truth audit and distillation

@@ -148,7 +148,13 @@ compose into a repeated record-processing pipeline (deterministic
 per-element peer entry/work/unwind, `record`/`fields`/`nr`/`nf`-style
 values derived as ordinary data, no cross-element leakage, correct cleanup
 on both data-level and genuine work-phase failure, and bounded
-Flow-termination cleanup), again with zero additional runtime code; E14-12
+Flow-termination cleanup), again with zero additional runtime code;
+E14-12 (issue #628) proves the same "already correct, zero runtime-code
+change" shape for the vertical HTTP path — `config_view`/`secret_view`,
+`http_operation`/`web.http_send`, the protected HTTP header sink, and
+`web.serve_http`/`web.route_request` compose into a complete YouVersion
+Bible proxy proving application, with no real network/credential
+dependency in automated tests; E14-13
 and later slices — the remaining application-integration proof — remain
 planned, not implemented.
 

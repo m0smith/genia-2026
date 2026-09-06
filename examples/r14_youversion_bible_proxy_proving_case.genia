@@ -1,0 +1,120 @@
+"""
+# R14 YouVersion Bible Proxy Proving Case
+
+A compact end-to-end proving application composing R13 configuration
+ergonomics, R10 protected values, R8 server mode, and R14's outbound HTTP
+client lifecycle in one real program, per issue #628 (E14-12).
+
+Resolves a base URL, Bible/version ID, and API credential entirely through
+the landed R13/R10 configuration model (`config_view`/`secret_view`),
+constructs one `http_operation` per canonical passage reference, and sends
+the protected credential through the authorized outbound HTTP header sink
+(`web.http_send`) — the same unchanged E14-5/E14-7 surface #624 already
+implements, with no new lifecycle primitive, transport mechanism, or
+Bible-specific language behavior. References are opaque strings supplied
+by the caller: this example performs no human-language Bible-reference
+parsing.
+
+Minting a declassification authority is a privileged host-side operation,
+never a pure-Genia one (the same boundary the R13 proving case already
+established — see `docs/releases/R13.md`). A plain `genia` CLI run can
+therefore only demonstrate configuration resolution and that the
+credential stays protected; the full outbound round trip (a real R8
+server, a real local mock-upstream fixture, and a real injected authority)
+is exercised entirely by
+`tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py`, with no
+real YouVersion credential or public network dependency.
+
+Run:
+
+```bash
+genia examples/r14_youversion_bible_proxy_proving_case.genia
+```
+"""
+
+import web
+
+# -- Configuration resolution (R13/R10) --------------------------------------
+
+resolve_base_url(provider) = config_view(provider, "YOUVERSION_")("BASE_URL")
+resolve_version_id(provider) = config_view(provider, "YOUVERSION_")("VERSION_ID")
+resolve_credential(provider) = secret_view(provider, "YOUVERSION_", quote(bible_proxy_outbound))("API_KEY")
+
+bible_config(parts) =
+  [some(base_url), some(version_id), some(credential)] -> some({base_url: base_url, version_id: version_id, credential: credential}) |
+  [none(reason), _, _] -> none(reason) |
+  [_, none(reason), _] -> none(reason) |
+  [_, _, none(reason)] -> none(reason)
+
+resolve_bible_config(provider) = bible_config([
+  resolve_base_url(provider),
+  resolve_version_id(provider),
+  resolve_credential(provider)
+])
+
+# -- Outbound operation construction and dispatch (R14 E14-5/E14-7) ----------
+
+reference_path(version_id, reference) = "/v1/bible/" + version_id + "/passages/" + reference
+
+build_reference_operation(config, reference) = http_operation(
+  quote(get),
+  config.base_url,
+  reference_path(config.version_id, reference),
+  {"youversion-api-key": config.credential},
+  {},
+  none("http-no-body")
+)
+
+decode_passage(body) = json_decode(body) |> unwrap_or(none) |> strip_representation("json")
+
+classify_fetch_response(reference, response) = (
+  (reference, response) ? response.status >= 200 && response.status < 300 -> {reference: reference, status: "ok", passage: decode_passage(response.body)} |
+  (reference, response) -> {reference: reference, status: "error", reason: "upstream-status", http_status: response.status}
+)
+
+classify_fetch_result(reference, result) =
+  (reference, some(response)) -> classify_fetch_response(reference, response) |
+  (reference, err(reason, ctx)) -> {reference: reference, status: "error", reason: reason}
+
+fetch_reference(authority, config, reference) = {
+  operation = build_reference_operation(config, reference) |> unwrap_or(none)
+  result = web.http_send(operation, authority, 2000)
+  classify_fetch_result(reference, result)
+}
+
+fetch_all_references(authority, config, references) =
+  references |> map((reference) -> fetch_reference(authority, config, reference))
+
+# -- Inbound REST service (R8) -----------------------------------------------
+
+passages_request_references(request) = unwrap_or([], request |> get("body"))
+
+handle_passages_request(authority, config) = (request) -> {
+  references = passages_request_references(request)
+  results = fetch_all_references(authority, config, references)
+  web.json({results: results})
+}
+
+bible_proxy_router(authority, config) = web.route_request([
+  web.post("/passages", handle_passages_request(authority, config))
+])
+
+bible_proxy_server(server_config, authority, config) =
+  web.serve_http(server_config, bible_proxy_router(authority, config))
+
+# -- Top-level: CLI-runnable configuration demonstration ---------------------
+
+provider = config_provider([{kind: quote(values), values: {
+  YOUVERSION_BASE_URL: "https://developers.youversionapi.com",
+  YOUVERSION_VERSION_ID: "111",
+  YOUVERSION_API_KEY: "FAKE_YOUVERSION_KEY_SENTINEL_628"
+}}]) |> unwrap_or(none)
+
+config = resolve_bible_config(provider) |> unwrap_or(none)
+
+{
+  base_url: config.base_url,
+  version_id: config.version_id,
+  credential: display(config.credential),
+  protected_match: protected_match("secret", config.credential) |> some?
+}

@@ -1,0 +1,16 @@
+name: r14-youversion-bible-proxy-proving-case
+category: cli
+description: Executable R14 YouVersion Bible proxy proving case resolves base URL/version ID/API credential through R13/R10 configuration model, keeping the credential protected
+input:
+  source: "examples/r14_youversion_bible_proxy_proving_case.genia"
+  file: "examples/r14_youversion_bible_proxy_proving_case.genia"
+  stdin: ""
+  argv: []
+expected:
+  stdout: '{base_url: "https://developers.youversionapi.com", version_id: "111", credential: "<protected>", protected_match: true}'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 628
+  classification: Experimental proving application over E14-4 (lifecycle_config-adjacent R13/R10 configuration model), E14-5/E14-7 (http_operation/web.http_send), E14-8 (protected HTTP sinks), and R8 server mode.
+  non_goal: no human-language Bible-reference parsing, Bible search/indexing/caching, YouVersion-specific language APIs, or real credential/network dependency. The full outbound round trip (real server, mock upstream, injected authority) is exercised only by tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py -- minting a declassification authority is a privileged host-side operation, never a pure-Genia one.

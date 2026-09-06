@@ -846,8 +846,15 @@ as "Current release: R14" only after this contract records explicit GO.
     AWK syntax, no cross-element leakage, and correct cleanup on both
     data-level and genuine work-phase element failure, plus bounded
     Flow-termination cleanup.
-13. **#628 — E14-12:** YouVersion Bible proxy proving application (over
-    E14-4 + E14-10, controlled upstream, no real network/credential in CI).
+13. **#628 — E14-12 (implemented, zero runtime-code change):** YouVersion
+    Bible proxy proving application — proved that `config_view`/
+    `secret_view`, `http_operation`/`web.http_send`, the protected HTTP
+    header sink, and `web.serve_http`/`web.route_request` already compose
+    into a complete end-to-end proving application over a controlled
+    local mock upstream, with no real network or credential dependency
+    in automated tests, and confirmed that minting a declassification
+    authority is a privileged host-side operation never reachable from
+    pure Genia source.
 14. **#696 — E14-13:** cross-mode lifecycle and HTTP hardening (inertness,
     every failure matrix row, laziness, diagnostics, protection,
     capability-unavailable normalization, parse/Core IR regression).
@@ -878,18 +885,20 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-12 preflight only**, now that issue #695 has proven E14-11
-against this contract (zero runtime-code change; `lifecycle_scope`/
-`lifecycle_repeat`/`lifecycle_context` already compose into the
-repeated-record proving case with no new API or syntax).
+**GO for E14-13 preflight only**, now that issue #628 has proven E14-12
+against this contract (zero runtime-code change; `config_view`/
+`secret_view`, `http_operation`/`web.http_send`, the protected HTTP
+header sink, and `web.serve_http`/`web.route_request` already compose
+into the complete YouVersion Bible proxy proving application, with no
+real network/credential dependency in automated tests).
 This document
 itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
 documentation beyond what #621, #692, #693, #694, #622, #623, #624, #625,
-#626, #627, and #695 have already landed and `GENIA_STATE.md` sections
-9.8-9.18 record.
+#626, #627, #695, and #628 have already landed and `GENIA_STATE.md`
+sections 9.8-9.19 record.
 Every later E14 ticket must name
-#620/#621/#692/#693/#694/#622/#623/#624/#625/#626/#627/#695 and its own
+#620/#621/#692/#693/#694/#622/#623/#624/#625/#626/#627/#695/#628 and its own
 earlier dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10

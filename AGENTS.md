@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1 through E14-11 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624, #625, #626, #627, #695).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1 through E14-12 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625, #626, #627, #695, #628).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -288,13 +288,22 @@ are derived by application code reading the reserved
 leakage, and correct cleanup on both a data-level `err(...)` record and a
 genuine element work-phase exception, plus bounded Flow-termination
 cleanup via the existing `take`.
+E14-12 (#628) proves, also with **zero runtime-code change**, the
+YouVersion Bible proxy proving application: `config_view`/`secret_view`
+resolve base URL/version ID/API credential through the landed R13/R10
+model, `http_operation`/`web.http_send` and the protected HTTP header
+sink send the credential through the authorized sink, and an R8 `POST
+/passages` route handler dispatches outbound child HTTP calls per
+canonical reference — no real network or credential dependency exists
+in automated tests, and minting a declassification authority remains a
+privileged host-side operation never reachable from pure Genia source.
 No R14 behavior beyond
-E14-1 through E14-11
+E14-1 through E14-12
 is implemented merely because its roadmap, issues, or contract exist.
-E14-12 is the next
+E14-13 is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.18.
+9.8-9.19.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
