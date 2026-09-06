@@ -29,6 +29,8 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_upstream_failure_produces_deterministic_error_without_killing_server",
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_connect_refused_upstream_is_a_deterministic_error_not_a_crash",
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_protected_credential_never_leaks_through_response_or_audit",
+    "tests/unit/test_r14_cross_mode_hardening_696.py::test_serve_mode_annotation_registration_never_self_executes",
+    "tests/unit/test_r14_cross_mode_hardening_696.py::test_combined_server_request_outbound_client_resilience_without_network",
 }
 
 
