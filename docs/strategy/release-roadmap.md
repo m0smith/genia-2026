@@ -1067,10 +1067,13 @@ phases.
 
 ## Release R15 — Validated Value Modeling
 
-**Status: Planned, not active.** The reviewed planning scope is recorded in
-`docs/strategy/r15-validation-modeling.md`. Roadmap placement does not define
-implemented syntax or behavior and does not authorize ticketing or
-implementation without the repository's normal gates.
+**Status: Active release — E15-0 contract gate in review.** R14 is complete.
+Epic **#725** tracks R15 and **#726** is the current contract/roadmap/capability
+inventory gate. Its contract candidate is
+`docs/design/r15-validated-value-modeling-contract.md`. Activating the roadmap,
+creating tickets, or writing the contract does **not** implement R15 runtime
+behavior. After #726 is approved and merged, the next authorized step is
+**#728 / E15-1 preflight only**.
 
 Theme:
 
@@ -1099,7 +1102,27 @@ representations, and the `some` / `none` / `err` distinction. It excludes a
 mutable model instances, decorator-driven validation lifecycles, complete
 Pydantic or JSON Schema compatibility, approximate schema generation, nominal
 variant constructors/exhaustiveness, arbitrary cyclic object graphs, a general
-validation DSL, and unrelated type-system work.
+validation DSL, ambient configuration/lifecycle validation state, and unrelated
+type-system work.
+
+Approved issue sequence:
+
+1. **#726 — E15-0:** contract, roadmap reconciliation, and capability inventory
+2. **#728 — E15-1:** inert inspectable Template descriptions
+3. **#729 — E15-2:** explicit missing-field defaults and normalization composition
+4. **#730 — E15-3:** accumulated path-aware validation diagnostics
+5. **#731 — E15-4:** faithful supported Template → JSON Schema generation
+6. **#732 — E15-5:** structural discriminated alternatives
+7. **#733 — E15-6:** bounded named recursive Template references
+8. **#734 — E15-7:** composed messy-record validated-data proving case
+9. **#735 — E15-8:** cross-mode/shared-conformance and portability hardening
+10. **#736 — E15-9:** documentation, release examples, composability sync, final truth audit, and distillation
+
+Recommended dependency shape:
+
+```text
+#726 → #728 → #729 → #730 → #731 → #732 → #733 → #734 → #735 → #736
+```
 
 Critical acceptance criterion:
 
@@ -1107,7 +1130,8 @@ Critical acceptance criterion:
   external value, collect deterministic path-aware validation failures, retain
   an ordinary value on success, export faithful JSON Schema when representable,
   validate structural alternatives, and validate a bounded recursive tree
-  without introducing model instances or a parallel validation/result model.
+  without introducing model instances, ambient state, or a parallel
+  validation/result model.
 
 ---
 
@@ -1571,7 +1595,8 @@ R23 contract.
 
 R8, R9, R10, R11, R12, R13, and R14 are complete. R11, R12, R13, and R14 APIs remain
 Experimental, Python is the only implemented host, and shared/multi-host conformance
-remains Partial. R15 remains planned and not active.
+remains Partial. R15 is the active release at its E15-0 contract gate; no R15
+runtime behavior is implemented yet.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
 R23 is planned and not active. Every later release requires its own gates.
 Each later behavior slice requires its
