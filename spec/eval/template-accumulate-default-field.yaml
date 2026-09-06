@@ -7,6 +7,6 @@ input:
     Bad = exact_shape({age: default_field(-1, refinement((x) -> x >= 0))})
     [accumulate(Ok, {}), accumulate(Bad, {})]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some({age: 0}), err(accumulated-validation-failed, {diagnostics: [{path: [\"age\"], kind: mismatch, reason: \"refinement-mismatch\"}]})]\n"
   stderr: ""
   exit_code: 0

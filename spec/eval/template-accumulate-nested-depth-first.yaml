@@ -7,6 +7,6 @@ input:
     Person = exact_shape({name: refinement((x) -> x != ""), address: Address})
     accumulate(Person, {name: "Ada", address: {city: ""}})
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "err(accumulated-validation-failed, {diagnostics: [{path: [\"address\", \"city\"], kind: mismatch, reason: \"refinement-mismatch\"}]})\n"
   stderr: ""
   exit_code: 0

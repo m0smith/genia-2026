@@ -1073,6 +1073,8 @@ def make_global_env(
             .put("kind", symbol("open_shape"))
             .put("fields", field_descriptions)
         )
+        template.__genia_shape_fields__ = fields  # type: ignore[attr-defined]
+        template.__genia_shape_exact__ = False  # type: ignore[attr-defined]
         return template
 
     def exact_shape_fn(fields: Any) -> Any:
@@ -1093,6 +1095,8 @@ def make_global_env(
             .put("kind", symbol("exact_shape"))
             .put("fields", field_descriptions)
         )
+        template.__genia_shape_fields__ = fields  # type: ignore[attr-defined]
+        template.__genia_shape_exact__ = True  # type: ignore[attr-defined]
         return template
 
     def template_description_fn(template: Any) -> Any:
@@ -1106,11 +1110,123 @@ def make_global_env(
             return make_none("opaque-template")
         return GeniaOptionSome(description)
 
+    def _accumulate_diagnostic(path: list[Any], kind: str, reason: Any) -> Any:
+        return (
+            GeniaMap()
+            .put("path", list(path))
+            .put("kind", symbol(kind))
+            .put("reason", reason)
+        )
+
+    def _accumulate_field(template: Any, value: Any, path: list[Any], diagnostics: list[Any]) -> None:
+        marker = getattr(template, "__genia_field_default__", None)
+        if marker is not None:
+            _default_value, template = marker
+        _accumulate_walk(template, value, path, diagnostics)
+
+    def _accumulate_open_shape(fields: Any, value: Any, path: list[Any], diagnostics: list[Any]) -> None:
+        if not isinstance(value, GeniaMap):
+            diagnostics.append(_accumulate_diagnostic(path, "mismatch", "accumulate-not-a-map"))
+            return
+
+        for field, field_template in fields.items():
+            child_path = path + [field]
+            if value.has(field):
+                _accumulate_field(field_template, value.get(field), child_path, diagnostics)
+                continue
+            marker = getattr(field_template, "__genia_field_default__", None)
+            if marker is None:
+                diagnostics.append(
+                    _accumulate_diagnostic(child_path, "mismatch", "accumulate-missing-field")
+                )
+            else:
+                default_value, inner_template = marker
+                _accumulate_walk(inner_template, default_value, child_path, diagnostics)
+
+    def _accumulate_exact_shape(fields: Any, value: Any, path: list[Any], diagnostics: list[Any]) -> None:
+        if not isinstance(value, GeniaMap):
+            diagnostics.append(_accumulate_diagnostic(path, "mismatch", "accumulate-not-a-map"))
+            return
+
+        for field, field_template in fields.items():
+            if value.has(field):
+                continue
+            if getattr(field_template, "__genia_field_default__", None) is None:
+                diagnostics.append(
+                    _accumulate_diagnostic(path + [field], "mismatch", "accumulate-missing-field")
+                )
+
+        for field, _field_value in value.items():
+            if not fields.has(field):
+                diagnostics.append(
+                    _accumulate_diagnostic(path + [field], "mismatch", "accumulate-extra-field")
+                )
+
+        for field, field_template in fields.items():
+            child_path = path + [field]
+            if value.has(field):
+                _accumulate_field(field_template, value.get(field), child_path, diagnostics)
+                continue
+            marker = getattr(field_template, "__genia_field_default__", None)
+            if marker is not None:
+                default_value, inner_template = marker
+                _accumulate_walk(inner_template, default_value, child_path, diagnostics)
+
+    def _accumulate_walk(template: Any, value: Any, path: list[Any], diagnostics: list[Any]) -> None:
+        fields = getattr(template, "__genia_shape_fields__", None)
+        if fields is not None:
+            if getattr(template, "__genia_shape_exact__", False):
+                _accumulate_exact_shape(fields, value, path, diagnostics)
+            else:
+                _accumulate_open_shape(fields, value, path, diagnostics)
+            return
+
+        outcome = _invoke_raw_from_builtin(template, [value])
+        if isinstance(outcome, GeniaOptionNone):
+            diagnostics.append(_accumulate_diagnostic(path, "mismatch", outcome.reason))
+        elif isinstance(outcome, GeniaOptionErr):
+            diagnostics.append(_accumulate_diagnostic(path, "error", outcome.reason))
+        elif not isinstance(outcome, GeniaOptionSome):
+            raise TypeError(
+                "accumulate expected Template to return Outcome, "
+                f"received {_runtime_type_name(outcome)}"
+            )
+
+    def accumulate_fn(template: Any, value: Any) -> Any:
+        if not _template_callable(template):
+            raise TypeError(
+                "accumulate expected callable Template, "
+                f"received {_runtime_type_name(template)}"
+            )
+        entry_template = template
+        marker = getattr(entry_template, "__genia_field_default__", None)
+        if marker is not None:
+            _default_value, entry_template = marker
+        if (
+            getattr(entry_template, "__genia_shape_fields__", None) is None
+            and getattr(entry_template, "__genia_template_description__", None) is None
+        ):
+            raise TypeError(
+                "accumulate expected inspectable Template, received opaque Template"
+            )
+
+        diagnostics: list[Any] = []
+        _accumulate_walk(entry_template, value, [], diagnostics)
+
+        if not diagnostics:
+            return _invoke_raw_from_builtin(template, [value])
+
+        return GeniaOptionErr(
+            symbol("accumulated-validation-failed"),
+            GeniaMap().put("diagnostics", diagnostics),
+        )
+
     refinement_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     open_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     exact_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     default_field_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_description_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    accumulate_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def strip_representation_fn(facet_value: Any, value: Any) -> Any:
         facet = _representation_facet(facet_value, "strip_representation")
@@ -4875,6 +4991,10 @@ def make_global_env(
     env.set(
         "template_description",
         _host_function_group("template_description", 1, template_description_fn),
+    )
+    env.set(
+        "accumulate",
+        _host_function_group("accumulate", 2, accumulate_fn),
     )
     env.set(
         "strip_representation",

@@ -6,6 +6,6 @@ input:
     Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})
     accumulate(Person, {name: "", age: -1})
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "err(accumulated-validation-failed, {diagnostics: [{path: [\"name\"], kind: mismatch, reason: \"refinement-mismatch\"}, {path: [\"age\"], kind: mismatch, reason: \"refinement-mismatch\"}]})\n"
   stderr: ""
   exit_code: 0

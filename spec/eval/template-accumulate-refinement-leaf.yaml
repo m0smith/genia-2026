@@ -6,6 +6,6 @@ input:
     Positive = refinement((x) -> x > 0)
     [accumulate(Positive, 5), accumulate(Positive, -1)]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some(5), err(accumulated-validation-failed, {diagnostics: [{path: [], kind: mismatch, reason: \"refinement-mismatch\"}]})]\n"
   stderr: ""
   exit_code: 0

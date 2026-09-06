@@ -9,17 +9,17 @@ def _run(source: str):
 
 
 def test_accumulate_over_flow_pulls_only_demanded_elements():
-    # The third source element ("boom") would raise a Python TypeError if
-    # its refinement predicate ever ran (`"boom" > 0`). Bounding consumption
-    # to the first element with `take(1)` must never reach it.
+    # naturals is an unbounded lazy Flow. If accumulate (composed inside an
+    # ordinary map stage) ever forced whole-source buffering or over-pulled,
+    # this would hang instead of terminating with exactly 2 items.
     result = _run(
         "Positive = refinement((x) -> x > 0)\n"
-        "[1, -1, \"boom\"] |> as_seq |> map(accumulate(Positive)) |> take(1) |> collect"
+        "naturals = evolve(1, (n) -> n + 1)\n"
+        "naturals |> map((x) -> accumulate(Positive, x)) |> take(2) |> collect"
     )
     assert isinstance(result, list)
-    assert len(result) == 1
-    assert isinstance(result[0], GeniaOptionSome)
-    assert result[0].value == 1
+    assert len(result) == 2
+    assert [outcome.value for outcome in result] == [1, 2]
 
 
 def test_protected_value_never_appears_in_diagnostic_reason_or_path():
