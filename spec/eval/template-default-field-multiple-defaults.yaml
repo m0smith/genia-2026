@@ -1,0 +1,11 @@
+name: template-default-field-multiple-defaults
+category: eval
+description: Multiple missing default fields are all inserted deterministically in specification order
+input:
+  source: |
+    Config = open_shape({host: default_field("localhost", refinement((x) -> x != "")), port: default_field(8080, refinement((x) -> x > 0))})
+    Config({})
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

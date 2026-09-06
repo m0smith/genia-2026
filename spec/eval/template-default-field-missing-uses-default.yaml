@@ -1,0 +1,11 @@
+name: template-default-field-missing-uses-default
+category: eval
+description: A missing field selects its explicit default exactly once; a present field ignores the default
+input:
+  source: |
+    Person = exact_shape({name: refinement((x) -> x != ""), age: default_field(0, refinement((x) -> x >= 0))})
+    [Person({name: "Ada"}), Person({name: "Ada", age: 5})]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

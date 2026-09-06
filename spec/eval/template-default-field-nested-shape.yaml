@@ -1,0 +1,12 @@
+name: template-default-field-nested-shape
+category: eval
+description: A default field composes inside a nested structural Template
+input:
+  source: |
+    Address = exact_shape({city: default_field("Unknown", refinement((x) -> x != ""))})
+    Person = exact_shape({name: refinement((x) -> x != ""), address: Address})
+    Person({name: "Ada", address: {}})
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

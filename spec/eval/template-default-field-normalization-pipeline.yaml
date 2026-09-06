@@ -1,0 +1,12 @@
+name: template-default-field-normalization-pipeline
+category: eval
+description: Explicit normalization composes as ordinary pipeline before Template validation, with no coercion builtin
+input:
+  source: |
+    normalize(record) = {name: get("name", record) |> unwrap_or(""), age: get("age", record) |> unwrap_or(0)}
+    Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})
+    {name: "Ada"} |> normalize |> Person
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0
