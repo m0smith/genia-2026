@@ -1,0 +1,11 @@
+name: template-default-field-description-hides-value
+category: eval
+description: A default_field description records only that a default exists, never the literal default value
+input:
+  source: |
+    Person = exact_shape({age: default_field(0, refinement((x) -> x >= 0))})
+    template_description(Person)
+expected:
+  stdout: "some({kind: exact_shape, fields: {age: {kind: field_default, has_default: true, template: {kind: refinement}}}})\n"
+  stderr: ""
+  exit_code: 0

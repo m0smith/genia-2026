@@ -1,0 +1,11 @@
+name: template-default-field-present-invalid-fails
+category: eval
+description: A present invalid value fails validation and never falls back to the default
+input:
+  source: |
+    Person = exact_shape({age: default_field(0, refinement((x) -> x >= 0))})
+    Person({age: -1})
+expected:
+  stdout: "none(\"refinement-mismatch\")\n"
+  stderr: ""
+  exit_code: 0

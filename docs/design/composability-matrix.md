@@ -19,6 +19,7 @@
 | open template | ordinary map and field Templates | `open_shape_match` requires listed fields, accepts extras, preserves the original map, and propagates nested Outcome failures | Implemented, Experimental |
 | exact template | ordinary map and field Templates | `exact_shape_match` requires an equal key set, preserves the original map, and propagates nested Outcome failures | Implemented, Experimental |
 | Template description | `refinement` / `open_shape` / `exact_shape` / `json_schema` | `template_description` returns the inert, host-independent structure of a Template built by one of these; every other callable/named-pattern Template stays opaque; descriptions never affect identity, matching, or `@?`/`@!`/`&` | Implemented R15 E15-1, Experimental |
+| field default | `open_shape` / `exact_shape` field entries | `default_field(default, template)` marks one field entry as having an explicit missing-only default; a present value is always validated by `template`, never the default; a missing value validates and inserts `default`; zero-default success preserves the original subject's identity | Implemented R15 E15-2, Experimental |
 | matcher | `@?` / `@!` | check/assert while retaining the original subject on success | Implemented, Experimental |
 | matcher | matcher | `&` composes left-to-right over the original subject | Implemented, Experimental |
 | List | Seq-compatible helpers | list transforms return lists; terminal helpers consume lists | Implemented |
@@ -164,6 +165,7 @@ first implemented slice.
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|
 | Template description | `refinement` / `open_shape` / `exact_shape` / `json_schema` / `template_description` | `refinement`, `open_shape`, and `exact_shape` are curried one-argument builders behaving identically to the existing two-argument `*_match` helper; a Template they build, and a Template `json_schema` compiles, carries an inert host-independent description; `template_description` returns `some(description)` for those and `none("opaque-template")` for every other callable/named-pattern Template; descriptions never affect callable identity, equality, matching, dispatch, `@?`/`@!`/`&`, or original-subject semantics, and construction/inspection perform no effects | E15-1 (issue #728) implemented, Experimental |
+| Field default | `open_shape` / `exact_shape` / `template_description` | `default_field(default, template)` marks one field entry with an explicit missing-only default: a present value is always validated by `template` and never falls back; a missing value validates and inserts `default`, or propagates the default's own mismatch/error unchanged; zero applied defaults preserve the original subject's identity, one or more return a new extended map; the description records only that a default exists, never its literal value, so protected/represented defaults stay opaque; normalization is ordinary explicit pipeline composition, adding no coercion builtin | E15-2 (issue #729) implemented, Experimental |
 
 ## Keeping this matrix in sync
 

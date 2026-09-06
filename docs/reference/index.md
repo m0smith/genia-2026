@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **292** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **293** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -79,6 +79,7 @@ Alphabetical index of the **292** out-of-the-box Genia functions available from 
 | [`debug_repr`](functions/debug_repr.md) | I/O | `debug_repr(value)` | Return the deterministic debug representation of a value. |
 | [`dec`](functions/dec.md) | math | `dec(x)` | Decrement a number by one. |
 | [`declassify`](functions/declassify.md) | Configuration | `declassify(authority, value)` | Declassify a protected value with matching explicit authority. |
+| [`default_field`](functions/default_field.md) | Value templates | `default_field(default, template)` | Wrap a field Template with an explicit missing-only default. |
 | [`define`](functions/define.md) | eval | `define(env, name, value)` | Define a name in the current metacircular environment frame. |
 | [`derive`](functions/derive.md) | Sheets | `derive(sheet, column, function)` | Return a Sheet with one derived column. |
 | [`diagnostic_error`](functions/diagnostic_error.md) | validation | `diagnostic_error(index, field, reason, context)` | Create a field/index-aware error diagnostic map. |
@@ -416,6 +417,7 @@ Alphabetical index of the **292** out-of-the-box Genia functions available from 
 
 ### Value templates
 
+- [`default_field`](functions/default_field.md) - Wrap a field Template with an explicit missing-only default.
 - [`exact_shape`](functions/exact_shape.md) - Construct an inspectable exact-shape Template from a field Templates map.
 - [`exact_shape_match`](functions/exact_shape_match.md) - Match a value against an exact shape template.
 - [`Format`](functions/Format-host.md) - Construct a tagged representation template.

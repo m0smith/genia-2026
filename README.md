@@ -761,6 +761,8 @@ Refinement, open structural, and exact structural Templates reuse that same prot
 
 `refinement(predicate)`, `open_shape(fields)`, and `exact_shape(fields)` (**Experimental**, R15 E15-1, issue #728) are curried builders that return a Template directly, with the same behavior as the corresponding `*_match` helper. Templates built this way, and Templates returned by `json_schema`, carry an inert, host-independent description that `template_description(template)` returns as `some(description)`; every other Template (arbitrary callables and named patterns) remains fully callable but returns `none("opaque-template")`. Descriptions never affect callability, identity, matching, or `@?`/`@!`/`&` semantics, and construction/inspection perform no effects.
 
+`default_field(default, template)` (**Experimental**, R15 E15-2, issue #729) wraps a field Template with an explicit missing-only default for use inside `open_shape`/`exact_shape`: a present field is always validated by `template` and never falls back to `default`, while a missing field validates `default` itself before inserting it. A shape with no applied defaults returns the exact original subject; one with applied defaults returns a new map extending it. Explicit normalization needs no new builtin — `record |> normalize_fn |> Shape` is already ordinary pipeline composition.
+
 ### Conditionals in Genia
 
 - Genia does **not** use `if` or `switch`

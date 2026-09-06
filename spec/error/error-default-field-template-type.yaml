@@ -1,0 +1,13 @@
+name: error-default-field-template-type
+category: error
+description: default_field rejects a non-callable inner Template
+input:
+  source: |
+    default_field(0, 1)
+expected:
+  stdout: ""
+  stderr: "Error: default_field expected Template function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
