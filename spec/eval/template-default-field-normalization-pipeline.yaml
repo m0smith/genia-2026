@@ -3,10 +3,10 @@ category: eval
 description: Explicit normalization composes as ordinary pipeline before Template validation, with no coercion builtin
 input:
   source: |
-    normalize(record) = {name: get("name", record) |> unwrap_or(""), age: get("age", record) |> unwrap_or(0)}
+    normalize(record) = {name: unwrap_or("", get("name", record)), age: unwrap_or(0, get("age", record))}
     Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})
     {name: "Ada"} |> normalize |> Person
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "some({name: \"Ada\", age: 0})\n"
   stderr: ""
   exit_code: 0

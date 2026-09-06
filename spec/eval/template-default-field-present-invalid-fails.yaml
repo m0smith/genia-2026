@@ -6,6 +6,6 @@ input:
     Person = exact_shape({age: default_field(0, refinement((x) -> x >= 0))})
     Person({age: -1})
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "none(\"refinement-mismatch\")\n"
   stderr: ""
   exit_code: 0

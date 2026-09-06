@@ -6,6 +6,6 @@ input:
     Person = exact_shape({age: default_field(0, refinement((x) -> x >= 0))})
     template_description(Person)
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "some({kind: exact_shape, fields: {age: {kind: field_default, has_default: true, template: {kind: refinement}}}})\n"
   stderr: ""
   exit_code: 0

@@ -54,6 +54,7 @@ _PUBLIC_DOCS = (
     _public("cons", "Construct a pair from two values.", "Pairs", "cons(first, second)"),
     _public("debug_repr", "Return the deterministic debug representation of a value.", "I/O", "debug_repr(value)"),
     _public("declassify", "Declassify a protected value with matching explicit authority.", "Configuration", "declassify(authority, value)", stability="Experimental"),
+    _public("default_field", "Wrap a field Template with an explicit missing-only default.", "Value templates", "default_field(default, template)", stability="Experimental"),
     _public("derive", "Return a Sheet with one derived column.", "Sheets", "derive(sheet, column, function)", stability="Experimental"),
     _public("display", "Return the display representation of a value.", "I/O", "display(value)"),
     _public("doc", "Return the canonical documentation string for a bound name.", "Documentation", "doc(name)"),

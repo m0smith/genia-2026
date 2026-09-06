@@ -6,6 +6,6 @@ input:
     Config = open_shape({host: default_field("localhost", refinement((x) -> x != "")), port: default_field(8080, refinement((x) -> x > 0))})
     Config({})
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "some({host: \"localhost\", port: 8080})\n"
   stderr: ""
   exit_code: 0

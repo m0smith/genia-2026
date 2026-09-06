@@ -967,11 +967,99 @@ def make_global_env(
         )
         return template
 
+    def default_field_fn(default_value: Any, template: Any) -> Any:
+        if not _template_callable(template):
+            raise TypeError(
+                "default_field expected Template function, "
+                f"received {_runtime_type_name(template)}"
+            )
+
+        def field_template(value: Any) -> Any:
+            return _invoke_raw_from_builtin(template, [value])
+
+        field_template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        field_template.__genia_field_default__ = (  # type: ignore[attr-defined]
+            default_value,
+            template,
+        )
+        field_template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            GeniaMap()
+            .put("kind", symbol("field_default"))
+            .put("has_default", True)
+            .put("template", _describe_field_template(template))
+        )
+        return field_template
+
+    def _open_shape_with_defaults(fields: Any, value: Any) -> Any:
+        if not isinstance(value, GeniaMap):
+            return make_none("open-shape-mismatch")
+
+        result = value
+        for field, template in fields.items():
+            if value.has(field):
+                outcome = _invoke_raw_from_builtin(template, [value.get(field)])
+            else:
+                marker = getattr(template, "__genia_field_default__", None)
+                if marker is None:
+                    return make_none(
+                        "open-shape-missing-field", GeniaMap().put("field", field)
+                    )
+                default_value, inner_template = marker
+                outcome = _invoke_raw_from_builtin(inner_template, [default_value])
+                if isinstance(outcome, GeniaOptionSome):
+                    result = result.put(field, default_value)
+            if not isinstance(outcome, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+                raise TypeError(
+                    f"open_shape field {field} Template must return Outcome, "
+                    f"received {_runtime_type_name(outcome)}"
+                )
+            if isinstance(outcome, (GeniaOptionNone, GeniaOptionErr)):
+                return outcome
+
+        return GeniaOptionSome(result)
+
+    def _exact_shape_with_defaults(fields: Any, value: Any) -> Any:
+        if not isinstance(value, GeniaMap):
+            return make_none("exact-shape-mismatch")
+
+        for field, template in fields.items():
+            if value.has(field):
+                continue
+            if getattr(template, "__genia_field_default__", None) is None:
+                return make_none(
+                    "exact-shape-missing-field", GeniaMap().put("field", field)
+                )
+
+        for field, _field_value in value.items():
+            if not fields.has(field):
+                return make_none(
+                    "exact-shape-extra-field", GeniaMap().put("field", field)
+                )
+
+        result = value
+        for field, template in fields.items():
+            if value.has(field):
+                outcome = _invoke_raw_from_builtin(template, [value.get(field)])
+            else:
+                default_value, inner_template = getattr(template, "__genia_field_default__")
+                outcome = _invoke_raw_from_builtin(inner_template, [default_value])
+                if isinstance(outcome, GeniaOptionSome):
+                    result = result.put(field, default_value)
+            if not isinstance(outcome, (GeniaOptionSome, GeniaOptionNone, GeniaOptionErr)):
+                raise TypeError(
+                    f"exact_shape field {field} Template must return Outcome, "
+                    f"received {_runtime_type_name(outcome)}"
+                )
+            if isinstance(outcome, (GeniaOptionNone, GeniaOptionErr)):
+                return outcome
+
+        return GeniaOptionSome(result)
+
     def open_shape_fn(fields: Any) -> Any:
         _validate_shape_fields(fields, "open_shape")
 
         def template(value: Any) -> Any:
-            return open_shape_match_fn(fields, value)
+            return _open_shape_with_defaults(fields, value)
 
         field_descriptions = GeniaMap()
         for field, field_template in fields.items():
@@ -991,7 +1079,7 @@ def make_global_env(
         _validate_shape_fields(fields, "exact_shape")
 
         def template(value: Any) -> Any:
-            return exact_shape_match_fn(fields, value)
+            return _exact_shape_with_defaults(fields, value)
 
         field_descriptions = GeniaMap()
         for field, field_template in fields.items():
@@ -1021,6 +1109,7 @@ def make_global_env(
     refinement_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     open_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     exact_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    default_field_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_description_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def strip_representation_fn(facet_value: Any, value: Any) -> Any:
@@ -4779,6 +4868,10 @@ def make_global_env(
     env.set("refinement", _host_function_group("refinement", 1, refinement_fn))
     env.set("open_shape", _host_function_group("open_shape", 1, open_shape_fn))
     env.set("exact_shape", _host_function_group("exact_shape", 1, exact_shape_fn))
+    env.set(
+        "default_field",
+        _host_function_group("default_field", 2, default_field_fn),
+    )
     env.set(
         "template_description",
         _host_function_group("template_description", 1, template_description_fn),

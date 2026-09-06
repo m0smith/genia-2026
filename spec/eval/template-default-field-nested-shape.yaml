@@ -1,12 +1,12 @@
 name: template-default-field-nested-shape
 category: eval
-description: A default field composes inside a nested structural Template
+description: A default field is validated inside a nested structural Template, which establishes compatibility only and does not transform the outer field (existing R9 nested-Template invariant)
 input:
   source: |
     Address = exact_shape({city: default_field("Unknown", refinement((x) -> x != ""))})
     Person = exact_shape({name: refinement((x) -> x != ""), address: Address})
-    Person({name: "Ada", address: {}})
+    [Person({name: "Ada", address: {}}), Address({})]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some({name: \"Ada\", address: {}}), some({city: \"Unknown\"})]\n"
   stderr: ""
   exit_code: 0
