@@ -111,7 +111,7 @@ E12-9 is audit/distillation only. See
 
 These rows constrain R14 work. Each row's Status column records whether
 that composition boundary is implemented or still planning-only, per
-`GENIA_STATE.md` sections 9.8-9.17 (final authority); see
+`GENIA_STATE.md` sections 9.8-9.18 (final authority); see
 `r14-composable-lifecycle-contract.md` for the full approved contract.
 E14-6 (#623) adds one narrow Python-host outbound HTTP transport
 capability with no Genia-visible surface of its own — it composes with no
@@ -122,6 +122,13 @@ HTTP operation/client" rows below compose correctly when an R8 route
 handler invokes the latter — a behavioral proof over the existing rows,
 adding no new Genia value relationship and no new row; see
 `GENIA_STATE.md` section 9.17.
+E14-11 (#695) proves the "peer lifecycle attachment", "repeated element
+scopes", and "lifecycle context" rows below compose into a repeated
+record-processing pipeline (an outer pipeline/session scope, two peers per
+element, `record`/`fields`/`nr`/`nf`-style values derived from ordinary
+context reads) — a behavioral proof over the existing rows, adding no new
+Genia value relationship and no new row; see `GENIA_STATE.md` section
+9.18.
 
 | Concept | Composes with | Required relationship | Status |
 |---|---|---|---|

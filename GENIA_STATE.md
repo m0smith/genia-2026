@@ -3919,6 +3919,65 @@ Explicit limitations:
   `web.http_send` call, with no additional server-specific behavior.
 - No domain-specific proving application (that is #628's job).
 
+## 9.18) R14 E14-11 repeated record lifecycle proving case
+
+Status: Implemented, with **zero runtime-code change**. Issue #695 proves
+the record-pipeline-adjacent claim from
+`docs/design/r14-composable-lifecycle-contract.md`'s "Repeated record proof
+(pressure test)" section: `lifecycle_scope` (E14-1), `lifecycle_repeat`
+(E14-3), and `lifecycle_context` (E14-1) already compose into a repeated
+record-processing pipeline with no new API, syntax, or lifecycle primitive.
+
+LANGUAGE CONTRACT (proven, not newly introduced):
+
+- One outer pipeline/session `lifecycle_scope` wraps a `lifecycle_repeat`
+  call; each consumed element gets its own fresh element scope with at
+  least two peer `LifecycleDefinition`s (a `record_context` peer and a
+  `diagnostics` peer), entered and reverse-unwound deterministically per
+  the existing E14-1/E14-3 algorithm.
+- `record`/`fields`/`nr`/`nf`-style values are derived by application code
+  reading the reserved `quote(element)`/`quote(index)` context through the
+  existing `lifecycle_context` accessor — no `$0`/`$1`/`NR`/`NF` syntax and
+  no new AWK-mode primitive is introduced (per this contract's explicit
+  non-goal).
+- An eager `List` source never short-circuits: a data-level malformed
+  record (a field-count mismatch, surfaced as ordinary `err(...)` data
+  returned by `element_work`, per the existing "not treated specially"
+  work-return rule) and a genuine element work-phase exception (a
+  non-string element) are each recovered from independently, with every
+  later element still processed and no cross-element context leakage.
+- A lazy `Flow` source composes with the existing `take` bound: each
+  yielded element's scope is fully entered and unwound before the next
+  pull (the existing close-before-next-pull guarantee), and bounded early
+  termination never leaves a scope partially entered.
+- Survived (successfully classified) records are captured as ordinary
+  values by filtering/mapping each element's `LifecycleResult.result`,
+  using only existing `filter`/`map` list operations — no dedicated
+  filtering primitive is introduced.
+
+PYTHON REFERENCE HOST:
+
+- No change to `lifecycle_runtime.py`, `builtins.py`, or any other runtime
+  module — confirmed via `git diff origin/main..HEAD --stat -- src/genia/`
+  showing no production-code changes.
+- New example `examples/r14_repeated_record_lifecycle_proving_case.genia`
+  runnable directly via `genia examples/r14_repeated_record_lifecycle_proving_case.genia`.
+- Validated by 10 tests in the new
+  `tests/unit/test_r14_repeated_record_lifecycle_proving_case_695.py`
+  (loading the example through real Genia source via `run_source`) and the
+  new `spec/cli/r14-repeated-record-lifecycle-proving-case.yaml` end-to-end
+  CLI fixture (confirmed via `python -m tools.spec_runner`, 586/586
+  passing). The existing `test_lifecycle_runtime.py`/`test_lifecycle_repeat.py`
+  regression suites remain unaffected.
+
+Explicit limitations:
+
+- No AWK language mode, `$0`/`$1`/`NR`/`NF` syntax, or record-shape
+  derivation beyond ordinary `lifecycle_context` reads.
+- No new `map`/`filter`/`scan`/`rules` API; the example composes only
+  existing list/Flow operations.
+- No HTTP behavior (that is #628's job).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

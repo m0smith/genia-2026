@@ -142,9 +142,15 @@ already satisfied with zero additional runtime code, `@get`/`@post`
 declarative annotations plus `web.send_annotated` over that same
 unchanged surface, and proof that an R8 route handler can create
 outbound HTTP client lifecycle instances while the server stays active,
-also with zero additional runtime code; E14-11 and later
-slices — the
-application-integration proof — remain planned, not implemented.
+also with zero additional runtime code; E14-11 (issue #695) further proves
+that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context` already
+compose into a repeated record-processing pipeline (deterministic
+per-element peer entry/work/unwind, `record`/`fields`/`nr`/`nf`-style
+values derived as ordinary data, no cross-element leakage, correct cleanup
+on both data-level and genuine work-phase failure, and bounded
+Flow-termination cleanup), again with zero additional runtime code; E14-12
+and later slices — the remaining application-integration proof — remain
+planned, not implemented.
 
 ## Using This Document
 
