@@ -1,12 +1,15 @@
 # R14 Composable Lifecycle Contract
 
-Status: **Approved contract. E14-1 (issue #621), E14-2 (issue #692), E14-3
-(issue #693), E14-4 (issue #694), and E14-5 (issue #622) are implemented
-against this document; E14-6 and later slices remain not implemented.**
+Status: **Approved contract, fully implemented. E14-1 (issue #621), E14-2
+(issue #692), E14-3 (issue #693), E14-4 (issue #694), E14-5 (issue #622),
+E14-6 (issue #623), E14-7 (issue #624), E14-8 (issue #625), E14-9 (issue
+#626), E14-10 (issue #627), E14-11 (issue #695), E14-12 (issue #628),
+E14-13 (issue #696), E14-14 (issue #629), and E14-15 (issue #630) are
+implemented against this document. R14 is release-complete.**
 
 This document fixes the semantic boundary for R14 tickets. It is not itself
-implemented-behavior documentation — see `GENIA_STATE.md` sections 9.8-9.12
-for what E14-1 through E14-5 actually implement.
+implemented-behavior documentation — see `GENIA_STATE.md` sections 9.8-9.20
+for what E14-1 through E14-13 actually implement.
 `GENIA_STATE.md` remains final authority for implemented behavior.
 
 ## Purpose
@@ -891,25 +894,19 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-14 preflight only**, now that issue #696 has proven E14-13
-against this contract (zero runtime-code change; the combined R14
-surface already satisfies every cross-cutting hardening criterion:
-import/discovery inertness, serve-mode annotation non-self-execution,
-sentinel-free rendering, combined multi-peer failure ordering, bounded
-Flow termination with no leak, Python-exception normalization, combined
-server/request/outbound-client resilience, and parse/Core IR
-regression). E14-14 (#629) is documentation-only — release examples and
-implemented-truth synchronization; it adds no runtime behavior.
-This document
-itself authorizes no
-further implementation, tests, later ticket creation, or implemented-behavior
-documentation beyond what #621, #692, #693, #694, #622, #623, #624, #625,
-#626, #627, #695, #628, and #696 have already landed and `GENIA_STATE.md`
-sections 9.8-9.20 record.
-Every later E14 ticket must name
-#620/#621/#692/#693/#694/#622/#623/#624/#625/#626/#627/#695/#628/#696 and its own
-earlier dependencies, distinguish
-portable semantics from Python reference-host capability work, and preserve
-R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10
-protected semantics, and R13 provider/view semantics exactly as this
-document states them.
+**CLOSED — R14 release-complete.** Issue #629 (E14-14) synchronized every
+documentation surface with the fully-landed E14-1 through E14-13 boundary,
+adding no runtime behavior. Issue #630 (E14-15) completed the release-wide
+skeptical truth audit with a **PASS** verdict: the approved contract was
+re-verified against every implemented slice, R7/R8/R10/R13 regression
+suites and the full non-loopback suite were re-run with zero regression,
+`python -m tools.spec_runner` and a strict MkDocs build were confirmed
+clean, and both proving examples were re-executed live and matched their
+exact CLI spec fixtures byte-for-byte. This document itself now
+authorizes no further implementation or later ticket creation under the
+R14 epic (#619) — all fifteen E14 slices (#620/#621/#692/#693/#694/#622/
+#623/#624/#625/#626/#627/#695/#628/#696/#629/#630) are implemented and
+`GENIA_STATE.md` sections 9.8-9.20 (plus its "## 2)" R14 inventory
+bullets) record the complete implemented boundary. Any future R14-adjacent
+work is a new, separately contracted follow-up release, not an extension
+of this contract.

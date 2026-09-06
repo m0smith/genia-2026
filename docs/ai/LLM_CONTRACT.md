@@ -94,12 +94,11 @@ Agents must:
 
 The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.md` remains final authority.
 
-## Release Position: R9, R10, R11, R12, and R13 Complete
+## Release Position: R9, R10, R11, R12, R13, and R14 Complete
 
-R14 is in progress; its E14-0 contract is approved and
-E14-1 through E14-13 (issues #621, #692, #693, #694,
-#622, #623, #624, #625, #626, #627, #695, #628, #696) are implemented — see the R14 entry below. E14-14 and
-later slices remain planned, not implemented.
+R14 is complete; its E14-0 contract is approved and
+E14-1 through E14-15 (issues #621, #692, #693, #694,
+#622, #623, #624, #625, #626, #627, #695, #628, #696, #629, #630) are implemented — see the R14 entry below.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
 
@@ -162,7 +161,7 @@ When an LLM agent is asked for new Genia work:
    existing R10 literal descriptor; E13-3 snapshots one exact path with no discovery,
    interpolation, or refresh; E13-4 provides fixed conventional composition; E13-5 adds cross-mode, diagnostic, protected-boundary, parse, and Core IR proof without new semantics; and E13-6 proves the Outcome-aware validated-pipeline composition without new semantics.
    E13-7 adds documentation and runnable-example verification only; E13-8 is audit/distillation only and adds no runtime behavior. Follow `docs/strategy/r13-configuration-resolution-ergonomics.md`.
-9. R14 is in progress (epic #619), its E14-0 contract is approved, and
+9. R14 is complete (epic #619), its E14-0 contract is approved, and
    E14-1 (#621, parent/child instance/scope core), E14-2 (#692, peer
    attachment breadth over that same core, with no runtime-code change),
    E14-3 (#693, `lifecycle_repeat` over eager List and lazy Flow
@@ -219,8 +218,12 @@ When an LLM agent is asked for new Genia work:
    annotation non-self-execution, sentinel-free rendering, a combined
    multi-peer failure matrix, bounded Flow termination with no leak,
    Python-exception normalization, combined server/request/
-   outbound-client resilience, and parse/Core IR regression)
-   are implemented. E14-14 is the next implementation gate.
+   outbound-client resilience, and parse/Core IR regression),
+   E14-14 (#629, documentation and implemented-truth synchronization
+   only, no runtime behavior), and E14-15 (#630, release truth audit
+   with a **PASS** verdict and distillation only, no runtime behavior)
+   are implemented. R14 is release-complete; any further R14-adjacent
+   work is a new, separately contracted release.
    Do not infer any verb beyond `get`/`post`, concurrent serving
    guarantees, or a literal nested-scope rewire of the server lifecycle
    from the

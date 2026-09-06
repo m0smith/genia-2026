@@ -168,7 +168,7 @@ def test_completed_release_status_stays_synchronized() -> None:
     assert "R9** completed the value-template and representation work" in killer_workflow
     assert "E10-6 cross-mode hardening" in killer_workflow
     assert "E10-7 composed validated-pipeline proof" in killer_workflow
-    assert "R9, R10, R11, R12, and R13 Complete" in llm_contract
+    assert "R9, R10, R11, R12, R13, and R14 Complete" in llm_contract
     assert "E10-8 release truth audit" in llm_contract
     assert "R9 — Value Templates & Representations is complete." in agents
     assert "R10 — Configuration & Secrets is complete." in agents
