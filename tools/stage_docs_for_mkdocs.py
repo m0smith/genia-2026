@@ -21,13 +21,17 @@ DOC_DIRS = [
     "docs/releases",
     "docs/reference",
 ]
-# Individually staged files from directories that are not otherwise published
-# wholesale. docs/strategy/ holds planning-only material (parking-lot notes,
-# per-release strategy drafts); only the release roadmap is approved for
-# publication, so it is staged one file at a time rather than by adding
-# docs/strategy to DOC_DIRS above.
+# Individually staged planning files. docs/strategy/ contains broader planning
+# material that is not published wholesale. Publish only the live roadmap
+# bundle; the frozen pre-split archive remains repository history only.
 STRATEGY_DOCS = [
     "docs/strategy/release-roadmap.md",
+    "docs/strategy/roadmap/README.md",
+    "docs/strategy/roadmap/r15.md",
+    "docs/strategy/roadmap/r16-r19.md",
+    "docs/strategy/roadmap/r20-r23.md",
+    "docs/strategy/roadmap/sequence.md",
+    "docs/strategy/roadmap/parking-lot.md",
 ]
 SKIP_FILENAMES = {"CHAPTER_TEMPLATE.md"}
 README_LINK_REWRITES = {
