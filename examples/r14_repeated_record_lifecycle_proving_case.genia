@@ -1,0 +1,120 @@
+"""
+# R14 Repeated Record Lifecycle Proving Case
+
+Composes the existing `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
+mechanism (R14 E14-1 through E14-4) into a repeated-record processing
+pipeline, per issue #695 (E14-11) and
+`docs/design/r14-composable-lifecycle-contract.md`'s "Repeated record proof
+(pressure test)" section. Adds no new API, syntax, or lifecycle primitive:
+`record`/`fields`/`nr`/`nf`-style values are derived from the reserved
+`quote(element)`/`quote(index)` context as ordinary application data, never
+as new AWK-style syntax.
+
+Shape proved:
+- one outer pipeline/session `lifecycle_scope`
+- fresh per-element scopes from `lifecycle_repeat`, each with two peer
+  `LifecycleDefinition`s (`record_context`, `diagnostics`)
+- deterministic enter/work/reverse-unwind order, observable through an
+  ordinary `ref`-backed log
+- an eager `List` source that never short-circuits: a data-level malformed
+  record (`classify_fields` returning `err(...)` as ordinary data) and a
+  genuine element work failure (a non-string element making `split` raise)
+  are both recovered from with no cross-element context leakage
+- a lazy `Flow` source bounded by `take`, proving each yielded element is
+  fully entered and unwound before the next pull, and bounded early
+  termination never leaves a scope partially entered
+- explicit capture of survived (successfully classified) records as
+  ordinary values
+
+Run from the repository root:
+
+```bash
+genia examples/r14_repeated_record_lifecycle_proving_case.genia
+```
+"""
+
+log = ref([])
+log_event(event) = ref_update(log, (entries) -> [..entries, event])
+
+session_peer() = {
+  name: quote(session),
+  enter: (scope) -> { log_event({peer: quote(session), phase: quote(enter)}); some("session-ctx") },
+  exit: (scope, summary) -> { log_event({peer: quote(session), phase: quote(exit), status: summary.status}); some(nil) }
+}
+
+record_context_peer() = {
+  name: quote(record_context),
+  enter: (scope) -> {
+    element = lifecycle_context(scope, quote(element)) |> unwrap_or(none)
+    index = lifecycle_context(scope, quote(index)) |> unwrap_or(none)
+    log_event({peer: quote(record_context), phase: quote(enter), index: index})
+    some({record: element, nr: index})
+  },
+  exit: (scope, summary) -> {
+    index = lifecycle_context(scope, quote(index)) |> unwrap_or(none)
+    log_event({peer: quote(record_context), phase: quote(exit), index: index, status: summary.status})
+    some(nil)
+  }
+}
+
+diagnostics_peer() = {
+  name: quote(diagnostics),
+  enter: (scope) -> {
+    index = lifecycle_context(scope, quote(index)) |> unwrap_or(none)
+    log_event({peer: quote(diagnostics), phase: quote(enter), index: index})
+    some("diag-ctx")
+  },
+  exit: (scope, summary) -> {
+    index = lifecycle_context(scope, quote(index)) |> unwrap_or(none)
+    log_event({peer: quote(diagnostics), phase: quote(exit), index: index, status: summary.status})
+    some(nil)
+  }
+}
+
+classify_fields(fields) =
+  [id_str, name, status] -> some({id: id_str, name: name, status: status}) |
+  other -> err("malformed-record", {fields: other})
+
+process_record(scope) = {
+  ctx = lifecycle_context(scope, quote(record_context)) |> unwrap_or(none)
+  record = ctx.record
+  nr = ctx.nr
+  fields = split(record, ",")
+  nf = count(fields)
+  {nr: nr, record: record, fields: fields, nf: nf, row: classify_fields(fields)}
+}
+
+is_clean_row(entry) = (some(_)) -> true | (err(_, _)) -> false
+clean_row(entry) = (some(row)) -> row | (err(_, _)) -> nil
+
+survived(results) =
+  results
+  |> filter((r) -> r.status == quote(ok))
+  |> map((r) -> unwrap_or(none, r.result))
+  |> filter((entry) -> is_clean_row(entry.row))
+  |> map((entry) -> clean_row(entry.row))
+
+eager_records = ["1,Ada,ok", "2,Grace,ok", "bad", 999, "3,Lin,ok"]
+lazy_records = ["10,Amy,ok", "20,Ben,ok", "30,Cara,ok", "40,Drew,ok"]
+
+run_eager() = lifecycle_repeat([record_context_peer(), diagnostics_peer()], eager_records, process_record)
+
+run_bounded() =
+  lifecycle_repeat([record_context_peer(), diagnostics_peer()], lines(lazy_records), process_record)
+  |> take(2)
+  |> collect
+
+pipeline(scope) = {
+  eager_results = run_eager()
+  bounded_results = run_bounded()
+  {
+    eager_statuses: eager_results |> map((r) -> r.status),
+    survived_eager: survived(eager_results),
+    survived_bounded: survived(bounded_results),
+    bounded_count: count(bounded_results)
+  }
+}
+
+outer = lifecycle_scope([session_peer()], pipeline)
+summary = unwrap_or(nil, outer.result)
+{ summary: summary, log: ref_get(log) }
