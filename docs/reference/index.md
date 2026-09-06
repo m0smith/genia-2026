@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **295** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **296** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -21,6 +21,7 @@ Alphabetical index of the **295** out-of-the-box Genia functions available from 
 | [`actor_state`](functions/actor_state.md) | actor | `actor_state(a)` | Read the current actor state without sending a message. |
 | [`actor_status`](functions/actor_status.md) | actor | `actor_status(a)` | Return the actor status string. |
 | [`actor_stop`](functions/actor_stop.md) | actor | `actor_stop(a)` | Gracefully stop an actor after draining its mailbox. |
+| [`alternatives`](functions/alternatives.md) | Value templates | `alternatives(discriminator, branches)` | Construct a structural discriminated-alternative Template selecting one branch by an explicit string discriminator field. |
 | [`any?`](functions/any-p.md) | list | `any?(predicate, xs)` | Return `true` when any element satisfies a predicate. |
 | [`append`](functions/append.md) | list | `append()` | Concatenate zero or more lists. |
 | [`application_expr?`](functions/application_expr-p.md) | syntax | `application_expr?(expr)` | Check whether `expr` is a quoted application form `(app operator operand1 operand2 ...)`. |
@@ -420,6 +421,7 @@ Alphabetical index of the **295** out-of-the-box Genia functions available from 
 ### Value templates
 
 - [`accumulate`](functions/accumulate.md) - Validate a value against an inspectable Template, accumulating every independent path-aware diagnostic.
+- [`alternatives`](functions/alternatives.md) - Construct a structural discriminated-alternative Template selecting one branch by an explicit string discriminator field.
 - [`default_field`](functions/default_field.md) - Wrap a field Template with an explicit missing-only default.
 - [`exact_shape`](functions/exact_shape.md) - Construct an inspectable exact-shape Template from a field Templates map.
 - [`exact_shape_match`](functions/exact_shape_match.md) - Match a value against an exact shape template.

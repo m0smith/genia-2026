@@ -143,6 +143,15 @@ Required constraints:
 - round-trip claims are limited to the tested faithful subset (accept/reject equivalence, not object identity or non-schema metadata preservation)
 - no change to `json_schema`/`open_shape`/`exact_shape`/`refinement`/`default_field`/`accumulate`/`template_description` direct-call behavior
 
+### 6.2.5) Structural discriminated alternatives (Experimental, R15 E15-5)
+
+- `alternatives(discriminator_field, branches)` selects exactly one branch by reading an explicit non-empty string discriminator field, then validates only that branch against the full original value; ordinary map/value payloads only, no nominal variant object
+- resolution order: non-map subject -> `none("alternative-mismatch")`; missing discriminator -> `none("alternative-missing-discriminator", {field})`; present non-string discriminator -> `none("alternative-invalid-discriminator", {field})`; unknown discriminator value -> `none("alternative-unknown-discriminator", {field, value})`; otherwise the resolved branch's own Outcome surfaces unchanged
+- exactly one branch is ever validated; no try-every-branch semantics, no discriminator inference from payload shape; the discriminator field is not stripped before branch validation
+- `template_description` -> `{kind: quote(alternatives), discriminator, branches: {tag: branch_description_or_quote(opaque)}}`; `accumulate` recurses depth-first into the resolved branch, with discriminator-resolution diagnostics path-pointed at the discriminator field; `template_schema` is deterministically unsupported (`kind: quote(alternatives)`) since E15-4's closed schema vocabulary has no discriminated-union primitive
+- composes with named patterns, `@?`/`@!`/`&`, and `Name(inner)` automatically — no pattern-dispatch change
+- issue #92 disposition: only structural discriminator-directed validation is absorbed; nominal variant identity, constructors, sealed hierarchies, and exhaustiveness remain deferred
+
 ## 6.3) Carrier representation invariants (Experimental)
 
 - `represent(facet, value)` requires a non-empty string and adds exactly one outer facet without mutating the carried value
