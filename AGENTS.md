@@ -195,8 +195,8 @@ adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
 **R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1 through E14-10 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624, #625, #626, #627).** R14 is scoped to one lifecycle model with parent/child execution
+and E14-1 through E14-11 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625, #626, #627, #695).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -279,13 +279,22 @@ on `lifecycle_runtime.py` (confirmed architecturally separate by direct
 code reading), so composition is already correct — a failed outbound
 call normalizes to the existing `err(...)` Outcome the handler itself
 handles, and the server's own listener ownership is entirely unaffected.
+E14-11 (#695) proves, also with **zero runtime-code change**, the
+record-oriented proving case referenced above: one outer pipeline/session
+`lifecycle_scope` wraps `lifecycle_repeat`, each element scope carries two
+peer `LifecycleDefinition`s, and `record`/`fields`/`nr`/`nf`-style values
+are derived by application code reading the reserved
+`quote(element)`/`quote(index)` context — no AWK syntax, no cross-element
+leakage, and correct cleanup on both a data-level `err(...)` record and a
+genuine element work-phase exception, plus bounded Flow-termination
+cleanup via the existing `take`.
 No R14 behavior beyond
-E14-1 through E14-10
+E14-1 through E14-11
 is implemented merely because its roadmap, issues, or contract exist.
-E14-11 is the next
+E14-12 is the next
 gate. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
-9.8-9.17.
+9.8-9.18.
 
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**

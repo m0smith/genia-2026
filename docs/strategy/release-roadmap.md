@@ -892,11 +892,15 @@ annotation shape itself since the contract left it unspecified; E14-10
 proves an R8 route handler can create outbound HTTP client lifecycle
 instances while the server stays active, with zero runtime-code change
 — R8's `server_lifecycle.py` and R14's `lifecycle_runtime.py` remain
-architecturally separate. No R14
+architecturally separate; E14-11 proves, also with zero runtime-code
+change, that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
+already compose into a repeated record-processing pipeline with
+`record`/`fields`/`nr`/`nf`-style values derived as ordinary data, no AWK
+syntax. No R14
 behavior
-beyond E14-1 through E14-10 is implemented merely
+beyond E14-1 through E14-11 is implemented merely
 because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
-sections 9.8-9.17.
+sections 9.8-9.18.
 
 Theme:
 
@@ -992,7 +996,7 @@ Approved R14 issue path:
 9. **#625 — E14-8 (implemented, zero runtime-code change):** protected HTTP credential sinks
 10. **#626 — E14-9 (implemented):** declarative outbound HTTP annotations
 11. **#627 — E14-10 (implemented, zero runtime-code change):** server/request/outbound-client composition
-12. **#695 — E14-11:** repeated record lifecycle proving case
+12. **#695 — E14-11 (implemented, zero runtime-code change):** repeated record lifecycle proving case
 13. **#628 — E14-12:** YouVersion Bible proxy proving application
 14. **#696 — E14-13:** cross-mode lifecycle and HTTP hardening
 15. **#629 — E14-14:** release examples and implemented-truth synchronization

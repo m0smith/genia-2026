@@ -1,8 +1,8 @@
 # R14 — Composable Lifecycles
 
 Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
-and E14-1 through E14-10 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626, #627).** E14-6 adds no Genia-visible surface — it is a private
+and E14-1 through E14-11 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627, #695).** E14-6 adds no Genia-visible surface — it is a private
 Python-host outbound HTTP transport capability consumed by E14-7's
 `web.http_send`, the first outbound HTTP call actually reachable from
 Genia source. E14-8 proves the protected-HTTP-credential-sink contract
@@ -13,7 +13,11 @@ shape, following `@route`'s established precedent. E14-10 proves an R8
 route handler can create outbound HTTP client lifecycle instances while
 the server stays active, with zero runtime-code change — R8's
 `server_lifecycle.py` and R14's `lifecycle_runtime.py` remain
-architecturally separate. E14-11
+architecturally separate. E14-11 proves, also with zero runtime-code
+change, that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
+already compose into a repeated record-processing pipeline with
+`record`/`fields`/`nr`/`nf`-style values derived as ordinary data, no AWK
+syntax. E14-12
 through E14-15 remain planned, not implemented. This
 document records approved release direction; `GENIA_STATE.md` remains
 final authority for implemented behavior.
@@ -432,8 +436,10 @@ release epic is #619.
       `web.send_annotated` while the server stays active; composition is
       behavioral (R8 and R14's lifecycle core remain architecturally
       separate), not a literal nested-scope rewire.
-12. **#695 — E14-11: repeated record lifecycle proving case**
-    - Prove multiple peer lifecycles per pipeline element without AWK syntax.
+12. **#695 — E14-11: repeated record lifecycle proving case — implemented, zero runtime-code change**
+    - Proved that `lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context`
+      already compose into a record-processing pipeline with two peer
+      lifecycles per element and no AWK syntax.
 13. **#628 — E14-12: YouVersion Bible proxy proving application**
     - Prove the configured, protected vertical HTTP path.
 14. **#696 — E14-13: cross-mode lifecycle and HTTP hardening**
@@ -498,8 +504,8 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-11 preflight only**, now that #621, #692, #693, #694, #622,
-#623, #624, #625, #626, and #627 have each completed their own preflight, design,
+**GO for E14-12 preflight only**, now that #621, #692, #693, #694, #622,
+#623, #624, #625, #626, #627, and #695 have each completed their own preflight, design,
 failing-test, implementation, and documentation phases: #621 implemented
 the instance/scope core, #692 proved horizontal peer-attachment breadth
 over it, #693 implemented `lifecycle_repeat` over both, #694 implemented
@@ -513,12 +519,15 @@ protected-HTTP-credential-sink behavior at comprehensive regression
 breadth with zero runtime-code change, #626 added `@get`/`@post`
 declarative annotations and `web.send_annotated` over that same
 unchanged surface, designing the exact annotation shape itself since
-this contract left it unspecified, and #627 proved the
+this contract left it unspecified, #627 proved the
 server/request/outbound-client composition shape with zero
 runtime-code change, confirming R8's server lifecycle and R14's
-lifecycle core remain architecturally separate, all against the contract in
+lifecycle core remain architecturally separate, and #695 proved the
+repeated-record proving case with zero runtime-code change, confirming
+`lifecycle_scope`/`lifecycle_repeat`/`lifecycle_context` already compose
+into a record-processing pipeline, all against the contract in
 `docs/design/r14-composable-lifecycle-contract.md`. Implementation of
-E14-11 and later tickets remains blocked until each completes its own
+E14-12 and later tickets remains blocked until each completes its own
 preflight, design, failing-test, implementation, documentation, and audit
 phases. The supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
 not replace the repository's current process prompt.
