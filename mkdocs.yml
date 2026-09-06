@@ -165,6 +165,7 @@ nav:
           - "representation_match": reference/functions/representation_match.md
           - "strip_representation": reference/functions/strip_representation.md
           - "template_description": reference/functions/template_description.md
+          - "template_schema": reference/functions/template_schema.md
       - actor:
           - "actor": reference/functions/actor.md
           - "actor_alive?": reference/functions/actor_alive-p.md
