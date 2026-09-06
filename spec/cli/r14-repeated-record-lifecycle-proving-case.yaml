@@ -1,0 +1,16 @@
+name: r14-repeated-record-lifecycle-proving-case
+category: cli
+description: Executable R14 repeated record lifecycle proving case composes lifecycle_scope/lifecycle_repeat/lifecycle_context into deterministic eager and bounded-Flow record processing
+input:
+  source: "examples/r14_repeated_record_lifecycle_proving_case.genia"
+  file: "examples/r14_repeated_record_lifecycle_proving_case.genia"
+  stdin: ""
+  argv: []
+expected:
+  stdout: '{summary: {eager_statuses: [ok, ok, ok, error, ok], survived_eager: [{id: "1", name: "Ada", status: "ok"}, {id: "2", name: "Grace", status: "ok"}, {id: "3", name: "Lin", status: "ok"}], survived_bounded: [{id: "10", name: "Amy", status: "ok"}, {id: "20", name: "Ben", status: "ok"}], bounded_count: 2}, log: [{peer: session, phase: enter}, {peer: record_context, phase: enter, index: 1}, {peer: diagnostics, phase: enter, index: 1}, {peer: diagnostics, phase: exit, index: 1, status: ok}, {peer: record_context, phase: exit, index: 1, status: ok}, {peer: record_context, phase: enter, index: 2}, {peer: diagnostics, phase: enter, index: 2}, {peer: diagnostics, phase: exit, index: 2, status: ok}, {peer: record_context, phase: exit, index: 2, status: ok}, {peer: record_context, phase: enter, index: 3}, {peer: diagnostics, phase: enter, index: 3}, {peer: diagnostics, phase: exit, index: 3, status: ok}, {peer: record_context, phase: exit, index: 3, status: ok}, {peer: record_context, phase: enter, index: 4}, {peer: diagnostics, phase: enter, index: 4}, {peer: diagnostics, phase: exit, index: 4, status: error}, {peer: record_context, phase: exit, index: 4, status: error}, {peer: record_context, phase: enter, index: 5}, {peer: diagnostics, phase: enter, index: 5}, {peer: diagnostics, phase: exit, index: 5, status: ok}, {peer: record_context, phase: exit, index: 5, status: ok}, {peer: record_context, phase: enter, index: 1}, {peer: diagnostics, phase: enter, index: 1}, {peer: diagnostics, phase: exit, index: 1, status: ok}, {peer: record_context, phase: exit, index: 1, status: ok}, {peer: record_context, phase: enter, index: 2}, {peer: diagnostics, phase: enter, index: 2}, {peer: diagnostics, phase: exit, index: 2, status: ok}, {peer: record_context, phase: exit, index: 2, status: ok}, {peer: session, phase: exit, status: ok}]}'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 695
+  classification: Experimental proving composition over E14-1 through E14-4 (lifecycle_scope, lifecycle_repeat, lifecycle_context). No new API, syntax, or lifecycle primitive.
+  non_goal: no AWK mode, $0/$1/NR/NF syntax, second map/filter/scan/rules API, or HTTP behavior.
