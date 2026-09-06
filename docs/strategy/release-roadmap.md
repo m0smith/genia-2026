@@ -32,7 +32,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current release
 
-**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. **#728 / E15-1** through **#733 / E15-6 — bounded named recursive Template references** are delivered. The next authorized work item is **#734 / E15-7 — composed messy-record validated-data proving case**.
+**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. **#728 / E15-1** through **#734 / E15-7 — composed messy-record validated-data proving case** are delivered. The next authorized work item is **#735 / E15-8 — cross-mode/shared-conformance and portability hardening**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 

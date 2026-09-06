@@ -1,0 +1,108 @@
+sku_schema = represent("json", {type: "string"})
+qty_schema = represent("json", {type: "integer"})
+price_schema = represent("json", {type: "number"})
+
+Sku = json_schema(sku_schema) |> unwrap_or((_) -> none("schema-compile-failed"))
+Qty = json_schema(qty_schema) |> unwrap_or((_) -> none("schema-compile-failed"))
+Price = json_schema(price_schema) |> unwrap_or((_) -> none("schema-compile-failed"))
+
+Item = exact_shape({sku: Sku, qty: Qty, price: Price})
+
+Payment = alternatives("method", {
+  card: exact_shape({method: refinement((x) -> x == "card"), last4: refinement((x) -> x != "")}),
+  paypal: exact_shape({method: refinement((x) -> x == "paypal"), paypal_email: refinement((x) -> x != "")})
+})
+
+OrderHistory = recursive_template("order_history", (ref) ->
+  alternatives("kind", {
+    none: exact_shape({kind: refinement((x) -> x == "none")}),
+    entry: exact_shape({kind: refinement((x) -> x == "entry"), order_id: refinement((x) -> x != ""), previous: ref("order_history")})
+  }), 4)
+
+OrderEnvelope = open_shape({
+  customer_name: refinement((x) -> x != ""),
+  email: refinement((x) -> x != ""),
+  country: default_field("US", refinement((x) -> x != "")),
+  payment: Payment,
+  history: OrderHistory
+})
+
+normalize_envelope(raw) = map_put(raw, "customer_name", trim(raw("customer_name")))
+
+decode_qty(result, raw) =
+  (some(qty), raw) -> some({sku: raw("sku"), qty: qty, price: raw("price")}) |
+  (failure, _) -> failure
+
+normalize_item(raw) = decode_qty(parse_int(raw("qty")), raw)
+
+validate_items(raw_items) =
+  raw_items
+    |> map(normalize_item)
+    |> ((items) -> validate_each(items, Item))
+    |> collect_validated
+
+combine_order(envelope_result, item_diag_count, items_result) =
+  (some(envelope), 0, items_result) -> some(map_put(envelope, "items", items_result("clean"))) |
+  (some(_), _, items_result) -> err(quote(order-validation-failed), {envelope: [], items: items_result("diagnostics")}) |
+  (err(_, ctx), _, items_result) -> err(quote(order-validation-failed), {envelope: ctx("diagnostics"), items: items_result("diagnostics")})
+
+process_order(raw) = {
+  items_result = validate_items(raw("items"))
+  envelope_result = accumulate(OrderEnvelope, normalize_envelope(raw))
+  combine_order(envelope_result, length(items_result("diagnostics")), items_result)
+}
+
+test("R15 composed order proving case validates, defaults, diagnoses, schemas, and bounds recursion", () -> {
+  good_order = {
+    customer_name: "  Ada Lovelace  ",
+    email: "ada@example.com",
+    payment: {method: "card", last4: "4242"},
+    history: {kind: "entry", order_id: "A100", previous: {kind: "none"}},
+    items: [
+      {sku: "WIDGET-1", qty: "3", price: 9.99},
+      {sku: "GADGET-2", qty: "2", price: 4.5}
+    ]
+  }
+
+  messy_order = {
+    customer_name: "",
+    email: "",
+    country: "CA",
+    payment: {method: "bitcoin", wallet: "abc"},
+    history: {kind: "sideways"},
+    items: [
+      {sku: "WIDGET-1", qty: "3", price: 9.99},
+      {sku: "GADGET-2", qty: "abc", price: 5.0},
+      {sku: "GIZMO-3", qty: "2", price: "4.50"}
+    ]
+  }
+
+  too_deep_order = {
+    customer_name: "Grace Hopper",
+    email: "grace@example.com",
+    payment: {method: "paypal", paypal_email: "grace@example.com"},
+    history: {kind: "entry", order_id: "A1", previous: {kind: "entry", order_id: "A2", previous: {kind: "entry", order_id: "A3", previous: {kind: "entry", order_id: "A4", previous: {kind: "entry", order_id: "A5", previous: {kind: "none"}}}}}},
+    items: [{sku: "WIDGET-1", qty: "1", price: 1.0}]
+  }
+
+  assert_eq(
+    display(process_order(good_order)),
+    "some({customer_name: Ada Lovelace, email: ada@example.com, payment: {method: card, last4: 4242}, history: {kind: entry, order_id: A100, previous: {kind: none}}, items: [{sku: WIDGET-1, qty: 3, price: 9.99}, {sku: GADGET-2, qty: 2, price: 4.5}], country: US})"
+  )
+  assert_eq(
+    display(process_order(messy_order)),
+    "err(order-validation-failed, {envelope: [{path: [customer_name], kind: mismatch, reason: refinement-mismatch}, {path: [email], kind: mismatch, reason: refinement-mismatch}, {path: [payment, method], kind: mismatch, reason: alternative-unknown-discriminator}, {path: [history], kind: mismatch, reason: alternative-unknown-discriminator}], items: [{index: 1, kind: skipped, reason: parse-error, context: some({source: parse_int, expected: integer_string, received: abc, base: 10})}, {index: 2, kind: skipped, reason: json-schema-type-mismatch, context: some({path: [], expected: number, actual: string})}]})"
+  )
+  assert_eq(
+    display(process_order(too_deep_order)),
+    "err(order-validation-failed, {envelope: [{path: [history], kind: error, reason: recursive-template-depth-exceeded}], items: []})"
+  )
+  assert_eq(
+    display(template_schema(Item) |> unwrap_or((_) -> none("schema-failed")) |> strip_representation("json")),
+    "{type: object, properties: {sku: {type: string}, qty: {type: integer}, price: {type: number}}, required: [sku, qty, price], additionalProperties: false}"
+  )
+  assert_eq(
+    display(template_schema(OrderEnvelope)),
+    "err(unsupported-template, {path: [customer_name], kind: refinement})"
+  )
+})
