@@ -927,6 +927,102 @@ def make_global_env(
 
         return GeniaOptionSome(value)
 
+    def _describe_field_template(template: Any) -> Any:
+        description = getattr(template, "__genia_template_description__", None)
+        if description is None:
+            return symbol("opaque")
+        return description
+
+    def _validate_shape_fields(fields: Any, operation: str) -> None:
+        if not isinstance(fields, GeniaMap):
+            raise TypeError(
+                f"{operation} expected field Templates map, "
+                f"received {_runtime_type_name(fields)}"
+            )
+        for field, template in fields.items():
+            if not isinstance(field, str):
+                raise TypeError(
+                    f"{operation} expected string field name, "
+                    f"received {_runtime_type_name(field)}"
+                )
+            if not _template_callable(template):
+                raise TypeError(
+                    f"{operation} field {field} expected Template function, "
+                    f"received {_runtime_type_name(template)}"
+                )
+
+    def refinement_fn(predicate: Any) -> Any:
+        if not _template_callable(predicate):
+            raise TypeError(
+                "refinement expected predicate function, "
+                f"received {_runtime_type_name(predicate)}"
+            )
+
+        def template(value: Any) -> Any:
+            return refinement_match_fn(predicate, value)
+
+        template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            GeniaMap().put("kind", symbol("refinement"))
+        )
+        return template
+
+    def open_shape_fn(fields: Any) -> Any:
+        _validate_shape_fields(fields, "open_shape")
+
+        def template(value: Any) -> Any:
+            return open_shape_match_fn(fields, value)
+
+        field_descriptions = GeniaMap()
+        for field, field_template in fields.items():
+            field_descriptions = field_descriptions.put(
+                field, _describe_field_template(field_template)
+            )
+
+        template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            GeniaMap()
+            .put("kind", symbol("open_shape"))
+            .put("fields", field_descriptions)
+        )
+        return template
+
+    def exact_shape_fn(fields: Any) -> Any:
+        _validate_shape_fields(fields, "exact_shape")
+
+        def template(value: Any) -> Any:
+            return exact_shape_match_fn(fields, value)
+
+        field_descriptions = GeniaMap()
+        for field, field_template in fields.items():
+            field_descriptions = field_descriptions.put(
+                field, _describe_field_template(field_template)
+            )
+
+        template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            GeniaMap()
+            .put("kind", symbol("exact_shape"))
+            .put("fields", field_descriptions)
+        )
+        return template
+
+    def template_description_fn(template: Any) -> Any:
+        if not _template_callable(template):
+            raise TypeError(
+                "template_description expected callable Template, "
+                f"received {_runtime_type_name(template)}"
+            )
+        description = getattr(template, "__genia_template_description__", None)
+        if description is None:
+            return make_none("opaque-template")
+        return GeniaOptionSome(description)
+
+    refinement_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    open_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    exact_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    template_description_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
     def strip_representation_fn(facet_value: Any, value: Any) -> Any:
         facet = _representation_facet(facet_value, "strip_representation")
         if facet == "secret":
@@ -3636,6 +3732,33 @@ def make_global_env(
 
         return GeniaOptionSome(value)
 
+    def _json_schema_node_description(compiled: Any) -> Any:
+        type_name = compiled["type"]
+        if type_name == "object":
+            properties = GeniaMap()
+            for property_name, property_node in compiled["properties"]:
+                properties = properties.put(
+                    property_name, _json_schema_node_description(property_node)
+                )
+            return (
+                GeniaMap()
+                .put("kind", symbol("json_schema_object"))
+                .put("properties", properties)
+                .put("required", list(compiled["required"]))
+                .put("additional", compiled["additional"])
+            )
+        if type_name == "array":
+            return (
+                GeniaMap()
+                .put("kind", symbol("json_schema_array"))
+                .put("items", _json_schema_node_description(compiled["items"]))
+            )
+        return (
+            GeniaMap()
+            .put("kind", symbol("json_schema_scalar"))
+            .put("type", symbol(type_name))
+        )
+
     def json_schema_fn(value: Any) -> Any:
         if not isinstance(value, GeniaRepresented):
             raise TypeError(
@@ -3661,6 +3784,9 @@ def make_global_env(
             return _match_json_schema_node(compiled, subject, [])
 
         template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            _json_schema_node_description(compiled)
+        )
         context = (
             GeniaMap()
             .put("kind", symbol("json_schema"))
@@ -4649,6 +4775,13 @@ def make_global_env(
     env.set(
         "exact_shape_match",
         _host_function_group("exact_shape_match", 2, exact_shape_match_fn),
+    )
+    env.set("refinement", _host_function_group("refinement", 1, refinement_fn))
+    env.set("open_shape", _host_function_group("open_shape", 1, open_shape_fn))
+    env.set("exact_shape", _host_function_group("exact_shape", 1, exact_shape_fn))
+    env.set(
+        "template_description",
+        _host_function_group("template_description", 1, template_description_fn),
     )
     env.set(
         "strip_representation",

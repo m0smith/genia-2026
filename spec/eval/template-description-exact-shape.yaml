@@ -3,9 +3,9 @@ category: eval
 description: exact_shape(fields) returns an inspectable Template describing nested field Templates
 input:
   source: |
-    Person = exact_shape({name: refinement((x) -> is_string?(x)), age: refinement((x) -> x >= 0)})
+    Person = exact_shape({name: refinement((x) -> x != ""), age: refinement((x) -> x >= 0)})
     [Person({name: "Ada", age: 3}), template_description(Person)]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some({name: \"Ada\", age: 3}), some({kind: exact_shape, fields: {name: {kind: refinement}, age: {kind: refinement}}})]\n"
   stderr: ""
   exit_code: 0

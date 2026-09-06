@@ -5,7 +5,7 @@ input:
   source: |
     A = refinement((x) -> x > 0)
     B = refinement((x) -> x > 0)
-    same_desc = template_description(A) == template_description(B)
+    same_desc = display(template_description(A)) == display(template_description(B))
     distinct = A != B
     checked = 5 @? A
     asserted = 5 @! A
