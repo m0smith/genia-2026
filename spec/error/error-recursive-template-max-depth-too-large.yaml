@@ -1,0 +1,13 @@
+name: error-recursive-template-max-depth-too-large
+category: error
+description: recursive_template rejects a max_depth beyond the conservative safety ceiling
+input:
+  source: |
+    recursive_template("tree", (ref) -> refinement((x) -> true), 1000)
+expected:
+  stdout: ""
+  stderr: "Error: recursive_template expected a positive integer max_depth of at most 100, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

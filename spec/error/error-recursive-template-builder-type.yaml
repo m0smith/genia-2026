@@ -1,0 +1,13 @@
+name: error-recursive-template-builder-type
+category: error
+description: recursive_template rejects a non-callable builder
+input:
+  source: |
+    recursive_template("tree", 1, 5)
+expected:
+  stdout: ""
+  stderr: "Error: recursive_template expected callable builder, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

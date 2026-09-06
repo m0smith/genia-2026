@@ -1,0 +1,11 @@
+name: template-recursive-unresolved-reference
+category: eval
+description: recursive_template fails deterministically when build_fn requests an unresolved reference name
+input:
+  source: |
+    Bad = recursive_template("tree", (ref) -> exact_shape({child: ref("not-tree")}), 5)
+    Bad({child: {}})
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,13 @@
+name: error-recursive-template-name-type
+category: error
+description: recursive_template rejects a non-string reference name
+input:
+  source: |
+    recursive_template(1, (ref) -> refinement((x) -> true), 5)
+expected:
+  stdout: ""
+  stderr: "Error: recursive_template expected non-empty reference name string, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

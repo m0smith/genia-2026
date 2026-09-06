@@ -1,0 +1,15 @@
+name: template-recursive-depth-exceeded
+category: eval
+description: recursive_template fails deterministically once recursion exceeds the explicit bound
+input:
+  source: |
+    Tree = recursive_template("tree", (ref) -> alternatives("kind", {
+      leaf: exact_shape({kind: refinement((x) -> x == "leaf")}),
+      node: exact_shape({kind: refinement((x) -> x == "node"), left: ref("tree")})
+    }), 2)
+    deep = {kind: "node", left: {kind: "node", left: {kind: "node", left: {kind: "leaf"}}}}
+    Tree(deep)
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0
