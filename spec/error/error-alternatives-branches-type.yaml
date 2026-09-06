@@ -1,0 +1,13 @@
+name: error-alternatives-branches-type
+category: error
+description: alternatives rejects a non-map branches argument
+input:
+  source: |
+    alternatives("kind", 1)
+expected:
+  stdout: ""
+  stderr: "Error: alternatives expected branches Templates map, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

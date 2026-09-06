@@ -1,0 +1,13 @@
+name: template-alternatives-accumulate
+category: eval
+description: accumulate recurses depth-first into the resolved branch of an alternatives Template, and path-points discriminator diagnostics
+input:
+  source: |
+    Circle = exact_shape({kind: refinement((x) -> x == "circle"), radius: refinement((x) -> x > 0)})
+    Square = exact_shape({kind: refinement((x) -> x == "square"), side: refinement((x) -> x > 0)})
+    Shape = alternatives("kind", {circle: Circle, square: Square})
+    [accumulate(Shape, {kind: "circle", radius: -1}), accumulate(Shape, {radius: 5})]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,19 @@
+name: template-alternatives-discriminator-diagnostics
+category: eval
+description: alternatives produces deterministic diagnostics for missing, invalid, and unknown discriminators, and never tries other branches
+input:
+  source: |
+    Circle = open_shape({radius: refinement((x) -> x > 0)})
+    Square = open_shape({side: refinement((x) -> x > 0)})
+    Shape = alternatives("kind", {circle: Circle, square: Square})
+    [
+      Shape({radius: 5}),
+      Shape({kind: 5, radius: 5}),
+      Shape({kind: "triangle", a: 1}),
+      Shape({kind: "circle", radius: -1}),
+      Shape("not-a-map")
+    ]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

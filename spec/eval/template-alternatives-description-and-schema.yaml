@@ -1,0 +1,12 @@
+name: template-alternatives-description-and-schema
+category: eval
+description: alternatives is inspectable via template_description but deterministically unsupported by template_schema
+input:
+  source: |
+    Circle = open_shape({radius: refinement((x) -> x > 0)})
+    Shape = alternatives("kind", {circle: Circle})
+    [template_description(Shape), template_schema(Shape)]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0
