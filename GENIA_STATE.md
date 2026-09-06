@@ -3978,6 +3978,82 @@ Explicit limitations:
   existing list/Flow operations.
 - No HTTP behavior (that is #628's job).
 
+## 9.19) R14 E14-12 YouVersion Bible proxy proving application
+
+Status: Implemented, with **zero runtime-code change**. Issue #628 proves
+the contract's "HTTP vertical proving case" section: `config_view`/
+`secret_view` (R13), `http_operation`/`web.http_send` (R14 E14-5/E14-7,
+#622/#624), the protected HTTP header sink (E14-8, #625), and
+`web.serve_http`/`web.route_request` (R8) already compose into a
+complete end-to-end proving application with no new mechanism.
+
+LANGUAGE CONTRACT (proven, not newly introduced):
+
+- Base URL, Bible/version ID, and API credential resolve entirely through
+  the landed R13/R10 configuration model — `config_view(provider,
+  "YOUVERSION_")` for the ordinary values, `secret_view(provider,
+  "YOUVERSION_", quote(bible_proxy_outbound))` for the protected
+  credential — with no new configuration mechanism.
+- One `http_operation` per canonical passage reference carries the
+  credential in a protected header; the credential is declassified only
+  immediately inside `web.http_send`'s existing transport boundary,
+  exactly as E14-8 already proved generically.
+- An R8 `POST /passages` route handler is an ordinary function that
+  dispatches one `web.http_send` call per reference — outbound child
+  HTTP lifecycle instances created from an inbound request, exactly the
+  composition E14-10 (#627) already proved architecturally correct.
+- An upstream non-2xx response or transport failure (including
+  connect-refused) classifies to a deterministic per-reference
+  `{status: "error", reason, ...}` value in the structured JSON
+  response; it is ordinary data, never a lifecycle failure, and never
+  stops the server from completing further requests.
+- **Minting a declassification authority is a privileged host-side
+  operation, never a pure-Genia one** — no `make_global_env` parameter
+  or Genia builtin constructs one (confirmed by direct code reading, the
+  same boundary R13's own proving case already established; see
+  `docs/releases/R13.md`). A plain `genia` CLI run of the example
+  therefore only resolves configuration and shows the credential stays
+  protected; the full outbound round trip is exercised entirely by a
+  Python-host test that injects a real authority.
+
+PYTHON REFERENCE HOST:
+
+- No change to `src/genia/http_client.py`, `http_operation.py`,
+  `configuration.py`, `server_lifecycle.py`, or any other runtime module
+  — confirmed via `git diff origin/main..HEAD --stat -- src/genia/`
+  showing no production-code changes.
+- New example
+  `examples/r14_youversion_bible_proxy_proving_case.genia`, runnable
+  directly via `genia examples/r14_youversion_bible_proxy_proving_case.genia`.
+- Validated by 7 tests in the new
+  `tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py`: the
+  CLI-demo configuration path; a real R8 server plus a local mock-upstream
+  `ThreadingHTTPServer` fixture proving a multi-reference request
+  produces a structured response via real outbound calls, with the mock
+  upstream receiving the declassified credential header; an upstream
+  5xx and a connect-refused upstream each producing a deterministic
+  per-reference error without killing the server; the protected
+  credential never appearing in any response body or audit record; and
+  a structural check that no real credential or network dependency
+  exists in source. Four of these are `@pytest.mark.loopback`,
+  registered in `tests/doc/test_loopback_pytest_partition.py`'s
+  maintained inventory. The new
+  `spec/cli/r14-youversion-bible-proxy-proving-case.yaml` fixture is
+  confirmed via `python -m tools.spec_runner` (587/587 passing).
+
+Explicit limitations:
+
+- No human-language Bible-reference parsing; references are opaque
+  caller-supplied strings.
+- No Bible search, verse indexing, caching, theology/domain
+  abstractions, or YouVersion-specific language APIs.
+- No real YouVersion credential or public network dependency anywhere in
+  automated tests; the fake credential
+  (`FAKE_YOUVERSION_KEY_SENTINEL_628`) is an explicit synthetic
+  sentinel, never a value resembling a real API key.
+- No retries, auth framework, or capability beyond what R14 already
+  implements.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

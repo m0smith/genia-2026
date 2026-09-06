@@ -97,8 +97,8 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
 R14 is in progress; its E14-0 contract is approved and
-E14-1 through E14-11 (issues #621, #692, #693, #694,
-#622, #623, #624, #625, #626, #627, #695) are implemented — see the R14 entry below. E14-12 and
+E14-1 through E14-12 (issues #621, #692, #693, #694,
+#622, #623, #624, #625, #626, #627, #695, #628) are implemented — see the R14 entry below. E14-13 and
 later slices remain planned, not implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
@@ -204,8 +204,16 @@ When an LLM agent is asked for new Genia work:
    with `record`/`fields`/`nr`/`nf`-style values derived as ordinary data
    from the reserved `element`/`index` context, no AWK syntax, no
    cross-element leakage, and correct cleanup on both data-level and
-   genuine work-phase element failure)
-   are implemented. E14-12 is the next implementation gate.
+   genuine work-phase element failure), and E14-12 (#628, YouVersion
+   Bible proxy proving application — proof, with **zero runtime-code
+   change**, that `config_view`/`secret_view`, `http_operation`/
+   `web.http_send`, the protected HTTP header sink, and
+   `web.serve_http`/`web.route_request` already compose into a complete
+   end-to-end proving application with no real network/credential
+   dependency in automated tests; minting a declassification authority
+   remains a privileged host-side operation never reachable from pure
+   Genia source)
+   are implemented. E14-13 is the next implementation gate.
    Do not infer any verb beyond `get`/`post`, concurrent serving
    guarantees, or a literal nested-scope rewire of the server lifecycle
    from the
