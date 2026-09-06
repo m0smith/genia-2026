@@ -54,10 +54,10 @@ These short anchors are intentionally retained in the canonical index because ex
 - Release R8 — Server Execution Mode. **Status: Complete.** Explicitly approved infrastructure work delivered after R7. `@cors` → the R7 `cors` wrapper. No second mechanism.
 - Release R9 — Value Templates & Representations. **Status: Complete.** E9-1 through E9-7 delivered; E9-8 completed the release truth audit.
 - Release R10 — Configuration & Secrets ✓ COMPLETE. **Status: Complete. E10-1 through E10-8 delivered and audited.** Issue #586 approved the durable R10 contract.
-- R11: E11-1 through E11-8 complete.
-- R12: E12-1 through E12-9 complete.
-- R13: E13-1 through E13-8 are complete.
-- R14: E14-1 through E14-15 are implemented; R14 is complete.
+- Release R11 — AI Composition ✓ COMPLETE. E11-1 through E11-8 complete.
+- Release R12 — Retrieval & Grounding ✓ COMPLETE. E12-1 through E12-9 complete.
+- Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE. E13-1 through E13-8 are complete.
+- Release R14 — Composable Lifecycles ✓ COMPLETE. E14-1 through E14-15 are implemented; R14 is complete.
 - R10/R11/R12/R13 follow-ups require their own gates.
 
 ## Release status
