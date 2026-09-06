@@ -167,6 +167,7 @@ Required constraints:
   - `@test`
   - `@route` (Experimental, inert R8 descriptor metadata)
   - `@server` (Experimental, inert R8 server-configuration metadata)
+  - `@get` / `@post` (Experimental, inert R14 outbound HTTP descriptor metadata)
 - no annotation introduces macros, compile-time transforms, or syntax rewriting in this phase
 
 ## 8.1.2) Prefix annotation runtime semantics
@@ -219,9 +220,16 @@ Required constraints:
   - requires a top-level simple-name assignment target and the closed optional `origin`, `methods`, and `headers` policy recorded in `GENIA_STATE.md` section 9.7
   - attaches inert metadata under the canonical `cors` key and must share the selected entry-file `@server` owner
   - uses the existing R7 `cors` policy validation/default contract and may not repeat on one declaration or replace existing `cors` metadata through annotated rebinding
+- `@get` / `@post`:
+  - evaluates its value expression after the target binding exists
+  - valid only on a top-level named function with a fixed zero-argument arm; `path` must be a non-empty string starting with `/`
+  - `@get` and `@post` share one cardinality slot per declaration: at most one of either may appear, combined
+  - stores the validated `{verb, path}` descriptor under metadata key `http_annotation`; `method` is never a descriptor field, it is implied by the annotation's own name
+  - remains inert; annotating a function never changes how it is called, and loading/importing/evaluating a declaration carrying `@get`/`@post` performs zero network IO — only the separate, explicit `web.send_annotated(fn, base_url, authority, timeout_ms)` call does
+  - may not repeat on one declaration or replace existing `http_annotation` metadata through annotated rebinding
 - native test metadata keys and values must be strings; non-string metadata keys or values in a `TestUnit` are discovery errors reported before test body execution; diagnostics use Genia runtime type names; existing `TestUnit.location` is appended to diagnostic text when available
 - multiple annotations merge from top to bottom
-- last annotation wins for duplicate metadata keys, except annotated rebinding cannot replace an existing canonical R8 descriptor key such as `route`, `server`, or `cors`
+- last annotation wins for duplicate metadata keys, except annotated rebinding cannot replace an existing canonical R8/R14 descriptor key such as `route`, `server`, `cors`, or `http_annotation`
 - rebinding without annotations preserves existing binding metadata
 - rebinding with annotations merges new metadata over existing metadata for that binding
 - `doc("name")` returns the current doc string for a bound name or `none("missing-doc", {name: ...})`
@@ -1358,3 +1366,19 @@ For each incoming flow item `x`:
 - The lifecycle core must be callable without CLI parsing or live sockets and must return the deterministic result shape defined in `GENIA_STATE.md` section 9.7.
 - Descriptor and result data shapes are host-independent. R8 execution is Python-reference-host-only and adds no shared host-adapter capability or cross-host server guarantee.
 - The dedicated lifecycle core and inert `@route`, `@server`, and `@cors` metadata/discovery/binding are implemented in the Python reference host, together with explicit `genia serve <file>` activation. Serve mode evaluates exactly one entry file without ordinary `main` dispatch and keeps the descriptors inert in every other mode.
+
+## 26) R14 composable lifecycle and outbound HTTP invariants
+
+- `lifecycle_scope(peers, work)`, `lifecycle_child(scope_handle, peers, work)`, and `lifecycle_repeat(peers, source, element_work)` are ordinary calls; no parser, Core IR, or new syntax exists for lifecycle scopes. Every scope operation returns the same closed `LifecycleResult` shape defined in `GENIA_STATE.md` section 9.8.
+- A scope's `peers` list enters in list order and unwinds in strict reverse order. Attachment order is not parentage: a peer cannot mutate another peer's owned context/state/resources, and only successfully entered peers/scopes ever receive an `exit` call.
+- The first entry/work/exit failure encountered is the scope's primary failure; every later `exit` failure is a cleanup failure appended in exit-call order and never replaces or hides the primary failure.
+- Context exposed by a peer's `enter`, or by the reserved `element`/`index`/`config` bindings, is read only through the explicit `lifecycle_context(scope_handle, name)` accessor — never injected into lexical bindings. A handle used outside its scope's active lifetime raises the existing Flow-style already-consumed error. Reserved names (`element`, `index`, `config`) cannot be shadowed by an application peer.
+- `lifecycle_repeat` over a `List` source is eager and exhaustive: every element is processed regardless of an individual element's result, exactly like `map`. Over a `Flow` source it is lazy and single-use: pulling one item pulls exactly one source element, fully enters and unwinds that element's scope, then yields — bounded early termination (`take`, a manual break) never leaves a scope partially entered.
+- `lifecycle_config(provider)` binds one already-constructed R10/R13 configuration provider as a reserved, non-shadowable, inward-only peer. It performs no acquisition, refresh, or ambient lookup, and changes no R10/R13 Outcome or protection semantics.
+- `http_operation(method, base_url, path, headers, query, body)` builds one inert closed value with zero network IO. `web.http_send(operation, authority, timeout_ms)` makes exactly one synchronous transport attempt per call, treats any received HTTP status as an ordinary successful response (never a raised error), and normalizes any transport failure to `err("http-transport-failure", {kind})` — the underlying Python exception's own message/type never crosses this boundary.
+- A protected value placed in `http_operation`'s `headers` field (never `query`, which is rejected outright) is the one authorized outbound-HTTP sink already stated in section 9.2's protected-value rule above: it stays opaque through construction, storage, `display`/`debug_repr`/`json_encode`, and generic representation operations, and is revealed only inside `web.http_send`'s private implementation, immediately before the one transport attempt, through the existing `declassify` operation with a matching authority.
+- Minting a declassification authority (`create_declassification_authority`) is a privileged host-side operation with no Genia-callable constructor — an ordinary Genia program can resolve and hold a protected value but can never mint the authority needed to declassify it; only privileged host-side code (a test harness, a deployment bootstrap) can supply one.
+- `@get {path}` / `@post {path}` are inert descriptor metadata exactly like `@route`/`@server`/`@cors` (section 8.1.2): annotating a function never changes how it is called, and loading, importing, or evaluating a declaration carrying them performs zero network IO. Only the explicit `web.send_annotated(fn, base_url, authority, timeout_ms)` call reads the descriptor and performs IO, composing the unchanged `http_operation`/`web.http_send` surface.
+- An R8 route handler is an ordinary function: it may call `web.http_send`/`web.send_annotated` any number of times per request, each running its own independent lifecycle instance. `server_lifecycle.py` (R8) and `lifecycle_runtime.py` (R14) remain architecturally separate — composition is behavioral, not a nested object-graph rewire — and a contained outbound failure never stops the server from completing further requests.
+- Importing, loading, parsing, evaluating, or discovering (native-test mode) source that merely defines lifecycle/HTTP/annotated functions performs zero lifecycle activation and zero outbound IO, exactly like every other R14/R8 descriptor — activation always requires an explicit call (`lifecycle_scope`/`lifecycle_child`/`lifecycle_repeat`, `web.http_send`, `web.send_annotated`, or `genia serve <file>`).
+- R14 adds no new `map`/`filter`/`scan`/`rules` mechanism, no AWK language mode or `$0`/`$1`/`NR`/`NF` syntax, no dependency injection or service container, and no second server/routing/CORS/configuration system. All of the above is Python-reference-host-only; shared/multi-host conformance remains Partial.

@@ -201,6 +201,7 @@ Classification: **Valid** (directly tested)
 - response maps currently include `status`, `headers`, and `body`
 - `with_headers` preserves non-header fields and does not mutate its inputs
 - `cors` accepts only optional `origin`, `methods`, and `headers` policy fields and delegates incomplete `OPTIONS` requests
+- R14 (Python-host-only, Experimental): `http_operation(method, base_url, path, headers, query, body)` builds one inert closed value with zero network IO; `web.http_send(operation, authority, timeout_ms)` makes exactly one synchronous outbound attempt and normalizes any transport failure to `err("http-transport-failure", {kind})`. `@get {path}`/`@post {path}` are inert descriptor metadata — annotating a function never changes how it is called — and `web.send_annotated(fn, base_url, authority, timeout_ms)` is the sole call that reads the descriptor and performs IO. An R8 route handler is an ordinary function, so it may call either any number of times per request while the server stays active. See `docs/releases/R14.md` and `GENIA_STATE.md` sections 9.8-9.20.
 
 ## `@doc` Quick Reference
 
