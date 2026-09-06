@@ -1,7 +1,7 @@
 """Focused invariants for E15-6 (#733) recursive_template that shared eval specs can't express."""
 
 from genia import make_global_env, run_source
-from genia.values import GeniaOptionSome
+from genia.values import GeniaOptionErr
 
 
 def _run(source: str):
@@ -23,8 +23,6 @@ def test_independent_instances_do_not_share_depth_state():
     # Outer recurses 2 levels deep (within its own bound 2); the third
     # nested "wrap" exceeds Outer's bound, so this must fail there, not
     # because Inner's independent 1-level-deep validation ever interfered.
-    from genia.values import GeniaOptionErr
-
     assert isinstance(result, GeniaOptionErr)
     assert result.reason == "recursive-template-depth-exceeded"
 
@@ -42,7 +40,5 @@ def test_recursion_bound_never_raises_a_python_recursion_error():
         "  _ -> {kind: \"node\", left: build(n - 1)}\n"
         "Tree(build(50))"
     )
-    from genia.values import GeniaOptionErr
-
     assert isinstance(result, GeniaOptionErr)
     assert result.reason == "recursive-template-depth-exceeded"
