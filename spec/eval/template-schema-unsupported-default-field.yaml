@@ -1,0 +1,13 @@
+name: template-schema-unsupported-default-field
+category: eval
+description: template_schema fails deterministically for a default_field, since JSON Schema default is an annotation not an insertion transform
+input:
+  source: |
+    string_schema = represent("json", {type: "string"})
+    StringTemplate = json_schema(string_schema) |> unwrap_or((_) -> none("compile-failed"))
+    Config = open_shape({host: default_field("localhost", StringTemplate)})
+    template_schema(Config)
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

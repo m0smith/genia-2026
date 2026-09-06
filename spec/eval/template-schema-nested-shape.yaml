@@ -1,0 +1,14 @@
+name: template-schema-nested-shape
+category: eval
+description: template_schema recurses through nested open_shape/exact_shape structure
+input:
+  source: |
+    string_schema = represent("json", {type: "string"})
+    StringTemplate = json_schema(string_schema) |> unwrap_or((_) -> none("compile-failed"))
+    Address = exact_shape({city: StringTemplate})
+    Person = open_shape({name: StringTemplate, address: Address})
+    template_schema(Person)
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

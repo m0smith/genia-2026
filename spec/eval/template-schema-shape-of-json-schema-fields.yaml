@@ -1,0 +1,13 @@
+name: template-schema-shape-of-json-schema-fields
+category: eval
+description: template_schema converts an exact_shape whose fields are json_schema-derived Templates
+input:
+  source: |
+    name_schema = represent("json", {type: "string"})
+    NameTemplate = json_schema(name_schema) |> unwrap_or((_) -> none("compile-failed"))
+    Person = exact_shape({name: NameTemplate})
+    template_schema(Person)
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0

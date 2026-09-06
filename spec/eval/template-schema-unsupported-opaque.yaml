@@ -1,0 +1,11 @@
+name: template-schema-unsupported-opaque
+category: eval
+description: template_schema fails deterministically for an opaque top-level Template
+input:
+  source: |
+    pattern Adult(value) = refinement_match((age) -> age >= 18, value)
+    template_schema(Adult)
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0
