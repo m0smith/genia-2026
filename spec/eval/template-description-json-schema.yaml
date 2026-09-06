@@ -1,0 +1,12 @@
+name: template-description-json-schema
+category: eval
+description: json_schema-compiled Templates carry a description mirroring the compiled schema
+input:
+  source: |
+    schema = represent("json", {type: "object", properties: {name: {type: "string"}}, required: ["name"], additionalProperties: false})
+    result = json_schema(schema) |> unwrap_or((_) -> none("compile-failed"))
+    template_description(result)
+expected:
+  stdout: "some({kind: json_schema_object, properties: {name: {kind: json_schema_scalar, type: string}}, required: [\"name\"], additional: false})\n"
+  stderr: ""
+  exit_code: 0

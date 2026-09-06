@@ -1,0 +1,17 @@
+name: template-description-no-identity-effect
+category: eval
+description: Descriptions do not affect Template identity, matching, or @?/@!/& original-subject semantics
+input:
+  source: |
+    A = refinement((x) -> x > 0)
+    B = refinement((x) -> x > 0)
+    same_desc = display(template_description(A)) == display(template_description(B))
+    distinct = A != B
+    checked = 5 @? A
+    asserted = 5 @! A
+    composed_true = 5 @? (A & A)
+    [same_desc, distinct, checked, asserted, composed_true]
+expected:
+  stdout: "[true, true, some(5), 5, some(5)]\n"
+  stderr: ""
+  exit_code: 0

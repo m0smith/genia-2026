@@ -32,7 +32,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current release
 
-**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. The next authorized work item is **#728 / E15-1 — inert inspectable Template descriptions**.
+**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. **#728 / E15-1 — inert inspectable Template descriptions** is delivered. The next authorized work item is **#729 / E15-2 — explicit missing-field defaults and normalization composition**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 

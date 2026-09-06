@@ -1,0 +1,11 @@
+name: template-description-refinement
+category: eval
+description: refinement(predicate) returns an inspectable Template matching refinement_match behavior
+input:
+  source: |
+    Positive = refinement((x) -> x > 0)
+    [Positive(5), Positive(-1), template_description(Positive)]
+expected:
+  stdout: "[some(5), none(\"refinement-mismatch\"), some({kind: refinement})]\n"
+  stderr: ""
+  exit_code: 0

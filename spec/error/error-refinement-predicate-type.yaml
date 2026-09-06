@@ -1,0 +1,13 @@
+name: error-refinement-predicate-type
+category: error
+description: refinement rejects a non-callable predicate
+input:
+  source: |
+    refinement(1)
+expected:
+  stdout: ""
+  stderr: "Error: refinement expected predicate function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError
