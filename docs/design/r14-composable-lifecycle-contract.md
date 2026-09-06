@@ -855,9 +855,15 @@ as "Current release: R14" only after this contract records explicit GO.
     in automated tests, and confirmed that minting a declassification
     authority is a privileged host-side operation never reachable from
     pure Genia source.
-14. **#696 — E14-13:** cross-mode lifecycle and HTTP hardening (inertness,
-    every failure matrix row, laziness, diagnostics, protection,
-    capability-unavailable normalization, parse/Core IR regression).
+14. **#696 — E14-13 (implemented, zero runtime-code change):** cross-mode
+    lifecycle and HTTP hardening — proved at combined cross-cutting
+    breadth (inertness across import/native-test/serve modes, a
+    combined multi-peer failure matrix, bounded Flow termination with
+    no leak, protected-value/lifecycle-context sentinel-free rendering,
+    Python-exception normalization, combined server/request/
+    outbound-client resilience, and parse/Core IR regression) that
+    E14-1 through E14-12 already satisfy this contract's full combined
+    boundary.
 15. **#629 — E14-14:** release examples and implemented-truth synchronization
     (documentation only; no runtime change).
 16. **#630 — E14-15:** release truth audit and distillation (audit only; no
@@ -885,20 +891,23 @@ lead behavior. E14-15 adds no behavior.
 
 ## Gate
 
-**GO for E14-13 preflight only**, now that issue #628 has proven E14-12
-against this contract (zero runtime-code change; `config_view`/
-`secret_view`, `http_operation`/`web.http_send`, the protected HTTP
-header sink, and `web.serve_http`/`web.route_request` already compose
-into the complete YouVersion Bible proxy proving application, with no
-real network/credential dependency in automated tests).
+**GO for E14-14 preflight only**, now that issue #696 has proven E14-13
+against this contract (zero runtime-code change; the combined R14
+surface already satisfies every cross-cutting hardening criterion:
+import/discovery inertness, serve-mode annotation non-self-execution,
+sentinel-free rendering, combined multi-peer failure ordering, bounded
+Flow termination with no leak, Python-exception normalization, combined
+server/request/outbound-client resilience, and parse/Core IR
+regression). E14-14 (#629) is documentation-only — release examples and
+implemented-truth synchronization; it adds no runtime behavior.
 This document
 itself authorizes no
 further implementation, tests, later ticket creation, or implemented-behavior
 documentation beyond what #621, #692, #693, #694, #622, #623, #624, #625,
-#626, #627, #695, and #628 have already landed and `GENIA_STATE.md`
-sections 9.8-9.19 record.
+#626, #627, #695, #628, and #696 have already landed and `GENIA_STATE.md`
+sections 9.8-9.20 record.
 Every later E14 ticket must name
-#620/#621/#692/#693/#694/#622/#623/#624/#625/#626/#627/#695/#628 and its own
+#620/#621/#692/#693/#694/#622/#623/#624/#625/#626/#627/#695/#628/#696 and its own
 earlier dependencies, distinguish
 portable semantics from Python reference-host capability work, and preserve
 R4 vocabulary, R8 server behavior, Flow/Seq laws, R9 composition, R10

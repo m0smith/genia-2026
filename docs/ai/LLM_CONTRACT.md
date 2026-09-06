@@ -97,8 +97,8 @@ The strategy and roadmap docs do not define implemented behavior. `GENIA_STATE.m
 ## Release Position: R9, R10, R11, R12, and R13 Complete
 
 R14 is in progress; its E14-0 contract is approved and
-E14-1 through E14-12 (issues #621, #692, #693, #694,
-#622, #623, #624, #625, #626, #627, #695, #628) are implemented — see the R14 entry below. E14-13 and
+E14-1 through E14-13 (issues #621, #692, #693, #694,
+#622, #623, #624, #625, #626, #627, #695, #628, #696) are implemented — see the R14 entry below. E14-14 and
 later slices remain planned, not implemented.
 
 **R9 — Value Templates & Representations and R10 — Configuration & Secrets are complete. R10 delivered its approved E10-1 through E10-7 behavior/proving slices and E10-8 release truth audit. Its APIs remain Experimental and only the Python reference host is implemented.**
@@ -212,8 +212,15 @@ When an LLM agent is asked for new Genia work:
    end-to-end proving application with no real network/credential
    dependency in automated tests; minting a declassification authority
    remains a privileged host-side operation never reachable from pure
-   Genia source)
-   are implemented. E14-13 is the next implementation gate.
+   Genia source), and E14-13 (#696, cross-mode lifecycle and HTTP
+   hardening — proof, with **zero runtime-code change**, that the
+   combined E14-1 through E14-12 surface satisfies every cross-cutting
+   hardening criterion: import/discovery inertness, serve-mode
+   annotation non-self-execution, sentinel-free rendering, a combined
+   multi-peer failure matrix, bounded Flow termination with no leak,
+   Python-exception normalization, combined server/request/
+   outbound-client resilience, and parse/Core IR regression)
+   are implemented. E14-14 is the next implementation gate.
    Do not infer any verb beyond `get`/`post`, concurrent serving
    guarantees, or a literal nested-scope rewire of the server lifecycle
    from the

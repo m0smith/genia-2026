@@ -124,7 +124,7 @@ pipelines; E13-7 synchronizes runnable examples and implemented truth without
 runtime behavior; E13-8 completes the release truth audit and distillation
 without runtime behavior.
 
-**R14** is in progress through E14-10. It is explicitly approved lifecycle
+**R14** is in progress through E14-13. It is explicitly approved lifecycle
 infrastructure with a direct record-pipeline proving path: multiple lifecycle
 concerns may surround each consumed element while existing Flow/Seq and Outcome
 transformations remain authoritative. E14-0 through E14-10 (issues #620, #621,
@@ -154,9 +154,15 @@ change" shape for the vertical HTTP path — `config_view`/`secret_view`,
 `http_operation`/`web.http_send`, the protected HTTP header sink, and
 `web.serve_http`/`web.route_request` compose into a complete YouVersion
 Bible proxy proving application, with no real network/credential
-dependency in automated tests; E14-13
-and later slices — the remaining application-integration proof — remain
-planned, not implemented.
+dependency in automated tests; E14-13 (issue #696) proves, at combined
+cross-cutting breadth and also with zero additional runtime code, that
+this whole surface satisfies the release's hardening gate — import/
+discovery inertness, serve-mode annotation non-self-execution,
+sentinel-free rendering, combined multi-peer failure ordering, bounded
+Flow termination with no leak, Python-exception normalization, and
+combined server/request/outbound-client resilience; E14-14
+and later slices — documentation closure and the release truth audit —
+remain planned, not implemented.
 
 ## Using This Document
 

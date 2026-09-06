@@ -4054,6 +4054,65 @@ Explicit limitations:
 - No retries, auth framework, or capability beyond what R14 already
   implements.
 
+## 9.20) R14 E14-13 cross-mode lifecycle and HTTP hardening
+
+Status: Implemented, with **zero runtime-code change**. Issue #696
+proves, at combined cross-cutting breadth, that E14-1 through E14-12
+already satisfy the contract's full combined boundary — the same
+"conformance proof only" shape as R13's E13-5 (#675).
+
+LANGUAGE CONTRACT (proven, not newly introduced):
+
+- Importing or discovering (native-test mode) a module that defines,
+  but never invokes, `http_operation`/`@get`/`@post`/lifecycle
+  functions performs zero outbound transport calls.
+- An `@get`/`@post` annotation's own registration at server startup
+  never self-executes; only an explicit `web.send_annotated` call
+  inside a request handler performs IO — proven against a real R8
+  server and a real local downstream fixture.
+- A protected credential and ordinary lifecycle-context data survive
+  `display`/`debug_repr` rendering together in one comprehensive value
+  with no sentinel leak.
+- A work-phase primary failure survives a combined multi-peer,
+  multi-exit-failure matrix (3 peers, 2 independent exit failures): the
+  primary failure stays the work failure, and both exit failures land
+  in `cleanup_failures` in exit-call (reverse-entry) order.
+- `take(n)` over `lifecycle_repeat` with a protected value threaded
+  through each element scope pulls exactly `n` elements, closing each
+  scope before the next pull, with no cross-element leak.
+- A raising transport's raw Python exception text never reaches the
+  normalized `err("http-transport-failure", {kind})` Outcome — only the
+  closed `{kind}` shape crosses the boundary.
+- One request making both a successful and a failed outbound call,
+  followed by a second successful request against the same server,
+  proves combined server/request/outbound-client resilience with no
+  external network.
+- Every R14 call form (`lifecycle_scope`/`child`/`repeat`/`context`/
+  `config`, `http_operation`, `web.http_send`/`send_annotated`,
+  `@get`/`@post`) still parses using only ordinary existing call/
+  annotation/map/list grammar — no new parser/AST/Core IR node.
+
+PYTHON REFERENCE HOST:
+
+- No change to any `src/genia/` module — confirmed via `git diff
+  origin/main..HEAD --stat -- src/genia/` showing no production-code
+  changes.
+- Validated by 10 tests in the new
+  `tests/unit/test_r14_cross_mode_hardening_696.py`, two of which are
+  `@pytest.mark.loopback` (registered in
+  `tests/doc/test_loopback_pytest_partition.py`'s maintained
+  inventory). The full non-loopback regression suite, the full
+  loopback suite, `python -m tools.spec_runner`, and `tests/doc`
+  (including R8/R10/R13/Flow/annotation coverage) all remain green.
+
+Explicit limitations:
+
+- No new public helper, syntax, annotation, or parser/AST/Core IR node.
+- No retries, resilience framework, async, concurrency, or scheduler
+  behavior.
+- No feature redesign; this is conformance proof only, matching R13's
+  E13-5 precedent.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

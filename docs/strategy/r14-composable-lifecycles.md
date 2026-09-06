@@ -1,8 +1,8 @@
 # R14 — Composable Lifecycles
 
 Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
-and E14-1 through E14-12 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626, #627, #695, #628).** E14-6 adds no Genia-visible surface — it is a private
+and E14-1 through E14-13 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627, #695, #628, #696).** E14-6 adds no Genia-visible surface — it is a private
 Python-host outbound HTTP transport capability consumed by E14-7's
 `web.http_send`, the first outbound HTTP call actually reachable from
 Genia source. E14-8 proves the protected-HTTP-credential-sink contract
@@ -22,7 +22,13 @@ YouVersion Bible proxy proving application — `config_view`/`secret_view`,
 `http_operation`/`web.http_send`, the protected HTTP header sink, and
 `web.serve_http`/`web.route_request` compose into a complete end-to-end
 proving application with no real network/credential dependency in
-automated tests. E14-13
+automated tests. E14-13 proves, also with zero runtime-code change, the
+combined cross-cutting hardening gate over all of E14-1 through
+E14-12 — import/discovery inertness, serve-mode annotation
+non-self-execution, sentinel-free rendering, a combined multi-peer
+failure matrix, bounded Flow termination with no leak, Python-exception
+normalization, combined server/request/outbound-client resilience, and
+parse/Core IR regression. E14-14
 through E14-15 remain planned, not implemented. This
 document records approved release direction; `GENIA_STATE.md` remains
 final authority for implemented behavior.
@@ -451,9 +457,10 @@ release epic is #619.
       `web.serve_http`/`web.route_request` already compose the configured,
       protected vertical HTTP path, with no real network/credential
       dependency in automated tests.
-14. **#696 — E14-13: cross-mode lifecycle and HTTP hardening**
-    - Prove inertness, cleanup/failure matrices, laziness, diagnostics,
-      protection, capability normalization, and parse/Core IR preservation.
+14. **#696 — E14-13: cross-mode lifecycle and HTTP hardening — implemented, zero runtime-code change**
+    - Proved inertness, cleanup/failure matrices, laziness, diagnostics,
+      protection, capability normalization, and parse/Core IR preservation
+      all hold at combined cross-cutting breadth over E14-1 through E14-12.
 15. **#629 — E14-14: release examples and implemented-truth synchronization**
     - Publish only tested landed behavior; no runtime changes.
 16. **#630 — E14-15: release truth audit and distillation**
@@ -513,8 +520,8 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-13 preflight only**, now that #621, #692, #693, #694, #622,
-#623, #624, #625, #626, #627, #695, and #628 have each completed their own preflight, design,
+**GO for E14-14 preflight only**, now that #621, #692, #693, #694, #622,
+#623, #624, #625, #626, #627, #695, #628, and #696 have each completed their own preflight, design,
 failing-test, implementation, and documentation phases: #621 implemented
 the instance/scope core, #692 proved horizontal peer-attachment breadth
 over it, #693 implemented `lifecycle_repeat` over both, #694 implemented
@@ -538,10 +545,17 @@ into a record-processing pipeline, and #628 proved the YouVersion Bible
 proxy proving application with zero runtime-code change, confirming
 `config_view`/`secret_view`, `http_operation`/`web.http_send`, the
 protected HTTP header sink, and `web.serve_http`/`web.route_request`
-already compose into a complete end-to-end proving application, all
+already compose into a complete end-to-end proving application, and
+#696 proved the combined cross-cutting hardening gate over all of
+E14-1 through E14-12 with zero runtime-code change (import/discovery
+inertness, serve-mode annotation non-self-execution, sentinel-free
+rendering, a combined multi-peer failure matrix, bounded Flow
+termination with no leak, Python-exception normalization, combined
+server/request/outbound-client resilience, and parse/Core IR
+regression), all
 against the contract in
 `docs/design/r14-composable-lifecycle-contract.md`. Implementation of
-E14-13 and later tickets remains blocked until each completes its own
+E14-14 and later tickets remains blocked until each completes its own
 preflight, design, failing-test, implementation, documentation, and audit
 phases. The supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
 not replace the repository's current process prompt.
