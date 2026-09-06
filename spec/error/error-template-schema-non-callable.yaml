@@ -1,0 +1,13 @@
+name: error-template-schema-non-callable
+category: error
+description: template_schema rejects a non-callable argument
+input:
+  source: |
+    template_schema(1)
+expected:
+  stdout: ""
+  stderr: "Error: template_schema expected callable Template, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

@@ -1,0 +1,21 @@
+name: template-schema-round-trip
+category: eval
+description: template_schema reverses a json_schema-compiled Template into an equivalent schema, re-compilable with the same accept/reject behavior
+input:
+  source: |
+    schema = represent("json", {type: "object", properties: {name: {type: "string"}, age: {type: "integer"}}, required: ["name"], additionalProperties: false})
+    original = json_schema(schema) |> unwrap_or((_) -> none("compile-failed"))
+    reversed_schema = template_schema(original) |> unwrap_or((_) -> none("generate-failed"))
+    roundtrip = json_schema(reversed_schema) |> unwrap_or((_) -> none("compile-failed"))
+    [
+      original({name: "Ada", age: 37}),
+      roundtrip({name: "Ada", age: 37}),
+      original({age: 37}),
+      roundtrip({age: 37}),
+      original({name: "Ada", extra: true}),
+      roundtrip({name: "Ada", extra: true})
+    ]
+expected:
+  stdout: "[some({name: \"Ada\", age: 37}), some({name: \"Ada\", age: 37}), none(\"json-schema-required-property\", {path: [], property: \"name\"}), none(\"json-schema-required-property\", {path: [], property: \"name\"}), none(\"json-schema-additional-property\", {path: [], property: \"extra\"}), none(\"json-schema-additional-property\", {path: [], property: \"extra\"})]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,0 +1,11 @@
+name: template-schema-unsupported-refinement-field
+category: eval
+description: template_schema fails deterministically at the exact path of a refinement field, never approximating its type
+input:
+  source: |
+    Person = exact_shape({name: refinement((x) -> x != "")})
+    template_schema(Person)
+expected:
+  stdout: "err(unsupported-template, {path: [\"name\"], kind: refinement})\n"
+  stderr: ""
+  exit_code: 0

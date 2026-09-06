@@ -765,6 +765,8 @@ Refinement, open structural, and exact structural Templates reuse that same prot
 
 `accumulate(template, value)` (**Experimental**, R15 E15-3, issue #730) validates `value` against an inspectable Template, collecting every independent field/index failure instead of short-circuiting on the first one. It recurses depth-first into nested `open_shape`/`exact_shape` structure (a bare `refinement` or other inspectable Template is one leaf check); each diagnostic is `{path, kind, reason}` with `path` built only from the Template's own specification and `reason` never carrying the underlying Outcome's context, so protected/represented payloads can never leak through. Zero diagnostics returns the real Template's own success value; otherwise it returns `err(quote(accumulated-validation-failed), {diagnostics})`. `accumulate` changes no pattern-dispatch, `@?`/`@!`/`&`, or Template direct-call semantics, and touches no Flow/Seq state itself.
 
+`template_schema(template)` (**Experimental**, R15 E15-4, issue #731) is the bounded reverse of `json_schema`: pure inspection over `template_description` data that never invokes `template` or executes a refinement predicate. A `json_schema`-compiled Template's own description, and any `open_shape`/`exact_shape` whose fields all recursively convert, generate a faithful schema; an opaque Template, a bare `refinement` field (no derivable type), or a `default_field` (JSON Schema `default` is an annotation, not an insertion transform) fail deterministically as `err(quote(unsupported-template), {path, kind})` rather than approximating.
+
 ### Conditionals in Genia
 
 - Genia does **not** use `if` or `switch`

@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **294** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **295** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -273,6 +273,7 @@ Alphabetical index of the **294** out-of-the-box Genia functions available from 
 | [`tap`](functions/tap.md) | fn | `tap(fn, value)` | Call `fn(value)` for side effects and return `value` unchanged. |
 | [`tee`](functions/tee.md) | flow | `tee(flow)` | Split one input flow into two lazy branch flows. |
 | [`template_description`](functions/template_description.md) | Value templates | `template_description(template)` | Return the inert structural description of a supported Template, or absence for an opaque Template. |
+| [`template_schema`](functions/template_schema.md) | Value templates | `template_schema(template)` | Generate a faithful JSON Schema for a supported inspectable Template, or fail deterministically for an unsupported one. |
 | [`text_of_quotation`](functions/text_of_quotation.md) | syntax | `text_of_quotation(expr)` | Return the contents of a quoted form. |
 | [`then_find`](functions/then_find.md) | option | `then_find(needle, target)` | Find `needle` in a string target within a pipeline, returning its index as an Option. |
 | [`then_first`](functions/then_first.md) | option | `then_first(target)` | Take the first element of a list target within a pipeline, as an Option. |
@@ -433,6 +434,7 @@ Alphabetical index of the **294** out-of-the-box Genia functions available from 
 - [`representation_match`](functions/representation_match.md) - Match a represented value against a representation template.
 - [`strip_representation`](functions/strip_representation.md) - Remove one matching representation facet from a represented value.
 - [`template_description`](functions/template_description.md) - Return the inert structural description of a supported Template, or absence for an opaque Template.
+- [`template_schema`](functions/template_schema.md) - Generate a faithful JSON Schema for a supported inspectable Template, or fail deterministically for an unsupported one.
 
 ### actor
 

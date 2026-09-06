@@ -134,6 +134,15 @@ Required constraints:
 - `accumulate` touches no Flow/Seq state itself; composed inside `map` over a lazy Flow it preserves existing bounded-demand/no-over-pull/single-use semantics
 - no change to named-pattern, `@?`/`@!`/`&`, case-arm, or first-match dispatch; no new `ValidationResult` type
 
+### 6.2.4) Faithful Template to JSON Schema generation (Experimental, R15 E15-4)
+
+- `template_schema(template)` generates JSON Schema through pure inspection over `template_description` data only — it never invokes `template`, never invokes a nested field Template, and never executes a callable refinement predicate; a non-callable `template` is misuse
+- faithfully convertible: a `json_schema`-compiled Template's own description; `open_shape`/`exact_shape` whose every field recursively converts, mapping to `{type: object, properties, required: <all field names>, additionalProperties: <open vs exact>}`
+- deterministically unsupported (never approximated): opaque Templates, bare `refinement` (predicate never introspected, so no derivable type), and `default_field` (JSON Schema `default` is an annotation, not an insertion transform)
+- failure: `err(quote(unsupported-template), {path: [...], kind: quote(opaque)|quote(refinement)|quote(default_field)|quote(unsupported_kind)})`; success: `some(represent("json", schema_map), context)`
+- round-trip claims are limited to the tested faithful subset (accept/reject equivalence, not object identity or non-schema metadata preservation)
+- no change to `json_schema`/`open_shape`/`exact_shape`/`refinement`/`default_field`/`accumulate`/`template_description` direct-call behavior
+
 ## 6.3) Carrier representation invariants (Experimental)
 
 - `represent(facet, value)` requires a non-empty string and adds exactly one outer facet without mutating the carried value

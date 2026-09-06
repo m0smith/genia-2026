@@ -106,6 +106,7 @@ _PUBLIC_DOCS = (
     _public("stdin", "Return the Python-host standard-input source capability.", "I/O", "stdin()"),
     _public("strip_representation", "Remove one matching representation facet from a represented value.", "Value templates", "strip_representation(format, value)", stability="Experimental"),
     _public("template_description", "Return the inert structural description of a supported Template, or absence for an opaque Template.", "Value templates", "template_description(template)", stability="Experimental"),
+    _public("template_schema", "Generate a faithful JSON Schema for a supported inspectable Template, or fail deterministically for an unsupported one.", "Value templates", "template_schema(template)", stability="Experimental"),
     _public("update_entry_bytes", "Return a zip entry after applying a bytes updater.", "File / zip", "update_entry_bytes(entry, updater)"),
     _public("utf8_decode", "Decode a byte value as UTF-8 text.", "Encoding", "utf8_decode(bytes)"),
     _public("utf8_encode", "Encode a string as UTF-8 bytes.", "Encoding", "utf8_encode(text)"),
