@@ -1221,12 +1221,112 @@ def make_global_env(
             GeniaMap().put("diagnostics", diagnostics),
         )
 
+    def _unsupported_template_schema(path: list[Any], kind: str) -> GeniaOptionErr:
+        return GeniaOptionErr(
+            symbol("unsupported-template"),
+            GeniaMap().put("path", list(path)).put("kind", symbol(kind)),
+        )
+
+    def _schema_from_description(description: Any, path: list[Any]) -> Any:
+        kind = description.get("kind") if isinstance(description, GeniaMap) else None
+        kind_name = kind.name if isinstance(kind, GeniaSymbol) else None
+
+        if kind_name == "json_schema_scalar":
+            type_symbol = description.get("type")
+            return GeniaOptionSome(GeniaMap().put("type", type_symbol.name))
+
+        if kind_name == "json_schema_array":
+            inner = _schema_from_description(description.get("items"), path + ["items"])
+            if isinstance(inner, GeniaOptionErr):
+                return inner
+            return GeniaOptionSome(
+                GeniaMap().put("type", "array").put("items", inner.value)
+            )
+
+        if kind_name == "json_schema_object":
+            properties = GeniaMap()
+            for name, property_description in description.get("properties").items():
+                inner = _schema_from_description(property_description, path + [name])
+                if isinstance(inner, GeniaOptionErr):
+                    return inner
+                properties = properties.put(name, inner.value)
+            return GeniaOptionSome(
+                GeniaMap()
+                .put("type", "object")
+                .put("properties", properties)
+                .put("required", list(description.get("required")))
+                .put("additionalProperties", description.get("additional"))
+            )
+
+        if kind_name in ("open_shape", "exact_shape"):
+            fields_description = description.get("fields")
+            properties = GeniaMap()
+            required: list[Any] = []
+            for name, field_description in fields_description.items():
+                child_path = path + [name]
+                if isinstance(field_description, GeniaSymbol) and field_description.name == "opaque":
+                    return _unsupported_template_schema(child_path, "opaque")
+                field_kind = (
+                    field_description.get("kind")
+                    if isinstance(field_description, GeniaMap)
+                    else None
+                )
+                field_kind_name = field_kind.name if isinstance(field_kind, GeniaSymbol) else None
+                if field_kind_name == "field_default":
+                    return _unsupported_template_schema(child_path, "default_field")
+                if field_kind_name == "refinement":
+                    return _unsupported_template_schema(child_path, "refinement")
+                inner = _schema_from_description(field_description, child_path)
+                if isinstance(inner, GeniaOptionErr):
+                    return inner
+                properties = properties.put(name, inner.value)
+                required.append(name)
+            return GeniaOptionSome(
+                GeniaMap()
+                .put("type", "object")
+                .put("properties", properties)
+                .put("required", required)
+                .put("additionalProperties", kind_name == "open_shape")
+            )
+
+        if kind_name == "refinement":
+            return _unsupported_template_schema(path, "refinement")
+
+        if kind_name == "field_default":
+            return _unsupported_template_schema(path, "default_field")
+
+        return _unsupported_template_schema(path, "unsupported_kind")
+
+    def template_schema_fn(template: Any) -> Any:
+        if not _template_callable(template):
+            raise TypeError(
+                "template_schema expected callable Template, "
+                f"received {_runtime_type_name(template)}"
+            )
+        description = getattr(template, "__genia_template_description__", None)
+        if description is None:
+            return _unsupported_template_schema([], "opaque")
+
+        result = _schema_from_description(description, [])
+        if isinstance(result, GeniaOptionErr):
+            return result
+
+        context = (
+            GeniaMap()
+            .put("kind", symbol("template_schema"))
+            .put("operation", symbol("generate"))
+            .put("status", symbol("generated"))
+            .put("reason", symbol("generated"))
+        )
+        return GeniaOptionSome(GeniaRepresented("json", result.value), context)
+
     refinement_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     open_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     exact_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     default_field_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_description_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     accumulate_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    template_schema_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
 
     def strip_representation_fn(facet_value: Any, value: Any) -> Any:
         facet = _representation_facet(facet_value, "strip_representation")
@@ -4995,6 +5095,10 @@ def make_global_env(
     env.set(
         "accumulate",
         _host_function_group("accumulate", 2, accumulate_fn),
+    )
+    env.set(
+        "template_schema",
+        _host_function_group("template_schema", 1, template_schema_fn),
     )
     env.set(
         "strip_representation",

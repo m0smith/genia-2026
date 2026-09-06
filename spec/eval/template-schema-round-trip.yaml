@@ -16,6 +16,6 @@ input:
       roundtrip({name: "Ada", extra: true})
     ]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some({name: \"Ada\", age: 37}), some({name: \"Ada\", age: 37}), none(\"json-schema-required-property\", {path: [], property: \"name\"}), none(\"json-schema-required-property\", {path: [], property: \"name\"}), none(\"json-schema-additional-property\", {path: [], property: \"extra\"}), none(\"json-schema-additional-property\", {path: [], property: \"extra\"})]\n"
   stderr: ""
   exit_code: 0

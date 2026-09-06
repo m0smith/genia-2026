@@ -7,8 +7,8 @@ input:
     StringTemplate = json_schema(string_schema) |> unwrap_or((_) -> none("compile-failed"))
     Address = exact_shape({city: StringTemplate})
     Person = open_shape({name: StringTemplate, address: Address})
-    template_schema(Person)
+    template_schema(Person) |> unwrap_or((_) -> none("failed")) |> strip_representation("json")
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "{type: \"object\", properties: {name: {type: \"string\"}, address: {type: \"object\", properties: {city: {type: \"string\"}}, required: [\"city\"], additionalProperties: false}}, required: [\"name\", \"address\"], additionalProperties: true}\n"
   stderr: ""
   exit_code: 0

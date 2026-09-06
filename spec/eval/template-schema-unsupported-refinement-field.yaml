@@ -6,6 +6,6 @@ input:
     Person = exact_shape({name: refinement((x) -> x != "")})
     template_schema(Person)
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "err(unsupported-template, {path: [\"name\"], kind: refinement})\n"
   stderr: ""
   exit_code: 0

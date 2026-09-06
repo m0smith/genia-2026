@@ -8,6 +8,6 @@ input:
     Config = open_shape({host: default_field("localhost", StringTemplate)})
     template_schema(Config)
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "err(unsupported-template, {path: [\"host\"], kind: default_field})\n"
   stderr: ""
   exit_code: 0

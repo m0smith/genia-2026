@@ -6,8 +6,8 @@ input:
     name_schema = represent("json", {type: "string"})
     NameTemplate = json_schema(name_schema) |> unwrap_or((_) -> none("compile-failed"))
     Person = exact_shape({name: NameTemplate})
-    template_schema(Person)
+    template_schema(Person) |> unwrap_or((_) -> none("failed")) |> strip_representation("json")
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "{type: \"object\", properties: {name: {type: \"string\"}}, required: [\"name\"], additionalProperties: false}\n"
   stderr: ""
   exit_code: 0
