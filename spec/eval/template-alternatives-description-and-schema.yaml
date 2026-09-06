@@ -7,6 +7,6 @@ input:
     Shape = alternatives("kind", {circle: Circle})
     [template_description(Shape), template_schema(Shape)]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some({kind: alternatives, discriminator: \"kind\", branches: {circle: {kind: open_shape, fields: {radius: {kind: refinement}}}}}), err(unsupported-template, {path: [], kind: alternatives})]\n"
   stderr: ""
   exit_code: 0

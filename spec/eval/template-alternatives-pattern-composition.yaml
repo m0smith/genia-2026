@@ -11,6 +11,6 @@ input:
       _ -> "no-match"
     [area({kind: "circle", radius: 5}), area({kind: "triangle", a: 1}), {kind: "square", side: 4} @? Shape]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[\"matched: circle\", \"no-match\", some({kind: \"square\", side: 4})]\n"
   stderr: ""
   exit_code: 0

@@ -8,6 +8,6 @@ input:
     Shape = alternatives("kind", {circle: Circle, square: Square})
     [Shape({kind: "circle", radius: 5}), Shape({kind: "square", side: 3})]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[some({kind: \"circle\", radius: 5}), some({kind: \"square\", side: 3})]\n"
   stderr: ""
   exit_code: 0

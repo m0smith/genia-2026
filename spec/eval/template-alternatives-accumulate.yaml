@@ -8,6 +8,6 @@ input:
     Shape = alternatives("kind", {circle: Circle, square: Square})
     [accumulate(Shape, {kind: "circle", radius: -1}), accumulate(Shape, {radius: 5})]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[err(accumulated-validation-failed, {diagnostics: [{path: [\"radius\"], kind: mismatch, reason: \"refinement-mismatch\"}]}), err(accumulated-validation-failed, {diagnostics: [{path: [\"kind\"], kind: mismatch, reason: \"alternative-missing-discriminator\"}]})]\n"
   stderr: ""
   exit_code: 0

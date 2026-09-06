@@ -990,6 +990,75 @@ def make_global_env(
         )
         return field_template
 
+    def _discriminator_string(value: Any) -> bool:
+        return isinstance(value, str) and not isinstance(value, GeniaSymbol)
+
+    def alternatives_fn(discriminator_field: Any, branches: Any) -> Any:
+        if not _discriminator_string(discriminator_field) or discriminator_field == "":
+            raise TypeError(
+                "alternatives expected non-empty discriminator field string, "
+                f"received {_runtime_type_name(discriminator_field)}"
+            )
+        if not isinstance(branches, GeniaMap):
+            raise TypeError(
+                "alternatives expected branches Templates map, "
+                f"received {_runtime_type_name(branches)}"
+            )
+        for tag, branch_template in branches.items():
+            if not _discriminator_string(tag) or tag == "":
+                raise TypeError(
+                    "alternatives expected non-empty string discriminator value, "
+                    f"received {_runtime_type_name(tag)}"
+                )
+            if not _template_callable(branch_template):
+                raise TypeError(
+                    f"alternatives branch {tag} expected Template function, "
+                    f"received {_runtime_type_name(branch_template)}"
+                )
+
+        def template(value: Any) -> Any:
+            if not isinstance(value, GeniaMap):
+                return make_none("alternative-mismatch")
+            if not value.has(discriminator_field):
+                return make_none(
+                    "alternative-missing-discriminator",
+                    GeniaMap().put("field", discriminator_field),
+                )
+            discriminator_value = value.get(discriminator_field)
+            if not _discriminator_string(discriminator_value):
+                return make_none(
+                    "alternative-invalid-discriminator",
+                    GeniaMap().put("field", discriminator_field),
+                )
+            if not branches.has(discriminator_value):
+                return make_none(
+                    "alternative-unknown-discriminator",
+                    GeniaMap()
+                    .put("field", discriminator_field)
+                    .put("value", discriminator_value),
+                )
+            branch_template = branches.get(discriminator_value)
+            return _invoke_raw_from_builtin(branch_template, [value])
+
+        branch_descriptions = GeniaMap()
+        for tag, branch_template in branches.items():
+            branch_descriptions = branch_descriptions.put(
+                tag, _describe_field_template(branch_template)
+            )
+
+        template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        template.__genia_alternatives__ = (  # type: ignore[attr-defined]
+            discriminator_field,
+            branches,
+        )
+        template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            GeniaMap()
+            .put("kind", symbol("alternatives"))
+            .put("discriminator", discriminator_field)
+            .put("branches", branch_descriptions)
+        )
+        return template
+
     def _open_shape_with_defaults(fields: Any, value: Any) -> Any:
         if not isinstance(value, GeniaMap):
             return make_none("open-shape-mismatch")
@@ -1181,6 +1250,39 @@ def make_global_env(
                 _accumulate_open_shape(fields, value, path, diagnostics)
             return
 
+        alternatives = getattr(template, "__genia_alternatives__", None)
+        if alternatives is not None:
+            discriminator_field, branches = alternatives
+            if not isinstance(value, GeniaMap):
+                diagnostics.append(_accumulate_diagnostic(path, "mismatch", "accumulate-not-a-map"))
+                return
+            discriminator_path = path + [discriminator_field]
+            if not value.has(discriminator_field):
+                diagnostics.append(
+                    _accumulate_diagnostic(
+                        discriminator_path, "mismatch", "alternative-missing-discriminator"
+                    )
+                )
+                return
+            discriminator_value = value.get(discriminator_field)
+            if not _discriminator_string(discriminator_value):
+                diagnostics.append(
+                    _accumulate_diagnostic(
+                        discriminator_path, "mismatch", "alternative-invalid-discriminator"
+                    )
+                )
+                return
+            if not branches.has(discriminator_value):
+                diagnostics.append(
+                    _accumulate_diagnostic(
+                        discriminator_path, "mismatch", "alternative-unknown-discriminator"
+                    )
+                )
+                return
+            branch_template = branches.get(discriminator_value)
+            _accumulate_walk(branch_template, value, path, diagnostics)
+            return
+
         outcome = _invoke_raw_from_builtin(template, [value])
         if isinstance(outcome, GeniaOptionNone):
             diagnostics.append(_accumulate_diagnostic(path, "mismatch", outcome.reason))
@@ -1295,6 +1397,9 @@ def make_global_env(
         if kind_name == "field_default":
             return _unsupported_template_schema(path, "default_field")
 
+        if kind_name == "alternatives":
+            return _unsupported_template_schema(path, "alternatives")
+
         return _unsupported_template_schema(path, "unsupported_kind")
 
     def template_schema_fn(template: Any) -> Any:
@@ -1324,6 +1429,7 @@ def make_global_env(
     open_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     exact_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     default_field_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    alternatives_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_description_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     accumulate_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_schema_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -5087,6 +5193,10 @@ def make_global_env(
     env.set(
         "default_field",
         _host_function_group("default_field", 2, default_field_fn),
+    )
+    env.set(
+        "alternatives",
+        _host_function_group("alternatives", 2, alternatives_fn),
     )
     env.set(
         "template_description",

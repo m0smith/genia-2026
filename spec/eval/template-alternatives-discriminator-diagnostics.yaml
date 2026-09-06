@@ -14,6 +14,6 @@ input:
       Shape("not-a-map")
     ]
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "[none(\"alternative-missing-discriminator\", {field: \"kind\"}), none(\"alternative-invalid-discriminator\", {field: \"kind\"}), none(\"alternative-unknown-discriminator\", {field: \"kind\", value: \"triangle\"}), none(\"refinement-mismatch\"), none(\"alternative-mismatch\")]\n"
   stderr: ""
   exit_code: 0
