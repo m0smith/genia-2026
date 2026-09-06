@@ -113,6 +113,17 @@ Required constraints:
 - construction and inspection perform no effects: no user-data validation, no arbitrary callable execution, no config/lifecycle lookup, no filesystem/network IO, and no import-time activation
 - no protected or represented payload can appear inside a description; field/property descriptions contribute only their own description shape or the `quote(opaque)` marker
 
+### 6.2.2) Explicit missing-only field defaults (Experimental, R15 E15-2)
+
+- `default_field(default, template)` wraps a field Template with an explicit missing-only default for use inside `open_shape(fields)` / `exact_shape(fields)`; `template` must be Template-callable, checked eagerly
+- a present field is validated by `template` exactly as an ordinary field entry and never falls back to `default`, including a present invalid value
+- a missing field validates `default` (not the missing value) through `template`; success inserts the field into the result, failure propagates as that field's own mismatch/error rather than a missing-field diagnostic
+- zero applied defaults return the exact original subject unchanged (identity-preserved); one or more applied defaults return a new map extending the subject with the inserted fields in specification order
+- `open_shape_match`/`exact_shape_match` are unmodified and do not recognize `default_field`; only the E15-1 curried `open_shape`/`exact_shape` builders do
+- `template_description` of a `default_field`-wrapped Template is `{kind: quote(field_default), has_default: true, template: inner_description_or_quote(opaque)}`; the literal default value is never included
+- a default applied inside a nested structural Template establishes that nested value's own compatibility only and does not transform the enclosing field, per the existing nested-Template "compatibility only" invariant
+- explicit normalization is ordinary pipeline composition (`record |> normalize_fn |> Shape`); no coercion builtin is introduced
+
 ## 6.3) Carrier representation invariants (Experimental)
 
 - `represent(facet, value)` requires a non-empty string and adds exactly one outer facet without mutating the carried value
