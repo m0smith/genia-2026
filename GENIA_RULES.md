@@ -124,6 +124,16 @@ Required constraints:
 - a default applied inside a nested structural Template establishes that nested value's own compatibility only and does not transform the enclosing field, per the existing nested-Template "compatibility only" invariant
 - explicit normalization is ordinary pipeline composition (`record |> normalize_fn |> Shape`); no coercion builtin is introduced
 
+### 6.2.3) Accumulated path-aware validation diagnostics (Experimental, R15 E15-3)
+
+- `accumulate(template, value)` validates `value` against an inspectable Template (`refinement`/`open_shape`/`exact_shape`/`default_field`/`json_schema`), collecting every independent failure instead of short-circuiting; a non-callable or opaque `template` is misuse
+- deep recursion covers only `open_shape`/`exact_shape` (including nested shapes and `default_field`); other inspectable Templates are one leaf check
+- `exact_shape` diagnostics replicate its own phase order: missing-without-default (spec order), extras (candidate order), then per-field validation (spec order, depth-first); `open_shape` replicates its single interleaved pass
+- diagnostic shape: `{path: [...], kind: quote(mismatch)|quote(error), reason: <reason>}`; `path` segments come only from the Template's own specification, never candidate data; `reason` forwards the underlying Outcome's `reason` only, never its `context`
+- zero diagnostics returns the real `template(value)` result unchanged (default insertion stays authoritative); one or more returns `err(quote(accumulated-validation-failed), {diagnostics: [...]})`
+- `accumulate` touches no Flow/Seq state itself; composed inside `map` over a lazy Flow it preserves existing bounded-demand/no-over-pull/single-use semantics
+- no change to named-pattern, `@?`/`@!`/`&`, case-arm, or first-match dispatch; no new `ValidationResult` type
+
 ## 6.3) Carrier representation invariants (Experimental)
 
 - `represent(facet, value)` requires a non-empty string and adds exactly one outer facet without mutating the carried value

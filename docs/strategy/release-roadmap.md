@@ -32,7 +32,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current release
 
-**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. **#728 / E15-1 — inert inspectable Template descriptions** and **#729 / E15-2 — explicit missing-field defaults and normalization composition** are delivered. The next authorized work item is **#730 / E15-3 — accumulated path-aware validation diagnostics**.
+**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. **#728 / E15-1**, **#729 / E15-2**, and **#730 / E15-3 — accumulated path-aware validation diagnostics** are delivered. The next authorized work item is **#731 / E15-4 — faithful supported Template → JSON Schema generation**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 
