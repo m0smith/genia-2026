@@ -1,0 +1,11 @@
+name: template-recursive-description-and-schema
+category: eval
+description: recursive_template is inspectable via template_description, but is deterministically unsupported by template_schema and treated as one leaf by accumulate
+input:
+  source: |
+    Tree = recursive_template("tree", (ref) -> exact_shape({kind: refinement((x) -> x == "leaf"), child: ref("tree")}), 3)
+    [template_description(Tree), template_schema(Tree), accumulate(Tree, {kind: "leaf", child: {kind: "leaf", child: {kind: "wrong"}}})]
+expected:
+  stdout: "[some({kind: recursive_template, name: \"tree\", max_depth: 3, template: {kind: exact_shape, fields: {kind: {kind: refinement}, child: opaque}}}), err(unsupported-template, {path: [], kind: recursive_template}), err(accumulated-validation-failed, {diagnostics: [{path: [], kind: mismatch, reason: \"exact-shape-missing-field\"}]})]\n"
+  stderr: ""
+  exit_code: 0

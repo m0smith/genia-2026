@@ -1,0 +1,15 @@
+name: template-recursive-tree-validates
+category: eval
+description: recursive_template validates ordinary nested tree data through an explicit self-reference
+input:
+  source: |
+    Tree = recursive_template("tree", (ref) -> alternatives("kind", {
+      leaf: exact_shape({kind: refinement((x) -> x == "leaf")}),
+      node: exact_shape({kind: refinement((x) -> x == "node"), value: refinement((x) -> true), left: ref("tree"), right: ref("tree")})
+    }), 5)
+    valid = {kind: "node", value: 1, left: {kind: "leaf"}, right: {kind: "node", value: 2, left: {kind: "leaf"}, right: {kind: "leaf"}}}
+    Tree(valid)
+expected:
+  stdout: "some({kind: \"node\", value: 1, left: {kind: \"leaf\"}, right: {kind: \"node\", value: 2, left: {kind: \"leaf\"}, right: {kind: \"leaf\"}}})\n"
+  stderr: ""
+  exit_code: 0

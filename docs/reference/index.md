@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **296** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **297** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -204,6 +204,7 @@ Alphabetical index of the **296** out-of-the-box Genia functions available from 
 | [`rand_int_flow`](functions/rand_int_flow.md) | random | `rand_int_flow(seed, n)` | Return a lazy seeded Flow of integers in `[0, n)`. |
 | [`range`](functions/range.md) | list | `range(stop)` | Build a numeric range. |
 | [`read_file`](functions/read_file.md) | file | `read_file(path)` | Read a UTF-8 text file from `path`. |
+| [`recursive_template`](functions/recursive_template.md) | Value templates | `recursive_template(name, builder, max_depth)` | Construct a bounded self-recursive Template through an explicit named reference. |
 | [`reduce`](functions/reduce.md) | list | `reduce(f, acc, xs)` | Fold a list from left to right. |
 | [`ref`](functions/ref.md) | ref | `ref()` | Create a synchronized ref, optionally with an initial value. |
 | [`ref_get`](functions/ref_get.md) | ref | `ref_get(ref_value)` | Read the current value from a ref. |
@@ -430,6 +431,7 @@ Alphabetical index of the **296** out-of-the-box Genia functions available from 
 - [`format_template`](functions/format_template.md) - Return the inner template of a representation template.
 - [`open_shape`](functions/open_shape.md) - Construct an inspectable open-shape Template from a field Templates map.
 - [`open_shape_match`](functions/open_shape_match.md) - Match a value against an open shape template.
+- [`recursive_template`](functions/recursive_template.md) - Construct a bounded self-recursive Template through an explicit named reference.
 - [`refinement`](functions/refinement.md) - Construct an inspectable refinement Template from a boolean predicate.
 - [`refinement_match`](functions/refinement_match.md) - Match a value against a refinement template.
 - [`represent`](functions/represent.md) - Attach a first-class representation facet to a value.

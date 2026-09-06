@@ -152,6 +152,15 @@ Required constraints:
 - composes with named patterns, `@?`/`@!`/`&`, and `Name(inner)` automatically — no pattern-dispatch change
 - issue #92 disposition: only structural discriminator-directed validation is absorbed; nominal variant identity, constructors, sealed hierarchies, and exhaustiveness remain deferred
 
+### 6.2.6) Bounded named recursive Template references (Experimental, R15 E15-6)
+
+- `recursive_template(name, build_fn, max_depth)` builds a self-recursive Template through one explicit named reference; `name` non-empty string, `build_fn` Template-callable, `max_depth` a positive integer capped at 100
+- `build_fn(ref)` runs exactly once at construction; `ref(name)` returns a self-reference Template, `ref(other_name)` always fails with `err("recursive-template-unresolved-reference", {name: other_name})`
+- reference resolution is closed entirely over the one construction-time triple — no mutable global registry, configuration, or lifecycle context participates; depth is tracked per instance via a dedicated `contextvars.ContextVar` created fresh per call, reset to 0 on every top-level call, never shared or exposed
+- exceeding `max_depth` returns `err("recursive-template-depth-exceeded", {limit: max_depth})` before invoking the wrapped structure; only self-recursion is proven (not unrestricted mutual recursion), and subjects are walked as tree-shaped ordinary data, never as runtime object graphs
+- `template_description` -> `{kind: quote(recursive_template), name, max_depth, template: <...>}`; `accumulate`/`template_schema` treat it as one leaf check at every level (documented boundary, not a gap); `template_schema` is therefore always deterministically unsupported for it
+- no change to `open_shape`/`exact_shape`/`refinement`/`default_field`/`alternatives`/`json_schema`/`accumulate`/`template_schema`/`template_description` direct-call behavior; no pattern-dispatch change
+
 ## 6.3) Carrier representation invariants (Experimental)
 
 - `represent(facet, value)` requires a non-empty string and adds exactly one outer facet without mutating the carried value

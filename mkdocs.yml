@@ -160,6 +160,7 @@ nav:
           - "format_template": reference/functions/format_template.md
           - "open_shape": reference/functions/open_shape.md
           - "open_shape_match": reference/functions/open_shape_match.md
+          - "recursive_template": reference/functions/recursive_template.md
           - "refinement": reference/functions/refinement.md
           - "refinement_match": reference/functions/refinement_match.md
           - "represent": reference/functions/represent.md
