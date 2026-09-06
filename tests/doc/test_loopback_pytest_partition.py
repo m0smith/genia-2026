@@ -25,6 +25,10 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_http_server_client_composition.py::test_request_handler_outbound_call_failure_does_not_stop_server",
     "tests/unit/test_http_server_client_composition.py::test_request_handler_makes_two_sequential_outbound_calls",
     "tests/unit/test_http_server_client_composition.py::test_request_handler_using_send_annotated_composes_too",
+    "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_multiple_references_produce_structured_response_via_real_server",
+    "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_upstream_failure_produces_deterministic_error_without_killing_server",
+    "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_connect_refused_upstream_is_a_deterministic_error_not_a_crash",
+    "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_protected_credential_never_leaks_through_response_or_audit",
 }
 
 
