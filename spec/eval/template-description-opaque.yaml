@@ -1,0 +1,12 @@
+name: template-description-opaque
+category: eval
+description: Arbitrary callables and named patterns remain valid, opaque Templates with no description
+input:
+  source: |
+    pattern Adult(value) = refinement_match((age) -> age >= 18, value)
+    plain = (x) -> x
+    [template_description(Adult), template_description(plain)]
+expected:
+  stdout: "[none(\"opaque-template\"), none(\"opaque-template\")]\n"
+  stderr: ""
+  exit_code: 0

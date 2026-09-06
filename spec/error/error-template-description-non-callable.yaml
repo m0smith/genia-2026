@@ -1,0 +1,13 @@
+name: error-template-description-non-callable
+category: error
+description: template_description rejects a non-callable value
+input:
+  source: |
+    template_description(1)
+expected:
+  stdout: ""
+  stderr: "Error: template_description expected callable Template, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

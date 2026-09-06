@@ -1,0 +1,13 @@
+name: error-exact-shape-field-type
+category: error
+description: exact_shape rejects a non-Template field value at construction time
+input:
+  source: |
+    exact_shape({name: 1})
+expected:
+  stdout: ""
+  stderr: "Error: exact_shape field name expected Template function, received int\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: TypeError

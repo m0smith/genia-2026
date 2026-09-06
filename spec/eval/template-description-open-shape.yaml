@@ -1,0 +1,11 @@
+name: template-description-open-shape
+category: eval
+description: open_shape(fields) returns an inspectable Template describing nested field Templates
+input:
+  source: |
+    Person = open_shape({name: refinement((x) -> is_string?(x))})
+    [Person({name: "Ada", extra: 1}), template_description(Person)]
+expected:
+  stdout: "PLACEHOLDER\n"
+  stderr: ""
+  exit_code: 0
