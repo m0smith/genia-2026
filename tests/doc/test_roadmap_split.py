@@ -16,6 +16,7 @@ def test_root_roadmap_is_small_canonical_index() -> None:
 
     assert len(text.splitlines()) < 180
     assert "GENIA_STATE.md" in text
+    assert "does not define implemented language behavior" in text
     assert "R15 — Validated Value Modeling" in text
     assert "#728 / E15-1" in text
     assert "roadmap/r15.md" in text
@@ -32,11 +33,14 @@ def test_focused_roadmap_files_cover_active_and_future_releases_once() -> None:
     r16_r19 = read(ROADMAP_DIR / "r16-r19.md")
     r20_r23 = read(ROADMAP_DIR / "r20-r23.md")
 
-    combined = "\n".join([r15, r16_r19, r20_r23])
-    for release in range(15, 24):
-        matches = re.findall(rf"^## Release R{release}\b", combined, re.MULTILINE)
+    assert len(re.findall(r"^# R15 — Validated Value Modeling$", r15, re.MULTILINE)) == 1
+
+    combined_future = "\n".join([r16_r19, r20_r23])
+    for release in range(16, 24):
+        matches = re.findall(rf"^## Release R{release}\b", combined_future, re.MULTILINE)
         assert len(matches) == 1, f"R{release} should appear exactly once in focused roadmap detail"
 
+    combined = "\n".join([r15, combined_future])
     for release in range(1, 15):
         assert not re.search(rf"^## Release R{release}\b", combined, re.MULTILINE)
 

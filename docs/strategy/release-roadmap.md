@@ -2,7 +2,7 @@
 
 Status: Planning guide — non-authoritative. This is not a language contract.
 
-This is the canonical roadmap entrypoint. Detailed release planning is split into focused files under `docs/strategy/roadmap/` so active work can be edited without rewriting unrelated release history.
+This is the canonical roadmap entrypoint. Detailed release planning is split into focused files under `docs/strategy/roadmap/` so active work can be edited without rewriting unrelated release history. This roadmap does not define implemented language behavior.
 
 Implemented behavior remains defined by:
 
@@ -44,7 +44,21 @@ Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 - **R20–R23:** [`roadmap/r20-r23.md`](roadmap/r20-r23.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
-- **Frozen pre-split roadmap snapshot:** [`roadmap/archive/release-roadmap-pre-split.md`](roadmap/archive/release-roadmap-pre-split.md). This is history only; do not edit it as the live roadmap.
+- **Frozen pre-split repository snapshot:** `docs/strategy/roadmap/archive/release-roadmap-pre-split.md`. This is history only; it is intentionally not published as live roadmap content.
+
+## Completed-release sync anchors
+
+These short anchors are intentionally retained in the canonical index because existing documentation-integrity tests use them to detect release-status drift. Detailed history lives in the release pages and frozen archive.
+
+- Release R7 — Web Serving Ergonomics ✓ COMPLETE
+- Release R8 — Server Execution Mode. **Status: Complete.** Explicitly approved infrastructure work delivered after R7. `@cors` → the R7 `cors` wrapper. No second mechanism.
+- Release R9 — Value Templates & Representations. **Status: Complete.** E9-1 through E9-7 delivered; E9-8 completed the release truth audit.
+- Release R10 — Configuration & Secrets ✓ COMPLETE. **Status: Complete. E10-1 through E10-8 delivered and audited.** Issue #586 approved the durable R10 contract.
+- R11: E11-1 through E11-8 complete.
+- R12: E12-1 through E12-9 complete.
+- R13: E13-1 through E13-8 are complete.
+- R14: E14-1 through E14-15 are implemented; R14 is complete.
+- R10/R11/R12/R13 follow-ups require their own gates.
 
 ## Release status
 
