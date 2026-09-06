@@ -5,6 +5,7 @@ Registers ~75 builtins and ~190 prelude autoloads.
 """
 from __future__ import annotations
 
+import contextvars
 import json
 import math
 import os
@@ -1059,6 +1060,94 @@ def make_global_env(
         )
         return template
 
+    _RECURSIVE_TEMPLATE_MAX_DEPTH_CEILING = 100
+
+    def recursive_template_fn(name: Any, build_fn: Any, max_depth: Any) -> Any:
+        if not _discriminator_string(name) or name == "":
+            raise TypeError(
+                "recursive_template expected non-empty reference name string, "
+                f"received {_runtime_type_name(name)}"
+            )
+        if not _template_callable(build_fn):
+            raise TypeError(
+                "recursive_template expected callable builder, "
+                f"received {_runtime_type_name(build_fn)}"
+            )
+        if (
+            isinstance(max_depth, bool)
+            or not isinstance(max_depth, int)
+            or max_depth < 1
+            or max_depth > _RECURSIVE_TEMPLATE_MAX_DEPTH_CEILING
+        ):
+            raise TypeError(
+                "recursive_template expected a positive integer max_depth of at most "
+                f"{_RECURSIVE_TEMPLATE_MAX_DEPTH_CEILING}, "
+                f"received {_runtime_type_name(max_depth)}"
+            )
+
+        depth_var: contextvars.ContextVar[int] = contextvars.ContextVar(
+            f"genia_recursive_template_depth_{name}"
+        )
+        holder: dict[str, Any] = {}
+
+        def self_ref(value: Any) -> Any:
+            depth = depth_var.get(0)
+            if depth >= max_depth:
+                return GeniaOptionErr(
+                    "recursive-template-depth-exceeded",
+                    GeniaMap().put("limit", max_depth),
+                )
+            token = depth_var.set(depth + 1)
+            try:
+                return _invoke_raw_from_builtin(holder["template"], [value])
+            finally:
+                depth_var.reset(token)
+
+        self_ref.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
+        def ref(requested_name: Any) -> Any:
+            if not _discriminator_string(requested_name):
+                raise TypeError(
+                    "recursive_template reference expected string name, "
+                    f"received {_runtime_type_name(requested_name)}"
+                )
+            if requested_name == name:
+                return self_ref
+
+            def unresolved(_value: Any) -> Any:
+                return GeniaOptionErr(
+                    "recursive-template-unresolved-reference",
+                    GeniaMap().put("name", requested_name),
+                )
+
+            unresolved.__genia_handles_none__ = True  # type: ignore[attr-defined]
+            return unresolved
+
+        actual_template = _invoke_raw_from_builtin(build_fn, [ref])
+        if not _template_callable(actual_template):
+            raise TypeError(
+                "recursive_template builder must return a Template, "
+                f"received {_runtime_type_name(actual_template)}"
+            )
+        holder["template"] = actual_template
+
+        def template(value: Any) -> Any:
+            token = depth_var.set(0)
+            try:
+                return _invoke_raw_from_builtin(actual_template, [value])
+            finally:
+                depth_var.reset(token)
+
+        template.__genia_handles_none__ = True  # type: ignore[attr-defined]
+        template.__genia_template_description__ = (  # type: ignore[attr-defined]
+            GeniaMap()
+            .put("kind", symbol("recursive_template"))
+            .put("name", name)
+            .put("max_depth", max_depth)
+            .put("template", _describe_field_template(actual_template))
+        )
+        return template
+
     def _open_shape_with_defaults(fields: Any, value: Any) -> Any:
         if not isinstance(value, GeniaMap):
             return make_none("open-shape-mismatch")
@@ -1400,6 +1489,9 @@ def make_global_env(
         if kind_name == "alternatives":
             return _unsupported_template_schema(path, "alternatives")
 
+        if kind_name == "recursive_template":
+            return _unsupported_template_schema(path, "recursive_template")
+
         return _unsupported_template_schema(path, "unsupported_kind")
 
     def template_schema_fn(template: Any) -> Any:
@@ -1430,6 +1522,7 @@ def make_global_env(
     exact_shape_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     default_field_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     alternatives_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+    recursive_template_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_description_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     accumulate_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
     template_schema_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
@@ -5197,6 +5290,10 @@ def make_global_env(
     env.set(
         "alternatives",
         _host_function_group("alternatives", 2, alternatives_fn),
+    )
+    env.set(
+        "recursive_template",
+        _host_function_group("recursive_template", 3, recursive_template_fn),
     )
     env.set(
         "template_description",

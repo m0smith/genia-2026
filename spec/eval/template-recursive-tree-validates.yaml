@@ -10,6 +10,6 @@ input:
     valid = {kind: "node", value: 1, left: {kind: "leaf"}, right: {kind: "node", value: 2, left: {kind: "leaf"}, right: {kind: "leaf"}}}
     Tree(valid)
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "some({kind: \"node\", value: 1, left: {kind: \"leaf\"}, right: {kind: \"node\", value: 2, left: {kind: \"leaf\"}, right: {kind: \"leaf\"}}})\n"
   stderr: ""
   exit_code: 0

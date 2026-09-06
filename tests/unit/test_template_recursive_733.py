@@ -17,7 +17,7 @@ def test_independent_instances_do_not_share_depth_state():
         "{leaf: exact_shape({kind: refinement((x) -> x == \"leaf\")}), "
         "node: exact_shape({kind: refinement((x) -> x == \"node\"), next: ref(\"inner\")})}), 2)\n"
         "Outer = recursive_template(\"outer\", (ref) -> exact_shape({kind: refinement((x) -> x == \"wrap\"), inner: Inner, next: ref(\"outer\")}), 2)\n"
-        "value = {kind: \"wrap\", inner: {kind: \"node\", next: {kind: \"leaf\"}}, next: {kind: \"wrap\", inner: {kind: \"leaf\"}, next: {kind: \"wrap\", inner: {kind: \"leaf\"}}}}\n"
+        "value = {kind: \"wrap\", inner: {kind: \"node\", next: {kind: \"leaf\"}}, next: {kind: \"wrap\", inner: {kind: \"leaf\"}, next: {kind: \"wrap\", inner: {kind: \"leaf\"}, next: {}}}}\n"
         "Outer(value)"
     )
     # Outer recurses 2 levels deep (within its own bound 2); the third

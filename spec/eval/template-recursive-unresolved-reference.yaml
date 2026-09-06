@@ -6,6 +6,6 @@ input:
     Bad = recursive_template("tree", (ref) -> exact_shape({child: ref("not-tree")}), 5)
     Bad({child: {}})
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "err(\"recursive-template-unresolved-reference\", {name: \"not-tree\"})\n"
   stderr: ""
   exit_code: 0

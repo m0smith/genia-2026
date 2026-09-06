@@ -10,6 +10,6 @@ input:
     deep = {kind: "node", left: {kind: "node", left: {kind: "node", left: {kind: "leaf"}}}}
     Tree(deep)
 expected:
-  stdout: "PLACEHOLDER\n"
+  stdout: "err(\"recursive-template-depth-exceeded\", {limit: 2})\n"
   stderr: ""
   exit_code: 0
