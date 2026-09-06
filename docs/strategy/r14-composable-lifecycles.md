@@ -1,8 +1,8 @@
 # R14 — Composable Lifecycles
 
-Status: **In progress; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
-and E14-1 through E14-13 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626, #627, #695, #628, #696).** E14-6 adds no Genia-visible surface — it is a private
+Status: **Complete; E14-0 contract approved (`docs/design/r14-composable-lifecycle-contract.md`)
+and E14-1 through E14-15 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627, #695, #628, #696, #629, #630).** E14-6 adds no Genia-visible surface — it is a private
 Python-host outbound HTTP transport capability consumed by E14-7's
 `web.http_send`, the first outbound HTTP call actually reachable from
 Genia source. E14-8 proves the protected-HTTP-credential-sink contract
@@ -28,8 +28,11 @@ E14-12 — import/discovery inertness, serve-mode annotation
 non-self-execution, sentinel-free rendering, a combined multi-peer
 failure matrix, bounded Flow termination with no leak, Python-exception
 normalization, combined server/request/outbound-client resilience, and
-parse/Core IR regression. E14-14
-through E14-15 remain planned, not implemented. This
+parse/Core IR regression. E14-14 synchronized every documentation
+surface with this fully-landed boundary, adding no runtime behavior.
+E14-15 completed the release-wide skeptical truth audit with a
+**PASS** verdict, confirming zero regression to R7/R8/R10/R13 and zero
+remaining documentation drift. R14 is release-complete. This
 document records approved release direction; `GENIA_STATE.md` remains
 final authority for implemented behavior.
 
@@ -461,10 +464,10 @@ release epic is #619.
     - Proved inertness, cleanup/failure matrices, laziness, diagnostics,
       protection, capability normalization, and parse/Core IR preservation
       all hold at combined cross-cutting breadth over E14-1 through E14-12.
-15. **#629 — E14-14: release examples and implemented-truth synchronization**
-    - Publish only tested landed behavior; no runtime changes.
-16. **#630 — E14-15: release truth audit and distillation**
-    - Skeptically audit the complete boundary before closing #619.
+15. **#629 — E14-14: release examples and implemented-truth synchronization — implemented, documentation only**
+    - Published only tested landed behavior; no runtime changes.
+16. **#630 — E14-15: release truth audit and distillation — implemented, PASS**
+    - Skeptically audited the complete boundary; #619 closes with this verdict.
 
 Supporting documentation infrastructure issue **#697** publishes the roadmap
 to the MkDocs site from this repository's single roadmap source. It may proceed
@@ -520,8 +523,8 @@ Every R14 ticket must:
   preserved by R14
 - R11/R12: complete but not semantic dependencies of the lifecycle core
 
-**GO for E14-14 preflight only**, now that #621, #692, #693, #694, #622,
-#623, #624, #625, #626, #627, #695, #628, and #696 have each completed their own preflight, design,
+**CLOSED — R14 release-complete.** #621, #692, #693, #694, #622,
+#623, #624, #625, #626, #627, #695, #628, #696, #629, and #630 have each completed their own preflight, design,
 failing-test, implementation, and documentation phases: #621 implemented
 the instance/scope core, #692 proved horizontal peer-attachment breadth
 over it, #693 implemented `lifecycle_repeat` over both, #694 implemented
@@ -552,17 +555,20 @@ inertness, serve-mode annotation non-self-execution, sentinel-free
 rendering, a combined multi-peer failure matrix, bounded Flow
 termination with no leak, Python-exception normalization, combined
 server/request/outbound-client resilience, and parse/Core IR
-regression), all
+regression), #629 synchronized every documentation surface with this
+fully-landed boundary with no runtime behavior, and #630 completed the
+release-wide skeptical truth audit with a **PASS** verdict, all
 against the contract in
-`docs/design/r14-composable-lifecycle-contract.md`. Implementation of
-E14-14 and later tickets remains blocked until each completes its own
-preflight, design, failing-test, implementation, documentation, and audit
-phases. The supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
+`docs/design/r14-composable-lifecycle-contract.md`. R14 is
+release-complete; any further R14-adjacent work is a new, separately
+contracted release requiring its own full preflight, design,
+failing-test, implementation, documentation, and audit phases. The
+supplied `GENIA-PRE-FLIGHT.txt` is an older template and must
 not replace the repository's current process prompt.
 
 ## Exit criterion
 
-R14 is complete only when tested Genia programs can use one coherent lifecycle
+R14 is complete now that tested Genia programs can use one coherent lifecycle
 model to:
 
 1. execute parent/child scopes with contained failure and correct ownership;
@@ -576,3 +582,6 @@ model to:
    syntax, external-network CI, or real credentials; and
 7. publish truthful release documentation after cross-mode hardening and a
    final audit.
+
+All seven criteria are satisfied and verified by issue #630's own audit;
+R14 (epic #619) is release-complete.

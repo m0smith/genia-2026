@@ -124,7 +124,7 @@ pipelines; E13-7 synchronizes runnable examples and implemented truth without
 runtime behavior; E13-8 completes the release truth audit and distillation
 without runtime behavior.
 
-**R14** is in progress through E14-13. It is explicitly approved lifecycle
+**R14** is complete through E14-15. It is explicitly approved lifecycle
 infrastructure with a direct record-pipeline proving path: multiple lifecycle
 concerns may surround each consumed element while existing Flow/Seq and Outcome
 transformations remain authoritative. E14-0 through E14-10 (issues #620, #621,
@@ -160,9 +160,12 @@ this whole surface satisfies the release's hardening gate — import/
 discovery inertness, serve-mode annotation non-self-execution,
 sentinel-free rendering, combined multi-peer failure ordering, bounded
 Flow termination with no leak, Python-exception normalization, and
-combined server/request/outbound-client resilience; E14-14
-and later slices — documentation closure and the release truth audit —
-remain planned, not implemented.
+combined server/request/outbound-client resilience; E14-14 (issue #629)
+synchronized every documentation surface with the fully-landed E14-1
+through E14-13 boundary, adding no runtime behavior; E14-15 (issue #630)
+completed the release-wide skeptical truth audit with a PASS verdict,
+confirming zero regression to R7/R8/R10/R13 and zero remaining
+documentation drift. R14 is release-complete.
 
 ## Using This Document
 

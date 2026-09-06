@@ -194,9 +194,9 @@ existing literal source descriptor without acquiring process state; E13-3 reads 
 adds no syntax, Core IR, lifecycle provider binding,
 dependency injection, or ambient lookup. See
 `docs/strategy/r13-configuration-resolution-ergonomics.md`.
-**R14 — Composable Lifecycles is in progress (epic #619); E14-0 is approved
-and E14-1 through E14-13 are implemented (issues #621, #692,
-#693, #694, #622, #623, #624, #625, #626, #627, #695, #628, #696).** R14 is scoped to one lifecycle model with parent/child execution
+**R14 — Composable Lifecycles is complete (epic #619); E14-0 is approved
+and E14-1 through E14-15 are implemented (issues #621, #692,
+#693, #694, #622, #623, #624, #625, #626, #627, #695, #628, #696, #629, #630).** R14 is scoped to one lifecycle model with parent/child execution
 scopes, deterministic peer lifecycle attachments, repeated element scopes
 over eager and lazy pipelines, one explicit R10/R13 provider binding, and
 outbound HTTP as the vertical proving consumer. E14-1 implements the
@@ -306,12 +306,16 @@ and lifecycle context together, a combined multi-peer/multi-exit-failure
 matrix, bounded Flow termination with no leak, Python-exception detail
 never reaching a portable diagnostic, combined server/request/
 outbound-client resilience, and a parse-only regression confirming no
-new parser/AST/Core IR node.
+new parser/AST/Core IR node. E14-14 (#629) synchronized every
+documentation surface with this fully-landed boundary, adding no
+runtime behavior. E14-15 (#630) completed the release-wide skeptical
+truth audit with a **PASS** verdict — zero regression to R7/R8/R10/R13,
+zero remaining documentation drift.
 No R14 behavior beyond
-E14-1 through E14-13
+E14-1 through E14-15
 is implemented merely because its roadmap, issues, or contract exist.
-E14-14 is the next
-gate. See `docs/design/r14-composable-lifecycle-contract.md`,
+R14 is release-complete; any further R14-adjacent work is a new,
+separately contracted release. See `docs/design/r14-composable-lifecycle-contract.md`,
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
 9.8-9.20.
 

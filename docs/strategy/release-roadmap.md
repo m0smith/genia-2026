@@ -859,11 +859,11 @@ E13-8 completed the release audit/distillation without runtime behavior.
 
 ---
 
-## Release R14 — Composable Lifecycles
+## Release R14 — Composable Lifecycles ✓ COMPLETE
 
-**Status: In progress; E14-0 contract approved and
-E14-1 through E14-13 implemented (issues #621, #692, #693,
-#694, #622, #623, #624, #625, #626, #627, #695, #628, #696).** R14 is explicitly approved infrastructure work with one direct
+**Status: Complete; E14-0 contract approved and
+E14-1 through E14-15 implemented (issues #621, #692, #693,
+#694, #622, #623, #624, #625, #626, #627, #695, #628, #696, #629, #630).** R14 is explicitly approved infrastructure work with one direct
 record-pipeline proving path. The release epic is **#619**. Its contract
 is `docs/design/r14-composable-lifecycle-contract.md`. E14-1 implements
 the HTTP-free lifecycle instance/parent-child execution-scope core
@@ -907,9 +907,13 @@ E14-12 — import/discovery inertness, serve-mode annotation
 non-self-execution, sentinel-free rendering, a combined multi-peer
 failure matrix, bounded Flow termination with no leak, Python-exception
 normalization, combined server/request/outbound-client resilience, and
-parse/Core IR regression. No R14
+parse/Core IR regression; E14-14 synchronized every documentation
+surface with the fully-landed E14-1 through E14-13 boundary, adding no
+runtime behavior; E14-15 completed the release-wide skeptical truth
+audit, confirming zero regression to R7/R8/R10/R13 and zero remaining
+documentation drift, and marks R14 release-complete. No R14
 behavior
-beyond E14-1 through E14-13 is implemented merely
+beyond E14-1 through E14-15 is implemented merely
 because the roadmap, issues, or contract exist. See `GENIA_STATE.md`
 sections 9.8-9.20.
 
@@ -1010,8 +1014,8 @@ Approved R14 issue path:
 12. **#695 — E14-11 (implemented, zero runtime-code change):** repeated record lifecycle proving case
 13. **#628 — E14-12 (implemented, zero runtime-code change):** YouVersion Bible proxy proving application
 14. **#696 — E14-13 (implemented, zero runtime-code change):** cross-mode lifecycle and HTTP hardening
-15. **#629 — E14-14:** release examples and implemented-truth synchronization
-16. **#630 — E14-15:** release truth audit and distillation
+15. **#629 — E14-14 (implemented, documentation only):** release examples and implemented-truth synchronization
+16. **#630 — E14-15 (implemented, PASS):** release truth audit and distillation
 
 Supporting documentation infrastructure issue **#697** publishes this roadmap
 to the MkDocs site from its single repository source. It may proceed independently
@@ -1313,9 +1317,9 @@ Candidate scope:
 - add deterministic stress/race tests for concurrent access, lifecycle cleanup,
   process failure observation, and cycles that Python refcounting/GC or the GIL
   may have masked
-- preserve only currently implemented lifecycle truth, including R4 and R8
-  boundaries; R14 remains planned and cannot be imported into R20 before R14's
-  own implementation gates complete
+- preserve only currently implemented lifecycle truth, including R4, R8, and
+  R14 boundaries; R14 is now complete (see `GENIA_STATE.md` sections
+  9.8-9.20) and may be referenced by R20 work once R20 itself begins
 - update host capability status only for behavior with code and evidence
 
 Critical acceptance criterion:
@@ -1565,9 +1569,9 @@ execution. Its placement after R22 avoids renumbering the C++ release arc; it
 does not make every C++ implementation release a semantic prerequisite for the
 R23 contract.
 
-R8, R9, R10, R11, R12, and R13 are complete. R11, R12, and R13 APIs remain Experimental,
-Python is the only implemented host, and shared/multi-host conformance remains
-Partial. R14 and R15 remain planned and not active.
+R8, R9, R10, R11, R12, R13, and R14 are complete. R11, R12, R13, and R14 APIs remain
+Experimental, Python is the only implemented host, and shared/multi-host conformance
+remains Partial. R15 remains planned and not active.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
 R23 is planned and not active. Every later release requires its own gates.
 Each later behavior slice requires its
