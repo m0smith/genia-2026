@@ -46,6 +46,14 @@ Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
 - **Frozen pre-split repository snapshot:** `docs/strategy/roadmap/archive/release-roadmap-pre-split.md`. This is history only; it is intentionally not published as live roadmap content.
 
+## Release R3 — Native Test Expansion Wave 1
+
+Historical semantic-sync anchor only. R3 delivered Native Test Expansion while explicitly excluding **lifecycle generalization (see R4)**. Detailed completed-release history and runnable examples live in `docs/releases/R3.md`; the frozen pre-split roadmap preserves the full original planning text.
+
+## Release R4 — Lifecycle Generalization
+
+Historical semantic-sync anchor only. R4 separately delivered Lifecycle Generalization. Detailed completed-release history and runnable examples live in `docs/releases/R4.md`; the frozen pre-split roadmap preserves the full original planning text.
+
 ## Completed-release sync anchors
 
 These short anchors are intentionally retained in the canonical index because existing documentation-integrity tests use them to detect release-status drift. Detailed history lives in the release pages and frozen archive.
