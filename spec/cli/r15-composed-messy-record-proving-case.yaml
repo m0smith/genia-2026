@@ -1,0 +1,19 @@
+id: r15-composed-messy-record-proving-case
+name: r15-composed-messy-record-proving-case
+category: cli
+description: Composed R15 messy-record proving case exercises decode/normalization, missing-only defaults, accumulated diagnostics, discriminated alternatives, bounded recursion, faithful JSON Schema, and existing Outcome-aware pipeline behavior together.
+input:
+  source: "examples/r15_composed_messy_record_proving_case.genia"
+  file: "examples/r15_composed_messy_record_proving_case.genia"
+  command: null
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: '{valid_order: some({customer_name: "Ada Lovelace", email: "ada@example.com", payment: {method: "card", last4: "4242"}, history: {kind: "entry", order_id: "A100", previous: {kind: "none"}}, items: [{sku: "WIDGET-1", qty: 3, price: 9.99}, {sku: "GADGET-2", qty: 2, price: 4.5}], country: "US"}), messy_order: err(order-validation-failed, {envelope: [{path: ["customer_name"], kind: mismatch, reason: "refinement-mismatch"}, {path: ["email"], kind: mismatch, reason: "refinement-mismatch"}, {path: ["payment", "method"], kind: mismatch, reason: "alternative-unknown-discriminator"}, {path: ["history"], kind: mismatch, reason: "alternative-unknown-discriminator"}], items: [{index: 1, kind: skipped, reason: "parse-error", context: some({source: "parse_int", expected: "integer_string", received: "abc", base: 10})}, {index: 2, kind: skipped, reason: "json-schema-type-mismatch", context: some({path: [], expected: number, actual: string})}]}), too_deep_order: err(order-validation-failed, {envelope: [{path: ["history"], kind: error, reason: "recursive-template-depth-exceeded"}], items: []}), item_schema: {type: "object", properties: {sku: {type: "string"}, qty: {type: "integer"}, price: {type: "number"}}, required: ["sku", "qty", "price"], additionalProperties: false}, envelope_schema: err(unsupported-template, {path: ["customer_name"], kind: refinement})}'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 734
+  classification: Experimental proving composition over E15-1 through E15-6 and existing Outcome-aware pipeline behavior (map, validate_each, collect_validated, trim, parse_int).
+  non_goal: no new public API, syntax, Template builder, diagnostic behavior, or schema keyword; every value used here was already landed by #728 through #733 or pre-existing R1/R9 pipeline behavior.

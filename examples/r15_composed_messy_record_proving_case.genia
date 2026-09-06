@@ -1,0 +1,137 @@
+"""
+# R15 Composed Messy-Record Validated-Data Proving Case
+
+Proves that E15-1 through E15-6 compose into Genia's killer workflow: a messy
+external order record is explicitly decoded/normalized, validated against
+ordinary Templates with a missing-only default, diagnosed with accumulated
+path-aware failures across multiple independent invalid fields, and — on
+success — retained as an ordinary Genia value ready for normal pipelines.
+
+## Run
+
+```bash
+genia examples/r15_composed_messy_record_proving_case.genia
+```
+
+## Features demonstrated
+
+* explicit decode/normalization composed as ordinary pipeline stages
+  (`trim`, `parse_int`, `map`) ahead of non-coercive Template validation
+* an explicit missing-only default (`default_field`) on the order envelope
+* accumulated, deterministic, path-aware validation diagnostics
+  (`accumulate`) across several independently invalid fields at once
+* a structurally discriminated ordinary alternative (`alternatives`) for
+  payment method
+* a bounded named recursive Template reference (`recursive_template`) for a
+  linked order-history chain, including its explicit depth-exceeded bound
+* a faithful Template -> JSON Schema boundary (`template_schema`) that
+  succeeds for a schema-derived item Template and fails deterministically,
+  never approximating, for a Template containing a bare refinement field
+* composition with existing Outcome-aware pipeline behavior
+  (`validate_each` / `collect_validated`) for the order's line items
+"""
+
+sku_schema = represent("json", {type: "string"})
+qty_schema = represent("json", {type: "integer"})
+price_schema = represent("json", {type: "number"})
+
+Sku = json_schema(sku_schema) |> unwrap_or((_) -> none("schema-compile-failed"))
+Qty = json_schema(qty_schema) |> unwrap_or((_) -> none("schema-compile-failed"))
+Price = json_schema(price_schema) |> unwrap_or((_) -> none("schema-compile-failed"))
+
+@doc "One order line item: JSON-Schema-derived Templates, faithfully schema-representable."
+Item = exact_shape({sku: Sku, qty: Qty, price: Price})
+
+@doc "Discriminated ordinary alternative on the payment method."
+Payment = alternatives("method", {
+  card: exact_shape({method: refinement((x) -> x == "card"), last4: refinement((x) -> x != "")}),
+  paypal: exact_shape({method: refinement((x) -> x == "paypal"), paypal_email: refinement((x) -> x != "")})
+})
+
+@doc "A bounded, self-referential linked order-history chain."
+OrderHistory = recursive_template("order_history", (ref) ->
+  alternatives("kind", {
+    none: exact_shape({kind: refinement((x) -> x == "none")}),
+    entry: exact_shape({kind: refinement((x) -> x == "entry"), order_id: refinement((x) -> x != ""), previous: ref("order_history")})
+  }), 4)
+
+@doc "The order envelope: open (line items travel alongside it), with a missing-only country default."
+OrderEnvelope = open_shape({
+  customer_name: refinement((x) -> x != ""),
+  email: refinement((x) -> x != ""),
+  country: default_field("US", refinement((x) -> x != "")),
+  payment: Payment,
+  history: OrderHistory
+})
+
+@doc "Explicit normalization: trim whitespace before validation, no implicit coercion."
+normalize_envelope(raw) = map_put(raw, "customer_name", trim(raw("customer_name")))
+
+decode_qty(result, raw) =
+  (some(qty), raw) -> some({sku: raw("sku"), qty: qty, price: raw("price")}) |
+  (failure, _) -> failure
+
+@doc "Explicit decode: parse a messy string quantity into an integer before validation."
+normalize_item(raw) = decode_qty(parse_int(raw("qty")), raw)
+
+@doc "Composition with existing Outcome-aware pipeline behavior over line items."
+validate_items(raw_items) =
+  raw_items
+    |> map(normalize_item)
+    |> ((items) -> validate_each(items, Item))
+    |> collect_validated
+
+combine_order(envelope_result, item_diag_count, items_result) =
+  (some(envelope), 0, items_result) -> some(map_put(envelope, "items", items_result("clean"))) |
+  (some(_), _, items_result) -> err(quote(order-validation-failed), {envelope: [], items: items_result("diagnostics")}) |
+  (err(_, ctx), _, items_result) -> err(quote(order-validation-failed), {envelope: ctx("diagnostics"), items: items_result("diagnostics")})
+
+@doc "Compose normalization, defaults, accumulated diagnostics, and item validation into one ordinary Outcome."
+process_order(raw) = {
+  items_result = validate_items(raw("items"))
+  envelope_result = accumulate(OrderEnvelope, normalize_envelope(raw))
+  combine_order(envelope_result, length(items_result("diagnostics")), items_result)
+}
+
+good_order = {
+  customer_name: "  Ada Lovelace  ",
+  email: "ada@example.com",
+  payment: {method: "card", last4: "4242"},
+  history: {kind: "entry", order_id: "A100", previous: {kind: "none"}},
+  items: [
+    {sku: "WIDGET-1", qty: "3", price: 9.99},
+    {sku: "GADGET-2", qty: "2", price: 4.5}
+  ]
+}
+
+messy_order = {
+  customer_name: "",
+  email: "",
+  country: "CA",
+  payment: {method: "bitcoin", wallet: "abc"},
+  history: {kind: "sideways"},
+  items: [
+    {sku: "WIDGET-1", qty: "3", price: 9.99},
+    {sku: "GADGET-2", qty: "abc", price: 5.0},
+    {sku: "GIZMO-3", qty: "2", price: "4.50"}
+  ]
+}
+
+too_deep_order = {
+  customer_name: "Grace Hopper",
+  email: "grace@example.com",
+  payment: {method: "paypal", paypal_email: "grace@example.com"},
+  history: {kind: "entry", order_id: "A1", previous: {kind: "entry", order_id: "A2", previous: {kind: "entry", order_id: "A3", previous: {kind: "entry", order_id: "A4", previous: {kind: "entry", order_id: "A5", previous: {kind: "none"}}}}}},
+  items: [{sku: "WIDGET-1", qty: "1", price: 1.0}]
+}
+
+item_schema = template_schema(Item) |> unwrap_or((_) -> none("schema-failed")) |> strip_representation("json")
+envelope_schema = template_schema(OrderEnvelope)
+
+{
+  valid_order: process_order(good_order),
+  messy_order: process_order(messy_order),
+  too_deep_order: process_order(too_deep_order),
+  item_schema: item_schema,
+  envelope_schema: envelope_schema
+}
