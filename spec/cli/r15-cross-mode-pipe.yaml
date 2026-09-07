@@ -1,0 +1,24 @@
+id: r15-cross-mode-pipe
+name: r15-cross-mode-pipe
+category: cli
+description: Pipe mode requires explicit per-program R15 Template construction and applies accumulated diagnostics per Flow element
+input:
+  source: &source |
+    map((line) -> {
+      Person = exact_shape({name: refinement((x) -> x != ""), age: default_field(0, refinement((x) -> x >= 0))})
+      age = parse_int(line) |> unwrap_or(0)
+      accumulate(Person, {name: "Ada", age: age})
+    }) |> each(print)
+  command: *source
+  stdin: "0\n-5\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    some({name: Ada, age: 0})
+    err(accumulated-validation-failed, {diagnostics: [{path: [age], kind: mismatch, reason: refinement-mismatch}]})
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 735
+  classification: Experimental pipe-mode observation over ordinary calls and existing Flow stages (E15-1..E15-3); the same Template/accumulate mechanism used in command/file mode applies per lazily-consumed line.
