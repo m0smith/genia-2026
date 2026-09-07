@@ -1,0 +1,13 @@
+name: parse-r15-existing-call-forms
+category: parse
+description: R15 Template/diagnostic construction and invocation remain existing ordinary call forms
+input:
+  source: 'accumulate(Person, value)'
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Call
+notes: |
+  issue: 735
+  classification: No new syntax; accumulate/alternatives/recursive_template/default_field/template_schema are ordinary calls like every other R15 E15-1..E15-7 builder.

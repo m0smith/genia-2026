@@ -1091,6 +1091,15 @@ def make_global_env(
         holder: dict[str, Any] = {}
 
         def self_ref(value: Any) -> Any:
+            # Fallback path only: reached when a self-reference is invoked
+            # from outside the iterative walker below (for example, buried
+            # inside an opaque Template the walker cannot introspect). Still
+            # fully correct and bounded, just not O(1) Python stack in that
+            # unusual case, since the recursive_template idiom -- a self
+            # reference reachable through alternatives/open_shape/exact_shape
+            # composition, as in every documented example -- is handled
+            # iteratively by _recursive_template_walk instead of by this
+            # function recursing through the Python call stack.
             depth = depth_var.get(0)
             if depth >= max_depth:
                 return GeniaOptionErr(
@@ -1104,6 +1113,210 @@ def make_global_env(
                 depth_var.reset(token)
 
         self_ref.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
+        def _recursive_template_process_field(
+            fields_items: list[tuple[Any, Any]],
+            index: int,
+            original_value: Any,
+            is_exact: bool,
+        ) -> tuple[str, Any]:
+            field, field_template = fields_items[index]
+            if original_value.has(field):
+                return ("descend", field, field_template, original_value.get(field), False)
+            marker = getattr(field_template, "__genia_field_default__", None)
+            if marker is None:
+                reason = "exact-shape-missing-field" if is_exact else "open-shape-missing-field"
+                return ("immediate", make_none(reason, GeniaMap().put("field", field)))
+            default_value, inner_template = marker
+            return ("descend", field, inner_template, default_value, True)
+
+        def _recursive_template_walk(root_template: Any, root_value: Any) -> Any:
+            # Explicit-stack traversal: Python's own call stack stays O(1)
+            # regardless of the logical tree depth reached, since alternatives
+            # dispatch is a pure tail substitution (no frame pushed) and each
+            # shape field's descent pushes one lightweight frame that is
+            # popped again before the next field is considered -- frames
+            # never accumulate along the self-reference spine.
+            stack: list[tuple[Any, ...]] = []
+            cur_template = root_template
+            cur_value = root_value
+            cur_depth = depth_var.get(0)
+            pending: Any = None
+            have_pending = False
+
+            while True:
+                if have_pending:
+                    if not stack:
+                        return pending
+                    (
+                        _kind,
+                        fields_items,
+                        index,
+                        original_value,
+                        result_map,
+                        is_exact,
+                        node_depth,
+                        field_name,
+                        is_default,
+                        default_value,
+                    ) = stack.pop()
+                    outcome = pending
+                    have_pending = False
+                    if not isinstance(outcome, GeniaOptionSome):
+                        pending = outcome
+                        have_pending = True
+                        continue
+                    if is_default:
+                        result_map = result_map.put(field_name, default_value)
+                    next_index = index + 1
+                    if next_index >= len(fields_items):
+                        pending = GeniaOptionSome(result_map)
+                        have_pending = True
+                        continue
+                    step = _recursive_template_process_field(
+                        fields_items, next_index, original_value, is_exact
+                    )
+                    if step[0] == "immediate":
+                        pending = step[1]
+                        have_pending = True
+                        continue
+                    _, next_field_name, needs_template, needs_value, next_is_default = step
+                    stack.append(
+                        (
+                            "shape_field",
+                            fields_items,
+                            next_index,
+                            original_value,
+                            result_map,
+                            is_exact,
+                            node_depth,
+                            next_field_name,
+                            next_is_default,
+                            needs_value if next_is_default else None,
+                        )
+                    )
+                    cur_template, cur_value, cur_depth = needs_template, needs_value, node_depth
+                    continue
+
+                if cur_template is self_ref:
+                    if cur_depth >= max_depth:
+                        pending = GeniaOptionErr(
+                            "recursive-template-depth-exceeded",
+                            GeniaMap().put("limit", max_depth),
+                        )
+                        have_pending = True
+                    else:
+                        cur_template = holder["template"]
+                        cur_depth += 1
+                    continue
+
+                alternatives = getattr(cur_template, "__genia_alternatives__", None)
+                if alternatives is not None:
+                    discriminator_field, branches = alternatives
+                    if not isinstance(cur_value, GeniaMap):
+                        pending = make_none("alternative-mismatch")
+                        have_pending = True
+                    elif not cur_value.has(discriminator_field):
+                        pending = make_none(
+                            "alternative-missing-discriminator",
+                            GeniaMap().put("field", discriminator_field),
+                        )
+                        have_pending = True
+                    else:
+                        discriminator_value = cur_value.get(discriminator_field)
+                        if not _discriminator_string(discriminator_value):
+                            pending = make_none(
+                                "alternative-invalid-discriminator",
+                                GeniaMap().put("field", discriminator_field),
+                            )
+                            have_pending = True
+                        elif not branches.has(discriminator_value):
+                            pending = make_none(
+                                "alternative-unknown-discriminator",
+                                GeniaMap()
+                                .put("field", discriminator_field)
+                                .put("value", discriminator_value),
+                            )
+                            have_pending = True
+                        else:
+                            cur_template = branches.get(discriminator_value)
+                    continue
+
+                fields = getattr(cur_template, "__genia_shape_fields__", None)
+                if fields is not None:
+                    is_exact = getattr(cur_template, "__genia_shape_exact__", False)
+                    if not isinstance(cur_value, GeniaMap):
+                        pending = make_none(
+                            "exact-shape-mismatch" if is_exact else "open-shape-mismatch"
+                        )
+                        have_pending = True
+                        continue
+                    fields_items = list(fields.items())
+                    if is_exact:
+                        missing_field = None
+                        for field, field_template in fields_items:
+                            if cur_value.has(field):
+                                continue
+                            if getattr(field_template, "__genia_field_default__", None) is None:
+                                missing_field = field
+                                break
+                        if missing_field is not None:
+                            pending = make_none(
+                                "exact-shape-missing-field", GeniaMap().put("field", missing_field)
+                            )
+                            have_pending = True
+                            continue
+                        extra_field = None
+                        for field, _value in cur_value.items():
+                            if not fields.has(field):
+                                extra_field = field
+                                break
+                        if extra_field is not None:
+                            pending = make_none(
+                                "exact-shape-extra-field", GeniaMap().put("field", extra_field)
+                            )
+                            have_pending = True
+                            continue
+                    if not fields_items:
+                        pending = GeniaOptionSome(cur_value)
+                        have_pending = True
+                        continue
+                    step = _recursive_template_process_field(fields_items, 0, cur_value, is_exact)
+                    if step[0] == "immediate":
+                        pending = step[1]
+                        have_pending = True
+                        continue
+                    _, field_name, needs_template, needs_value, is_default = step
+                    stack.append(
+                        (
+                            "shape_field",
+                            fields_items,
+                            0,
+                            cur_value,
+                            cur_value,
+                            is_exact,
+                            cur_depth,
+                            field_name,
+                            is_default,
+                            needs_value if is_default else None,
+                        )
+                    )
+                    cur_template, cur_value = needs_template, needs_value
+                    continue
+
+                # Leaf/opaque Template: a bare refinement, a default_field
+                # wrapping one, an independent recursive_template instance,
+                # or any other arbitrary callable. Bounded by construction --
+                # it cannot recurse back into this instance's self_ref -- so
+                # ordinary invocation is safe. depth_var is kept in sync so
+                # that a self-reference hidden behind such an opaque wrapper
+                # still resolves correctly through self_ref's own fallback.
+                token = depth_var.set(cur_depth)
+                try:
+                    pending = _invoke_raw_from_builtin(cur_template, [cur_value])
+                finally:
+                    depth_var.reset(token)
+                have_pending = True
 
         def ref(requested_name: Any) -> Any:
             if not _discriminator_string(requested_name):
@@ -1134,7 +1347,7 @@ def make_global_env(
         def template(value: Any) -> Any:
             token = depth_var.set(0)
             try:
-                return _invoke_raw_from_builtin(actual_template, [value])
+                return _recursive_template_walk(actual_template, value)
             finally:
                 depth_var.reset(token)
 

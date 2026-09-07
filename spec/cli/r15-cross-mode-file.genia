@@ -1,0 +1,2 @@
+Person = exact_shape({name: refinement((x) -> x != ""), age: default_field(0, refinement((x) -> x >= 0))})
+accumulate(Person, {name: "", age: -1})

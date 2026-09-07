@@ -1,0 +1,21 @@
+name: r15-existing-call-ir
+category: ir
+description: R15 Template/diagnostic invocation lowers through an existing ordinary call node
+input:
+  source: 'accumulate(Person, value)'
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn:
+          node: IrVar
+          name: accumulate
+        args:
+          - node: IrVar
+            name: Person
+          - node: IrVar
+            name: value
+notes: |
+  issue: 735
+  classification: No new Core IR node.

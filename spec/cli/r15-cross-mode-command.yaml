@@ -1,0 +1,19 @@
+id: r15-cross-mode-command
+name: r15-cross-mode-command
+category: cli
+description: Command mode requires explicit R15 Template construction and preserves accumulated diagnostic Outcomes
+input:
+  source: &source |
+    Person = exact_shape({name: refinement((x) -> x != ""), age: default_field(0, refinement((x) -> x >= 0))})
+    accumulate(Person, {name: "", age: -1})
+  command: *source
+  stdin: ""
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: 'err(accumulated-validation-failed, {diagnostics: [{path: ["name"], kind: mismatch, reason: "refinement-mismatch"}, {path: ["age"], kind: mismatch, reason: "refinement-mismatch"}]})'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 735
+  classification: Experimental command-mode observation over ordinary calls (E15-1..E15-3).
