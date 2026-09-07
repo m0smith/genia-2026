@@ -32,7 +32,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current release
 
-**R15 — Validated Value Modeling** is complete. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738; **#728 / E15-1** through **#736 / E15-9** are delivered, with E15-9's skeptical release truth audit recording a PASS verdict. No later release has an approved contract yet; R16 (Multi-Host Spec Runner) is planned but not started.
+**R15 — Validated Value Modeling** is complete. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738; **#728 / E15-1** through **#736 / E15-9** are delivered, with E15-9's skeptical release truth audit recording a PASS verdict. No later release has an approved contract yet; R16 (Multi-Host Conformance Infrastructure) is planned but not started.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 
@@ -42,6 +42,7 @@ Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 - **R15 active release:** [`roadmap/r15.md`](roadmap/r15.md)
 - **R16–R19:** [`roadmap/r16-r19.md`](roadmap/r16-r19.md)
 - **R20–R23:** [`roadmap/r20-r23.md`](roadmap/r20-r23.md)
+- **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
 - **Frozen pre-split repository snapshot:** `docs/strategy/roadmap/archive/release-roadmap-pre-split.md`. This is history only; it is intentionally not published as live roadmap content.
@@ -88,7 +89,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R13 | Configuration Resolution Ergonomics | Complete | `docs/releases/R13.md` |
 | R14 | Composable Lifecycles | Complete | `docs/releases/R14.md` |
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
-| R16 | Multi-Host Spec Runner | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
+| R16 | Multi-Host Conformance Infrastructure | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
 | R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
 | R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
 | R19 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |

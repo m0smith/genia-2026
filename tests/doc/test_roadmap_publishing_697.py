@@ -16,6 +16,7 @@ ROADMAP_SOURCE = ROOT / "docs" / "strategy" / "release-roadmap.md"
 STAGED_RELATIVE_PATH = "strategy/release-roadmap.md"
 FOCUSED_ROADMAP_DOCS = [
     "docs/strategy/roadmap/README.md",
+    "docs/strategy/roadmap/multi-host-conformance-policy.md",
     "docs/strategy/roadmap/r15.md",
     "docs/strategy/roadmap/r16-r19.md",
     "docs/strategy/roadmap/r20-r23.md",
@@ -84,6 +85,7 @@ def test_staging_excludes_frozen_archive_and_unapproved_strategy_documents() -> 
     staged_roadmap_names = sorted(p.name for p in staged_roadmap_dir.glob("*.md"))
     assert staged_roadmap_names == [
         "README.md",
+        "multi-host-conformance-policy.md",
         "parking-lot.md",
         "r15.md",
         "r16-r19.md",
