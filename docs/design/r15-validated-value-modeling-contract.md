@@ -1,6 +1,11 @@
 # R15 Validated Value Modeling Contract
 
-Status: **E15-0 contract candidate — no R15 runtime behavior is implemented by this document.**
+Status: **Approved contract, fully implemented. E15-0 (issue #726) through
+E15-9 (issue #736) complete.** E15-7 is a composed proving case and E15-8 is
+cross-mode hardening; neither adds new runtime behavior beyond the one
+recursion-bound fix found and repaired during E15-8. E15-9 is the release
+truth audit and distillation only. `GENIA_STATE.md` remains final authority
+for implemented behavior.
 
 Issue: #726
 Parent epic: #725

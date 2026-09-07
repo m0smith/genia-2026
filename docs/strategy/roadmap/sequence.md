@@ -69,9 +69,9 @@ execution. Its placement after R22 avoids renumbering the C++ release arc; it
 does not make every C++ implementation release a semantic prerequisite for the
 R23 contract.
 
-R8, R9, R10, R11, R12, R13, and R14 are complete. R11, R12, R13, and R14 APIs remain
-Experimental, Python is the only implemented host, and shared/multi-host conformance
-remains Partial. R15 is the active release; E15-0 is complete and #728 / E15-1 is the next authorized work item.
+R8, R9, R10, R11, R12, R13, R14, and R15 are complete. R11, R12, R13, R14, and R15
+APIs remain Experimental, Python is the only implemented host, and shared/multi-host
+conformance remains Partial.
 R16 through R22 are planned and not active. R10/R11/R12/R13 follow-ups require their own gates;
 R23 is planned and not active. Every later release requires its own gates.
 Each later behavior slice requires its

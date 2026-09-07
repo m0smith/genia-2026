@@ -1,6 +1,11 @@
 # R15 — Validated Value Modeling
 
-Status: **Active release planning — E15-0 contract gate is in review.** This document is non-authoritative and does not define implemented language behavior.
+Status: **Complete release; E15-0 approved and E15-1 through E15-9 complete
+(issues #726, #728, #729, #730, #731, #732, #733, #734, #735, #736).** E15-7
+is a composed proving case, E15-8 is cross-mode/portability hardening, and
+E15-9 is the release truth audit and distillation. This document records
+approved release direction only; it does not define implemented language
+behavior.
 
 `GENIA_STATE.md` remains final authority for implemented behavior. No R15 runtime behavior is implemented merely because this strategy, the roadmap, issues, or the E15-0 contract exist.
 

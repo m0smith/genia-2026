@@ -1,6 +1,6 @@
 # R15 Kickoff — Validated Value Modeling
 
-Status: **Active release kickoff / planning only — non-authoritative.**
+Status: **Historical — R15 is complete (E15-0 through E15-9). Planning-only; non-authoritative.**
 
 This document prepares R15 for its first process gate. It does not define implemented language behavior. `GENIA_STATE.md` remains final authority.
 

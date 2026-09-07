@@ -167,6 +167,34 @@ completed the release-wide skeptical truth audit with a PASS verdict,
 confirming zero regression to R7/R8/R10/R13 and zero remaining
 documentation drift. R14 is release-complete.
 
+**R15** is complete through E15-9. It extends the completed R9 Value
+Template/representation foundation into a practical validated-value toolset
+without model instances, implicit coercion, or a second validation/result
+system. E15-0 (issue #726) approved the contract; E15-1 through E15-6
+(issues #728-#733) implement inert inspectable Template descriptions,
+explicit missing-only field defaults, accumulated path-aware validation
+diagnostics, faithful Template-to-JSON-Schema generation, structural
+discriminated alternatives, and bounded named recursive Template
+references — each an ordinary additive builder over the existing
+`refinement`/`open_shape`/`exact_shape` family, never a parallel type
+system; E15-7 (issue #734) proves, with zero additional runtime code, that
+all of the above compose into one messy-record validated-data pipeline
+(explicit decode/normalization, a missing-only default, accumulated
+diagnostics across independently invalid fields, a discriminated
+alternative, a bounded recursive chain, and a faithful JSON Schema
+boundary, alongside existing `validate_each`/`collect_validated` pipeline
+behavior); E15-8 (issue #735) hardens the complete surface with combined
+cross-mode, R10 protected-value non-leakage, bounded-Flow, and
+discriminator-determinism regression proof, and also found and repaired
+the one genuine runtime defect of the release — `recursive_template`'s
+depth bound relied on Python's own call stack and could raise a real
+`RecursionError` well under its documented ceiling; the fix reruns that
+traversal on an explicit stack with zero change to any documented
+Outcome, diagnostic, or schema behavior; E15-9 (issue #736) completed the
+release-wide skeptical truth audit with a PASS verdict, confirming zero
+regression to R9/R10/R13/R14 and zero remaining documentation drift. R15
+is release-complete.
+
 ## Using This Document
 
 Agents and contributors should read this document before proposing or implementing new work.
