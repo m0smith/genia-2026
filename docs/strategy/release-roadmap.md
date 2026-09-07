@@ -32,7 +32,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current release
 
-**R15 — Validated Value Modeling** is active. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738. **#728 / E15-1** through **#735 / E15-8 — cross-mode/shared-conformance and portability hardening** are delivered. The next authorized work item is **#736 / E15-9 — documentation, release examples, composability sync, final truth audit, and distillation**.
+**R15 — Validated Value Modeling** is complete. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738; **#728 / E15-1** through **#736 / E15-9** are delivered, with E15-9's skeptical release truth audit recording a PASS verdict. No later release has an approved contract yet; R16 (Multi-Host Spec Runner) is planned but not started.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 
@@ -66,6 +66,7 @@ These short anchors are intentionally retained in the canonical index because ex
 - Release R12 — Retrieval & Grounding ✓ COMPLETE. E12-1 through E12-9 complete.
 - Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE. E13-1 through E13-8 are complete.
 - Release R14 — Composable Lifecycles ✓ COMPLETE. E14-1 through E14-15 are implemented; R14 is complete.
+- Release R15 — Validated Value Modeling ✓ COMPLETE. E15-0 through E15-9 are implemented and audited; R15 is complete.
 - R10/R11/R12/R13 follow-ups require their own gates.
 
 ## Release status
@@ -86,7 +87,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R12 | Retrieval & Grounding | Complete | `docs/releases/R12.md` |
 | R13 | Configuration Resolution Ergonomics | Complete | `docs/releases/R13.md` |
 | R14 | Composable Lifecycles | Complete | `docs/releases/R14.md` |
-| R15 | Validated Value Modeling | **Active** | [`roadmap/r15.md`](roadmap/r15.md) |
+| R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
 | R16 | Multi-Host Spec Runner | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
 | R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
 | R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |

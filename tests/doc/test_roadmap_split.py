@@ -51,7 +51,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
 
     assert "R8  — Server Execution Mode" in sequence
     assert "R23 — Sheet Record Pipelines" in sequence
-    assert "R15 is the active release" in sequence
+    assert "R8, R9, R10, R11, R12, R13, R14, and R15 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
     assert "#102" in parking
