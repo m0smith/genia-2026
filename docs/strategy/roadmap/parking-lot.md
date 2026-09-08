@@ -9,6 +9,17 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - actor system
   - includes actor lifecycle, supervision, and actor-oriented runtime expansion
   - keep out of R5 unless a narrow use case explicitly requires it
+- execution realizations / transport-independent distributed execution
+  - long-term direction: Genia describes logical computation separately from physical execution topology and infrastructure realization
+  - desired development path is local-first execution that may later move to processes, workers, durable queues, brokers, or cloud infrastructure without rewriting application-level transformation/business logic when the required semantics remain compatible
+  - local collections, local queues, SQS, Kafka, and other transports must not be treated as inherently equivalent; ordering, delivery, durability, acknowledgement, replay, partitioning, retry, and failure guarantees must remain explicit
+  - placement may eventually be abstracted; distributed failure semantics must not be hidden
+  - future work will need a portable-value boundary for values crossing execution boundaries, but no such new language mechanism is approved here
+  - effects, retries, idempotency, and uncertain completion must be addressed before distributed effectful work is promoted
+  - local realizations should remain first-class and may eventually support distributed-failure simulation for testing
+  - deployment may eventually use Ansible, Terraform, Kubernetes, cloud APIs, or another provisioning mechanism; none is part of Genia semantics
+  - host portability and execution distribution are separate axes
+  - do not create implementation tickets until a concrete workflow demonstrates the need and a contract answers the semantic questions in `docs/architecture/execution-realization.md`
 - open functions / extensible pattern dispatch — **promoted to planned R19**
   - R19 now owns the local repeated-clause and explicit cross-module extension contract described in [`r16-r20.md`](r16-r20.md)
   - historical motivating local example:
