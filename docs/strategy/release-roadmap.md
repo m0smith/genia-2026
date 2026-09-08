@@ -39,9 +39,10 @@ Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 ## Roadmap files
 
 - **Completed releases R1–R14:** durable release summaries and runnable examples live in `docs/releases/R1.md` through `docs/releases/R14.md`.
-- **R15 active release:** [`roadmap/r15.md`](roadmap/r15.md)
+- **R15 completed release detail:** [`roadmap/r15.md`](roadmap/r15.md)
 - **R16–R20:** [`roadmap/r16-r20.md`](roadmap/r16-r20.md)
 - **R21–R24:** [`roadmap/r21-r24.md`](roadmap/r21-r24.md)
+- **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -98,6 +99,11 @@ These short anchors are intentionally retained in the canonical index because ex
 | R22 | C++ REPL and Data Bridges | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | Sheet Record Pipelines | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R25 | Sheet Shaped Computation | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R26 | Relational Sheet Operations | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R27 | Database Data Boundary | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R28 | Developer Experience and Language Tooling | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R29 | Cross-Host Performance and Optimization Evidence | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 
 ## Scheduling
 
