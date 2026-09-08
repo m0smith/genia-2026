@@ -9,6 +9,37 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - actor system
   - includes actor lifecycle, supervision, and actor-oriented runtime expansion
   - keep out of R5 unless a narrow use case explicitly requires it
+- open functions / extensible pattern dispatch
+  - future language-semantics candidate for allowing named functions to accumulate independently declared pattern clauses and, later, for modules to explicitly contribute additional clauses to a shared function interface
+  - motivating local example:
+
+    ```genia
+    gcd(a, 0) = a
+    gcd(a, b) = gcd(b, a % b)
+    ```
+
+  - motivating cross-module interface example, syntax deliberately not yet locked:
+
+    ```genia
+    # common/storage surface
+    get(MemoryStore(store), key) = memory_get(store, key)
+
+    # future database module contribution
+    extend get(Database(db), key) = db_get(db, key)
+    ```
+
+  - required invariants before promotion:
+    - local repeated compatible clauses form one named-function group rather than accidental rebinding
+    - cross-module extension must be explicit; importing a module must not silently overwrite or mutate an unrelated visible function
+    - dispatch remains pattern-based and preserves existing fixed-arity-over-varargs precedence
+    - unrelated module import order must not decide dispatch results
+    - when multiple cross-module clauses match and no deterministic specificity rule chooses one, evaluation must fail with a deterministic ambiguity error
+    - each contributed clause retains module provenance for diagnostics, introspection, and future reload/unload design
+    - loading/importing a module remains inert with respect to lifecycle activation, resource acquisition, and network/process side effects
+    - the semantic contract must be host-agnostic and shared-spec driven; no Python-only dispatch rule may define the feature
+  - open functions are the first concept; a named protocol/interface layer, if ever needed, should be considered separately after the dispatch mechanism proves useful
+  - do not treat the example `extend` spelling, protocol syntax, specificity algorithm, module unloading, or implementation strategy as approved design
+  - keep out of R16 unless an approved pre-flight demonstrates that multi-host conformance infrastructure actually depends on it
 - browser playground runtime
   - useful as a future demo surface, not required for the first validated-data-pipeline release
 - ants / simulation teaching demos
