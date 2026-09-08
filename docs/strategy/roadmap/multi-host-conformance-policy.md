@@ -17,6 +17,26 @@ genia-2026  ---> authoritative contract/spec/protocol ---> external host reposit
 
 A host implementation must not become an upstream source of language truth.
 
+## Host Portability Is Not Distributed Execution
+
+Multi-host conformance and distributed execution are independent concerns.
+
+Multi-host conformance asks whether different host implementations preserve the
+same observable Genia semantics.
+
+Distributed execution asks whether one logical computation may be physically
+realized across multiple processes, machines, transports, or infrastructure
+components.
+
+R16-R23 multi-host work must not accidentally introduce distributed-execution
+semantics merely to enable another host.
+
+Likewise, a future distributed realization must not define language semantics
+through the behavior of one host or infrastructure provider.
+
+See `docs/architecture/execution-realization.md` for the parked architectural
+direction.
+
 ## Conformance claim rule
 
 A host may claim support for a Genia capability only when it passes the authoritative shared specs applicable to that capability against the exact Genia contract revision it declares.

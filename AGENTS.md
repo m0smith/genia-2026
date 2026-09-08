@@ -159,7 +159,7 @@ contract, design, failing-test, implementation, documentation, or audit phases.
 Python-host boundary provides text and R9-validated JSON `model/4` ordinary-callable
 and Outcome behavior through an offline deterministic fixture plus one explicit
 Google Gemini direct-REST capability, with shared conformance and cross-mode
-fixture hardening, E11-5 application-owned list/Flow `scan` conversation composition, E11-6 Outcome-aware validated-pipeline proving case, E11-7 release-example truth synchronization, and E11-8 release truth audit/distillation. Follow-ups and later releases
+fixture hardening, E11-5 application-owned list/Flow `scan` conversation composition, E11-6 Outcome-aware validated-pipeline proving case, E11-7 release truth synchronization, and E11-8 release truth audit/distillation. Follow-ups and later releases
 require their own gates. Preserve the ordinary
 callable/value/Outcome/R9/R10/Flow boundary recorded in
 `docs/design/r11-ai-composition-contract.md`. See `docs/strategy/release-roadmap.md` and
@@ -639,6 +639,44 @@ Future hosts (Node, Java, Rust, Go, C++):
 - MUST treat Core IR as the portability boundary
 
 Python is the reference host.
+
+---
+
+## Future Execution-Realization Guardrail
+
+Read `docs/architecture/execution-realization.md` when designing changes involving:
+
+- Flow / Seq sources or sinks
+- concurrency or actors
+- lifecycle/resource ownership
+- queues, brokers, messaging, or event processing
+- remote/distributed execution
+- deployment/topology
+- host capabilities that could cross process or machine boundaries
+
+Genia's architectural direction distinguishes:
+
+```text
+logical computation
+execution realization
+infrastructure realization
+```
+
+Do not implement speculative distributed behavior merely because this direction
+exists.
+
+However, when two otherwise reasonable designs are available, prefer the design
+that:
+
+- does not unnecessarily assume in-memory/local-only execution
+- keeps infrastructure-specific behavior below the language semantic boundary
+- makes required semantic guarantees explicit rather than hiding backend differences
+- does not treat remote calls as semantically identical to local calls
+- preserves the possibility of local and distributed realizations without imposing distributed-system complexity on today's runtime
+
+Do not introduce AWS-, Kafka-, Ansible-, Kubernetes-, or vendor-specific
+semantics into Core IR or shared language behavior unless a separately approved
+contract explicitly requires them.
 
 ---
 
