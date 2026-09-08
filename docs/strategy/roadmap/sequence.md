@@ -50,6 +50,21 @@ R23 — C++ Flow, Pipe Mode & HTTP Serving
  |
  v
 R24 — Sheet Record Pipelines
+ |
+ v
+R25 — Sheet Shaped Computation
+ |
+ v
+R26 — Relational Sheet Operations
+ |
+ v
+R27 — Database Data Boundary
+ |
+ v
+R28 — Developer Experience & Language Tooling
+ |
+ v
+R29 — Cross-Host Performance & Optimization Evidence
 ```
 
 This ordering does not imply that every release is a strict technical dependency
@@ -93,9 +108,27 @@ shared execution. Its placement after R23 avoids interleaving the Sheet release
 with the C++ host-parity arc; it does not make every C++ implementation release a
 semantic prerequisite for the R24 contract.
 
+R25 deepens R24's explicit Sheet boundary into shaped whole-column computation:
+scalar lifting, shape conformance, column expressions, and narrowly defined
+elemental lifting remain part of the same immutable value model. R26 then adds
+relational Sheet operations such as grouping, summarization, ordering, and
+explicit joins without creating SQL syntax or a parallel dataframe/query model.
+R27 uses the resulting validated relational workflow as the basis for one narrow,
+explicit database source/sink boundary, reusing R10/R13 protected configuration,
+R14 lifecycle ownership, Flow/Seq processing, Outcomes, and Sheets rather than
+inventing ORM or database-specific pipeline semantics.
+
+R28 is a tooling release rather than a language-semantics release. It should make
+the implemented parser/Core-IR/help/debugger truth easier to use through
+formatting, navigation, diagnostics, and editor integration without creating an
+editor-local language definition. R29 follows the second-host and shaped-data
+work with reproducible cross-host performance evidence; optimization is allowed
+only where measurements justify it and shared conformance proves no observable
+semantic drift.
+
 R8, R9, R10, R11, R12, R13, R14, and R15 are complete. R11, R12, R13, R14, and R15
 APIs remain Experimental, Python is the only implemented host, and shared/multi-host
-conformance remains Partial. R16 through R24 are planned and not active.
+conformance remains Partial. R16 through R29 are planned and not active.
 R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
 its own gates. Each later behavior slice requires its own
 contract/design/test/implementation/documentation/audit gates; roadmap placement
