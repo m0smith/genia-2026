@@ -55,6 +55,29 @@ Changes that strengthen one or more of these areas are preferred:
 - **CLI-native data processing** — pipe-mode, file-mode, stdout/stderr discipline
 - **Value templates** — when they support validation, contracts, or shapes for record data
 
+## Scale-Up Direction
+
+The first killer workflow should remain useful as data volume and operational
+requirements grow.
+
+A validated data pipeline may begin with local files, Lists, or local Flow
+sources. Future execution infrastructure may allow compatible logical pipelines
+to use durable or distributed sources, workers, transports, or sinks without
+rewriting the application-level transformation and validation logic.
+
+This is an architectural direction only. It does not imply that List, Flow,
+queues, brokers, or distributed sources have identical semantics.
+
+Near-term designs should therefore:
+
+- keep validation and transformation logic independent of transport where practical
+- keep source/sink capabilities explicit
+- avoid introducing unnecessary assumptions that all pipeline data is memory-local
+- preserve current simple local behavior
+- not add distributed machinery until a concrete killer-workflow scaling need requires it
+
+See `docs/architecture/execution-realization.md`.
+
 ## Defer / Parking-Lot Areas
 
 Unless explicitly approved, route proposals in these areas to parking lot:
