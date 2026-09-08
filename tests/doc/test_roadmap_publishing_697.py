@@ -18,8 +18,8 @@ FOCUSED_ROADMAP_DOCS = [
     "docs/strategy/roadmap/README.md",
     "docs/strategy/roadmap/multi-host-conformance-policy.md",
     "docs/strategy/roadmap/r15.md",
-    "docs/strategy/roadmap/r16-r19.md",
-    "docs/strategy/roadmap/r20-r23.md",
+    "docs/strategy/roadmap/r16-r20.md",
+    "docs/strategy/roadmap/r21-r24.md",
     "docs/strategy/roadmap/sequence.md",
     "docs/strategy/roadmap/parking-lot.md",
 ]
@@ -88,8 +88,8 @@ def test_staging_excludes_frozen_archive_and_unapproved_strategy_documents() -> 
         "multi-host-conformance-policy.md",
         "parking-lot.md",
         "r15.md",
-        "r16-r19.md",
-        "r20-r23.md",
+        "r16-r20.md",
+        "r21-r24.md",
         "sequence.md",
     ]
 
