@@ -36,17 +36,20 @@ R16 — Multi-Host Conformance Infrastructure
  +----> R18 — Unicode, Float & Diagnostic Portability Contract
            |
            v
-R19 — C++ Minimal Conforming Host
- |
- +----> R20 — C++ Stateful Runtime & Concurrency
- |
-+----> R21 — C++ REPL & Data Bridges
-           |
-           v
-R22 — C++ Flow, Pipe Mode & HTTP Serving
+R19 — Open Functions & Extensible Pattern Dispatch
  |
  v
-R23 — Sheet Record Pipelines
+R20 — C++ Minimal Conforming Host
+ |
+ +----> R21 — C++ Stateful Runtime & Concurrency
+ |
+ +----> R22 — C++ REPL & Data Bridges
+           |
+           v
+R23 — C++ Flow, Pipe Mode & HTTP Serving
+ |
+ v
+R24 — Sheet Record Pipelines
 ```
 
 This ordering does not imply that every release is a strict technical dependency
@@ -66,27 +69,34 @@ separation between pinned conformance and current-`main` compatibility described
 in [`multi-host-conformance-policy.md`](multi-host-conformance-policy.md). R16 may
 bootstrap `m0smith/genia-cpp`, but does not implement the real C++ interpreter.
 
-R17 and R18 harden shared contracts in parallel; R19 depends on all three and is
-the first planned production C++ implementation release. R19 through R22 place
-C++ production implementation in `m0smith/genia-cpp`; `genia-2026` changes during
-those releases only when authoritative contracts, shared specs, generic runner
-infrastructure, or portability documentation require it. If C++ work exposes an
-ambiguous portable behavior, the contract/spec is clarified upstream before the
-host implementation proceeds rather than copying Python implementation details.
+R17 and R18 harden shared portability contracts in parallel. R19 then promotes
+open functions / extensible pattern dispatch from the parking lot into an
+explicit host-agnostic language-semantics release. Its contract must settle local
+repeated-clause grouping, explicit cross-module extension, deterministic dispatch
+and ambiguity behavior, provenance, import-order independence, and inert import
+semantics before a second host implements those rules.
 
-R20 and R21 extend the C++ host along mostly independent stateful and REPL/data-
-bridge tracks. R22 consumes the implemented contracts it needs and closes only
-the C++ capabilities it can prove. R23 consumes the explicit Sheet boundaries,
+R20 depends on R16, R17, R18, and R19 and is the first planned production C++
+implementation release. R20 through R23 place C++ production implementation in
+`m0smith/genia-cpp`; `genia-2026` changes during those releases only when
+authoritative contracts, shared specs, generic runner infrastructure, or
+portability documentation require it. If C++ work exposes an ambiguous portable
+behavior, the contract/spec is clarified upstream before the host implementation
+proceeds rather than copying Python implementation details.
+
+R21 and R22 extend the C++ host along mostly independent stateful and REPL/data-
+bridge tracks. R23 consumes the implemented contracts it needs and closes only
+the C++ capabilities it can prove. R24 consumes the explicit Sheet boundaries,
 existing Flow/Outcome/validation composition, R14 repeated element lifecycle
 semantics, R15 validated-value modeling where applicable, and R16 capability-aware
-shared execution. Its placement after R22 avoids renumbering the C++ release arc;
-it does not make every C++ implementation release a semantic prerequisite for
-the R23 contract.
+shared execution. Its placement after R23 avoids interleaving the Sheet release
+with the C++ host-parity arc; it does not make every C++ implementation release a
+semantic prerequisite for the R24 contract.
 
 R8, R9, R10, R11, R12, R13, R14, and R15 are complete. R11, R12, R13, R14, and R15
 APIs remain Experimental, Python is the only implemented host, and shared/multi-host
-conformance remains Partial. R16 through R22 are planned and not active.
-R10/R11/R12/R13 follow-ups require their own gates; R23 is planned and not active.
-Every later release requires its own gates. Each later behavior slice requires its
-own contract/design/test/implementation/documentation/audit gates; roadmap
-placement is not implementation authority.
+conformance remains Partial. R16 through R24 are planned and not active.
+R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
+its own gates. Each later behavior slice requires its own
+contract/design/test/implementation/documentation/audit gates; roadmap placement
+is not implementation authority.
