@@ -20,8 +20,8 @@ def test_root_roadmap_is_small_canonical_index() -> None:
     assert "R15 — Validated Value Modeling" in text
     assert "#728 / E15-1" in text
     assert "roadmap/r15.md" in text
-    assert "roadmap/r16-r19.md" in text
-    assert "roadmap/r20-r23.md" in text
+    assert "roadmap/r16-r20.md" in text
+    assert "roadmap/r21-r24.md" in text
     assert "roadmap/sequence.md" in text
     assert "roadmap/parking-lot.md" in text
     assert "roadmap/archive/release-roadmap-pre-split.md" in text
@@ -30,13 +30,13 @@ def test_root_roadmap_is_small_canonical_index() -> None:
 
 def test_focused_roadmap_files_cover_active_and_future_releases_once() -> None:
     r15 = read(ROADMAP_DIR / "r15.md")
-    r16_r19 = read(ROADMAP_DIR / "r16-r19.md")
-    r20_r23 = read(ROADMAP_DIR / "r20-r23.md")
+    r16_r20 = read(ROADMAP_DIR / "r16-r20.md")
+    r21_r24 = read(ROADMAP_DIR / "r21-r24.md")
 
     assert len(re.findall(r"^# R15 — Validated Value Modeling$", r15, re.MULTILINE)) == 1
 
-    combined_future = "\n".join([r16_r19, r20_r23])
-    for release in range(16, 24):
+    combined_future = "\n".join([r16_r20, r21_r24])
+    for release in range(16, 25):
         matches = re.findall(rf"^## Release R{release}\b", combined_future, re.MULTILINE)
         assert len(matches) == 1, f"R{release} should appear exactly once in focused roadmap detail"
 
@@ -50,7 +50,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     parking = read(ROADMAP_DIR / "parking-lot.md")
 
     assert "R8  — Server Execution Mode" in sequence
-    assert "R23 — Sheet Record Pipelines" in sequence
+    assert "R24 — Sheet Record Pipelines" in sequence
     assert "R8, R9, R10, R11, R12, R13, R14, and R15 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking

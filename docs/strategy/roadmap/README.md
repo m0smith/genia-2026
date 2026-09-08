@@ -4,9 +4,9 @@
 
 Use the focused files in this directory for edits:
 
-- `r15.md` — active R15 detail
-- `r16-r19.md` — planned portability infrastructure and minimal C++ host work
-- `r20-r23.md` — planned C++ expansion and Sheet record pipeline work
+- `r15.md` — completed R15 detail
+- `r16-r20.md` — planned portability infrastructure, open-function semantics, and minimal C++ host work
+- `r21-r24.md` — planned C++ expansion and Sheet record pipeline work
 - `sequence.md` — cross-release ordering and dependencies
 - `parking-lot.md` — deferred ideas and historical issue disposition
 
