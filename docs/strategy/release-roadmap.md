@@ -40,8 +40,8 @@ Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 
 - **Completed releases R1–R14:** durable release summaries and runnable examples live in `docs/releases/R1.md` through `docs/releases/R14.md`.
 - **R15 active release:** [`roadmap/r15.md`](roadmap/r15.md)
-- **R16–R19:** [`roadmap/r16-r19.md`](roadmap/r16-r19.md)
-- **R20–R23:** [`roadmap/r20-r23.md`](roadmap/r20-r23.md)
+- **R16–R20:** [`roadmap/r16-r20.md`](roadmap/r16-r20.md)
+- **R21–R24:** [`roadmap/r21-r24.md`](roadmap/r21-r24.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -89,14 +89,15 @@ These short anchors are intentionally retained in the canonical index because ex
 | R13 | Configuration Resolution Ergonomics | Complete | `docs/releases/R13.md` |
 | R14 | Composable Lifecycles | Complete | `docs/releases/R14.md` |
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
-| R16 | Multi-Host Conformance Infrastructure | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
-| R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
-| R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
-| R19 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r19.md`](roadmap/r16-r19.md) |
-| R20 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r20-r23.md`](roadmap/r20-r23.md) |
-| R21 | C++ REPL and Data Bridges | Planned | [`roadmap/r20-r23.md`](roadmap/r20-r23.md) |
-| R22 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r20-r23.md`](roadmap/r20-r23.md) |
-| R23 | Sheet Record Pipelines | Planned | [`roadmap/r20-r23.md`](roadmap/r20-r23.md) |
+| R16 | Multi-Host Conformance Infrastructure | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R19 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R20 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R21 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R22 | C++ REPL and Data Bridges | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R23 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R24 | Sheet Record Pipelines | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 
 ## Scheduling
 
