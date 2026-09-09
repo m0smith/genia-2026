@@ -241,10 +241,12 @@ def test_execute_spec_via_host_requires_without_known_capabilities_is_unsupporte
 
 
 def test_fetch_capabilities_against_fixture_default_declares_everything_supported() -> None:
+    from tools.spec_runner.revision import current_revision
+
     outcome = fetch_capabilities(FIXTURE_ADAPTER_COMMAND, timeout=5.0, cwd=str(REPO_ROOT))
     assert outcome.kind == "ok"
     assert outcome.result["capabilities"]["parser"] == "supported"
-    assert outcome.result["contract_revision"] == "fixture-adapter-v1"
+    assert outcome.result["contract_revision"] == current_revision()
 
 
 def test_fetch_capabilities_against_fixture_honors_override(monkeypatch: pytest.MonkeyPatch) -> None:
