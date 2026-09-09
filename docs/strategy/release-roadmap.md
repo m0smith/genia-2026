@@ -32,9 +32,20 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current release
 
-**R15 — Validated Value Modeling** is complete. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738; **#728 / E15-1** through **#736 / E15-9** are delivered, with E15-9's skeptical release truth audit recording a PASS verdict. No later release has an approved contract yet; R16 (Multi-Host Conformance Infrastructure) is planned but not started.
+**R15 — Validated Value Modeling** is complete. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738; **#728 / E15-1** through **#736 / E15-9** are delivered, with E15-9's skeptical release truth audit recording a PASS verdict.
+
+**R16 — Multi-Host Conformance Infrastructure** is the active release. Epic
+**#756** tracks R16 and **#757 / E16-0** is the completed contract/
+current-state-inventory/protocol-decisions gate. Its contract is
+`docs/design/r16-multi-host-conformance-infrastructure-contract.md`.
+Activating the roadmap and approving the contract does **not** implement
+any R16 runtime behavior; **no generic multi-host runner exists yet and all
+conformance is still validated against the Python reference host only**,
+exactly as `GENIA_STATE.md` §0 states. After #757 is approved and merged,
+the next authorized step is **#758 / E16-1 preflight only**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
+Detailed R16 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
 
 ## Roadmap files
 
@@ -90,7 +101,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R13 | Configuration Resolution Ergonomics | Complete | `docs/releases/R13.md` |
 | R14 | Composable Lifecycles | Complete | `docs/releases/R14.md` |
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
-| R16 | Multi-Host Conformance Infrastructure | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R16 | Multi-Host Conformance Infrastructure | Active (E16-0 contract complete) | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R19 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |

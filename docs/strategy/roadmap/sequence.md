@@ -128,7 +128,11 @@ semantic drift.
 
 R8, R9, R10, R11, R12, R13, R14, and R15 are complete. R11, R12, R13, R14, and R15
 APIs remain Experimental, Python is the only implemented host, and shared/multi-host
-conformance remains Partial. R16 through R29 are planned and not active.
+conformance remains Partial. R16 is the active release at its completed E16-0
+contract gate (issue #757; contract at
+`docs/design/r16-multi-host-conformance-infrastructure-contract.md`); no R16
+runtime behavior is implemented yet and no generic multi-host runner exists.
+R17 through R29 are planned and not active.
 R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
 its own gates. Each later behavior slice requires its own
 contract/design/test/implementation/documentation/audit gates; roadmap placement

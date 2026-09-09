@@ -23,6 +23,7 @@ See GENIA_STATE.md for actual behavior.
 - **r13-configuration-resolution-contract.md** — approved R13 contract; E13-1 through E13-8 are complete, with E13-8 limited to the final truth audit and distillation.
 - **r14-composable-lifecycle-contract.md** — approved R14 contract; E14-1 through E14-15 are complete, with E14-14 documentation-only and E14-15 limited to the final truth audit and distillation.
 - **r15-validated-value-modeling-contract.md** — E15-0 R15 contract, approved and fully implemented through E15-9.
+- **r16-multi-host-conformance-infrastructure-contract.md** — E16-0 R16 contract (issue #757): adapter protocol/envelope, stdout/stderr channel ownership, failure taxonomy, capability/revision/evidence model, and external-host repository boundary. Approved; E16-1 through E16-8 not started.
 - **execution-concepts.md** — Proposed separation of file/source, module, annotation, lifecycle, unit test, and execution mode; dangerous merges to avoid.
 - **composability-matrix.md** — Non-authoritative matrix of implemented composition boundaries and explicit later-release constraints.
 - **facet-identity-named-patterns-swot.md** — Exploration/SWOT (not adopted): replacing string-identified carrier facets with named-Pattern identity, plus a related `GeniaNamedPattern` introspection gap.
