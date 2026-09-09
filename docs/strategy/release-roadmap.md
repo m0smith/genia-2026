@@ -34,28 +34,22 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 **R15 — Validated Value Modeling** is complete. E15-0 / issue #726 completed its contract, roadmap reconciliation, and capability-inventory gate through PR #738; **#728 / E15-1** through **#736 / E15-9** are delivered, with E15-9's skeptical release truth audit recording a PASS verdict.
 
-**R16 — Multi-Host Conformance Infrastructure** is the active release. Epic
-**#756** tracks R16 and **#757 / E16-0** is the completed contract/
-current-state-inventory/protocol-decisions gate. Its contract is
-`docs/design/r16-multi-host-conformance-infrastructure-contract.md`.
-Activating the roadmap and approving the contract does **not** implement
-any R16 runtime behavior; **no generic multi-host runner exists yet and all
-conformance is still validated against the Python reference host only**,
-exactly as `GENIA_STATE.md` §0 states. **#758 / E16-1** (versioned
-host-adapter protocol and failure taxonomy), **#759 / E16-2** (generic
-external-host execution path in `tools/spec_runner`), **#760 / E16-3**
-(host capability advertisement and per-case requirements), **#761 /
-E16-4** (contract revision pinning and current-main compatibility
-reporting), **#762 / E16-5** (Python reference host proven through
-the subprocess protocol), **#763 / E16-6** (external-host repository
-boundary; [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)
-bootstrapped), and **#764 / E16-7** (conformance evidence reporting and
-external-host CI contract) are delivered. The default in-process Python
-path remains unchanged and available as a developer-optimization path.
-The next authorized step is **#765 / E16-8 preflight only**.
+**R16 — Multi-Host Conformance Infrastructure** is complete. Epic **#756** is
+closed; **#757 / E16-0** through **#765 / E16-8** are delivered, and
+`docs/releases/R16.md` records the skeptical release truth audit PASS. The
+implemented generic runner is `python -m tools.spec_runner --host '<command>'`;
+capability-aware selection, exact contract-revision identity, Python-reference
+subprocess parity, the external `m0smith/genia-cpp` bootstrap boundary, and
+deterministic conformance evidence are all landed. Python remains the only
+implemented production host; the C++ repository is still a non-semantic
+bootstrap shell with no interpreter.
+
+No later release has an approved contract yet. **R17 — Numeric and Ordered-Map
+Portability Contract** is the next planned release and must begin with its own
+preflight/contract gate.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
-Detailed R16 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
+Detailed R16-R20 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
 
 ## Roadmap files
 
@@ -75,7 +69,7 @@ Historical semantic-sync anchor only. R3 delivered Native Test Expansion while e
 
 ## Release R4 — Lifecycle Generalization
 
-Historical semantic-sync anchor only. R4 separately delivered Lifecycle Generalization. Detailed completed-release history and runnable examples live in `docs/releases/R4.md`; the frozen pre-split roadmap preserves the full original planning text.
+Historical semantic-sync anchor only. R4 separately delivered Lifecycle Generalization. Detailed history lives in the release page and frozen archive.
 
 ## Completed-release sync anchors
 
@@ -90,6 +84,7 @@ These short anchors are intentionally retained in the canonical index because ex
 - Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE. E13-1 through E13-8 are complete.
 - Release R14 — Composable Lifecycles ✓ COMPLETE. E14-1 through E14-15 are implemented; R14 is complete.
 - Release R15 — Validated Value Modeling ✓ COMPLETE. E15-0 through E15-9 are implemented and audited; R15 is complete.
+- Release R16 — Multi-Host Conformance Infrastructure ✓ COMPLETE. E16-0 through E16-8 are delivered and audited; R16 is complete.
 - R10/R11/R12/R13 follow-ups require their own gates.
 
 ## Release status
@@ -111,7 +106,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R13 | Configuration Resolution Ergonomics | Complete | `docs/releases/R13.md` |
 | R14 | Composable Lifecycles | Complete | `docs/releases/R14.md` |
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
-| R16 | Multi-Host Conformance Infrastructure | Active (E16-0 contract complete) | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R16 | Multi-Host Conformance Infrastructure | Complete | `docs/releases/R16.md` |
 | R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R19 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
