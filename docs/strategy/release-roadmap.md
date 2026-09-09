@@ -42,10 +42,10 @@ Activating the roadmap and approving the contract does **not** implement
 any R16 runtime behavior; **no generic multi-host runner exists yet and all
 conformance is still validated against the Python reference host only**,
 exactly as `GENIA_STATE.md` §0 states. **#758 / E16-1** (versioned
-host-adapter protocol and failure taxonomy) is delivered as a standalone
-module proven against a deterministic fixture adapter; it is not yet wired
-into `tools/spec_runner`. The next authorized step is **#759 / E16-2
-preflight only**.
+host-adapter protocol and failure taxonomy) and **#759 / E16-2** (generic
+external-host execution path in `tools/spec_runner`) are delivered. The
+default in-process Python path remains unchanged. The next authorized step
+is **#760 / E16-3 preflight only**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 Detailed R16 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).

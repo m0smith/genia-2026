@@ -3,8 +3,10 @@
 Status: **Approved contract. E16-0 (issue #757) complete. E16-1 (issue #758)
 complete** — the versioned host-adapter protocol and outcome taxonomy are
 implemented as a standalone module (`tools/spec_runner/protocol.py`),
-proven only against a deterministic fixture adapter; not yet wired into
-`tools/spec_runner`. E16-2 (issue #759) through E16-8 (issue #765) are not
+proven only against a deterministic fixture adapter. E16-2 (issue #759)
+complete** — `tools/spec_runner --host '<command>'` runs applicable cases
+through the E16-1 protocol; the default in-process path is unchanged.
+E16-3 (issue #760) through E16-8 (issue #765) are not
 started. This document locks wire-level
 protocol and ownership decisions only; it adds no runtime behavior, no
 subprocess protocol implementation, no Core IR change, and no second host.
@@ -549,6 +551,19 @@ versioning, and outcome taxonomy fixed above for the `parse`, `lower`,
 `eval`, and `cli` operations, proven end-to-end by
 `tests/unit/test_spec_runner_protocol.py` against the deterministic
 `tools/spec_runner/fixtures/protocol_fixture_adapter.py`. No behavior
-beyond this contract was added; the module is not yet consulted by
-`tools/spec_runner`'s case execution. The next authorized work item is
-**#759 / E16-2 preflight only**.
+beyond this contract was added.
+
+## E16-2 completion note (issue #759)
+
+E16-2 is complete: `tools/spec_runner/host_executor.py` and a `--host`
+flag on `tools/spec_runner/runner.py` implement the generic external-host
+execution path exactly as fixed above (category-to-operation mapping,
+capability-agnostic case selection deferred to E16-3, the six-state
+taxonomy propagated into runner reporting). Proven by
+`tests/unit/test_spec_runner_host_executor.py` and
+`tests/unit/test_spec_runner_host_mode_cli.py`, plus running the entire
+real `spec/` suite through the deterministic fixture adapter as a
+transport/taxonomy smoke proof. No host-specific (C++ or otherwise)
+knowledge was added to the runner; the default in-process Python path is
+unchanged. The next authorized work item is **#760 / E16-3 preflight
+only**.
