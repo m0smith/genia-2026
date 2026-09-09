@@ -43,6 +43,7 @@ Implemented today:
   - `tools/spec_runner/README.md`
   - `hosts/`
 - A formal host capability registry contract is documented at `docs/host-interop/capabilities.md`. It is the authoritative reference for capability names, Genia surface, input/output shapes, normalized error behavior, and portability status for each host capability.
+- R16 E16-1 (issue #758) implements the versioned host-adapter wire protocol (request/response JSON envelope, stdout/stderr channel separation, and the deterministic ok/unsupported/protocol-error/crash/timeout outcome taxonomy) as a standalone module, `tools/spec_runner/protocol.py`, proven only against the deterministic fixture adapter in `tools/spec_runner/fixtures/protocol_fixture_adapter.py`. It is **not yet wired into `tools/spec_runner`'s case execution**; the generic external-host execution path remains E16-2 (issue #759), and the statement below still holds.
 
 Scaffolded or planned, not implemented as hosts:
 

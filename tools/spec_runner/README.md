@@ -78,3 +78,35 @@ FAIL eval arithmetic-basic (/path/to/spec/eval/arithmetic-basic.yaml)
 - It does not trim meaningful whitespace
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
+
+## E16-1 host-adapter protocol module (issue #758)
+
+`tools/spec_runner/protocol.py` implements the versioned subprocess
+host-adapter protocol approved by the R16 E16-0 contract
+(`docs/design/r16-multi-host-conformance-infrastructure-contract.md`):
+
+- a JSON request envelope (`protocol_version`, `case_id`, `operation`,
+  `input`) for the `parse`, `lower`, `eval`, and `cli` operations
+- a JSON response envelope (`protocol_version`, `case_id`, `operation`,
+  `status`, `result`, `unsupported_reason`) that an adapter process writes,
+  and nothing else, to its own stdout
+- `run_adapter_request` spawns exactly one adapter process per request,
+  writes the request to its stdin, and classifies the result
+- the deterministic outcome taxonomy: an adapter can only ever self-report
+  `ok` or `unsupported`; `protocol_error` (malformed/invalid envelope),
+  `crash` (nonzero exit), and `timeout` (exceeded the caller's timeout) are
+  always derived by the runner from process-level and JSON-validity facts,
+  never self-reported by the adapter
+
+**Status: implemented as a standalone module, proven only against the
+deterministic fixture adapter in this phase.** It is not yet wired into
+`tools/spec_runner`'s case execution (`execute_spec`/`main` still call the
+Python adapter in-process, exactly as before) — that generic external-host
+execution path is E16-2 (issue #759). This module adds no new adapter
+operation beyond the four existing ones; `capabilities` is added by E16-3
+(issue #760).
+
+`tools/spec_runner/fixtures/protocol_fixture_adapter.py` is a deterministic,
+non-semantic fixture used only to prove protocol mechanics and every outcome
+in the taxonomy end-to-end (see `tests/unit/test_spec_runner_protocol.py`).
+It is not a Genia host and must not be treated as one.
