@@ -1,0 +1,13 @@
+name: integer-arithmetic-large-magnitude-no-overflow
+category: eval
+description: >-
+  R17 numeric portability contract: ordinary integer multiplication is
+  arbitrary-precision and never overflows, wraps, or truncates at any
+  magnitude, independent of the R9 JSON safe-integer boundary.
+input:
+  source: |
+    99999999999999999999999999999999 * 99999999999999999999999999999999
+expected:
+  stdout: "9999999999999999999999999999999800000000000000000000000000000001\n"
+  stderr: ""
+  exit_code: 0
