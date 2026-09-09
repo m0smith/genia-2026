@@ -1,6 +1,20 @@
 # Proposed Releases R16–R22: C++ Host Porting Readiness
 
-Status: **Proposal — non-authoritative, not adopted.** This is a draft sequencing exercise, styled to match `docs/strategy/release-roadmap.md`. Per `docs/process/08-roadmap-ticketing.md`, nothing here becomes real work until it goes through roadmap ticketing and is explicitly approved; no release below should be treated as implemented or committed. R15 (Validated Value Modeling) is drafted but not yet merged into the main roadmap file at review time, so this plan starts at R16 to avoid colliding with it — renumber if R15 lands differently.
+Status: **Superseded — not adopted, kept for historical drafting evidence
+only.** The current, approved R16 numbering and scope is
+`docs/strategy/roadmap/r16-r20.md` (epic #756) and its E16-0 contract,
+`docs/design/r16-multi-host-conformance-infrastructure-contract.md` (issue
+#757). That numbering no longer matches this draft one-to-one: current R16
+is the broader Multi-Host Conformance Infrastructure release described
+there (not "spec-runner protocol only"), current R19 is Open Functions and
+Extensible Pattern Dispatch (a language feature, not C++ bring-up), and
+current R20 is the first C++ host release, absorbing what this draft called
+R19. The technical reasoning below (subprocess protocol need, numeric/
+Unicode/error-text contract gaps, C++ bring-up ordering) informed the
+current contract and roadmap and is preserved as history; do not treat any
+release number or deliverable below as active.
+
+Original status: **Proposal — non-authoritative, not adopted.** This is a draft sequencing exercise, styled to match `docs/strategy/release-roadmap.md`. Per `docs/process/08-roadmap-ticketing.md`, nothing here becomes real work until it goes through roadmap ticketing and is explicitly approved; no release below should be treated as implemented or committed. R15 (Validated Value Modeling) is drafted but not yet merged into the main roadmap file at review time, so this plan starts at R16 to avoid colliding with it — renumber if R15 lands differently.
 
 Source: `docs/analysis/cpp-host-porting-readiness.md` (this project), which reviewed `hosts/cpp/`, `docs/host-interop/*`, `docs/architecture/core-ir-portability.md`, and `spec/` against what a real C++ implementation would need beyond the current generic porting checklist.
 

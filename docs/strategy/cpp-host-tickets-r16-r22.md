@@ -1,6 +1,19 @@
 # Ticket-Ready Drafts: R16–R22 (C++ Host Porting Readiness)
 
-Status: **Proposal drafts — not filed as GitHub issues.** Written in the exact shape `docs/process/08-roadmap-ticketing.md` requires for a ticket, ready to paste into GitHub issues by whoever has push access. Source plan: `docs/strategy/cpp-host-release-plan-r16-r22.md`. Per that doc and `docs/process/08-roadmap-ticketing.md`, nothing here is authoritative or committed — these still need approval before filing, let alone implementation.
+Status: **Superseded — not adopted, kept for historical drafting evidence
+only.** The current, approved R16 numbering and scope is
+`docs/strategy/roadmap/r16-r20.md` (epic #756) and its E16-0 contract,
+`docs/design/r16-multi-host-conformance-infrastructure-contract.md` (issue
+#757). That numbering no longer matches this draft one-to-one: current R16
+is the broader Multi-Host Conformance Infrastructure release described
+there (not "spec-runner protocol only"), current R19 is Open Functions and
+Extensible Pattern Dispatch (a language feature, not C++ bring-up), and
+current R20 is the first C++ host release, absorbing what this draft called
+R19. The technical reasoning below (subprocess protocol need, C++ bring-up
+ordering) informed the current contract and is preserved as history; do not
+treat any release number or ticket text below as active.
+
+Original status: **Proposal drafts — not filed as GitHub issues.** Written in the exact shape `docs/process/08-roadmap-ticketing.md` requires for a ticket, ready to paste into GitHub issues by whoever has push access. Source plan: `docs/strategy/cpp-host-release-plan-r16-r22.md`. Per that doc and `docs/process/08-roadmap-ticketing.md`, nothing here is authoritative or committed — these still need approval before filing, let alone implementation.
 
 Ticket ordering follows the required dependency order: contract/spec clarification → failing tests/specs → minimal implementation → docs sync → audit/truth review → migration/follow-up. R16–R18 are contract/infrastructure; R19–R22 are implementation.
 
