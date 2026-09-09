@@ -596,5 +596,22 @@ is never rewritten. Genuinely re-executing the suite against an older
 revision's own historical `spec/` snapshot remains an external-host-CI
 concern, not this runner's job (E16-7, issue #764). Proven by
 `tests/unit/test_spec_runner_revision.py` and
-`tests/unit/test_spec_runner_revision_cli.py`. The next authorized work
-item is **#762 / E16-5 preflight only**.
+`tests/unit/test_spec_runner_revision_cli.py`.
+
+## E16-5 completion note (issue #762)
+
+E16-5 is complete: `hosts/python/protocol_adapter.py` exposes the Python
+reference host as an E16-1 protocol-speaking subprocess command,
+translating transport only -- it wraps the existing
+`hosts/python/adapter.py::run_case` and introduces no Python-private
+semantic shortcut in the generic runner. Proven at full scale by
+`tests/spec/test_python_protocol_adapter_parity_762.py` (marked `slow`):
+the entire real `spec/` suite run through this subprocess path produces
+results identical to the in-process default path for every currently
+applicable case (623/623 matching, 18 unsupported fixture/debug-stdio
+cases as already established by E16-2, 0 protocol/crash/timeout).
+`tests/unit/test_python_protocol_adapter_762.py` separately proves
+transport isolation for real evaluated stdout. The in-process default path
+is retained unchanged as a developer-optimization path, not the
+conformance definition. The next authorized work item is **#763 / E16-6
+preflight only**.
