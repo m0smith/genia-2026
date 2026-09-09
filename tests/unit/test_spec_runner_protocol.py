@@ -38,7 +38,7 @@ def _run(case_id: str, operation: str = "eval", input_payload: dict | None = Non
 
 def test_build_request_rejects_unsupported_operation() -> None:
     with pytest.raises(ProtocolError):
-        build_request("c1", "capabilities", {})
+        build_request("c1", "definitely-not-an-operation", {})
 
 
 def test_build_request_rejects_empty_case_id() -> None:

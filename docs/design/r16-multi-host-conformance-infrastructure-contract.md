@@ -3,9 +3,12 @@
 Status: **Approved contract. E16-0 (issue #757) complete. E16-1 (issue #758)
 complete** — the versioned host-adapter protocol and outcome taxonomy are
 implemented as a standalone module (`tools/spec_runner/protocol.py`),
-proven only against a deterministic fixture adapter; not yet wired into
-`tools/spec_runner`. E16-2 (issue #759) through E16-8 (issue #765) are not
-started. This document locks wire-level
+proven only against a deterministic fixture adapter. E16-2 (issue #759)
+complete** — `tools/spec_runner --host '<command>'` runs applicable cases
+through the E16-1 protocol; the default in-process path is unchanged.
+E16-3 (issue #760) complete** — the `capabilities` operation and per-case
+`requires:` selection are implemented. E16-4 (issue #761) through E16-8
+(issue #765) are not started. This document locks wire-level
 protocol and ownership decisions only; it adds no runtime behavior, no
 subprocess protocol implementation, no Core IR change, and no second host.
 `GENIA_STATE.md` remains final authority for implemented behavior.
@@ -549,6 +552,32 @@ versioning, and outcome taxonomy fixed above for the `parse`, `lower`,
 `eval`, and `cli` operations, proven end-to-end by
 `tests/unit/test_spec_runner_protocol.py` against the deterministic
 `tools/spec_runner/fixtures/protocol_fixture_adapter.py`. No behavior
-beyond this contract was added; the module is not yet consulted by
-`tools/spec_runner`'s case execution. The next authorized work item is
-**#759 / E16-2 preflight only**.
+beyond this contract was added.
+
+## E16-2 completion note (issue #759)
+
+E16-2 is complete: `tools/spec_runner/host_executor.py` and a `--host`
+flag on `tools/spec_runner/runner.py` implement the generic external-host
+execution path exactly as fixed above (category-to-operation mapping,
+capability-agnostic case selection deferred to E16-3, the six-state
+taxonomy propagated into runner reporting). Proven by
+`tests/unit/test_spec_runner_host_executor.py` and
+`tests/unit/test_spec_runner_host_mode_cli.py`, plus running the entire
+real `spec/` suite through the deterministic fixture adapter as a
+transport/taxonomy smoke proof. No host-specific (C++ or otherwise)
+knowledge was added to the runner; the default in-process Python path is
+unchanged.
+
+## E16-3 completion note (issue #760)
+
+E16-3 is complete: `tools/spec_runner/protocol.py` adds the `capabilities`
+operation and its result shape exactly as fixed above;
+`tools/spec_runner/capabilities.py` implements the shared vocabulary check
+and the deterministic `requires`-vs-`supported` selection rule;
+`tools/spec_runner/loader.py` accepts an optional per-case `requires:`
+list; `--host` mode fetches and validates capabilities once per run before
+executing any case. Malformed/unknown capability names (host-claimed or
+case-required) are rejected deterministically, stopping the run before any
+case executes. No spec case currently declares `requires`; this lands the
+mechanism only. Proven by `tests/unit/test_spec_runner_capabilities.py`.
+The next authorized work item is **#761 / E16-4 preflight only**.

@@ -110,3 +110,75 @@ operation beyond the four existing ones; `capabilities` is added by E16-3
 non-semantic fixture used only to prove protocol mechanics and every outcome
 in the taxonomy end-to-end (see `tests/unit/test_spec_runner_protocol.py`).
 It is not a Genia host and must not be treated as one.
+
+## E16-2 generic external-host execution path (issue #759)
+
+`python -m tools.spec_runner --host '<command>'` runs every applicable
+discovered case through an external adapter command speaking the E16-1
+protocol instead of the in-process Python adapter. Pass the full adapter
+command as one shell-quoted string, e.g.:
+
+```bash
+python -m tools.spec_runner --host 'python3 -m my_host.adapter' --host-timeout 10
+```
+
+- `tools/spec_runner/host_executor.py::execute_spec_via_host` maps each
+  `LoadedSpec` onto an E16-1 request (`ir` category -> `lower` operation;
+  `flow`/`error` categories -> `eval` operation, matching the existing
+  in-process routing) and classifies the result into `pass`, `fail`,
+  `unsupported`, `protocol_error`, `crash`, or `timeout`.
+- A case that requires an injected Python-host-only test fixture or the
+  `--debug-stdio` CLI mode is reported `unsupported` locally, without
+  invoking the adapter: neither is expressible over the generic protocol
+  yet. This is a minimal, explicitly labeled interim rule; explicit
+  capability-aware selection is E16-3 (issue #760).
+- The host-mode summary line names every outcome explicitly (`Summary:
+  total=... passed=... failed=... unsupported=... protocol_error=...
+  crash=... timeout=... invalid=...`) so none of them can be silently
+  folded into `passed` or omitted. The run exits nonzero if `failed`,
+  `protocol_error`, `crash`, `timeout`, or `invalid` is nonzero;
+  `unsupported` alone does not fail the run.
+- Running the full real `spec/` suite through the deterministic fixture
+  adapter (not a Genia host) is a proof of the runner path only: it
+  produces `passed=0` (the fixture never reproduces real Genia semantics)
+  with zero `protocol_error`/`crash`/`timeout` and `unsupported` limited to
+  exactly the fixture/debug-stdio-bearing cases, proving the generic
+  transport, taxonomy, and CLI plumbing work across every category without
+  any host-specific knowledge in the runner.
+- **Without `--host`, behavior is unchanged**: `tools.spec_runner.runner.main`
+  still calls the Python adapter in-process by default, exactly as before
+  E16-2. Replacing that default path is E16-5 (issue #762).
+
+## E16-3 host capability advertisement and per-case requirements (issue #760)
+
+`--host` mode now begins every run with exactly one `capabilities` request
+to the adapter (`tools/spec_runner/protocol.py::fetch_capabilities`,
+sentinel `case_id` `__capabilities__`). The response must declare, per
+capability name, whether it is `supported`, `partial`, or `unsupported`;
+every claimed name must come from the vocabulary `genia-2026` already owns
+(`spec/manifest.json`'s `required_capabilities`/`optional_capabilities`,
+formalized in `docs/host-interop/capabilities.md`) — an unknown name is
+rejected as a malformed declaration (`tools/spec_runner/capabilities.py::
+validate_capability_claims`) and the whole run stops with one deterministic
+error before any case is executed, since case selection cannot be trusted
+without it.
+
+- A spec case may declare an optional top-level `requires:` list of
+  capability names in its YAML file. A case with no `requires` belongs to
+  the base required-capability set every conforming host implements by
+  definition and is always applicable. A case with `requires` is applicable
+  only when the host declares every listed capability exactly `supported`
+  (`partial` and undeclared capabilities do not satisfy `requires` in this
+  phase). An unmet requirement is reported `unsupported` — the adapter is
+  never even invoked for that case's own operation.
+- `requires` naming an unknown capability is a spec-loading error (the case
+  becomes `INVALID`, matching every other malformed-spec path already in
+  `tools/spec_runner/loader.py`).
+- Hosts are never required to declare identical capability sets; a host's
+  `unsupported` count for capabilities it never claims is expected, not a
+  regression.
+- Revision/protocol-version validation of the `capabilities` response is
+  limited in this phase to shape correctness (a non-empty
+  `contract_revision` string, a supported `protocol_version`). Pinning that
+  revision against actual `genia-2026` history and reporting current-main
+  drift is E16-4 (issue #761).

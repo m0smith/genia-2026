@@ -6,6 +6,21 @@ This document is the authoritative reference for host capability names, Genia su
 
 A host capability is a named, host-backed service exposed to Genia programs through the runtime substrate — not through language semantics or Core IR. Adding, removing, or renaming a capability requires updating this document, `HOST_CAPABILITY_MATRIX.md`, `GENIA_STATE.md`, and relevant tests.
 
+**R16 E16-3 (issue #760) note:** the names in this document are the single
+vocabulary genia-2026 owns for capability names (mirrored in
+`spec/manifest.json`'s `required_capabilities`/`optional_capabilities`). The
+E16-1 host-adapter protocol's `capabilities` operation
+(`tools/spec_runner/protocol.py`) lets an external host declare, per name in
+that vocabulary, whether it currently claims `supported`, `partial`, or
+`unsupported` — a live per-host claim, distinct from this document's static
+`language contract` / `Python-host-only` / `not implemented` classification
+of what genia-2026 itself defines. A shared spec case may declare an
+optional `requires:` list of these names; `tools/spec_runner`'s `--host`
+mode runs a case only against a host that declares every required name
+`supported`, and reports it `unsupported` otherwise — never silently
+skipped, never counted as a pass. See `tools/spec_runner/README.md` for the
+mechanism.
+
 ---
 
 ## Portability Status Terms

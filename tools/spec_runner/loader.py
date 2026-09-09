@@ -11,6 +11,7 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - exercised in runtime environments
     yaml = None
 
+from .capabilities import CapabilityDeclarationError, validate_case_requirements
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -27,6 +28,7 @@ ALLOWED_TOP_LEVEL_KEYS = {
     "input",
     "expected",
     "notes",
+    "requires",
 }
 
 ALLOWED_INPUT_KEYS_BY_CATEGORY = {
@@ -70,6 +72,7 @@ class LoadedSpec:
     spec_id: str | None = None
     expected_parse: Any | None = None
     fixtures: tuple[str, ...] = ()
+    requires: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -110,6 +113,19 @@ def _validate_top_level(data: dict[str, Any], path: Path) -> None:
 
     if "notes" in data and not isinstance(data["notes"], str):
         raise ValueError("notes must be a string when present")
+
+    if "requires" in data:
+        requires = data["requires"]
+        if (
+            not isinstance(requires, list)
+            or not all(isinstance(item, str) and item for item in requires)
+            or len(set(requires)) != len(requires)
+        ):
+            raise ValueError("requires must be a unique list of non-empty capability name strings")
+        try:
+            validate_case_requirements(tuple(requires))
+        except CapabilityDeclarationError as exc:
+            raise ValueError(str(exc)) from exc
 
 
 def _validate_input(category: str, input_data: dict[str, Any]) -> None:
@@ -294,6 +310,7 @@ def load_spec(path: Path) -> LoadedSpec:
         spec_id=data.get("id"),
         expected_parse=expected_data.get("parse"),
         fixtures=tuple(input_data.get("fixtures", [])),
+        requires=tuple(data.get("requires", [])),
     )
 
 
