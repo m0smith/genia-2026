@@ -54,6 +54,7 @@ Scaffolded or planned, not implemented as hosts:
 - Node.js, Java, Rust, Go, C++: planned only, not implemented
 - `hosts/python/` is now the adapter location, but the core runtime remains in `src/genia/`
 - No generic multi-host runner exists; all conformance is validated against the Python reference host
+- R16 E16-6 (issue #763) bootstrapped [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) as the planned external production-host repository: a repository shell (README/AGENTS naming `genia-2026` as authoritative, a pinned contract revision + E16-1 protocol version, a minimal self-contained non-semantic protocol-participation placeholder) with **no real C++ interpreter**. `hosts/cpp/` here transitioned to a pointer to that repository (see `hosts/cpp/README.md`). Verified end-to-end: running `genia-2026`'s real `tools/spec_runner --host` against that placeholder reports all applicable cases `UNSUPPORTED` (0 pass, 0 fail, 0 protocol_error/crash/timeout) — no false pass.
 
 **Maturity:**
 

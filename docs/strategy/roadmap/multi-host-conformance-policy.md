@@ -109,11 +109,19 @@ A conformance summary should publish, per host and category/capability:
 
 The exact cross-repository CI mechanics remain an R16 design decision. This planning policy requires the observable claims, not a particular CI vendor or checkout strategy.
 
-## Planned host repository transition
+## Host repository transition (complete as of E16-6, issue #763)
 
-R16 may create/bootstrap `m0smith/genia-cpp` as the first external production-host repository, but R16 must not implement the real C++ interpreter. Existing `hosts/cpp/` scaffolding in `genia-2026` should be migrated deliberately so there is never a duplicate authoritative-looking C++ implementation in two locations.
-
-During transition, `hosts/cpp/` may become a pointer/scaffold/metadata location. Production C++ implementation introduced by R19 and later C++ releases belongs in `m0smith/genia-cpp` unless a later approved architecture decision changes this plan.
+R16 E16-6 created/bootstrapped [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)
+as the first external production-host repository: a repository shell
+(`README.md`/`AGENTS.md` naming `genia-2026` as authoritative, a pinned
+`genia-2026` contract revision and E16-1 adapter-protocol version, and a
+minimal, self-contained, non-semantic protocol-participation placeholder)
+with **no real C++ interpreter**. `hosts/cpp/` in `genia-2026` transitioned
+in the same change to a pointer/scaffold location (see `hosts/cpp/
+README.md`); no duplicate authoritative-looking C++ implementation exists
+in two locations. Production C++ implementation belongs in
+`m0smith/genia-cpp`, landing in R20 (`docs/strategy/roadmap/r16-r20.md`),
+unless a later approved architecture decision changes this plan.
 
 ## Scope guardrail
 

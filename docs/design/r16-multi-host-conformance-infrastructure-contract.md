@@ -613,5 +613,29 @@ cases as already established by E16-2, 0 protocol/crash/timeout).
 `tests/unit/test_python_protocol_adapter_762.py` separately proves
 transport isolation for real evaluated stdout. The in-process default path
 is retained unchanged as a developer-optimization path, not the
-conformance definition. The next authorized work item is **#763 / E16-6
-preflight only**.
+conformance definition.
+
+## E16-6 completion note (issue #763)
+
+E16-6 is complete: [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)
+is bootstrapped exactly per the boundary fixed above -- a repository
+shell (`README.md`/`AGENTS.md` naming `genia-2026` as sole authority for
+language/Core IR/specs/protocol, a pinned contract revision
+(`b0cf6921d15cea3205e2674117dddea67d7248b8`) and E16-1 protocol version
+declaration) with **no real C++ interpreter**. Its
+`bootstrap/protocol_adapter_stub.py` is a minimal, self-contained
+placeholder with no runtime dependency on `genia-2026`'s Python package;
+it answers `capabilities` honestly (every capability `unsupported`, no
+operations implemented) and every other operation `unsupported`
+deterministically -- it does not interpret Genia source at all.
+`hosts/cpp/` here transitioned to a pointer (`hosts/cpp/README.md`,
+`hosts/cpp/AGENTS.md`); `docs/host-interop/HOST_PORTING_GUIDE.md` records
+the general external-host repository model for later Node/Java/Rust/Go
+hosts. Verified end-to-end: `genia-2026`'s real `tools/spec_runner --host`
+run against the `genia-cpp` placeholder correctly classifies the pinned
+revision as current-main-compatibility-only (declared revision is a real
+ancestor of this checkout) and reports all 641 applicable cases
+`UNSUPPORTED` -- `0` pass, `0` fail, `0` protocol_error/crash/timeout,
+proving `genia-cpp` participates in the protocol without ever consulting
+Python implementation source. The next authorized work item is **#764 /
+E16-7 preflight only**.
