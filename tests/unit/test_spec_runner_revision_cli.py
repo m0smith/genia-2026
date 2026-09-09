@@ -6,13 +6,12 @@ unresolvable revision, without ever rewriting the host's declared claim.
 """
 from __future__ import annotations
 
-import subprocess
 import sys
 from pathlib import Path
 
 from tools.spec_runner import runner
 from tools.spec_runner.loader import LoadedSpec
-from tools.spec_runner.revision import REPO_ROOT, current_revision
+from tools.spec_runner.revision import current_revision
 
 FIXTURE_ADAPTER_COMMAND = f"{sys.executable} -m tools.spec_runner.fixtures.protocol_fixture_adapter"
 
@@ -45,18 +44,26 @@ def test_declared_revision_matching_current_reports_pinned(monkeypatch, capsys) 
 
 
 def test_declared_ancestor_revision_reports_current_main_compatibility_only(monkeypatch, capsys) -> None:
+    """Stubs runner.check_revision directly rather than relying on a real
+    older commit existing in this checkout's history: CI checks out
+    genia-2026 with --depth=1 (shallow clone), so no commit before HEAD is
+    guaranteed to be locally resolvable here. tests/unit/
+    test_spec_runner_revision.py already proves check_revision's real git
+    behavior against a controlled synthetic repo; this test only proves the
+    runner's wiring/labeling given a resolvable_ancestor classification."""
+    from tools.spec_runner.revision import RevisionCheck
+
     monkeypatch.setattr(runner, "discover_specs", _one_pass_spec)
-    parent = subprocess.run(
-        ["git", "rev-parse", "HEAD~1"], cwd=str(REPO_ROOT), capture_output=True, text=True, check=True
-    ).stdout.strip()
-    monkeypatch.setenv("FIXTURE_CONTRACT_REVISION_OVERRIDE", parent)
+    declared = "a" * 40
+    stub = RevisionCheck(kind="resolvable_ancestor", declared_revision=declared, current_revision=current_revision())
+    monkeypatch.setattr(runner, "check_revision", lambda _declared: stub)
 
     exit_code = runner.main(["--host", FIXTURE_ADAPTER_COMMAND])
     out = capsys.readouterr().out
 
     assert exit_code == 0
     assert "Revision: current-main compatibility only" in out
-    assert parent in out
+    assert declared in out
     assert current_revision() in out
     # The host's own declared claim is never rewritten by the runner.
     assert "Revision: pinned conformance for" not in out

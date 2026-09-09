@@ -53,14 +53,33 @@ def test_check_revision_current_when_declared_equals_head() -> None:
     assert result.current_revision == head
 
 
-def test_check_revision_resolvable_ancestor_for_a_real_older_commit() -> None:
-    parent = subprocess.run(
-        ["git", "rev-parse", "HEAD~1"], cwd=str(REPO_ROOT), capture_output=True, text=True, check=True
-    ).stdout.strip()
-    result = check_revision(parent)
+def test_check_revision_resolvable_ancestor_for_a_real_older_commit(tmp_path) -> None:
+    """Uses a self-contained temp repo with a controlled two-commit history,
+    rather than HEAD~1 on this checkout: CI checks out genia-2026 with
+    --depth=1 (shallow clone), where HEAD~1 does not exist. A synthetic repo
+    keeps this test correct regardless of the real checkout's clone depth."""
+
+    def _git(*args: str) -> str:
+        return subprocess.run(
+            ["git", *args], cwd=str(tmp_path), capture_output=True, text=True, check=True
+        ).stdout.strip()
+
+    _git("init", "-q")
+    _git("config", "user.email", "test@example.com")
+    _git("config", "user.name", "Test")
+    (tmp_path / "a.txt").write_text("1")
+    _git("add", "a.txt")
+    _git("commit", "-q", "-m", "first")
+    first_commit = _git("rev-parse", "HEAD")
+    (tmp_path / "a.txt").write_text("2")
+    _git("add", "a.txt")
+    _git("commit", "-q", "-m", "second")
+    second_commit = _git("rev-parse", "HEAD")
+
+    result = check_revision(first_commit, repo_root=tmp_path)
     assert result.kind == "resolvable_ancestor"
-    assert result.declared_revision == parent
-    assert result.current_revision == current_revision()
+    assert result.declared_revision == first_commit
+    assert result.current_revision == second_commit
 
 
 def test_check_revision_unresolvable_for_unknown_sha() -> None:
