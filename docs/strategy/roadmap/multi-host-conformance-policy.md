@@ -92,22 +92,61 @@ host disagrees with shared evidence
 
 A successful host implementation should not require opening another host's implementation source to infer Genia semantics. Needing Python implementation details to resolve observable behavior is evidence of a portability-contract gap.
 
-## Planned CI model
+## Evidence model and CI expectations (complete as of E16-7, issue #764)
 
-R16 should make a generic runner capable of invoking a host adapter without embedding host-specific implementation knowledge. External-host CI should pin and test a declared `genia-2026` revision. `genia-2026` should also make it easy to run registered hosts, or fixture substitutes where cross-repository credentials are inappropriate, against candidate/current shared specs.
+`tools/spec_runner --host '<command>' --evidence <path>` (`tools/spec_runner/evidence.py`)
+publishes one deterministic JSON evidence document per run, recording exactly the
+observable claims this policy requires:
 
-A conformance summary should publish, per host and category/capability:
+- `protocol_version`
+- `contract_revision`: `declared` (what the host claimed), `checkout` (what
+  this run actually tested against), and `classification` (`current` /
+  `resolvable_ancestor` per E16-4's pinned-conformance-vs-current-main-
+  compatibility distinction — `unresolvable` never reaches evidence, since
+  the run stops before any case executes)
+- `capabilities` (the host's full claimed-capability map) and
+  `capability_operations` (which of `parse`/`lower`/`eval`/`cli` it
+  implements at all)
+- `total_cases` and `applicable_cases` (`total_cases` minus invalid specs)
+- `counts`: `pass`, `fail`, `unsupported`, `protocol_error`, `crash`,
+  `timeout`, `invalid` — every discovered case resolves to exactly one of
+  these; `build_evidence` raises rather than publish a document whose
+  counts do not sum to `total_cases`
 
-- contract revision
-- protocol version
-- claimed capabilities
-- applicable case count
-- pass count
-- fail count
-- unsupported count
-- protocol/crash/timeout count
+The document is a pure function of the run's inputs (`json.dumps(...,
+sort_keys=True, indent=2)`): identical inputs always produce
+byte-identical evidence, so repeated runs are directly comparable. No
+capability or category can be summarized as passing merely because it was
+unsupported or unexecuted — that state is always its own field, never
+folded into `pass`.
 
-The exact cross-repository CI mechanics remain an R16 design decision. This planning policy requires the observable claims, not a particular CI vendor or checkout strategy.
+**External-host CI expectations:**
+
+- pin an exact `genia-2026` revision in CI (checkout that revision, or an
+  equivalent pinned mechanism) and declare it as `contract_revision` in
+  the host's `capabilities` response
+- run `tools/spec_runner --host '<adapter command>' --evidence
+  <artifact-path>` against that pinned checkout; publish the evidence
+  document as a CI artifact
+- fail the CI job on the runner's exit code, which is nonzero exactly
+  when `fail`, `protocol_error`, `crash`, `timeout`, or `invalid` is
+  nonzero — `unsupported` alone never fails the job
+- separately, and non-blocking, run the same host binary against current
+  `genia-2026` `main` to surface `resolvable_ancestor`-classified drift
+  evidence; a host may legitimately show `fail`/drift there while its
+  pinned-revision run stays clean — that is the intended signal, not a
+  contradiction to reconcile
+- `genia-2026` proves this same evidence model works for the Python
+  reference host (`hosts/python/protocol_adapter.py`) and for a fixture/
+  external-bootstrap path (`tools/spec_runner/fixtures/
+  protocol_fixture_adapter.py`; `m0smith/genia-cpp`'s
+  `bootstrap/protocol_adapter_stub.py`) before any real second host is
+  required to use it
+
+The exact cross-repository CI vendor/checkout mechanics beyond "pin a
+revision, run the generic protocol, publish the evidence artifact" remain
+each host repository's own choice; this policy fixes the observable
+claims, not a particular CI product.
 
 ## Host repository transition (complete as of E16-6, issue #763)
 
