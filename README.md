@@ -514,12 +514,19 @@ Boundary validation note:
 
 Python is the only implemented host today, and it remains the current reference host.
 
-The repo now also includes shared portability scaffolding for future hosts:
+The repo now also includes shared portability scaffolding for future hosts, plus a
+generic multi-host conformance runner (R16 E16-1 through E16-7, issues #758-#764;
+see `GENIA_STATE.md` §0):
 
 - host interop contract docs: `docs/host-interop/`
 - Core IR portability note: `docs/architecture/core-ir-portability.md`
 - shared spec suite + manifest: `spec/`
 - host layout/migration notes: `hosts/`
+- `tools/spec_runner --host '<command>'`: runs applicable shared spec cases through a
+  versioned subprocess protocol, with capability advertisement, revision pinning, and
+  deterministic per-host evidence reporting. Proven against the Python reference host
+  and the [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) bootstrap
+  placeholder; no real second production host exists yet.
 
 Alignment rule:
 
@@ -533,7 +540,8 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| Node.js / Java / Rust / Go / C++ | Planned / scaffolded only |
+| C++ | Bootstrapped external repository shell ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)), no real interpreter |
+| Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
 

@@ -143,9 +143,9 @@ Normalization means all observable outputs (values, errors, IR, CLI, flow) are c
 
 ## Not Implemented
 
-- No other hosts are implemented yet.
+- No other host is implemented as a production host yet; `m0smith/genia-cpp` is bootstrapped as a repository shell with no real interpreter (R16 E16-6, issue #763).
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- No generic multi-host runner exists; all conformance is validated against the Python reference host.
+- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7, issues #758-#764; see `GENIA_STATE.md` §0), but no real second production host is implemented yet. All conformance evidence to date is about the Python reference host (through both the in-process and subprocess paths) or non-semantic proof fixtures that do not interpret Genia source.
 
 
 ## Shell Pipeline Stage (Python-Host-Only)

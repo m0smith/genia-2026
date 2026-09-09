@@ -127,11 +127,12 @@ only where measurements justify it and shared conformance proves no observable
 semantic drift.
 
 R8, R9, R10, R11, R12, R13, R14, and R15 are complete. R11, R12, R13, R14, and R15
-APIs remain Experimental, Python is the only implemented host, and shared/multi-host
-conformance remains Partial. R16 is the active release at its completed E16-0
-contract gate (issue #757; contract at
-`docs/design/r16-multi-host-conformance-infrastructure-contract.md`); no R16
-runtime behavior is implemented yet and no generic multi-host runner exists.
+APIs remain Experimental, Python is the only implemented production host, and shared/multi-host
+conformance remains Partial. R16 is complete through E16-7 (issues #757-#764;
+contract at `docs/design/r16-multi-host-conformance-infrastructure-contract.md`):
+a generic multi-host runner now exists (`tools/spec_runner --host`), proven
+against the Python reference host and the bootstrapped `m0smith/genia-cpp`
+placeholder, but no real second production host is implemented yet.
 R17 through R29 are planned and not active.
 R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
 its own gates. Each later behavior slice requires its own
