@@ -7,8 +7,11 @@ proven only against a deterministic fixture adapter. E16-2 (issue #759)
 complete** — `tools/spec_runner --host '<command>'` runs applicable cases
 through the E16-1 protocol; the default in-process path is unchanged.
 E16-3 (issue #760) complete** — the `capabilities` operation and per-case
-`requires:` selection are implemented. E16-4 (issue #761) through E16-8
-(issue #765) are not started. This document locks wire-level
+`requires:` selection are implemented. **E16-4 (issue #761) complete** —
+`--host` mode classifies a host's declared revision as pinned, current-
+main-compatibility-only, or unresolvable, using local git history only.
+E16-5 (issue #762) through E16-8 (issue #765) are not started. This
+document locks wire-level
 protocol and ownership decisions only; it adds no runtime behavior, no
 subprocess protocol implementation, no Core IR change, and no second host.
 `GENIA_STATE.md` remains final authority for implemented behavior.
@@ -580,4 +583,35 @@ executing any case. Malformed/unknown capability names (host-claimed or
 case-required) are rejected deterministically, stopping the run before any
 case executes. No spec case currently declares `requires`; this lands the
 mechanism only. Proven by `tests/unit/test_spec_runner_capabilities.py`.
-The next authorized work item is **#761 / E16-4 preflight only**.
+
+## E16-4 completion note (issue #761)
+
+E16-4 is complete: `tools/spec_runner/revision.py::check_revision`
+classifies a host's declared `contract_revision` using local git history
+only, exactly as fixed above -- `"current"` (exact match, honest pinned-
+conformance evidence), `"resolvable_ancestor"` (a real older commit,
+current-main-compatibility evidence only), or `"unresolvable"` (stops the
+run with exit code 1 before any case executes). The host's declared claim
+is never rewritten. Genuinely re-executing the suite against an older
+revision's own historical `spec/` snapshot remains an external-host-CI
+concern, not this runner's job (E16-7, issue #764). Proven by
+`tests/unit/test_spec_runner_revision.py` and
+`tests/unit/test_spec_runner_revision_cli.py`.
+
+## E16-5 completion note (issue #762)
+
+E16-5 is complete: `hosts/python/protocol_adapter.py` exposes the Python
+reference host as an E16-1 protocol-speaking subprocess command,
+translating transport only -- it wraps the existing
+`hosts/python/adapter.py::run_case` and introduces no Python-private
+semantic shortcut in the generic runner. Proven at full scale by
+`tests/spec/test_python_protocol_adapter_parity_762.py` (marked `slow`):
+the entire real `spec/` suite run through this subprocess path produces
+results identical to the in-process default path for every currently
+applicable case (623/623 matching, 18 unsupported fixture/debug-stdio
+cases as already established by E16-2, 0 protocol/crash/timeout).
+`tests/unit/test_python_protocol_adapter_762.py` separately proves
+transport isolation for real evaluated stdout. The in-process default path
+is retained unchanged as a developer-optimization path, not the
+conformance definition. The next authorized work item is **#763 / E16-6
+preflight only**.

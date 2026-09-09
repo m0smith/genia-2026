@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .comparator import ComparisonFailure
 from .loader import LoadedSpec
+from .revision import RevisionCheck
 
 
 def _format_value(value: object) -> str:
@@ -43,6 +44,34 @@ def report_capabilities_fetch_failed(kind: str, reason: str | None) -> None:
     print(f"{kind.upper()} fetching host capabilities")
     if reason:
         print(f"  reason: {reason}")
+
+
+def report_revision_check_failed(check: RevisionCheck) -> None:
+    """E16-4: the host's declared contract_revision names no commit this
+    local git history has. Neither pinned-conformance nor current-main
+    evidence can be honestly attributed to it, so the run stops here."""
+    print(
+        "UNRESOLVABLE host-declared contract_revision "
+        f"{check.declared_revision!r} (this checkout is at {check.current_revision})"
+    )
+
+
+def report_revision_status(check: RevisionCheck) -> None:
+    """E16-4: state up front, before any case result, exactly what question
+    this run's pass/fail evidence can honestly answer."""
+    if check.kind == "current":
+        print(
+            f"Revision: pinned conformance for {check.declared_revision} "
+            "(host-declared revision matches this checkout exactly)"
+        )
+    else:
+        print(
+            f"Revision: current-main compatibility only -- host declared "
+            f"{check.declared_revision}, this checkout is at {check.current_revision}. "
+            "This run cannot honestly claim pinned conformance for the "
+            "declared revision; a host may still be correctly conforming to "
+            "it while visibly behind current main."
+        )
 
 
 def report_host_outcome(spec: LoadedSpec, kind: str, reason: str | None) -> None:
