@@ -7,6 +7,47 @@ New hosts should align with Python's implemented semantics, not redefine them.
 
 A ready-to-copy host template lives at `hosts/template/`. Copy it and follow `hosts/template/EXAMPLE.md` as your starting point.
 
+## External Host Repository Model (R16 E16-6, issue #763)
+
+A **substantial, independently versioned production host** belongs in its
+own dedicated repository, not in this one. `m0smith/genia-cpp` is the
+first such repository: R16 bootstraps it as a repository shell only (its
+own `README.md`/`AGENTS.md`, a pinned `genia-2026` contract revision plus
+E16-1 adapter-protocol version declaration, and a minimal
+protocol-participation placeholder), with no real C++ interpreter — that
+implementation work is R20, entirely in that repository.
+
+The rule this establishes for any later external host (Node.js, Java,
+Rust, Go, or another C++-style production effort):
+
+- `genia-2026` remains the sole authority for the Genia language contract,
+  Core IR portability boundary, shared specs (`spec/`), the generic
+  conformance runner (`tools/spec_runner`), and the E16-1 host-adapter
+  protocol. An external host repository implements Genia; it never
+  defines Genia, and it never forks or copies `GENIA_STATE.md`,
+  `GENIA_RULES.md`, `GENIA_REPL_README.md`, Core IR docs, or shared specs
+  as editable local truth — it reads them from `genia-2026`.
+- The external repository declares an exact pinned `genia-2026` contract
+  revision and E16-1 adapter-protocol version (see `tools/spec_runner/
+  protocol.py` and `tools/spec_runner/revision.py`), and updates that
+  declaration deliberately as it advances, never silently.
+- When the host's behavior disagrees with shared evidence, the host does
+  not guess from another host's implementation. Per the drift-handling
+  rule in `docs/strategy/roadmap/multi-host-conformance-policy.md`: fix
+  the host if the contract is clear; if the contract is ambiguous, stop
+  and clarify it upstream in `genia-2026` first.
+- The corresponding `hosts/<name>/` directory in `genia-2026` stays a
+  scaffolded placeholder (see `hosts/cpp/README.md` for the pattern) so no
+  duplicate, authoritative-looking implementation ever exists in two
+  repositories at once. It transitions to an explicit pointer only once
+  the external repository actually exists.
+
+A host small enough to develop entirely inside `genia-2026` (a thin
+reference/experimental adapter, not a substantial independent production
+effort) may still use the in-repository `hosts/<name>/` template path
+below without a separate repository; that is a judgment call for each
+host's own bootstrap ticket, not a rule this guide fixes.
+
 ## Required Reading
 
 Read these before writing host code:
