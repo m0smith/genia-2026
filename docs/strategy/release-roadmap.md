@@ -44,10 +44,12 @@ conformance is still validated against the Python reference host only**,
 exactly as `GENIA_STATE.md` §0 states. **#758 / E16-1** (versioned
 host-adapter protocol and failure taxonomy), **#759 / E16-2** (generic
 external-host execution path in `tools/spec_runner`), **#760 / E16-3**
-(host capability advertisement and per-case requirements), and **#761 /
+(host capability advertisement and per-case requirements), **#761 /
 E16-4** (contract revision pinning and current-main compatibility
-reporting) are delivered. The default in-process Python path remains
-unchanged. The next authorized step is **#762 / E16-5 preflight only**.
+reporting), and **#762 / E16-5** (Python reference host proven through
+the subprocess protocol) are delivered. The default in-process Python
+path remains unchanged and available as a developer-optimization path.
+The next authorized step is **#763 / E16-6 preflight only**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 Detailed R16 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).

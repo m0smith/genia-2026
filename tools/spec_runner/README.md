@@ -212,3 +212,42 @@ declared claim.
   `genia-2026` checkout at the declared revision. This runner only
   classifies what one local run against the currently checked-out tree can
   honestly claim; see E16-7 (issue #764) for the evidence/CI contract.
+
+## E16-5 Python reference host through the subprocess protocol (issue #762)
+
+`hosts/python/protocol_adapter.py` exposes the Python reference host as an
+E16-1 protocol-speaking subprocess command, wrapping the existing
+in-process adapter (`hosts/python/adapter.py::run_case`) with no change to
+Python evaluation semantics -- only transport translation, exactly like
+`hosts/python/adapter.py` already does for the in-process path:
+
+```bash
+python -m tools.spec_runner --host 'python -m hosts.python.protocol_adapter'
+```
+
+- Declares every capability in `spec/manifest.json`'s vocabulary as
+  `supported`, except `shared_spec_runner` which it declares `partial`
+  (matching its documented status in
+  `docs/host-interop/HOST_CAPABILITY_MATRIX.md`).
+- Proven at full scale in `tests/spec/
+  test_python_protocol_adapter_parity_762.py` (marked `slow`): running the
+  entire real `spec/` suite through this subprocess path produces the
+  identical outcome as the in-process default path for every currently
+  applicable case (`641 total, 623 passed, 0 failed, 18 unsupported
+  (fixture/debug-stdio cases not yet expressible over the protocol, same
+  as E16-2), 0 protocol_error/crash/timeout`) -- real Genia evaluation
+  through two full subprocess hops per `eval`/`cli` case, not the
+  deterministic fixture.
+- `tests/unit/test_python_protocol_adapter_762.py` proves transport
+  isolation directly: a program that prints non-JSON text to its own
+  stdout during evaluation never corrupts the adapter's envelope; that
+  output arrives only inside `result.stdout`.
+- **The in-process default path (`tools.spec_runner.executor.execute_spec`
+  importing `hosts/python/adapter.py` directly, used when `--host` is
+  omitted) is retained unchanged** as the existing developer-optimization
+  path -- it is not deleted, and it is not the conformance definition. The
+  subprocess protocol path above is what any host, Python included, is
+  actually held to.
+- No Python-private semantic shortcut exists in the generic runner: this
+  adapter uses only the same public `run_case` entrypoint, `LoadedSpec`-
+  shaped translation, and E16-1 envelope every other host must speak.
