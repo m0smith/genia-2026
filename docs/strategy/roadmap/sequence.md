@@ -29,7 +29,7 @@ R14 — Composable Lifecycles
 R15 — Validated Value Modeling
  |
  v
-R16 — Multi-Host Conformance Infrastructure
+R16 — Multi-Host Conformance Infrastructure ✓ COMPLETE
  |
  +----> R17 — Numeric & Ordered-Map Portability Contract
  |
@@ -77,12 +77,14 @@ foundation while preserving R10 protected-value boundaries. R15 extends R9's
 Template foundation with explicitly planned validated-value modeling while
 remaining independent of R14's HTTP implementation.
 
-R16 is generic required infrastructure for every independently implemented
-second host. It also establishes the planned external-host repository boundary,
-contract-revision pinning, capability-aware conformance claims, and the
+R16 is complete required infrastructure for independently implemented second
+hosts. It establishes the external-host repository boundary, contract-revision
+pinning, capability-aware conformance claims, deterministic evidence, and the
 separation between pinned conformance and current-`main` compatibility described
-in [`multi-host-conformance-policy.md`](multi-host-conformance-policy.md). R16 may
-bootstrap `m0smith/genia-cpp`, but does not implement the real C++ interpreter.
+in [`multi-host-conformance-policy.md`](multi-host-conformance-policy.md). The
+generic `tools/spec_runner --host` path is implemented and proven against the
+Python reference host and the non-semantic `m0smith/genia-cpp` bootstrap
+placeholder. R16 does not implement a real C++ interpreter.
 
 R17 and R18 harden shared portability contracts in parallel. R19 then promotes
 open functions / extensible pattern dispatch from the parking lot into an
@@ -126,15 +128,12 @@ work with reproducible cross-host performance evidence; optimization is allowed
 only where measurements justify it and shared conformance proves no observable
 semantic drift.
 
-R8, R9, R10, R11, R12, R13, R14, and R15 are complete. R11, R12, R13, R14, and R15
-APIs remain Experimental, Python is the only implemented production host, and shared/multi-host
-conformance remains Partial. R16 is complete through E16-7 (issues #757-#764;
-contract at `docs/design/r16-multi-host-conformance-infrastructure-contract.md`):
-a generic multi-host runner now exists (`tools/spec_runner --host`), proven
-against the Python reference host and the bootstrapped `m0smith/genia-cpp`
-placeholder, but no real second production host is implemented yet.
-R17 through R29 are planned and not active.
-R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
-its own gates. Each later behavior slice requires its own
-contract/design/test/implementation/documentation/audit gates; roadmap placement
-is not implementation authority.
+R8 through R16 are complete. R11, R12, R13, R14, and R15 APIs remain
+Experimental, Python is the only implemented production host, and shared/multi-
+host conformance remains Partial. R16's E16-0 through E16-8 sequence is complete
+(issues #757-#765; epic #756 closed; skeptical audit PASS in
+`docs/releases/R16.md`). No real second production host is implemented yet.
+R17 through R29 are planned and not active. R10/R11/R12/R13 follow-ups require
+their own gates. Every later release requires its own gates. Each later behavior
+slice requires its own contract/design/test/implementation/documentation/audit
+gates; roadmap placement is not implementation authority.
