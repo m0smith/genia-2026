@@ -110,3 +110,41 @@ operation beyond the four existing ones; `capabilities` is added by E16-3
 non-semantic fixture used only to prove protocol mechanics and every outcome
 in the taxonomy end-to-end (see `tests/unit/test_spec_runner_protocol.py`).
 It is not a Genia host and must not be treated as one.
+
+## E16-2 generic external-host execution path (issue #759)
+
+`python -m tools.spec_runner --host '<command>'` runs every applicable
+discovered case through an external adapter command speaking the E16-1
+protocol instead of the in-process Python adapter. Pass the full adapter
+command as one shell-quoted string, e.g.:
+
+```bash
+python -m tools.spec_runner --host 'python3 -m my_host.adapter' --host-timeout 10
+```
+
+- `tools/spec_runner/host_executor.py::execute_spec_via_host` maps each
+  `LoadedSpec` onto an E16-1 request (`ir` category -> `lower` operation;
+  `flow`/`error` categories -> `eval` operation, matching the existing
+  in-process routing) and classifies the result into `pass`, `fail`,
+  `unsupported`, `protocol_error`, `crash`, or `timeout`.
+- A case that requires an injected Python-host-only test fixture or the
+  `--debug-stdio` CLI mode is reported `unsupported` locally, without
+  invoking the adapter: neither is expressible over the generic protocol
+  yet. This is a minimal, explicitly labeled interim rule; explicit
+  capability-aware selection is E16-3 (issue #760).
+- The host-mode summary line names every outcome explicitly (`Summary:
+  total=... passed=... failed=... unsupported=... protocol_error=...
+  crash=... timeout=... invalid=...`) so none of them can be silently
+  folded into `passed` or omitted. The run exits nonzero if `failed`,
+  `protocol_error`, `crash`, `timeout`, or `invalid` is nonzero;
+  `unsupported` alone does not fail the run.
+- Running the full real `spec/` suite through the deterministic fixture
+  adapter (not a Genia host) is a proof of the runner path only: it
+  produces `passed=0` (the fixture never reproduces real Genia semantics)
+  with zero `protocol_error`/`crash`/`timeout` and `unsupported` limited to
+  exactly the fixture/debug-stdio-bearing cases, proving the generic
+  transport, taxonomy, and CLI plumbing work across every category without
+  any host-specific knowledge in the runner.
+- **Without `--host`, behavior is unchanged**: `tools.spec_runner.runner.main`
+  still calls the Python adapter in-process by default, exactly as before
+  E16-2. Replacing that default path is E16-5 (issue #762).
