@@ -28,8 +28,18 @@ from tools.spec_runner.protocol import (
     build_unsupported_response,
     encode_response,
 )
+from tools.spec_runner.revision import current_revision
 
-FIXTURE_CONTRACT_REVISION = "fixture-adapter-v1"
+
+def _fixture_contract_revision() -> str:
+    """By default, declares the revision this checkout is actually at, so a
+    fixture run is honest pinned-conformance evidence for itself out of the
+    box. A test proving the E16-4 (issue #761) resolvable-ancestor or
+    unresolvable paths may set FIXTURE_CONTRACT_REVISION_OVERRIDE."""
+    override = os.environ.get("FIXTURE_CONTRACT_REVISION_OVERRIDE")
+    if override is not None:
+        return override
+    return current_revision()
 
 
 def _ok_result(operation: str, input_payload: dict[str, Any]) -> dict[str, Any]:
@@ -56,15 +66,16 @@ def handle(request: dict[str, Any]) -> bytes | None:
         # non-semantic fixture, not a real host. A test that needs to prove
         # a host with a *different* claimed set (E16-3, issue #760) may set
         # FIXTURE_CAPABILITIES_OVERRIDE to a JSON object mapping capability
-        # name to status. contract_revision here is a fixture placeholder,
-        # not a real pinned genia-2026 revision (that is E16-4, issue #761).
+        # name to status. contract_revision defaults to this checkout's own
+        # current revision (see _fixture_contract_revision), honest pinned-
+        # conformance evidence for itself (E16-4, issue #761).
         override = os.environ.get("FIXTURE_CAPABILITIES_OVERRIDE")
         if override is not None:
             claimed = json.loads(override)
         else:
             claimed = {name: "supported" for name in sorted(known_capabilities())}
         return encode_response(
-            build_capabilities_response(claimed, ["parse", "lower", "eval", "cli"], FIXTURE_CONTRACT_REVISION)
+            build_capabilities_response(claimed, ["parse", "lower", "eval", "cli"], _fixture_contract_revision())
         )
 
     if case_id == "crash":

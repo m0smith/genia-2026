@@ -177,8 +177,38 @@ without it.
 - Hosts are never required to declare identical capability sets; a host's
   `unsupported` count for capabilities it never claims is expected, not a
   regression.
-- Revision/protocol-version validation of the `capabilities` response is
-  limited in this phase to shape correctness (a non-empty
-  `contract_revision` string, a supported `protocol_version`). Pinning that
-  revision against actual `genia-2026` history and reporting current-main
-  drift is E16-4 (issue #761).
+- Shape correctness of `contract_revision`/`protocol_version` (non-empty
+  string, supported version) is validated at the wire level by
+  `tools/spec_runner/protocol.py`.
+
+## E16-4 contract revision pinning and current-main compatibility (issue #761)
+
+`--host` mode classifies the host's declared `contract_revision` against
+the revision this checkout is actually at right now
+(`tools/spec_runner/revision.py::check_revision`), using local git history
+only -- it never fetches from a remote and never rewrites the host's
+declared claim.
+
+- If the declared revision **is** the revision currently checked out, the
+  run prints `Revision: pinned conformance for <sha>` and this run's
+  pass/fail evidence is honest pinned-conformance evidence for that exact
+  revision.
+- If the declared revision resolves locally but differs from the one
+  checked out (a real, known, older commit), the run prints `Revision:
+  current-main compatibility only -- host declared <sha>, this checkout is
+  at <sha>` and proceeds; the same pass/fail evidence is now honestly
+  labeled a current-main-compatibility check, not pinned conformance for
+  the declared revision. This is expected, not an error: a host can be
+  correctly conforming to its declared revision while visibly behind
+  current `main`.
+- If the declared revision resolves to no commit this local history has,
+  the run prints `UNRESOLVABLE host-declared contract_revision` and stops
+  with exit code 1 **before any case is executed** -- neither pinned nor
+  current-main evidence can be honestly attributed to an unresolvable
+  claim.
+- Genuinely re-running the suite pinned at an *older* revision's own
+  `spec/` snapshot (rather than just labeling a live run against the
+  current tree) is an external-host-CI concern: that CI pins its own
+  `genia-2026` checkout at the declared revision. This runner only
+  classifies what one local run against the currently checked-out tree can
+  honestly claim; see E16-7 (issue #764) for the evidence/CI contract.

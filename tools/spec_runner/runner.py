@@ -16,10 +16,13 @@ from .reporter import (
     report_host_outcome,
     report_host_summary,
     report_invalid,
+    report_revision_check_failed,
+    report_revision_status,
     report_spec_elapsed,
     report_spec_started,
     report_summary,
 )
+from .revision import check_revision
 
 DEFAULT_HOST_TIMEOUT_SECONDS = 10.0
 
@@ -119,6 +122,13 @@ def _run_via_host(args: argparse.Namespace) -> int:
     except CapabilityDeclarationError as exc:
         report_capabilities_fetch_failed("protocol_error", str(exc))
         return 1
+
+    declared_revision = capabilities_outcome.result["contract_revision"]
+    revision_check = check_revision(declared_revision)
+    if revision_check.kind == "unresolvable":
+        report_revision_check_failed(revision_check)
+        return 1
+    report_revision_status(revision_check)
 
     specs, invalid_specs = discover_specs()
 
