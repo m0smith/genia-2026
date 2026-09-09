@@ -1,6 +1,21 @@
 # C++ Host Porting Readiness (genia-2026)
 
-Reviewed 2026-08-28. This repo is already unusually well set up for a second host: a full porting framework exists (`AGENTS.md` truth hierarchy, `docs/host-interop/HOST_PORTING_GUIDE.md`, `docs/host-interop/capabilities.md`, `docs/architecture/core-ir-portability.md`, a 577-case `spec/` conformance suite, and a `hosts/cpp/` directory already scaffolded from `hosts/template/` with `README.md`/`AGENTS.md`, both marked "planned, no implementation yet"). Most of what's left isn't process — it's a handful of concrete technical decisions the docs currently leave to "whatever Python does," plus one real infrastructure gap.
+Status: **Superseded — kept for historical drafting evidence only.** This
+analysis motivated the R16 Multi-Host Conformance Infrastructure release
+(epic #756), which resolved "the one real blocker" this doc identifies:
+`tools/spec_runner --host` now speaks a generic versioned subprocess
+protocol (E16-1 through E16-7, issues #758-#764; contract at
+`docs/design/r16-multi-host-conformance-infrastructure-contract.md`), and
+[`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) is bootstrapped
+as the external C++ host repository (E16-6, issue #763). The remaining
+"Technical decisions C++ will force immediately" below (integer semantics,
+ordered-map representation, Unicode/float formatting, memory/lifecycle
+model, error-text portability) are **not yet resolved** — those are R17
+through R20 (`docs/strategy/roadmap/r16-r20.md`), not R16. Do not treat any
+claim below about the runner itself as current; the rest is preserved as
+the original technical motivation, not deleted.
+
+Original review date: 2026-08-28. This repo is already unusually well set up for a second host: a full porting framework exists (`AGENTS.md` truth hierarchy, `docs/host-interop/HOST_PORTING_GUIDE.md`, `docs/host-interop/capabilities.md`, `docs/architecture/core-ir-portability.md`, a 577-case `spec/` conformance suite, and a `hosts/cpp/` directory already scaffolded from `hosts/template/` with `README.md`/`AGENTS.md`, both marked "planned, no implementation yet"). Most of what's left isn't process — it's a handful of concrete technical decisions the docs currently leave to "whatever Python does," plus one real infrastructure gap.
 
 ## The one real blocker: no multi-host spec runner
 

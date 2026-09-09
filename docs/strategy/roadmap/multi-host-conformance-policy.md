@@ -164,4 +164,9 @@ unless a later approved architecture decision changes this plan.
 
 ## Scope guardrail
 
-This policy is planning/process guidance only. Until R16 lands, current truth remains unchanged: Python is the only implemented/reference host and no generic multi-host runner exists.
+R16 (E16-1 through E16-7, issues #758-#764) has landed: a generic multi-host
+conformance runner now exists (`tools/spec_runner --host`), proven against
+the Python reference host and the `m0smith/genia-cpp` bootstrap placeholder.
+Current truth, unchanged by this policy document: Python remains the only
+implemented **production** host, and no real second production host is
+implemented yet. See `GENIA_STATE.md` §0 for the authoritative statement.

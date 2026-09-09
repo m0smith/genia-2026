@@ -21,7 +21,7 @@ def test_manifest_host_status_matches_portability_docs():
     ]
     assert manifest["host_status"]["scaffolded_host_directories"] == ["hosts/python"]
     assert manifest["host_status"]["planned_hosts"] == ["node", "java", "rust", "go", "cpp"]
-    assert manifest["host_status"]["generic_spec_runner"] == "scaffolded"
+    assert manifest["host_status"]["generic_spec_runner"] == "implemented"
 
     required_docs = [
         "GENIA_STATE.md",

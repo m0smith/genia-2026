@@ -101,7 +101,8 @@
       "go",
       "cpp"
     ],
-    "generic_spec_runner": "scaffolded"
+    "generic_spec_runner": "implemented",
+    "generic_spec_runner_note": "R16 E16-1 through E16-7 (issues #758-#764): tools/spec_runner --host speaks a versioned subprocess protocol (tools/spec_runner/protocol.py) with capability advertisement, revision pinning, and evidence reporting. Proven against the Python reference host and a non-semantic bootstrap placeholder (m0smith/genia-cpp); no real second production host exists yet."
   },
   "host_test_contract": {
     "parse": {

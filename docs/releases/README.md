@@ -28,6 +28,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R13 — Configuration Resolution Ergonomics](R13.md) — COMPLETE; E13-1 through E13-8 delivered
 - [R14 — Composable Lifecycles](R14.md) — COMPLETE; E14-1 through E14-15 delivered
 - [R15 — Validated Value Modeling](R15.md) — COMPLETE; E15-1 through E15-9 delivered
+- [R16 — Multi-Host Conformance Infrastructure](R16.md) — COMPLETE; E16-0 through E16-8 delivered
 
 ## Process
 
