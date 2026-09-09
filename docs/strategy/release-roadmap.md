@@ -47,11 +47,12 @@ external-host execution path in `tools/spec_runner`), **#760 / E16-3**
 (host capability advertisement and per-case requirements), **#761 /
 E16-4** (contract revision pinning and current-main compatibility
 reporting), **#762 / E16-5** (Python reference host proven through
-the subprocess protocol), and **#763 / E16-6** (external-host repository
+the subprocess protocol), **#763 / E16-6** (external-host repository
 boundary; [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)
-bootstrapped) are delivered. The default in-process Python
+bootstrapped), and **#764 / E16-7** (conformance evidence reporting and
+external-host CI contract) are delivered. The default in-process Python
 path remains unchanged and available as a developer-optimization path.
-The next authorized step is **#764 / E16-7 preflight only**.
+The next authorized step is **#765 / E16-8 preflight only**.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 Detailed R16 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).

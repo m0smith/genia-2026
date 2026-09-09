@@ -102,3 +102,8 @@ def report_host_summary(
         f"unsupported={unsupported} protocol_error={protocol_error} "
         f"crash={crash} timeout={timeout} invalid={invalid}"
     )
+
+
+def report_evidence_written(path: str) -> None:
+    """E16-7: confirm where the deterministic evidence document landed."""
+    print(f"Evidence written: {path}")

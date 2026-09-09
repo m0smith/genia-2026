@@ -149,6 +149,42 @@ python -m tools.spec_runner --host 'python3 -m my_host.adapter' --host-timeout 1
   still calls the Python adapter in-process by default, exactly as before
   E16-2. Replacing that default path is E16-5 (issue #762).
 
+## E16-7 conformance evidence reporting (issue #764)
+
+`python -m tools.spec_runner --host '<command>' --evidence <path>` writes
+one deterministic JSON evidence document to `<path>` after the run
+completes:
+
+```json
+{
+  "protocol_version": "1",
+  "contract_revision": {"declared": "<sha>", "checkout": "<sha>", "classification": "current"},
+  "capabilities": {"parser": "supported", "...": "..."},
+  "capability_operations": ["parse", "lower", "eval", "cli"],
+  "total_cases": 641,
+  "applicable_cases": 641,
+  "counts": {"pass": 623, "fail": 0, "unsupported": 18, "protocol_error": 0, "crash": 0, "timeout": 0, "invalid": 0}
+}
+```
+
+- `tools/spec_runner/evidence.py::build_evidence` is a pure function of
+  the capabilities response, the E16-4 revision classification, and the
+  final counts; `encode_evidence` serializes with `sort_keys=True`, so
+  identical inputs produce byte-identical evidence across repeated runs.
+- Every discovered case resolves to exactly one of `pass`/`fail`/
+  `unsupported`/`protocol_error`/`crash`/`timeout`/`invalid`; `build_evidence`
+  raises rather than publish a document whose counts do not sum to
+  `total_cases`. No capability or category can be summarized as passing
+  merely because it was unsupported or unexecuted.
+- No evidence is written when the run stops before any case executes
+  (capabilities fetch failure, malformed capability declaration, or an
+  unresolvable declared revision) — there is nothing honest to publish yet.
+- See `docs/strategy/roadmap/multi-host-conformance-policy.md`'s "Evidence
+  model and CI expectations" section for what external-host CI is expected
+  to do with this: pin a revision, run the generic protocol, publish the
+  artifact, fail the job on the runner's exit code (never on `unsupported`
+  alone), and separately run a non-blocking current-`main` drift check.
+
 ## E16-3 host capability advertisement and per-case requirements (issue #760)
 
 `--host` mode now begins every run with exactly one `capabilities` request

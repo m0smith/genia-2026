@@ -6,12 +6,14 @@ from time import perf_counter
 
 from .capabilities import CapabilityDeclarationError, validate_capability_claims
 from .comparator import compare_spec
+from .evidence import EvidenceCounts, build_evidence, write_evidence
 from .executor import execute_spec
 from .host_executor import execute_spec_via_host
 from .loader import discover_specs
 from .protocol import fetch_capabilities
 from .reporter import (
     report_capabilities_fetch_failed,
+    report_evidence_written,
     report_failure,
     report_host_outcome,
     report_host_summary,
@@ -53,6 +55,17 @@ def _build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_HOST_TIMEOUT_SECONDS,
         metavar="SECONDS",
         help=f"per-case timeout when --host is given (default: {DEFAULT_HOST_TIMEOUT_SECONDS})",
+    )
+    parser.add_argument(
+        "--evidence",
+        metavar="PATH",
+        default=None,
+        help=(
+            "when --host is given, write a deterministic E16-7 evidence "
+            "document (contract revision, protocol version, capabilities, "
+            "applicable-case count, and the full outcome taxonomy) as JSON "
+            "to this path after the run completes"
+        ),
     )
     return parser
 
@@ -177,6 +190,25 @@ def _run_via_host(args: argparse.Namespace) -> int:
         timeout=timeout,
         invalid=invalid,
     )
+
+    if args.evidence is not None:
+        evidence = build_evidence(
+            capabilities_result=capabilities_outcome.result,
+            revision_check=revision_check,
+            total_cases=total,
+            counts=EvidenceCounts(
+                passed=passed,
+                failed=failed,
+                unsupported=unsupported,
+                protocol_error=protocol_error,
+                crash=crash,
+                timeout=timeout,
+                invalid=invalid,
+            ),
+        )
+        write_evidence(args.evidence, evidence)
+        report_evidence_written(args.evidence)
+
     return 0 if failed == 0 and protocol_error == 0 and crash == 0 and timeout == 0 and invalid == 0 else 1
 
 

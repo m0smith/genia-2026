@@ -637,5 +637,31 @@ revision as current-main-compatibility-only (declared revision is a real
 ancestor of this checkout) and reports all 641 applicable cases
 `UNSUPPORTED` -- `0` pass, `0` fail, `0` protocol_error/crash/timeout,
 proving `genia-cpp` participates in the protocol without ever consulting
-Python implementation source. The next authorized work item is **#764 /
-E16-7 preflight only**.
+Python implementation source.
+
+## E16-7 completion note (issue #764)
+
+E16-7 is complete: `python -m tools.spec_runner --host '<command>'
+--evidence <path>` (`tools/spec_runner/evidence.py`) writes exactly the
+per-host evidence document fixed above -- `protocol_version`,
+`contract_revision` (`declared`/`checkout`/`classification`),
+`capabilities`, `capability_operations`, `total_cases`,
+`applicable_cases`, and the full seven-field `counts` taxonomy.
+`build_evidence` is a pure function of its inputs (`encode_evidence` uses
+`sort_keys=True`, so identical inputs produce byte-identical evidence) and
+raises rather than publish a document whose counts do not sum to
+`total_cases`; no evidence is written when the run stops before any case
+executes (capabilities failure or unresolvable revision). Proven against
+both required paths: the Python reference host
+(`hosts/python/protocol_adapter.py`, real full-suite run: `623` pass /
+`18` unsupported / `0` else, revision classified `current`) and the
+`m0smith/genia-cpp` bootstrap placeholder (`641` unsupported / `0` else,
+revision classified `resolvable_ancestor`) -- the same evidence model
+honestly distinguishes pinned conformance from current-main-compatibility-
+only for both. `docs/strategy/roadmap/multi-host-conformance-policy.md`'s
+"Evidence model and CI expectations" section records the external-host CI
+contract this defines: pin a revision, run the generic protocol, publish
+the evidence artifact, fail the job on the runner's exit code (never on
+`unsupported` alone), and separately run a non-blocking current-`main`
+drift check. The next authorized work item is **#765 / E16-8 preflight
+only**.
