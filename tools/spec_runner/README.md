@@ -148,3 +148,37 @@ python -m tools.spec_runner --host 'python3 -m my_host.adapter' --host-timeout 1
 - **Without `--host`, behavior is unchanged**: `tools.spec_runner.runner.main`
   still calls the Python adapter in-process by default, exactly as before
   E16-2. Replacing that default path is E16-5 (issue #762).
+
+## E16-3 host capability advertisement and per-case requirements (issue #760)
+
+`--host` mode now begins every run with exactly one `capabilities` request
+to the adapter (`tools/spec_runner/protocol.py::fetch_capabilities`,
+sentinel `case_id` `__capabilities__`). The response must declare, per
+capability name, whether it is `supported`, `partial`, or `unsupported`;
+every claimed name must come from the vocabulary `genia-2026` already owns
+(`spec/manifest.json`'s `required_capabilities`/`optional_capabilities`,
+formalized in `docs/host-interop/capabilities.md`) — an unknown name is
+rejected as a malformed declaration (`tools/spec_runner/capabilities.py::
+validate_capability_claims`) and the whole run stops with one deterministic
+error before any case is executed, since case selection cannot be trusted
+without it.
+
+- A spec case may declare an optional top-level `requires:` list of
+  capability names in its YAML file. A case with no `requires` belongs to
+  the base required-capability set every conforming host implements by
+  definition and is always applicable. A case with `requires` is applicable
+  only when the host declares every listed capability exactly `supported`
+  (`partial` and undeclared capabilities do not satisfy `requires` in this
+  phase). An unmet requirement is reported `unsupported` — the adapter is
+  never even invoked for that case's own operation.
+- `requires` naming an unknown capability is a spec-loading error (the case
+  becomes `INVALID`, matching every other malformed-spec path already in
+  `tools/spec_runner/loader.py`).
+- Hosts are never required to declare identical capability sets; a host's
+  `unsupported` count for capabilities it never claims is expected, not a
+  regression.
+- Revision/protocol-version validation of the `capabilities` response is
+  limited in this phase to shape correctness (a non-empty
+  `contract_revision` string, a supported `protocol_version`). Pinning that
+  revision against actual `genia-2026` history and reporting current-main
+  drift is E16-4 (issue #761).

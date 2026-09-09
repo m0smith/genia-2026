@@ -35,6 +35,16 @@ def report_summary(*, total: int, passed: int, failed: int, invalid: int) -> Non
     )
 
 
+def report_capabilities_fetch_failed(kind: str, reason: str | None) -> None:
+    """E16-3: the host's mandatory ``capabilities`` query itself did not
+    return a valid, well-formed declaration. Every case is unresolvable
+    without it, so the run stops here with one deterministic error rather
+    than guessing applicability per case."""
+    print(f"{kind.upper()} fetching host capabilities")
+    if reason:
+        print(f"  reason: {reason}")
+
+
 def report_host_outcome(spec: LoadedSpec, kind: str, reason: str | None) -> None:
     """E16-2: report a non-pass/fail host-mode outcome (unsupported,
     protocol_error, crash, or timeout) distinctly from an ordinary FAIL."""
