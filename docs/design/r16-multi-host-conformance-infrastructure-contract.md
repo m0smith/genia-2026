@@ -1,7 +1,11 @@
 # R16 Multi-Host Conformance Infrastructure Contract
 
-Status: **Approved contract. E16-0 (issue #757) complete.** E16-1 (issue #758)
-through E16-8 (issue #765) are not started. This document locks wire-level
+Status: **Approved contract. E16-0 (issue #757) complete. E16-1 (issue #758)
+complete** — the versioned host-adapter protocol and outcome taxonomy are
+implemented as a standalone module (`tools/spec_runner/protocol.py`),
+proven only against a deterministic fixture adapter; not yet wired into
+`tools/spec_runner`. E16-2 (issue #759) through E16-8 (issue #765) are not
+started. This document locks wire-level
 protocol and ownership decisions only; it adds no runtime behavior, no
 subprocess protocol implementation, no Core IR change, and no second host.
 `GENIA_STATE.md` remains final authority for implemented behavior.
@@ -536,3 +540,15 @@ If #757 is reviewed and approved, the next authorized work item is **#758 /
 E16-1 preflight only**.
 
 No E16-2+ implementation is authorized merely because those issues exist.
+
+## E16-1 completion note (issue #758)
+
+E16-1 is complete: `tools/spec_runner/protocol.py` implements exactly the
+request/response envelope, stdout/stderr channel-ownership rule, protocol
+versioning, and outcome taxonomy fixed above for the `parse`, `lower`,
+`eval`, and `cli` operations, proven end-to-end by
+`tests/unit/test_spec_runner_protocol.py` against the deterministic
+`tools/spec_runner/fixtures/protocol_fixture_adapter.py`. No behavior
+beyond this contract was added; the module is not yet consulted by
+`tools/spec_runner`'s case execution. The next authorized work item is
+**#759 / E16-2 preflight only**.
