@@ -16,15 +16,20 @@ Run as: ``python -m tools.spec_runner.fixtures.protocol_fixture_adapter``
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from typing import Any
 
+from tools.spec_runner.capabilities import known_capabilities
 from tools.spec_runner.protocol import (
+    build_capabilities_response,
     build_ok_response,
     build_unsupported_response,
     encode_response,
 )
+
+FIXTURE_CONTRACT_REVISION = "fixture-adapter-v1"
 
 
 def _ok_result(operation: str, input_payload: dict[str, Any]) -> dict[str, Any]:
@@ -43,6 +48,24 @@ def handle(request: dict[str, Any]) -> bytes | None:
     case_id = request["case_id"]
     operation = request["operation"]
     input_payload = request.get("input", {})
+
+    if operation == "capabilities":
+        # By default, deterministically declares every capability
+        # genia-2026 currently defines as "supported" so requires-bearing
+        # cases are never spuriously excluded merely because this is a
+        # non-semantic fixture, not a real host. A test that needs to prove
+        # a host with a *different* claimed set (E16-3, issue #760) may set
+        # FIXTURE_CAPABILITIES_OVERRIDE to a JSON object mapping capability
+        # name to status. contract_revision here is a fixture placeholder,
+        # not a real pinned genia-2026 revision (that is E16-4, issue #761).
+        override = os.environ.get("FIXTURE_CAPABILITIES_OVERRIDE")
+        if override is not None:
+            claimed = json.loads(override)
+        else:
+            claimed = {name: "supported" for name in sorted(known_capabilities())}
+        return encode_response(
+            build_capabilities_response(claimed, ["parse", "lower", "eval", "cli"], FIXTURE_CONTRACT_REVISION)
+        )
 
     if case_id == "crash":
         sys.exit(3)

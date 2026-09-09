@@ -4,15 +4,20 @@ E16-1 versioned host-adapter protocol.
 Implements the wire-level request/response envelope, transport separation,
 protocol-version negotiation, and deterministic outcome taxonomy approved in
 ``docs/design/r16-multi-host-conformance-infrastructure-contract.md``
-(issue #757) for issue #758.
+(issue #757) for issue #758. E16-3 (issue #760) adds the ``capabilities``
+operation and its result shape.
 
 This module is host-neutral: it knows nothing about the Python reference
 host or any other host implementation. It only knows the wire contract.
+It validates the *shape* of a capabilities response only (correct types,
+a known status enum, a non-empty revision string); whether a claimed
+capability name is one genia-2026 actually defines, and how case
+selection uses claims, is E16-3 policy layered on top in
+``tools/spec_runner/host_executor.py`` and
+``tools/spec_runner/capabilities.py``.
 
-Scope (E16-1 only): the four existing operations (``parse``, ``lower``,
-``eval``, ``cli``). The ``capabilities`` operation is added by E16-3
-(issue #760). Wiring this module into ``tools/spec_runner``'s case
-execution is E16-2 (issue #759); this module is usable standalone.
+Wiring this module into ``tools/spec_runner``'s case execution is E16-2
+(issue #759); this module is usable standalone.
 """
 from __future__ import annotations
 
@@ -24,7 +29,9 @@ from typing import Any, Mapping, Sequence
 PROTOCOL_VERSION = "1"
 SUPPORTED_PROTOCOL_VERSIONS = frozenset({PROTOCOL_VERSION})
 
-OPERATIONS = frozenset({"parse", "lower", "eval", "cli"})
+OPERATIONS = frozenset({"parse", "lower", "eval", "cli", "capabilities"})
+CAPABILITY_STATUSES = frozenset({"supported", "partial", "unsupported"})
+CAPABILITIES_CASE_ID = "__capabilities__"
 
 _REQUEST_KEYS = frozenset({"protocol_version", "case_id", "operation", "input"})
 _RESPONSE_KEYS = frozenset(
@@ -109,6 +116,27 @@ def _result_shape_ok(operation: str, result: Any) -> bool:
             and isinstance(result.get("exit_code"), int)
             and not isinstance(result.get("exit_code"), bool)
         )
+    if operation == "capabilities":
+        if set(result.keys()) != {"capabilities", "operations", "contract_revision", "protocol_version"}:
+            return False
+        capabilities = result.get("capabilities")
+        if not isinstance(capabilities, dict) or not all(
+            isinstance(name, str) and isinstance(status, str) and status in CAPABILITY_STATUSES
+            for name, status in capabilities.items()
+        ):
+            return False
+        operations = result.get("operations")
+        non_capabilities_operations = OPERATIONS - {"capabilities"}
+        if not isinstance(operations, list) or not all(
+            isinstance(op, str) and op in non_capabilities_operations for op in operations
+        ):
+            return False
+        if len(set(operations)) != len(operations):
+            return False
+        contract_revision = result.get("contract_revision")
+        if not isinstance(contract_revision, str) or not contract_revision:
+            return False
+        return result.get("protocol_version") in SUPPORTED_PROTOCOL_VERSIONS
     return False
 
 
@@ -251,6 +279,38 @@ def run_adapter_request(
         reason=outcome.reason,
         stdout_raw=stdout_raw,
         stderr_raw=stderr_raw,
+    )
+
+
+def fetch_capabilities(
+    command: Sequence[str],
+    *,
+    timeout: float,
+    cwd: str | None = None,
+    env: Mapping[str, str] | None = None,
+) -> AdapterOutcome:
+    """Send one ``capabilities`` request to an adapter command and classify
+    the response. Uses the fixed sentinel ``CAPABILITIES_CASE_ID`` since a
+    capabilities query is not tied to any particular spec case."""
+    request = build_request(CAPABILITIES_CASE_ID, "capabilities", {})
+    return run_adapter_request(command, request, timeout=timeout, cwd=cwd, env=env)
+
+
+def build_capabilities_response(
+    capabilities: Mapping[str, str],
+    operations: Sequence[str],
+    contract_revision: str,
+) -> dict:
+    """Adapter-side helper: build a valid ``capabilities`` ok response."""
+    return build_ok_response(
+        CAPABILITIES_CASE_ID,
+        "capabilities",
+        {
+            "capabilities": dict(capabilities),
+            "operations": list(operations),
+            "contract_revision": contract_revision,
+            "protocol_version": PROTOCOL_VERSION,
+        },
     )
 
 

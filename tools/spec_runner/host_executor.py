@@ -11,8 +11,9 @@ mapping already documented for the in-process path (``ir`` -> ``lower``;
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any, Mapping, Sequence
 
+from .capabilities import case_is_applicable
 from .comparator import ComparisonFailure, compare_spec
 from .executor import ActualResult
 from .loader import LoadedSpec
@@ -88,13 +89,41 @@ def _outcome_to_actual_result(operation: str, result: dict[str, Any]) -> ActualR
     return ActualResult(stdout=result["stdout"], stderr=result["stderr"], exit_code=result["exit_code"])
 
 
-def execute_spec_via_host(spec: LoadedSpec, host_command: Sequence[str], *, timeout: float) -> HostCaseResult:
+def execute_spec_via_host(
+    spec: LoadedSpec,
+    host_command: Sequence[str],
+    *,
+    timeout: float,
+    host_capabilities: Mapping[str, str] | None = None,
+) -> HostCaseResult:
     """Execute one spec case through an external adapter command speaking
     the E16-1 protocol, and classify it into the deterministic taxonomy.
+
+    ``host_capabilities`` is the host's already-fetched, already-validated
+    ``capabilities`` response (E16-3, issue #760): a mapping from capability
+    name to ``"supported" | "partial" | "unsupported"``. A case declaring
+    ``requires`` is checked against it *before* the adapter is invoked for
+    that case's own operation; an unmet requirement is reported
+    ``unsupported`` and never silently skipped or counted as a pass. A case
+    with no ``requires`` is unaffected by this check regardless of whether
+    ``host_capabilities`` was supplied.
     """
     request = build_host_request(spec)
     if request is None:
         return HostCaseResult(kind="unsupported", reason=_UNSUPPORTED_LOCAL_CAPABILITY_REASON)
+
+    if spec.requires:
+        if host_capabilities is None:
+            return HostCaseResult(
+                kind="unsupported",
+                reason=(
+                    f"case requires explicit host capabilities {list(spec.requires)} "
+                    "but none were declared/fetched for this host"
+                ),
+            )
+        applicable, reason = case_is_applicable(spec.requires, dict(host_capabilities))
+        if not applicable:
+            return HostCaseResult(kind="unsupported", reason=reason)
 
     outcome: AdapterOutcome = run_adapter_request(list(host_command), request, timeout=timeout)
 

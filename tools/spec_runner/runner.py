@@ -4,11 +4,14 @@ import argparse
 import shlex
 from time import perf_counter
 
+from .capabilities import CapabilityDeclarationError, validate_capability_claims
 from .comparator import compare_spec
 from .executor import execute_spec
 from .host_executor import execute_spec_via_host
 from .loader import discover_specs
+from .protocol import fetch_capabilities
 from .reporter import (
+    report_capabilities_fetch_failed,
     report_failure,
     report_host_outcome,
     report_host_summary,
@@ -104,6 +107,19 @@ def _run_in_process(args: argparse.Namespace) -> int:
 
 def _run_via_host(args: argparse.Namespace) -> int:
     host_command = shlex.split(args.host)
+
+    capabilities_outcome = fetch_capabilities(host_command, timeout=args.host_timeout)
+    if capabilities_outcome.kind != "ok":
+        report_capabilities_fetch_failed(capabilities_outcome.kind, capabilities_outcome.reason)
+        return 1
+
+    host_capabilities = capabilities_outcome.result["capabilities"]
+    try:
+        validate_capability_claims(host_capabilities)
+    except CapabilityDeclarationError as exc:
+        report_capabilities_fetch_failed("protocol_error", str(exc))
+        return 1
+
     specs, invalid_specs = discover_specs()
 
     total = len(specs)
@@ -118,7 +134,9 @@ def _run_via_host(args: argparse.Namespace) -> int:
         if args.verbose:
             report_spec_started(spec)
 
-        result = execute_spec_via_host(spec, host_command, timeout=args.host_timeout)
+        result = execute_spec_via_host(
+            spec, host_command, timeout=args.host_timeout, host_capabilities=host_capabilities
+        )
 
         if args.verbose:
             report_spec_elapsed(spec, perf_counter() - start_time)
