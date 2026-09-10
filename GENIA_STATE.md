@@ -2172,7 +2172,7 @@ Not implemented yet:
 - supervision / links / monitors
 - actor-specific syntax
 
-### Integer arithmetic portability (Experimental, R17 E17-2)
+### Integer arithmetic portability (Experimental, R17 complete through E17-3)
 
 - Genia integers exclude booleans and have arbitrary-precision integer semantics.
 - For two integer operands, `+`, `-`, `*`, `%`, `<`, `<=`, `>`, and `>=`
@@ -2187,7 +2187,7 @@ Not implemented yet:
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
 
-### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental in R17 E17-2)
+### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
 - public map helpers are exposed from `src/genia/std/prelude/map.genia`
   - `map_new()`

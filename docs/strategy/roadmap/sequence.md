@@ -86,7 +86,8 @@ generic `tools/spec_runner --host` path is implemented and proven against the
 Python reference host and the non-semantic `m0smith/genia-cpp` bootstrap
 placeholder. R16 does not implement a real C++ interpreter.
 
-R17 and R18 harden shared portability contracts in parallel. R19 then promotes
+R17 has completed its shared numeric and ordered-map portability contract. R18
+is the next planned portability-contract release. R19 then promotes
 open functions / extensible pattern dispatch from the parking lot into an
 explicit host-agnostic language-semantics release. Its contract must settle local
 repeated-clause grouping, explicit cross-module extension, deterministic dispatch
@@ -128,12 +129,12 @@ work with reproducible cross-host performance evidence; optimization is allowed
 only where measurements justify it and shared conformance proves no observable
 semantic drift.
 
-R8 through R16 are complete. R11, R12, R13, R14, and R15 APIs remain
+R8 through R17 are complete. R11, R12, R13, R14, and R15 APIs remain
 Experimental, Python is the only implemented production host, and shared/multi-
 host conformance remains Partial. R16's E16-0 through E16-8 sequence is complete
 (issues #757-#765; epic #756 closed; skeptical audit PASS in
 `docs/releases/R16.md`). No real second production host is implemented yet.
-R17 through R29 are planned and not active. R10/R11/R12/R13 follow-ups require
+R18 through R29 are planned and not active. R10/R11/R12/R13 follow-ups require
 their own gates. Every later release requires its own gates. Each later behavior
 slice requires its own contract/design/test/implementation/documentation/audit
 gates; roadmap placement is not implementation authority.
