@@ -21,7 +21,7 @@ FOCUSED_ROADMAP_DOCS = [
     "docs/strategy/roadmap/r16-r20.md",
     "docs/strategy/roadmap/r21-r24.md",
     "docs/strategy/roadmap/r25-r29.md",
-    "docs/strategy/roadmap/r30-r31.md",
+    "docs/strategy/roadmap/r30-r32.md",
     "docs/strategy/roadmap/sequence.md",
     "docs/strategy/roadmap/parking-lot.md",
 ]
@@ -93,7 +93,7 @@ def test_staging_excludes_frozen_archive_and_unapproved_strategy_documents() -> 
         "r16-r20.md",
         "r21-r24.md",
         "r25-r29.md",
-        "r30-r31.md",
+        "r30-r32.md",
         "sequence.md",
     ]
 
