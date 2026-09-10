@@ -1,0 +1,17 @@
+name: r18-equality-boolean-number-separation
+category: eval
+description: >-
+  R18 portable value equality: booleans are a distinct semantic kind and never
+  compare equal to integers or floats. A conforming host must not inherit a host
+  language in which booleans are a numeric subtype.
+input:
+  source: |
+    [true == 1, false == 0, true == 1.0, false == 0.0, true == true, false == false, true == false]
+expected:
+  stdout: "[false, false, false, false, true, true, false]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 791
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Numeric equality"

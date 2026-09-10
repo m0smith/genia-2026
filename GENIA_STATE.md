@@ -2187,6 +2187,52 @@ Not implemented yet:
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
 
+### Portable value equality (Experimental, R18 partial — E18-1 landed)
+
+Genia has one semantic equality relation. `==` denotes it, `!=` is exactly its
+logical negation, and it is not user-overloadable: no Genia function, Template,
+matcher, or provider can supply, replace, or intercept it. E18-1 adds no public
+function, builtin, operator, or syntax.
+
+In the Python reference host the relation is
+`src/genia/equality.py::genia_equal`, and the evaluator's `==`/`!=` dispatch is
+routed through it. The relation dispatches over an explicit list of Genia
+semantic kinds; it does not fall back to host-language equality for unrecognized
+objects, so a host default cannot define Genia behavior.
+
+Landed by E18-1:
+
+- Values of different semantic kinds are unequal, and kind difference produces
+  `false` rather than an error. The integer/float bridge below is the only
+  cross-kind exception.
+- Booleans are a distinct semantic kind and never compare equal to numbers:
+  `true == 1` and `false == 0` are both `false`. This holds even though the
+  reference host represents booleans as integers.
+- Equal integers are equal. An integer equals a float exactly when the float is
+  finite, integral, and denotes the same mathematical integer; the comparison is
+  exact and does not convert an arbitrary-precision integer to a host float.
+  R17 integer semantics are unchanged.
+- `0.0 == -0.0` is `true`; matching infinities are equal; opposite infinities are
+  not; NaN is unequal to everything including itself, and that non-reflexivity
+  propagates through structural containers.
+- Structural values compare recursively by named semantic contents, not by
+  runtime allocation identity: strings, symbols, Lists, Pairs, `some`/`none`/`err`
+  Outcomes, represented values, RNG states, Format values, byte values,
+  ZIP entries, and Sheets. Two independently constructed byte values with the
+  same bytes are equal. Outcome constructors are never equal across kinds.
+  Represented values compare by facet plus carried value, and representation
+  layers remain ordered.
+- Equality is pure: it performs no IO, acquires nothing, invokes no user code or
+  Template, consumes no Seq or Flow, dereferences no Ref, inspects no
+  Cell/Process/provider state, and mutates neither operand.
+
+Not yet landed, and therefore not yet changed from prior behavior: map equality
+and the legal map-key relation (E18-2); identity-bearing, opaque semantic token,
+and protected-carrier equality (E18-3); and `assert_eq`, literal patterns,
+duplicate pattern bindings, and the remaining equality-like surfaces (E18-4).
+Those families are recognized by the relation and keep their pre-R18 behavior
+until their own slice lands. R18 release truth is consolidated in E18-6.
+
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
 - public map helpers are exposed from `src/genia/std/prelude/map.genia`

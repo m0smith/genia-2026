@@ -1,0 +1,25 @@
+name: r18-equality-nan-non-reflexive
+category: eval
+description: >-
+  R18 portable value equality: NaN is unequal to everything including itself, and
+  that non-reflexivity propagates through structural containers. A conforming host
+  must not shortcut structural comparison by first testing container-element
+  identity, which would wrongly report a NaN-bearing value equal to itself.
+input:
+  source: |
+    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+    pinf = big * big * big
+    nan = pinf - pinf
+    [nan == nan, nan == 0.0, nan == pinf, [nan] == [nan], some(nan) == some(nan), err("e", nan) == err("e", nan), [1, nan] == [1, nan], [1, 2] == [1, 2]]
+expected:
+  stdout: "[false, false, false, false, false, false, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 791
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Numeric equality"
+  note: >-
+    Before R18 the Python reference host reported [nan] == [nan] and
+    some(nan) == some(nan) as true because host list and dataclass comparison
+    test element identity before element equality.

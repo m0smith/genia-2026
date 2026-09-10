@@ -1,0 +1,20 @@
+name: r18-equality-inequality-is-negation
+category: eval
+description: >-
+  R18 portable value equality: != is exactly the logical negation of ==. Every
+  pair is compared both ways and the two results must disagree, so a host cannot
+  implement the two operators through separate relations.
+input:
+  source: |
+    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+    pinf = big * big * big
+    nan = pinf - pinf
+    [true != 1, false != 0, 1 != 1.0, 1 != 1.5, quote(a) != "a", nan != nan, [nan] != [nan], utf8_encode("hi") != utf8_encode("hi"), some(1) != err(1)]
+expected:
+  stdout: "[true, true, false, true, true, true, true, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 791
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Purpose"

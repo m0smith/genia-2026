@@ -1,0 +1,25 @@
+name: r18-equality-exact-int-float-bridge
+category: eval
+description: >-
+  R18 portable value equality: an integer equals a float exactly when the float
+  is finite, integral, and denotes the same mathematical integer. A conforming
+  host must not decide this by converting an arbitrary-precision integer to a
+  host float, so an R17-scale integer near but not equal to a float's exact
+  value compares unequal.
+input:
+  source: |
+    exact = 9007199254740993
+    nearby = 9007199254740992.0
+    [1 == 1.0, 1.0 == 1, 1 == 1.5, 1.5 == 1, 2 == 2.0, exact == nearby, nearby == exact, 9007199254740992 == nearby]
+expected:
+  stdout: "[true, true, false, false, true, false, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 791
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Numeric equality"
+  note: >-
+    9007199254740993 is the first odd integer above 2^53 and is not exactly
+    representable as a binary64 float. Lossy int-to-float conversion would
+    wrongly report it equal to 9007199254740992.0.

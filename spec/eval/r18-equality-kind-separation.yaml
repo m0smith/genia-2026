@@ -1,0 +1,17 @@
+name: r18-equality-kind-separation
+category: eval
+description: >-
+  R18 portable value equality: values of different semantic kinds are unequal, and
+  kind difference yields false rather than an error. The integer/float bridge is
+  the only cross-kind exception in R18.
+input:
+  source: |
+    [quote(a) == "a", "a" == quote(a), quote(a) == quote(a), some(1) == 1, some(1) == none("1"), some(1) == err(1), none("x") == err("x"), "1" == 1, [1] == 1]
+expected:
+  stdout: "[false, false, true, false, false, false, false, false, false]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 791
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Structural rules"

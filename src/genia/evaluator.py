@@ -15,6 +15,7 @@ if __package__ in (None, ""):
     if str(_src_root) not in sys.path:
         sys.path.insert(0, str(_src_root))
     from genia.utf8 import format_debug, format_display
+    from genia.equality import genia_equal
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe
     from genia.ast_nodes import (
@@ -53,6 +54,7 @@ if __package__ in (None, ""):
     from genia.http_annotation_binding import validate_http_annotation_descriptor
 else:
     from .utf8 import format_debug, format_display
+    from .equality import genia_equal
     from .environment import Env
     from .errors import GeniaQuietBrokenPipe
     from .ast_nodes import (
@@ -1464,11 +1466,15 @@ class Evaluator:
             return self.compose_matchers(left, self.eval(node.right))
         if node.op in {"EQEQ", "NE"}:
             right = self.eval(node.right)
+            # R18 (#791): both operators are decided by the one canonical Genia
+            # equality relation. `!=` is exactly the negation of `==`, so the
+            # two arms share a single call rather than two host operators.
+            equal = genia_equal(left, right)
             match node.op:
                 case "EQEQ":
-                    return left == right
+                    return equal
                 case "NE":
-                    return left != right
+                    return not equal
         if is_none(left):
             return left
         if node.op == "AND":
