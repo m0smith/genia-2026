@@ -35,8 +35,10 @@ def test_focused_roadmap_files_cover_active_and_future_releases_once() -> None:
 
     assert len(re.findall(r"^# R15 — Validated Value Modeling$", r15, re.MULTILINE)) == 1
 
+    # Historical filenames are retained to avoid breaking published links, even
+    # though inserting R18 equality shifts their current release coverage by one.
     combined_future = "\n".join([r16_r20, r21_r24])
-    for release in range(16, 25):
+    for release in range(16, 26):
         matches = re.findall(rf"^## Release R{release}\b", combined_future, re.MULTILINE)
         assert len(matches) == 1, f"R{release} should appear exactly once in focused roadmap detail"
 
@@ -50,7 +52,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     parking = read(ROADMAP_DIR / "parking-lot.md")
 
     assert "R8  — Server Execution Mode" in sequence
-    assert "R24 — Sheet Record Pipelines" in sequence
+    assert "R25 — Sheet Record Pipelines" in sequence
     assert "R8 through R17 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
