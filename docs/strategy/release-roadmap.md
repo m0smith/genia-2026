@@ -49,21 +49,23 @@ bootstrap shell with no interpreter.
 contract, three shared semantic cases, authoritative documentation, release
 page, and skeptical audit are delivered. The audit verdict is PASS.
 
-**R18 — Unicode, Float, and Diagnostic Portability Contract** is the next
-planned release. Roadmap placement does not approve its contract or authorize
-implementation.
+**R18 — Portable Value Equality** is the next planned release. Roadmap placement
+does not approve its contract or authorize implementation. It exists to settle
+host-independent structural/identity/opaque-token equality, protected-value
+non-oracle behavior, legal-key reflexivity, map equality, and internal key/hash
+consistency before later portability work and a second host consume those rules.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
-Detailed R16-R20 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
+Detailed R16-R21 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
 
 ## Roadmap files
 
 - **Completed releases R1–R14:** durable release summaries and runnable examples live in `docs/releases/R1.md` through `docs/releases/R14.md`.
 - **R15 completed release detail:** [`roadmap/r15.md`](roadmap/r15.md)
-- **R16–R20:** [`roadmap/r16-r20.md`](roadmap/r16-r20.md)
-- **R21–R24:** [`roadmap/r21-r24.md`](roadmap/r21-r24.md)
-- **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
-- **R30–R32:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
+- **R16–R21:** [`roadmap/r16-r20.md`](roadmap/r16-r20.md)
+- **R22–R25:** [`roadmap/r21-r24.md`](roadmap/r21-r24.md)
+- **R26–R30:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
+- **R31–R33:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -115,21 +117,22 @@ These short anchors are intentionally retained in the canonical index because ex
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
 | R16 | Multi-Host Conformance Infrastructure | Complete | `docs/releases/R16.md` |
 | R17 | Numeric and Ordered-Map Portability Contract | Complete | `docs/releases/R17.md` |
-| R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
-| R19 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
-| R20 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
-| R21 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R22 | C++ REPL and Data Bridges | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R23 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R24 | Sheet Record Pipelines | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R25 | Sheet Shaped Computation | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
-| R26 | Relational Sheet Operations | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
-| R27 | Database Data Boundary | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
-| R28 | Developer Experience and Language Tooling | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
-| R29 | Cross-Host Performance and Optimization Evidence | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
-| R30 | Portable Storage and Resource Semantics | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
-| R31 | Location-Independent Genia Execution | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
-| R32 | Genia-Native Conformance Tooling | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
+| R18 | Portable Value Equality | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R19 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R20 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R21 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R22 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R23 | C++ REPL and Data Bridges | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R24 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R25 | Sheet Record Pipelines | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R26 | Sheet Shaped Computation | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R27 | Relational Sheet Operations | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R28 | Database Data Boundary | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R29 | Developer Experience and Language Tooling | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R30 | Cross-Host Performance and Optimization Evidence | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R31 | Portable Storage and Resource Semantics | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
+| R32 | Location-Independent Genia Execution | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
+| R33 | Genia-Native Conformance Tooling | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 
 ## Scheduling
 
