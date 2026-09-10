@@ -246,12 +246,19 @@ class TestFilterStrictBooleanPredicate:
     Genia boolean), so non-boolean truthy return values cause exclusion.
     """
 
-    def test_int_1_equals_true_in_genia(self):
-        # Python: 1 == True, so Genia guard (apply_raw(pred,[x]) == true) passes for int 1.
-        # Both old Python _filter (truthy(1)==True) and new prelude (1==true is True) include it.
-        # Consistent with any?((x)->1, xs) returning true.
+    def test_int_1_is_not_the_boolean_true_in_genia(self):
+        # R18 (#791): booleans are a distinct semantic kind, so `1 == true` is
+        # false and the prelude guard `apply_raw(pred, [x]) == true` excludes a
+        # predicate that returns the integer 1.
+        #
+        # Before R18 this returned [1, 2, 3] only because the Python reference
+        # host inherited a host language in which booleans are a numeric
+        # subtype. That coercion was never Genia behavior. Excluding non-boolean
+        # returns is what invariant F4 above actually says, and it makes this
+        # case agree with test_string_return_not_truthy and
+        # test_list_return_not_truthy rather than contradicting them.
         result = run("filter((x) -> 1, [1, 2, 3])")
-        assert result == [1, 2, 3]
+        assert result == []
 
     def test_string_return_not_truthy(self):
         # FAILS BEFORE IMPL: currently returns [1, 2] (Python truthy("hello") == True)

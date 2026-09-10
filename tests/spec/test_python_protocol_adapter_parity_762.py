@@ -27,13 +27,15 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     exit_code = runner_module.main(["--host", PROTOCOL_ADAPTER_COMMAND, "--host-timeout", "30"])
     out = capsys.readouterr().out
 
-    # The in-process default path passes all 644 cases (see
+    # The in-process default path passes all 651 cases (see
     # `python -m tools.spec_runner`). 18 of those rely on an injected
     # Python-host-only test fixture or --debug-stdio, neither of which is
     # expressible over the generic protocol yet (E16-2); every other case
     # must pass identically through the subprocess protocol path. R17
     # (issue #778) added 3 ordinary eval-category cases (integer-arithmetic
-    # and map-order portability evidence); none require an unexpressible
-    # fixture, so they pass through the protocol path like any other case.
-    assert "Summary: total=644 passed=626 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # and map-order portability evidence). R18 (issue #791) added 7 ordinary
+    # eval-category cases (portable value-equality evidence). None require an
+    # unexpressible fixture, so they pass through the protocol path like any
+    # other case.
+    assert "Summary: total=651 passed=633 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
