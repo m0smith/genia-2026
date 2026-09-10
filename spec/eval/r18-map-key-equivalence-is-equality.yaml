@@ -1,0 +1,27 @@
+name: r18-map-key-equivalence-is-equality
+category: eval
+description: >-
+  R18 portable value equality: for legal keys, map key identity is exactly Genia
+  ==. Booleans and numbers are distinct kinds and therefore distinct keys, while
+  an integer and an exactly equal float denote one key, as do positive and
+  negative zero. A conforming host must not let its own hash-container key rules
+  decide this.
+input:
+  source: |
+    bools = map_put(map_put(map_new(), true, "bool"), 1, "int")
+    falses = map_put(map_put(map_new(), false, "bool"), 0, "int")
+    nums = map_put(map_put(map_new(), 1, "first"), 1.0, "second")
+    zeros = map_put(map_put(map_new(), 0.0, "pos"), -0.0, "neg")
+    kinds = map_put(map_put(map_new(), "1", "string"), 1, "int")
+    [map_count(bools), map_get(bools, true), map_get(bools, 1), map_count(falses), map_get(falses, false), map_get(falses, 0), map_count(nums), map_get(nums, 1), map_get(nums, 1.0), map_count(zeros), map_get(zeros, 0.0), map_count(kinds)]
+expected:
+  stdout: "[2, \"bool\", \"int\", 2, \"bool\", \"int\", 1, \"second\", \"second\", 1, \"neg\", 2]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 792
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Legal map keys and key equivalence"
+  note: >-
+    Before R18 the host dictionary decided key identity, so true and 1 collapsed
+    into a single entry.

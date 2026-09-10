@@ -1,0 +1,25 @@
+name: r18-map-structural-equality
+category: eval
+description: >-
+  R18 portable value equality: map equality is equality of mappings, not of
+  runtime allocation identity and not of insertion history. Two maps built in
+  different orders with the same mappings are equal, and mapped values are
+  compared with the same relation.
+input:
+  source: |
+    a = map_put(map_put(map_new(), "x", 1), "y", 2)
+    b = map_put(map_put(map_new(), "y", 2), "x", 1)
+    c = map_put(map_put(map_new(), "x", 1), "y", 3)
+    d = map_put(a, "z", 3)
+    [a == a, a == b, b == a, a == c, a == d, map_new() == map_new(), {"k": 1} == {"k": 1.0}, {"k": [1, 2]} == {"k": [1, 2]}]
+expected:
+  stdout: "[true, true, true, false, false, true, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 792
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Map equality"
+  note: >-
+    Before R18 maps had no structural equality at all, so two separately
+    constructed equal-content maps compared unequal.
