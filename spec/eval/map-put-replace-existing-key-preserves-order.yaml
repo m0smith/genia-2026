@@ -1,0 +1,14 @@
+name: map-put-replace-existing-key-preserves-order
+category: eval
+description: >-
+  R17 ordered-map portability contract: map_put on an already-present key
+  replaces only the value and leaves that key's position in map_keys
+  order unchanged.
+input:
+  source: |
+    m = map_put(map_put(map_put(map_new(), "a", 1), "b", 2), "c", 3)
+    map_keys(map_put(m, "a", 99))
+expected:
+  stdout: "[\"a\", \"b\", \"c\"]\n"
+  stderr: ""
+  exit_code: 0

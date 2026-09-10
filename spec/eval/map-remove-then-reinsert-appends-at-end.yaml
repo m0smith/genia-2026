@@ -1,0 +1,15 @@
+name: map-remove-then-reinsert-appends-at-end
+category: eval
+description: >-
+  R17 ordered-map portability contract: once a key is removed it is no
+  longer present, so a later map_put for that key is an ordinary new-key
+  insertion appended at the map's current end, not restored to its prior
+  position.
+input:
+  source: |
+    m = map_put(map_put(map_put(map_new(), "a", 1), "b", 2), "c", 3)
+    map_keys(map_put(map_remove(m, "b"), "b", 200))
+expected:
+  stdout: "[\"a\", \"c\", \"b\"]\n"
+  stderr: ""
+  exit_code: 0
