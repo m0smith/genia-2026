@@ -1,10 +1,8 @@
 # R17 Numeric and Ordered-Map Portability Contract
 
-Status: **Approved contract, evidence landing.** This document is a design
-aid, not language truth on its own. `GENIA_STATE.md` remains final
-authority for implemented behavior; this contract becomes implemented
-truth only once `GENIA_STATE.md` is updated (E17-2, tracked in
-[issue #779](https://github.com/m0smith/genia-2026/issues/779)).
+Status: **Approved contract; shared evidence and authoritative documentation
+landed through E17-2.** This document is a design aid, not language truth on
+its own. `GENIA_STATE.md` remains final authority for implemented behavior.
 
 See also `docs/strategy/roadmap/r16-r20.md` ("Release R17") for roadmap
 positioning, and the R16 precedent
@@ -145,10 +143,9 @@ outright rather than report them unsupported.
 
 ## What remains open after this document
 
-- **E17-2** ([#779](https://github.com/m0smith/genia-2026/issues/779)):
-  land this contract's wording into `GENIA_STATE.md` (new integer-
-  arithmetic subsection; amended "Host-backed persistent associative
-  maps" section) and review `GENIA_RULES.md` for duplicated wording.
+- **E17-2** ([#779](https://github.com/m0smith/genia-2026/issues/779)) landed
+  this contract's wording into `GENIA_STATE.md` and reviewed the other primary
+  documentation for contradictions without duplicating the authoritative prose.
 - **E17-3** ([#780](https://github.com/m0smith/genia-2026/issues/780)):
   skeptical release-truth audit, `docs/releases/R17.md`, and roadmap
   status update.
@@ -159,6 +156,5 @@ outright rather than report them unsupported.
 
 ## Non-Negotiable Rule reminder
 
-Per `AGENTS.md`: any change to language behavior must also update
-`GENIA_STATE.md` and relevant `docs/book/` chapters. This document alone
-does **not** make the above contract implemented truth — E17-2 does.
+Per `AGENTS.md`: `GENIA_STATE.md` remains the final authority. E17-2 records
+the already-tested R17 contract there without changing runtime behavior.
