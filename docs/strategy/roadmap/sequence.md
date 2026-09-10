@@ -65,6 +65,12 @@ R28 — Developer Experience & Language Tooling
  |
  v
 R29 — Cross-Host Performance & Optimization Evidence
+ |
+ v
+R30 — Location-Independent Genia Execution
+ |
+ v
+R31 — Genia-Native Conformance Tooling
 ```
 
 This ordering does not imply that every release is a strict technical dependency
@@ -129,12 +135,33 @@ work with reproducible cross-host performance evidence; optimization is allowed
 only where measurements justify it and shared conformance proves no observable
 semantic drift.
 
+R30 is approved roadmap placement for a future location-independent Execution
+contract, not implemented behavior. It consumes R14 lifecycle ownership and R16
+host protocol/capability/revision lessons, separates inert work description from
+placement/authority/provider mechanics, treats local execution as the first
+provider rather than the semantic model, and explicitly excludes actor mailbox,
+durable-job, scheduler, retry, arbitrary-closure-shipping, shell, storage, and
+equality semantics. Although numbered after R29, its conceptual dependency is
+R14 + R16; later actor-distribution or durable-job work should reuse R30 rather
+than invent a second launch/placement/compatibility model.
+
+R31 depends on R30 and is the planned Genia-native conformance-tooling migration.
+Its external-invocation stage MUST consume R30 rather than adding an ad hoc
+subprocess API. It must also consume separately approved storage/resource
+discovery and equality/comparison contracts for the runner's remaining boundary
+needs. The Genia runner should first prove local-provider parity with the existing
+R16 runner and then prove provider-independence with one deliberately small remote
+fixture: switching execution provider/placement must not require changes to the
+runner program, shared cases, or conformance semantics. Python runner/bootstrap
+infrastructure remains until independent parity/evidence justifies a separate
+removal gate.
+
 R8 through R17 are complete. R11, R12, R13, R14, and R15 APIs remain
 Experimental, Python is the only implemented production host, and shared/multi-
 host conformance remains Partial. R16's E16-0 through E16-8 sequence is complete
 (issues #757-#765; epic #756 closed; skeptical audit PASS in
 `docs/releases/R16.md`). No real second production host is implemented yet.
-R18 through R29 are planned and not active. R10/R11/R12/R13 follow-ups require
+R18 through R31 are planned and not active. R10/R11/R12/R13 follow-ups require
 their own gates. Every later release requires its own gates. Each later behavior
 slice requires its own contract/design/test/implementation/documentation/audit
 gates; roadmap placement is not implementation authority.
