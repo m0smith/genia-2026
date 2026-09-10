@@ -1,8 +1,8 @@
 # R17 Numeric and Ordered-Map Portability Contract
 
-Status: **Approved contract; shared evidence and authoritative documentation
-landed through E17-2.** This document is a design aid, not language truth on
-its own. `GENIA_STATE.md` remains final authority for implemented behavior.
+Status: **Complete — E17-0 through E17-3 delivered; skeptical release audit
+PASS.** This document is a design aid, not language truth on its own.
+`GENIA_STATE.md` remains final authority for implemented behavior.
 
 See also `docs/strategy/roadmap/r16-r20.md` ("Release R17") for roadmap
 positioning, and the R16 precedent
@@ -146,9 +146,9 @@ outright rather than report them unsupported.
 - **E17-2** ([#779](https://github.com/m0smith/genia-2026/issues/779)) landed
   this contract's wording into `GENIA_STATE.md` and reviewed the other primary
   documentation for contradictions without duplicating the authoritative prose.
-- **E17-3** ([#780](https://github.com/m0smith/genia-2026/issues/780)):
-  skeptical release-truth audit, `docs/releases/R17.md`, and roadmap
-  status update.
+- **E17-3** ([#780](https://github.com/m0smith/genia-2026/issues/780)) completed
+  the skeptical release-truth audit, published `docs/releases/R17.md`, and
+  synchronized release navigation and roadmap status.
 - The map `==` identity-equality open question above, which needs its
   own separately gated decision before any change.
 

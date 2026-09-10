@@ -44,9 +44,14 @@ deterministic conformance evidence are all landed. Python remains the only
 implemented production host; the C++ repository is still a non-semantic
 bootstrap shell with no interpreter.
 
-No later release has an approved contract yet. **R17 — Numeric and Ordered-Map
-Portability Contract** is the next planned release and must begin with its own
-preflight/contract gate.
+**R17 — Numeric and Ordered-Map Portability Contract** is complete. Epic
+**#776** covers **#777 / E17-0** through **#780 / E17-3**; its approved
+contract, three shared semantic cases, authoritative documentation, release
+page, and skeptical audit are delivered. The audit verdict is PASS.
+
+**R18 — Unicode, Float, and Diagnostic Portability Contract** is the next
+planned release. Roadmap placement does not approve its contract or authorize
+implementation.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 Detailed R16-R20 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
@@ -85,6 +90,7 @@ These short anchors are intentionally retained in the canonical index because ex
 - Release R14 — Composable Lifecycles ✓ COMPLETE. E14-1 through E14-15 are implemented; R14 is complete.
 - Release R15 — Validated Value Modeling ✓ COMPLETE. E15-0 through E15-9 are implemented and audited; R15 is complete.
 - Release R16 — Multi-Host Conformance Infrastructure ✓ COMPLETE. E16-0 through E16-8 are delivered and audited; R16 is complete.
+- Release R17 — Numeric and Ordered-Map Portability Contract ✓ COMPLETE. E17-0 through E17-3 are delivered and audited; R17 is complete.
 - R10/R11/R12/R13 follow-ups require their own gates.
 
 ## Release status
@@ -107,7 +113,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R14 | Composable Lifecycles | Complete | `docs/releases/R14.md` |
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
 | R16 | Multi-Host Conformance Infrastructure | Complete | `docs/releases/R16.md` |
-| R17 | Numeric and Ordered-Map Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R17 | Numeric and Ordered-Map Portability Contract | Complete | `docs/releases/R17.md` |
 | R18 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R19 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R20 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |

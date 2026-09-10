@@ -52,6 +52,7 @@ nav:
       - "R14 — Composable Lifecycles": releases/R14.md
       - "R15 — Validated Value Modeling": releases/R15.md
       - "R16 — Multi-Host Conformance Infrastructure": releases/R16.md
+      - "R17 — Numeric and Ordered-Map Portability Contract": releases/R17.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md
