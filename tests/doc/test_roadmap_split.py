@@ -50,7 +50,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     parking = read(ROADMAP_DIR / "parking-lot.md")
 
     assert "R8  — Server Execution Mode" in sequence
-    assert "R24 — Sheet Record Pipelines" in sequence
+    assert "R25 — Sheet Record Pipelines" in sequence
     assert "R8 through R17 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
