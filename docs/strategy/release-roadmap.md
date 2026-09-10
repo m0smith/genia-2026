@@ -63,7 +63,7 @@ Detailed R16-R20 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
 - **R16–R20:** [`roadmap/r16-r20.md`](roadmap/r16-r20.md)
 - **R21–R24:** [`roadmap/r21-r24.md`](roadmap/r21-r24.md)
 - **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
-- **R30–R31:** [`roadmap/r30-r31.md`](roadmap/r30-r31.md)
+- **R30–R32:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -127,8 +127,9 @@ These short anchors are intentionally retained in the canonical index because ex
 | R27 | Database Data Boundary | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R28 | Developer Experience and Language Tooling | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R29 | Cross-Host Performance and Optimization Evidence | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
-| R30 | Location-Independent Genia Execution | Planned | [`roadmap/r30-r31.md`](roadmap/r30-r31.md) |
-| R31 | Genia-Native Conformance Tooling | Planned | [`roadmap/r30-r31.md`](roadmap/r30-r31.md) |
+| R30 | Portable Storage and Resource Semantics | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
+| R31 | Location-Independent Genia Execution | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
+| R32 | Genia-Native Conformance Tooling | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 
 ## Scheduling
 
