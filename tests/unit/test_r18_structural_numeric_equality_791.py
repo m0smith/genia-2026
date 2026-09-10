@@ -19,11 +19,13 @@ from genia.equality import genia_equal
 from genia.sheet import GeniaSheet
 from genia.values import (
     GeniaBytes,
+    GeniaFlow,
     GeniaFormat,
     GeniaOptionErr,
     GeniaOptionNone,
     GeniaOptionSome,
     GeniaPair,
+    GeniaRef,
     GeniaRepresented,
     GeniaRng,
     GeniaSymbol,
@@ -289,6 +291,43 @@ def test_equality_does_not_invoke_callables_nested_in_structural_values() -> Non
     genia_equal([spy], [spy])
     genia_equal(GeniaOptionSome(spy), GeniaOptionSome(spy))
     assert calls == [], "equality must never invoke a value"
+
+
+def test_equality_does_not_consume_a_flow_or_seq() -> None:
+    """Comparing Flow/Seq values must not pull a single element.
+
+    The families themselves are classified by #793; this asserts the purity
+    invariant that already applies: equality must never advance a lazy source,
+    directly or through a structural container.
+    """
+    pulls: list[int] = []
+
+    def counting_source() -> object:
+        pulls.append(1)
+        yield 1
+
+    left = GeniaFlow(counting_source, label="left")
+    right = GeniaFlow(counting_source, label="right")
+
+    genia_equal(left, right)
+    genia_equal(left, left)
+    genia_equal([left], [right])
+    genia_equal(GeniaOptionSome(left), GeniaOptionSome(right))
+
+    assert pulls == [], "equality must not consume a lazy source"
+    # and the flows remain usable afterwards
+    assert list(left.consume()) == [1]
+
+
+def test_equality_does_not_dereference_a_ref() -> None:
+    """Equality compares Ref values without reading what they refer to."""
+    left = GeniaRef([1, 2, 3])
+    right = GeniaRef([1, 2, 3])
+
+    # Distinct Refs holding equal contents are not made equal by their contents.
+    assert genia_equal(left, right) is False
+    assert genia_equal(left, left) is True
+    assert genia_equal([left], [right]) is False
 
 
 def test_equality_does_not_mutate_operands() -> None:
