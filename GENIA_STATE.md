@@ -2172,7 +2172,22 @@ Not implemented yet:
 - supervision / links / monitors
 - actor-specific syntax
 
-### Host-backed persistent associative maps (Phase 1 bridge)
+### Integer arithmetic portability (Experimental, R17 E17-2)
+
+- Genia integers exclude booleans and have arbitrary-precision integer semantics.
+- For two integer operands, `+`, `-`, `*`, `%`, `<`, `<=`, `>`, and `>=`
+  produce the mathematically exact integer result or relational result regardless
+  of magnitude. Unary `-` likewise produces the mathematically exact integer.
+- These integer operations do not overflow, wrap, saturate, or truncate because
+  of a host's fixed-width integer representation. A host must not silently
+  narrow Genia integers to a fixed-width host integer.
+- This contract is independent of the existing R9 JSON safe-integer boundary.
+  The JSON-domain restriction remains exactly `[-9007199254740991,
+  9007199254740991]` at `json_encode`/`json_decode`; it does not bound ordinary
+  Genia integer arithmetic.
+- `/` and float-producing numeric behavior are outside R17 and are unchanged.
+
+### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental in R17 E17-2)
 
 - public map helpers are exposed from `src/genia/std/prelude/map.genia`
   - `map_new()`
@@ -2194,16 +2209,32 @@ Behavior:
 
 - map values are opaque runtime values (`<map N>`) and do not expose host methods
 - module imports produce opaque module namespace values (`<module name>`)
-- `map_new` returns an empty map
+- `map_new` returns an empty map with an empty key order
 - `map_put` and `map_remove` are persistent (return a new map, do not mutate input map)
+- a newly associated key is appended to the end of the current key order
+- `map_put(map, existing_key, new_value)` replaces the value without changing
+  that key's position
+- `map_remove` removes a present key while preserving the relative order of the
+  remaining keys; removing a missing key leaves the ordering unchanged
+- re-inserting a key after removal appends that key at the current end
+- map literals associate entries from left to right; when a literal repeats a
+  key, the last value wins while the key retains the position established by
+  its first association
 - `map_get` returns stored value or `none("missing-key", {key: key})` when key is missing
 - `map_has?` returns `true`/`false`
 - `map_count` returns entry count
-- `map_items` returns a list of `[key, value]` pairs in insertion order
+- `map_items` returns a list of `[key, value]` pairs in the deterministic map order above
 - `map_item_key` extracts the key from a `[key, value]` pair produced by `map_items`
 - `map_item_value` extracts the value from a `[key, value]` pair produced by `map_items`
-- `map_keys` returns a list of all keys in insertion order
-- `map_values` returns a list of all values in insertion order
+- `map_keys` returns all keys in the deterministic map order above
+- `map_values` returns the corresponding values in that same order
+- portable map order is distinct from map equality, map pattern matching, and
+  `json_encode`'s sorted object-member-name output; R17 changes none of those
+- map patterns continue to match structurally by content rather than order
+- current limitation/open question: separately constructed maps with equal
+  content compare by Python host-object identity under `==`, rather than by
+  structural equality. R17 does not establish that observation as intended
+  portable equality semantics; map equality remains unresolved outside R17
 - `pairs(xs, ys)` zips two lists into a list of two-element list pairs:
   - pair order follows input order
   - each output item is `[x, y]`, not a tuple or Pair value
