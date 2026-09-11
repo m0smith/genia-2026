@@ -1,8 +1,8 @@
 # R19 Unicode and Diagnostic Portability Pre-flight
 
-Status: **Planning contract — non-authoritative.** `GENIA_STATE.md` remains final authority for implemented behavior.
+Status: **E19-0 COMPLETE — contract approved; GO for E19-1.** `GENIA_STATE.md` remains final authority for implemented behavior. This pre-flight records readiness only and does not make proposed R19 behavior implemented.
 
-R19 follows completed R18 Portable Value Equality. This pre-flight establishes the scope and implementation discipline for R19 before any runtime/spec behavior changes begin.
+R19 follows completed R18 Portable Value Equality. This pre-flight establishes the scope and implementation discipline for R19 before runtime/spec behavior changes begin.
 
 ## 1. Scope lock
 
@@ -26,7 +26,7 @@ R19 does **not** include:
 - Open Functions / extensible pattern dispatch
 - C++ host implementation
 
-The former F1 float-rendering blocker is split out into a separate exact-numeric-model workstream. See `docs/design/exact-numeric-model-preflight.md`.
+The former F1 float-rendering blocker is split out into a separate exact-numeric-model workstream. See `docs/design/exact-numeric-model-preflight.md` and `docs/design/exact-numeric-model-resolved-decisions.md`.
 
 ## 2. Source of truth
 
@@ -47,15 +47,16 @@ Relevant planning/evidence inputs:
 - `docs/analysis/r19-diagnostic-contract-inventory.md`
 - `docs/analysis/r19-float-current-behavior-inventory.md` (historical/current-state evidence for the separate numeric workstream)
 - `docs/design/exact-numeric-model-preflight.md`
+- `docs/design/exact-numeric-model-resolved-decisions.md`
 - `docs/design/r21-cpp-host-preflight.md`
 
 Current Python implementation is evidence, not semantic authority.
 
 ## 3. Feature maturity
 
-Stage before implementation: **Planned contract hardening / not active**.
+E19-0 planning/contract hardening is complete. The narrowed Unicode + diagnostic contract is approved, and E19-1 is authorized to begin through the normal design/test/implementation/documentation/audit workflow.
 
-E19-0 may add analysis/design/process documentation only. It must not describe proposed rules as implemented Genia behavior.
+E19-0 itself added analysis/design/process documentation only. It did not implement the approved rules or change `GENIA_STATE.md`.
 
 ## 4. Approved Unicode decisions
 
@@ -141,6 +142,8 @@ E19-0 produced three inventories:
 
 After the numeric split, the float inventory is retained as current-state evidence but is no longer an R19 implementation gate. Unicode and diagnostic inventories remain the R19 gate inputs.
 
+The diagnostic mechanical-inventory procedure is approved: before E19-3 changes diagnostic construction, E19-2 must mechanically map each exact/substring assertion to trigger, phase, semantic family, construction site, interpolation/rendering, security implications, and A/B/C classification.
+
 ## 8. Test strategy after approval
 
 Unicode evidence should cover:
@@ -160,9 +163,11 @@ Diagnostic evidence should cover:
 - host exception normalization
 - protected-value redaction
 
+These families are approved as sufficient minimum evidence for the independent-host acceptance criterion; implementation may add narrower regression cases but may not weaken the approved families.
+
 ## 9. Expected work slices
 
-Proposed sequencing after E19-0 approval:
+Approved sequencing:
 
 - **E19-1 — Unicode portable semantics implementation + shared evidence**
 - **E19-2 — complete diagnostic assertion/source inventory and classification**
@@ -185,9 +190,21 @@ Likely later implementation/doc surfaces:
 - `GENIA_REPL_README.md` / `README.md` only where public behavior is documented
 - host portability docs/capability evidence where necessary
 
-The separate numeric release will own `src/genia/_format_engine.py` changes that depend on Decimal/Rational/Float64 semantics.
+The separate numeric release owns `src/genia/_format_engine.py` changes that depend on Decimal/Rational/Float64 semantics.
 
-## 11. Branching and change discipline
+## 11. Compatibility review result
+
+The E19-0 compatibility review passes:
+
+- R17 ordered-map semantics are unchanged
+- R18 equality/key/protected/opaque semantics are preserved
+- R9 JSON boundaries are unchanged
+- R10 protected-value non-leakage remains mandatory for diagnostic rendering
+- R16 adapter outcomes remain distinct from Genia program diagnostics
+
+No compatibility conflict blocks E19-1.
+
+## 12. Branching and change discipline
 
 Work must occur on a dedicated branch, never directly on `main`.
 
@@ -203,8 +220,10 @@ Each implementation slice must:
 
 ## Final go/no-go
 
-**GO for E19-0 planning artifacts with U1/U2/U3 approved.**
-
-**NO-GO for R19 runtime/spec behavior changes until the narrowed Unicode + diagnostic contract is explicitly approved.**
+**E19-0 is complete. The narrowed Unicode + diagnostic contract is approved. GO for E19-1.**
 
 **NO-GO for Decimal/Rational/Float64 implementation under R19; that work requires its own release gate.**
+
+The governing rule remains:
+
+> R19 converts observed Python defaults into explicit Genia portability contracts; it does not give Python defaults permanent authority merely because they exist today.
