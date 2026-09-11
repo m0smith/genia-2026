@@ -1,4 +1,4 @@
-# R19 Unicode, Float, and Diagnostic Portability Pre-flight
+# R19 Unicode and Diagnostic Portability Pre-flight
 
 Status: **Planning contract — non-authoritative.** `GENIA_STATE.md` remains final authority for implemented behavior.
 
@@ -9,7 +9,6 @@ R19 follows completed R18 Portable Value Equality. This pre-flight establishes t
 R19 includes only:
 
 - portable Unicode/string semantics required by existing Genia surfaces
-- canonical float display/debug rendering
 - classification and normalization of portable diagnostic text/identity where shared conformance observes it
 - shared evidence sufficient for an independent host to reproduce those surfaces
 
@@ -18,12 +17,16 @@ R19 does **not** include:
 - new string syntax or broad new string APIs
 - grapheme-cluster processing
 - locale-sensitive formatting/collation
+- float/Decimal/Rational numeric-model redesign
+- canonical Float64 rendering
 - new numeric types or approximate equality
-- changes to R18 equality/key semantics
+- changes to R18 equality/key semantics except as a later separately approved numeric release may supersede them
 - redesign of error categories
 - new host-adapter protocol outcome categories
-- Open Functions / extensible pattern dispatch (R20)
-- C++ host implementation (R21)
+- Open Functions / extensible pattern dispatch
+- C++ host implementation
+
+The former F1 float-rendering blocker is split out into a separate exact-numeric-model workstream. See `docs/design/exact-numeric-model-preflight.md`.
 
 ## 2. Source of truth
 
@@ -41,8 +44,9 @@ Relevant planning/evidence inputs:
 - `docs/releases/R18.md`
 - `docs/design/r18-portable-value-equality-contract.md`
 - `docs/analysis/r19-unicode-current-behavior-inventory.md`
-- `docs/analysis/r19-float-current-behavior-inventory.md`
 - `docs/analysis/r19-diagnostic-contract-inventory.md`
+- `docs/analysis/r19-float-current-behavior-inventory.md` (historical/current-state evidence for the separate numeric workstream)
+- `docs/design/exact-numeric-model-preflight.md`
 - `docs/design/r21-cpp-host-preflight.md`
 
 Current Python implementation is evidence, not semantic authority.
@@ -53,80 +57,100 @@ Stage before implementation: **Planned contract hardening / not active**.
 
 E19-0 may add analysis/design/process documentation only. It must not describe proposed rules as implemented Genia behavior.
 
-## 4. Contract vs implementation
+## 4. Approved Unicode decisions
 
-Portable contract to define:
+The following E19-0 decisions are approved for the R19 contract but are not implemented merely by this planning document.
 
-- string/code-point model and UTF-8 boundary semantics
-- canonical debug escaping
-- canonical float rendering
-- exact vs structured diagnostic portability boundaries
+### U1 — code-point slicing
+
+Genia string slicing is by Unicode scalar/code-point index, not UTF-8 byte offset and not grapheme cluster.
+
+Normalize slice bounds as follows:
+
+- omitted start -> `0`
+- omitted end -> code-point length
+- negative indices count from the end
+- after negative-index adjustment, bounds below `0` clamp to `0`
+- bounds above length clamp to length
+- if normalized start is greater than or equal to normalized end, the result is the empty string
+
+### U2 — strict UTF-8 decode boundaries
+
+Where an existing Genia/host boundary claims to decode UTF-8:
+
+- valid input decodes to the exact Unicode scalar sequence
+- malformed UTF-8 fails deterministically
+- no implicit U+FFFD replacement is permitted
+- raw host decoder exception text must not cross the portable boundary
+- the boundary keeps its already-approved Outcome/diagnostic shape; R19 does not invent a new universal decode API
+
+### U3 — deterministic debug escaping
+
+Debug strings retain the short escapes:
+
+- backslash -> `\\`
+- double quote -> `\"`
+- newline -> `\n`
+- carriage return -> `\r`
+- tab -> `\t`
+
+Every other C0 control (`U+0000..U+001F`), DEL (`U+007F`), and C1 control (`U+0080..U+009F`) renders as lowercase `\uXXXX` hexadecimal. Other Unicode scalar values render literally.
+
+## 5. Current implementation facts
 
 Python reference-host implementation currently:
 
 - relies on Python `str` for code-point iteration/slicing
 - encodes Python strings to UTF-8 for byte-length/boundary helpers
-- uses Python `str(float)` / `repr(float)` for general float display/debug
 - contains exact shared error stderr assertions while diagnostic identity metadata is mostly informational
+- still uses Python binary floats and Python `str(float)` / `repr(float)` today; that fact is now input to the separate exact-numeric-model workstream rather than an R19 contract target
 
 Not implemented by E19-0:
 
-- any new canonical formatter
 - any Unicode runtime change
 - any diagnostic centralization
 - any new shared spec
+- any exact numeric model change
 - any R19 `GENIA_STATE.md` behavior claim
 
-## 5. Core invariants to preserve
+## 6. Core invariants to preserve
 
 R19 MUST preserve:
 
 - R17 ordered-map semantics
-- R18 equality, legal-key, protection, and opaque/identity semantics
-- R9 JSON representation boundaries unless separately affected and explicitly reconciled
+- current R18 equality, legal-key, protection, and opaque/identity semantics
+- R9 JSON representation boundaries
 - R10 protected-value non-leakage
 - R16 host-adapter outcome taxonomy separation
-- existing parser/Core IR syntax/shape unless a concrete approved portability requirement proves a change is necessary (none is expected)
+- existing parser/Core IR syntax/shape unless a concrete approved portability requirement proves a change is necessary
 
 Specific guardrails:
 
 - Unicode normalization must not silently change equality semantics
-- float rendering must not change numeric equality
 - diagnostic interpolation must not leak protected payloads
 - host/library exception wording must not become portable by accident
+- R19 must not pre-empt the separate exact Decimal/Rational/Float64 contract
 
-## 6. Inventory gate
+## 7. Inventory gate
 
-E19-0 requires three inventories before contract approval:
+E19-0 produced three inventories:
 
-- Unicode current behavior: complete enough to identify Python `str` dependencies and unresolved portable semantics
-- float rendering current behavior: complete enough to identify `str`/`repr`/format-engine dependencies
-- diagnostics: classification model plus a plan for a complete machine-generated exact-text inventory before message refactoring
+- Unicode current behavior
+- float rendering current behavior
+- diagnostics current contract/assertion behavior
 
-The three inventory documents in `docs/analysis/` satisfy this planning gate. The diagnostic inventory intentionally defers generating every exact stderr row until the diagnostic implementation slice, because E19-0 must not mutate specs/runtime merely to enumerate them.
+After the numeric split, the float inventory is retained as current-state evidence but is no longer an R19 implementation gate. Unicode and diagnostic inventories remain the R19 gate inputs.
 
-## 7. Test strategy after approval
-
-R19 implementation must follow narrow failing-evidence slices.
+## 8. Test strategy after approval
 
 Unicode evidence should cover:
 
 - 1/2/3/4-byte UTF-8 code points
-- code-point iteration/slicing
+- approved negative/out-of-range code-point slicing
 - combining sequences vs grapheme assumptions
 - byte-boundary detection
-- debug escaping
-- explicit invalid UTF-8 decode behavior where an existing boundary exposes it
-
-Float evidence should cover:
-
-- ordinary finite values
-- integral-looking floats
-- precision-sensitive decimals
-- exponent spelling/thresholds
-- signed zero
-- non-finite values if supported
-- nested display/debug contexts
+- approved debug escaping
+- strict malformed UTF-8 behavior at existing decode boundaries
 
 Diagnostic evidence should cover:
 
@@ -136,44 +160,24 @@ Diagnostic evidence should cover:
 - host exception normalization
 - protected-value redaction
 
-## 8. Expected work slices
+## 9. Expected work slices
 
 Proposed sequencing after E19-0 approval:
 
-- **E19-1 — Unicode portable contract implementation + shared evidence**
-- **E19-2 — canonical float rendering implementation + shared evidence**
-- **E19-3 — complete diagnostic assertion/source inventory and classification**
-- **E19-4 — diagnostic portability normalization + representative shared evidence**
-- **E19-5 — cross-surface hardening / host-default leak audit**
-- **E19-6 — source-of-truth and release documentation sync**
-- **E19-7 — skeptical release truth audit/distillation**
+- **E19-1 — Unicode portable semantics implementation + shared evidence**
+- **E19-2 — complete diagnostic assertion/source inventory and classification**
+- **E19-3 — diagnostic portability normalization + representative shared evidence**
+- **E19-4 — cross-surface host-default leak audit**
+- **E19-5 — source-of-truth and release documentation sync**
+- **E19-6 — skeptical release truth audit/distillation**
 
 Exact issue numbering is not semantic truth and may be adjusted when tickets are created.
-
-## 9. Complexity check
-
-R19 should reveal and centralize existing semantics, not add a competing abstraction.
-
-Acceptable complexity:
-
-- small pure helpers for canonical Unicode/float rendering
-- narrowly scoped diagnostic templates/identifiers where duplication/portability justify them
-- shared conformance cases
-
-Unacceptable complexity without a separate contract revision:
-
-- full Unicode framework/ICU dependency requirement
-- generalized internationalization system
-- diagnostic object hierarchy
-- public error-code API
-- runtime-loaded message catalog
 
 ## 10. Cross-file impact after approval
 
 Likely later implementation/doc surfaces:
 
 - `src/genia/utf8.py`
-- `src/genia/_format_engine.py`
 - selected evaluator/builtin/parser/CLI diagnostic constructors
 - `spec/eval/*`, `spec/error/*`, `spec/parse/*`, `spec/cli/*` as justified
 - `GENIA_STATE.md`
@@ -181,16 +185,9 @@ Likely later implementation/doc surfaces:
 - `GENIA_REPL_README.md` / `README.md` only where public behavior is documented
 - host portability docs/capability evidence where necessary
 
-E19-0 itself changes only analysis/design documentation.
+The separate numeric release will own `src/genia/_format_engine.py` changes that depend on Decimal/Rational/Float64 semantics.
 
-## 11. Philosophy check
-
-- preserves minimalism: **YES** — contracts existing behavior rather than adding broad APIs
-- avoids hidden behavior: **YES** — removes host-default dependence
-- keeps semantics out of host: **YES** — Python/C++ libraries implement, not define, the contract
-- aligns with pattern/value/flow direction: **NEUTRAL/PRESERVES** — no competing paradigm introduced
-
-## 12. Branching and change discipline
+## 11. Branching and change discipline
 
 Work must occur on a dedicated branch, never directly on `main`.
 
@@ -206,10 +203,8 @@ Each implementation slice must:
 
 ## Final go/no-go
 
-**GO for E19-0 planning artifacts.**
+**GO for E19-0 planning artifacts with U1/U2/U3 approved.**
 
-**NO-GO for R19 runtime/spec behavior changes until the R19 contract is explicitly approved.**
+**NO-GO for R19 runtime/spec behavior changes until the narrowed Unicode + diagnostic contract is explicitly approved.**
 
-The governing rule is:
-
-> R19 converts observed Python defaults into explicit Genia portability contracts; it does not give Python defaults permanent authority merely because they exist today.
+**NO-GO for Decimal/Rational/Float64 implementation under R19; that work requires its own release gate.**
