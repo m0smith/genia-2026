@@ -6,7 +6,7 @@ input:
     (([a, b]) -> a + b)([1])
 expected:
   stdout: ""
-  stderr: "Error: No matching case for arguments ([1],)\n"
+  stderr: "Error: No matching case for arguments [[1]]\n"
   exit_code: 1
 notes: |
   error_phase: eval

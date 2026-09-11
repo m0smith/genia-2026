@@ -9,7 +9,7 @@ input:
     classify(10)
 expected:
   stdout: ""
-  stderr: "Error: No matching case for function classify/1 with arguments (10,)\n"
+  stderr: "Error: No matching case for function classify/1 with arguments [10]\n"
   exit_code: 1
 notes: |
   error_phase: eval

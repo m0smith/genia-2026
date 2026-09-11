@@ -7,5 +7,5 @@ input:
 expected:
   stdout: ""
   stderr: |
-    Error: No matching case for function first/1 with arguments (<flow evolve ready>,)
+    Error: No matching case for function first/1 with arguments [<flow evolve ready>]
   exit_code: 1
