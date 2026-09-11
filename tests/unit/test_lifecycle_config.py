@@ -64,7 +64,26 @@ def test_lifecycle_config_secret_view_matches_hand_threaded_provider_and_redacts
     direct = configuration.get_secret_configuration(
         provider, "OPENAI_TOKEN", GeniaSymbol("model_call")
     )
-    assert protected == direct.value
+    assert isinstance(direct.value, GeniaProtected)
+
+    # R18 (#793): protected equality observes carrier identity only, so the
+    # lifecycle-bound acquisition and the direct acquisition are correctly
+    # unequal — they are two independent carriers. Establishing that they carry
+    # the same secret goes through the authorized declassification boundary
+    # rather than through `==`, which would require equality to compare
+    # payloads: exactly the oracle R18 removes.
+    assert protected != direct.value
+
+    authority = configuration.create_declassification_authority(
+        provider, [GeniaSymbol("model_call")], lambda event: None
+    )
+    bound_allowed, bound_purpose, bound_payload = protected._declassify_with(authority)
+    direct_allowed, direct_purpose, direct_payload = direct.value._declassify_with(
+        authority
+    )
+    assert bound_allowed is True and direct_allowed is True
+    assert bound_purpose == direct_purpose == "model_call"
+    assert bound_payload == direct_payload
 
     assert format_display(protected) == "<protected>"
     assert format_debug(protected) == "<protected>"

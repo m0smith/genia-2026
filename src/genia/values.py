@@ -119,14 +119,20 @@ class GeniaProtected:
         self.__provider_identity = provider_identity
         self.__purpose = purpose
 
-    def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, GeniaProtected)
-            and self.__provider_identity is other.__provider_identity
-            and self.__purpose == other.__purpose
-            and self.__value == other.__value
-        )
-
+    # R18 (#793): this type defines no `__eq__`, so host equality is identity,
+    # which matches Genia's carrier-identity rule.
+    #
+    # It previously compared the carried payload. That made ordinary `==` a
+    # payload oracle: unprivileged code could test whether two independently
+    # acquired carriers held the same secret. Removing it here rather than only
+    # handling carriers in the equality boundary makes the guarantee a property
+    # of the type, so no internal host comparison — an assertion, a
+    # deduplication, a membership test, an accidental `==` — can reopen the
+    # oracle.
+    #
+    # `__hash__` stays None so carriers remain unhashable and cannot be placed
+    # in a host set or dict, which would be another equality-shaped oracle. It
+    # also matches their being illegal map keys.
     __hash__ = None
 
     def __repr__(self) -> str:

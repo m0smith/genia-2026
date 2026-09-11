@@ -36,6 +36,18 @@ def test_construction_is_inert_and_each_call_delegates_exactly_once(monkeypatch)
 
 
 def test_secret_view_preserves_provider_identity_purpose_and_protected_value():
+    """The view must acquire exactly what a direct acquisition would.
+
+    R18 (#793): this can no longer be checked with `==`. Protected equality
+    observes carrier identity only, and the view's carrier and the direct
+    carrier are two independent acquisitions, so they are correctly unequal.
+    Comparing them with `==` would only work if equality compared payloads,
+    which is precisely the oracle R18 removes.
+
+    The equivalence is therefore established through the authorized
+    declassification boundary — the only supported way to reach a payload —
+    which also proves both carriers accept the *same* provider and purpose.
+    """
     provider = _provider()
     result = make_global_env([]).get("secret_view")(
         provider, "OPENAI_", GeniaSymbol("model_call")
@@ -46,7 +58,22 @@ def test_secret_view_preserves_provider_identity_purpose_and_protected_value():
     direct = configuration.get_secret_configuration(
         provider, "OPENAI_TOKEN", GeniaSymbol("model_call")
     )
-    assert result.value == direct.value
+    assert isinstance(direct.value, GeniaProtected)
+
+    # Two independent acquisitions are distinct carriers.
+    assert result.value != direct.value
+
+    authority = configuration.create_declassification_authority(
+        provider, [GeniaSymbol("model_call")], lambda event: None
+    )
+    view_allowed, view_purpose, view_payload = result.value._declassify_with(authority)
+    direct_allowed, direct_purpose, direct_payload = direct.value._declassify_with(
+        authority
+    )
+
+    assert view_allowed is True and direct_allowed is True
+    assert view_purpose == direct_purpose == "model_call"
+    assert view_payload == direct_payload
 
 
 def test_secret_view_construction_is_inert_and_delegates_exactly_once(monkeypatch):
