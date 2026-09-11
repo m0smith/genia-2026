@@ -555,7 +555,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `secret_get_or(provider, key, purpose, default)` uses the same missing-only, exactly-once default rule; ordinary/`some` successes are protected once and `none`/`err` are preserved
   - `protected_match("secret", value)` returns `some(value)` containing the exact protected subject; ordinary/non-secret values return `none("representation-mismatch")`
   - generic `represent`, `representation_match`, and `strip_representation` reject the reserved `secret` facet
-  - protected equality includes provider identity, purpose, and carried-value equality without exposing them; protected values are not map keys
+  - protected equality observes carrier identity only (R18 E18-3): a carrier equals itself and any alias of the same carrier, while independently acquired carriers are unequal even when they share a provider and purpose and carry equal payloads. Ordinary equality never compares protected payloads, so it cannot be used to test whether two secrets match; payload comparison requires explicit authorized declassification first. Protected values are not map keys
   - calls, returns, containers, pipelines, Seq, Flow, Sheet cells, refs, and process messages transport exact protected leaves; containers gain no hidden taint and unsupported ordinary derivation returns existing type failure
   - diagnostic rendering recursively substitutes `<protected>`; Format replacements, output sinks, JSON, Sheet CSV, resource writes, HTTP responses, and ordinary host conversion reject protected leaves before effects
   - `json_encode` returns `err("protected-value", {operation: "json-encode"})`; resource rejection writes zero payload bytes
@@ -2187,7 +2187,7 @@ Not implemented yet:
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
 
-### Portable value equality (Experimental, R18 partial — E18-1 and E18-2 landed)
+### Portable value equality (Experimental, R18 partial — E18-1, E18-2, and E18-3 landed)
 
 Genia has one semantic equality relation. `==` denotes it, `!=` is exactly its
 logical negation, and it is not user-overloadable: no Genia function, Template,
@@ -2252,12 +2252,41 @@ Landed by E18-2 (maps and map keys):
 - R17 map order semantics are unchanged. Order is a separate observable from
   equality.
 
-Not yet landed, and therefore not yet changed from prior behavior:
-identity-bearing, opaque semantic token, and protected-carrier equality (E18-3);
-and `assert_eq`, literal patterns, duplicate pattern bindings, and the remaining
-equality-like surfaces (E18-4). Those families are recognized by the relation and
-keep their pre-R18 behavior until their own slice lands. R18 release truth is
-consolidated in E18-6.
+Landed by E18-3 (the three families that are never compared by contents):
+
+- **Identity-bearing runtime values** compare only by logical runtime entity
+  identity. Equivalent visible state or configuration never implies equality, and
+  comparison never dereferences, invokes, advances, or inspects the entity behind
+  the value — it reads no Ref contents, no Cell or Process state, no Seq or Flow
+  elements, no provider configuration, no module exports, and no closure
+  environment. The family covers functions and function groups, host and native
+  callables, named pattern and Template matcher values, model callables and
+  providers, retrieval index handles, modules, Refs, Cells, Processes, Seq and
+  Flow values, promises, meta-environments, configuration providers,
+  declassification authorities, host and IO handles, and lifecycle values.
+- **Protected carriers** compare by carrier identity only, as described in the
+  configuration/secrets section above. The relation may reveal that two names
+  refer to the same carrier; it must never reveal whether two independently
+  acquired carriers hold equal payloads. That non-interference holds through
+  `==`, `!=`, recursive structural comparison at any depth, Lists, Pairs,
+  Outcomes, maps, keys, rendering, and rejection diagnostics.
+- **Opaque semantic tokens** are a contract/design family with **no implemented
+  source-level feature**. R18 adds no token value, token-domain declaration,
+  minting API, or syntax, and implements no storage or `Revision`; no token can be
+  created or observed from Genia source. What exists is the internal rule that a
+  token is equal to another exactly when its hidden domain, provenance, and
+  semantic identities are all equal, compared as data with no issuer contact and
+  no token-supplied comparator. The family is closed to comparator extension and
+  open to domain extension, so a future built-in or user-defined token domain can
+  participate without making `==` overloadable. Opaque tokens are not legal map
+  keys.
+
+These three families are terminal: structural comparison stops when it reaches
+one, and none of them are legal map keys.
+
+Not yet landed, and therefore not yet changed from prior behavior: `assert_eq`,
+literal patterns, duplicate pattern bindings, and the remaining equality-like
+surfaces (E18-4). R18 release truth is consolidated in E18-6.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
