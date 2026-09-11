@@ -107,9 +107,9 @@ gives `[a, c, b]`. Zero Python-host runtime-code change is required.
 
 - Changing the R9 JSON safe-integer limit.
 - Selecting a specific C++ bignum/container library.
-- Any C++ host implementation (R20).
-- Float, Unicode-string, or diagnostic-message portability (R18).
-- Open functions / extensible pattern dispatch (R19).
+- Any C++ host implementation (R21).
+- Float, Unicode-string, or diagnostic-message portability (R19).
+- Open functions / extensible pattern dispatch (R20).
 - Changing map `==` equality semantics (see open question above).
 - Changing `MapPattern` structural matching semantics.
 - Changing `/` or any float-producing numeric behavior.

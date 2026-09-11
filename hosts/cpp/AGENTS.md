@@ -3,7 +3,7 @@
 **No C++ implementation exists in this repository.** The planned production
 C++ host repository is [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)
 (bootstrapped as a repository shell only in R16 E16-6, issue #763; the real
-C++ implementation is R20, entirely in that repository).
+C++ implementation is R21, entirely in that repository).
 
 If you are working on the C++ host, use `m0smith/genia-cpp`'s own
 `AGENTS.md`, not this file. That repository's rules require it to:

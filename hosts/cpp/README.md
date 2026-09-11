@@ -19,7 +19,7 @@ R16 bootstraps `m0smith/genia-cpp` as a repository shell only (its own
 `README.md`/`AGENTS.md`, a pinned `genia-2026` contract revision + E16-1
 protocol version declaration, and a minimal protocol-participation
 placeholder) — **no real C++ interpreter is implemented in R16**. The real
-C++ lexer/parser/evaluator bring-up is R20 (`docs/strategy/roadmap/
+C++ lexer/parser/evaluator bring-up is R21 (`docs/strategy/roadmap/
 r16-r20.md`), and happens entirely in `m0smith/genia-cpp`, not here.
 
 ## What used to be here

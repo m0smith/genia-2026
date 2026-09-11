@@ -15,7 +15,7 @@ first such repository: R16 bootstraps it as a repository shell only (its
 own `README.md`/`AGENTS.md`, a pinned `genia-2026` contract revision plus
 E16-1 adapter-protocol version declaration, and a minimal
 protocol-participation placeholder), with no real C++ interpreter — that
-implementation work is R20, entirely in that repository.
+implementation work is R21, entirely in that repository.
 
 The rule this establishes for any later external host (Node.js, Java,
 Rust, Go, or another C++-style production effort):

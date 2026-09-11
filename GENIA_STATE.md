@@ -55,7 +55,7 @@ Implemented today:
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: bootstrapped as a repository shell (`m0smith/genia-cpp`, above) with no real interpreter; production C++ implementation is R20, entirely in that repository.
+- C++: bootstrapped as a repository shell (`m0smith/genia-cpp`, above) with no real interpreter; production C++ implementation is R21, entirely in that repository.
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
 - **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). What remains true: **no real second production host is implemented yet.** Every proof to date is either about the Python reference host itself (through both the in-process and subprocess paths) or against non-semantic proof fixtures that do not interpret Genia source — the deterministic fixture adapter (`tools/spec_runner/fixtures/protocol_fixture_adapter.py`) and the `genia-cpp` bootstrap placeholder.
 
