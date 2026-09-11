@@ -200,13 +200,14 @@ must not require changes to the runner program, shared cases, or conformance
 semantics. Python runner/bootstrap infrastructure remains until independent
 parity/evidence justifies a separate removal gate.
 
-R8 through R18 are complete. R19 has an approved contract but no implemented R19
-slice yet; GO is established for E19-1. R11, R12, R13, R14, and R15 APIs remain
-Experimental, Python is the only implemented production host, and shared/multi-
-host conformance remains Partial. R16's E16-0 through E16-8 sequence is complete
-(issues #757-#765; epic #756 closed; skeptical audit PASS in
-`docs/releases/R16.md`). No real second production host is implemented yet. R20
-through R33 remain planned and not active. R10/R11/R12/R13 follow-ups require
-their own gates. Every later release requires its own gates. Each later behavior
-slice requires its own contract/design/test/implementation/documentation/audit
-gates; roadmap placement is not implementation authority.
+R8 through R17 are complete, and R18 is also complete. R19 has an approved
+contract but no implemented R19 slice yet; GO is established for E19-1. R11,
+R12, R13, R14, and R15 APIs remain Experimental, Python is the only implemented
+production host, and shared/multi-host conformance remains Partial. R16's E16-0
+through E16-8 sequence is complete (issues #757-#765; epic #756 closed;
+skeptical audit PASS in `docs/releases/R16.md`). No real second production host
+is implemented yet. R20 through R33 remain planned and not active.
+R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
+its own gates. Each later behavior slice requires its own
+contract/design/test/implementation/documentation/audit gates; roadmap placement
+is not implementation authority.
