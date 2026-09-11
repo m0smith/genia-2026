@@ -624,6 +624,18 @@ class _ComposedMatcher:
         return "<matcher-composition>"
 
 
+def _format_args_for_diagnostic(args: tuple[Any, ...]) -> str:
+    # R19 E19-3: render call-argument values in a "no matching case"
+    # diagnostic using Genia's own debug rendering (format_debug), never
+    # Python's repr(). Python repr() on a tuple of runtime Genia values
+    # (e.g. quoting strings with single quotes, per Python convention)
+    # is host-specific wording that a non-Python host could not
+    # reproduce; the portable rendering below matches Genia's own list
+    # debug syntax ("[" + ", ".join(...) + "]") used elsewhere by
+    # format_debug.
+    return "[" + ", ".join(format_debug(arg) for arg in args) + "]"
+
+
 class Evaluator:
     def __init__(self, env: Env, debug_hooks: DebugHooks = NOOP_DEBUG_HOOKS, debug_mode: bool = False):
         self.env = env
@@ -857,9 +869,9 @@ class Evaluator:
             return Evaluator(local, self.debug_hooks, self.debug_mode).eval_tail(clause.result)
         if fn_name is not None:
             raise RuntimeError(
-                f"No matching case for function {fn_name}/{len(args)} with arguments {args!r}"
+                f"No matching case for function {fn_name}/{len(args)} with arguments {_format_args_for_diagnostic(args)}"
             )
-        raise RuntimeError(f"No matching case for arguments {args!r}")
+        raise RuntimeError(f"No matching case for arguments {_format_args_for_diagnostic(args)}")
 
     def eval_tail(self, node: IrNode) -> Any:
         if isinstance(node, IrCall):
@@ -1366,7 +1378,7 @@ class Evaluator:
                 else:
                     match_env = Evaluator(closure, self.debug_hooks, self.debug_mode).match_lambda_pattern(pattern, args)
                     if match_env is None:
-                        raise RuntimeError(f"No matching case for arguments {args!r}")
+                        raise RuntimeError(f"No matching case for arguments {_format_args_for_diagnostic(args)}")
                     for name, value in match_env.items():
                         frame.set(name, value)
                 return Evaluator(frame, self.debug_hooks, self.debug_mode).eval(body)

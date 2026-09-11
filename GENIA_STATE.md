@@ -2342,7 +2342,7 @@ called "Portable Value Equality", so each is stated explicitly:
 See `docs/releases/R18.md` for the release summary and
 `docs/design/r18-portable-value-equality-contract.md` for the approved contract.
 
-### Unicode and diagnostic portability (Experimental, R19 E19-1 complete)
+### Unicode and diagnostic portability (Experimental, R19 E19-1/E19-2/E19-3 complete)
 
 - **U1 — code-point semantics.** Genia strings are sequences of Unicode
   scalar values. `src/genia/utf8.py`'s internal `utf8_codepoints` iterates
@@ -2380,13 +2380,31 @@ See `docs/releases/R18.md` for the release summary and
 - What R19 E19-1 did not do: no grapheme-cluster model, no
   normalization/collation, no locale-aware formatting, no Decimal/Rational/
   Float64 numeric-model change, no new public string API, no Core IR change.
-  Diagnostic classification/normalization beyond the single `utf8_decode`
-  fix above is separate follow-on R19 work (E19-2/E19-3), not implemented by
-  E19-1.
+- **E19-2 diagnostic inventory.** A complete mechanical inventory of all 146
+  `spec/error` exact-stderr cases and the 4 genuine `spec/parse` failure
+  cases now exists (`docs/analysis/r19-diagnostic-mechanical-inventory.md`),
+  classifying each by semantic family, construction site, and A/B/C
+  portability class. Analysis only — no behavior changed by E19-2 itself.
+- **E19-3 diagnostic normalization.** The one confirmed host-`repr()` leak
+  the inventory found is fixed: a "No matching case" runtime-dispatch
+  failure (`src/genia/evaluator.py`) now renders its call arguments with
+  Genia's own `format_debug` (joined as `"[" + ", ".join(...) + "]"`, Genia's
+  list debug syntax) instead of Python `repr()` of the argument tuple. For
+  example, calling an unmatched function with a string argument now reports
+  `with arguments ["hello"]` (Genia double-quote debug escaping) rather than
+  Python's `with arguments ('hello',)` (Python single-quote tuple repr). All
+  other diagnostic families the inventory reviewed were already portable
+  (in particular, the large "expected X, received Y" family already renders
+  via `_runtime_type_name`, a Genia-authored type-name table, not Python
+  `type()`/`repr`); a lower-severity `repr()`-based quoting of closed-grammar
+  source tokens (format-spec strings, lexer/parser token text) was reviewed
+  and deliberately left unchanged for this slice — see the inventory
+  document Section 7 for that recorded decision.
 
 See `docs/design/r19-unicode-diagnostic-portability-contract.md` for the
-approved contract; `docs/releases/R19.md` is produced by E19-5 once all R19
-slices land.
+approved contract; `docs/analysis/r19-diagnostic-mechanical-inventory.md`
+for the full diagnostic inventory; `docs/releases/R19.md` is produced by
+E19-5 once all R19 slices land.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

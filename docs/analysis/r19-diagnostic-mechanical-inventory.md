@@ -402,3 +402,32 @@ Total spec/error cases: 146
 
 - `error-validated-pipeline-predicate-non-callable` — `Error: validate_field expected predicate to be callable`
 - `validate-each-rejects-non-callable-validator` — `Error: validate_each expected validator to be callable`
+
+## 7. E19-3 disposition (recorded after normalization)
+
+- **pattern-match-miss `{args!r}` finding: fixed.** `src/genia/evaluator.py`'s
+  `eval_case_expr` and lambda-pattern-miss path now render arguments via a
+  new `_format_args_for_diagnostic` helper that calls `format_debug` on each
+  argument and joins them as `"[" + ", ".join(...) + "]"` — Genia's own list
+  debug syntax — instead of Python `repr()` on the argument tuple. This
+  deliberately changed three existing exact-stderr cases
+  (`error-pattern-miss`: `(99,)` → `[99]`; `error-pattern-guard-all-fail`:
+  `(10,)` → `[10]`; `error-lambda-pattern-miss`: `([1],)` → `[[1]]`) and one
+  `spec/eval` case with the same construction site
+  (`first-on-flow-type-error`: `(<flow evolve ready>,)` → `[<flow evolve
+  ready>]`), all updated in the same PR. New evidence:
+  `tests/unit/test_r19_diagnostic_normalization.py`.
+- **format-spec / lexer-token `{...!r}` finding: accepted as out of scope
+  for this slice.** These sites quote a narrow, closed ASCII grammar token
+  drawn from the Genia source text itself (a format-spec string like `'03'`,
+  or a lexer/parser token's own source text) — not an arbitrary Genia
+  runtime value. Reproducing Python's exact `repr()` quoting/escaping rules
+  for that closed grammar is mechanical and low-risk for a non-Python host
+  (the input space is ASCII source syntax, not user data), unlike the
+  runtime-value case above. Normalizing roughly 20 additional call sites and
+  their matching exact-stderr assertions for a cosmetic quoting-convention
+  difference was judged disproportionate to the minimal-change principle
+  (contract Section 6/12) given the fix above already closes the one
+  concrete, higher-severity host-value leak. Left as a recorded, explicit
+  decision rather than silently dropped; may be revisited by E19-4's
+  cross-surface leak audit if further evidence changes the risk assessment.

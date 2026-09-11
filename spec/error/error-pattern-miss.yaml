@@ -9,7 +9,7 @@ input:
     f(99)
 expected:
   stdout: ""
-  stderr: "Error: No matching case for function f/1 with arguments (99,)\n"
+  stderr: "Error: No matching case for function f/1 with arguments [99]\n"
   exit_code: 1
 notes: |
   error_phase: eval
