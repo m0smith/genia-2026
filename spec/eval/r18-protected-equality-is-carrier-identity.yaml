@@ -1,0 +1,29 @@
+name: r18-protected-equality-is-carrier-identity
+category: eval
+description: >-
+  R18 portable value equality: a protected carrier compares by carrier identity
+  only. Independently acquired carriers are unequal even when they hold equal
+  payloads, so ordinary equality cannot be used to test whether two secrets match.
+  A conforming host must never implement protected equality by comparing payloads.
+input:
+  source: |
+    provider = config_provider([{kind: quote(values), values: {A: "SAME", B: "SAME", C: "OTHER"}}]) |> unwrap_or(none)
+    a1 = secret_get(provider, "A", quote(use))
+    a2 = secret_get(provider, "A", quote(use))
+    b = secret_get(provider, "B", quote(use))
+    c = secret_get(provider, "C", quote(use))
+    alias = a1
+    [a1 == a1, a1 == alias, a1 == a2, a1 == b, a1 == c, a1 == "SAME", a1 != b, a1 != c]
+expected:
+  stdout: "[true, true, false, false, false, false, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 793
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Protected carriers"
+  note: >-
+    The decisive property is that the A/B pair (equal payloads) and the A/C pair
+    (different payloads) produce the same answer. Before R18 they did not:
+    a1 == b was true and a1 == c was false, so equality disclosed whether two
+    independently acquired secrets matched.

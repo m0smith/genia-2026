@@ -1,0 +1,25 @@
+name: r18-identity-bearing-equality
+category: eval
+description: >-
+  R18 portable value equality: identity-bearing runtime values compare only by
+  logical runtime entity identity. Equal visible contents never imply equality,
+  and comparison never dereferences or inspects the referenced entity.
+input:
+  source: |
+    r = ref(1)
+    alias = r
+    other = ref(1)
+    f = (x) -> x
+    g = (x) -> x
+    [r == r, r == alias, r == other, r != other, r == 1, f == f, f == g, [r] == [alias], [r] == [other], some(r) == some(alias)]
+expected:
+  stdout: "[true, true, false, true, false, true, false, true, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 793
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Identity-bearing runtime values"
+  note: >-
+    r == other must be false even though both Refs hold 1: equality must not
+    dereference the Ref. r == 1 must be false: a Ref is not its contents.
