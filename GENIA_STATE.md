@@ -2342,7 +2342,7 @@ called "Portable Value Equality", so each is stated explicitly:
 See `docs/releases/R18.md` for the release summary and
 `docs/design/r18-portable-value-equality-contract.md` for the approved contract.
 
-### Unicode and diagnostic portability (Experimental, R19 E19-1/E19-2/E19-3 complete)
+### Unicode and diagnostic portability (Experimental, R19 E19-1/E19-2/E19-3/E19-4 complete)
 
 - **U1 — code-point semantics.** Genia strings are sequences of Unicode
   scalar values. `src/genia/utf8.py`'s internal `utf8_codepoints` iterates
@@ -2401,9 +2401,24 @@ See `docs/releases/R18.md` for the release summary and
   and deliberately left unchanged for this slice — see the inventory
   document Section 7 for that recorded decision.
 
+- **E19-4 cross-surface leak audit.** A deliberate sweep of `src/genia/*.py`
+  beyond E19-1/E19-3's fixes found no further in-scope-fixable-now host-
+  wording leak: `configuration.py`'s dotenv UTF-8 decode boundary and
+  `gemini_rest.py`'s decode fallback were already fully compliant; two items
+  (shell-pipeline subprocess stdout's `errors="replace"`, and the explicit
+  `python.*` host-module bridge's exception wrapper) were reviewed and
+  recorded as deliberate follow-up candidates rather than fixed, since both
+  are host-interop-by-design surfaces outside R19's minimal-change scope;
+  `str(exc)` values in a handful of `builtins.py` Outcome context maps
+  (`read_file`, `write_file`, `zip_read`/`zip_write`, config-resource
+  backends) were confirmed to be incidental class-C debugging detail never
+  asserted by any shared spec, not part of the portable diagnostic contract.
+  See `docs/analysis/r19-host-default-leak-audit.md` for the full sweep.
+
 See `docs/design/r19-unicode-diagnostic-portability-contract.md` for the
 approved contract; `docs/analysis/r19-diagnostic-mechanical-inventory.md`
-for the full diagnostic inventory; `docs/releases/R19.md` is produced by
+for the full diagnostic inventory; `docs/analysis/r19-host-default-leak-audit.md`
+for the cross-surface leak audit; `docs/releases/R19.md` is produced by
 E19-5 once all R19 slices land.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
