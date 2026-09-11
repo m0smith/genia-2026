@@ -373,8 +373,15 @@ def test_render_csv_converts_supported_scalar_cells(run):
     [
         ('render_csv("not-a-sheet")', "render_csv expected a Sheet"),
         (
+            # R18 (#794): a map is not a legal column name, so this is now
+            # rejected earlier, at Sheet construction, rather than reaching
+            # render_csv's scalar-header check. Column-name identity is Genia
+            # equality, which supplies a slot identity only for the legal-key
+            # family; a map column name previously slipped through an
+            # "anything hashable" fallback and was then compared by host
+            # identity, so two equal-content map names were two columns.
             'render_csv(sheet([[{name: "header"}, ["value"]]]))',
-            "render_csv expected CSV scalar header at column 0; received map",
+            "sheet expected a legal column name",
         ),
         (
             'render_csv(sheet([[quote(value), [[1, 2]]]]))',

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
+from .equality import genia_equal
 from .values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
 
@@ -253,8 +254,12 @@ class PatternOutcomeError(Exception):
 
 
 def _merge_bindings(target: dict[str, Any], source: dict[str, Any]) -> bool:
+    # R18 (#794): a clause that binds the same name more than once is consistent
+    # exactly when the values bound to it are Genia-equal, so a clause shaped
+    # like `f(x, x)` accepts (1, 1.0) and rejects (true, 1). Bindings for
+    # different names never reach the comparison.
     for key, value in source.items():
-        if key in target and target[key] != value:
+        if key in target and not genia_equal(target[key], value):
             return False
         target[key] = value
     return True
@@ -325,7 +330,10 @@ def match_pattern_atom(
     named_pattern_resolver: NamedPatternResolver | None = None,
 ) -> Optional[dict[str, Any]]:
     if isinstance(pattern, IrPatLiteral):
-        return {} if pattern.value == arg else None
+        # R18 (#794): a literal pattern matches exactly when the literal and the
+        # candidate are Genia-equal, so a `1` literal matches 1.0 but not true.
+        # A kind difference is a mismatch, never an error.
+        return {} if genia_equal(pattern.value, arg) else None
     if isinstance(pattern, IrPatWildcard):
         return {}
     if isinstance(pattern, IrPatRest):

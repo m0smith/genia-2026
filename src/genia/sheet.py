@@ -41,22 +41,41 @@ def _display_column_name(name: Any) -> str:
     return repr(name)
 
 
+_canonical_map_key = None
+
+
 def _freeze_column_name(name: Any) -> Any:
+    """Sheet column-name identity, owned by the canonical equality boundary.
+
+    R18 (#794): two column names denote the same column exactly when they are
+    Genia-equal, so this delegates to the same canonicalizer map keys use.
+    Column-name identity and map-key identity ask the same question — do these
+    two values denote the same slot? — and the contract requires both to be `==`.
+
+    Before R18 this was a second, hand-rolled relation that returned raw host
+    values for booleans, integers, floats and strings, which let a host container
+    merge ``true`` with ``1`` and rejected such a Sheet as having duplicate
+    column names. It also ended with an "anything hashable" fallback, which would
+    reintroduce a host-defined relation.
+
+    The protected check stays ahead of the delegation so Sheets keep their own
+    message; the canonicalizer rejects protected values too, so the guarantee is
+    not weakened either way.
+
+    The import is function-local because ``equality`` imports this module; the
+    resolved function is cached after the first call.
+    """
+    global _canonical_map_key
     if name.__class__.__name__ == "GeniaProtected":
         raise TypeError("protected values cannot be Sheet column names")
-    if name is None or isinstance(name, (bool, int, float, str)):
-        return name
-    if isinstance(name, GeniaSymbol):
-        return ("symbol", name.name)
-    if isinstance(name, tuple):
-        return ("tuple", tuple(_freeze_column_name(item) for item in name))
-    if isinstance(name, list):
-        return ("list", tuple(_freeze_column_name(item) for item in name))
+    if _canonical_map_key is None:
+        from .equality import canonical_map_key
+
+        _canonical_map_key = canonical_map_key
     try:
-        hash(name)
+        return _canonical_map_key(name)
     except TypeError as exc:
-        raise _sheet_error("sheet expected column names to be hashable values") from exc
-    return name
+        raise _sheet_error(f"sheet expected a legal column name: {exc}") from exc
 
 
 def _ensure_sheet(value: Any, operation: str) -> GeniaSheet:

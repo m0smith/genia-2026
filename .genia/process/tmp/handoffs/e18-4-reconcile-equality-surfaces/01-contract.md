@@ -79,8 +79,29 @@ Two Sheet column names denote the same column exactly when they are Genia-equal.
 Column names that are not Genia-equal are distinct columns and must not be
 rejected as duplicates.
 
-The set of values legal as column names is not widened or narrowed by this
-issue, and protected values remain rejected as column names.
+The set of values legal as column names becomes exactly the legal-key family
+(booleans, integers, non-NaN floats, strings, symbols, and recursively legal
+Pairs, Lists, and represented values). Protected values remain rejected as column
+names with their existing message.
+
+**Amendment recorded during implementation.** This clause originally read "is not
+widened or narrowed". Implementation showed that constraint is unsatisfiable
+together with the governing rule, so it was corrected rather than worked around:
+
+- the previous implementation ended in an "anything hashable" fallback, which
+  admitted maps, Outcomes, functions and other values as column names
+- for those values the fallback used **host identity**, so two equal-content map
+  column names were two distinct columns — itself a disagreement with `==`, and
+  exactly the kind of hidden host relation §2 forbids
+- the canonical relation deliberately supplies a slot identity only for the
+  legal-key family, so there is no `==`-consistent identity to give those values
+- no documentation ever specified which value kinds are legal column names;
+  `GENIA_STATE.md` and `GENIA_RULES.md` state only that column names must be
+  unique, so nothing promised was withdrawn
+
+The narrowing is therefore a consequence of the governing rule, not an
+independent design change. Affected Sheets fail at construction with a clear
+message instead of being accepted with an incoherent column identity.
 
 ### Identity-bearing values at these surfaces
 
