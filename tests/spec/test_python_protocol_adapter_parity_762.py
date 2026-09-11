@@ -38,10 +38,13 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # (issue #792, map equality and legal-key evidence: 3 eval, 3 error),
     # 3 more (issue #793, identity and protected equality evidence),
     # 4 more (issue #794, equality-like surface agreement: 3 eval, 1 error),
-    # and 4 more (issue #795, multi-host conformance hardening).
+    # and 4 more (issue #795, multi-host conformance hardening). R19 E19-1
+    # (issue #820) added 6 more ordinary eval-category cases (Unicode/UTF-8
+    # portability evidence: byte-length widths, encode/decode roundtrip, and
+    # deterministic debug escaping).
     # None require an unexpressible fixture, so they pass through the protocol
     # path like any other case. `test_r18_conformance_protocol_evidence_795.py`
     # additionally asserts that every R18 case specifically is executed rather
     # than reported unsupported.
-    assert "Summary: total=668 passed=650 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    assert "Summary: total=674 passed=656 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
