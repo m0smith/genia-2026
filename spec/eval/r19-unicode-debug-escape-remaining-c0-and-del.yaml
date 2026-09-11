@@ -1,0 +1,10 @@
+name: r19-unicode-debug-escape-remaining-c0-and-del
+category: eval
+input:
+  source: |
+    "\u000b\u001f\u007f"
+expected:
+  stdout: |
+    "\u000b\u001f\u007f"
+  stderr: ""
+  exit_code: 0

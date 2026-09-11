@@ -1,0 +1,10 @@
+name: r19-unicode-byte-length-widths
+category: eval
+input:
+  source: |
+    [byte_length("A"), byte_length("é"), byte_length("漢"), byte_length("😀")]
+expected:
+  stdout: |
+    [1, 2, 3, 4]
+  stderr: ""
+  exit_code: 0

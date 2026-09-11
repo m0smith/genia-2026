@@ -1,0 +1,10 @@
+name: r19-unicode-utf8-encode-decode-roundtrip
+category: eval
+input:
+  source: |
+    utf8_decode(utf8_encode("hello 漢字 😀"))
+expected:
+  stdout: |
+    "hello 漢字 😀"
+  stderr: ""
+  exit_code: 0

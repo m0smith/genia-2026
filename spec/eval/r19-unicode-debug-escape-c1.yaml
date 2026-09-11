@@ -1,0 +1,10 @@
+name: r19-unicode-debug-escape-c1
+category: eval
+input:
+  source: |
+    "\u0080\u009f"
+expected:
+  stdout: |
+    "\u0080\u009f"
+  stderr: ""
+  exit_code: 0

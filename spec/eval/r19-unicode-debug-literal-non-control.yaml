@@ -1,0 +1,10 @@
+name: r19-unicode-debug-literal-non-control
+category: eval
+input:
+  source: |
+    "é漢😀"
+expected:
+  stdout: |
+    "é漢😀"
+  stderr: ""
+  exit_code: 0
