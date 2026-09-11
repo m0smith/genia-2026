@@ -17,6 +17,8 @@ The intended direction is:
 
 This document does not implement those kinds, choose final source syntax, or revise current truth.
 
+The resolved rendering/Core-IR/precision decisions are recorded in `docs/design/exact-numeric-model-resolved-decisions.md` and are part of the working contract direction for the dedicated numeric release.
+
 ## Why this is separate from R19
 
 R19 began as portability hardening for Unicode, float rendering, and diagnostics. Once ordinary decimal literals are reconsidered as exact Decimal values and Rational is added, the work affects far more than rendering:
@@ -252,22 +254,30 @@ The contract phase must reconcile R18's current Integer/float equality rule with
 
 This keeps equality mathematical while arithmetic promotion remains explicit.
 
+## Resolved rendering/Core-IR/precision decisions
+
+The companion design record `docs/design/exact-numeric-model-resolved-decisions.md` resolves three additional areas:
+
+- Decimal and Rational semantic normalization plus canonical display/debug rendering
+- portable numeric Core IR payloads inside the existing frozen `IrLiteral` node family, with Rational initially remaining an evaluated `/`/ordinary-call result rather than requiring a new literal node
+- explicit immutable decimal precision contexts for irrational/transcendental approximation, with no ambient precision and no implicit Float64 fallback
+
+These are no longer open design questions for the working contract direction. The dedicated contract must state them normatively and add shared evidence only after approval.
+
 ## Other required contract decisions
 
 Before implementation, the dedicated release must still pin at least:
 
-1. final literal syntax/classification for Decimal and explicit Float64
+1. final source syntax/classification for Decimal and explicit Float64
 2. final Rational construction spelling (do not assume a new literal; `/` plus `rational(n,d)` may be sufficient)
-3. zero/sign representation rules for Decimal and Rational
-4. canonical Decimal and Rational display/debug rendering
-5. exact portable JSON decimal range/precision predicate that preserves the intended R9 interoperability boundary
-6. format-spec behavior for Decimal/Rational/Float64
-7. resource-exhaustion behavior for arbitrarily large coefficients/numerators/denominators
-8. transcendental/irrational operations and explicit precision/rounding contexts
-9. Core IR representation sufficient for independent hosts
-10. shared conformance evidence proving all of the above without Python numeric defaults
+3. exact portable JSON Decimal range/precision predicate that preserves the intended R9 interoperability boundary
+4. detailed format-spec behavior beyond ordinary canonical display/debug
+5. resource-exhaustion behavior for arbitrarily large coefficients/numerators/denominators/exponents and requested precision
+6. NaN payload/sign policy if direct Float64 literal/Core-IR materialization is introduced
+7. exact capability/API surface for future transcendental functions, if they are included at all
+8. shared parse/IR/eval/error evidence proving the approved contract without Python numeric defaults
 
-The promotion/division matrix, generic JSON no-silent-rounding rule, and default exact<->Float64 conversion direction are no longer open design questions in this pre-flight; the dedicated contract must express them byte/bit-exactly and reconcile existing implemented behavior before implementation.
+The promotion/division matrix, generic JSON no-silent-rounding rule, default exact<->Float64 conversion direction, canonical Decimal/Rational rendering direction, Core IR numeric payload direction, and explicit precision-context direction are no longer open design questions in this pre-flight.
 
 ## Rational-specific regrets to address explicitly
 
@@ -314,11 +324,11 @@ The first semantic C++ host must not begin numeric implementation until this num
 - no approximate equality
 - no complex numbers
 - no units/dimensions
-- no transcendental API design
+- no transcendental implementation in this pre-flight
 - no generic arbitrary-precision JSON-number promise
 
 ## Go/no-go
 
-**GO for dedicated numeric-model contract exploration using the working promotion/division, JSON, and exact<->Float64 boundary decisions recorded here.**
+**GO for dedicated numeric-model contract exploration using the working promotion/division, JSON, exact<->Float64, rendering, Core-IR, and precision-context decisions recorded here and in the companion resolved-decisions document.**
 
-**NO-GO for implementation until the remaining representation/Core-IR/formatting/resource/transcendental decisions are explicitly approved through the dedicated release gate.**
+**NO-GO for runtime/parser/Core IR/spec implementation until the dedicated contract is explicitly approved and the remaining boundary details above are resolved.**
