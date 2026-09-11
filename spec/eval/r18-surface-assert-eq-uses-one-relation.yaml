@@ -1,0 +1,28 @@
+name: r18-surface-assert-eq-uses-one-relation
+category: eval
+description: >-
+  R18 portable value equality: assert_eq succeeds exactly when == is true. It
+  must accept structurally equal values that are not the same runtime object,
+  including equal byte values and equal-content maps built in different orders.
+input:
+  source: |
+    [
+      none?(assert_eq(1, 1.0)),
+      none?(assert_eq(utf8_encode("hi"), utf8_encode("hi"))),
+      none?(assert_eq({"a": 1, "b": 2}, {"b": 2, "a": 1})),
+      none?(assert_eq([1, [2]], [1, [2.0]])),
+      none?(assert_eq(some(1), some(1.0)))
+    ]
+expected:
+  stdout: "[true, true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 794
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "assert_eq"
+  note: >-
+    assert_eq returns none on success, so none? is true for each passing
+    assertion. Before R18 the byte-value and map cases raised assert_eq failures
+    because assert_eq used host equality, under which equal byte values and
+    equal-content maps compare unequal.

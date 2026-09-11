@@ -1,0 +1,42 @@
+name: r18-surface-agreement-across-equality-like-paths
+category: eval
+description: >-
+  R18 portable value equality: every equality-like surface answers exactly as ==
+  does for the same operands. The same three operand pairs are compared through
+  ==, a literal pattern, a duplicate pattern binding, and the meta-circular
+  evaluator, and all four rows must be identical. A conforming host cannot
+  satisfy == while leaving patterns or assertions on its own host equality.
+input:
+  source: |
+    dup(a, b) =
+      (x, x) -> true |
+      (a, b) -> false
+
+    lit_one(v) =
+      (1) -> true |
+      (v) -> false
+
+    lit_true(v) =
+      (true) -> true |
+      (v) -> false
+
+    e = empty_env()
+
+    direct = [1 == 1.0, true == 1, 1 == 2]
+    duplicate_binding = [dup(1, 1.0), dup(true, 1), dup(1, 2)]
+    literal_pattern = [lit_one(1.0), lit_true(1), lit_one(2)]
+    meta = [eval(quote(1 == 1.0), e), eval(quote(true == 1), e), eval(quote(1 == 2), e)]
+
+    [direct, duplicate_binding, literal_pattern, meta, direct == duplicate_binding, direct == literal_pattern, direct == meta]
+expected:
+  stdout: "[[true, false, false], [true, false, false], [true, false, false], [true, false, false], true, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 794
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Equality-like surface reconciliation"
+  note: >-
+    The final three booleans are the real assertion: each surface's row must
+    equal the == row. Before R18 the duplicate-binding, literal-pattern, and
+    meta-evaluator rows all reported true for the true/1 pair.
