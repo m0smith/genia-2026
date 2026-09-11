@@ -431,6 +431,43 @@ Pipeline invariant:
 - when that lifted stage returns `some(...)` or `none(...)`, that Option result is used as-is
 
 
+## 9.6) Value equality invariants (R18)
+
+Genia has exactly one semantic equality relation. `==` denotes it; `!=` is
+exactly its logical negation.
+
+- `==` is permanently **not user-overloadable**. No function, Template, matcher,
+  provider, token, or future open-function mechanism may supply, replace, extend,
+  or intercept it. Programs may define ordinary predicates for approximate,
+  case-insensitive, or domain-specific equivalence; such predicates can never
+  redefine `==`, literal-pattern equality, duplicate-binding consistency, or
+  map-key identity.
+- Literal patterns, repeated pattern bindings, `assert_eq`, map-key identity, and
+  Sheet column-name identity do **not** get separate equality rules. For the same
+  operands each answers exactly as `==` does.
+- No surface may answer a semantic sameness question using host-language equality
+  or a host container's key rules.
+- Values of different semantic kinds are unequal, and a kind difference yields
+  `false` rather than an error. The integer/float bridge is the only cross-kind
+  exception: booleans are a distinct kind and never equal a number.
+- Equality is pure. It performs no IO, acquires nothing, declassifies nothing,
+  invokes no function/Template/matcher/provider/issuer/user callback, consumes no
+  Seq or Flow, dereferences no Ref, inspects no Cell/Process/provider/handle
+  state, and mutates neither operand.
+- Identity-bearing runtime values, opaque semantic tokens, and protected carriers
+  are terminal: structural comparison stops at them and never follows referenced
+  runtime state.
+- Protected-value equality observes carrier identity only and must never disclose
+  whether two independently acquired carriers hold equal payloads, through any
+  observable including diagnostics.
+- Every legal map key satisfies `k == k`; NaN, and any otherwise-legal key
+  containing NaN at any depth, is illegal.
+- Map iteration order is a separate observable from map equality; the R17 order
+  contract is unchanged.
+
+See `GENIA_STATE.md` "Portable value equality" for implemented behavior and
+`docs/releases/R18.md` for the release summary.
+
 ## 9.7) Matcher operator invariants (Experimental)
 
 These operators apply Outcome matcher functions. A matcher function is a callable value that accepts one argument and returns an Outcome (`some(...)`, `none(...)`, or `err(...)`).

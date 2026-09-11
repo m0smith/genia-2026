@@ -1,6 +1,8 @@
 # R18 Portable Value Equality Contract
 
-Status: **E18-0 contract/design candidate — not implemented.** This document is a design aid and does not define current language truth on its own. `GENIA_STATE.md` remains final authority for implemented behavior.
+Status: **Approved and implemented by E18-1 through E18-5 (#791–#795); documentation synchronized by E18-6 (#796). The E18-7 skeptical release audit (#797) is the remaining gate.** This document is a design aid and does not define current language truth on its own. `GENIA_STATE.md` remains final authority for implemented behavior, and `docs/releases/R18.md` is the release summary.
+
+The "Later release slices" and "E18-0 gate" sections below are retained as the historical approved plan; they described work that has since landed.
 
 Epic: #789  
 E18-0 gate: #790

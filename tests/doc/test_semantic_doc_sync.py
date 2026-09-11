@@ -58,11 +58,33 @@ def test_semantic_facts_file_stays_small_and_complete() -> None:
         "r11_ordinary_composition_boundary",
         "r12_ordinary_composition_boundary",
         "r13_ordinary_composition_boundary",
+        "r18_equality_relation",
         CANONICAL_FIELD_PATH_SEPARATOR_FACT,
         CANONICAL_NAMED_ACCESS_SEPARATOR_FACT,
     }
     assert set(FACTS) == expected_keys
-    assert len(FACTS) <= 21, "semantic facts surface should stay intentionally small"
+    assert len(FACTS) <= 22, "semantic facts surface should stay intentionally small"
+
+
+def test_authoritative_docs_capture_the_one_equality_relation() -> None:
+    """R18 (#796): the central equality invariant must be visible in the
+    authoritative documents, not only in the release page.
+
+    This is the fact most likely to be silently contradicted by a later
+    release — by adding an equality protocol, an overloadable operator, or a
+    second relation for some new surface.
+    """
+    rules = (REPO / "GENIA_RULES.md").read_text(encoding="utf-8")
+    state = (REPO / "GENIA_STATE.md").read_text(encoding="utf-8")
+
+    for text, label in ((rules, "GENIA_RULES.md"), (state, "GENIA_STATE.md")):
+        lowered = text.lower()
+        assert "one semantic equality relation" in lowered, (
+            f"{label} must state that Genia has one semantic equality relation"
+        )
+        assert "not user-overloadable" in lowered or "non-user-overloadable" in lowered, (
+            f"{label} must state that == is not user-overloadable"
+        )
 
 
 def test_authoritative_docs_capture_pipeline_option_contract() -> None:

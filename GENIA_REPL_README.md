@@ -176,7 +176,7 @@ CLI contract summary (actual behavior):
   - Outcome constructor patterns: `some(pattern)`, literal `none`, and `err(reason)` / `err(reason, context)` forms
   - wildcard `_`
   - rest pattern `..rest` / `.._`
-  - duplicate-binding equality semantics (`[x, x]`)
+  - duplicate-binding equality semantics (`[x, x]`) — consistent exactly when the bound values are equal under Genia's one equality relation (R18), the same relation `==`, literal patterns, and `assert_eq` use
   - guards with `?`
   - named reusable patterns (`pattern Name(value) = body` / `Name(inner_pattern)`) — Experimental; the body must return an Outcome value: `some(...)` (match success), `none(...)` (pattern miss), or `err(...)` (recoverable failure, does not fall through as a miss)
   - Template values — Experimental; a named reusable pattern is an ordinary one-argument Outcome matcher that can be stored, passed, returned, imported, called directly, and used by higher-order functions; direct calls return the matcher Outcome unchanged, while `@?`/`@!` keep their original-subject behavior
