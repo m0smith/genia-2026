@@ -20,8 +20,8 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - deployment may eventually use Ansible, Terraform, Kubernetes, cloud APIs, or another provisioning mechanism; none is part of Genia semantics
   - host portability and execution distribution are separate axes
   - do not create implementation tickets until a concrete workflow demonstrates the need and a contract answers the semantic questions in `docs/architecture/execution-realization.md`
-- open functions / extensible pattern dispatch — **promoted to planned R19**
-  - R19 now owns the local repeated-clause and explicit cross-module extension contract described in [`r16-r20.md`](r16-r20.md)
+- open functions / extensible pattern dispatch — **promoted to planned R20**
+  - R20 now owns the local repeated-clause and explicit cross-module extension contract described in [`r16-r20.md`](r16-r20.md)
   - historical motivating local example:
 
     ```genia
@@ -39,7 +39,7 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
     extend get(Database(db), key) = db_get(db, key)
     ```
 
-  - promoted invariants retained by R19:
+  - promoted invariants retained by R20:
     - local repeated compatible clauses form one named-function group rather than accidental rebinding
     - cross-module extension must be explicit; importing a module must not silently overwrite or mutate an unrelated visible function
     - dispatch remains pattern-based and preserves existing fixed-arity-over-varargs precedence
@@ -48,8 +48,8 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
     - each contributed clause retains module provenance for diagnostics, introspection, and future reload/unload design
     - loading/importing a module remains inert with respect to lifecycle activation, resource acquisition, and network/process side effects
     - the semantic contract must be host-agnostic and shared-spec driven; no Python-only dispatch rule may define the feature
-  - open functions remain the first concept; a named protocol/interface layer, if ever needed, stays separate from R19 unless its own later gate promotes it
-  - the example `extend` spelling, protocol syntax, specificity algorithm, module unloading, and implementation strategy remain unapproved until the R19 contract/design gates settle them
+  - open functions remain the first concept; a named protocol/interface layer, if ever needed, stays separate from R20 unless its own later gate promotes it
+  - the example `extend` spelling, protocol syntax, specificity algorithm, module unloading, and implementation strategy remain unapproved until the R20 contract/design gates settle them
 - browser playground runtime
   - useful as a future demo surface, not required for the first validated-data-pipeline release
 - ants / simulation teaching demos
@@ -73,8 +73,8 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - do not create implementation tickets until helper-based validation proves insufficient
 - Node, Java, Rust, and Go host implementation beyond contract scaffolding
   - generic runner and shared portability hardening are promoted to R16–R18
-  - open-function semantics are promoted to R19 before the first second-host implementation
-  - C++ host implementation is promoted to R20–R23
+  - open-function semantics are promoted to R20 before the first second-host implementation
+  - C++ host implementation is promoted to R21–R24
 - server mode
   - **Web ergonomics promoted to R7**, and the **serve execution mode promoted to R8** (Server Execution Mode — the second R4 lifecycle consumer, `@server`/`@route`/`@cors` bound to R7 primitives). Idea capture: `docs/parking-lot/web-backend-cfm-app.md` (R7) and `docs/parking-lot/server-execution-mode.md` (R8). Anything beyond those two remains parked.
 - notebook mode

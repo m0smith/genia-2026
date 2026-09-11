@@ -6,9 +6,9 @@ only.** The current, approved R16 numbering and scope is
 `docs/design/r16-multi-host-conformance-infrastructure-contract.md` (issue
 #757). That numbering no longer matches this draft one-to-one: current R16
 is the broader Multi-Host Conformance Infrastructure release described
-there (not "spec-runner protocol only"), current R19 is Open Functions and
+there (not "spec-runner protocol only"), current R20 is Open Functions and
 Extensible Pattern Dispatch (a language feature, not C++ bring-up), and
-current R20 is the first C++ host release, absorbing what this draft called
+current R21 is the first C++ host release, absorbing what this draft called
 R19. The technical reasoning below (subprocess protocol need, C++ bring-up
 ordering) informed the current contract and is preserved as history; do not
 treat any release number or ticket text below as active.
