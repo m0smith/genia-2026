@@ -8,10 +8,12 @@ protocol (E16-1 through E16-7, issues #758-#764; contract at
 `docs/design/r16-multi-host-conformance-infrastructure-contract.md`), and
 [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) is bootstrapped
 as the external C++ host repository (E16-6, issue #763). The remaining
-"Technical decisions C++ will force immediately" below (integer semantics,
-ordered-map representation, Unicode/float formatting, memory/lifecycle
-model, error-text portability) are **not yet resolved** — those are R17
-through R20 (`docs/strategy/roadmap/r16-r20.md`), not R16. Do not treat any
+"Technical decisions C++ will force immediately" below were later split
+across the portability releases and C++ roadmap: R17 resolved integer and
+ordered-map semantics, R18 resolved portable equality, R19 owns Unicode/float/
+diagnostic portability, R20 owns Open Functions, and R21 begins the C++ host.
+Consult `docs/strategy/roadmap/r16-r20.md` for current sequencing rather than
+treating the historical statuses below as current. Do not treat any
 claim below about the runner itself as current; the rest is preserved as
 the original technical motivation, not deleted.
 
