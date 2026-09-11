@@ -1,0 +1,44 @@
+name: r18-conformance-protected-in-containers-and-patterns
+category: eval
+description: >-
+  R18 conformance: protected non-interference holds through map values and
+  through the pattern surface, not only through the == operator. Each
+  equal-payload comparison is paired with its different-payload twin, and the two
+  must agree. Detects a host that implements carrier identity in == but leaves
+  duplicate pattern bindings on host equality.
+input:
+  source: |
+    provider = config_provider([{kind: quote(values), values: {A: "SAME", B: "SAME", C: "OTHER"}}]) |> unwrap_or(none)
+    a = secret_get(provider, "A", quote(use))
+    b = secret_get(provider, "B", quote(use))
+    c = secret_get(provider, "C", quote(use))
+
+    dup(x, y) =
+      (p, p) -> true |
+      (p, q) -> false
+
+    [
+      dup(a, a),
+      dup(a, b),
+      dup(a, c),
+      dup(a, b) == dup(a, c),
+      {"k": a} == {"k": b},
+      {"k": a} == {"k": c},
+      ({"k": a} == {"k": b}) == ({"k": a} == {"k": c}),
+      {"k": a} == {"k": a},
+      [{"k": a}] == [{"k": b}],
+      none?(assert_eq(a, a))
+    ]
+expected:
+  stdout: "[true, false, false, true, false, false, true, true, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 795
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Protected-value non-interference"
+  note: >-
+    The two agreement booleans are the security assertion: whatever each surface
+    answers, it must answer the same for the equal-payload pair as for the
+    different-payload pair. A surface that can tell them apart is a payload
+    oracle even when each individual answer looks reasonable.
