@@ -2187,7 +2187,7 @@ Not implemented yet:
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
 
-### Portable value equality (Experimental, R18 — E18-1 through E18-4 landed)
+### Portable value equality (Experimental, R18 complete through E18-7)
 
 Genia has one semantic equality relation. `==` denotes it, `!=` is exactly its
 logical negation, and it is not user-overloadable: no Genia function, Template,

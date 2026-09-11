@@ -30,7 +30,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R15 — Validated Value Modeling](R15.md) — COMPLETE; E15-1 through E15-9 delivered
 - [R16 — Multi-Host Conformance Infrastructure](R16.md) — COMPLETE; E16-0 through E16-8 delivered
 - [R17 — Numeric and Ordered-Map Portability Contract](R17.md) — COMPLETE; E17-0 through E17-3 delivered
-- [R18 — Portable Value Equality](R18.md) — E18-0 through E18-6 delivered; E18-7 release audit is the remaining gate
+- [R18 — Portable Value Equality](R18.md) — COMPLETE; E18-0 through E18-7 delivered
 
 ## Process
 
