@@ -35,10 +35,10 @@ R16 — Multi-Host Conformance Infrastructure ✓ COMPLETE
 R17 — Numeric & Ordered-Map Portability Contract ✓ COMPLETE
  |
  v
-R18 — Portable Value Equality
+R18 — Portable Value Equality ✓ COMPLETE
  |
  v
-R19 — Unicode, Float & Diagnostic Portability Contract
+R19 — Unicode & Diagnostic Portability Contract
  |
  v
 R20 — Open Functions & Extensible Pattern Dispatch
@@ -100,31 +100,38 @@ generic `tools/spec_runner --host` path is implemented and proven against the
 Python reference host and the non-semantic `m0smith/genia-cpp` bootstrap
 placeholder. R16 does not implement a real C++ interpreter.
 
-R17 has completed its shared numeric and ordered-map portability contract. R18
-is the next planned foundational portability release and settles the equality
-relation that R17 intentionally left separate from ordered-map iteration:
-structural equality for ordinary immutable values, identity for logical runtime
-entities, authority-aware opaque-token equality, protected-value non-oracle
-behavior, legal-key reflexivity, NaN key exclusion, and equal-key hash/keying
-consistency. R18 also permanently keeps `==` out of Open Function overloading so
-future domain-specific equivalence remains an explicit predicate rather than
-changing map/pattern/assertion semantics.
+R17 and R18 are complete foundational portability releases. R17 establishes
+arbitrary-precision integer and ordered-map portability. R18 establishes the
+host-independent equality/key relation, including structural equality, identity
+and opaque-token semantics, protected-value non-oracle behavior, legal-key
+reflexivity, NaN key exclusion, and equal-key hash/keying consistency. R18 also
+permanently keeps `==` out of Open Function overloading so future domain-specific
+equivalence remains an explicit predicate rather than changing
+map/pattern/assertion semantics.
 
-R19 then specifies the remaining Unicode, float-display, and diagnostic
-portability surfaces. R20 promotes open functions / extensible pattern dispatch
-from the parking lot into an explicit host-agnostic language-semantics release.
-Its contract must settle local repeated-clause grouping, explicit cross-module
-extension, deterministic dispatch and ambiguity behavior, provenance,
-import-order independence, and inert import semantics before a second host
-implements those rules; R20 must consume R18 rather than making `==` extensible.
+R19 has an approved E19-0 contract and proceeds with Unicode/string and diagnostic
+portability only. Its former float-rendering work is explicitly split into the
+separate exact-numeric-model gate documented in
+`docs/design/exact-numeric-model-preflight.md` and
+`docs/design/exact-numeric-model-resolved-decisions.md`. R19 implementation starts
+with E19-1 Unicode semantics/evidence, followed by the mechanical diagnostic
+inventory and normalization slices. R20 promotes open functions / extensible
+pattern dispatch from the parking lot into an explicit host-agnostic
+language-semantics release. Its contract must settle local repeated-clause
+grouping, explicit cross-module extension, deterministic dispatch and ambiguity
+behavior, provenance, import-order independence, and inert import semantics before
+a second host implements those rules; R20 must consume R18 rather than making
+`==` extensible.
 
-R21 depends on R16, R17, R18, R19, and R20 and is the first planned production
-C++ implementation release. R21 through R24 place C++ production implementation
-in `m0smith/genia-cpp`; `genia-2026` changes during those releases only when
-authoritative contracts, shared specs, generic runner infrastructure, or
-portability documentation require it. If C++ work exposes an ambiguous portable
-behavior, the contract/spec is clarified upstream before the host implementation
-proceeds rather than copying Python implementation details.
+R21 depends on R16, R17, R18, completed R19, completed R20, and the separately
+approved/completed exact-numeric-model contract before C++ numeric semantics are
+implemented. R21 is the first planned production C++ implementation release. R21
+through R24 place C++ production implementation in `m0smith/genia-cpp`;
+`genia-2026` changes during those releases only when authoritative contracts,
+shared specs, generic runner infrastructure, or portability documentation require
+it. If C++ work exposes an ambiguous portable behavior, the contract/spec is
+clarified upstream before the host implementation proceeds rather than copying
+Python implementation details.
 
 R22 and R23 extend the C++ host along mostly independent stateful and REPL/data-
 bridge tracks. R24 consumes the implemented contracts it needs and closes only
@@ -178,7 +185,7 @@ treats local execution as the first provider rather than the semantic model; and
 consumes R31 storage authority when execution needs storage access rather than
 defining filesystem behavior itself. Although numbered after R31, its core
 execution semantics remain conceptually rooted in R14 + R16 + R18. Later
-actor-distribution or durable-job work should reuse R32 rather than invent a
+actor-distribution or durable-job work should reuse R32 rather than inventing a
 second launch/placement/compatibility model.
 
 R33 depends on R18, R31, and R32 and is the planned Genia-native
@@ -193,12 +200,14 @@ must not require changes to the runner program, shared cases, or conformance
 semantics. Python runner/bootstrap infrastructure remains until independent
 parity/evidence justifies a separate removal gate.
 
-R8 through R17 are complete. R11, R12, R13, R14, and R15 APIs remain
-Experimental, Python is the only implemented production host, and shared/multi-
-host conformance remains Partial. R16's E16-0 through E16-8 sequence is complete
-(issues #757-#765; epic #756 closed; skeptical audit PASS in
-`docs/releases/R16.md`). No real second production host is implemented yet.
-R18 through R33 are planned and not active. R10/R11/R12/R13 follow-ups require
-their own gates. Every later release requires its own gates. Each later behavior
-slice requires its own contract/design/test/implementation/documentation/audit
-gates; roadmap placement is not implementation authority.
+R8 through R17 are complete, and R18 is also complete. R19 has an approved
+contract but no implemented R19 slice yet; GO is established for E19-1. R11,
+R12, R13, R14, and R15 APIs remain Experimental, Python is the only implemented
+production host, and shared/multi-host conformance remains Partial. R16's E16-0
+through E16-8 sequence is complete (issues #757-#765; epic #756 closed;
+skeptical audit PASS in `docs/releases/R16.md`). No real second production host
+is implemented yet. R20 through R33 remain planned and not active.
+R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
+its own gates. Each later behavior slice requires its own
+contract/design/test/implementation/documentation/audit gates; roadmap placement
+is not implementation authority.

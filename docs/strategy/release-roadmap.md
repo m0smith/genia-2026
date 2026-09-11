@@ -60,6 +60,12 @@ those rules. It added no C++ host, no user-overloadable `==`, no token-domain
 syntax or minting API, and no storage `Revision`; map iteration order remains the
 R17 contract. See `docs/releases/R18.md`.
 
+**R19 — Unicode and Diagnostic Portability Contract** has an approved E19-0
+contract and is ready for **E19-1 Unicode semantics/evidence**. R19 no longer owns
+float/Decimal/Rational semantics or Float64 rendering; that work is split into a
+separate exact-numeric-model release gate. R19 remains unimplemented until its
+ordered slices land, so `GENIA_STATE.md` continues to describe current behavior.
+
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 Detailed R16-R21 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
 
@@ -124,7 +130,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R16 | Multi-Host Conformance Infrastructure | Complete | `docs/releases/R16.md` |
 | R17 | Numeric and Ordered-Map Portability Contract | Complete | `docs/releases/R17.md` |
 | R18 | Portable Value Equality | Complete | `docs/releases/R18.md` |
-| R19 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R19 | Unicode and Diagnostic Portability Contract | Contract approved; E19-1 ready | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R20 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R21 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R22 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
