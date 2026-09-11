@@ -17,8 +17,9 @@ R21 semantic implementation MUST NOT begin until:
 - R16 multi-host conformance infrastructure remains green and usable by an external host
 - R17 numeric and ordered-map portability is complete
 - R18 portable value equality is complete
-- R19 Unicode, float formatting, and diagnostic portability is approved and complete
+- R19 Unicode and diagnostic portability is approved and complete
 - R20 open functions / extensible pattern dispatch is approved and complete
+- the separately gated exact-numeric-model contract (Integer/Decimal/Rational/explicit Float64) is approved and complete before C++ numeric semantics are implemented
 - the target `genia-2026` contract revision is pinned in `m0smith/genia-cpp`
 
 Toolchain/bootstrap work that does not interpret Genia semantics may proceed earlier, but MUST NOT claim host conformance.
@@ -115,7 +116,7 @@ Forbidden as portable output unless explicitly contracted by R19:
 - filesystem/library implementation details
 - demangled C++ symbols
 
-R19 defines the portable diagnostic surface. R21 implements that surface.
+R19 defines the portable Unicode/string and diagnostic surface. The separate exact-numeric-model contract defines Decimal/Rational/Float64 semantics and rendering. R21 implements both; it does not infer either from C++ defaults.
 
 ## 6. Vertical bootstrap suite
 
@@ -239,7 +240,7 @@ R21 completion requires:
 
 ## Final go/no-go
 
-Semantic C++ implementation is **NO-GO** until R19 and R20 are complete.
+Semantic C++ implementation is **NO-GO** until R19, R20, and the separately gated exact-numeric-model contract required by the minimal host are complete.
 
 Once those prerequisites are complete, R21 may begin if this pre-flight is satisfied and the initial capability floor, dependency choices, native primitive inventory, and bootstrap case list are pinned.
 
