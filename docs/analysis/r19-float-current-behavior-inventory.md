@@ -1,8 +1,10 @@
-# R19 Float Rendering Current-Behavior Inventory
+# Float Rendering Current-Behavior Inventory
 
 Status: **Planning analysis — non-authoritative.** `GENIA_STATE.md` remains final authority for implemented behavior.
 
-This inventory records current Python reference-host float rendering behavior that R19 must replace with an explicit portable contract. It does not change runtime behavior.
+This inventory was created during R19 E19-0 and records current Python reference-host float rendering behavior. It is now retained as input to the separate exact-numeric-model workstream rather than as an R19 implementation target.
+
+R19 no longer owns float canonicalization. See `docs/design/exact-numeric-model-preflight.md`.
 
 ## Current implementation facts
 
@@ -10,7 +12,7 @@ General rendering is in `src/genia/utf8.py`:
 
 - `format_display(value)` has no explicit float branch; floats fall through to Python `str(value)`.
 - `format_debug(value)` has no explicit float branch; floats fall through to Python `repr(value)`.
-- On current Python, `str(float)` and `repr(float)` generally use Python's shortest-round-trip-style decimal rendering, but that is a Python implementation/library contract, not yet a Genia contract.
+- On current Python, `str(float)` and `repr(float)` generally use Python's shortest-round-trip-style decimal rendering, but that is a Python implementation/library contract, not Genia semantic authority.
 
 The format engine adds more numeric rendering behavior:
 
@@ -18,87 +20,89 @@ The format engine adds more numeric rendering behavior:
 - zero-padding starts from `format_display(value)`.
 - grouping starts from `format_display(value)` and then groups the integer part.
 
-Therefore a future host cannot reproduce current output reliably by choosing arbitrary `printf`, iostream, `to_chars`, or library defaults.
+Therefore a future host cannot reproduce current numeric output reliably by choosing arbitrary `printf`, iostream, `to_chars`, or library defaults.
 
-## Inventory matrix
+## Why the original F1 blocker was split out
 
-| Surface | Python reference-host behavior today | Portable status before R19 | R19 contract question |
-|---|---|---|---|
-| Ordinary float display | Python `str(float)` | implicit host behavior | Define one canonical finite-float rendering algorithm. |
-| Float debug rendering | Python `repr(float)` | implicit host behavior | Decide whether debug equals display for floats or has a distinct contract. |
-| Integral-looking float | Python emits decimal point for examples such as `1.0` | implicit | Preserve or deliberately change; must be exact. |
-| Negative zero | Python preserves `-0.0` in `str`/`repr` | implicit | Specify sign preservation. |
-| Exponent marker | Python uses lowercase `e` | implicit | Specify exact marker/case. |
-| Exponent sign/digits | Python formatting rules | implicit | Specify exact canonical spelling. |
-| Switch to exponent notation | Python threshold/algorithm | implicit | Choose algorithm, not a host default. |
-| NaN | Python usually emits `nan` | implicit | Define exact spelling and whether payload/sign details are ignored. |
-| Positive infinity | Python usually emits `inf` | implicit | Define exact spelling. |
-| Negative infinity | Python usually emits `-inf` | implicit | Define exact spelling. |
-| Precision spec | `Decimal(repr(value))`, decimal quantize, ROUND_HALF_UP | implementation behavior | Decide whether this exact semantic belongs in R19 portability or remains existing format-engine contract to be separately evidenced. |
-| Zero padding | based on ordinary display text | transitively host-dependent | Becomes portable once ordinary rendering is portable. |
-| Grouping | based on ordinary display text | transitively host-dependent | Becomes portable once ordinary rendering is portable. |
+The initial R19 draft treated the problem as canonical binary64 rendering. During E19-0 review, the preferred language direction changed:
 
-## Relationship to R18
+- ordinary decimal-point/exponent numbers should be exact arbitrary-precision Decimal values rather than implicit binary64
+- exact Rational values should represent non-terminating exact quotients such as `1 / 3`
+- IEEE-754 binary64 should remain available explicitly as `Float64` (final syntax/name subject to contract)
 
-R18 already owns equality semantics. R19 must not reopen them.
+That change affects literal semantics, Core IR, arithmetic, division, equality, map keys, JSON boundaries, conversions, and formatting. It therefore requires its own semantic release rather than an R19 rendering patch.
 
-In particular:
+## Current float inventory matrix
 
-- exact cross-kind numeric equality remains R18 behavior
-- booleans remain distinct from numbers
-- signed zero equality remains whatever R18 approved; R19 only defines visible rendering
-- `NaN == NaN` remains false under R18; R19 only chooses deterministic text
-- legal map-key behavior remains R18 territory
+| Surface | Python reference-host behavior today | Future numeric-contract question |
+|---|---|---|
+| Ordinary fractional literal | becomes Python `float` | Reclassify ordinary decimal literals as exact Decimal. |
+| Ordinary float display | Python `str(float)` | Specify only for explicit Float64 after numeric model is approved. |
+| Float debug rendering | Python `repr(float)` | Specify only for explicit Float64 after numeric model is approved. |
+| Integral-looking float | Python commonly emits `1.0` | Decide explicit Float64 rendering separately from Decimal rendering. |
+| Negative zero | Python preserves `-0.0` | Remains relevant to explicit Float64, not exact Decimal identity. |
+| Exponent marker/sign/digits | Python formatting rules | Must become explicit for Float64 if retained. |
+| Exponent switch threshold | Python threshold/algorithm | Must become explicit for Float64 if retained. |
+| NaN / infinities | Python `nan`, `inf`, `-inf` | Belong to explicit Float64 semantics, not exact Decimal/Rational. |
+| Precision spec | `Decimal(repr(value))`, then quantize ROUND_HALF_UP | Must be redesigned/reconciled across Decimal/Rational/Float64. |
+| Zero padding/grouping | based on ordinary display text | Must follow the approved numeric rendering model. |
 
-The representation contract must therefore preserve observability without changing equality.
+## Relationship to R17/R18
 
-## Recommended contract direction
+Current implemented truth remains unchanged until a later numeric release lands.
 
-The R19 draft should require a canonical algorithm with these properties, subject to approval:
+Today R18 owns:
 
-1. finite floats render to a deterministic decimal string that round-trips to the same IEEE-754 binary64 value
-2. among round-tripping representations, use a shortest/canonical representation rule independent of host libraries
-3. integral-looking floats retain a visible float distinction (for example `1.0`, not `1`) unless the contract explicitly chooses otherwise
-4. negative zero renders distinctly as `-0.0`
-5. exponent spelling is fixed and locale-independent
-6. non-finite spellings are fixed and locale-independent
-7. display and debug rendering for floats are identical unless a concrete portability need justifies divergence
+- Integer/float exact cross-kind equality
+- signed-zero equality
+- infinity and NaN equality behavior
+- legal map-key behavior for current floats
 
-The contract may name an algorithmic property rather than mandate a particular library implementation. A C++ host may use `to_chars`, Ryu, Dragonbox, or another mechanism only if it produces the contracted output.
+The future numeric release must explicitly supersede/reconcile those current float assumptions rather than silently reinterpret completed R18 history.
 
-## Required future shared evidence
+Preferred future direction, not yet implemented:
 
-Candidate cases:
+- Integer, Decimal, and Rational participate in exact mathematical cross-kind equality
+- Decimal lexical scale is not numeric identity
+- exact numeric map-key equivalence follows exact mathematical equality
+- explicit Float64 participates only under a precisely specified bridge, likely when it exactly denotes the same mathematical value
+- NaN remains non-reflexive only within explicit hardware-float semantics
+
+## Evidence retained for the future numeric release
+
+The following binary64 cases remain useful for explicit Float64 portability:
 
 - `0.0`
 - `-0.0`
 - `1.0`
-- ordinary fraction such as `1.5`
-- a binary precision-sensitive value such as `0.1`
-- values around exponent-switch boundaries chosen by the approved algorithm
-- very small finite value
-- very large finite value
+- ordinary finite fraction
+- precision-sensitive values such as binary64 `0.1`
+- exponent-switch boundaries
 - minimum/maximum normal/subnormal representatives where practical
-- `inf`, `-inf`, `nan` if Genia continues to support them as float values
-- nested list/map rendering containing the same floats
-- debug and display equivalence/difference as approved
+- `inf`, `-inf`, `nan`
+- nested display/debug contexts
 
-## Implementation-impact locations for later slices
+Additional exact-number evidence will be required for Decimal and Rational and is not defined by this inventory.
 
-At minimum, later implementation work must review:
+## Implementation-impact locations for the future numeric release
 
-- `src/genia/utf8.py` (`format_display`, `format_debug`)
-- `src/genia/_format_engine.py` (`_format_numeric_precision`, zero padding, grouping)
-- tests/specs that assert rendered numeric text
-- adapter/result normalization paths that surface final values
+At minimum:
 
-R19 should avoid replacing every numeric formatter at once. Ordinary canonical rendering should be established first; dependent formatting should then be checked for compatibility.
+- lexer/parser numeric literal classification
+- portable Core IR numeric representation
+- evaluator arithmetic/division
+- `src/genia/equality.py`
+- map-key canonicalization
+- `src/genia/utf8.py`
+- `src/genia/_format_engine.py`
+- JSON encode/decode boundaries
+- host adapters/interop conversions
+- shared parse/IR/eval/error/CLI evidence
 
 ## Non-goals of this inventory
 
-- no equality changes
-- no approximate-comparison API
-- no locale-aware formatting
-- no arbitrary-precision decimal type
-- no C++ library selection
 - no runtime changes
+- no final Decimal/Rational/Float64 syntax
+- no promotion matrix
+- no final Float64 rendering algorithm
+- no library selection
