@@ -146,7 +146,18 @@ def test_reserved_secret_facet_rejects_all_generic_carrier_operations_without_le
         assert PURPOSE_SENTINEL not in text
 
 
-def test_protected_equality_includes_provider_purpose_and_payload_without_rendering_them():
+def test_protected_equality_observes_carrier_identity_only():
+    """R18 (#793): protected equality observes carrier identity and nothing else.
+
+    Before R18 this asserted `a == b` was True, because protected equality
+    compared provider identity, purpose, **and the carried payload**. That made
+    ordinary `==` a protected-payload oracle: unprivileged code could test
+    whether two independently acquired secrets matched.
+
+    `a` and `b` are two separate `secret_get` acquisitions, so they are two
+    distinct carriers and are now unequal despite sharing a provider, a purpose,
+    and a payload. Only an alias of the same carrier compares equal.
+    """
     result = _run(
         f"""
         p1 = {_sentinel_provider_source()}
@@ -155,10 +166,11 @@ def test_protected_equality_includes_provider_purpose_and_payload_without_render
         b = secret_get(p1, "{KEY_SENTINEL}", quote(first)) |> unwrap_or(none)
         c = secret_get(p1, "{KEY_SENTINEL}", quote(second)) |> unwrap_or(none)
         d = secret_get(p2, "{KEY_SENTINEL}", quote(first)) |> unwrap_or(none)
-        [a == b, a == c, a == d, a == "{PAYLOAD_SENTINEL}"]
+        alias = a
+        [a == alias, a == b, a == c, a == d, a == "{PAYLOAD_SENTINEL}"]
         """
     )
-    assert result == [True, False, False, False]
+    assert result == [True, False, False, False, False]
 
 
 def test_protected_values_are_not_map_keys_and_errors_do_not_leak():

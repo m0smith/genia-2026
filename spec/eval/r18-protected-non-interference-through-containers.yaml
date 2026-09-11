@@ -1,0 +1,26 @@
+name: r18-protected-non-interference-through-containers
+category: eval
+description: >-
+  R18 portable value equality: protected non-interference survives recursive
+  structural comparison. Wrapping carriers in Lists, Outcomes, Pairs, or maps must
+  not restore the payload oracle, so an equal-payload pair and a
+  different-payload pair must produce identical answers at every nesting.
+input:
+  source: |
+    provider = config_provider([{kind: quote(values), values: {A: "SAME", B: "SAME", C: "OTHER"}}]) |> unwrap_or(none)
+    a = secret_get(provider, "A", quote(use))
+    b = secret_get(provider, "B", quote(use))
+    c = secret_get(provider, "C", quote(use))
+    [[a] == [b], [a] == [c], some(a) == some(b), some(a) == some(c), err("e", a) == err("e", b), err("e", a) == err("e", c), {"k": a} == {"k": b}, {"k": a} == {"k": c}, [[a]] == [[b]], [a] == [a]]
+expected:
+  stdout: "[false, false, false, false, false, false, false, false, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 793
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Protected-value non-interference"
+  note: >-
+    Every equal-payload comparison must agree with its different-payload twin.
+    The final case confirms carrier identity is still observable through a
+    container, which is permitted.

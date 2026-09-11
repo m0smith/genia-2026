@@ -67,24 +67,20 @@ __all__ = ["genia_equal", "canonical_map_key"]
 
 
 # ---------------------------------------------------------------------------
-# transitional families
+# identity-bearing runtime values
 # ---------------------------------------------------------------------------
 #
-# TRANSITIONAL (E18-1 only). These families are recognized here but their
-# semantics belong to later R18 slices. Until their owning issue lands they keep
-# exactly the behavior they had before R18 so this slice regresses nothing and
-# pre-implements nothing.
+# R18 (#793). These values denote runtime entities, so they compare only by
+# logical runtime entity identity. Equivalent visible state, configuration, or
+# construction arguments never imply equality, and comparison never
+# dereferences, invokes, advances, or inspects the entity behind them.
 #
-# Each owning issue removes the entries it takes over; after #793 this whole
-# section and `_deferred_equal` are deleted. This is one relation with
-# explicitly deferred branches, not a second equality mechanism, and it is not a
-# generic host fallback: only the named kinds below can reach it.
-#
-# #792 has landed, so `GeniaMap` is no longer deferred; it has its own branch.
+# Classifying them explicitly deliberately overrides host dataclass equality,
+# which compares fields for several of these types — `ModuleValue`'s generated
+# equality compares its entire export table, which is exactly the
+# "equivalent visible state implies equality" error the contract forbids.
 
-# Owned by #793 (identity-bearing, opaque-token, and protected equality).
-_DEFERRED_TO_IDENTITY_SLICE: tuple[type, ...] = (
-    GeniaProtected,
+_IDENTITY_BEARING: tuple[type, ...] = (
     GeniaDeclassificationAuthority,
     GeniaConfigProvider,
     GeniaNamedPattern,
@@ -99,9 +95,9 @@ _DEFERRED_TO_IDENTITY_SLICE: tuple[type, ...] = (
     GeniaStdinSource,
 )
 
-# Also owned by #793, matched by class name so this module does not import the
+# Matched by class name so this module does not import the
 # model/retrieval/callable/lifecycle layers and cannot create an import cycle.
-_DEFERRED_TO_IDENTITY_SLICE_BY_NAME = frozenset(
+_IDENTITY_BEARING_BY_NAME = frozenset(
     {
         "GeniaFunction",
         "GeniaFunctionGroup",
@@ -125,15 +121,40 @@ _DEFERRED_TO_IDENTITY_SLICE_BY_NAME = frozenset(
 )
 
 
-def _is_deferred(value: Any) -> bool:
-    if isinstance(value, _DEFERRED_TO_IDENTITY_SLICE):
+def _is_identity_bearing(value: Any) -> bool:
+    if isinstance(value, _IDENTITY_BEARING):
         return True
-    return type(value).__name__ in _DEFERRED_TO_IDENTITY_SLICE_BY_NAME
+    if type(value).__name__ in _IDENTITY_BEARING_BY_NAME:
+        return True
+    # Plain host callables (functions, lambdas, bound methods) denote executable
+    # behavior, so they are classified deliberately rather than being left to
+    # the unclassified terminal.
+    return callable(value)
 
 
-def _deferred_equal(left: Any, right: Any) -> bool:
-    """TRANSITIONAL: preserve pre-R18 behavior for families owned by #792/#793."""
-    return bool(left == right)
+# ---------------------------------------------------------------------------
+# opaque semantic tokens
+# ---------------------------------------------------------------------------
+#
+# R18 (#793). An opaque semantic token represents an immutable semantic fact
+# whose equality is meaningful but whose representation is not public.
+#
+# R18 adds no public token class, value, minting API, or syntax, and implements
+# no storage or `Revision`. What it adds is the adapter shape the engine uses
+# when a token type eventually exists: a token exposes three immutable hidden
+# identities and the engine compares them.
+#
+# The token supplies DATA, never BEHAVIOR. The engine never calls a comparator,
+# equality method, issuer, provider, or callback offered by the token. That
+# distinction is what lets future built-in and user-defined token domains join
+# this family while `==` stays non-overloadable.
+
+_TOKEN_EQUALITY_ATTRIBUTE = "__genia_token_equality__"
+
+
+def _token_identity(value: Any) -> Any:
+    """Return a token's hidden (domain, provenance, semantic) identities, or None."""
+    return getattr(value, _TOKEN_EQUALITY_ATTRIBUTE, None)
 
 
 # ---------------------------------------------------------------------------
@@ -186,6 +207,36 @@ def _numeric_equal(left: Any, right: Any) -> bool:
 def genia_equal(left: Any, right: Any) -> bool:
     """Return whether two Genia values are equal under the one Genia relation."""
 
+    # 0. The three families that must never be compared by contents, checked
+    #    before every structural branch so recursion can never reach inside one.
+    #
+    #    Protected carriers come first so no other branch — present or future —
+    #    can observe a carrier before the identity-only rule applies.
+    if isinstance(left, GeniaProtected) or isinstance(right, GeniaProtected):
+        # Carrier identity only. The payload is never read, so equality cannot
+        # disclose whether two independently acquired carriers hold equal
+        # secrets. Revealing carrier identity is permitted; revealing payload
+        # equality is not.
+        return left is right
+
+    left_token = _token_identity(left)
+    right_token = _token_identity(right)
+    if left_token is not None or right_token is not None:
+        if left_token is None or right_token is None:
+            return False
+        # Equal iff domain, provenance and semantic identities are all equal.
+        # The components are compared with this same relation, so the comparison
+        # is portable rather than delegated to host equality. No issuer is
+        # contacted and no token-supplied comparator is consulted.
+        if len(left_token) != len(right_token):
+            return False
+        return all(
+            genia_equal(a, b) for a, b in zip(left_token, right_token)
+        )
+
+    if _is_identity_bearing(left) or _is_identity_bearing(right):
+        return left is right
+
     # 1. Booleans are their own semantic kind and are decided first, before any
     #    numeric branch, because this host represents them as integers.
     left_is_bool = isinstance(left, bool)
@@ -210,13 +261,7 @@ def genia_equal(left: Any, right: Any) -> bool:
     if isinstance(right, GeniaSymbol):
         return False
 
-    # 4. Families whose semantics belong to a later R18 slice.
-    if _is_deferred(left) or _is_deferred(right):
-        if _is_deferred(left) and _is_deferred(right):
-            return _deferred_equal(left, right)
-        return False
-
-    # 5. Structural values: compare named semantic fields recursively. Each kind
+    # 4. Structural values: compare named semantic fields recursively. Each kind
     #    names its own fields; no generic field reflection is used, so adding a
     #    host-level field cannot silently change Genia equality.
     if isinstance(left, list):
