@@ -63,7 +63,7 @@ from .values import (
     ModuleValue,
 )
 
-__all__ = ["genia_equal"]
+__all__ = ["genia_equal", "canonical_map_key"]
 
 
 # ---------------------------------------------------------------------------
@@ -79,9 +79,8 @@ __all__ = ["genia_equal"]
 # section and `_deferred_equal` are deleted. This is one relation with
 # explicitly deferred branches, not a second equality mechanism, and it is not a
 # generic host fallback: only the named kinds below can reach it.
-
-# Owned by #792 (map equality, legal keys, key equivalence).
-_DEFERRED_TO_MAP_SLICE: tuple[type, ...] = (GeniaMap,)
+#
+# #792 has landed, so `GeniaMap` is no longer deferred; it has its own branch.
 
 # Owned by #793 (identity-bearing, opaque-token, and protected equality).
 _DEFERRED_TO_IDENTITY_SLICE: tuple[type, ...] = (
@@ -127,8 +126,6 @@ _DEFERRED_TO_IDENTITY_SLICE_BY_NAME = frozenset(
 
 
 def _is_deferred(value: Any) -> bool:
-    if isinstance(value, _DEFERRED_TO_MAP_SLICE):
-        return True
     if isinstance(value, _DEFERRED_TO_IDENTITY_SLICE):
         return True
     return type(value).__name__ in _DEFERRED_TO_IDENTITY_SLICE_BY_NAME
@@ -301,6 +298,11 @@ def genia_equal(left: Any, right: Any) -> bool:
     if isinstance(right, GeniaSheet):
         return False
 
+    if isinstance(left, GeniaMap):
+        return isinstance(right, GeniaMap) and _map_equal(left, right)
+    if isinstance(right, GeniaMap):
+        return False
+
     # The host absence sentinel is still used internally in this host. It is
     # classified explicitly so it stays out of the unclassified terminal and
     # keeps its existing behavior.
@@ -323,6 +325,114 @@ def _format_equal(left: GeniaFormat, right: GeniaFormat) -> bool:
     if len(left.pieces) != len(right.pieces):
         return False
     return all(genia_equal(a, b) for a, b in zip(left.pieces, right.pieces))
+
+
+_MAP_ENTRY_MISSING = object()
+
+
+def _map_equal(left: GeniaMap, right: GeniaMap) -> bool:
+    """Map equality is equality of mappings, not of insertion history.
+
+    Entries are matched by canonical key identity, which *is* Genia key
+    equality, so iterating one side and looking up the other is exactly "every
+    mapping in one has an equal key in the other". Order is ignored by
+    construction, and the length check makes the one-directional scan
+    sufficient.
+    """
+    left_entries = left._entries
+    right_entries = right._entries
+    if len(left_entries) != len(right_entries):
+        return False
+    for canonical_key, (_, left_value) in left_entries.items():
+        entry = right_entries.get(canonical_key, _MAP_ENTRY_MISSING)
+        if entry is _MAP_ENTRY_MISSING:
+            return False
+        if not genia_equal(left_value, entry[1]):
+            return False
+    return True
+
+
+# ---------------------------------------------------------------------------
+# legal map keys
+# ---------------------------------------------------------------------------
+#
+# R18 (#792). Map key identity is exactly Genia `==` for legal keys. This is the
+# only place that decides key legality and key identity, so the two can never
+# drift apart.
+#
+# Each canonical identity is a tuple tagged by Genia semantic kind, which is what
+# stops a host container from merging two kinds — before R18 the host dictionary
+# merged `true` with `1`. The identity is internal: it is not a public hash API
+# and is not reachable from Genia source.
+
+_KEY_NAN_MESSAGE = "map key must equal itself; NaN is not a legal map key"
+
+
+def _key_error(message: str) -> TypeError:
+    return TypeError(message)
+
+
+def canonical_map_key(value: Any) -> Any:
+    """Return the internal canonical identity for a legal map key.
+
+    Raises ``TypeError`` for any key that is not legal, including NaN and any
+    otherwise-legal structural key containing NaN at any depth.
+    """
+    # Booleans first, for the same reason as in `genia_equal`: this host
+    # represents them as integers, and they must not share a numeric identity.
+    if isinstance(value, bool):
+        return ("bool", value)
+
+    if isinstance(value, int):
+        return ("num", value)
+
+    if isinstance(value, float):
+        if math.isnan(value):
+            raise _key_error(_KEY_NAN_MESSAGE)
+        if math.isfinite(value) and value.is_integer():
+            # An integer and an exactly equal integral float are one key. The
+            # float is converted upward so an arbitrary-precision integer key is
+            # never narrowed. This also collapses 0.0 with -0.0, as required.
+            return ("num", int(value))
+        # Non-integral finite floats and the two infinities keep exact float
+        # identity. For non-NaN floats the host's own comparison is exactly IEEE
+        # equality, which is the contract, and infinities stay distinct by sign.
+        return ("float", value)
+
+    if isinstance(value, str):
+        return ("string", value)
+
+    if isinstance(value, GeniaSymbol):
+        return ("symbol", value.name)
+
+    if isinstance(value, GeniaPair):
+        return ("pair", canonical_map_key(value.head), canonical_map_key(value.tail))
+
+    if isinstance(value, list):
+        return ("list", tuple(canonical_map_key(item) for item in value))
+
+    if isinstance(value, GeniaRepresented):
+        return ("represented", value.facet, canonical_map_key(value.value))
+
+    # Families with their own established rejection messages. Protected carriers
+    # are rejected without inspecting or mentioning their payload.
+    if isinstance(value, GeniaProtected):
+        raise _key_error("protected values cannot be map keys")
+    if isinstance(value, GeniaDeclassificationAuthority):
+        raise _key_error("declassification authority cannot be a map key")
+    if type(value).__name__ == "GeniaIndexHandle":
+        raise _key_error("index handles cannot be map keys")
+
+    # Host-internal accommodations. The approved R18 contract is explicit that
+    # these are "not authority to introduce a new public tuple/null key kind", so
+    # they keep working for internal callers but are not public key families and
+    # are not documented as such.
+    if value is None:
+        return ("host-none",)
+    if isinstance(value, tuple):
+        return ("host-tuple", tuple(canonical_map_key(item) for item in value))
+
+    raise _key_error(f"map key type is not supported: {type(value).__name__}")
 
 
 def _sheet_equal(left: GeniaSheet, right: GeniaSheet) -> bool:
