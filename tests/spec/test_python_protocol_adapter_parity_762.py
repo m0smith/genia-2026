@@ -27,7 +27,7 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     exit_code = runner_module.main(["--host", PROTOCOL_ADAPTER_COMMAND, "--host-timeout", "30"])
     out = capsys.readouterr().out
 
-    # The in-process default path passes all 664 cases (see
+    # The in-process default path passes all 668 cases (see
     # `python -m tools.spec_runner`). 18 of those rely on an injected
     # Python-host-only test fixture or --debug-stdio, neither of which is
     # expressible over the generic protocol yet (E16-2); every other case
@@ -36,9 +36,12 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # and map-order portability evidence). R18 added 7 ordinary eval-category
     # cases (issue #791, portable value-equality evidence), 6 more
     # (issue #792, map equality and legal-key evidence: 3 eval, 3 error),
-    # 3 more (issue #793, identity and protected equality evidence), and
-    # 4 more (issue #794, equality-like surface agreement: 3 eval, 1 error).
+    # 3 more (issue #793, identity and protected equality evidence),
+    # 4 more (issue #794, equality-like surface agreement: 3 eval, 1 error),
+    # and 4 more (issue #795, multi-host conformance hardening).
     # None require an unexpressible fixture, so they pass through the protocol
-    # path like any other case.
-    assert "Summary: total=664 passed=646 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # path like any other case. `test_r18_conformance_protocol_evidence_795.py`
+    # additionally asserts that every R18 case specifically is executed rather
+    # than reported unsupported.
+    assert "Summary: total=668 passed=650 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

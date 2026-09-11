@@ -1,0 +1,42 @@
+name: r18-conformance-cross-family-summary
+category: eval
+description: >-
+  R18 conformance summary: one representative value of every source-reachable
+  equality family compared against an equal value and against a near miss. Every
+  even index must be true and every odd index false. A host implementer runs this
+  case first: a single failing index names the broken family without a hunt
+  across the other R18 cases.
+input:
+  source: |
+    provider = config_provider([{kind: quote(values), values: {A: "SAME", B: "SAME"}}]) |> unwrap_or(none)
+    secret_a = secret_get(provider, "A", quote(use))
+    secret_b = secret_get(provider, "B", quote(use))
+    r = ref(1)
+
+    [
+      1 == 1.0,            true == 1,
+      "s" == "s",          "s" == quote(s),
+      [1, [2]] == [1, [2]], [1, [2]] == [1, [3]],
+      cons(1, 2) == cons(1, 2),  cons(1, 2) == [1, 2],
+      some(1) == some(1.0), some(1) == err(1),
+      {"a": 1, "b": 2} == {"b": 2, "a": 1}, {"a": 1} == {"a": 2},
+      represent("json", 1) == represent("json", 1.0), represent("json", 1) == represent("csv", 1),
+      utf8_encode("x") == utf8_encode("x"), utf8_encode("x") == utf8_encode("y"),
+      sheet([["c", [1]]]) == sheet([["c", [1.0]]]), sheet([["c", [1]]]) == sheet([["d", [1]]]),
+      r == r,              r == ref(1),
+      secret_a == secret_a, secret_a == secret_b
+    ]
+expected:
+  stdout: "[true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 795
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md
+  families: >-
+    numeric/boolean, string/symbol, List, Pair, Outcome, map, represented, bytes,
+    Sheet, identity-bearing (Ref), protected carrier. Opaque semantic tokens are
+    deliberately absent: R18 exposes no way to mint or observe one from Genia
+    source, so covering them here would require the public token surface the
+    approved contract excludes.

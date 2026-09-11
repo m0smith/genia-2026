@@ -1,0 +1,35 @@
+name: r18-conformance-represented-and-pair-structure
+category: eval
+description: >-
+  R18 conformance: represented values compare by facet identity plus carried
+  value, with representation layers ordered, and a represented value is never
+  equal to its carried value. Pairs compare by head and tail and are never equal
+  to a two-element List. Detects a host that unwraps a represented value before
+  comparing, or that models a Pair as a List.
+input:
+  source: |
+    a = represent("json", [1, 2])
+    b = represent("json", [1, 2.0])
+    c = represent("csv", [1, 2])
+    nested_ab = represent("csv", represent("json", 1))
+    nested_ba = represent("json", represent("csv", 1))
+    [
+      a == b,
+      a == c,
+      a == [1, 2],
+      [1, 2] == a,
+      nested_ab == nested_ab,
+      nested_ab == nested_ba,
+      cons(1, 2) == cons(1, 2.0),
+      cons(1, 2) == cons(2, 1),
+      cons(1, 2) == [1, 2],
+      cons(1, cons(2, 3)) == cons(1, cons(2, 3.0))
+    ]
+expected:
+  stdout: "[true, false, false, false, true, false, true, false, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 795
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Represented values", "Lists and Pairs"
