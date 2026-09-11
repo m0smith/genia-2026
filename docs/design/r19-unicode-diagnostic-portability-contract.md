@@ -1,10 +1,10 @@
 # R19 Unicode and Diagnostic Portability Contract
 
-Status: **DRAFT FOR APPROVAL — non-authoritative, not implemented by this document.** `GENIA_STATE.md` remains final authority for implemented behavior.
+Status: **APPROVED FOR IMPLEMENTATION — E19-0 complete; GO for E19-1.** `GENIA_STATE.md` remains final authority for implemented behavior. This contract approval does not by itself make any R19 behavior implemented.
 
 R19 follows completed R17 Numeric and Ordered-Map Portability and R18 Portable Value Equality. Its purpose is to remove remaining Python-default dependencies from byte-observable string and diagnostic surfaces before a second production host implements them.
 
-Numeric-model work formerly represented by blocker F1 is explicitly split out. See `docs/design/exact-numeric-model-preflight.md`.
+Numeric-model work formerly represented by blocker F1 is explicitly split out. See `docs/design/exact-numeric-model-preflight.md` and `docs/design/exact-numeric-model-resolved-decisions.md`.
 
 ## 1. Scope
 
@@ -230,9 +230,11 @@ Minimum diagnostic families:
 - protected redaction
 - normalized host exception boundary representative
 
+These families are approved as the minimum independent-host evidence set. Implementation slices may add narrower regression cases where needed, but may not weaken these families.
+
 ## 8. Expected implementation slices
 
-Subject to issue creation/approval:
+Approved sequencing:
 
 - E19-1 Unicode semantics/evidence
 - E19-2 complete diagnostic assertion/source inventory
@@ -263,9 +265,15 @@ No slice may use a later slice as implicit authority.
 - [x] U2 invalid-UTF-8 decode rule is strict, deterministic, and boundary-preserving
 - [x] U3 C0/DEL/C1 debug escaping is pinned
 - [x] F1 is removed from R19 and assigned to a separate exact-numeric-model gate
-- [ ] diagnostic mechanical inventory procedure is accepted
-- [ ] R17/R18/R9/R10/R16 compatibility review passes
-- [ ] proposed shared case families are sufficient for an independent host
+- [x] diagnostic mechanical inventory procedure is accepted: E19-2 must mechanically map each exact/substring assertion to trigger, phase, semantic family, construction site, interpolation/rendering, security implications, and A/B/C classification before diagnostic normalization begins
+- [x] R17/R18/R9/R10/R16 compatibility review passes: R19 preserves ordered-map semantics, equality/key behavior, JSON boundaries, protected-value non-leakage, and adapter-protocol outcome taxonomy; no conflicting semantic change is introduced
+- [x] proposed shared case families are sufficient for the independent-host acceptance criterion: Unicode width/boundary/slicing/combining/escaping/malformed-input families plus runtime/parse/CLI/interpolation/redaction/host-exception diagnostic families establish the required portable observable surface
+
+## Approval result
+
+**E19-0 is approved and complete. GO for E19-1 — Unicode semantics/evidence.**
+
+This approval authorizes only the ordered R19 implementation process above. It does not authorize Decimal/Rational/Float64 work under R19, does not make any R19 behavior implemented, and does not advance R20 or R21 prerequisites.
 
 ## Critical acceptance criterion for completed R19
 
