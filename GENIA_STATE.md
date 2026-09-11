@@ -2187,7 +2187,7 @@ Not implemented yet:
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
 
-### Portable value equality (Experimental, R18 partial — E18-1 landed)
+### Portable value equality (Experimental, R18 partial — E18-1 and E18-2 landed)
 
 Genia has one semantic equality relation. `==` denotes it, `!=` is exactly its
 logical negation, and it is not user-overloadable: no Genia function, Template,
@@ -2226,12 +2226,38 @@ Landed by E18-1:
   Template, consumes no Seq or Flow, dereferences no Ref, inspects no
   Cell/Process/provider state, and mutates neither operand.
 
-Not yet landed, and therefore not yet changed from prior behavior: map equality
-and the legal map-key relation (E18-2); identity-bearing, opaque semantic token,
-and protected-carrier equality (E18-3); and `assert_eq`, literal patterns,
-duplicate pattern bindings, and the remaining equality-like surfaces (E18-4).
-Those families are recognized by the relation and keep their pre-R18 behavior
-until their own slice lands. R18 release truth is consolidated in E18-6.
+Landed by E18-2 (maps and map keys):
+
+- Map equality is equality of mappings, not of insertion history. Two maps are
+  equal when they hold the same number of mappings and every mapping in one has
+  a Genia-equal key in the other with a Genia-equal mapped value. Equal-content
+  maps are therefore equal even when their R17 iteration orders differ.
+- Mapped values use the full relation, so any Genia value may be a map value. A
+  map holding NaN as a value is consequently not reflexive; R18 requires
+  reflexivity of legal map *keys*, not of every Genia value.
+- For legal keys, map key identity is exactly `==`. One relation governs lookup,
+  presence, insertion, replacement, removal, and map-literal duplicate-key
+  detection. Equal legal keys are interchangeable in all of them; unequal legal
+  keys are never collapsed by host container coercion. In particular `true` and
+  `1` are different keys, `false` and `0` are different keys, `1` and `1.0` are
+  one key, and `0.0` and `-0.0` are one key.
+- The legal public key families are exactly: booleans, integers, non-NaN floats
+  including infinities, strings, symbols, and recursively legal Pairs, Lists, and
+  represented values. No other family is keyable.
+- Every legal key satisfies `k == k`. NaN is therefore not a legal key, and
+  neither is any otherwise-legal structural key containing NaN at any depth.
+  Illegal keys are rejected deterministically on every map operation, not only on
+  insertion, and a rejection never discloses a protected payload or an internal
+  canonical key form.
+- R17 map order semantics are unchanged. Order is a separate observable from
+  equality.
+
+Not yet landed, and therefore not yet changed from prior behavior:
+identity-bearing, opaque semantic token, and protected-carrier equality (E18-3);
+and `assert_eq`, literal patterns, duplicate pattern bindings, and the remaining
+equality-like surfaces (E18-4). Those families are recognized by the relation and
+keep their pre-R18 behavior until their own slice lands. R18 release truth is
+consolidated in E18-6.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
@@ -2277,10 +2303,10 @@ Behavior:
 - portable map order is distinct from map equality, map pattern matching, and
   `json_encode`'s sorted object-member-name output; R17 changes none of those
 - map patterns continue to match structurally by content rather than order
-- current limitation/open question: separately constructed maps with equal
-  content compare by Python host-object identity under `==`, rather than by
-  structural equality. R17 does not establish that observation as intended
-  portable equality semantics; map equality remains unresolved outside R17
+- map equality and the map-key relation were resolved by R18 E18-2; see
+  "Portable value equality" above. Two maps with equal mappings compare equal
+  even when their iteration orders differ, and none of the order rules in this
+  section changed
 - `pairs(xs, ys)` zips two lists into a list of two-element list pairs:
   - pair order follows input order
   - each output item is `[x, y]`, not a tuple or Pair value
@@ -2291,9 +2317,12 @@ Behavior:
   - first-argument non-list values raise `TypeError("pairs expected a list as first argument, received <type>")`
   - second-argument non-list values raise `TypeError("pairs expected a list as second argument, received <type>")`
   - no implicit list coercion, Flow consumption, map traversal, padding, default fill value, or option wrapping is performed
-- list keys are supported by stable structural key-freezing in runtime
-- tuple keys are supported by the same runtime key-freezing strategy (runtime-level interop values)
+- list keys are supported by recursive structural key canonicalization in runtime
+- host tuple keys remain a runtime-level interop accommodation handled by the same
+  canonicalization; they are not a public Genia key family
 - invalid map arguments and unsupported key types raise clear `TypeError`
+- the legal public key families and the key relation itself are defined by R18
+  E18-2; see "Portable value equality" above
 
 ### Record validation helpers (Phase 1 minimal Outcome-aware data pipeline surface)
 

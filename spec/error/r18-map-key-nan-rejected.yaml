@@ -1,0 +1,26 @@
+name: r18-map-key-nan-rejected
+category: error
+description: >-
+  R18 portable value equality: every legal map key must satisfy k == k. NaN is
+  not reflexive, so it is not a legal key and is rejected deterministically
+  rather than appearing to work through a host identity shortcut.
+input:
+  source: |
+    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+    pinf = big * big * big
+    nan = pinf - pinf
+    map_put(map_new(), nan, "value")
+expected:
+  stdout: ""
+  stderr: "Error: map key must equal itself; NaN is not a legal map key\n"
+  exit_code: 1
+notes: |
+  issue: 792
+  release: R18
+  error_phase: eval
+  error_category: TypeError
+  contract: docs/design/r18-portable-value-equality-contract.md "Legal map keys and key equivalence"
+  note: >-
+    Before R18 this was accepted: the host dictionary shortcuts on object
+    identity, so storing and retrieving the same NaN object appeared to work
+    while a different NaN with the same value would not be found.

@@ -1,0 +1,34 @@
+name: r18-map-equal-keys-share-every-operation
+category: eval
+description: >-
+  R18 portable value equality: equal legal keys are interchangeable in every map
+  operation — lookup, presence, replacement, and removal — and replacement through
+  an equal cross-kind key preserves the R17 position of the original association.
+input:
+  source: |
+    m = map_put(map_put(map_new(), 1, "one"), "b", "two")
+    replaced = map_put(m, 1.0, "ONE")
+    removed = map_remove(replaced, 1.0)
+    reinserted = map_put(map_remove(replaced, 1), 1, "again")
+    [map_has?(m, 1), map_has?(m, 1.0), map_get(replaced, 1), map_count(replaced), map_keys(replaced), map_count(removed), map_has?(removed, 1), map_keys(reinserted)]
+expected:
+  stdout: "[true, true, \"ONE\", 2, [1.0, \"b\"], 1, false, [\"b\", 1]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 792
+  release: R18
+  contract: >-
+    docs/design/r18-portable-value-equality-contract.md "Legal map keys and key
+    equivalence" plus the unchanged R17 order rules
+  note: >-
+    R17 order is deliberately asserted alongside equality here: replacement keeps
+    the first position, and remove-then-reinsert appends at the end. R18 changes
+    which keys collide, never how order is maintained.
+  note_key_representation: >-
+    Replacing through an equal cross-kind key keeps the replaced entry's
+    position but retains the replacing key's own representation, so map_keys
+    reports 1.0 rather than 1. This is existing behavior that R17 and R18 both
+    leave unspecified: R17 contracts the key's position only, and R18 contracts
+    which keys collide only. It is asserted here so the behavior is pinned rather
+    than left to drift.

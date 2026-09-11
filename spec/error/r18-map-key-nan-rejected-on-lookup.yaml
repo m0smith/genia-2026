@@ -1,0 +1,22 @@
+name: r18-map-key-nan-rejected-on-lookup
+category: error
+description: >-
+  R18 portable value equality: an illegal map key is illegal on every operation,
+  not only on insertion. Looking a NaN key up is rejected before any storage is
+  consulted, rather than silently reporting absence.
+input:
+  source: |
+    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+    pinf = big * big * big
+    nan = pinf - pinf
+    map_has?(map_put(map_new(), "a", 1), nan)
+expected:
+  stdout: ""
+  stderr: "Error: map key must equal itself; NaN is not a legal map key\n"
+  exit_code: 1
+notes: |
+  issue: 792
+  release: R18
+  error_phase: eval
+  error_category: TypeError
+  contract: docs/design/r18-portable-value-equality-contract.md "Failure boundary"

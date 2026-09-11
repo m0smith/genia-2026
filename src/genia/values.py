@@ -252,26 +252,27 @@ def symbol(name: str) -> GeniaSymbol:
     return created
 
 
+_canonical_map_key = None
+
+
 def _freeze_map_key(value: Any) -> Any:
-    if value.__class__.__name__ == "GeniaIndexHandle":
-        raise TypeError("index handles cannot be map keys")
-    if isinstance(value, GeniaDeclassificationAuthority):
-        raise TypeError("declassification authority cannot be a map key")
-    if value is None or isinstance(value, (bool, int, float, str)):
-        return value
-    if isinstance(value, GeniaSymbol):
-        return ("symbol", value.name)
-    if isinstance(value, GeniaPair):
-        return ("pair", _freeze_map_key(value.head), _freeze_map_key(value.tail))
-    if isinstance(value, GeniaRepresented):
-        return ("represented", value.facet, _freeze_map_key(value.value))
-    if isinstance(value, GeniaProtected):
-        raise TypeError("protected values cannot be map keys")
-    if isinstance(value, list):
-        return ("list", tuple(_freeze_map_key(item) for item in value))
-    if isinstance(value, tuple):
-        return ("tuple", tuple(_freeze_map_key(item) for item in value))
-    raise TypeError(f"map key type is not supported: {type(value).__name__}")
+    """Map key identity, owned by the canonical equality boundary (R18 #792).
+
+    Key legality and key identity are decided in one place,
+    ``equality.canonical_map_key``, so map behavior and ``==`` cannot drift
+    apart. Before R18 this function returned raw host values for booleans,
+    integers, floats and strings, which left the host dictionary to decide key
+    identity — and that dictionary merged ``true`` with ``1`` and accepted NaN.
+
+    The import is function-local because ``equality`` imports this module; the
+    resolved function is cached after the first call.
+    """
+    global _canonical_map_key
+    if _canonical_map_key is None:
+        from .equality import canonical_map_key
+
+        _canonical_map_key = canonical_map_key
+    return _canonical_map_key(value)
 
 
 _MAP_GET_MISSING = object()
