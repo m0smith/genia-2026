@@ -66,14 +66,32 @@ def format_display(value: Any) -> str:
     return str(value)
 
 
+_SHORT_DEBUG_ESCAPES = {
+    "\\": "\\\\",
+    '"': '\\"',
+    "\n": "\\n",
+    "\r": "\\r",
+    "\t": "\\t",
+}
+
+
 def _escape_for_debug(s: str) -> str:
-    return (
-        s.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
-    )
+    # R19 U3: deterministic debug escaping, independent of host terminal
+    # behavior or Unicode printability tables. Every C0 control other than
+    # the five short escapes, DEL, and every C1 control renders as lowercase
+    # \uXXXX (exactly four hex digits); every other scalar renders literally.
+    out: list[str] = []
+    for ch in s:
+        short = _SHORT_DEBUG_ESCAPES.get(ch)
+        if short is not None:
+            out.append(short)
+            continue
+        cp = ord(ch)
+        if cp <= 0x1F or cp == 0x7F or 0x80 <= cp <= 0x9F:
+            out.append(f"\\u{cp:04x}")
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def format_debug(value: Any) -> str:

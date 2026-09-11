@@ -2342,6 +2342,52 @@ called "Portable Value Equality", so each is stated explicitly:
 See `docs/releases/R18.md` for the release summary and
 `docs/design/r18-portable-value-equality-contract.md` for the approved contract.
 
+### Unicode and diagnostic portability (Experimental, R19 E19-1 complete)
+
+- **U1 — code-point semantics.** Genia strings are sequences of Unicode
+  scalar values. `src/genia/utf8.py`'s internal `utf8_codepoints` iterates
+  scalar values (never grapheme clusters, never UTF-8 bytes), and
+  `utf8_safe_slice_by_codepoint(s, start, end)` slices by code-point index
+  with exact bound normalization: an omitted start is `0`, an omitted end is
+  the code-point length, a negative index counts from the end, a bound below
+  `0` after adjustment clamps to `0`, a bound above length clamps to length,
+  and a normalized `start >= end` yields the empty string. A combining
+  sequence such as `"e" + U+0301` is two code points, not one grapheme — no
+  implicit normalization is performed and canonically equivalent but
+  differently encoded sequences remain distinct values, so this never
+  changes `==` (R18 unaffected). These helpers are internal today; no new
+  public string-indexing syntax or slicing builtin was added by E19-1.
+- **U2 — strict UTF-8 boundaries.** `utf8_byte_length(s)` and
+  `utf8_is_boundary(s, offset)` (`src/genia/utf8.py`) report UTF-8 byte
+  length and whether a byte offset is a valid scalar boundary (`0` and the
+  byte length are always boundaries; an interior offset is a boundary only
+  at the first byte of an encoded scalar). The public `utf8_decode(bytes)`
+  builtin (`src/genia/builtins.py`) decodes strict UTF-8: on malformed input
+  it raises deterministically with the message
+  `utf8_decode invalid UTF-8 at byte offset N`, where `N` is the byte offset
+  of the first invalid byte — a portable integer fact, not host-specific
+  decoder wording. No implicit U+FFFD replacement occurs and no raw
+  Python/host decoder exception text crosses this boundary.
+- **U3 — deterministic debug escaping.** `format_debug` on a string
+  (`src/genia/utf8.py`) surrounds it with ASCII double quotes and escapes
+  `\` -> `\\`, `"` -> `\"`, newline -> `\n`, carriage return -> `\r`, tab ->
+  `\t`; every other C0 control (`U+0000..U+001F`), DEL (`U+007F`), and every
+  C1 control (`U+0080..U+009F`) renders as lowercase `\uXXXX` (exactly four
+  hex digits); every other Unicode scalar value renders literally.
+  `format_display` on a string remains the raw character content with no
+  surrounding quotes. Neither rule depends on host terminal behavior,
+  locale, or a Unicode printability table.
+- What R19 E19-1 did not do: no grapheme-cluster model, no
+  normalization/collation, no locale-aware formatting, no Decimal/Rational/
+  Float64 numeric-model change, no new public string API, no Core IR change.
+  Diagnostic classification/normalization beyond the single `utf8_decode`
+  fix above is separate follow-on R19 work (E19-2/E19-3), not implemented by
+  E19-1.
+
+See `docs/design/r19-unicode-diagnostic-portability-contract.md` for the
+approved contract; `docs/releases/R19.md` is produced by E19-5 once all R19
+slices land.
+
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
 - public map helpers are exposed from `src/genia/std/prelude/map.genia`

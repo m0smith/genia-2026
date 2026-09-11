@@ -1,0 +1,10 @@
+name: r19-unicode-debug-escape-short
+category: eval
+input:
+  source: |
+    "\\ \" \n \r \t"
+expected:
+  stdout: |
+    "\\ \" \n \r \t"
+  stderr: ""
+  exit_code: 0
