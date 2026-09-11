@@ -4137,7 +4137,13 @@ def make_global_env(
         try:
             return encoded.value.decode("utf-8")
         except UnicodeDecodeError as exc:
-            raise ValueError(f"utf8_decode invalid UTF-8: {exc}") from exc
+            # R19 U2: fail deterministically without leaking raw host
+            # decoder wording across the portable boundary. `exc.start` is
+            # a portable integer fact (the byte offset of the first invalid
+            # byte), not host-specific text.
+            raise ValueError(
+                f"utf8_decode invalid UTF-8 at byte offset {exc.start}"
+            ) from exc
 
     def json_parse_fn(value: Any) -> Any:
         if not isinstance(value, str):
