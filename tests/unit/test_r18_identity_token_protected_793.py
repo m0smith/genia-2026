@@ -14,8 +14,6 @@ Issue contract: .genia/process/tmp/handoffs/e18-3-identity-token-protected/01-co
 
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from genia.builtins import make_global_env
@@ -32,7 +30,6 @@ from genia.values import (
     GeniaProtected,
     GeniaPythonHandle,
     GeniaRef,
-    GeniaSymbol,
     ModuleValue,
     symbol,
 )
