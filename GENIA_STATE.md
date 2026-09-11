@@ -2342,7 +2342,7 @@ called "Portable Value Equality", so each is stated explicitly:
 See `docs/releases/R18.md` for the release summary and
 `docs/design/r18-portable-value-equality-contract.md` for the approved contract.
 
-### Unicode and diagnostic portability (Experimental, R19 E19-1/E19-2/E19-3/E19-4 complete)
+### Unicode and diagnostic portability (Experimental, R19 complete — E19-1 through E19-6)
 
 - **U1 — code-point semantics.** Genia strings are sequences of Unicode
   scalar values. `src/genia/utf8.py`'s internal `utf8_codepoints` iterates
@@ -2414,12 +2414,22 @@ See `docs/releases/R18.md` for the release summary and
   backends) were confirmed to be incidental class-C debugging detail never
   asserted by any shared spec, not part of the portable diagnostic contract.
   See `docs/analysis/r19-host-default-leak-audit.md` for the full sweep.
+- **E19-6 skeptical release truth audit — PASS.** Re-derived every slice's
+  claims from `main` as merged, re-ran full regression (4247 passed, the
+  same 2 pre-existing unrelated root-environment `chmod(0)` failures) and
+  `python -m tools.spec_runner` (674/674), verified the independent-host
+  acceptance criterion by direct reproduction attempt from the contract and
+  release doc alone, and confirmed no R17/R18/R9/R10/R16 regression and no
+  exact-numeric-model behavior smuggled into R19. See
+  `docs/analysis/r19-release-truth-audit.md`.
 
-See `docs/design/r19-unicode-diagnostic-portability-contract.md` for the
-approved contract; `docs/analysis/r19-diagnostic-mechanical-inventory.md`
+R19 is **complete**. See `docs/design/r19-unicode-diagnostic-portability-contract.md`
+for the approved contract; `docs/analysis/r19-diagnostic-mechanical-inventory.md`
 for the full diagnostic inventory; `docs/analysis/r19-host-default-leak-audit.md`
-for the cross-surface leak audit; `docs/releases/R19.md` is produced by
-E19-5 once all R19 slices land.
+for the cross-surface leak audit; `docs/analysis/r19-release-truth-audit.md`
+for the closing skeptical audit; `docs/releases/R19.md` for the release
+summary. The next roadmap release is R20 — Open Functions and Extensible
+Pattern Dispatch; R20's own contract gate has not been run.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

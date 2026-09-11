@@ -38,7 +38,7 @@ R17 — Numeric & Ordered-Map Portability Contract ✓ COMPLETE
 R18 — Portable Value Equality ✓ COMPLETE
  |
  v
-R19 — Unicode & Diagnostic Portability Contract
+R19 — Unicode & Diagnostic Portability Contract ✓ COMPLETE
  |
  v
 R20 — Open Functions & Extensible Pattern Dispatch
@@ -109,14 +109,16 @@ permanently keeps `==` out of Open Function overloading so future domain-specifi
 equivalence remains an explicit predicate rather than changing
 map/pattern/assertion semantics.
 
-R19 covers Unicode/string and diagnostic portability only; its former
-float-rendering work is explicitly split into the separate exact-numeric-model
-gate documented in `docs/design/exact-numeric-model-preflight.md` and
+R19 is **complete**: it covers Unicode/string and diagnostic portability
+only; its former float-rendering work was explicitly split into the
+separate exact-numeric-model gate documented in
+`docs/design/exact-numeric-model-preflight.md` and
 `docs/design/exact-numeric-model-resolved-decisions.md`. E19-1 (Unicode
 semantics/evidence), E19-2 (diagnostic mechanical inventory), E19-3
-(diagnostic normalization), and E19-4 (cross-surface leak audit) are
-implemented and merged; E19-5 (this documentation sync) and E19-6 (skeptical
-release audit) remain before R19 is complete. R20 promotes open functions / extensible
+(diagnostic normalization), E19-4 (cross-surface leak audit), E19-5
+(documentation sync), and E19-6 (skeptical release audit, PASS) are all
+implemented and merged; see `docs/releases/R19.md` and
+`docs/analysis/r19-release-truth-audit.md`. R20 promotes open functions / extensible
 pattern dispatch from the parking lot into an explicit host-agnostic
 language-semantics release. Its contract must settle local repeated-clause
 grouping, explicit cross-module extension, deterministic dispatch and ambiguity
@@ -201,9 +203,8 @@ must not require changes to the runner program, shared cases, or conformance
 semantics. Python runner/bootstrap infrastructure remains until independent
 parity/evidence justifies a separate removal gate.
 
-R8 through R17 are complete, and R18 is also complete. R19's E19-1 through
-E19-4 are implemented and merged; E19-5 (documentation sync) and E19-6
-(skeptical release audit) remain before R19 is complete. R11,
+R8 through R17 are complete, R18 is complete, and R19 is now complete
+(E19-0 through E19-6, skeptical audit PASS). R11,
 R12, R13, R14, and R15 APIs remain Experimental, Python is the only implemented
 production host, and shared/multi-host conformance remains Partial. R16's E16-0
 through E16-8 sequence is complete (issues #757-#765; epic #756 closed;
