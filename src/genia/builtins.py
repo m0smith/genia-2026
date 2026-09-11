@@ -119,6 +119,7 @@ if __package__ in (None, ""):
         sheet_shape,
         sheet_where,
     )
+    from genia.equality import genia_equal
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -233,6 +234,7 @@ else:
         sheet_shape,
         sheet_where,
     )
+    from .equality import genia_equal
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -345,11 +347,16 @@ def make_global_env(
     def _meta_operator_ge(left: Any, right: Any) -> Any:
         return left >= right
 
+    # R18 (#794): the meta-circular evaluator's `==` and `!=` denote the same
+    # relation as the language's own, so an expression evaluated through the
+    # meta-evaluator agrees with the same expression evaluated directly. The
+    # relational and arithmetic meta-operators are deliberately unchanged: R18
+    # defines no ordering.
     def _meta_operator_eq(left: Any, right: Any) -> Any:
-        return left == right
+        return genia_equal(left, right)
 
     def _meta_operator_ne(left: Any, right: Any) -> Any:
-        return left != right
+        return not genia_equal(left, right)
 
     def _meta_operator_not(value: Any) -> Any:
         return not value
@@ -1772,7 +1779,9 @@ def make_global_env(
         return OPTION_NONE
 
     def assert_eq_fn(actual: Any, expected: Any) -> Any:
-        if actual != expected:
+        # R18 (#794): assert_eq succeeds exactly when `actual == expected` under
+        # the one Genia relation. The failure shape is unchanged.
+        if not genia_equal(actual, expected):
             raise NativeTestFailure("assert_eq failed", expected=expected, actual=actual)
         return OPTION_NONE
 

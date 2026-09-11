@@ -1,0 +1,22 @@
+name: r18-surface-sheet-column-identity
+category: eval
+description: >-
+  R18 portable value equality: Sheet column-name identity is the same relation as
+  ==. Names that are not Genia-equal are distinct columns, so a boolean column
+  name and a numeric column name coexist rather than colliding.
+input:
+  source: |
+    s = sheet([[true, [1, 2]], [1, [3, 4]], ["x", [5, 6]]])
+    [shape(s), columns(s)]
+expected:
+  stdout: "[[[rows, 2], [columns, 3]], [true, 1, \"x\"]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 794
+  release: R18
+  contract: docs/design/r18-portable-value-equality-contract.md "Equality-like surface reconciliation"
+  note: >-
+    Before R18 Sheet column names used a second hand-rolled key relation that let
+    a host container merge true with 1, so this Sheet was rejected as having
+    duplicate column names even though true != 1.

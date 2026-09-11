@@ -1,0 +1,22 @@
+name: r18-surface-assert-eq-rejects-cross-kind
+category: error
+description: >-
+  R18 portable value equality: assert_eq fails exactly when == is false. A
+  boolean and a number are different semantic kinds, so asserting them equal must
+  fail rather than silently pass through host numeric coercion.
+input:
+  source: |
+    assert_eq(true, 1)
+expected:
+  stdout: ""
+  stderr: "Error: assert_eq failed\n"
+  exit_code: 1
+notes: |
+  issue: 794
+  release: R18
+  error_phase: eval
+  error_category: NativeTestFailure
+  contract: docs/design/r18-portable-value-equality-contract.md "assert_eq"
+  note: >-
+    Before R18 this assertion passed silently, because assert_eq used host
+    equality in which booleans are a numeric subtype.

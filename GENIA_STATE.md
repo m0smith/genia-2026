@@ -1709,7 +1709,7 @@ Sheet public helpers are registered directly as arity-specific `GeniaFunctionGro
 
 Public helpers:
 
-- `sheet(columns)` — construct a Sheet from a list of `[name, values]` column pairs; column values must be lists; column names must be unique; all columns must have equal length
+- `sheet(columns)` — construct a Sheet from a list of `[name, values]` column pairs; column values must be lists; column names must be unique; all columns must have equal length. Column-name uniqueness uses Genia equality (R18 E18-4), and the legal column-name family is the same as the legal map-key family; see "Portable value equality" above
 - `shape(sheet)` — return `[[rows, n], [columns, n]]`
 - `columns(sheet)` — return column names in deterministic order
 - `select(names, sheet)` — return a new Sheet with requested columns in requested order; rejects duplicate or missing names
@@ -2187,7 +2187,7 @@ Not implemented yet:
   Genia integer arithmetic.
 - `/` and float-producing numeric behavior are outside R17 and are unchanged.
 
-### Portable value equality (Experimental, R18 partial — E18-1, E18-2, and E18-3 landed)
+### Portable value equality (Experimental, R18 — E18-1 through E18-4 landed)
 
 Genia has one semantic equality relation. `==` denotes it, `!=` is exactly its
 logical negation, and it is not user-overloadable: no Genia function, Template,
@@ -2284,9 +2284,36 @@ Landed by E18-3 (the three families that are never compared by contents):
 These three families are terminal: structural comparison stops when it reaches
 one, and none of them are legal map keys.
 
-Not yet landed, and therefore not yet changed from prior behavior: `assert_eq`,
-literal patterns, duplicate pattern bindings, and the remaining equality-like
-surfaces (E18-4). R18 release truth is consolidated in E18-6.
+Landed by E18-4 (every equality-like surface uses the one relation):
+
+For the same two operands, all of the following answer exactly as `==` does:
+
+- `==` and `!=`
+- a literal pattern tested against a candidate — a `1` literal matches `1.0` but
+  not `true`, and a kind difference is a mismatch, never an error
+- a repeated pattern binding — a clause shaped like `f(x, x)` accepts `(1, 1.0)`
+  and rejects `(true, 1)`
+- `assert_eq(actual, expected)`, which succeeds exactly when `actual == expected`
+  and otherwise fails through its existing failure path unchanged
+- the meta-circular evaluator's `==` and `!=`, so an expression evaluated through
+  `eval` agrees with the same expression evaluated directly
+- map lookup, presence, insertion, replacement, removal, and duplicate-key
+  detection, for legal keys
+- Sheet column-name identity, for legal column names
+- recursive List, Pair, Outcome, and represented-value comparison, and map
+  equality
+
+No surface consults host-language equality or a host container's key rules to
+answer a semantic sameness question.
+
+Sheet column names use the same legal family and the same identity relation as
+map keys: booleans, integers, non-NaN floats, strings, symbols, and recursively
+legal Pairs, Lists, and represented values. Names that are not Genia-equal are
+distinct columns, so `true` and `1` are two columns rather than a duplicate.
+Values outside that family — including maps and Outcomes — are rejected at Sheet
+construction, and protected values remain rejected with their existing message.
+
+R18 release truth is consolidated in E18-6.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
@@ -3064,7 +3091,7 @@ PYTHON REFERENCE HOST:
 - inside native test mode, a failing `assert_true` is reported as a test `FAIL` outcome, not an `ERROR` outcome
 
 `assert_eq(actual, expected)`:
-- passes when `actual` equals `expected` according to current Genia equality behavior
+- passes exactly when `actual == expected` under the one Genia equality relation (R18 E18-4); see "Portable value equality" above
 - compares Outcome values directly, including `none(...)`
 - returns `none` on success
 - prints nothing on success
