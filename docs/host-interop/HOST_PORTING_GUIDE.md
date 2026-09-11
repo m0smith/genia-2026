@@ -114,6 +114,7 @@ These must preserve shared semantics across hosts:
 - CLI mode behavior
 - Flow contract
 - normalized error behavior relied on by shared tests/docs
+- **value equality and map-key identity** (R18) — see below
 
 ## What May Be Native Per Host
 
@@ -131,6 +132,45 @@ Rule:
 
 - different internals are fine
 - different observable Genia semantics are not
+
+## Value Equality (R18)
+
+Equality is the portability trap most likely to be missed, because a host gets a
+plausible-looking `==` for free from its own language. Do not take it.
+
+- Genia has **one** semantic equality relation. `==` denotes it, `!=` is exactly
+  its negation, and it is **not user-overloadable**.
+- Implement it as one internal operation with explicit dispatch over Genia
+  semantic kinds. Do **not** fall back to the host language's equality for
+  unrecognized values, and do **not** let a host container's key rules decide map
+  keys.
+- Literal patterns, repeated pattern bindings, `assert_eq`, map lookup/presence/
+  insertion/replacement/removal/duplicate detection, and Sheet column-name
+  identity must all answer exactly as `==` does. Implementing `==` correctly while
+  leaving these on host equality is a non-conforming host.
+- Booleans are a distinct kind and never equal numbers. If your host represents
+  booleans as integers, test for booleans **before** any numeric branch.
+- An integer equals a float only when the float is finite, integral, and denotes
+  the same mathematical integer. Convert the float upward; never narrow an
+  arbitrary-precision integer to a float.
+- NaN is unequal to everything including itself, and that non-reflexivity must
+  propagate through containers. A container comparison that shortcuts on element
+  identity will get this wrong.
+- Protected-carrier equality observes carrier identity only and must never
+  disclose whether two independently acquired carriers hold equal payloads —
+  through equality, containers, keys, patterns, assertions, rendering, or
+  diagnostics. This is a security boundary, not a convenience.
+- Map equality is equality of mappings and ignores insertion order; map
+  **iteration** order is a separate observable governed by the unchanged R17
+  contract.
+
+Conformance evidence: the 24 `spec/eval/r18-*` and `spec/error/r18-*` cases. Start
+with `r18-conformance-cross-family-summary.yaml`, whose failing index names the
+broken family. Full contract: `docs/design/r18-portable-value-equality-contract.md`;
+release summary: `docs/releases/R18.md`.
+
+R18 defines no opaque-token surface reachable from Genia source, so a host is not
+expected to demonstrate token equality; that family has no shared cases by design.
 
 ## Parser / IR / Runtime Checklist
 

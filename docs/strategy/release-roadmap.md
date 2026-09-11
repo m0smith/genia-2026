@@ -49,11 +49,15 @@ bootstrap shell with no interpreter.
 contract, three shared semantic cases, authoritative documentation, release
 page, and skeptical audit are delivered. The audit verdict is PASS.
 
-**R18 — Portable Value Equality** is the next planned release. Roadmap placement
-does not approve its contract or authorize implementation. It exists to settle
-host-independent structural/identity/opaque-token equality, protected-value
-non-oracle behavior, legal-key reflexivity, map equality, and internal key/hash
-consistency before later portability work and a second host consume those rules.
+**R18 — Portable Value Equality** is the active release. Epic **#789** covers
+**#790 / E18-0** through **#797 / E18-7**; E18-0 through E18-6 are delivered, and
+the E18-7 skeptical release audit is the remaining gate. It settles
+host-independent structural, identity-bearing, and opaque-token equality,
+protected-value non-oracle behavior, legal-key reflexivity, map equality, and
+internal key consistency before later portability work and a second host consume
+those rules. It added no C++ host, no user-overloadable `==`, no token-domain
+syntax or minting API, and no storage `Revision`; map iteration order remains the
+R17 contract. See `docs/releases/R18.md`.
 
 Detailed R15 scope and issue order: [`roadmap/r15.md`](roadmap/r15.md).
 Detailed R16-R21 scope: [`roadmap/r16-r20.md`](roadmap/r16-r20.md).
@@ -94,6 +98,7 @@ These short anchors are intentionally retained in the canonical index because ex
 - Release R15 — Validated Value Modeling ✓ COMPLETE. E15-0 through E15-9 are implemented and audited; R15 is complete.
 - Release R16 — Multi-Host Conformance Infrastructure ✓ COMPLETE. E16-0 through E16-8 are delivered and audited; R16 is complete.
 - Release R17 — Numeric and Ordered-Map Portability Contract ✓ COMPLETE. E17-0 through E17-3 are delivered and audited; R17 is complete.
+- Release R18 — Portable Value Equality — ACTIVE. E18-0 through E18-6 are delivered; the E18-7 skeptical release audit is the remaining gate before R18 is recorded complete.
 - R10/R11/R12/R13 follow-ups require their own gates.
 
 ## Release status
@@ -117,7 +122,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R15 | Validated Value Modeling | Complete | [`roadmap/r15.md`](roadmap/r15.md) |
 | R16 | Multi-Host Conformance Infrastructure | Complete | `docs/releases/R16.md` |
 | R17 | Numeric and Ordered-Map Portability Contract | Complete | `docs/releases/R17.md` |
-| R18 | Portable Value Equality | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R18 | Portable Value Equality | E18-0–E18-6 delivered; E18-7 audit pending | `docs/releases/R18.md` |
 | R19 | Unicode, Float, and Diagnostic Portability Contract | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R20 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R21 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |

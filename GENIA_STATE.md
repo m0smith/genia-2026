@@ -2313,7 +2313,34 @@ distinct columns, so `true` and `1` are two columns rather than a duplicate.
 Values outside that family — including maps and Outcomes — are rejected at Sheet
 construction, and protected values remain rejected with their existing message.
 
-R18 release truth is consolidated in E18-6.
+R18 ships 24 shared cases under `spec/eval/` and `spec/error/` covering every
+equality family reachable from Genia source, verified both in-process and through
+the R16 generic host protocol with zero cases reported `unsupported`.
+
+**What R18 did not do.** Each of these is a plausible misreading of a release
+called "Portable Value Equality", so each is stated explicitly:
+
+- Python remains the reference and only production host; **no C++ host was
+  implemented**.
+- **No user-overloadable `==`.** No function, Template, matcher, provider, token,
+  or future open-function mechanism can supply, replace, extend, or intercept the
+  relation. Programs may define ordinary predicates for approximate or
+  domain-specific equivalence; those can never redefine `==`, literal-pattern
+  equality, duplicate-binding consistency, or map-key identity.
+- **No token-domain syntax, minting API, or token value.** Opaque semantic tokens
+  have no source-level surface: none can be created or observed from Genia
+  source. Their equality rule and future extensibility are a contract/design
+  property, not an implemented feature.
+- **No storage `Revision`.** A `Revision` is a motivating future example of the
+  opaque-token family, not something R18 builds.
+- **Map iteration order is unchanged** and remains the R17 contract, distinct
+  from map equality.
+- No approximate equality, ordering, public hashing API, or deep-diff
+  diagnostics; no new public function, builtin, operator, syntax, capability, or
+  Core IR node. R18 changed evaluator and runtime semantics only.
+
+See `docs/releases/R18.md` for the release summary and
+`docs/design/r18-portable-value-equality-contract.md` for the approved contract.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
