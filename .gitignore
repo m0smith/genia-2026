@@ -81,3 +81,4 @@ vscode/genia-debugger/out/
 site/
 
 .genia/process/tmp/
+.claude/worktrees/
