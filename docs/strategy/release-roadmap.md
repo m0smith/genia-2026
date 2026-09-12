@@ -131,7 +131,7 @@ These short anchors are intentionally retained in the canonical index because ex
 | R17 | Numeric and Ordered-Map Portability Contract | Complete | `docs/releases/R17.md` |
 | R18 | Portable Value Equality | Complete | `docs/releases/R18.md` |
 | R19 | Unicode and Diagnostic Portability Contract | Contract approved; E19-1 ready | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
-| R20 | Open Functions and Extensible Pattern Dispatch | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
+| R20 | Open Functions and Extensible Pattern Dispatch | Contract gate complete; syntax/design next | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R21 | C++ Minimal Conforming Host | Planned | [`roadmap/r16-r20.md`](roadmap/r16-r20.md) |
 | R22 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | C++ REPL and Data Bridges | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
