@@ -23,6 +23,7 @@ jobs:
         run: |
           uv run python tools/issue838_n1_apply_fix.py
           uv run python tools/issue838_n1_apply_fix2.py
+          uv run python tools/issue838_n1_apply_fix3.py
           uv run python tools/issue838_n1_apply.py
       - name: Targeted shared evidence
         run: |
