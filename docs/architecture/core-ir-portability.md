@@ -46,6 +46,9 @@ The minimal portable Core IR node families are:
 - `IrFuncDef`
 - `IrNamedPatternDef`
 - `IrImport`
+- `IrOpenFuncDef`
+- `IrOpenContribution`
+- `IrOpenUse`
 
 Pattern families in the portable contract are:
 
@@ -75,6 +78,7 @@ Hosts must preserve these lowering invariants:
 - `none` in pattern position lowers as `IrPatNone(reason=null, context=null)`, distinct from expression-position `IrOptionNone`
 - `IrAssign` is a statement-level node; it appears directly in `IrBlock.exprs` and at the top level of a program — it is not wrapped in `IrExprStmt`
 - lowering output uses only the minimal portable Core IR node families listed above
+- R20 open functions: `IrOpenFuncDef.clauses`, `IrOpenContribution.clauses` are ordered `IrCaseClause` lists reused verbatim from the existing case-dispatch representation — grouped (`|`) and repeated local clause surface syntax both normalize to the identical clause list, each entry keeping its own original source span; `IrOpenUse` carries only names (`local_name`, `target_module_alias`, `target_name`, `contribution_module_aliases`) and no clause data. See `docs/design/r20-open-functions-syntax-ir-design.md`.
 
 ### Optional Fields in Normalized Form
 
@@ -89,6 +93,8 @@ The following fields are omitted from the normalized portable IR when empty or a
 | `IrAssign` | `annotations` | assignment has annotations |
 | `IrCaseClause` | `guard` | clause has a guard expression |
 | `IrImport` | `alias` | import uses `as` alias |
+| `IrOpenFuncDef` | `docstring` | open interface has a docstring |
+| `IrOpenFuncDef` | `annotations` | open interface has annotations |
 
 ## Executable Validation
 

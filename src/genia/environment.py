@@ -43,6 +43,18 @@ class Env:
         self.loading_modules: set[str] = set()
         self.debug_hooks: Any = None
         self.debug_mode: bool = False
+        # R20: the canonical module/source-unit identity this environment
+        # belongs to, used as half of an open interface's portable key
+        # (contract §2.1). None for the entry/in-memory program environment;
+        # `module_identity()` maps that to the deterministic "<entry>" id.
+        self.module_id: str | None = (parent.module_id if parent is not None else None)
+
+    def module_identity(self) -> str:
+        """The deterministic, portable module/source-unit identity for this
+        environment (R20 contract §2.1): the canonical cached module name,
+        or the fixed "<entry>" id for the top-level entry/in-memory program.
+        """
+        return self.module_id if self.module_id is not None else "<entry>"
 
     def root(self) -> "Env":
         env = self
@@ -230,6 +242,10 @@ class Env:
             module_env = Env(root, rebind_parent=False)
             module_env.debug_hooks = root.debug_hooks
             module_env.debug_mode = root.debug_mode
+            # R20: canonical module identity is the requested/cached module
+            # name — the same key `loaded_modules` is keyed by — never the
+            # import alias or resolved filesystem path (contract §2.1).
+            module_env.module_id = module_name
             runtime.run_source(
                 source,
                 module_env,

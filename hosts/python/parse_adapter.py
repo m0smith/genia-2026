@@ -43,6 +43,27 @@ def normalize_ast(node):
             'params': params,
             'body': body
         }
+    if node_type == 'OpenFuncDef':
+        return {
+            'kind': 'OpenFuncDef',
+            'name': getattr(node, 'name', None),
+            'clause_count': len(getattr(node, 'clauses', [])),
+        }
+    if node_type == 'OpenExtendDef':
+        return {
+            'kind': 'OpenExtendDef',
+            'target_module_alias': getattr(node, 'target_module_alias', None),
+            'target_name': getattr(node, 'target_name', None),
+            'clause_count': len(getattr(node, 'clauses', [])),
+        }
+    if node_type == 'OpenUseDef':
+        return {
+            'kind': 'OpenUseDef',
+            'local_name': getattr(node, 'local_name', None),
+            'target_module_alias': getattr(node, 'target_module_alias', None),
+            'target_name': getattr(node, 'target_name', None),
+            'contribution_module_aliases': list(getattr(node, 'contribution_module_aliases', [])),
+        }
     if node_type == 'NamedPatternDef':
         return {
             'kind': 'NamedPatternDef',

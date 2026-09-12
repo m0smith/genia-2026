@@ -28,7 +28,10 @@
       "IrAssign",
       "IrFuncDef",
       "IrNamedPatternDef",
-      "IrImport"
+      "IrImport",
+      "IrOpenFuncDef",
+      "IrOpenContribution",
+      "IrOpenUse"
     ],
     "minimal_portable_pattern_families": [
       "IrPatLiteral",
@@ -77,7 +80,8 @@
     "embedding_deterministic_fixture",
     "indexing_deterministic_fixture",
     "retrieval_deterministic_fixture",
-    "reranking_deterministic_fixture"
+    "reranking_deterministic_fixture",
+    "open_functions"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"

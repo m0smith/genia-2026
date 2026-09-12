@@ -28,7 +28,8 @@ if __package__ in (None, ""):
     from genia.ir import (
         IrAnnotation, IrAssign, IrBinary, IrBlock, IrCall, IrCase, IrDelay,
         IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
-        IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOptionNone, IrOptionSome, IrPipeline,
+        IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOpenContribution,
+        IrOpenFuncDef, IrOpenUse, IrOptionNone, IrOptionSome, IrPipeline,
         IrQuote, IrQuasiQuote, IrShellStage, IrSpread, IrUnary, IrUnquote,
         IrUnquoteSplicing, IrVar,
     )
@@ -46,6 +47,9 @@ if __package__ in (None, ""):
     from genia.callable import (
         DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
+        GeniaLinkedOpenFunction, GeniaOpenContributionUnit, GeniaOpenFunction, OpenClauseRecord,
+        OpenFunctionDuplicateSelectionError, OpenFunctionIncompatibleContributionError,
+        OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from genia.server_config_binding import validate_server_descriptor
@@ -67,7 +71,8 @@ else:
     from .ir import (
         IrAnnotation, IrAssign, IrBinary, IrBlock, IrCall, IrCase, IrDelay,
         IrExprStmt, IrFuncDef, IrImport, IrLambda, IrList, IrListTraversalLoop,
-        IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOptionNone, IrOptionSome, IrPipeline,
+        IrLiteral, IrMap, IrNamedPatternDef, IrNode, IrOpenContribution,
+        IrOpenFuncDef, IrOpenUse, IrOptionNone, IrOptionSome, IrPipeline,
         IrQuote, IrQuasiQuote, IrShellStage, IrSpread, IrUnary, IrUnquote,
         IrUnquoteSplicing, IrVar,
     )
@@ -85,6 +90,9 @@ else:
     from .callable import (
         DebugHooks, NOOP_DEBUG_HOOKS, GeniaFunction, GeniaFunctionGroup, invoke_callable as _invoke_callable,
         _callable_explicitly_handles_some,
+        GeniaLinkedOpenFunction, GeniaOpenContributionUnit, GeniaOpenFunction, OpenClauseRecord,
+        OpenFunctionDuplicateSelectionError, OpenFunctionIncompatibleContributionError,
+        OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from .server_config_binding import validate_server_descriptor
@@ -1252,6 +1260,21 @@ class Evaluator:
         right = self.ensure_matcher(right_candidate, "& expected matcher function on right")
         return _ComposedMatcher(self, left, right)
 
+    def _find_open_contribution_unit(self, module_value: ModuleValue, interface_key: tuple[str, str]) -> Optional["GeniaOpenContributionUnit"]:
+        """R20: locate the exported contribution unit in `module_value`
+        targeting exactly `interface_key`. Lookup is by portable interface
+        key, not by the mangled export name a contributing module happened
+        to store it under — module identity, not spelling, is authoritative
+        (contract §2.1, §4.1)."""
+        matches = [
+            value
+            for value in module_value.exports.values()
+            if isinstance(value, GeniaOpenContributionUnit) and value.target_interface_key == interface_key
+        ]
+        if not matches:
+            return None
+        return matches[0]
+
     def match_pattern(self, pattern: IrPattern, args: tuple[Any, ...]) -> Optional[dict[str, Any]]:
         return match_pattern(pattern, args, named_pattern_resolver=self.resolve_named_pattern)
 
@@ -1462,6 +1485,60 @@ class Evaluator:
             module_value = self.env.load_module(node.module_name, requester)
             self.env.set(node.alias, module_value)
             return module_value
+        if isinstance(node, IrOpenFuncDef):
+            if node.name in self.env.values:
+                raise OpenFunctionRedeclarationError((self.env.module_identity(), node.name))
+            clauses = [
+                OpenClauseRecord(clause.pattern, clause.guard, clause.result, self.env, clause.span)
+                for clause in node.clauses
+            ]
+            open_fn = GeniaOpenFunction(
+                node.name,
+                self.env.module_identity(),
+                clauses,
+                docstring=node.docstring,
+                span=node.span,
+            )
+            self.env.set(node.name, open_fn, assignable=True)
+            return open_fn
+        if isinstance(node, IrOpenContribution):
+            target_module = self.env.get(node.target_module_alias)
+            if not isinstance(target_module, ModuleValue):
+                raise OpenFunctionTargetNotOpenError(node.target_module_alias)
+            target = target_module.get_export(node.target_name)
+            if not isinstance(target, GeniaOpenFunction):
+                raise OpenFunctionTargetNotOpenError(f"{node.target_module_alias}.{node.target_name}")
+            clauses = [
+                OpenClauseRecord(clause.pattern, clause.guard, clause.result, self.env, clause.span)
+                for clause in node.clauses
+            ]
+            unit = GeniaOpenContributionUnit(target.interface_key, self.env.module_identity(), clauses)
+            export_name = f"__open_contribution__{node.target_module_alias}__{node.target_name}"
+            self.env.set(export_name, unit, assignable=False)
+            return unit
+        if isinstance(node, IrOpenUse):
+            base_module = self.env.get(node.target_module_alias)
+            if not isinstance(base_module, ModuleValue):
+                raise OpenFunctionTargetNotOpenError(node.target_module_alias)
+            base = base_module.get_export(node.target_name)
+            if not isinstance(base, GeniaOpenFunction):
+                raise OpenFunctionTargetNotOpenError(f"{node.target_module_alias}.{node.target_name}")
+            seen_unit_module_ids: set[str] = set()
+            units: list[GeniaOpenContributionUnit] = []
+            for contrib_alias in node.contribution_module_aliases:
+                contrib_module = self.env.get(contrib_alias)
+                if not isinstance(contrib_module, ModuleValue):
+                    raise OpenFunctionIncompatibleContributionError(base.interface_key, contrib_alias)
+                unit = self._find_open_contribution_unit(contrib_module, base.interface_key)
+                if unit is None:
+                    raise OpenFunctionIncompatibleContributionError(base.interface_key, contrib_module.name)
+                if unit.declaring_module_id in seen_unit_module_ids:
+                    raise OpenFunctionDuplicateSelectionError(base.interface_key, unit.declaring_module_id)
+                seen_unit_module_ids.add(unit.declaring_module_id)
+                units.append(unit)
+            linked = GeniaLinkedOpenFunction(base, tuple(units))
+            self.env.set(node.local_name, linked, assignable=True)
+            return linked
         if isinstance(node, IrCase):
             raise RuntimeError("Standalone case expressions are only valid as function bodies or final block expressions")
         if isinstance(node, IrListTraversalLoop):

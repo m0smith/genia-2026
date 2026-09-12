@@ -29,6 +29,9 @@ if __package__ in (None, ""):
         Node,
         NoneOption,
         Number,
+        OpenExtendDef,
+        OpenFuncDef,
+        OpenUseDef,
         QuasiQuote,
         Quote,
         RestPattern,
@@ -62,6 +65,9 @@ if __package__ in (None, ""):
         IrMap,
         IrNamedPatternDef,
         IrNode,
+        IrOpenContribution,
+        IrOpenFuncDef,
+        IrOpenUse,
         IrOptionNone,
         IrOptionSome,
         IrPipeline,
@@ -118,6 +124,9 @@ else:
         Node,
         NoneOption,
         Number,
+        OpenExtendDef,
+        OpenFuncDef,
+        OpenUseDef,
         QuasiQuote,
         Quote,
         RestPattern,
@@ -151,6 +160,9 @@ else:
         IrMap,
         IrNamedPatternDef,
         IrNode,
+        IrOpenContribution,
+        IrOpenFuncDef,
+        IrOpenUse,
         IrOptionNone,
         IrOptionSome,
         IrPipeline,
@@ -331,9 +343,43 @@ def lower_node(node: Node) -> IrNode:
         return IrNamedPatternDef(node.name, node.param, lower_node(node.body), annotations=[], span=node.span)
     if isinstance(node, ImportStmt):
         return IrImport(node.module_name, node.alias, span=node.span)
+    if isinstance(node, OpenFuncDef):
+        return IrOpenFuncDef(
+            node.name,
+            [_lower_open_clause(clause) for clause in node.clauses],
+            node.docstring,
+            annotations=[],
+            span=node.span,
+        )
+    if isinstance(node, OpenExtendDef):
+        return IrOpenContribution(
+            node.target_module_alias,
+            node.target_name,
+            [_lower_open_clause(clause) for clause in node.clauses],
+            span=node.span,
+        )
+    if isinstance(node, OpenUseDef):
+        return IrOpenUse(
+            node.local_name,
+            node.target_module_alias,
+            node.target_name,
+            list(node.contribution_module_aliases),
+            span=node.span,
+        )
     if isinstance(node, ShellStage):
         return IrShellStage(node.command, span=node.span)
     raise RuntimeError(f"Unknown AST node during lowering: {node!r}")
+
+
+def _lower_open_clause(clause) -> IrCaseClause:
+    """Lower one R20 open-function/contribution clause using exactly the
+    same shape as an ordinary case-clause arm (issue: R20 open functions)."""
+    return IrCaseClause(
+        lower_pattern(clause.pattern),
+        lower_node(clause.guard) if clause.guard is not None else None,
+        lower_node(clause.result),
+        span=clause.span,
+    )
 
 
 def lower_pattern(pattern: Node) -> IrPattern:

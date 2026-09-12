@@ -248,6 +248,42 @@ class IrImport(IrNode):
 
 
 @dataclass
+class IrOpenFuncDef(IrNode):
+    """R20 open-interface base unit: ordered IrCaseClause records reused
+    verbatim from the existing case-dispatch representation. Grouped and
+    repeated local clause syntax both normalize to this one node."""
+
+    name: str
+    clauses: list[IrCaseClause]
+    docstring: str | None
+    annotations: list[IrAnnotation] = field(default_factory=list)
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrOpenContribution(IrNode):
+    """R20 one contributing module's ordered clause set targeting one open
+    interface. Declaration only; performs no linking or invocation."""
+
+    target_module_alias: str
+    target_name: str
+    clauses: list[IrCaseClause]
+    span: SourceSpan | None = None
+
+
+@dataclass
+class IrOpenUse(IrNode):
+    """R20 explicit contribution selection producing one immutable linked
+    view bound to `local_name` in the declaring module only."""
+
+    local_name: str
+    target_module_alias: str
+    target_name: str
+    contribution_module_aliases: list[str]
+    span: SourceSpan | None = None
+
+
+@dataclass
 class IrShellStage(IrNode):
     """Shell pipeline stage — host-backed subprocess execution (experimental, Python-only)."""
 
@@ -295,6 +331,9 @@ PORTABLE_CORE_IR_NODE_TYPES: tuple[type[IrNode], ...] = (
     IrFuncDef,
     IrNamedPatternDef,
     IrImport,
+    IrOpenFuncDef,
+    IrOpenContribution,
+    IrOpenUse,
 )
 
 # Host-local post-lowering optimized nodes are intentionally outside the minimal portable contract.
