@@ -9,7 +9,8 @@ permissions:
 
 jobs:
   migrate:
-    if: github.event.head_commit.message == 'chore(numeric): run TEST migration issue #838'
+    if: >-
+      github.event.head_commit.message == 'chore(numeric): run TEST migration issue #838'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
