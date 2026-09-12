@@ -52,7 +52,7 @@ No files in `src/genia/`, `hosts/python/`, or `spec/` change.
 
 **`docs/host-interop/capabilities.md`**
 - The primary deliverable.
-- Contains the maturity notice, portability vocabulary table, and all 29 capability entries across 7 groups.
+- Contains the maturity notice, portability vocabulary table, and all 30 capability entries across 8 groups.
 - Authoritative reference for capability names, input/output shapes, error behavior, and portability status.
 
 ### Modified files
@@ -161,7 +161,7 @@ The test reads `docs/host-interop/capabilities.md` once and asserts all 12 invar
 
 | Invariant | Assertion type |
 |---|---|
-| 1. All 29 capability names present | `assert "\`<name>\`" in text` for each name |
+| 1. All 30 capability names present | `assert "\`<name>\`" in text` for each name |
 | 2. All entries have required fields | `assert "- **portability:**" in text` (count ≥ 29); similar for other required fields |
 | 3. Portability values are only the three allowed terms | `assert "portability: \`language contract\`" or "portability: \`Python-host-only\`" or "portability: \`not implemented\`" — no other portability value appears |
 | 4. No Python class names | `assert "src/genia/" not in text`; `assert "interpreter.py" not in text` |
@@ -190,7 +190,7 @@ Phase ordering matters. The test phase must produce failing tests before the imp
 1. Add `test_capability_registry_invariants` to `tests/doc/test_semantic_doc_sync.py`.
 
 **Implementation phase commits (tests pass):**
-1. Write `docs/host-interop/capabilities.md` (all 29 capability entries).
+1. Write `docs/host-interop/capabilities.md` (all 30 capability entries).
 2. Update `docs/host-interop/README.md` (add capabilities.md to start-here list).
 3. Update `docs/host-interop/HOST_CAPABILITY_MATRIX.md` (add cross-reference).
 4. Update `GENIA_STATE.md` §0 (add registry bullet point).
@@ -286,7 +286,7 @@ The validation layer stays at its simplest possible form: string-based doc-sync 
 
 ## 13. FINAL CHECK
 
-- [x] Matches spec exactly — all 29 capabilities covered; all 12 invariants mapped to concrete test assertions
+- [x] Matches spec exactly — all 30 capabilities covered; all 12 invariants mapped to concrete test assertions
 - [x] No new behavior introduced — docs-only change; no runtime modifications
 - [x] Structure is clear and implementable — template defined, file locations defined, exact wording for related-file updates defined
 - [x] TDD order preserved — test phase commits failing test before implementation phase writes capabilities.md

@@ -1,0 +1,22 @@
+name: r20-cross-module-alias-interface-identity
+category: eval
+description: R20 portable cross-module evidence — import aliases preserve canonical module/interface identity
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: iface.genia
+        source: |
+          open ping(x) = "pong:" + x
+      - path: main.genia
+        source: |
+          import iface
+          import iface as iface2
+          [iface.ping("a"), iface2.ping("a"), iface.ping == iface2.ping]
+expected:
+  stdout: "[\"pong:a\", \"pong:a\", true]\n"
+  stderr: ''
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval

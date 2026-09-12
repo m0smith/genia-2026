@@ -1,0 +1,36 @@
+name: r20-cross-module-consumer-non-transitivity
+category: eval
+description: R20 portable cross-module evidence — use is consumer-local and does not mutate or transitively export selection
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: db_ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+      - path: cache_ext.genia
+        source: |
+          import base
+          extend base.get("cache", c, key) = "cache:" + key
+      - path: consumer.genia
+        source: |
+          import base
+          import db_ext
+          use get from base with db_ext
+          selected = get("db", 1, "inside")
+      - path: main.genia
+        source: |
+          import base
+          import consumer
+          [consumer.selected, base.get("mem", 0, "outside")]
+expected:
+  stdout: "[\"db:inside\", \"mem:outside\"]\n"
+  stderr: ''
+  exit_code: 0
+requires:
+  - open_functions
+  - multi_file_eval

@@ -188,9 +188,29 @@ Operation-specific `input`, matching `host_test_contract` exactly:
 |---|---|
 | `parse` | `{"source": "<string>"}` |
 | `lower` | `{"source": "<string>"}` |
-| `eval` | `{"source": "<string>", "stdin": "<string> or null", "argv": ["<string>", ...] or null}` |
+| `eval` | `{"source": "<string>", "stdin": "<string> or null", "argv": ["<string>", ...] or null}`; when and only when the case requires and the host advertises `multi_file_eval: supported`, the object may additionally contain `"modules": {"entry": "<logical .genia path>", "files": [{"path": "<logical .genia path>", "source": "<string>"}, ...]}` |
 | `cli` | `{"argv": ["<string>", ...], "stdin": "<string> or null"}` |
 | `capabilities` | `{}` |
+
+**Protocol-v1 capability-gated extension rule (issue #836 reconciliation).**
+Protocol version 1 permits the optional `eval.input.modules` field only under
+the `multi_file_eval` capability above. This is backward compatible because
+the runner resolves every case's requirements before constructing or sending
+its request: a v1 host that predates, omits, marks partial, or marks unsupported
+`multi_file_eval` receives no request containing `modules`; the case is reported
+`UNSUPPORTED`, never failed. Advertising `open_functions` alone does not imply
+support for this transport shape. A host advertising `multi_file_eval:
+supported` commits to accepting and executing the exact normalized fixture
+shape; all cases using it require both `open_functions` and `multi_file_eval`
+when they exercise R20 behavior.
+
+This amendment does not create a general rule that v1 adapters ignore unknown
+fields. Operation input shapes remain closed: an adapter may reject any field
+not explicitly listed in this table. `modules` is the sole optional v1 eval
+extension approved here, and its capability gate prevents older conforming v1
+hosts from receiving it. A protocol bump is therefore unnecessary: no request
+within an old host's declared capability set changed shape, while hosts that
+opt into the new name unambiguously opt into the new shape.
 
 CLI mode selection (file/command/pipe/test) is expressed purely through
 `argv` content, exactly as the real CLI already accepts it (e.g. a bare

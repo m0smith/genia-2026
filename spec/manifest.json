@@ -81,7 +81,8 @@
     "indexing_deterministic_fixture",
     "retrieval_deterministic_fixture",
     "reranking_deterministic_fixture",
-    "open_functions"
+    "open_functions",
+    "multi_file_eval"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"
@@ -122,6 +123,7 @@
       "input": "source string",
       "stdin": "optional string input",
       "argv": "optional string list",
+      "modules": "optional capability-gated logical multi-file fixture (requires multi_file_eval)",
       "output": "JSON with result, stdout, stderr, and normalized error data when present"
     },
     "cli": {

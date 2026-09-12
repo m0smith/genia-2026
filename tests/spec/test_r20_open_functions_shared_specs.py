@@ -49,25 +49,25 @@ R20_EVAL_SPECS = [
     "r20-gcd-grouped-clause-equivalent.yaml",
     "r20-varargs-over-fixed-precedence.yaml",
     "r20-help-provenance.yaml",
+    "r20-cross-module-disjoint-explicit-selection.yaml",
+    "r20-cross-module-order-independence.yaml",
+    "r20-cross-module-alias-interface-identity.yaml",
+    "r20-cross-module-lexical-visibility.yaml",
+    "r20-cross-module-consumer-non-transitivity.yaml",
 ]
 
 R20_ERROR_SPECS = [
     "error-r20-no-matching-case.yaml",
     "error-r20-varargs-ambiguity.yaml",
     "error-r20-local-duplicate-clause.yaml",
+    "error-r20-cross-module-duplicate-alias-selection.yaml",
+    "error-r20-cross-module-incompatible-target.yaml",
+    "error-r20-cross-module-overlapping-unit-ambiguity.yaml",
 ]
 
-# Cross-module contribution/linking behavior (disjoint contributions,
-# import-order independence, ordinary-import non-selection, duplicate
-# selection, ambiguous overlap, alias identity) requires a real second
-# `.genia` module file on disk. The shared eval/error YAML runner
-# (tools/spec_runner) only accepts one inline `source` string per case
-# today — it has no multi-file fixture mechanism — so R20 cross-module
-# behavior is proven as Python-host unit evidence instead, in
-# tests/unit/test_r20_open_functions_cross_module.py. This is a disclosed
-# infrastructure gap (see docs/releases/R20.md), not a semantic gap: the
-# contract's cross-module obligations are exercised and passing, just not
-# through the generic multi-host YAML runner yet.
+# Issue #836 adds portable logical multi-file fixtures, so cross-module
+# contribution/linking behavior is now shared eval/error evidence as well as
+# Python-host real-file unit evidence.
 
 
 def test_discover_specs_includes_r20_cases() -> None:
@@ -80,6 +80,18 @@ def test_discover_specs_includes_r20_cases() -> None:
         for name in [*R20_PARSE_SPECS, *R20_IR_SPECS, *R20_EVAL_SPECS, *R20_ERROR_SPECS]
     }
     assert expected.issubset(discovered)
+
+
+def test_r20_multi_file_cases_require_language_and_transport_capabilities() -> None:
+    for fname in [
+        name for name in [*R20_EVAL_SPECS, *R20_ERROR_SPECS]
+        if "cross-module" in name
+    ]:
+        directory = EVAL_DIR if fname in R20_EVAL_SPECS else ERROR_DIR
+        assert load_spec(directory / fname).requires == (
+            "open_functions",
+            "multi_file_eval",
+        )
 
 
 @pytest.mark.parametrize("fname", R20_PARSE_SPECS)

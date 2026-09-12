@@ -194,6 +194,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "shared spec runner support": "shared_spec_runner",
         "shell pipeline stage `$(...)`": "shell_stage",
         "open functions (R20)": "open_functions",
+        "multi-file eval fixture (R16/#836)": "multi_file_eval",
     }
 
     for display_name in matrix_caps:

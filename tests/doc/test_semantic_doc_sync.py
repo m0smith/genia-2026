@@ -801,8 +801,9 @@ def test_arch_doc_lowering_invariants_cover_ir_assign_placement() -> None:
 
 _CAPABILITIES_DOC = "docs/host-interop/capabilities.md"
 
-# Invariant 1: all 29 required capability names must appear in the document.
+# Invariant 1: all 30 required capability names must appear in the document.
 _REQUIRED_CAPABILITY_NAMES = [
+    "multi_file_eval",
     "io.stdout",
     "io.stderr",
     "io.stdin",
@@ -867,7 +868,7 @@ def test_capability_registry_all_required_names_present() -> None:
 
 def test_capability_registry_required_fields_present() -> None:
     """Invariant 2: required fields (name, genia_surface, input, output, errors,
-    portability) appear at least once per capability (29 entries minimum)."""
+    portability) appear at least once per capability (30 entries minimum)."""
     text = read_text(_CAPABILITIES_DOC)
     required_field_markers = [
         "**name:**",

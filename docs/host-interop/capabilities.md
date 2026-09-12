@@ -23,6 +23,20 @@ mechanism.
 
 ---
 
+### Group: Conformance Transport
+
+#### `multi_file_eval`
+
+- **name:** `multi_file_eval`
+- **genia_surface:** none; this is an R16 shared-spec adapter capability, not a language/runtime feature
+- **input:** protocol-v1 `eval.input.modules` containing one normalized logical entry path and a sorted list of unique logical `.genia` paths with exact source strings
+- **output:** the ordinary protocol-v1 eval result after executing the declared entry with the supplied logical module fixture
+- **errors:** malformed fixtures are rejected by the authoritative spec loader before host invocation; a host not declaring this capability `supported` receives `UNSUPPORTED` classification without receiving a `modules` request
+- **portability:** `language contract` for hosts that opt into this capability
+- **notes:** This capability is independent of `open_functions`. R20 multi-file cases require both names. Protocol-v1 input shapes remain closed; advertising this capability is the explicit opt-in to the sole optional `modules` field and old v1 hosts remain valid without it.
+
+---
+
 ## Portability Status Terms
 
 | Term | Meaning |

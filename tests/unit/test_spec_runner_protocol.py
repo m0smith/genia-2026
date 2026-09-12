@@ -56,6 +56,19 @@ def test_build_request_shape() -> None:
     }
 
 
+def test_protocol_v1_carries_capability_gated_multi_file_eval_extension() -> None:
+    modules = {
+        "entry": "main.genia",
+        "files": [{"path": "main.genia", "source": "1\n"}],
+    }
+    request = build_request(
+        "c1", "eval",
+        {"source": "1\n", "stdin": None, "argv": None, "modules": modules},
+    )
+    assert request["protocol_version"] == "1"
+    assert request["input"]["modules"] == modules
+
+
 def test_encode_request_is_utf8_json_with_trailing_newline() -> None:
     request = build_request("c1", "eval", {"source": "x"})
     encoded = encode_request(request)

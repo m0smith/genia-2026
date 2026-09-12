@@ -46,7 +46,7 @@ Implemented today:
 - **R16 — Multi-Host Conformance Infrastructure is complete through E16-7** (epic #756; contract at `docs/design/r16-multi-host-conformance-infrastructure-contract.md`). A generic, versioned subprocess host-adapter protocol exists:
   - `tools/spec_runner/protocol.py` (E16-1, issue #758): the JSON request/response envelope for `parse`/`lower`/`eval`/`cli`, stdout/stderr channel separation (evaluated-program output travels only inside `result` fields, never the adapter's own transport stream), and the deterministic outcome taxonomy — an adapter can only ever self-report `ok` or `unsupported`; `protocol_error`/`crash`/`timeout` are always derived by the runner from process/JSON facts, never adapter-reported.
   - `python -m tools.spec_runner --host '<command>'` (E16-2, issue #759): runs applicable discovered cases through that protocol instead of the in-process Python adapter. **The in-process default path (used when `--host` is omitted) is unchanged** and remains available as a developer-optimization path, not the conformance definition.
-  - a mandatory `capabilities` protocol operation plus an optional per-case `requires:` field (E16-3, issue #760): `--host` mode fetches and validates a host's capability declaration once per run; a case requiring a capability the host does not declare exactly `supported` is reported `unsupported` without invoking the adapter for it — never silently skipped or counted as passing. No shared spec case currently declares `requires`; this is the mechanism, not new coverage.
+  - a mandatory `capabilities` protocol operation plus an optional per-case `requires:` field (E16-3, issue #760): `--host` mode fetches and validates a host's capability declaration once per run; a case requiring a capability the host does not declare exactly `supported` is reported `unsupported` without invoking the adapter for it — never silently skipped or counted as passing. Issue #836 adds the capability-gated optional protocol-v1 `eval.input.modules` shape: multi-file cases require `multi_file_eval`, applicability is resolved before request construction, and a v1 host that does not opt in never receives that field. Unknown operation-input fields otherwise remain invalid.
   - `tools/spec_runner/revision.py` (E16-4, issue #761): classifies a host's declared `contract_revision` against this checkout's actual revision using local git history only (never a remote fetch, never rewriting the host's claim) — an exact match is honest pinned-conformance evidence (`current`); a real older commit is current-main-compatibility-only evidence (`resolvable_ancestor`); an unresolvable declaration stops the run with exit code 1 before any case executes.
   - `hosts/python/protocol_adapter.py` (E16-5, issue #762): the Python reference host itself, proven through this same subprocess protocol at full scale — 641 total, 623 passed, 0 failed, 18 unsupported, 0 protocol_error/crash/timeout, identical to the in-process path for every applicable case.
   - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (E16-6, issue #763): bootstrapped as the first external production-host repository — a repository shell with a pinned contract revision/protocol declaration and a minimal, self-contained, non-semantic protocol-participation placeholder. **No real C++ interpreter exists there**; `hosts/cpp/` here is now a pointer to that repository (see `hosts/cpp/README.md`).
@@ -1348,7 +1348,7 @@ Core IR).
 - **Host capability.** A dedicated `open_functions` capability
   (`spec/manifest.json` optional capability;
   `docs/host-interop/HOST_CAPABILITY_MATRIX.md`) is `Implemented` for Python;
-  every R20 shared spec case declares `requires: [open_functions]` so an
+  every R20 shared spec case requires `open_functions` so an
   older/non-conforming host reports these cases unsupported rather than
   silently passing them.
 - **Known limitations of this Experimental slice** (see
@@ -1361,11 +1361,10 @@ Core IR).
   - `@doc`/`@meta`-style annotation attachment is not wired for `open`/
     `extend` declarations in this slice — interface metadata beyond the
     optional docstring position is a follow-up;
-  - cross-module contribution/linking behavior is proven by Python-host
-    unit tests (`tests/unit/test_r20_open_functions_cross_module.py`)
-    rather than the generic multi-host YAML spec runner, because that
-    runner's eval/error case format has no multi-file fixture mechanism
-    today — a disclosed infrastructure gap, not a semantic one;
+  - cross-module contribution/linking behavior retains Python-host real-file
+    unit evidence and has eight portable shared eval/error cases using #836's
+    logical multi-file fixture; those cases additionally require the R16
+    `multi_file_eval` transport capability, independently of R20 semantics;
   - debug-hook wiring (`debug_hooks`/`debug_mode` propagation used by the
     Python debug adapter) is not threaded through open-function dispatch.
 

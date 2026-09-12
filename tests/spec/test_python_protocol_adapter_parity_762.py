@@ -27,7 +27,7 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     exit_code = runner_module.main(["--host", PROTOCOL_ADAPTER_COMMAND, "--host-timeout", "30"])
     out = capsys.readouterr().out
 
-    # The in-process default path passes all 668 cases (see
+    # The in-process default path passes all 703 cases (see
     # `python -m tools.spec_runner`). 18 of those rely on an injected
     # Python-host-only test fixture or --debug-stdio, neither of which is
     # expressible over the generic protocol yet (E16-2); every other case
@@ -50,5 +50,9 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # path like any other case. `test_r18_conformance_protocol_evidence_795.py`
     # additionally asserts that every R18 case specifically is executed rather
     # than reported unsupported.
-    assert "Summary: total=695 passed=677 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # Issue #836 adds 8 portable R20 multi-file eval/error cases. They are
+    # expressible over the protocol and require both supported open_functions
+    # and multi_file_eval capabilities, so both total and passed increase by
+    # exactly 8. The Python adapter advertises both.
+    assert "Summary: total=703 passed=685 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
