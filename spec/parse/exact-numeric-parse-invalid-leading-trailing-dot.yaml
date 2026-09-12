@@ -7,4 +7,4 @@ expected:
   parse:
     kind: error
     type: SyntaxError
-    message_contains: "Unexpected character '.' at 0"
+    message: "Unexpected character '.' at 0"
