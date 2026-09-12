@@ -1,0 +1,17 @@
+name: parse-r20-open-repeated-clauses
+category: parse
+description: R20 repeated top-level pattern clauses for a declared-open interface merge into one OpenFuncDef
+input:
+  source: |
+    open gcd(a, 0) = a
+    gcd(a, b) = gcd(b, a % b)
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: OpenFuncDef
+      name: gcd
+      clause_count: 2
+
+requires:
+  - open_functions

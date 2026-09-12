@@ -1,0 +1,17 @@
+name: error-r20-local-duplicate-clause
+category: error
+description: R20 duplicate clause detection uses a structural, alpha-normalized, span-free dispatch key and fails at unit build time, before the interface can be called
+input:
+  source: |
+    open f(0) = 1
+    f(0) = 2
+expected:
+  stdout: ""
+  stderr: "Error: open-function-duplicate-clause: f in unit 'base' has two clauses with an identical dispatch key shape=('fixed', 1) (first at <command>:1, duplicate at <command>:2)\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: OpenFunctionDuplicateClauseError
+
+requires:
+  - open_functions

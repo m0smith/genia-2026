@@ -1,0 +1,17 @@
+name: parse-error-r20-nested-open-declaration
+category: parse
+description: R20 open declarations are top-level only; a nested open inside a block is rejected rather than given local-scope semantics
+input:
+  source: |
+    f(x) = {
+      open gcd(a, 0) = a
+      gcd(x, 1)
+    }
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "Assignment target must be a simple name"
+
+requires:
+  - open_functions

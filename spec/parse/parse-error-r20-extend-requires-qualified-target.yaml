@@ -1,0 +1,13 @@
+name: parse-error-r20-extend-requires-qualified-target
+category: parse
+description: R20 extend requires an exact alias.name target; a doubly-qualified target is rejected rather than guessing a module path
+input:
+  source: "extend a.b.c(x) = 1"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "extend target must be spelled alias.name"
+
+requires:
+  - open_functions

@@ -1,0 +1,18 @@
+name: r20-use-selection
+category: ir
+description: R20 use lowers to one IrOpenUse link instruction carrying no clause data of its own
+input:
+  source: |
+    use get from base with db_ext, cache_ext
+expected:
+  ir:
+    - node: IrOpenUse
+      local_name: get
+      target_module_alias: base
+      target_name: get
+      contribution_module_aliases:
+        - db_ext
+        - cache_ext
+
+requires:
+  - open_functions

@@ -1,0 +1,15 @@
+name: r20-gcd-grouped-clause-equivalent
+category: eval
+description: R20 the grouped case-with-pipe spelling of the same clause set dispatches identically to the repeated-statement spelling
+input:
+  source: |
+    open gcd(a, b) = (a, 0) -> a | (a, b) -> gcd(b, a % b)
+
+    gcd(48, 18)
+expected:
+  stdout: "6\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

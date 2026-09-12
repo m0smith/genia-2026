@@ -1,0 +1,25 @@
+name: r20-open-varargs-shape
+category: ir
+description: R20 an open clause's trailing rest pattern normalizes to a portable IrPatRest inside the clause's IrPatTuple, exactly like existing lambda varargs shapes
+input:
+  source: |
+    open total(x, ..rest) = x
+expected:
+  ir:
+    - node: IrOpenFuncDef
+      name: total
+      clauses:
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatBind
+                name: x
+              - node: IrPatRest
+                name: rest
+          result:
+            node: IrVar
+            name: x
+
+requires:
+  - open_functions

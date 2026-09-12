@@ -1,0 +1,50 @@
+name: r20-open-repeated-clauses
+category: ir
+description: R20 repeated top-level clauses for one open interface lower to one IrOpenFuncDef with an ordered IrCaseClause per clause, each keeping its own span
+input:
+  source: |
+    open gcd(a, 0) = a
+    gcd(a, b) = gcd(b, a % b)
+expected:
+  ir:
+    - node: IrOpenFuncDef
+      name: gcd
+      clauses:
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatBind
+                name: a
+              - node: IrPatLiteral
+                value: 0
+          result:
+            node: IrVar
+            name: a
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatBind
+                name: a
+              - node: IrPatBind
+                name: b
+          result:
+            node: IrCall
+            fn:
+              node: IrVar
+              name: gcd
+            args:
+              - node: IrVar
+                name: b
+              - node: IrBinary
+                left:
+                  node: IrVar
+                  name: a
+                op: PERCENT
+                right:
+                  node: IrVar
+                  name: b
+
+requires:
+  - open_functions

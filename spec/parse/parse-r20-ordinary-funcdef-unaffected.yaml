@@ -1,0 +1,25 @@
+name: parse-r20-ordinary-funcdef-unaffected
+category: parse
+description: R20 an ordinary plain-parameter function definition is unaffected and still normalizes to FuncDef, not OpenFuncDef
+input:
+  source: "square(x) = x * x"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: FuncDef
+      name: square
+      params:
+        - x
+      body:
+        kind: Binary
+        op: "*"
+        left:
+          kind: Var
+          name: x
+        right:
+          kind: Var
+          name: x
+
+requires:
+  - open_functions

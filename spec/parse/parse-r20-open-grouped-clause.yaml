@@ -1,0 +1,16 @@
+name: parse-r20-open-grouped-clause
+category: parse
+description: R20 a single open clause whose body is a grouped case-with-pipe is flattened into one OpenFuncDef with one clause per case arm, matching the repeated-statement spelling
+input:
+  source: |
+    open gcd(a, b) = (a, 0) -> a | (a, b) -> gcd(b, a % b)
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: OpenFuncDef
+      name: gcd
+      clause_count: 2
+
+requires:
+  - open_functions

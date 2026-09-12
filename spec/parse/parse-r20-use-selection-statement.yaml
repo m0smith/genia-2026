@@ -1,0 +1,20 @@
+name: parse-r20-use-selection-statement
+category: parse
+description: R20 use ... from ... with ... explicitly selects contribution units into one linked view
+input:
+  source: |
+    use get from base with db_ext, cache_ext
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: OpenUseDef
+      local_name: get
+      target_module_alias: base
+      target_name: get
+      contribution_module_aliases:
+        - db_ext
+        - cache_ext
+
+requires:
+  - open_functions
