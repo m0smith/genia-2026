@@ -1,0 +1,110 @@
+name: Issue 838 TEST migration
+
+on:
+  push:
+    branches: [issue-838-exact-numeric-gate]
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.event.head_commit.message == 'chore(numeric): run TEST migration issue #838'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: issue-838-exact-numeric-gate
+      - uses: astral-sh/setup-uv@v7
+      - run: uv sync --dev
+      - name: Migrate numeric parse/Core-IR expectations
+        shell: bash
+        run: |
+          uv run python - <<'PY'
+          from __future__ import annotations
+          from pathlib import Path
+          from decimal import Decimal
+          import yaml
+
+          def decimal_payload(value: float) -> dict[str, str]:
+              d = Decimal(str(value))
+              sign, digits, exp = d.as_tuple()
+              coeff = int(''.join(map(str, digits)) or '0')
+              if sign:
+                  coeff = -coeff
+              if coeff == 0:
+                  return {'kind': 'decimal', 'coefficient': '0', 'exponent': '0'}
+              while coeff % 10 == 0:
+                  coeff //= 10
+                  exp += 1
+              return {'kind': 'decimal', 'coefficient': str(coeff), 'exponent': str(exp)}
+
+          def payload(value):
+              if isinstance(value, bool) or value is None or isinstance(value, str):
+                  return value
+              if isinstance(value, int):
+                  return {'kind': 'integer', 'digits': str(value)}
+              if isinstance(value, float):
+                  return decimal_payload(value)
+              return value
+
+          def transform_ir(obj):
+              changed = False
+              if isinstance(obj, dict):
+                  if obj.get('node') in {'IrLiteral', 'IrPatLiteral'} and 'value' in obj:
+                      new = payload(obj['value'])
+                      if new != obj['value']:
+                          obj['value'] = new
+                          changed = True
+                  for k, v in list(obj.items()):
+                      if k != 'value' or obj.get('node') not in {'IrLiteral', 'IrPatLiteral'}:
+                          changed = transform_ir(v) or changed
+              elif isinstance(obj, list):
+                  for v in obj:
+                      changed = transform_ir(v) or changed
+              return changed
+
+          def transform_parse(obj):
+              changed = False
+              if isinstance(obj, dict):
+                  if obj.get('kind') == 'Literal' and 'value' in obj:
+                      new = payload(obj['value'])
+                      if new != obj['value']:
+                          obj['value'] = new
+                          changed = True
+                  for k, v in list(obj.items()):
+                      if k != 'value' or obj.get('kind') != 'Literal':
+                          changed = transform_parse(v) or changed
+              elif isinstance(obj, list):
+                  for v in obj:
+                      changed = transform_parse(v) or changed
+              return changed
+
+          changed_paths = []
+          for directory, key, transformer in [
+              ('spec/ir', 'ir', transform_ir),
+              ('spec/parse', 'parse', transform_parse),
+          ]:
+              for path in sorted(Path(directory).glob('*.yaml')):
+                  data = yaml.safe_load(path.read_text())
+                  expected = data.get('expected', {}) if isinstance(data, dict) else {}
+                  target = expected.get(key) if isinstance(expected, dict) else None
+                  if target is not None and transformer(target):
+                      path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=1000))
+                      changed_paths.append(str(path))
+          print('migrated', len(changed_paths), 'shared spec files')
+          for p in changed_paths:
+              print(p)
+          PY
+      - name: Commit migrated TEST evidence
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add spec/parse spec/ir
+          if git diff --cached --quiet; then
+            echo 'No numeric shared-spec migrations required'
+            exit 0
+          fi
+          git commit -m 'test(numeric): migrate existing tagged numeric snapshots issue #838'
+          git push origin HEAD:issue-838-exact-numeric-gate
