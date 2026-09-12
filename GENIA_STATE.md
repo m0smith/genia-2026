@@ -1233,7 +1233,7 @@ Pipeline (Phase 2) evaluation model:
   - `eval` is only defined for the supported expression families above
   - unsupported quoted forms raise a clear runtime error instead of silently expanding evaluator coverage
 
-## 4.7) R20 open functions and extensible pattern dispatch (Experimental, R20 complete through E20-6)
+## 4.7) R20 open functions and extensible pattern dispatch (Experimental, R20 complete through E20-8)
 
 R20 adds one concept: an **open function interface** is an identity-bearing
 ordinary callable whose immutable clause set is assembled from ordered local
