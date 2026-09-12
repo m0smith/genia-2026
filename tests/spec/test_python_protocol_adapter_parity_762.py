@@ -51,7 +51,8 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # additionally asserts that every R18 case specifically is executed rather
     # than reported unsupported.
     # Issue #836 adds 8 portable R20 multi-file eval/error cases. They are
-    # expressible over the protocol and require the supported open_functions
-    # capability, so both total and passed increase by exactly 8.
+    # expressible over the protocol and require both supported open_functions
+    # and multi_file_eval capabilities, so both total and passed increase by
+    # exactly 8. The Python adapter advertises both.
     assert "Summary: total=703 passed=685 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

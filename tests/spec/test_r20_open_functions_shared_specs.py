@@ -82,6 +82,18 @@ def test_discover_specs_includes_r20_cases() -> None:
     assert expected.issubset(discovered)
 
 
+def test_r20_multi_file_cases_require_language_and_transport_capabilities() -> None:
+    for fname in [
+        name for name in [*R20_EVAL_SPECS, *R20_ERROR_SPECS]
+        if "cross-module" in name
+    ]:
+        directory = EVAL_DIR if fname in R20_EVAL_SPECS else ERROR_DIR
+        assert load_spec(directory / fname).requires == (
+            "open_functions",
+            "multi_file_eval",
+        )
+
+
 @pytest.mark.parametrize("fname", R20_PARSE_SPECS)
 def test_r20_parse_shared_specs(fname: str) -> None:
     spec = load_spec(PARSE_DIR / fname)

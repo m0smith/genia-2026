@@ -116,10 +116,6 @@ def execute_spec_via_host(
     with no ``requires`` is unaffected by this check regardless of whether
     ``host_capabilities`` was supplied.
     """
-    request = build_host_request(spec)
-    if request is None:
-        return HostCaseResult(kind="unsupported", reason=_UNSUPPORTED_LOCAL_CAPABILITY_REASON)
-
     if spec.requires:
         if host_capabilities is None:
             return HostCaseResult(
@@ -132,6 +128,13 @@ def execute_spec_via_host(
         applicable, reason = case_is_applicable(spec.requires, dict(host_capabilities))
         if not applicable:
             return HostCaseResult(kind="unsupported", reason=reason)
+
+    # Applicability is deliberately decided before request construction. In
+    # particular, a protocol-v1 host that does not advertise multi_file_eval
+    # must never receive the capability-gated optional `modules` input field.
+    request = build_host_request(spec)
+    if request is None:
+        return HostCaseResult(kind="unsupported", reason=_UNSUPPORTED_LOCAL_CAPABILITY_REASON)
 
     outcome: AdapterOutcome = run_adapter_request(list(host_command), request, timeout=timeout)
 

@@ -66,6 +66,10 @@ not observable fixture semantics. The entry executes with its logical identity
 so relative module resolution has the same language meaning in every host.
 
 The fixture is available only to eval/error shared cases in this slice. Every
-R20 multi-file case declares `requires: [open_functions]`; normal R16 capability
-gating reports it `unsupported` without invocation when that capability is not
-declared `supported`.
+R20 multi-file cases declare `requires: [open_functions, multi_file_eval]`.
+`open_functions` claims the R20 language behavior; `multi_file_eval` separately
+claims support for this optional protocol-v1 request shape. Normal R16
+capability gating runs before request construction and reports a case
+`unsupported` without invocation when either capability is not `supported`.
+Thus an existing v1 host advertising `open_functions` but unaware of this
+fixture never receives an unknown `modules` field.

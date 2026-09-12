@@ -64,7 +64,9 @@ implement the arithmetic result or advertise support.
    error cases.
 7. **R20 cross-module:** the 8 #836 eval/error cases; implement the logical
    module fixture and existing R20 identity/linking semantics, then advertise
-   `open_functions` only after all 29 R20 cases pass.
+   `open_functions` and `multi_file_eval` independently: cross-module requests
+   require both, and each claim is permitted only after its corresponding
+   evidence passes.
 
 Every increment begins with pinned failing generic-runner evidence, changes only
 the named C++ surface, and ends with normalized evidence. Later increments must

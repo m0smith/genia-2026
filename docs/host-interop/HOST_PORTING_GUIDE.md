@@ -187,10 +187,11 @@ A conforming host must implement:
   name) — never an import alias, filesystem path, or host object address;
 - the `open-function-*` diagnostic identities in contract §8.
 
-Conformance evidence: 29 `spec/parse|ir|eval|error/*r20*` cases (all declare
-`requires: [open_functions]`). Eight eval/error cases use the portable logical
+Conformance evidence: 29 `spec/parse|ir|eval|error/*r20*` cases. All require
+`open_functions`; the eight eval/error cases using the portable logical
 multi-file fixture in `multi-file-shared-spec-fixtures.md` and cover the
-cross-module obligations; Python real-file unit tests remain additional
+cross-module obligations additionally require `multi_file_eval`. A host must
+advertise both before receiving those protocol-v1 requests. Python real-file unit tests remain additional
 reference-host evidence, not portable filesystem semantics. Full
 contract: `docs/design/r20-open-functions-contract.md`; syntax/Core IR
 design: `docs/design/r20-open-functions-syntax-ir-design.md`; release

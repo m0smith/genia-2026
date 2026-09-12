@@ -54,6 +54,11 @@ Verbose mode prints each spec name before execution starts, then prints a timing
   `docs/host-interop/multi-file-shared-spec-fixtures.md`. The normalized entry
   source and sorted logical files travel unchanged through the R16 eval request;
   host materialization paths are never contract data.
+- `modules` is a closed, optional protocol-v1 extension gated by the separate
+  `multi_file_eval` capability. The runner checks requirements before request
+  construction, so an existing v1 host that does not claim that capability
+  never receives the field. Unknown operation-input fields are not generally
+  ignorable.
 - The current CLI suite covers deterministic non-interactive file, command, pipe, and selected native test-mode cases, including file-mode `main(argv())` dispatch, command-mode final-value execution, valid pipe-mode Flow-stage usage, current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, non-Flow final results, and selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL is not covered by shared executable specs
 - The current Flow suite covers first-wave observable contract cases only: lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, error propagation via invalid-reducer-on-flow diagnostic, focused Flow `map` / `filter` / `scan` behavior, and selected Seq-compatible terminal behavior
 - The current Error suite covers initial normalized observable contract cases only: `stdout`, `stderr`, and `exit_code`, with `stdout` expected to be `""`, `stderr` matched exactly, and `exit_code` expected to be `1`

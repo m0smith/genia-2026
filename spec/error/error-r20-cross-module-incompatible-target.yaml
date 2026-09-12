@@ -30,3 +30,4 @@ expected:
   exit_code: 1
 requires:
   - open_functions
+  - multi_file_eval

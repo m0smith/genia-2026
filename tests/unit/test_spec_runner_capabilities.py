@@ -56,6 +56,14 @@ def test_validate_capability_claims_accepts_known_names() -> None:
     validate_capability_claims({"parser": "supported", "http_server": "unsupported"})
 
 
+def test_multi_file_eval_is_a_known_independent_capability() -> None:
+    assert "multi_file_eval" in known_capabilities()
+    validate_capability_claims({
+        "open_functions": "supported",
+        "multi_file_eval": "unsupported",
+    })
+
+
 def test_validate_capability_claims_rejects_unknown_names() -> None:
     with pytest.raises(CapabilityDeclarationError):
         validate_capability_claims({"not-a-real-capability": "supported"})

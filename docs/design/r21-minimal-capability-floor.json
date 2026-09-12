@@ -9,6 +9,7 @@
   },
   "open_functions": {
     "capability": "open_functions",
+    "cross_module_transport_capability": "multi_file_eval",
     "applicable_cases": 29,
     "cross_module_cases": 8,
     "advertise_only_after_all_pass": true
@@ -16,6 +17,7 @@
   "explicitly_unsupported": [
     "cli_pipe_mode", "repl", "flow_phase_1", "refs", "process_primitives",
     "http_server", "http_outbound_transport", "resource_io",
-    "configuration_environment_snapshot", "configuration_dotenv_snapshot"
+    "configuration_environment_snapshot", "configuration_dotenv_snapshot",
+    "multi_file_eval"
   ]
 }

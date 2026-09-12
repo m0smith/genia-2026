@@ -93,7 +93,7 @@ def test_subprocess_request_preserves_normalized_fixture_exactly(tmp_path: Path)
     assert reconstructed.module_files == spec.module_files
 
 
-def test_unmet_open_functions_capability_is_unsupported_before_adapter_invocation(tmp_path: Path) -> None:
+def test_protocol_v1_host_with_only_open_functions_never_receives_modules(tmp_path: Path) -> None:
     spec = load_spec(_write_case(tmp_path, """  modules:
     entry: main.genia
     files:
@@ -101,7 +101,27 @@ def test_unmet_open_functions_capability_is_unsupported_before_adapter_invocatio
         source: |
           print("ok")
 """).with_name("fixture-case.yaml"))
-    object.__setattr__(spec, "requires", ("open_functions",))
-    result = execute_spec_via_host(spec, ["definitely-not-an-adapter"], timeout=1, host_capabilities={"open_functions": "unsupported"})
+    object.__setattr__(spec, "requires", ("open_functions", "multi_file_eval"))
+    result = execute_spec_via_host(
+        spec, ["definitely-not-an-adapter"], timeout=1,
+        host_capabilities={"open_functions": "supported"},
+    )
+    assert result.kind == "unsupported"
+    assert "multi_file_eval" in (result.reason or "")
+
+
+def test_multi_file_case_also_requires_open_functions_semantics(tmp_path: Path) -> None:
+    spec = load_spec(_write_case(tmp_path, """  modules:
+    entry: main.genia
+    files:
+      - path: main.genia
+        source: |
+          print("ok")
+"""))
+    object.__setattr__(spec, "requires", ("open_functions", "multi_file_eval"))
+    result = execute_spec_via_host(
+        spec, ["definitely-not-an-adapter"], timeout=1,
+        host_capabilities={"multi_file_eval": "supported"},
+    )
     assert result.kind == "unsupported"
     assert "open_functions" in (result.reason or "")

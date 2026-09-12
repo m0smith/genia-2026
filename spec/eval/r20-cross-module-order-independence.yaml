@@ -41,3 +41,4 @@ expected:
   exit_code: 0
 requires:
   - open_functions
+  - multi_file_eval
