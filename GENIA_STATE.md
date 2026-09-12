@@ -1233,6 +1233,142 @@ Pipeline (Phase 2) evaluation model:
   - `eval` is only defined for the supported expression families above
   - unsupported quoted forms raise a clear runtime error instead of silently expanding evaluator coverage
 
+## 4.7) R20 open functions and extensible pattern dispatch (Experimental, R20 complete through E20-6)
+
+R20 adds one concept: an **open function interface** is an identity-bearing
+ordinary callable whose immutable clause set is assembled from ordered local
+clauses and explicitly selected cross-module contributions. See
+`docs/design/r20-open-functions-contract.md` (approved semantics) and
+`docs/design/r20-open-functions-syntax-ir-design.md` (approved syntax and
+Core IR).
+
+- **Local declaration and repeated clauses.**
+  - `open name(<pattern>, ...) = <body>` declares a new open interface; the
+    first clause of an interface must carry the `open` keyword.
+  - Every subsequent bare `name(<pattern>, ...) = <body>` in the same module,
+    for a name already declared `open`, is a repeated clause appended to that
+    interface, in source order. `open`/repeated clauses must form one
+    contiguous run of top-level statements — a later bare
+    `name(<pattern>...) = body` for a name whose run already ended does not
+    silently reopen it.
+  - `<pattern>` reuses the existing lambda-parameter pattern grammar
+    verbatim: identifier bind, wildcard `_`, literal, tuple/list/map
+    sub-pattern, `some(...)`/`err(...)`, named-pattern use, and one final
+    `..rest` for varargs. An optional `? guard` may follow the closing `)`.
+  - A single clause whose body is a grouped `(pat) -> body | (pat) -> body`
+    case-with-pipe over a plain-identifier header is flattened at parse time
+    into one clause per arm, so grouped and repeated local clause syntax
+    normalize to an identical ordered clause list (contract §3.1).
+  - Example (the release's required acceptance case):
+    ```genia
+    open gcd(a, 0) = a
+    gcd(a, b) = gcd(b, a % b)
+
+    gcd(48, 18)
+    ```
+    evaluates to `6`, identically to the grouped spelling
+    `open gcd(a, b) = (a, 0) -> a | (a, b) -> gcd(b, a % b)`.
+- **Dispatch algorithm** (contract §5): given `n` arguments, if any
+  participating clause has a fixed shape of arity `n`, only fixed clauses of
+  arity `n` participate; otherwise every eligible varargs clause (minimum
+  arity ≤ `n`) participates, and more than one distinct eligible minimum is a
+  deterministic `open-function-varargs-ambiguity` failure (the largest
+  minimum is never chosen). Within each participating unit (the base, or one
+  selected contribution), clauses are tested in lexical order and at most one
+  becomes that unit's candidate. If exactly one unit supplies a candidate it
+  runs; more than one candidate is a deterministic `open-function-clause-
+  ambiguity` failure — there is no specificity ranking and contribution
+  selection/import order can never break a tie. Existing fixed-over-varargs
+  precedence, first-match order, guards, named patterns, and automatic
+  Outcome/`none` propagation are preserved by reusing the existing pattern
+  engine (`match_lambda_pattern`) unchanged.
+- **Duplicate clauses.** Two clauses in the same unit with the same
+  structural, alpha-normalized, span-free dispatch key are
+  `open-function-duplicate-clause`, detected once when the unit is built
+  (module load time), never deferred to call time. The same dispatch key in
+  two different units is not a build-time duplicate; if both match one call,
+  the across-unit ambiguity rule applies.
+- **Explicit cross-module contribution.**
+  - `extend <module-alias>.<name>(<pattern>, ...) = <body>` (in a
+    contributing module that has already `import`ed `<module-alias>`)
+    declares one clause of that module's contribution unit targeting the
+    open interface exported as `<name>` by `<module-alias>`. Repeated
+    `extend` statements for the same target in the same module accumulate
+    into one contribution unit, in source order.
+  - `use <name> from <base-alias> with <contrib-alias-1>, <contrib-alias-2>,
+    ...` is a declarative, once-evaluated top-level statement (like
+    `import`) that resolves `<base-alias>.<name>`, resolves each named
+    contribution module's exported contribution unit for that exact
+    interface, and binds `<name>` in the *current* module to the resulting
+    immutable linked view. There is no wildcard/implicit selection.
+  - Ordinary `import` alone never selects a contribution: importing a
+    contribution-bearing module without an explicit `use` leaves the base
+    interface (and any other module's already-linked view) completely
+    unaffected.
+  - Interface/contribution identity is the pair (canonical cached module
+    name, exported name) — the same identity `Env.load_module` already
+    caches modules under. Import alias, file path, and host object address
+    are never part of this identity, so two aliases of the same cached
+    module are one interface/contribution, duplicate selection through two
+    such aliases is a deterministic `open-function-duplicate-selection`
+    failure, and reordering unrelated imports or the `with` list cannot
+    change a successful dispatch result.
+  - Selecting a module with no matching contribution unit, or a closed
+    function/non-function, is `open-function-incompatible-contribution`.
+  - Declaration, import, and `use` perform no lifecycle activation, resource
+    acquisition, network/process IO, or clause-body execution; a clause body
+    runs only after a successful call dispatches to it.
+- **Provenance and introspection.** `help(interface-or-linked-view)` lists
+  the interface name, its declaration span, effective documentation (or "No
+  documentation available."), and every participating unit's clauses in
+  deterministic order — the base unit first (labelled by its declaring
+  module identity), then each contribution unit ordered by its declaring
+  module identity, clauses within a unit by lexical ordinal. `doc(name)`
+  returns the interface's own docstring; contribution clauses cannot supply,
+  replace, or erase interface-level documentation. No host object address or
+  Python-specific representation is exposed.
+- **Diagnostics.** `open-function-redeclaration`,
+  `open-function-target-not-open`, `open-function-duplicate-clause`,
+  `open-function-duplicate-selection`,
+  `open-function-incompatible-contribution`,
+  `open-function-varargs-ambiguity`, and `open-function-clause-ambiguity` are
+  raised as `TypeError` subclasses (`src/genia/callable.py`) with the
+  parameters the contract requires; a pattern/shape miss reuses the existing
+  `No matching function` / `No matching case` diagnostic families. Span
+  rendering in these messages is a plain `filename:line` string, not a raw
+  host object repr.
+- **Core IR.** Three new portable node types —
+  `IrOpenFuncDef(name, clauses, docstring, annotations)`,
+  `IrOpenContribution(target_module_alias, target_name, clauses)`, and
+  `IrOpenUse(local_name, target_module_alias, target_name,
+  contribution_module_aliases)` — reuse the existing `IrCaseClause`/
+  `IrPatTuple`/`IrPatRest` pattern representation verbatim; no new pattern or
+  guard node was added. See
+  `docs/architecture/core-ir-portability.md`.
+- **Host capability.** A dedicated `open_functions` capability
+  (`spec/manifest.json` optional capability;
+  `docs/host-interop/HOST_CAPABILITY_MATRIX.md`) is `Implemented` for Python;
+  every R20 shared spec case declares `requires: [open_functions]` so an
+  older/non-conforming host reports these cases unsupported rather than
+  silently passing them.
+- **Known limitations of this Experimental slice** (see
+  `docs/analysis/r20-release-truth-audit.md` for the full accounting):
+  - a grouped case-with-pipe body is auto-flattened only when the header
+    pattern is plain identifiers and the body is exactly one `CaseExpr` (or
+    a one-expression `{ }` block containing one); other combinations of a
+    non-trivial header with a case body are rejected rather than given
+    ad hoc semantics;
+  - `@doc`/`@meta`-style annotation attachment is not wired for `open`/
+    `extend` declarations in this slice — interface metadata beyond the
+    optional docstring position is a follow-up;
+  - cross-module contribution/linking behavior is proven by Python-host
+    unit tests (`tests/unit/test_r20_open_functions_cross_module.py`)
+    rather than the generic multi-host YAML spec runner, because that
+    runner's eval/error case format has no multi-file fixture mechanism
+    today — a disclosed infrastructure gap, not a semantic one;
+  - debug-hook wiring (`debug_hooks`/`debug_mode` propagation used by the
+    Python debug adapter) is not threaded through open-function dispatch.
+
 ## 5) Case expressions and pattern matching
 
 Case arms support:
@@ -2428,8 +2564,17 @@ for the approved contract; `docs/analysis/r19-diagnostic-mechanical-inventory.md
 for the full diagnostic inventory; `docs/analysis/r19-host-default-leak-audit.md`
 for the cross-surface leak audit; `docs/analysis/r19-release-truth-audit.md`
 for the closing skeptical audit; `docs/releases/R19.md` for the release
-summary. The next roadmap release is R20 — Open Functions and Extensible
-Pattern Dispatch; R20's own contract gate has not been run.
+summary.
+
+**R20 — Open Functions and Extensible Pattern Dispatch is complete
+(E20-1 through E20-8).** Its approved contract
+(`docs/design/r20-open-functions-contract.md`) and syntax/Core IR design
+(`docs/design/r20-open-functions-syntax-ir-design.md`) are implemented as
+described in section 4.7 above, with the E20-8 skeptical release audit
+(`docs/analysis/r20-release-truth-audit.md`) verdict and full evidence
+recorded there and in `docs/releases/R20.md`. See section 4.7 for the
+implemented boundary; the next roadmap release is R21 — the C++ host — only
+once that release's own separate gates are run.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
