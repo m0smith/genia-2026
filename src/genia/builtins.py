@@ -75,6 +75,8 @@ if __package__ in (None, ""):
         NOOP_DEBUG_HOOKS,
         GeniaFunction,
         GeniaFunctionGroup,
+        GeniaLinkedOpenFunction,
+        GeniaOpenFunction,
     )
     from genia.environment import Env
     from genia.utf8 import (
@@ -190,6 +192,8 @@ else:
         NOOP_DEBUG_HOOKS,
         GeniaFunction,
         GeniaFunctionGroup,
+        GeniaLinkedOpenFunction,
+        GeniaOpenFunction,
     )
     from .environment import Env
     from .utf8 import (
@@ -2993,6 +2997,40 @@ def make_global_env(
             lines.extend(metadata_lines)
         return "\n".join(lines)
 
+    def _describe_open_function(target: "GeniaOpenFunction | GeniaLinkedOpenFunction") -> str:
+        """R20 help/introspection (contract §7.3): interface name, callable
+        shapes, effective documentation, declaration location, and every
+        participating unit's clause provenance in deterministic order — base
+        first, then contribution units ordered by declaring module identity,
+        clauses within each unit by lexical ordinal. No host object address
+        or provider-specific representation is exposed."""
+        if isinstance(target, GeniaLinkedOpenFunction):
+            open_fn = target.base
+            units = target.units
+        else:
+            open_fn = target
+            units = ()
+        lines = [f"{open_fn.name} (R20 open function)"]
+        span_text = _format_span(open_fn.span)
+        if span_text is not None:
+            lines.append(f"Defined at {span_text}")
+        lines.append("")
+        if open_fn.docstring is not None:
+            lines.append(render_markdown_docstring(open_fn.docstring))
+        else:
+            lines.append("No documentation available.")
+        lines.append("")
+        lines.append(f"base ({open_fn.module_id}):")
+        for ordinal, record in enumerate(open_fn.clauses, start=1):
+            record_span = _format_span(record.span)
+            lines.append(f"  {ordinal}. {record_span if record_span is not None else '<no span>'}")
+        for unit in sorted(units, key=lambda u: u.declaring_module_id):
+            lines.append(f"contribution ({unit.declaring_module_id}):")
+            for ordinal, record in enumerate(unit.clauses, start=1):
+                record_span = _format_span(record.span)
+                lines.append(f"  {ordinal}. {record_span if record_span is not None else '<no span>'}")
+        return "\n".join(lines)
+
     def _describe_runtime_name(name: str, value: Any, metadata: GeniaMap | None = None) -> str:
         kind = "host-backed runtime function" if callable(value) else "named value"
         lines = [name]
@@ -3142,6 +3180,9 @@ def make_global_env(
                     else:
                         _emit_help(_describe_missing_help_name(target))
                         return
+            if isinstance(target, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+                _emit_help(_describe_open_function(target))
+                return
             if isinstance(target, GeniaFunctionGroup):
                 _emit_help(_describe_function_group(target))
                 return
@@ -3180,6 +3221,10 @@ def make_global_env(
             return doc_text
         target = env.get(name)
         if isinstance(target, GeniaFunctionGroup) and target.docstring is not None:
+            return target.docstring
+        if isinstance(target, GeniaLinkedOpenFunction) and target.base.docstring is not None:
+            return target.base.docstring
+        if isinstance(target, GeniaOpenFunction) and target.docstring is not None:
             return target.docstring
         return make_none("missing-doc", GeniaMap().put("name", name))
 

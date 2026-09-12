@@ -172,6 +172,30 @@ release summary: `docs/releases/R18.md`.
 R18 defines no opaque-token surface reachable from Genia source, so a host is not
 expected to demonstrate token equality; that family has no shared cases by design.
 
+## Open Functions and Extensible Pattern Dispatch (R20)
+
+A conforming host must implement:
+
+- `IrOpenFuncDef`/`IrOpenContribution`/`IrOpenUse` Core IR (each clause is an
+  ordinary `IrCaseClause` over `IrPatTuple`, reused verbatim);
+- the contract §5 dispatch algorithm (shape stratum, unit-local first match,
+  across-unit exactly-one-candidate) applied identically to a base-only open
+  function and a linked cross-module view;
+- structural, alpha-normalized, span-free duplicate-clause detection at unit
+  build time (contract §6);
+- interface/contribution identity as (canonical module identity, exported
+  name) — never an import alias, filesystem path, or host object address;
+- the `open-function-*` diagnostic identities in contract §8.
+
+Conformance evidence: 21 `spec/parse|ir|eval|error/*r20*` cases (all declare
+`requires: [open_functions]`) plus the cross-module contract obligations
+proven in `tests/unit/test_r20_open_functions_cross_module.py` — that
+Python-host evidence is the cross-module reference behavior until the
+generic multi-host YAML runner gains a multi-file fixture mechanism. Full
+contract: `docs/design/r20-open-functions-contract.md`; syntax/Core IR
+design: `docs/design/r20-open-functions-syntax-ir-design.md`; release
+summary: `docs/releases/R20.md`.
+
 ## Parser / IR / Runtime Checklist
 
 - parser accepts current documented syntax only
