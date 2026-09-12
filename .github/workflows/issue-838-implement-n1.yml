@@ -22,6 +22,7 @@ jobs:
       - name: Apply approved N-1 implementation
         run: |
           uv run python tools/issue838_n1_apply_fix.py
+          uv run python tools/issue838_n1_apply_fix2.py
           uv run python tools/issue838_n1_apply.py
       - name: Targeted shared evidence
         run: |
