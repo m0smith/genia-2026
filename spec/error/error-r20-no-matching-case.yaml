@@ -1,0 +1,17 @@
+name: error-r20-no-matching-case
+category: error
+description: R20 open function dispatch reuses the existing no-matching-case diagnostic family when the eligible shape's clauses all miss
+input:
+  source: |
+    open f(1) = "one"
+    f(2)
+expected:
+  stdout: ""
+  stderr: "Error: No matching case for function f/1 with arguments [2]\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: OpenFunctionNoMatchingCaseError
+
+requires:
+  - open_functions

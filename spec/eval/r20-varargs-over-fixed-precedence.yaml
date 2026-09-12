@@ -1,0 +1,16 @@
+name: r20-varargs-over-fixed-precedence
+category: eval
+description: R20 dispatch preserves existing fixed-over-varargs precedence — a matching fixed-arity clause always wins over an eligible varargs clause
+input:
+  source: |
+    open total(x, y) = x + y
+    total(x, y, ..rest) = 999
+
+    total(2, 3)
+expected:
+  stdout: "5\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

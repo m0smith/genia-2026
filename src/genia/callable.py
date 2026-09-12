@@ -6,6 +6,7 @@ invoke_callable — the module-level dispatch entry point used by the evaluator.
 """
 from __future__ import annotations
 
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
 
@@ -24,6 +25,7 @@ if __package__ in (None, ""):
     )
     from genia.pattern_match import (
         IrPattern,
+        PatternOutcomeError,
         pattern_explicitly_handles_none,
         pattern_explicitly_handles_some,
     )
@@ -48,6 +50,7 @@ else:
     )
     from .pattern_match import (
         IrPattern,
+        PatternOutcomeError,
         pattern_explicitly_handles_none,
         pattern_explicitly_handles_some,
     )
@@ -338,6 +341,406 @@ def eval_with_tco(
 
 
 # ---------------------------------------------------------------------------
+# R20 open functions and extensible pattern dispatch
+#
+# Core IR reuses IrCaseClause/IrPattern verbatim (see
+# docs/design/r20-open-functions-syntax-ir-design.md); this section is the
+# runtime dispatch algorithm required by
+# docs/design/r20-open-functions-contract.md sections 5 (dispatch), 6
+# (duplicates), and 4.3 (import-order independence). No process-global
+# mutable dispatch table exists: every value below is constructed once, at
+# module-load time, from Core IR already produced by lowering.
+# ---------------------------------------------------------------------------
+
+
+class OpenFunctionError(TypeError):
+    """Base class for every R20 portable diagnostic identity (contract §8)."""
+
+
+class OpenFunctionRedeclarationError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str]):
+        module_id, name = interface_key
+        super().__init__(
+            f"open-function-redeclaration: {name!r} is already declared open in module {module_id!r}"
+        )
+        self.interface_key = interface_key
+
+
+class OpenFunctionTargetNotOpenError(OpenFunctionError):
+    def __init__(self, target: Any):
+        super().__init__(f"open-function-target-not-open: {target!r} is not an open function interface")
+        self.target = target
+
+
+def _format_open_span(span: Optional[SourceSpan]) -> str:
+    """Normalized, host-neutral span rendering (contract §8): a Genia
+    source label and line, never a raw host dataclass repr."""
+    if span is None:
+        return "<unknown>"
+    return f"{span.filename}:{span.line}"
+
+
+class OpenFunctionDuplicateClauseError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str], unit_key: Any, shape: tuple, first_span: Any, duplicate_span: Any):
+        module_id, name = interface_key
+        super().__init__(
+            "open-function-duplicate-clause: "
+            f"{name} in unit {unit_key!r} has two clauses with an identical dispatch key "
+            f"shape={shape!r} (first at {_format_open_span(first_span)}, duplicate at {_format_open_span(duplicate_span)})"
+        )
+        self.interface_key = interface_key
+        self.unit_key = unit_key
+        self.shape = shape
+        self.first_span = first_span
+        self.duplicate_span = duplicate_span
+
+
+class OpenFunctionDuplicateSelectionError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str], unit_key: Any):
+        super().__init__(
+            f"open-function-duplicate-selection: contribution {unit_key!r} is already selected for {interface_key!r}"
+        )
+        self.interface_key = interface_key
+        self.unit_key = unit_key
+
+
+class OpenFunctionIncompatibleContributionError(OpenFunctionError):
+    def __init__(self, expected_interface_key: tuple[str, str], actual_target: Any):
+        super().__init__(
+            "open-function-incompatible-contribution: "
+            f"expected a contribution targeting {expected_interface_key!r}, got {actual_target!r}"
+        )
+        self.expected_interface_key = expected_interface_key
+        self.actual_target = actual_target
+
+
+class OpenFunctionVarargsAmbiguityError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str], call_arity: int, shapes: list, provenances: list):
+        module_id, name = interface_key
+        super().__init__(
+            f"open-function-varargs-ambiguity: {name}/{call_arity} matches more than one varargs shape "
+            f"{sorted(shapes)} contributed by {sorted(provenances)}"
+        )
+        self.interface_key = interface_key
+        self.call_arity = call_arity
+        self.shapes = shapes
+        self.provenances = provenances
+
+
+class OpenFunctionClauseAmbiguityError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str], call_arity: int, candidate_provenances: list):
+        module_id, name = interface_key
+        super().__init__(
+            f"open-function-clause-ambiguity: {name}/{call_arity} matched clauses in more than one unit "
+            f"{sorted(candidate_provenances)}"
+        )
+        self.interface_key = interface_key
+        self.call_arity = call_arity
+        self.candidate_provenances = candidate_provenances
+
+
+class OpenFunctionNoMatchingFunctionError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str], call_arity: int):
+        module_id, name = interface_key
+        super().__init__(f"No matching function: {name}/{call_arity}")
+        self.interface_key = interface_key
+        self.call_arity = call_arity
+
+
+class OpenFunctionNoMatchingCaseError(OpenFunctionError):
+    def __init__(self, interface_key: tuple[str, str], call_arity: int, args: tuple[Any, ...]):
+        module_id, name = interface_key
+        if __package__ in (None, ""):
+            from genia.evaluator import _format_args_for_diagnostic
+        else:
+            from .evaluator import _format_args_for_diagnostic
+        super().__init__(
+            f"No matching case for function {name}/{call_arity} with arguments {_format_args_for_diagnostic(args)}"
+        )
+        self.interface_key = interface_key
+        self.call_arity = call_arity
+
+
+def _collect_pattern_binders(node: Any, order: list[str]) -> None:
+    """Depth-first collection of every IrPatBind/named IrPatRest binder in
+    first-occurrence order, walking dataclass fields generically so R20 adds
+    no second pattern-traversal mechanism."""
+    if node is None:
+        return
+    if isinstance(node, (list, tuple)):
+        for item in node:
+            _collect_pattern_binders(item, order)
+        return
+    if not dataclasses.is_dataclass(node):
+        return
+    cls_name = type(node).__name__
+    if cls_name == "IrPatBind":
+        if node.name not in order:
+            order.append(node.name)
+        return
+    if cls_name == "IrPatRest":
+        if node.name is not None and node.name not in order:
+            order.append(node.name)
+        return
+    for f in dataclasses.fields(node):
+        if f.name == "span":
+            continue
+        _collect_pattern_binders(getattr(node, f.name), order)
+
+
+def _structural_key(node: Any, binder_index: dict[str, int]) -> Any:
+    """Structural, span-free, alpha-normalized key for a pattern or guard
+    node (contract §6). Bound-variable references are renamed to their
+    first-occurrence ordinal so binder spelling never affects duplicate
+    detection; free references keep their name."""
+    if node is None:
+        return None
+    if isinstance(node, (str, int, float, bool)):
+        return node
+    if isinstance(node, (list, tuple)):
+        return tuple(_structural_key(item, binder_index) for item in node)
+    if not dataclasses.is_dataclass(node):
+        return repr(node)
+    cls_name = type(node).__name__
+    if cls_name == "IrVar" and node.name in binder_index:
+        return ("BINDREF", binder_index[node.name])
+    if cls_name == "IrPatBind" and node.name in binder_index:
+        return ("BIND", binder_index[node.name])
+    if cls_name == "IrPatRest" and node.name is not None and node.name in binder_index:
+        return ("RESTBIND", binder_index[node.name])
+    parts: list[Any] = [cls_name]
+    for f in dataclasses.fields(node):
+        if f.name == "span":
+            continue
+        parts.append(_structural_key(getattr(node, f.name), binder_index))
+    return tuple(parts)
+
+
+def _clause_shape(pattern: IrPattern) -> tuple[str, int]:
+    items = getattr(pattern, "items", None)
+    if items and type(items[-1]).__name__ == "IrPatRest":
+        return ("varargs", len(items) - 1)
+    return ("fixed", len(items) if items is not None else 0)
+
+
+def _open_dispatch_key(pattern: IrPattern, guard: Optional[IrNode]) -> tuple:
+    order: list[str] = []
+    _collect_pattern_binders(pattern, order)
+    binder_index = {name: i for i, name in enumerate(order)}
+    return (
+        _clause_shape(pattern),
+        _structural_key(pattern, binder_index),
+        _structural_key(guard, binder_index) if guard is not None else None,
+    )
+
+
+@dataclass
+class OpenClauseRecord:
+    """One clause's pattern/guard/body/closure/provenance (contract §7.1).
+    Lexical ordinal within its unit is this record's list index — no
+    separate ordinal field is stored (design doc §3)."""
+
+    pattern: IrPattern
+    guard: Optional[IrNode]
+    body: IrNode
+    closure: Env
+    span: Optional[SourceSpan]
+    dispatch_key: tuple = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.dispatch_key = _open_dispatch_key(self.pattern, self.guard)
+
+
+def _check_no_duplicate_clauses(interface_key: tuple[str, str], unit_key: Any, records: list[OpenClauseRecord]) -> None:
+    seen: dict[tuple, OpenClauseRecord] = {}
+    for record in records:
+        existing = seen.get(record.dispatch_key)
+        if existing is not None:
+            raise OpenFunctionDuplicateClauseError(
+                interface_key, unit_key, record.dispatch_key[0], existing.span, record.span
+            )
+        seen[record.dispatch_key] = record
+
+
+def _first_unit_match(records: list[OpenClauseRecord], args: tuple[Any, ...]) -> Optional[tuple[OpenClauseRecord, dict]]:
+    if __package__ in (None, ""):
+        from genia.evaluator import Evaluator
+    else:
+        from .evaluator import Evaluator
+    for record in records:
+        evaluator = Evaluator(record.closure)
+        match_env = evaluator.match_lambda_pattern(record.pattern, args)
+        if match_env is None:
+            continue
+        if record.guard is not None:
+            local = Env(record.closure)
+            for k, v in match_env.items():
+                local.set(k, v)
+            if not truthy(Evaluator(local).eval(record.guard)):
+                continue
+        return record, match_env
+    return None
+
+
+def _invoke_open_clause(record: OpenClauseRecord, bindings: dict) -> Any:
+    if __package__ in (None, ""):
+        from genia.evaluator import Evaluator
+    else:
+        from .evaluator import Evaluator
+    local = Env(record.closure)
+    for k, v in bindings.items():
+        local.set(k, v)
+    return Evaluator(local).eval_tail(record.body)
+
+
+def _dispatch_open(interface_key: tuple[str, str], participating_units: list[tuple[str, Any, list[OpenClauseRecord]]], args: tuple[Any, ...]) -> Any:
+    """The contract §5 dispatch algorithm: shape stratum, then unit-local
+    first match, then across-unit exactly-one-candidate selection. Import
+    order and contribution-selection order never appear in this function —
+    only `participating_units` order (irrelevant to the result) and each
+    unit's own clause order (relevant, per unit, per contract §4.3)."""
+    n = len(args)
+    all_entries: list[tuple[int, OpenClauseRecord]] = []
+    for unit_index, (_role, _unit_key, records) in enumerate(participating_units):
+        for record in records:
+            all_entries.append((unit_index, record))
+
+    fixed_matches = [(ui, r) for ui, r in all_entries if r.dispatch_key[0] == ("fixed", n)]
+    if fixed_matches:
+        participating_entries = fixed_matches
+    else:
+        varargs_eligible = [
+            (ui, r) for ui, r in all_entries if r.dispatch_key[0][0] == "varargs" and r.dispatch_key[0][1] <= n
+        ]
+        minimums = sorted({r.dispatch_key[0][1] for _, r in varargs_eligible})
+        if len(minimums) > 1:
+            shapes = sorted({r.dispatch_key[0] for _, r in varargs_eligible})
+            provenances = sorted({str(participating_units[ui][1]) for ui, _ in varargs_eligible})
+            raise OpenFunctionVarargsAmbiguityError(interface_key, n, shapes, provenances)
+        if not varargs_eligible:
+            raise OpenFunctionNoMatchingFunctionError(interface_key, n)
+        participating_entries = varargs_eligible
+
+    candidates: list[tuple[int, Any, tuple[OpenClauseRecord, dict]]] = []
+    for unit_index, (_role, unit_key, _records) in enumerate(participating_units):
+        unit_records = [r for ui, r in participating_entries if ui == unit_index]
+        try:
+            match = _first_unit_match(unit_records, args)
+        except PatternOutcomeError as exc:
+            return exc.outcome
+        if match is not None:
+            candidates.append((unit_index, unit_key, match))
+
+    if not candidates:
+        raise OpenFunctionNoMatchingCaseError(interface_key, n, args)
+    if len(candidates) > 1:
+        provenances = sorted(str(unit_key) for _, unit_key, _ in candidates)
+        raise OpenFunctionClauseAmbiguityError(interface_key, n, provenances)
+
+    _, _unit_key, (record, bindings) = candidates[0]
+    return _invoke_open_clause(record, bindings)
+
+
+@dataclass
+class GeniaOpenContributionUnit:
+    """One contributing module's ordered clause set targeting one open
+    interface (contract §4.1). Never callable by itself; only participates
+    once explicitly selected into a GeniaLinkedOpenFunction."""
+
+    target_interface_key: tuple[str, str]
+    declaring_module_id: str
+    clauses: list[OpenClauseRecord] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        _check_no_duplicate_clauses(self.target_interface_key, self.declaring_module_id, self.clauses)
+
+    def __repr__(self) -> str:
+        return f"<open contribution {self.declaring_module_id} -> {self.target_interface_key[1]}>"
+
+
+@dataclass
+class GeniaOpenFunction:
+    """R20 open interface — an identity-bearing ordinary callable whose base
+    unit is this module's own ordered clauses (contract §2, §3)."""
+
+    name: str
+    module_id: str
+    clauses: list[OpenClauseRecord] = field(default_factory=list)
+    docstring: Optional[str] = None
+    metadata: GeniaMap = field(default_factory=lambda: GeniaMap())
+    span: Optional[SourceSpan] = None
+
+    def __post_init__(self) -> None:
+        _check_no_duplicate_clauses(self.interface_key, "base", self.clauses)
+
+    @property
+    def interface_key(self) -> tuple[str, str]:
+        return (self.module_id, self.name)
+
+    def _dispatch_once(self, args: tuple[Any, ...]) -> Any:
+        return _dispatch_open(self.interface_key, [("base", "base", self.clauses)], args)
+
+    def __call__(self, *args: Any) -> Any:
+        current_args = args
+        while True:
+            result = self._dispatch_once(current_args)
+            if not isinstance(result, TailCall):
+                return result
+            if result.fn is self:
+                current_args = result.args
+                continue
+            return eval_with_tco(result.fn, result.args)
+
+    def __repr__(self) -> str:
+        return f"<open function {self.name}>"
+
+
+@dataclass
+class GeniaLinkedOpenFunction:
+    """R20 immutable linked view: one base GeniaOpenFunction plus an
+    explicitly selected, order-irrelevant tuple of contribution units
+    (contract §4.2, §4.3)."""
+
+    base: GeniaOpenFunction
+    units: tuple[GeniaOpenContributionUnit, ...] = ()
+
+    @property
+    def interface_key(self) -> tuple[str, str]:
+        return self.base.interface_key
+
+    def _dispatch_once(self, args: tuple[Any, ...]) -> Any:
+        participating: list[tuple[str, Any, list[OpenClauseRecord]]] = [("base", "base", self.base.clauses)]
+        for unit in self.units:
+            participating.append(("contribution", unit.declaring_module_id, unit.clauses))
+        return _dispatch_open(self.interface_key, participating, args)
+
+    def __call__(self, *args: Any) -> Any:
+        current_args = args
+        while True:
+            result = self._dispatch_once(current_args)
+            if not isinstance(result, TailCall):
+                return result
+            if result.fn is self:
+                current_args = result.args
+                continue
+            return eval_with_tco(result.fn, result.args)
+
+    def __repr__(self) -> str:
+        return f"<open function {self.base.name} (linked)>"
+
+
+def _all_open_clause_records(fn: Any) -> list[OpenClauseRecord]:
+    if isinstance(fn, GeniaOpenFunction):
+        return list(fn.clauses)
+    if isinstance(fn, GeniaLinkedOpenFunction):
+        records = list(fn.base.clauses)
+        for unit in fn.units:
+            records.extend(unit.clauses)
+        return records
+    return []
+
+
+# ---------------------------------------------------------------------------
 # None-awareness detection
 # ---------------------------------------------------------------------------
 
@@ -549,6 +952,11 @@ def _callable_explicitly_handles_none(fn: Any, arity: int, callee_node: Optional
         if isinstance(callee_node, IrVar) and callee_node.name in {"map", "filter", "take", "scan"}:
             return True
         return False
+    if isinstance(fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+        return any(
+            pattern_explicitly_handles_none(record.pattern) or pattern_explicitly_handles_some(record.pattern)
+            for record in _all_open_clause_records(fn)
+        )
     genia_body = getattr(fn, "__genia_body__", None)
     if genia_body is not None:
         genia_pattern = getattr(fn, "__genia_pattern__", None)
@@ -587,6 +995,8 @@ def _callable_explicitly_handles_some(fn: Any, arity: int, callee_node: Optional
         if len(matches) == 1:
             return _function_explicitly_handles_some(matches[0])
         return False
+    if isinstance(fn, (GeniaOpenFunction, GeniaLinkedOpenFunction)):
+        return any(pattern_explicitly_handles_some(record.pattern) for record in _all_open_clause_records(fn))
     genia_body = getattr(fn, "__genia_body__", None)
     if genia_body is not None:
         genia_pattern = getattr(fn, "__genia_pattern__", None)

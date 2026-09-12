@@ -41,10 +41,14 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # and 4 more (issue #795, multi-host conformance hardening). R19 E19-1
     # (issue #820) added 6 more ordinary eval-category cases (Unicode/UTF-8
     # portability evidence: byte-length widths, encode/decode roundtrip, and
-    # deterministic debug escaping).
+    # deterministic debug escaping). R20 (E20-2/E20-4) added 21 more cases
+    # (9 parse, 5 ir, 4 eval, 3 error) covering open-function syntax, Core
+    # IR, local dispatch, and diagnostics, each declaring `requires:
+    # [open_functions]`; the Python reference host declares that capability
+    # supported, so all 21 run and pass through the protocol path too.
     # None require an unexpressible fixture, so they pass through the protocol
     # path like any other case. `test_r18_conformance_protocol_evidence_795.py`
     # additionally asserts that every R18 case specifically is executed rather
     # than reported unsupported.
-    assert "Summary: total=674 passed=656 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    assert "Summary: total=695 passed=677 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

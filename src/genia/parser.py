@@ -27,6 +27,9 @@ from .ast_nodes import (
     Node,
     NoneOption,
     Number,
+    OpenExtendDef,
+    OpenFuncDef,
+    OpenUseDef,
     QuasiQuote,
     Quote,
     RestPattern,
@@ -72,6 +75,11 @@ class Parser:
         self.source = source
         self.filename = filename
         self.i = 0
+        # R20 open functions: names declared `open` earlier in this module's
+        # top-level clause run, so a later bare pattern-headed clause with
+        # the same name is recognized as a repeated clause rather than an
+        # ordinary function header (openness is declared, never inferred).
+        self._open_names: set[str] = set()
         self._line_starts = [0]
         for idx, ch in enumerate(source):
             if ch == "\n":
@@ -181,9 +189,40 @@ class Parser:
         out: list[Node] = []
         self.skip_separators()
         while not self.at("EOF"):
-            out.append(self.parse_toplevel())
+            node = self.parse_toplevel()
+            if not self._merge_open_toplevel(out, node):
+                out.append(node)
             self.skip_separators()
         return out
+
+    def _merge_open_toplevel(self, out: list[Node], node: Node) -> bool:
+        """R20: a contiguous run of top-level clauses for the same open
+        interface (or the same extend target) merges into one AST node so
+        grouped and repeated local clause syntax normalize identically
+        (contract section 3.1). Merging only the immediately preceding
+        top-level node enforces the contiguous-run scoping decision recorded
+        in docs/design/r20-open-functions-syntax-ir-design.md section 4."""
+        if not out:
+            return False
+        previous = out[-1]
+        if (
+            isinstance(node, OpenFuncDef)
+            and isinstance(previous, OpenFuncDef)
+            and previous.name == node.name
+        ):
+            previous.clauses.extend(node.clauses)
+            previous.span = self.merge_spans(previous.span, node.span)
+            return True
+        if (
+            isinstance(node, OpenExtendDef)
+            and isinstance(previous, OpenExtendDef)
+            and previous.target_module_alias == node.target_module_alias
+            and previous.target_name == node.target_name
+        ):
+            previous.clauses.extend(node.clauses)
+            previous.span = self.merge_spans(previous.span, node.span)
+            return True
+        return False
 
     def parse_parameter_list(
         self,
@@ -333,6 +372,10 @@ class Parser:
         if named_pattern is not None:
             return named_pattern
 
+        open_related = self.try_parse_open_related_toplevel()
+        if open_related is not None:
+            return open_related
+
         header = self.try_parse_function_header()
         if header is not None:
             name, params, rest_param, name_tok = header
@@ -417,6 +460,195 @@ class Parser:
         self.skip_separators()
         body = self.parse_function_body_after_intro(1)
         return NamedPatternDef(name, param, body, span=self.merge_spans(self.span_for_tokens(pattern_tok, name_tok), body.span))
+
+    # ------------------------------------------------------------------
+    # R20 open functions and extensible pattern dispatch
+    # ------------------------------------------------------------------
+
+    def try_parse_open_related_toplevel(self) -> Node | None:
+        if self.at("IDENT") and self.peek().text == "open":
+            save = self.i
+            open_tok = self.eat("IDENT")
+            self.skip_newlines()
+            if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
+                self.i = save
+                return None
+            return self._parse_open_pattern_clause(open_tok=open_tok)
+
+        if self.at("IDENT") and self.peek().text == "extend":
+            save = self.i
+            extend_tok = self.eat("IDENT")
+            self.skip_newlines()
+            parsed = self._try_parse_extend_clause(extend_tok)
+            if parsed is not None:
+                return parsed
+            self.i = save
+            return None
+
+        if self.at("IDENT") and self.peek().text == "use":
+            save = self.i
+            use_tok = self.eat("IDENT")
+            self.skip_newlines()
+            parsed = self._try_parse_use_stmt(use_tok)
+            if parsed is not None:
+                return parsed
+            self.i = save
+            return None
+
+        if self.at("IDENT") and self.peek(1).kind == "LPAREN" and self.peek().text in self._open_names:
+            if not self._header_looks_like_open_clause():
+                return None
+            return self._parse_open_pattern_clause(open_tok=None)
+
+        return None
+
+    def _header_looks_like_open_clause(self) -> bool:
+        """Speculatively confirm `name(<pattern-list>)` is followed by
+        `? guard =`, `=`, or `{` before committing to clause parsing — a
+        bare call expression like `gcd(48, 18)` used as an ordinary
+        top-level statement must remain an ordinary call, not a rejected
+        clause attempt."""
+        save = self.i
+        try:
+            self.i += 1  # the name identifier
+            self.i += 1  # the opening LPAREN
+            depth = 1
+            while depth > 0:
+                if self.at("EOF"):
+                    return False
+                kind = self.peek().kind
+                if kind == "LPAREN":
+                    depth += 1
+                elif kind == "RPAREN":
+                    depth -= 1
+                self.i += 1
+            self.skip_newlines()
+            return self.at("QMARK", "ASSIGN", "LBRACE")
+        finally:
+            self.i = save
+
+    def _open_header_is_trivial(self, pattern: TuplePattern) -> bool:
+        """True when every item is a plain identifier bind (a trailing rest
+        pattern allowed) — i.e. the header adds no dispatch constraint of its
+        own, exactly like an ordinary FuncDef parameter list."""
+        items = pattern.items
+        for index, item in enumerate(items):
+            if isinstance(item, RestPattern):
+                if index != len(items) - 1:
+                    return False
+                continue
+            if not isinstance(item, Var):
+                return False
+        return True
+
+    def _parse_open_clause_list(self, header_tok: Token) -> list[CaseClause]:
+        """Shared header parsing for `open`/repeated/`extend` clauses: an
+        already-consumed name token is followed by `(<pattern-list>)`, an
+        optional `? guard`, then `= body` or `{ block }`. Reuses the
+        existing lambda-parameter pattern parser verbatim (R20 adds no new
+        pattern grammar). A grouped case-with-`|` body over a trivial
+        (plain-identifier) header is flattened here into one IrCaseClause per
+        arm so grouped and repeated local clause syntax normalize to an
+        identical ordered clause list (contract §3.1, design doc §2.1)."""
+        self.eat("LPAREN")
+        self.skip_newlines()
+        pattern, _params, rest_param = self.parse_lambda_parameter_pattern()
+        self.eat("RPAREN")
+        self.skip_newlines()
+        guard: Node | None = None
+        if self.at("QMARK"):
+            self.eat("QMARK")
+            self.skip_newlines()
+            guard = self.parse_expr()
+            self.skip_newlines()
+        fixed_arity = len(pattern.items) - (1 if rest_param is not None else 0)
+        if self.at("LBRACE"):
+            body = self.parse_block(allow_final_case=True)
+        else:
+            self.eat("ASSIGN")
+            self.skip_separators()
+            body = self.parse_function_body_after_intro(fixed_arity)
+
+        case_expr: CaseExpr | None = None
+        if isinstance(body, CaseExpr):
+            case_expr = body
+        elif isinstance(body, Block) and len(body.exprs) == 1 and isinstance(body.exprs[0], CaseExpr):
+            case_expr = body.exprs[0]
+
+        if case_expr is not None:
+            if guard is not None:
+                raise SyntaxError(
+                    f"open clause with a grouped case body cannot also have a header guard at {header_tok.pos}"
+                )
+            if not self._open_header_is_trivial(pattern):
+                raise SyntaxError(
+                    "open clause with a grouped case body requires plain identifier parameters "
+                    f"(dispatch belongs in the case arms) at {header_tok.pos}"
+                )
+            return [CaseClause(arm.pattern, arm.guard, arm.result, span=arm.span) for arm in case_expr.clauses]
+
+        clause = CaseClause(pattern, guard, body, span=self.merge_spans(self.span_for_tokens(header_tok, header_tok), body.span))
+        return [clause]
+
+    def _parse_open_pattern_clause(self, *, open_tok: Optional[Token]) -> OpenFuncDef:
+        name_tok = self.eat("IDENT")
+        name = name_tok.text
+        if open_tok is not None:
+            if name in self._open_names:
+                raise SyntaxError(
+                    f"open-function-redeclaration: {name!r} is already declared open in this module at {name_tok.pos}"
+                )
+            self._open_names.add(name)
+        clauses = self._parse_open_clause_list(name_tok)
+        start_tok = open_tok if open_tok is not None else name_tok
+        span = self.merge_spans(self.span_for_tokens(start_tok, start_tok), clauses[-1].span)
+        return OpenFuncDef(name, clauses, None, span=span)
+
+    def _try_parse_extend_clause(self, extend_tok: Token) -> OpenExtendDef | None:
+        if not (self.at("IDENT") and "." in self.peek().text and self.peek(1).kind == "LPAREN"):
+            return None
+        qualified_tok = self.eat("IDENT")
+        parts = qualified_tok.text.split(".")
+        if len(parts) != 2 or not all(parts):
+            raise SyntaxError(f"extend target must be spelled alias.name at {qualified_tok.pos}")
+        alias, target_name = parts
+        clauses = self._parse_open_clause_list(qualified_tok)
+        span = self.merge_spans(self.span_for_tokens(extend_tok, extend_tok), clauses[-1].span)
+        return OpenExtendDef(alias, target_name, clauses, span=span)
+
+    def _try_parse_use_stmt(self, use_tok: Token) -> OpenUseDef | None:
+        if not self.at("IDENT"):
+            return None
+        name_tok = self.eat("IDENT")
+        self.skip_newlines()
+        if not (self.at("IDENT") and self.peek().text == "from"):
+            return None
+        self.eat("IDENT")
+        self.skip_newlines()
+        if not self.at("IDENT"):
+            bad = self.peek()
+            raise SyntaxError(f"use ... from expected a module alias identifier, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+        base_alias_tok = self.eat("IDENT")
+        self.skip_newlines()
+        if not (self.at("IDENT") and self.peek().text == "with"):
+            bad = self.peek()
+            raise SyntaxError(f"use ... from {base_alias_tok.text} expected 'with' at {bad.pos}")
+        self.eat("IDENT")
+        self.skip_newlines()
+        contribution_aliases: list[str] = []
+        last_tok = base_alias_tok
+        while True:
+            if not self.at("IDENT"):
+                bad = self.peek()
+                raise SyntaxError(f"use ... with expected a contribution module alias, got {bad.text!r} ({bad.kind}) at {bad.pos}")
+            last_tok = self.eat("IDENT")
+            contribution_aliases.append(last_tok.text)
+            self.skip_newlines()
+            if not self.maybe("COMMA"):
+                break
+            self.skip_newlines()
+        span = self.merge_spans(self.span_for_tokens(use_tok, use_tok), self.span_for_tokens(last_tok, last_tok))
+        return OpenUseDef(name_tok.text, base_alias_tok.text, name_tok.text, contribution_aliases, span=span)
 
     def parse_prefix_annotations(self) -> list[Annotation]:
         annotations: list[Annotation] = []

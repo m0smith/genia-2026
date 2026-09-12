@@ -1,0 +1,49 @@
+name: r20-open-grouped-equivalence
+category: ir
+description: R20 a single open clause whose body is a grouped case-with-pipe normalizes to the identical two-IrCaseClause IrOpenFuncDef.clauses shape as the repeated-statement spelling in r20-open-repeated-clauses.yaml
+input:
+  source: |
+    open gcd(a, b) = (a, 0) -> a | (a, b) -> gcd(b, a % b)
+expected:
+  ir:
+    - node: IrOpenFuncDef
+      name: gcd
+      clauses:
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatBind
+                name: a
+              - node: IrPatLiteral
+                value: 0
+          result:
+            node: IrVar
+            name: a
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatBind
+                name: a
+              - node: IrPatBind
+                name: b
+          result:
+            node: IrCall
+            fn:
+              node: IrVar
+              name: gcd
+            args:
+              - node: IrVar
+                name: b
+              - node: IrBinary
+                left:
+                  node: IrVar
+                  name: a
+                op: PERCENT
+                right:
+                  node: IrVar
+                  name: b
+
+requires:
+  - open_functions

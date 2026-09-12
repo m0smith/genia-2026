@@ -24,6 +24,9 @@ from genia.ir import (
     IrLiteral,
     IrMap,
     IrNode,
+    IrOpenContribution,
+    IrOpenFuncDef,
+    IrOpenUse,
     IrOptionNone,
     IrOptionSome,
     IrPipeline,
@@ -245,6 +248,32 @@ def _normalize_ir_node(node: IrNode) -> dict[str, Any]:
         if node.annotations:
             normalized["annotations"] = [_normalize_ir_node(a) for a in node.annotations]
         return normalized
+    if isinstance(node, IrOpenFuncDef):
+        normalized = {
+            "node": "IrOpenFuncDef",
+            "name": node.name,
+            "clauses": [_normalize_ir_node(clause) for clause in node.clauses],
+        }
+        if node.docstring is not None:
+            normalized["docstring"] = node.docstring
+        if node.annotations:
+            normalized["annotations"] = [_normalize_ir_node(a) for a in node.annotations]
+        return normalized
+    if isinstance(node, IrOpenContribution):
+        return {
+            "node": "IrOpenContribution",
+            "target_module_alias": node.target_module_alias,
+            "target_name": node.target_name,
+            "clauses": [_normalize_ir_node(clause) for clause in node.clauses],
+        }
+    if isinstance(node, IrOpenUse):
+        return {
+            "node": "IrOpenUse",
+            "local_name": node.local_name,
+            "target_module_alias": node.target_module_alias,
+            "target_name": node.target_name,
+            "contribution_module_aliases": list(node.contribution_module_aliases),
+        }
 
     raise TypeError(
         "Portable Core IR normalization failed: unsupported node "

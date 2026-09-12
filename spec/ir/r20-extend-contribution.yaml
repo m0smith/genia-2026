@@ -1,0 +1,33 @@
+name: r20-extend-contribution
+category: ir
+description: R20 extend lowers to IrOpenContribution naming its exact target module alias and interface name, never mutating anything about the target
+input:
+  source: |
+    extend base.get(db, key) = db_get(db, key)
+expected:
+  ir:
+    - node: IrOpenContribution
+      target_module_alias: base
+      target_name: get
+      clauses:
+        - node: IrCaseClause
+          pattern:
+            node: IrPatTuple
+            items:
+              - node: IrPatBind
+                name: db
+              - node: IrPatBind
+                name: key
+          result:
+            node: IrCall
+            fn:
+              node: IrVar
+              name: db_get
+            args:
+              - node: IrVar
+                name: db
+              - node: IrVar
+                name: key
+
+requires:
+  - open_functions

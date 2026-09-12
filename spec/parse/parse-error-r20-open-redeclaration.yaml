@@ -1,0 +1,15 @@
+name: parse-error-r20-open-redeclaration
+category: parse
+description: R20 open-function-redeclaration rejects declaring the same interface open twice in one module
+input:
+  source: |
+    open gcd(a, 0) = a
+    open gcd(a, b) = a
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "open-function-redeclaration"
+
+requires:
+  - open_functions

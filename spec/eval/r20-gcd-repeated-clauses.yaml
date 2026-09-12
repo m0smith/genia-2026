@@ -1,0 +1,16 @@
+name: r20-gcd-repeated-clauses
+category: eval
+description: R20 required acceptance case — repeated local pattern clauses accumulate into one dispatched open interface
+input:
+  source: |
+    open gcd(a, 0) = a
+    gcd(a, b) = gcd(b, a % b)
+
+    gcd(48, 18)
+expected:
+  stdout: "6\n"
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions

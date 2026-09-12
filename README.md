@@ -830,6 +830,38 @@ import math as m
 - module exports are accessed with narrow dot access (`mod.name`)
 - modules are immutable runtime namespace values (distinct from maps)
 
+### Open functions (Experimental, R20)
+
+```genia
+open gcd(a, 0) = a
+gcd(a, b) = gcd(b, a % b)
+
+gcd(48, 18)
+```
+
+- `open name(<pattern>, ...) = body` declares a new open interface; repeated
+  bare `name(<pattern>, ...) = body` clauses in the same module append to it
+- a single clause whose body is a grouped `(pat) -> ... | (pat) -> ...` case
+  dispatches identically to the repeated-statement spelling above
+- another module can contribute clauses explicitly:
+  ```genia
+  # store_impl.genia
+  import base
+  extend base.get("db", db, key) = db_get(db, key)
+
+  # consumer.genia
+  import base
+  import store_impl
+
+  use get from base with store_impl
+  ```
+- plain `import store_impl` never changes what `base.get` resolves to —
+  only the explicit `use ... from ... with ...` in a consuming module links
+  selected contributions into one immutable view, local to that module
+- see `docs/design/r20-open-functions-contract.md` and `GENIA_STATE.md`
+  section 4.7 for the full semantics, diagnostics, and known limitations of
+  this Experimental release
+
 ### Python host interop (Phase 1, allowlisted)
 
 Genia currently reuses the existing module system for a minimal Python-host-only host bridge.

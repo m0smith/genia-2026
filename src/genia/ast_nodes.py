@@ -263,6 +263,39 @@ class ImportStmt(Node):
 
 
 @dataclass
+class OpenFuncDef(Node):
+    """R20 open-interface declaration/repeated clause: ordered pattern clauses
+    that accumulate into one interface (issue: R20 open functions)."""
+
+    name: str
+    clauses: list[CaseClause]
+    docstring: str | None
+    span: SourceSpan | None = None
+
+
+@dataclass
+class OpenExtendDef(Node):
+    """R20 explicit cross-module contribution clause targeting one open
+    interface exported by an already-imported module alias."""
+
+    target_module_alias: str
+    target_name: str
+    clauses: list[CaseClause]
+    span: SourceSpan | None = None
+
+
+@dataclass
+class OpenUseDef(Node):
+    """R20 explicit contribution selection/linking statement."""
+
+    local_name: str
+    target_module_alias: str
+    target_name: str
+    contribution_module_aliases: list[str]
+    span: SourceSpan | None = None
+
+
+@dataclass
 class ShellStage(Node):
     command: str
     span: SourceSpan | None = None

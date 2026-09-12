@@ -1,0 +1,17 @@
+name: parse-r20-extend-contribution-clause
+category: parse
+description: R20 extend declares one contribution clause targeting an imported open interface
+input:
+  source: |
+    extend base.get(Database(db), key) = db_get(db, key)
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: OpenExtendDef
+      target_module_alias: base
+      target_name: get
+      clause_count: 1
+
+requires:
+  - open_functions

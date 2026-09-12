@@ -1,0 +1,13 @@
+name: parse-error-r20-use-missing-with
+category: parse
+description: R20 use ... from ... always requires an explicit with contribution list; there is no implicit or wildcard selection
+input:
+  source: "use get from base"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "expected 'with'"
+
+requires:
+  - open_functions

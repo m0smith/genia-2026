@@ -402,6 +402,50 @@ Required constraints:
 - `none(reason, ctx)` lowers as `IrOptionNone`; the reason argument is wrapped in `IrQuote` (not evaluated) — bare `none` produces `reason=null`.
 - `IrAssign` appears directly in `IrBlock.exprs`; it is not wrapped in `IrExprStmt`.
 
+## 8.5) R20 open functions and extensible pattern dispatch invariants (Experimental)
+
+- `open`, `extend`, and `use` are soft keywords recognized only as the first
+  token of a fresh top-level statement (exactly like `import`/`pattern`
+  already are); they remain ordinary identifiers everywhere else.
+- Openness is declared, never inferred: a pattern-headed clause (any
+  non-identifier pattern item, or a trailing `..rest`) for a name not
+  already declared `open` earlier in the same module still hits the
+  existing plain-parameter-list `SyntaxError` — R20 adds no new error path
+  for that case.
+- `open`/repeated clauses for one interface, and `extend` clauses for one
+  contribution target, must form one contiguous run of top-level statements
+  in a module; interleaving unrelated statements does not merge across the
+  gap.
+- A grouped case-with-`|` body is flattened into per-arm clauses only when
+  the clause header is a plain-identifier (optionally varargs) pattern and
+  the body is exactly one `CaseExpr` or a single-expression `{ }` block
+  containing one; this is the only place grouped and repeated local syntax
+  must normalize identically (contract §3.1).
+- Nested/local-scope `open` declarations are rejected; R20 has no local
+  open-interface scoping.
+- `extend <alias>.<name>(...)` requires `<alias>` to already be a bound
+  import alias in the *contributing* module's own scope and `<alias>.<name>`
+  to spell exactly two dot-separated segments; a doubly-qualified or
+  unqualified target is a parse-time rejection, not a guess.
+- `use <name> from <alias> with <alias1>, <alias2>, ...` always requires an
+  explicit, non-empty `with` list — there is no implicit or wildcard
+  contribution selection, and the linked view always binds under the
+  interface's own exported name (no renaming on `use`).
+- Interface/contribution identity is the pair (canonical cached module
+  identity, exported name) recovered from `Env.module_identity()`/module
+  cache keys — never an import alias, filesystem path, or Python object
+  address. Two aliases of one cached module are one identity for both
+  interface lookup and duplicate-selection detection.
+- Dispatch (contract §5) and duplicate-clause detection (contract §6) are
+  implemented once in `src/genia/callable.py` (`_dispatch_open`,
+  `OpenClauseRecord.dispatch_key`) and reused identically for a base-only
+  open function and a linked cross-module view — there is no second
+  dispatch algorithm for the cross-module case.
+- Declaration, import, and `use` are inert with respect to R20-added
+  effects: no clause body executes and no lifecycle/resource/network
+  activation occurs merely because an `open`/`extend`/`use` statement is
+  evaluated.
+
 ## 9) Operator model
 
 Implemented operators are limited to:

@@ -1,0 +1,18 @@
+name: error-r20-varargs-ambiguity
+category: error
+description: R20 deterministic varargs-shape ambiguity — more than one distinct eligible varargs minimum arity fails rather than silently picking the largest
+input:
+  source: |
+    open f(x, ..rest) = 1
+    f(x, y, ..rest) = 2
+    f(1, 2, 3)
+expected:
+  stdout: ""
+  stderr: "Error: open-function-varargs-ambiguity: f/3 matches more than one varargs shape [('varargs', 1), ('varargs', 2)] contributed by ['base']\n"
+  exit_code: 1
+notes: |
+  error_phase: eval
+  error_category: OpenFunctionVarargsAmbiguityError
+
+requires:
+  - open_functions

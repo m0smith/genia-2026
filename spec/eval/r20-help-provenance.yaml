@@ -1,0 +1,23 @@
+name: r20-help-provenance
+category: eval
+description: R20 help() on an open interface lists interface name, declaration span, and every base clause's provenance in lexical order
+input:
+  source: |
+    open gcd(a, 0) = a
+    gcd(a, b) = gcd(b, a % b)
+    help("gcd")
+expected:
+  stdout: |
+    gcd (R20 open function)
+    Defined at <command>:1
+
+    No documentation available.
+
+    base (<entry>):
+      1. <command>:1
+      2. <command>:2
+  stderr: ""
+  exit_code: 0
+
+requires:
+  - open_functions
