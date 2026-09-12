@@ -1,18 +1,21 @@
 name: pipeline-explicit
 category: ir
 input:
-  source: |
-    3 |> inc |> double
+  source: '3 |> inc |> double
+
+    '
 expected:
   ir:
-    - node: IrExprStmt
-      expr:
-        node: IrPipeline
-        source:
-          node: IrLiteral
-          value: 3
-        stages:
-          - node: IrVar
-            name: inc
-          - node: IrVar
-            name: double
+  - node: IrExprStmt
+    expr:
+      node: IrPipeline
+      source:
+        node: IrLiteral
+        value:
+          kind: integer
+          digits: '3'
+      stages:
+      - node: IrVar
+        name: inc
+      - node: IrVar
+        name: double

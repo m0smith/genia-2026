@@ -2,17 +2,22 @@ name: slash-operator
 category: ir
 description: Slash remains an ordinary binary operator outside named access compatibility
 input:
-  source: |
-    10 / 2
+  source: '10 / 2
+
+    '
 expected:
   ir:
-    - node: IrExprStmt
-      expr:
-        node: IrBinary
-        left:
-          node: IrLiteral
-          value: 10
-        op: SLASH
-        right:
-          node: IrLiteral
-          value: 2
+  - node: IrExprStmt
+    expr:
+      node: IrBinary
+      left:
+        node: IrLiteral
+        value:
+          kind: integer
+          digits: '10'
+      op: SLASH
+      right:
+        node: IrLiteral
+        value:
+          kind: integer
+          digits: '2'
