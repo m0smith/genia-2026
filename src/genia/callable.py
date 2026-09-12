@@ -26,7 +26,6 @@ if __package__ in (None, ""):
     from genia.pattern_match import (
         IrPattern,
         PatternOutcomeError,
-        match_lambda_pattern,
         pattern_explicitly_handles_none,
         pattern_explicitly_handles_some,
     )
@@ -52,7 +51,6 @@ else:
     from .pattern_match import (
         IrPattern,
         PatternOutcomeError,
-        match_lambda_pattern,
         pattern_explicitly_handles_none,
         pattern_explicitly_handles_some,
     )
