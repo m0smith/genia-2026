@@ -1,0 +1,10 @@
+name: exact-numeric-parse-invalid-exponent
+category: parse
+description: An exponent marker must contain exponent digits
+input:
+  source: "1e+"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message_contains: "Invalid numeric exponent"

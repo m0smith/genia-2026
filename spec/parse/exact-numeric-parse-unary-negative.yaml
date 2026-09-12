@@ -1,0 +1,17 @@
+name: exact-numeric-parse-unary-negative
+category: parse
+description: Source minus remains unary syntax around a positive exact Decimal
+input:
+  source: "-1.25"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Unary
+      op: MINUS
+      expr:
+        kind: Literal
+        value:
+          kind: decimal
+          coefficient: "125"
+          exponent: "-2"

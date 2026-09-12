@@ -1,0 +1,10 @@
+name: exact-numeric-parse-invalid-leading-trailing-dot
+category: parse
+description: Leading-dot numeric shorthand remains invalid
+input:
+  source: ".5"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message_contains: "Unexpected character '.' at 0"

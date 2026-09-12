@@ -1,0 +1,13 @@
+name: exact-numeric-ir-decimal-equivalent-spellings
+category: ir
+description: Equivalent Decimal spellings lower identically
+input:
+  source: |
+    1.0
+    1.00
+    100e-2
+expected:
+  ir:
+    - {node: IrExprStmt, expr: {node: IrLiteral, value: {kind: decimal, coefficient: "1", exponent: "0"}}}
+    - {node: IrExprStmt, expr: {node: IrLiteral, value: {kind: decimal, coefficient: "1", exponent: "0"}}}
+    - {node: IrExprStmt, expr: {node: IrLiteral, value: {kind: decimal, coefficient: "1", exponent: "0"}}}

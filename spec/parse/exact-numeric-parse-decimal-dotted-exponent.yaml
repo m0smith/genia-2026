@@ -1,0 +1,14 @@
+name: exact-numeric-parse-decimal-dotted-exponent
+category: parse
+description: Dotted exponent source normalizes exactly
+input:
+  source: "12.3400e-2"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value:
+        kind: decimal
+        coefficient: "1234"
+        exponent: "-4"

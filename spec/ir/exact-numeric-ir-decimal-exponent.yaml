@@ -1,0 +1,11 @@
+name: exact-numeric-ir-decimal-exponent
+category: ir
+description: Exponent-only Decimal source lowers to tagged Decimal payload
+input:
+  source: "1e3"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value: {kind: decimal, coefficient: "1", exponent: "3"}

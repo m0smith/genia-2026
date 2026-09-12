@@ -1,0 +1,11 @@
+name: exact-numeric-ir-huge-integer-tagged
+category: ir
+description: Huge Integer literals use host-neutral tagged payloads
+input:
+  source: "123456789012345678901234567890"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value: {kind: integer, digits: "123456789012345678901234567890"}

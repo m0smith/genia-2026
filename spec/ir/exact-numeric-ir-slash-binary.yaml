@@ -1,0 +1,13 @@
+name: exact-numeric-ir-slash-binary
+category: ir
+description: Exact division remains ordinary IrBinary SLASH
+input:
+  source: "1 / 3"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrBinary
+        left: {node: IrLiteral, value: {kind: integer, digits: "1"}}
+        op: SLASH
+        right: {node: IrLiteral, value: {kind: integer, digits: "3"}}

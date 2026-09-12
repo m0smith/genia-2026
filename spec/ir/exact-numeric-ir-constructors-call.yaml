@@ -1,0 +1,32 @@
+name: exact-numeric-ir-constructors-call
+category: ir
+description: rational float64 and exact remain ordinary calls
+input:
+  source: |
+    rational(1, 3)
+    float64(1.0)
+    exact(float64(1.0))
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn: {node: IrVar, name: rational}
+        args:
+          - {node: IrLiteral, value: {kind: integer, digits: "1"}}
+          - {node: IrLiteral, value: {kind: integer, digits: "3"}}
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn: {node: IrVar, name: float64}
+        args:
+          - {node: IrLiteral, value: {kind: decimal, coefficient: "1", exponent: "0"}}
+    - node: IrExprStmt
+      expr:
+        node: IrCall
+        fn: {node: IrVar, name: exact}
+        args:
+          - node: IrCall
+            fn: {node: IrVar, name: float64}
+            args:
+              - {node: IrLiteral, value: {kind: decimal, coefficient: "1", exponent: "0"}}
