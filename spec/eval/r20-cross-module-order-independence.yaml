@@ -1,0 +1,43 @@
+name: r20-cross-module-order-independence
+category: eval
+description: R20 portable cross-module evidence — import order and contribution selection order cannot change dispatch
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: db_ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+      - path: cache_ext.genia
+        source: |
+          import base
+          extend base.get("cache", c, key) = "cache:" + key
+      - path: forward.genia
+        source: |
+          import base
+          import db_ext
+          import cache_ext
+          use get from base with db_ext, cache_ext
+          result = [get("db", 1, "k"), get("cache", 1, "k")]
+      - path: backward.genia
+        source: |
+          import cache_ext
+          import db_ext
+          import base
+          use get from base with cache_ext, db_ext
+          result = [get("db", 1, "k"), get("cache", 1, "k")]
+      - path: main.genia
+        source: |
+          import forward
+          import backward
+          forward.result == backward.result
+expected:
+  stdout: "true\n"
+  stderr: ''
+  exit_code: 0
+requires:
+  - open_functions

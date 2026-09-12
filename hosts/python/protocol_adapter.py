@@ -52,11 +52,17 @@ def _spec_for_operation(operation: str, input_payload: dict[str, Any]) -> Simple
     if operation == "lower":
         return SimpleNamespace(category="ir", source=input_payload["source"])
     if operation == "eval":
+        modules = input_payload.get("modules")
+        module_files = () if modules is None else tuple(
+            (item["path"], item["source"]) for item in modules["files"]
+        )
         return SimpleNamespace(
             category="eval",
             source=input_payload["source"],
             stdin=input_payload.get("stdin") or "",
             fixtures=(),
+            module_entry=None if modules is None else modules["entry"],
+            module_files=module_files,
         )
     if operation == "cli":
         argv = list(input_payload["argv"])

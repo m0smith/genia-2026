@@ -42,7 +42,10 @@ def run_case(spec: LoadedSpec) -> ActualResult:
         )
 
     if spec.category in ("eval", "error"):
-        result = run_eval_subprocess(spec.source, spec.stdin or None, spec.fixtures)
+        result = run_eval_subprocess(
+            spec.source, spec.stdin or None, spec.fixtures,
+            getattr(spec, "module_entry", None), getattr(spec, "module_files", ()),
+        )
         return ActualResult(
             stdout=normalize_text(result["stdout"]),
             stderr=normalize_text(result["stderr"]),

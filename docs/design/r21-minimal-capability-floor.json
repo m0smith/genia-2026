@@ -1,0 +1,21 @@
+{
+  "status": "proposal_blocked",
+  "contract_revision": "3fe03b8",
+  "blocking_gates": ["exact_numeric_contract", "genia_cpp_repository_verification"],
+  "first_slice": {
+    "cases": ["parse-literal-number", "unary-operators", "arithmetic-basic"],
+    "count": 3,
+    "capability_advertisement_after_pass": ["parser", "ast_lowering", "core_ir_eval"]
+  },
+  "open_functions": {
+    "capability": "open_functions",
+    "applicable_cases": 29,
+    "cross_module_cases": 8,
+    "advertise_only_after_all_pass": true
+  },
+  "explicitly_unsupported": [
+    "cli_pipe_mode", "repl", "flow_phase_1", "refs", "process_primitives",
+    "http_server", "http_outbound_transport", "resource_io",
+    "configuration_environment_snapshot", "configuration_dotenv_snapshot"
+  ]
+}

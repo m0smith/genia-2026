@@ -75,6 +75,14 @@ def build_host_request(spec: LoadedSpec) -> dict[str, Any] | None:
         input_payload: dict[str, Any] = {"source": spec.source}
     elif operation == "eval":
         input_payload = {"source": spec.source, "stdin": spec.stdin or None, "argv": None}
+        if spec.module_entry is not None:
+            input_payload["modules"] = {
+                "entry": spec.module_entry,
+                "files": [
+                    {"path": path, "source": source}
+                    for path, source in spec.module_files
+                ],
+            }
     else:  # cli
         input_payload = {"argv": _cli_argv(spec), "stdin": spec.stdin or None}
 

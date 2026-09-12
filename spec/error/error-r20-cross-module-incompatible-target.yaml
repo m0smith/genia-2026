@@ -1,0 +1,32 @@
+name: error-r20-cross-module-incompatible-target
+category: error
+description: R20 portable cross-module diagnostic — selected module must contribute to the requested interface
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: db_ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+      - path: cache_ext.genia
+        source: |
+          import base
+          extend base.get("cache", c, key) = "cache:" + key
+      - path: unrelated.genia
+        source: |
+          value = 1
+      - path: main.genia
+        source: |
+          import base
+          import unrelated
+          use get from base with unrelated
+expected:
+  stdout: ''
+  stderr: "Error: open-function-incompatible-contribution: expected a contribution targeting ('base', 'get'), got 'unrelated'\n"
+  exit_code: 1
+requires:
+  - open_functions

@@ -32,11 +32,11 @@ ALLOWED_TOP_LEVEL_KEYS = {
 }
 
 ALLOWED_INPUT_KEYS_BY_CATEGORY = {
-    "eval": {"source", "stdin", "fixtures"},
+    "eval": {"source", "stdin", "fixtures", "modules"},
     "ir": {"source"},
     "cli": {"source", "file", "command", "test", "stdin", "argv", "debug_stdio", "fixtures"},
     "flow": {"source", "stdin", "fixtures"},
-    "error": {"source", "stdin", "fixtures"},
+    "error": {"source", "stdin", "fixtures", "modules"},
     "parse": {"source"},
 }
 
@@ -73,6 +73,8 @@ class LoadedSpec:
     expected_parse: Any | None = None
     fixtures: tuple[str, ...] = ()
     requires: tuple[str, ...] = ()
+    module_entry: str | None = None
+    module_files: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -134,10 +136,16 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
     if unknown_input:
         raise ValueError(f"unknown input fields: {sorted(unknown_input)}")
 
-    if "source" not in input_data:
-        raise ValueError("missing required field: input.source")
-    if not isinstance(input_data["source"], str):
+    has_source = "source" in input_data
+    has_modules = "modules" in input_data
+    if has_source == has_modules:
+        raise ValueError("input.source and input.modules are mutually exclusive")
+    if has_source and not isinstance(input_data["source"], str):
         raise ValueError("input.source must be a string")
+    if has_modules:
+        if category not in ("eval", "error"):
+            raise ValueError("input.modules is supported only for eval and error cases")
+        _normalize_modules(input_data["modules"])
 
     if category in ("eval", "error", "flow", "cli"):
         if "stdin" in input_data and not isinstance(input_data["stdin"], str):
@@ -228,6 +236,42 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
     raise ValueError("cli spec must provide input.file or input.command")
 
 
+def _portable_module_path(value: Any) -> str:
+    if not isinstance(value, str) or not value or "\\" in value or "\x00" in value:
+        raise ValueError("module path must be a portable relative .genia path")
+    parts = value.split("/")
+    if value.startswith("/") or any(part in ("", ".", "..") for part in parts):
+        raise ValueError("module path must be a portable relative .genia path")
+    if ":" in parts[0] or not value.endswith(".genia"):
+        raise ValueError("module path must be a portable relative .genia path")
+    return value
+
+
+def _normalize_modules(value: Any) -> tuple[str, tuple[tuple[str, str], ...]]:
+    modules = _validate_mapping(value, field_name="input.modules")
+    if set(modules) != {"entry", "files"}:
+        raise ValueError("input.modules must contain exactly entry and files")
+    entry = _portable_module_path(modules["entry"])
+    files = modules["files"]
+    if not isinstance(files, list):
+        raise ValueError("input.modules.files must be a list")
+    normalized: list[tuple[str, str]] = []
+    for item in files:
+        item = _validate_mapping(item, field_name="input.modules.files item")
+        if set(item) != {"path", "source"}:
+            raise ValueError("each module file must contain exactly path and source")
+        path = _portable_module_path(item["path"])
+        if not isinstance(item["source"], str):
+            raise ValueError("module file source must be a string")
+        normalized.append((path, item["source"]))
+    paths = [path for path, _ in normalized]
+    if len(paths) != len(set(paths)):
+        raise ValueError("module file paths must be unique")
+    if entry not in paths:
+        raise ValueError("input.modules.entry must name exactly one module file")
+    return entry, tuple(sorted(normalized))
+
+
 def _validate_expected(category: str, expected_data: dict[str, Any]) -> None:
     allowed_expected_keys = ALLOWED_EXPECTED_KEYS_BY_CATEGORY[category]
     unknown_expected = set(expected_data) - allowed_expected_keys
@@ -291,10 +335,14 @@ def load_spec(path: Path) -> LoadedSpec:
     _validate_input(category, input_data)
     _validate_expected(category, expected_data)
 
+    module_entry, module_files = (None, ())
+    if "modules" in input_data:
+        module_entry, module_files = _normalize_modules(input_data["modules"])
+    source = input_data["source"] if "source" in input_data else dict(module_files)[module_entry]
     return LoadedSpec(
         name=data["name"],
         category=category,
-        source=input_data["source"],
+        source=source,
         stdin=input_data.get("stdin", ""),
         expected_stdout=expected_data.get("stdout"),
         expected_stderr=expected_data.get("stderr"),
@@ -311,6 +359,8 @@ def load_spec(path: Path) -> LoadedSpec:
         expected_parse=expected_data.get("parse"),
         fixtures=tuple(input_data.get("fixtures", [])),
         requires=tuple(data.get("requires", [])),
+        module_entry=module_entry,
+        module_files=module_files,
     )
 
 

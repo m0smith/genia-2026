@@ -1,0 +1,27 @@
+name: r20-cross-module-lexical-visibility
+category: eval
+description: R20 portable cross-module evidence — selected clauses retain their defining module lexical environment
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open label("base", x) = x
+      - path: ext.genia
+        source: |
+          import base
+          prefix = "private:"
+          extend base.label("ext", x) = prefix + x
+      - path: main.genia
+        source: |
+          import base
+          import ext
+          use label from base with ext
+          label("ext", "ok")
+expected:
+  stdout: "\"private:ok\"\n"
+  stderr: ''
+  exit_code: 0
+requires:
+  - open_functions

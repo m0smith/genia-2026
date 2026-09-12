@@ -1,0 +1,32 @@
+name: r20-cross-module-disjoint-explicit-selection
+category: eval
+description: R20 portable cross-module evidence — imports do not select contributions and explicit use selects two disjoint units
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: db_ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+      - path: cache_ext.genia
+        source: |
+          import base
+          extend base.get("cache", c, key) = "cache:" + key
+      - path: main.genia
+        source: |
+          import base
+          import db_ext
+          import cache_ext
+          before = base.get("mem", 0, "k1")
+          use get from base with db_ext, cache_ext
+          [before, get("db", 1, "k2"), get("cache", 1, "k3")]
+expected:
+  stdout: "[\"mem:k1\", \"db:k2\", \"cache:k3\"]\n"
+  stderr: ''
+  exit_code: 0
+requires:
+  - open_functions

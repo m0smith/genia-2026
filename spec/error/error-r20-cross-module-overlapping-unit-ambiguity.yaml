@@ -1,0 +1,35 @@
+name: error-r20-cross-module-overlapping-unit-ambiguity
+category: error
+description: R20 portable cross-module diagnostic — matching clauses from different selected units are ambiguous
+input:
+  modules:
+    entry: main.genia
+    files:
+      - path: base.genia
+        source: |
+          open get("mem", store, key) = "mem:" + key
+      - path: db_ext.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db:" + key
+      - path: cache_ext.genia
+        source: |
+          import base
+          extend base.get("cache", c, key) = "cache:" + key
+      - path: db_ext2.genia
+        source: |
+          import base
+          extend base.get("db", db, key) = "db2:" + key
+      - path: main.genia
+        source: |
+          import base
+          import db_ext
+          import db_ext2
+          use get from base with db_ext, db_ext2
+          get("db", 1, "k")
+expected:
+  stdout: ''
+  stderr: "Error: open-function-clause-ambiguity: get/3 matched clauses in more than one unit ['db_ext', 'db_ext2']\n"
+  exit_code: 1
+requires:
+  - open_functions
