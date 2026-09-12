@@ -241,7 +241,14 @@ def lower_node(node: Node) -> IrNode:
                 annotations=lowered_annotations,
                 span=node.span,
             )
-        raise RuntimeError(f"Annotated target is not bindable during lowering: {target!r}")
+        if isinstance(target, (OpenFuncDef, OpenExtendDef, OpenUseDef)):
+            # R20 (contract §7.2): interface-level metadata belongs to the
+            # single interface declaration; a clause-local annotation is
+            # rejected rather than silently promoted to interface metadata.
+            raise SyntaxError(
+                "Prefix annotations are not supported on open/extend/use declarations in this release"
+            )
+        raise RuntimeError(f"Annotated target is not bindable during lowering: {type(target).__name__}")
     if isinstance(node, ExprStmt):
         return IrExprStmt(lower_node(node.expr), span=node.span)
     if isinstance(node, Number):
