@@ -39,6 +39,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal as _PyDecimal
+from math import floor as _math_floor
 from math import gcd
 from typing import Any
 
@@ -182,6 +183,214 @@ def is_exact_numeric_value(value: Any) -> bool:
     if isinstance(value, bool):
         return False
     return isinstance(value, ExactNumeric)
+
+
+class NumericMisuseError(ValueError):
+    """Deterministic numeric misuse (contract section 17).
+
+    Raised for exact/Float64 division or remainder by zero and for mixed
+    exact/Float64 arithmetic. Never a bare Python ``ZeroDivisionError`` or a
+    host-dependent exception: callers translate this into the portable
+    Genia error surface (see ``evaluator.py``'s ``eval_binary``/unary-minus
+    dispatch), not a raw host traceback.
+    """
+
+
+def _decimal_parts(value: int | "Decimal") -> tuple[int, int]:
+    if isinstance(value, Decimal):
+        return value.coefficient, value.exponent
+    return value, 0
+
+
+def _as_fraction(value: "int | Decimal | Rational") -> tuple[int, int]:
+    """Return ``(numerator, denominator)`` with denominator > 0."""
+    if isinstance(value, Rational):
+        return value.numerator, value.denominator
+    coefficient, exponent = _decimal_parts(value)
+    if exponent >= 0:
+        return coefficient * (10**exponent), 1
+    return coefficient, 10 ** (-exponent)
+
+
+def _reduce_fraction(numerator: int, denominator: int) -> tuple[int, int]:
+    if denominator < 0:
+        numerator, denominator = -numerator, -denominator
+    divisor = gcd(numerator, denominator) or 1
+    return numerator // divisor, denominator // divisor
+
+
+def _terminates_in_base10(denominator: int) -> bool:
+    """True when a reduced positive denominator has only prime factors 2, 5."""
+    remaining = denominator
+    for factor in (2, 5):
+        while remaining % factor == 0:
+            remaining //= factor
+    return remaining == 1
+
+
+def _fraction_to_decimal(numerator: int, denominator: int) -> "Decimal":
+    """Build the exact Decimal for a reduced fraction known to terminate."""
+    remaining = denominator
+    twos = 0
+    while remaining % 2 == 0:
+        remaining //= 2
+        twos += 1
+    fives = 0
+    while remaining % 5 == 0:
+        remaining //= 5
+        fives += 1
+    scale = max(twos, fives)
+    multiplier = (2 ** (scale - twos)) * (5 ** (scale - fives))
+    return Decimal(numerator * multiplier, -scale)
+
+
+def _is_exact_zero(value: "int | Decimal | Rational") -> bool:
+    if isinstance(value, Decimal):
+        return value.coefficient == 0
+    if isinstance(value, Rational):
+        return False  # canonical Rational never has numerator 0 (collapses to int 0)
+    return value == 0
+
+
+def _reject_bool(*values: Any) -> None:
+    for value in values:
+        if isinstance(value, bool):
+            raise NumericMisuseError("boolean operands are not numbers")
+
+
+def _reject_float64_mix(left: Any, right: Any) -> None:
+    left_f64 = isinstance(left, Float64)
+    right_f64 = isinstance(right, Float64)
+    if left_f64 != right_f64:
+        raise NumericMisuseError("mixed exact/Float64 arithmetic is rejected")
+
+
+def _check_exact_operand(value: Any) -> None:
+    if not isinstance(value, (int, Decimal, Rational)) or isinstance(value, bool):
+        raise TypeError(f"not an exact numeric value: {value!r}")
+
+
+def add(left: Any, right: Any) -> Any:
+    """Contract section 7: exact ``+`` with Integer/Decimal/Rational promotion."""
+    _reject_bool(left, right)
+    _reject_float64_mix(left, right)
+    if isinstance(left, Float64):
+        return Float64(left.value + right.value)
+    _check_exact_operand(left)
+    _check_exact_operand(right)
+    if isinstance(left, Rational) or isinstance(right, Rational):
+        na, da = _as_fraction(left)
+        nb, db = _as_fraction(right)
+        return make_rational(na * db + nb * da, da * db)
+    if isinstance(left, Decimal) or isinstance(right, Decimal):
+        ca, ea = _decimal_parts(left)
+        cb, eb = _decimal_parts(right)
+        e = min(ea, eb)
+        return Decimal(ca * 10 ** (ea - e) + cb * 10 ** (eb - e), e)
+    return left + right
+
+
+def subtract(left: Any, right: Any) -> Any:
+    """Contract section 7: exact ``-`` with Integer/Decimal/Rational promotion."""
+    _reject_bool(left, right)
+    _reject_float64_mix(left, right)
+    if isinstance(left, Float64):
+        return Float64(left.value - right.value)
+    _check_exact_operand(left)
+    _check_exact_operand(right)
+    if isinstance(left, Rational) or isinstance(right, Rational):
+        na, da = _as_fraction(left)
+        nb, db = _as_fraction(right)
+        return make_rational(na * db - nb * da, da * db)
+    if isinstance(left, Decimal) or isinstance(right, Decimal):
+        ca, ea = _decimal_parts(left)
+        cb, eb = _decimal_parts(right)
+        e = min(ea, eb)
+        return Decimal(ca * 10 ** (ea - e) - cb * 10 ** (eb - e), e)
+    return left - right
+
+
+def multiply(left: Any, right: Any) -> Any:
+    """Contract section 7: exact ``*`` with Integer/Decimal/Rational promotion."""
+    _reject_bool(left, right)
+    _reject_float64_mix(left, right)
+    if isinstance(left, Float64):
+        return Float64(left.value * right.value)
+    _check_exact_operand(left)
+    _check_exact_operand(right)
+    if isinstance(left, Rational) or isinstance(right, Rational):
+        na, da = _as_fraction(left)
+        nb, db = _as_fraction(right)
+        return make_rational(na * nb, da * db)
+    if isinstance(left, Decimal) or isinstance(right, Decimal):
+        ca, ea = _decimal_parts(left)
+        cb, eb = _decimal_parts(right)
+        return Decimal(ca * cb, ea + eb)
+    return left * right
+
+
+def divide(left: Any, right: Any) -> Any:
+    """Contract section 8.1: exact division with terminating/non-terminating split."""
+    _reject_bool(left, right)
+    _reject_float64_mix(left, right)
+    if isinstance(left, Float64):
+        if right.value == 0.0:
+            raise NumericMisuseError("Float64 division by zero")
+        return Float64(left.value / right.value)
+    _check_exact_operand(left)
+    _check_exact_operand(right)
+    if _is_exact_zero(right):
+        raise NumericMisuseError("exact division by zero")
+    if isinstance(left, Rational) or isinstance(right, Rational):
+        na, da = _as_fraction(left)
+        nb, db = _as_fraction(right)
+        return make_rational(na * db, da * nb)
+    if isinstance(left, Decimal) or isinstance(right, Decimal):
+        na, da = _as_fraction(left)
+        nb, db = _as_fraction(right)
+        numerator, denominator = _reduce_fraction(na * db, da * nb)
+        if _terminates_in_base10(denominator):
+            return _fraction_to_decimal(numerator, denominator)
+        return make_rational(numerator, denominator)
+    # Integer / Integer: Integer when evenly divisible, otherwise Rational
+    # (never Decimal — contract section 8.1's table has no Decimal cell for
+    # this row/column, matching the "1 / 2 -> Rational 1/2" example).
+    if left % right == 0:
+        return left // right
+    return make_rational(left, right)
+
+
+def remainder(left: Any, right: Any) -> Any:
+    """Contract section 8.2: exact floor-remainder, +/-/* promotion rule."""
+    _reject_bool(left, right)
+    _reject_float64_mix(left, right)
+    if isinstance(left, Float64):
+        if right.value == 0.0:
+            raise NumericMisuseError("Float64 remainder by zero")
+        quotient = _math_floor(left.value / right.value)
+        return Float64(left.value - quotient * right.value)
+    _check_exact_operand(left)
+    _check_exact_operand(right)
+    if _is_exact_zero(right):
+        raise NumericMisuseError("exact remainder by zero")
+    na, da = _as_fraction(left)
+    nb, db = _as_fraction(right)
+    quotient = (na * db) // (da * nb)
+    return subtract(left, multiply(quotient, right))
+
+
+def negate(value: Any) -> Any:
+    """Unary ``-`` per contract section 7 (exact family) / section 9 (Float64)."""
+    _reject_bool(value)
+    if isinstance(value, Float64):
+        return Float64(-value.value)
+    if isinstance(value, Decimal):
+        return Decimal(-value.coefficient, value.exponent)
+    if isinstance(value, Rational):
+        return make_rational(-value.numerator, value.denominator)
+    if isinstance(value, int):
+        return -value
+    raise TypeError(f"cannot negate {value!r}")
 
 
 def materialize_exact_numeric(value: Any) -> Any:

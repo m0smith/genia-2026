@@ -1,6 +1,7 @@
 import pytest
 
 from genia import make_global_env, run_source
+from genia.numeric_values import Rational
 from genia.utf8 import format_debug
 
 
@@ -97,8 +98,13 @@ def test_slash_invalid_rhs_forms_do_not_report_named_access_guidance(run):
 
 
 def test_slash_division_behavior_still_works(run):
+    # Integer/Integer division follows the exact numeric contract (issue
+    # #838 step 3, docs/design/exact-numeric-model-contract.md section 8.1):
+    # evenly divisible -> Integer; otherwise an exact reduced Rational, never
+    # a host binary-float true-division result.
     assert run("8 / 2") == 4
-    assert run("8 / inc(2)") == 8 / 3
+    assert isinstance(run("8 / 2"), int)
+    assert run("8 / inc(2)") == Rational(8, 3)
 
 
 def test_map_callable_and_string_projector_regression(run):

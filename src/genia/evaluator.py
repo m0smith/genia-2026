@@ -16,6 +16,7 @@ if __package__ in (None, ""):
         sys.path.insert(0, str(_src_root))
     from genia.utf8 import format_debug, format_display
     from genia.numeric_literals import materialize_legacy_numeric
+    from genia import numeric_values as _numeric_values
     from genia.equality import genia_equal
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe
@@ -60,6 +61,7 @@ if __package__ in (None, ""):
 else:
     from .utf8 import format_debug, format_display
     from .numeric_literals import materialize_legacy_numeric
+    from . import numeric_values as _numeric_values
     from .equality import genia_equal
     from .environment import Env
     from .errors import GeniaQuietBrokenPipe
@@ -122,6 +124,90 @@ QUOTE_OPERATOR_SYMBOLS = {
     "AMP": "&",
     "BANG": "!",
 }
+
+_ARITH_OP_FUNCTIONS = {
+    "PLUS": _numeric_values.add,
+    "MINUS": _numeric_values.subtract,
+    "STAR": _numeric_values.multiply,
+    "SLASH": _numeric_values.divide,
+    "PERCENT": _numeric_values.remainder,
+}
+
+
+def _numeric_operand_kind(value: Any) -> str | None:
+    """Classify an arithmetic operand for exact-numeric dispatch (issue #838 step 3).
+
+    - "bool": Genia booleans, which are never numbers (contract section 10).
+    - "new": the explicit Decimal/Rational/Float64 runtime types from
+      ``numeric_values.py``.
+    - "legacy": plain Python ``int``/``float`` — ``int`` is already Integer;
+      ``float`` is still the temporary decimal-literal bridge
+      (``materialize_legacy_numeric``) and is left alone here (issue #838
+      steps 4/6 own switching decimal literals over to real ``Decimal``).
+    - ``None``: not an arithmetic operand at all (string, list, map, ...).
+    """
+    if isinstance(value, bool):
+        return "bool"
+    if isinstance(value, (_numeric_values.Decimal, _numeric_values.Rational, _numeric_values.Float64)):
+        return "new"
+    if isinstance(value, (int, float)):
+        return "legacy"
+    return None
+
+
+def _try_exact_numeric_arith(op: str, left: Any, right: Any) -> tuple[bool, Any]:
+    """Attempt contract-driven exact/Float64 arithmetic for a binary op.
+
+    Returns ``(True, result)`` when this op/operand combination is owned by
+    the exact numeric model (docs/design/exact-numeric-model-contract.md
+    sections 7-9); returns ``(False, None)`` to let the existing generic
+    Python-operator path in ``eval_binary`` handle everything else (string
+    concatenation, list concatenation, legacy float arithmetic, ...)
+    unchanged, per issue #838 step 3's boundary (no wiring of decimal-literal
+    materialization here — see ``_numeric_operand_kind``).
+    """
+    fn = _ARITH_OP_FUNCTIONS.get(op)
+    if fn is None:
+        return False, None
+    left_kind = _numeric_operand_kind(left)
+    right_kind = _numeric_operand_kind(right)
+    if left_kind is None or right_kind is None:
+        return False, None
+    symbol = QUOTE_OPERATOR_SYMBOLS.get(op, op)
+    if left_kind == "bool" or right_kind == "bool":
+        # Booleans are not numbers (contract section 10): deterministic
+        # numeric misuse, raised rather than silently producing a value —
+        # matching how exact division/remainder by zero below is a raised
+        # error rather than a returned none-shaped value (see module note
+        # on NumericMisuseError; this preserves the pre-existing fail-stop
+        # convention where a runtime numeric error is a genuine exception
+        # the host's process/actor supervision layer catches, not a value
+        # ordinary code silently continues past).
+        raise _numeric_values.NumericMisuseError("boolean operands are not numbers")
+    if left_kind == "legacy" and right_kind == "legacy":
+        # Pure Integer/Integer division and remainder must follow the exact
+        # contract (e.g. 1/2 -> Rational 1/2, not host true-division float);
+        # every other legacy/legacy combination (float participates, or a
+        # non-division op on plain ints) is unaffected — Python's `+`/`-`/`*`
+        # already match contract section 7 for pure Integer, and legacy
+        # float arithmetic remains governed by the pre-existing bridge.
+        if op not in ("SLASH", "PERCENT") or not (isinstance(left, int) and isinstance(right, int)):
+            return False, None
+    elif "legacy" in (left_kind, right_kind):
+        # A "new" exact/Float64 value combined with a legacy host float is
+        # not a supported mix in this slice (no source syntax produces a
+        # "new" value alongside a legacy decimal-as-float literal yet); fall
+        # through so the generic operator raises its own TypeError.
+        if isinstance(left, float) or isinstance(right, float):
+            return False, None
+    try:
+        result = fn(left, right)
+    except TypeError:
+        return True, make_none(
+            "type-error",
+            GeniaMap().put("source", symbol).put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)),
+        )
+    return True, result
 
 
 def quote_node(node: Node) -> Any:
@@ -1359,6 +1445,10 @@ class Evaluator:
             if is_none(value):
                 return value
             if node.op == "MINUS":
+                if isinstance(value, bool):
+                    raise _numeric_values.NumericMisuseError("boolean operands are not numbers")
+                if isinstance(value, (_numeric_values.Decimal, _numeric_values.Rational, _numeric_values.Float64)):
+                    return _numeric_values.negate(value)
                 try:
                     return -value
                 except TypeError:
@@ -1609,6 +1699,10 @@ class Evaluator:
             raise
         if is_none(right):
             return right
+        if node.op in _ARITH_OP_FUNCTIONS:
+            handled, result = _try_exact_numeric_arith(node.op, left, right)
+            if handled:
+                return result
         match node.op:
             case "PLUS":
                 try:

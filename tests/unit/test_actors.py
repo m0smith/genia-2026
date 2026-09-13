@@ -424,7 +424,11 @@ def test_actor_failed_and_error_on_crashed_actor():
     from genia.interpreter import GeniaOptionSome
     error = run_source("actor_error(a)", env)
     assert isinstance(error, GeniaOptionSome)
-    assert "ZeroDivisionError" in error.value
+    # Division by zero is deterministic numeric misuse (contract section 17):
+    # a portable Genia diagnostic, not a raw host `ZeroDivisionError` class
+    # name/traceback text crossing the boundary.
+    assert "ZeroDivisionError" not in error.value
+    assert "division by zero" in error.value
 
 
 def test_actor_status_lifecycle():

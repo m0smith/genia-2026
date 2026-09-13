@@ -111,9 +111,14 @@ def test_process_fail_stop_error_message():
     )
     wait_for(env, "process_failed?(bad)", True)
     result = run_source("process_error(bad)", env)
-    # GeniaOptionSome wraps the error string
+    # GeniaOptionSome wraps the error string. Division by zero is
+    # deterministic numeric misuse (docs/design/exact-numeric-model-contract.md
+    # section 17): the message is Genia's own portable diagnostic, not a raw
+    # host `ZeroDivisionError` class name/traceback text crossing the
+    # boundary (contract section 17 / R19 diagnostic portability).
     assert hasattr(result, "value"), f"expected Some(...), got {result!r}"
-    assert "ZeroDivisionError" in result.value
+    assert "ZeroDivisionError" not in result.value
+    assert "division by zero" in result.value
 
 
 def test_process_error_none_when_healthy():
