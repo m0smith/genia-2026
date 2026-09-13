@@ -492,8 +492,15 @@ exactly its logical negation.
 - No surface may answer a semantic sameness question using host-language equality
   or a host container's key rules.
 - Values of different semantic kinds are unequal, and a kind difference yields
-  `false` rather than an error. The integer/float bridge is the only cross-kind
-  exception: booleans are a distinct kind and never equal a number.
+  `false` rather than an error. The numeric family is the only cross-kind
+  exception: Integer, Decimal, and Rational (the exact family) compare by
+  mathematical value across those three kinds, and a finite explicit Float64
+  compares to any exact numeric value by its exact represented dyadic value
+  (never by rounding the exact operand to Float64); see
+  `docs/design/exact-numeric-model-contract.md` sections 10.1/10.2 (issue
+  #838, Python reference host implemented through Step 4). Float64 NaN
+  compares unequal to every value including itself. Booleans are a distinct
+  kind and never equal a number.
 - Equality is pure. It performs no IO, acquires nothing, declassifies nothing,
   invokes no function/Template/matcher/provider/issuer/user callback, consumes no
   Seq or Flow, dereferences no Ref, inspects no Cell/Process/provider/handle

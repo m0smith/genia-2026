@@ -224,6 +224,16 @@ CLI contract summary (actual behavior):
     - `display(value)` returns the user-facing display representation string without writing output
     - `debug_repr(value)` returns the debug representation string without writing output
     - `display(value)` and `debug_repr(value)` render Outcome values directly, including `none(...)`; this is representation behavior and does not change Outcome identity or pipeline propagation
+    - `display(value)` and `debug_repr(value)` render the exact-numeric-model
+      Decimal/Rational/explicit Float64 runtime kinds (issue #838) using the
+      contract's canonical text, identically for both entry points: Decimal
+      as fixed or scientific decimal notation always retaining a `.0` for an
+      integral value (e.g. `4.0`), Rational as `<numerator>/<denominator>`
+      (e.g. `1/3`), and Float64 as the explicit `float64(<value>)` atom (e.g.
+      `float64(3.0)`) so a Float64 rendering never reads as an exact number.
+      This also governs the REPL/CLI's own top-level result echo and the
+      subprocess host protocol adapters, both of which render through
+      `debug_repr`'s underlying formatter.
     - these entry points are minimal #185 surface area; #166 owns the broader Representation System model
   - public prelude-backed string formatting helper:
     - `format(template_or_format, values)` returns a string built from `{name}` or `{0}` placeholders using display rendering; `{name:?}` and `{0:?}` use debug rendering; it supports escaped braces with `{{` and `}}`; field-path placeholders `{user.name}` / `{user.address.city}` use dot (`.`) as the canonical separator for nested map lookup (**Experimental**, #290)

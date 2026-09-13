@@ -2575,6 +2575,120 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
+### Exact Numeric Model (issue #838 gate for R21; Experimental, in progress through Step 6)
+
+`docs/design/exact-numeric-model-contract.md` is the approved, separately
+gated contract (not a numbered release) that a conforming host — including
+the future R21 C++ host — must implement for Integer/Decimal/Rational/
+Float64 numeric semantics. It is implementation-ready but is not itself
+evidence of implementation; this section records what the Python reference
+host actually implements today, landed across N-1 and Steps 2-6 of issue
+#838 (PR #839). No skeptical release-truth audit (contract section 21's
+"Step 7") has been run yet — this section is not that audit and does not
+claim gate completion.
+
+Landed:
+
+- **N-1 — source classification and portable Core IR (contract sections 2,
+  11).** The lexer/parser classify a numeric literal as `integer` or
+  `decimal` per the grammar in contract section 2, and `IrLiteral.value` for
+  a numeric literal carries the tagged payload `{"kind": "integer",
+  "digits": ...}` or `{"kind": "decimal", "coefficient": ..., "exponent":
+  ...}` (`src/genia/numeric_literals.py`) rather than a bare host number.
+  `/` remains `IrBinary(op=SLASH)`; no new Core IR node family was added.
+- **Step 2 — runtime value model (contract sections 3, 4, 5).**
+  `src/genia/numeric_values.py` defines canonical, frozen `Decimal`
+  (coefficient/exponent, trailing-zero-stripped) and `Rational` (reduced,
+  positive denominator, denominator-one collapses to Integer) value types,
+  and an explicit `Float64` tag distinct from a bare host `float`. Integer
+  remains plain Python `int` (R17 is unaffected). `is_numeric_value`/
+  `is_exact_numeric_value` implement the "booleans are not numbers" rule.
+- **Step 3 — exact arithmetic, division, remainder (contract sections 7, 8,
+  9).** `src/genia/evaluator.py` dispatches `+`, `-`, `*`, `/`, `%`, and
+  unary `-` for Decimal/Rational/Float64 operands through
+  `numeric_values.py`'s promotion-aware arithmetic; division/remainder by
+  exact or Float64 zero, and mixed exact/Float64 arithmetic, raise
+  `NumericMisuseError` (contract section 17) rather than a host
+  `ZeroDivisionError`/`TypeError`.
+- **Step 4 — equality, comparison, map-key reconciliation (contract section
+  10).** `src/genia/equality.py` and the evaluator's comparison dispatch
+  compare Integer/Decimal/Rational/Float64 by mathematical value
+  (`numeric_extended_value`/`compare_numeric`), including the finite-Float64
+  exact-dyadic comparison bridge, NaN's non-reflexive/unordered behavior,
+  and R18 map-key legality (NaN is not a legal key).
+- **Step 5 — explicit conversion builtins (contract sections 5, 6, 4).**
+  `exact(...)`, `float64(...)`, and `rational(...)` are registered builtins
+  (`src/genia/builtins.py`, backed by `numeric_values.construct_exact`/
+  `construct_float64`/`construct_rational`), giving ordinary Genia source a
+  reachable path to real `Decimal`/`Rational`/`Float64` runtime values.
+- **Step 6 — canonical rendering, JSON boundary, format-spec integration
+  (contract sections 12, 13, 14).**
+  - `src/genia/utf8.py`'s `format_display`/`format_debug` — and therefore
+    `print`/`display`/`debug_repr`, the CLI/REPL's own result echo
+    (`src/genia/interpreter.py`), and the subprocess host protocol adapters
+    (`hosts/python/exec_model_fixture.py`,
+    `hosts/python/exec_r12_grounded_fixture.py`, both of which call
+    `format_debug` directly) — now render Decimal/Rational/Float64 using
+    the canonical text from contract section 12
+    (`numeric_values.render_decimal`/`render_rational`/`render_float64`)
+    instead of the host dataclass `repr()` (e.g. `Decimal(coefficient=4,
+    exponent=0)`) that leaked through previously. Example: `exact(float64(4))`
+    now displays as `4.0`; `exact(1) / exact(3)` as `1/3`; `float64(3)` as
+    `float64(3.0)`.
+  - `json_encode`/`json_decode`'s strict JSON boundary
+    (`src/genia/builtins.py::_strict_json_from_runtime`) now encodes a
+    Decimal or a terminating Rational as a JSON number exactly when
+    `numeric_values.stable_json_decimal` (contract section 13.2's predicate)
+    holds, and rejects it with `json_number_out_of_range` otherwise; a
+    finite Float64 encodes as a JSON number, a non-finite one is rejected.
+    **Decode is unchanged**: a JSON fraction/exponent token still decodes to
+    a plain host `float` (the pre-existing R9 behavior), not to the new
+    Decimal type — contract section 13.5's decode-side requirement
+    ("JSON never directly constructs Rational" is satisfied, but "fraction/
+    exponent token -> exact Decimal" is not) is **not yet implemented**.
+    The older, non-safe-integer-gated `json_parse`/`json_stringify` pair
+    (`_json_to_runtime`/`_json_from_runtime`) is unchanged and does not
+    handle Decimal/Rational/Float64 at all.
+  - `src/genia/_format_engine.py`'s field-format spec now accepts Decimal/
+    Rational/Float64: plain `{0}` interpolation already used
+    `format_display` (so it gets canonical rendering for free), and the
+    `.n` precision spec now decimal-half-up-rounds the exact mathematical
+    value (via exact `fractions.Fraction` arithmetic, never a host binary
+    float intermediate) for all three kinds. Zero-pad width (`0N`) and
+    digit grouping (`,`) specs were extended to Decimal and Float64 (whose
+    canonical rendering is ordinary decimal/float text) but deliberately
+    **not** to Rational, whose canonical `<numerator>/<denominator>` text is
+    not a shape those two presentation operations are well-defined against;
+    a `.n`-spec Rational still gets correct decimal rounding.
+
+Explicitly not yet implemented (tracked for a later slice / the eventual
+Step 7 skeptical audit, not claimed here):
+
+- **The legacy decimal-literal-to-float bridge is still in place.** A
+  decimal-classified source literal (e.g. `1.5`) still lowers, at
+  evaluation time, through `numeric_literals.materialize_legacy_numeric` to
+  a plain host `float`, not to the new `Decimal` type. `Decimal`/`Float64`
+  values are reachable from ordinary Genia source only via the Step 5
+  conversion builtins (`exact(...)`, `float64(...)`) and Rational only via
+  `rational(...)` and Integer/Integer division; a bare `1.5` literal is
+  **not** a `Decimal` in the current implementation, and `float64(1.5)`
+  (passing a raw decimal literal) is deterministic numeric misuse today
+  because the literal is a plain `float`, not an exact numeric value.
+  Switching this bridge over is a separate, not-yet-done slice.
+- JSON decode of a fraction/exponent token to exact Decimal (contract
+  section 13.5) — see above; only encode-side Decimal/Rational/Float64
+  support landed in Step 6.
+- Precision contexts and transcendental approximation APIs (contract
+  section 16) are explicitly out of gate scope and unimplemented, as the
+  contract itself states.
+- No skeptical release-truth audit / R21 gate GO-NO-GO verdict has been
+  run for this contract (contract section 21's acceptance criterion is
+  broader than any one slice's evidence).
+
+Evidence for Steps 1-6: `python -m tools.spec_runner` (shared eval/ir/cli/
+flow/error/parse suite) and the full `pytest tests/` run recorded in
+PR #839's discussion; re-run after Step 6 rather than assumed unchanged.
+
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
 - public map helpers are exposed from `src/genia/std/prelude/map.genia`
