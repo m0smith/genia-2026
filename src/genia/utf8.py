@@ -33,6 +33,8 @@ def format_display(value: Any) -> str:
         return 'none("nil")'
     if isinstance(value, bool):
         return "true" if value else "false"
+    if _is_exact_numeric_render_value(value):
+        return _render_numeric_value(value)
     if _is_symbol(value):
         return value.name
     if _is_option_none(value):
@@ -99,6 +101,8 @@ def format_debug(value: Any) -> str:
         return 'none("nil")'
     if isinstance(value, bool):
         return "true" if value else "false"
+    if _is_exact_numeric_render_value(value):
+        return _render_numeric_value(value)
     if _is_symbol(value):
         return value.name
     if _is_option_none(value):
@@ -130,6 +134,21 @@ def format_debug(value: Any) -> str:
     if isinstance(value, list):
         return "[" + ", ".join(format_debug(item) for item in value) + "]"
     return repr(value)
+
+
+def _is_exact_numeric_render_value(value: Any) -> bool:
+    # Local import to avoid a module-load cycle (numeric_values does not
+    # import utf8, but keeping this import scoped mirrors the lazy-import
+    # convention already used elsewhere in the numeric-model slices).
+    from .numeric_values import Decimal, Float64, Rational
+
+    return isinstance(value, (Decimal, Rational, Float64))
+
+
+def _render_numeric_value(value: Any) -> str:
+    from .numeric_values import render_numeric_value
+
+    return render_numeric_value(value)
 
 
 def _is_symbol(value: Any) -> bool:

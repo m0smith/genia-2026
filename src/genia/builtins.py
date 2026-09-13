@@ -122,7 +122,18 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
-    from genia.numeric_values import construct_exact, construct_float64, construct_rational
+    from genia.numeric_values import (
+        Decimal as _NumDecimal,
+        Float64 as _NumFloat64,
+        Rational as _NumRational,
+        _fraction_to_decimal as _numeric_fraction_to_decimal,
+        _terminates_in_base10,
+        construct_exact,
+        construct_float64,
+        construct_rational,
+        decimal_json_number,
+        stable_json_decimal,
+    )
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -240,7 +251,18 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
-    from .numeric_values import construct_exact, construct_float64, construct_rational
+    from .numeric_values import (
+        Decimal as _NumDecimal,
+        Float64 as _NumFloat64,
+        Rational as _NumRational,
+        _fraction_to_decimal as _numeric_fraction_to_decimal,
+        _terminates_in_base10,
+        construct_exact,
+        construct_float64,
+        construct_rational,
+        decimal_json_number,
+        stable_json_decimal,
+    )
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -1983,6 +2005,23 @@ def make_global_env(
         if isinstance(value, str) and not isinstance(value, GeniaSymbol):
             _validate_json_string(value)
             return value
+        if isinstance(value, _NumDecimal):
+            if not stable_json_decimal(value):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return decimal_json_number(value)
+        if isinstance(value, _NumRational):
+            numerator, denominator = value.numerator, value.denominator
+            if not _terminates_in_base10(denominator):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            fraction_decimal = _numeric_fraction_to_decimal(numerator, denominator)
+            if not stable_json_decimal(fraction_decimal):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return decimal_json_number(fraction_decimal)
+        if isinstance(value, _NumFloat64):
+            raw = value.value
+            if not math.isfinite(raw):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            return raw
         if isinstance(value, list):
             next_depth = depth + 1
             if next_depth > _JSON_MAX_NESTING:

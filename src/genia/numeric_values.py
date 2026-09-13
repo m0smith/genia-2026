@@ -542,6 +542,152 @@ def construct_exact(value: Any) -> "int | Decimal | Rational":
     raise NumericMisuseError("exact expects a numeric value")
 
 
+def render_decimal(value: "Decimal") -> str:
+    """Canonical Decimal display/debug text (contract section 12.2).
+
+    Fixed notation is used when the adjusted exponent (``len(digits) +
+    exponent - 1``) is in ``[-6, 20]``; otherwise scientific notation. Both
+    forms retain a trailing ``.0`` for a mathematically integral value so a
+    Decimal never renders indistinguishably from an Integer.
+    """
+    coefficient, exponent = value.coefficient, value.exponent
+    sign = "-" if coefficient < 0 else ""
+    digits = str(abs(coefficient))
+    adjusted_exponent = len(digits) + exponent - 1
+    if -6 <= adjusted_exponent <= 20:
+        if exponent >= 0:
+            return f"{sign}{digits}{'0' * exponent}.0"
+        split_pos = len(digits) + exponent
+        if split_pos > 0:
+            int_part, frac_part = digits[:split_pos], digits[split_pos:]
+        else:
+            int_part, frac_part = "0", ("0" * -split_pos) + digits
+        return f"{sign}{int_part}.{frac_part}"
+    mantissa = digits[0] + "." + (digits[1:] if len(digits) > 1 else "0")
+    exp_sign = "+" if adjusted_exponent >= 0 else "-"
+    return f"{sign}{mantissa}e{exp_sign}{abs(adjusted_exponent)}"
+
+
+def render_rational(value: "Rational") -> str:
+    """Canonical Rational display/debug text (contract section 12.3)."""
+    return f"{value.numerator}/{value.denominator}"
+
+
+def render_float64(value: "Float64") -> str:
+    """Canonical Float64 display/debug text (contract section 12.4).
+
+    Renders as the explicit constructor-shaped atom
+    ``float64(<shortest-roundtrip-decimal>)`` so copying the rendering never
+    silently changes numeric domains. The inner decimal is Python's ``repr``
+    of the host float, which already produces the shortest decimal that
+    round-trips to the identical binary64 bits under round-to-nearest,
+    ties-to-even; it is reformatted only for a lowercase ``e``, an explicit
+    exponent sign, no unnecessary exponent leading zeros, and a retained
+    ``.0`` for an integral mantissa.
+    """
+    raw = value.value
+    if raw != raw:  # noqa: PLR0124 - explicit NaN check
+        inner = "nan"
+    elif raw == float("inf"):
+        inner = "inf"
+    elif raw == float("-inf"):
+        inner = "-inf"
+    else:
+        text = repr(raw)
+        if "e" in text:
+            mantissa, _, exp_text = text.partition("e")
+            if "." not in mantissa:
+                mantissa += ".0"
+            exp_sign = "-" if exp_text[0] == "-" else "+"
+            exp_digits = exp_text[1:].lstrip("0") or "0"
+            inner = f"{mantissa}e{exp_sign}{exp_digits}"
+        else:
+            inner = text if "." in text else text + ".0"
+    return f"float64({inner})"
+
+
+def render_numeric_value(value: Any) -> str:
+    """Canonical display/debug text for a Decimal/Rational/Float64 value.
+
+    Integer uses its preexisting rendering (contract section 12.1) and is
+    not handled here; callers dispatch to this only for the new runtime
+    kinds (see ``genia.utf8.format_display``/``format_debug``).
+    """
+    if isinstance(value, Decimal):
+        return render_decimal(value)
+    if isinstance(value, Rational):
+        return render_rational(value)
+    if isinstance(value, Float64):
+        return render_float64(value)
+    raise TypeError(f"not a Decimal/Rational/Float64 value: {value!r}")
+
+
+def _decimal_to_correctly_rounded_float(value: "Decimal") -> "float | None":
+    """Round-to-nearest/ties-to-even binary64 for a Decimal, or ``None`` on overflow.
+
+    Uses the same big-integer-ratio true division as :func:`construct_float64`
+    (Python's ``int / int`` is correctly rounded) but never raises: it is an
+    internal step of :func:`stable_json_decimal`, not the public ``float64``
+    conversion, so an out-of-range magnitude is reported as "not encodable"
+    rather than as numeric misuse.
+    """
+    numerator, denominator = _as_fraction(value)
+    try:
+        result = numerator / denominator
+    except OverflowError:
+        return None
+    if result in (float("inf"), float("-inf")):
+        return None
+    return result
+
+
+def _parse_decimal_text(text: str) -> "Decimal":
+    """Parse a signed decimal-literal-shaped string (as produced by Python's
+    ``repr(float)``) into an exact :class:`Decimal`, purely lexically."""
+    from .numeric_literals import parse_numeric_literal
+
+    negative = text.startswith("-")
+    unsigned = text[1:] if negative else text
+    literal = parse_numeric_literal(unsigned)
+    if literal.kind == "integer":
+        coefficient, exponent = int(literal.digits), 0
+    else:
+        coefficient, exponent = int(literal.coefficient), int(literal.exponent)
+    return Decimal(-coefficient if negative else coefficient, exponent)
+
+
+def stable_json_decimal(value: "int | Decimal") -> bool:
+    """Contract section 13.2's ``stable_json_decimal(d)`` predicate.
+
+    Also used, per section 13.3, as the terminating-Decimal-representation
+    check for Rational JSON encodability (callers pass the Decimal obtained
+    from a terminating Rational's exact base-10 expansion).
+    """
+    decimal_value = value if isinstance(value, Decimal) else Decimal(value, 0)
+    as_float = _decimal_to_correctly_rounded_float(decimal_value)
+    if as_float is None:
+        return False
+    if as_float == 0.0 and decimal_value.coefficient != 0:
+        return False  # nonzero Decimal underflowed to zero
+    roundtrip = _parse_decimal_text(repr(as_float))
+    return to_fraction(roundtrip) == to_fraction(decimal_value)
+
+
+def decimal_json_number(value: "int | Decimal") -> float:
+    """The JSON-number ``float`` payload for a Decimal already proven stable
+    by :func:`stable_json_decimal`. Callers must check the predicate first;
+    this returns the same correctly-rounded binary64 value the predicate
+    verified round-trips exactly, which ``json.dumps`` then renders using
+    its own shortest-round-trip float formatting -- the same text the
+    predicate itself parsed back, by construction.
+    """
+    decimal_value = value if isinstance(value, Decimal) else Decimal(value, 0)
+    result = _decimal_to_correctly_rounded_float(decimal_value)
+    if result is None:  # pragma: no cover - callers gate on stable_json_decimal first
+        raise ValueError("decimal_json_number requires a stable_json_decimal value")
+    return result
+
+
 def materialize_exact_numeric(value: Any) -> Any:
     """Build a real runtime value from a tagged numeric literal payload.
 

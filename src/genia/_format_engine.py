@@ -12,8 +12,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
+from fractions import Fraction
 from typing import Any
 
+from genia.numeric_values import Decimal as _NumDecimal
+from genia.numeric_values import Float64 as _NumFloat64
+from genia.numeric_values import Rational as _NumRational
+from genia.numeric_values import to_fraction as _numeric_to_fraction
 from genia.utf8 import format_debug, format_display
 from genia.values import GeniaMap
 
@@ -200,11 +205,13 @@ def apply_format_spec(value: Any, spec: str) -> str:
             return value[:n]
         if isinstance(value, (int, float)):
             return _format_numeric_precision(value, n)
+        if _is_extended_numeric(value):
+            return _format_extended_numeric_precision(value, n)
         raise ValueError(f"format-error: format spec {spec!r} requires string or numeric value")
 
     if spec[0] == "0" and len(spec) > 1 and spec[1:].isdigit():
         width = int(spec)
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not (isinstance(value, (int, float)) or _is_decimal_shaped_numeric(value)):
             raise ValueError(f"format-error: format spec {spec!r} requires numeric value")
         text = format_display(value)
         if len(text) >= width:
@@ -214,11 +221,56 @@ def apply_format_spec(value: Any, spec: str) -> str:
         return "0" * (width - len(text)) + text
 
     if spec == ",":
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not (isinstance(value, (int, float)) or _is_decimal_shaped_numeric(value)):
             raise ValueError("format-error: format spec ',' requires numeric value")
         return _format_grouping(value)
 
     raise ValueError(f"format-error: unsupported format spec {spec!r}")
+
+
+def _is_extended_numeric(value: Any) -> bool:
+    """True for the exact-numeric-model Decimal/Rational/Float64 runtime kinds
+    (contract section 14: format-spec presentation covers these too, on top
+    of the preexisting plain ``int``/``float`` handling above)."""
+    return isinstance(value, (_NumDecimal, _NumRational, _NumFloat64))
+
+
+def _is_decimal_shaped_numeric(value: Any) -> bool:
+    """True for the extended-numeric kinds whose canonical rendering is
+    ordinary decimal/float text (Decimal, Float64) -- i.e. excluding
+    Rational, whose canonical ``<numerator>/<denominator>`` text is not a
+    presentation shape that zero-padding/grouping can be meaningfully
+    applied to (contract section 14 only pins ``.n`` precision rounding for
+    Rational, via decimal expansion of the exact ratio)."""
+    return isinstance(value, (_NumDecimal, _NumFloat64))
+
+
+def _extended_numeric_fraction(value: Any) -> Fraction:
+    if isinstance(value, (_NumDecimal, _NumRational)):
+        return _numeric_to_fraction(value)
+    if isinstance(value, _NumFloat64):
+        return Fraction(*value.value.as_integer_ratio())
+    raise TypeError(f"not an extended numeric value: {value!r}")
+
+
+def _format_extended_numeric_precision(value: Any, n: int) -> str:
+    """``.n`` precision for Decimal/Rational/Float64 (contract section 14):
+    decimal half-up rounding of the exact mathematical value, computed
+    without going through a host binary float intermediate."""
+    fraction = _extended_numeric_fraction(value)
+    sign = "-" if fraction < 0 else ""
+    magnitude = -fraction if fraction < 0 else fraction
+    scale = Fraction(10) ** n
+    scaled = magnitude * scale
+    floor_value = scaled.numerator // scaled.denominator
+    if scaled - floor_value >= Fraction(1, 2):
+        floor_value += 1
+    if floor_value == 0:
+        sign = ""
+    if n == 0:
+        return f"{sign}{floor_value}"
+    digits = str(floor_value).rjust(n + 1, "0")
+    return f"{sign}{digits[:-n]}.{digits[-n:]}"
 
 
 def _format_numeric_precision(value: int | float, n: int) -> str:
