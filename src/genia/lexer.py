@@ -12,7 +12,7 @@ IDENT_START_RE = re.compile(r"[A-Za-z_$]")
 IDENT_BODY_RE = re.compile(r"[A-Za-z0-9]")
 
 TOKEN_SPEC = [
-    ("NUMBER", r"\d+(?:\.\d+)?"),
+    ("NUMBER", r"\d+(?:\.\d+)?(?:[eE][+-]?\d+)?"),
     ("STRING", r'"([^"\\]|\\.)*"|\'([^\'\\]|\\.)*\''),
     ("ARROW", r"->"),
     ("EQEQ", r"=="),
@@ -51,7 +51,7 @@ TOKEN_SPEC = [
     ("NEWLINE", r"\n"),
     ("SKIP", r"[ \t\r]+"),
 ]
-NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
+NUMBER_RE = re.compile(r"\d+(?:\.\d+)?(?:[eE][+-]?\d+)?")
 STRING_RE = re.compile(r'"([^"\\]|\\.)*"|\'([^\'\\]|\\.)*\'')
 PUNCTUATION_TOKENS = [
     ("ARROW", "->"),
@@ -141,8 +141,11 @@ def lex(source: str) -> list[Token]:
         number_match = NUMBER_RE.match(source, pos)
         if number_match is not None:
             text = number_match.group()
+            end = pos + len(text)
+            if end < length and source[end] in "eE":
+                raise SyntaxError(f"Invalid numeric exponent at {end}")
             tokens.append(Token("NUMBER", text, pos))
-            pos += len(text)
+            pos = end
             continue
 
         if source.startswith('glob"', pos):

@@ -2,19 +2,22 @@ name: delay
 category: ir
 description: delay() special form lowers as IrDelay with a lowered body expression
 input:
-  source: |
-    delay(x + 1)
+  source: 'delay(x + 1)
+
+    '
 expected:
   ir:
-    - node: IrExprStmt
+  - node: IrExprStmt
+    expr:
+      node: IrDelay
       expr:
-        node: IrDelay
-        expr:
-          node: IrBinary
-          left:
-            node: IrVar
-            name: x
-          op: PLUS
-          right:
-            node: IrLiteral
-            value: 1
+        node: IrBinary
+        left:
+          node: IrVar
+          name: x
+        op: PLUS
+        right:
+          node: IrLiteral
+          value:
+            kind: integer
+            digits: '1'

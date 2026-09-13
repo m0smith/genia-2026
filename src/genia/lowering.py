@@ -252,7 +252,7 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, ExprStmt):
         return IrExprStmt(lower_node(node.expr), span=node.span)
     if isinstance(node, Number):
-        return IrLiteral(node.value, span=node.span)
+        return IrLiteral(node.value.portable_payload(), span=node.span)
     if isinstance(node, String):
         return IrLiteral(node.value, span=node.span)
     if isinstance(node, Boolean):
@@ -391,7 +391,7 @@ def _lower_open_clause(clause) -> IrCaseClause:
 
 def lower_pattern(pattern: Node) -> IrPattern:
     if isinstance(pattern, Number):
-        return IrPatLiteral(pattern.value)
+        return IrPatLiteral(pattern.value.portable_payload())
     if isinstance(pattern, String):
         return IrPatLiteral(pattern.value)
     if isinstance(pattern, Boolean):

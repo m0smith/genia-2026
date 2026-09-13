@@ -1,0 +1,14 @@
+name: exact-numeric-parse-decimal-dotted
+category: parse
+description: Dotted numeric source normalizes as exact Decimal without host Float64 conversion
+input:
+  source: "123.4500"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value:
+        kind: decimal
+        coefficient: "12345"
+        exponent: "-2"

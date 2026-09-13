@@ -21,7 +21,9 @@ def normalize_ast(node):
         # Unwrap expression statements to their inner expression
         return normalize_ast(getattr(node, 'expr', None))
     if node_type == 'Number':
-        return {'kind': 'Literal', 'value': getattr(node, 'value', None)}
+        return {'kind': 'Literal', 'value': getattr(node, 'value').portable_payload()}
+    if node_type == 'Unary':
+        return {'kind': 'Unary', 'op': getattr(node, 'op', None), 'expr': normalize_ast(getattr(node, 'expr', None))}
     if node_type == 'Var':
         return {'kind': 'Var', 'name': getattr(node, 'name', None)}
     if node_type == 'Assign':

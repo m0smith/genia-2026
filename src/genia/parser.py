@@ -45,6 +45,7 @@ from .ast_nodes import (
     WildcardPattern,
 )
 from .lexer import Token, SourceSpan, parse_string_literal, parse_glob_literal
+from .numeric_literals import parse_numeric_literal
 
 PRECEDENCE = {
     "PIPE_FWD": 5,
@@ -876,7 +877,7 @@ class Parser:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+            return Number(parse_numeric_literal(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
@@ -978,7 +979,7 @@ class Parser:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+            return Number(parse_numeric_literal(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
@@ -1064,7 +1065,7 @@ class Parser:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+            return Number(parse_numeric_literal(tok.text), span=self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))

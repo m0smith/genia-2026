@@ -5,4 +5,6 @@ expect_ast:
   name: x
   value:
     kind: Literal
-    value: 1
+    value:
+      kind: integer
+      digits: "1"

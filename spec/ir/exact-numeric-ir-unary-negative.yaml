@@ -1,0 +1,14 @@
+name: exact-numeric-ir-unary-negative
+category: ir
+description: Source minus stays IrUnary around a positive tagged Decimal
+input:
+  source: "-1.25"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrUnary
+        op: MINUS
+        expr:
+          node: IrLiteral
+          value: {kind: decimal, coefficient: "125", exponent: "-2"}

@@ -347,7 +347,7 @@ def _normalize_quoted_syntax(expr: Any) -> dict[str, Any]:
     if isinstance(expr, String):
         return {"kind": "Literal", "value": expr.value}
     if isinstance(expr, Number):
-        return {"kind": "Literal", "value": expr.value}
+        return {"kind": "Literal", "value": expr.value.portable_payload()}
     if isinstance(expr, Boolean):
         return {"kind": "Literal", "value": expr.value}
     if isinstance(expr, Var):

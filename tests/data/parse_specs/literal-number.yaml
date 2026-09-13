@@ -2,4 +2,6 @@ id: literal-number
 source: "42"
 expect_ast:
   kind: Literal
-  value: 42
+  value:
+    kind: integer
+    digits: "42"

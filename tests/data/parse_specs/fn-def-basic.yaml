@@ -13,4 +13,6 @@ expect_ast:
       name: x
     right:
       kind: Literal
-      value: 1
+      value:
+        kind: integer
+        digits: "1"

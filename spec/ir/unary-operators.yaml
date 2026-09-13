@@ -2,22 +2,26 @@ name: unary-operators
 category: ir
 description: Unary BANG and MINUS lower as IrUnary in portable Core IR
 input:
-  source: |
-    !true
+  source: '!true
+
     -1
+
+    '
 expected:
   ir:
-    - node: IrExprStmt
+  - node: IrExprStmt
+    expr:
+      node: IrUnary
+      op: BANG
       expr:
-        node: IrUnary
-        op: BANG
-        expr:
-          node: IrLiteral
-          value: true
-    - node: IrExprStmt
+        node: IrLiteral
+        value: true
+  - node: IrExprStmt
+    expr:
+      node: IrUnary
+      op: MINUS
       expr:
-        node: IrUnary
-        op: MINUS
-        expr:
-          node: IrLiteral
-          value: 1
+        node: IrLiteral
+        value:
+          kind: integer
+          digits: '1'

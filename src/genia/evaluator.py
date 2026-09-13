@@ -15,6 +15,7 @@ if __package__ in (None, ""):
     if str(_src_root) not in sys.path:
         sys.path.insert(0, str(_src_root))
     from genia.utf8 import format_debug, format_display
+    from genia.numeric_literals import materialize_legacy_numeric
     from genia.equality import genia_equal
     from genia.environment import Env
     from genia.errors import GeniaQuietBrokenPipe
@@ -58,6 +59,7 @@ if __package__ in (None, ""):
     from genia.http_annotation_binding import validate_http_annotation_descriptor
 else:
     from .utf8 import format_debug, format_display
+    from .numeric_literals import materialize_legacy_numeric
     from .equality import genia_equal
     from .environment import Env
     from .errors import GeniaQuietBrokenPipe
@@ -130,7 +132,7 @@ def quote_node(node: Node) -> Any:
         return result
 
     if isinstance(node, Number):
-        return node.value
+        return materialize_legacy_numeric(node.value)
     if isinstance(node, String):
         return node.value
     if isinstance(node, Boolean):
@@ -190,7 +192,7 @@ def quote_pattern_node(pattern: Node) -> Any:
         return result
 
     if isinstance(pattern, Number):
-        return pattern.value
+        return materialize_legacy_numeric(pattern.value)
     if isinstance(pattern, String):
         return pattern.value
     if isinstance(pattern, Boolean):
@@ -303,7 +305,7 @@ def quasiquote_node(
 
     def qq(current: Node, depth: int, *, list_context: bool = False) -> Any:
         if isinstance(current, Number):
-            return current.value
+            return materialize_legacy_numeric(current.value)
         if isinstance(current, String):
             return current.value
         if isinstance(current, Boolean):
@@ -934,7 +936,7 @@ class Evaluator:
         if isinstance(node, IrVar):
             return node.name
         if isinstance(node, IrLiteral):
-            return format_debug(node.value)
+            return format_debug(materialize_legacy_numeric(node.value))
         if isinstance(node, IrOptionSome):
             return f"some({self._render_pipeline_stage(node.value)})"
         if isinstance(node, IrOptionNone):
@@ -1312,7 +1314,7 @@ class Evaluator:
         if isinstance(node, IrExprStmt):
             return self.eval(node.expr)
         if isinstance(node, IrLiteral):
-            return node.value
+            return materialize_legacy_numeric(node.value)
         if isinstance(node, IrOptionNone):
             reason = self.eval(node.reason) if node.reason is not None else None
             context = self.eval(node.context) if node.context is not None else None

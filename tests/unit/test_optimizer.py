@@ -76,7 +76,7 @@ def test_optimize_program_non_funcdef_nodes_pass_through():
     assert len(result) == 1
     assert isinstance(result[0], IrExprStmt)
     assert isinstance(result[0].expr, IrLiteral)
-    assert result[0].expr.value == 42
+    assert result[0].expr.value == {"kind": "integer", "digits": "42"}
 
 
 def test_optimize_program_nth_style_rewritten_to_loop_via_optimizer_import():

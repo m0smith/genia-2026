@@ -1,0 +1,11 @@
+name: exact-numeric-ir-decimal-normalized
+category: ir
+description: Decimal literals lower to canonical coefficient and exponent strings
+input:
+  source: "123.4500"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value: {kind: decimal, coefficient: "12345", exponent: "-2"}

@@ -1,0 +1,13 @@
+name: exact-numeric-parse-integer
+category: parse
+description: Integer source tokens normalize as exact tagged integer literals
+input:
+  source: "000123"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value:
+        kind: integer
+        digits: "123"

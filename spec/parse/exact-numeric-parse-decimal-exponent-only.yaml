@@ -1,0 +1,14 @@
+name: exact-numeric-parse-decimal-exponent-only
+category: parse
+description: Exponent-only numeric source is exact Decimal
+input:
+  source: "1e3"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value:
+        kind: decimal
+        coefficient: "1"
+        exponent: "3"

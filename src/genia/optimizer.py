@@ -107,7 +107,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
             continue
         if (
             isinstance(n_pat, IrPatLiteral)
-            and n_pat.value == 0
+            and n_pat.value == {"kind": "integer", "digits": "0"}
             and isinstance(xs_pat, IrPatList)
             and len(xs_pat.items) == 2
             and isinstance(xs_pat.items[0], IrPatBind)
@@ -152,7 +152,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
         and isinstance(n_arg.left, IrVar)
         and n_arg.left.name == recur_n_pat.name
         and isinstance(n_arg.right, IrLiteral)
-        and n_arg.right.value == 1
+        and n_arg.right.value == {"kind": "integer", "digits": "1"}
     ):
         return fn
     if not (isinstance(xs_arg, IrVar) and xs_arg.name == rest_name):

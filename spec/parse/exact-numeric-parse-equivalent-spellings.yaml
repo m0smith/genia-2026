@@ -1,0 +1,18 @@
+name: exact-numeric-parse-equivalent-spellings
+category: parse
+description: Equivalent Decimal source spellings normalize to one semantic value
+input:
+  source: |
+    1.0
+    1.00
+    100e-2
+expected:
+  parse:
+    kind: ok
+    ast:
+      - kind: Literal
+        value: {kind: decimal, coefficient: "1", exponent: "0"}
+      - kind: Literal
+        value: {kind: decimal, coefficient: "1", exponent: "0"}
+      - kind: Literal
+        value: {kind: decimal, coefficient: "1", exponent: "0"}

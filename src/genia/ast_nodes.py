@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Optional
 
+from .numeric_literals import NumericLiteral
+
 SourceSpan = Any
 
 
@@ -14,7 +16,7 @@ class Node:
 
 @dataclass
 class Number(Node):
-    value: int | float
+    value: NumericLiteral
     span: SourceSpan | None = None
 
 
