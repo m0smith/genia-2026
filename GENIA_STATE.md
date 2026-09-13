@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, in progress through Step 6)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete — gate NOT YET complete)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2583,9 +2583,19 @@ the future R21 C++ host — must implement for Integer/Decimal/Rational/
 Float64 numeric semantics. It is implementation-ready but is not itself
 evidence of implementation; this section records what the Python reference
 host actually implements today, landed across N-1 and Steps 2-6 of issue
-#838 (PR #839). No skeptical release-truth audit (contract section 21's
-"Step 7") has been run yet — this section is not that audit and does not
-claim gate completion.
+#838 (PR #839). The contract section 21 ("Implementation acceptance")
+skeptical release-truth audit ("Step 7") has now been run; its full findings,
+re-derived evidence, and explicit **R21 semantic implementation: NO-GO**
+verdict are recorded in
+`docs/analysis/exact-numeric-model-release-truth-audit.md`. The audit found
+Steps 1-6 internally correct and honestly documented, fixed one
+formatting-only nit, and confirmed (rather than newly discovered) that the
+contract's own section 21 acceptance bar is not yet met: the legacy
+decimal-literal-to-float bridge is still in place and JSON decode-side
+exactness (contract 13.5) is unimplemented, both of which are material to
+R21's minimal capability floor per that audit's §4. This section is not
+itself that audit; it records implemented Python-reference-host behavior
+only.
 
 Landed:
 
@@ -2681,13 +2691,31 @@ Step 7 skeptical audit, not claimed here):
 - Precision contexts and transcendental approximation APIs (contract
   section 16) are explicitly out of gate scope and unimplemented, as the
   contract itself states.
-- No skeptical release-truth audit / R21 gate GO-NO-GO verdict has been
-  run for this contract (contract section 21's acceptance criterion is
-  broader than any one slice's evidence).
+- The older `json_parse`/`json_stringify` pair (separate from
+  `json_encode`/`json_decode`) is unchanged and does not handle
+  Decimal/Rational/Float64 at all.
+- No independent second-host conformance exists for this contract:
+  `m0smith/genia-cpp` is confirmed (Step 7 audit) to still be bootstrap-only,
+  with no C++ interpreter implemented.
 
-Evidence for Steps 1-6: `python -m tools.spec_runner` (shared eval/ir/cli/
-flow/error/parse suite) and the full `pytest tests/` run recorded in
-PR #839's discussion; re-run after Step 6 rather than assumed unchanged.
+Step 7's skeptical release-truth audit
+(`docs/analysis/exact-numeric-model-release-truth-audit.md`) has now been
+run and reached **R21 semantic implementation: NO-GO**, with the two gaps
+above (legacy literal bridge, JSON decode exactness) named as the concrete
+remaining blockers material to R21's minimal capability floor; precision
+contexts/transcendentals (section 16) and the missing second host are
+confirmed real but the former is explicitly out of this gate's scope and
+the latter is outside this repository's boundary.
+
+Evidence for Steps 1-6: `python -m tools.spec_runner` (720/720, both the
+in-process default adapter and the subprocess E16-1 protocol path via
+`--host 'python3 -m hosts.python.protocol_adapter'`, the latter at
+702 passed / 18 pre-existing unrelated unsupported / 0 failed), the
+targeted numeric unit/spec suites (225/225), the full `pytest -n auto -q`
+partitions (4503 passed / 2 pre-existing unrelated root-sandbox `chmod(0)`
+failures on `-m "not loopback"`, 26 passed on `-m loopback`), `ruff check .`
+clean, and `tests/doc/` (206/206) — all re-run fresh as part of the Step 7
+audit rather than assumed unchanged from Step 6.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

@@ -505,7 +505,9 @@ def construct_float64(value: Any) -> "Float64":
     try:
         result = fraction.numerator / fraction.denominator
     except OverflowError:
-        raise NumericMisuseError("float64 conversion exceeds the largest finite binary64 value") from None
+        raise NumericMisuseError(
+            "float64 conversion exceeds the largest finite binary64 value"
+        ) from None
     if result in (float("inf"), float("-inf")):
         raise NumericMisuseError("float64 conversion exceeds the largest finite binary64 value")
     return Float64(result)
