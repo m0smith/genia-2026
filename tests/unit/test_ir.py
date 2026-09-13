@@ -126,7 +126,7 @@ def test_pipeline_lowers_to_explicit_ir_pipeline():
     assert isinstance(expr_stmt, IrExprStmt)
     assert isinstance(expr_stmt.expr, IrPipeline)
     assert isinstance(expr_stmt.expr.source, IrLiteral)
-    assert expr_stmt.expr.source.value == 3
+    assert expr_stmt.expr.source.value == {"kind": "integer", "digits": "3"}
     assert len(expr_stmt.expr.stages) == 2
     assert isinstance(expr_stmt.expr.stages[0], IrVar)
     assert expr_stmt.expr.stages[0].name == "inc"
@@ -178,7 +178,7 @@ def test_option_constructors_lower_to_explicit_option_ir_nodes():
     assert isinstance(expr_stmt.expr, IrList)
     assert isinstance(expr_stmt.expr.items[0], IrOptionSome)
     assert isinstance(expr_stmt.expr.items[0].value, IrLiteral)
-    assert expr_stmt.expr.items[0].value.value == 1
+    assert expr_stmt.expr.items[0].value.value == {"kind": "integer", "digits": "1"}
     assert isinstance(expr_stmt.expr.items[1], IrOptionNone)
 
 
@@ -245,7 +245,7 @@ def test_case_literal_pattern_lowers_to_ir_literal_pattern():
     first = fn.body.clauses[0].pattern
     assert isinstance(first, IrPatTuple)
     assert isinstance(first.items[0], IrPatLiteral)
-    assert first.items[0].value == 0
+    assert first.items[0].value == {"kind": "integer", "digits": "0"}
 
 
 def test_lowered_program_uses_only_portable_core_ir_nodes():
@@ -309,9 +309,9 @@ def test_slash_operator_lowers_as_ir_binary_slash_without_named_access_contract(
     assert expr_stmt.expr.op == "SLASH"
     assert expr_stmt.expr.named_access is False
     assert isinstance(expr_stmt.expr.left, IrLiteral)
-    assert expr_stmt.expr.left.value == 10
+    assert expr_stmt.expr.left.value == {"kind": "integer", "digits": "10"}
     assert isinstance(expr_stmt.expr.right, IrLiteral)
-    assert expr_stmt.expr.right.value == 2
+    assert expr_stmt.expr.right.value == {"kind": "integer", "digits": "2"}
 
 
 def test_dot_named_access_lowers_as_existing_named_access_ir_shape():
