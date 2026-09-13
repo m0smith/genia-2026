@@ -57,7 +57,10 @@ def test_loader_accepts_parse_category_ok_spec() -> None:
     spec = load_spec(PARSE_DIR / "parse-literal-number.yaml")
     assert spec.category == "parse"
     assert spec.source == "42"
-    assert spec.expected_parse == {"kind": "ok", "ast": {"kind": "Literal", "value": 42}}
+    assert spec.expected_parse == {
+        "kind": "ok",
+        "ast": {"kind": "Literal", "value": {"kind": "integer", "digits": "42"}},
+    }
 
 
 def test_loader_accepts_parse_category_error_spec() -> None:
@@ -130,12 +133,15 @@ def test_execute_spec_parse_ok() -> None:
     spec = _parse_spec(
         name="parse-literal-number",
         source="42",
-        expected_parse={"kind": "ok", "ast": {"kind": "Literal", "value": 42}},
+        expected_parse={
+            "kind": "ok",
+            "ast": {"kind": "Literal", "value": {"kind": "integer", "digits": "42"}},
+        },
     )
     actual = execute_spec(spec)
     assert actual.parse is not None
     assert actual.parse["kind"] == "ok"
-    assert actual.parse["ast"] == {"kind": "Literal", "value": 42}
+    assert actual.parse["ast"] == {"kind": "Literal", "value": {"kind": "integer", "digits": "42"}}
 
 
 def test_execute_spec_parse_error() -> None:

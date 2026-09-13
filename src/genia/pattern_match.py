@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Optional
 
 from .equality import genia_equal
+from .numeric_literals import materialize_legacy_numeric
 from .values import GeniaMap, GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
 
@@ -333,7 +334,8 @@ def match_pattern_atom(
         # R18 (#794): a literal pattern matches exactly when the literal and the
         # candidate are Genia-equal, so a `1` literal matches 1.0 but not true.
         # A kind difference is a mismatch, never an error.
-        return {} if genia_equal(pattern.value, arg) else None
+        expected = materialize_legacy_numeric(pattern.value)
+        return {} if genia_equal(expected, arg) else None
     if isinstance(pattern, IrPatWildcard):
         return {}
     if isinstance(pattern, IrPatRest):

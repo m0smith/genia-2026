@@ -54,5 +54,10 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # expressible over the protocol and require both supported open_functions
     # and multi_file_eval capabilities, so both total and passed increase by
     # exactly 8. The Python adapter advertises both.
-    assert "Summary: total=703 passed=685 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # Issue #838 N-1 adds 15 portable exact-numeric parse/IR shared-spec
+    # cases (8 parse, 7 ir) covering tagged integer/decimal literal
+    # normalization. All 15 are plain parse/ir-category cases with no
+    # unexpressible fixture dependency, so both total and passed increase by
+    # exactly 15; unsupported stays at 18.
+    assert "Summary: total=718 passed=700 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

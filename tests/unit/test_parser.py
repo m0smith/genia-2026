@@ -7,20 +7,20 @@ def test_exact_numeric_parser_dotted_and_exponent_forms() -> None:
     negative = parse_and_normalize("-2.5")
 
     assert dotted["kind"] == "ok"
-    assert dotted["ast"][0]["value"] == {
+    assert dotted["ast"]["value"] == {
         "kind": "decimal",
         "coefficient": "125",
         "exponent": "-2",
     }
     assert exponent["kind"] == "ok"
-    assert exponent["ast"][0]["value"] == {
+    assert exponent["ast"]["value"] == {
         "kind": "decimal",
         "coefficient": "1",
         "exponent": "3",
     }
     assert negative["kind"] == "ok"
-    assert negative["ast"][0]["kind"] == "Unary"
-    assert negative["ast"][0]["expr"]["value"] == {
+    assert negative["ast"]["kind"] == "Unary"
+    assert negative["ast"]["expr"]["value"] == {
         "kind": "decimal",
         "coefficient": "25",
         "exponent": "-1",
