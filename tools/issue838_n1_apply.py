@@ -240,3 +240,38 @@ text = text.replace(
     "if isinstance(pattern, IrPatLiteral):\n        expected = materialize_legacy_numeric(pattern.value)\n        return {} if genia_equal(expected, arg) else None",
 )
 p.write_text(text)
+
+# TEST-phase migration of existing unit expectations to the approved tagged
+# portable numeric payload. The implementation workflow does not commit tests;
+# these rewrites only keep the focused regression execution aligned with the
+# separately committed N-1 contract/test migration.
+replace(
+    "tests/unit/test_ir.py",
+    "assert expr_stmt.expr.source.value == 3",
+    'assert expr_stmt.expr.source.value == {"kind": "integer", "digits": "3"}',
+    1,
+)
+replace(
+    "tests/unit/test_ir.py",
+    "assert expr_stmt.expr.items[0].value.value == 1",
+    'assert expr_stmt.expr.items[0].value.value == {"kind": "integer", "digits": "1"}',
+    1,
+)
+replace(
+    "tests/unit/test_ir.py",
+    "assert first.items[0].value == 0",
+    'assert first.items[0].value == {"kind": "integer", "digits": "0"}',
+    1,
+)
+replace(
+    "tests/unit/test_ir.py",
+    "assert expr_stmt.expr.left.value == 10",
+    'assert expr_stmt.expr.left.value == {"kind": "integer", "digits": "10"}',
+    1,
+)
+replace(
+    "tests/unit/test_ir.py",
+    "assert expr_stmt.expr.right.value == 2",
+    'assert expr_stmt.expr.right.value == {"kind": "integer", "digits": "2"}',
+    1,
+)
