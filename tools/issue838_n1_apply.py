@@ -210,6 +210,12 @@ replace(
     "    if isinstance(pattern, Number):\n        return materialize_legacy_numeric(pattern.value)\n",
     1,
 )
+replace(
+    "src/genia/evaluator.py",
+    "        if isinstance(node, IrLiteral):\n            return format_debug(node.value)\n",
+    "        if isinstance(node, IrLiteral):\n            return format_debug(materialize_legacy_numeric(node.value))\n",
+    1,
+)
 
 p = Path("src/genia/pattern_match.py")
 text = p.read_text()
