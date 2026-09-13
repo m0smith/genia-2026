@@ -122,6 +122,7 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
+    from genia.numeric_values import construct_exact, construct_float64, construct_rational
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -239,6 +240,7 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
+    from .numeric_values import construct_exact, construct_float64, construct_rational
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -4165,6 +4167,15 @@ def make_global_env(
         next_state = _rng_next_state(rng_state.state)
         return [GeniaRng(next_state), next_state % upper]
 
+    def rational_fn(numerator: Any, denominator: Any) -> Any:
+        return construct_rational(numerator, denominator)
+
+    def float64_fn(value: Any) -> Any:
+        return construct_float64(value)
+
+    def exact_fn(value: Any) -> Any:
+        return construct_exact(value)
+
     def sleep_fn(ms: Any) -> None:
         if not isinstance(ms, (int, float)) or isinstance(ms, bool):
             raise TypeError("sleep expected a non-negative number")
@@ -5719,6 +5730,9 @@ def make_global_env(
     env.set("_rand_int", rand_int_fn)
     env.set("_rand_int_seeded", seeded_rand_int_fn)
     env.set("sleep", sleep_fn)
+    env.set("rational", rational_fn)
+    env.set("float64", float64_fn)
+    env.set("exact", exact_fn)
     env.set("_byte_length", byte_length_fn)
     env.set("_is_empty", is_empty_fn)
     env.set("_concat", concat_fn)

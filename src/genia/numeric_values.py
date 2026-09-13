@@ -466,6 +466,82 @@ def negate(value: Any) -> Any:
     raise TypeError(f"cannot negate {value!r}")
 
 
+def construct_rational(numerator: Any, denominator: Any) -> "int | Rational":
+    """``rational(numerator, denominator)`` (contract section 4).
+
+    Both arguments must be Integers (plain Python ``int``, never ``bool``).
+    A zero denominator or a non-Integer argument is deterministic numeric
+    misuse (contract section 17: "invalid `rational` arguments or zero
+    denominator"), not a host ``TypeError``/``ZeroDivisionError``.
+    """
+    if (
+        not isinstance(numerator, int)
+        or isinstance(numerator, bool)
+        or not isinstance(denominator, int)
+        or isinstance(denominator, bool)
+    ):
+        raise NumericMisuseError("rational arguments must be Integers")
+    if denominator == 0:
+        raise NumericMisuseError("rational denominator must be nonzero")
+    return make_rational(numerator, denominator)
+
+
+def construct_float64(value: Any) -> "Float64":
+    """``float64(value)`` (contract section 5).
+
+    Accepted input is an exact numeric value (Integer/Decimal/Rational) or an
+    existing Float64, which is returned unchanged. Exact input is converted
+    using IEEE-754 round-to-nearest, ties-to-even (Python's correctly-rounded
+    big-int true division, via :func:`to_fraction`). A magnitude exceeding
+    the largest finite binary64 value is deterministic numeric misuse rather
+    than silently producing infinity (contract section 5/17). Exact
+    mathematical zero converts to positive Float64 zero.
+    """
+    if isinstance(value, Float64):
+        return value
+    if isinstance(value, bool) or not isinstance(value, (int, Decimal, Rational)):
+        raise NumericMisuseError("float64 expects an exact numeric value or Float64")
+    fraction = to_fraction(value)
+    try:
+        result = fraction.numerator / fraction.denominator
+    except OverflowError:
+        raise NumericMisuseError("float64 conversion exceeds the largest finite binary64 value") from None
+    if result in (float("inf"), float("-inf")):
+        raise NumericMisuseError("float64 conversion exceeds the largest finite binary64 value")
+    return Float64(result)
+
+
+def construct_exact(value: Any) -> "int | Decimal | Rational":
+    """``exact(value)`` (contract section 6).
+
+    - Integer/Decimal/Rational -> unchanged exact value
+    - finite Float64 -> Decimal denoting the exact real value represented by
+      the binary64 bits (never the shortest round-trip decimal, and never
+      collapsed to Integer even when the represented value is mathematically
+      integral -- contract section 3's "Decimal kind is retained" rule), via
+      the exact ``as_integer_ratio()`` numerator/denominator (always a power
+      of two, so it always terminates in base 10) fed through
+      :func:`_fraction_to_decimal`
+    - Float64 +0.0/-0.0 -> Decimal zero
+    - Float64 NaN or +/-infinity -> conversion failure (deterministic
+      numeric misuse, contract section 17)
+    - any other (non-numeric, or boolean) input -> conversion failure
+    """
+    if isinstance(value, bool):
+        raise NumericMisuseError("exact expects a numeric value")
+    if isinstance(value, (int, Decimal, Rational)):
+        return value
+    if isinstance(value, Float64):
+        raw = value.value
+        if raw != raw:  # noqa: PLR0124 - explicit NaN check
+            raise NumericMisuseError("exact conversion of Float64 NaN is invalid")
+        if raw in (float("inf"), float("-inf")):
+            raise NumericMisuseError("exact conversion of Float64 infinity is invalid")
+        numerator, denominator = raw.as_integer_ratio()
+        return _fraction_to_decimal(numerator, denominator)
+    raise NumericMisuseError("exact expects a numeric value")
+
+
 def materialize_exact_numeric(value: Any) -> Any:
     """Build a real runtime value from a tagged numeric literal payload.
 
