@@ -133,6 +133,18 @@ _ARITH_OP_FUNCTIONS = {
     "PERCENT": _numeric_values.remainder,
 }
 
+# Issue #838 step 4 (docs/design/exact-numeric-model-contract.md section
+# 10.1/10.2): ordered comparison per comparison symbol, expressed over the
+# comparison-integer convention returned by ``numeric_values.compare_numeric``
+# (negative/zero/positive). ``None`` (Float64 NaN) is handled by the caller,
+# not here — every one of these is simply false for an unordered NaN operand.
+_COMPARE_OP_FUNCTIONS = {
+    "LT": lambda c: c < 0,
+    "LE": lambda c: c <= 0,
+    "GT": lambda c: c > 0,
+    "GE": lambda c: c >= 0,
+}
+
 
 def _numeric_operand_kind(value: Any) -> str | None:
     """Classify an arithmetic operand for exact-numeric dispatch (issue #838 step 3).
@@ -208,6 +220,48 @@ def _try_exact_numeric_arith(op: str, left: Any, right: Any) -> tuple[bool, Any]
             GeniaMap().put("source", symbol).put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)),
         )
     return True, result
+
+
+def _try_exact_numeric_compare(op: str, left: Any, right: Any) -> tuple[bool, Any]:
+    """Attempt contract-driven exact/Float64 ordered comparison for a binary op.
+
+    Mirrors ``_try_exact_numeric_arith``'s boundary: returns ``(True, result)``
+    only when at least one operand is an explicit Decimal/Rational/Float64
+    value (docs/design/exact-numeric-model-contract.md section 10.1/10.2), and
+    ``(False, None)`` to let the existing native Python comparison operator in
+    ``eval_binary`` handle plain Integer/Integer, host-float/host-float, and
+    Integer/host-float comparisons unchanged — those are already correct
+    (CPython compares arbitrary-precision int/float pairs exactly) and are out
+    of this slice's scope, matching ``numeric_values.py``'s module docstring
+    on the legacy decimal-literal-as-float bridge.
+    """
+    fn = _COMPARE_OP_FUNCTIONS.get(op)
+    if fn is None:
+        return False, None
+    left_kind = _numeric_operand_kind(left)
+    right_kind = _numeric_operand_kind(right)
+    if left_kind is None or right_kind is None:
+        return False, None
+    symbol = QUOTE_OPERATOR_SYMBOLS.get(op, op)
+    if left_kind == "bool" or right_kind == "bool":
+        raise _numeric_values.NumericMisuseError("boolean operands are not numbers")
+    if left_kind == "legacy" and right_kind == "legacy":
+        return False, None
+    if isinstance(left, float) or isinstance(right, float):
+        # A legacy decimal-literal host float meeting an explicit
+        # Decimal/Rational/Float64 value has no established bridge yet (see
+        # `_try_exact_numeric_arith`'s matching note); a type-error result,
+        # not a native-operator TypeError, keeps this consistent with the
+        # arithmetic dispatch's own boundary for the same combination.
+        return True, make_none(
+            "type-error",
+            GeniaMap().put("source", symbol).put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)),
+        )
+    comparison = _numeric_values.compare_numeric(left, right)
+    if comparison is None:
+        # Float64 NaN: ordered comparisons are false (contract section 10.2).
+        return True, False
+    return True, fn(comparison)
 
 
 def quote_node(node: Node) -> Any:
@@ -1701,6 +1755,10 @@ class Evaluator:
             return right
         if node.op in _ARITH_OP_FUNCTIONS:
             handled, result = _try_exact_numeric_arith(node.op, left, right)
+            if handled:
+                return result
+        elif node.op in _COMPARE_OP_FUNCTIONS:
+            handled, result = _try_exact_numeric_compare(node.op, left, right)
             if handled:
                 return result
         match node.op:

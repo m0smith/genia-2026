@@ -35,6 +35,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from .numeric_values import NUMERIC_NAN, Decimal, Float64, Rational, numeric_extended_value
 from .sheet import GeniaSheet
 from .values import (
     GeniaBytes,
@@ -177,6 +178,32 @@ def _int_equals_float(integer: int, number: float) -> bool:
     return integer == int(number)
 
 
+# ---------------------------------------------------------------------------
+# exact numeric model (issue #838 step 4)
+# ---------------------------------------------------------------------------
+#
+# docs/design/exact-numeric-model-contract.md section 10: Integer, Decimal,
+# and Rational compare by mathematical value for `==`/`!=` (10.1), and a
+# finite Float64 bridges to that same exact family by its exact represented
+# mathematical (dyadic) value, never by rounding the exact operand (10.2).
+# This generalizes R18's existing Integer/host-float bridge above without
+# replacing it: the pre-existing `_numeric_equal` (Integer vs. host `float`)
+# is untouched because decimal-literal source materialization is still on the
+# legacy `materialize_legacy_numeric` bridge (see numeric_values.py's module
+# docstring) — host `float` here is not yet the contract's Float64 domain.
+
+_NEW_NUMERIC: tuple[type, ...] = (Decimal, Rational, Float64)
+
+
+def _extended_numeric_equal(left: Any, right: Any) -> bool:
+    """Contract section 10.1/10.2 cross-family exact/Float64 equality."""
+    left_value = numeric_extended_value(left)
+    right_value = numeric_extended_value(right)
+    if left_value is NUMERIC_NAN or right_value is NUMERIC_NAN:
+        return False
+    return left_value == right_value
+
+
 def _numeric_equal(left: Any, right: Any) -> bool:
     left_is_int = isinstance(left, int)
     right_is_int = isinstance(right, int)
@@ -244,11 +271,25 @@ def genia_equal(left: Any, right: Any) -> bool:
     if left_is_bool or right_is_bool:
         return left_is_bool and right_is_bool and left is right
 
-    # 2. Numbers, including the only cross-kind bridge in R18.
-    if isinstance(left, (int, float)):
+    # 2. Numbers, including the R18 int/float bridge and the exact-numeric
+    #    model's Integer/Decimal/Rational/Float64 bridge (contract 10.1/10.2).
+    left_is_num = isinstance(left, (int, float, *_NEW_NUMERIC))
+    right_is_num = isinstance(right, (int, float, *_NEW_NUMERIC))
+    if left_is_num or right_is_num:
+        if not (left_is_num and right_is_num):
+            return False
+        if isinstance(left, _NEW_NUMERIC) or isinstance(right, _NEW_NUMERIC):
+            if isinstance(left, float) or isinstance(right, float):
+                # A legacy decimal-literal host `float` meeting an explicit
+                # Decimal/Rational/Float64 value is not a case the contract
+                # defines yet: no source syntax produces a "new" value
+                # alongside a legacy decimal literal in this gate (see
+                # numeric_values.py's module docstring), so there is no
+                # established bridge to reuse here. Unequal rather than
+                # inventing one ahead of the literal-materialization switch.
+                return False
+            return _extended_numeric_equal(left, right)
         return _numeric_equal(left, right)
-    if isinstance(right, (int, float)):
-        return False
 
     # 3. Strings and symbols are distinct kinds and never compare across.
     if isinstance(left, str):
@@ -443,6 +484,32 @@ def canonical_map_key(value: Any) -> Any:
         # identity. For non-NaN floats the host's own comparison is exactly IEEE
         # equality, which is the contract, and infinities stay distinct by sign.
         return ("float", value)
+
+    if isinstance(value, (Decimal, Rational)):
+        # Contract section 10.3: legal numeric keys use the same equality
+        # relation as `==`, so an exact Decimal/Rational collapses to the
+        # same identity as a mathematically-equal Integer/Rational key. A
+        # legacy host `float` key is deliberately not unified here — see the
+        # matching note in `genia_equal`'s numeric dispatch above.
+        fraction = numeric_extended_value(value)
+        if fraction.denominator == 1:
+            return ("num", fraction.numerator)
+        return ("exact-ratio", fraction.numerator, fraction.denominator)
+
+    if isinstance(value, Float64):
+        extended = numeric_extended_value(value)
+        if extended is NUMERIC_NAN:
+            raise _key_error(_KEY_NAN_MESSAGE)
+        if extended in (float("inf"), float("-inf")):
+            # Kept distinct from a legacy host-float infinity key for the
+            # same reason `genia_equal` never bridges a Float64 to a legacy
+            # `float`: no equality is ever established between the two
+            # families in this gate, so their key identities must not
+            # collide either.
+            return ("float64-inf", extended)
+        if extended.denominator == 1:
+            return ("num", extended.numerator)
+        return ("exact-ratio", extended.numerator, extended.denominator)
 
     if isinstance(value, str):
         return ("string", value)

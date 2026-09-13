@@ -1,9 +1,13 @@
-"""Exact numeric runtime value model (issue #838 slice 2).
+"""Exact numeric runtime value model (issue #838 slices 2-4).
 
-This module implements the *value model* portion of
-``docs/design/exact-numeric-model-contract.md`` sections 3, 4, and 5:
-canonical runtime representations for Decimal and Rational, and an explicit
-Float64 tag, independent of any host-native ``int``/``float`` conflation.
+This module implements the *value model*, *arithmetic*, and *equality/
+comparison support* portions of ``docs/design/exact-numeric-model-contract.md``
+sections 3, 4, 5, 7, 8, 9, and 10: canonical runtime representations for
+Decimal and Rational, an explicit Float64 tag independent of any host-native
+``int``/``float`` conflation, exact arithmetic/division/remainder, and the
+extended-value helpers (:func:`numeric_extended_value`, :func:`compare_numeric`)
+that ``genia.equality`` and ``genia.evaluator`` build cross-family
+equality/ordering/map-key identity on top of (step 4, issue #838).
 
 Scope boundary (see PR #839 discussion for issue #838):
 
@@ -12,23 +16,26 @@ Scope boundary (see PR #839 discussion for issue #838):
 - ``Decimal`` and ``Rational`` are new frozen value types with canonical
   construction per contract sections 3 and 4.
 - ``Float64`` is a new explicit tag distinguishing an approximate binary64
-  value from any exact numeric value; earlier code paths never produced this
-  type since decimal-classified source literals materialized as Python
-  ``float`` through the temporary ``materialize_legacy_numeric`` bridge
-  (``src/genia/numeric_literals.py``).
-- This module intentionally implements **no** arithmetic operators,
-  cross-kind equality/ordering, display/debug rendering, JSON boundary
-  behavior, or ``exact()``/``float64()``/``rational()`` conversion builtins.
-  Those are separately staged follow-on slices (contract sections 6-14) and
-  are not implemented here. Wiring these types into the live evaluator ahead
-  of that arithmetic/equality/rendering work would regress the existing
-  shared-spec suite, which already relies on decimal-classified literals
-  behaving like Python ``float`` for cross-kind equality (``1 == 1.0``),
-  arithmetic (``0.0 - pinf``), NaN/signed-zero semantics, and JSON/format
-  rendering (see e.g. ``spec/eval/r18-equality-*.yaml``,
-  ``spec/eval/json-representation-number-boundaries.yaml``). Until those
-  follow-on slices land, ``materialize_legacy_numeric`` remains the live
-  bridge and is left unchanged.
+  value from any exact numeric value; decimal-classified source literals
+  still materialize as plain Python ``float`` through the temporary
+  ``materialize_legacy_numeric`` bridge (``src/genia/numeric_literals.py``),
+  so this module's Decimal/Float64 types remain unreachable from ordinary
+  Genia source until that bridge is switched over (step 5/6) — the only
+  currently source-reachable "new" value is Rational, produced by
+  Integer/Integer division (e.g. ``1 / 3``).
+- Cross-kind equality/ordering/map-key identity for Integer/Decimal/
+  Rational/Float64 (contract section 10) is implemented here and consumed by
+  ``genia.equality``/``genia.evaluator``; it deliberately does **not** bridge
+  to the legacy decimal-literal-as-float domain (plain Python ``float``
+  produced by ``materialize_legacy_numeric``) — that stays on the
+  pre-existing R18 Integer/host-float rule untouched, since flipping it is
+  shown to regress the existing shared-spec suite (see
+  ``spec/eval/r18-equality-*.yaml``,
+  ``spec/eval/json-representation-number-boundaries.yaml``). Display/debug
+  rendering and the JSON boundary (contract sections 12-14) and the
+  ``exact()``/``float64()``/``rational()`` conversion builtins (contract
+  section 6) remain separately staged follow-on slices and are not
+  implemented here.
 
 Booleans are never numbers: :func:`is_numeric_value` explicitly excludes
 ``bool`` even though Python's ``bool`` is an ``int`` subclass, per contract
@@ -39,6 +46,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal as _PyDecimal
+from fractions import Fraction
 from math import floor as _math_floor
 from math import gcd
 from typing import Any
@@ -242,6 +250,71 @@ def _fraction_to_decimal(numerator: int, denominator: int) -> "Decimal":
     scale = max(twos, fives)
     multiplier = (2 ** (scale - twos)) * (5 ** (scale - fives))
     return Decimal(numerator * multiplier, -scale)
+
+
+def to_fraction(value: "int | Decimal | Rational") -> Fraction:
+    """Return the exact mathematical value of an Integer/Decimal/Rational.
+
+    Used by the equality/comparison layer (contract section 10.1) so
+    cross-family exact comparison never goes through a lossy intermediate
+    representation.
+    """
+    numerator, denominator = _as_fraction(value)
+    return Fraction(numerator, denominator)
+
+
+# Sentinel for a numeric value with no well-ordered/well-equal mathematical
+# value (only Float64 NaN, per contract sections 5/10.2). Kept as a private
+# module-level object rather than a class so identity comparison (`is`) is
+# the only supported operation on it, matching the contract's "NaN compares
+# unequal to every value including itself" rule at the extended-value layer.
+NUMERIC_NAN = object()
+
+
+def numeric_extended_value(value: Any) -> "Fraction | float | object":
+    """Return the extended mathematical value of a numeric value.
+
+    Contract sections 10.1/10.2: Integer/Decimal/Rational always return an
+    exact :class:`fractions.Fraction`. Float64 returns the same for any
+    finite value (an exact dyadic conversion, never a rounded one), the host
+    float ``inf``/``-inf`` for a Float64 infinity, or the module-level
+    :data:`NUMERIC_NAN` sentinel for Float64 NaN.
+
+    Raises ``TypeError`` for a non-numeric value (including ``bool``); the
+    boolean-is-not-number rule is enforced by callers before this is reached.
+    """
+    if isinstance(value, bool):
+        raise TypeError(f"not a numeric value: {value!r}")
+    if isinstance(value, (int, Decimal, Rational)):
+        return to_fraction(value)
+    if isinstance(value, Float64):
+        raw = value.value
+        if raw != raw:  # noqa: PLR0124 - explicit NaN check
+            return NUMERIC_NAN
+        if raw in (float("inf"), float("-inf")):
+            return raw
+        return Fraction(raw)
+    raise TypeError(f"not a numeric value: {value!r}")
+
+
+def compare_numeric(left: Any, right: Any) -> "int | None":
+    """Compare two Integer/Decimal/Rational/Float64 values by mathematical value.
+
+    Returns ``-1``, ``0``, or ``1`` per the usual convention, or ``None`` when
+    either operand is Float64 NaN (contract section 10.2: "ordered
+    comparisons involving NaN are false" — callers turn ``None`` into
+    ``False`` for every one of ``<``/``<=``/``>``/``>=``). Extended-real
+    infinities order as usual against every finite exact/Float64 value.
+    """
+    left_value = numeric_extended_value(left)
+    right_value = numeric_extended_value(right)
+    if left_value is NUMERIC_NAN or right_value is NUMERIC_NAN:
+        return None
+    if left_value < right_value:
+        return -1
+    if left_value > right_value:
+        return 1
+    return 0
 
 
 def _is_exact_zero(value: "int | Decimal | Rational") -> bool:

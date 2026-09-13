@@ -59,5 +59,10 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # normalization. All 15 are plain parse/ir-category cases with no
     # unexpressible fixture dependency, so both total and passed increase by
     # exactly 15; unsupported stays at 18.
-    assert "Summary: total=718 passed=700 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # Issue #838 step 4 adds 1 portable eval-category case
+    # (exact-numeric-equality-comparison-rational.yaml) covering Rational
+    # cross-kind equality/ordering by mathematical value. It has no
+    # unexpressible fixture dependency, so both total and passed increase by
+    # exactly 1; unsupported stays at 18.
+    assert "Summary: total=719 passed=701 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
