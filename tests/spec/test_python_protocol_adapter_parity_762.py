@@ -64,5 +64,11 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # cross-kind equality/ordering by mathematical value. It has no
     # unexpressible fixture dependency, so both total and passed increase by
     # exactly 1; unsupported stays at 18.
-    assert "Summary: total=719 passed=701 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # Issue #838 step 5 adds 1 portable eval-category case
+    # (exact-numeric-conversion-builtins.yaml) covering the `rational(...)`/
+    # `float64(...)`/`exact(...)` explicit conversion builtins over
+    # source-reachable Integer/Rational values. It has no unexpressible
+    # fixture dependency, so both total and passed increase by exactly 1;
+    # unsupported stays at 18.
+    assert "Summary: total=720 passed=702 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
