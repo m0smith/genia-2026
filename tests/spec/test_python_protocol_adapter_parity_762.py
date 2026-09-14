@@ -70,5 +70,9 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # source-reachable Integer/Rational values. It has no unexpressible
     # fixture dependency, so both total and passed increase by exactly 1;
     # unsupported stays at 18.
-    assert "Summary: total=720 passed=702 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # Issue #841 adds 1 portable eval-category case
+    # (json-decode-lexical-decimal.yaml) covering lexical JSON Decimal
+    # decode/round-trip. It has no unexpressible fixture dependency, so both
+    # total and passed increase by exactly 1; unsupported stays at 18.
+    assert "Summary: total=721 passed=703 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
