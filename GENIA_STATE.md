@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete — gate NOT YET complete)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete, issue #840 closed one blocker — gate NOT YET complete)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2583,19 +2583,16 @@ the future R21 C++ host — must implement for Integer/Decimal/Rational/
 Float64 numeric semantics. It is implementation-ready but is not itself
 evidence of implementation; this section records what the Python reference
 host actually implements today, landed across N-1 and Steps 2-6 of issue
-#838 (PR #839). The contract section 21 ("Implementation acceptance")
-skeptical release-truth audit ("Step 7") has now been run; its full findings,
-re-derived evidence, and explicit **R21 semantic implementation: NO-GO**
-verdict are recorded in
-`docs/analysis/exact-numeric-model-release-truth-audit.md`. The audit found
-Steps 1-6 internally correct and honestly documented, fixed one
-formatting-only nit, and confirmed (rather than newly discovered) that the
-contract's own section 21 acceptance bar is not yet met: the legacy
-decimal-literal-to-float bridge is still in place and JSON decode-side
-exactness (contract 13.5) is unimplemented, both of which are material to
-R21's minimal capability floor per that audit's §4. This section is not
-itself that audit; it records implemented Python-reference-host behavior
-only.
+#838 (PR #839), plus issue #840. The contract section 21 ("Implementation
+acceptance") skeptical release-truth audit ("Step 7", `docs/analysis/exact-
+numeric-model-release-truth-audit.md`) recorded **R21 semantic
+implementation: NO-GO** against Steps 1-6, naming two concrete blockers: the
+legacy decimal-literal-to-float bridge, and unimplemented JSON decode-side
+exactness (contract 13.5). Issue #840 has since closed the first blocker
+(below); the second (JSON decode) and legacy `json_parse`/`json_stringify`
+reconciliation remain open follow-on issues (#841, #842) before a fresh
+skeptical gate re-audit (#843). This section is not itself that audit; it
+records implemented Python-reference-host behavior only.
 
 Landed:
 
@@ -2670,24 +2667,35 @@ Landed:
     **not** to Rational, whose canonical `<numerator>/<denominator>` text is
     not a shape those two presentation operations are well-defined against;
     a `.n`-spec Rational still gets correct decimal rounding.
+- **Step 6.5 (issue #840) — retired the decimal-literal Float64 bridge.** A
+  decimal-classified source literal (e.g. `1.5`, `1e3`, `1.25e-2`) now
+  materializes directly as the real, canonical `Decimal` runtime value from
+  `numeric_values.py` — never a plain host `float` — via the new
+  `numeric_literals.materialize_literal_value` adapter, which every
+  `Number`/`IrLiteral` evaluation path in `src/genia/evaluator.py` and
+  `src/genia/pattern_match.py` now calls (replacing the retired
+  `materialize_legacy_numeric`, which has been deleted). Integer
+  materialization and unary-minus lowering (`-1.25` as `IrUnary(MINUS,
+  IrLiteral(1.25))`) are unchanged. Equivalent spellings (`1.0`, `1.00`,
+  `100e-2`) canonicalize to the same Decimal value and compare equal; a
+  high-precision literal is not rounded through binary64; `float64(1.5)` and
+  `exact(0.1)` now succeed because their operand is exact Decimal input.
+  Reconciling this switch also required updating several pre-existing
+  int/float-only callers to recognize the whole exact family
+  (`syntax_self_evaluating_fn` for the metacircular evaluator, JSON Schema's
+  `number` type match, `sum(...)`, R12 retrieval's embedding/score
+  finiteness checks, shell-stage stdin materialization, `render_csv` scalar
+  cells, and the debug-protocol value-kind label) and reconstructing five
+  shared R18 NaN specs whose absurdly-large-decimal-literal-overflow trick
+  no longer produces infinity under exact arithmetic (now built from
+  `float64(1e308) * float64(1e308)` Float64 overflow instead).
 
 Explicitly not yet implemented (tracked for a later slice / the eventual
 Step 7 skeptical audit, not claimed here):
 
-- **The legacy decimal-literal-to-float bridge is still in place.** A
-  decimal-classified source literal (e.g. `1.5`) still lowers, at
-  evaluation time, through `numeric_literals.materialize_legacy_numeric` to
-  a plain host `float`, not to the new `Decimal` type. `Decimal`/`Float64`
-  values are reachable from ordinary Genia source only via the Step 5
-  conversion builtins (`exact(...)`, `float64(...)`) and Rational only via
-  `rational(...)` and Integer/Integer division; a bare `1.5` literal is
-  **not** a `Decimal` in the current implementation, and `float64(1.5)`
-  (passing a raw decimal literal) is deterministic numeric misuse today
-  because the literal is a plain `float`, not an exact numeric value.
-  Switching this bridge over is a separate, not-yet-done slice.
 - JSON decode of a fraction/exponent token to exact Decimal (contract
-  section 13.5) — see above; only encode-side Decimal/Rational/Float64
-  support landed in Step 6.
+  section 13.5) is still open (issue #841); only encode-side
+  Decimal/Rational/Float64 support landed in Step 6.
 - Precision contexts and transcendental approximation APIs (contract
   section 16) are explicitly out of gate scope and unimplemented, as the
   contract itself states.
@@ -2699,23 +2707,31 @@ Step 7 skeptical audit, not claimed here):
   with no C++ interpreter implemented.
 
 Step 7's skeptical release-truth audit
-(`docs/analysis/exact-numeric-model-release-truth-audit.md`) has now been
-run and reached **R21 semantic implementation: NO-GO**, with the two gaps
-above (legacy literal bridge, JSON decode exactness) named as the concrete
-remaining blockers material to R21's minimal capability floor; precision
+(`docs/analysis/exact-numeric-model-release-truth-audit.md`) recorded
+**R21 semantic implementation: NO-GO** against Steps 1-6, naming the legacy
+literal bridge and JSON decode exactness as the concrete remaining blockers
+material to R21's minimal capability floor; precision
 contexts/transcendentals (section 16) and the missing second host are
 confirmed real but the former is explicitly out of this gate's scope and
-the latter is outside this repository's boundary.
+the latter is outside this repository's boundary. Issue #840 has since
+closed the legacy-literal-bridge blocker (above); JSON decode exactness
+(#841) and legacy `json_parse`/`json_stringify` reconciliation (#842) remain
+open, with a fresh skeptical gate re-audit tracked as issue #843 — the Step
+7 verdict text above is not re-litigated here and remains the historical
+record of that audit run.
 
-Evidence for Steps 1-6: `python -m tools.spec_runner` (720/720, both the
-in-process default adapter and the subprocess E16-1 protocol path via
-`--host 'python3 -m hosts.python.protocol_adapter'`, the latter at
-702 passed / 18 pre-existing unrelated unsupported / 0 failed), the
-targeted numeric unit/spec suites (225/225), the full `pytest -n auto -q`
-partitions (4503 passed / 2 pre-existing unrelated root-sandbox `chmod(0)`
-failures on `-m "not loopback"`, 26 passed on `-m loopback`), `ruff check .`
-clean, and `tests/doc/` (206/206) — all re-run fresh as part of the Step 7
-audit rather than assumed unchanged from Step 6.
+Evidence for Steps 1-6 (unchanged, from the Step 7 audit run): `python -m
+tools.spec_runner` (720/720, both the in-process default adapter and the
+subprocess E16-1 protocol path via `--host 'python3 -m
+hosts.python.protocol_adapter'`, the latter at 702 passed / 18 pre-existing
+unrelated unsupported / 0 failed), the targeted numeric unit/spec suites
+(225/225), the full `pytest -n auto -q` partitions (4503 passed / 2
+pre-existing unrelated root-sandbox `chmod(0)` failures on `-m "not
+loopback"`, 26 passed on `-m loopback`), `ruff check .` clean, and
+`tests/doc/` (206/206). Evidence for issue #840, re-run fresh rather than
+assumed unchanged: `uv run pytest -n auto -q` (2 pre-existing unrelated
+root-sandbox `chmod(0)` failures on `-m "not loopback"` only, otherwise
+green) and `uv run ruff check .` clean.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
