@@ -861,6 +861,7 @@ Implemented as `GeniaSheet` — a frozen dataclass with tuple-backed column stor
 ## 3) Implemented syntax and expression forms
 
 - literals: number, string (single/double quoted + triple-quoted multiline), boolean, `nil`, `none`
+  - numeric source classification (R21 E21-1, see section 9.21): `DIGIT+` classifies as Integer source; `DIGIT+ "." DIGIT+`, `DIGIT+` exponent, and `DIGIT+ "." DIGIT+` exponent (`e`/`E`, optional sign, `DIGIT+`) all classify as Decimal source; `.5` and `5.` are not numeric literals; a malformed exponent (`1e`, `1e+`) is a deterministic `SyntaxError`
 - quote special form: `quote(expr)`
 - quasiquote special form: `quasiquote(expr)`
 - delay special form: `delay(expr)`
@@ -4633,6 +4634,57 @@ Explicit limitations:
   behavior.
 - No feature redesign; this is conformance proof only, matching R13's
   E13-5 precedent.
+
+## 9.21) R21 E21-1 numeric source classification and lexical exactness (issue #853)
+
+Implements only the source-classification portion of
+`docs/design/r21-numeric-source-portable-representation-contract.md`
+(sections 2-3). Numeric source literals now classify as Integer or Decimal
+source purely lexically, with zero host binary-float construction during
+classification:
+
+- `DIGIT+` classifies as Integer source.
+- `DIGIT+ "." DIGIT+`, `DIGIT+` exponent (`e`/`E`, optional `+`/`-` sign,
+  `DIGIT+`), and `DIGIT+ "." DIGIT+` exponent all classify as Decimal
+  source. Exponent forms (`1e3`, `1E+3`, `1.25e-2`) are newly accepted as
+  numeric literals — the lexer previously had no exponent support at all,
+  so `1e3` mis-tokenized as `NUMBER "1"` followed by `IDENT "e3"` and could
+  not parse as a number.
+- `.5` (leading dot) and `5.` (trailing dot) remain rejected: neither is an
+  R21 numeric literal, and both already produced a deterministic
+  `SyntaxError` from the existing bare-`.` punctuation gap.
+- A malformed exponent (`1e`, `1e+`, with no digits after the marker) is
+  now a deterministic `SyntaxError("Malformed exponent in numeric literal
+  at <pos>")` raised by the lexer, instead of silently leaving a dangling
+  `e`/`E` for the next token.
+- New `src/genia/numeric_source.py`: `classify_numeric_literal(text)`
+  performs the lexical classification and, for Decimal source, canonical
+  base-10 `(coefficient, exponent)` normalization (value = coefficient ×
+  10^exponent; zero normalizes to `("0", "0")`; trailing base-10 zeros are
+  stripped from the magnitude with a matching exponent increase). This
+  function uses only string slicing and Python `int` arithmetic on
+  exponent offsets — it never calls `float(...)`.
+- The `Number` AST node gains `source_kind` (`"integer"`/`"decimal"`),
+  `digits` (Integer only), and `coefficient`/`exponent` (Decimal only)
+  fields carrying this classification. These are inert metadata in this
+  ticket, consumed by a later ticket when it changes the Core IR
+  `IrLiteral` payload shape; `Number.value` (the existing evaluator-facing
+  `int`/`float`) and all current evaluator/runtime numeric behavior are
+  unchanged.
+- No Core IR or `IrLiteral` payload change; the frozen minimal portable
+  Core IR node family in `docs/architecture/core-ir-portability.md` is
+  unchanged. No evaluator/runtime Decimal arithmetic, equality, or
+  map-key behavior is introduced.
+- Shared evidence: 11 new `spec/parse/*` cases (9 accept, 2 reject) covering
+  Integer classification, dotted/exponent-only/dotted-exponent Decimal
+  classification, equivalent Decimal spellings, malformed-exponent
+  rejection, and leading/trailing-dot rejection — proven identical through
+  both the in-process path and the R16 subprocess protocol adapter.
+
+Explicit limitations: no tagged `IrLiteral` payload (a later R21 ticket),
+no Decimal/Rational/Float64 runtime arithmetic or conversions, no
+equality/map-key change, and no rendering/formatting/JSON behavior (later
+releases own each of those).
 
 ## 10) Explicitly not implemented (current)
 

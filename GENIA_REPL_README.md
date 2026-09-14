@@ -107,6 +107,11 @@ CLI contract summary (actual behavior):
   - Outcome pattern matching supports literal `none`, structured `none(reason)` / `none(reason, context)`, constructor pattern `some(pattern)`, and `err(reason)` / `err(reason, context)` forms
   - new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception and `get` is the preferred maybe-aware lookup name
 - literals: numbers, strings (single/double quotes + escapes, plus triple-quoted multiline strings), booleans, legacy `nil`, `none`
+  - numeric literals now classify their source as Integer (`DIGIT+`) or
+    Decimal (`DIGIT+ "." DIGIT+`, an exponent form such as `1e3`/`1E+3`, or
+    both) per R21 E21-1; `1.25e-2` is a valid Decimal literal, `.5`/`5.`
+    are not literals, and a malformed exponent (`1e`) is a deterministic
+    parse error — see `GENIA_STATE.md` section 9.21
 - quote special form: `quote(expr)` for syntax-as-data
 - explicit configuration/protected acquisition, CLI adaptation, and qualified views (Experimental): `config_args`, `config_provider`, `config_get`, `config_get_or`, `config_view`, `secret_get`, `secret_get_or`, `secret_view`, and `protected_match`; source/purpose names are quoted symbols, not new global names
   - R10 is release-complete, but this surface remains Experimental; only the Python reference host is implemented
