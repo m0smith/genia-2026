@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete, issues #840-#841 closed two blockers — gate NOT YET complete)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete, issues #840-#842 closed both blockers plus legacy JSON reconciliation — pending issue #843 re-audit)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2583,16 +2583,17 @@ the future R21 C++ host — must implement for Integer/Decimal/Rational/
 Float64 numeric semantics. It is implementation-ready but is not itself
 evidence of implementation; this section records what the Python reference
 host actually implements today, landed across N-1 and Steps 2-6 of issue
-#838 (PR #839), plus issues #840 and #841. The contract section 21
+#838 (PR #839), plus issues #840, #841, and #842. The contract section 21
 ("Implementation acceptance") skeptical release-truth audit ("Step 7",
 `docs/analysis/exact-numeric-model-release-truth-audit.md`) recorded **R21
 semantic implementation: NO-GO** against Steps 1-6, naming two concrete
 blockers: the legacy decimal-literal-to-float bridge, and unimplemented
 JSON decode-side exactness (contract 13.5). Issues #840 and #841 have since
-closed both of those blockers (below); legacy `json_parse`/`json_stringify`
-reconciliation remains an open follow-on issue (#842) before a fresh
-skeptical gate re-audit (#843). This section is not itself that audit; it
-records implemented Python-reference-host behavior only.
+closed both of those blockers, and issue #842 additionally reconciled the
+legacy `json_parse`/`json_stringify` compatibility surface's numeric
+handling (below); a fresh skeptical gate re-audit is tracked as issue #843
+and has not yet run. This section is not itself that audit; it records
+implemented Python-reference-host behavior only.
 
 Landed:
 
@@ -2706,6 +2707,27 @@ Landed:
   (unchanged safe-integer range); JSON never directly constructs Rational.
   Every JSON-encodable exact Decimal and terminating Rational round-trips
   mathematically through `json_encode` -> `json_decode`.
+- **Issue #842 — reconciled legacy `json_parse`/`json_stringify` numeric
+  semantics.** The older, non-safe-integer-gated `json_parse`/
+  `json_stringify` compatibility pair previously used raw
+  `json.loads`/`json.dumps` with no Decimal/Rational/Float64 handling,
+  silently materializing every fraction/exponent token as a host binary
+  float — a second, contradictory numeric interpretation alongside strict
+  `json_decode`/`json_encode`. Both public JSON parser paths now share one
+  lexical codec (`src/genia/builtins.py::_decimal_from_json_number_text`):
+  `json_parse`'s `parse_float` hook (`_legacy_json_decimal`) decodes a
+  fraction/exponent token to exact Decimal directly from its base-10 text,
+  never a host float, while preserving this surface's already-approved
+  permissive posture (no `stable_json_decimal`/safe-integer rejection —
+  legacy has always accepted arbitrary-size integers). `json_stringify`
+  now accepts Decimal/Rational/Float64: Decimal/Rational approximate via
+  the same correctly-rounded binary64 conversion `float64(...)` would use
+  (including a non-terminating Rational, since this surface makes no
+  exactness promise, unlike strict `json_encode`'s rejection of one), and
+  only genuine binary64-range overflow is rejected; Float64 passes through
+  its raw value unchanged. The strict `json_decode`/`json_encode` contract
+  is unaffected; no safe-boundary restriction was added to the legacy
+  surface.
 
 Explicitly not yet implemented (tracked for a later slice / the eventual
 Step 7 skeptical audit, not claimed here):
@@ -2713,9 +2735,6 @@ Step 7 skeptical audit, not claimed here):
 - Precision contexts and transcendental approximation APIs (contract
   section 16) are explicitly out of gate scope and unimplemented, as the
   contract itself states.
-- The older `json_parse`/`json_stringify` pair (separate from
-  `json_encode`/`json_decode`) is unchanged and does not handle
-  Decimal/Rational/Float64 at all.
 - No independent second-host conformance exists for this contract:
   `m0smith/genia-cpp` is confirmed (Step 7 audit) to still be bootstrap-only,
   with no C++ interpreter implemented.
@@ -2728,11 +2747,11 @@ material to R21's minimal capability floor; precision
 contexts/transcendentals (section 16) and the missing second host are
 confirmed real but the former is explicitly out of this gate's scope and
 the latter is outside this repository's boundary. Issues #840 and #841 have
-since closed both of those blockers (above); legacy
-`json_parse`/`json_stringify` reconciliation (#842) remains open, with a
-fresh skeptical gate re-audit tracked as issue #843 — the Step 7 verdict
-text above is not re-litigated here and remains the historical record of
-that audit run.
+since closed both of those blockers, and issue #842 additionally
+reconciled legacy `json_parse`/`json_stringify` numeric handling (above),
+with a fresh skeptical gate re-audit tracked as issue #843 not yet run —
+the Step 7 verdict text above is not re-litigated here and remains the
+historical record of that audit run.
 
 Evidence for Steps 1-6 (unchanged, from the Step 7 audit run): `python -m
 tools.spec_runner` (720/720, both the in-process default adapter and the
@@ -2750,7 +2769,12 @@ ruff check .` clean. Evidence for issue #841, re-run fresh: `uv run pytest
 -n auto -q` (2 pre-existing unrelated root-sandbox `chmod(0)` failures on
 `-m "not loopback"` only, otherwise green — all issue #841 unit/spec cases
 pass), `uv run python -m tools.spec_runner` (721/721), and `uv run ruff
-check .` clean.
+check .` clean. Evidence for issue #842, re-run fresh: `uv run pytest -n
+auto -q` (all issue #842 unit/spec cases pass; only the 2 pre-existing
+`chmod(0)` failures remain), `uv run python -m tools.spec_runner`
+(722/722), `uv run pytest tests/spec/test_python_protocol_adapter_parity_762.py -q`
+(1 passed, confirming the updated 722/704/18/0 pinned parity count), and
+`uv run ruff check .` clean.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
