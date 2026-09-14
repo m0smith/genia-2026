@@ -31,6 +31,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R16 — Multi-Host Conformance Infrastructure](R16.md) — COMPLETE; E16-0 through E16-8 delivered
 - [R17 — Numeric and Ordered-Map Portability Contract](R17.md) — COMPLETE; E17-0 through E17-3 delivered
 - [R18 — Portable Value Equality](R18.md) — COMPLETE; E18-0 through E18-7 delivered
+- [R21 — Numeric Source and Portable Representation](R21.md) — IN PROGRESS; E21-1 through E21-3 delivered, E21-4 (this page) and E21-5 (release audit) remaining
 
 ## Process
 

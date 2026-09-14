@@ -446,6 +446,30 @@ Required constraints:
   activation occurs merely because an `open`/`extend`/`use` statement is
   evaluated.
 
+## 8.6) R21 numeric source classification invariants (Experimental)
+
+- `DIGIT+` classifies as Integer source; `DIGIT+ "." DIGIT+`, `DIGIT+`
+  exponent (`e`/`E`, optional `+`/`-` sign, `DIGIT+`), and
+  `DIGIT+ "." DIGIT+` exponent all classify as Decimal source.
+- Leading-dot (`.5`) and trailing-dot (`5.`) forms are not R21 numeric
+  literals; a malformed exponent (`1e`, `1e+`, no digits after the
+  marker) is a deterministic `SyntaxError`.
+- Decimal source classification/normalization is lexical/base-10 and must
+  never construct a host binary float; equivalent Decimal spellings
+  (`1.0`, `1.00`, `100e-2`) normalize to the same canonical payload while
+  Decimal kind is retained even when the mathematical value is integral.
+- The source sign is not part of the numeric token: `-1.25` remains
+  ordinary unary minus applied to the positive Decimal literal.
+- Numeric source lowers through the existing `IrLiteral` Core IR node
+  with a canonical tagged payload — `{kind: "integer", digits: <canonical
+  unsigned decimal text>}` or `{kind: "decimal", coefficient: <canonical
+  text>, exponent: <canonical text>}` — never a bare host number and
+  never a new numeric Core IR node family. `/` remains ordinary
+  `IrBinary(op=SLASH)`.
+- No Decimal/Rational/Float64 runtime arithmetic, equality, or map-key
+  behavior is implemented by this boundary; see `GENIA_STATE.md` sections
+  9.21–9.22 and `docs/design/r21-numeric-source-portable-representation-contract.md`.
+
 ## 9) Operator model
 
 Implemented operators are limited to:
