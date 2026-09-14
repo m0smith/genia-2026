@@ -45,7 +45,9 @@ def test_r12_status_remains_synchronized_after_release_completion() -> None:
         "docs/design/r12-retrieval-grounding-contract.md": "E12-1 through E12-9 complete",
         "docs/releases/R12.md": "E12-1 through E12-9 delivered",
         "docs/releases/README.md": "E12-1 through E12-9 delivered",
-        "docs/strategy/release-roadmap.md": "E12-1 through E12-9 complete",
+        "docs/strategy/release-roadmap.md": (
+            "| R12 | Retrieval & Grounding | Complete | `docs/releases/R12.md` |"
+        ),
     }
     for path, expected in required.items():
         assert expected in _read(path), f"{path} must preserve synchronized R12 truth"
