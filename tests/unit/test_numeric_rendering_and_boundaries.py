@@ -246,9 +246,9 @@ class TestJsonEncodeBoundary:
         # 0.25 is stable, should encode fine -- sanity check the "happy" path
         assert "some(0.25" in out
 
-    def test_json_decode_still_produces_legacy_float_for_fraction(self, capsys):
-        # Contract section 13.5's decode-to-Decimal requirement is NOT
-        # implemented in this slice -- decode is unchanged.
+    def test_json_decode_produces_exact_decimal_for_fraction(self, capsys):
+        # Contract section 13.5 (issue #841): a JSON fraction/exponent token
+        # decodes to exact Decimal, never a host float.
         run(
             'print(unwrap_or(0, json_decode("1.5")) |> representation_match("json") |> unwrap_or(0))'
         )

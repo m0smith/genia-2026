@@ -1,0 +1,44 @@
+name: json-decode-lexical-decimal
+category: eval
+description: >-
+  Strict JSON decode consumes fraction/exponent number tokens lexically as
+  exact Decimal (contract section 13.5), never through a host binary float,
+  and every JSON-encodable exact Decimal / terminating Rational round-trips
+  mathematically through encode -> decode.
+input:
+  source: |
+    is_err(result) =
+      err(_, _) -> true |
+      _ -> false
+    fraction = unwrap_or(0, json_decode("0.1")) |> representation_match("json") |> unwrap_or(0)
+    exponent = unwrap_or(0, json_decode("1e3")) |> representation_match("json") |> unwrap_or(0)
+    decimal_roundtrip = unwrap_or(0, json_decode(unwrap_or("", json_encode(0.1)))) |> representation_match("json") |> unwrap_or(0)
+    rational_roundtrip = unwrap_or(0, json_decode(unwrap_or("", json_encode(1 / 4)))) |> representation_match("json") |> unwrap_or(0)
+    non_terminating_rational = json_encode(1 / 3)
+    unstable_fraction = json_decode("1e400")
+    [
+      fraction == 0.1,
+      exponent == 1000,
+      decimal_roundtrip == 0.1,
+      rational_roundtrip == (1 / 4),
+      is_err(non_terminating_rational),
+      is_err(unstable_fraction)
+    ]
+expected:
+  stdout: "[true, true, true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 841
+  release: none (pre-release follow-on step for a future R21 gate)
+  contract: >-
+    docs/design/exact-numeric-model-contract.md section 13.5 (JSON number
+    tokens are consumed lexically: integer-form -> Integer, fraction/exponent
+    -> exact Decimal only when `stable_json_decimal` holds; JSON never
+    directly constructs Rational; non-finite spellings remain invalid).
+  note: >-
+    Direct runtime-type inspection (proving a fraction/exponent token
+    decodes to `genia.numeric_values.Decimal` and never a host `float`,
+    including nested-in-array/object cases, negative fractions, unstable
+    rejection, and non-finite rejection) lives in
+    `tests/unit/test_json_decode_lexical_decimal.py`.
