@@ -5,10 +5,11 @@
 Use the focused files in this directory for edits:
 
 - `r15.md` — completed R15 detail
-- `r16-r20.md` — planned portability infrastructure, open-function semantics, and minimal C++ host work
-- `r21-r24.md` — planned C++ expansion and Sheet record pipeline work
-- `r25-r29.md` — planned shaped-data, relational, database-boundary, tooling, and performance work
-- `r30-r32.md` — planned portable storage/resource semantics, location-independent Genia execution, and Genia-native conformance tooling
+- `r16-r20.md` — completed portability foundations through Open Functions
+- `r21-r24.md` — planned exact numeric decomposition and C++ minimal host
+- `r25-r29.md` — planned C++ expansion, MCP, and Sheet record pipelines
+- `r30-r32.md` — planned shaped data, relational, database, tooling, and performance releases R30–R34 (historical filename retained)
+- `r35-r37.md` — planned portable storage/resource semantics, location-independent execution, and Genia-native conformance tooling
 - `sequence.md` — cross-release ordering and dependencies
 - `parking-lot.md` — deferred ideas and historical issue disposition
 
