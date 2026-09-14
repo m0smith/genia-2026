@@ -7,6 +7,9 @@ from collections.abc import Callable
 from typing import Any
 
 from .configuration import contains_protected, declassify
+from .numeric_values import Decimal as _NumDecimal
+from .numeric_values import Float64 as _NumFloat64
+from .numeric_values import Rational as _NumRational
 from .values import (
     GeniaDeclassificationAuthority,
     GeniaMap,
@@ -24,6 +27,25 @@ from .values import (
 
 _JSON_SAFE_INTEGER = 9_007_199_254_740_991
 _JSON_MAX_NESTING = 128
+
+
+def _is_finite_numeric(value: Any) -> bool:
+    """True for a finite numeric value of any kind (issue #840).
+
+    Integer, Decimal, and Rational are always finite by construction (the
+    exact family has no infinity/NaN concept); Float64 and a legacy host
+    ``float`` (still possible pending issue #841's JSON decode closure) are
+    finite exactly when ``math.isfinite`` holds. Booleans are not numbers.
+    """
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, (int, _NumDecimal, _NumRational)):
+        return True
+    if isinstance(value, _NumFloat64):
+        return math.isfinite(value.value)
+    if isinstance(value, float):
+        return math.isfinite(value)
+    return False
 
 
 def _map(**values: Any) -> GeniaMap:
@@ -285,12 +307,7 @@ def _validate_embedding(value: Any, configured_space: str) -> tuple[list[Any], i
     if (
         not isinstance(vector, list)
         or not vector
-        or any(
-            isinstance(item, bool)
-            or not isinstance(item, (int, float))
-            or not math.isfinite(item)
-            for item in vector
-        )
+        or any(not _is_finite_numeric(item) for item in vector)
     ):
         return _embed_invalid("vector")
     dims = value.get("dims")
@@ -458,12 +475,7 @@ def _validate_index_corpus(value: Any) -> tuple[str, int] | GeniaOptionErr:
         if (
             not isinstance(vector, list)
             or not vector
-            or any(
-                isinstance(item, bool)
-                or not isinstance(item, (int, float))
-                or not math.isfinite(item)
-                for item in vector
-            )
+            or any(not _is_finite_numeric(item) for item in vector)
         ):
             return _embedding_invalid("vector")
         dims = embedding.get("dims")
@@ -724,12 +736,7 @@ def _validate_query_embedding(value: Any) -> tuple[str, int]:
     if (
         not isinstance(vector, list)
         or not vector
-        or any(
-            isinstance(item, bool)
-            or not isinstance(item, (int, float))
-            or not math.isfinite(item)
-            for item in vector
-        )
+        or any(not _is_finite_numeric(item) for item in vector)
     ):
         raise TypeError("retrieve expected embedding vector to be non-empty and finite")
     dims = embedding.get("dims")
@@ -902,11 +909,7 @@ class GeniaRetriever:
             if not _valid_chunk(chunk):
                 return _retrieve_invalid("chunk")
             score = result.get("score")
-            if (
-                isinstance(score, bool)
-                or not isinstance(score, (int, float))
-                or not math.isfinite(score)
-            ):
+            if not _is_finite_numeric(score):
                 return _retrieve_invalid("score")
             occurrence = next(
                 (
@@ -995,11 +998,7 @@ def _validate_retrieved_chunks(value: Any) -> list[GeniaMap]:
         if not _valid_chunk(retrieved.get("chunk")):
             raise TypeError("rerank expected a valid retrieved chunk")
         score = retrieved.get("score")
-        if (
-            isinstance(score, bool)
-            or not isinstance(score, (int, float))
-            or not math.isfinite(score)
-        ):
+        if not _is_finite_numeric(score):
             raise TypeError("rerank expected each score to be finite")
     return value
 
@@ -1244,11 +1243,7 @@ class GeniaReranker:
             if not isinstance(result, GeniaMap) or _keys(result) != {"chunk", "score"}:
                 return _rerank_invalid("result")
             score = result.get("score")
-            if (
-                isinstance(score, bool)
-                or not isinstance(score, (int, float))
-                or not math.isfinite(score)
-            ):
+            if not _is_finite_numeric(score):
                 return _rerank_invalid("result")
             provider_chunk = result.get("chunk")
             matched_index = next(

@@ -1282,7 +1282,10 @@ class Evaluator:
             return value.encode("utf-8")
         if isinstance(value, bool):
             return format_display(value).encode("utf-8")
-        if isinstance(value, (int, float)):
+        # Covers Integer (plain int), Decimal, Rational, and Float64 (issue
+        # #840: decimal-literal source materialization is exact Decimal, no
+        # longer a bare host float).
+        if isinstance(value, float) or _numeric_values.is_numeric_value(value):
             return format_display(value).encode("utf-8")
         if isinstance(value, list):
             return "\n".join(format_display(item) for item in value).encode("utf-8")

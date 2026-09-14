@@ -128,10 +128,12 @@ if __package__ in (None, ""):
         Rational as _NumRational,
         _fraction_to_decimal as _numeric_fraction_to_decimal,
         _terminates_in_base10,
+        add as _numeric_values_add,
         construct_exact,
         construct_float64,
         construct_rational,
         decimal_json_number,
+        is_numeric_value,
         stable_json_decimal,
     )
     from genia.test_kernel import NativeTestFailure
@@ -257,10 +259,12 @@ else:
         Rational as _NumRational,
         _fraction_to_decimal as _numeric_fraction_to_decimal,
         _terminates_in_base10,
+        add as _numeric_values_add,
         construct_exact,
         construct_float64,
         construct_rational,
         decimal_json_number,
+        is_numeric_value,
         stable_json_decimal,
     )
     from .test_kernel import NativeTestFailure
@@ -3301,7 +3305,11 @@ def make_global_env(
             return True
         if isinstance(expr, bool):
             return True
-        if isinstance(expr, (int, float)) and not isinstance(expr, bool):
+        # Covers Integer (plain int), Decimal, Rational, and Float64 (issue
+        # #840: decimal-literal source materialization is exact Decimal, no
+        # longer a bare host float, so this must recognize every numeric
+        # runtime kind rather than only Python's own int/float).
+        if is_numeric_value(expr):
             return True
         if isinstance(expr, str):
             return True
@@ -4112,15 +4120,21 @@ def make_global_env(
     def sum_fn(xs: Any) -> Any:
         if not isinstance(xs, list):
             raise TypeError(f"sum expected a list, received {_runtime_type_name(xs)}")
-        total: int | float = 0
+        total: Any = 0
         for index, item in enumerate(xs, start=1):
-            if not isinstance(item, (int, float)) or isinstance(item, bool):
+            # Covers Integer (plain int), Decimal, Rational, and Float64
+            # (issue #840: decimal-literal source materialization is exact
+            # Decimal, not a bare host float).
+            if isinstance(item, bool) or not (isinstance(item, float) or is_numeric_value(item)):
                 raise TypeError(
                     "sum expected a list of numbers; "
                     f"item {index} received {_runtime_type_name(item)}. "
                     "Use keep_some(...), keep_some_else(...), flat_map_some(...), or unwrap_or(...) before sum."
                 )
-            total += item
+            if isinstance(item, float) or isinstance(total, float):
+                total = total + item
+            else:
+                total = _numeric_values_add(total, item)
         return total
 
     for fn in (
@@ -4474,7 +4488,10 @@ def make_global_env(
             return "boolean"
         if isinstance(value, int):
             return "integer"
-        if isinstance(value, float):
+        # Decimal/Rational/Float64 (issue #840: decimal-literal source
+        # materialization is exact Decimal, not a bare host float) are all
+        # `number`-shaped for JSON Schema's `number`/`integer` distinction.
+        if isinstance(value, float) or is_numeric_value(value):
             return "number"
         if isinstance(value, GeniaSymbol):
             return "symbol"
@@ -4498,11 +4515,15 @@ def make_global_env(
         if type_name == "integer":
             return isinstance(value, int) and not isinstance(value, bool)
         if type_name == "number":
-            return (
-                isinstance(value, (int, float))
-                and not isinstance(value, bool)
-                and (not isinstance(value, float) or math.isfinite(value))
-            )
+            if isinstance(value, bool):
+                return False
+            if isinstance(value, (int, _NumDecimal, _NumRational)):
+                return True  # exact family is always finite by construction
+            if isinstance(value, _NumFloat64):
+                return math.isfinite(value.value)
+            if isinstance(value, float):
+                return math.isfinite(value)
+            return False
         if type_name == "string":
             return isinstance(value, str) and not isinstance(value, GeniaSymbol)
         if type_name == "object":

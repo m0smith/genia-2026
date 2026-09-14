@@ -8,6 +8,7 @@ from .debug_protocol import read_json_line, write_json_line
 from .callable import DebugHooks
 from .environment import Env
 from .lexer import SourceSpan
+from .numeric_values import is_numeric_value
 from .values import GeniaRef
 
 
@@ -252,7 +253,7 @@ class StdioDebugSession(DebugHooks):
             return "nil"
         if isinstance(value, bool):
             return "bool"
-        if isinstance(value, (int, float)):
+        if isinstance(value, float) or is_numeric_value(value):
             return "number"
         if isinstance(value, str):
             return "string"

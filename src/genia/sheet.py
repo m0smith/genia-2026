@@ -7,6 +7,7 @@ from typing import Any, Callable
 
 from .values import GeniaMap, GeniaSymbol, _is_nil_none, _runtime_type_name, symbol
 from .configuration import contains_declassification_authority, contains_protected
+from .numeric_values import is_numeric_value, render_numeric_value
 
 
 def _sheet_error(message: str) -> TypeError:
@@ -219,8 +220,14 @@ def _csv_scalar_text(value: Any, location: str) -> str:
         return value.name
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, (int, float)):
+    if isinstance(value, int):
         return str(value)
+    if isinstance(value, float):
+        return str(value)
+    if is_numeric_value(value):
+        # Decimal/Rational/Float64 (issue #840: decimal-literal source
+        # materialization is exact Decimal, not a bare host float).
+        return render_numeric_value(value)
     raise _sheet_error(
         f"render_csv expected CSV scalar {location}; received {_runtime_type_name(value)}"
     )

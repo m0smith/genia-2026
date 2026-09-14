@@ -6,8 +6,8 @@ description: >-
   consulted, rather than silently reporting absence.
 input:
   source: |
-    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
-    pinf = big * big * big
+    big = float64(1e308)
+    pinf = big * big
     nan = pinf - pinf
     map_has?(map_put(map_new(), "a", 1), nan)
 expected:
@@ -20,3 +20,15 @@ notes: |
   error_phase: eval
   error_category: TypeError
   contract: docs/design/r18-portable-value-equality-contract.md "Failure boundary"
+  note_840: >-
+    Issue #840 retired the decimal-literal Float64 bridge: decimal-classified
+    source literals now materialize as exact, arbitrary-precision Decimal
+    that never silently overflows, so the previous "absurdly large decimal
+    literal" trick for reaching Float64 +infinity/NaN no longer produces
+    infinity at all -- exact arithmetic never implicitly produces Float64
+    (contract section 7). NaN is now constructed via explicit Float64
+    arithmetic overflow instead (`float64(1e308) * float64(1e308)` overflows
+    to Float64 +infinity per ordinary IEEE-754 binary64 semantics, then
+    infinity minus itself is NaN), which is within the numeric contract's
+    Float64 domain (docs/design/exact-numeric-model-contract.md section 9)
+    and does not require a public NaN literal/constructor.
