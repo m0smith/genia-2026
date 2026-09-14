@@ -14,14 +14,19 @@ def read(path: Path) -> str:
 def test_root_roadmap_is_small_canonical_index() -> None:
     text = read(ROADMAP)
 
-    assert len(text.splitlines()) < 180
+    assert len(text.splitlines()) < 220
     assert "GENIA_STATE.md" in text
     assert "does not define implemented language behavior" in text
     assert "R15 — Validated Value Modeling" in text
-    assert "#728 / E15-1" in text
+    assert "R21 | Numeric Source and Portable Representation" in text
+    assert "R28 | Genia MCP Server" in text
+    assert "R37 | Genia-Native Conformance Tooling" in text
     assert "roadmap/r15.md" in text
     assert "roadmap/r16-r20.md" in text
     assert "roadmap/r21-r24.md" in text
+    assert "roadmap/r25-r29.md" in text
+    assert "roadmap/r30-r32.md" in text
+    assert "roadmap/r35-r37.md" in text
     assert "roadmap/sequence.md" in text
     assert "roadmap/parking-lot.md" in text
     assert "roadmap/archive/release-roadmap-pre-split.md" in text
@@ -30,15 +35,18 @@ def test_root_roadmap_is_small_canonical_index() -> None:
 
 def test_focused_roadmap_files_cover_active_and_future_releases_once() -> None:
     r15 = read(ROADMAP_DIR / "r15.md")
-    r16_r20 = read(ROADMAP_DIR / "r16-r20.md")
-    r21_r24 = read(ROADMAP_DIR / "r21-r24.md")
+    focused = [
+        read(ROADMAP_DIR / "r16-r20.md"),
+        read(ROADMAP_DIR / "r21-r24.md"),
+        read(ROADMAP_DIR / "r25-r29.md"),
+        read(ROADMAP_DIR / "r30-r32.md"),
+        read(ROADMAP_DIR / "r35-r37.md"),
+    ]
 
     assert len(re.findall(r"^# R15 — Validated Value Modeling$", r15, re.MULTILINE)) == 1
 
-    # Historical filenames are retained to avoid breaking published links, even
-    # though inserting R18 equality shifts their current release coverage by one.
-    combined_future = "\n".join([r16_r20, r21_r24])
-    for release in range(16, 26):
+    combined_future = "\n".join(focused)
+    for release in range(16, 38):
         matches = re.findall(rf"^## Release R{release}\b", combined_future, re.MULTILINE)
         assert len(matches) == 1, f"R{release} should appear exactly once in focused roadmap detail"
 
@@ -52,8 +60,12 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     parking = read(ROADMAP_DIR / "parking-lot.md")
 
     assert "R8  — Server Execution Mode" in sequence
-    assert "R25 — Sheet Record Pipelines" in sequence
-    assert "R8 through R17 are complete" in sequence
+    assert "R21 — Numeric Source & Portable Representation" in sequence
+    assert "R24 — C++ Minimal Conforming Host" in sequence
+    assert "R28 — Genia MCP Server" in sequence
+    assert "R29 — Sheet Record Pipelines" in sequence
+    assert "R37 — Genia-Native Conformance Tooling" in sequence
+    assert "R8 through R20 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
     assert "#102" in parking
