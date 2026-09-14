@@ -16,26 +16,28 @@ Scope boundary (see PR #839 discussion for issue #838):
 - ``Decimal`` and ``Rational`` are new frozen value types with canonical
   construction per contract sections 3 and 4.
 - ``Float64`` is a new explicit tag distinguishing an approximate binary64
-  value from any exact numeric value; decimal-classified source literals
-  still materialize as plain Python ``float`` through the temporary
-  ``materialize_legacy_numeric`` bridge (``src/genia/numeric_literals.py``),
-  so this module's Decimal/Float64 types remain unreachable from ordinary
-  Genia source until that bridge is switched over (step 5/6) — the only
-  currently source-reachable "new" value is Rational, produced by
-  Integer/Integer division (e.g. ``1 / 3``).
+  value from any exact numeric value. Decimal-classified source literals now
+  materialize directly as real ``Decimal`` values via
+  :func:`materialize_exact_numeric` (issue #840 retired the former
+  ``materialize_legacy_numeric`` host-float bridge in
+  ``src/genia/numeric_literals.py``), so Decimal is reachable from ordinary
+  Genia source; Rational remains reachable via Integer/Integer division
+  (e.g. ``1 / 3``) and Float64 via the explicit ``float64(...)`` conversion.
 - Cross-kind equality/ordering/map-key identity for Integer/Decimal/
   Rational/Float64 (contract section 10) is implemented here and consumed by
   ``genia.equality``/``genia.evaluator``; it deliberately does **not** bridge
-  to the legacy decimal-literal-as-float domain (plain Python ``float``
-  produced by ``materialize_legacy_numeric``) — that stays on the
-  pre-existing R18 Integer/host-float rule untouched, since flipping it is
-  shown to regress the existing shared-spec suite (see
-  ``spec/eval/r18-equality-*.yaml``,
-  ``spec/eval/json-representation-number-boundaries.yaml``). Display/debug
+  to a bare host Python ``float`` reaching equality from a non-literal
+  source — that stays on the pre-existing R18 Integer/host-float rule
+  untouched, since flipping it is shown to regress the existing shared-spec
+  suite (see ``spec/eval/r18-equality-*.yaml``,
+  ``spec/eval/json-representation-number-boundaries.yaml``). As of issue
+  #840, decimal-classified source literals no longer produce host ``float``
+  at all — they materialize directly as real ``Decimal`` via
+  :func:`materialize_exact_numeric` — so this legacy Integer/host-float rule
+  is no longer reachable from ordinary decimal-literal source. Display/debug
   rendering and the JSON boundary (contract sections 12-14) and the
   ``exact()``/``float64()``/``rational()`` conversion builtins (contract
-  section 6) remain separately staged follow-on slices and are not
-  implemented here.
+  section 6) are implemented in this module and in ``genia.builtins``.
 
 Booleans are never numbers: :func:`is_numeric_value` explicitly excludes
 ``bool`` even though Python's ``bool`` is an ``int`` subclass, per contract
@@ -146,12 +148,13 @@ def make_rational(numerator: int, denominator: int) -> "int | Rational":
 class Float64:
     """An explicit IEEE-754 binary64 approximate value.
 
-    This is a distinct runtime tag from Python ``float`` used elsewhere in
-    the codebase; it exists so a later slice can make "explicit Float64" a
-    real, checkable domain instead of overloading host ``float`` for both
-    "someone explicitly asked for Float64" and "a Decimal literal happened
-    to be represented as a host float," which is what the current
-    ``materialize_legacy_numeric`` bridge still does.
+    This is a distinct runtime tag from Python ``float``; it makes "explicit
+    Float64" a real, checkable domain instead of overloading host ``float``
+    for both "someone explicitly asked for Float64" and "a Decimal literal
+    happened to be represented as a host float" — the latter conflation no
+    longer exists since issue #840 retired the ``materialize_legacy_numeric``
+    bridge, so decimal-classified source literals materialize as ``Decimal``
+    and never as a bare host ``float``.
     """
 
     value: float
@@ -695,11 +698,15 @@ def materialize_exact_numeric(value: Any) -> Any:
 
     Accepts the same ``{"kind": "integer"|"decimal", ...}`` payload (or the
     ``NumericLiteral`` AST descriptor) produced by
-    ``src/genia/numeric_literals.py``. This is the exact-value counterpart
-    to ``materialize_legacy_numeric`` and is not yet wired into evaluation
-    (see module docstring); it exists so this value model has a tested,
-    concrete construction path from the portable literal payload ahead of
-    the evaluator being switched over in a later slice.
+    ``src/genia/numeric_literals.py``. Requires a numeric payload (raises
+    ``ValueError`` otherwise); ``genia.evaluator``/``genia.pattern_match``
+    call this indirectly through
+    :func:`genia.numeric_literals.materialize_literal_value`, which passes
+    non-numeric ``Number``/``IrLiteral`` payloads (strings, booleans, ...)
+    through unchanged instead of raising (issue #840 retired the former
+    host-float ``materialize_legacy_numeric`` bridge): integer payloads
+    become plain ``int`` and decimal payloads become a real, canonical
+    :class:`Decimal`, never a host ``float``.
     """
     from .numeric_literals import NumericLiteral, is_portable_numeric_payload
 

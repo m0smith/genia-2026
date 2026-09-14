@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import Decimal
 from typing import Any
 
 
@@ -75,19 +74,22 @@ def is_portable_numeric_payload(value: Any) -> bool:
     return False
 
 
-def materialize_legacy_numeric(value: Any) -> Any:
-    """Temporary N-1 compatibility bridge behind portable Core IR.
+def materialize_literal_value(value: Any) -> Any:
+    """Materialize a ``Number``/``IrLiteral`` payload for evaluation (issue #840).
 
-    N-1 changes source classification and portable representation only. The
-    following runtime slice replaces this bridge with exact runtime values.
+    ``Number``/``IrLiteral`` nodes carry every literal kind (strings,
+    booleans, symbols, ...), not only numeric ones, so this is the single
+    call-site adapter ``genia.evaluator``/``genia.pattern_match`` use: a
+    tagged numeric payload (or :class:`NumericLiteral` AST descriptor) is
+    built into a real runtime exact value via
+    :func:`genia.numeric_values.materialize_exact_numeric` (Integer stays
+    plain ``int``; a decimal payload becomes a real, canonical
+    ``Decimal`` — never a host ``float``, retiring the former
+    ``materialize_legacy_numeric`` bridge); every other literal value passes
+    through unchanged, exactly as the retired bridge did.
     """
-    if isinstance(value, NumericLiteral):
-        value = value.portable_payload()
-    if not is_portable_numeric_payload(value):
-        return value
-    if value["kind"] == "integer":
-        return int(value["digits"])
-    coefficient = int(value["coefficient"])
-    exponent = int(value["exponent"])
-    exact_decimal = Decimal(coefficient).scaleb(exponent)
-    return float(exact_decimal)
+    if isinstance(value, NumericLiteral) or is_portable_numeric_payload(value):
+        from .numeric_values import materialize_exact_numeric
+
+        return materialize_exact_numeric(value)
+    return value

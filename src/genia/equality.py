@@ -188,9 +188,12 @@ def _int_equals_float(integer: int, number: float) -> bool:
 # mathematical (dyadic) value, never by rounding the exact operand (10.2).
 # This generalizes R18's existing Integer/host-float bridge above without
 # replacing it: the pre-existing `_numeric_equal` (Integer vs. host `float`)
-# is untouched because decimal-literal source materialization is still on the
-# legacy `materialize_legacy_numeric` bridge (see numeric_values.py's module
-# docstring) — host `float` here is not yet the contract's Float64 domain.
+# is left in place for any bare host `float` that still reaches equality from
+# a non-literal source, but decimal-classified source literals no longer
+# produce host `float` at all (issue #840 retired the legacy
+# `materialize_legacy_numeric` bridge in favor of `materialize_exact_numeric`
+# building real `Decimal` values) — host `float` here is not the contract's
+# Float64 domain.
 
 _NEW_NUMERIC: tuple[type, ...] = (Decimal, Rational, Float64)
 

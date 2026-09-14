@@ -15,7 +15,7 @@ if __package__ in (None, ""):
     if str(_src_root) not in sys.path:
         sys.path.insert(0, str(_src_root))
     from genia.utf8 import format_debug, format_display
-    from genia.numeric_literals import materialize_legacy_numeric
+    from genia.numeric_literals import materialize_literal_value
     from genia import numeric_values as _numeric_values
     from genia.equality import genia_equal
     from genia.environment import Env
@@ -60,7 +60,7 @@ if __package__ in (None, ""):
     from genia.http_annotation_binding import validate_http_annotation_descriptor
 else:
     from .utf8 import format_debug, format_display
-    from .numeric_literals import materialize_legacy_numeric
+    from .numeric_literals import materialize_literal_value
     from . import numeric_values as _numeric_values
     from .equality import genia_equal
     from .environment import Env
@@ -153,9 +153,12 @@ def _numeric_operand_kind(value: Any) -> str | None:
     - "new": the explicit Decimal/Rational/Float64 runtime types from
       ``numeric_values.py``.
     - "legacy": plain Python ``int``/``float`` — ``int`` is already Integer;
-      ``float`` is still the temporary decimal-literal bridge
-      (``materialize_legacy_numeric``) and is left alone here (issue #838
-      steps 4/6 own switching decimal literals over to real ``Decimal``).
+      ``float`` is no longer produced by decimal-literal materialization
+      (issue #840 retired that bridge in favor of ``materialize_exact_numeric``
+      building real ``Decimal`` values), so a bare host ``float`` reaching
+      this classifier now only arises from a non-literal source (e.g. a
+      still-unconverted host boundary value), not from ordinary source
+      literals.
     - ``None``: not an arithmetic operand at all (string, list, map, ...).
     """
     if isinstance(value, bool):
@@ -272,7 +275,7 @@ def quote_node(node: Node) -> Any:
         return result
 
     if isinstance(node, Number):
-        return materialize_legacy_numeric(node.value)
+        return materialize_literal_value(node.value)
     if isinstance(node, String):
         return node.value
     if isinstance(node, Boolean):
@@ -332,7 +335,7 @@ def quote_pattern_node(pattern: Node) -> Any:
         return result
 
     if isinstance(pattern, Number):
-        return materialize_legacy_numeric(pattern.value)
+        return materialize_literal_value(pattern.value)
     if isinstance(pattern, String):
         return pattern.value
     if isinstance(pattern, Boolean):
@@ -445,7 +448,7 @@ def quasiquote_node(
 
     def qq(current: Node, depth: int, *, list_context: bool = False) -> Any:
         if isinstance(current, Number):
-            return materialize_legacy_numeric(current.value)
+            return materialize_literal_value(current.value)
         if isinstance(current, String):
             return current.value
         if isinstance(current, Boolean):
@@ -1076,7 +1079,7 @@ class Evaluator:
         if isinstance(node, IrVar):
             return node.name
         if isinstance(node, IrLiteral):
-            return format_debug(materialize_legacy_numeric(node.value))
+            return format_debug(materialize_literal_value(node.value))
         if isinstance(node, IrOptionSome):
             return f"some({self._render_pipeline_stage(node.value)})"
         if isinstance(node, IrOptionNone):
@@ -1454,7 +1457,7 @@ class Evaluator:
         if isinstance(node, IrExprStmt):
             return self.eval(node.expr)
         if isinstance(node, IrLiteral):
-            return materialize_legacy_numeric(node.value)
+            return materialize_literal_value(node.value)
         if isinstance(node, IrOptionNone):
             reason = self.eval(node.reason) if node.reason is not None else None
             context = self.eval(node.context) if node.context is not None else None
