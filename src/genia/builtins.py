@@ -547,7 +547,9 @@ def make_global_env(
         raise RuntimeError(f"metacircular eval does not support expression: {format_debug(expr)}")
 
     def _meta_lower_quoted_pattern(pattern: Any) -> IrPattern:
-        if pattern is None or isinstance(pattern, (bool, int, float, str)):
+        if pattern is None or isinstance(pattern, (bool, str)):
+            return IrPatLiteral(pattern)
+        if isinstance(pattern, float) or is_numeric_value(pattern):
             return IrPatLiteral(pattern)
         if isinstance(pattern, GeniaOptionNone):
             reason = _meta_lower_quoted_pattern(pattern.reason) if pattern.reason is not None else None
