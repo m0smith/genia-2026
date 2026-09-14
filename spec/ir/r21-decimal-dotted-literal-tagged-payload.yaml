@@ -1,0 +1,14 @@
+name: r21-decimal-dotted-literal-tagged-payload
+category: ir
+description: R21 dotted Decimal source lowers to IrLiteral with a canonical coefficient/exponent payload
+input:
+  source: "1.25"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value:
+          kind: decimal
+          coefficient: "125"
+          exponent: "-2"

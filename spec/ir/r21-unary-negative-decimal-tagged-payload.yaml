@@ -1,0 +1,17 @@
+name: r21-unary-negative-decimal-tagged-payload
+category: ir
+description: R21 unary negative Decimal source lowers as IrUnary(MINUS) wrapping the positive tagged IrLiteral
+input:
+  source: "-1.25"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrUnary
+        op: MINUS
+        expr:
+          node: IrLiteral
+          value:
+            kind: decimal
+            coefficient: "125"
+            exponent: "-2"

@@ -1,0 +1,21 @@
+name: r21-slash-remains-ordinary-binary
+category: ir
+description: R21 division / remains ordinary IrBinary(op=SLASH) with tagged Integer literal operands
+input:
+  source: "10 / 2"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrBinary
+        left:
+          node: IrLiteral
+          value:
+            kind: integer
+            digits: "10"
+        op: SLASH
+        right:
+          node: IrLiteral
+          value:
+            kind: integer
+            digits: "2"
