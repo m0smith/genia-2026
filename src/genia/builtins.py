@@ -122,6 +122,7 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
+    from genia.numeric_literals import parse_numeric_literal
     from genia.numeric_values import (
         Decimal as _NumDecimal,
         Float64 as _NumFloat64,
@@ -253,6 +254,7 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
+    from .numeric_literals import parse_numeric_literal
     from .numeric_values import (
         Decimal as _NumDecimal,
         Float64 as _NumFloat64,
@@ -1944,9 +1946,29 @@ def make_global_env(
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
 
-    def _strict_json_float(text: str) -> float:
-        value = float(text)
-        if not math.isfinite(value):
+    def _strict_json_decimal(text: str) -> "_NumDecimal":
+        """Contract section 13.5: lexical fraction/exponent JSON decode.
+
+        Builds the exact Decimal denoted by a JSON fraction/exponent number
+        token directly from its base-10 text, without ever constructing a
+        host binary float as an intermediate value. ``json.loads`` only
+        invokes this ``parse_float`` hook for a token matching JSON's
+        `number` fraction/exponent grammar (non-finite spellings such as
+        ``NaN``/``Infinity`` are already routed to ``_reject_json_constant``
+        instead), so ``text`` is always a valid, optionally negative-signed
+        decimal-literal-shaped lexeme here.
+        """
+        negative = text.startswith("-")
+        unsigned = text[1:] if negative else text
+        literal = parse_numeric_literal(unsigned)
+        if literal.kind == "integer":
+            coefficient, exponent = int(literal.digits), 0
+        else:
+            coefficient, exponent = int(literal.coefficient), int(literal.exponent)
+        if negative:
+            coefficient = -coefficient
+        value = _NumDecimal(coefficient, exponent)
+        if not stable_json_decimal(value):
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
 
@@ -1970,9 +1992,12 @@ def make_global_env(
             if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
                 raise _JsonBoundaryFailure("json_number_out_of_range")
             return value
-        if isinstance(value, float):
-            if not math.isfinite(value):
-                raise _JsonBoundaryFailure("json_number_out_of_range")
+        if isinstance(value, _NumDecimal):
+            # Contract section 13.5: fraction/exponent JSON number tokens
+            # are already exact Decimal by the time they reach here --
+            # `_strict_json_decimal` (the `parse_float` hook) built them
+            # lexically and enforced `stable_json_decimal` itself, so no
+            # host float ever exists at this boundary.
             return value
         if isinstance(value, str):
             _validate_json_string(value)
@@ -4299,7 +4324,7 @@ def make_global_env(
                 text,
                 object_pairs_hook=_strict_json_object,
                 parse_int=_strict_json_int,
-                parse_float=_strict_json_float,
+                parse_float=_strict_json_decimal,
                 parse_constant=_reject_json_constant,
             )
             runtime_value = _strict_json_to_runtime(parsed)
