@@ -1,0 +1,13 @@
+name: r21-huge-integer-literal-tagged-payload
+category: ir
+description: R21 huge Integer source lowers to IrLiteral preserving exact digits
+input:
+  source: "123456789012345678901234567890"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value:
+          kind: integer
+          digits: "123456789012345678901234567890"

@@ -71,6 +71,37 @@ def _canonicalize_decimal(int_part: str, frac_part: str, exp_part: str | None) -
     return stripped, str(exponent)
 
 
+def numeric_literal_payload(number_node) -> dict:
+    """Build the R21 E21-2 tagged portable IrLiteral payload for a Number AST node.
+
+    Consumes the E21-1 classification fields already populated on the node
+    (source_kind/digits/coefficient/exponent) -- no re-parsing, no float().
+    """
+    if number_node.source_kind == "integer":
+        return {"kind": "integer", "digits": number_node.digits}
+    return {
+        "kind": "decimal",
+        "coefficient": number_node.coefficient,
+        "exponent": number_node.exponent,
+    }
+
+
+def numeric_literal_runtime_value(payload: dict) -> int | float:
+    """Reconstruct the evaluator-facing int/float from a tagged IrLiteral payload.
+
+    This is a pure compatibility shim required by E21-2's own payload-shape
+    change to IrLiteral -- it reproduces exactly the same value the
+    evaluator already computed before this ticket (int(digits) for
+    Integer; float(coefficient + "e" + exponent) for Decimal, which
+    denotes the same mathematical value as the original source spelling
+    and therefore rounds to the same binary64 result). It introduces no
+    new runtime numeric kind, arithmetic rule, or conversion semantic.
+    """
+    if payload["kind"] == "integer":
+        return int(payload["digits"])
+    return float(f"{payload['coefficient']}e{payload['exponent']}")
+
+
 def classify_numeric_literal(text: str) -> NumericSource:
     """Classify numeric source text as Integer or Decimal.
 

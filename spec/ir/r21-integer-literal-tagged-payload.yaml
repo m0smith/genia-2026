@@ -1,0 +1,13 @@
+name: r21-integer-literal-tagged-payload
+category: ir
+description: R21 Integer source lowers to IrLiteral with a canonical tagged payload
+input:
+  source: "42"
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value:
+          kind: integer
+          digits: "42"

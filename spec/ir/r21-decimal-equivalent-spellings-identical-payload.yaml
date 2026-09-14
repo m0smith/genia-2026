@@ -1,0 +1,23 @@
+name: r21-decimal-equivalent-spellings-identical-payload
+category: ir
+description: R21 equivalent Decimal spellings (1.00 and 100e-2) lower to the identical tagged payload
+input:
+  source: |
+    1.00
+    100e-2
+expected:
+  ir:
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value:
+          kind: decimal
+          coefficient: "1"
+          exponent: "0"
+    - node: IrExprStmt
+      expr:
+        node: IrLiteral
+        value:
+          kind: decimal
+          coefficient: "1"
+          exponent: "0"

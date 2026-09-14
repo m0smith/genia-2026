@@ -17,6 +17,10 @@ expected:
               node: IrList
               items:
                 - node: IrLiteral
-                  value: 1
+                  value:
+                    kind: integer
+                    digits: "1"
                 - node: IrLiteral
-                  value: 2
+                  value:
+                    kind: integer
+                    digits: "2"

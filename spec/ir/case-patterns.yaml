@@ -30,7 +30,9 @@ expected:
               op: GT
               right:
                 node: IrLiteral
-                value: 0
+                value:
+                  kind: integer
+                  digits: "0"
             result:
               node: IrOptionSome
               value:
