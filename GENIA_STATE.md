@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete, issues #840-#842 closed both blockers plus legacy JSON reconciliation — pending issue #843 re-audit)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, issues #840-#842 closed Step 7's two named blockers plus legacy JSON reconciliation, Step 8 (issue #843) re-audit complete — gate remains NOT YET complete: NO-GO)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2588,12 +2588,19 @@ host actually implements today, landed across N-1 and Steps 2-6 of issue
 `docs/analysis/exact-numeric-model-release-truth-audit.md`) recorded **R21
 semantic implementation: NO-GO** against Steps 1-6, naming two concrete
 blockers: the legacy decimal-literal-to-float bridge, and unimplemented
-JSON decode-side exactness (contract 13.5). Issues #840 and #841 have since
-closed both of those blockers, and issue #842 additionally reconciled the
-legacy `json_parse`/`json_stringify` compatibility surface's numeric
-handling (below); a fresh skeptical gate re-audit is tracked as issue #843
-and has not yet run. This section is not itself that audit; it records
-implemented Python-reference-host behavior only.
+JSON decode-side exactness (contract 13.5). Issues #840 and #841 closed
+both of those blockers, and issue #842 additionally reconciled the legacy
+`json_parse`/`json_stringify` compatibility surface's numeric handling
+(below). Issue #843's required fresh skeptical re-audit ("Step 8", same
+document, section 6) has now run and found one new genuine regression —
+metacircular quoted-match-pattern lowering does not recognize
+Decimal/Rational/Float64 as literal patterns, a direct side effect of
+issue #840's literal-materialization change that no test in the repository
+caught — and recorded **Exact Numeric Model semantic gate: NO-GO** and
+**R21 release readiness: NO-GO** (the latter independently naming
+`m0smith/genia-cpp`'s continued bootstrap-only status as its own separate
+blocker). This section is not itself that audit; it records implemented
+Python-reference-host behavior only.
 
 Landed:
 
@@ -2746,12 +2753,22 @@ literal bridge and JSON decode exactness as the concrete remaining blockers
 material to R21's minimal capability floor; precision
 contexts/transcendentals (section 16) and the missing second host are
 confirmed real but the former is explicitly out of this gate's scope and
-the latter is outside this repository's boundary. Issues #840 and #841 have
-since closed both of those blockers, and issue #842 additionally
-reconciled legacy `json_parse`/`json_stringify` numeric handling (above),
-with a fresh skeptical gate re-audit tracked as issue #843 not yet run —
-the Step 7 verdict text above is not re-litigated here and remains the
-historical record of that audit run.
+the latter is outside this repository's boundary. Issues #840 and #841
+closed both of those blockers, and issue #842 additionally reconciled
+legacy `json_parse`/`json_stringify` numeric handling (above) — the Step 7
+verdict text above is not re-litigated and remains the historical record
+of that audit run. Issue #843's Step 8 re-audit (same document, section 6)
+then found one new genuine regression left by issue #840's own
+literal-materialization change — a decimal/rational/Float64 value used as
+a metacircular quoted match pattern (`src/genia/evaluator.py` and
+`src/genia/builtins.py`'s duplicated `_meta_lower_quoted_pattern`) raises
+`TypeError: metacircular quoted match pattern is unsupported`, which no
+test in the repository catches — and recorded **Exact Numeric Model
+semantic gate: NO-GO** and **R21 release readiness: NO-GO** (the latter
+independently naming `genia-cpp`'s bootstrap-only status as its own
+separate blocker). That regression is not fixed as of this section; a
+scoped follow-up issue is required before the gate can be re-audited to
+GO.
 
 Evidence for Steps 1-6 (unchanged, from the Step 7 audit run): `python -m
 tools.spec_runner` (720/720, both the in-process default adapter and the
@@ -2774,7 +2791,15 @@ auto -q` (all issue #842 unit/spec cases pass; only the 2 pre-existing
 `chmod(0)` failures remain), `uv run python -m tools.spec_runner`
 (722/722), `uv run pytest tests/spec/test_python_protocol_adapter_parity_762.py -q`
 (1 passed, confirming the updated 722/704/18/0 pinned parity count), and
-`uv run ruff check .` clean.
+`uv run ruff check .` clean. Evidence for issue #843's Step 8 re-audit, all
+re-run fresh in that session rather than trusted from prior summaries:
+`uv run pytest -n auto -q -m "not loopback"` (4554 passed / 2 pre-existing
+`chmod(0)` failures only), `uv run python -m tools.spec_runner` (722/722),
+the subprocess parity test (1 passed), 14 targeted numeric/JSON unit+spec
+files (275/275), `uv run pytest tests/doc/` (206/206), `uv run ruff check
+.` clean, and live `run_source` probes of every landed behavior plus the
+one regression named above; full detail in
+`docs/analysis/exact-numeric-model-release-truth-audit.md` section 6.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

@@ -1,6 +1,15 @@
 # Exact Numeric Model Skeptical Release Truth Audit (issue #838 Step 7)
 
-Status: **NO-GO for R21 semantic implementation.** This is contract section
+**Superseded by a fresh re-audit.** Section 6 below ("Step 8 (issue #843)
+re-audit") is the current verdict. This original Step 7 section is kept
+verbatim as the historical record of that audit run and is not
+re-litigated; issues #840 and #841 closed the two blockers it named, and
+issue #842 additionally reconciled legacy JSON numeric handling, but Step 8
+found one new genuine defect of its own — see section 6 for the current
+**Exact Numeric Model semantic gate** and **R21 release readiness**
+verdicts.
+
+Status (Step 7, historical): **NO-GO for R21 semantic implementation.** This is contract section
 21's ("Implementation acceptance") required skeptical audit for the
 separately-gated `docs/design/exact-numeric-model-contract.md`. It assumes
 the implementation is wrong until proven correct, re-derives claims from the
@@ -346,3 +355,219 @@ test suite with an identical pass count before and after. No JSON decode
 exactness, legacy-literal-bridge retirement, or transcendental work was
 attempted. No C++ implementation was started or proposed beyond the
 blocker list above.
+
+## 6. Step 8 (issue #843) re-audit
+
+Status: **Exact Numeric Model semantic gate: NO-GO. R21 release readiness:
+NO-GO.** This is issue #843's required fresh skeptical re-audit after
+issues #840, #841, and #842 closed Step 7's two named blockers plus the
+legacy JSON reconciliation gap. Per the issue charge, evidence was
+re-derived fresh in this session rather than trusting the prior three
+issues' own closing summaries, and no implementation was attempted here.
+
+### 6.1 What was re-read fresh
+
+`AGENTS.md`, `GENIA_STATE.md` (the full "Exact Numeric Model" section),
+`GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`,
+`docs/ai/LLM_CONTRACT.md`, `docs/design/exact-numeric-model-contract.md`
+(all 21 sections), `docs/design/r17-numeric-ordered-map-portability-contract.md`,
+`docs/design/r18-portable-value-equality-contract.md`,
+`docs/design/r19-unicode-diagnostic-portability-contract.md`,
+`docs/architecture/core-ir-portability.md`, and the full commit-by-commit
+history of issues #840/#841/#842 on this branch (`8096e39` through
+`8fa7689`) in place of diffing against `origin/main` (which carries ~237
+unrelated prior commits and would not isolate the numeric-specific change).
+
+### 6.2 What was re-verified, and how
+
+- Full repository suite: `uv run pytest -n auto -q -m "not loopback"` ->
+  **4554 passed, 2 failed** (the same pre-existing
+  `tests/unit/test_native_test_runner.py` root-sandbox `chmod(0)` pair
+  documented since before R14 and re-confirmed unrelated to numerics —
+  `chmod(0)` does not restrict root in this sandbox, so the test's own
+  precondition does not hold here).
+- `python -m tools.spec_runner` (in-process default adapter): **722/722
+  passed** (720 from Step 7 + 1 from issue #841's
+  `json-decode-lexical-decimal.yaml` + 1 from issue #842's
+  `legacy-json-parse-stringify-numeric.yaml`).
+- `python -m tools.spec_runner --host 'python3 -m hosts.python.protocol_adapter'`
+  via `tests/spec/test_python_protocol_adapter_parity_762.py`: **1 passed**,
+  confirming `total=722 passed=704 failed=0 unsupported=18` — the same 18
+  pre-existing unrelated unsupported cases as Step 7, zero divergence
+  between in-process and subprocess paths for every applicable numeric
+  case.
+- Targeted numeric/JSON unit+spec suites (`test_numeric_arithmetic.py`,
+  `test_numeric_comparison_evaluator_wiring.py`, `test_numeric_conversions.py`,
+  `test_numeric_equality_comparison.py`, `test_numeric_rendering_and_boundaries.py`,
+  `test_numeric_values.py`, `test_r18_structural_numeric_equality_791.py`,
+  `test_decimal_literal_exact_materialization.py`,
+  `test_json_decode_lexical_decimal.py`,
+  `test_json_parse_stringify_numeric_reconciliation.py`,
+  `test_exact_numeric_conversion_builtins_838.py`,
+  `test_exact_numeric_equality_comparison_838.py`,
+  `test_json_decode_lexical_decimal_841.py`,
+  `test_legacy_json_parse_stringify_numeric_842.py`): **275/275 passed**.
+- `uv run ruff check .` -> clean.
+- `uv run pytest tests/doc/` -> **206/206 passed** (semantic-doc-sync
+  guardrails unaffected).
+- Live-probed via `uv run genia`/direct `run_source` calls (not trusted from
+  prior summaries): `1.5`/`1e3`/`1E+3`/`1.25e-2` are `Decimal`;
+  `1.0 == 1.00 == 100e-2`; `42` stays plain `int`; `float64(1.5) ==
+  float64(1.5)` is `true`; `json_decode("0.1")` unwraps to `Decimal(1,-1)`
+  and `json_decode("1e400")` is a recoverable `err`; `json_parse("0.1")` is
+  `Decimal(1,-1)` and `json_parse("1e400")` succeeds as `Decimal(1,400)`
+  (legacy's permissive posture, distinct from strict decode, confirmed
+  live); `json_stringify(1/4) == "0.25"` and `json_stringify(float64(3)) ==
+  "3.0"`; `float64(1e308) * float64(1e308)` overflows to Float64 infinity
+  and `infinity - infinity` is NaN, non-reflexive and rejected as an
+  illegal map key; `6/3` is Integer `2`, `1/2` is `Rational`, `1.0/2` is
+  `Decimal`; a 30-digit `Integer` product stays exact.
+- Re-confirmed `m0smith/genia-cpp` is still bootstrap-only by cloning it
+  fresh in this session (`README.md`: "Status: bootstrap only. No C++
+  interpreter is implemented here yet.").
+
+### 6.3 Skeptical code audit — issues #840/#841/#842 specifically
+
+- **Decimal-literal materialization (issue #840).** Confirmed
+  `numeric_literals.materialize_legacy_numeric` no longer exists anywhere
+  in `src/` (grepped); every reference left in the codebase is a comment or
+  docstring explaining the retired bridge, not live code. Every
+  `Number`/`IrLiteral` numeric payload now goes through
+  `numeric_literals.materialize_literal_value`, confirmed by direct
+  reading and the live probes above.
+- **JSON decode/legacy reconciliation (issues #841/#842).** Confirmed both
+  `_strict_json_decimal` and `_legacy_json_decimal` share one lexical
+  parser (`_decimal_from_json_number_text`) rather than duplicating
+  text-to-Decimal logic, matching issue #842's own "Direction". Confirmed
+  `json_stringify`'s new Decimal/Rational/Float64 handling reuses
+  `numeric_values._decimal_to_correctly_rounded_float` (the same internal
+  helper `stable_json_decimal` uses) rather than inventing a second
+  conversion path.
+- **Regression sweep completeness (issue #840's own risk note).** Re-read
+  every caller issue #840 touched
+  (`syntax_self_evaluating_fn`, JSON Schema's `number` type match,
+  `sum(...)`, R12 retrieval's `_is_finite_numeric`, shell-stage stdin
+  materialization, `render_csv`, the debug-protocol value-kind label) and
+  confirmed each now recognizes the whole exact family via
+  `is_numeric_value`/explicit Decimal-Rational-Float64 checks, not only
+  `int`/`float`. This sweep is the one that surfaced the genuine defect
+  below — it was necessarily incomplete the first time because nothing in
+  the existing test suite exercised the affected code path.
+- **NaN spec reconstruction (issue #840).** Re-read all five reconstructed
+  R18 NaN specs and confirmed the `float64(1e308) * float64(1e308)`
+  construction is within contract section 9's Float64 domain (ordinary
+  IEEE-754 overflow, not a public NaN literal/constructor) and does not
+  reintroduce the retired legacy-float-overflow assumption.
+
+### 6.4 Genuine remaining defect found (NO-GO material)
+
+**Metacircular quoted-match-pattern lowering does not recognize
+Decimal/Rational/Float64 as literal patterns.**
+
+`src/genia/evaluator.py::_meta_lower_quoted_pattern` and an independent,
+duplicated copy in `src/genia/builtins.py` (used by
+`meta_match_pattern_env_fn`, the `_meta_match_pattern_env` builtin backing
+the `eval.genia` prelude's `extend`/metacircular-`eval` surface) both
+classify a quoted pattern value as a literal pattern only via:
+
+```python
+if pattern is None or isinstance(pattern, (bool, int, float, str)):
+    return IrPatLiteral(pattern)
+```
+
+Before issue #840, a decimal-classified literal quoted as a match pattern
+was a plain host `float`, so this check matched it. Since #840 retired the
+legacy float bridge, the same quoted decimal literal is now a `Decimal`
+instance, which this `isinstance` check does not recognize; execution
+falls through every other branch and raises:
+
+```
+TypeError: metacircular quoted match pattern is unsupported: 1.5
+```
+
+**Reproducer** (direct Python-level call, no metacircular-`eval` surface
+syntax required to demonstrate the defect exists in the shared helper):
+
+```python
+from genia.numeric_values import Decimal
+from genia.evaluator import _meta_lower_quoted_pattern
+_meta_lower_quoted_pattern(Decimal(15, -1))
+# TypeError: metacircular quoted match pattern is unsupported: 1.5
+```
+
+The identical defect exists in `builtins.py`'s duplicated copy of this
+function, reachable from ordinary Genia source through the
+`std/prelude/eval.genia` metacircular-evaluator surface (`empty_env`,
+`eval`, `extend`, `lookup`, `define`, `set` — all `@category "eval"`
+public prelude functions) whenever a quoted case/match/lambda pattern
+literal is decimal-shaped (e.g. a metacircularly-evaluated
+`(x) ? x -> match x { 1.5 -> ... }`-style clause, or any `extend(env,
+quoted_params, args)` call whose quoted parameter list contains a decimal
+literal in pattern position). This is a direct, previously-undetected
+regression from issue #840's literal-materialization change: no existing
+test in the repository (including the ones this session added for #840,
+#841, and #842) exercises a decimal-literal quoted match pattern, which is
+exactly why the earlier per-caller regression sweep (see 6.3) did not catch
+it.
+
+**Materiality.** This is not one of contract section 21's named
+implementation-acceptance items (source classification, runtime
+arithmetic, equality, Float64 conversions, JSON boundary, canonical
+rendering, or diagnostics) in isolation, but it is a genuine, reproducible,
+previously-working piece of numeric-literal-adjacent behavior that the
+exact-numeric-model change broke and that remains broken today. The
+`docs/design/exact-numeric-model-contract.md`'s own section 21 acceptance
+bar requires the landed behavior to be internally consistent across the
+Python reference host, not merely correct along the specific paths this
+gate's own tests exercise; a public prelude surface (`eval.genia`) that
+now throws a raw-looking `TypeError` for a decimal literal it silently
+accepted before is a real regression in exactly the "no Python
+exception/library text leaks into portable diagnostics" and "existing
+R18/R19 cases may encode assumptions from the temporary host-float bridge"
+spirit this gate exists to police, even though the affected surface itself
+(metacircular eval) is not literally named in contract section 21.
+
+**Recommended remediation** (not performed here, per this issue's own
+audit-only charge): extend both `_meta_lower_quoted_pattern` copies (or,
+better, deduplicate them into one shared helper first — they are already
+byte-for-byte identical, which is its own small drift risk) to check
+`numeric_values.is_numeric_value(pattern)` instead of `isinstance(pattern,
+(bool, int, float, str))` for the numeric part of the check, mirroring the
+fix already applied to `syntax_self_evaluating_fn` in issue #840. This
+should be its own scoped follow-up issue/commit, not folded into a future
+audit.
+
+### 6.5 Required verdicts
+
+**Exact Numeric Model semantic gate: NO-GO.** Every contract section 21
+implementation-acceptance item that issues #840/#841/#842 targeted is
+correctly and completely landed, evidenced by the fresh full-suite,
+targeted-suite, spec-runner, parity, and live-probe results in 6.2 above —
+this is not a re-statement of Step 7's now-closed blockers. The gate is
+NO-GO solely because of the one concrete regression in 6.4: a decimal
+literal used as a metacircular quoted match pattern raises a
+`TypeError` that did not exist before issue #840, and no test in the
+repository catches it. This is a real, named, reproducible defect, not a
+documented non-goal or an out-of-scope gap — the "do not force a GO
+verdict to satisfy the task" instruction governing this audit applies
+directly here.
+
+**R21 release readiness: NO-GO.** Independently of the semantic gate
+verdict above, `m0smith/genia-cpp` remains bootstrap-only (re-confirmed by
+a fresh clone in this session, 6.2) — a missing C++ interpreter does not
+by itself make the semantic gate NO-GO, and is named here only because
+issue #843 requires this second verdict to independently acknowledge it as
+its own, structurally separate blocker on R21 as a whole. R21 release
+readiness is NO-GO for two independent reasons: (1) the semantic gate
+itself must be GO before R21 can proceed, and it is not (6.4); (2)
+`genia-cpp` has no C++ interpreter yet regardless of (1) and this
+repository's own work cannot resolve that.
+
+### 6.6 Scope discipline
+
+Per the issue #843 charge, this re-audit made **no** implementation
+changes. The one code artifact produced is this document. The defect in
+6.4 is named with a reproducer and a recommended remediation but was not
+fixed; per the issue's own instruction, a repair belongs to a separately
+scoped follow-up ticket, and the semantic gate stays NO-GO until that
+lands and is itself verified.
