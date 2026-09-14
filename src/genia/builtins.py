@@ -127,6 +127,7 @@ if __package__ in (None, ""):
         Decimal as _NumDecimal,
         Float64 as _NumFloat64,
         Rational as _NumRational,
+        _decimal_to_correctly_rounded_float,
         _fraction_to_decimal as _numeric_fraction_to_decimal,
         _terminates_in_base10,
         add as _numeric_values_add,
@@ -259,6 +260,7 @@ else:
         Decimal as _NumDecimal,
         Float64 as _NumFloat64,
         Rational as _NumRational,
+        _decimal_to_correctly_rounded_float,
         _fraction_to_decimal as _numeric_fraction_to_decimal,
         _terminates_in_base10,
         add as _numeric_values_add,
@@ -1896,6 +1898,24 @@ def make_global_env(
             return value
         if is_none(value):
             return None
+        # Issue #842: the legacy json_stringify compatibility surface has no
+        # interop-exactness promise (unlike strict json_encode's
+        # stable_json_decimal-gated Decimal/terminating-Rational-only
+        # encoding), so every exact numeric kind approximates via the same
+        # correctly-rounded binary64 conversion a plain float64 conversion
+        # would use -- reusing shared numeric_values machinery rather than
+        # duplicating conversion logic. Only a magnitude genuinely exceeding
+        # binary64 range is rejected.
+        if isinstance(value, (_NumDecimal, _NumRational)):
+            converted = _decimal_to_correctly_rounded_float(value)
+            if converted is None:
+                raise TypeError(
+                    "json_stringify expected a JSON-compatible value: "
+                    f"{type(value).__name__} magnitude exceeds binary64 range"
+                )
+            return converted
+        if isinstance(value, _NumFloat64):
+            return value.value
         if isinstance(value, list):
             return [_json_from_runtime(item) for item in value]
         if isinstance(value, GeniaMap):
@@ -1911,6 +1931,11 @@ def make_global_env(
         if value is None:
             return OPTION_NONE
         if isinstance(value, (bool, int, float, str)):
+            return value
+        if isinstance(value, _NumDecimal):
+            # Issue #842: json_parse's parse_float hook (_legacy_json_decimal)
+            # already built this directly from the JSON number token's
+            # base-10 text -- it is never a host float.
             return value
         if isinstance(value, list):
             return [_json_to_runtime(item) for item in value]
@@ -1946,17 +1971,23 @@ def make_global_env(
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
 
-    def _strict_json_decimal(text: str) -> "_NumDecimal":
-        """Contract section 13.5: lexical fraction/exponent JSON decode.
+    def _decimal_from_json_number_text(text: str) -> "_NumDecimal":
+        """Shared lexical fraction/exponent JSON-number-token parser.
 
         Builds the exact Decimal denoted by a JSON fraction/exponent number
         token directly from its base-10 text, without ever constructing a
-        host binary float as an intermediate value. ``json.loads`` only
-        invokes this ``parse_float`` hook for a token matching JSON's
-        `number` fraction/exponent grammar (non-finite spellings such as
-        ``NaN``/``Infinity`` are already routed to ``_reject_json_constant``
-        instead), so ``text`` is always a valid, optionally negative-signed
-        decimal-literal-shaped lexeme here.
+        host binary float as an intermediate value (contract section
+        13.5). ``json.loads`` only invokes a ``parse_float`` hook for a
+        token matching JSON's `number` fraction/exponent grammar (non-finite
+        spellings such as ``NaN``/``Infinity`` are routed to a separate
+        ``parse_constant`` hook instead), so ``text`` is always a valid,
+        optionally negative-signed decimal-literal-shaped lexeme here.
+
+        Shared by both public JSON parser paths (issue #842): strict
+        ``json_decode`` (:func:`_strict_json_decimal`) and the legacy
+        ``json_parse`` compatibility surface (:func:`_legacy_json_decimal`),
+        which differ only in whether they additionally require
+        ``stable_json_decimal``.
         """
         negative = text.startswith("-")
         unsigned = text[1:] if negative else text
@@ -1967,10 +1998,34 @@ def make_global_env(
             coefficient, exponent = int(literal.coefficient), int(literal.exponent)
         if negative:
             coefficient = -coefficient
-        value = _NumDecimal(coefficient, exponent)
+        return _NumDecimal(coefficient, exponent)
+
+    def _strict_json_decimal(text: str) -> "_NumDecimal":
+        """Contract section 13.5: lexical fraction/exponent JSON decode.
+
+        Rejects a token whose Decimal value fails ``stable_json_decimal``
+        (contract section 13.2) with ``json_number_out_of_range`` rather
+        than silently rounding it -- the strict `json_decode` boundary's
+        safe-interop restriction (see :func:`_legacy_json_decimal` for the
+        permissive legacy counterpart).
+        """
+        value = _decimal_from_json_number_text(text)
         if not stable_json_decimal(value):
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
+
+    def _legacy_json_decimal(text: str) -> "_NumDecimal":
+        """Legacy ``json_parse`` compatibility-surface fraction/exponent decode.
+
+        Issue #842: the legacy `json_parse`/`json_stringify` pair has no
+        safe-integer/interop restriction (unlike strict `json_decode`) --
+        it has always accepted arbitrary-size integers -- so this reuses
+        the same shared lexical codec as :func:`_strict_json_decimal`
+        without the ``stable_json_decimal`` gate, eliminating host-float
+        leakage for a fraction/exponent token while preserving that
+        already-approved permissive posture.
+        """
+        return _decimal_from_json_number_text(text)
 
     def _reject_json_constant(_text: str) -> Any:
         raise _JsonBoundaryFailure("json_number_out_of_range")
@@ -4291,7 +4346,7 @@ def make_global_env(
 
         text = value
         try:
-            parsed = json.loads(text)
+            parsed = json.loads(text, parse_float=_legacy_json_decimal)
         except json.JSONDecodeError as exc:
             context = (
                 GeniaMap()
