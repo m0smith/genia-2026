@@ -1,0 +1,40 @@
+name: legacy-json-parse-stringify-numeric
+category: eval
+description: >-
+  The legacy json_parse/json_stringify compatibility surface reconciles its
+  numeric handling with the exact numeric model (issue #842): a fraction/
+  exponent token decodes to exact Decimal, never a host binary float, while
+  remaining more permissive than the strict json_decode boundary (no
+  safe-integer/stable_json_decimal rejection).
+input:
+  source: |
+    fraction = json_parse("0.1")
+    huge_exponent = json_parse("1e400")
+    roundtrip = json_parse(json_stringify(0.1))
+    [
+      fraction == 0.1,
+      huge_exponent == 1e400,
+      roundtrip == 0.1,
+      json_stringify(1 / 4) == "0.25"
+    ]
+expected:
+  stdout: "[true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 842
+  release: none (pre-release follow-on step for a future R21 gate)
+  contract: >-
+    docs/design/exact-numeric-model-contract.md section 13.5's lexical-
+    decode principle, generalized to the legacy compatibility surface per
+    issue #842's own "Direction": one shared underlying lexical numeric
+    codec, with the legacy surface's already-approved permissive
+    safe-boundary posture (no safe-integer/stable_json_decimal rejection)
+    as the one legitimate difference from strict json_decode/json_encode.
+  note: >-
+    Direct runtime-type inspection (proving a fraction/exponent token
+    decodes to `genia.numeric_values.Decimal` and never a host `float`,
+    that json_parse accepts tokens strict json_decode would reject as
+    unstable/out-of-range, and that json_stringify accepts Decimal/
+    Rational/Float64) lives in
+    `tests/unit/test_json_parse_stringify_numeric_reconciliation.py`.
