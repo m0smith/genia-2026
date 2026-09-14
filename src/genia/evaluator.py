@@ -52,6 +52,7 @@ if __package__ in (None, ""):
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
+    from genia.numeric_source import numeric_literal_runtime_value
     from genia.server_config_binding import validate_server_descriptor
     from genia.server_cors_binding import validate_cors_descriptor
     from genia.server_route_binding import validate_route_descriptor
@@ -95,6 +96,7 @@ else:
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
+    from .numeric_source import numeric_literal_runtime_value
     from .server_config_binding import validate_server_descriptor
     from .server_cors_binding import validate_cors_descriptor
     from .server_route_binding import validate_route_descriptor
@@ -934,7 +936,10 @@ class Evaluator:
         if isinstance(node, IrVar):
             return node.name
         if isinstance(node, IrLiteral):
-            return format_debug(node.value)
+            value = node.value
+            if isinstance(value, dict):
+                value = numeric_literal_runtime_value(value)
+            return format_debug(value)
         if isinstance(node, IrOptionSome):
             return f"some({self._render_pipeline_stage(node.value)})"
         if isinstance(node, IrOptionNone):
@@ -1312,6 +1317,8 @@ class Evaluator:
         if isinstance(node, IrExprStmt):
             return self.eval(node.expr)
         if isinstance(node, IrLiteral):
+            if isinstance(node.value, dict):
+                return numeric_literal_runtime_value(node.value)
             return node.value
         if isinstance(node, IrOptionNone):
             reason = self.eval(node.reason) if node.reason is not None else None

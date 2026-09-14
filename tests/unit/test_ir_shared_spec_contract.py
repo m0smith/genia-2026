@@ -32,7 +32,7 @@ def test_normalized_ir_is_deterministic_across_repeated_runs() -> None:
 @pytest.mark.parametrize(
     "source, expected",
     [
-        ("42", [{"node": "IrExprStmt", "expr": {"node": "IrLiteral", "value": 42}}]),
+        ("42", [{"node": "IrExprStmt", "expr": {"node": "IrLiteral", "value": {"kind": "integer", "digits": "42"}}}]),
         ("value", [{"node": "IrExprStmt", "expr": {"node": "IrVar", "name": "value"}}]),
         (
             "f(1, 2)",
@@ -43,8 +43,8 @@ def test_normalized_ir_is_deterministic_across_repeated_runs() -> None:
                         "node": "IrCall",
                         "fn": {"node": "IrVar", "name": "f"},
                         "args": [
-                            {"node": "IrLiteral", "value": 1},
-                            {"node": "IrLiteral", "value": 2},
+                            {"node": "IrLiteral", "value": {"kind": "integer", "digits": "1"}},
+                            {"node": "IrLiteral", "value": {"kind": "integer", "digits": "2"}},
                         ],
                     },
                 }
@@ -61,7 +61,7 @@ def test_pipeline_normalization_keeps_explicit_pipeline_shape() -> None:
     expr = normalized[0]["expr"]
 
     assert expr["node"] == "IrPipeline"
-    assert expr["source"] == {"node": "IrLiteral", "value": 3}
+    assert expr["source"] == {"node": "IrLiteral", "value": {"kind": "integer", "digits": "3"}}
     assert expr["stages"] == [
         {"node": "IrVar", "name": "inc"},
         {"node": "IrVar", "name": "double"},
@@ -72,7 +72,7 @@ def test_option_constructor_normalization_keeps_documented_portable_forms() -> N
     normalized = _lower_and_normalize('[some(1), none("parse_failed", {source: "x"}), nil]')
     items = normalized[0]["expr"]["items"]
 
-    assert items[0] == {"node": "IrOptionSome", "value": {"node": "IrLiteral", "value": 1}}
+    assert items[0] == {"node": "IrOptionSome", "value": {"node": "IrLiteral", "value": {"kind": "integer", "digits": "1"}}}
     assert items[1]["node"] == "IrOptionNone"
     assert items[1]["reason"] == {
         "node": "IrQuote",

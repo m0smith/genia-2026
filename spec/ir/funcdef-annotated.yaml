@@ -19,7 +19,9 @@ expected:
         op: PLUS
         right:
           node: IrLiteral
-          value: 1
+          value:
+            kind: integer
+            digits: "1"
       annotations:
         - node: IrAnnotation
           name: doc

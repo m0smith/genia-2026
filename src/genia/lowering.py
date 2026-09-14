@@ -97,6 +97,7 @@ if __package__ in (None, ""):
         compile_glob_pattern,
     )
     from genia.values import symbol
+    from genia.numeric_source import numeric_literal_payload
 else:
     from .ast_nodes import (
         AnnotatedNode,
@@ -192,6 +193,7 @@ else:
         compile_glob_pattern,
     )
     from .values import symbol
+    from .numeric_source import numeric_literal_payload
 
 
 def lower_program(nodes: Iterable[Node]) -> list[IrNode]:
@@ -252,7 +254,7 @@ def lower_node(node: Node) -> IrNode:
     if isinstance(node, ExprStmt):
         return IrExprStmt(lower_node(node.expr), span=node.span)
     if isinstance(node, Number):
-        return IrLiteral(node.value, span=node.span)
+        return IrLiteral(numeric_literal_payload(node), span=node.span)
     if isinstance(node, String):
         return IrLiteral(node.value, span=node.span)
     if isinstance(node, Boolean):

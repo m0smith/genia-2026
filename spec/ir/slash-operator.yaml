@@ -11,8 +11,12 @@ expected:
         node: IrBinary
         left:
           node: IrLiteral
-          value: 10
+          value:
+            kind: integer
+            digits: "10"
         op: SLASH
         right:
           node: IrLiteral
-          value: 2
+          value:
+            kind: integer
+            digits: "2"

@@ -58,5 +58,9 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # error) for numeric source classification. Parse-category cases are
     # expressible over the protocol like any other case, so both total and
     # passed increase by exactly 11.
-    assert "Summary: total=714 passed=696 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E21-2 (issue #854) adds 7 portable R21 ir-category cases for the
+    # tagged Integer/Decimal IrLiteral payload. IR-category cases are
+    # expressible over the protocol like any other case, so both total and
+    # passed increase by exactly 7.
+    assert "Summary: total=721 passed=703 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

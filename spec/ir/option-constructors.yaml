@@ -12,7 +12,9 @@ expected:
           - node: IrOptionSome
             value:
               node: IrLiteral
-              value: 1
+              value:
+                kind: integer
+                digits: "1"
           - node: IrOptionNone
             reason:
               node: IrQuote

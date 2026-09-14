@@ -29,6 +29,7 @@ if __package__ in (None, ""):
         IrPatRest,
         IrPatTuple,
     )
+    from genia.numeric_source import numeric_literal_runtime_value
 else:
     from .ir import (
         IrAssign,
@@ -56,6 +57,19 @@ else:
         IrPatRest,
         IrPatTuple,
     )
+    from .numeric_source import numeric_literal_runtime_value
+
+
+def _is_integer_literal_one(value: object) -> bool:
+    """True when an IrLiteral value denotes the Integer literal 1.
+
+    Handles both the R21 E21-2 tagged payload shape and (defensively) a
+    bare numeric value, without introducing any new numeric comparison
+    semantics beyond this existing tail-recursion-shape detection.
+    """
+    if isinstance(value, dict):
+        return numeric_literal_runtime_value(value) == 1
+    return value == 1
 
 
 def optimize_program(ir_nodes: Iterable[IrNode], *, debug: bool = False) -> list[IrNode]:
@@ -152,7 +166,7 @@ def optimize_nth_style_recursion(fn: IrFuncDef) -> IrFuncDef:
         and isinstance(n_arg.left, IrVar)
         and n_arg.left.name == recur_n_pat.name
         and isinstance(n_arg.right, IrLiteral)
-        and n_arg.right.value == 1
+        and _is_integer_literal_one(n_arg.right.value)
     ):
         return fn
     if not (isinstance(xs_arg, IrVar) and xs_arg.name == rest_name):

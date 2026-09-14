@@ -35,4 +35,6 @@ expected:
                   context: null
             result:
               node: IrLiteral
-              value: 0
+              value:
+                kind: integer
+                digits: "0"

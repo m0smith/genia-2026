@@ -72,6 +72,30 @@ def test_runtime_value_huge_integer_exact() -> None:
     assert numeric_literal_runtime_value({"kind": "integer", "digits": huge}) == int(huge)
 
 
+def test_only_runtime_value_shim_calls_float_in_module() -> None:
+    """float() in numeric_source.py must be confined to the documented
+    evaluator-compatibility shim, never the classification path."""
+    import ast
+    import inspect
+
+    import src.genia.numeric_source as module
+
+    tree = ast.parse(inspect.getsource(module))
+    module_level_functions = [n for n in tree.body if isinstance(n, ast.FunctionDef)]
+    functions_calling_float = []
+    for fn in module_level_functions:
+        calls = [
+            node
+            for node in ast.walk(fn)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "float"
+        ]
+        if calls:
+            functions_calling_float.append(fn.name)
+    assert functions_calling_float == ["numeric_literal_runtime_value"]
+
+
 # ---------------------------------------------------------------------------
 # Lowering: Number -> IrLiteral with tagged payload
 # ---------------------------------------------------------------------------
