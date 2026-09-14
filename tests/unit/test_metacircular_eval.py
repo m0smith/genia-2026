@@ -112,3 +112,67 @@ def test_eval_match_failure_is_clear(run):
 def test_eval_unsupported_form_remains_clearly_limited(run):
     with pytest.raises(RuntimeError, match="metacircular eval does not support expression"):
         run("eval(quote(quasiquote([x])), empty_env())")
+
+
+def test_eval_match_expression_with_decimal_literal_pattern(run):
+    """Regression coverage for issue #844 (found by issue #843's Step 8 audit).
+
+    A decimal-classified literal used as a quoted match pattern is a
+    ``numeric_values.Decimal`` since issue #840 retired the legacy
+    decimal-literal-to-float bridge, not a host ``float``; the metacircular
+    quoted-pattern lowering must recognize it as a literal pattern rather
+    than raising ``TypeError: metacircular quoted match pattern is
+    unsupported``.
+    """
+    src = """
+    matcher = eval(quote(1.5 -> "matched" | _ -> "fallback"), empty_env())
+    [apply(matcher, [1.5]), apply(matcher, [2.5])]
+    """
+    assert run(src) == ["matched", "fallback"]
+
+
+def test_meta_lower_quoted_pattern_accepts_decimal_direct_call():
+    """Direct-call coverage matching the issue #843 audit reproducer.
+
+    Exercises evaluator.py's copy of ``_meta_lower_quoted_pattern`` directly,
+    the same way section 6.4 of the audit demonstrated the defect.
+    """
+    from genia import evaluator as genia_evaluator
+    from genia.numeric_values import Decimal
+    from genia.pattern_match import IrPatLiteral
+
+    pattern = genia_evaluator._meta_lower_quoted_pattern(Decimal(15, -1))
+    assert isinstance(pattern, IrPatLiteral)
+    assert pattern.value == Decimal(15, -1)
+
+
+def test_meta_match_pattern_env_builtin_accepts_decimal_rational_float64(run):
+    """``_meta_match_pattern_env`` backs ``extend`` and uses builtins.py's
+    independently-duplicated copy of ``_meta_lower_quoted_pattern`` (issue
+    #844); Rational and Float64 have no source literal syntax (contract
+    section 4/5) so they are exercised by quoting a computed value rather
+    than a literal token.
+    """
+    matched_helper = """
+    matched(result) = (some(_)) -> true | none -> false
+    """
+
+    src_decimal = matched_helper + """
+    [matched(_meta_match_pattern_env(empty_env(), quote(1.5), [1.5])),
+     matched(_meta_match_pattern_env(empty_env(), quote(1.5), [2.5]))]
+    """
+    assert run(src_decimal) == [True, False]
+
+    src_rational = matched_helper + """
+    quoted_rational = quasiquote(unquote(1 / 3))
+    [matched(_meta_match_pattern_env(empty_env(), quoted_rational, [1 / 3])),
+     matched(_meta_match_pattern_env(empty_env(), quoted_rational, [1 / 2]))]
+    """
+    assert run(src_rational) == [True, False]
+
+    src_float64 = matched_helper + """
+    quoted_f64 = quasiquote(unquote(float64(1.5)))
+    [matched(_meta_match_pattern_env(empty_env(), quoted_f64, [float64(1.5)])),
+     matched(_meta_match_pattern_env(empty_env(), quoted_f64, [float64(2.5)]))]
+    """
+    assert run(src_float64) == [True, False]
