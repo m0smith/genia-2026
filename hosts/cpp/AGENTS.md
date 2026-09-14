@@ -3,7 +3,8 @@
 **No C++ implementation exists in this repository.** The planned production
 C++ host repository is [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)
 (bootstrapped as a repository shell only in R16 E16-6, issue #763; the real
-C++ implementation is R21, entirely in that repository).
+C++ implementation is now planned for R24, entirely in that repository, after
+R21-R23 exact-numeric contracts are completed and audited).
 
 If you are working on the C++ host, use `m0smith/genia-cpp`'s own
 `AGENTS.md`, not this file. That repository's rules require it to:
@@ -21,5 +22,6 @@ If you are working on the C++ host, use `m0smith/genia-cpp`'s own
 
 This directory (`hosts/cpp/` in `genia-2026`) is retained only as a
 pointer so no duplicate, authoritative-looking C++ implementation exists
-in two repositories at once. See `hosts/cpp/README.md` and
-`docs/design/r16-multi-host-conformance-infrastructure-contract.md`.
+in two repositories at once. See `hosts/cpp/README.md`,
+`docs/design/r16-multi-host-conformance-infrastructure-contract.md`, and
+`docs/strategy/roadmap/r21-r24.md`.
