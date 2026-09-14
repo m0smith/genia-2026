@@ -1,0 +1,11 @@
+name: parse-r21-decimal-dot-exponent-classification
+category: parse
+description: R21 DIGIT+ "." DIGIT+ exponent classifies as Decimal source
+input:
+  source: "1.25e-2"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 0.0125

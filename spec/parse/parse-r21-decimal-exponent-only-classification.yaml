@@ -1,0 +1,11 @@
+name: parse-r21-decimal-exponent-only-classification
+category: parse
+description: R21 DIGIT+ exponent (no dot) classifies as Decimal source
+input:
+  source: "1e3"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 1000.0

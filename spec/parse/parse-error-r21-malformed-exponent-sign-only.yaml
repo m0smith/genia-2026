@@ -1,0 +1,10 @@
+name: parse-error-r21-malformed-exponent-sign-only
+category: parse
+description: R21 malformed exponent with only a sign and no digits is rejected deterministically
+input:
+  source: "1e+"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "Malformed exponent"
