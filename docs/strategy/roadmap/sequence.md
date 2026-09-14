@@ -41,176 +41,104 @@ R18 — Portable Value Equality ✓ COMPLETE
 R19 — Unicode & Diagnostic Portability Contract ✓ COMPLETE
  |
  v
-R20 — Open Functions & Extensible Pattern Dispatch
+R20 — Open Functions & Extensible Pattern Dispatch ✓ COMPLETE
  |
  v
-R21 — C++ Minimal Conforming Host
+R21 — Numeric Source & Portable Representation
  |
- +----> R22 — C++ Stateful Runtime & Concurrency
+ v
+R22 — Exact Numeric Runtime
  |
- +----> R23 — C++ REPL & Data Bridges
+ v
+R23 — Numeric Representation & Interchange
+ |
+ v
+R24 — C++ Minimal Conforming Host
+ |
+ +----> R25 — C++ Stateful Runtime & Concurrency
+ |
+ +----> R26 — C++ REPL & Data Bridges
            |
            v
-R24 — C++ Flow, Pipe Mode & HTTP Serving
+R27 — C++ Flow, Pipe Mode & HTTP Serving
  |
  v
-R25 — Sheet Record Pipelines
+R28 — Genia MCP Server
  |
  v
-R26 — Sheet Shaped Computation
+R29 — Sheet Record Pipelines
  |
  v
-R27 — Relational Sheet Operations
+R30 — Sheet Shaped Computation
  |
  v
-R28 — Database Data Boundary
+R31 — Relational Sheet Operations
  |
  v
-R29 — Developer Experience & Language Tooling
+R32 — Database Data Boundary
  |
  v
-R30 — Cross-Host Performance & Optimization Evidence
+R33 — Developer Experience & Language Tooling
  |
  v
-R31 — Portable Storage & Resource Semantics
+R34 — Cross-Host Performance & Optimization Evidence
  |
  v
-R32 — Location-Independent Genia Execution
+R35 — Portable Storage & Resource Semantics
  |
  v
-R33 — Genia-Native Conformance Tooling
+R36 — Location-Independent Genia Execution
+ |
+ v
+R37 — Genia-Native Conformance Tooling
 ```
 
-This ordering does not imply that every release is a strict technical dependency
-of the next. The main semantic chain begins with R9: R10 consumes R9
-representations; R11 consumes R9 structured values plus R10
-configuration/secrets; R12 builds on R11 AI composition. R13 is a focused
-post-R10 ergonomics release that preserves R10 semantics. R14 consumes R13's
-configuration-resolution ergonomics and builds on the R4/R8 lifecycle/server
-foundation while preserving R10 protected-value boundaries. R15 extends R9's
-Template foundation with explicitly planned validated-value modeling while
-remaining independent of R14's HTTP implementation.
+This ordering does not imply that every release is a strict technical dependency of the next. Roadmap placement is planning authority only and never makes candidate behavior implemented.
 
-R16 is complete required infrastructure for independently implemented second
-hosts. It establishes the external-host repository boundary, contract-revision
-pinning, capability-aware conformance claims, deterministic evidence, and the
-separation between pinned conformance and current-`main` compatibility described
-in [`multi-host-conformance-policy.md`](multi-host-conformance-policy.md). The
-generic `tools/spec_runner --host` path is implemented and proven against the
-Python reference host and the non-semantic `m0smith/genia-cpp` bootstrap
-placeholder. R16 does not implement a real C++ interpreter.
+R16 is complete required infrastructure for independently implemented second hosts. It establishes the external-host repository boundary, contract-revision pinning, capability-aware conformance claims, deterministic evidence, and separation between pinned conformance and current-main compatibility.
 
-R17 and R18 are complete foundational portability releases. R17 establishes
-arbitrary-precision integer and ordered-map portability. R18 establishes the
-host-independent equality/key relation, including structural equality, identity
-and opaque-token semantics, protected-value non-oracle behavior, legal-key
-reflexivity, NaN key exclusion, and equal-key hash/keying consistency. R18 also
-permanently keeps `==` out of Open Function overloading so future domain-specific
-equivalence remains an explicit predicate rather than changing
-map/pattern/assertion semantics.
+R17 and R18 are complete portability foundations. R17 establishes arbitrary-precision Integer and ordered-map portability. R18 establishes the shared equality/key model, including structural, identity-bearing, and opaque-token semantics, legal-key reflexivity, protected-value non-oracle behavior, and key/hash consistency.
 
-R19 is **complete**: it covers Unicode/string and diagnostic portability
-only; its former float-rendering work was explicitly split into the
-separate exact-numeric-model gate documented in
-`docs/design/exact-numeric-model-preflight.md` and
-`docs/design/exact-numeric-model-resolved-decisions.md`. E19-1 (Unicode
-semantics/evidence), E19-2 (diagnostic mechanical inventory), E19-3
-(diagnostic normalization), E19-4 (cross-surface leak audit), E19-5
-(documentation sync), and E19-6 (skeptical release audit, PASS) are all
-implemented and merged; see `docs/releases/R19.md` and
-`docs/analysis/r19-release-truth-audit.md`. R20 promotes open functions / extensible
-pattern dispatch from the parking lot into an explicit host-agnostic
-language-semantics release. Its contract must settle local repeated-clause
-grouping, explicit cross-module extension, deterministic dispatch and ambiguity
-behavior, provenance, import-order independence, and inert import semantics before
-a second host implements those rules; R20 must consume R18 rather than making
-`==` extensible.
+R19 is complete and owns Unicode/string and diagnostic portability. R20 is complete and owns host-agnostic open-function/extensible-pattern dispatch semantics.
 
-R21 depends on R16, R17, R18, completed R19, completed R20, and the separately
-approved/completed exact-numeric-model contract before C++ numeric semantics are
-implemented. R21 is the first planned production C++ implementation release. R21
-through R24 place C++ production implementation in `m0smith/genia-cpp`;
-`genia-2026` changes during those releases only when authoritative contracts,
-shared specs, generic runner infrastructure, or portability documentation require
-it. If C++ work exposes an ambiguous portable behavior, the contract/spec is
-clarified upstream before the host implementation proceeds rather than copying
-Python implementation details.
+## Exact numeric decomposition
 
-R22 and R23 extend the C++ host along mostly independent stateful and REPL/data-
-bridge tracks. R24 consumes the implemented contracts it needs and closes only
-the C++ capabilities it can prove. R25 consumes the explicit Sheet boundaries,
-existing Flow/Outcome/validation composition, R14 repeated element lifecycle
-semantics, R15 validated-value modeling where applicable, and R16 capability-aware
-shared execution. Its placement after R24 avoids interleaving the Sheet release
-with the C++ host-parity arc; it does not make every C++ implementation release a
-semantic prerequisite for the R25 contract.
+Planning issue #845 supersedes the former single Exact Numeric Model prerequisite branch as an implementation vehicle. PR #839 is not merged. Its design and audit evidence inform three separately numbered releases:
 
-R26 deepens R25's explicit Sheet boundary into shaped whole-column computation:
-scalar lifting, shape conformance, column expressions, and narrowly defined
-elemental lifting remain part of the same immutable value model. R27 then adds
-relational Sheet operations such as grouping, summarization, ordering, and
-explicit joins without creating SQL syntax or a parallel dataframe/query model.
-R28 uses the resulting validated relational workflow as the basis for one narrow,
-explicit database source/sink boundary, reusing R10/R13 protected configuration,
-R14 lifecycle ownership, Flow/Seq processing, Outcomes, and Sheets rather than
-inventing ORM or database-specific pipeline semantics.
+- **R21** owns numeric source classification and tagged portable Core IR only.
+- **R22** owns Decimal/Rational/Float64 runtime values, arithmetic, conversions, comparison/equality integration, numeric misuse, and resource-limit semantics.
+- **R23** owns canonical numeric rendering, format presentation, strict JSON numeric behavior, lexical JSON Decimal decode, and compatibility JSON reconciliation.
 
-R29 is a tooling release rather than a language-semantics release. It should make
-the implemented parser/Core-IR/help/debugger truth easier to use through
-formatting, navigation, diagnostics, and editor integration without creating an
-editor-local language definition. R30 follows the second-host and shaped-data
-work with reproducible cross-host performance evidence; optimization is allowed
-only where measurements justify it and shared conformance proves no observable
-semantic drift.
+The approved semantic decisions are partitioned in `docs/design/exact-numeric-release-ownership.md`; the delivery postmortem is `docs/analysis/exact-numeric-gate-postmortem.md`.
 
-R31 is approved roadmap placement for a future portable Store/Location/resource
-contract, not implemented behavior. It directly supports the killer workflow's
-file/source boundary and the later Genia-native spec-runner migration. R31 keeps
-Location as a Store-relative inert structural value, Store as an explicit bounded
-identity-bearing capability value, and Revision as an authority-aware opaque
-semantic token, all consuming R18 equality rather than inventing storage-local
-comparison rules. Revision/resource observations remain provider-neutral and
-portable concurrency is based on explicit preconditions rather than assumed
-filesystem rename/locking semantics. It reserves future streaming-resource
-behavior on the existing pull-based Flow model with bounded read-ahead,
-downstream-demand-driven production, backpressure, and finalization, but does not
-require storage streaming in the first acceptance slice. Its conceptual
-dependencies are R10/R13 configuration/protection, R14 lifecycle ownership,
-current Flow/Outcome behavior, R16 host-capability discipline, and R18 equality;
-later cloud providers must preserve the same application-level contract rather
-than adding provider-specific pipeline semantics.
+Each release may consist of multiple independently mergeable PRs against current `main`. Release audits run against merged `main`; substantive findings become narrow repair issues/PRs followed by fresh audit.
 
-R32 is approved roadmap placement for a future location-independent Execution
-contract, not implemented behavior. It consumes R14 lifecycle ownership, R16 host
-protocol/capability/revision lessons, and R18 identity/opaque-token equality;
-separates inert work description from placement/authority/provider mechanics;
-treats local execution as the first provider rather than the semantic model; and
-consumes R31 storage authority when execution needs storage access rather than
-defining filesystem behavior itself. Although numbered after R31, its core
-execution semantics remain conceptually rooted in R14 + R16 + R18. Later
-actor-distribution or durable-job work should reuse R32 rather than inventing a
-second launch/placement/compatibility model.
+## C++ host arc
 
-R33 depends on R18, R31, and R32 and is the planned Genia-native
-conformance-tooling migration. Its storage/discovery stage MUST consume R31
-rather than adding ad hoc local filesystem helpers. Its external-invocation stage
-MUST consume R32 rather than adding an ad hoc subprocess API. Its comparison and
-key semantics MUST consume R18 rather than adding runner-specific equality. The
-Genia runner should first prove local-provider parity with the existing R16
-runner and then prove provider-independence with one deliberately small remote
-fixture: switching approved Store or execution provider/placement configuration
-must not require changes to the runner program, shared cases, or conformance
-semantics. Python runner/bootstrap infrastructure remains until independent
-parity/evidence justifies a separate removal gate.
+R24 is the first planned production C++ implementation release and depends on completed/audited R16-R23. C++ production implementation belongs in `m0smith/genia-cpp`; `genia-2026` remains authoritative for language contracts, shared specs, generic conformance infrastructure, and portability documentation. If C++ implementation exposes semantic ambiguity, clarify upstream before continuing rather than copying Python behavior.
 
-R8 through R17 are complete, R18 is complete, and R19 is now complete
-(E19-0 through E19-6, skeptical audit PASS). R11,
-R12, R13, R14, and R15 APIs remain Experimental, Python is the only implemented
-production host, and shared/multi-host conformance remains Partial. R16's E16-0
-through E16-8 sequence is complete (issues #757-#765; epic #756 closed;
-skeptical audit PASS in `docs/releases/R16.md`). No real second production host
-is implemented yet. R20 through R33 remain planned and not active.
-R10/R11/R12/R13 follow-ups require their own gates. Every later release requires
-its own gates. Each later behavior slice requires its own
-contract/design/test/implementation/documentation/audit gates; roadmap placement
-is not implementation authority.
+R25 and R26 extend the C++ host along mostly independent stateful and REPL/data-bridge tracks. R27 consumes the approved contracts it needs for Flow, pipe mode, and HTTP serving and closes only capabilities it can prove.
+
+## MCP
+
+R28 is the planned Genia MCP Server release. It is integration infrastructure, not a new language semantics layer. It adapts existing parse/execution/capability behavior through governed MCP tools, explicit authority limits, structured results/diagnostics, and official-client parity evidence. Existing epic #700 and issues #701-#707 are the R28/E28-* issue set after renumbering.
+
+R28 is placed after the C++ host expansion arc to keep that arc contiguous. MCP implementation may still initially use the Python reference host where the approved R28 contract says so; roadmap position does not require MCP to wait for complete cross-host parity unless its own gate makes that a concrete dependency.
+
+## Data workflow and tooling arc
+
+R29 consumes the existing Sheet/Flow/Outcome/validation/lifecycle foundations to add an explicit Sheet record-pipeline boundary without introducing AWK syntax or implicit Sheet Seq compatibility.
+
+R30 deepens that boundary into shaped whole-column computation. R31 adds deterministic relational Sheet operations. R32 adds one explicit database data boundary using existing configuration/secrets, lifecycle, Flow, Outcome, and Sheet machinery rather than an ORM or database-specific pipeline model.
+
+R33 is a developer-tooling release derived from implemented parser/Core-IR/help/debugger truth. R34 follows the second-host and data-workflow work with reproducible cross-host performance evidence and permits optimization only where measurements justify it and shared conformance proves no semantic drift.
+
+## Storage, execution, and dogfooding arc
+
+R35 is the planned portable Store/Location/resource contract. It consumes R18 equality, R10/R13 protection/configuration, R14 lifecycle ownership, current Flow/Outcome behavior, and R16 capability discipline. It keeps resource identity, authority, revisions, and provider mechanics separate; future cloud providers must preserve the same application-level contract.
+
+R36 is the planned location-independent Execution contract. It consumes R14 lifecycle ownership, R16 compatibility lessons, R18 identity/opaque semantics, and R35 storage authority where needed. Local execution is the first provider, not the semantic model.
+
+R37 is the planned Genia-native conformance-tooling migration. It consumes R18 equality, R35 discovery/loading, and R36 external invocation. It includes a Genia-native YAML parser for the contracted shared-spec profile and must not invent ad hoc filesystem, subprocess, or equality semantics to complete the migration.
+
+R8 through R20 are complete. R21 through R37 remain planned and not active unless a specific issue/roadmap gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
