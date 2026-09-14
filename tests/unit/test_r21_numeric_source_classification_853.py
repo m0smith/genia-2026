@@ -128,13 +128,16 @@ def test_lexer_rejects_malformed_exponent(source: str) -> None:
         lex(source)
 
 
-def test_lexer_trailing_dot_leaves_bare_dot_token() -> None:
-    tokens = lex("5.")
-    assert tokens[0].kind == "NUMBER"
-    assert tokens[0].text == "5"
-    # the bare "." is not a valid token on its own in this grammar
+def test_lexer_trailing_dot_is_rejected() -> None:
+    # "5." lexes the Integer "5" then hits a bare "." with no digit
+    # following, which is not a valid token on its own in this grammar.
     with pytest.raises(SyntaxError):
-        lex(".")
+        lex("5.")
+
+
+def test_lexer_leading_dot_is_rejected() -> None:
+    with pytest.raises(SyntaxError):
+        lex(".5")
 
 
 # ---------------------------------------------------------------------------
