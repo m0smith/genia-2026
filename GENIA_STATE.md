@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete, issue #840 closed one blocker — gate NOT YET complete)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, Step 7 skeptical audit complete, issues #840-#841 closed two blockers — gate NOT YET complete)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2583,14 +2583,14 @@ the future R21 C++ host — must implement for Integer/Decimal/Rational/
 Float64 numeric semantics. It is implementation-ready but is not itself
 evidence of implementation; this section records what the Python reference
 host actually implements today, landed across N-1 and Steps 2-6 of issue
-#838 (PR #839), plus issue #840. The contract section 21 ("Implementation
-acceptance") skeptical release-truth audit ("Step 7", `docs/analysis/exact-
-numeric-model-release-truth-audit.md`) recorded **R21 semantic
-implementation: NO-GO** against Steps 1-6, naming two concrete blockers: the
-legacy decimal-literal-to-float bridge, and unimplemented JSON decode-side
-exactness (contract 13.5). Issue #840 has since closed the first blocker
-(below); the second (JSON decode) and legacy `json_parse`/`json_stringify`
-reconciliation remain open follow-on issues (#841, #842) before a fresh
+#838 (PR #839), plus issues #840 and #841. The contract section 21
+("Implementation acceptance") skeptical release-truth audit ("Step 7",
+`docs/analysis/exact-numeric-model-release-truth-audit.md`) recorded **R21
+semantic implementation: NO-GO** against Steps 1-6, naming two concrete
+blockers: the legacy decimal-literal-to-float bridge, and unimplemented
+JSON decode-side exactness (contract 13.5). Issues #840 and #841 have since
+closed both of those blockers (below); legacy `json_parse`/`json_stringify`
+reconciliation remains an open follow-on issue (#842) before a fresh
 skeptical gate re-audit (#843). This section is not itself that audit; it
 records implemented Python-reference-host behavior only.
 
@@ -2648,14 +2648,19 @@ Landed:
     `numeric_values.stable_json_decimal` (contract section 13.2's predicate)
     holds, and rejects it with `json_number_out_of_range` otherwise; a
     finite Float64 encodes as a JSON number, a non-finite one is rejected.
-    **Decode is unchanged**: a JSON fraction/exponent token still decodes to
-    a plain host `float` (the pre-existing R9 behavior), not to the new
-    Decimal type — contract section 13.5's decode-side requirement
-    ("JSON never directly constructs Rational" is satisfied, but "fraction/
-    exponent token -> exact Decimal" is not) is **not yet implemented**.
-    The older, non-safe-integer-gated `json_parse`/`json_stringify` pair
-    (`_json_to_runtime`/`_json_from_runtime`) is unchanged and does not
-    handle Decimal/Rational/Float64 at all.
+    **Decode-side exactness (contract section 13.5) landed under issue
+    #841**: a JSON fraction/exponent token now decodes lexically to exact
+    Decimal directly from its base-10 text (`_strict_json_decimal`, the
+    `json.loads(parse_float=...)` hook, reusing
+    `numeric_literals.parse_numeric_literal`) rather than through a host
+    `float` intermediate, and is rejected with `json_number_out_of_range`
+    when it fails `stable_json_decimal` rather than being silently rounded;
+    integer-form tokens are unaffected (still the existing safe-integer
+    range); JSON never constructs Rational directly. The older,
+    non-safe-integer-gated `json_parse`/`json_stringify` pair
+    (`_json_to_runtime`/`_json_from_runtime`) is unchanged by issue #841 and
+    still does not handle Decimal/Rational/Float64 at all (tracked as issue
+    #842).
   - `src/genia/_format_engine.py`'s field-format spec now accepts Decimal/
     Rational/Float64: plain `{0}` interpolation already used
     `format_display` (so it gets canonical rendering for free), and the
@@ -2689,13 +2694,22 @@ Landed:
   shared R18 NaN specs whose absurdly-large-decimal-literal-overflow trick
   no longer produces infinity under exact arithmetic (now built from
   `float64(1e308) * float64(1e308)` Float64 overflow instead).
+- **Issue #841 — implemented lexical JSON Decimal decode (contract section
+  13.5).** `json_decode`'s strict JSON boundary
+  (`src/genia/builtins.py::_strict_json_decimal`, the
+  `json.loads(parse_float=...)` hook) now consumes a JSON fraction/exponent
+  number token lexically, building the exact Decimal directly from its
+  base-10 text (reusing `numeric_literals.parse_numeric_literal`) and
+  enforcing `stable_json_decimal` before accepting it — rejecting an
+  unstable/overflowing/underflowing token with `json_number_out_of_range`
+  rather than rounding through binary64. Integer-form tokens are unaffected
+  (unchanged safe-integer range); JSON never directly constructs Rational.
+  Every JSON-encodable exact Decimal and terminating Rational round-trips
+  mathematically through `json_encode` -> `json_decode`.
 
 Explicitly not yet implemented (tracked for a later slice / the eventual
 Step 7 skeptical audit, not claimed here):
 
-- JSON decode of a fraction/exponent token to exact Decimal (contract
-  section 13.5) is still open (issue #841); only encode-side
-  Decimal/Rational/Float64 support landed in Step 6.
 - Precision contexts and transcendental approximation APIs (contract
   section 16) are explicitly out of gate scope and unimplemented, as the
   contract itself states.
@@ -2713,12 +2727,12 @@ literal bridge and JSON decode exactness as the concrete remaining blockers
 material to R21's minimal capability floor; precision
 contexts/transcendentals (section 16) and the missing second host are
 confirmed real but the former is explicitly out of this gate's scope and
-the latter is outside this repository's boundary. Issue #840 has since
-closed the legacy-literal-bridge blocker (above); JSON decode exactness
-(#841) and legacy `json_parse`/`json_stringify` reconciliation (#842) remain
-open, with a fresh skeptical gate re-audit tracked as issue #843 — the Step
-7 verdict text above is not re-litigated here and remains the historical
-record of that audit run.
+the latter is outside this repository's boundary. Issues #840 and #841 have
+since closed both of those blockers (above); legacy
+`json_parse`/`json_stringify` reconciliation (#842) remains open, with a
+fresh skeptical gate re-audit tracked as issue #843 — the Step 7 verdict
+text above is not re-litigated here and remains the historical record of
+that audit run.
 
 Evidence for Steps 1-6 (unchanged, from the Step 7 audit run): `python -m
 tools.spec_runner` (720/720, both the in-process default adapter and the
@@ -2729,9 +2743,14 @@ unrelated unsupported / 0 failed), the targeted numeric unit/spec suites
 pre-existing unrelated root-sandbox `chmod(0)` failures on `-m "not
 loopback"`, 26 passed on `-m loopback`), `ruff check .` clean, and
 `tests/doc/` (206/206). Evidence for issue #840, re-run fresh rather than
-assumed unchanged: `uv run pytest -n auto -q` (2 pre-existing unrelated
-root-sandbox `chmod(0)` failures on `-m "not loopback"` only, otherwise
-green) and `uv run ruff check .` clean.
+assumed unchanged: `uv run pytest -n auto -q` (14 failed / 4523 passed on
+`-m "not loopback"` — 12 pending issue #841's then-unapplied implementation
+plus the 2 pre-existing chmod(0) failures — otherwise green) and `uv run
+ruff check .` clean. Evidence for issue #841, re-run fresh: `uv run pytest
+-n auto -q` (2 pre-existing unrelated root-sandbox `chmod(0)` failures on
+`-m "not loopback"` only, otherwise green — all issue #841 unit/spec cases
+pass), `uv run python -m tools.spec_runner` (721/721), and `uv run ruff
+check .` clean.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
