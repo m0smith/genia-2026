@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, issues #840-#842 closed Step 7's two named blockers plus legacy JSON reconciliation, Step 8 (issue #843) re-audit complete — gate remains NOT YET complete: NO-GO)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, issues #840-#842 closed Step 7's two named blockers plus legacy JSON reconciliation, issue #844 fixed Step 8's one named regression — Step 9 re-audit required before gate can move off NO-GO)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2735,6 +2735,23 @@ Landed:
   its raw value unchanged. The strict `json_decode`/`json_encode` contract
   is unaffected; no safe-boundary restriction was added to the legacy
   surface.
+- **Issue #844 — fixed metacircular quoted-pattern lowering for
+  Decimal/Rational/Float64.** Issue #843's Step 8 re-audit found that both
+  duplicated copies of `_meta_lower_quoted_pattern`
+  (`src/genia/evaluator.py`, backing the `eval.genia` metacircular `eval`
+  surface; `src/genia/builtins.py`, backing `extend`/
+  `_meta_match_pattern_env`) classified a literal quoted match pattern only
+  via `isinstance(pattern, (bool, int, float, str))` — a regression from
+  issue #840's literal-materialization change, since a decimal-classified
+  quoted pattern is now a real `Decimal` rather than a host `float` and fell
+  through to `TypeError: metacircular quoted match pattern is unsupported`.
+  Both copies now additionally accept `numeric_values.is_numeric_value(...)`
+  (covering Integer/Decimal/Rational/Float64, mirroring the
+  `syntax_self_evaluating_fn` fix from issue #840), alongside the existing
+  explicit bare-`float` check; `bool`/`str` keep their own explicit branch
+  since `is_numeric_value` deliberately excludes `bool`. The two copies
+  remain independently maintained (deduplicating them was explicitly out of
+  this issue's scope).
 
 Explicitly not yet implemented (tracked for a later slice / the eventual
 Step 7 skeptical audit, not claimed here):
@@ -2766,9 +2783,9 @@ a metacircular quoted match pattern (`src/genia/evaluator.py` and
 test in the repository catches — and recorded **Exact Numeric Model
 semantic gate: NO-GO** and **R21 release readiness: NO-GO** (the latter
 independently naming `genia-cpp`'s bootstrap-only status as its own
-separate blocker). That regression is not fixed as of this section; a
-scoped follow-up issue is required before the gate can be re-audited to
-GO.
+separate blocker). Issue #844 has since fixed that regression (above); a
+fresh Step 9 re-audit is required before the gate verdict can be updated
+from NO-GO, and is not claimed here.
 
 Evidence for Steps 1-6 (unchanged, from the Step 7 audit run): `python -m
 tools.spec_runner` (720/720, both the in-process default adapter and the
@@ -2800,6 +2817,10 @@ files (275/275), `uv run pytest tests/doc/` (206/206), `uv run ruff check
 .` clean, and live `run_source` probes of every landed behavior plus the
 one regression named above; full detail in
 `docs/analysis/exact-numeric-model-release-truth-audit.md` section 6.
+Evidence for issue #844, re-run fresh: `uv run pytest -n auto -q -m "not
+loopback"` (4557 passed / 2 pre-existing unrelated root-sandbox `chmod(0)`
+failures only), `uv run python -m tools.spec_runner` (722/722), `uv run
+pytest tests/doc/` (206/206), and `uv run ruff check .` clean.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
