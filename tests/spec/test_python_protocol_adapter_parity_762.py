@@ -54,5 +54,9 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # expressible over the protocol and require both supported open_functions
     # and multi_file_eval capabilities, so both total and passed increase by
     # exactly 8. The Python adapter advertises both.
-    assert "Summary: total=703 passed=685 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E21-1 (issue #853) adds 11 portable R21 parse-category cases (9 ok, 2
+    # error) for numeric source classification. Parse-category cases are
+    # expressible over the protocol like any other case, so both total and
+    # passed increase by exactly 11.
+    assert "Summary: total=714 passed=696 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

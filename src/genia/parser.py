@@ -1,5 +1,6 @@
 import bisect
 from typing import Optional
+from .numeric_source import classify_numeric_literal
 from .ast_nodes import (
     AnnotatedNode,
     Annotation,
@@ -67,6 +68,26 @@ PRECEDENCE = {
 }
 
 RESERVED_LITERAL_IDENTIFIERS = frozenset({"true", "false", "nil", "none"})
+
+
+def _number_node(tok, span) -> Number:
+    """Build a Number AST node with R21 E21-1 source classification metadata.
+
+    `value` preserves the existing evaluator-facing int/float construction
+    (unchanged R21 evaluator/runtime boundary); the new source_kind/digits/
+    coefficient/exponent fields carry the pure lexical classification from
+    classify_numeric_literal for E21-2 to consume later.
+    """
+    source = classify_numeric_literal(tok.text)
+    if source.kind == "integer":
+        return Number(int(tok.text), span=span, source_kind="integer", digits=source.digits)
+    return Number(
+        float(tok.text),
+        span=span,
+        source_kind="decimal",
+        coefficient=source.coefficient,
+        exponent=source.exponent,
+    )
 
 
 class Parser:
@@ -876,7 +897,7 @@ class Parser:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+            return _number_node(tok, self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
@@ -978,7 +999,7 @@ class Parser:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+            return _number_node(tok, self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))
@@ -1064,7 +1085,7 @@ class Parser:
         tok = self.peek()
         if tok.kind == "NUMBER":
             self.i += 1
-            return Number(float(tok.text) if "." in tok.text else int(tok.text), span=self.span_for_tokens(tok, tok))
+            return _number_node(tok, self.span_for_tokens(tok, tok))
         if tok.kind == "STRING":
             self.i += 1
             return String(parse_string_literal(tok.text), span=self.span_for_tokens(tok, tok))

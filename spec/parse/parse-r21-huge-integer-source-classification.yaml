@@ -1,0 +1,11 @@
+name: parse-r21-huge-integer-source-classification
+category: parse
+description: R21 huge Integer source retains exact digits with no precision loss
+input:
+  source: "123456789012345678901234567890"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 123456789012345678901234567890

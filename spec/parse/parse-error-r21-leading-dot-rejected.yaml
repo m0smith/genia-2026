@@ -1,0 +1,10 @@
+name: parse-error-r21-leading-dot-rejected
+category: parse
+description: R21 a leading-dot form (.5) is not an R21 numeric literal and is rejected
+input:
+  source: ".5"
+expected:
+  parse:
+    kind: error
+    type: SyntaxError
+    message: "Unexpected character"

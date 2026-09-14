@@ -1,0 +1,11 @@
+name: parse-r21-integer-source-classification
+category: parse
+description: R21 DIGIT+ classifies as Integer source and parses to its exact integer value
+input:
+  source: "42"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 42

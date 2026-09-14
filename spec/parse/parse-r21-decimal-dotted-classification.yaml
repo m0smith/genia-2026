@@ -1,0 +1,11 @@
+name: parse-r21-decimal-dotted-classification
+category: parse
+description: R21 DIGIT+ "." DIGIT+ classifies as Decimal source
+input:
+  source: "1.25"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 1.25

@@ -52,6 +52,9 @@ TOKEN_SPEC = [
     ("SKIP", r"[ \t\r]+"),
 ]
 NUMBER_RE = re.compile(r"\d+(?:\.\d+)?")
+_INTEGER_PART_RE = re.compile(r"\d+")
+_FRACTION_PART_RE = re.compile(r"\.\d+")
+_EXPONENT_PART_RE = re.compile(r"[eE][+-]?\d+")
 STRING_RE = re.compile(r'"([^"\\]|\\.)*"|\'([^\'\\]|\\.)*\'')
 PUNCTUATION_TOKENS = [
     ("ARROW", "->"),
@@ -138,11 +141,20 @@ def lex(source: str) -> list[Token]:
                 pos += 1
             continue
 
-        number_match = NUMBER_RE.match(source, pos)
-        if number_match is not None:
-            text = number_match.group()
-            tokens.append(Token("NUMBER", text, pos))
-            pos += len(text)
+        if ch.isdigit():
+            start = pos
+            int_match = _INTEGER_PART_RE.match(source, pos)
+            pos = int_match.end()
+            frac_match = _FRACTION_PART_RE.match(source, pos)
+            if frac_match is not None:
+                pos = frac_match.end()
+            if pos < length and source[pos] in "eE":
+                exp_match = _EXPONENT_PART_RE.match(source, pos)
+                if exp_match is None:
+                    raise SyntaxError(f"Malformed exponent in numeric literal at {pos}")
+                pos = exp_match.end()
+            text = source[start:pos]
+            tokens.append(Token("NUMBER", text, start))
             continue
 
         if source.startswith('glob"', pos):

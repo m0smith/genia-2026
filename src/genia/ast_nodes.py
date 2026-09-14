@@ -16,6 +16,15 @@ class Node:
 class Number(Node):
     value: int | float
     span: SourceSpan | None = None
+    # R21 E21-1 numeric source classification (docs/design/
+    # r21-numeric-source-portable-representation-contract.md sections 2-3).
+    # Inert metadata for now; E21-2 consumes it when building the tagged
+    # portable IrLiteral payload. `value` remains the pre-existing
+    # evaluator-facing int/float and is unchanged by this classification.
+    source_kind: str = "integer"
+    digits: str | None = None
+    coefficient: str | None = None
+    exponent: str | None = None
 
 
 @dataclass

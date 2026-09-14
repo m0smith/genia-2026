@@ -1,0 +1,11 @@
+name: parse-r21-decimal-equivalent-spelling-trailing-zero
+category: parse
+description: R21 equivalent Decimal spellings (trailing zero) parse to the same semantic value
+input:
+  source: "1.00"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 1.0

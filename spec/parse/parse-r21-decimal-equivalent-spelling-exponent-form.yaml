@@ -1,0 +1,11 @@
+name: parse-r21-decimal-equivalent-spelling-exponent-form
+category: parse
+description: R21 equivalent Decimal spellings (100e-2 vs 1.0) parse to the same semantic value
+input:
+  source: "100e-2"
+expected:
+  parse:
+    kind: ok
+    ast:
+      kind: Literal
+      value: 1.0
