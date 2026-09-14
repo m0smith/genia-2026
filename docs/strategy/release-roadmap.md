@@ -113,7 +113,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 | R18 | Portable Value Equality | Complete | `docs/releases/R18.md` |
 | R19 | Unicode and Diagnostic Portability Contract | Complete | `docs/releases/R19.md` |
 | R20 | Open Functions and Extensible Pattern Dispatch | Complete | `docs/releases/R20.md` |
-| R21 | Numeric Source and Portable Representation | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R21 | Numeric Source and Portable Representation | In Progress (E21-1–E21-3 landed) | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R22 | Exact Numeric Runtime | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | Numeric Representation and Interchange | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
