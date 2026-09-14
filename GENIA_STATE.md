@@ -2575,7 +2575,7 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary; the next roadmap release is R21 — the C++ host — only
 once that release's own separate gates are run.
 
-### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, issues #840-#842 closed Step 7's two named blockers plus legacy JSON reconciliation, issue #844 fixed Step 8's one named regression — Step 9 re-audit required before gate can move off NO-GO)
+### Exact Numeric Model (issue #838 gate for R21; Experimental, Steps 1-6 implemented, issues #840-#842 closed Step 7's two named blockers plus legacy JSON reconciliation, issue #844 fixed Step 8's one named regression, Step 9 (issue #843) re-audit complete — **Exact Numeric Model semantic gate: GO**; R21 release readiness independently NO-GO only because `genia-cpp` has no C++ interpreter yet)
 
 `docs/design/exact-numeric-model-contract.md` is the approved, separately
 gated contract (not a numbered release) that a conforming host — including
@@ -2591,16 +2591,20 @@ blockers: the legacy decimal-literal-to-float bridge, and unimplemented
 JSON decode-side exactness (contract 13.5). Issues #840 and #841 closed
 both of those blockers, and issue #842 additionally reconciled the legacy
 `json_parse`/`json_stringify` compatibility surface's numeric handling
-(below). Issue #843's required fresh skeptical re-audit ("Step 8", same
-document, section 6) has now run and found one new genuine regression —
-metacircular quoted-match-pattern lowering does not recognize
-Decimal/Rational/Float64 as literal patterns, a direct side effect of
-issue #840's literal-materialization change that no test in the repository
-caught — and recorded **Exact Numeric Model semantic gate: NO-GO** and
-**R21 release readiness: NO-GO** (the latter independently naming
-`m0smith/genia-cpp`'s continued bootstrap-only status as its own separate
-blocker). This section is not itself that audit; it records implemented
-Python-reference-host behavior only.
+(below). Issue #843's first required fresh skeptical re-audit ("Step 8",
+same document, section 6) found one new genuine regression — metacircular
+quoted-match-pattern lowering does not recognize Decimal/Rational/Float64
+as literal patterns, a direct side effect of issue #840's
+literal-materialization change that no test in the repository caught — and
+recorded **Exact Numeric Model semantic gate: NO-GO**. Issue #844 fixed
+that regression (below). Issue #843's required re-audit after that fix
+("Step 9", same document, section 7) has now run and found no further
+defect, recording **Exact Numeric Model semantic gate: GO** and **R21
+release readiness: NO-GO** (independently, naming `m0smith/genia-cpp`'s
+continued bootstrap-only status as its own separate blocker — the semantic
+gate this issue exists to close is satisfied; R21 itself still needs a
+real C++ host). This section is not itself that audit; it records
+implemented Python-reference-host behavior only.
 
 Landed:
 
@@ -2783,9 +2787,14 @@ a metacircular quoted match pattern (`src/genia/evaluator.py` and
 test in the repository catches — and recorded **Exact Numeric Model
 semantic gate: NO-GO** and **R21 release readiness: NO-GO** (the latter
 independently naming `genia-cpp`'s bootstrap-only status as its own
-separate blocker). Issue #844 has since fixed that regression (above); a
-fresh Step 9 re-audit is required before the gate verdict can be updated
-from NO-GO, and is not claimed here.
+separate blocker). Issue #844 fixed that regression (above), and issue
+#843's Step 9 re-audit (same document, section 7) then re-verified the fix
+fresh — full suite, spec runner, subprocess parity, the regression's own
+new tests, doc-sync, lint, and a fresh `genia-cpp` clone — and found no
+further defect, recording **Exact Numeric Model semantic gate: GO** and
+**R21 release readiness: NO-GO** (independently, for the unchanged
+`genia-cpp` bootstrap-only reason — this is not a statement about the
+semantic gate, which is satisfied).
 
 Evidence for Steps 1-6 (unchanged, from the Step 7 audit run): `python -m
 tools.spec_runner` (720/720, both the in-process default adapter and the
@@ -2820,7 +2829,19 @@ one regression named above; full detail in
 Evidence for issue #844, re-run fresh: `uv run pytest -n auto -q -m "not
 loopback"` (4557 passed / 2 pre-existing unrelated root-sandbox `chmod(0)`
 failures only), `uv run python -m tools.spec_runner` (722/722), `uv run
-pytest tests/doc/` (206/206), and `uv run ruff check .` clean.
+pytest tests/doc/` (206/206), and `uv run ruff check .` clean. Evidence for
+issue #843's Step 9 re-audit, all re-run fresh in that session rather than
+trusted from issue #844's own closing summary: the same full-suite/
+spec-runner/doc-sync/lint results just above, plus `uv run pytest
+tests/spec/test_python_protocol_adapter_parity_762.py -q` (1 passed,
+confirming the unchanged 722/704/18/0 subprocess parity split), `uv run
+pytest tests/unit/test_metacircular_eval.py -q` (17 passed, the fix's own
+regression coverage), a fresh shallow clone of `m0smith/genia-cpp`
+(confirmed still bootstrap-only), and live `run_source` probes of the exact
+scenario Step 8 named broken (both the `evaluator.py` `eval` surface and
+the `builtins.py` `extend`/`_meta_match_pattern_env` surface, now both
+matching correctly); full detail in
+`docs/analysis/exact-numeric-model-release-truth-audit.md` section 7.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

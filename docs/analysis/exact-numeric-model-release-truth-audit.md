@@ -1,13 +1,13 @@
 # Exact Numeric Model Skeptical Release Truth Audit (issue #838 Step 7)
 
-**Superseded by a fresh re-audit.** Section 6 below ("Step 8 (issue #843)
-re-audit") is the current verdict. This original Step 7 section is kept
-verbatim as the historical record of that audit run and is not
-re-litigated; issues #840 and #841 closed the two blockers it named, and
-issue #842 additionally reconciled legacy JSON numeric handling, but Step 8
-found one new genuine defect of its own — see section 6 for the current
-**Exact Numeric Model semantic gate** and **R21 release readiness**
-verdicts.
+**Superseded by a fresh re-audit.** Section 7 below ("Step 9 (issue #843)
+re-audit after issue #844") is the current verdict. Sections 1-6 (Steps 7
+and 8) are kept verbatim as the historical record of those audit runs and
+are not re-litigated; issues #840, #841, and #842 closed Step 7's blockers,
+Step 8 (section 6) found one new genuine defect of its own (metacircular
+quoted-pattern lowering), and issue #844 fixed that defect — see section 7
+for the current **Exact Numeric Model semantic gate** and **R21 release
+readiness** verdicts.
 
 Status (Step 7, historical): **NO-GO for R21 semantic implementation.** This is contract section
 21's ("Implementation acceptance") required skeptical audit for the
@@ -358,7 +358,12 @@ blocker list above.
 
 ## 6. Step 8 (issue #843) re-audit
 
-Status: **Exact Numeric Model semantic gate: NO-GO. R21 release readiness:
+**Superseded by section 7.** This section's NO-GO verdict was current when
+written; issue #844 has since fixed the one regression this section names
+(6.4). Kept verbatim as the historical record of this audit run — see
+section 7 for the current verdicts.
+
+Status (Step 8, historical): **Exact Numeric Model semantic gate: NO-GO. R21 release readiness:
 NO-GO.** This is issue #843's required fresh skeptical re-audit after
 issues #840, #841, and #842 closed Step 7's two named blockers plus the
 legacy JSON reconciliation gap. Per the issue charge, evidence was
@@ -571,3 +576,143 @@ changes. The one code artifact produced is this document. The defect in
 fixed; per the issue's own instruction, a repair belongs to a separately
 scoped follow-up ticket, and the semantic gate stays NO-GO until that
 lands and is itself verified.
+
+## 7. Step 9 (issue #843 re-audit after issue #844)
+
+Status: **Exact Numeric Model semantic gate: GO. R21 release readiness:
+NO-GO** (independently, for the reason in 7.4 below — this is not a
+statement about the semantic gate). This is issue #843's required fresh
+re-audit after issue #844 fixed the one regression Step 8 (section 6.4)
+named. Per issue #843's own charge, evidence is re-derived fresh in this
+session rather than trusted from issue #844's own closing summary, and no
+implementation was attempted in this section.
+
+### 7.1 What was re-read fresh
+
+`AGENTS.md`, `GENIA_STATE.md`'s full "Exact Numeric Model" section
+(including the issue #844 update), `GENIA_RULES.md`, `GENIA_REPL_README.md`,
+`README.md`, `docs/design/exact-numeric-model-contract.md` sections 2-5, 12,
+13, and 21, and the full issue #844 commit history on this branch
+(`379ecbf` test, `22f1a45` fix, `8f3f9b4` docs) in place of trusting the
+issue's own closing comment. `GENIA_RULES.md` and `GENIA_REPL_README.md`
+carry no claim specific to the metacircular-pattern regression or its fix
+either way, so neither needed updating for issue #844 (confirmed by direct
+`grep`, not assumed); `README.md`'s one relevant paragraph (JSON boundary,
+issue #838/#841) is unaffected by this fix and was not touched.
+
+### 7.2 What was re-verified, and how
+
+- Full repository suite: `uv run pytest -n auto -q -m "not loopback"` ->
+  **4557 passed, 2 failed** — the same pre-existing
+  `tests/unit/test_native_test_runner.py` root-sandbox `chmod(0)` pair
+  documented since before R14 (Step 7/8's own baseline), re-confirmed
+  unrelated: `chmod(0)` does not restrict the root user this sandbox runs
+  as, so the tests' own precondition does not hold here, independent of any
+  numeric-model change. (4557 = Step 8's 4554 + the 3 new issue #844 tests
+  in `tests/unit/test_metacircular_eval.py`.)
+- `uv run python -m tools.spec_runner` (in-process default adapter) ->
+  **722/722 passed**, unchanged from Step 8 (issue #844 added no new spec
+  cases; its regression coverage lives in `tests/unit/`, matching where the
+  affected surface — the metacircular-eval prelude, not the shared spec
+  corpus — is otherwise tested).
+- `uv run pytest tests/spec/test_python_protocol_adapter_parity_762.py -q`
+  -> **1 passed**, confirming the subprocess E16-1 protocol-adapter path
+  still agrees with the in-process adapter at the pinned 722/704/18/0 split
+  (18 pre-existing unsupported cases, 0 failed).
+- `uv run pytest tests/unit/test_metacircular_eval.py -q` -> **17 passed**
+  (the 14 pre-existing cases plus issue #844's 3 new ones), confirming the
+  regression's own coverage is green, not merely that the wider suite
+  didn't regress.
+- `uv run pytest tests/doc/` -> **206/206 passed** (semantic-doc-sync
+  suite, unchanged from Step 8).
+- `uv run ruff check .` -> clean.
+- A fresh shallow clone of `m0smith/genia-cpp` (`git clone --depth 1`,
+  re-checked in this session rather than trusted from Step 8): still
+  **bootstrap only, no C++ interpreter** — `README.md` line 3 states
+  "Status: bootstrap only. No C++ interpreter is implemented here yet.",
+  and the only file under `bootstrap/` is `protocol_adapter_stub.py`, a
+  placeholder.
+- Live `run_source` probes (via a temporary pytest module using the shared
+  `run` fixture, since `genia.make_global_env` requires the interpreter's
+  own `__main__`/runtime binding context and cannot be driven from a bare
+  `python -c`/script invocation) of the exact scenario Step 8's section 6.4
+  named as broken:
+  - `matcher = eval(quote(1.5 -> "matched" | _ -> "fallback"), empty_env()); [apply(matcher, [1.5]), apply(matcher, [2.5])]`
+    now returns `["matched", "fallback"]` (previously raised `TypeError:
+    metacircular quoted match pattern is unsupported: 1.5`).
+  - `_meta_match_pattern_env(empty_env(), quote(1.5), [1.5])` (the
+    `builtins.py`-backed `extend` surface, the second of the two
+    independently-duplicated copies Step 8 named) now returns
+    `some({})`/matches, and `[..., 1.5, ...]` vs. a non-matching `2.5`
+    argument correctly returns `none`.
+
+### 7.3 Skeptical code audit — issue #844 specifically
+
+Read both `_meta_lower_quoted_pattern` copies (`src/genia/evaluator.py`
+line ~549, `src/genia/builtins.py` line ~549) in full at their current
+state, not merely the diff. Both now read:
+
+```python
+if pattern is None or isinstance(pattern, (bool, str)):
+    return IrPatLiteral(pattern)
+if isinstance(pattern, float) or is_numeric_value(pattern):
+    return IrPatLiteral(pattern)
+```
+
+`is_numeric_value` (from `numeric_values.py`, already re-read in full
+during Step 8's 6.3) is `isinstance(value, (int, Decimal, Rational,
+Float64))` with an explicit `bool` exclusion — so the combined check is
+exactly equivalent in intent to the pre-#840 `isinstance(pattern, (bool,
+int, float, str))`, except that `int`/`float` (host types only) are now
+`int`-via-`is_numeric_value` plus an explicit bare-`float` branch, and the
+new numeric runtime types `Decimal`/`Rational`/`Float64` are included. No
+other branch of either function was touched, confirmed by `git diff
+0c9eacb..22f1a45 -- src/genia/evaluator.py src/genia/builtins.py` showing
+only the two four-line hunks matching the commit's stated scope — no
+incidental change to the `GeniaOptionNone`/`GeniaSymbol`/`GeniaMap`/
+`GeniaPair` branches below it.
+
+Confirmed the two copies remain independently maintained (not
+deduplicated), as issue #844 scoped out; this is unchanged drift risk
+already named in Step 8 (6.4) and not re-litigated as a new finding here —
+it does not block the semantic gate, since contract section 21 does not
+require single-source-of-truth internal implementation structure, only
+correct observable behavior, which 7.2 confirms for both copies
+independently.
+
+No other regression was found in this pass. This section deliberately
+re-examined only the surface issue #844 touched (per issue #843's own
+"re-derive evidence rather than trusting prior summaries" charge applied
+narrowly to what changed since Step 8, combined with the full-suite/
+spec-runner/parity re-runs in 7.2 that would surface an unrelated
+regression if one existed).
+
+### 7.4 Required verdicts
+
+**Exact Numeric Model semantic gate: GO.** Every contract section 21
+implementation-acceptance item is landed and evidenced (7.2), and the one
+concrete regression Step 8 named (6.4) is fixed and independently
+re-verified working via live probe (7.2) and code audit (7.3), not merely
+via issue #844's own closing summary. No new defect was found in this
+re-audit.
+
+**R21 release readiness: NO-GO.** Independently of the semantic gate
+verdict above (now GO), `m0smith/genia-cpp` remains bootstrap-only
+(re-confirmed by a fresh shallow clone in this session, 7.2) — a missing
+C++ interpreter does not retroactively change the semantic gate verdict,
+and is named here only because issue #843 requires this second verdict to
+independently acknowledge it as its own, structurally separate blocker on
+R21 as a whole. The Exact Numeric Model prerequisite this gate exists to
+close is now satisfied; R21 itself cannot proceed to release readiness
+until a real C++ host exists in `genia-cpp`, which is outside this
+repository's boundary and outside this gate's scope.
+
+### 7.5 Scope discipline
+
+Per the issue #843 charge, this re-audit made **no** implementation
+changes. The one code artifact produced is this document plus the
+`GENIA_STATE.md`/`docs/analysis/exact-numeric-model-release-truth-audit.md`
+truth-doc updates recording the verdict change from NO-GO to GO. No new
+defect was found; issue #843 is closed by this section per its own
+acceptance criteria ("semantic gate is GO only if every contract section
+21 implementation-acceptance requirement ... is satisfied").
