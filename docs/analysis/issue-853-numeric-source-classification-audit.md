@@ -38,3 +38,16 @@ implementation strictly avoids host binary-float construction in the new
 classification path, no Core IR node family or evaluator numeric semantics
 changed, and the only regression-suite failures present are reproduced
 identically on `main` before this branch's changes.
+
+## Doc Distillation
+
+Reviewed `GENIA_STATE.md` section 9.21 and the `GENIA_REPL_README.md`
+literals bullet added by this ticket for conciseness against
+`docs/process/run-change.md`'s Doc Distillation phase. Both additions are
+already minimal (state the landed behavior and its explicit non-goals in
+one place each, with no duplicated prose across the two files) — no further
+trimming was needed. This process's own preflight/contract/design/audit
+artifacts remain under `docs/analysis/` and `docs/design/` as durable
+history, matching existing precedent (for example
+`docs/analysis/issue-836-portable-cross-module-preflight.md`,
+`docs/analysis/r20-release-truth-audit.md`).
