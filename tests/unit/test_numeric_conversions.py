@@ -6,13 +6,14 @@ constructor), 5 (Float64 explicit conversion), 6 (Float64 -> exact
 conversion), and 17 (deterministic numeric misuse classes).
 
 These tests exercise ``genia.numeric_values`` directly for the Decimal
-shapes and NaN/infinity/overflow edge cases that are not reachable from
-ordinary Genia source in this slice (decimal-literal materialization is
-still on the pre-existing legacy float bridge; see
-``numeric_values.py``'s module docstring and
-``spec/eval/exact-numeric-conversion-builtins.yaml``'s notes). Source-
-reachable behavior (Integer/Rational round-tripping through the builtins) is
-covered by ``TestEvaluatorWiring`` below and by the shared spec case.
+shapes and NaN/infinity/overflow edge cases that are easier to construct
+directly against the runtime value model than through source text. Since
+issue #840, decimal-classified source literals materialize directly as
+exact ``Decimal`` (see ``numeric_values.py``'s module docstring), so
+Decimal is also reachable from ordinary Genia source; that reachability is
+covered by ``TestEvaluatorWiring`` below,
+``tests/unit/test_decimal_literal_exact_materialization.py``, and the
+shared spec case.
 """
 
 from __future__ import annotations
@@ -208,17 +209,16 @@ class TestEvaluatorWiring:
         assert run("exact(3) == 3") is True
         assert run("exact(rational(1, 2)) == (1 / 2)") is True
 
-    def test_float64_rejects_the_legacy_decimal_literal_bridge(self, run):
-        # Decimal-classified source literals still materialize through the
-        # temporary legacy float bridge (plain host float), which is neither
-        # an exact numeric value nor an explicit Float64 per contract
-        # section 5 -- float64(...) must not silently accept it.
-        with pytest.raises(NumericMisuseError):
-            run("float64(0.1)")
+    def test_float64_accepts_a_decimal_literal(self, run):
+        # Issue #840: decimal-classified source literals materialize
+        # directly as exact Decimal, so float64(...) accepts them as
+        # ordinary exact numeric input per contract section 5.
+        assert run("float64(0.1) == float64(0.1)") is True
 
-    def test_exact_rejects_the_legacy_decimal_literal_bridge(self, run):
-        with pytest.raises(NumericMisuseError):
-            run("exact(0.1)")
+    def test_exact_accepts_a_decimal_literal_unchanged(self, run):
+        # exact(...) on an already-exact Decimal returns it unchanged
+        # (contract section 6).
+        assert run("exact(0.1) == 0.1") is True
 
     def test_boolean_operand_is_numeric_misuse_from_source(self, run):
         with pytest.raises(NumericMisuseError):

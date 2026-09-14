@@ -1,12 +1,13 @@
 name: exact-numeric-conversion-builtins
 category: eval
 description: >-
-  Exact numeric model (issue #838 step 5): the explicit conversion builtins
-  `rational(...)`, `float64(...)`, and `exact(...)` are reachable from
-  ordinary Genia source and round-trip correctly for the source-reachable
-  exact-family values (Integer, and Rational produced by Integer/Integer
-  division), including cross-domain equality/ordering between an explicit
-  Float64 value and an exact numeric value.
+  Exact numeric model (issue #838 step 5, extended by issue #840): the
+  explicit conversion builtins `rational(...)`, `float64(...)`, and
+  `exact(...)` are reachable from ordinary Genia source and round-trip
+  correctly for the source-reachable exact-family values (Integer, Decimal
+  source literals, and Rational produced by Integer/Integer division),
+  including cross-domain equality/ordering between an explicit Float64 value
+  and an exact numeric value.
 input:
   source: |
     [
@@ -19,31 +20,36 @@ input:
       float64(1) < float64(2),
       float64(2) > float64(1),
       float64(1 / 4) == float64(1) / float64(4),
-      float64(3) == float64(3)
+      float64(3) == float64(3),
+      float64(1.5) == float64(1.5),
+      exact(0.1) == 0.1,
+      1.0 == 1.00,
+      1 == 1.0
     ]
 expected:
-  stdout: "[true, true, true, true, true, true, true, true, true, true]\n"
+  stdout: "[true, true, true, true, true, true, true, true, true, true, true, true, true, true]\n"
   stderr: ""
   exit_code: 0
 notes: |
-  issue: 838
+  issue: 838, 840
   release: none (pre-release follow-on step for a future R21 gate)
   contract: >-
-    docs/design/exact-numeric-model-contract.md section 4 (`rational(...)`
-    constructor/canonicalization), section 5 (`float64(...)` explicit
-    conversion), section 6 (`exact(...)` explicit conversion), and section
-    10.1/10.2 (exact-family and Float64-bridge equality/comparison).
+    docs/design/exact-numeric-model-contract.md section 3 (Decimal source
+    literals materialize directly, never through Float64), section 4
+    (`rational(...)` constructor/canonicalization), section 5 (`float64(...)`
+    explicit conversion), section 6 (`exact(...)` explicit conversion), and
+    section 10.1/10.2 (exact-family and Float64-bridge equality/comparison).
   note: >-
-    Decimal is not yet reachable from Genia source because decimal-literal
-    materialization remains on the pre-existing legacy float bridge
-    (`materialize_legacy_numeric`); `float64(...)`/`exact(...)` therefore only
-    accept Integer/Rational/Float64 input from ordinary source in this slice
-    (deliberately rejecting the legacy bridge's plain host float, since it is
-    neither an exact numeric value nor an explicit Float64 per contract
-    section 5). Decimal-producing conversion behavior (including the
-    finite-Float64 exact-value example from contract section 6) and every
-    misuse/error edge case (signed zero, NaN, infinity, overflow, invalid
-    `rational` arguments) are covered directly against the runtime value
-    model by `tests/unit/test_numeric_conversions.py`, matching the testing
+    Issue #840 retired the legacy `materialize_legacy_numeric` host-float
+    bridge: decimal-classified source literals now materialize directly as
+    exact Decimal, so `float64(...)`/`exact(...)` accept them as ordinary
+    exact numeric input rather than rejecting them. NaN/infinity/overflow
+    misuse/error edge cases that are not reachable from ordinary source are
+    covered directly against the runtime value model by
+    `tests/unit/test_numeric_conversions.py`, matching the testing
     convention established by step 4's
-    `tests/unit/test_numeric_equality_comparison.py`.
+    `tests/unit/test_numeric_equality_comparison.py`. Additional
+    decimal-literal materialization coverage (source classification, unary
+    sign handling, high-precision literals, canonical equality across
+    spellings) lives in
+    `tests/unit/test_decimal_literal_exact_materialization.py`.
