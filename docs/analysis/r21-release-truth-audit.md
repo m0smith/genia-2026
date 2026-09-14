@@ -112,3 +112,18 @@ docs are updated to reflect that as part of this same PR (see
 `docs/strategy/roadmap/r21-r24.md`).
 
 R22 work has not begun.
+
+## Doc Distillation
+
+`docs/releases/R21.md`'s status line and closing "What's next" paragraph
+were updated to reflect PASS (release-complete) as part of this same
+change, along with `docs/strategy/release-roadmap.md`,
+`docs/strategy/roadmap/r21-r24.md`, and
+`docs/strategy/roadmap/sequence.md` status corrections and
+`docs/releases/README.md`'s index entry — all minimal, truthful status
+corrections rather than new prose. `tests/doc/test_roadmap_split.py` was
+updated to match the corrected "R8 through R21 are complete" wording (it
+previously hardcoded the now-superseded "R8 through R20" boundary). This
+audit document itself is the durable release-truth record; no further
+distillation is needed. Process artifacts remain under `docs/analysis/`
+as durable history, matching #853–#856's precedent.
