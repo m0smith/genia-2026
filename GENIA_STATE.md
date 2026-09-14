@@ -4686,6 +4686,49 @@ no Decimal/Rational/Float64 runtime arithmetic or conversions, no
 equality/map-key change, and no rendering/formatting/JSON behavior (later
 releases own each of those).
 
+## 9.22) R21 E21-2 tagged portable numeric IrLiteral payloads (issue #854)
+
+Implements section 4 of `docs/design/r21-numeric-source-portable-representation-contract.md`, consuming the E21-1 (9.21) classification:
+
+- Integer and Decimal numeric source now lower through the existing
+  `IrLiteral` node with a canonical tagged payload instead of a bare host
+  number: `{"kind": "integer", "digits": "<canonical unsigned decimal
+  text>"}` or `{"kind": "decimal", "coefficient": "<canonical text>",
+  "exponent": "<canonical text>"}` (value = coefficient × 10^exponent).
+  Every payload field is a string; no host-native binary float appears in
+  the portable payload. Huge Integers preserve exact digits; equivalent
+  Decimal spellings (`1.0`, `1.00`, `100e-2`) normalize to the identical
+  tagged payload while remaining Decimal kind.
+- Source sign remains outside the payload: `-1.25` still lowers as
+  `IrUnary(MINUS, ...)` wrapping the positive tagged literal. `/` remains
+  ordinary `IrBinary(op=SLASH)`, unaffected by this change.
+- No new Core IR node family: `IrLiteral` is reused unchanged from the
+  frozen minimal portable node family. `IrPatLiteral` (numeric literals
+  in case-pattern position) is intentionally untouched by this ticket —
+  only expression-position `IrLiteral` gets the tagged payload, matching
+  contract section 4's scope.
+- Evaluator compatibility shim (not new runtime semantics): the
+  evaluator's existing `IrLiteral` handling unwraps the tagged payload
+  back into exactly the same `int`/`float` value it produced before this
+  ticket (`int(digits)` for Integer; `float(coefficient + "e" +
+  exponent)` for Decimal — the same mathematical value as the original
+  source spelling, so it rounds to the same binary64 result). All
+  existing arithmetic/display/evaluation behavior for numeric literals is
+  observably unchanged. This is compatibility strictly required by
+  E21-2's own payload-shape change, not R22 runtime Decimal/Rational/
+  Float64 materialization, arithmetic, or conversion semantics — none of
+  which is implemented.
+- Shared evidence: 7 new `spec/ir/*` cases (Integer/Decimal tagged
+  payload shape, huge Integer, equivalent Decimal spellings,
+  unary-negative lowering, slash staying ordinary binary) plus migration
+  of the pre-existing numeric-literal `spec/ir/*` fixtures to the tagged
+  shape, proven identical through both the in-process path and the R16
+  subprocess protocol adapter.
+
+Explicit limitations: no Decimal/Rational/Float64 runtime value, arithmetic,
+equality, or map-key change; no rendering/formatting/JSON behavior (R23);
+no C++ host implementation (R24).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
