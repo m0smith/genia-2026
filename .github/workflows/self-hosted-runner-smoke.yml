@@ -1,0 +1,47 @@
+name: Self-hosted runner smoke
+
+on:
+  push:
+    branches:
+      - infra/self-hosted-runner
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.repository == 'm0smith/genia-2026'
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - genia
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Show runner environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_name=${RUNNER_NAME}"
+          echo "runner_os=${RUNNER_OS}"
+          echo "runner_arch=${RUNNER_ARCH}"
+          uname -a
+          python3 --version
+          git --version
+          docker --version
+
+      - name: Confirm repository checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AGENTS.md
+          test -f GENIA_STATE.md
+          test -f GENIA_RULES.md
+          test -f GENIA_REPL_README.md
+          test -f README.md
+          echo "Genia self-hosted runner smoke check passed."
