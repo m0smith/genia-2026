@@ -17,7 +17,7 @@ jobs:
       - linux
       - x64
       - genia
-    timeout-minutes: 5
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -44,4 +44,25 @@ jobs:
           test -f GENIA_RULES.md
           test -f GENIA_REPL_README.md
           test -f README.md
-          echo "Genia self-hosted runner smoke check passed."
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --dev
+
+      - name: Validate LLM instruction sync
+        run: uv run python tools/validate_llm_instructions.py
+
+      - name: Run semantic specs
+        run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m tools.spec_runner
+
+      - name: Confirm Genia runner toolchain
+        run: echo "Genia self-hosted runner toolchain smoke check passed."
