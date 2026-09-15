@@ -221,15 +221,15 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 
 | ID | Question | Current state | Exit evidence |
 | --- | --- | --- | --- |
-| **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **READY** | Written invariant list reconciled against current authoritative docs; contradictions identified explicitly. |
-| **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | Not started | Concrete use cases showing inspectability/composition/authority value; R16 fail-closed enforcement shape reused; no syntax required yet. |
-| **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | Not started | Lifetime/escape/transfer matrix and failure boundary, with no second lifecycle/equality system. |
-| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | Blocked on R22/R23 for final numeric answer | Explicit value-family matrix tied to existing contracts. |
+| **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **RESOLVED** — see [`provider-composition-preflight.md#p0`](provider-composition-preflight.md#p0--extract-the-existing-provider-architecture) | Written invariant list reconciled against current authoritative docs; contradictions identified explicitly. |
+| **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | **RESOLVED — NO NEW CONCEPT (Model A)**, see [`provider-composition-preflight.md#p1`](provider-composition-preflight.md#p1--whole-computation-requiresprovides) | Concrete use cases showing inspectability/composition/authority value; R16 fail-closed enforcement shape reused; no syntax required yet. |
+| **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | **PARTIAL — scope-owned, no borrowed state**, see [`provider-composition-preflight.md#p2`](provider-composition-preflight.md#p2--resource-ownership-borrowing-and-expiry) | Lifetime/escape/transfer matrix and failure boundary, with no second lifecycle/equality system. |
+| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | Blocked on R22/R23 for final numeric answer; non-numeric investigation unblocked, framework provided by P2/P5 | Explicit value-family matrix tied to existing contracts. |
 | **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | Not started; numeric portion blocked on R22/R23 | Representation contract sufficient for at least Python/C++ proof without host-default numeric leakage. |
-| **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | Not started | Exact identity/revision rule, initially without automatic SemVer compatibility. |
-| **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **Highest-risk open seam** | Failure matrix with one owner for each timeout/incompatible/unauthorized/provider/cancel/launch case. |
-| **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | Not started | Minimal graph/composition model or explicit decision that existing argument passing is sufficient. |
-| **P8** | What is the smallest proof of alternate provider realization with unchanged application logic? | Not started | Reuse an existing R12-style semantic interface; demonstrate two realizations with identical portable observations and no provider-specific leakage. |
+| **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | **RESOLVED — nominal name + exact revision, SemVer non-authoritative**, see [`provider-composition-preflight.md#p5`](provider-composition-preflight.md#p5--interface-identity-and-contract-revision) | Exact identity/revision rule, initially without automatic SemVer compatibility. |
+| **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED — same-process stays Outcome-only; R36 ExecutionResult is the sole outer envelope**, see [`provider-composition-preflight.md#p6`](provider-composition-preflight.md#p6--failure-layering) | Failure matrix with one owner for each timeout/incompatible/unauthorized/provider/cancel/launch case. |
+| **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED — ordinary explicit arguments/factories, no binding table**, see [`provider-composition-preflight.md#p7`](provider-composition-preflight.md#p7--explicit-provider-composition) | Minimal graph/composition model or explicit decision that existing argument passing is sufficient. |
+| **P8** | What is the smallest proof of alternate provider realization with unchanged application logic? | Not started; sharpened scope recorded in preflight synthesis | Reuse an existing R12-style semantic interface; demonstrate two realizations with identical portable observations and no provider-specific leakage. |
 | **P9** | Can the resulting Genia model map to one actual WIT component without changing Genia semantics? | Deferred until P0-P8 are coherent | One bounded WIT interop proof; any mismatch documented rather than hidden. |
 
 ## Work order and gates
@@ -308,4 +308,24 @@ Keep this short and append-only unless correcting a factual error.
 
 **GO for a narrow architecture preflight. No implementation authorization.**
 
-The next work item is P0: extract the common provider invariants from the already implemented/audited R11/R12/R14/R16/R18 contracts and identify any contradictions or hidden assumptions before proposing new semantics.
+- **2026-09-15 — P0/P1/P2/P5/P6/P7 architecture pass complete.** See
+  `docs/analysis/provider-composition-preflight.md` for the full decision
+  records. Summary: P0 RESOLVED (invariant list extracted, no
+  contradictions found); P1 RESOLVED (no new requires/provides concept —
+  ordinary explicit arguments suffice); P2 PARTIAL (smallest viable
+  scope-owned resource model defined, explicitly unvalidated against a real
+  R35/R36 resource shape); P5 RESOLVED (nominal name + exact revision
+  identity, SemVer treated as a non-authoritative human suggestion only);
+  P6 RESOLVED (same-process provider calls stay ordinary Outcome-only; R36
+  `ExecutionResult` remains the sole outer execution envelope); P7 RESOLVED
+  (ordinary explicit values/factories, no binding table, no DI). No new
+  runtime/language abstraction is authorized. No release renumbering is
+  recommended. R24–R31 remain unblocked. P3/P4/P8/P9 remain open per the
+  ledger above, with P3's non-numeric half now unblocked and P8's scope
+  sharpened by the preflight's synthesis section.
+
+The next work item is P8: reuse an existing R12-shaped semantic boundary to
+prove alternate provider realization with unchanged application logic, per
+the sharpened scope in the preflight's synthesis section. P2's "no
+borrowing" hypothesis should be revisited once R35/R36 design work begins,
+if their concrete resource shapes prove scope-only ownership insufficient.
