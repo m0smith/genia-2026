@@ -12,6 +12,9 @@ R16 bootstrapped `m0smith/genia-cpp` as a repository shell only. No real C++ int
 
 Before E16-6, this directory was an empty template-derived placeholder. No C++ code, build tooling, or test scaffolding was added here. Nothing behavioral changed by that transition; only where the future implementation belongs.
 
+Future pointer/scaffold maintenance follows the shared `hosts/template/`
+guidance. The production C++ implementation remains in `m0smith/genia-cpp`.
+
 ## For a future Node.js/Java/Rust/Go host
 
 The same repository-boundary model applies: a substantial production host belongs in its own dedicated repository once real implementation begins. The in-repository host directory remains a pointer/scaffold so semantic authority stays in `genia-2026`.

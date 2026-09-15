@@ -39,7 +39,8 @@ def test_r13_status_remains_synchronized_after_release_truth_sync() -> None:
         "docs/releases/R13.md": "E13-1 through E13-8 delivered",
         "docs/releases/README.md": "E13-1 through E13-8 delivered",
         "docs/strategy/release-roadmap.md": (
-            "E13-1 through E13-8 are complete"
+            "| R13 | Configuration Resolution Ergonomics | Complete | "
+            "`docs/releases/R13.md` |"
         ),
         "docs/strategy/r13-configuration-resolution-ergonomics.md": (
             "E13-7 documentation and executable-example verification"
