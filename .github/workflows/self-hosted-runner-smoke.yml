@@ -54,17 +54,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-input uv
-          uv --version
+          python3 -m pip install --disable-pip-version-check --no-input uv
+          python3 -m uv --version
 
       - name: Sync dependencies
-        run: uv sync --dev
+        run: python3 -m uv sync --dev
 
       - name: Validate LLM instruction sync
-        run: uv run python tools/validate_llm_instructions.py
+        run: python3 -m uv run python3 tools/validate_llm_instructions.py
 
       - name: Run semantic specs
-        run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m tools.spec_runner
+        run: UV_CACHE_DIR=/tmp/uv-cache python3 -m uv run python3 -m tools.spec_runner
 
       - name: Confirm Genia runner toolchain
         run: echo "Genia self-hosted runner toolchain smoke check passed."
