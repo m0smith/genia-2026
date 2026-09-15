@@ -2,6 +2,14 @@
 
 This document defines the shared portability contract for Genia hosts.
 
+> **Scope — host interop vs. FFI:** this document is the *host interop*
+> (multi-host portability) contract — the observable semantics every conforming
+> host must preserve so the same Genia program runs identically on any host. It
+> is **not** about calling host-language code from Genia; that is **FFI**, a
+> separate, host-specific concern documented under "Host FFI Bridge" below and,
+> authoritatively, in `GENIA_STATE.md` §4.1. See `README.md` in this folder for
+> the full distinction.
+
 
 **LANGUAGE CONTRACT**
 - The shared host contract currently covers these spec categories: parse, ir, eval, cli, flow, error.
@@ -252,13 +260,21 @@ Rules:
   - `docs/host-interop/HOST_CAPABILITY_MATRIX.md`
   - `spec/manifest.json`
 
-## Allowlisted Host Interop Bridge
+## Host FFI Bridge (Python, allowlisted)
 
-Current host interop is a narrow capability bridge, not a second semantic runtime.
+> **This section is FFI, not the portability contract above.** It documents
+> calling host-language code *from* Genia. It is **Python-host-only** and not
+> part of the shared portable host contract; a Genia program that uses it is
+> host-specific by construction. `GENIA_STATE.md` §4.1 is the authoritative FFI
+> contract, and `README.md` in this folder explains the host-interop-vs-FFI
+> distinction. (Historically this section was titled "Allowlisted Host Interop
+> Bridge"; it is renamed here to keep FFI and host interop separate.)
 
-Current Python-host contract:
+Genia's FFI is a narrow, allowlisted capability bridge, not a second semantic runtime.
 
-- host interop reuses ordinary `import` plus dot export access (`import python.json as pyjson`, then `pyjson.loads`)
+Current Python-host FFI contract:
+
+- the FFI bridge reuses ordinary `import` plus dot export access (`import python.json as pyjson`, then `pyjson.loads`)
 - current allowlisted modules are `python` and `python.json`
 - host exports participate in the same call and pipeline model as ordinary Genia callables
 - boundary normalization preserves shared Genia semantics:
