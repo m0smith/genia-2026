@@ -5,43 +5,62 @@ on:
     branches:
       - main
       - master
+      - infra/self-hosted-ci
   pull_request:
+  workflow_dispatch:
+
+# September 2026 temporary policy: no GitHub-hosted runner compute.
+# Fork PRs intentionally skip CI until reviewed and run from a trusted branch/manual dispatch.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   docs-coverage:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Docs coverage
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, genia]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-      - run: uv sync --dev
+      - name: Bootstrap uv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
+      - run: python -m uv sync --dev --python "$UV_PYTHON"
       - name: Check function reference is current
-        run: uv run python tools/gen_function_docs.py --check
+        run: python -m uv run --python "$UV_PYTHON" python tools/gen_function_docs.py --check
       - name: Doc coverage + style lint
-        run: uv run python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
+        run: python -m uv run --python "$UV_PYTHON" python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
 
   cheatsheet:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Cheatsheet validation
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, genia]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-      - run: uv sync --dev
+      - name: Bootstrap uv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
+      - run: python -m uv sync --dev --python "$UV_PYTHON"
       - name: Run cheatsheet tests
-        run: uv run pytest -q tests/unit/test_cheatsheet_*.py
+        run: python -m uv run --python "$UV_PYTHON" pytest -q tests/unit/test_cheatsheet_*.py
 
   test:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, genia]
     # 3.15 is allowed to fail (continue-on-error) until it ships stable (2026-10-01).
     continue-on-error: ${{ matrix.experimental || false }}
 
@@ -56,36 +75,34 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
+      - name: Bootstrap uv for selected Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
+          python -m uv --version
       - name: Sync dependencies
-        run: uv sync --dev
-
+        run: python -m uv sync --dev --python "$UV_PYTHON"
       - name: Lint (ruff)
-        run: uv run ruff check .
-
+        run: python -m uv run --python "$UV_PYTHON" ruff check .
       - name: Run tests
-        run: uv run pytest -q -vv --maxfail=1 -m "not slow" -n auto
-
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow" -n auto
       - name: Run semantic specs
-        run: UV_CACHE_DIR=/tmp/uv-cache uv run python -m tools.spec_runner
-
+        run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
       - name: Run tests with coverage
-        run: uv run pytest --cov=genia --cov-report=term-missing -m "not slow" -n auto
+        run: python -m uv run --python "$UV_PYTHON" pytest --cov=genia --cov-report=term-missing -m "not slow" -n auto
 
   slow-tests:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Slow tests (${{ matrix.section }}, py${{ matrix.python-version }})
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, genia]
     # 3.15 is allowed to fail (continue-on-error) until it ships stable (2026-10-01).
     continue-on-error: ${{ matrix.experimental || false }}
 
@@ -108,44 +125,41 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
+      - name: Bootstrap uv for selected Python
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
+          python -m uv --version
       - name: Sync dependencies
-        run: uv sync --dev
-
+        run: python -m uv sync --dev --python "$UV_PYTHON"
       - name: Run slow tests
-        run: uv run pytest -q -v -m slow tests/${{ matrix.section }}/
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -v -m slow tests/${{ matrix.section }}/
 
   extension:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: VS Code extension (Node)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, genia]
     defaults:
       run:
         working-directory: vscode/genia-debugger
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
           cache-dependency-path: vscode/genia-debugger/package-lock.json
-
       - name: Install dependencies
         run: npm ci
-
       - name: Build and test extension
         run: npm test

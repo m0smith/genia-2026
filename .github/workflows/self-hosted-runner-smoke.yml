@@ -1,0 +1,70 @@
+name: Self-hosted runner smoke
+
+on:
+  push:
+    branches:
+      - infra/self-hosted-runner
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.repository == 'm0smith/genia-2026'
+    runs-on:
+      - self-hosted
+      - linux
+      - x64
+      - genia
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Show runner environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_name=${RUNNER_NAME}"
+          echo "runner_os=${RUNNER_OS}"
+          echo "runner_arch=${RUNNER_ARCH}"
+          uname -a
+          python3 --version
+          git --version
+          docker --version
+
+      - name: Confirm repository checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AGENTS.md
+          test -f GENIA_STATE.md
+          test -f GENIA_RULES.md
+          test -f GENIA_REPL_README.md
+          test -f README.md
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install uv without setup-uv action
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-input uv
+          python3 -m uv --version
+
+      - name: Sync dependencies
+        run: python3 -m uv sync --dev
+
+      - name: Validate LLM instruction sync
+        run: python3 -m uv run python3 tools/validate_llm_instructions.py
+
+      - name: Run semantic specs
+        run: UV_CACHE_DIR=/tmp/uv-cache python3 -m uv run python3 -m tools.spec_runner
+
+      - name: Confirm Genia runner toolchain
+        run: echo "Genia self-hosted runner toolchain smoke check passed."
