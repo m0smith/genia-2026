@@ -109,11 +109,11 @@ def test_answer_propagates_non_success_outcome_without_assembly(
             'grounding.assemble_grounded_context("q", {kind: quote(text), text: "x", extra: 1}, [])',
             "closed content",
         ),
-            (
-                'grounding.assemble_grounded_context("q", {kind: quote(text), text: "x"}, '
-            f'[{evidence_source(score="\"bad\"")}])',
-                "finite score",
-            ),
+        (
+            'grounding.assemble_grounded_context("q", {kind: quote(text), text: "x"}, '
+            + "[{}])".format(evidence_source(score='"bad"')),
+            "finite score",
+        ),
     ],
 )
 def test_local_shape_validation_rejects_invalid_grounding(expression: str, match: str):
