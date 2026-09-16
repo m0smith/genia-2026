@@ -11,13 +11,16 @@ permissions:
   pages: write
   id-token: write
 
+# September 2026 temporary policy: no GitHub-hosted runner compute.
+# Fork PRs intentionally skip docs CI until reviewed and run from a trusted branch.
 concurrency:
   group: docs-pages
   cancel-in-progress: true
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, linux, x64, genia]
 
     steps:
       - name: Check out repository
@@ -28,31 +31,34 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
+      - name: Bootstrap uv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Sync dependencies
-        run: uv sync --dev
+        run: python -m uv sync --dev --python "$UV_PYTHON"
 
       - name: Stage docs for MkDocs
-        run: uv run python tools/stage_docs_for_mkdocs.py
+        run: python -m uv run --python "$UV_PYTHON" python tools/stage_docs_for_mkdocs.py
 
       - name: Validate docs and semantic sync
-        run: uv run pytest -q tests/doc/test_semantic_doc_sync.py tests/unit/test_doc_style_sync.py tests/unit/test_cheatsheet_*.py
+        run: python -m uv run --python "$UV_PYTHON" pytest -q tests/doc/test_semantic_doc_sync.py tests/unit/test_doc_style_sync.py tests/unit/test_cheatsheet_*.py
 
       - name: Check function reference is current
-        run: uv run python tools/gen_function_docs.py --check
+        run: python -m uv run --python "$UV_PYTHON" python tools/gen_function_docs.py --check
 
       - name: Doc coverage + style lint
-        run: uv run python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
+        run: python -m uv run --python "$UV_PYTHON" python tools/lint_doc.py --scan-dir src/genia/std/prelude --require-coverage
 
       - name: Build docs
-        run: uv run mkdocs build --strict
+        run: python -m uv run --python "$UV_PYTHON" mkdocs build --strict
 
       - name: Upload Pages artifact
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -63,7 +69,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, genia]
     env:
       WIKI_TOKEN: ${{ secrets.WIKI_TOKEN }}
     environment:
@@ -85,16 +91,21 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set up uv for wiki publish
+      - name: Bootstrap uv for wiki publish
         if: env.WIKI_TOKEN != ''
-        uses: astral-sh/setup-uv@v7
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
 
       - name: Sync dependencies for wiki publish
         if: env.WIKI_TOKEN != ''
-        run: uv sync --dev
+        run: python -m uv sync --dev --python "$UV_PYTHON"
 
       - name: Publish function reference to GitHub Wiki
         if: env.WIKI_TOKEN != ''
         env:
           WIKI_REMOTE: https://x-access-token:${{ env.WIKI_TOKEN }}@github.com/${{ github.repository }}.wiki.git
-        run: uv run tools/publish_wiki.sh
+        run: python -m uv run --python "$UV_PYTHON" tools/publish_wiki.sh
