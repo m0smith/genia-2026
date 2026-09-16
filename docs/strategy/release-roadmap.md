@@ -74,11 +74,22 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 
 ## Completed-release sync anchors
 
+## Release R3 — Native Test Expansion Wave 1
+
+R3 expanded native Genia test coverage. Its scope explicitly excluded
+lifecycle generalization (see R4). Its durable release summary and runnable
+example live in [`docs/releases/R3.md`](../releases/R3.md).
+
+## Release R4 — Lifecycle Generalization
+
+R4 kept lifecycle generalization separate from R3's native-test expansion. Its
+durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
+
 - Release R7 — Web Serving Ergonomics ✓ COMPLETE
 - Release R8 — Server Execution Mode ✓ COMPLETE
 - Release R9 — Value Templates & Representations ✓ COMPLETE
 - Release R10 — Configuration & Secrets ✓ COMPLETE
-- Release R11 — AI Composition ✓ COMPLETE
+- Release R11 — AI Composition ✓ COMPLETE; E11-1 through E11-8 complete
 - Release R12 — Retrieval & Grounding ✓ COMPLETE
 - Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE
 - Release R14 — Composable Lifecycles ✓ COMPLETE
