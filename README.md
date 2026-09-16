@@ -418,9 +418,9 @@ Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.m
 
 ## Requirements
 
- - Python >=3.8 (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
+- Python 3.10 or newer (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
 
-CI tests against Python 3.8 through 3.14. Python 3.15 (stable release expected 2026-10-01) is also run on an allowed-to-fail (`continue-on-error`) basis so upcoming breakage surfaces early without blocking the build.
+CI tests the currently supported CPython releases, presently Python 3.10 through 3.14. Python 3.15 is run experimentally on an allowed-to-fail (`continue-on-error`) basis until it becomes stable. Genia follows the upstream CPython support lifecycle; end-of-life Python releases are not part of the supported matrix.
 
 Run tests:
 
