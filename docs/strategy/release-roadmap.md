@@ -87,6 +87,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 
 - Release R7 — Web Serving Ergonomics ✓ COMPLETE
 - Release R8 — Server Execution Mode ✓ COMPLETE
+  - Bind-down principle: `@cors` → the R7 `cors` wrapper. No second mechanism.
 - Release R9 — Value Templates & Representations ✓ COMPLETE
 - Release R10 — Configuration & Secrets ✓ COMPLETE
 - Release R11 — AI Composition ✓ COMPLETE; E11-1 through E11-8 complete
