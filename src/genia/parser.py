@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import bisect
 from typing import Optional
 from .numeric_source import classify_numeric_literal
@@ -96,10 +98,6 @@ class Parser:
         self.source = source
         self.filename = filename
         self.i = 0
-        # R20 open functions: names declared `open` earlier in this module's
-        # top-level clause run, so a later bare pattern-headed clause with
-        # the same name is recognized as a repeated clause rather than an
-        # ordinary function header (openness is declared, never inferred).
         self._open_names: set[str] = set()
         self._line_starts = [0]
         for idx, ch in enumerate(source):
@@ -217,12 +215,6 @@ class Parser:
         return out
 
     def _merge_open_toplevel(self, out: list[Node], node: Node) -> bool:
-        """R20: a contiguous run of top-level clauses for the same open
-        interface (or the same extend target) merges into one AST node so
-        grouped and repeated local clause syntax normalize identically
-        (contract section 3.1). Merging only the immediately preceding
-        top-level node enforces the contiguous-run scoping decision recorded
-        in docs/design/r20-open-functions-syntax-ir-design.md section 4."""
         if not out:
             return False
         previous = out[-1]
@@ -312,7 +304,6 @@ class Parser:
     def try_parse_function_header(self) -> tuple[str, list[str], str | None, Token] | None:
         if not (self.at("IDENT") and self.peek(1).kind == "LPAREN"):
             return None
-
         save = self.i
         try:
             name_token = self.eat("IDENT")
@@ -322,10 +313,8 @@ class Parser:
             params, rest_param = self.parse_parameter_list(context="Function definition")
             self.eat("RPAREN")
             self.skip_newlines()
-
             if self.at("ASSIGN", "ARROW", "LBRACE"):
                 return name, params, rest_param, name_token
-
             self.i = save
             return None
         except SyntaxError:
@@ -344,20 +333,14 @@ class Parser:
                     "Prefix annotations must be followed by a top-level function definition "
                     f"or simple-name assignment, got {bad.text!r} ({bad.kind}) at {bad.pos}"
                 )
-            return AnnotatedNode(
-                annotations,
-                target,
-                span=self.merge_spans(annotations[0].span, target.span),
-            )
+            return AnnotatedNode(annotations, target, span=self.merge_spans(annotations[0].span, target.span))
 
         import_stmt = self.try_parse_import_stmt()
         if import_stmt is not None:
             return import_stmt
-
         bindable = self.try_parse_bindable_toplevel()
         if bindable is not None:
             return bindable
-
         expr = self.parse_expr()
         if isinstance(expr, Var) and expr.name == "Format" and self.at("STRING"):
             raise SyntaxError('Format constructor requires call syntax: Format("...")')
@@ -392,15 +375,12 @@ class Parser:
         named_pattern = self.try_parse_named_pattern_def()
         if named_pattern is not None:
             return named_pattern
-
         open_related = self.try_parse_open_related_toplevel()
         if open_related is not None:
             return open_related
-
         header = self.try_parse_function_header()
         if header is not None:
             name, params, rest_param, name_tok = header
-
             if self.at("ASSIGN"):
                 self.eat("ASSIGN")
                 self.skip_separators()
@@ -413,41 +393,16 @@ class Parser:
                     else:
                         self.i = save
                 body = self.parse_function_body_after_intro(len(params))
-                return FuncDef(
-                    name,
-                    params,
-                    rest_param,
-                    docstring,
-                    body,
-                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
-                )
-
+                return FuncDef(name, params, rest_param, docstring, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
             if self.at("LBRACE"):
                 body = self.parse_block(allow_final_case=True)
-                return FuncDef(
-                    name,
-                    params,
-                    rest_param,
-                    None,
-                    body,
-                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
-                )
-
+                return FuncDef(name, params, rest_param, None, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
             if self.at("ARROW"):
                 self.eat("ARROW")
                 self.skip_separators()
                 body = self.parse_expr()
-                return FuncDef(
-                    name,
-                    params,
-                    rest_param,
-                    None,
-                    body,
-                    span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span),
-                )
-
+                return FuncDef(name, params, rest_param, None, body, span=self.merge_spans(self.span_for_tokens(name_tok, name_tok), body.span))
             raise SyntaxError("Internal parser error: expected function body")
-
         assign = self.try_parse_name_assignment()
         if assign is not None:
             return assign
@@ -456,7 +411,6 @@ class Parser:
     def try_parse_named_pattern_def(self) -> NamedPatternDef | None:
         if not (self.at("IDENT") and self.peek().text == "pattern"):
             return None
-
         pattern_tok = self.eat("IDENT")
         self.skip_newlines()
         if not self.at("IDENT"):
@@ -467,7 +421,6 @@ class Parser:
         self.skip_newlines()
         self.eat("LPAREN")
         self.skip_newlines()
-
         if not self.at("IDENT"):
             raise SyntaxError(f"named pattern {name} expects exactly one parameter")
         param_tok = self.eat("IDENT")
@@ -482,10 +435,6 @@ class Parser:
         body = self.parse_function_body_after_intro(1)
         return NamedPatternDef(name, param, body, span=self.merge_spans(self.span_for_tokens(pattern_tok, name_tok), body.span))
 
-    # ------------------------------------------------------------------
-    # R20 open functions and extensible pattern dispatch
-    # ------------------------------------------------------------------
-
     def try_parse_open_related_toplevel(self) -> Node | None:
         if self.at("IDENT") and self.peek().text == "open":
             save = self.i
@@ -495,7 +444,6 @@ class Parser:
                 self.i = save
                 return None
             return self._parse_open_pattern_clause(open_tok=open_tok)
-
         if self.at("IDENT") and self.peek().text == "extend":
             save = self.i
             extend_tok = self.eat("IDENT")
@@ -505,7 +453,6 @@ class Parser:
                 return parsed
             self.i = save
             return None
-
         if self.at("IDENT") and self.peek().text == "use":
             save = self.i
             use_tok = self.eat("IDENT")
@@ -515,24 +462,17 @@ class Parser:
                 return parsed
             self.i = save
             return None
-
         if self.at("IDENT") and self.peek(1).kind == "LPAREN" and self.peek().text in self._open_names:
             if not self._header_looks_like_open_clause():
                 return None
             return self._parse_open_pattern_clause(open_tok=None)
-
         return None
 
     def _header_looks_like_open_clause(self) -> bool:
-        """Speculatively confirm `name(<pattern-list>)` is followed by
-        `? guard =`, `=`, or `{` before committing to clause parsing — a
-        bare call expression like `gcd(48, 18)` used as an ordinary
-        top-level statement must remain an ordinary call, not a rejected
-        clause attempt."""
         save = self.i
         try:
-            self.i += 1  # the name identifier
-            self.i += 1  # the opening LPAREN
+            self.i += 1
+            self.i += 1
             depth = 1
             while depth > 0:
                 if self.at("EOF"):
@@ -549,9 +489,6 @@ class Parser:
             self.i = save
 
     def _open_header_is_trivial(self, pattern: TuplePattern) -> bool:
-        """True when every item is a plain identifier bind (a trailing rest
-        pattern allowed) — i.e. the header adds no dispatch constraint of its
-        own, exactly like an ordinary FuncDef parameter list."""
         items = pattern.items
         for index, item in enumerate(items):
             if isinstance(item, RestPattern):
@@ -563,14 +500,6 @@ class Parser:
         return True
 
     def _parse_open_clause_list(self, header_tok: Token) -> list[CaseClause]:
-        """Shared header parsing for `open`/repeated/`extend` clauses: an
-        already-consumed name token is followed by `(<pattern-list>)`, an
-        optional `? guard`, then `= body` or `{ block }`. Reuses the
-        existing lambda-parameter pattern parser verbatim (R20 adds no new
-        pattern grammar). A grouped case-with-`|` body over a trivial
-        (plain-identifier) header is flattened here into one IrCaseClause per
-        arm so grouped and repeated local clause syntax normalize to an
-        identical ordered clause list (contract §3.1, design doc §2.1)."""
         self.eat("LPAREN")
         self.skip_newlines()
         pattern, _params, rest_param = self.parse_lambda_parameter_pattern()
@@ -589,25 +518,17 @@ class Parser:
             self.eat("ASSIGN")
             self.skip_separators()
             body = self.parse_function_body_after_intro(fixed_arity)
-
         case_expr: CaseExpr | None = None
         if isinstance(body, CaseExpr):
             case_expr = body
         elif isinstance(body, Block) and len(body.exprs) == 1 and isinstance(body.exprs[0], CaseExpr):
             case_expr = body.exprs[0]
-
         if case_expr is not None:
             if guard is not None:
-                raise SyntaxError(
-                    f"open clause with a grouped case body cannot also have a header guard at {header_tok.pos}"
-                )
+                raise SyntaxError(f"open clause with a grouped case body cannot also have a header guard at {header_tok.pos}")
             if not self._open_header_is_trivial(pattern):
-                raise SyntaxError(
-                    "open clause with a grouped case body requires plain identifier parameters "
-                    f"(dispatch belongs in the case arms) at {header_tok.pos}"
-                )
+                raise SyntaxError("open clause with a grouped case body requires plain identifier parameters " f"(dispatch belongs in the case arms) at {header_tok.pos}")
             return [CaseClause(arm.pattern, arm.guard, arm.result, span=arm.span) for arm in case_expr.clauses]
-
         clause = CaseClause(pattern, guard, body, span=self.merge_spans(self.span_for_tokens(header_tok, header_tok), body.span))
         return [clause]
 
@@ -616,9 +537,7 @@ class Parser:
         name = name_tok.text
         if open_tok is not None:
             if name in self._open_names:
-                raise SyntaxError(
-                    f"open-function-redeclaration: {name!r} is already declared open in this module at {name_tok.pos}"
-                )
+                raise SyntaxError(f"open-function-redeclaration: {name!r} is already declared open in this module at {name_tok.pos}")
             self._open_names.add(name)
         clauses = self._parse_open_clause_list(name_tok)
         start_tok = open_tok if open_tok is not None else name_tok
@@ -684,18 +603,10 @@ class Parser:
                 raise SyntaxError(f"Annotation @{name_tok.text} expected a value expression, got {bad.text!r} ({bad.kind}) at {bad.pos}")
             value = self.parse_expr()
             end_tok = self.peek(-1)
-            annotations.append(
-                Annotation(
-                    name_tok.text,
-                    value,
-                    span=self.span_for_tokens(start_tok, end_tok),
-                )
-            )
+            annotations.append(Annotation(name_tok.text, value, span=self.span_for_tokens(start_tok, end_tok)))
             if not self.at("NEWLINE", "SEMI", "EOF"):
                 bad = self.peek()
-                raise SyntaxError(
-                    f"Annotation @{name_tok.text} must end at a newline before its target, got {bad.text!r} ({bad.kind}) at {bad.pos}"
-                )
+                raise SyntaxError(f"Annotation @{name_tok.text} must end at a newline before its target, got {bad.text!r} ({bad.kind}) at {bad.pos}")
             self.skip_separators()
         return annotations
 
@@ -745,7 +656,6 @@ class Parser:
                     in_item = False
                 j += 1
                 continue
-
             in_item = True
             if kind in opening_kinds:
                 close_stack.append(matching_close[kind])
@@ -814,9 +724,6 @@ class Parser:
         return Block(exprs, span=self.span_for_tokens(start, end))
 
     def looks_like_case_start(self) -> bool:
-        # single param shorthand cases: 0 ->, name ->, [x, y] ->, name ? ... ->
-        # tuple case: ( ... ) ->
-        # We only detect enough for v0.1.
         if self.at("IDENT") and self.peek(1).kind == "LPAREN":
             depth = 0
             j = self.i + 1
@@ -925,7 +832,7 @@ class Parser:
                     return self.finish_none_pattern(tok)
                 return NoneOption(span=self.span_for_tokens(tok, tok))
             if tok.text == "some" and self.at("LPAREN"):
-                start = self.eat("LPAREN")
+                self.eat("LPAREN")
                 self.skip_newlines()
                 inner = self.parse_pattern_atom()
                 self.skip_newlines()
@@ -941,7 +848,7 @@ class Parser:
                 end = self.eat("RPAREN")
                 return SomePattern(inner, context, span=self.span_for_tokens(tok, end))
             if tok.text == "err" and self.at("LPAREN"):
-                start = self.eat("LPAREN")
+                self.eat("LPAREN")
                 self.skip_newlines()
                 if self.at("RPAREN"):
                     raise SyntaxError(f"err(...) pattern expects 1 or 2 inner patterns at {self.peek().pos}")
@@ -1124,19 +1031,12 @@ class Parser:
                     self.eat("ARROW")
                     self.skip_newlines()
                     body = self.parse_expr()
-                    return Lambda(
-                        params,
-                        rest_param,
-                        body,
-                        span=self.merge_spans(self.span_for_tokens(start, start), body.span),
-                        pattern=pattern,
-                    )
+                    return Lambda(params, rest_param, body, span=self.merge_spans(self.span_for_tokens(start, start), body.span), pattern=pattern)
                 self.i = save
             except SyntaxError:
                 self.i = save
                 if self.parenthesized_intro_has_arrow(save):
                     raise
-
             self.i += 1
             self.skip_newlines()
             expr = self.parse_expr()
@@ -1153,13 +1053,7 @@ class Parser:
         parts = tok.text.split(".")
         if len(parts) == 2 and all(parts):
             span = self.span_for_tokens(tok, tok)
-            return Binary(
-                Var(parts[0], span=span),
-                "SLASH",
-                Var(parts[1], span=span),
-                named_access=True,
-                span=span,
-            )
+            return Binary(Var(parts[0], span=span), "SLASH", Var(parts[1], span=span), named_access=True, span=span)
         if parts and parts[-1] == "":
             raise SyntaxError(f"named access requires an identifier after '.' at {tok.pos}")
         return Var(tok.text, span=self.span_for_tokens(tok, tok))
@@ -1255,7 +1149,6 @@ class Parser:
                 else:
                     bad = self.peek()
                     raise SyntaxError(f"Invalid map pattern key token {bad.text!r} ({bad.kind}) at {bad.pos}")
-
                 self.skip_newlines()
                 if not self.maybe("COMMA"):
                     break
