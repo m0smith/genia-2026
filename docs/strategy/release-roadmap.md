@@ -32,7 +32,7 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current state
 
-R15 through R20 are complete. Python remains the only implemented production host; `m0smith/genia-cpp` is still a non-semantic bootstrap shell with no interpreter. See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
+R15 through R21 are complete. Python remains the only implemented production host; `m0smith/genia-cpp` is still a non-semantic bootstrap shell with no interpreter. See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
 
@@ -74,11 +74,26 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 
 ## Completed-release sync anchors
 
+## Release R3 — Native Test Expansion Wave 1
+
+R3 expanded native Genia test coverage. Its scope explicitly excluded
+lifecycle generalization (see R4). Its durable release summary and runnable
+example live in [`docs/releases/R3.md`](../releases/R3.md).
+
+## Release R4 — Lifecycle Generalization
+
+R4 kept lifecycle generalization separate from R3's native-test expansion. Its
+durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
+
 - Release R7 — Web Serving Ergonomics ✓ COMPLETE
 - Release R8 — Server Execution Mode ✓ COMPLETE
+  - **Status: Complete.** Explicitly approved infrastructure work delivered after R7.
+  - Bind-down principle: `@cors` → the R7 `cors` wrapper. No second mechanism.
 - Release R9 — Value Templates & Representations ✓ COMPLETE
+  - **Status: Complete.** E9-1 through E9-7 delivered the approved behavior; E9-8 completed the release truth audit.
 - Release R10 — Configuration & Secrets ✓ COMPLETE
-- Release R11 — AI Composition ✓ COMPLETE
+  - **Status: Complete. E10-1 through E10-8 delivered and audited.** Issue #586 approved the durable contract. R10/R11/R12/R13 follow-ups require their own gates.
+- Release R11 — AI Composition ✓ COMPLETE; E11-1 through E11-8 complete
 - Release R12 — Retrieval & Grounding ✓ COMPLETE
 - Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE
 - Release R14 — Composable Lifecycles ✓ COMPLETE
@@ -88,6 +103,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 - Release R18 — Portable Value Equality ✓ COMPLETE
 - Release R19 — Unicode and Diagnostic Portability Contract ✓ COMPLETE
 - Release R20 — Open Functions and Extensible Pattern Dispatch ✓ COMPLETE
+- Release R21 — Numeric Source and Portable Representation ✓ COMPLETE
 
 ## Release status
 
@@ -113,7 +129,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 | R18 | Portable Value Equality | Complete | `docs/releases/R18.md` |
 | R19 | Unicode and Diagnostic Portability Contract | Complete | `docs/releases/R19.md` |
 | R20 | Open Functions and Extensible Pattern Dispatch | Complete | `docs/releases/R20.md` |
-| R21 | Numeric Source and Portable Representation | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R21 | Numeric Source and Portable Representation | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R22 | Exact Numeric Runtime | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | Numeric Representation and Interchange | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |

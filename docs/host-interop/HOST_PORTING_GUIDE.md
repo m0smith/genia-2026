@@ -85,7 +85,7 @@ These may arrive later for a new host, but they must be marked honestly:
 - REPL
 - Flow phase 1 runtime
 - HTTP serving
-- allowlisted host interop bridge
+- allowlisted host FFI bridge (calling host-language code from Genia; distinct from host interop / portability)
 - refs
 - process primitives
 - bytes/json/zip bridge
@@ -206,7 +206,7 @@ summary: `docs/releases/R20.md`.
 - lowering output stays inside the frozen minimal portable Core IR node families defined in `docs/architecture/core-ir-portability.md`
 - host-local optimized/post-lowering IR nodes remain outside the minimal portable Core IR contract
 - runtime preserves current value families and callable behaviors
-- if the host implements allowlisted host interop, the bridge must preserve:
+- if the host implements the allowlisted host FFI bridge (calling host-language code from Genia — distinct from the host interop / portability contract), it must preserve:
   - host-null/host-None -> Genia `none`
   - explicit host errors for exceptions
   - no implicit Flow crossing at the bridge

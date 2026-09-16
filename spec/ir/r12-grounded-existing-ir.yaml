@@ -27,7 +27,9 @@ expected:
               - key: timeout_ms
                 value:
                   node: IrLiteral
-                  value: 1
+                  value:
+                    kind: integer
+                    digits: "1"
           - node: IrVar
             name: credential
           - node: IrVar

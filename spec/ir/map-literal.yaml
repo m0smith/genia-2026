@@ -17,4 +17,6 @@ expected:
           - key: age
             value:
               node: IrLiteral
-              value: 42
+              value:
+                kind: integer
+                digits: "42"

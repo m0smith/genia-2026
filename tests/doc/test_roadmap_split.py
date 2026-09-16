@@ -65,7 +65,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     assert "R28 — Genia MCP Server" in sequence
     assert "R29 — Sheet Record Pipelines" in sequence
     assert "R37 — Genia-Native Conformance Tooling" in sequence
-    assert "R8 through R20 are complete" in sequence
+    assert "R8 through R21 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
     assert "#102" in parking

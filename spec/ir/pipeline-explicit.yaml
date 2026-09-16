@@ -10,7 +10,9 @@ expected:
         node: IrPipeline
         source:
           node: IrLiteral
-          value: 3
+          value:
+            kind: integer
+            digits: "3"
         stages:
           - node: IrVar
             name: inc

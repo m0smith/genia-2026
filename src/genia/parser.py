@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import bisect
 from typing import Optional
 from .numeric_source import classify_numeric_literal

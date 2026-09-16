@@ -86,19 +86,34 @@ def test_classify_decimal_retains_decimal_kind_when_integral() -> None:
 
 
 def test_classify_never_calls_float() -> None:
-    """The classification function must not construct a host binary float."""
-    source = inspect.getsource(classify_numeric_literal)
-    module = __import__("src.genia.numeric_source", fromlist=["*"])
-    module_source = inspect.getsource(module)
-    tree = ast.parse(module_source)
-    float_calls = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == "float"
+    """The classification/normalization path must not construct a host binary float.
+
+    Scoped to classify_numeric_literal and its own private helpers -- not
+    the whole numeric_source module -- because E21-2 (issue #854) adds a
+    separate numeric_literal_runtime_value() evaluator-compatibility shim
+    to the same module that legitimately calls float() to reconstruct the
+    pre-existing evaluator value (see docs/design/
+    issue-854-tagged-numeric-ir-design.md). That function is not part of
+    source classification/normalization and is covered by its own tests.
+    """
+    import src.genia.numeric_source as module
+
+    classification_functions = [
+        module.classify_numeric_literal,
+        module._canonicalize_decimal,
+        module._canonical_integer_digits,
     ]
-    assert float_calls == [], "numeric_source module must never call float()"
+    float_calls = []
+    for fn in classification_functions:
+        tree = ast.parse(inspect.getsource(fn))
+        float_calls.extend(
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "float"
+        )
+    assert float_calls == [], "classification/normalization path must never call float()"
 
 
 # ---------------------------------------------------------------------------

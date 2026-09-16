@@ -20,4 +20,6 @@ expected:
         op: MINUS
         expr:
           node: IrLiteral
-          value: 1
+          value:
+            kind: integer
+            digits: "1"
