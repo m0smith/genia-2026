@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 import json
 import socket
-from typing import Any
+from typing import Any, Callable
 import urllib.error
 import urllib.parse
 import urllib.request

@@ -10,10 +10,11 @@ with a closed `kind` — never a raw Python exception or traceback.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 import socket
 import ssl
+from typing import Callable
 import urllib.error
 import urllib.request
 
