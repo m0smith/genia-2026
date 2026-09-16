@@ -87,8 +87,12 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 
 - Release R7 — Web Serving Ergonomics ✓ COMPLETE
 - Release R8 — Server Execution Mode ✓ COMPLETE
+  - **Status: Complete.** Explicitly approved infrastructure work delivered after R7.
+  - Bind-down principle: `@cors` → the R7 `cors` wrapper. No second mechanism.
 - Release R9 — Value Templates & Representations ✓ COMPLETE
+  - **Status: Complete.** E9-1 through E9-7 delivered the approved behavior; E9-8 completed the release truth audit.
 - Release R10 — Configuration & Secrets ✓ COMPLETE
+  - **Status: Complete. E10-1 through E10-8 delivered and audited.** Issue #586 approved the durable contract. R10/R11/R12/R13 follow-ups require their own gates.
 - Release R11 — AI Composition ✓ COMPLETE; E11-1 through E11-8 complete
 - Release R12 — Retrieval & Grounding ✓ COMPLETE
 - Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE
