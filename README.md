@@ -1202,6 +1202,11 @@ implemented host, and shared/multi-host conformance remains Partial.
 
 ### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 
+`examples/ollama_chat.genia` demonstrates an application-owned terminal chat
+against Ollama's `/api/chat` endpoint using the existing Experimental R14
+`web.http_send` surface. It is not an R11 model provider and does not expand
+the documented `model/4` provider boundary.
+
 `model(provider, config, credential, authority)` returns an ordinary callable
 whose text or explicit R9-structured request produces an existing Outcome.
 E11-1 through E11-4 validate closed ordinary message/request/response maps, declassify

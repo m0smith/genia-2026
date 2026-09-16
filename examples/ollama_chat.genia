@@ -1,0 +1,121 @@
+"""
+# Ollama Chat
+
+Runs a terminal chat against a locally available Ollama server by composing
+Genia's existing JSON values, Outcome handling, and outbound HTTP client.
+
+## Run
+
+Start Ollama and make sure the selected model is available, then run:
+
+```bash
+ollama pull llama3.2
+genia examples/ollama_chat.genia --model llama3.2
+```
+
+Use `--base-url http://127.0.0.1:11434` to select another Ollama endpoint.
+Enter `/quit` to finish the conversation.
+
+## Features Demonstrated
+
+* `main(args)` and explicit CLI option parsing
+* Ollama's `/api/chat` JSON-over-HTTP interface via `web.http_send`
+* immutable conversation history built from ordinary lists and maps
+* Outcome-aware handling of transport, HTTP-status, and JSON failures
+
+This is Python-reference-host application composition over the Experimental
+R14 HTTP surface. It does not add an Ollama provider to Genia's Experimental
+R11 `model/4` boundary, which remains limited to its documented providers.
+"""
+
+import web
+
+@doc "Build one inert Ollama `/api/chat` HTTP operation."
+ollama_operation(base_url, model_name, messages) = http_operation(
+  quote(post),
+  base_url,
+  "/api/chat",
+  {},
+  {},
+  {
+    kind: quote(json),
+    value: {
+      model: model_name,
+      messages: messages,
+      stream: false
+    }
+  }
+)
+
+ollama_decoded_content(decoded) =
+  (some(value)) -> value |> strip_representation("json") |> get("message") |> then_get("content") |
+  (none(reason)) -> err("ollama-response-invalid", {reason: reason}) |
+  (none(reason, context)) -> err("ollama-response-invalid", {reason: reason, context: context}) |
+  (err(reason)) -> err("ollama-response-invalid", {reason: reason}) |
+  (err(reason, context)) -> err("ollama-response-invalid", {reason: reason, context: context})
+
+ollama_response_content(response) =
+  (response) ? response.status >= 200 && response.status < 300 -> ollama_decoded_content(json_decode(response.body)) |
+  (response) -> err("ollama-http-status", {status: response.status})
+
+ollama_result_content(result) =
+  (some(response)) -> ollama_response_content(response) |
+  (none(reason)) -> none(reason) |
+  (none(reason, context)) -> none(reason, context) |
+  (err(reason)) -> err(reason) |
+  (err(reason, context)) -> err(reason, context)
+
+@doc "Send one conversation turn to Ollama and return its assistant text as an Outcome."
+ollama_chat(base_url, model_name, messages) = {
+  operation = ollama_operation(base_url, model_name, messages)
+  operation |> flat_map_some((request) -> web.http_send(request, none("ollama-needs-no-authority"), 120000)) |> ollama_result_content
+}
+
+continue_chat(base_url, model_name, messages, outcome) =
+  (_, _, messages, some(answer)) -> {
+    print("assistant> " + answer)
+    chat_loop(base_url, model_name, messages + [{role: "assistant", content: answer}])
+  } |
+  (_, _, messages, none(reason)) -> {
+    log("Ollama returned no response: " + display(reason))
+    messages
+  } |
+  (_, _, messages, none(reason, context)) -> {
+    log("Ollama returned no response: " + display(reason) + " " + display(context))
+    messages
+  } |
+  (_, _, messages, err(reason)) -> {
+    log("Ollama request failed: " + display(reason))
+    messages
+  } |
+  (_, _, messages, err(reason, context)) -> {
+    log("Ollama request failed: " + display(reason) + " " + display(context))
+    messages
+  }
+
+chat_input(base_url, model_name, messages, prompt) = {
+  next_messages = messages + [{role: "user", content: prompt}]
+  apply_raw(continue_chat, [base_url, model_name, next_messages, ollama_chat(base_url, model_name, next_messages)])
+}
+
+chat_prompt(base_url, model_name, messages, prompt) =
+  (_, _, messages, "/quit") -> messages |
+  (base_url, model_name, messages, prompt) -> chat_input(base_url, model_name, messages, prompt)
+
+@doc "Run the terminal prompt loop until the user enters `/quit`."
+chat_loop(base_url, model_name, messages) = {
+  prompt = input("you> ")
+  chat_prompt(base_url, model_name, messages, prompt)
+}
+
+option_value(parsed, name, fallback) =
+  ([options, _], name, fallback) -> cli_option_or(options, name, fallback)
+
+@doc "Run an Ollama terminal chat using `--model` and optional `--base-url`."
+main(args) = {
+  parsed = cli_parse(args, {options: ["model", "base-url"]})
+  model_name = option_value(parsed, "model", "llama3.2")
+  base_url = option_value(parsed, "base-url", "http://127.0.0.1:11434")
+  print("Ollama chat using " + model_name + "; enter /quit to stop.")
+  chat_loop(base_url, model_name, [])
+}

@@ -508,6 +508,7 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - R12 is release-complete through E12-9 while its APIs remain Experimental, shared/multi-host conformance remains Partial, and Python remains the only implemented host
 
 - AI model invocation, Flow conversation composition, validated-pipeline proof, release-example truth sync, and release truth audit (Experimental, R11 E11-1 through E11-8, issues #611-#618)
+  - `examples/ollama_chat.genia` is application code over the existing R14 outbound HTTP surface; it calls Ollama's `/api/chat` endpoint directly and does not add an Ollama provider or change the R11 `model/4` boundary
   - `model(provider, config, credential, authority)` is the sole public AI entry point and returns an ordinary one-argument callable
   - E11-3 adds one explicit Python-host-only Google Gemini Developer API adapter using direct `v1beta models.generateContent` REST; the deterministic fixture remains the portable-observation test path
   - `provider` is an opaque host-injected model-provider capability; ordinary source has no constructor and execution modes inject no ambient provider, credential, or authority
