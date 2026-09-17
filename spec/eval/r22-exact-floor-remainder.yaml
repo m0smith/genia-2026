@@ -1,0 +1,17 @@
+name: r22-exact-floor-remainder
+category: eval
+description: >-
+  R22 E22-4 exact floor remainder (section 8): q = floor(left / right);
+  left % right = left - q * right, covering positive and negative operand
+  combinations.
+input:
+  source: |
+    [7 % 3, -7 % 3, 7 % -3, -7 % -3, 6 % 3, -6 % 3]
+expected:
+  stdout: "[1, 2, -2, -1, 0, 0]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 890
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 8"

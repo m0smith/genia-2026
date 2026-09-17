@@ -1,0 +1,19 @@
+name: r22-exact-division-required-proofs
+category: eval
+description: >-
+  R22 E22-4 exact division: the six required proof examples from
+  docs/design/r22-exact-numeric-runtime-contract.md section 7 -- pure
+  Integer/Integer division is Integer-or-Rational only (never Decimal,
+  even when the quotient terminates in base 10); Decimal participation
+  with a terminating quotient is Decimal; Rational round-trips exactly.
+input:
+  source: |
+    [6 / 3, 1 / 2, 1 / 3, 1.0 / 2, 1.0 / 3, (1 / 3) * 3]
+expected:
+  stdout: "[2, 1/2, 1/3, 0.5, 1/3, 1]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 890
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 7"

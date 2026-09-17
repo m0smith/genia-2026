@@ -1,0 +1,16 @@
+name: r22-exact-remainder-by-zero-rejected
+category: error
+description: >-
+  R22 E22-4: exact remainder by exact zero is deterministic numeric misuse,
+  not host-specific exception behavior.
+input:
+  source: |
+    1 % 0
+expected:
+  stdout: ""
+  stderr: "Error: exact remainder by zero\n"
+  exit_code: 1
+notes: |
+  issue: 890
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 8"

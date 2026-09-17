@@ -68,5 +68,8 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # E22-3 (issue #889) adds 1 portable R22 eval-category case for the
     # exact-family +/-/* promotion lattice. Expressible over the protocol
     # like any other case, so both total and passed increase by exactly 1.
-    assert "Summary: total=725 passed=707 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E22-4 (issue #890) adds 4 portable R22 cases for exact division and
+    # floor remainder (2 eval, 2 error). Expressible over the protocol
+    # like any other case, so both total and passed increase by exactly 4.
+    assert "Summary: total=729 passed=711 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
