@@ -29,7 +29,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Bootstrap uv
         shell: bash
@@ -89,7 +89,7 @@ jobs:
         if: env.WIKI_TOKEN != ''
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
 
       - name: Bootstrap uv for wiki publish
         if: env.WIKI_TOKEN != ''

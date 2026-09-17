@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Bootstrap uv
         shell: bash
         run: |
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.14"
       - name: Bootstrap uv
         shell: bash
         run: |
@@ -60,27 +60,16 @@ jobs:
 
   test:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    name: Fast tests (py3.14)
     runs-on: [self-hosted, linux, x64, genia]
-    # 3.15 is allowed to fail (continue-on-error) until it ships stable (2026-10-01).
-    continue-on-error: ${{ matrix.experimental || false }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        include:
-          - python-version: "3.15"
-            experimental: true
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-      - name: Set up Python
+      - name: Set up Python 3.14
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
-      - name: Bootstrap uv for selected Python
+          python-version: "3.14"
+      - name: Bootstrap uv for Python 3.14
         shell: bash
         run: |
           set -euo pipefail
@@ -92,80 +81,10 @@ jobs:
         run: python -m uv sync --dev --python "$UV_PYTHON"
       - name: Lint (ruff)
         run: python -m uv run --python "$UV_PYTHON" ruff check .
-      - name: Run tests
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow" -n auto
+      - name: Run non-slow tests with coverage
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 --cov=genia --cov-report=term-missing -m "not slow" -n auto
       - name: Run semantic specs
         run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
-      - name: Run tests with coverage
-        run: python -m uv run --python "$UV_PYTHON" pytest --cov=genia --cov-report=term-missing -m "not slow" -n auto
-
-  slow-tests:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    name: Slow tests (${{ matrix.section }}, py${{ matrix.python-version }})
-    runs-on: [self-hosted, linux, x64, genia]
-    # 3.15 is allowed to fail (continue-on-error) until it ships stable (2026-10-01).
-    continue-on-error: ${{ matrix.experimental || false }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        section: ["unit", "spec", "demo"]
-        include:
-          - python-version: "3.15"
-            section: "unit"
-            experimental: true
-          - python-version: "3.15"
-            section: "spec"
-            experimental: true
-          - python-version: "3.15"
-            section: "demo"
-            experimental: true
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-          allow-prereleases: true
-      - name: Bootstrap uv for selected Python
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-input uv
-          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
-          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
-          python -m uv --version
-      - name: Sync dependencies
-        run: python -m uv sync --dev --python "$UV_PYTHON"
-      - name: Run slow tests
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -v -m "slow and not full_conformance" tests/${{ matrix.section }}/
-
-  full-conformance:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    name: Full Python protocol conformance (py3.12)
-    runs-on: [self-hosted, linux, x64, genia]
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-      - name: Set up canonical Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-      - name: Bootstrap uv for canonical Python
-        shell: bash
-        run: |
-          set -euo pipefail
-          python -m pip install --disable-pip-version-check --no-input uv
-          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
-          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
-          python -m uv --version
-      - name: Sync dependencies
-        run: python -m uv sync --dev --python "$UV_PYTHON"
-      - name: Run authoritative full protocol parity proof
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -v -m full_conformance tests/spec/test_python_protocol_adapter_parity_762.py
 
   extension:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository

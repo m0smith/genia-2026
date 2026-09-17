@@ -420,14 +420,19 @@ Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.m
 
 - Python 3.10 or newer (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
 
-CI tests the currently supported CPython releases, presently Python 3.10 through 3.14. Python 3.15 is run experimentally on an allowed-to-fail (`continue-on-error`) basis until it becomes stable. Genia follows the upstream CPython support lifecycle; end-of-life Python releases are not part of the supported matrix.
+Genia supports the stable CPython releases from Python 3.10 through 3.14. Genia
+follows the upstream CPython support lifecycle; end-of-life Python releases are
+not part of the supported range. Routine push and pull-request CI uses the latest
+stable Python, currently Python 3.14, for fast feedback. A separate nightly and
+manually dispatchable regression workflow validates the full supported-Python
+matrix. Python 3.15 is tracked there experimentally on an allowed-to-fail
+(`continue-on-error`) basis until it becomes stable.
 
-Slow pytest coverage under `tests/spec/` runs across that same supported-version
-matrix, excluding tests marked `full_conformance`. The authoritative full Python
-subprocess-protocol parity proof is intentionally run once per push or pull
-request on canonical Python 3.12 by the dedicated `full-conformance` CI job.
-This avoids repeating the full shared suite through the protocol adapter on
-every Python version while preserving the complete proof as a required check.
+The regression workflow also runs slow unit, spec, and demo coverage plus the
+authoritative full Python subprocess-protocol parity proof on canonical Python
+3.14. Keeping the deepest behavioral proof on one canonical interpreter avoids
+pointlessly multiplying it across the compatibility matrix while preserving the
+complete proof outside the routine development loop.
 
 Run tests:
 
