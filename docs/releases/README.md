@@ -32,6 +32,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R17 — Numeric and Ordered-Map Portability Contract](R17.md) — COMPLETE; E17-0 through E17-3 delivered
 - [R18 — Portable Value Equality](R18.md) — COMPLETE; E18-0 through E18-7 delivered
 - [R21 — Numeric Source and Portable Representation](R21.md) — COMPLETE; E21-1 through E21-5 delivered
+- [R22 — Exact Numeric Runtime](R22.md) — IN PROGRESS; E22-1 through E22-9 delivered; E22-10 (this page) and E22-11 (skeptical audit) remain
 
 ## Process
 

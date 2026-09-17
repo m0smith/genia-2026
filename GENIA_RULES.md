@@ -466,9 +466,57 @@ Required constraints:
   text>, exponent: <canonical text>}` — never a bare host number and
   never a new numeric Core IR node family. `/` remains ordinary
   `IrBinary(op=SLASH)`.
-- No Decimal/Rational/Float64 runtime arithmetic, equality, or map-key
-  behavior is implemented by this boundary; see `GENIA_STATE.md` sections
+- This boundary itself implements no Decimal/Rational/Float64 runtime
+  arithmetic, equality, or map-key behavior; see `GENIA_STATE.md` sections
   9.21–9.22 and `docs/design/r21-numeric-source-portable-representation-contract.md`.
+  R22 (below) builds runtime numeric semantics on top of this frozen
+  boundary without reopening it.
+
+## 8.7) R22 exact numeric runtime invariants (Experimental)
+
+- The runtime numeric kinds are Integer (arbitrary-precision, R17,
+  unchanged), Decimal (`GeniaDecimal`, exact base-10,
+  coefficient × 10^exponent), Rational (`GeniaRational`, exact reduced
+  ratio of Integers, denominator always > 1), and Float64 (a bare host
+  `float`, an explicit separate approximate domain — not the top of the
+  exact promotion lattice). Booleans are not numbers.
+- Exact-family `+`, `-`, `*` promote over `Integer < Decimal < Rational`;
+  Decimal participation retains Decimal kind even for a mathematically
+  integral result; a Rational result with reduced denominator `1`
+  collapses to Integer.
+- Exact `/` and `%` have their own promotion/termination rules (contract
+  sections 7–8): pure Integer/Integer division is Integer-or-Rational
+  only, never Decimal, even when the quotient terminates in base 10;
+  Decimal participation stays Decimal only when the quotient terminates in
+  base 10, otherwise Rational. `%` is floor remainder using the same
+  exact-family promotion rule before denominator-one collapse.
+- Arithmetic mixing Float64 with any exact-family operand is rejected in
+  both operand orders; the caller must choose a domain explicitly with
+  `float64(...)` or `exact(...)` first. This never happens implicitly.
+- Integer, Decimal, and Rational compare by mathematical value for `==`,
+  `!=`, `<`, `<=`, `>`, `>=`. A finite Float64 bridges to an exact value by
+  its own exact represented dyadic value (never by rounding the exact
+  operand to Float64) for equality/comparison only — this bridge never
+  authorizes mixed-domain arithmetic. This is the single R18 equality/
+  map-key relation; no second, approximate equality is introduced. NaN
+  remains unequal to everything including itself and is not a legal map
+  key, matching R18 unchanged.
+- Division/remainder by exact or Float64 zero, invalid `rational`/
+  `float64`/`exact` arguments, and mixed-domain arithmetic are
+  deterministic numeric misuse with a clean diagnostic — never raw host
+  exception text. A private, non-public `numeric-resource-limit` bound
+  guards `GeniaDecimal`/`GeniaRational` construction only; it is a host/
+  test implementation detail that shared conformance never depends on, and
+  it never applies to R17 plain Integer arithmetic.
+- Quoted/quasiquoted/metacircular-eval'd numeric literals preserve the
+  same Decimal/Rational kind and value ordinary evaluation produces;
+  literal-pattern matching uses the same mathematical equality relation as
+  `==`.
+- Canonical display/debug spelling, field-format presentation, JSON
+  numeric transport policy, new numeric literal syntax, and transcendental
+  APIs are explicitly out of scope; see `GENIA_STATE.md` sections
+  9.23–9.31, `docs/releases/R22.md`, and
+  `docs/design/r22-exact-numeric-runtime-contract.md`.
 
 ## 9) Operator model
 
