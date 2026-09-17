@@ -7,7 +7,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .configuration import contains_protected, declassify
-from .numeric_runtime import GeniaDecimal
+from .numeric_runtime import GeniaDecimal, GeniaRational
 from .values import (
     GeniaDeclassificationAuthority,
     GeniaMap,
@@ -29,13 +29,14 @@ _JSON_SAFE_INTEGER = 9_007_199_254_740_991
 def _is_finite_score(value: Any) -> bool:
     """True for a legal R12 evidence score: a finite exact numeric value.
 
-    GeniaDecimal (R22) is exact and arbitrary precision, so it has no
-    infinity/NaN representation and is always finite. int is likewise
-    always finite. float is checked with math.isfinite as before.
+    GeniaDecimal and GeniaRational (R22) are exact and arbitrary precision,
+    so they have no infinity/NaN representation and are always finite. int
+    is likewise always finite. float is checked with math.isfinite as
+    before.
     """
     if isinstance(value, bool):
         return False
-    if isinstance(value, GeniaDecimal):
+    if isinstance(value, (GeniaDecimal, GeniaRational)):
         return True
     if isinstance(value, (int, float)):
         return math.isfinite(value)

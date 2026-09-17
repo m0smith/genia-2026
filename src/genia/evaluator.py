@@ -53,7 +53,7 @@ if __package__ in (None, ""):
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from genia.numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric, is_mixed_exact_and_float64
-    from genia.numeric_source import numeric_literal_runtime_value
+    from genia.numeric_source import numeric_literal_payload, numeric_literal_runtime_value
     from genia.server_config_binding import validate_server_descriptor
     from genia.server_cors_binding import validate_cors_descriptor
     from genia.server_route_binding import validate_route_descriptor
@@ -98,7 +98,7 @@ else:
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
     from .numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric, is_mixed_exact_and_float64
-    from .numeric_source import numeric_literal_runtime_value
+    from .numeric_source import numeric_literal_payload, numeric_literal_runtime_value
     from .server_config_binding import validate_server_descriptor
     from .server_cors_binding import validate_cors_descriptor
     from .server_route_binding import validate_route_descriptor
@@ -134,7 +134,7 @@ def quote_node(node: Node) -> Any:
         return result
 
     if isinstance(node, Number):
-        return node.value
+        return numeric_literal_runtime_value(numeric_literal_payload(node))
     if isinstance(node, String):
         return node.value
     if isinstance(node, Boolean):
@@ -307,7 +307,7 @@ def quasiquote_node(
 
     def qq(current: Node, depth: int, *, list_context: bool = False) -> Any:
         if isinstance(current, Number):
-            return current.value
+            return numeric_literal_runtime_value(numeric_literal_payload(current))
         if isinstance(current, String):
             return current.value
         if isinstance(current, Boolean):
