@@ -52,7 +52,7 @@ if __package__ in (None, ""):
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
-    from genia.numeric_runtime import GeniaDecimal
+    from genia.numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric
     from genia.numeric_source import numeric_literal_runtime_value
     from genia.server_config_binding import validate_server_descriptor
     from genia.server_cors_binding import validate_cors_descriptor
@@ -97,7 +97,7 @@ else:
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
-    from .numeric_runtime import GeniaDecimal
+    from .numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric
     from .numeric_source import numeric_literal_runtime_value
     from .server_config_binding import validate_server_descriptor
     from .server_cors_binding import validate_cors_descriptor
@@ -1633,11 +1633,15 @@ class Evaluator:
                 except TypeError:
                     return make_none("type-error", GeniaMap().put("source", "*").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "SLASH":
+                if is_exact_numeric(left) and is_exact_numeric(right):
+                    return exact_divide(left, right)
                 try:
                     return left / right
                 except TypeError:
                     return make_none("type-error", GeniaMap().put("source", "/").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "PERCENT":
+                if is_exact_numeric(left) and is_exact_numeric(right):
+                    return exact_remainder(left, right)
                 try:
                     return left % right
                 except TypeError:

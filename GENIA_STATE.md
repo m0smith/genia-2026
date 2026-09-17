@@ -4861,6 +4861,51 @@ Explicit limitations: no `/` or `%` for Rational (E22-4); no Float64
 no `numeric-resource-limit` normalization (E22-8); no canonical display/JSON
 (R23).
 
+## 9.26) R22 E22-4 exact division and floor remainder (issue #890)
+
+Implements sections 7 and 8 of
+`docs/design/r22-exact-numeric-runtime-contract.md`: exact `/` and floor
+`%` for the Integer/Decimal/Rational exact family.
+
+- `/` (`src/genia/numeric_runtime.py` `exact_divide`) follows the
+  division-result table precisely: pure Integer/Integer division is
+  Integer when evenly divisible, otherwise **Rational** -- never Decimal,
+  even when the reduced denominator would otherwise terminate in base 10
+  (`1 / 2` is Rational `1/2`, not Decimal `0.5`). A Decimal operand
+  participating (and no Rational) yields Decimal when the reduced quotient
+  terminates in base 10 (denominator has no prime factors other than 2 and
+  5) -- retaining Decimal kind even for an integral quotient, matching
+  E22-3's established `+`/`-`/`*` rule -- otherwise Rational. Any Rational
+  operand always yields Rational (subject to E22-2's existing
+  denominator-one collapse to Integer). The evaluator's `SLASH` case
+  (`eval_binary` in `src/genia/evaluator.py`) now dispatches to
+  `exact_divide` whenever both operands are exact-family
+  (`is_exact_numeric`); non-exact operand pairs are unchanged (native `/`,
+  `TypeError` → `none("type-error", ...)`).
+- `%` (`exact_remainder`) is floor remainder: `q = floor(left / right);
+  left % right = left - q * right`, computed via the exact rational
+  quotient's floor and then reusing E22-1/E22-3's already-established `-`
+  and `*` dunders across Integer/Decimal/Rational -- so its result kind
+  follows the same promotion rule as `+`/`-`/`*` (section 6), not the
+  division-domain-selection rule. The evaluator's `PERCENT` case dispatches
+  the same way.
+- Division/remainder by exact zero raises `ZeroDivisionError` with a
+  deterministic, host-independent message (`"exact division by zero"` /
+  `"exact remainder by zero"`) -- deliberately a different exception type
+  than the evaluator's generic mixed-type `TypeError` handling, so it is
+  not silently converted to a returned `none(...)` value: this preserves
+  already-established pre-R22 behavior where zero division terminates
+  evaluation (e.g. actor handler failure via `tests/unit/test_actors.py`).
+- Shared evidence: 4 new `spec/*` cases (2 eval -- the six required proof
+  examples from contract section 7, and positive/negative floor-remainder
+  combinations from section 8 -- and 2 error, division/remainder by zero),
+  proven identical through both the in-process path and the R16 subprocess
+  protocol adapter.
+
+Explicit limitations: no Float64 (E22-5/E22-6); no comparison/equality or
+R18 map-key integration for Rational (E22-7); no `numeric-resource-limit`
+normalization (E22-8); no canonical display/JSON (R23).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

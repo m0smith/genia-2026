@@ -351,3 +351,126 @@ def rational_from_integers(numerator: int, denominator: int) -> "int | GeniaRati
     if reduced_denominator == 1:
         return reduced_numerator
     return GeniaRational(reduced_numerator, reduced_denominator)
+
+
+# ---------------------------------------------------------------------------
+# E22-4: exact division and floor remainder (contract sections 7, 8)
+# ---------------------------------------------------------------------------
+
+
+def is_exact_numeric(value: Any) -> bool:
+    """True for a value in the R22 exact family: Integer, Decimal, Rational."""
+    if isinstance(value, bool):
+        return False
+    return isinstance(value, (int, GeniaDecimal, GeniaRational))
+
+
+def _exact_is_zero(value: Any) -> bool:
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, int):
+        return value == 0
+    if isinstance(value, GeniaDecimal):
+        return value.is_zero()
+    # A GeniaRational instance can never denote zero: rational_from_integers
+    # collapses a zero numerator to plain Integer 0 before construction.
+    return False
+
+
+def _terminates_in_base10(denominator: int) -> bool:
+    """True when `denominator` (already positive, already reduced against
+    its numerator) has no prime factors other than 2 and 5 -- contract
+    section 7: "A reduced quotient terminates in base 10 exactly when its
+    denominator has no prime factors other than 2 and 5."
+    """
+    n = denominator
+    while n % 2 == 0:
+        n //= 2
+    while n % 5 == 0:
+        n //= 5
+    return n == 1
+
+
+def _decimal_from_reduced_fraction(numerator: int, denominator: int) -> GeniaDecimal:
+    """Build the exact GeniaDecimal for numerator/denominator.
+
+    Caller guarantees denominator is positive and _terminates_in_base10.
+    """
+    twos = 0
+    n = denominator
+    while n % 2 == 0:
+        n //= 2
+        twos += 1
+    fives = 0
+    while n % 5 == 0:
+        n //= 5
+        fives += 1
+    scale = max(twos, fives)
+    scaled_numerator = numerator * (2 ** (scale - twos)) * (5 ** (scale - fives))
+    return GeniaDecimal(scaled_numerator, -scale)
+
+
+def exact_divide(left: Any, right: Any) -> Any:
+    """Exact `/` per contract section 7.
+
+    Both operands must already be known exact-family values (see
+    `is_exact_numeric`). Raises ZeroDivisionError -- not TypeError -- for
+    division by exact zero, deliberately distinct from the evaluator's
+    generic mixed-type TypeError-to-none(type-error) handling: division by
+    zero is deterministic numeric misuse that terminates evaluation (this
+    already-established behavior, e.g. actor handler failure, predates R22
+    and is preserved here), not a value the caller silently continues with.
+
+    The division-result table (section 7) is precise about which cells can
+    ever become Decimal: only when a Decimal operand participates. Pure
+    Integer/Integer division is Integer-when-evenly-divisible or Rational
+    -- never Decimal, even when the reduced denominator would otherwise
+    terminate in base 10 (`1 / 2` is Rational `1/2`, not Decimal `0.5`).
+    Any Rational operand always yields Rational (subject to the same
+    denominator-one collapse `rational_from_integers` already applies).
+    """
+    if _exact_is_zero(right):
+        raise ZeroDivisionError("exact division by zero")
+    ln, ld = _to_exact_fraction(left)
+    rn, rd = _to_exact_fraction(right)
+    numerator = ln * rd
+    denominator = ld * rn
+    if denominator < 0:
+        numerator, denominator = -numerator, -denominator
+    divisor = _gcd(numerator, denominator)
+    numerator //= divisor
+    denominator //= divisor
+    if isinstance(left, GeniaRational) or isinstance(right, GeniaRational):
+        return rational_from_integers(numerator, denominator)
+    if isinstance(left, int) and isinstance(right, int):
+        if denominator == 1:
+            return numerator
+        return rational_from_integers(numerator, denominator)
+    # A GeniaDecimal operand participates (and no Rational): Decimal when
+    # the reduced quotient terminates in base 10, else Rational. Decimal
+    # participation retains Decimal kind even for an integral quotient,
+    # matching section 6's established rule for +, -, *.
+    if _terminates_in_base10(denominator):
+        return _decimal_from_reduced_fraction(numerator, denominator)
+    return rational_from_integers(numerator, denominator)
+
+
+def exact_remainder(left: Any, right: Any) -> Any:
+    """Exact `%` (floor remainder) per contract section 8.
+
+    q = floor(left / right); left % right = left - q * right, using the
+    same exact-family promotion rule as +, -, * (reused directly here via
+    the already-established arithmetic dunders) rather than section 7's
+    division-domain-selection rule. Raises ZeroDivisionError for a zero
+    divisor, for the same reason exact_divide does.
+    """
+    if _exact_is_zero(right):
+        raise ZeroDivisionError("exact remainder by zero")
+    ln, ld = _to_exact_fraction(left)
+    rn, rd = _to_exact_fraction(right)
+    quotient_numerator = ln * rd
+    quotient_denominator = ld * rn
+    if quotient_denominator < 0:
+        quotient_numerator, quotient_denominator = -quotient_numerator, -quotient_denominator
+    floor_quotient = quotient_numerator // quotient_denominator
+    return left - (floor_quotient * right)
