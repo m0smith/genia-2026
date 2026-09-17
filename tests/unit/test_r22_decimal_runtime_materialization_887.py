@@ -86,25 +86,53 @@ def test_integer_source_remains_integer() -> None:
     assert type(_run("123456789012345678901234567890")) is int
 
 
-def test_source_materialization_never_uses_host_float() -> None:
-    """Decimal materialization must never call float(), even indirectly.
+def _float_calls(node: ast.AST) -> list[ast.Call]:
+    return [
+        call
+        for call in ast.walk(node)
+        if isinstance(call, ast.Call)
+        and isinstance(call.func, ast.Name)
+        and call.func.id == "float"
+    ]
 
-    Scans numeric_source.py and numeric_runtime.py (the whole
-    materialization path) for any call to the builtin float().
+
+def test_source_classification_never_uses_host_float() -> None:
+    """Decimal source classification/normalization must never call float().
+
+    numeric_source.py only classifies and normalizes lexical numeric
+    source text (R21); it has no legitimate reason to ever touch a host
+    float, unlike numeric_runtime.py, which from E22-5 onward legitimately
+    implements the explicit Float64 domain (float64/exact) and therefore
+    does use float() -- see test_decimal_materialization_never_uses_host_float
+    below for the narrower claim that still holds for that module.
     """
-    import src.genia.numeric_runtime as runtime_module
     import src.genia.numeric_source as source_module
 
-    for module in (source_module, runtime_module):
-        tree = ast.parse(inspect.getsource(module))
-        calls = [
-            node
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "float"
-        ]
-        assert calls == [], f"{module.__name__} must never call float(): {calls}"
+    tree = ast.parse(inspect.getsource(source_module))
+    assert _float_calls(tree) == []
+
+
+def test_decimal_materialization_never_uses_host_float() -> None:
+    """Decimal value construction/materialization must never call float().
+
+    Scoped to the specific functions responsible for constructing and
+    canonicalizing a GeniaDecimal from source (R22 contract section 2),
+    not the whole numeric_runtime module -- E22-5's float64/exact
+    functions legitimately touch host float, since that is precisely what
+    the explicit Float64 domain (contract sections 4, 5) is.
+    """
+    import src.genia.numeric_runtime as runtime_module
+
+    tree = ast.parse(inspect.getsource(runtime_module))
+    materialization_names = {
+        "_canonicalize",
+        "__init__",
+        "_as_fraction",
+        "make_decimal_from_payload",
+    }
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name in materialization_names:
+            assert _float_calls(node) == [], f"{node.name} must never call float()"
 
 
 def test_runtime_value_decimal_and_integer_shim_replaced() -> None:

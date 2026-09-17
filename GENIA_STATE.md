@@ -4906,6 +4906,55 @@ Explicit limitations: no Float64 (E22-5/E22-6); no comparison/equality or
 R18 map-key integration for Rational (E22-7); no `numeric-resource-limit`
 normalization (E22-8); no canonical display/JSON (R23).
 
+## 9.27) R22 E22-5 explicit Float64 value and conversions (issue #891)
+
+Implements sections 4 and 5 of
+`docs/design/r22-exact-numeric-runtime-contract.md`: `float64(...)` and
+`exact(...)`.
+
+- Float64 has no dedicated wrapper class: a Python `float` already is
+  exactly one IEEE-754 binary64 bit pattern, which is precisely what the
+  contract defines Float64 to be, and R18 already treats host `float` as a
+  first-class Genia kind with correct NaN/signed-zero/infinity equality
+  semantics.
+- `float64(value)` (`src/genia/numeric_runtime.py` `to_float64`): accepts
+  Integer/Decimal/Rational or an existing Float64 (returned unchanged).
+  Exact input converts via Python's `numerator / denominator` true division
+  on the value's exact `(numerator, denominator)` fraction -- CPython
+  specifies and implements this as correctly rounded to the nearest
+  representable float, ties-to-even, which is exactly round-to-nearest
+  ties-to-even. Exact magnitude beyond the largest finite binary64 value
+  fails with `OverflowError` (Python's own big-int true division already
+  raises this) rather than silently producing infinity. Exact mathematical
+  zero converts to positive Float64 zero (no exact value is ever
+  negative-zero: Integer 0, canonical zero-identity-free `GeniaDecimal`,
+  and the fact that `GeniaRational` can never itself be zero together
+  guarantee this).
+- `exact(value)` (`exact`): Integer/Decimal/Rational unchanged. A finite
+  Float64 converts to the Decimal denoting the *exact* real value its
+  binary64 bits represent, via `float.as_integer_ratio()` (CPython
+  guarantees this is the exact, unrounded fraction; the denominator is
+  always a power of two) scaled by the matching power of five into an
+  exact power-of-ten denominator -- never through float repr/str text.
+  Float64 `+0.0`/`-0.0` both convert to canonical Decimal zero. NaN and
+  +/-infinity are deterministic conversion failures (`ValueError`).
+  Reproduces the contract's own worked example exactly:
+  `exact(float64(0.1))` denotes
+  `0.1000000000000000055511151231257827021181583404541015625`.
+- Both are registered as ordinary Genia builtins (`float64`, `exact`) via
+  `_host_function_group` in `src/genia/builtins.py`, documented in
+  `src/genia/host_builtin_docs.py`.
+- Shared evidence: 3 new `spec/*` cases (1 eval covering the round-trip
+  including the exact `0.1` proof, 2 error covering magnitude overflow and
+  NaN rejection -- the latter via the private R18 conformance test seam,
+  since R22 exposes no public NaN constructor), proven identical through
+  both the in-process path and the R16 subprocess protocol adapter.
+
+Explicit limitations: no Float64 arithmetic (E22-6); no mixed exact/Float64
+rejection enforcement yet (E22-6); no Float64 participation in R18
+comparison/equality bridge (E22-7); no `numeric-resource-limit`
+normalization (E22-8); no canonical display/JSON (R23).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
