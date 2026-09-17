@@ -20,8 +20,59 @@ crashing during the R22 sequence; R23 owns canonical spelling.
 """
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from typing import Any
+
+
+class NumericResourceLimitError(Exception):
+    """Deterministic R22 numeric-resource-limit failure (contract section 11).
+
+    Arbitrary precision remains the language's mathematical domain; this
+    is never presented as numeric overflow or a smaller domain, only as
+    this host's own implementation resource bound being reached. The
+    bound itself (see `_numeric_resource_limit_test_seam` below) is a
+    private host/test detail, not portable Genia semantics -- shared
+    conformance never depends on its exact value.
+    """
+
+
+# Default bound (in bits) on an exact value's coefficient/numerator/
+# denominator magnitude. High enough that no ordinary arbitrary-precision
+# program should ever reach it, and deliberately kept below CPython's own
+# int-to-decimal-text conversion guard (sys.get_int_max_str_digits(),
+# 4300 digits / ~14286 bits by default) so canonicalization/display always
+# fails with this project's own clean numeric-resource-limit diagnostic
+# instead of a raw Python ValueError mentioning sys.set_int_max_str_digits.
+# This exists only so the numeric-resource-limit failure path has
+# deterministic test coverage without depending on genuinely exhausting
+# machine memory. Never exposed to Genia source and never documented as
+# public Genia semantics.
+_DEFAULT_MAX_MAGNITUDE_BITS = 14_000
+_max_magnitude_bits = _DEFAULT_MAX_MAGNITUDE_BITS
+
+
+@contextlib.contextmanager
+def _numeric_resource_limit_test_seam(max_bits: int):
+    """Private test-only seam: temporarily lower the resource bound.
+
+    Not reachable from Genia source and not part of any public API. See
+    contract section 11's own allowance for a private test seam whose
+    threshold does not become public Genia semantics.
+    """
+    global _max_magnitude_bits
+    previous = _max_magnitude_bits
+    _max_magnitude_bits = max_bits
+    try:
+        yield
+    finally:
+        _max_magnitude_bits = previous
+
+
+def _check_resource_limit(*magnitudes: int) -> None:
+    for value in magnitudes:
+        if value.bit_length() > _max_magnitude_bits:
+            raise NumericResourceLimitError("numeric-resource-limit")
 
 
 def _canonicalize(coefficient: int, exponent: int) -> tuple[int, int]:
@@ -57,6 +108,12 @@ class GeniaDecimal:
     exponent: int
 
     def __init__(self, coefficient: int, exponent: int) -> None:
+        # Checked on the raw input, before canonicalization: canonicalization
+        # itself converts the magnitude to base-10 text (to strip trailing
+        # zeros), which is exactly the kind of expensive operation this
+        # bound exists to gate -- bit_length() is cheap regardless of
+        # magnitude, so this pre-check never itself does the expensive work.
+        _check_resource_limit(coefficient, exponent)
         coefficient, exponent = _canonicalize(coefficient, exponent)
         object.__setattr__(self, "coefficient", coefficient)
         object.__setattr__(self, "exponent", exponent)
@@ -378,12 +435,14 @@ def rational_from_integers(numerator: int, denominator: int) -> "int | GeniaRati
     """
     if denominator == 0:
         raise TypeError("rational expected a nonzero denominator")
+    _check_resource_limit(numerator, denominator)
     divisor = _gcd(numerator, denominator)
     reduced_numerator = numerator // divisor
     reduced_denominator = denominator // divisor
     if reduced_denominator < 0:
         reduced_numerator = -reduced_numerator
         reduced_denominator = -reduced_denominator
+    _check_resource_limit(reduced_numerator, reduced_denominator)
     if reduced_denominator == 1:
         return reduced_numerator
     return GeniaRational(reduced_numerator, reduced_denominator)
