@@ -4826,6 +4826,41 @@ Explicit limitations: no Rational arithmetic; no Rational participation in
 `==`/map keys (E22-7); no canonical Rational display/JSON (R23); no Rational
 literal syntax (non-goal, contract section 15).
 
+## 9.25) R22 E22-3 exact-family +, -, *, and unary negation (issue #889)
+
+Implements section 6 of `docs/design/r22-exact-numeric-runtime-contract.md`:
+the full `Integer < Decimal < Rational` promotion lattice for `+`, `-`, `*`,
+and unary negation.
+
+- Integer/Integer arithmetic is native Python `int` arithmetic (unchanged,
+  R17).
+- Integer/Decimal and Decimal/Decimal arithmetic (E22-1's `GeniaDecimal`
+  dunders) is unchanged: exact, and Decimal participation retains Decimal
+  kind even for a mathematically integral result (`1.5 + 0.5` is Decimal
+  `2`, not Integer `2`).
+- Any operand that is a `GeniaRational` produces a Rational result
+  (`src/genia/numeric_runtime.py` `_rational_binop`/`_rational_mul`,
+  reached via Python's binary-operator protocol: `GeniaDecimal`'s dunders
+  return `NotImplemented` for a `GeniaRational` operand so Python retries
+  through `GeniaRational`'s reflected method). Results are exact-fraction
+  cross-multiplication, then reduced and denominator-one-collapsed to
+  Integer through the same `rational_from_integers` E22-2 already
+  established (e.g. `rational(1,2) + rational(1,2)` is Integer `1`,
+  `1 + rational(1,2)` is Rational `3/2`).
+- Unary negation is defined for `GeniaDecimal` (E22-1) and now
+  `GeniaRational`, preserving each value's own domain.
+- Comparison/equality (`< <= > >= == !=`) between `GeniaRational` and any
+  other exact kind is not implemented in this slice (E22-7); `/` and `%`
+  are E22-4.
+- Shared evidence: 1 new `spec/eval/*` case covering the full lattice,
+  proven identical through both the in-process path and the R16 subprocess
+  protocol adapter.
+
+Explicit limitations: no `/` or `%` for Rational (E22-4); no Float64
+(E22-5/E22-6); no Rational comparison/equality/map-key integration (E22-7);
+no `numeric-resource-limit` normalization (E22-8); no canonical display/JSON
+(R23).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

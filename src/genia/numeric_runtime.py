@@ -1,20 +1,18 @@
 """R22 exact numeric runtime values.
 
-Implements docs/design/r22-exact-numeric-runtime-contract.md section 2
-(Decimal value) for E22-1: a genuine arbitrary-precision Decimal runtime
-value, materialized from R21's tagged Decimal `IrLiteral` payload without
-ever transiting host binary64.
+Implements docs/design/r22-exact-numeric-runtime-contract.md:
 
-Only Decimal is implemented in this module for E22-1. Rational (E22-2),
-Float64 (E22-5/E22-6), and the full exact-family promotion lattice for
-`/` and `%` (E22-3/E22-4) are later slices. To avoid regressing existing
-Decimal-literal arithmetic that previously ran as host float (see the R21
-`numeric_literal_runtime_value` compatibility shim this module replaces
-for the Decimal case), `GeniaDecimal` implements exact same-kind and
-Integer-interop arithmetic and ordering now; this is required for the
-runtime value to be usable at all, not a promotion-lattice implementation
-ahead of schedule -- Rational does not exist yet, so "exact arithmetic"
-at this point in the sequence is exactly "Decimal (and Integer) arithmetic".
+- section 2 (Decimal value), E22-1: a genuine arbitrary-precision Decimal
+  runtime value, materialized from R21's tagged Decimal `IrLiteral`
+  payload without ever transiting host binary64.
+- section 3 (Rational value), E22-2: an exact reduced ratio of two
+  arbitrary-precision Integers, via `rational_from_integers`.
+- section 6 (exact arithmetic), E22-3: `+`, `-`, `*`, and unary negation
+  across the full `Integer < Decimal < Rational` promotion lattice.
+
+`/` and `%` (section 7/8, E22-4), Float64 (E22-5/E22-6), and comparison/
+equality integration (E22-7) are later slices -- see the class-level
+docstrings below for exactly what each type does and does not support yet.
 
 Display/debug text produced here is NOT the R23 canonical rendering
 contract. It exists only so the value can be printed/formatted without
@@ -23,6 +21,7 @@ crashing during the R22 sequence; R23 owns canonical spelling.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 def _canonicalize(coefficient: int, exponent: int) -> tuple[int, int]:
@@ -73,18 +72,32 @@ class GeniaDecimal:
         return self.coefficient == 0
 
     # -- same-kind / Integer-interop arithmetic (see module docstring) --
+    #
+    # E22-3 (docs/design/r22-exact-numeric-runtime-contract.md section 6):
+    # Rational is the top of the exact promotion lattice, so any operand
+    # that is a GeniaRational is NotImplemented here and delegated to
+    # GeniaRational's reflected method via Python's normal binary-operator
+    # protocol, rather than handled in this class.
     def __add__(self, other):
+        if isinstance(other, GeniaRational):
+            return NotImplemented
         return _decimal_binop(self, other, lambda a, b: a + b)
 
     __radd__ = __add__
 
     def __sub__(self, other):
+        if isinstance(other, GeniaRational):
+            return NotImplemented
         return _decimal_binop(self, other, lambda a, b: a - b)
 
     def __rsub__(self, other):
+        if isinstance(other, GeniaRational):
+            return NotImplemented
         return _decimal_binop(_as_decimal(other), self, lambda a, b: a - b)
 
     def __mul__(self, other):
+        if isinstance(other, GeniaRational):
+            return NotImplemented
         return _decimal_mul(self, other)
 
     __rmul__ = __mul__
@@ -249,6 +262,73 @@ class GeniaRational:
         return f"{self.numerator}/{self.denominator}"
 
     __str__ = __repr__
+
+    # -- E22-3 exact arithmetic: Rational is the top of the promotion
+    # lattice (Integer < Decimal < Rational), so these accept Integer,
+    # GeniaDecimal, and GeniaRational operands directly rather than
+    # delegating anywhere -- see module docstring and _to_exact_fraction.
+    def __add__(self, other):
+        return _rational_binop(self, other, lambda a, b: a + b)
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        return _rational_binop(self, other, lambda a, b: a - b)
+
+    def __rsub__(self, other):
+        return _rational_binop(other, self, lambda a, b: a - b)
+
+    def __mul__(self, other):
+        return _rational_mul(self, other)
+
+    __rmul__ = __mul__
+
+    def __neg__(self):
+        # Negating the numerator alone preserves the gcd(numerator,
+        # denominator) == 1 and denominator > 0 invariants, so direct
+        # construction (bypassing rational_from_integers) is still canonical.
+        return GeniaRational(-self.numerator, self.denominator)
+
+    def __pos__(self):
+        return self
+
+
+def _to_exact_fraction(value: Any) -> tuple[int, int]:
+    """Return (numerator, denominator > 0) for any exact-family value.
+
+    Used only by Rational-participating arithmetic (E22-3): Integer,
+    GeniaDecimal, and GeniaRational all have an exact rational value.
+    Raises TypeError for anything else (bool included), which callers
+    convert to NotImplemented so Python's operator protocol can still try
+    the other operand's reflected method or a host TypeError.
+    """
+    if isinstance(value, bool):
+        raise TypeError("unsupported operand type for exact Rational arithmetic")
+    if isinstance(value, int):
+        return value, 1
+    if isinstance(value, GeniaDecimal):
+        return value._as_fraction()
+    if isinstance(value, GeniaRational):
+        return value.numerator, value.denominator
+    raise TypeError("unsupported operand type for exact Rational arithmetic")
+
+
+def _rational_binop(left: Any, right: Any, op) -> Any:
+    try:
+        ln, ld = _to_exact_fraction(left)
+        rn, rd = _to_exact_fraction(right)
+    except TypeError:
+        return NotImplemented
+    return rational_from_integers(op(ln * rd, rn * ld), ld * rd)
+
+
+def _rational_mul(left: Any, right: Any) -> Any:
+    try:
+        ln, ld = _to_exact_fraction(left)
+        rn, rd = _to_exact_fraction(right)
+    except TypeError:
+        return NotImplemented
+    return rational_from_integers(ln * rn, ld * rd)
 
 
 def rational_from_integers(numerator: int, denominator: int) -> "int | GeniaRational":
