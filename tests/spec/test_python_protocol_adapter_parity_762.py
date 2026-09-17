@@ -78,5 +78,9 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # and mixed-domain rejection (2 eval, 2 error). Expressible over the
     # protocol like any other case, so both total and passed increase by
     # exactly 4.
-    assert "Summary: total=736 passed=718 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E22-7 (issue #893) adds 3 portable R22 eval-category cases for
+    # mathematical comparison, equality, and map-key reconciliation.
+    # Expressible over the protocol like any other case, so both total and
+    # passed increase by exactly 3.
+    assert "Summary: total=739 passed=721 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

@@ -4999,6 +4999,55 @@ Explicit limitations: no Float64 in R18 comparison/equality bridge (E22-7);
 no `numeric-resource-limit` normalization (E22-8); no canonical
 display/JSON (R23).
 
+## 9.29) R22 E22-7 mathematical comparison, equality, and R18 map-key reconciliation (issue #893)
+
+Implements section 10 of `docs/design/r22-exact-numeric-runtime-contract.md`,
+integrating Decimal/Rational/Float64 into R18's single equality/key
+relation (`docs/design/r18-portable-value-equality-contract.md`) rather
+than introducing a second relation.
+
+- **10.1 exact family**: `src/genia/equality.py` `_numeric_equal` is
+  rewritten around one uniform exact-fraction cross-multiplication
+  (`_exact_fraction`) covering Integer/Decimal/Rational (including plain
+  Integer/Integer), replacing the previous pairwise special-cased
+  functions. `1 == 1.0`, `1.0 == 1.00`, and `1 == rational(2, 2)` all hold.
+  Ordering (`< <= > >=`) is a new `numeric_order` function
+  (`src/genia/numeric_runtime.py`) reused by `GeniaDecimal`'s existing
+  comparison dunders (now generalized beyond Integer/Decimal) and new
+  `GeniaRational` comparison dunders -- Python's own operator-reflection
+  protocol (`NotImplemented` → the other operand's reflected method) makes
+  every Integer/Decimal/Rational pairing resolve correctly without new
+  evaluator dispatch.
+- **10.2 Float64 bridge**: the same `numeric_order`/`_numeric_equal`
+  machinery treats a finite Float64 by its own exact represented value
+  (`float.as_integer_ratio()`, CPython-guaranteed exact) cross-multiplied
+  against the exact operand's fraction -- the exact operand is never
+  rounded to Float64. `+0.0`/`-0.0` equal exact zero. NaN is unequal to
+  everything including itself and every ordered comparison involving it is
+  `false` (not raised). Infinities use extended-real ordering (below every
+  finite value when negative, above when positive). This bridge is
+  equality/comparison only; E22-6's mixed-domain arithmetic rejection is
+  unaffected and unchanged.
+- **10.3 map keys**: `canonical_map_key` now produces one unified
+  `("num-fraction", numerator, denominator)` bucket (always in lowest
+  terms) for any non-integral Decimal, Rational, or float, so an
+  equal-valued key of any of those three kinds collides into the same
+  entry; an integral value of any kind still collapses into the existing
+  `("num", int_value)` bucket. NaN remains an illegal key (no exact value
+  can ever be NaN, so this only constrains the Float64 side). Infinities
+  keep their own distinct-by-sign bucket and never collide with any finite
+  key.
+- Shared evidence: 3 new `spec/*` eval cases (exact-family equality,
+  exact-family-and-Float64 ordering, and cross-kind map-key collision
+  including through `float64(...)`), proven identical through both the
+  in-process path and the R16 subprocess protocol adapter. The full
+  pre-existing R18 spec/test suite (`tests/spec/test_r18_*.py`,
+  `tests/unit/test_r18_*.py`) was re-run and remains green with zero
+  changes required to its expectations.
+
+Explicit limitations: no `numeric-resource-limit` normalization (E22-8);
+no canonical display/JSON (R23).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
