@@ -132,3 +132,14 @@ Parse specs validate the normalized parse boundary: the parser produces a determ
 - Host-local tests: validate host-specific or implementation details, but do not override shared spec results
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
+
+## CI conformance execution
+
+The supported-Python slow-test matrix runs ordinary `tests/spec/` pytest
+coverage with `-m "slow and not full_conformance"`. The authoritative Python
+subprocess-protocol parity test remains a complete shared-suite proof and runs
+once per push or pull request on canonical Python 3.12 in CI's dedicated
+`full-conformance` job. It is not repeated for every supported Python version
+because that would repeat the same full semantic inventory through the
+protocol adapter; no shared case or parity assertion is removed by this test
+selection boundary.
