@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **298** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **300** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -102,6 +102,7 @@ Alphabetical index of the **298** out-of-the-box Genia functions available from 
 | [`err`](functions/err.md) | option | `err(..args)` | Construct a recoverable Outcome failure value `err(reason)`. |
 | [`eval`](functions/eval.md) | eval | `eval(expr, env)` | Evaluate a quoted Genia expression in a metacircular environment. |
 | [`evolve`](functions/evolve.md) | flow | `evolve(init, step)` | Create a Flow by repeatedly applying `step` to the previous value. |
+| [`exact`](functions/exact.md) | Numeric | `exact(value)` | Convert a finite Float64 to the exact Decimal it represents, or return an already-exact Integer/Decimal/Rational unchanged. |
 | [`exact_shape`](functions/exact_shape.md) | Value templates | `exact_shape(fields)` | Construct an inspectable exact-shape Template from a field Templates map. |
 | [`exact_shape_match`](functions/exact_shape_match.md) | Value templates | `exact_shape_match(shape, value)` | Match a value against an exact shape template. |
 | [`extend`](functions/extend.md) | eval | `extend(env, params, args)` | Create a child metacircular environment with lambda parameters bound to argument values. |
@@ -112,6 +113,7 @@ Alphabetical index of the **298** out-of-the-box Genia functions available from 
 | [`first`](functions/first.md) | list | `first(xs)` | Return the first element as structured absence-aware Option. |
 | [`first_opt`](functions/first_opt.md) | list | `first_opt(xs)` | Compatibility alias for `first(list)`. |
 | [`flat_map_some`](functions/flat_map_some.md) | option | `flat_map_some(f, opt)` | Apply the Option-returning function `f` to the inner value of `some(value)`. |
+| [`float64`](functions/float64.md) | Numeric | `float64(value)` | Construct an explicit IEEE-754 binary64 Float64 from an exact numeric value, or return an existing Float64 unchanged. |
 | [`flush`](functions/flush.md) | io | `flush(sink)` | Flush an output sink. |
 | [`force`](functions/force.md) | Evaluation | `force(promise)` | Force a delayed promise and return its value. |
 | [`format`](functions/format.md) | string | `format(template, values)` | Render `template` by substituting placeholders from `values`. |
@@ -380,6 +382,8 @@ Alphabetical index of the **298** out-of-the-box Genia functions available from 
 
 ### Numeric
 
+- [`exact`](functions/exact.md) - Convert a finite Float64 to the exact Decimal it represents, or return an already-exact Integer/Decimal/Rational unchanged.
+- [`float64`](functions/float64.md) - Construct an explicit IEEE-754 binary64 Float64 from an exact numeric value, or return an existing Float64 unchanged.
 - [`rational`](functions/rational.md) - Construct an exact reduced Rational from two Integers.
 
 ### Pairs

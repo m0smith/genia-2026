@@ -474,3 +474,88 @@ def exact_remainder(left: Any, right: Any) -> Any:
         quotient_numerator, quotient_denominator = -quotient_numerator, -quotient_denominator
     floor_quotient = quotient_numerator // quotient_denominator
     return left - (floor_quotient * right)
+
+
+# ---------------------------------------------------------------------------
+# E22-5: explicit Float64 value and conversions (contract sections 4, 5)
+# ---------------------------------------------------------------------------
+#
+# Float64 has no dedicated wrapper class: a Python float already is exactly
+# one IEEE-754 binary64 bit pattern, which is precisely what the contract
+# defines Float64 to be. R18 (equality.py) already treats host float as a
+# first-class Genia kind with correct NaN/signed-zero/infinity semantics,
+# so reusing it here introduces no new runtime type.
+
+
+def to_float64(value: Any) -> float:
+    """`float64(value)` per contract section 4.
+
+    Accepts an exact numeric value (Integer/Decimal/Rational) or an
+    existing Float64 (returned unchanged). Exact input is converted using
+    round-to-nearest, ties-to-even: `numerator / denominator` on Python's
+    arbitrary-precision ints IS specified and implemented by CPython to be
+    correctly rounded to the nearest representable float (ties-to-even),
+    which is exactly what this conversion needs and why exact_divide/
+    exact_remainder's own `_to_exact_fraction` helper is reused here rather
+    than any float()-of-text or float()-of-Decimal path. Exact magnitude
+    beyond the largest finite binary64 value fails (Python's int/int true
+    division already raises OverflowError in exactly that case, rather
+    than silently producing infinity) instead of the caller getting a
+    silent infinity. Exact mathematical zero converts to positive Float64
+    zero: Integer 0, canonical GeniaDecimal zero (no negative-zero
+    identity -- see numeric_runtime module), and the impossibility of a
+    zero-valued GeniaRational (it always collapses to Integer 0) mean
+    `numerator` is never negative when the exact value is zero, so
+    `numerator / denominator` already yields +0.0 natively.
+    """
+    if isinstance(value, bool):
+        raise TypeError("float64 expected a numeric value, received bool")
+    if isinstance(value, float):
+        return value
+    if not is_exact_numeric(value):
+        raise TypeError(
+            f"float64 expected a numeric value, received {type(value).__name__}"
+        )
+    numerator, denominator = _to_exact_fraction(value)
+    try:
+        return numerator / denominator
+    except OverflowError:
+        raise OverflowError(
+            "float64: exact magnitude exceeds the largest finite binary64 value"
+        ) from None
+
+
+def exact(value: Any) -> Any:
+    """`exact(value)` per contract section 5.
+
+    Integer/Decimal/Rational are returned unchanged. A finite Float64
+    converts to the Decimal denoting the exact real value its binary64
+    bits represent -- not the shortest human spelling that round-trips to
+    it. `float.as_integer_ratio()` returns the *exact* (numerator,
+    denominator) pair for the float with no rounding (CPython guarantees
+    this; the denominator is always a power of two, or 1 for an integral
+    value), so this never goes through float repr/str text. Since the
+    denominator is a power of two, scaling both numerator and denominator
+    by the matching power of five turns it into an exact power-of-ten
+    denominator, which is precisely what GeniaDecimal's
+    coefficient/exponent form represents -- so this reconstruction is
+    exact by construction, not an approximation. Float64 +0.0/-0.0 both
+    convert to canonical Decimal zero (GeniaDecimal has no negative-zero
+    identity). NaN and +/-infinity are conversion failures.
+    """
+    if isinstance(value, bool):
+        raise TypeError("exact expected a numeric value, received bool")
+    if isinstance(value, (int, GeniaDecimal, GeniaRational)):
+        return value
+    if isinstance(value, float):
+        if value != value:  # NaN is the only value unequal to itself
+            raise ValueError("exact expected a finite value, received NaN")
+        if value in (float("inf"), float("-inf")):
+            raise ValueError("exact expected a finite value, received an infinity")
+        if value == 0.0:
+            return GeniaDecimal(0, 0)
+        numerator, denominator = value.as_integer_ratio()
+        power_of_two = denominator.bit_length() - 1  # denominator == 2**power_of_two
+        coefficient = numerator * (5**power_of_two)
+        return GeniaDecimal(coefficient, -power_of_two)
+    raise TypeError(f"exact expected a numeric value, received {type(value).__name__}")

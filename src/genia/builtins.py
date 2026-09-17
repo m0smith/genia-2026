@@ -122,7 +122,7 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
-    from genia.numeric_runtime import GeniaDecimal, rational_from_integers
+    from genia.numeric_runtime import GeniaDecimal, exact as _numeric_exact, rational_from_integers, to_float64
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -240,7 +240,7 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
-    from .numeric_runtime import GeniaDecimal, rational_from_integers
+    from .numeric_runtime import GeniaDecimal, exact as _numeric_exact, rational_from_integers, to_float64
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -5565,6 +5565,24 @@ def make_global_env(
         return rational_from_integers(numerator, denominator)
 
     env.set("rational", _host_function_group("rational", 2, rational_fn))
+
+    def float64_fn(value: Any) -> Any:
+        """R22 E22-5: explicit Float64 conversion.
+
+        docs/design/r22-exact-numeric-runtime-contract.md section 4.
+        """
+        return to_float64(value)
+
+    env.set("float64", _host_function_group("float64", 1, float64_fn))
+
+    def exact_fn(value: Any) -> Any:
+        """R22 E22-5: Float64-to-exact conversion.
+
+        docs/design/r22-exact-numeric-runtime-contract.md section 5.
+        """
+        return _numeric_exact(value)
+
+    env.set("exact", _host_function_group("exact", 1, exact_fn))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),
