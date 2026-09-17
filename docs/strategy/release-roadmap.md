@@ -32,13 +32,12 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current state
 
-R15 through R21 are complete. R22 is in progress: E22-1 through E22-9 are
-merged to `main` (`docs/releases/R22.md`); E22-10 (documentation sync) and
-E22-11 (skeptical release truth audit) remain before R22 is
-release-complete. Python remains the only implemented production host;
-`m0smith/genia-cpp` is still a non-semantic bootstrap shell with no
-interpreter. See the corresponding release pages and `GENIA_STATE.md` for
-implemented truth.
+R15 through R22 are complete (`docs/releases/R22.md`; E22-11's skeptical
+release truth audit recorded PASS in
+`docs/analysis/r22-release-truth-audit.md`). Python remains the only
+implemented production host; `m0smith/genia-cpp` is still a non-semantic
+bootstrap shell with no interpreter. See the corresponding release pages
+and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
 
@@ -136,7 +135,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R19 | Unicode and Diagnostic Portability Contract | Complete | `docs/releases/R19.md` |
 | R20 | Open Functions and Extensible Pattern Dispatch | Complete | `docs/releases/R20.md` |
 | R21 | Numeric Source and Portable Representation | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R22 | Exact Numeric Runtime | In progress | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R22 | Exact Numeric Runtime | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | Numeric Representation and Interchange | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R25 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
