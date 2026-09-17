@@ -285,12 +285,14 @@ python -m tools.spec_runner --host 'python -m hosts.python.protocol_adapter'
   as E16-2), 0 protocol_error/crash/timeout`) -- real Genia evaluation
   through two full subprocess hops per `eval`/`cli` case, not the
   deterministic fixture.
-- CI runs ordinary slow `tests/spec/` pytest coverage for every supported
-  Python version with `-m "slow and not full_conformance"`. The dedicated
-  `full-conformance` job runs this complete parity proof once on canonical
-  Python 3.12 per push or pull request. The marker isolates cost only: the
-  proof still discovers and executes the complete shared suite through the
-  Python subprocess protocol and remains a required self-hosted-runner check.
+- Nightly/manually dispatched regression CI runs ordinary slow `tests/spec/`
+  pytest coverage on canonical Python 3.14 with
+  `-m "slow and not full_conformance"`. Its dedicated `full-conformance` job
+  runs this complete parity proof once on Python 3.14. The marker isolates cost
+  only: the proof still discovers and executes the complete shared suite
+  through the Python subprocess protocol and remains a required
+  self-hosted-runner regression check. The separate compatibility job runs the
+  canonical spec runner across every supported Python version.
 - `tests/unit/test_python_protocol_adapter_762.py` proves transport
   isolation directly: a program that prints non-JSON text to its own
   stdout during evaluation never corrupts the adapter's envelope; that

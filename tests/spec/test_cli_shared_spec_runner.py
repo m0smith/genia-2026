@@ -376,7 +376,7 @@ def test_cli_spec_fixture_executes_and_compares_expected_observables() -> None:
         # not replayed twice through overlapping pytest paths on every
         # supported Python version. It still runs once more via the
         # canonical `python -m tools.spec_runner` pass and once via the
-        # full_conformance subprocess-protocol proof on canonical Python.
+        # full_conformance subprocess-protocol proof on canonical Python 3.14.
         "command_mode_collect_sum.yaml",
         "pipe_mode_bare_parse_int_error.yaml",
         "native_test_runner_error_suite_outcome.yaml",
