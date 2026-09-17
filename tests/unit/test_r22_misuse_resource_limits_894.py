@@ -15,7 +15,6 @@ from src.genia.numeric_runtime import (
     GeniaDecimal,
     NumericResourceLimitError,
     _numeric_resource_limit_test_seam,
-    exact,
     rational_from_integers,
     to_float64,
 )
