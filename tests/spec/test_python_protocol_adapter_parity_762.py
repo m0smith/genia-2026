@@ -17,7 +17,7 @@ import pytest
 
 import tools.spec_runner.runner as runner_module
 
-pytestmark = [pytest.mark.spec, pytest.mark.slow]
+pytestmark = [pytest.mark.spec, pytest.mark.slow, pytest.mark.full_conformance]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL_ADAPTER_COMMAND = f"{sys.executable} -m hosts.python.protocol_adapter"
