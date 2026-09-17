@@ -2,15 +2,13 @@ name: r18-equality-nan-non-reflexive
 category: eval
 description: >-
   R18 portable value equality: NaN is unequal to everything including itself, and
-  that non-reflexivity propagates through structural containers. A conforming host
-  must not shortcut structural comparison by first testing container-element
+  that non-reflexivity propagates through structural containers. A conforming
+  host must not shortcut structural comparison by first testing container-element
   identity, which would wrongly report a NaN-bearing value equal to itself.
 input:
   source: |
-    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
-    pinf = big * big * big
-    nan = pinf - pinf
-    [nan == nan, nan == 0.0, nan == pinf, [nan] == [nan], some(nan) == some(nan), err("e", nan) == err("e", nan), [1, nan] == [1, nan], [1, 2] == [1, 2]]
+    nan = __r18_conformance_test_only_nan
+    [nan == nan, nan == 0, nan == 0.0, [nan] == [nan], some(nan) == some(nan), err("e", nan) == err("e", nan), [1, nan] == [1, nan], [1, 2] == [1, 2]]
 expected:
   stdout: "[false, false, false, false, false, false, false, true]\n"
   stderr: ""
@@ -18,8 +16,13 @@ expected:
 notes: |
   issue: 791
   release: R18
-  contract: docs/design/r18-portable-value-equality-contract.md "Numeric equality"
-  note: >-
-    Before R18 the Python reference host reported [nan] == [nan] and
-    some(nan) == some(nan) as true because host list and dataclass comparison
-    test element identity before element equality.
+  contract: docs/design/r18-portable-value-equality-contract.md
+  r22_note: >-
+    R22 E22-1 (issue #887) retired the evaluator shim that materialized
+    Decimal source literals as host float, so `big * big * big` (this case's
+    prior NaN-reachability technique) no longer overflows -- exact Decimal
+    arithmetic is arbitrary precision. `__r18_conformance_test_only_nan` is a
+    private, non-public host test seam (src/genia/builtins.py) that exists
+    solely to keep this already-approved R18 conformance case testable; it is
+    not part of the R22 numeric surface, which exposes no public NaN
+    constructor (docs/design/r22-exact-numeric-runtime-contract.md section 4).

@@ -7,6 +7,7 @@ from collections.abc import Callable
 from typing import Any
 
 from .configuration import contains_protected, declassify
+from .numeric_runtime import GeniaDecimal
 from .values import (
     GeniaDeclassificationAuthority,
     GeniaMap,
@@ -23,6 +24,24 @@ from .values import (
 
 
 _JSON_SAFE_INTEGER = 9_007_199_254_740_991
+
+
+def _is_finite_score(value: Any) -> bool:
+    """True for a legal R12 evidence score: a finite exact numeric value.
+
+    GeniaDecimal (R22) is exact and arbitrary precision, so it has no
+    infinity/NaN representation and is always finite. int is likewise
+    always finite. float is checked with math.isfinite as before.
+    """
+    if isinstance(value, bool):
+        return False
+    if isinstance(value, GeniaDecimal):
+        return True
+    if isinstance(value, (int, float)):
+        return math.isfinite(value)
+    return False
+
+
 _JSON_MAX_NESTING = 128
 
 
@@ -902,11 +921,7 @@ class GeniaRetriever:
             if not _valid_chunk(chunk):
                 return _retrieve_invalid("chunk")
             score = result.get("score")
-            if (
-                isinstance(score, bool)
-                or not isinstance(score, (int, float))
-                or not math.isfinite(score)
-            ):
+            if not _is_finite_score(score):
                 return _retrieve_invalid("score")
             occurrence = next(
                 (
@@ -995,11 +1010,7 @@ def _validate_retrieved_chunks(value: Any) -> list[GeniaMap]:
         if not _valid_chunk(retrieved.get("chunk")):
             raise TypeError("rerank expected a valid retrieved chunk")
         score = retrieved.get("score")
-        if (
-            isinstance(score, bool)
-            or not isinstance(score, (int, float))
-            or not math.isfinite(score)
-        ):
+        if not _is_finite_score(score):
             raise TypeError("rerank expected each score to be finite")
     return value
 
@@ -1244,11 +1255,7 @@ class GeniaReranker:
             if not isinstance(result, GeniaMap) or _keys(result) != {"chunk", "score"}:
                 return _rerank_invalid("result")
             score = result.get("score")
-            if (
-                isinstance(score, bool)
-                or not isinstance(score, (int, float))
-                or not math.isfinite(score)
-            ):
+            if not _is_finite_score(score):
                 return _rerank_invalid("result")
             provider_chunk = result.get("chunk")
             matched_index = next(
