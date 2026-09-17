@@ -559,3 +559,36 @@ def exact(value: Any) -> Any:
         coefficient = numerator * (5**power_of_two)
         return GeniaDecimal(coefficient, -power_of_two)
     raise TypeError(f"exact expected a numeric value, received {type(value).__name__}")
+
+
+# ---------------------------------------------------------------------------
+# E22-6: Float64 arithmetic and mixed-domain rejection (contract section 9)
+# ---------------------------------------------------------------------------
+#
+# Float64-with-Float64 arithmetic needs no new implementation: a Python
+# float already IS one IEEE-754 binary64 value, and its native +, -, *, /
+# operators are already round-to-nearest-ties-to-even (that is what
+# hardware/CPython float arithmetic is). Unary negation is likewise
+# already correct native float behavior. Only two things are this slice's
+# actual work: (1) division/remainder by Float64 zero must be deterministic
+# misuse -- Python's native float already raises ZeroDivisionError rather
+# than silently producing infinity/NaN, so this only needs a clearer,
+# explicitly-authored message; (2) arithmetic mixing a bare Float64 with
+# any exact-family operand must be rejected, which Python's native numeric
+# tower does NOT do on its own for plain int (an `int` and `float` freely
+# interoperate via Python's own arithmetic) -- this is the one gap the
+# evaluator must explicitly close.
+
+
+def is_mixed_exact_and_float64(left: Any, right: Any) -> bool:
+    """True when exactly one of left/right is Float64 and the other is
+    exact-family (Integer/Decimal/Rational). Contract section 9: such
+    arithmetic must be rejected; the caller must explicitly convert with
+    float64(...) or exact(...) first.
+    """
+    left_is_float = isinstance(left, float)
+    right_is_float = isinstance(right, float)
+    if left_is_float == right_is_float:
+        return False
+    other = right if left_is_float else left
+    return is_exact_numeric(other)

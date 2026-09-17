@@ -1,0 +1,18 @@
+name: r22-mixed-exact-float64-rejected
+category: eval
+description: >-
+  R22 E22-6: arithmetic mixing Float64 with any exact-family operand
+  (Integer/Decimal/Rational) is rejected in both operand orders, without
+  the caller explicitly choosing a domain via float64(...) or exact(...)
+  first (contract section 9).
+input:
+  source: |
+    [1 + float64(2), float64(2) + 1, 1.5 - float64(2), rational(1, 2) * float64(2), float64(2) / rational(1, 2)]
+expected:
+  stdout: "[none(\"type-error\", {source: \"+\", left: \"int\", right: \"float\"}), none(\"type-error\", {source: \"+\", left: \"float\", right: \"int\"}), none(\"type-error\", {source: \"-\", left: \"decimal\", right: \"float\"}), none(\"type-error\", {source: \"*\", left: \"GeniaRational\", right: \"float\"}), none(\"type-error\", {source: \"/\", left: \"float\", right: \"GeniaRational\"})]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 892
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 9"
