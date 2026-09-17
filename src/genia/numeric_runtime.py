@@ -206,3 +206,68 @@ def make_decimal_from_payload(coefficient: str, exponent: str) -> GeniaDecimal:
     consults a host binary float.
     """
     return GeniaDecimal(int(coefficient), int(exponent))
+
+
+# ---------------------------------------------------------------------------
+# E22-2: exact Rational runtime value (contract section 3)
+# ---------------------------------------------------------------------------
+
+
+def _gcd(a: int, b: int) -> int:
+    a, b = abs(a), abs(b)
+    while b:
+        a, b = b, a % b
+    return a or 1
+
+
+@dataclass(frozen=True, eq=False)
+class GeniaRational:
+    """Exact reduced ratio of two arbitrary-precision Integers.
+
+    Construct only through ``rational_from_integers`` (never directly),
+    which enforces the canonical-form invariant: nonzero, gcd-reduced,
+    positive denominator strictly greater than 1 (a reduced denominator
+    of 1 collapses to a plain Integer and is never represented as
+    GeniaRational -- see ``rational_from_integers``).
+    """
+
+    numerator: int
+    denominator: int
+
+    def __eq__(self, other):
+        if isinstance(other, GeniaRational):
+            return (
+                self.numerator == other.numerator
+                and self.denominator == other.denominator
+            )
+        return NotImplemented
+
+    def __hash__(self):
+        return hash((GeniaRational, self.numerator, self.denominator))
+
+    def __repr__(self) -> str:  # pending R23 canonical spelling
+        return f"{self.numerator}/{self.denominator}"
+
+    __str__ = __repr__
+
+
+def rational_from_integers(numerator: int, denominator: int) -> "int | GeniaRational":
+    """Construct the canonical R22 Rational value from two Integers.
+
+    Per contract section 3: divide both by their positive gcd, denominator
+    is positive (sign carried by numerator), and a reduced denominator of
+    1 collapses to a plain Integer rather than a GeniaRational. Raises
+    TypeError deterministically for a zero denominator; callers are
+    expected to have already validated both arguments are Integers.
+    """
+    if denominator == 0:
+        raise TypeError("rational expected a nonzero denominator")
+    divisor = _gcd(numerator, denominator)
+    reduced_numerator = numerator // divisor
+    reduced_denominator = denominator // divisor
+    if reduced_denominator < 0:
+        reduced_numerator = -reduced_numerator
+        reduced_denominator = -reduced_denominator
+    if reduced_denominator == 1:
+        return reduced_numerator
+    return GeniaRational(reduced_numerator, reduced_denominator)

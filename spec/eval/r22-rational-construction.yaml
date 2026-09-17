@@ -1,0 +1,24 @@
+name: r22-rational-construction
+category: eval
+description: >-
+  R22 E22-2 exact Rational runtime value: rational(numerator, denominator)
+  reduces by gcd, carries sign in the numerator, keeps the denominator
+  positive, and collapses a reduced denominator of 1 to a plain Integer.
+  Rational-to-Rational `==` is out of this slice's scope (R18 numeric
+  equality/key reconciliation for Rational is E22-7), so this case
+  observes construction results directly rather than through `==`.
+input:
+  source: |
+    [rational(2, 4), rational(-2, -4), rational(2, -4), rational(2, 2), rational(2, 2) == 1]
+expected:
+  stdout: "[1/2, 1/2, -1/2, 1, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 887, 888
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 3"
+  r23_note: >-
+    "1/2" display text is not R22's canonical spelling -- canonical
+    Rational display is R23's boundary. This case pins current, truthful
+    output, not a rendering contract.

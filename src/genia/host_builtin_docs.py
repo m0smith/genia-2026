@@ -87,6 +87,7 @@ _PUBLIC_DOCS = (
     _public("pair?", "Return whether a value is a pair.", "Pairs", "pair?(value)"),
     _public("print", "Write values to standard output with a trailing newline.", "I/O", "print(..values)"),
     _public("protected_match", "Match a value while preserving the protected carrier boundary.", "Configuration", "protected_match(template, value)", stability="Experimental"),
+    _public("rational", "Construct an exact reduced Rational from two Integers.", "Numeric", "rational(numerator, denominator)", stability="Experimental"),
     _public("recursive_template", "Construct a bounded self-recursive Template through an explicit named reference.", "Value templates", "recursive_template(name, builder, max_depth)", stability="Experimental"),
     _public("refinement", "Construct an inspectable refinement Template from a boolean predicate.", "Value templates", "refinement(predicate)", stability="Experimental"),
     _public("refinement_match", "Match a value against a refinement template.", "Value templates", "refinement_match(template, value)", stability="Experimental"),

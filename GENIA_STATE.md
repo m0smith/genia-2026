@@ -4792,6 +4792,40 @@ Explicit limitations: no Rational (E22-2); no `/` or `%` on `GeniaDecimal`
 `numeric-resource-limit` normalization (E22-8); no canonical Decimal
 display/JSON (R23); no C++ host implementation (R24).
 
+## 9.24) R22 E22-2 Rational runtime value and rational(...) (issue #888)
+
+Implements section 3 of `docs/design/r22-exact-numeric-runtime-contract.md`:
+
+- New `GeniaRational` runtime value (`src/genia/numeric_runtime.py`): an
+  exact reduced ratio of two arbitrary-precision Integers. Constructed only
+  through `rational_from_integers(numerator, denominator)`, which enforces
+  the canonical form: nonzero denominator (else `TypeError`), gcd
+  reduction, positive denominator (sign carried by the numerator), and a
+  reduced denominator of `1` collapses to a plain Integer rather than a
+  `GeniaRational` instance.
+- New builtin `rational(numerator, denominator)`: both arguments must be
+  Integer (Python `int`, never `bool`, `GeniaDecimal`, or float); a
+  non-Integer argument or zero denominator is deterministic numeric misuse
+  (`TypeError`, surfaced as `Error: ...` at the CLI). `rational(2, 4)` →
+  `1/2`; `rational(-2, -4)` → `1/2`; `rational(2, -4)` → `-1/2`;
+  `rational(2, 2)` → Integer `1`.
+- Deliberately not wired into R18 equality/map-key reconciliation in this
+  slice — `GeniaRational` is not yet a recognized R18 numeric kind, so
+  `rational(1,2) == rational(1,2)` currently falls to R18's identity-only
+  "unclassified terminal" fallback rather than comparing by mathematical
+  value. Nothing in existing code or specs produces a `GeniaRational` value
+  before this ticket, so this has no regression surface; full R18
+  numeric-kind reconciliation for Rational lands in E22-7. Rational
+  arithmetic (`+ - * / %`) is E22-3/E22-4, not this slice.
+- Shared evidence: 3 new `spec/*` cases (1 eval covering construction/
+  reduction, 2 error covering zero-denominator and non-Integer-argument
+  misuse), proven identical through both the in-process path and the R16
+  subprocess protocol adapter.
+
+Explicit limitations: no Rational arithmetic; no Rational participation in
+`==`/map keys (E22-7); no canonical Rational display/JSON (R23); no Rational
+literal syntax (non-goal, contract section 15).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
