@@ -1,0 +1,18 @@
+name: r22-float64-arithmetic
+category: eval
+description: >-
+  R22 E22-6 Float64-with-Float64 arithmetic (docs/design/r22-exact-numeric-runtime-contract.md
+  section 9): unary -, +, -, *, /, % are ordinary IEEE-754 binary64
+  operations, requiring no reimplementation beyond the host float that
+  already is the Float64 representation.
+input:
+  source: |
+    [float64(1) + float64(2), float64(3) - float64(1), float64(2) * float64(3), float64(5) / float64(2), float64(5) % float64(2), -float64(1)]
+expected:
+  stdout: "[3.0, 2.0, 6.0, 2.5, 1.0, -1.0]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 892
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 9"

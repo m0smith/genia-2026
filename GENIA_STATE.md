@@ -4955,6 +4955,50 @@ rejection enforcement yet (E22-6); no Float64 participation in R18
 comparison/equality bridge (E22-7); no `numeric-resource-limit`
 normalization (E22-8); no canonical display/JSON (R23).
 
+## 9.28) R22 E22-6 Float64 arithmetic and mixed-domain rejection (issue #892)
+
+Implements section 9 of
+`docs/design/r22-exact-numeric-runtime-contract.md`.
+
+- Float64-with-Float64 unary `-`, `+`, `-`, `*`, `/`, `%` needed no new
+  implementation: a Python `float` already is one IEEE-754 binary64 value,
+  and its native operators already are round-to-nearest-ties-to-even. `%`
+  is Python's native float floor remainder, which already matches the
+  contract's "floor remainder over represented operands, rounded to
+  binary64" definition.
+- Division/remainder by Float64 zero (`src/genia/evaluator.py`
+  `eval_binary`'s `SLASH`/`PERCENT` cases) now raises a deterministic,
+  explicitly-authored `ZeroDivisionError` (`"float64 division by zero"` /
+  `"float64 remainder by zero"`) before reaching Python's native operator
+  -- Python's native float division/remainder by zero already raises
+  `ZeroDivisionError` rather than silently producing infinity/NaN, so this
+  only replaces its message text with one this project authors, matching
+  E22-4's exact-family precedent.
+- Mixed exact/Float64 arithmetic is now explicitly rejected
+  (`src/genia/numeric_runtime.py` `is_mixed_exact_and_float64`, checked at
+  the top of every arithmetic case in `eval_binary`): Python's own numeric
+  tower otherwise lets a bare `int` freely interoperate with `float`
+  (e.g. `1 + 2.5` previously silently produced a host float), which is
+  exactly the R22 contract's mixed-domain violation for plain Integer;
+  `GeniaDecimal`/`GeniaRational` mixing with `float` already failed
+  correctly via the existing type-mismatch `TypeError` path (E22-1/E22-2),
+  so this closes the one remaining gap. Rejected in both operand orders
+  and for all five binary arithmetic operators, returning the same
+  `none("type-error", ...)` value the evaluator already returns for any
+  other type mismatch -- not a new diagnostic tag. The caller must
+  explicitly choose a domain with `float64(...)` or `exact(...)` first.
+  Comparison operators are unaffected (out of this slice's scope --
+  E22-7 owns the exact/Float64 comparison bridge).
+- Shared evidence: 4 new `spec/*` cases (2 eval -- Float64-with-Float64
+  arithmetic, and mixed-domain rejection across all five operators/both
+  orders/all three exact kinds -- and 2 error, division/remainder by
+  Float64 zero), proven identical through both the in-process path and the
+  R16 subprocess protocol adapter.
+
+Explicit limitations: no Float64 in R18 comparison/equality bridge (E22-7);
+no `numeric-resource-limit` normalization (E22-8); no canonical
+display/JSON (R23).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
