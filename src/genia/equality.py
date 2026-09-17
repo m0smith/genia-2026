@@ -35,6 +35,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from .numeric_runtime import GeniaDecimal, decimal_as_fraction
 from .sheet import GeniaSheet
 from .values import (
     GeniaBytes,
@@ -177,11 +178,36 @@ def _int_equals_float(integer: int, number: float) -> bool:
     return integer == int(number)
 
 
+def _int_equals_decimal(integer: int, decimal: GeniaDecimal) -> bool:
+    """Exact Integer/Decimal equality (R22 contract section 10.1).
+
+    Both sides are already exact and arbitrary precision, so this compares
+    the exact rational value with no rounding in either direction.
+    """
+    numerator, denominator = decimal_as_fraction(decimal)
+    return numerator == integer * denominator
+
+
+def _decimal_equals_decimal(left: GeniaDecimal, right: GeniaDecimal) -> bool:
+    """Exact Decimal/Decimal equality by mathematical value.
+
+    Canonical GeniaDecimal form is unique per value (see numeric_runtime),
+    so this reduces to canonical-field equality, but is written via the
+    exact rational cross-multiplication so it stays correct even if a
+    future GeniaDecimal ever reached this comparison non-canonically.
+    """
+    ln, ld = decimal_as_fraction(left)
+    rn, rd = decimal_as_fraction(right)
+    return ln * rd == rn * ld
+
+
 def _numeric_equal(left: Any, right: Any) -> bool:
     left_is_int = isinstance(left, int)
     right_is_int = isinstance(right, int)
     left_is_float = isinstance(left, float)
     right_is_float = isinstance(right, float)
+    left_is_decimal = isinstance(left, GeniaDecimal)
+    right_is_decimal = isinstance(right, GeniaDecimal)
 
     if left_is_int and right_is_int:
         return left == right
@@ -196,6 +222,16 @@ def _numeric_equal(left: Any, right: Any) -> bool:
         return _int_equals_float(left, right)
     if left_is_float and right_is_int:
         return _int_equals_float(right, left)
+    if left_is_decimal and right_is_decimal:
+        return _decimal_equals_decimal(left, right)
+    if left_is_decimal and right_is_int:
+        return _int_equals_decimal(right, left)
+    if left_is_int and right_is_decimal:
+        return _int_equals_decimal(left, right)
+    # A Decimal (exact) and a raw host float are not the same kind. R22's
+    # only exact/approximate bridge is the explicit Float64 domain (E22-5
+    # onward), which does not exist yet -- a bare host float here is never
+    # an R22 Decimal-classified value, so it is correctly unequal.
     return False
 
 
@@ -245,9 +281,9 @@ def genia_equal(left: Any, right: Any) -> bool:
         return left_is_bool and right_is_bool and left is right
 
     # 2. Numbers, including the only cross-kind bridge in R18.
-    if isinstance(left, (int, float)):
+    if isinstance(left, (int, float, GeniaDecimal)):
         return _numeric_equal(left, right)
-    if isinstance(right, (int, float)):
+    if isinstance(right, (int, float, GeniaDecimal)):
         return False
 
     # 3. Strings and symbols are distinct kinds and never compare across.
@@ -443,6 +479,16 @@ def canonical_map_key(value: Any) -> Any:
         # identity. For non-NaN floats the host's own comparison is exactly IEEE
         # equality, which is the contract, and infinities stay distinct by sign.
         return ("float", value)
+
+    if isinstance(value, GeniaDecimal):
+        numerator, denominator = decimal_as_fraction(value)
+        if denominator == 1:
+            # An Integer and a mathematically-integral Decimal share one key,
+            # by the same "num" bucket the Integer/float case above already
+            # uses. R22 contract section 10.3: equal legal numeric keys have
+            # identical internal key/hash equivalence.
+            return ("num", numerator)
+        return ("decimal", numerator, denominator)
 
     if isinstance(value, str):
         return ("string", value)

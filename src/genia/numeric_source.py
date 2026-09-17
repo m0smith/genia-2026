@@ -14,6 +14,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from .numeric_runtime import GeniaDecimal, make_decimal_from_payload
+
 # integer := DIGIT+
 # decimal-dotted := DIGIT+ "." DIGIT+
 # exponent := ("e" | "E") ("+" | "-")? DIGIT+
@@ -86,20 +88,20 @@ def numeric_literal_payload(number_node) -> dict:
     }
 
 
-def numeric_literal_runtime_value(payload: dict) -> int | float:
-    """Reconstruct the evaluator-facing int/float from a tagged IrLiteral payload.
+def numeric_literal_runtime_value(payload: dict) -> "int | GeniaDecimal":
+    """Reconstruct the evaluator-facing runtime value from a tagged IrLiteral payload.
 
-    This is a pure compatibility shim required by E21-2's own payload-shape
-    change to IrLiteral -- it reproduces exactly the same value the
-    evaluator already computed before this ticket (int(digits) for
-    Integer; float(coefficient + "e" + exponent) for Decimal, which
-    denotes the same mathematical value as the original source spelling
-    and therefore rounds to the same binary64 result). It introduces no
-    new runtime numeric kind, arithmetic rule, or conversion semantic.
+    Integer payloads materialize to a Python int (R17 arbitrary-precision
+    Integer, unchanged). Decimal payloads materialize to a genuine exact
+    R22 GeniaDecimal runtime value (docs/design/r22-exact-numeric-runtime-contract.md
+    section 2) built directly from the already-canonical coefficient/exponent
+    strings -- this never transits host binary64. Prior to E22-1 this
+    function was a compatibility shim that returned a host float for
+    Decimal; that shim is retired by E22-1.
     """
     if payload["kind"] == "integer":
         return int(payload["digits"])
-    return float(f"{payload['coefficient']}e{payload['exponent']}")
+    return make_decimal_from_payload(payload["coefficient"], payload["exponent"])
 
 
 def classify_numeric_literal(text: str) -> NumericSource:

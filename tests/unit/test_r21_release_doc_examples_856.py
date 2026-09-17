@@ -7,6 +7,7 @@ tests/unit/test_r19_release_doc_examples.py's pattern.
 from __future__ import annotations
 
 from genia import make_global_env, run_source
+from genia.numeric_runtime import GeniaDecimal as _RunGeniaDecimal
 from src.genia.ir import IrLiteral
 from src.genia.lexer import lex
 from src.genia.lowering import lower_node
@@ -28,12 +29,16 @@ def _lower_expr(src: str):
 
 
 def test_release_doc_integer_and_decimal_source_examples():
+    # R22 E22-1 (issue #887) materializes Decimal source literals to an
+    # exact GeniaDecimal runtime value rather than a host float; compare
+    # via the runtime's own equality (mathematical value), matching
+    # docs/design/r22-exact-numeric-runtime-contract.md section 2.
     assert _run("1") == 1
-    assert _run("1.0") == 1.0
-    assert _run("1.25") == 1.25
-    assert _run("1e3") == 1000.0
-    assert _run("1E+3") == 1000.0
-    assert _run("1.25e-2") == 0.0125
+    assert _run("1.0") == _RunGeniaDecimal(1, 0)
+    assert _run("1.25") == _RunGeniaDecimal(125, -2)
+    assert _run("1e3") == _RunGeniaDecimal(1, 3)
+    assert _run("1E+3") == _RunGeniaDecimal(1, 3)
+    assert _run("1.25e-2") == _RunGeniaDecimal(125, -4)
 
 
 def test_release_doc_leading_trailing_dot_rejected():
@@ -60,7 +65,7 @@ def test_release_doc_equivalent_decimal_spellings_equal():
 
 
 def test_release_doc_unary_negative_example():
-    assert _run("-1.25") == -1.25
+    assert _run("-1.25") == _RunGeniaDecimal(-125, -2)
 
 
 def test_release_doc_integer_tagged_payload_example():

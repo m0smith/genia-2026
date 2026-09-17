@@ -52,6 +52,7 @@ if __package__ in (None, ""):
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
+    from genia.numeric_runtime import GeniaDecimal
     from genia.numeric_source import numeric_literal_runtime_value
     from genia.server_config_binding import validate_server_descriptor
     from genia.server_cors_binding import validate_cors_descriptor
@@ -96,6 +97,7 @@ else:
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
+    from .numeric_runtime import GeniaDecimal
     from .numeric_source import numeric_literal_runtime_value
     from .server_config_binding import validate_server_descriptor
     from .server_cors_binding import validate_cors_descriptor
@@ -1142,7 +1144,7 @@ class Evaluator:
             return value.encode("utf-8")
         if isinstance(value, bool):
             return format_display(value).encode("utf-8")
-        if isinstance(value, (int, float)):
+        if isinstance(value, (int, float, GeniaDecimal)):
             return format_display(value).encode("utf-8")
         if isinstance(value, list):
             return "\n".join(format_display(item) for item in value).encode("utf-8")

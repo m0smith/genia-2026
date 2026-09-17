@@ -4731,6 +4731,67 @@ Explicit limitations: no Decimal/Rational/Float64 runtime value, arithmetic,
 equality, or map-key change; no rendering/formatting/JSON behavior (R23);
 no C++ host implementation (R24).
 
+## 9.23) R22 E22-1 exact Decimal runtime materialization (issue #887)
+
+Implements section 2 of `docs/design/r22-exact-numeric-runtime-contract.md`,
+retiring the R21 E21-2 (9.22) evaluator compatibility shim for Decimal
+payloads and replacing it with a genuine exact runtime value:
+
+- Decimal-classified numeric source (R21 tagged `IrLiteral` payload)
+  now materializes to `GeniaDecimal` (`src/genia/numeric_runtime.py`):
+  an exact `coefficient × 10^exponent` value over two arbitrary-precision
+  Python ints. Materialization consumes the already-canonical R21 payload
+  strings directly and never transits host binary64.
+- Canonicalization: zero is `(0, 0)`; otherwise trailing base-10 zeros are
+  stripped from the coefficient's magnitude and the exponent increases by
+  the count removed; sign is carried by the coefficient; there is no
+  Decimal negative-zero identity. Decimal kind is retained even when the
+  mathematical value is integral (`1.0` stays Decimal, distinct from
+  Integer `1`, though the two compare equal — see below).
+- Integer source is unchanged: still a Python `int` (R17 unaffected).
+- Arithmetic: `GeniaDecimal` supports exact `+ - *` and unary negation,
+  both Decimal-with-Decimal and Decimal-with-Integer, computed via exact
+  rational cross-multiplication (never host float). This is the minimum
+  needed for the new value to participate in existing evaluator arithmetic
+  dispatch (`src/genia/evaluator.py` `eval_binary`, which calls the native
+  operators directly) without regressing prior Decimal-literal arithmetic;
+  it is not yet the full Integer/Decimal/Rational promotion lattice
+  (Rational does not exist until E22-2; the full lattice is E22-3/E22-4).
+  `/` and `%` are not yet implemented for `GeniaDecimal` (E22-4).
+- Equality/comparison (R18, `src/genia/equality.py`): `GeniaDecimal`
+  participates in the one existing R18 numeric cross-kind bridge —
+  `1 == 1.0`, `1.0 == 1.00` hold by exact mathematical value, matching
+  contract section 10.1. A bare host `float` does not bridge with
+  `GeniaDecimal` (R22's only exact/approximate bridge is the explicit
+  Float64 domain, not implemented until E22-5/E22-7). Map keys
+  (`canonical_map_key`): an equal-valued Decimal and Integer share one
+  key bucket; a non-integral Decimal keys on its exact reduced fraction.
+- Compatibility hardening required for this slice to be mergeable in
+  isolation (not new R22 policy, only recognizing the new value kind at
+  existing generic-numeric dispatch points): format-spec numeric
+  precision/grouping (`src/genia/_format_engine.py`), CSV cell rendering
+  (`src/genia/sheet.py`), shell-stage stdin materialization
+  (`src/genia/evaluator.py`), JSON Schema `"number"` type matching
+  (`src/genia/builtins.py`), and R12 retrieval/rerank finite-score
+  validation (`src/genia/retrieval.py`) all now recognize `GeniaDecimal`.
+  Display/debug text for `GeniaDecimal` (its Python `__repr__`) is a
+  placeholder pending R23 canonical spelling, not a rendering contract.
+- R18 conformance test seam: three pre-existing R18 NaN-rejection
+  conformance cases (issue #792) previously reached a host float NaN as
+  an accidental byproduct of Decimal literals overflowing through the
+  retired float shim; exact Decimal arithmetic is arbitrary precision and
+  never overflows, closing that path. `src/genia/builtins.py` adds
+  `__r18_conformance_test_only_nan`, a private, non-public host test seam
+  used solely to keep that already-approved R18 evidence testable — it is
+  not part of the R22 numeric surface, which exposes no public NaN/
+  infinity/raw-bit constructor (contract section 4).
+
+Explicit limitations: no Rational (E22-2); no `/` or `%` on `GeniaDecimal`
+(E22-4); no explicit Float64 domain or `float64`/`exact` conversions
+(E22-5/E22-6); no cross-kind Float64 comparison bridge (E22-7); no
+`numeric-resource-limit` normalization (E22-8); no canonical Decimal
+display/JSON (R23); no C++ host implementation (R24).
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

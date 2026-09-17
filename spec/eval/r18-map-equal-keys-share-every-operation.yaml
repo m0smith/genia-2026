@@ -12,7 +12,7 @@ input:
     reinserted = map_put(map_remove(replaced, 1), 1, "again")
     [map_has?(m, 1), map_has?(m, 1.0), map_get(replaced, 1), map_count(replaced), map_keys(replaced), map_count(removed), map_has?(removed, 1), map_keys(reinserted)]
 expected:
-  stdout: "[true, true, \"ONE\", 2, [1.0, \"b\"], 1, false, [\"b\", 1]]\n"
+  stdout: "[true, true, \"ONE\", 2, [1, \"b\"], 1, false, [\"b\", 1]]\n"
   stderr: ""
   exit_code: 0
 notes: |
@@ -27,8 +27,14 @@ notes: |
     which keys collide, never how order is maintained.
   note_key_representation: >-
     Replacing through an equal cross-kind key keeps the replaced entry's
-    position but retains the replacing key's own representation, so map_keys
-    reports 1.0 rather than 1. This is existing behavior that R17 and R18 both
-    leave unspecified: R17 contracts the key's position only, and R18 contracts
-    which keys collide only. It is asserted here so the behavior is pinned rather
-    than left to drift.
+    position but retains the replacing key's own representation. This is
+    existing behavior that R17 and R18 both leave unspecified: R17 contracts
+    the key's position only, and R18 contracts which keys collide only. It is
+    asserted here so the behavior is pinned rather than left to drift.
+  r22_note: >-
+    R22 E22-1 (issue #887) materializes the `1.0` key as a genuine exact
+    GeniaDecimal runtime value rather than a host float; its display text
+    (currently "1") is not R22's canonical spelling -- canonical Decimal
+    display is R23's boundary (docs/design/r22-exact-numeric-runtime-contract.md
+    section 15). This case pins current, truthful output, not a rendering
+    contract.

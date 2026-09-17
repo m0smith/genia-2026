@@ -6,15 +6,24 @@ description: >-
   implement the two operators through separate relations.
 input:
   source: |
-    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
-    pinf = big * big * big
-    nan = pinf - pinf
-    [true != 1, false != 0, 1 != 1.0, 1 != 1.5, quote(a) != "a", nan != nan, [nan] != [nan], utf8_encode("hi") != utf8_encode("hi"), some(1) != err(1)]
+    [true != 1, false != 0, 1 != 1.0, 1 != 1.5, quote(a) != "a", utf8_encode("hi") != utf8_encode("hi"), some(1) != err(1)]
 expected:
-  stdout: "[true, true, false, true, true, true, true, false, true]\n"
+  stdout: "[true, true, false, true, true, false, true]\n"
   stderr: ""
   exit_code: 0
 notes: |
   issue: 791
   release: R18
   contract: docs/design/r18-portable-value-equality-contract.md "Purpose"
+  r22_note: >-
+    R22 E22-1 (issue #887, docs/design/r22-exact-numeric-runtime-contract.md
+    section 2) retired the pre-R22 evaluator shim that materialized Decimal
+    source literals as host float, so `big * big * big` no longer overflows
+    to a host float infinity -- exact Decimal arithmetic is arbitrary
+    precision and never overflows. This removed the only Genia-source-reachable
+    way to construct a host float NaN, so the `nan != nan` case (and the
+    inf/-inf-derived reachability it depended on) was removed here rather
+    than asserted against a value that is no longer NaN. Coverage for NaN
+    non-reflexivity through != is expected to return once R22 E22-6 (Float64
+    arithmetic) or a later ticket defines an explicit, approved way to reach
+    Float64 NaN.

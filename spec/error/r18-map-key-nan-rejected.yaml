@@ -6,9 +6,7 @@ description: >-
   rather than appearing to work through a host identity shortcut.
 input:
   source: |
-    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
-    pinf = big * big * big
-    nan = pinf - pinf
+    nan = __r18_conformance_test_only_nan
     map_put(map_new(), nan, "value")
 expected:
   stdout: ""
@@ -24,3 +22,10 @@ notes: |
     Before R18 this was accepted: the host dictionary shortcuts on object
     identity, so storing and retrieving the same NaN object appeared to work
     while a different NaN with the same value would not be found.
+  r22_note: >-
+    R22 E22-1 (issue #887) retired the evaluator shim that materialized
+    Decimal source literals as host float, closing the prior `big * big * big`
+    NaN-reachability technique (exact Decimal arithmetic never overflows).
+    `__r18_conformance_test_only_nan` is a private, non-public host test seam
+    (src/genia/builtins.py) kept solely so this already-approved R18
+    conformance case stays testable; see r18-equality-nan-non-reflexive.yaml.
