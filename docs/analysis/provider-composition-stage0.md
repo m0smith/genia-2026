@@ -14,6 +14,12 @@ The working conclusion is therefore:
 
 This file is intentionally not a contract, syntax proposal, roadmap release, or authorization to implement new runtime behavior.
 
+The focused architecture preflight in
+`docs/analysis/provider-composition-preflight.md` resolves work-ledger rows P0,
+P1, P2, P5, P6, and P7. Those resolutions remain non-authoritative
+architecture analysis: they add no implemented behavior and do not block
+R24-R31.
+
 ## Source-of-truth and evidence basis
 
 Read these before changing the conclusions in this file:
@@ -221,14 +227,14 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 
 | ID | Question | Current state | Exit evidence |
 | --- | --- | --- | --- |
-| **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **READY** | Written invariant list reconciled against current authoritative docs; contradictions identified explicitly. |
-| **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | Not started | Concrete use cases showing inspectability/composition/authority value; R16 fail-closed enforcement shape reused; no syntax required yet. |
-| **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | Not started | Lifetime/escape/transfer matrix and failure boundary, with no second lifecycle/equality system. |
+| **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **RESOLVED IN PREFLIGHT** | The preflight records the evidence matrix and PAI-1 through PAI-13; no new behavior is claimed. |
+| **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | **RESOLVED: MINIMAL MANIFEST CONCEPT** | Inert whole-computation metadata enables transitive pre-execution inspection; ordinary arguments remain operational and R16 supplies only the enforcement shape. |
+| **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | **RESOLVED FOR ARCHITECTURE** | Dynamic R14-owned carrier, singular ownership, bounded non-escaping borrow, expiry misuse, and one parent-to-child move; APIs and advanced lifetimes deferred. |
 | **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | Blocked on R22/R23 for final numeric answer | Explicit value-family matrix tied to existing contracts. |
 | **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | Not started; numeric portion blocked on R22/R23 | Representation contract sufficient for at least Python/C++ proof without host-default numeric leakage. |
-| **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | Not started | Exact identity/revision rule, initially without automatic SemVer compatibility. |
-| **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **Highest-risk open seam** | Failure matrix with one owner for each timeout/incompatible/unauthorized/provider/cancel/launch case. |
-| **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | Not started | Minimal graph/composition model or explicit decision that existing argument passing is sufficient. |
+| **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | **RESOLVED FOR ARCHITECTURE** | Exact nominal identity plus exact opaque revision; no structural/SemVer inference, registry, or package system. |
+| **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED FOR ARCHITECTURE** | Same-process calls keep interface Outcomes, composition/validity faults are misuse, and R36 remains the sole outer execution envelope. |
+| **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED FOR ARCHITECTURE** | Explicit immutable validated binding plan over already-constructed capabilities; exact matching, closed transitive graph, fail-closed ambiguity/cycles, no R20 selection. |
 | **P8** | What is the smallest proof of alternate provider realization with unchanged application logic? | Not started | Reuse an existing R12-style semantic interface; demonstrate two realizations with identical portable observations and no provider-specific leakage. |
 | **P9** | Can the resulting Genia model map to one actual WIT component without changing Genia semantics? | Deferred until P0-P8 are coherent | One bounded WIT interop proof; any mismatch documented rather than hidden. |
 
@@ -236,9 +242,9 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 
 Recommended sequence:
 
-1. **Complete P0 first.** Do not design new syntax or implementation while the existing provider invariants are still implicit.
-2. **Attack P6 early.** The R11/R12 Outcome model versus R36 execution failure model is the most likely source of architectural duplication.
-3. **Do P1 and P2 next.** These determine whether a true whole-program component/resource abstraction is needed.
+1. **P0 is resolved.** PAI-1 through PAI-13 make the existing invariants explicit without adding behavior.
+2. **P6 is resolved for architecture.** Same-process interface Outcomes remain ordinary; R36 alone owns the outer execution envelope.
+3. **P1 and P2 are resolved for architecture.** The selected scope is a minimal inert manifest plus a narrow R14/R18 resource model, not a component subsystem.
 4. **Let R22/R23 finish before freezing P3/P4 numerics.** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
 5. **P5/P7 only after the semantic need is clear.** Avoid building a registry/DI system in anticipation of requirements.
 6. **P8 must reuse existing Genia provider semantics instead of inventing two toy providers from scratch.**
@@ -303,9 +309,10 @@ Keep this short and append-only unless correcting a factual error.
 - **2026-09-15 — R16 enforcement precedent added.** Whole-application `requires`/`provides` is new in purpose, but R16 already proves the mechanical `requires` + advertised capability + deterministic fail-closed gating pattern.
 - **2026-09-15 — R20 kept separate.** Open-function argument dispatch is not provider realization/binding.
 - **2026-09-15 — R37 included as integration consumer.** R37's planned composition of R35 Store and R36 Execution makes it a future proving ground for the generalized model.
+- **2026-09-17 — P0/P1/P2/P5/P6/P7 preflight resolved.** The focused preflight selects a minimal inert manifest, R14-owned dynamic resource lifetimes, exact nominal interface revisions, ordinary same-process Outcomes with an R36 outer envelope, and an explicit immutable binding plan. It authorizes no implementation or release change.
 
 ## Current Stage 0 verdict
 
-**GO for a narrow architecture preflight. No implementation authorization.**
+**P0/P1/P2/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED. No implementation authorization.**
 
-The next work item is P0: extract the common provider invariants from the already implemented/audited R11/R12/R14/R16/R18 contracts and identify any contradictions or hidden assumptions before proposing new semantics.
+P3/P4 remain open, with their numeric boundary decisions blocked on R22/R23. P8/P9 remain future proof work. The resolved preflight does not promote a numbered release or change implemented semantics.
