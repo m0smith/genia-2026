@@ -1,0 +1,16 @@
+name: r22-rational-zero-denominator-rejected
+category: error
+description: >-
+  R22 E22-2: rational(numerator, denominator) with a zero denominator is
+  deterministic numeric misuse, not host-specific exception behavior.
+input:
+  source: |
+    rational(1, 0)
+expected:
+  stdout: ""
+  stderr: "Error: rational expected a nonzero denominator\n"
+  exit_code: 1
+notes: |
+  issue: 888
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 3"

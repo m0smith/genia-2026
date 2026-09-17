@@ -122,7 +122,7 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
-    from genia.numeric_runtime import GeniaDecimal
+    from genia.numeric_runtime import GeniaDecimal, rational_from_integers
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -240,7 +240,7 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
-    from .numeric_runtime import GeniaDecimal
+    from .numeric_runtime import GeniaDecimal, rational_from_integers
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -5543,6 +5543,28 @@ def make_global_env(
         )
 
     env.set("chunk", _host_function_group("chunk", 2, chunk_fn))
+
+    def rational_fn(numerator: Any, denominator: Any) -> Any:
+        """R22 E22-2: exact Rational runtime value constructor.
+
+        docs/design/r22-exact-numeric-runtime-contract.md section 3. Both
+        arguments must be Integer (Python int, never bool, never
+        GeniaDecimal/GeniaRational/float). Zero denominator and non-Integer
+        arguments are deterministic numeric misuse (TypeError).
+        """
+        if isinstance(numerator, bool) or not isinstance(numerator, int):
+            raise TypeError(
+                f"rational expected an Integer numerator, received {_runtime_type_name(numerator)}"
+            )
+        if isinstance(denominator, bool) or not isinstance(denominator, int):
+            raise TypeError(
+                f"rational expected an Integer denominator, received {_runtime_type_name(denominator)}"
+            )
+        if denominator == 0:
+            raise TypeError("rational expected a nonzero denominator")
+        return rational_from_integers(numerator, denominator)
+
+    env.set("rational", _host_function_group("rational", 2, rational_fn))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),

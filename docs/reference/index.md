@@ -1,6 +1,6 @@
 # Function Reference
 
-Alphabetical index of the **297** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
+Alphabetical index of the **298** out-of-the-box Genia functions available from the autoloaded prelude and Python reference host. Every entry is generated from canonical documentation metadata -- see [the @doc Style Guide](../style/doc-style.md). Do not edit these pages by hand.
 
 ## All functions (A-Z)
 
@@ -203,6 +203,7 @@ Alphabetical index of the **297** out-of-the-box Genia functions available from 
 | [`rand_int`](functions/rand_int.md) | random | `rand_int(n)` | Advance an explicit RNG state and return `[next_rng_state, int]`. |
 | [`rand_int_flow`](functions/rand_int_flow.md) | random | `rand_int_flow(seed, n)` | Return a lazy seeded Flow of integers in `[0, n)`. |
 | [`range`](functions/range.md) | list | `range(stop)` | Build a numeric range. |
+| [`rational`](functions/rational.md) | Numeric | `rational(numerator, denominator)` | Construct an exact reduced Rational from two Integers. |
 | [`read_file`](functions/read_file.md) | file | `read_file(path)` | Read a UTF-8 text file from `path`. |
 | [`recursive_template`](functions/recursive_template.md) | Value templates | `recursive_template(name, builder, max_depth)` | Construct a bounded self-recursive Template through an explicit named reference. |
 | [`reduce`](functions/reduce.md) | list | `reduce(f, acc, xs)` | Fold a list from left to right. |
@@ -376,6 +377,10 @@ Alphabetical index of the **297** out-of-the-box Genia functions available from 
 - [`lifecycle_context`](functions/lifecycle_context.md) - Read inward-only lifecycle context exposed by an entered peer or an ancestor scope.
 - [`lifecycle_repeat`](functions/lifecycle_repeat.md) - Run a fresh element execution scope for each consumed list or flow element, exposing reserved element/index context.
 - [`lifecycle_scope`](functions/lifecycle_scope.md) - Run a fresh root execution scope through explicit peer definitions and one work callable.
+
+### Numeric
+
+- [`rational`](functions/rational.md) - Construct an exact reduced Rational from two Integers.
 
 ### Pairs
 
