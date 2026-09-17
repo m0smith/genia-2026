@@ -5048,6 +5048,50 @@ than introducing a second relation.
 Explicit limitations: no `numeric-resource-limit` normalization (E22-8);
 no canonical display/JSON (R23).
 
+## 9.30) R22 E22-8 numeric misuse, resource limits, and diagnostic normalization (issue #894)
+
+Implements sections 11 and 13 of
+`docs/design/r22-exact-numeric-runtime-contract.md`. Primarily a
+verification slice: every deterministic numeric-misuse family introduced
+by E22-1 through E22-7 was audited directly through the CLI and confirmed
+already free of raw host exception text (exact/Float64 division and
+remainder by zero, invalid `rational(...)` arguments/zero denominator,
+invalid `float64`/`exact` conversion, mixed exact/Float64 arithmetic,
+illegal NaN map key) -- no changes were needed to any of those paths.
+
+- `numeric-resource-limit` (`src/genia/numeric_runtime.py`
+  `NumericResourceLimitError`, `_check_resource_limit`): a private,
+  non-public bound (default 14,000 bits) on a `GeniaDecimal` coefficient/
+  exponent or `GeniaRational` numerator/denominator's magnitude, checked
+  on raw input before any expensive canonicalization/gcd work. The bound
+  is deliberately kept below CPython's own int-to-decimal-text conversion
+  guard (`sys.get_int_max_str_digits()`, 4300 digits by default) --
+  auditing this slice's own construction paths surfaced a genuine
+  pre-existing gap: `GeniaDecimal`'s canonicalization converts the
+  coefficient to base-10 text to strip trailing zeros, and for an
+  astronomically large coefficient this previously hit Python's guard
+  directly, leaking a raw `ValueError` mentioning
+  `sys.set_int_max_str_digits` -- exactly the "raw host/library text
+  crosses the portable boundary" failure R22 forbids. The resource check
+  now runs first and pre-empts that leak with this project's own
+  deterministic `"numeric-resource-limit"` diagnostic.
+- A private, non-Genia-source-reachable test seam
+  (`_numeric_resource_limit_test_seam`, a context manager) temporarily
+  lowers the bound for deterministic test coverage, per contract section
+  11's own allowance that the threshold is a host/test detail, never
+  public Genia semantics; shared conformance never depends on its value.
+  `NumericResourceLimitError` propagates uncaught (like zero-division)
+  rather than being silently converted to a returned value, consistent
+  with the established precedent that numeric misuse terminates
+  evaluation rather than the caller continuing past it.
+- Explicitly not disguised as numeric overflow (`OverflowError`, reserved
+  for `float64`'s genuine binary64 magnitude overflow) or a type mismatch
+  (`TypeError`) -- it is its own exception kind.
+
+Explicit limitations: no canonical display/JSON (R23); the resource-limit
+bound applies only to `GeniaDecimal`/`GeniaRational` construction, not to
+R17 plain Integer arithmetic, which remains fully unbounded as before.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
