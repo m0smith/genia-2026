@@ -122,7 +122,7 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
-    from genia.numeric_runtime import GeniaDecimal, exact as _numeric_exact, rational_from_integers, to_float64
+    from genia.numeric_runtime import GeniaDecimal, GeniaRational, exact as _numeric_exact, rational_from_integers, to_float64
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -240,7 +240,7 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
-    from .numeric_runtime import GeniaDecimal, exact as _numeric_exact, rational_from_integers, to_float64
+    from .numeric_runtime import GeniaDecimal, GeniaRational, exact as _numeric_exact, rational_from_integers, to_float64
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -3263,6 +3263,8 @@ def make_global_env(
         if isinstance(expr, bool):
             return True
         if isinstance(expr, (int, float)) and not isinstance(expr, bool):
+            return True
+        if isinstance(expr, (GeniaDecimal, GeniaRational)):
             return True
         if isinstance(expr, str):
             return True

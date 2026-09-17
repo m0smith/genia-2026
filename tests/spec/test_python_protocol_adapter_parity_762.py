@@ -82,5 +82,10 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # mathematical comparison, equality, and map-key reconciliation.
     # Expressible over the protocol like any other case, so both total and
     # passed increase by exactly 3.
-    assert "Summary: total=739 passed=721 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E22-9 (issue #895) adds 1 portable R22 eval-category case for
+    # cross-surface conformance (quoted/quasiquoted/metacircular-eval'd
+    # decimal literals and literal-pattern matching). Expressible over the
+    # protocol like any other case, so both total and passed increase by
+    # exactly 1.
+    assert "Summary: total=740 passed=722 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

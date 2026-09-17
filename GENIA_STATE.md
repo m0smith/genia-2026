@@ -5092,6 +5092,66 @@ Explicit limitations: no canonical display/JSON (R23); the resource-limit
 bound applies only to `GeniaDecimal`/`GeniaRational` construction, not to
 R17 plain Integer arithmetic, which remains fully unbounded as before.
 
+## 9.31) R22 E22-9 cross-surface conformance and compatibility hardening (issue #895)
+
+Audits the whole merged R22 runtime model (E22-1..E22-8) across surfaces
+outside the evaluator's core arithmetic dispatch and repairs the
+compatibility defects genuinely caused by R22. Per
+`docs/design/r22-exact-numeric-runtime-contract.md`, no R23 rendering/JSON
+policy is introduced by this slice.
+
+Genuine defects found and fixed:
+
+- **Quoted/metacircular literal materialization**
+  (`src/genia/evaluator.py` `quote_node`, `quasiquote_node`'s internal
+  `qq`): both reconstructed a quoted `Number` AST node by returning its raw
+  `node.value` -- the pre-R21 evaluator-facing field, which for a
+  decimal-source literal is still a bare Python `float`. Ordinary
+  (non-quoted) evaluation instead lowers `Number` through the R21 tagged
+  `IrLiteral` payload into a genuine `GeniaDecimal` via
+  `numeric_literal_runtime_value`. `quote(1.5)` therefore silently produced
+  a Float64 instead of a Decimal, and any later `eval` of that quoted
+  structure carried the wrong runtime kind permanently. Both call sites now
+  route a `Number` node through
+  `numeric_literal_runtime_value(numeric_literal_payload(node))`, matching
+  ordinary evaluation exactly.
+- **Metacircular self-evaluating-literal predicate**
+  (`src/genia/builtins.py` `syntax_self_evaluating_fn`, backing
+  `self_evaluating?` in `std/prelude/eval.genia`): recognized only Python
+  `bool`/`int`/`float`/`str` as self-evaluating, so `eval(<GeniaDecimal>,
+  env)` or `eval(<GeniaRational>, env)` unconditionally raised
+  `"metacircular eval does not support expression"` even though the value
+  was already a legitimate self-evaluating literal. Now also recognizes
+  `GeniaDecimal`/`GeniaRational`.
+- **Sheets `render_csv` scalar rendering** (`src/genia/sheet.py`
+  `_csv_scalar_text`): accepted `GeniaDecimal` (fixed in E22-1) but not
+  `GeniaRational`, which is a separate dataclass, not a `GeniaDecimal`
+  subclass -- a Rational-valued cell crashed `render_csv`. Now accepts
+  both.
+- **Retrieval finite-score gating** (`src/genia/retrieval.py`
+  `_is_finite_score`): accepted `GeniaDecimal` (fixed in E22-1) but not
+  `GeniaRational`, silently treating a perfectly valid, always-finite
+  Rational evidence score as not finite. Now accepts both.
+
+Audited and confirmed already correct, no change needed: optimizer/
+constant-folding (`src/genia/optimizer.py` has no arithmetic constant
+folding at all; its only numeric-literal-aware logic already calls
+`numeric_literal_runtime_value` on the tagged payload rather than raw dict
+inspection); pattern matching (`src/genia/pattern_match.py` already
+dispatches literal-pattern comparison through the shared `genia_equal`
+relation, not raw `==`); `json_encode` (already produces a clean R19-style
+diagnostic for an unsupported-for-JSON `GeniaDecimal`/`GeniaRational`
+rather than crashing -- JSON policy itself remains R23); host subprocess
+protocol adapter (round-trips exact numeric kinds through the same
+`format_debug`/print machinery the evaluator's core dispatch already uses
+correctly, not a separate numeric-aware marshalling path); CLI/Flow
+execution (no numeric-type-specific logic of their own).
+
+Explicit limitations: no canonical display/JSON (R23); `json_stringify`'s
+existing (pre-R22, applies to every unsupported-for-JSON type, not
+Decimal/Rational-specific) diagnostic-message shape was not touched, since
+it is not a defect this slice's scope attributes to R22.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
