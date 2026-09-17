@@ -1,0 +1,17 @@
+name: r22-exact-family-equality
+category: eval
+description: >-
+  R22 E22-7 exact-family mathematical equality (docs/design/r22-exact-numeric-runtime-contract.md
+  section 10.1): Integer, Decimal, and Rational compare by mathematical
+  value for == and !=, across every pairing.
+input:
+  source: |
+    [1 == 1.0, 1.0 == 1.00, 1 == rational(2, 2), rational(1, 2) == 0.5, 1 != 2]
+expected:
+  stdout: "[true, true, true, true, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 887, 888, 893
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 10.1"

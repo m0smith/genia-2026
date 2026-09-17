@@ -118,17 +118,35 @@ class GeniaDecimal:
     def __hash__(self):
         return hash((GeniaDecimal, self.coefficient, self.exponent))
 
+    # E22-7 (contract section 10): ordering recognizes Integer, Decimal,
+    # Rational, and Float64 (the exact/Float64 bridge). See numeric_order.
     def __lt__(self, other):
-        return _decimal_cmp(self, other) < 0
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order < 0
 
     def __le__(self, other):
-        return _decimal_cmp(self, other) <= 0
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order <= 0
 
     def __gt__(self, other):
-        return _decimal_cmp(self, other) > 0
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order > 0
 
     def __ge__(self, other):
-        return _decimal_cmp(self, other) >= 0
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order >= 0
 
     def __repr__(self) -> str:  # pending R23 canonical spelling
         if self.exponent >= 0:
@@ -178,18 +196,6 @@ def _decimal_mul(left, right):
     left_d = _as_decimal(left)
     right_d = _as_decimal(right)
     return GeniaDecimal(left_d.coefficient * right_d.coefficient, left_d.exponent + right_d.exponent)
-
-
-def _decimal_cmp(left, right) -> int:
-    if isinstance(right, bool) or (not isinstance(right, (GeniaDecimal, int))):
-        raise TypeError("unsupported operand type for exact Decimal comparison")
-    left_d = _as_decimal(left)
-    right_d = _as_decimal(right)
-    ln, ld = left_d._as_fraction()
-    rn, rd = right_d._as_fraction()
-    lhs = ln * rd
-    rhs = rn * ld
-    return (lhs > rhs) - (lhs < rhs)
 
 
 def _log10(power_of_ten: int) -> int:
@@ -291,6 +297,36 @@ class GeniaRational:
 
     def __pos__(self):
         return self
+
+    # E22-7 (contract section 10): ordering recognizes Integer, Decimal,
+    # Rational, and Float64 (the exact/Float64 bridge). See numeric_order.
+    def __lt__(self, other):
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order < 0
+
+    def __le__(self, other):
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order <= 0
+
+    def __gt__(self, other):
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order > 0
+
+    def __ge__(self, other):
+        try:
+            order = numeric_order(self, other)
+        except TypeError:
+            return NotImplemented
+        return False if order is None else order >= 0
 
 
 def _to_exact_fraction(value: Any) -> tuple[int, int]:
@@ -592,3 +628,64 @@ def is_mixed_exact_and_float64(left: Any, right: Any) -> bool:
         return False
     other = right if left_is_float else left
     return is_exact_numeric(other)
+
+
+# ---------------------------------------------------------------------------
+# E22-7: mathematical comparison (contract section 10.1, 10.2)
+# ---------------------------------------------------------------------------
+
+
+def _magnitude_kind(value: Any) -> tuple:
+    """Classify one comparison operand.
+
+    Returns ("nan",), ("inf", sign) with sign +1/-1, or
+    ("finite", numerator, denominator). Raises TypeError for anything not
+    numeric-comparable (mirrors the exact-family/Float64 boundary this
+    slice defines -- no other value kind participates in `<`/`<=`/`>`/`>=`).
+    """
+    if isinstance(value, bool):
+        raise TypeError("unsupported operand type for numeric comparison")
+    if isinstance(value, int):
+        return ("finite", value, 1)
+    if isinstance(value, GeniaDecimal):
+        return ("finite", *value._as_fraction())
+    if isinstance(value, GeniaRational):
+        return ("finite", value.numerator, value.denominator)
+    if isinstance(value, float):
+        if value != value:  # NaN
+            return ("nan",)
+        if value == float("inf"):
+            return ("inf", 1)
+        if value == float("-inf"):
+            return ("inf", -1)
+        return ("finite", *value.as_integer_ratio())
+    raise TypeError("unsupported operand type for numeric comparison")
+
+
+def numeric_order(left: Any, right: Any) -> "int | None":
+    """Return -1/0/1 for left vs right, or None when unordered (NaN
+    involved). Raises TypeError when either operand is not numeric.
+
+    Covers the full exact family (Integer/Decimal/Rational, mathematical
+    value, arbitrary precision, never rounded) plus the explicit Float64
+    bridge (contract section 10.2): a finite Float64 compares using its
+    own exact represented value via `as_integer_ratio()` -- the exact
+    operand is never rounded to Float64 to compare it -- and infinities
+    use extended-real ordering (below/above every finite exact value).
+    """
+    left_kind = _magnitude_kind(left)
+    right_kind = _magnitude_kind(right)
+    if left_kind[0] == "nan" or right_kind[0] == "nan":
+        return None
+    if left_kind[0] == "inf" and right_kind[0] == "inf":
+        left_sign, right_sign = left_kind[1], right_kind[1]
+        return (left_sign > right_sign) - (left_sign < right_sign)
+    if left_kind[0] == "inf":
+        return left_kind[1]
+    if right_kind[0] == "inf":
+        return -right_kind[1]
+    _, left_numerator, left_denominator = left_kind
+    _, right_numerator, right_denominator = right_kind
+    lhs = left_numerator * right_denominator
+    rhs = right_numerator * left_denominator
+    return (lhs > rhs) - (lhs < rhs)
