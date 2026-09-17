@@ -143,3 +143,14 @@ once per push or pull request on canonical Python 3.12 in CI's dedicated
 because that would repeat the same full semantic inventory through the
 protocol adapter; no shared case or parity assertion is removed by this test
 selection boundary.
+
+Within `tests/spec/`, `test_spec_ir_runner_blackbox.py` and
+`test_cli_shared_spec_runner.py` execute a small representative sample of
+fixtures per category (not the full corpus) through the real
+`load_spec -> execute_spec -> compare_spec` pipeline, to prove that wiring
+works; they no longer replay every case in `spec/`. The full corpus is still
+proven, exactly once per supported Python version, by the canonical
+`python -m tools.spec_runner` path. The expensive `command_mode_collect_sum`
+CLI fixture is deliberately executed through only one pytest file
+(`test_cli_shared_spec_runner.py`) to avoid being replayed through two
+overlapping pytest paths on every supported Python version.

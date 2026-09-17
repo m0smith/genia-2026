@@ -370,13 +370,15 @@ def test_cli_spec_fixture_executes_and_compares_expected_observables() -> None:
 @pytest.mark.parametrize(
     "fname",
     [
-        "file_mode_main_argv.yaml",
+        # command_mode_collect_sum.yaml is the sole place this expensive
+        # fixture is executed through pytest: tests/spec/
+        # test_spec_ir_runner_blackbox.py deliberately excludes it so it is
+        # not replayed twice through overlapping pytest paths on every
+        # supported Python version. It still runs once more via the
+        # canonical `python -m tools.spec_runner` pass and once via the
+        # full_conformance subprocess-protocol proof on canonical Python.
         "command_mode_collect_sum.yaml",
-        "pipe_mode_map_parse_int.yaml",
         "pipe_mode_bare_parse_int_error.yaml",
-        "pipe_mode_sum_error.yaml",
-        "pipe_mode_collect_error.yaml",
-        "native_test_runner_passing_suite_outcome.yaml",
         "native_test_runner_error_suite_outcome.yaml",
         "native_test_runner_discovery_error_suite_outcome.yaml",
     ],

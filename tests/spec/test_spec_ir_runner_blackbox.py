@@ -6,6 +6,16 @@ from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import execute_spec
 from tools.spec_runner.loader import discover_specs, load_spec
 
+# The `test_*_spec_fixture` blackbox tests below execute a *small
+# representative sample* per category through the real
+# load_spec -> execute_spec -> compare_spec pipeline, to prove that wiring
+# works end to end for each category. They deliberately do not replay every
+# fixture in `spec/`: the full shared corpus is already executed once per
+# supported Python version by the canonical `python -m tools.spec_runner`
+# path, so re-running every case here would only duplicate that execution
+# without adding evidence. Each category's discovery is still fully checked
+# for the presence of every fixture name via `test_discover_specs_includes_*`
+# below, which is cheap (no interpreter execution) and does not replay cases.
 
 IR_DIR = Path(__file__).resolve().parents[2] / "spec" / "ir"
 EVAL_DIR = Path(__file__).resolve().parents[2] / "spec" / "eval"
@@ -164,11 +174,7 @@ def test_discover_specs_includes_flow_cases() -> None:
     "fname",
     [
         "pipeline-explicit.yaml",
-        "option-constructors.yaml",
-        "import-pipeline-stage.yaml",
-        "call-spread.yaml",
         "case-patterns.yaml",
-        "quasiquote-unquote-var.yaml",
         "quasiquote-unquote-splicing-var.yaml",
     ],
 )
@@ -183,102 +189,14 @@ def test_ir_spec_fixture(fname: str) -> None:
     "fname",
     [
         "arithmetic-basic.yaml",
-        "pipeline-call-shape-basic.yaml",
-        "output-print.yaml",
-        "output-log.yaml",
-        "output-print-and-log.yaml",
-        "pattern-duplicate-binding-false.yaml",
         "pattern-first-match-wins.yaml",
-        "pattern-literal-int.yaml",
-        "pattern-literal-string.yaml",
-        "pattern-wildcard.yaml",
-        "pattern-variable-binding.yaml",
-        "pattern-list-exact.yaml",
-        "pattern-list-exact-miss.yaml",
-        "pattern-list-empty.yaml",
-        "pattern-tuple-multiarg.yaml",
-        "pattern-map-partial.yaml",
-        "pattern-map-key-binding.yaml",
-        "pattern-map-shorthand.yaml",
         "pattern-option-some.yaml",
-        "pattern-option-none.yaml",
-        "pattern-option-none-context.yaml",
-        "pattern-option-none-reason.yaml",
-        "pattern-guard-pass.yaml",
-        "pattern-guard-skip.yaml",
-        "pattern-glob-star.yaml",
-        "pattern-glob-non-string.yaml",
-        "option-some-render-basic.yaml",
-        "option-none-render-basic.yaml",
-        "pipeline-option-some-lift.yaml",
-        "pipeline-option-none-short-circuit.yaml",
         "stdlib-map-list-basic.yaml",
-        "stdlib-map-list-empty.yaml",
-        "stdlib-filter-list-basic.yaml",
-        "stdlib-filter-list-no-match.yaml",
-        "stdlib-first-list-some.yaml",
-        "stdlib-first-list-empty.yaml",
-        "stdlib-last-list-some.yaml",
-        "stdlib-last-list-empty.yaml",
-        "stdlib-nth-list-some.yaml",
-        "stdlib-nth-list-out-of-bounds.yaml",
-        "stdlib-map-option-elements.yaml",
-        "stdlib-filter-option-elements.yaml",
-        "map-items-map-item-key-pipeline.yaml",
-        "map-items-map-item-value-pipeline.yaml",
-        "each-on-list-seq-compatible.yaml",
         "seq-compatible-list-collect.yaml",
-        "seq-compatible-list-run-no-output.yaml",
-        "seq-compatible-list-each-run.yaml",
-        "seq-compatible-list-each-lazy-unconsumed.yaml",
-        "seq-compatible-list-transform-chain.yaml",
-        "seq-compatible-range-transform-chain.yaml",
-        "seq-compatible-range-each-run-regression.yaml",
-        "seq-compatible-collect-nonseq-error.yaml",
         "pairs-basic.yaml",
-        "pairs-shorter-first.yaml",
-        "pairs-shorter-second.yaml",
-        "pairs-empty-first.yaml",
-        "pairs-empty-both.yaml",
-        "pairs-strings.yaml",
-        "pairs-pattern-match.yaml",
         "format-first-class-format-value-named.yaml",
-        "format-first-class-format-value-inline.yaml",
-        "format-first-class-format-value-backward-compat.yaml",
-        "format-first-class-format-display.yaml",
-        "format-first-class-format-debug-repr.yaml",
-        "format-first-class-format-empty-template.yaml",
-        "format-first-class-format-no-placeholders.yaml",
-        "format-first-class-format-positional.yaml",
-        "format-compose-basic.yaml",
-        "format-compose-empty.yaml",
-        "format-compose-mixed-pieces.yaml",
         "format-compose-nested.yaml",
-        "format-compose-repeated-placeholder.yaml",
-        "format-compose-preserves-existing-format.yaml",
         "format-field-align-left.yaml",
-        "format-field-align-right.yaml",
-        "format-field-align-center-even.yaml",
-        "format-field-align-center-odd.yaml",
-        "format-field-align-noop.yaml",
-        "format-field-string-precision-truncate.yaml",
-        "format-field-string-precision-zero.yaml",
-        "format-field-string-precision-noop.yaml",
-        "format-field-numeric-precision-basic.yaml",
-        "format-field-numeric-precision-integer.yaml",
-        "format-field-numeric-precision-zero.yaml",
-        "format-field-zero-pad-basic.yaml",
-        "format-field-zero-pad-negative.yaml",
-        "format-field-zero-pad-already-wide.yaml",
-        "format-field-grouping-integer.yaml",
-        "format-field-grouping-large.yaml",
-        "format-field-grouping-negative.yaml",
-        "format-field-grouping-decimal.yaml",
-        "format-field-positional-with-spec.yaml",
-        "format-field-format-value-parity-align.yaml",
-        "format-field-format-value-parity-numeric.yaml",
-        "format-field-escaped-braces-spec-text.yaml",
-        "format-pipeline-map-named.yaml",
     ],
 )
 @pytest.mark.spec
@@ -295,12 +213,12 @@ def test_eval_spec_fixture(fname: str) -> None:
 @pytest.mark.parametrize(
     "fname",
     [
+        # command_mode_collect_sum.yaml is deliberately NOT included here:
+        # it is the representative expensive CLI fixture kept unique to
+        # tests/spec/test_cli_shared_spec_runner.py to avoid replaying it
+        # through two separate pytest paths on every supported Python.
         "file_mode_main_argv.yaml",
-        "command_mode_collect_sum.yaml",
         "pipe_mode_map_parse_int.yaml",
-        "pipe_mode_bare_parse_int_error.yaml",
-        "pipe_mode_sum_error.yaml",
-        "pipe_mode_collect_error.yaml",
     ],
 )
 @pytest.mark.spec
@@ -318,22 +236,8 @@ def test_cli_spec_fixture(fname: str) -> None:
     "fname",
     [
         "stdin-lines-collect-basic.yaml",
-        "stdin-lines-take-early-stop.yaml",
-        "flow-single-use-error.yaml",
         "flow-error-propagation-sum-on-flow.yaml",
-        "refine-step-emit-deterministic.yaml",
-        "rules-rule-emit-deterministic.yaml",
-        "step-rule-helper-equivalence.yaml",
-        "rules-identity-stage.yaml",
-        "flow-keep-some-parse-int.yaml",
-        "flow-tee-zip-list-pairs.yaml",
-        "flow-zip-list-pairs.yaml",
-        "flow-map-basic.yaml",
-        "flow-filter-basic.yaml",
         "flow-map-filter-chain.yaml",
-        "evolve-init-f-integer-progression.yaml",
-        "evolve-init-f-doubles-from-seed.yaml",
-        "seq-compatible-evolve-each-run.yaml",
         "seq-compatible-flow-transform-chain.yaml",
     ],
 )
@@ -352,23 +256,9 @@ def test_flow_spec_fixture(fname: str) -> None:
     "fname",
     [
         "error-pattern-miss.yaml",
-        "error-pattern-guard-all-fail.yaml",
-        "error-pattern-glob-malformed.yaml",
         "error-format-non-string-template.yaml",
-        "error-format-first-class-constructor-non-string.yaml",
-        "error-format-first-class-non-string-non-format.yaml",
         "error-format-field-empty-spec.yaml",
-        "error-format-field-bare-width.yaml",
-        "error-format-field-incomplete-align.yaml",
-        "error-format-field-combined-spec.yaml",
-        "error-format-field-zero-pad-non-numeric.yaml",
-        "error-format-field-grouping-non-numeric.yaml",
-        "error-format-field-precision-non-string-non-numeric.yaml",
-        "error-format-field-bool-zero-pad.yaml",
         "error-format-compose-invalid-piece.yaml",
-        "error-format-compose-missing-placeholder.yaml",
-        "error-format-compose-non-list.yaml",
-        "error-format-compose-string-argument.yaml",
     ],
 )
 @pytest.mark.spec
