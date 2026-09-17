@@ -1086,23 +1086,18 @@ def test_rules_doc_8_4_mentions_slash_lowering_form() -> None:
 def test_r3_native_test_roadmap_stays_separate_from_r4_lifecycle_generalization() -> None:
     state = read_text("GENIA_STATE.md")
     roadmap = read_text("docs/strategy/release-roadmap.md")
+    r3_release = read_text("docs/releases/R3.md")
+    r4_release = read_text("docs/releases/R4.md")
 
-    r3_marker = "## Release R3 — Native Test Expansion Wave 1"
-    r4_marker = "## Release R4 — Lifecycle Generalization"
-    r3_start = roadmap.find(r3_marker)
-    r4_start = roadmap.find(r4_marker)
-    assert r3_start != -1, "release roadmap must keep an R3 native-test expansion section"
-    assert r4_start != -1, "release roadmap must keep a separate R4 lifecycle section"
-    assert r3_start < r4_start, "R3 native-test expansion must remain ordered before R4 lifecycle work"
-
-    r3_section = roadmap[r3_start:r4_start]
-    r4_section = roadmap[r4_start:]
-
-    assert "Native Test Expansion" in r3_section
-    assert "lifecycle generalization (see R4)" in r3_section, (
-        "R3 roadmap scope must explicitly exclude lifecycle generalization"
-    )
-    assert "Lifecycle Generalization" in r4_section
+    r3_row = "| R3 | Native Test Expansion Wave 1 | Complete | `docs/releases/R3.md` |"
+    r4_row = "| R4 | Lifecycle Generalization | Complete | `docs/releases/R4.md` |"
+    assert r3_row in roadmap
+    assert r4_row in roadmap
+    assert roadmap.index(r3_row) < roadmap.index(r4_row)
+    assert '`@test "description"` annotation-driven test' in r3_release
+    assert "discovery" in r3_release
+    assert "Lifecycle Generalization" in r4_release
+    assert "data shape" in r4_release
 
     assert "test(name, body)" in state, (
         "GENIA_STATE.md must preserve the current native-test registration path"

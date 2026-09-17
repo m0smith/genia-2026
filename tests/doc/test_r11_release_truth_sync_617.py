@@ -35,7 +35,9 @@ def test_r11_status_remains_synchronized_after_release_completion() -> None:
         "docs/design/r11-ai-composition-contract.md": "E11-1 through E11-8 complete",
         "docs/releases/R11.md": "E11-1 through E11-8 delivered",
         "docs/releases/README.md": "E11-1 through E11-8 delivered",
-        "docs/strategy/release-roadmap.md": "E11-1 through E11-8 complete",
+        "docs/strategy/release-roadmap.md": (
+            "| R11 | AI Composition | Complete | `docs/releases/R11.md` |"
+        ),
     }
     for path, expected in required.items():
         assert expected in _read(path), f"{path} must preserve synchronized R11 truth"

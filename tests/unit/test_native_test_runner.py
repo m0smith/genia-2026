@@ -100,15 +100,12 @@ class TestNativeTestRunnerFileHandling:
         assert "file not found" in captured.err.lower()
         assert captured.out == ""
 
-    def test_file_not_readable(self, temp_genia_file, capsys):
+    def test_file_not_readable(self, temp_genia_file, capsys, monkeypatch):
         """Unreadable files return exit code 2 and do not write stdout."""
         temp_genia_file.write_text('test("passes", () -> none)\n', encoding="utf-8")
-        temp_genia_file.chmod(0)
+        monkeypatch.setattr("genia.native_test_runner.os.access", lambda *_: False)
 
-        try:
-            exit_code = run_native_tests(str(temp_genia_file))
-        finally:
-            temp_genia_file.chmod(0o600)
+        exit_code = run_native_tests(str(temp_genia_file))
 
         captured = capsys.readouterr()
         assert exit_code == 2, "unreadable files should return usage/data error code 2"
@@ -371,15 +368,12 @@ class TestNativeTestRunnerExitCodes:
         """Exit code 2 when the file is missing."""
         assert run_native_tests(str(tmp_path / "missing.genia")) == 2
 
-    def test_exit_2_file_not_readable(self, temp_genia_file):
+    def test_exit_2_file_not_readable(self, temp_genia_file, monkeypatch):
         """Exit code 2 when the file exists but is unreadable."""
         temp_genia_file.write_text('test("passes", () -> none)\n', encoding="utf-8")
-        temp_genia_file.chmod(0)
+        monkeypatch.setattr("genia.native_test_runner.os.access", lambda *_: False)
 
-        try:
-            exit_code = run_native_tests(str(temp_genia_file))
-        finally:
-            temp_genia_file.chmod(0o600)
+        exit_code = run_native_tests(str(temp_genia_file))
 
         assert exit_code == 2
 
