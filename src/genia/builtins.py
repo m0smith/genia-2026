@@ -128,7 +128,9 @@ if __package__ in (None, ""):
         GeniaDecimal,
         GeniaRational,
         exact as _numeric_exact,
+        float64_finite_canonical_text,
         rational_from_integers,
+        rational_terminating_decimal,
         stable_json_decimal,
         to_float64,
     )
@@ -253,7 +255,9 @@ else:
         GeniaDecimal,
         GeniaRational,
         exact as _numeric_exact,
+        float64_finite_canonical_text,
         rational_from_integers,
+        rational_terminating_decimal,
         stable_json_decimal,
         to_float64,
     )
@@ -1985,9 +1989,21 @@ def make_global_env(
             # `_strict_json_decimal` at scan time; nothing further to check.
             return value
         if isinstance(value, float):
-            if not math.isfinite(value):
-                raise _JsonBoundaryFailure("json_number_out_of_range")
-            return value
+            # R23 contract section 5: JSON decode never produces a Float64
+            # (or a Rational -- Rational has no decode grammar at all).
+            # This branch is unreachable in practice: `json_decode_fn`
+            # registers `parse_float=_strict_json_decimal` (every
+            # fraction/exponent token becomes an exact `GeniaDecimal`
+            # before `json.loads` would ever build a raw Python float) and
+            # `parse_constant=_reject_json_constant` (nan/Infinity/
+            # -Infinity tokens are rejected outright, never reaching this
+            # function). Kept as a defensive guard against a future
+            # scanner-hook change silently reintroducing a host-float
+            # decode path, per contract section 5's "must not parse a JSON
+            # fraction/exponent token to host binary floating point first".
+            raise AssertionError(
+                "unreachable: strict JSON decode never produces a raw float"
+            )
         if isinstance(value, str):
             _validate_json_string(value)
             return value
@@ -2036,10 +2052,44 @@ def make_global_env(
             sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
             decimal_sentinels[sentinel] = repr(value)
             return sentinel
+        if isinstance(value, GeniaRational):
+            # R23 contract section 4.3: encodable only when the exact
+            # ratio has a finite base-10 Decimal representation and that
+            # Decimal is itself `stable_json_decimal`. A non-terminating
+            # ratio (e.g. 1/3) cannot be represented as a JSON number at
+            # all, so it is `unsupported_json_value` -- the same reason
+            # any other non-numeric-JSON kind gets, not a range/precision
+            # complaint. A terminating ratio whose exact Decimal
+            # equivalent fails the stability predicate (loses information
+            # round-tripping through binary64) is `json_number_out_of_range`,
+            # matching Decimal's own rejection for the identical predicate
+            # failure just above.
+            decimal_equivalent = rational_terminating_decimal(value)
+            if decimal_equivalent is None:
+                raise _JsonBoundaryFailure(
+                    "unsupported_json_value", value_type="rational"
+                )
+            if not stable_json_decimal(decimal_equivalent):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
+            decimal_sentinels[sentinel] = repr(decimal_equivalent)
+            return sentinel
         if isinstance(value, float):
+            # R23 contract section 4.4: finite Float64 values encode using
+            # their canonical shortest-roundtrip decimal spelling as a
+            # bare JSON number token (never the `float64(...)` display
+            # atom -- that atom is a Genia source/debug convention, not a
+            # JSON number). Routed through the same sentinel-substitution
+            # mechanism as Decimal/Rational above so `json.dumps` -- which
+            # would otherwise re-derive digits from its own
+            # `float.__repr__` binding and could disagree with the
+            # canonical spelling's fixed/scientific notation rule -- never
+            # gets a chance to re-render this value itself.
             if not math.isfinite(value):
                 raise _JsonBoundaryFailure("json_number_out_of_range")
-            return value
+            sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
+            decimal_sentinels[sentinel] = float64_finite_canonical_text(value)
+            return sentinel
         if isinstance(value, str) and not isinstance(value, GeniaSymbol):
             _validate_json_string(value)
             return value

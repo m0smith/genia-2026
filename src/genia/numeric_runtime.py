@@ -767,6 +767,24 @@ def _float_shortest_roundtrip_coefficient_exponent(value: float) -> tuple[int, i
     return _canonicalize(coefficient, exponent)
 
 
+def float64_finite_canonical_text(value: float) -> str:
+    """Canonical shortest-roundtrip decimal text for a *finite* Float64.
+
+    This is the unwrapped digit sequence `format_float64` below wraps in
+    the `float64(...)` display/debug atom (contract section 2.4), and is
+    also what the strict generic JSON boundary (contract section 4.4)
+    emits verbatim as a bare JSON number token -- the two surfaces share
+    this one computation rather than each deriving their own digits.
+    Caller must have already excluded NaN/infinity; zero's sign is
+    preserved in the text (Float64 has a real +0.0/-0.0 distinction).
+    """
+    if value == 0.0:
+        negative = math.copysign(1.0, value) < 0
+        return "-0.0" if negative else "0.0"
+    coefficient, exponent = _float_shortest_roundtrip_coefficient_exponent(value)
+    return _canonical_decimal_text(coefficient, exponent)
+
+
 def format_float64(value: float) -> str:
     """Render a Float64 value per R23 contract section 2.4.
 
@@ -781,11 +799,7 @@ def format_float64(value: float) -> str:
         return "float64(inf)"
     if value == float("-inf"):
         return "float64(-inf)"
-    if value == 0.0:
-        negative = math.copysign(1.0, value) < 0
-        return "float64(-0.0)" if negative else "float64(0.0)"
-    coefficient, exponent = _float_shortest_roundtrip_coefficient_exponent(value)
-    return f"float64({_canonical_decimal_text(coefficient, exponent)})"
+    return f"float64({float64_finite_canonical_text(value)})"
 
 
 def stable_json_decimal(value: Any) -> bool:
@@ -831,6 +845,47 @@ def stable_json_decimal(value: Any) -> bool:
         return False
     coefficient, exponent = _float_shortest_roundtrip_coefficient_exponent(as_float)
     return coefficient == value.coefficient and exponent == value.exponent
+
+
+def rational_terminating_decimal(value: "GeniaRational") -> "GeniaDecimal | None":
+    """R23 contract section 4.3: the exact Decimal equivalent of `value`
+    when one exists, else `None`.
+
+    A reduced fraction `numerator/denominator` has a finite base-10
+    expansion exactly when `denominator`'s prime factorization contains
+    only 2s and 5s (the standard number-theory characterization of
+    terminating decimals in base 10, whose prime factors are 2 and 5).
+    `GeniaRational` is always already reduced (gcd(numerator,
+    denominator) == 1, denominator > 1 -- see the class docstring), so no
+    further reduction is needed here.
+
+    When finite, this computes the exact equivalent Decimal using only
+    integer arithmetic -- no `float(...)` cast anywhere in this path.
+    Strip 2s and 5s from `denominator` by trial division, counting each;
+    let `k` be the larger count. Multiplying numerator and denominator by
+    the complementary powers of 2 and 5 turns the denominator into
+    exactly `10 ** k` (since 2**k * 5**k == 10**k), so the resulting
+    coefficient over `10 ** k` is the exact value -- `GeniaDecimal`'s own
+    constructor then canonicalizes it (stripping any trailing base-10
+    zeros) the same as any other Decimal.
+    """
+    denominator = value.denominator
+    twos = 0
+    while denominator % 2 == 0:
+        denominator //= 2
+        twos += 1
+    fives = 0
+    while denominator % 5 == 0:
+        denominator //= 5
+        fives += 1
+    if denominator != 1:
+        # A prime factor other than 2 or 5 survives: the expansion is
+        # non-terminating (e.g. 1/3, 2/7, 1/6 -- 6 == 2*3 still has the
+        # non-2/5 factor 3).
+        return None
+    k = max(twos, fives)
+    coefficient = value.numerator * (2 ** (k - twos)) * (5 ** (k - fives))
+    return GeniaDecimal(coefficient, -k)
 
 
 def numeric_order(left: Any, right: Any) -> "int | None":
