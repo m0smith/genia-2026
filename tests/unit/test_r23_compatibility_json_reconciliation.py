@@ -186,6 +186,20 @@ def test_json_stringify_rejects_non_terminating_rational():
     assert is_none(result)
 
 
+def test_json_stringify_rejects_non_terminating_rational_received_field_is_portable():
+    """Issue #933 (E23-8): `received` must be the portable type name
+    ("rational"), never the raw Python implementation class name
+    ("GeniaRational") -- see docs/analysis/r23-release-truth-audit.md.
+    """
+    from genia.values import is_none
+
+    value = rational_from_integers(1, 3)
+    result = _json_stringify(value)
+    assert is_none(result)
+    context = result.context
+    assert context.get("received") == "rational"
+
+
 def test_json_stringify_rejects_non_finite_float():
     from genia.values import is_none
 
