@@ -3044,7 +3044,7 @@ Behavior:
 - `json_decode` and `json_encode` are the Experimental portable R9 JSON representation boundary; legacy `json_parse`, `json_stringify`, `json_pretty`, and `parse_jsonl_record` retain their compatibility behavior
 - successful `json_decode` returns `some(represent("json", root), context)`, where `root` is an ordinary map/list/string/number/boolean/`nil` value and nested values have no implicit representation facets; string input and strict UTF-8 bytes input are accepted, while any other input type is runtime misuse
 - successful `json_encode` returns deterministic two-space-indented JSON with sorted object member names and preserved list order; it accepts one outer `json`-represented supported value or a supported ordinary value, consuming only that optional outer layer
-- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]` (Integer), fraction/exponent numbers accepted as exact Decimal only when `stable_json_decimal` holds (R23 E23-3, issue #915 -- section 9.34; parsed/emitted lexically, never through a host float), Unicode scalar strings/names, and at most 128 nested object/array containers
+- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]` (Integer), fraction/exponent numbers accepted as exact Decimal only when `stable_json_decimal` holds (R23 E23-3, issue #915 -- section 9.34; parsed/emitted lexically, never through a host float), a Rational encodable only when its exact value has a finite base-10 Decimal equivalent that itself satisfies `stable_json_decimal` (never rounded, never decoded back to Rational -- R23 E23-4, issue #921 -- section 9.35), a finite Float64 encodable using its canonical shortest-roundtrip decimal spelling as a bare JSON number (NaN/infinity rejected; decode never produces Float64 -- same section), Unicode scalar strings/names, and at most 128 nested object/array containers
 - `json_decode` rejects malformed/trailing JSON, invalid UTF-8, duplicate names, nonstandard/non-finite or out-of-range numbers, invalid Unicode scalars, and excessive nesting as `err(...)`; `json_encode` rejects unsupported values/keys/facets and the same number/Unicode/nesting violations as `err(...)`
 - boundary Outcome contexts contain `kind: quote(json)`, `operation: quote(decode|encode)`, `status: quote(decoded|encoded|error)`, and `reason`; malformed syntax adds 1-based `line`/`column`, duplicates add `key`, and unsupported encoding adds `value_type`
 - portable error reasons are `invalid_json`, `invalid_json_utf8`, `duplicate_json_key`, `json_number_out_of_range`, `invalid_json_unicode`, `json_nesting_too_deep`, and `unsupported_json_value`; host exception text is not portable
@@ -5375,6 +5375,99 @@ exactly as before. No full diagnostics-normalization sweep beyond this
 slice's own new rejections (E23-6); release audit not performed (E23-7).
 R22 arithmetic/equality/comparison are unchanged. E23-1's rendering
 functions and E23-2's format-spec code are called, never edited.
+
+## 9.35) R23 E23-4 strict generic JSON boundary for Rational and Float64 (issue #921)
+
+Implements sections 4.3, 4.4, the Rational/Float64 parts of section 5, and
+section 8 (this slice's new rejections) of
+`docs/design/r23-numeric-representation-interchange-contract.md` against
+the same strict generic JSON boundary E23-3 (section 9.34) established
+(`json_decode`/`json_encode`, i.e. `_json_decode`/`_json_encode` in
+`src/genia/builtins.py`). Compatibility `json_parse`/`json_stringify`/
+`json_pretty`/`parse_jsonl_record` remain untouched (E23-5).
+
+- **Rational** (section 4.3): `rational_terminating_decimal(value)`
+  (new, `src/genia/numeric_runtime.py`) computes a `GeniaRational`'s exact
+  equivalent `GeniaDecimal` using only integer arithmetic (no
+  `float(...)` cast) when its already-reduced denominator's only prime
+  factors are 2 and/or 5 (the standard base-10-termination test), else
+  returns `None` (e.g. `1/3`, `2/7`, and `1/6`/`5/12` -- both of which
+  still carry a non-2/5 factor of 3 despite also carrying a factor of 2).
+  `_strict_json_from_runtime` (encode) gained a `GeniaRational` branch:
+  a non-terminating Rational rejects with `unsupported_json_value`
+  (`value_type="rational"`) -- it cannot be represented as a JSON number
+  at all, the same reason any other non-numeric-JSON kind gets; a
+  terminating Rational whose exact Decimal equivalent fails the reused
+  (read-only) `stable_json_decimal` predicate rejects with
+  `json_number_out_of_range`, identical to Decimal's own rejection for
+  the same predicate failure; a terminating, stable Rational encodes its
+  exact Decimal equivalent's canonical text via the same sentinel-
+  substitution mechanism E23-3 built for Decimal. Decode is unaffected --
+  JSON never directly constructs a Rational (confirmed, not changed):
+  decoding an encoded Rational's JSON form yields a `GeniaDecimal`, which
+  R18 cross-kind equality (`genia_equal`) still compares mathematically
+  equal to the original Rational.
+- **Float64** (section 4.4): `float64_finite_canonical_text(value)` (new,
+  `numeric_runtime.py`) is `format_float64`'s finite-value digit
+  computation extracted into its own function, so display/debug rendering
+  and JSON encode share one computation instead of two -- `format_float64`
+  itself now calls it and its observable output is unchanged. The
+  previously-existing but contract-inconsistent Float64 encode branch
+  (which let `json.dumps` re-derive digits from `float.__repr__`, whose
+  fixed/scientific notation threshold does not match R23's own canonical
+  rule for every magnitude) is rewritten to inject
+  `float64_finite_canonical_text`'s exact text via the same sentinel-
+  substitution mechanism, so encoded JSON numbers always match
+  `format_float64`'s canonical spelling with the `float64(...)` wrapper
+  stripped. NaN/infinity are rejected with `json_number_out_of_range`
+  before `json.dumps(..., allow_nan=False)` ever sees them (that
+  `allow_nan=False` guard is defense-in-depth, not the primary
+  rejection).
+- **Decode never produces Float64** (section 5): confirmed, not a
+  behavior change. `_strict_json_to_runtime`'s pre-existing `float`
+  branch (flagged as dead in E23-3's own section 9.34 note) is genuinely
+  unreachable -- `json_decode`'s scanner hooks (`parse_float` ->
+  `GeniaDecimal`, `parse_constant` -> reject) intercept every JSON
+  number/constant token before `json.loads` could ever construct a raw
+  Python `float` for this function to see. Its body is now an explicit
+  `AssertionError`-guarded comment documenting exactly why, rather than a
+  silently inconsistent live-looking branch left in place.
+- **Diagnostics** (section 8, this slice's new rejections): both new
+  Rational failure modes and the corrected Float64 non-finite rejection
+  raise through the existing `_JsonBoundaryFailure` ->
+  `_json_boundary_err` normalization already used by every JSON boundary
+  failure, reusing two already-established reasons
+  (`unsupported_json_value` for "cannot be represented at all",
+  `json_number_out_of_range` for "right kind, failed the numeric
+  stability predicate") -- no new diagnostic channel or reason string.
+- Shared evidence: `tests/unit/test_r23_json_rational_float64_boundary.py`
+  (`rational_terminating_decimal` unit cases including negative
+  numerators, non-2/5-factor denominators that still carry a factor of 2,
+  and a large-prime-denominator case, plus an AST-based no-`float()`-cast
+  proof; encode of several terminating Rationals to exact decimal text;
+  encode rejection of non-terminating and terminating-but-unstable
+  Rationals with their respective distinct reasons; decode-never-
+  constructs-Rational and R18 cross-kind-equality round-trip cases;
+  Float64 encode of finite values -- including magnitudes needing
+  scientific notation and signed zero -- matching `format_float64`
+  exactly; Float64 NaN/Infinity encode rejection with a normalized
+  diagnostic, not a raw Python exception; confirmation every JSON
+  fraction/exponent decode token still produces `GeniaDecimal`, never
+  `float`; Genia-source-level `1 / 3` reject / `1 / 4` accept round
+  trips via exact division).
+
+Explicit limitations (left exactly as found, later R23 slices):
+compatibility `json_parse`/`json_stringify` are entirely untouched
+(E23-5); a `GeniaDecimal` or `GeniaRational` passed to `json_stringify`
+still raises `TypeError("json_stringify expected a JSON-compatible
+value...")` exactly as before, and a bare Python `float` still passes
+through `json_stringify`/`json_parse` unchanged (compatibility JSON's own
+host-float numeric model is E23-5's reconciliation, not this slice's). No
+full diagnostics-normalization sweep beyond this slice's own new
+rejections (E23-6); release audit not performed (E23-7). R22 arithmetic/
+equality/comparison are unchanged. E23-1's rendering functions and E23-2's
+format-spec code are extended by one shared helper, never otherwise
+edited -- `format_float64`'s own output is unchanged.
 
 ## 10) Explicitly not implemented (current)
 
