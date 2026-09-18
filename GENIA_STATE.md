@@ -5457,17 +5457,116 @@ the same strict generic JSON boundary E23-3 (section 9.34) established
   trips via exact division).
 
 Explicit limitations (left exactly as found, later R23 slices):
-compatibility `json_parse`/`json_stringify` are entirely untouched
-(E23-5); a `GeniaDecimal` or `GeniaRational` passed to `json_stringify`
-still raises `TypeError("json_stringify expected a JSON-compatible
-value...")` exactly as before, and a bare Python `float` still passes
-through `json_stringify`/`json_parse` unchanged (compatibility JSON's own
-host-float numeric model is E23-5's reconciliation, not this slice's). No
-full diagnostics-normalization sweep beyond this slice's own new
-rejections (E23-6); release audit not performed (E23-7). R22 arithmetic/
-equality/comparison are unchanged. E23-1's rendering functions and E23-2's
+compatibility `json_parse`/`json_stringify` were entirely untouched by
+this slice -- reconciled by E23-5 (section 9.36 below). No full
+diagnostics-normalization sweep beyond this slice's own new rejections
+(E23-6); release audit not performed (E23-7). R22 arithmetic/equality/
+comparison are unchanged. E23-1's rendering functions and E23-2's
 format-spec code are extended by one shared helper, never otherwise
 edited -- `format_float64`'s own output is unchanged.
+
+## 9.36) R23 E23-5 compatibility JSON reconciliation (issue #923)
+
+Implements section 6 ("Compatibility JSON surfaces") of
+`docs/design/r23-numeric-representation-interchange-contract.md` against
+the compatibility JSON surface only -- `json_parse`/`json_stringify`/
+`json_pretty` (`json_parse_fn`/`json_stringify_fn`, backed by
+`_json_to_runtime`/`_json_from_runtime` in `src/genia/builtins.py`) and
+`parse_jsonl_record` (`parse_jsonl_record_fn`). The strict generic JSON
+boundary (`json_decode`/`json_encode`, E23-3/E23-4, sections 9.34-9.35) is
+frozen and is only called into (reused functions), never modified, except
+for one pure internal delegation described below.
+
+- **Decode -- one shared lexical parser, two callers with different
+  strictness.** E23-3's `_strict_json_decimal` regex/coefficient/exponent
+  parsing was extracted into a shared `_parse_json_decimal_token(text)`
+  (byte-for-byte identical logic, `float(...)` never called). Strict
+  decode's `_strict_json_decimal` now calls it and still enforces
+  `stable_json_decimal` -- unchanged observable behavior. A new
+  `_compat_json_decimal(text)` calls the same shared parser but
+  deliberately does **not** enforce `stable_json_decimal`, and is
+  registered as the `parse_float` hook on both `json_parse`'s and
+  `parse_jsonl_record`'s `json.loads` calls. A JSON fraction/exponent
+  number token therefore always decodes to an exact `GeniaDecimal` through
+  both compatibility entry points, never a raw Python `float`, satisfying
+  contract section 6's "must not silently materialize fraction/exponent
+  numbers as host Float64" and its "reuse common lexical numeric
+  conversion machinery ... rather than duplicate competing parsers"
+  instruction with a single parser function, not two. `_json_to_runtime`
+  gained a `GeniaDecimal` passthrough branch so decoded values flow into
+  Genia runtime data unchanged; integer-form tokens are unaffected
+  (`json`'s default `int` parsing, unchanged).
+- **Decode permissiveness decision (deliberate):** compatibility decode
+  does not gate on `stable_json_decimal`. Before this slice,
+  `json_parse`/`parse_jsonl_record` never rejected any syntactically valid
+  JSON number regardless of precision; this preserves that documented
+  "legacy tolerance" character (`none(...)` only for outright parse/type
+  failures) rather than introducing a new strict-validation rejection mode
+  with no test or doc precedent. Contract section 6's own wording requires
+  only that decode not silently produce host Float64 -- it does not
+  require rejecting an unstable value -- so a `GeniaDecimal` that would
+  fail strict `json_decode`'s stability gate still decodes successfully
+  through `json_parse`/`parse_jsonl_record`.
+- **Encode -- `json_stringify` now accepts `GeniaDecimal`/terminating
+  `GeniaRational`/finite Float64,** reusing E23-3/E23-4's canonical-text
+  computations (`repr(GeniaDecimal)`, `rational_terminating_decimal`,
+  `float64_finite_canonical_text`) and the same sentinel-substitution
+  injection mechanism, factored into a shared `_json_number_sentinel`
+  helper. This closes an asymmetry this slice's own decode fix would
+  otherwise introduce: since `json_parse` now *produces* `GeniaDecimal`
+  for every fraction/exponent token, `json_stringify(json_parse(text))`
+  would otherwise immediately regress for any document containing a
+  decimal number. Matching the decode permissiveness decision above,
+  compatibility encode of `GeniaDecimal`/a terminating `GeniaRational`
+  does **not** enforce `stable_json_decimal` -- it always emits the exact
+  canonical decimal text, whatever its precision. Only values that cannot
+  be represented as a JSON number at all -- a non-terminating
+  `GeniaRational`, or a non-finite Float64 -- remain rejected, via this
+  surface's existing `none("json-stringify-error", ...)` failure shape
+  (unchanged from before this slice; still distinct from strict
+  `json_encode`'s `err(...)` shape, which this slice does not unify --
+  out of scope).
+- **Encode -- Float64 canonical-digit unification.** A bare Python `float`
+  handed to `json_stringify` previously serialized through `json.dumps`'s
+  own `float.__repr__`, whose fixed/scientific notation threshold does not
+  match R23's canonical rule (E23-1) for every magnitude -- the same
+  contract-inconsistency E23-4 fixed for strict encode. `_json_from_runtime`'s
+  `float` branch now renders through `float64_finite_canonical_text` via
+  the same sentinel mechanism, so a Float64's JSON number text is now
+  identical whether it reaches JSON through `json_encode` or
+  `json_stringify`, directly closing contract section 6's "must not
+  preserve a second contradictory host-float numeric model" for this
+  case. NaN/Infinity remain rejected (unchanged `math.isfinite` guard).
+- **`parse_jsonl_record`** shares the exact same `_compat_json_decimal`
+  hook as `json_parse` (confirmed it previously called `json.loads` with
+  no hook of its own, independently missing the same numeric fix); its
+  pre-existing `_jsonl_value_type` helper already classified `GeniaDecimal`
+  alongside `int`/`float` as `"number"`, now genuinely reachable.
+- Shared evidence:
+  `tests/unit/test_r23_compatibility_json_reconciliation.py` (fraction/
+  exponent tokens decoding to exact `GeniaDecimal` via `json_parse` and
+  `parse_jsonl_record`, including a precision case that fails strict
+  `json_decode`'s stability gate but still decodes here; a direct
+  source-level proof that `json_parse` and `json_decode` share the same
+  `_parse_json_decimal_token` function rather than duplicating parsing
+  logic; `json_stringify` encode of `GeniaDecimal`/terminating
+  `GeniaRational`/finite Float64, including an unstable-precision case;
+  rejection of a non-terminating `GeniaRational` and a non-finite float
+  with the existing `none(...)` shape; a `json_stringify(json_parse(...))`
+  round-trip case; a Float64 encode case proving `json_stringify`'s digits
+  now match `format_float64`/strict `json_encode`'s canonical spelling
+  rather than `float.__repr__`'s).
+
+Explicit limitations (left exactly as found): the `none(...)`-vs-`err(...)`
+failure-shape difference between compatibility and strict JSON is an
+approved pre-existing difference and is not unified by this slice. No
+full diagnostics-normalization sweep beyond this slice's own new
+rejections (E23-6); release audit not performed until E23-7 completes
+across the whole release. R22 arithmetic/equality/comparison are
+unchanged. Strict `json_decode`/`json_encode` (`_strict_json_to_runtime`/
+`_strict_json_from_runtime`) are unmodified except for
+`_strict_json_decimal` delegating to the newly-shared
+`_parse_json_decimal_token`, with identical observable behavior.
 
 ## 10) Explicitly not implemented (current)
 
