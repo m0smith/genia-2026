@@ -91,6 +91,9 @@ R36 — Location-Independent Genia Execution
  |
  v
 R37 — Genia-Native Conformance Tooling
+
+R38 — Configuration and Secret Hardening and Ergonomics
+  (depends only on completed R10/R13; not chained through R14–R37)
 ```
 
 This ordering does not imply that every release is a strict technical dependency of the next. Roadmap placement is planning authority only and never makes candidate behavior implemented.
@@ -127,4 +130,14 @@ R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. These releases consume prior equality, lifecycle, host-protocol, and authority boundaries rather than inventing local substitutes.
 
-R8 through R22 are complete. R23 through R37 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R22 are complete. R23 through R38 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+
+## Configuration and secret hardening
+
+R38 promotes the outstanding candidates from
+`docs/parking-lot/post-r13-configuration-followups.md` (C-1 through C-11) as
+one numbered release. It is listed outside the main dependency chain above
+because it depends only on completed R10 and R13, not on any release from
+R14 onward; it is free to schedule and ship independently, subject to its
+own contract/design/test/implementation/documentation/audit gates. See
+`docs/strategy/roadmap/r38.md`.

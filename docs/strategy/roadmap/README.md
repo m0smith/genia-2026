@@ -10,6 +10,7 @@ Use the focused files in this directory for edits:
 - `r25-r29.md` — planned C++ expansion, MCP, and Sheet record pipelines
 - `r30-r32.md` — planned shaped data, relational, database, tooling, and performance releases R30–R34 (historical filename retained)
 - `r35-r37.md` — planned portable storage/resource semantics, location-independent execution, and Genia-native conformance tooling
+- `r38.md` — planned configuration and secret hardening/ergonomics release, promoting parking-lot candidates C-1–C-11
 - `sequence.md` — cross-release ordering and dependencies
 - `parking-lot.md` — deferred ideas and historical issue disposition
 
