@@ -3044,7 +3044,7 @@ Behavior:
 - `json_decode` and `json_encode` are the Experimental portable R9 JSON representation boundary; legacy `json_parse`, `json_stringify`, `json_pretty`, and `parse_jsonl_record` retain their compatibility behavior
 - successful `json_decode` returns `some(represent("json", root), context)`, where `root` is an ordinary map/list/string/number/boolean/`nil` value and nested values have no implicit representation facets; string input and strict UTF-8 bytes input are accepted, while any other input type is runtime misuse
 - successful `json_encode` returns deterministic two-space-indented JSON with sorted object member names and preserved list order; it accepts one outer `json`-represented supported value or a supported ordinary value, consuming only that optional outer layer
-- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]`, finite binary64 fractional/exponent numbers, Unicode scalar strings/names, and at most 128 nested object/array containers
+- portable JSON-domain limits are: string object names, no duplicate object names, safe integers in `[-9007199254740991, 9007199254740991]` (Integer), fraction/exponent numbers accepted as exact Decimal only when `stable_json_decimal` holds (R23 E23-3, issue #915 -- section 9.34; parsed/emitted lexically, never through a host float), Unicode scalar strings/names, and at most 128 nested object/array containers
 - `json_decode` rejects malformed/trailing JSON, invalid UTF-8, duplicate names, nonstandard/non-finite or out-of-range numbers, invalid Unicode scalars, and excessive nesting as `err(...)`; `json_encode` rejects unsupported values/keys/facets and the same number/Unicode/nesting violations as `err(...)`
 - boundary Outcome contexts contain `kind: quote(json)`, `operation: quote(decode|encode)`, `status: quote(decoded|encoded|error)`, and `reason`; malformed syntax adds 1-based `line`/`column`, duplicates add `key`, and unsupported encoding adds `value_type`
 - portable error reasons are `invalid_json`, `invalid_json_utf8`, `duplicate_json_key`, `json_number_out_of_range`, `invalid_json_unicode`, `json_nesting_too_deep`, and `unsupported_json_value`; host exception text is not portable
@@ -5285,6 +5285,96 @@ rendering functions (`GeniaDecimal.__repr__`/`__str__`,
 `GeniaRational.__repr__`/`__str__`, `format_float64`,
 `_canonical_decimal_text`) are unmodified -- this slice only changes how
 `_format_engine.py` consumes their already-canonical output.
+
+## 9.34) R23 E23-3 strict generic JSON boundary for Integer and Decimal (issue #915)
+
+Implements sections 4.1, 4.2, 5, and 8 (this slice only) of
+`docs/design/r23-numeric-representation-interchange-contract.md` against
+the strict generic JSON boundary only (`json_decode`/`json_encode`, i.e.
+`_json_decode`/`_json_encode` in `src/genia/builtins.py`) -- the
+compatibility `json_parse`/`json_stringify`/`json_pretty`/
+`parse_jsonl_record` surface is a separately maintained code path
+(`_json_to_runtime`/`_json_from_runtime`, plain `json.loads`/`json.dumps`
+with no strict hooks, `none(...)` failure shape) and is untouched here
+(E23-5).
+
+- **Integer** (section 4.1): unchanged behavior, confirmed and reused --
+  `_strict_json_int` already bounded decode to the single existing
+  `_JSON_SAFE_INTEGER = 9_007_199_254_740_991` module constant; encode's
+  `_strict_json_from_runtime` already bounded the same interval. No new
+  literal was introduced.
+- **`stable_json_decimal(d)`** (section 4.2, new): added to
+  `src/genia/numeric_runtime.py`, next to `GeniaDecimal`. Converts `d`'s
+  exact `(numerator, denominator)` fraction (`GeniaDecimal._as_fraction()`)
+  to binary64 via native arbitrary-precision `int / int` true division
+  (the same correctly-rounded round-to-nearest/ties-to-even conversion
+  `to_float64` documents), returning `False` on overflow-to-infinity
+  (`OverflowError`) or on a nonzero value underflowing to `0.0`; otherwise
+  reuses E23-1's `_float_shortest_roundtrip_coefficient_exponent` to
+  recompute the shortest-roundtrip decimal for those binary64 bits and
+  compares its canonical `(coefficient, exponent)` directly against `d`'s
+  own already-canonical fields (valid because `GeniaDecimal.__init__`
+  already canonicalizes on construction, so canonical form is a unique
+  representative of mathematical value and tuple equality is exactly the
+  contract's "mathematically equal" check).
+- **Decode** (section 5): `json_decode`'s `parse_float` scanner hook
+  (`_strict_json_decimal`, replacing the former `_strict_json_float`)
+  parses the raw JSON fraction/exponent token text directly into an exact
+  `GeniaDecimal` coefficient/exponent via a lexical regex over the token's
+  sign/integer/fraction/exponent digit groups -- `float(...)` is never
+  called anywhere in this path. The resulting `GeniaDecimal` must satisfy
+  `stable_json_decimal`; otherwise decode raises the existing
+  `_JsonBoundaryFailure("json_number_out_of_range")`, normalized the same
+  way as every other JSON boundary rejection. Integer-form tokens are
+  unaffected (still `_strict_json_int` -> Integer). `NaN`/`Infinity`
+  spellings remain invalid JSON syntax, unchanged.
+- **Encode** (section 4.2): `_strict_json_from_runtime` gained a
+  `GeniaDecimal` branch: rejects (via the same `json_number_out_of_range`
+  reason) any Decimal failing `stable_json_decimal`, never rounding or
+  degrading it to a string. A stable Decimal is never itself JSON-
+  serializable as a raw token by `json.dumps` (it binds `float.__repr__`/
+  `int.__repr__` directly and has no `decimal.Decimal` support), so the
+  reference host emits a unique per-value ASCII sentinel string
+  (`uuid.uuid4().hex`-based) in the value's place and `json_encode_fn`
+  performs one final exact-text substitution of each quoted sentinel for
+  its raw canonical Decimal spelling (E23-1's `repr(GeniaDecimal)`) once
+  `json.dumps` has produced the full document text. This changes no
+  output for any other value kind and adds no new general-purpose JSON
+  serializer.
+- **Diagnostics** (section 8, this slice only): every new rejection above
+  raises through the existing `_JsonBoundaryFailure` ->
+  `_json_boundary_err` normalization already used by every other JSON
+  boundary failure, reusing the existing `json_number_out_of_range`
+  reason (no new diagnostic channel or reason string introduced).
+- Shared evidence: `tests/unit/test_r23_json_integer_decimal_boundary.py`
+  (R9 Integer-boundary accept/reject at encode and decode;
+  `stable_json_decimal` unit cases -- stable, excess-precision-unstable,
+  overflow, underflow; exact-canonical-text raw-number encode and
+  rejection of an unstable Decimal; lexical fraction/exponent decode,
+  including a case demonstrating decode does not go through
+  `Decimal(float(token))`; round-trip and nested-container cases);
+  `spec/eval/json-representation-number-boundaries.yaml` updated to
+  reflect that a JSON fraction token now decodes to the canonical Decimal
+  atom (`1.5`) rather than the prior placeholder Float64 atom
+  (`float64(1.5)`).
+
+Explicit limitations (left exactly as found, later R23 slices): Rational
+JSON policy is unaffected -- `_strict_json_from_runtime` still has no
+`GeniaRational` branch at all, so encoding a Rational still falls through
+to `unsupported_json_value` (Rational is not silently rounded, but is not
+yet accepted either); decode still never constructs a Rational. Float64
+(`float`) JSON handling in `_strict_json_to_runtime`/
+`_strict_json_from_runtime` is unmodified and, on the decode side, is now
+unreachable in practice (nothing manufactures a Python `float` there any
+more once fraction/exponent tokens decode to `GeniaDecimal`) but remains
+live for `float64(...)`-literal Genia values on encode; reconciling
+either is E23-4. Compatibility `json_parse`/`json_stringify` are entirely
+untouched (E23-5); a `GeniaDecimal` passed to `json_stringify` still
+raises `TypeError("json_stringify expected a JSON-compatible value...")`
+exactly as before. No full diagnostics-normalization sweep beyond this
+slice's own new rejections (E23-6); release audit not performed (E23-7).
+R22 arithmetic/equality/comparison are unchanged. E23-1's rendering
+functions and E23-2's format-spec code are called, never edited.
 
 ## 10) Explicitly not implemented (current)
 

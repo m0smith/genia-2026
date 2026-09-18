@@ -10,10 +10,12 @@ import json
 import math
 import os
 import io
+import re
 import shutil
 import sys
 import random
 import time
+import uuid
 import zipfile
 from collections import deque
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -122,7 +124,14 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
-    from genia.numeric_runtime import GeniaDecimal, GeniaRational, exact as _numeric_exact, rational_from_integers, to_float64
+    from genia.numeric_runtime import (
+        GeniaDecimal,
+        GeniaRational,
+        exact as _numeric_exact,
+        rational_from_integers,
+        stable_json_decimal,
+        to_float64,
+    )
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -240,7 +249,14 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
-    from .numeric_runtime import GeniaDecimal, GeniaRational, exact as _numeric_exact, rational_from_integers, to_float64
+    from .numeric_runtime import (
+        GeniaDecimal,
+        GeniaRational,
+        exact as _numeric_exact,
+        rational_from_integers,
+        stable_json_decimal,
+        to_float64,
+    )
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -1918,9 +1934,29 @@ def make_global_env(
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
 
-    def _strict_json_float(text: str) -> float:
-        value = float(text)
-        if not math.isfinite(value):
+    _JSON_NUMBER_TOKEN_RE = re.compile(
+        r"^(?P<sign>-)?(?P<int>\d+)(?:\.(?P<frac>\d+))?(?:[eE](?P<exp>[+-]?\d+))?$"
+    )
+
+    def _strict_json_decimal(text: str) -> "GeniaDecimal":
+        """`parse_float` hook for the strict JSON scanner (R23 contract
+        section 5): builds an exact `GeniaDecimal` directly from the raw
+        JSON fraction/exponent number token text, never calling `float(...)`
+        anywhere in this path -- `text` is already the exact lexical
+        substring the scanner matched, so coefficient/exponent are derived
+        by plain integer parsing of its digit groups.
+        """
+        match = _JSON_NUMBER_TOKEN_RE.match(text)
+        if match is None:  # pragma: no cover - json's scanner already guarantees this shape
+            raise _JsonBoundaryFailure("json_number_out_of_range")
+        sign = match.group("sign") or ""
+        int_part = match.group("int")
+        frac_part = match.group("frac") or ""
+        exp_part = match.group("exp")
+        exponent = (int(exp_part) if exp_part else 0) - len(frac_part)
+        coefficient = int(sign + int_part + frac_part)
+        value = GeniaDecimal(coefficient, exponent)
+        if not stable_json_decimal(value):
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
 
@@ -1943,6 +1979,10 @@ def make_global_env(
         if isinstance(value, int):
             if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
                 raise _JsonBoundaryFailure("json_number_out_of_range")
+            return value
+        if isinstance(value, GeniaDecimal):
+            # Already validated (stability + lexical parse) by
+            # `_strict_json_decimal` at scan time; nothing further to check.
             return value
         if isinstance(value, float):
             if not math.isfinite(value):
@@ -1967,7 +2007,11 @@ def make_global_env(
             return result
         raise _JsonBoundaryFailure("invalid_json")
 
-    def _strict_json_from_runtime(value: Any, depth: int = 0) -> Any:
+    def _strict_json_from_runtime(
+        value: Any, depth: int = 0, decimal_sentinels: dict[str, str] | None = None
+    ) -> Any:
+        if decimal_sentinels is None:
+            decimal_sentinels = {}
         if _is_nil_none(value):
             return None
         if isinstance(value, bool):
@@ -1976,6 +2020,22 @@ def make_global_env(
             if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
                 raise _JsonBoundaryFailure("json_number_out_of_range")
             return value
+        if isinstance(value, GeniaDecimal):
+            if not stable_json_decimal(value):
+                raise _JsonBoundaryFailure("json_number_out_of_range")
+            # `json.dumps` cannot emit a raw arbitrary-precision numeric
+            # token for a custom type (it binds `float.__repr__`/
+            # `int.__repr__` directly, and `decimal.Decimal` is not
+            # natively serializable either). Stand in a unique ASCII
+            # sentinel here -- the encoder places it as an ordinary,
+            # correctly-escaped JSON string literal -- and have the caller
+            # substitute each quoted sentinel for its exact canonical
+            # Decimal text (E23-1's `repr(GeniaDecimal)`) once `json.dumps`
+            # has produced the full document text. This never rounds the
+            # emitted value and never changes output for any other kind.
+            sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
+            decimal_sentinels[sentinel] = repr(value)
+            return sentinel
         if isinstance(value, float):
             if not math.isfinite(value):
                 raise _JsonBoundaryFailure("json_number_out_of_range")
@@ -1987,7 +2047,10 @@ def make_global_env(
             next_depth = depth + 1
             if next_depth > _JSON_MAX_NESTING:
                 raise _JsonBoundaryFailure("json_nesting_too_deep")
-            return [_strict_json_from_runtime(item, next_depth) for item in value]
+            return [
+                _strict_json_from_runtime(item, next_depth, decimal_sentinels)
+                for item in value
+            ]
         if isinstance(value, GeniaMap):
             next_depth = depth + 1
             if next_depth > _JSON_MAX_NESTING:
@@ -1999,7 +2062,7 @@ def make_global_env(
                         "unsupported_json_value", value_type="map-key"
                     )
                 _validate_json_string(key)
-                result[key] = _strict_json_from_runtime(item, next_depth)
+                result[key] = _strict_json_from_runtime(item, next_depth, decimal_sentinels)
             return result
         raise _JsonBoundaryFailure(
             "unsupported_json_value", value_type=_runtime_type_name(value)
@@ -4239,7 +4302,7 @@ def make_global_env(
                 text,
                 object_pairs_hook=_strict_json_object,
                 parse_int=_strict_json_int,
-                parse_float=_strict_json_float,
+                parse_float=_strict_json_decimal,
                 parse_constant=_reject_json_constant,
             )
             runtime_value = _strict_json_to_runtime(parsed)
@@ -4805,7 +4868,8 @@ def make_global_env(
             )
 
         try:
-            serializable = _strict_json_from_runtime(value)
+            decimal_sentinels: dict[str, str] = {}
+            serializable = _strict_json_from_runtime(value, decimal_sentinels=decimal_sentinels)
             text = json.dumps(
                 serializable,
                 indent=2,
@@ -4813,6 +4877,8 @@ def make_global_env(
                 sort_keys=True,
                 allow_nan=False,
             )
+            for sentinel, canonical_text in decimal_sentinels.items():
+                text = text.replace(f'"{sentinel}"', canonical_text)
         except _JsonBoundaryFailure as failure:
             return _json_boundary_err("encode", failure)
         except (TypeError, ValueError):
