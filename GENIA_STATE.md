@@ -5206,6 +5206,86 @@ beyond what already existed (no render path in scope raised for values in
 scope); R22 arithmetic/equality/comparison are unchanged -- this slice is
 rendering-only.
 
+## 9.33) R23 E23-2 field-format-spec integration (issue #913)
+
+Implements section 7 of
+`docs/design/r23-numeric-representation-interchange-contract.md`:
+`src/genia/_format_engine.py`'s existing `apply_format_spec` field-format
+system now works correctly against the E23-1 canonical Decimal/Rational/
+Float64 renderer (issue #911). No new formatting language; the existing
+template/placeholder system (`{field:spec}`) is unchanged. Presentation
+only -- no numeric kind or value is ever mutated by a format spec.
+
+- **Alignment/width** (`<n`/`>n`/`^n`): unchanged -- it already operated
+  on `format_display(value)`, i.e. the canonical text, so Decimal/
+  Rational/Float64 already padded/centered correctly with no code change
+  needed here.
+- **`.n` precision** (half-up, preserving the existing format-surface
+  rule): reworked to compute from each kind's exact value instead of a
+  Decimal-text round trip.
+  - `GeniaRational` is now a recognized numeric kind for format specs at
+    all (`_NUMERIC_TYPES` was missing it entirely before this slice, so
+    every numeric spec -- including `.n` -- raised `format-error: ...
+    requires numeric value` for a Rational operand). `.n` now rounds the
+    exact `numerator/denominator` ratio to `n` places via arbitrary-
+    precision integer `divmod` (never `decimal.Decimal` division, whose
+    bounded context precision cannot correctly round an arbitrary
+    repeating ratio like `1/3`, and never a `float(...)` cast).
+  - `GeniaDecimal` now rounds from its own `coefficient`/`exponent`
+    (via the existing `decimal_as_fraction` accessor) through the same
+    integer `divmod` routine, per the contract's literal "operates
+    directly on exact coefficient/exponent" wording.
+  - Float64 (`float`) now rounds from `value.as_integer_ratio()` --
+    the exact binary64 bit-pattern ratio -- instead of
+    `Decimal(repr(value))`. **Bug fix**: the prior `repr(value)`-based
+    path double-rounded (CPython's shortest-round-trip decimal text
+    is not the float's exact dyadic value), e.g. `2.675`'s exact bits
+    round to `2.67` at 2 places, but the old path rounded the text
+    `"2.675"` up to `2.68`. NaN/infinity now raise a normalized
+    `format-error: ... requires a finite numeric value` diagnostic
+    instead of `float.as_integer_ratio()`'s raw `OverflowError`/
+    `ValueError`.
+- **Zero-padding** (`0n`) and **grouping** (`,`): now gated to canonical
+  text that is a plain numeral (`-?\d+(\.\d+)?`) via a new
+  `_require_plain_numeral_text` helper, raising the existing
+  `format-error: ...` diagnostic pattern instead of applying digit-
+  position-counting presentation logic to a shape it doesn't fit.
+  Integer and GeniaDecimal-in-fixed-notation canonical text are plain
+  numerals and are unaffected (identical output to before this slice).
+  GeniaRational's `<numerator>/<denominator>` atom, Float64's
+  `float64(...)` atom, and GeniaDecimal-in-scientific-notation text are
+  not plain numerals and now raise instead of being reformatted.
+  **Bug fix**: before this slice, grouping a `float64(...)`-wrapped
+  value (e.g. `format("{n:,}", {n: float64(1234.5)})`) returned the
+  corrupted string `"flo,at6,4(1,234.5)"` -- grouping's thousands-
+  separator logic ran over the whole wrapper text introduced by E23-1's
+  canonical Float64 rendering. This is the one place this slice's fix
+  reaches past a pure `_format_engine.py`-local change: the wrapper text
+  itself (`format_float64` in `src/genia/numeric_runtime.py`) is
+  unmodified; only `_format_engine.py`'s own zero-pad/grouping gate
+  changed, so the mangling case now raises a normalized diagnostic.
+- Shared evidence:
+  `tests/unit/test_r23_format_spec_numeric_integration.py` (width/
+  alignment on Decimal/Rational/Float64 canonical text; zero-pad/
+  grouping acceptance on plain-numeral text and rejection on Rational/
+  Float64/scientific-Decimal text; `.n` half-up precision for Decimal,
+  Rational -- including a repeating-decimal case and a genuine decimal
+  tie from a terminating fraction -- and Float64 -- including the
+  `2.675` exact-dyadic-vs-shortest-repr case and NaN/infinity rejection;
+  `Format(...)` value parity for a Rational `.n` case).
+
+Explicit limitations: no JSON encode/decode changes, no
+`stable_json_decimal`, no compatibility JSON reconciliation (E23-3/
+E23-4/E23-5); no full diagnostics-normalization sweep (E23-6) --
+format-spec misuse continues to raise the same pre-existing
+`ValueError("format-error: ...")` pattern this file already used, not a
+new diagnostic mechanism; release audit not performed (E23-7); R22
+arithmetic/equality/comparison are unchanged; E23-1's own canonical
+rendering functions (`GeniaDecimal.__repr__`/`__str__`,
+`GeniaRational.__repr__`/`__str__`, `format_float64`,
+`_canonical_decimal_text`) are unmodified -- this slice only changes how
+`_format_engine.py` consumes their already-canonical output.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
