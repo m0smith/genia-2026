@@ -17,18 +17,83 @@ source, and `config_standard` conventional composition, all while preserving
 R10 protected-value semantics.
 
 R13 deliberately deferred a set of items to keep its surface small and truthful.
-Some of those deferrals are genuine ergonomic gaps that real applications will
-hit soon; some are deliberate exclusions that should stay out unless concrete
-usage proves them necessary; and one is a cross-cutting maturity gap that gates
-the whole configuration family. This note preserves that triage so the items are
-not silently lost and each is picked up, or explicitly declined, on purpose.
+Two are security-critical gaps that block a launcher-free execution path for
+protected outbound credentials; some are genuine ergonomic gaps that real
+applications will hit soon; some are deliberate exclusions that should stay
+out unless concrete usage proves them necessary; and one is a cross-cutting
+maturity gap that gates the whole configuration family. This note preserves
+that triage so the items are not silently lost and each is picked up, or
+explicitly declined, on purpose.
 
 Every candidate names the specific R13 non-goal or "not implemented" note it
 relaxes, so the boundary being moved is explicit.
 
 ## Candidates to preserve
 
-### Priority 1 — genuine ergonomic gaps
+### Priority 1 — security-critical gaps
+
+These are not ergonomic friction; they are the two gaps that currently force
+any application needing a protected outbound credential (e.g. an HTTP
+Authorization header) to bypass the normal `genia` execution path with a
+host-specific launcher script. Both were surfaced concretely by the Groq
+backend of the `ollama_chat` example, which currently requires
+`python -m hosts.python.exec_ollama_chat --backend groq` instead of
+`genia examples/ollama_chat.genia --backend groq`. They are listed together
+because a fix for one does not substitute for the other, but each requires
+its own contract and is independently gated.
+
+**C-9. Secret-only provider keys / intrinsic secret classification.**
+
+Not a relaxation of a stated R10 or R13 non-goal — it closes a gap neither
+release scoped. `secret_get`/`secret_view` protect a value only at the call
+site that retrieves it; nothing on the provider or key itself prevents the
+same key from being read as plaintext through `config_get`/`config_view`
+instead. Application code holding a provider can therefore bypass protected
+handling entirely for a key that was only ever meant to be read as a secret.
+Candidate: let provider construction (or a source descriptor) mark specific
+keys secret-only, so `config_get`/`config_view` return a normalized error
+for those keys instead of raw text. Must preserve R10's outer-`secret`
+carrier semantics and add no new syntax, annotation, or Core IR; the
+declaration is ordinary data passed to `config_provider`, not a language
+feature.
+
+**C-10. Execution-boundary declassification authority (remove the need for
+host-specific launchers).**
+
+Relaxes the R10 implementation note that *"CLI modes do not construct an
+ambient provider. A future CLI integration may explicitly create and pass
+one under its own ticket"* — extended here to cover authority, not just the
+provider. Per R10, declassification authority is an opaque host capability
+that Genia source cannot construct; something host-side must still mint it.
+Today that minting only happens inside a bespoke Python launcher script
+outside the normal `genia` command, which means: two backends of the same
+example cannot share one invocation form; every application needing a
+protected outbound sink needs its own launcher; credential policy is
+scattered across ad hoc Python entry points; and the launcher has no
+obligation to wire a real audit sink (the current example discards audit
+events with `lambda event: None`).
+
+Candidate: give the normal Genia execution boundary (the same boundary that
+already constructs a provider under C-1/R14's `lifecycle_config`, or under a
+future CLI-integration ticket) a way to also mint scoped declassification
+authority for approved sinks, without exposing authority as an ordinary
+source-visible value. At minimum the mechanism must:
+
+- construct the configuration provider once per execution;
+- acquire configured secrets as protected values;
+- supply authority scoped to purpose and, ideally, destination — not just
+  provider identity as today — so one authorized purpose cannot be reused
+  against an unrelated destination;
+- record non-sensitive audit events by default, not silently discard them;
+- work consistently across file, command, pipe, test, and serve modes;
+- avoid making all environment values implicitly authorized secrets.
+
+Must not relax any R10 protected-carrier, sink, or declassification rule,
+and must not make authority constructible from Genia source text. This is
+the harder of the two gaps and needs its own contract before any
+promotion; C-9 can be promoted independently and first.
+
+### Priority 2 — genuine ergonomic gaps
 
 **C-1. Lifecycle/provider binding — delivered by R14 issue #694 (E14-4).**
 
@@ -71,7 +136,7 @@ explicitly declined to invent a boolean encoding, so that encoding is the first
 contract question. Keep the single normalized key space shared by CLI, `.env`,
 environment, and literal sources.
 
-### Priority 2 — cross-cutting maturity gap
+### Priority 3 — cross-cutting maturity gap
 
 **C-4. Second-host conformance for the configuration family.**
 
@@ -90,7 +155,7 @@ second-host implementation therefore require explicit planning before
 configuration-family conformance can be claimed. This is not a configuration
 feature and must not be hidden inside one of the ergonomic candidates.
 
-### Priority 3 — deliberate exclusions; add only on proven demand
+### Priority 4 — deliberate exclusions; add only on proven demand
 
 These were excluded on principle, not by oversight. Each carries footguns R13
 was right to avoid, and each needs a strong, concrete use case plus its own
@@ -159,4 +224,4 @@ Promote a candidate out of this note when:
   snapshot semantics, and the single normalized key space;
 - the candidate has an explicit release/issue owner and complete phase workflow;
   and
-- for Priority 3 items, the use case justifies the footgun surface introduced.
+- for Priority 4 items, the use case justifies the footgun surface introduced.
