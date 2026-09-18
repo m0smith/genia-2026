@@ -1,0 +1,265 @@
+"""
+# Ollama or Groq Chat
+
+Runs one terminal chat loop against either a local Ollama server or Groq's
+OpenAI-compatible API. The example composes existing Value Templates, R20 open
+functions, R13 configuration views, R10 protected values, R14 outbound HTTP,
+JSON representations, and Outcomes; it adds no provider or language semantics.
+
+## Run Ollama
+
+Start Ollama and make the selected model available:
+
+```bash
+ollama pull llama3.2
+genia examples/ollama_chat.genia --model llama3.2
+```
+
+Use `--base-url http://127.0.0.1:11434` for another Ollama endpoint.
+
+## Run Groq
+
+Store the complete protected header value, including `Bearer `, then use the
+current Python reference-host launcher, which owns the matching authority:
+
+```bash
+export GROQ_AUTHORIZATION="Bearer $GROQ_API_KEY"
+python -m hosts.python.exec_ollama_chat --backend groq
+```
+
+The complete header is stored because pure Genia cannot concatenate an ordinary
+prefix with a protected carrier. The launcher is a narrow current host boundary;
+secret ergonomics and launcher removal are separate roadmap work.
+
+`GROQ_MODEL`, `GROQ_BASE_URL`, `OLLAMA_MODEL`, and `OLLAMA_BASE_URL` are optional.
+CLI `--model` and `--base-url` values take precedence. Enter `/quit` to finish.
+"""
+
+import web
+
+pattern Ollama(value) = refinement_match((backend) -> backend == "ollama", value)
+pattern Groq(value) = refinement_match((backend) -> backend == "groq", value)
+
+ollama_operation(base_url, model_name, messages) = http_operation(
+  quote(post),
+  base_url,
+  "/api/chat",
+  {},
+  {},
+  {
+    kind: quote(json),
+    value: {
+      model: model_name,
+      messages: messages,
+      stream: false
+    }
+  }
+)
+
+groq_operation(base_url, model_name, authorization, messages) = http_operation(
+  quote(post),
+  base_url,
+  "/openai/v1/chat/completions",
+  {"authorization": authorization},
+  {},
+  {
+    kind: quote(json),
+    value: {
+      model: model_name,
+      messages: messages,
+      stream: false
+    }
+  }
+)
+
+ollama_content(value) =
+  ({message: {content}}) -> some(content) |
+  (_) -> none("ollama-response-content-missing")
+
+groq_content(value) =
+  ({choices: [{message: {content}}, .._]}) -> some(content) |
+  (_) -> none("groq-response-content-missing")
+
+# This application-level bind applies `step` only to success and preserves every
+# complete non-success Outcome. It is local because `flat_map_some` is
+# intentionally Option-only and automatic call propagation would unwrap success.
+continue_outcome(result, step) =
+  (some(value), step) -> apply_raw(step, [value]) |
+  (result, _) -> result
+
+decoded_response_content(backend_name, decoded, extractor_fn) =
+  (_, some(value), extractor_fn) -> apply_raw(
+    extractor_fn,
+    [strip_representation("json", value)]
+  ) |
+  (backend_name, none(reason), _) -> err(backend_name + "-response-invalid", {reason: reason}) |
+  (backend_name, none(reason, context), _) -> err(backend_name + "-response-invalid", {reason: reason, context: context}) |
+  (backend_name, err(reason), _) -> err(backend_name + "-response-invalid", {reason: reason}) |
+  (backend_name, err(reason, context), _) -> err(backend_name + "-response-invalid", {reason: reason, context: context})
+
+response_content(backend_name, response, extractor_fn) =
+  (_, response, extractor_fn) ? response.status >= 200 && response.status < 300 -> apply_raw(
+    decoded_response_content,
+    [backend_name, json_decode(response.body), extractor_fn]
+  ) |
+  (backend_name, response, _) -> err(backend_name + "-http-status", {status: response.status})
+
+# Each backend implements the same three open extension points. Provider names
+# never share a function body; generic chat code selects behavior by dispatch.
+open backend_profile(Ollama(_)) = {
+  name: "ollama",
+  model: "llama3.2",
+  base_url: "http://127.0.0.1:11434",
+  config_prefix: "OLLAMA_",
+  authorization: none("ollama-needs-no-authorization")
+}
+
+backend_profile(Groq(_)) = {
+  name: "groq",
+  model: "llama-3.1-8b-instant",
+  base_url: "https://api.groq.com",
+  config_prefix: "GROQ_",
+  authorization: some({name: "AUTHORIZATION", purpose: quote(chat_outbound)})
+}
+
+open backend_operation(Ollama(_), config, messages) =
+  ollama_operation(config.base_url, config.model, messages)
+
+backend_operation(Groq(_), config, messages) =
+  apply_raw(continue_outcome, [
+    config.authorization,
+    (authorization) -> groq_operation(
+      config.base_url,
+      config.model,
+      authorization,
+      messages
+    )
+  ])
+
+open backend_content_extractor(Ollama(_)) = ollama_content
+
+backend_content_extractor(Groq(_)) = groq_content
+
+backend_response_content(backend, response) =
+  response_content(
+    backend,
+    response,
+    backend_content_extractor(backend)
+  )
+
+chat(config, messages) =
+  apply_raw(continue_outcome, [
+    backend_operation(config.backend, config, messages),
+    (request) -> apply_raw(continue_outcome, [
+      web.http_send(request, config.authority, 120000),
+      (response) -> backend_response_content(config.backend, response)
+    ])
+  ])
+
+ollama_chat(base_url, model_name, messages) =
+  apply_raw(chat, [
+    {
+      backend: "ollama",
+      base_url: base_url,
+      model: model_name,
+      authorization: none("ollama-needs-no-authorization"),
+      authority: none("ollama-needs-no-authority")
+    },
+    messages
+  ])
+
+continue_chat(config, messages, outcome) =
+  (_, messages, some(answer)) -> {
+    print("assistant> " + answer)
+    chat_loop(config, messages + [{role: "assistant", content: answer}])
+  } |
+  (_, messages, none(reason)) -> {
+    log("Chat returned no response: " + display(reason))
+    messages
+  } |
+  (_, messages, none(reason, context)) -> {
+    log("Chat returned no response: " + display(reason) + " " + display(context))
+    messages
+  } |
+  (_, messages, err(reason)) -> {
+    log("Chat request failed: " + display(reason))
+    messages
+  } |
+  (_, messages, err(reason, context)) -> {
+    log("Chat request failed: " + display(reason) + " " + display(context))
+    messages
+  }
+
+chat_input(config, messages, prompt) = {
+  next_messages = messages + [{role: "user", content: prompt}]
+  outcome = apply_raw(chat, [config, next_messages])
+  apply_raw(continue_chat, [config, next_messages, outcome])
+}
+
+chat_prompt(config, messages, prompt) =
+  (_, messages, "/quit") -> messages |
+  (config, messages, prompt) -> chat_input(config, messages, prompt)
+
+chat_loop(config, messages) = {
+  prompt = input("you> ")
+  chat_prompt(config, messages, prompt)
+}
+
+option_value(parsed, name, fallback) =
+  ([options, _], name, fallback) -> cli_option_or(options, name, fallback)
+
+configured_lookup(result, fallback) =
+  (some(value), _) -> value |
+  (none(_), fallback) -> fallback |
+  (result, _) -> result
+
+configured_fallback(cli_value, provider, prefix, config_name, fallback) =
+  (cli_value, _, _, _, _) ? cli_value != "" -> cli_value |
+  (_, provider, prefix, config_name, fallback) -> apply_raw(
+    configured_lookup,
+    [config_view(provider, prefix)(config_name), fallback]
+  )
+
+configured_value(parsed, provider, prefix, cli_name, config_name, fallback) =
+  configured_fallback(
+    option_value(parsed, cli_name, ""),
+    provider,
+    prefix,
+    config_name,
+    fallback
+  )
+
+resolve_backend_authorization(provider, prefix, specification) =
+  (provider, prefix, some(specification)) -> secret_view(
+    provider,
+    prefix,
+    specification.purpose
+  )(specification.name) |
+  (_, _, specification) -> specification
+
+chat_config(args, provider, authority) = {
+  parsed = cli_parse(args, {options: ["backend", "model", "base-url"]})
+  backend = option_value(parsed, "backend", "ollama")
+  profile = backend_profile(backend)
+  {
+    backend: backend,
+    model: configured_value(parsed, provider, profile.config_prefix, "model", "MODEL", profile.model),
+    base_url: configured_value(parsed, provider, profile.config_prefix, "base-url", "BASE_URL", profile.base_url),
+    authorization: apply_raw(resolve_backend_authorization, [provider, profile.config_prefix, profile.authorization]),
+    authority: authority
+  }
+}
+
+run_chat(args, provider, authority) = {
+  config = apply_raw(chat_config, [args, provider, authority])
+  print("Chat using " + config.backend + "/" + config.model + "; enter /quit to stop.")
+  chat_loop(config, [])
+  none
+}
+
+main(args) =
+  apply_raw(run_chat, [
+    args,
+    config_standard({}, []) |> unwrap_or(none),
+    none("ollama-needs-no-authority")
+  ])

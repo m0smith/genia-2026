@@ -43,7 +43,7 @@ groq_operation_builds_openai_compatible_request() = {
 backend_templates_select_profiles() = {
   assert_eq("ollama" @? Ollama, some("ollama"))
   assert_eq("groq" @? Groq, some("groq"))
-  assert_eq("other" @? Ollama, none("refinement-no-match"))
+  assert_eq("other" @? Ollama, none("refinement-mismatch"))
   assert_eq(backend_profile("ollama")("model"), "llama3.2")
   assert_eq(backend_profile("ollama")("config_prefix"), "OLLAMA_")
   assert_eq(backend_profile("groq")("model"), "llama-3.1-8b-instant")
@@ -118,4 +118,3 @@ full_outcome_continuation_preserves_non_success() = {
   assert_eq(continue_outcome(err("failed"), (value) -> some(value)), err("failed"))
   assert_eq(continue_outcome(err("failed", {field: "x"}), (value) -> some(value)), err("failed", {field: "x"}))
 }
-
