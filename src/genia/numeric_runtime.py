@@ -788,6 +788,51 @@ def format_float64(value: float) -> str:
     return f"float64({_canonical_decimal_text(coefficient, exponent)})"
 
 
+def stable_json_decimal(value: Any) -> bool:
+    """R23 contract section 4.2: is `value` JSON-number-encodable?
+
+    Implements the algorithm literally, but collapses steps 3-5 (recompute
+    the canonical shortest-roundtrip decimal for the converted binary64
+    bits, reparse it as Decimal, compare for mathematical equality) into a
+    single canonical `(coefficient, exponent)` tuple comparison against
+    `value`'s own fields. This is valid, not a shortcut that changes the
+    result: `GeniaDecimal.__init__` already canonicalizes on construction
+    (zero is always exactly `(0, 0)`; a nonzero coefficient's magnitude
+    has no trailing base-10 zeros -- see `_canonicalize`), so canonical
+    form is a unique representative of mathematical value, and comparing
+    canonical tuples directly *is* the "mathematically equal" check step 5
+    asks for -- there is no separate Decimal value that could compare
+    mathematically equal to `value` while differing in canonical form.
+
+    Step 1 (round-to-nearest/ties-to-even binary64 conversion) reuses the
+    same native arbitrary-precision `int / int` true division `to_float64`
+    already documents and relies on for this exact property, computed
+    directly from `value`'s own exact `(numerator, denominator)` fraction
+    rather than going through `to_float64` itself, so this function can
+    distinguish overflow/underflow (both simply `False` here) from a
+    genuinely representable value without `to_float64`'s own
+    caller-facing `OverflowError`.
+    """
+    if not isinstance(value, GeniaDecimal):
+        raise TypeError(
+            f"stable_json_decimal expected a Decimal value, received {type(value).__name__}"
+        )
+    if value.is_zero():
+        return True
+    numerator, denominator = value._as_fraction()
+    try:
+        as_float = numerator / denominator
+    except OverflowError:
+        # Step 2: conversion overflows to infinity.
+        return False
+    if as_float == 0.0 or math.isinf(as_float):
+        # Step 2: nonzero value underflows to zero (or, defensively,
+        # overflows to a non-finite float via some other path).
+        return False
+    coefficient, exponent = _float_shortest_roundtrip_coefficient_exponent(as_float)
+    return coefficient == value.coefficient and exponent == value.exponent
+
+
 def numeric_order(left: Any, right: Any) -> "int | None":
     """Return -1/0/1 for left vs right, or None when unordered (NaN
     involved). Raises TypeError when either operand is not numeric.

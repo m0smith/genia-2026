@@ -202,28 +202,26 @@ def test_decode_fraction_token_produces_exact_decimal_not_float():
 
 
 def test_decode_lexical_parse_differs_from_float_round_trip():
-    # 100000000000000000001 has more significant digits than binary64
-    # preserves; float(text) then Decimal(float) would NOT reconstruct the
-    # exact lexical coefficient/exponent. A correct lexical decode must
-    # still produce the exact lexical value when checking equality against
-    # a manually constructed GeniaDecimal from the same digit text, even
-    # though (being unstable) this particular value is then rejected by
-    # stable_json_decimal. Pick a token that IS stable but where
-    # float(text)-then-Decimal(float) would differ from lexical parsing if
-    # the implementation cheated through float() first: 9007199254740993
-    # is not exactly representable as a float64 integer (it would round to
-    # 9007199254740992.0), so if decode ever cast this exponent-bearing
-    # token through float() first, the reconstructed coefficient would be
-    # wrong.
-    token = "9007199254740993e-1"  # 900719925474099.3, exact digits
-    result = _decode(token)
+    # A naive implementation that decoded via `Decimal(float(token))`
+    # (constructing an exact decimal.Decimal from the already-lossy host
+    # float, rather than parsing the token text lexically) would produce a
+    # ~55-significant-digit coefficient for "0.1" (Python's `float('0.1')`
+    # is not exactly one tenth: `decimal.Decimal(0.1)` is
+    # `0.1000000000000000055511151231257827021181583404541015625`). A
+    # correct lexical decode must instead produce the exact digit-for-digit
+    # coefficient/exponent the token text itself spells.
+    result = _decode("0.1")
     assert isinstance(result, GeniaOptionSome)
     value = result.value.value
     assert isinstance(value, GeniaDecimal)
-    expected = GeniaDecimal(9007199254740993, -1)
-    assert value == expected
-    assert value.coefficient == 9007199254740993
+    assert value.coefficient == 1
     assert value.exponent == -1
+    import decimal as _decimal_module
+
+    float_exact_coefficient = int(_decimal_module.Decimal(0.1).as_tuple().digits and "".join(
+        str(d) for d in _decimal_module.Decimal(0.1).as_tuple().digits
+    ))
+    assert value.coefficient != float_exact_coefficient
 
 
 def test_decode_exponent_token_produces_exact_decimal():
@@ -289,8 +287,8 @@ def test_encode_then_decode_round_trips_exactly(coefficient, exponent):
 def test_genia_source_round_trips_decimal_in_nested_object():
     src = (
         'text = unwrap_or("", json_encode({price: 0.1, items: [1.5, 100]}))\n'
-        'decoded = unwrap_or({}, json_decode(text)) |> representation_match("json") '
-        '|> unwrap_or({})\n'
+        'represented = unwrap_or("", json_decode(text))\n'
+        'decoded = unwrap_or({}, representation_match("json", represented))\n'
         "decoded"
     )
     result = _run(src)

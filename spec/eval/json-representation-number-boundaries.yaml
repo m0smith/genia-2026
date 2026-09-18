@@ -8,14 +8,19 @@ input:
     fraction = unwrap_or(0, json_decode("1.5")) |> representation_match("json") |> unwrap_or(0)
     [low, high, fraction]
 expected:
-  stdout: "[-9007199254740991, 9007199254740991, float64(1.5)]\n"
+  stdout: "[-9007199254740991, 9007199254740991, 1.5]\n"
   stderr: ""
   exit_code: 0
 notes: |
   r23_note: >-
-    "float64(1.5)" is the R23 E23-1 (issue #911) canonical Float64 display
-    atom (docs/design/r23-numeric-representation-interchange-contract.md
-    section 2.4). This case does not itself assert anything about the R23
-    JSON boundary (E23-3/E23-4), only that json_decode's current fraction
-    result -- whatever numeric kind it is -- renders through the canonical
-    renderer.
+    "1.5" is the exact canonical Decimal display atom (E23-1, issue #911)
+    for the exact Decimal `json_decode` now produces from a JSON
+    fraction/exponent token, per the R23 E23-3 (issue #915) strict generic
+    JSON boundary (docs/design/r23-numeric-representation-interchange-
+    contract.md sections 4.2 and 5): fraction/exponent tokens decode
+    lexically to an exact Decimal, never a host Float64, when the value
+    satisfies `stable_json_decimal`. Before E23-3 this case decoded to a
+    Python float and rendered as the R23 E23-1 canonical Float64 atom
+    `float64(1.5)`; E23-4 (Rational/Float64 JSON policy) is a separate,
+    later slice and does not change this fraction-token-to-Decimal decode
+    behavior.
