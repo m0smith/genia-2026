@@ -31,12 +31,16 @@ Read these before changing the conclusions in this file:
 - `README.md`
 - `docs/strategy/killer-workflow.md`
 - `docs/strategy/release-roadmap.md`
+- `docs/design/r9-value-template-representation-contract.md`
+- `docs/design/r10-configuration-protected-value-contract.md`
 - `docs/design/r11-ai-composition-contract.md`
 - `docs/design/r12-retrieval-grounding-contract.md`
 - `docs/design/r14-composable-lifecycle-contract.md`
 - `docs/design/r16-multi-host-conformance-infrastructure-contract.md`
 - `docs/design/r18-portable-value-equality-contract.md`
 - `docs/design/r20-open-functions-contract.md`
+- `docs/design/r21-numeric-source-portable-representation-contract.md`
+- `docs/design/r22-exact-numeric-runtime-contract.md`
 - `docs/architecture/execution-realization.md`
 - `docs/strategy/roadmap/r21-r24.md`
 - `docs/strategy/roadmap/r35-r37.md`
@@ -84,7 +88,7 @@ External precedent to review only after the Genia evidence above:
 | Interface identity | R20 has explicit interface/contribution identity; R12 has hidden compatibility identity. | **PARTIAL** | There is strong identity precedent but no general component-interface identity/revision model. |
 | Interface revision/version negotiation | R16 has contract revisions; R12 has compatibility labels; R36 plans compatibility/capability revision negotiation. | **PARTIAL** | Start with exact identity/revision matching. Do not infer SemVer compatibility initially. |
 | Provider conformance evidence | R16 has deterministic capability/conformance evidence; R11/R12 have deterministic provider fixtures and exact normalization contracts. | **PARTIAL** | Ingredients exist, but no reusable `provider implements interface X` conformance protocol exists yet. |
-| Canonical cross-language component value boundary | Core IR is a portability boundary for Genia semantics; R11/R12 have capability-specific conversions; R21-R23 settle numeric source/runtime/interchange. | **NEW** | Define only after R22/R23 settle exact numeric interchange. Do not make Python conversion rules the ABI. |
+| Canonical cross-language component value boundary | Core IR is a portability boundary for Genia semantics; R11/R12 have capability-specific conversions; R21/R22 settle numeric source/runtime while R23 still owns interchange. | **NEW, NON-NUMERIC PORTION RESOLVED BELOW** | Preserve the P3/P4 non-numeric model; numeric representation remains blocked on R23. Do not make Python conversion rules the ABI. |
 | Canonical component resource boundary | R18 identity plus R12 opaque handles provide ingredients, but no Python/C++/Wasm-neutral resource-handle contract exists. | **NEW** | Likely a small handle identity/lifetime contract, not serialization of underlying objects. |
 | Raw FFI underneath a portable provider | Current FFI is explicitly host-specific; R11/R12 private host adapters already hide Python provider mechanics behind portable Genia values. | **PARTIAL** | Prove that raw FFI can implement a provider without leaking host specificity into application source. |
 | Actual WIT provider | No current Genia/WIT component integration. | **NEW** | Use as a later interoperability proof, not as the starting semantic model. |
@@ -155,7 +159,9 @@ Need one host-neutral contract for values/resources crossing a provider boundary
 - a host's native objects;
 - R11/R12's capability-specific private conversions.
 
-This must preserve Genia's own semantics for Outcome, maps/order/equality, representations, protected values, diagnostics, and—after R22/R23—Integer/Decimal/Rational/Float64 interchange.
+This must preserve Genia's own semantics for Outcome, maps/order/equality,
+representations, protected values, diagnostics, and—after R23—Integer/Decimal/
+Rational/Float64 interchange.
 
 ### D. Failure layering
 
@@ -170,6 +176,142 @@ R36 execution/placement failure
 ```
 
 Do not create duplicate meanings for timeout, unauthorized, incompatible, provider failure, or cancellation across overlapping envelopes.
+
+## P3 — Provider-boundary value inventory
+
+Status: **NON-NUMERIC INVENTORY RESOLVED FOR ARCHITECTURE; numeric
+representation remains BLOCKED ON R23.** This is a non-authoritative
+admissibility inventory, not implemented serialization behavior.
+
+The inventory applies PAI-3 without turning every runtime value into portable
+data. A value may cross only when its complete semantic value can survive the
+crossing. Host/SDK objects, live identity, authority, lifetime, executable
+behavior, and private exception data are not ordinary boundary payloads.
+
+### Recursive admissibility rule
+
+A structural value is portable only when:
+
+1. its value family has an approved boundary treatment;
+2. every recursively reachable semantic field, key, value, Outcome field, and
+   representation-metadata field is portable;
+3. every map key is legal under R18 and retains the same canonical key identity;
+4. no borrowed carrier, local-only value, protected payload exposure, or raw
+   provider/native exception detail occurs anywhere in the graph; and
+5. construction is within the applicable contract's size/depth/resource limits.
+
+One inadmissible leaf makes the complete attempted payload inadmissible. The
+crossing is rejected deterministically before provider invocation (or, for a
+provider-produced result, at the adapter's return boundary before application
+observation). It is P6 Layer-2 boundary misuse, not an interface operation
+`err(...)`. A contract may instead define a different portable snapshot,
+descriptor, or semantic token, but that is a distinct value and is never
+inferred from the live value.
+
+### Value-family matrix
+
+“Structural record” below means an ordered, explicitly tagged semantic record;
+it does not select JSON, a host dictionary, or a wire encoding.
+
+| Value family | Current semantic category | Crosses? | Conditions and canonical non-numeric treatment | Identity/equality and authority/protection | Evidence | Deferred/open question |
+| --- | --- | --- | --- | --- | --- | --- |
+| `none(reason, context?)` | Outcome / structural value | **Conditional** | Preserve the Outcome variant and recursively portable reason/context; bare `none` preserves its canonical absence meaning. | R18 recursive Outcome equality; no raw exception or sensitive context. | `GENIA_STATE.md` §2; R18 “Structural values”; R10 diagnostics. | Numeric fields remain blocked as below. |
+| `some(value[, context])` | Outcome / structural value | **Conditional** | Preserve the variant, value, and optional context exactly; all fields must pass recursive admissibility. | Structural equality; protection is never stripped. | `GENIA_STATE.md` §2; R18; R9 Outcome interaction. | None beyond recursively deferred fields. |
+| `err(reason, context?)` | Outcome / structural value | **Conditional** | Preserve normalized, non-sensitive semantic reason/context; adapter must normalize and discard raw host/provider exception data first. | Structural equality; protected leaves cannot become rendered diagnostics. | R11/R12 normalization; R10 errors; PAI-8/P6. | Interface contracts continue to own their reason/context vocabulary. |
+| Bool | Ordinary immutable scalar | **Portable** | Preserve `true`/`false` as Bool, distinct from Integer. | Structural; Bool and Integer are distinct keys. | R18 equality and key rules. | None. |
+| String | Ordinary immutable Unicode scalar | **Portable** | Preserve exact Unicode scalar sequence; not display/debug text. | Structural and keyable under R18. | R19 as summarized by `GENIA_STATE.md`; R18. | Codec/text encoding is outside P4. |
+| Symbol / quoted identifier | Ordinary immutable symbol scalar | **Portable** | Preserve Symbol kind and exact name; do not reduce it to String. Quoted strings remain Strings. | Structural and keyable; symbol/string identity stays distinct. | `GENIA_STATE.md` §4.1; `GENIA_RULES.md` §9.2; R18. | No new general quotation/token family. |
+| List | Ordinary immutable ordered container | **Conditional** | Ordered sequence of recursively portable elements. | Recursive structural equality; legal key use follows R18, not host hashing. | `GENIA_STATE.md` §2; R18. | Size/resource limits belong to a later codec/ABI contract. |
+| Pair | Ordinary structural value | **Conditional** | Explicit pair with recursively portable `car` and `cdr`; never silently flattened to a List. | Recursive structural equality and existing key rules. | `GENIA_STATE.md` §2; R18 structural families. | Promise-backed streams are local because Promise is local-only. |
+| Tuple | Full argument-tuple/pattern mechanism; no current public ordinary Tuple value family | **Explicitly deferred** | No provider-boundary Tuple tag is invented. Public sequence data uses List or an explicitly contracted record/pair. | Host tuple identity/layout has no semantic authority. | `GENIA_RULES.md` §4; R18 map-key section explicitly rejects host tuples as authority for a public kind. | A future public Tuple value would need its own contract. |
+| Map / ordered map | Persistent ordered structural container | **Conditional** | Preserve deterministic entry order and each recursively portable key/value. Encode as an ordered entry sequence at the semantic layer, not a JSON object or host dictionary. | Key legality and canonical identity are exactly R18; equal cross-kind legal keys remain one entry identity. | `GENIA_STATE.md` §§2, 7.2; R17/R18; R9 JSON distinguishes object mapping. | Numeric key representation is blocked on R23. |
+| Sheet | Immutable structural columnar value | **Conditional** | Preserve ordered columns and rows/cells only when column identifiers and every cell are recursively portable; do not lower implicitly to CSV or maps. | R18 names semantic fields; no live backing identity crosses. | `GENIA_STATE.md` §3.2; R18 structural families. | A codec schema/layout remains future work. |
+| Bytes | Immutable structural byte value | **Portable** | Preserve exact byte sequence as Bytes, not Unicode String or rendered/base64 text. | Structural equality; current non-keyability remains. | `GENIA_STATE.md` Bytes/JSON/ZIP section; R18. | Wire encoding is unspecified. |
+| ZIP entry | Immutable structural descriptor/value | **Conditional** | Preserve its contract-defined semantic fields recursively; no open archive/file handle crosses. | Structural equality over named semantic fields. | R18 “RNG, Format, bytes, ZIP entries, Sheets…” | Codec/schema is unspecified. |
+| Format value | Immutable structural formatting value | **Conditional** | Preserve contract-defined format structure and recursively portable semantic fields; never substitute rendered output. | R18 structural equality; protected replacement rules still apply. | R18 structural families; current Format rules in `GENIA_STATE.md`. | Boundary schema is not selected here. |
+| Deterministic RNG state | Immutable structural state value | **Conditional** | May cross only when the public deterministic algorithm/state contract is preserved exactly; host RNG objects never cross. | Structural equality over deterministic state. | R18; `GENIA_STATE.md` random helpers. | General algorithm/version negotiation is not defined here. |
+| Inert closed operation/data descriptors | Ordinary immutable structural values | **Conditional** | Preserve only explicitly public, immutable semantic fields recursively (for example a plain `ResourceRef` map or inert HTTP operation value); do not include live handles. | Equality follows the owning descriptor contract and R18. | R18 structural family; `GENIA_STATE.md` resource/HTTP sections. | Each descriptor contract decides admission; no reflection-based auto-serialization. |
+| R9 represented value | Representation carrier / structural value | **Conditional** | Preserve the exact ordered facet stack plus recursively portable carried value and portable facet metadata. Never collapse to display text, JSON text, or the unrepresented value. | R9 recursive equality and facet order remain authoritative; reserved/protected facets retain stronger rules. | R9 “Representation value model”, “Identity, equality, and keys”. | Provider-owned facet metadata needs an owning contract. |
+| R10 protected carrier | Protected identity-bearing carrier | **Conditional, fail closed** | Crossing is allowed only if the boundary can preserve the same opaque protected carrier and all R10 sink/declassification rules without exposing/reconstructing its payload. Transport must never become declassification. Otherwise reject. | Carrier-identity equality; never a map key; only matching scoped authority may reveal immediately at an authorized sink. | R10 protected carrier, transport, sinks, declassification; R18 protected family. | Cross-process/cross-provider reconstruction or credential transport is **deferred**; no rule is invented here. |
+| Approved opaque semantic token | Immutable opaque semantic token | **Contract-specific conditional** | Crosses only when its owning contract explicitly defines boundary materialization preserving hidden domain/provenance/semantic identity. Token crossing is not live-handle identity transfer. | R18 three-component equality, with no callback/IO/exposure. | R18 “Opaque semantic tokens”; P5 uses the category conceptually. | No generic token reconstruction, schema, or minting rule. |
+| Integer | Numeric semantic scalar | **Semantic family known; representation deferred** | R22 mathematical/equality/key facts survive. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R18/R22 equality and key identity remain authoritative. | R21/R22; R23 roadmap. | **BLOCKED ON R23.** |
+| Decimal | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Decimal kind and exact value in any future treatment. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 exact equality/comparison/key rules. | R22; R23 roadmap. | **BLOCKED ON R23.** |
+| Rational | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Rational semantics and denominator-one collapse rules. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 exact equality/comparison/key rules. | R22; R23 roadmap. | **BLOCKED ON R23.** |
+| Float64 | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Float64 domain distinctions required by R22. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 finite/zero/NaN/infinity equality and key rules remain authoritative. | R22; R23 roadmap. | **BLOCKED ON R23**, including bit/text form and NaN/infinity interchange. |
+| Provider capabilities, configuration providers, model/retrieval providers | Identity-bearing runtime capabilities | **Local-only / non-transferable** | The capability object does not cross. A later explicit binding supplies a capability on the receiving side. | R18 identity; possession grants no authority; providers remain explicit and opaque. | R11/R12/R14; R18; PAI-1/6/7. | Remote reference/proxy semantics are not inferred. |
+| Authorities | Opaque identity-bearing host capabilities | **Local-only / non-transferable** | Never ordinary boundary data; receiving realization must receive its own explicit authorized capability. | Identity-only; non-serializable; separate from provider identity. | R10 declassification; PAI-7. | Authority transfer and credential transport excluded. |
+| Retrieval/index and other host handles | Identity-bearing live handles | **Local-only / non-transferable** | Reject the live handle. A separately contracted descriptor/token/reconstruction request would be a distinct value. | Runtime identity cannot be reconstructed structurally. | R12 index handle; R18 identity family. | Handle reconstruction/proxy/distributed identity excluded. |
+| Owned live resource | R14/R18 identity-bearing resource | **Local-only as a live carrier** | Remains within its owning runtime/scope. P2 permits only its narrow same-runtime parent-to-child move. | Singular ownership and runtime identity; ownership grants no authority. | P2; R14 lifecycle; R18. | Cross-execution transfer, leases, proxies, and reconstruction deferred. |
+| Borrowed resource/view | Bounded non-owning live value | **Never crosses** | May not escape its borrow window; may not be returned, retained in a result graph, emitted by Flow, serialized, or cross a provider/process boundary. | Crossing is pre-invocation misuse, not provider failure. | P2 scenario matrix; R14 lifetime rules. | No async/remote borrow model. |
+| Flow / Seq / Promise | Lazy/delayed identity-bearing runtime values | **Local-only / non-transferable** | Do not consume, snapshot, or equate them with streams merely to cross. Materialization, if explicitly requested by another contract, yields a distinct ordinary value. | R18 identity; Flow remains lazy, pull-based, single-use. | `GENIA_STATE.md` Flow/Promise; R18; execution-realization. | Flow/remote-stream, backpressure, cancellation, and buffering deferred. |
+| Ref / Cell / Process / Actor | Mutable/live identity-bearing runtime values | **Local-only / non-transferable** | Neither handle nor reachable live state crosses automatically. | R18 identity; equality never inspects state. | `GENIA_STATE.md` concurrency sections; R18. | Snapshot, remote reference, actor address, and distributed identity excluded. |
+| Server, IO source/sink, file/socket/HTTP live resource | Host/live identity-bearing resource | **Local-only / non-transferable** | No open resource or listener crosses; only a separately approved inert descriptor may. | Runtime identity and R14 ownership stay local; authority remains explicit. | R14; R18 identity family; execution-realization. | Reconstruction, proxying, placement, and transport are separate contracts. |
+| Function, closure, function group, Template/matcher, host/native callable | Executable identity-bearing value | **Local-only / non-transferable** | Code, captured environment, and callable identity do not cross. Interfaces exchange values, not executable closures. | R18 identity; no structural/function equality. | `GENIA_STATE.md` function/callable categories; R9 Templates; R18. | Closure serialization, bytecode transport, and code mobility excluded. |
+| Module, environment, meta-environment, runtime namespace | Identity-bearing runtime namespace/state | **Local-only / non-transferable** | A module's separately exported portable values may cross; module/environment identity and bindings do not. | R18 identity; module is not a Map. | `GENIA_STATE.md` function/module values; R18. | No module snapshot/reflection protocol. |
+| Raw provider/SDK/FFI/native object or raw exception | Host-private implementation value | **Never crosses** | Normalize to the interface-owned semantic value/Outcome or reject before observation. | No Genia equality/authority meaning is inferred. | R11/R12 private adaptation; PAI-3/8; R16 host discipline. | None; this is a fixed exclusion. |
+
+Planned Store/Execution/job/subscription handles are examples of the R18
+identity-bearing default only. They are not current values and this inventory
+does not define them.
+
+## P4 — Canonical non-numeric provider-boundary treatment
+
+Status: **NON-NUMERIC CANONICAL BOUNDARY SHAPE RESOLVED FOR ARCHITECTURE;
+numeric encoding/interchange remains BLOCKED ON R23.**
+
+`ProviderBoundaryValue` is a semantic admissibility model, not a runtime type,
+class hierarchy, codec, schema, or new Genia value family. For the non-numeric
+portion it contains only an approved ordinary semantic scalar, tagged Outcome,
+ordered sequence/pair, ordered map entry sequence, represented value with its
+ordered facet information, approved inert structural value, or explicitly
+approved semantic token, recursively subject to P3. Numeric slots exist only as
+an unresolved family marker pending R23; this analysis chooses no encoding.
+
+The crossing must preserve:
+
+- exact Genia value family and variant (including Bool versus Symbol versus
+  String, and every Outcome variant);
+- exact order and multiplicity of sequences, map entries, representation
+  facets, and other contract-defined ordered fields;
+- R18 equality and canonical map-key identity;
+- R9 carried value, facet order, and portable representation metadata;
+- normalized, non-sensitive Outcome reasons/contexts; and
+- an approved token's contract-defined semantic identity without exposing its
+  hidden representation.
+
+The crossing must never carry provider-native/SDK/runtime objects, raw host
+exceptions, executable code/closures/environments, live handles/resources,
+borrowed values, providers, authorities, or exposed protected payloads. A
+container does not launder an inadmissible leaf: the whole attempted crossing
+is rejected. Input rejection happens during boundary validation/marshaling
+before provider invocation; invalid provider output is normalized or rejected
+at the return adapter before it becomes application-visible. This uses P6's
+existing ownership of misuse and interface error normalization; it adds no new
+failure envelope.
+
+Represented values remain represented values. Maps remain deterministic ordered
+entry collections with arbitrary currently legal Genia keys; they are not JSON
+objects and must not inherit host dictionary behavior. Protected carriers may
+be transported only under the P3 fail-closed condition: exact protection is
+preserved and no payload is revealed. Cross-process protected-carrier
+reconstruction remains deferred, so an implementation unable to preserve that
+contract rejects the value.
+
+This boundary is distinct from Core IR (program semantics), host-native Python
+objects, JSON, display/debug rendering, R23 numeric interchange, WIT Canonical
+ABI, and any eventual wire format. A later realization may choose a codec only
+if it reproduces these semantic observations exactly.
+
+### Explicit exclusions
+
+P3/P4 do not define numeric interchange encoding; JSON encoding policy;
+canonical number spelling; NaN/Infinity interchange policy; Decimal textual
+encoding; Rational textual encoding; Float64 bit/text encoding; wire format;
+binary ABI; schema language; reflection protocol; automatic serialization;
+closure/code mobility; remote proxy semantics; handle reconstruction;
+distributed identity; provider discovery; ambient registry; authority transfer;
+credential transport; or WIT mapping. Each requires a separate future contract
+unless already explicitly implemented for a different, narrower boundary.
 
 ## Relationship to WIT
 
@@ -230,8 +372,8 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 | **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **RESOLVED IN PREFLIGHT** | The preflight records the evidence matrix and PAI-1 through PAI-13; no new behavior is claimed. |
 | **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | **RESOLVED: MINIMAL MANIFEST CONCEPT** | Inert whole-computation metadata enables transitive pre-execution inspection; ordinary arguments remain operational and R16 supplies only the enforcement shape. |
 | **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | **RESOLVED FOR ARCHITECTURE** | Dynamic R14-owned carrier, singular ownership, bounded non-escaping borrow, expiry misuse, and one parent-to-child move; APIs and advanced lifetimes deferred. |
-| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | Blocked on R22/R23 for final numeric answer | Explicit value-family matrix tied to existing contracts. |
-| **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | Not started; numeric portion blocked on R22/R23 | Representation contract sufficient for at least Python/C++ proof without host-default numeric leakage. |
+| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | **NON-NUMERIC INVENTORY RESOLVED FOR ARCHITECTURE; numeric representation remains BLOCKED ON R23.** | Explicit value-family matrix tied to existing contracts. |
+| **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | **NON-NUMERIC CANONICAL BOUNDARY SHAPE RESOLVED FOR ARCHITECTURE; numeric encoding/interchange remains BLOCKED ON R23.** | Semantic boundary contract sufficient for later Python/C++ proofs without choosing a codec or leaking host defaults. |
 | **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | **RESOLVED FOR ARCHITECTURE** | Exact nominal identity plus exact opaque revision; no structural/SemVer inference, registry, or package system. |
 | **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED FOR ARCHITECTURE** | Same-process calls keep interface Outcomes, composition/validity faults are misuse, and R36 remains the sole outer execution envelope. |
 | **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED FOR ARCHITECTURE** | Explicit immutable validated binding plan over already-constructed capabilities; exact matching, closed transitive graph, fail-closed ambiguity/cycles, no R20 selection. |
@@ -245,7 +387,7 @@ Recommended sequence:
 1. **P0 is resolved.** PAI-1 through PAI-13 make the existing invariants explicit without adding behavior.
 2. **P6 is resolved for architecture.** Same-process interface Outcomes remain ordinary; R36 alone owns the outer execution envelope.
 3. **P1 and P2 are resolved for architecture.** The selected scope is a minimal inert manifest plus a narrow R14/R18 resource model, not a component subsystem.
-4. **Let R22/R23 finish before freezing P3/P4 numerics.** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
+4. **R22 is complete; leave only P3/P4 numeric interchange open for R23.** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
 5. **P5/P7 only after the semantic need is clear.** Avoid building a registry/DI system in anticipation of requirements.
 6. **P8 must reuse existing Genia provider semantics instead of inventing two toy providers from scratch.**
 7. **P9 is last.** WIT is an interoperability test, not the starting model.
@@ -310,9 +452,12 @@ Keep this short and append-only unless correcting a factual error.
 - **2026-09-15 — R20 kept separate.** Open-function argument dispatch is not provider realization/binding.
 - **2026-09-15 — R37 included as integration consumer.** R37's planned composition of R35 Store and R36 Execution makes it a future proving ground for the generalized model.
 - **2026-09-17 — P0/P1/P2/P5/P6/P7 preflight resolved.** The focused preflight selects a minimal inert manifest, R14-owned dynamic resource lifetimes, exact nominal interface revisions, ordinary same-process Outcomes with an R36 outer envelope, and an explicit immutable binding plan. It authorizes no implementation or release change.
+- **2026-09-18 — P3/P4 non-numeric boundary inventory resolved.** The recursive admissibility matrix and semantic `ProviderBoundaryValue` treatment preserve R9/R10/R14/R18 rules without defining a codec. Numeric provider-boundary encoding/interchange remains **BLOCKED ON R23**.
 
 ## Current Stage 0 verdict
 
-**P0/P1/P2/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED. No implementation authorization.**
+**P0/P1/P2/P3-NON-NUMERIC/P4-NON-NUMERIC/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED. No implementation authorization.**
 
-P3/P4 remain open, with their numeric boundary decisions blocked on R22/R23. P8/P9 remain future proof work. The resolved preflight does not promote a numbered release or change implemented semantics.
+P3/P4 remain partially open only for numeric provider-boundary interchange,
+which is **BLOCKED ON R23**. P8/P9 remain future proof work. The resolved
+preflight does not promote a numbered release or change implemented semantics.
