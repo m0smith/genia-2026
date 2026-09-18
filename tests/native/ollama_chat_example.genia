@@ -1,0 +1,121 @@
+@test "Ollama operation builds the documented non-streaming request"
+ollama_operation_builds_non_streaming_request() = {
+  messages = [{role: "user", content: "Hello"}]
+  operation = ollama_operation(
+    "http://127.0.0.1:11434",
+    "llama3.2",
+    messages
+  ) |> unwrap_or(none)
+
+  assert_eq(operation.method, quote(post))
+  assert_eq(operation.base_url, "http://127.0.0.1:11434")
+  assert_eq(operation.path, "/api/chat")
+  assert_eq(operation.headers, {"content-type": "application/json"})
+  assert_eq(operation.query, {})
+  assert_eq(operation.body, {
+    kind: quote(json),
+    value: {
+      model: "llama3.2",
+      messages: messages,
+      stream: false
+    }
+  })
+}
+
+@test "Groq operation builds an OpenAI-compatible request"
+groq_operation_builds_openai_compatible_request() = {
+  messages = [{role: "user", content: "Say hello"}]
+  operation = groq_operation(
+    "https://api.groq.com",
+    "llama-3.1-8b-instant",
+    "Bearer test-key",
+    messages
+  ) |> unwrap_or(none)
+
+  assert_eq(operation.method, quote(post))
+  assert_eq(operation.path, "/openai/v1/chat/completions")
+  assert_eq(operation("headers")("authorization"), "Bearer test-key")
+  assert_eq(operation("body")("value")("model"), "llama-3.1-8b-instant")
+  assert_eq(operation("body")("value")("messages"), messages)
+}
+
+@test "Backend Value Templates select independent profiles"
+backend_templates_select_profiles() = {
+  assert_eq("ollama" @? Ollama, some("ollama"))
+  assert_eq("groq" @? Groq, some("groq"))
+  assert_eq("other" @? Ollama, none("refinement-no-match"))
+  assert_eq(backend_profile("ollama")("model"), "llama3.2")
+  assert_eq(backend_profile("ollama")("config_prefix"), "OLLAMA_")
+  assert_eq(backend_profile("groq")("model"), "llama-3.1-8b-instant")
+  assert_eq(backend_profile("groq")("config_prefix"), "GROQ_")
+}
+
+@test "Ollama response extracts assistant content"
+ollama_response_extracts_assistant_content() =
+  assert_eq(
+    backend_response_content("ollama", {
+      status: 200,
+      body: "{\"message\":{\"role\":\"assistant\",\"content\":\"Hello from Ollama\"}}"
+    }),
+    some("Hello from Ollama")
+  )
+
+@test "Groq response extracts the first assistant choice"
+groq_response_extracts_first_assistant_choice() =
+  assert_eq(
+    backend_response_content("groq", {
+      status: 200,
+      body: "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"Hello from Groq\"}}]}"
+    }),
+    some("Hello from Groq")
+  )
+
+@test "Empty Groq choices return deterministic content absence"
+groq_empty_choices_return_content_absence() =
+  assert_eq(
+    backend_response_content("groq", {status: 200, body: "{\"choices\":[]}"}),
+    none("groq-response-content-missing")
+  )
+
+@test "Generic response handling derives backend HTTP error names"
+response_derives_backend_http_error_names() = {
+  assert_eq(
+    backend_response_content("ollama", {status: 404, body: "not found"}),
+    err("ollama-http-status", {status: 404})
+  )
+  assert_eq(
+    backend_response_content("groq", {status: 429, body: "rate limited"}),
+    err("groq-http-status", {status: 429})
+  )
+}
+
+is_invalid_backend_response(result, backend) =
+  (err(reason, _), backend) -> reason == backend + "-response-invalid" |
+  (_, _) -> false
+
+@test "Invalid JSON becomes a sanitized backend diagnostic"
+invalid_json_becomes_backend_diagnostic() = {
+  assert_eq(
+    is_invalid_backend_response(
+      backend_response_content("ollama", {status: 200, body: "not JSON"}),
+      "ollama"
+    ),
+    true
+  )
+  assert_eq(
+    is_invalid_backend_response(
+      backend_response_content("groq", {status: 200, body: "not JSON"}),
+      "groq"
+    ),
+    true
+  )
+}
+
+@test "Full Outcome continuation preserves every non-success variant"
+full_outcome_continuation_preserves_non_success() = {
+  assert_eq(continue_outcome(none("missing"), (value) -> some(value)), none("missing"))
+  assert_eq(continue_outcome(none("missing", {field: "x"}), (value) -> some(value)), none("missing", {field: "x"}))
+  assert_eq(continue_outcome(err("failed"), (value) -> some(value)), err("failed"))
+  assert_eq(continue_outcome(err("failed", {field: "x"}), (value) -> some(value)), err("failed", {field: "x"}))
+}
+
