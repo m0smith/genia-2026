@@ -1273,7 +1273,7 @@ This protects helper-based and pattern-based Option handling from silent semanti
   - stringify failures: `none("json-stringify-error", context)`
 - the portable JSON boundary rejects duplicate object names, integers outside the exact interoperable range `[-9007199254740991, 9007199254740991]`, non-finite/overflow binary64 numbers, non-scalar Unicode, invalid UTF-8 byte input, and nesting beyond 128 containers
 - `json_encode` supports ordinary JSON-domain values or exactly one outer `json` representation; it sorts object names, preserves list order, uses two-space indentation, and never silently strips another facet or coerces an unsupported value
-- portable JSON data failures are `err`; `json_decode` input types other than string/bytes are runtime misuse; legacy JSON helpers remain unchanged
+- portable JSON data failures are `err`; `json_decode` input types other than string/bytes are runtime misuse; legacy `json_parse`/`json_stringify`/`json_pretty`/`parse_jsonl_record` are unchanged by R9 -- R23 E23-5 (issue #923) later gave them the same lexical (never host-float-mediated) fraction/exponent Decimal decode and canonical-text Decimal/Rational/Float64 encode as the strict boundary, while keeping their `none(...)` failure shape and legacy-tolerant (non-stability-gated) numeric acceptance distinct from `json_decode`/`json_encode`'s `err(...)` shape
 - this bridge does not introduce a generalized Flow system
 
 ## 15) Documentation + tests as contract

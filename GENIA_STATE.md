@@ -5561,12 +5561,97 @@ Explicit limitations (left exactly as found): the `none(...)`-vs-`err(...)`
 failure-shape difference between compatibility and strict JSON is an
 approved pre-existing difference and is not unified by this slice. No
 full diagnostics-normalization sweep beyond this slice's own new
-rejections (E23-6); release audit not performed until E23-7 completes
-across the whole release. R22 arithmetic/equality/comparison are
-unchanged. Strict `json_decode`/`json_encode` (`_strict_json_to_runtime`/
-`_strict_json_from_runtime`) are unmodified except for
-`_strict_json_decimal` delegating to the newly-shared
+rejections until E23-6 (section 9.37 below); release audit not performed
+until E23-7 completes across the whole release. R22 arithmetic/equality/
+comparison are unchanged. Strict `json_decode`/`json_encode`
+(`_strict_json_to_runtime`/`_strict_json_from_runtime`) are unmodified
+except for `_strict_json_decimal` delegating to the newly-shared
 `_parse_json_decimal_token`, with identical observable behavior.
+
+## 9.37) R23 E23-6 diagnostics normalization sweep + docs/release truth sync (issue #925)
+
+Implements section 8 ("Error and diagnostic boundary") of
+`docs/design/r23-numeric-representation-interchange-contract.md` as a full
+sweep across every failure path touched or introduced by E23-1 through
+E23-5 (sections 9.32-9.36), per
+`docs/analysis/issue-925-e23-6-diagnostics-sweep-docs-sync-preflight.md`.
+This is a diagnostics-cleanliness and documentation-truth slice, not a
+new-behavior slice.
+
+- **Format-spec (E23-2) diagnostics: confirmed already sound, no change.**
+  Every `format-error: ...` raise in `src/genia/_format_engine.py`
+  constructs its message from a fixed string plus the format spec text or
+  field name, never `str(exc)` of a caught Python exception, and surfaces
+  as an ordinary host `ValueError`/`TypeError` misuse diagnostic exactly
+  the way every pre-existing (pre-R23) format-spec error already did --
+  consistent with R19's diagnostic-portability convention.
+- **Strict JSON boundary (E23-3/E23-4) structure: confirmed already
+  sound, no change.** Every `_JsonBoundaryFailure` construction uses a
+  fixed reason string plus structured keyword context, never wrapped raw
+  exception text.
+- **`json_number_out_of_range` reason-reuse judgment call (deferred by
+  E23-3/E23-4): ratified as sufficient at the `reason` level, refined
+  additively.** Splitting the reason symbol itself (e.g. into separate
+  Integer-range/Decimal-instability/Float64-non-finite reasons) was
+  rejected as a genuine, unnecessary behavior change -- existing tests and
+  any downstream Genia code pattern-matching on `result.reason` depend on
+  the exact symbol `json_number_out_of_range`. Instead, every real
+  (non-defensive) `json_number_out_of_range` raise site -- strict encode
+  and decode, both integer-range and numeric-stability/non-finite
+  rejections -- now additionally carries a `cause` context field
+  (`integer_out_of_range`, `decimal_unstable`, `rational_unstable`,
+  `float_non_finite`, or `non_finite_constant` for a rejected
+  `NaN`/`Infinity`/`-Infinity` JSON literal), a purely additive context-map
+  key that breaks no existing `reason`-symbol assertion.
+- **One genuine leak found and fixed: compatibility `json_stringify`'s
+  unsupported-value diagnostic.** `_json_from_runtime`'s final fallback
+  `TypeError` (extended in scope by E23-5's rewrite of this function, see
+  section 9.36) read a raw Python `type(value).__name__` instead of the
+  portable `_runtime_type_name` table every sibling "expected X, received
+  Y" diagnostic in `src/genia/builtins.py` already uses (including the
+  equivalent final raise in `_strict_json_from_runtime`) -- exactly the
+  class of leak E19-3 already normalized elsewhere (E19-3's note: "the
+  large 'expected X, received Y' family already renders via
+  `_runtime_type_name`"), missed here only because it predates R23 and
+  E23-5's rewrite left this one call unchanged. Fixed: now uses
+  `_runtime_type_name(value)`.
+- **A sibling `type(value).__name__` shape exists in two pure R22
+  arithmetic-misuse raises** (`numeric_runtime.py`'s `_as_decimal` and
+  `exact`), confirmed by `git blame` to be E22-1/E22-5 code never touched
+  by any E23 slice. Left unchanged -- out of this ticket's R23-only scope
+  (R22 arithmetic/equality is explicitly frozen); noted as a candidate for
+  a future, separately scoped ticket if one is ever opened.
+- **E23-4's `AssertionError` dead-code guard in
+  `_strict_json_to_runtime`'s `float` branch: confirmed genuinely
+  unreachable through every public JSON entry point** (`_json_parse`,
+  `_json_decode`, `_parse_jsonl_record`, `_json_stringify`, `_json_encode`;
+  `json_pretty` is prelude sugar over `json_stringify`). Only
+  `_json_decode` ever calls `_strict_json_to_runtime`, and its
+  `parse_float=_strict_json_decimal`/`parse_constant=
+  _reject_json_constant` scanner hooks guarantee no raw Python `float`
+  ever reaches the tree it walks. Proven by fuzzing `_json_decode` with a
+  broad adversarial set of fraction/exponent/large/small/negative/zero
+  numeric tokens plus explicit `NaN`/`Infinity`/`-Infinity` literals: no
+  call ever raises `AssertionError`. No bug found; no runtime-code change
+  to the guard.
+- **Bare `except Exception`/swallow-and-rethrow sweep: none found.** No
+  bare `except Exception` or `except:` clause exists in
+  `numeric_runtime.py` or `_format_engine.py` (neither performs I/O); every
+  JSON-boundary `except` clause is narrowly typed and converts to a
+  structured, reason-coded Outcome, never re-raising caught exception text
+  unmodified.
+- Shared evidence: `tests/unit/test_r23_e23_6_diagnostics_sweep.py`
+  (format-spec/strict-JSON diagnostic-cleanliness proofs that pass
+  immediately against unmodified code; the `cause` context-field value for
+  every `json_number_out_of_range` scenario, with `reason` unchanged;
+  compatibility `json_stringify`'s unsupported-value message now reporting
+  a portable type name; a broad `AssertionError`-unreachability fuzz
+  sweep across every public JSON entry point; a direct proof the guard
+  itself is live code, not dead from a typo).
+
+Explicit limitations: no new numeric semantics; no Outcome-shape change;
+no R22 arithmetic/equality change; R23 is not marked complete by this
+slice -- the E23-7 skeptical release truth audit is still pending.
 
 ## 10) Explicitly not implemented (current)
 
