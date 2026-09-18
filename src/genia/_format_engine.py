@@ -10,15 +10,41 @@ Also exposes apply_format_spec (used by format_fn for field-spec rendering).
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
-from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
-from genia.numeric_runtime import GeniaDecimal
+from genia.numeric_runtime import GeniaDecimal, GeniaRational, decimal_as_fraction
 from genia.utf8 import format_debug, format_display
 from genia.values import GeniaMap
 
-_NUMERIC_TYPES = (int, float, GeniaDecimal)
+# R23 contract section 7 (issue #913, E23-2): field-format-spec integration
+# against the E23-1 canonical renderer. GeniaRational is a first-class
+# numeric kind for format specs (in particular `.n` precision, which rounds
+# its exact ratio) -- it was missing here before this slice, which meant
+# every numeric format spec silently rejected Rational values, including
+# `.n`, which the contract requires to work.
+_NUMERIC_TYPES = (int, float, GeniaDecimal, GeniaRational)
+
+# A "plain numeral" canonical rendering: optional sign, digits, optional
+# fractional digits. This is the only shape zero-padding/grouping operate
+# on (contract section 7: "zero-padding and grouping remain numeric
+# presentation operations where the represented shape supports them").
+# Integer and GeniaDecimal-in-fixed-notation canonical text are plain
+# numerals. GeniaRational's `<numerator>/<denominator>` atom, Float64's
+# `float64(...)` atom, and GeniaDecimal-in-scientific-notation text are
+# not -- digit-position-counting presentation ops (grouping in particular)
+# would silently mangle them rather than reformat a shape they don't fit.
+_PLAIN_NUMERAL_RE = re.compile(r"-?\d+(\.\d+)?\Z")
+
+
+def _require_plain_numeral_text(value: Any, spec: str) -> str:
+    text = format_display(value)
+    if not _PLAIN_NUMERAL_RE.match(text):
+        raise ValueError(
+            f"format-error: format spec {spec!r} is not supported for this numeric representation"
+        )
+    return text
 
 
 # ---------------------------------------------------------------------------
@@ -202,14 +228,14 @@ def apply_format_spec(value: Any, spec: str) -> str:
         if isinstance(value, str):
             return value[:n]
         if isinstance(value, _NUMERIC_TYPES):
-            return _format_numeric_precision(value, n)
+            return _format_numeric_precision(value, n, spec)
         raise ValueError(f"format-error: format spec {spec!r} requires string or numeric value")
 
     if spec[0] == "0" and len(spec) > 1 and spec[1:].isdigit():
         width = int(spec)
         if isinstance(value, bool) or not isinstance(value, _NUMERIC_TYPES):
             raise ValueError(f"format-error: format spec {spec!r} requires numeric value")
-        text = format_display(value)
+        text = _require_plain_numeral_text(value, spec)
         if len(text) >= width:
             return text
         if text.startswith("-"):
@@ -219,21 +245,63 @@ def apply_format_spec(value: Any, spec: str) -> str:
     if spec == ",":
         if isinstance(value, bool) or not isinstance(value, _NUMERIC_TYPES):
             raise ValueError("format-error: format spec ',' requires numeric value")
-        return _format_grouping(value)
+        return _format_grouping(value, spec)
 
     raise ValueError(f"format-error: unsupported format spec {spec!r}")
 
 
-def _format_numeric_precision(value: int | float, n: int) -> str:
-    d = Decimal(repr(value))
+def _exact_ratio_for_precision(value: Any, spec: str) -> tuple[int, int]:
+    """Return `(numerator, denominator)`, exact, for `.n` precision rounding.
+
+    R23 contract section 7: Decimal formatting operates directly on its
+    exact coefficient/exponent; Rational rounds its exact ratio; Float64
+    starts from the exact dyadic value represented by its bits. None of
+    these three go through a `float(...)` cast or a host decimal
+    formatter -- `float.as_integer_ratio()` returns Float64's exact
+    binary64 bit-pattern ratio (no rounding), and `decimal_as_fraction`
+    reads GeniaDecimal's coefficient/exponent fields directly.
+    """
+    if isinstance(value, int):
+        return value, 1
+    if isinstance(value, float):
+        if value != value or value in (float("inf"), float("-inf")):
+            raise ValueError(f"format-error: format spec {spec!r} requires a finite numeric value")
+        return value.as_integer_ratio()
+    if isinstance(value, GeniaDecimal):
+        return decimal_as_fraction(value)
+    if isinstance(value, GeniaRational):
+        return value.numerator, value.denominator
+    raise ValueError(f"format-error: format spec {spec!r} requires string or numeric value")
+
+
+def _format_numeric_precision(value: int | float | GeniaDecimal | GeniaRational, n: int, spec: str) -> str:
+    numerator, denominator = _exact_ratio_for_precision(value, spec)
+    return _round_ratio_half_up_text(numerator, denominator, n)
+
+
+def _round_ratio_half_up_text(numerator: int, denominator: int, n: int) -> str:
+    """Render `numerator/denominator` rounded to `n` decimal places, half-up.
+
+    Pure arbitrary-precision integer arithmetic (`divmod` on
+    `numerator * 10**n` against `denominator`) -- never `decimal.Decimal`
+    division (whose default context precision cannot correctly round an
+    arbitrary repeating ratio like `1/3`) and never a host binary float.
+    Ties round away from zero, matching `decimal.ROUND_HALF_UP` (the
+    pre-existing format-surface rule this slice preserves).
+    """
+    sign = "-" if numerator < 0 else ""
+    magnitude = abs(numerator) * (10**n)
+    quotient, remainder = divmod(magnitude, denominator)
+    if remainder * 2 >= denominator:
+        quotient += 1
     if n == 0:
-        return str(d.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-    quantize_str = "0." + "0" * n
-    return str(d.quantize(Decimal(quantize_str), rounding=ROUND_HALF_UP))
+        return sign + str(quotient)
+    digits = str(quotient).zfill(n + 1)
+    return f"{sign}{digits[:-n]}.{digits[-n:]}"
 
 
-def _format_grouping(value: int | float) -> str:
-    text = format_display(value)
+def _format_grouping(value: int | float | GeniaDecimal | GeniaRational, spec: str) -> str:
+    text = _require_plain_numeral_text(value, spec)
     negative = text.startswith("-")
     if negative:
         text = text[1:]
