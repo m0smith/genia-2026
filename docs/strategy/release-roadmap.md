@@ -72,6 +72,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 - **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
 - **R30–R34:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
 - **R35–R37:** [`roadmap/r35-r37.md`](roadmap/r35-r37.md)
+- **R38:** [`roadmap/r38.md`](roadmap/r38.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -151,6 +152,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R35 | Portable Storage and Resource Semantics | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
 | R36 | Location-Independent Genia Execution | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
 | R37 | Genia-Native Conformance Tooling | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
+| R38 | Configuration and Secret Hardening and Ergonomics | Planned | [`roadmap/r38.md`](roadmap/r38.md) |
 
 ## Scheduling
 

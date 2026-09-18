@@ -3,10 +3,13 @@
 Status: **Parking lot / non-authoritative**
 
 This note captures candidate follow-up work only. It does not define implemented
-Genia behavior and carries no release number. If this conflicts with
-`GENIA_STATE.md`, `GENIA_STATE.md` wins. Each candidate below requires its own
-contract, design, failing-tests, implementation, documentation, audit, and
-distillation gates before implementation, exactly as R13 did.
+Genia behavior. C-1 through C-11 are promoted into planned release
+`docs/strategy/roadmap/r38.md` (Configuration and Secret Hardening and
+Ergonomics), but promotion into a release number is scheduling only — it
+approves no design. If this conflicts with `GENIA_STATE.md`, `GENIA_STATE.md`
+wins. Each candidate below still requires its own contract, design,
+failing-tests, implementation, documentation, audit, and distillation gates
+before implementation, exactly as R13 did.
 
 ## Why this exists
 
@@ -17,8 +20,8 @@ source, and `config_standard` conventional composition, all while preserving
 R10 protected-value semantics.
 
 R13 deliberately deferred a set of items to keep its surface small and truthful.
-Two are security-critical gaps that block a launcher-free execution path for
-protected outbound credentials; some are genuine ergonomic gaps that real
+Three are security-critical gaps that block a launcher-free execution path
+for protected outbound credentials; some are genuine ergonomic gaps that real
 applications will hit soon; some are deliberate exclusions that should stay
 out unless concrete usage proves them necessary; and one is a cross-cutting
 maturity gap that gates the whole configuration family. This note preserves
@@ -32,15 +35,16 @@ relaxes, so the boundary being moved is explicit.
 
 ### Priority 1 — security-critical gaps
 
-These are not ergonomic friction; they are the two gaps that currently force
-any application needing a protected outbound credential (e.g. an HTTP
+These are not ergonomic friction; they are the gaps that currently force any
+application needing a protected outbound credential (e.g. an HTTP
 Authorization header) to bypass the normal `genia` execution path with a
-host-specific launcher script. Both were surfaced concretely by the Groq
-backend of the `ollama_chat` example, which currently requires
+host-specific launcher script, or to store more raw secret material than it
+should. All three were surfaced concretely by the Groq backend of the
+`ollama_chat` example, which currently requires
 `python -m hosts.python.exec_ollama_chat --backend groq` instead of
 `genia examples/ollama_chat.genia --backend groq`. They are listed together
-because a fix for one does not substitute for the other, but each requires
-its own contract and is independently gated.
+because a fix for one does not substitute for another, but each requires its
+own contract and is independently gated.
 
 **C-9. Secret-only provider keys / intrinsic secret classification.**
 
@@ -92,6 +96,55 @@ Must not relax any R10 protected-carrier, sink, or declassification rule,
 and must not make authority constructible from Genia source text. This is
 the harder of the two gaps and needs its own contract before any
 promotion; C-9 can be promoted independently and first.
+
+**C-11. Protected value transformation without declassification.**
+
+Relaxes part of the R10 transport/derivation table, not a stated non-goal:
+today "string concatenation, interpolation, Format, arithmetic, ordering,
+hashing, map-key freezing... reject when a protected operand is
+encountered," with no narrow protected-preserving exception. `declassify`
+is currently the only way out of a protected value at all, even partway.
+Two concrete costs of that today: the Groq example has to store the whole
+`"Bearer <token>"` string as the raw secret, coupling stored credential
+material to one HTTP authentication scheme, because there is no
+protected-preserving way to compose ordinary text with a protected value
+into a new protected value; and audit events / diagnostics can say a
+declassification happened but cannot say *which* secret was involved
+without either omitting that information or exposing the payload, because
+there is no non-revealing derived identity for a protected value.
+
+Candidate: two narrow, separately enumerated protected-preserving
+operations, not general protected arithmetic:
+
+- a composition operation that combines ordinary text with a protected
+  value and returns a new protected value carrying the combined payload,
+  without declassifying either operand (covers the `"Bearer " + token`
+  shape without collapsing scheme and credential into one stored secret);
+- a non-revealing fingerprint/identity operation that derives a stable,
+  one-way, non-invertible identity for a protected value, safe to render
+  and log, for audit/diagnostic correlation — never a truncated or partial
+  reveal of the carried payload.
+
+Both operations should compose with the existing R9 callable-Template
+mechanism rather than invent parallel validation syntax, the same way R10
+conversion already composes `config_get(provider, "PORT") |> parse_port |>
+Port`: the *ordinary* operand of a composition (the literal prefix/format
+piece, e.g. `"Bearer "`) is validated through an ordinary callable Template
+before combination, and the result of a fingerprint operation is an
+ordinary value that can itself feed a callable Template (e.g. a `Fingerprint`
+shape) for structured audit/diagnostic use. Templates only ever see ordinary
+data on both sides of these operations; neither operation exposes the
+protected payload to a Template, consistent with the existing rule that "an
+ordinary Template/validation predicate may receive the protected value as
+opaque input; protected matching/equality may be used, payload inspection is
+rejected."
+
+Must preserve the existing "bounded propagation, not hidden taint"
+philosophy: each new operation is explicitly enumerated in the transport
+table, not a general escape hatch, and must not let ordinary code observe
+or reconstruct the underlying payload through the fingerprint. Independent
+of C-9 (key classification) and C-10 (who may mint authority); promotable
+on its own.
 
 ### Priority 2 — genuine ergonomic gaps
 
