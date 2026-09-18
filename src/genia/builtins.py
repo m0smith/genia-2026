@@ -1883,25 +1883,92 @@ def make_global_env(
             raise TypeError(f"{name} expected a zip entry, received {_runtime_type_name(value)}")
         return value
 
-    def _json_from_runtime(value: Any) -> Any:
-        if value is None or isinstance(value, (bool, int, float, str)):
+    def _json_number_sentinel(
+        canonical_text: str, decimal_sentinels: dict[str, str]
+    ) -> str:
+        """Shared sentinel-substitution helper (R23 contract sections 4.2-
+        4.4, reused unchanged from E23-3/E23-4's strict encode machinery
+        for E23-5's compatibility encode): stands in a unique ASCII
+        sentinel string for `json.dumps` to place as an ordinary,
+        correctly-escaped JSON string literal, to later be substituted for
+        `canonical_text` as a raw JSON number token once `json.dumps` has
+        produced the full document text. See `_strict_json_from_runtime`
+        for the original rationale (no host JSON encoder can natively emit
+        arbitrary-precision numeric tokens for a custom Python type).
+        """
+        sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
+        decimal_sentinels[sentinel] = canonical_text
+        return sentinel
+
+    def _json_from_runtime(
+        value: Any, decimal_sentinels: dict[str, str] | None = None
+    ) -> Any:
+        """Compatibility `json_stringify` runtime -> JSON-serializable
+        conversion (R23 contract section 6). Numeric kinds reuse the same
+        canonical-text computations and sentinel-substitution mechanism
+        E23-3/E23-4 built for strict `json_encode`
+        (`_strict_json_from_runtime`) rather than a second implementation --
+        the difference from strict encode is deliberate permissiveness, not
+        a different numeric model: compatibility encode never enforces
+        `stable_json_decimal` (a `GeniaDecimal`/terminating `GeniaRational`
+        always encodes its exact canonical decimal text, whatever its
+        precision), matching decode's `_compat_json_decimal` permissiveness
+        above. A non-terminating `GeniaRational` and a non-finite Float64
+        still cannot be represented as a JSON number at all and raise, the
+        same as before this slice.
+        """
+        if decimal_sentinels is None:
+            decimal_sentinels = {}
+        if value is None or isinstance(value, bool):
+            return value
+        if isinstance(value, int):
+            return value
+        if isinstance(value, GeniaDecimal):
+            return _json_number_sentinel(repr(value), decimal_sentinels)
+        if isinstance(value, GeniaRational):
+            decimal_equivalent = rational_terminating_decimal(value)
+            if decimal_equivalent is None:
+                raise TypeError(
+                    "json_stringify cannot represent a non-terminating "
+                    "rational as a JSON number"
+                )
+            return _json_number_sentinel(repr(decimal_equivalent), decimal_sentinels)
+        if isinstance(value, float):
+            # R23 contract section 6: compatibility JSON must not preserve
+            # a second contradictory host-float numeric model, so a
+            # Float64 value renders through the same
+            # `float64_finite_canonical_text` computation strict
+            # `json_encode` uses, never `json.dumps`'s own
+            # `float.__repr__`-derived digits.
+            if not math.isfinite(value):
+                raise ValueError("json_stringify expected a finite float")
+            return _json_number_sentinel(
+                float64_finite_canonical_text(value), decimal_sentinels
+            )
+        if isinstance(value, str):
             return value
         if is_none(value):
             return None
         if isinstance(value, list):
-            return [_json_from_runtime(item) for item in value]
+            return [_json_from_runtime(item, decimal_sentinels) for item in value]
         if isinstance(value, GeniaMap):
             data: dict[str, Any] = {}
             for _, (original_key, original_value) in value._entries.items():
                 if not isinstance(original_key, str):
                     raise TypeError("json_stringify expected object keys to be strings")
-                data[original_key] = _json_from_runtime(original_value)
+                data[original_key] = _json_from_runtime(original_value, decimal_sentinels)
             return data
         raise TypeError(f"json_stringify expected a JSON-compatible value, got {type(value).__name__}")
 
     def _json_to_runtime(value: Any) -> Any:
         if value is None:
             return OPTION_NONE
+        if isinstance(value, GeniaDecimal):
+            # R23 contract section 6: a fraction/exponent JSON number token
+            # decodes to an exact GeniaDecimal (via `_compat_json_decimal`
+            # above), never a raw Python float -- reached here once the
+            # scanner hook has already converted it.
+            return value
         if isinstance(value, (bool, int, float, str)):
             return value
         if isinstance(value, list):
@@ -1942,13 +2009,20 @@ def make_global_env(
         r"^(?P<sign>-)?(?P<int>\d+)(?:\.(?P<frac>\d+))?(?:[eE](?P<exp>[+-]?\d+))?$"
     )
 
-    def _strict_json_decimal(text: str) -> "GeniaDecimal":
-        """`parse_float` hook for the strict JSON scanner (R23 contract
-        section 5): builds an exact `GeniaDecimal` directly from the raw
-        JSON fraction/exponent number token text, never calling `float(...)`
+    def _parse_json_decimal_token(text: str) -> "GeniaDecimal":
+        """Shared lexical fraction/exponent JSON number-token -> exact
+        `GeniaDecimal` conversion (R23 contract section 5 / section 6).
+
+        Builds an exact `GeniaDecimal` directly from the raw JSON
+        fraction/exponent number token text, never calling `float(...)`
         anywhere in this path -- `text` is already the exact lexical
         substring the scanner matched, so coefficient/exponent are derived
-        by plain integer parsing of its digit groups.
+        by plain integer parsing of its digit groups. This is the single
+        lexical parser both the strict (`json_decode`) and compatibility
+        (`json_parse`/`parse_jsonl_record`) `parse_float` scanner hooks
+        reuse -- contract section 6 requires reusing common lexical numeric
+        conversion machinery rather than duplicating competing parsers, so
+        no second regex/parser exists anywhere in this file.
         """
         match = _JSON_NUMBER_TOKEN_RE.match(text)
         if match is None:  # pragma: no cover - json's scanner already guarantees this shape
@@ -1959,10 +2033,33 @@ def make_global_env(
         exp_part = match.group("exp")
         exponent = (int(exp_part) if exp_part else 0) - len(frac_part)
         coefficient = int(sign + int_part + frac_part)
-        value = GeniaDecimal(coefficient, exponent)
+        return GeniaDecimal(coefficient, exponent)
+
+    def _strict_json_decimal(text: str) -> "GeniaDecimal":
+        """`parse_float` hook for the strict JSON scanner (R23 contract
+        section 5): reuses `_parse_json_decimal_token` and additionally
+        enforces the `stable_json_decimal` predicate -- strict JSON decode
+        rejects a fraction/exponent token whose exact value would not
+        round-trip stably through binary64.
+        """
+        value = _parse_json_decimal_token(text)
         if not stable_json_decimal(value):
             raise _JsonBoundaryFailure("json_number_out_of_range")
         return value
+
+    def _compat_json_decimal(text: str) -> "GeniaDecimal":
+        """`parse_float` hook for the compatibility JSON scanner
+        (`json_parse`/`parse_jsonl_record`, R23 contract section 6):
+        reuses the same `_parse_json_decimal_token` lexical parser as
+        strict decode, but deliberately does not enforce
+        `stable_json_decimal`. Compatibility JSON's contract is graceful
+        legacy tolerance (it never rejects a syntactically valid document,
+        only reports `none(...)` for outright parse failures), not R23's
+        strict numeric-stability validation -- so an exact `GeniaDecimal`
+        is always produced for a fraction/exponent token, never a raw
+        Python `float`, and never a rejection based on precision.
+        """
+        return _parse_json_decimal_token(text)
 
     def _reject_json_constant(_text: str) -> Any:
         raise _JsonBoundaryFailure("json_number_out_of_range")
@@ -4319,7 +4416,13 @@ def make_global_env(
 
         text = value
         try:
-            parsed = json.loads(text)
+            # R23 contract section 6: reuse the same lexical fraction/
+            # exponent-token parser strict `json_decode` uses
+            # (`_parse_json_decimal_token`, via the permissive
+            # `_compat_json_decimal` hook) so compatibility `json_parse`
+            # never silently materializes a JSON number token as a raw
+            # host Python float.
+            parsed = json.loads(text, parse_float=_compat_json_decimal)
         except json.JSONDecodeError as exc:
             context = (
                 GeniaMap()
@@ -4327,6 +4430,13 @@ def make_global_env(
                 .put("message", exc.msg)
                 .put("line", exc.lineno)
                 .put("column", exc.colno)
+            )
+            return make_none("json-parse-error", context)
+        except _JsonBoundaryFailure:  # pragma: no cover - defensive, see _parse_json_decimal_token
+            context = (
+                GeniaMap()
+                .put("source", "json_parse")
+                .put("message", "invalid numeric token")
             )
             return make_none("json-parse-error", context)
         return _json_to_runtime(parsed)
@@ -4859,12 +4969,21 @@ def make_global_env(
             return make_none("blank_line", _jsonl_context("skipped", "blank_line", text))
 
         try:
-            parsed = json.loads(text)
+            # R23 contract section 6: same permissive lexical decimal
+            # decode hook as `json_parse` above -- shared machinery, not a
+            # second parser.
+            parsed = json.loads(text, parse_float=_compat_json_decimal)
         except json.JSONDecodeError as exc:
             context = (
                 _jsonl_context("error", "invalid_jsonl_record", text)
                 .put("message", exc.msg)
                 .put("column", exc.colno)
+            )
+            return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
+        except _JsonBoundaryFailure:  # pragma: no cover - defensive, see _parse_json_decimal_token
+            context = (
+                _jsonl_context("error", "invalid_jsonl_record", text)
+                .put("message", "invalid numeric token")
             )
             return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
 
@@ -4883,7 +5002,14 @@ def make_global_env(
                 "protected-value", GeniaMap().put("operation", "json-stringify")
             )
         try:
-            return json.dumps(_json_from_runtime(value), indent=2, ensure_ascii=False, sort_keys=True)
+            decimal_sentinels: dict[str, str] = {}
+            serializable = _json_from_runtime(value, decimal_sentinels)
+            text = json.dumps(
+                serializable, indent=2, ensure_ascii=False, sort_keys=True
+            )
+            for sentinel, canonical_text in decimal_sentinels.items():
+                text = text.replace(f'"{sentinel}"', canonical_text)
+            return text
         except (TypeError, ValueError) as exc:
             context = (
                 GeniaMap()
