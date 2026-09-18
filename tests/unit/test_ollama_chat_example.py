@@ -164,4 +164,3 @@ def test_groq_chat_declassifies_only_at_authorized_host_boundary(monkeypatch):
     assert len(captured) == 1
     assert captured[0].url == "https://api.groq.com/openai/v1/chat/completions"
     assert captured[0].headers["authorization"] == sentinel
-
