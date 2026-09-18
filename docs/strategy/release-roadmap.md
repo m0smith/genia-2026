@@ -137,7 +137,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R20 | Open Functions and Extensible Pattern Dispatch | Complete | `docs/releases/R20.md` |
 | R21 | Numeric Source and Portable Representation | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R22 | Exact Numeric Runtime | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R23 | Numeric Representation and Interchange | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R23 | Numeric Representation and Interchange | In progress (E23-1..E23-6 complete, E23-7 audit pending) | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R25 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R26 | C++ REPL and Data Bridges | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
