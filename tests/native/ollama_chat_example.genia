@@ -1,0 +1,97 @@
+@test "Ollama operation builds the documented non-streaming request"
+ollama_operation_builds_non_streaming_request() = {
+  messages = [{role: "user", content: "Hello"}]
+  operation = ollama_operation(
+    "http://127.0.0.1:11434",
+    "llama3.2",
+    messages
+  ) |> unwrap_or(none)
+
+  assert_eq(operation.method, quote(post))
+  assert_eq(operation.base_url, "http://127.0.0.1:11434")
+  assert_eq(operation.path, "/api/chat")
+  assert_eq(operation.headers, {"content-type": "application/json"})
+  assert_eq(operation.query, {})
+  assert_eq(operation.body, {
+    kind: quote(json),
+    value: {
+      model: "llama3.2",
+      messages: messages,
+      stream: false
+    }
+  })
+}
+
+@test "Ollama response extracts assistant content"
+ollama_response_extracts_assistant_content() =
+  assert_eq(
+    backend_response_content("ollama", {
+      status: 200,
+      body: "{\"message\":{\"role\":\"assistant\",\"content\":\"Hello from Ollama\"}}"
+    }),
+    some("Hello from Ollama")
+  )
+
+@test "Ollama response normalizes a non-success status"
+ollama_response_normalizes_non_success_status() =
+  assert_eq(
+    backend_response_content("ollama", {status: 404, body: "not found"}),
+    err("ollama-http-status", {status: 404})
+  )
+
+is_invalid_ollama_response(result) =
+  (err("ollama-response-invalid", _)) -> true |
+  (_) -> false
+
+@test "Ollama response normalizes invalid JSON"
+ollama_response_normalizes_invalid_json() =
+  assert_eq(
+    is_invalid_ollama_response(
+      backend_response_content("ollama", {status: 200, body: "not JSON"})
+    ),
+    true
+  )
+
+@test "Groq operation builds an OpenAI-compatible request"
+groq_operation_builds_openai_compatible_request() = {
+  messages = [{role: "user", content: "Say hello"}]
+  operation = groq_operation(
+    "https://api.groq.com",
+    "llama-3.1-8b-instant",
+    "Bearer test-key",
+    messages
+  ) |> unwrap_or(none)
+
+  assert_eq(operation.method, quote(post))
+  assert_eq(operation.path, "/openai/v1/chat/completions")
+  assert_eq(operation("headers")("authorization"), "Bearer test-key")
+  assert_eq(operation("body")("value")("model"), "llama-3.1-8b-instant")
+  assert_eq(operation("body")("value")("messages"), messages)
+}
+
+@test "Groq response extracts the first assistant choice"
+groq_response_extracts_first_assistant_choice() =
+  assert_eq(
+    backend_response_content("groq", {
+      status: 200,
+      body: "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"Hello from Groq\"}}]}"
+    }),
+    some("Hello from Groq")
+  )
+
+@test "Generic response handling derives the Groq HTTP error name"
+groq_response_derives_http_error_name() =
+  assert_eq(
+    backend_response_content("groq", {status: 429, body: "rate limited"}),
+    err("groq-http-status", {status: 429})
+  )
+
+@test "Backend Value Templates select independent profile implementations"
+backend_templates_select_profiles() = {
+  assert_eq("ollama" @? Ollama, some("ollama"))
+  assert_eq("groq" @? Groq, some("groq"))
+  assert_eq(backend_profile("ollama")("model"), "llama3.2")
+  assert_eq(backend_profile("ollama")("config_prefix"), "OLLAMA_")
+  assert_eq(backend_profile("groq")("model"), "llama-3.1-8b-instant")
+  assert_eq(backend_profile("groq")("config_prefix"), "GROQ_")
+}
