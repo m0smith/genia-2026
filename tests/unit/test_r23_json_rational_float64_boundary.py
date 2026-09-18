@@ -15,8 +15,6 @@ covered by tests/unit/test_r23_json_integer_decimal_boundary.py.
 """
 from __future__ import annotations
 
-import math
-
 import pytest
 
 from src.genia import make_global_env, run_source
