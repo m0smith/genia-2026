@@ -1202,10 +1202,17 @@ implemented host, and shared/multi-host conformance remains Partial.
 
 ### AI model invocation, Flow conversation, and validated-pipeline proof (Experimental R11 E11-1 through E11-8)
 
-`examples/ollama_chat.genia` demonstrates an application-owned terminal chat
-against Ollama's `/api/chat` endpoint using the existing Experimental R14
-`web.http_send` surface. It is not an R11 model provider and does not expand
-the documented `model/4` provider boundary.
+`examples/ollama_chat.genia` demonstrates one application-owned terminal chat
+over either local Ollama `/api/chat` or Groq's OpenAI-compatible chat endpoint
+using the existing Experimental R10/R13 protected-configuration and R14
+`web.http_send` surfaces. Backend-specific profiles, operation construction,
+and content extraction are separate clauses of a three-function R20 open
+interface selected by named Value Templates. Groq execution uses the narrow Python launcher
+`python -m hosts.python.exec_ollama_chat --backend groq`, which constructs the
+matching host authority; the protected environment/`.env` value is the complete
+`GROQ_AUTHORIZATION=Bearer ...` header. This remains application composition,
+not an R11 model provider, and does not expand the documented `model/4` provider
+boundary.
 
 `model(provider, config, credential, authority)` returns an ordinary callable
 whose text or explicit R9-structured request produces an existing Outcome.
