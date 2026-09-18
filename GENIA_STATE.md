@@ -49,6 +49,8 @@ Implemented today:
   - a mandatory `capabilities` protocol operation plus an optional per-case `requires:` field (E16-3, issue #760): `--host` mode fetches and validates a host's capability declaration once per run; a case requiring a capability the host does not declare exactly `supported` is reported `unsupported` without invoking the adapter for it — never silently skipped or counted as passing. Issue #836 adds the capability-gated optional protocol-v1 `eval.input.modules` shape: multi-file cases require `multi_file_eval`, applicability is resolved before request construction, and a v1 host that does not opt in never receives that field. Unknown operation-input fields otherwise remain invalid.
   - `tools/spec_runner/revision.py` (E16-4, issue #761): classifies a host's declared `contract_revision` against this checkout's actual revision using local git history only (never a remote fetch, never rewriting the host's claim) — an exact match is honest pinned-conformance evidence (`current`); a real older commit is current-main-compatibility-only evidence (`resolvable_ancestor`); an unresolvable declaration stops the run with exit code 1 before any case executes.
   - `hosts/python/protocol_adapter.py` (E16-5, issue #762): the Python reference host itself, proven through this same subprocess protocol at full scale — 641 total, 623 passed, 0 failed, 18 unsupported, 0 protocol_error/crash/timeout, identical to the in-process path for every applicable case.
+    CI keeps this authoritative full-suite proof in `tests/spec/test_python_protocol_adapter_parity_762.py`, marked `full_conformance`, and runs it nightly or by manual dispatch on canonical Python 3.14 in the dedicated regression `full-conformance` job. Ordinary slow spec-runner pytest coverage runs in the same regression workflow on canonical Python 3.14 with `full_conformance` excluded; supported-version compatibility is established separately by the regression compatibility matrix. This is test organization only and does not change case discovery, protocol behavior, or semantic coverage.
+    Issue #883 further deduplicates semantic-spec execution within `tests/spec/`: `test_spec_ir_runner_blackbox.py` and `test_cli_shared_spec_runner.py` previously replayed most of the shared corpus (parametrized over nearly every eval/ir/cli/flow/error fixture) purely to prove runner wiring; they now execute a small representative sample per category instead, and the expensive `command_mode_collect_sum` CLI fixture is kept unique to a single pytest file. The full corpus is still proven once per supported Python version by `python -m tools.spec_runner` in the regression compatibility matrix, and once on Python 3.14 in routine CI; no shared case, expected result, or discovery assertion changed. This is test organization only.
   - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (E16-6, issue #763): bootstrapped as the first external production-host repository — a repository shell with a pinned contract revision/protocol declaration and a minimal, self-contained, non-semantic protocol-participation placeholder. **No real C++ interpreter exists there**; `hosts/cpp/` here is now a pointer to that repository (see `hosts/cpp/README.md`).
   - `tools/spec_runner/evidence.py` and `--evidence <path>` (E16-7, issue #764): one deterministic per-host JSON evidence document (contract revision, protocol version, capabilities, applicable-case count, full outcome taxonomy), a pure function of its inputs so identical runs produce byte-identical evidence. Proven against both the Python reference host (623 pass / 18 unsupported / 0 else, revision `current`) and the `genia-cpp` bootstrap placeholder (641 unsupported / 0 else, revision `resolvable_ancestor`). See `docs/strategy/roadmap/multi-host-conformance-policy.md`'s "Evidence model and CI expectations" for the external-host CI contract this defines.
 
@@ -4729,6 +4731,427 @@ Implements section 4 of `docs/design/r21-numeric-source-portable-representation-
 Explicit limitations: no Decimal/Rational/Float64 runtime value, arithmetic,
 equality, or map-key change; no rendering/formatting/JSON behavior (R23);
 no C++ host implementation (R24).
+
+## 9.23) R22 E22-1 exact Decimal runtime materialization (issue #887)
+
+Implements section 2 of `docs/design/r22-exact-numeric-runtime-contract.md`,
+retiring the R21 E21-2 (9.22) evaluator compatibility shim for Decimal
+payloads and replacing it with a genuine exact runtime value:
+
+- Decimal-classified numeric source (R21 tagged `IrLiteral` payload)
+  now materializes to `GeniaDecimal` (`src/genia/numeric_runtime.py`):
+  an exact `coefficient × 10^exponent` value over two arbitrary-precision
+  Python ints. Materialization consumes the already-canonical R21 payload
+  strings directly and never transits host binary64.
+- Canonicalization: zero is `(0, 0)`; otherwise trailing base-10 zeros are
+  stripped from the coefficient's magnitude and the exponent increases by
+  the count removed; sign is carried by the coefficient; there is no
+  Decimal negative-zero identity. Decimal kind is retained even when the
+  mathematical value is integral (`1.0` stays Decimal, distinct from
+  Integer `1`, though the two compare equal — see below).
+- Integer source is unchanged: still a Python `int` (R17 unaffected).
+- Arithmetic: `GeniaDecimal` supports exact `+ - *` and unary negation,
+  both Decimal-with-Decimal and Decimal-with-Integer, computed via exact
+  rational cross-multiplication (never host float). This is the minimum
+  needed for the new value to participate in existing evaluator arithmetic
+  dispatch (`src/genia/evaluator.py` `eval_binary`, which calls the native
+  operators directly) without regressing prior Decimal-literal arithmetic;
+  it is not yet the full Integer/Decimal/Rational promotion lattice
+  (Rational does not exist until E22-2; the full lattice is E22-3/E22-4).
+  `/` and `%` are not yet implemented for `GeniaDecimal` (E22-4).
+- Equality/comparison (R18, `src/genia/equality.py`): `GeniaDecimal`
+  participates in the one existing R18 numeric cross-kind bridge —
+  `1 == 1.0`, `1.0 == 1.00` hold by exact mathematical value, matching
+  contract section 10.1. A bare host `float` does not bridge with
+  `GeniaDecimal` (R22's only exact/approximate bridge is the explicit
+  Float64 domain, not implemented until E22-5/E22-7). Map keys
+  (`canonical_map_key`): an equal-valued Decimal and Integer share one
+  key bucket; a non-integral Decimal keys on its exact reduced fraction.
+- Compatibility hardening required for this slice to be mergeable in
+  isolation (not new R22 policy, only recognizing the new value kind at
+  existing generic-numeric dispatch points): format-spec numeric
+  precision/grouping (`src/genia/_format_engine.py`), CSV cell rendering
+  (`src/genia/sheet.py`), shell-stage stdin materialization
+  (`src/genia/evaluator.py`), JSON Schema `"number"` type matching
+  (`src/genia/builtins.py`), and R12 retrieval/rerank finite-score
+  validation (`src/genia/retrieval.py`) all now recognize `GeniaDecimal`.
+  Display/debug text for `GeniaDecimal` (its Python `__repr__`) is a
+  placeholder pending R23 canonical spelling, not a rendering contract.
+- R18 conformance test seam: three pre-existing R18 NaN-rejection
+  conformance cases (issue #792) previously reached a host float NaN as
+  an accidental byproduct of Decimal literals overflowing through the
+  retired float shim; exact Decimal arithmetic is arbitrary precision and
+  never overflows, closing that path. `src/genia/builtins.py` adds
+  `__r18_conformance_test_only_nan`, a private, non-public host test seam
+  used solely to keep that already-approved R18 evidence testable — it is
+  not part of the R22 numeric surface, which exposes no public NaN/
+  infinity/raw-bit constructor (contract section 4).
+
+Explicit limitations: no Rational (E22-2); no `/` or `%` on `GeniaDecimal`
+(E22-4); no explicit Float64 domain or `float64`/`exact` conversions
+(E22-5/E22-6); no cross-kind Float64 comparison bridge (E22-7); no
+`numeric-resource-limit` normalization (E22-8); no canonical Decimal
+display/JSON (R23); no C++ host implementation (R24).
+
+## 9.24) R22 E22-2 Rational runtime value and rational(...) (issue #888)
+
+Implements section 3 of `docs/design/r22-exact-numeric-runtime-contract.md`:
+
+- New `GeniaRational` runtime value (`src/genia/numeric_runtime.py`): an
+  exact reduced ratio of two arbitrary-precision Integers. Constructed only
+  through `rational_from_integers(numerator, denominator)`, which enforces
+  the canonical form: nonzero denominator (else `TypeError`), gcd
+  reduction, positive denominator (sign carried by the numerator), and a
+  reduced denominator of `1` collapses to a plain Integer rather than a
+  `GeniaRational` instance.
+- New builtin `rational(numerator, denominator)`: both arguments must be
+  Integer (Python `int`, never `bool`, `GeniaDecimal`, or float); a
+  non-Integer argument or zero denominator is deterministic numeric misuse
+  (`TypeError`, surfaced as `Error: ...` at the CLI). `rational(2, 4)` →
+  `1/2`; `rational(-2, -4)` → `1/2`; `rational(2, -4)` → `-1/2`;
+  `rational(2, 2)` → Integer `1`.
+- Deliberately not wired into R18 equality/map-key reconciliation in this
+  slice — `GeniaRational` is not yet a recognized R18 numeric kind, so
+  `rational(1,2) == rational(1,2)` currently falls to R18's identity-only
+  "unclassified terminal" fallback rather than comparing by mathematical
+  value. Nothing in existing code or specs produces a `GeniaRational` value
+  before this ticket, so this has no regression surface; full R18
+  numeric-kind reconciliation for Rational lands in E22-7. Rational
+  arithmetic (`+ - * / %`) is E22-3/E22-4, not this slice.
+- Shared evidence: 3 new `spec/*` cases (1 eval covering construction/
+  reduction, 2 error covering zero-denominator and non-Integer-argument
+  misuse), proven identical through both the in-process path and the R16
+  subprocess protocol adapter.
+
+Explicit limitations: no Rational arithmetic; no Rational participation in
+`==`/map keys (E22-7); no canonical Rational display/JSON (R23); no Rational
+literal syntax (non-goal, contract section 15).
+
+## 9.25) R22 E22-3 exact-family +, -, *, and unary negation (issue #889)
+
+Implements section 6 of `docs/design/r22-exact-numeric-runtime-contract.md`:
+the full `Integer < Decimal < Rational` promotion lattice for `+`, `-`, `*`,
+and unary negation.
+
+- Integer/Integer arithmetic is native Python `int` arithmetic (unchanged,
+  R17).
+- Integer/Decimal and Decimal/Decimal arithmetic (E22-1's `GeniaDecimal`
+  dunders) is unchanged: exact, and Decimal participation retains Decimal
+  kind even for a mathematically integral result (`1.5 + 0.5` is Decimal
+  `2`, not Integer `2`).
+- Any operand that is a `GeniaRational` produces a Rational result
+  (`src/genia/numeric_runtime.py` `_rational_binop`/`_rational_mul`,
+  reached via Python's binary-operator protocol: `GeniaDecimal`'s dunders
+  return `NotImplemented` for a `GeniaRational` operand so Python retries
+  through `GeniaRational`'s reflected method). Results are exact-fraction
+  cross-multiplication, then reduced and denominator-one-collapsed to
+  Integer through the same `rational_from_integers` E22-2 already
+  established (e.g. `rational(1,2) + rational(1,2)` is Integer `1`,
+  `1 + rational(1,2)` is Rational `3/2`).
+- Unary negation is defined for `GeniaDecimal` (E22-1) and now
+  `GeniaRational`, preserving each value's own domain.
+- Comparison/equality (`< <= > >= == !=`) between `GeniaRational` and any
+  other exact kind is not implemented in this slice (E22-7); `/` and `%`
+  are E22-4.
+- Shared evidence: 1 new `spec/eval/*` case covering the full lattice,
+  proven identical through both the in-process path and the R16 subprocess
+  protocol adapter.
+
+Explicit limitations: no `/` or `%` for Rational (E22-4); no Float64
+(E22-5/E22-6); no Rational comparison/equality/map-key integration (E22-7);
+no `numeric-resource-limit` normalization (E22-8); no canonical display/JSON
+(R23).
+
+## 9.26) R22 E22-4 exact division and floor remainder (issue #890)
+
+Implements sections 7 and 8 of
+`docs/design/r22-exact-numeric-runtime-contract.md`: exact `/` and floor
+`%` for the Integer/Decimal/Rational exact family.
+
+- `/` (`src/genia/numeric_runtime.py` `exact_divide`) follows the
+  division-result table precisely: pure Integer/Integer division is
+  Integer when evenly divisible, otherwise **Rational** -- never Decimal,
+  even when the reduced denominator would otherwise terminate in base 10
+  (`1 / 2` is Rational `1/2`, not Decimal `0.5`). A Decimal operand
+  participating (and no Rational) yields Decimal when the reduced quotient
+  terminates in base 10 (denominator has no prime factors other than 2 and
+  5) -- retaining Decimal kind even for an integral quotient, matching
+  E22-3's established `+`/`-`/`*` rule -- otherwise Rational. Any Rational
+  operand always yields Rational (subject to E22-2's existing
+  denominator-one collapse to Integer). The evaluator's `SLASH` case
+  (`eval_binary` in `src/genia/evaluator.py`) now dispatches to
+  `exact_divide` whenever both operands are exact-family
+  (`is_exact_numeric`); non-exact operand pairs are unchanged (native `/`,
+  `TypeError` → `none("type-error", ...)`).
+- `%` (`exact_remainder`) is floor remainder: `q = floor(left / right);
+  left % right = left - q * right`, computed via the exact rational
+  quotient's floor and then reusing E22-1/E22-3's already-established `-`
+  and `*` dunders across Integer/Decimal/Rational -- so its result kind
+  follows the same promotion rule as `+`/`-`/`*` (section 6), not the
+  division-domain-selection rule. The evaluator's `PERCENT` case dispatches
+  the same way.
+- Division/remainder by exact zero raises `ZeroDivisionError` with a
+  deterministic, host-independent message (`"exact division by zero"` /
+  `"exact remainder by zero"`) -- deliberately a different exception type
+  than the evaluator's generic mixed-type `TypeError` handling, so it is
+  not silently converted to a returned `none(...)` value: this preserves
+  already-established pre-R22 behavior where zero division terminates
+  evaluation (e.g. actor handler failure via `tests/unit/test_actors.py`).
+- Shared evidence: 4 new `spec/*` cases (2 eval -- the six required proof
+  examples from contract section 7, and positive/negative floor-remainder
+  combinations from section 8 -- and 2 error, division/remainder by zero),
+  proven identical through both the in-process path and the R16 subprocess
+  protocol adapter.
+
+Explicit limitations: no Float64 (E22-5/E22-6); no comparison/equality or
+R18 map-key integration for Rational (E22-7); no `numeric-resource-limit`
+normalization (E22-8); no canonical display/JSON (R23).
+
+## 9.27) R22 E22-5 explicit Float64 value and conversions (issue #891)
+
+Implements sections 4 and 5 of
+`docs/design/r22-exact-numeric-runtime-contract.md`: `float64(...)` and
+`exact(...)`.
+
+- Float64 has no dedicated wrapper class: a Python `float` already is
+  exactly one IEEE-754 binary64 bit pattern, which is precisely what the
+  contract defines Float64 to be, and R18 already treats host `float` as a
+  first-class Genia kind with correct NaN/signed-zero/infinity equality
+  semantics.
+- `float64(value)` (`src/genia/numeric_runtime.py` `to_float64`): accepts
+  Integer/Decimal/Rational or an existing Float64 (returned unchanged).
+  Exact input converts via Python's `numerator / denominator` true division
+  on the value's exact `(numerator, denominator)` fraction -- CPython
+  specifies and implements this as correctly rounded to the nearest
+  representable float, ties-to-even, which is exactly round-to-nearest
+  ties-to-even. Exact magnitude beyond the largest finite binary64 value
+  fails with `OverflowError` (Python's own big-int true division already
+  raises this) rather than silently producing infinity. Exact mathematical
+  zero converts to positive Float64 zero (no exact value is ever
+  negative-zero: Integer 0, canonical zero-identity-free `GeniaDecimal`,
+  and the fact that `GeniaRational` can never itself be zero together
+  guarantee this).
+- `exact(value)` (`exact`): Integer/Decimal/Rational unchanged. A finite
+  Float64 converts to the Decimal denoting the *exact* real value its
+  binary64 bits represent, via `float.as_integer_ratio()` (CPython
+  guarantees this is the exact, unrounded fraction; the denominator is
+  always a power of two) scaled by the matching power of five into an
+  exact power-of-ten denominator -- never through float repr/str text.
+  Float64 `+0.0`/`-0.0` both convert to canonical Decimal zero. NaN and
+  +/-infinity are deterministic conversion failures (`ValueError`).
+  Reproduces the contract's own worked example exactly:
+  `exact(float64(0.1))` denotes
+  `0.1000000000000000055511151231257827021181583404541015625`.
+- Both are registered as ordinary Genia builtins (`float64`, `exact`) via
+  `_host_function_group` in `src/genia/builtins.py`, documented in
+  `src/genia/host_builtin_docs.py`.
+- Shared evidence: 3 new `spec/*` cases (1 eval covering the round-trip
+  including the exact `0.1` proof, 2 error covering magnitude overflow and
+  NaN rejection -- the latter via the private R18 conformance test seam,
+  since R22 exposes no public NaN constructor), proven identical through
+  both the in-process path and the R16 subprocess protocol adapter.
+
+Explicit limitations: no Float64 arithmetic (E22-6); no mixed exact/Float64
+rejection enforcement yet (E22-6); no Float64 participation in R18
+comparison/equality bridge (E22-7); no `numeric-resource-limit`
+normalization (E22-8); no canonical display/JSON (R23).
+
+## 9.28) R22 E22-6 Float64 arithmetic and mixed-domain rejection (issue #892)
+
+Implements section 9 of
+`docs/design/r22-exact-numeric-runtime-contract.md`.
+
+- Float64-with-Float64 unary `-`, `+`, `-`, `*`, `/`, `%` needed no new
+  implementation: a Python `float` already is one IEEE-754 binary64 value,
+  and its native operators already are round-to-nearest-ties-to-even. `%`
+  is Python's native float floor remainder, which already matches the
+  contract's "floor remainder over represented operands, rounded to
+  binary64" definition.
+- Division/remainder by Float64 zero (`src/genia/evaluator.py`
+  `eval_binary`'s `SLASH`/`PERCENT` cases) now raises a deterministic,
+  explicitly-authored `ZeroDivisionError` (`"float64 division by zero"` /
+  `"float64 remainder by zero"`) before reaching Python's native operator
+  -- Python's native float division/remainder by zero already raises
+  `ZeroDivisionError` rather than silently producing infinity/NaN, so this
+  only replaces its message text with one this project authors, matching
+  E22-4's exact-family precedent.
+- Mixed exact/Float64 arithmetic is now explicitly rejected
+  (`src/genia/numeric_runtime.py` `is_mixed_exact_and_float64`, checked at
+  the top of every arithmetic case in `eval_binary`): Python's own numeric
+  tower otherwise lets a bare `int` freely interoperate with `float`
+  (e.g. `1 + 2.5` previously silently produced a host float), which is
+  exactly the R22 contract's mixed-domain violation for plain Integer;
+  `GeniaDecimal`/`GeniaRational` mixing with `float` already failed
+  correctly via the existing type-mismatch `TypeError` path (E22-1/E22-2),
+  so this closes the one remaining gap. Rejected in both operand orders
+  and for all five binary arithmetic operators, returning the same
+  `none("type-error", ...)` value the evaluator already returns for any
+  other type mismatch -- not a new diagnostic tag. The caller must
+  explicitly choose a domain with `float64(...)` or `exact(...)` first.
+  Comparison operators are unaffected (out of this slice's scope --
+  E22-7 owns the exact/Float64 comparison bridge).
+- Shared evidence: 4 new `spec/*` cases (2 eval -- Float64-with-Float64
+  arithmetic, and mixed-domain rejection across all five operators/both
+  orders/all three exact kinds -- and 2 error, division/remainder by
+  Float64 zero), proven identical through both the in-process path and the
+  R16 subprocess protocol adapter.
+
+Explicit limitations: no Float64 in R18 comparison/equality bridge (E22-7);
+no `numeric-resource-limit` normalization (E22-8); no canonical
+display/JSON (R23).
+
+## 9.29) R22 E22-7 mathematical comparison, equality, and R18 map-key reconciliation (issue #893)
+
+Implements section 10 of `docs/design/r22-exact-numeric-runtime-contract.md`,
+integrating Decimal/Rational/Float64 into R18's single equality/key
+relation (`docs/design/r18-portable-value-equality-contract.md`) rather
+than introducing a second relation.
+
+- **10.1 exact family**: `src/genia/equality.py` `_numeric_equal` is
+  rewritten around one uniform exact-fraction cross-multiplication
+  (`_exact_fraction`) covering Integer/Decimal/Rational (including plain
+  Integer/Integer), replacing the previous pairwise special-cased
+  functions. `1 == 1.0`, `1.0 == 1.00`, and `1 == rational(2, 2)` all hold.
+  Ordering (`< <= > >=`) is a new `numeric_order` function
+  (`src/genia/numeric_runtime.py`) reused by `GeniaDecimal`'s existing
+  comparison dunders (now generalized beyond Integer/Decimal) and new
+  `GeniaRational` comparison dunders -- Python's own operator-reflection
+  protocol (`NotImplemented` → the other operand's reflected method) makes
+  every Integer/Decimal/Rational pairing resolve correctly without new
+  evaluator dispatch.
+- **10.2 Float64 bridge**: the same `numeric_order`/`_numeric_equal`
+  machinery treats a finite Float64 by its own exact represented value
+  (`float.as_integer_ratio()`, CPython-guaranteed exact) cross-multiplied
+  against the exact operand's fraction -- the exact operand is never
+  rounded to Float64. `+0.0`/`-0.0` equal exact zero. NaN is unequal to
+  everything including itself and every ordered comparison involving it is
+  `false` (not raised). Infinities use extended-real ordering (below every
+  finite value when negative, above when positive). This bridge is
+  equality/comparison only; E22-6's mixed-domain arithmetic rejection is
+  unaffected and unchanged.
+- **10.3 map keys**: `canonical_map_key` now produces one unified
+  `("num-fraction", numerator, denominator)` bucket (always in lowest
+  terms) for any non-integral Decimal, Rational, or float, so an
+  equal-valued key of any of those three kinds collides into the same
+  entry; an integral value of any kind still collapses into the existing
+  `("num", int_value)` bucket. NaN remains an illegal key (no exact value
+  can ever be NaN, so this only constrains the Float64 side). Infinities
+  keep their own distinct-by-sign bucket and never collide with any finite
+  key.
+- Shared evidence: 3 new `spec/*` eval cases (exact-family equality,
+  exact-family-and-Float64 ordering, and cross-kind map-key collision
+  including through `float64(...)`), proven identical through both the
+  in-process path and the R16 subprocess protocol adapter. The full
+  pre-existing R18 spec/test suite (`tests/spec/test_r18_*.py`,
+  `tests/unit/test_r18_*.py`) was re-run and remains green with zero
+  changes required to its expectations.
+
+Explicit limitations: no `numeric-resource-limit` normalization (E22-8);
+no canonical display/JSON (R23).
+
+## 9.30) R22 E22-8 numeric misuse, resource limits, and diagnostic normalization (issue #894)
+
+Implements sections 11 and 13 of
+`docs/design/r22-exact-numeric-runtime-contract.md`. Primarily a
+verification slice: every deterministic numeric-misuse family introduced
+by E22-1 through E22-7 was audited directly through the CLI and confirmed
+already free of raw host exception text (exact/Float64 division and
+remainder by zero, invalid `rational(...)` arguments/zero denominator,
+invalid `float64`/`exact` conversion, mixed exact/Float64 arithmetic,
+illegal NaN map key) -- no changes were needed to any of those paths.
+
+- `numeric-resource-limit` (`src/genia/numeric_runtime.py`
+  `NumericResourceLimitError`, `_check_resource_limit`): a private,
+  non-public bound (default 14,000 bits) on a `GeniaDecimal` coefficient/
+  exponent or `GeniaRational` numerator/denominator's magnitude, checked
+  on raw input before any expensive canonicalization/gcd work. The bound
+  is deliberately kept below CPython's own int-to-decimal-text conversion
+  guard (`sys.get_int_max_str_digits()`, 4300 digits by default) --
+  auditing this slice's own construction paths surfaced a genuine
+  pre-existing gap: `GeniaDecimal`'s canonicalization converts the
+  coefficient to base-10 text to strip trailing zeros, and for an
+  astronomically large coefficient this previously hit Python's guard
+  directly, leaking a raw `ValueError` mentioning
+  `sys.set_int_max_str_digits` -- exactly the "raw host/library text
+  crosses the portable boundary" failure R22 forbids. The resource check
+  now runs first and pre-empts that leak with this project's own
+  deterministic `"numeric-resource-limit"` diagnostic.
+- A private, non-Genia-source-reachable test seam
+  (`_numeric_resource_limit_test_seam`, a context manager) temporarily
+  lowers the bound for deterministic test coverage, per contract section
+  11's own allowance that the threshold is a host/test detail, never
+  public Genia semantics; shared conformance never depends on its value.
+  `NumericResourceLimitError` propagates uncaught (like zero-division)
+  rather than being silently converted to a returned value, consistent
+  with the established precedent that numeric misuse terminates
+  evaluation rather than the caller continuing past it.
+- Explicitly not disguised as numeric overflow (`OverflowError`, reserved
+  for `float64`'s genuine binary64 magnitude overflow) or a type mismatch
+  (`TypeError`) -- it is its own exception kind.
+
+Explicit limitations: no canonical display/JSON (R23); the resource-limit
+bound applies only to `GeniaDecimal`/`GeniaRational` construction, not to
+R17 plain Integer arithmetic, which remains fully unbounded as before.
+
+## 9.31) R22 E22-9 cross-surface conformance and compatibility hardening (issue #895)
+
+Audits the whole merged R22 runtime model (E22-1..E22-8) across surfaces
+outside the evaluator's core arithmetic dispatch and repairs the
+compatibility defects genuinely caused by R22. Per
+`docs/design/r22-exact-numeric-runtime-contract.md`, no R23 rendering/JSON
+policy is introduced by this slice.
+
+Genuine defects found and fixed:
+
+- **Quoted/metacircular literal materialization**
+  (`src/genia/evaluator.py` `quote_node`, `quasiquote_node`'s internal
+  `qq`): both reconstructed a quoted `Number` AST node by returning its raw
+  `node.value` -- the pre-R21 evaluator-facing field, which for a
+  decimal-source literal is still a bare Python `float`. Ordinary
+  (non-quoted) evaluation instead lowers `Number` through the R21 tagged
+  `IrLiteral` payload into a genuine `GeniaDecimal` via
+  `numeric_literal_runtime_value`. `quote(1.5)` therefore silently produced
+  a Float64 instead of a Decimal, and any later `eval` of that quoted
+  structure carried the wrong runtime kind permanently. Both call sites now
+  route a `Number` node through
+  `numeric_literal_runtime_value(numeric_literal_payload(node))`, matching
+  ordinary evaluation exactly.
+- **Metacircular self-evaluating-literal predicate**
+  (`src/genia/builtins.py` `syntax_self_evaluating_fn`, backing
+  `self_evaluating?` in `std/prelude/eval.genia`): recognized only Python
+  `bool`/`int`/`float`/`str` as self-evaluating, so `eval(<GeniaDecimal>,
+  env)` or `eval(<GeniaRational>, env)` unconditionally raised
+  `"metacircular eval does not support expression"` even though the value
+  was already a legitimate self-evaluating literal. Now also recognizes
+  `GeniaDecimal`/`GeniaRational`.
+- **Sheets `render_csv` scalar rendering** (`src/genia/sheet.py`
+  `_csv_scalar_text`): accepted `GeniaDecimal` (fixed in E22-1) but not
+  `GeniaRational`, which is a separate dataclass, not a `GeniaDecimal`
+  subclass -- a Rational-valued cell crashed `render_csv`. Now accepts
+  both.
+- **Retrieval finite-score gating** (`src/genia/retrieval.py`
+  `_is_finite_score`): accepted `GeniaDecimal` (fixed in E22-1) but not
+  `GeniaRational`, silently treating a perfectly valid, always-finite
+  Rational evidence score as not finite. Now accepts both.
+
+Audited and confirmed already correct, no change needed: optimizer/
+constant-folding (`src/genia/optimizer.py` has no arithmetic constant
+folding at all; its only numeric-literal-aware logic already calls
+`numeric_literal_runtime_value` on the tagged payload rather than raw dict
+inspection); pattern matching (`src/genia/pattern_match.py` already
+dispatches literal-pattern comparison through the shared `genia_equal`
+relation, not raw `==`); `json_encode` (already produces a clean R19-style
+diagnostic for an unsupported-for-JSON `GeniaDecimal`/`GeniaRational`
+rather than crashing -- JSON policy itself remains R23); host subprocess
+protocol adapter (round-trips exact numeric kinds through the same
+`format_debug`/print machinery the evaluator's core dispatch already uses
+correctly, not a separate numeric-aware marshalling path); CLI/Flow
+execution (no numeric-type-specific logic of their own).
+
+Explicit limitations: no canonical display/JSON (R23); `json_stringify`'s
+existing (pre-R22, applies to every unsupported-for-JSON type, not
+Decimal/Rational-specific) diagnostic-message shape was not touched, since
+it is not a defect this slice's scope attributes to R22.
 
 ## 10) Explicitly not implemented (current)
 

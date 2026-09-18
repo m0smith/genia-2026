@@ -14,10 +14,10 @@ from pathlib import Path
 
 import pytest
 
+import tools.spec_runner.runner as runner_module
 from tools.spec_runner.comparator import compare_spec
 from tools.spec_runner.executor import ActualResult, execute_spec
 from tools.spec_runner.loader import LoadedSpec, discover_specs, load_spec
-from tools.spec_runner.runner import main as run_spec_suite
 
 pytestmark = [pytest.mark.spec, pytest.mark.slow]
 
@@ -221,14 +221,28 @@ def test_compare_spec_parse_error_message_mismatch() -> None:
 # End-to-end runner test
 # ---------------------------------------------------------------------------
 
-def test_runner_includes_parse_specs_in_total(capsys: pytest.CaptureFixture[str]) -> None:
-    """The main spec runner must include parse specs in the total count."""
-    run_spec_suite()
+def test_runner_includes_parse_specs_in_total(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The runner counts a discovered parse spec without running the full suite."""
+    parse_spec = _parse_spec(
+        name="bounded-parse-integration",
+        source="42",
+        expected_parse={"kind": "ok", "ast": {"kind": "Literal", "value": 42}},
+    )
+    executed: list[str] = []
+
+    monkeypatch.setattr(runner_module, "discover_specs", lambda: ([parse_spec], []))
+
+    def execute_bounded_spec(spec: LoadedSpec) -> ActualResult:
+        executed.append(spec.name)
+        return ActualResult(parse=spec.expected_parse)
+
+    monkeypatch.setattr(runner_module, "execute_spec", execute_bounded_spec)
+
+    exit_code = runner_module.main([])
     captured = capsys.readouterr()
-    # Extract total from "Summary: total=N ..."
-    import re
-    m = re.search(r"total=(\d+)", captured.out)
-    assert m is not None, "No summary line in runner output"
-    total = int(m.group(1))
-    # After integration, parse specs (3 new) must be counted
-    assert total >= 3, f"Expected at least 3 parse specs in total; got total={total}"
+
+    assert exit_code == 0
+    assert executed == ["bounded-parse-integration"]
+    assert "Summary: total=1 passed=1 failed=0 invalid=0" in captured.out

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable
 
+from .numeric_runtime import GeniaDecimal, GeniaRational
 from .values import GeniaMap, GeniaSymbol, _is_nil_none, _runtime_type_name, symbol
 from .configuration import contains_declassification_authority, contains_protected
 
@@ -219,7 +220,7 @@ def _csv_scalar_text(value: Any, location: str) -> str:
         return value.name
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, (int, float)):
+    if isinstance(value, (int, float, GeniaDecimal, GeniaRational)):
         return str(value)
     raise _sheet_error(
         f"render_csv expected CSV scalar {location}; received {_runtime_type_name(value)}"

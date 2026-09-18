@@ -6,9 +6,7 @@ description: >-
   legal map key either. Rejection applies at any depth.
 input:
   source: |
-    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
-    pinf = big * big * big
-    nan = pinf - pinf
+    nan = __r18_conformance_test_only_nan
     map_put(map_new(), [1, [2, nan]], "value")
 expected:
   stdout: ""
@@ -20,3 +18,7 @@ notes: |
   error_phase: eval
   error_category: TypeError
   contract: docs/design/r18-portable-value-equality-contract.md "Legal map keys and key equivalence"
+  r22_note: >-
+    See r18-map-key-nan-rejected.yaml: R22 E22-1 (issue #887) closed the prior
+    `big * big * big` NaN-reachability technique, so this case now uses the
+    private `__r18_conformance_test_only_nan` host test seam instead.

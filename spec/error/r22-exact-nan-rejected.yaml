@@ -1,0 +1,18 @@
+name: r22-exact-nan-rejected
+category: error
+description: >-
+  R22 E22-5: exact(value) fails deterministically for NaN -- R22 exposes no
+  public NaN constructor (contract section 4), so this uses the same
+  private, non-public host test seam R18's NaN-rejection conformance
+  evidence established (see r18-equality-nan-non-reflexive.yaml).
+input:
+  source: |
+    exact(__r18_conformance_test_only_nan)
+expected:
+  stdout: ""
+  stderr: "Error: exact expected a finite value, received NaN\n"
+  exit_code: 1
+notes: |
+  issue: 891
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 5"

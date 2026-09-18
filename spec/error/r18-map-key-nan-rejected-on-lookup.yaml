@@ -6,9 +6,7 @@ description: >-
   consulted, rather than silently reporting absence.
 input:
   source: |
-    big = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
-    pinf = big * big * big
-    nan = pinf - pinf
+    nan = __r18_conformance_test_only_nan
     map_has?(map_put(map_new(), "a", 1), nan)
 expected:
   stdout: ""
@@ -20,3 +18,7 @@ notes: |
   error_phase: eval
   error_category: TypeError
   contract: docs/design/r18-portable-value-equality-contract.md "Failure boundary"
+  r22_note: >-
+    See r18-map-key-nan-rejected.yaml: R22 E22-1 (issue #887) closed the prior
+    `big * big * big` NaN-reachability technique, so this case now uses the
+    private `__r18_conformance_test_only_nan` host test seam instead.

@@ -1,0 +1,16 @@
+name: r22-float64-remainder-by-zero-rejected
+category: error
+description: >-
+  R22 E22-6: Float64 remainder by Float64 zero is deterministic numeric
+  misuse, never a silent NaN.
+input:
+  source: |
+    float64(1) % float64(0)
+expected:
+  stdout: ""
+  stderr: "Error: float64 remainder by zero\n"
+  exit_code: 1
+notes: |
+  issue: 892
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 9"

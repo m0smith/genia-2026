@@ -124,6 +124,10 @@ nav:
           - "lifecycle_context": reference/functions/lifecycle_context.md
           - "lifecycle_repeat": reference/functions/lifecycle_repeat.md
           - "lifecycle_scope": reference/functions/lifecycle_scope.md
+      - Numeric:
+          - "exact": reference/functions/exact.md
+          - "float64": reference/functions/float64.md
+          - "rational": reference/functions/rational.md
       - Pairs:
           - "car": reference/functions/car.md
           - "cdr": reference/functions/cdr.md

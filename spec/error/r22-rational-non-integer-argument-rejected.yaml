@@ -1,0 +1,16 @@
+name: r22-rational-non-integer-argument-rejected
+category: error
+description: >-
+  R22 E22-2: rational(numerator, denominator) requires both arguments to be
+  Integer; a Decimal argument is deterministic numeric misuse.
+input:
+  source: |
+    rational(1.5, 2)
+expected:
+  stdout: ""
+  stderr: "Error: rational expected an Integer numerator, received decimal\n"
+  exit_code: 1
+notes: |
+  issue: 888
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 3"

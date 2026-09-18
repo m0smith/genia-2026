@@ -132,3 +132,26 @@ Parse specs validate the normalized parse boundary: the parser produces a determ
 - Host-local tests: validate host-specific or implementation details, but do not override shared spec results
 
 **GENIA_STATE.md is the final authority for implemented behavior. All other docs/specs must align with this contract.**
+
+## CI conformance execution
+
+The nightly/manually dispatched regression workflow runs ordinary `tests/spec/`
+pytest coverage with `-m "slow and not full_conformance"` on canonical Python
+3.14. The authoritative Python subprocess-protocol parity test remains a
+complete shared-suite proof and runs in that workflow's dedicated
+`full-conformance` job. It is not repeated for every supported Python version
+because that would repeat the same full semantic inventory through the protocol
+adapter; the regression compatibility matrix establishes supported-Python
+compatibility separately, and no shared case or parity assertion is removed by
+this test selection boundary.
+
+Within `tests/spec/`, `test_spec_ir_runner_blackbox.py` and
+`test_cli_shared_spec_runner.py` execute a small representative sample of
+fixtures per category (not the full corpus) through the real
+`load_spec -> execute_spec -> compare_spec` pipeline, to prove that wiring
+works; they no longer replay every case in `spec/`. The full corpus is still
+proven once per supported Python version in regression CI by the canonical
+`python -m tools.spec_runner` path. The expensive `command_mode_collect_sum`
+CLI fixture is deliberately executed through only one pytest file
+(`test_cli_shared_spec_runner.py`) to avoid being replayed through two
+overlapping pytest paths on every supported Python version.

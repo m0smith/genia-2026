@@ -97,8 +97,13 @@ def test_slash_invalid_rhs_forms_do_not_report_named_access_guidance(run):
 
 
 def test_slash_division_behavior_still_works(run):
+    # R22 E22-4 (issue #890) makes Integer/Integer division exact: evenly
+    # divisible stays Integer, otherwise Rational -- never the pre-R22
+    # host-float truncated quotient.
     assert run("8 / 2") == 4
-    assert run("8 / inc(2)") == 8 / 3
+    result = run("8 / inc(2)")
+    assert type(result).__name__ == "GeniaRational"
+    assert result.numerator == 8 and result.denominator == 3
 
 
 def test_map_callable_and_string_projector_regression(run):

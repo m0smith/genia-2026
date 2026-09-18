@@ -108,10 +108,10 @@ def test_r7_release_page_records_runnable_browser_exchange() -> None:
 
 
 def test_r8_binds_to_r7_without_a_second_cors_mechanism() -> None:
-    roadmap = read_text("docs/strategy/release-roadmap.md")
+    release = read_text("docs/releases/R8.md")
 
-    assert "`@cors` → the R7 `cors` wrapper" in roadmap
-    assert "No second mechanism" in roadmap
+    assert "`@cors` annotation binds to the existing R7 `cors` wrapper" in release
+    assert "No second CORS mechanism" in release
 
 
 def test_authoritative_and_host_inventories_include_landed_r7_helpers() -> None:
@@ -155,15 +155,10 @@ def test_completed_release_status_stays_synchronized() -> None:
     design_index = read_text("docs/design/README.md")
     host_interop = read_text("docs/host-interop/HOST_INTEROP.md")
 
-    assert "Release R7 — Web Serving Ergonomics ✓ COMPLETE" in roadmap
-    assert "Release R8 — Server Execution Mode" in roadmap
-    assert "**Status: Complete.** Explicitly approved infrastructure work delivered after R7." in roadmap
-    assert "Release R9 — Value Templates & Representations" in roadmap
-    assert "**Status: Complete.** E9-1 through E9-7 delivered" in roadmap
-    assert "Release R10 — Configuration & Secrets ✓ COMPLETE" in roadmap
-    assert "**Status: Complete. E10-1 through E10-8 delivered and audited.**" in roadmap
-    assert "Issue #586 approved" in roadmap
-    assert "R10/R11/R12/R13 follow-ups require their own gates" in roadmap
+    assert "| R7 | Web Serving Ergonomics | Complete | `docs/releases/R7.md` |" in roadmap
+    assert "| R8 | Server Execution Mode | Complete | `docs/releases/R8.md` |" in roadmap
+    assert "| R9 | Value Templates & Representations | Complete | `docs/releases/R9.md` |" in roadmap
+    assert "| R10 | Configuration & Secrets | Complete | `docs/releases/R10.md` |" in roadmap
     assert "R7 is complete" in killer_workflow
     assert "R9** completed the value-template and representation work" in killer_workflow
     assert "E10-6 cross-mode hardening" in killer_workflow

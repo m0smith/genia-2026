@@ -122,6 +122,7 @@ if __package__ in (None, ""):
         sheet_where,
     )
     from genia.equality import genia_equal
+    from genia.numeric_runtime import GeniaDecimal, GeniaRational, exact as _numeric_exact, rational_from_integers, to_float64
     from genia.test_kernel import NativeTestFailure
     from genia.values import (
         OPTION_NONE,
@@ -239,6 +240,7 @@ else:
         sheet_where,
     )
     from .equality import genia_equal
+    from .numeric_runtime import GeniaDecimal, GeniaRational, exact as _numeric_exact, rational_from_integers, to_float64
     from .test_kernel import NativeTestFailure
     from .values import (
         OPTION_NONE,
@@ -3262,6 +3264,8 @@ def make_global_env(
             return True
         if isinstance(expr, (int, float)) and not isinstance(expr, bool):
             return True
+        if isinstance(expr, (GeniaDecimal, GeniaRational)):
+            return True
         if isinstance(expr, str):
             return True
         return False
@@ -4424,7 +4428,7 @@ def make_global_env(
             return "boolean"
         if isinstance(value, int):
             return "integer"
-        if isinstance(value, float):
+        if isinstance(value, (float, GeniaDecimal)):
             return "number"
         if isinstance(value, GeniaSymbol):
             return "symbol"
@@ -4449,7 +4453,7 @@ def make_global_env(
             return isinstance(value, int) and not isinstance(value, bool)
         if type_name == "number":
             return (
-                isinstance(value, (int, float))
+                isinstance(value, (int, float, GeniaDecimal))
                 and not isinstance(value, bool)
                 and (not isinstance(value, float) or math.isfinite(value))
             )
@@ -4726,7 +4730,7 @@ def make_global_env(
             return symbol("null")
         if isinstance(value, bool):
             return symbol("bool")
-        if isinstance(value, (int, float)):
+        if isinstance(value, (int, float, GeniaDecimal)):
             return symbol("number")
         if isinstance(value, str):
             return symbol("string")
@@ -5541,6 +5545,46 @@ def make_global_env(
         )
 
     env.set("chunk", _host_function_group("chunk", 2, chunk_fn))
+
+    def rational_fn(numerator: Any, denominator: Any) -> Any:
+        """R22 E22-2: exact Rational runtime value constructor.
+
+        docs/design/r22-exact-numeric-runtime-contract.md section 3. Both
+        arguments must be Integer (Python int, never bool, never
+        GeniaDecimal/GeniaRational/float). Zero denominator and non-Integer
+        arguments are deterministic numeric misuse (TypeError).
+        """
+        if isinstance(numerator, bool) or not isinstance(numerator, int):
+            raise TypeError(
+                f"rational expected an Integer numerator, received {_runtime_type_name(numerator)}"
+            )
+        if isinstance(denominator, bool) or not isinstance(denominator, int):
+            raise TypeError(
+                f"rational expected an Integer denominator, received {_runtime_type_name(denominator)}"
+            )
+        if denominator == 0:
+            raise TypeError("rational expected a nonzero denominator")
+        return rational_from_integers(numerator, denominator)
+
+    env.set("rational", _host_function_group("rational", 2, rational_fn))
+
+    def float64_fn(value: Any) -> Any:
+        """R22 E22-5: explicit Float64 conversion.
+
+        docs/design/r22-exact-numeric-runtime-contract.md section 4.
+        """
+        return to_float64(value)
+
+    env.set("float64", _host_function_group("float64", 1, float64_fn))
+
+    def exact_fn(value: Any) -> Any:
+        """R22 E22-5: Float64-to-exact conversion.
+
+        docs/design/r22-exact-numeric-runtime-contract.md section 5.
+        """
+        return _numeric_exact(value)
+
+    env.set("exact", _host_function_group("exact", 1, exact_fn))
     env.set(
         "refinement_match",
         _host_function_group("refinement_match", 2, refinement_match_fn),
@@ -5631,6 +5675,18 @@ def make_global_env(
     env.set("render_csv", _host_function_group("render_csv", 1, render_sheet_csv))
     env.set("pi", math.pi)
     env.set("e", math.e)
+    # R18 conformance test seam only (docs/design/r18-portable-value-equality-contract.md
+    # "Failure boundary": NaN/legal-key rejection). Not part of the public R22
+    # numeric surface: R22 exposes no direct public NaN/infinity/raw-bit
+    # constructor (docs/design/r22-exact-numeric-runtime-contract.md section 4).
+    # Before R22 E22-1, R18's NaN-rejection specs reached a host float NaN as
+    # an accidental byproduct of Decimal literals materializing as host float;
+    # E22-1 retires that shim (Decimal is now exact and never overflows), which
+    # closed the only prior Genia-source path to NaN. This seam exists solely so
+    # R18's already-approved "NaN is not a legal map key" conformance evidence
+    # (issue #792) stays testable; it must never become documented public
+    # Genia semantics or be relied on by ordinary Genia source.
+    env.set("__r18_conformance_test_only_nan", math.nan)
     env.set("true", True)
     env.set("false", False)
     env.set("nil", OPTION_NONE)

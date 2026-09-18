@@ -14,8 +14,11 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
+from genia.numeric_runtime import GeniaDecimal
 from genia.utf8 import format_debug, format_display
 from genia.values import GeniaMap
+
+_NUMERIC_TYPES = (int, float, GeniaDecimal)
 
 
 # ---------------------------------------------------------------------------
@@ -198,13 +201,13 @@ def apply_format_spec(value: Any, spec: str) -> str:
             raise ValueError(f"format-error: format spec {spec!r} requires string or numeric value")
         if isinstance(value, str):
             return value[:n]
-        if isinstance(value, (int, float)):
+        if isinstance(value, _NUMERIC_TYPES):
             return _format_numeric_precision(value, n)
         raise ValueError(f"format-error: format spec {spec!r} requires string or numeric value")
 
     if spec[0] == "0" and len(spec) > 1 and spec[1:].isdigit():
         width = int(spec)
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, _NUMERIC_TYPES):
             raise ValueError(f"format-error: format spec {spec!r} requires numeric value")
         text = format_display(value)
         if len(text) >= width:
@@ -214,7 +217,7 @@ def apply_format_spec(value: Any, spec: str) -> str:
         return "0" * (width - len(text)) + text
 
     if spec == ",":
-        if isinstance(value, bool) or not isinstance(value, (int, float)):
+        if isinstance(value, bool) or not isinstance(value, _NUMERIC_TYPES):
             raise ValueError("format-error: format spec ',' requires numeric value")
         return _format_grouping(value)
 

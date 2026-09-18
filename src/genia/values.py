@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Iterator
 
 from .errors import GeniaQuietBrokenPipe, format_exception_text
+from .numeric_runtime import GeniaDecimal
 
 
 def _runtime_type_name(value: Any) -> str:
@@ -23,6 +24,8 @@ def _runtime_type_name(value: Any) -> str:
         return "bool"
     if isinstance(value, int):
         return "int"
+    if isinstance(value, GeniaDecimal):
+        return "decimal"
     if isinstance(value, float):
         return "float"
     if isinstance(value, str):

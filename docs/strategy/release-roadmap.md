@@ -32,7 +32,12 @@ New release work should strengthen this workflow unless explicitly approved as i
 
 ## Current state
 
-R15 through R21 are complete. Python remains the only implemented production host; `m0smith/genia-cpp` is still a non-semantic bootstrap shell with no interpreter. See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
+R15 through R22 are complete (`docs/releases/R22.md`; E22-11's skeptical
+release truth audit recorded PASS in
+`docs/analysis/r22-release-truth-audit.md`). Python remains the only
+implemented production host; `m0smith/genia-cpp` is still a non-semantic
+bootstrap shell with no interpreter. See the corresponding release pages
+and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
 
@@ -87,8 +92,12 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 
 - Release R7 — Web Serving Ergonomics ✓ COMPLETE
 - Release R8 — Server Execution Mode ✓ COMPLETE
+  - **Status: Complete.** Explicitly approved infrastructure work delivered after R7.
+  - Bind-down principle: `@cors` → the R7 `cors` wrapper. No second mechanism.
 - Release R9 — Value Templates & Representations ✓ COMPLETE
+  - **Status: Complete.** E9-1 through E9-7 delivered the approved behavior; E9-8 completed the release truth audit.
 - Release R10 — Configuration & Secrets ✓ COMPLETE
+  - **Status: Complete. E10-1 through E10-8 delivered and audited.** Issue #586 approved the durable contract. R10/R11/R12/R13 follow-ups require their own gates.
 - Release R11 — AI Composition ✓ COMPLETE; E11-1 through E11-8 complete
 - Release R12 — Retrieval & Grounding ✓ COMPLETE
 - Release R13 — Configuration Resolution Ergonomics ✓ COMPLETE
@@ -126,7 +135,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R19 | Unicode and Diagnostic Portability Contract | Complete | `docs/releases/R19.md` |
 | R20 | Open Functions and Extensible Pattern Dispatch | Complete | `docs/releases/R20.md` |
 | R21 | Numeric Source and Portable Representation | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R22 | Exact Numeric Runtime | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R22 | Exact Numeric Runtime | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | Numeric Representation and Interchange | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R25 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |

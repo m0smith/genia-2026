@@ -52,7 +52,8 @@ if __package__ in (None, ""):
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from genia.lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
-    from genia.numeric_source import numeric_literal_runtime_value
+    from genia.numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric, is_mixed_exact_and_float64
+    from genia.numeric_source import numeric_literal_payload, numeric_literal_runtime_value
     from genia.server_config_binding import validate_server_descriptor
     from genia.server_cors_binding import validate_cors_descriptor
     from genia.server_route_binding import validate_route_descriptor
@@ -96,7 +97,8 @@ else:
         OpenFunctionRedeclarationError, OpenFunctionTargetNotOpenError,
     )
     from .lowering import lower_node, _lambda_pattern_is_simple_parameter_shape
-    from .numeric_source import numeric_literal_runtime_value
+    from .numeric_runtime import GeniaDecimal, exact_divide, exact_remainder, is_exact_numeric, is_mixed_exact_and_float64
+    from .numeric_source import numeric_literal_payload, numeric_literal_runtime_value
     from .server_config_binding import validate_server_descriptor
     from .server_cors_binding import validate_cors_descriptor
     from .server_route_binding import validate_route_descriptor
@@ -132,7 +134,7 @@ def quote_node(node: Node) -> Any:
         return result
 
     if isinstance(node, Number):
-        return node.value
+        return numeric_literal_runtime_value(numeric_literal_payload(node))
     if isinstance(node, String):
         return node.value
     if isinstance(node, Boolean):
@@ -305,7 +307,7 @@ def quasiquote_node(
 
     def qq(current: Node, depth: int, *, list_context: bool = False) -> Any:
         if isinstance(current, Number):
-            return current.value
+            return numeric_literal_runtime_value(numeric_literal_payload(current))
         if isinstance(current, String):
             return current.value
         if isinstance(current, Boolean):
@@ -1142,7 +1144,7 @@ class Evaluator:
             return value.encode("utf-8")
         if isinstance(value, bool):
             return format_display(value).encode("utf-8")
-        if isinstance(value, (int, float)):
+        if isinstance(value, (int, float, GeniaDecimal)):
             return format_display(value).encode("utf-8")
         if isinstance(value, list):
             return "\n".join(format_display(item) for item in value).encode("utf-8")
@@ -1616,26 +1618,44 @@ class Evaluator:
             return right
         match node.op:
             case "PLUS":
+                if is_mixed_exact_and_float64(left, right):
+                    return make_none("type-error", GeniaMap().put("source", "+").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
                 try:
                     return left + right
                 except TypeError:
                     return make_none("type-error", GeniaMap().put("source", "+").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "MINUS":
+                if is_mixed_exact_and_float64(left, right):
+                    return make_none("type-error", GeniaMap().put("source", "-").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
                 try:
                     return left - right
                 except TypeError:
                     return make_none("type-error", GeniaMap().put("source", "-").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "STAR":
+                if is_mixed_exact_and_float64(left, right):
+                    return make_none("type-error", GeniaMap().put("source", "*").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
                 try:
                     return left * right
                 except TypeError:
                     return make_none("type-error", GeniaMap().put("source", "*").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "SLASH":
+                if is_mixed_exact_and_float64(left, right):
+                    return make_none("type-error", GeniaMap().put("source", "/").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
+                if is_exact_numeric(left) and is_exact_numeric(right):
+                    return exact_divide(left, right)
+                if isinstance(left, float) and isinstance(right, float) and right == 0.0:
+                    raise ZeroDivisionError("float64 division by zero")
                 try:
                     return left / right
                 except TypeError:
                     return make_none("type-error", GeniaMap().put("source", "/").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
             case "PERCENT":
+                if is_mixed_exact_and_float64(left, right):
+                    return make_none("type-error", GeniaMap().put("source", "%").put("left", _runtime_type_name(left)).put("right", _runtime_type_name(right)))
+                if is_exact_numeric(left) and is_exact_numeric(right):
+                    return exact_remainder(left, right)
+                if isinstance(left, float) and isinstance(right, float) and right == 0.0:
+                    raise ZeroDivisionError("float64 remainder by zero")
                 try:
                     return left % right
                 except TypeError:

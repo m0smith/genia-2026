@@ -89,9 +89,11 @@ def exec_cli(spec) -> dict:
             "test mode requires test only."
         )
 
+    child_stdin = subprocess.DEVNULL if command and stdin_text == "" else None
     completed = subprocess.run(
         argv,
         cwd=str(REPO_ROOT),
+        stdin=child_stdin,
         input=stdin if stdin is not None else None,
         capture_output=True,
         text=True,

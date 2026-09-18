@@ -418,9 +418,21 @@ Puzzle format and stage vocabulary are documented in `examples/zip_json_puzzle.m
 
 ## Requirements
 
- - Python >=3.8 (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
+- Python 3.10 or newer (see [pyproject.toml](https://github.com/m0smith/genia-2026/blob/main/pyproject.toml))
 
-CI tests against Python 3.8 through 3.14. Python 3.15 (stable release expected 2026-10-01) is also run on an allowed-to-fail (`continue-on-error`) basis so upcoming breakage surfaces early without blocking the build.
+Genia supports the stable CPython releases from Python 3.10 through 3.14. Genia
+follows the upstream CPython support lifecycle; end-of-life Python releases are
+not part of the supported range. Routine push and pull-request CI uses the latest
+stable Python, currently Python 3.14, for fast feedback. A separate nightly and
+manually dispatchable regression workflow validates the full supported-Python
+matrix. Python 3.15 is tracked there experimentally on an allowed-to-fail
+(`continue-on-error`) basis until it becomes stable.
+
+The regression workflow also runs slow unit, spec, and demo coverage plus the
+authoritative full Python subprocess-protocol parity proof on canonical Python
+3.14. Keeping the deepest behavioral proof on one canonical interpreter avoids
+pointlessly multiplying it across the compatibility matrix while preserving the
+complete proof outside the routine development loop.
 
 Run tests:
 

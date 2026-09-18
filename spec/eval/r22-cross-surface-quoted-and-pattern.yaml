@@ -1,0 +1,27 @@
+name: r22-cross-surface-quoted-and-pattern
+category: eval
+description: >-
+  R22 E22-9 cross-surface conformance: quoted/quasiquoted decimal literals
+  and metacircular self-evaluation produce the same exact GeniaDecimal
+  ordinary evaluation would (not a Float64 stand-in), and literal-pattern
+  matching uses the R22 section 10.1 mathematical equality relation across
+  Integer/Decimal kinds, not raw host equality.
+input:
+  source: |
+    classify(x) =
+      1.0 -> "matched" |
+      _ -> "no-match"
+    [
+      quote(1.5) == 1.5,
+      quasiquote(1.5) == 1.5,
+      eval(quote(1.5), empty_env()) == 1.5,
+      classify(1),
+    ]
+expected:
+  stdout: "[true, true, true, \"matched\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 895
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "sections 2, 10.1"

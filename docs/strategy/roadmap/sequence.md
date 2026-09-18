@@ -44,10 +44,10 @@ R19 — Unicode & Diagnostic Portability Contract ✓ COMPLETE
 R20 — Open Functions & Extensible Pattern Dispatch ✓ COMPLETE
  |
  v
-R21 — Numeric Source & Portable Representation
+R21 — Numeric Source & Portable Representation ✓ COMPLETE
  |
  v
-R22 — Exact Numeric Runtime
+R22 — Exact Numeric Runtime ✓ COMPLETE
  |
  v
 R23 — Numeric Representation & Interchange
@@ -127,4 +127,4 @@ R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. These releases consume prior equality, lifecycle, host-protocol, and authority boundaries rather than inventing local substitutes.
 
-R8 through R21 are complete. R22 through R37 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R22 are complete. R23 through R37 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.

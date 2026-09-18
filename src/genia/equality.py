@@ -35,6 +35,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from .numeric_runtime import GeniaDecimal, GeniaRational, decimal_as_fraction
 from .sheet import GeniaSheet
 from .values import (
     GeniaBytes,
@@ -162,29 +163,40 @@ def _token_identity(value: Any) -> Any:
 # ---------------------------------------------------------------------------
 
 
-def _int_equals_float(integer: int, number: float) -> bool:
-    """Exact integer/float equality.
+def _is_exact_numeric_kind(value: Any) -> bool:
+    """True for Integer/Decimal/Rational -- the R22 exact family."""
+    return isinstance(value, (int, GeniaDecimal, GeniaRational))
 
-    Deliberately never converts ``integer`` to a float: R17 integers are
-    arbitrary precision and such a conversion would lose precision or overflow.
-    Instead the float — which is finite and integral, and therefore exactly an
-    integer — is converted upward, and two exact integers are compared.
+
+def _exact_fraction(value: Any) -> tuple[int, int]:
+    """Return (numerator, denominator > 0) for an exact-family value.
+
+    Caller guarantees ``value`` satisfies ``_is_exact_numeric_kind``.
     """
-    if not math.isfinite(number):
-        return False
-    if not number.is_integer():
-        return False
-    return integer == int(number)
+    if isinstance(value, int):
+        return value, 1
+    if isinstance(value, GeniaDecimal):
+        return decimal_as_fraction(value)
+    return value.numerator, value.denominator  # GeniaRational
 
 
 def _numeric_equal(left: Any, right: Any) -> bool:
-    left_is_int = isinstance(left, int)
-    right_is_int = isinstance(right, int)
+    """Equality across Integer, Decimal, Rational, and Float64 (R22 contract
+    section 10.1/10.2). Every exact-family pair (including plain
+    Integer/Integer) is decided by exact-fraction cross-multiplication --
+    R17 integers are never narrowed and no exact operand is ever rounded to
+    a host float. The Float64 bridge decomposes the float's own exact
+    represented value (never rounds the exact side to Float64) via
+    ``float.as_integer_ratio()``, which CPython guarantees is exact.
+    """
     left_is_float = isinstance(left, float)
     right_is_float = isinstance(right, float)
+    left_is_exact = _is_exact_numeric_kind(left)
+    right_is_exact = _is_exact_numeric_kind(right)
 
-    if left_is_int and right_is_int:
-        return left == right
+    if not (left_is_float or left_is_exact) or not (right_is_float or right_is_exact):
+        return False
+
     if left_is_float and right_is_float:
         # NaN is unequal to everything, including itself. Every other case is
         # IEEE-754 equality, which already gives 0.0 == -0.0 and matching
@@ -192,11 +204,20 @@ def _numeric_equal(left: Any, right: Any) -> bool:
         if math.isnan(left) or math.isnan(right):
             return False
         return left == right
-    if left_is_int and right_is_float:
-        return _int_equals_float(left, right)
-    if left_is_float and right_is_int:
-        return _int_equals_float(right, left)
-    return False
+
+    if left_is_float or right_is_float:
+        float_value = left if left_is_float else right
+        exact_value = right if left_is_float else left
+        if math.isnan(float_value) or math.isinf(float_value):
+            # No exact value is ever NaN or infinite, so neither can equal one.
+            return False
+        float_numerator, float_denominator = float_value.as_integer_ratio()
+        exact_numerator, exact_denominator = _exact_fraction(exact_value)
+        return float_numerator * exact_denominator == exact_numerator * float_denominator
+
+    left_numerator, left_denominator = _exact_fraction(left)
+    right_numerator, right_denominator = _exact_fraction(right)
+    return left_numerator * right_denominator == right_numerator * left_denominator
 
 
 # ---------------------------------------------------------------------------
@@ -245,9 +266,9 @@ def genia_equal(left: Any, right: Any) -> bool:
         return left_is_bool and right_is_bool and left is right
 
     # 2. Numbers, including the only cross-kind bridge in R18.
-    if isinstance(left, (int, float)):
+    if isinstance(left, (int, float, GeniaDecimal, GeniaRational)):
         return _numeric_equal(left, right)
-    if isinstance(right, (int, float)):
+    if isinstance(right, (int, float, GeniaDecimal, GeniaRational)):
         return False
 
     # 3. Strings and symbols are distinct kinds and never compare across.
@@ -417,6 +438,19 @@ def _key_error(message: str) -> TypeError:
     return TypeError(message)
 
 
+def _reduced_fraction(numerator: int, denominator: int) -> tuple[int, int]:
+    """Reduce (numerator, denominator > 0) to lowest terms.
+
+    Used only for GeniaDecimal map keys: GeniaDecimal's own canonical form
+    (coefficient/exponent) is unique per value but its fraction form is not
+    always in lowest terms (e.g. 0.5 is coefficient=5, exponent=-1, i.e.
+    5/10), while float.as_integer_ratio() and GeniaRational are always
+    already reduced -- this brings all three into one comparable form.
+    """
+    divisor = math.gcd(numerator, denominator)
+    return numerator // divisor, denominator // divisor
+
+
 def canonical_map_key(value: Any) -> Any:
     """Return the internal canonical identity for a legal map key.
 
@@ -434,15 +468,39 @@ def canonical_map_key(value: Any) -> Any:
     if isinstance(value, float):
         if math.isnan(value):
             raise _key_error(_KEY_NAN_MESSAGE)
-        if math.isfinite(value) and value.is_integer():
+        if not math.isfinite(value):
+            # The two infinities keep exact float identity, distinct by sign.
+            # They denote no finite exact-fraction value, so they cannot and
+            # must not collide with any Integer/Decimal/Rational key.
+            return ("float-infinite", value)
+        if value.is_integer():
             # An integer and an exactly equal integral float are one key. The
             # float is converted upward so an arbitrary-precision integer key is
             # never narrowed. This also collapses 0.0 with -0.0, as required.
             return ("num", int(value))
-        # Non-integral finite floats and the two infinities keep exact float
-        # identity. For non-NaN floats the host's own comparison is exactly IEEE
-        # equality, which is the contract, and infinities stay distinct by sign.
-        return ("float", value)
+        # A non-integral finite float keys on its own exact represented
+        # value (R22 contract section 10.3), in the same reduced-fraction
+        # form GeniaDecimal/GeniaRational below use, so an equal-valued
+        # Decimal/Rational/float share one key. float.as_integer_ratio()
+        # is CPython's exact, already-reduced (numerator, denominator).
+        return ("num-fraction", *value.as_integer_ratio())
+
+    if isinstance(value, GeniaDecimal):
+        numerator, denominator = decimal_as_fraction(value)
+        if denominator == 1:
+            # An Integer and a mathematically-integral Decimal share one key,
+            # by the same "num" bucket the Integer/float case above already
+            # uses. R22 contract section 10.3: equal legal numeric keys have
+            # identical internal key/hash equivalence.
+            return ("num", numerator)
+        return ("num-fraction", *_reduced_fraction(numerator, denominator))
+
+    if isinstance(value, GeniaRational):
+        # Already gcd-reduced with denominator > 1 by construction
+        # (numeric_runtime.rational_from_integers never returns a
+        # GeniaRational otherwise), so no further reduction is needed --
+        # this is directly comparable to the float/Decimal fraction keys.
+        return ("num-fraction", value.numerator, value.denominator)
 
     if isinstance(value, str):
         return ("string", value)

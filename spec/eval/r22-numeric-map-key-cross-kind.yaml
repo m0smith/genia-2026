@@ -1,0 +1,18 @@
+name: r22-numeric-map-key-cross-kind
+category: eval
+description: >-
+  R22 E22-7 map-key reconciliation (docs/design/r22-exact-numeric-runtime-contract.md
+  section 10.3): equal legal numeric keys across Integer, Decimal,
+  Rational, and Float64 share identical internal key equivalence.
+input:
+  source: |
+    m = map_put(map_new(), 1, "one")
+    [map_get(m, 1.0), map_get(m, rational(2, 2)), map_has?(m, float64(1))]
+expected:
+  stdout: "[\"one\", \"one\", true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 893
+  release: R22
+  contract: docs/design/r22-exact-numeric-runtime-contract.md "section 10.3"

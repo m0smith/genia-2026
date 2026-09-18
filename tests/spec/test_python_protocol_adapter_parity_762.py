@@ -17,7 +17,7 @@ import pytest
 
 import tools.spec_runner.runner as runner_module
 
-pytestmark = [pytest.mark.spec, pytest.mark.slow]
+pytestmark = [pytest.mark.spec, pytest.mark.slow, pytest.mark.full_conformance]
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROTOCOL_ADAPTER_COMMAND = f"{sys.executable} -m hosts.python.protocol_adapter"
@@ -62,5 +62,30 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # tagged Integer/Decimal IrLiteral payload. IR-category cases are
     # expressible over the protocol like any other case, so both total and
     # passed increase by exactly 7.
-    assert "Summary: total=721 passed=703 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E22-2 (issue #888) adds 3 portable R22 cases for rational(...)
+    # construction (1 eval, 2 error). Expressible over the protocol like
+    # any other case, so both total and passed increase by exactly 3.
+    # E22-3 (issue #889) adds 1 portable R22 eval-category case for the
+    # exact-family +/-/* promotion lattice. Expressible over the protocol
+    # like any other case, so both total and passed increase by exactly 1.
+    # E22-4 (issue #890) adds 4 portable R22 cases for exact division and
+    # floor remainder (2 eval, 2 error). Expressible over the protocol
+    # like any other case, so both total and passed increase by exactly 4.
+    # E22-5 (issue #891) adds 3 portable R22 cases for float64/exact
+    # conversions (1 eval, 2 error). Expressible over the protocol like
+    # any other case, so both total and passed increase by exactly 3.
+    # E22-6 (issue #892) adds 4 portable R22 cases for Float64 arithmetic
+    # and mixed-domain rejection (2 eval, 2 error). Expressible over the
+    # protocol like any other case, so both total and passed increase by
+    # exactly 4.
+    # E22-7 (issue #893) adds 3 portable R22 eval-category cases for
+    # mathematical comparison, equality, and map-key reconciliation.
+    # Expressible over the protocol like any other case, so both total and
+    # passed increase by exactly 3.
+    # E22-9 (issue #895) adds 1 portable R22 eval-category case for
+    # cross-surface conformance (quoted/quasiquoted/metacircular-eval'd
+    # decimal literals and literal-pattern matching). Expressible over the
+    # protocol like any other case, so both total and passed increase by
+    # exactly 1.
+    assert "Summary: total=740 passed=722 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0

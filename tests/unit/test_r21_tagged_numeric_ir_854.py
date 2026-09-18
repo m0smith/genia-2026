@@ -3,9 +3,15 @@
 Covers docs/design/r21-numeric-source-portable-representation-contract.md
 section 4: numeric source lowers through the existing IrLiteral node with a
 canonical tagged payload, unary minus stays outside the payload, and / stays
-ordinary IrBinary(op=SLASH). No new Core IR node family is introduced, and
-no evaluator/runtime Decimal semantics change (R22) — the evaluator must
-keep producing exactly the same int/float it did before this ticket.
+ordinary IrBinary(op=SLASH). No new Core IR node family is introduced.
+
+The evaluator-compatibility-shim tests below were updated by R22 E22-1
+(issue #887): that ticket retires the float() shim for Decimal payloads
+and replaces it with genuine GeniaDecimal runtime materialization per
+docs/design/r22-exact-numeric-runtime-contract.md section 2, exactly as
+this module's own R21 docstring anticipated ("This is a pure
+compatibility shim required by E21-2 ... It introduces no new runtime
+numeric kind" -- E22-1 is the ticket that introduces it).
 """
 from __future__ import annotations
 
@@ -13,6 +19,7 @@ from src.genia.ast_nodes import Number
 from src.genia.ir import IrBinary, IrLiteral, IrUnary
 from src.genia.lexer import lex
 from src.genia.lowering import lower_node
+from src.genia.numeric_runtime import GeniaDecimal
 from src.genia.numeric_source import numeric_literal_payload, numeric_literal_runtime_value
 from src.genia.parser import Parser
 
@@ -63,8 +70,9 @@ def test_runtime_value_integer_roundtrip() -> None:
 
 def test_runtime_value_decimal_roundtrip() -> None:
     value = numeric_literal_runtime_value({"kind": "decimal", "coefficient": "125", "exponent": "-2"})
-    assert value == 1.25
-    assert isinstance(value, float)
+    assert isinstance(value, GeniaDecimal)
+    assert value.coefficient == 125
+    assert value.exponent == -2
 
 
 def test_runtime_value_huge_integer_exact() -> None:
@@ -72,9 +80,12 @@ def test_runtime_value_huge_integer_exact() -> None:
     assert numeric_literal_runtime_value({"kind": "integer", "digits": huge}) == int(huge)
 
 
-def test_only_runtime_value_shim_calls_float_in_module() -> None:
-    """float() in numeric_source.py must be confined to the documented
-    evaluator-compatibility shim, never the classification path."""
+def test_no_function_in_module_calls_float() -> None:
+    """float() must never appear in numeric_source.py.
+
+    R22 E22-1 retires the evaluator-compatibility shim that used to call
+    float() for Decimal payloads; Decimal materialization now goes
+    through GeniaDecimal exclusively (int()-only, never float())."""
     import ast
     import inspect
 
@@ -93,7 +104,7 @@ def test_only_runtime_value_shim_calls_float_in_module() -> None:
         ]
         if calls:
             functions_calling_float.append(fn.name)
-    assert functions_calling_float == ["numeric_literal_runtime_value"]
+    assert functions_calling_float == []
 
 
 # ---------------------------------------------------------------------------
@@ -164,21 +175,34 @@ def test_eval_integer_literal_unchanged() -> None:
     assert run_source("42", make_global_env()) == 42
 
 
-def test_eval_decimal_literal_unchanged() -> None:
+def test_eval_decimal_literal_materializes_genia_decimal() -> None:
+    # `genia` (not `src.genia`) is the namespace run_source is loaded
+    # under here, matching the rest of this test's existing convention;
+    # compare structurally rather than via `src.genia`-imported isinstance
+    # to avoid a spurious dual-namespace class-identity mismatch.
     from genia import make_global_env, run_source
 
-    assert run_source("1.25", make_global_env()) == 1.25
+    value = run_source("1.25", make_global_env())
+    assert type(value).__name__ == "GeniaDecimal"
+    assert value.coefficient == 125
+    assert value.exponent == -2
 
 
-def test_eval_decimal_exponent_literal_unchanged() -> None:
+def test_eval_decimal_exponent_literal_materializes_genia_decimal() -> None:
     from genia import make_global_env, run_source
 
-    assert run_source("1e3", make_global_env()) == 1000.0
+    value = run_source("1e3", make_global_env())
+    assert type(value).__name__ == "GeniaDecimal"
+    assert value.coefficient == 1
+    assert value.exponent == 3
 
 
-def test_eval_arithmetic_over_decimal_and_integer_literals_unchanged() -> None:
+def test_eval_arithmetic_over_decimal_and_integer_literals() -> None:
     from genia import make_global_env, run_source
 
     assert run_source("1 + 2", make_global_env()) == 3
-    assert run_source("1.5 + 2.5", make_global_env()) == 4.0
+    sum_value = run_source("1.5 + 2.5", make_global_env())
+    assert type(sum_value).__name__ == "GeniaDecimal"
+    assert sum_value.coefficient == 4
+    assert sum_value.exponent == 0
     assert run_source("10 / 2", make_global_env()) == 5.0
