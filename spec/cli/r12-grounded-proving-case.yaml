@@ -8,9 +8,13 @@ input:
   stdin: ""
   argv: []
 expected:
-  stdout: '{answer: {kind: text, text: "Ada wrote notes."}, sources: [{doc_id: "doc-ada", offset: 0, length: 16}], evidence: [{chunk: {text: "Ada wrote notes.", source: {doc_id: "doc-ada", offset: 0, length: 16}, meta: <represented>}, score: 1.0}]}'
+  stdout: '{answer: {kind: text, text: "Ada wrote notes."}, sources: [{doc_id: "doc-ada", offset: 0, length: 16}], evidence: [{chunk: {text: "Ada wrote notes.", source: {doc_id: "doc-ada", offset: 0, length: 16}, meta: <represented>}, score: float64(1.0)}]}'
   stderr: ""
   exit_code: 0
 notes: |
   issue: 649
   classification: Experimental proving case over existing R10/R11/R12 behavior.
+  r23_note: >-
+    "float64(1.0)" is the R23 E23-1 (issue #911) canonical Float64 display
+    atom (docs/design/r23-numeric-representation-interchange-contract.md
+    section 2.4).

@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from typing import Any, Iterator
 
+from genia.numeric_runtime import format_float64
+
 
 _GENIA_IDENT_RE = re.compile(r"[A-Za-z_$][A-Za-z0-9_$?!.-]*\Z")
 
@@ -63,6 +65,10 @@ def format_display(value: Any) -> str:
         return value
     if isinstance(value, list):
         return "[" + ", ".join(format_display(item) for item in value) + "]"
+    if isinstance(value, float):
+        # R23 contract section 2.4: canonical Float64 atom, never Python's
+        # own float repr/str.
+        return format_float64(value)
     return str(value)
 
 
@@ -129,6 +135,10 @@ def format_debug(value: Any) -> str:
         return f'"{_escape_for_debug(value)}"'
     if isinstance(value, list):
         return "[" + ", ".join(format_debug(item) for item in value) + "]"
+    if isinstance(value, float):
+        # R23 contract section 2.4: canonical Float64 atom (display == debug),
+        # never Python's own float repr/str.
+        return format_float64(value)
     return repr(value)
 
 

@@ -226,7 +226,9 @@ def test_render_integer():
 
 
 def test_render_float():
-    assert render_format_value(3.14) == "3.14"
+    # R23 E23-1 (issue #911): render_format_value delegates to the
+    # canonical Float64 display atom, not Python's bare float text.
+    assert render_format_value(3.14) == "float64(3.14)"
 
 
 def test_render_bool_true():
