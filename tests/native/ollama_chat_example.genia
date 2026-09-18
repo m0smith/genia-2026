@@ -1,0 +1,53 @@
+@test "Ollama operation builds the documented non-streaming request"
+ollama_operation_builds_non_streaming_request() = {
+  messages = [{role: "user", content: "Hello"}]
+  operation = ollama_operation(
+    "http://127.0.0.1:11434",
+    "llama3.2",
+    messages
+  ) |> unwrap_or(none)
+
+  assert_eq(operation.method, quote(post))
+  assert_eq(operation.base_url, "http://127.0.0.1:11434")
+  assert_eq(operation.path, "/api/chat")
+  assert_eq(operation.headers, {"content-type": "application/json"})
+  assert_eq(operation.query, {})
+  assert_eq(operation.body, {
+    kind: quote(json),
+    value: {
+      model: "llama3.2",
+      messages: messages,
+      stream: false
+    }
+  })
+}
+
+@test "Ollama response extracts assistant content"
+ollama_response_extracts_assistant_content() =
+  assert_eq(
+    ollama_response_content({
+      status: 200,
+      body: "{\"message\":{\"role\":\"assistant\",\"content\":\"Hello from Ollama\"}}"
+    }),
+    some("Hello from Ollama")
+  )
+
+@test "Ollama response normalizes a non-success status"
+ollama_response_normalizes_non_success_status() =
+  assert_eq(
+    ollama_response_content({status: 404, body: "not found"}),
+    err("ollama-http-status", {status: 404})
+  )
+
+is_invalid_ollama_response(result) =
+  (err("ollama-response-invalid", _)) -> true |
+  (_) -> false
+
+@test "Ollama response normalizes invalid JSON"
+ollama_response_normalizes_invalid_json() =
+  assert_eq(
+    is_invalid_ollama_response(
+      ollama_response_content({status: 200, body: "not JSON"})
+    ),
+    true
+  )

@@ -3,10 +3,13 @@ from pathlib import Path
 
 from genia import make_global_env, run_source
 from genia.http_transport import HttpTransportResponse
-from genia.values import GeniaOptionErr, GeniaOptionSome
+from genia.test_cli import discover_test_units, make_test_env
+from genia.test_kernel import run_test_suite
+from genia.values import GeniaOptionSome
 
 
 EXAMPLE = Path("examples/ollama_chat.genia")
+NATIVE_TESTS = Path("tests/native/ollama_chat_example.genia")
 
 
 def _run(expression: str):
@@ -18,7 +21,24 @@ def _run(expression: str):
     )
 
 
-def test_ollama_chat_sends_non_streaming_conversation(monkeypatch):
+def test_ollama_chat_native_behavior_tests_pass():
+    env, _ = make_test_env()
+    run_source(EXAMPLE.read_text(encoding="utf-8"), env, filename=str(EXAMPLE.resolve()))
+    run_source(
+        NATIVE_TESTS.read_text(encoding="utf-8"),
+        env,
+        filename=str(NATIVE_TESTS.resolve()),
+    )
+
+    suite = run_test_suite(discover_test_units(env))
+
+    assert suite.get("total") == 4
+    assert suite.get("passed") == 4
+    assert suite.get("failed") == 0
+    assert suite.get("errored") == 0
+
+
+def test_ollama_chat_crosses_host_boundary_once(monkeypatch):
     captured = []
 
     def fake_send(request, transport=None):
@@ -46,19 +66,3 @@ def test_ollama_chat_sends_non_streaming_conversation(monkeypatch):
         "messages": [{"role": "user", "content": "Hello"}],
         "stream": False,
     }
-
-
-def test_ollama_chat_normalizes_non_success_status(monkeypatch):
-    monkeypatch.setattr(
-        "genia.http_client.send_http_request",
-        lambda request, transport=None: HttpTransportResponse(404, {}, b"not found"),
-    )
-
-    outcome = _run(
-        'ollama_chat("http://127.0.0.1:11434", "missing", '
-        '[{role: "user", content: "Hello"}])'
-    )
-
-    assert isinstance(outcome, GeniaOptionErr)
-    assert outcome.reason == "ollama-http-status"
-    assert outcome.context.get("status") == 404

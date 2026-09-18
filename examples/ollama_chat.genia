@@ -58,18 +58,17 @@ ollama_response_content(response) =
   (response) ? response.status >= 200 && response.status < 300 -> ollama_decoded_content(json_decode(response.body)) |
   (response) -> err("ollama-http-status", {status: response.status})
 
-ollama_result_content(result) =
-  (some(response)) -> ollama_response_content(response) |
-  (none(reason)) -> none(reason) |
-  (none(reason, context)) -> none(reason, context) |
-  (err(reason)) -> err(reason) |
-  (err(reason, context)) -> err(reason, context)
-
 @doc "Send one conversation turn to Ollama and return its assistant text as an Outcome."
-ollama_chat(base_url, model_name, messages) = {
-  operation = ollama_operation(base_url, model_name, messages)
-  operation |> flat_map_some((request) -> web.http_send(request, none("ollama-needs-no-authority"), 120000)) |> ollama_result_content
-}
+ollama_chat(base_url, model_name, messages) =
+  ollama_operation(base_url, model_name, messages)
+  |> flat_map_some(
+    (request) -> web.http_send(
+      request,
+      none("ollama-needs-no-authority"),
+      120000
+    )
+  )
+  |> flat_map_some(ollama_response_content)
 
 continue_chat(base_url, model_name, messages, outcome) =
   (_, _, messages, some(answer)) -> {
