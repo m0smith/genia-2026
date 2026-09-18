@@ -1958,7 +1958,15 @@ def make_global_env(
                     raise TypeError("json_stringify expected object keys to be strings")
                 data[original_key] = _json_from_runtime(original_value, decimal_sentinels)
             return data
-        raise TypeError(f"json_stringify expected a JSON-compatible value, got {type(value).__name__}")
+        # E23-6 diagnostics sweep (issue #925): use the portable
+        # `_runtime_type_name` table, not a raw Python `type(...).__name__`
+        # -- the latter would leak an internal host class name (e.g. a
+        # Python implementation class) across this failure's portable
+        # boundary, exactly the class of leak R19/E19-3 already normalized
+        # for the rest of the "expected X, received Y" diagnostic family.
+        raise TypeError(
+            f"json_stringify expected a JSON-compatible value, got {_runtime_type_name(value)}"
+        )
 
     def _json_to_runtime(value: Any) -> Any:
         if value is None:
@@ -2002,7 +2010,15 @@ def make_global_env(
     def _strict_json_int(text: str) -> int:
         value = int(text)
         if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
-            raise _JsonBoundaryFailure("json_number_out_of_range")
+            # E23-6 diagnostics sweep (issue #925): `cause` is an additive
+            # context field distinguishing this reason's several distinct
+            # underlying causes for a diagnostic consumer, without renaming
+            # the `json_number_out_of_range` reason symbol itself -- see the
+            # sweep's ratified-reuse decision in
+            # docs/analysis/issue-925-e23-6-diagnostics-sweep-docs-sync-preflight.md.
+            raise _JsonBoundaryFailure(
+                "json_number_out_of_range", cause="integer_out_of_range"
+            )
         return value
 
     _JSON_NUMBER_TOKEN_RE = re.compile(
@@ -2044,7 +2060,9 @@ def make_global_env(
         """
         value = _parse_json_decimal_token(text)
         if not stable_json_decimal(value):
-            raise _JsonBoundaryFailure("json_number_out_of_range")
+            raise _JsonBoundaryFailure(
+                "json_number_out_of_range", cause="decimal_unstable"
+            )
         return value
 
     def _compat_json_decimal(text: str) -> "GeniaDecimal":
@@ -2062,7 +2080,9 @@ def make_global_env(
         return _parse_json_decimal_token(text)
 
     def _reject_json_constant(_text: str) -> Any:
-        raise _JsonBoundaryFailure("json_number_out_of_range")
+        raise _JsonBoundaryFailure(
+            "json_number_out_of_range", cause="non_finite_constant"
+        )
 
     def _strict_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         result: dict[str, Any] = {}
@@ -2079,7 +2099,9 @@ def make_global_env(
             return value
         if isinstance(value, int):
             if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
-                raise _JsonBoundaryFailure("json_number_out_of_range")
+                raise _JsonBoundaryFailure(
+                    "json_number_out_of_range", cause="integer_out_of_range"
+                )
             return value
         if isinstance(value, GeniaDecimal):
             # Already validated (stability + lexical parse) by
@@ -2131,11 +2153,15 @@ def make_global_env(
             return value
         if isinstance(value, int):
             if not -_JSON_SAFE_INTEGER <= value <= _JSON_SAFE_INTEGER:
-                raise _JsonBoundaryFailure("json_number_out_of_range")
+                raise _JsonBoundaryFailure(
+                    "json_number_out_of_range", cause="integer_out_of_range"
+                )
             return value
         if isinstance(value, GeniaDecimal):
             if not stable_json_decimal(value):
-                raise _JsonBoundaryFailure("json_number_out_of_range")
+                raise _JsonBoundaryFailure(
+                    "json_number_out_of_range", cause="decimal_unstable"
+                )
             # `json.dumps` cannot emit a raw arbitrary-precision numeric
             # token for a custom type (it binds `float.__repr__`/
             # `int.__repr__` directly, and `decimal.Decimal` is not
@@ -2167,7 +2193,9 @@ def make_global_env(
                     "unsupported_json_value", value_type="rational"
                 )
             if not stable_json_decimal(decimal_equivalent):
-                raise _JsonBoundaryFailure("json_number_out_of_range")
+                raise _JsonBoundaryFailure(
+                    "json_number_out_of_range", cause="rational_unstable"
+                )
             sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
             decimal_sentinels[sentinel] = repr(decimal_equivalent)
             return sentinel
@@ -2183,7 +2211,9 @@ def make_global_env(
             # canonical spelling's fixed/scientific notation rule -- never
             # gets a chance to re-render this value itself.
             if not math.isfinite(value):
-                raise _JsonBoundaryFailure("json_number_out_of_range")
+                raise _JsonBoundaryFailure(
+                    "json_number_out_of_range", cause="float_non_finite"
+                )
             sentinel = f"__genia_decimal_sentinel_{uuid.uuid4().hex}__"
             decimal_sentinels[sentinel] = float64_finite_canonical_text(value)
             return sentinel

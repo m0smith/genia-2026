@@ -32,9 +32,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.genia import make_global_env, run_source
+from src.genia import make_global_env
 from src.genia.numeric_runtime import GeniaDecimal, rational_from_integers
-from src.genia.utf8 import format_debug
 from src.genia.values import GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
 
 
@@ -173,23 +172,27 @@ def test_json_decode_infinity_constant_cause():
 
 
 def test_json_stringify_unsupported_value_uses_portable_type_name():
-    # A symbol is not JSON-compatible via compatibility json_stringify.
-    from src.genia.values import symbol
-
-    result = _stringify(symbol("not-json-compatible"))
+    # A raw callable is not JSON-compatible via compatibility
+    # json_stringify, and _runtime_type_name maps it to the portable
+    # name "function".
+    result = _stringify(lambda: None)
     assert isinstance(result, GeniaOptionNone)
     message = str(result.context.get("message"))
     # The message must describe the portable runtime type name
-    # ("symbol"), never a raw Python class name like "GeniaSymbol".
-    assert "GeniaSymbol" not in message
-    assert "symbol" in message
+    # ("function"), never a raw Python class name (e.g. "function" is
+    # already the correct portable name for a bare callable, but before
+    # this slice's fix the message used Python's own
+    # type(value).__name__, which for other unsupported kinds -- e.g. a
+    # GeniaRef -- would leak an internal Genia implementation class name
+    # instead of _runtime_type_name's portable table entry).
+    assert "<function" not in message
+    assert "function" in message
 
 
 def test_no_json_or_format_diagnostic_leaks_python_class_name():
     """Direct sweep: no message produced by any audited failure path
     contains a Python-internal class-name fragment (a capitalized
     "Genia..." class name, or an angle-bracket class repr)."""
-    from src.genia.values import symbol
 
     leak_fragments = ("GeniaDecimal", "GeniaRational", "GeniaSymbol", "GeniaMap", "<class '")
 
@@ -208,7 +211,7 @@ def test_no_json_or_format_diagnostic_leaks_python_class_name():
     for result in [
         _encode(9_007_199_254_740_991 + 1),
         _decode("NaN"),
-        _encode(symbol("nope")),
+        _encode(lambda: None),
     ]:
         if isinstance(result, GeniaOptionErr):
             messages.append(str(result.reason))
@@ -221,7 +224,7 @@ def test_no_json_or_format_diagnostic_leaks_python_class_name():
     # field the leak was actually found in; `repr(GeniaMap)` deliberately
     # does not expose entry content (it prints "<map N>"), so the message
     # field must be read directly to actually exercise this check.
-    stringify_result = _stringify(symbol("nope"))
+    stringify_result = _stringify(lambda: None)
     if isinstance(stringify_result, GeniaOptionNone) and stringify_result.context is not None:
         if stringify_result.context.has("message"):
             messages.append(str(stringify_result.context.get("message")))
@@ -333,9 +336,7 @@ def test_parse_jsonl_record_decode_never_leaks_python_float_repr():
 
 
 def test_round_trip_json_parse_and_stringify_unsupported_value_message_is_portable():
-    from src.genia.values import symbol
-
-    result = _stringify(symbol("weird"))
+    result = _stringify(lambda: None)
     assert isinstance(result, GeniaOptionNone)
     message = str(result.context.get("message"))
-    assert "GeniaSymbol" not in message
+    assert "<function" not in message
