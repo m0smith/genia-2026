@@ -120,5 +120,5 @@ def test_r12_complete_grounded_release_example_executes_exactly() -> None:
         '{answer: {kind: text, text: "Ada wrote notes."}, sources: '
         '[{doc_id: "doc-ada", offset: 0, length: 16}], evidence: '
         '[{chunk: {text: "Ada wrote notes.", source: {doc_id: "doc-ada", '
-        "offset: 0, length: 16}, meta: <represented>}, score: 1.0}]}\n"
+        "offset: 0, length: 16}, meta: <represented>}, score: float64(1.0)}]}\n"
     )
