@@ -26,6 +26,29 @@ Run the validated-data-pipeline example:
 PYTHONPATH=src python3 -m genia.interpreter examples/validated_pipeline_demo.genia
 ```
 
+Run the Experimental local Ollama chat example:
+
+```bash
+genia examples/ollama_chat.genia --backend ollama --model llama3.2
+```
+
+The same application can target Groq through the current narrow Python
+reference-host launcher:
+
+```bash
+export GROQ_AUTHORIZATION="Bearer $GROQ_API_KEY"
+python -m hosts.python.exec_ollama_chat --backend groq
+```
+
+Classification: **Valid** (directly tested). The example uses named Value
+Templates and three R20 open functions so each backend independently owns its
+profile, request operation, and response extractor while the conversation and
+response pipeline stay shared. `GROQ_AUTHORIZATION` contains the complete
+header value because pure Genia cannot prepend `Bearer ` to a protected carrier.
+The launcher creates the matching declassification authority in the Python host;
+it is not portable Genia behavior or the final launcher architecture. Secret
+ergonomics and launcher removal are separate roadmap work.
+
 Start here:
 
 - [Function Reference](https://m0smith.github.io/genia-2026/reference/)
