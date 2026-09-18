@@ -29,6 +29,14 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - deployment may eventually use Ansible, Terraform, Kubernetes, cloud APIs, or another provisioning mechanism; none is part of Genia semantics
   - host portability and execution distribution are separate axes
   - do not create implementation tickets until a concrete workflow demonstrates the need and a contract answers the semantic questions in `docs/architecture/execution-realization.md`
+- open-function declaration ergonomics — **promoted to an R20 follow-up design candidate**
+  - keep ordinary functions closed by default; do not make every function an open multimethod
+  - preserve the architectural meaning of `open`: the declaring API is intentionally an extension point
+  - first investigate clause-less declarations such as `open f(x)`
+  - then investigate grouped `open { ... }` as declaration-only shorthand with no protocol/group identity
+  - grouped syntax must lower to independent R20 open interfaces and must not change dispatch, ambiguity, provenance, linking, `extend`, or `use`
+  - protocols, traits, typeclasses, implementation blocks, nominal interface identity, implicit conformance, and receiver dispatch remain parked separately
+  - no release number is assigned; this is a follow-up to completed R20 and must pass the normal gates before implementation
 - open functions / extensible pattern dispatch — **promoted to planned R20**
   - R20 now owns the local repeated-clause and explicit cross-module extension contract described in [`r16-r20.md`](r16-r20.md)
   - historical motivating local example:

@@ -60,6 +60,11 @@ contract, design, failing-test, implementation, documentation, audit, and
 distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
+## Promoted R20 follow-up
+
+Open-function declaration ergonomics is promoted as an R20 follow-up design
+candidate; scope and guardrails live in [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
+
 ## Current state
 
 R15 through R22 are complete (`docs/releases/R22.md`; E22-11's skeptical
