@@ -30,6 +30,36 @@ Plain-language promise:
 
 New release work should strengthen this workflow unless explicitly approved as infrastructure or parking-lot work.
 
+## Promoted cross-cutting follow-up: Outcome Composition Ergonomics
+
+Outcome composition ergonomics is promoted from idea capture to a **near-term
+cross-cutting follow-up candidate** because it directly strengthens the killer
+workflow and already affects HTTP/configuration/AI-composition examples.
+
+The first gate must stay narrow:
+
+- define a canonical full-Outcome bind/composition operation (working name:
+  `flat_map_outcome`)
+- `some(value)` invokes the supplied step and requires an Outcome result
+- `none(...)` is preserved unchanged
+- `err(...)` is preserved unchanged
+- ordinary application code should not need pervasive `apply_raw` merely to
+  express "continue on success; otherwise preserve the Outcome"
+- preserve current direct-call and pipeline propagation semantics unless a later,
+  separately approved contract proves that Outcome-consuming pipeline stages are
+  required
+- do not generalize this into arbitrary propagation-control annotations or a
+  second invocation model
+- do not use this helper to hide modeling errors where `none(...)` is intended
+  as domain/configuration data; callees that intentionally consume absence must
+  remain explicit about that boundary
+
+This planning entry does **not** implement behavior, approve syntax, or assign a
+release number. Before implementation it still requires the repository's
+contract, design, failing-test, implementation, documentation, audit, and
+distillation gates. Detailed parking-lot disposition is recorded in
+[`roadmap/parking-lot.md`](roadmap/parking-lot.md).
+
 ## Current state
 
 R15 through R22 are complete (`docs/releases/R22.md`; E22-11's skeptical
