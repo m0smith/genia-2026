@@ -14,13 +14,17 @@ Implements docs/design/r22-exact-numeric-runtime-contract.md:
 equality integration (E22-7) are later slices -- see the class-level
 docstrings below for exactly what each type does and does not support yet.
 
-Display/debug text produced here is NOT the R23 canonical rendering
-contract. It exists only so the value can be printed/formatted without
-crashing during the R22 sequence; R23 owns canonical spelling.
+Display/debug text for GeniaDecimal/GeniaRational, plus `format_float64`
+below, implement docs/design/r23-numeric-representation-interchange-
+contract.md section 2 (E23-1): the canonical Decimal/Rational/Float64
+rendering atoms. Integer canonical rendering (contract section 2.1) needs
+no dedicated helper here -- Python's own `str(int)` already matches it.
 """
 from __future__ import annotations
 
 import contextlib
+import decimal as _decimal_module
+import math
 from dataclasses import dataclass
 from typing import Any
 
@@ -73,6 +77,35 @@ def _check_resource_limit(*magnitudes: int) -> None:
     for value in magnitudes:
         if value.bit_length() > _max_magnitude_bits:
             raise NumericResourceLimitError("numeric-resource-limit")
+
+
+def _canonical_decimal_text(coefficient: int, exponent: int) -> str:
+    """Render `coefficient * 10**exponent` per R23 contract section 2.2.
+
+    `coefficient`/`exponent` must already be in GeniaDecimal canonical form
+    (see `_canonicalize`): zero is exactly `(0, 0)`, and a nonzero
+    coefficient's magnitude has no trailing base-10 zeros. Reused verbatim
+    by `format_float64` below (with the shortest-roundtrip coefficient/
+    exponent for the float's exact decimal spelling) so Decimal and Float64
+    share one fixed/scientific formatting rule instead of two.
+    """
+    sign = "-" if coefficient < 0 else ""
+    digits = str(abs(coefficient)) if coefficient != 0 else "0"
+    n = len(digits)
+    adjusted_exponent = n + exponent - 1
+    if -6 <= adjusted_exponent <= 20:
+        point_pos = n + exponent
+        if point_pos <= 0:
+            body = "0." + "0" * (-point_pos) + digits
+        elif point_pos >= n:
+            body = digits + "0" * (point_pos - n) + ".0"
+        else:
+            body = digits[:point_pos] + "." + digits[point_pos:]
+        return sign + body
+    rest = digits[1:]
+    mantissa = digits[0] + "." + (rest if rest else "0")
+    exp_sign = "+" if adjusted_exponent >= 0 else "-"
+    return f"{sign}{mantissa}e{exp_sign}{abs(adjusted_exponent)}"
 
 
 def _canonicalize(coefficient: int, exponent: int) -> tuple[int, int]:
@@ -205,17 +238,9 @@ class GeniaDecimal:
             return NotImplemented
         return False if order is None else order >= 0
 
-    def __repr__(self) -> str:  # pending R23 canonical spelling
-        if self.exponent >= 0:
-            digits = str(self.coefficient * (10**self.exponent))
-            return digits
-        magnitude = abs(self.coefficient)
-        digits = str(magnitude)
-        point = len(digits) + self.exponent
-        sign = "-" if self.coefficient < 0 else ""
-        if point <= 0:
-            return f"{sign}0.{'0' * (-point)}{digits}"
-        return f"{sign}{digits[:point]}.{digits[point:]}"
+    def __repr__(self) -> str:
+        # R23 contract section 2.2: canonical Decimal display/debug atom.
+        return _canonical_decimal_text(self.coefficient, self.exponent)
 
     __str__ = __repr__
 
@@ -321,7 +346,9 @@ class GeniaRational:
     def __hash__(self):
         return hash((GeniaRational, self.numerator, self.denominator))
 
-    def __repr__(self) -> str:  # pending R23 canonical spelling
+    def __repr__(self) -> str:
+        # R23 contract section 2.3: canonical Rational display/debug atom
+        # (`<numerator>/<denominator>`, no spaces, display == debug).
         return f"{self.numerator}/{self.denominator}"
 
     __str__ = __repr__
@@ -719,6 +746,46 @@ def _magnitude_kind(value: Any) -> tuple:
             return ("inf", -1)
         return ("finite", *value.as_integer_ratio())
     raise TypeError("unsupported operand type for numeric comparison")
+
+
+def _float_shortest_roundtrip_coefficient_exponent(value: float) -> tuple[int, int]:
+    """(coefficient, exponent) for `value`'s shortest round-trip decimal.
+
+    `repr(float)` is CPython's own shortest decimal spelling that parses
+    back to the identical binary64 bits under round-to-nearest/ties-to-
+    even -- exactly the R23 contract section 2.4 requirement -- for a
+    finite, non-zero value. `decimal.Decimal(repr(value))` parses that text
+    exactly (fixed or scientific) into an exact coefficient/exponent pair,
+    which `_canonicalize` then reduces to GeniaDecimal canonical form
+    (trailing base-10 zeros stripped) so `_canonical_decimal_text` can
+    render it with the same fixed/scientific rule Decimal uses.
+    """
+    sign, digit_tuple, exponent = _decimal_module.Decimal(repr(value)).as_tuple()
+    coefficient = int("".join(str(d) for d in digit_tuple))
+    if sign:
+        coefficient = -coefficient
+    return _canonicalize(coefficient, exponent)
+
+
+def format_float64(value: float) -> str:
+    """Render a Float64 value per R23 contract section 2.4.
+
+    `float64(<shortest-roundtrip-decimal>)`, with signed zero and non-
+    finite spellings handled explicitly (Float64, unlike GeniaDecimal, has
+    a real +0.0/-0.0 distinction and can be NaN/infinity). Display and
+    debug are identical -- this is the one Float64 rendering function.
+    """
+    if value != value:  # NaN is the only value unequal to itself
+        return "float64(nan)"
+    if value == float("inf"):
+        return "float64(inf)"
+    if value == float("-inf"):
+        return "float64(-inf)"
+    if value == 0.0:
+        negative = math.copysign(1.0, value) < 0
+        return "float64(-0.0)" if negative else "float64(0.0)"
+    coefficient, exponent = _float_shortest_roundtrip_coefficient_exponent(value)
+    return f"float64({_canonical_decimal_text(coefficient, exponent)})"
 
 
 def numeric_order(left: Any, right: Any) -> "int | None":
