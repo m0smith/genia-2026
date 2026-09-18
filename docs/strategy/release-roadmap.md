@@ -60,6 +60,57 @@ contract, design, failing-test, implementation, documentation, audit, and
 distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
+## Promoted R20 follow-up: Open Declaration Ergonomics
+
+R20 remains complete. A separate ergonomic follow-up is promoted for design
+because current `open` declarations intentionally communicate an extension
+point, but APIs with several related open functions may repeat declaration
+ceremony.
+
+The follow-up must preserve R20's existing semantic boundary:
+
+- ordinary functions remain closed by default
+- openness remains explicit and owned by the declaring module/source unit
+- foreign modules cannot implicitly turn a closed function into an open one
+- ordinary imports remain inert with respect to contributions
+- `extend` and `use` remain explicit
+- the R20 dispatch, ambiguity, provenance, identity, and Core IR guarantees stay
+  unchanged unless a separately approved contract says otherwise
+- protocols, traits, typeclasses, implementation blocks, nominal interface
+  identity, implicit conformance, and receiver dispatch remain out of scope
+
+The first design gate should investigate only two ergonomic forms:
+
+1. a clause-less open-interface declaration, conceptually:
+
+   ```genia
+   open backend_profile(backend)
+   ```
+
+   followed later by ordinary R20 clauses for that interface; and
+
+2. a grouped declaration shorthand, conceptually:
+
+   ```genia
+   open {
+     backend_profile(backend)
+     backend_operation(backend, config, messages)
+     backend_content_extractor(backend)
+   }
+   ```
+
+   where the group has **no runtime or nominal identity** and lowers to
+   independent open-interface declarations.
+
+The design must explicitly decide whether zero-clause open interfaces are
+compatible with the existing R20 identity/provenance/help/Core IR model. If
+not, that semantic gap must be resolved before grouped syntax is considered.
+
+This planning entry does **not** implement behavior, approve final syntax, or
+reopen R20. It requires the normal contract, design, failing-test,
+implementation, documentation, audit, and distillation gates before any code
+change.
+
 ## Current state
 
 R15 through R22 are complete (`docs/releases/R22.md`; E22-11's skeptical
