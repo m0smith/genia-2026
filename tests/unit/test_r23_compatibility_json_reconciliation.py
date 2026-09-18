@@ -39,8 +39,6 @@ difference); full diagnostics sweep (E23-6); release audit (E23-7).
 """
 from __future__ import annotations
 
-import pytest
-
 from genia import make_global_env, run_source
 from genia.numeric_runtime import (
     GeniaDecimal,
@@ -179,22 +177,20 @@ def test_json_stringify_encodes_terminating_rational_as_decimal_text():
 
 
 def test_json_stringify_rejects_non_terminating_rational():
-    from genia.values import GeniaOptionErr
+    from genia.values import GeniaOptionErr, is_none
 
     value = rational_from_integers(1, 3)
     result = _json_stringify(value)
     # Compatibility failure shape is `none(...)`, not `err(...)`.
     assert not isinstance(result, GeniaOptionErr)
-    src = "none?(x)"
-    outcome = run_source(src, make_global_env([("x", result)]))
-    assert outcome is True
+    assert is_none(result)
 
 
 def test_json_stringify_rejects_non_finite_float():
+    from genia.values import is_none
+
     result = _json_stringify(float("nan"))
-    src = "none?(x)"
-    outcome = run_source(src, make_global_env([("x", result)]))
-    assert outcome is True
+    assert is_none(result)
 
 
 def test_json_stringify_float_uses_canonical_digits_not_python_repr():
