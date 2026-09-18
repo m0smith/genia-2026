@@ -6,6 +6,15 @@ Status: Planning history — non-authoritative. `GENIA_STATE.md` remains final a
 
 These are valuable, but not part of the near roadmap unless explicitly promoted:
 
+- Outcome composition ergonomics — **promoted to a near-term cross-cutting follow-up candidate**
+  - motivating problem: ordinary application code should not need pervasive `apply_raw` to express full-Outcome composition
+  - first contract candidate: a canonical full-Outcome bind/composition helper, working name `flat_map_outcome`
+  - intended narrow behavior: `some(value)` invokes the step; `none(...)` and `err(...)` are preserved unchanged
+  - preserve the existing distinction between direct-call propagation and pipeline short-circuiting; this item does not authorize a pipeline stage that intercepts `err(...)`
+  - do not broaden `flat_map_some`, add arbitrary propagation-control annotations, or create a second invocation model
+  - configuration/domain values that intentionally encode absence must remain explicit; this helper must not become a workaround for unclear modeling
+  - directly supports the Outcome-aware validated-data-pipeline north star and later HTTP, AI, storage, and database composition
+  - no release number is assigned yet; schedule through the normal contract/design/failing-test/implementation/docs/audit/distillation gates before implementation
 - actor system
   - includes actor lifecycle, supervision, and actor-oriented runtime expansion
   - keep out of R5 unless a narrow use case explicitly requires it
