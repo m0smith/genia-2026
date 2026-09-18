@@ -4774,8 +4774,9 @@ payloads and replacing it with a genuine exact runtime value:
   (`src/genia/evaluator.py`), JSON Schema `"number"` type matching
   (`src/genia/builtins.py`), and R12 retrieval/rerank finite-score
   validation (`src/genia/retrieval.py`) all now recognize `GeniaDecimal`.
-  Display/debug text for `GeniaDecimal` (its Python `__repr__`) is a
-  placeholder pending R23 canonical spelling, not a rendering contract.
+  Display/debug text for `GeniaDecimal` (its Python `__repr__`) was a
+  placeholder at this slice's landing; R23 E23-1 (section 9.32) later made
+  it the canonical rendering contract.
 - R18 conformance test seam: three pre-existing R18 NaN-rejection
   conformance cases (issue #792) previously reached a host float NaN as
   an accidental byproduct of Decimal literals overflowing through the
@@ -5151,6 +5152,59 @@ Explicit limitations: no canonical display/JSON (R23); `json_stringify`'s
 existing (pre-R22, applies to every unsupported-for-JSON type, not
 Decimal/Rational-specific) diagnostic-message shape was not touched, since
 it is not a defect this slice's scope attributes to R22.
+
+## 9.32) R23 E23-1 canonical numeric rendering (issue #911)
+
+Implements sections 2-3 of
+`docs/design/r23-numeric-representation-interchange-contract.md`: canonical
+display/debug rendering for Integer, Decimal, Rational, and Float64.
+
+- **Decimal** (`src/genia/numeric_runtime.py` `GeniaDecimal.__repr__`/
+  `__str__`, via new shared `_canonical_decimal_text`): fixed notation when
+  `-6 <= adjusted_exponent <= 20` (`adjusted_exponent = len(digits) +
+  exponent - 1`), else scientific; no insignificant trailing fractional
+  zeros; `.0` suffix when mathematically integral (e.g. `500.0`, not the
+  prior placeholder's bare `500`); scientific form has exactly one digit
+  before `.`, lowercase `e`, explicit `+`/`-` exponent sign, no
+  unnecessary exponent leading zeros. Display and debug are identical.
+- **Rational** (`src/genia/numeric_runtime.py` `GeniaRational.__repr__`/
+  `__str__`): unchanged text (`<numerator>/<denominator>`, no spaces) --
+  it already matched the contract before this slice; only the "pending
+  R23" comment was retired.
+- **Float64** (`src/genia/numeric_runtime.py`, new `format_float64`):
+  `float64(<shortest-roundtrip-decimal>)`. The inner decimal is obtained
+  by parsing CPython's own correctly-rounded `repr(float)` (guaranteed
+  shortest text that round-trips to the identical binary64 bits under
+  round-to-nearest/ties-to-even) through `decimal.Decimal(...).as_tuple()`
+  into a coefficient/exponent pair, then rendered with the same
+  `_canonical_decimal_text` helper Decimal uses. Signed zero renders
+  `float64(0.0)`/`float64(-0.0)` (Float64, unlike Decimal, has a real
+  sign-of-zero distinction). Non-finite values render `float64(nan)`,
+  `float64(inf)`, `float64(-inf)`.
+- **Integer**: no change. Python's own `str(int)` already satisfied
+  contract section 2.1; confirmed by tests, not rewritten.
+- **Rendering-surface wiring** (`src/genia/utf8.py` `format_display`/
+  `format_debug` -- the one generic rendering dispatch every user-facing
+  and debug output surface already funnels through, including the REPL/
+  CLI final-value echo in `src/genia/interpreter.py` `_emit_result`):
+  gained an explicit `float` branch calling `format_float64` instead of
+  falling through to Python's own `str(float)`/`repr(float)`. Decimal and
+  Rational needed no dispatch change -- they already route through that
+  same fallback via their own (now canonical) `__str__`/`__repr__`.
+- Shared evidence: `tests/unit/test_r23_canonical_numeric_rendering.py`
+  (fixed/scientific boundary cases at `adjusted_exponent` exactly -6 and
+  20 and one past each side, trailing-zero stripping, Rational sign
+  normalization, Float64 signed zero/non-finite/shortest-round-trip
+  spelling, and a REPL/CLI-echo-path-level test running real Genia source
+  through the evaluator).
+
+Explicit limitations: no field-format-spec integration (existing
+`_format_engine.py` `.n`/`,`/width behavior is unchanged, E23-2); no JSON
+encode/decode changes, no `stable_json_decimal`, no compatibility JSON
+reconciliation (E23-3/E23-4/E23-5); no R19 diagnostic-normalization work
+beyond what already existed (no render path in scope raised for values in
+scope); R22 arithmetic/equality/comparison are unchanged -- this slice is
+rendering-only.
 
 ## 10) Explicitly not implemented (current)
 
