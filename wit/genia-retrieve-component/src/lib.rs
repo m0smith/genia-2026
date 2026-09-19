@@ -137,6 +137,26 @@ impl Guest for Component {
             context: None,
         })
     }
+
+    // --- Round-trip identity exports (P9 slice B, issue #951) ---------
+    //
+    // Pure identity passthroughs, added solely so slice B's Python
+    // adapter can prove Integer/Decimal/Rational/Outcome/ordered-Map
+    // values survive a real Canonical ABI call unchanged -- `retrieve`
+    // itself never emits or accepts these shapes as output. No scoring,
+    // validation, or Genia semantics is added here.
+
+    fn echo_score(value: GeniaScore) -> GeniaScore {
+        value
+    }
+
+    fn echo_outcome(value: GeniaOutcome) -> GeniaOutcome {
+        value
+    }
+
+    fn echo_map(value: GeniaOrderedMap) -> GeniaOrderedMap {
+        value
+    }
 }
 
 export!(Component);

@@ -5773,6 +5773,148 @@ about `embed/4`, `index/4`, or `rerank/4` needing a second realization.
 It is not a new release and adds no new Genia-visible syntax, builtin, or
 factory.
 
+## 9.39) Provider Composition P9 — Genia<->WIT interoperability proof (issues #947, #949, #951)
+
+Implements the design in
+`docs/design/p9-genia-wit-interoperability-mapping.md` (issue #947) as
+concrete runtime evidence, across two implementation slices
+(`docs/design/p9-wit-toolchain-build.md`, issue #949; this section, issue
+#951). Like section 9.38, this is architecture-exploration work
+(`docs/analysis/provider-composition-stage0.md`), **not** a new numbered
+release -- `retrieve/4`'s public contract, error vocabulary, and Outcome
+shape (section 9's R12 entries above) are unchanged, and no
+`src/genia/retrieval.py` change was required or made.
+
+- **Slice A (issue #949, infrastructure/build evidence): a real compiled,
+  validated WIT component.** `wit/genia-retrieve/world.wit` authors
+  package `genia:retrieve@0.1.0`: `genia-integer` (sign + base-2^32
+  little-endian magnitude limbs), `genia-decimal`
+  (`coefficient: genia-integer, exponent: s32`), `genia-rational`
+  (`numerator`/`denominator: genia-integer`) -- never a bare fixed-width
+  WIT integer or `f64` standing in for any of the three -- a four-case
+  `genia-score` numeric variant, a three-case `genia-outcome` variant
+  (`outcome-some`/`outcome-none`/`outcome-err`, never a two-case
+  `result<T, E>`, per the design doc's explicit rejection of folding
+  `none(...)` into either `ok` or `err`), a `genia-ordered-map` adapter
+  (`list<genia-map-entry>` over a narrow `map-value` variant of
+  Integer/String), and an `index-ref` record carrying E12-4's
+  `handle-id`/`space`/`dims` compatibility data (a record, not a WIT
+  `resource`, per that slice's documented decision). `wit/
+  genia-retrieve-component/` is a small `#![no_std]` Rust crate
+  (`wit-bindgen = "0.62.0"`) compiled for `wasm32-wasip2` into a real,
+  `wasm-tools validate`-clean Component-Model binary (file version
+  `0x1000d`, not a bare core module) whose embedded interface
+  (`wasm-tools component wit`) matches the authored `.wit` field for
+  field. Toolchain: `wasm-tools 1.259.0`, `wit-bindgen-cli 0.62.0`,
+  `wasmtime-cli 49.0.0-rc.1` (explicitly noted as a release candidate --
+  no stable release existed at build time), `rustc 1.98.1`.
+- **Slice B (issue #951): a real Python-host adapter and round-trip
+  proof, never a mock or simulation.** `hosts/python/
+  wit_retrieve_adapter.py` -- a Python-host-only module, never reachable
+  from Genia source and never registered in `genia.builtins`, matching
+  `hosts/python/r12_retrieve_cosine_fixture.py`'s convention.
+  - **Mechanism decision.** The `wasmtime` PyPI package (native Wasmtime
+    embedding) was checked per the issue's explicit instruction:
+    `uv pip install wasmtime` resolves and installs cleanly
+    (`wasmtime==48.0.0`), but its public API in that version exposes only
+    core-WebAssembly primitives (`Module`/`Instance`/`Linker`/`Store`) and
+    no Component-Model-aware type at all, so it cannot instantiate or call
+    a real `wasm32-wasip2` component. The adapter therefore shells out to
+    a real `wasmtime run --invoke <component>.wasm <function>(<args>)`
+    process (the same pinned `wasmtime-cli` binary slice A validated),
+    which does support real component calls, and parses its deterministic
+    `wasm-wave` textual output with a small hand-rolled recursive-descent
+    parser scoped to this proof's known grammar. The `wasmtime` PyPI
+    package is not added as a project dependency and is not used anywhere
+    in the adapter or its tests.
+  - **Component extension.** `retrieve`'s own slice-A fixture only ever
+    emits `score-float64` and never returns a Map, so it alone cannot
+    exercise Integer/Decimal/Rational or ordered-Map-as-output through a
+    real call. Three pure identity round-trip exports were added to the
+    same `.wit`/Rust crate for this reason alone --
+    `echo-score`/`echo-outcome`/`echo-map` -- adding no scoring,
+    validation, or new Genia semantics; `retrieve`'s own behavior,
+    signature, and fixture are byte-for-byte unchanged from slice A.
+  - **Conversions.** `GeniaDecimal`/`GeniaRational` (both plain
+    arbitrary-precision Python `int` fields, per `src/genia/
+    numeric_runtime.py`) convert to/from `genia-decimal`/`genia-rational`
+    through the shared `genia-integer` sign+limb encoding with no float
+    anywhere in the path; a `GeniaMap` converts to/from
+    `genia-ordered-map` by iterating `GeniaMap.items()` (already R17/R18
+    canonical-order- and identity-deduplicated by construction), rejecting
+    any key/value kind this narrow interface's `map-value` variant does
+    not admit (bool, and anything beyond Integer/String) as an L2
+    pre-call misuse; `GeniaOptionSome`/`GeniaOptionNone`/`GeniaOptionErr`
+    convert to/from the three-case `genia-outcome` variant, including
+    `context` fields restricted to this interface's narrow closed
+    Integer/Symbol leaf shapes per the design doc's §1.4 scoping.
+  - **Failure layering.** L1 (an ordinary `some`/`none`/`err` Outcome) is
+    always returned as a value, never raised. L2
+    (`WitAdapterMisuseError`) rejects a value this boundary forbids
+    crossing at all -- a protected carrier (`GeniaProtected`), a
+    non-finite float, an unsupported map-key kind -- entirely on the
+    Python side, before any `subprocess` call is made. L3
+    (`WitComponentFaultError`) normalizes a genuine nonzero-exit
+    `wasmtime` process failure (a missing export, a malformed invocation)
+    into one of a closed set of `kind` strings, discarding all raw
+    process stderr/backtrace/source-path text before the exception is
+    ever raised or observed.
+  - **Proof evidence:** `tests/unit/test_p9_wit_retrieve_roundtrip.py`
+    (18 tests, every one calling the real compiled component through a
+    real `wasmtime` subprocess, skipped rather than faked if the
+    toolchain/component is unavailable):
+    - a 37-digit `GeniaDecimal` and a full Integer/Decimal/Rational/
+      Float64 sweep (including exact `1/3` and an Integer beyond 64 bits)
+      round-trip through `echo-score` with zero precision loss;
+    - a `GeniaMap` with a non-string (Integer) key round-trips through
+      `echo-map` with R17 order and R18 replace-in-place key identity
+      intact (a `put` that replaces an existing key does not grow the
+      entry count or reorder it);
+    - all three Outcome cases round-trip through `echo-outcome`,
+      including `err`'s `context` map, and are confirmed pairwise
+      distinct constructor kinds, never coerced into one another;
+    - a real `retrieve` call (mirroring R12's `retrieve/4` handler shape,
+      minus the already-declassified credential and never-crossing
+      provider/authority values, per the design doc §1.7/§1.9) exercises
+      `some`/`none`/`err` together against the compiled component's own
+      fixed three-document fixture;
+    - a protected carrier and a non-finite float are rejected by
+      `WitAdapterMisuseError` with `subprocess.run` patched to fail the
+      test if ever called, proving the L2 rejection happens strictly
+      before any component call is attempted;
+    - an invalid invocation (a nonexistent export name) raises a
+      normalized `WitComponentFaultError` with `kind ==
+      "invocation-invalid"`, confirmed to contain no raw Wasmtime process
+      text (`wasmtime_internal_core`, `Stack backtrace`, `.rs:`,
+      `libc_start`), and is confirmed observably distinct from an
+      ordinary `retrieve` call returning `err("retrieve-rejected")` as a
+      plain Outcome value.
+- Per `docs/analysis/provider-composition-stage0.md`'s P9 row, this
+  resolves P9: "map one exact Genia interface/revision without making WIT
+  identity authoritative... preserve approved P3/P4 values and
+  Outcomes... distinguish operation, component/transport, and R36
+  failures... document mismatches rather than changing Genia," per the
+  row's own exit evidence, traced above. Every mismatch the design doc
+  documented as adapted/lossy by design (arbitrary-precision numerics as
+  structural records rather than a WIT primitive, the ordered-map
+  adapter's enforcement living entirely in adapter code, `borrow<T>`'s
+  narrower per-call scope versus R14's full escape-prohibition list,
+  protected carriers/authorities never crossing as WIT values) remains
+  exactly as documented; this proof introduces no *new* undocumented
+  lossy substitution -- Decimal/Rational never touch a host binary float
+  anywhere in this path.
+
+Explicit limitations: `index-ref` is a WIT `record`, not a `resource`/
+`borrow<T>` -- the design doc's own named feasibility test for a
+host-owned borrowed resource (§1.8) remains future, separately-scoped
+work, not performed here. The general `genia-ordered-map` adapter is
+exercised only against this interface's narrow `map-value` variant
+(Integer/String), not a fully recursive legal-key family. No R36 outer
+execution envelope is exercised or claimed (§1.10 L4) -- this is a
+same-process, same-machine `wasmtime` component call. This is the last
+row in the Stage 0 provider-composition work ledger; it is not a new
+release and adds no new Genia-visible syntax, builtin, or factory.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

@@ -215,7 +215,7 @@ interface types {
 }
 
 interface retrieve {
-  use types.{genia-outcome, genia-ordered-map, index-ref};
+  use types.{genia-outcome, genia-ordered-map, index-ref, genia-score};
 
   // Mirrors R12's retrieve/4 handler shape (P8 design §2.1's
   // `handler(config, backend_ref, query, k, credential: str)`), minus
@@ -231,6 +231,35 @@ interface retrieve {
     index: index-ref,
     config: genia-ordered-map,
   ) -> genia-outcome;
+
+  // --- Round-trip identity exports (P9 slice B, issue #951) -------------
+  //
+  // `retrieve`'s own fixed fixture (slice A) only ever emits
+  // `score-float64` and never returns a Map, so it alone cannot exercise
+  // Integer/Decimal/Rational's real Canonical ABI round trip, all three
+  // `genia-outcome` cases as *return* shapes chosen by the caller, or a
+  // non-string `genia-ordered-map` key surviving a call as *output* (only
+  // as input, per slice A's §2.2 fixture). These three pure identity
+  // exports add no new semantics and change no existing behavior of
+  // `retrieve` itself -- they exist solely so slice B's round-trip tests
+  // can invoke the real compiled component (never a simulation) for the
+  // numeric/Outcome/Map cases the design doc's proof obligations (§2.2)
+  // require and `retrieve` alone does not exercise.
+
+  /// Identity round trip for `genia-score`: proves Integer/Decimal/
+  /// Rational/Float64 (design doc §1.11) survive a real Canonical ABI
+  /// call unchanged, byte-for-byte in their structural fields.
+  echo-score: func(value: genia-score) -> genia-score;
+
+  /// Identity round trip for `genia-outcome`: proves all three cases
+  /// (design doc §1.4) survive a real call unchanged, including each
+  /// case's own `reason`/`context` fields.
+  echo-outcome: func(value: genia-outcome) -> genia-outcome;
+
+  /// Identity round trip for `genia-ordered-map`: proves order and key
+  /// identity (design doc §1.6), including a non-string `map-integer`
+  /// key, survive a real call unchanged in both directions.
+  echo-map: func(value: genia-ordered-map) -> genia-ordered-map;
 }
 
 world genia-retrieve-world {
