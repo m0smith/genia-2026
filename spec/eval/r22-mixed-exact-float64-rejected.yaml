@@ -9,7 +9,7 @@ input:
   source: |
     [1 + float64(2), float64(2) + 1, 1.5 - float64(2), rational(1, 2) * float64(2), float64(2) / rational(1, 2)]
 expected:
-  stdout: "[none(\"type-error\", {source: \"+\", left: \"int\", right: \"float\"}), none(\"type-error\", {source: \"+\", left: \"float\", right: \"int\"}), none(\"type-error\", {source: \"-\", left: \"decimal\", right: \"float\"}), none(\"type-error\", {source: \"*\", left: \"GeniaRational\", right: \"float\"}), none(\"type-error\", {source: \"/\", left: \"float\", right: \"GeniaRational\"})]\n"
+  stdout: "[none(\"type-error\", {source: \"+\", left: \"int\", right: \"float\"}), none(\"type-error\", {source: \"+\", left: \"float\", right: \"int\"}), none(\"type-error\", {source: \"-\", left: \"decimal\", right: \"float\"}), none(\"type-error\", {source: \"*\", left: \"rational\", right: \"float\"}), none(\"type-error\", {source: \"/\", left: \"float\", right: \"rational\"})]\n"
   stderr: ""
   exit_code: 0
 notes: |

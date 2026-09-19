@@ -5615,12 +5615,14 @@ new-behavior slice.
   `_runtime_type_name`"), missed here only because it predates R23 and
   E23-5's rewrite left this one call unchanged. Fixed: now uses
   `_runtime_type_name(value)`.
-- **A sibling `type(value).__name__` shape exists in two pure R22
-  arithmetic-misuse raises** (`numeric_runtime.py`'s `_as_decimal` and
-  `exact`), confirmed by `git blame` to be E22-1/E22-5 code never touched
-  by any E23 slice. Left unchanged -- out of this ticket's R23-only scope
-  (R22 arithmetic/equality is explicitly frozen); noted as a candidate for
-  a future, separately scoped ticket if one is ever opened.
+- **A sibling `type(value).__name__` shape exists in three pure R22
+  arithmetic-misuse raises** (`numeric_runtime.py`'s `_as_decimal`, `exact`,
+  and `to_float64`; corrected from an earlier "two" count by issue #933's
+  E23-8 repair audit finding), confirmed by `git blame` to be E22-1/E22-5
+  code never touched by any E23 slice. Left unchanged -- out of this
+  ticket's R23-only scope (R22 arithmetic/equality is explicitly frozen);
+  noted as a candidate for a future, separately scoped ticket if one is
+  ever opened.
 - **E23-4's `AssertionError` dead-code guard in
   `_strict_json_to_runtime`'s `float` branch: confirmed genuinely
   unreachable through every public JSON entry point** (`_json_parse`,
