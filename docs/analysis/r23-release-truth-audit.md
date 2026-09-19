@@ -2,7 +2,7 @@
 
 Status: durable skeptical release-audit evidence for R23. Not a
 source-of-truth document; `GENIA_STATE.md` remains final authority. This
-file records **two** independent audit passes, kept in full as an honest
+file records **three** independent audit passes, kept in full as an honest
 paper trail rather than overwritten:
 
 1. **E23-7 (issue #931, PR #932) — original audit — FAIL.** Found one
@@ -11,10 +11,222 @@ paper trail rather than overwritten:
 2. **E23-8 (issue #933, PR #934) — repair** for that one finding: added a
    `GeniaRational -> "rational"` branch to `_runtime_type_name`
    (`src/genia/values.py`).
-3. **E23-9 (issue #935) — fresh, independent re-audit — see verdict at
-   the top of the "Re-audit after E23-8" section below** for the current,
-   authoritative verdict. Read that section first; the E23-7 section
-   beneath it is retained as historical record only.
+3. **E23-9 (issue #935, PR #936) — fresh, independent re-audit — FAIL.**
+   Found that E23-8's own `GENIA_STATE.md` edit never narrated E23-8's own
+   primary fix. See "Re-audit after E23-8" below.
+4. **E23-10 (issue #937, PR #938) — repair** for that finding: added a
+   clearly distinguished bullet to `GENIA_STATE.md` §9.37 describing the
+   `GeniaRational -> "rational"` fix, plus a coverage-only test extension.
+5. **E23-11 (issue #939) — third, independent re-audit — see verdict at
+   the top of the "Re-audit after E23-10" section below** for the current,
+   authoritative verdict. Read that section first; the E23-9 and E23-7
+   sections beneath it are retained as historical record only.
+
+## Re-audit after E23-10 (issue #939, E23-11) — verdict: PASS
+
+Audited commit: `25a3d7b5` (`origin/main` tip at audit time; merges #938,
+includes E23-1 through E23-6, the E23-7 audit doc, the E23-8 repair, the
+E23-9 audit doc, and the E23-10 repair — docs commit `49fac7b9`, test
+commit `54efcc14`). This is a third, fully independent pass — not a
+rubber stamp on the assumption that two rounds of fixes means the release
+must now be done. Every contract section (§2–§11) was re-derived from
+source and live-probed again from scratch, plus new adversarial angles
+beyond both prior audits' lists (see below).
+
+### Confirming the E23-10 repair itself
+
+Read all of `GENIA_STATE.md` §9.37 fresh, top to bottom, as if for the
+first time (not diffing against the previous version). It now reads
+coherently: the bullet **"The first of two genuine leaks found and fixed
+across this release"** (the E23-6 `json_stringify` fallback fix)
+cross-references forward to a clearly separate, clearly labeled bullet
+**"A second, distinct genuine leak, found by the E23-7 skeptical release
+truth audit and fixed by issue #933's E23-8 repair"** (the
+`_runtime_type_name` `GeniaRational -> "rational"` branch), which is in
+turn explicitly distinguished from the adjacent, unrelated "three
+pre-existing R22 `type(value).__name__` sites, deliberately left
+unfixed" bullet. All three bullets cross-reference each other by name so
+a reader cannot conflate them. This resolves E23-9's exact finding.
+Confirmed `54efcc14` genuinely adds `"received"` to
+`test_no_json_or_format_diagnostic_leaks_python_class_name`'s probed
+context-key list (read directly, not just trusted from the commit
+message).
+
+**Independently re-verified the underlying runtime code, not just the
+prose.** Read `_runtime_type_name` in `src/genia/values.py` directly: the
+`isinstance(value, GeniaDecimal): return "decimal"` branch is immediately
+followed by `isinstance(value, GeniaRational): return "rational"` — the
+fix is present, correctly placed, and (per E23-9's own already-confirmed
+grep of every call site) shared by every "expected X, received Y"
+diagnostic in the codebase. E23-10's own claim that "no runtime code
+needed to change" is accurate: E23-10's diff touches only
+`GENIA_STATE.md` and the one test file's probed-key list.
+
+### New adversarial angles tried beyond both prior audits
+
+- **Global/mutable-state audit for `pytest -n auto` parallelism**, not
+  attempted by either prior audit. Grepped `numeric_runtime.py`,
+  `_format_engine.py`, and `builtins.py`'s JSON sections for module-level
+  mutable state, `lru_cache`/`@cache`, and `global`. Found exactly one
+  module-level mutable (`_max_magnitude_bits` in `numeric_runtime.py`),
+  confirmed by direct read to be pre-existing R22-era code (a private
+  test-only seam guarded by a `try`/`finally` save-restore
+  context manager, `_numeric_resource_limit_test_seam`), not R23-owned,
+  and in any case not a real cross-worker race because `pytest -n auto`
+  parallelizes across separate OS processes (`pytest-xdist`), not
+  threads, so no interpreter state is shared between workers. The
+  compatibility-JSON encoder's `decimal_sentinels` dict (the
+  UUID-sentinel substitution mechanism `_json_from_runtime` uses to
+  smuggle exact Decimal text through `json.dumps`) was independently
+  confirmed to be a fresh, per-call, locally-scoped dict passed as an
+  explicit parameter down the recursive call tree — not a module global —
+  so no shared-state risk exists there either. No other numeric/JSON
+  module-level mutable state or cache found in any of the three files.
+- **Locale independence**: grepped the entire `src/` and `tools/` trees
+  for `locale` (contract §10 explicitly lists "locale-sensitive
+  formatting" as a non-goal). Zero matches anywhere in the codebase.
+- **Rational normalization to an integer-equivalent value**: live-probed
+  `4/2` and `6/3` — both render `2`, confirmed by direct code reading to
+  be R22 arithmetic reducing the ratio to a bare Integer runtime value
+  (denominator 1 collapses out of `GeniaRational` entirely), not an R23
+  rendering ambiguity — `GeniaRational.__repr__` is never reached for
+  these inputs because no `GeniaRational` instance survives construction.
+- **Decimal negative-zero policy, explicitly**: confirmed neither prior
+  audit's negative-zero probing covered a computed (not merely literal)
+  negative Decimal zero. Re-confirmed `GeniaDecimal._canonicalize`
+  collapses any zero magnitude to `(0, 0)` regardless of sign by reading
+  the function directly (`if coefficient == 0: return 0, 0`, checked
+  before the sign is ever examined) — Decimal genuinely has no
+  negative-zero identity anywhere in its construction path, matching the
+  contract's silence on Decimal signed zero (only Float64 gets one, per
+  §2.4).
+- **"No unnecessary exponent leading zeros" rule, explicitly**: re-read
+  `_canonical_decimal_text`'s scientific-notation branch directly —
+  `f"{sign}{mantissa}e{exp_sign}{abs(adjusted_exponent)}"` uses a bare
+  Python int-to-str conversion for the exponent digits, which by
+  construction can never introduce a leading zero (Python's `str(int)`
+  never pads). Live-probed both a single-digit exponent (`1e-7` ->
+  `1.0e-7`, not `1.0e-07`) and a multi-digit one (`1e21` -> `1.0e+21`),
+  confirming no leading-zero padding at either width.
+- **Format-spec `.n` half-up rounding for negative values, explicitly**:
+  neither prior audit's format-spec probing tested negative-value
+  rounding at the `.5` boundary. Live-probed
+  `format("{n:.0}", {n: -12.5})` -> `"-13"` and
+  `format("{n:.0}", {n: 12.5})` -> `"13"`, matching the existing
+  `tests/unit/test_r23_format_spec_numeric_integration.py` assertions and
+  the contract's "decimal half-up" rule symmetrically for both signs.
+- **`stable_json_decimal`'s own defensive `TypeError` dead-code guard,
+  traced independently**: read all three call sites in `builtins.py`
+  directly (not merely cited from the E23-9 write-up). Line 2062 receives
+  its argument from `_parse_json_decimal_token`, which always returns a
+  `GeniaDecimal`; line 2161 is guarded by an immediately-preceding
+  `isinstance(value, GeniaDecimal)` check; line 2195 receives its
+  argument from `rational_terminating_decimal`, typed
+  `GeniaDecimal | None` and already checked non-`None` on the line above.
+  Confirmed genuinely unreachable through any public Genia entry point —
+  not a bug, and correctly still undocumented as a public-facing fact
+  (it is implementation detail, not a leak).
+- **Every documented example in `docs/releases/R23.md` and
+  `GENIA_STATE.md` §9.32–9.37 run live against the actual CLI**, not
+  merely re-read as plausible: `500.0`, `float64(0.1)`, `json_decode
+  ("1.5")`, `json_encode(1 / 3)`, and `json_encode(9007199254740992)` all
+  reproduce their documented output byte for byte. Also independently
+  re-derived and live-probed the Decimal fixed/scientific boundary at
+  all four documented edges (`1e20`/`1e21`/`1e-6`/`1e-7`) plus `500.0`'s
+  `.0` suffix — all land exactly where §2.2 requires.
+- **A stale-looking but harmless naming collision, checked and cleared**:
+  `docs/strategy/r23-python-reduction-release.md` is a *different*,
+  unrelated, never-adopted release proposal that also happens to be
+  numbered "R23" (Python reference-host size reduction, not numeric
+  interchange). Its own status line explicitly says why: "Numbered R23 to
+  avoid colliding with R15 ... and the R16–R22 C++ host plan", predating
+  the real R23 (numeric interchange) being assigned that number, and it
+  is explicitly marked "Proposal — non-authoritative, not adopted."
+  Confirmed this does not misrepresent implemented behavior (it never
+  claims to be the shipped R23, and `docs/strategy/*` proposals are
+  explicitly non-authoritative per `AGENTS.md`) — noted here only because
+  neither prior audit had looked at it, not because it is a defect.
+
+### Documentation truth check (fresh, full re-read)
+
+- `GENIA_STATE.md` §9.32–9.37: every behavioral sentence independently
+  re-verified against current code and live probes; §9.37 read fresh in
+  full and confirmed internally coherent end to end (see above).
+- `docs/releases/R23.md`: still accurately says "In progress" and
+  correctly does not claim completion — appropriate for this document to
+  update only once this audit's verdict is known. Its E23-6-scoped
+  sentence "one genuine leak was found and fixed" is historically
+  accurate as a description of E23-6's own scope (E23-6 really did find
+  and fix exactly one leak; the second was found later, by E23-7) and is
+  superseded, not contradicted, by this document's own completion update
+  below.
+- `docs/strategy/roadmap/r21-r24.md`, `docs/strategy/release-roadmap.md`:
+  both still correctly say "In progress" / "E23-7 audit pending" prior to
+  this audit's own completion update below.
+- `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`: their R23-related
+  sentences (safe-integer/`stable_json_decimal` boundary, compatibility
+  JSON lexical-decode/encode behavior) re-checked against current code —
+  all accurate, none overclaims.
+- `docs/ai/LLM_CONTRACT.md`: no R23-specific content; nothing to check.
+- `AGENTS.md`'s Product Priority section: no existing R23 paragraph
+  (grepped for "R23" — zero matches before this audit's own update),
+  consistent with R23 never having been marked complete before now.
+
+### Validation battery, run fresh to completion at the re-audited commit
+
+```
+$ uv run ruff check .
+All checks passed!
+
+$ uv run pytest -n auto -q -m "not loopback"
+4684 passed in 307.90s (0:05:07)
+
+$ uv run pytest -n auto -q -m loopback
+26 passed in 3.00s
+
+$ uv run python -m tools.spec_runner
+Summary: total=740 passed=740 failed=0 invalid=0
+
+$ uv run python tools/gen_function_docs.py --check
+Function reference is up to date.
+
+$ uv run python tools/stage_docs_for_mkdocs.py && uv run mkdocs build --strict
+Documentation built in 5.37 seconds
+
+$ uv run pytest tests/doc/test_semantic_doc_sync.py tests/doc/test_roadmap_split.py tests/doc/test_composability_matrix_sync.py -q
+116 passed in 0.28s
+```
+
+Every command ran to actual completion, not estimated. Both pytest
+partition counts (4684 / 26) and the spec-runner, doc-gen, mkdocs, and
+doc-sync results are byte-for-byte identical to the E23-9 re-audit's own
+fresh run, confirming zero regression across the E23-9/E23-10 commit
+range (only a `GENIA_STATE.md` doc edit and one coverage-only test-key
+addition, no behavioral code change).
+
+### Verdict: PASS
+
+After a third, genuinely independent and adversarial pass — including
+angles neither prior audit tried (global/mutable-state concurrency audit,
+explicit locale-independence sweep, Rational-reduces-to-Integer
+rendering, computed Decimal negative-zero policy, the exponent-leading-
+zero rule read directly from source, negative-value half-up rounding,
+independently re-tracing `stable_json_decimal`'s dead-code guard from
+its call sites rather than trusting the prior write-up, running every
+documented example live against the CLI, and a full fresh reading of
+`GENIA_STATE.md` §9.37 for internal coherence rather than diffing) — no
+defect was found. E23-10's repair is itself correct, complete, and
+internally consistent with the code it documents. The full validation
+battery is 100% green, run fresh to completion, with results identical
+to the last audit's.
+
+R23 is marked **release-complete** by this audit. `docs/releases/R23.md`,
+`docs/strategy/roadmap/r21-r24.md`, `docs/strategy/release-roadmap.md`,
+and `AGENTS.md`'s Product Priority section are updated in this same
+change to reflect the full, honest history: E23-1 through E23-11, with
+two genuine findings during the audit gate (E23-7 and E23-9), both
+repaired (E23-8 and E23-10) and both re-verified by subsequent
+independent audits.
 
 ## Re-audit after E23-8 (issue #935, E23-9) — verdict: FAIL
 
