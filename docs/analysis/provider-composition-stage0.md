@@ -522,7 +522,7 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 | **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED FOR ARCHITECTURE** | Same-process calls keep interface Outcomes, composition/validity faults are misuse, and R36 remains the sole outer execution envelope. |
 | **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED FOR ARCHITECTURE** | Explicit immutable validated binding plan over already-constructed capabilities; exact matching, closed transitive graph, fail-closed ambiguity/cycles, no R20 selection. |
 | **P8** | What is the smallest proof of alternate provider realization with unchanged application logic? | **RESOLVED BY CONCRETE SUBSTITUTION PROOF** | `retrieve/4` proven with two realizations (existing fixed-order/fixed-score fixture vs. a new dict-backed real cosine-similarity fixture) behind the unchanged `GeniaRetrieveProvider`/`GeniaRetriever`/`create_fixture_retrieve_provider` shape; identical application-facing Genia source, identical portable Outcome shape, no provider-specific leakage, no R20/R14/R18/Outcome change — see `docs/design/p8-alternate-provider-substitution-proof-design.md` (design), `hosts/python/r12_retrieve_cosine_fixture.py` and `tests/unit/test_r12_retrieve_alternate_realization.py` (implementation, issue #945), and `GENIA_STATE.md` section 9.38. |
-| **P9** | Can the resulting Genia model map to one actual WIT component without changing Genia semantics? | Deferred until P0-P8 are coherent | One bounded WIT interop proof; any mismatch documented rather than hidden. |
+| **P9** | Can the resulting Genia model map to one actual WIT component without changing Genia semantics? | **RESOLVED BY BOUNDED WIT INTEROPERABILITY PROOF** | A real, compiled, validated `wasm32-wasip2` WIT component (`wit/genia-retrieve-component/`) is instantiated and called through a real `wasmtime` process (never a mock); a Python-host adapter (`hosts/python/wit_retrieve_adapter.py`) converts Integer/Decimal/Rational/Float64, an ordered R18-identity Map with a non-string key, and all three Outcome cases across that real boundary with zero precision loss and zero new lossy substitution; an L2 misuse rejection (a protected carrier) is caught before any component call, and an L3 component-layer failure is caught and normalized distinctly from an ordinary L1 `err(...)` Outcome, with no raw Wasmtime/process text leaking through — see `docs/design/p9-genia-wit-interoperability-mapping.md` (design), `docs/design/p9-wit-toolchain-build.md` (slice A build/validation), `tests/unit/test_p9_wit_retrieve_roundtrip.py` (implementation, issue #951), and `GENIA_STATE.md` section 9.39. |
 
 ## Work order and gates
 
@@ -612,15 +612,56 @@ Keep this short and append-only unless correcting a factual error.
   `GENIA_STATE.md` section 9.38. No `src/genia/retrieval.py` change was
   required or made.
 
+- **2026-09-19 — P9 resolved by bounded WIT interoperability proof
+  (issues #947/#949/#951).** Design (`docs/design/
+  p9-genia-wit-interoperability-mapping.md`, issue #947) mapped the R12
+  `retrieve/4` proof target onto an authored WIT package
+  (`genia:retrieve@0.1.0`), documenting every mismatch (no arbitrary-
+  precision WIT numeric type, no ordered arbitrary-key Map, Outcome's
+  extra `none` case, protected values never crossing, `borrow<T>`'s
+  narrower per-call scope) rather than changing Genia semantics to
+  paper over them. Slice A (issue #949) installed the pinned toolchain
+  (`wasm-tools 1.259.0`, `wit-bindgen-cli 0.62.0`, `wasmtime-cli
+  49.0.0-rc.1`, an explicitly-noted release candidate) and produced a
+  real, `wasm-tools validate`-clean, `wasm32-wasip2` Wasm **component**
+  (`wit/genia-retrieve-component/`) implementing that WIT interface.
+  Slice B (issue #951) extended that component with three pure
+  round-trip identity exports (`echo-score`/`echo-outcome`/`echo-map`,
+  added solely because `retrieve`'s own fixed fixture never emits
+  Decimal/Rational scores or returns a Map) and added
+  `hosts/python/wit_retrieve_adapter.py`, a Python-host-only adapter
+  that shells out to a real `wasmtime run --invoke` process (the
+  `wasmtime` PyPI package installs cleanly but exposes no
+  Component-Model-aware API in the checked version, so it cannot
+  instantiate a real component) and converts between Genia values and
+  the WIT wire shapes with zero float round-trip anywhere in the
+  numeric path. `tests/unit/test_p9_wit_retrieve_roundtrip.py` proves,
+  against the real compiled component every time: a 37-digit Decimal
+  and an Integer/Decimal/Rational/Float64 sweep round-trip with zero
+  precision loss (including exact `1/3`); an ordered Map with a
+  non-string (Integer) key survives with R18 replace-in-place identity
+  intact; all three Outcome cases (`some`/`none`/`err`, including
+  `err`'s context) survive distinctly; a protected carrier is rejected
+  by the adapter before any subprocess is spawned (verified by making
+  `subprocess.run` fail the test if called); and an invalid invocation
+  is caught as a normalized `WitComponentFaultError` distinct from an
+  ordinary `err(...)` Outcome, with no raw Wasmtime process text
+  (stderr, backtraces, source paths) leaking through. See
+  `GENIA_STATE.md` section 9.39.
+
 ## Current Stage 0 verdict
 
-**P0/P1/P2/P3/P4/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED/FROZEN. P8 RESOLVED BY CONCRETE SUBSTITUTION PROOF. No implementation authorization beyond the resolved proofs.**
+**P0/P1/P2/P3/P4/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED/FROZEN. P8 RESOLVED BY CONCRETE SUBSTITUTION PROOF. P9 RESOLVED BY BOUNDED WIT INTEROPERABILITY PROOF. No implementation authorization beyond the resolved proofs.**
 
 P3 and P4 are now fully resolved and frozen for architecture, including all
 four numeric kinds, following R23's completion and issue #941's skeptical
 freeze review. P8 is resolved by the concrete `retrieve/4` substitution
-proof above (issue #945); P9 remains future proof work. The resolved
-preflight does not promote a numbered release or change implemented
-semantics beyond what section 9.38 documents; the doc's `PROPOSED /
-EXPLORATORY` status and `GENIA_STATE.md`-is-final-authority disclaimer
-above remain in force for this content, numeric included.
+proof above (issue #945). P9 is resolved by the bounded WIT
+interoperability proof above (issues #947/#949/#951): one real compiled
+component, invoked for real, with documented (not hidden) mismatches and
+no new lossy numeric/Map/Outcome substitution. This is the final row in
+this work ledger; the resolved preflight does not promote a numbered
+release or change implemented semantics beyond what sections 9.38-9.39
+document; the doc's `PROPOSED / EXPLORATORY` status and
+`GENIA_STATE.md`-is-final-authority disclaimer above remain in force for
+this content, numeric included.
