@@ -5678,6 +5678,101 @@ Explicit limitations: no new numeric semantics; no Outcome-shape change;
 no R22 arithmetic/equality change; R23 is not marked complete by this
 slice -- the E23-7 skeptical release truth audit is still pending.
 
+## 9.38) Provider Composition P8 — retrieve/4 alternate-provider substitution proof (issue #945)
+
+Implements the design in
+`docs/design/p8-alternate-provider-substitution-proof-design.md` (issue
+#943) as concrete runtime evidence. This is architecture-exploration work
+(`docs/analysis/provider-composition-stage0.md`, `docs/analysis/
+provider-composition-preflight.md`), **not** a new numbered release --
+`retrieve/4`'s public contract, error vocabulary, and Outcome shape
+(section 9's R12 entries above) are unchanged.
+
+- **No `src/genia/retrieval.py` change.** `GeniaRetrieveProvider`,
+  `GeniaRetriever`, and `create_fixture_retrieve_provider` are exactly as
+  R12 (E12-4) left them. Both realizations below are plain Python handler
+  closures installed through that unmodified factory.
+- **Realization A (existing pattern, reused unmodified).** The
+  fixed-order/fixed-score list-backed handler pattern already used by
+  `hosts/python/exec_r12_grounded_fixture.py` and
+  `tests/unit/test_r12_retrieval_fixture.py`.
+- **Realization B (new, issue #945): `hosts/python/
+  r12_retrieve_cosine_fixture.py`.** A genuinely distinct implementation
+  path: an id-keyed `dict` backend (not realization A's ordered `list`)
+  plus a real, deterministic cosine-similarity ranking computed with plain
+  Python arithmetic (`dot / (|q| * |s|)`), sorted descending with a
+  deterministic index-based tie-break. `score` is the computed similarity
+  itself, never a constant. It calls no code from realization A and adds
+  no new Genia-visible surface, builtin, or factory.
+- **Proof evidence:**
+  `tests/unit/test_r12_retrieve_alternate_realization.py` (50 tests,
+  parametrized over both realizations where applicable):
+  - the identical Genia-source `retrieve(...)`/`r(handle, query, k)` call
+    sequence produces a contract-conformant Outcome from either
+    realization, with the only difference being which Python handler was
+    passed to `create_fixture_retrieve_provider` at host-side bootstrap;
+  - binding is explicit only (an unset provider name fails to resolve at
+    all; two providers built side by side never cross-invoke each
+    other's handler/attempt counter);
+  - a retrieve provider paired, via the same unmodified
+    `create_fixture_retrieve_provider`, to the same already-built index
+    provider passes all three E12-4 compatibility guards
+    (identity/space/dims) for either realization;
+  - Outcome shape (cardinality bound, chunk provenance, finite score) is
+    identical between realizations for the same corpus/query while
+    *content* (order, score value) legitimately differs -- realization
+    A's constant `1.0` score vs. realization B's genuine computed cosine
+    similarity, and a query that lets B rank differently than A's fixed
+    insertion order;
+  - no provider-internal object (`_FixtureRetrieveResult`,
+    `_FixtureIndexResult`, `GeniaIndexHandle`, the compatibility-identity
+    `object()`, or a raw `dict`/`list` backend) is ever observable from a
+    returned Outcome's `display`/`debug_repr`/`repr`;
+  - a handler that raises normalizes to
+    `err("retrieve-transport-failure", {kind: other})` with no exception
+    text or type name, for both realizations;
+  - all four P3/P4 numeric score kinds (Integer, `GeniaDecimal`,
+    `GeniaRational`, Float64) and non-numeric chunk/meta evidence survive
+    exactly through both realizations' shared normalization path;
+  - R18 equality (`genia_equal`), R20 dispatch (`construct_retrieve`/
+    `create_fixture_retrieve_provider` are plain Python functions, no
+    open-function/dispatch mechanism referenced anywhere in
+    `retrieval.py`), R14 lifecycle (confirmed absent from
+    `retrieval.py`'s source -- `retrieve/4` never opens a lifecycle
+    scope), and Outcome semantics (`some`/`none`/`err`) are all confirmed
+    unchanged by this proof;
+  - negative scenarios: wrong interface revision (mismatched `dims`),
+    incompatible provider (mismatched `space`), incompatible index
+    identity, missing/wrong-type provider (fails closed with `TypeError`
+    before any handler), provider-internal object leakage, a Local-only
+    `GeniaIndexHandle` embedded inside `query`'s map (rejected as misuse
+    before any handler), a non-finite (`NaN`/`Infinity`/`-Infinity`)
+    score (rejected `retrieve-response-invalid`/`stage: score`), and a
+    normalized provider failure with no raw exception text -- each
+    proven for both realizations.
+  - "Ambiguous binding" is vacuously satisfied and documented as such,
+    not forced: `retrieve/4` has no registry or name-lookup a binding
+    could ever resolve ambiguously against, so no such scenario is
+    constructible; the test instead proves two providers can coexist in
+    one environment with zero cross-selection.
+- **P3/P4 Decimal/Rational non-finite case: does not exist.**
+  `GeniaDecimal`/`GeniaRational` (R22) are exact, arbitrary-precision, and
+  have no NaN/Infinity representation, so `_is_finite_score` always
+  accepts them; only Float64's `math.isfinite` boundary has a non-finite
+  case to reject. Documented rather than faked with an artificial test.
+- Per `docs/analysis/provider-composition-stage0.md`'s P8 row, this
+  resolves P8: "smallest proof of alternate provider realization with
+  unchanged application logic," per the row's own exit evidence (two
+  realizations with identical portable observations and no
+  provider-specific leakage), traced above.
+
+Explicit limitations: this is not a general provider-registry, P5
+"name + opaque revision" token, or P7 binding-plan proof -- it stays at
+the single explicit-argument scale P8's design fixed. It makes no claim
+about `embed/4`, `index/4`, or `rerank/4` needing a second realization.
+It is not a new release and adds no new Genia-visible syntax, builtin, or
+factory.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer

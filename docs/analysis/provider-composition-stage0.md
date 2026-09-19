@@ -521,7 +521,7 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 | **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | **RESOLVED FOR ARCHITECTURE** | Exact nominal identity plus exact opaque revision; no structural/SemVer inference, registry, or package system. |
 | **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED FOR ARCHITECTURE** | Same-process calls keep interface Outcomes, composition/validity faults are misuse, and R36 remains the sole outer execution envelope. |
 | **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED FOR ARCHITECTURE** | Explicit immutable validated binding plan over already-constructed capabilities; exact matching, closed transitive graph, fail-closed ambiguity/cycles, no R20 selection. |
-| **P8** | What is the smallest proof of alternate provider realization with unchanged application logic? | Not started | Reuse an existing R12-style semantic interface; demonstrate two realizations with identical portable observations and no provider-specific leakage. |
+| **P8** | What is the smallest proof of alternate provider realization with unchanged application logic? | **RESOLVED BY CONCRETE SUBSTITUTION PROOF** | `retrieve/4` proven with two realizations (existing fixed-order/fixed-score fixture vs. a new dict-backed real cosine-similarity fixture) behind the unchanged `GeniaRetrieveProvider`/`GeniaRetriever`/`create_fixture_retrieve_provider` shape; identical application-facing Genia source, identical portable Outcome shape, no provider-specific leakage, no R20/R14/R18/Outcome change — see `docs/design/p8-alternate-provider-substitution-proof-design.md` (design), `hosts/python/r12_retrieve_cosine_fixture.py` and `tests/unit/test_r12_retrieve_alternate_realization.py` (implementation, issue #945), and `GENIA_STATE.md` section 9.38. |
 | **P9** | Can the resulting Genia model map to one actual WIT component without changing Genia semantics? | Deferred until P0-P8 are coherent | One bounded WIT interop proof; any mismatch documented rather than hidden. |
 
 ## Work order and gates
@@ -599,13 +599,28 @@ Keep this short and append-only unless correcting a factual error.
 - **2026-09-18 — P3/P4 non-numeric boundary inventory resolved.** The recursive admissibility matrix and semantic `ProviderBoundaryValue` treatment preserve R9/R10/R14/R18 rules without defining a codec. Numeric provider-boundary encoding/interchange remains **BLOCKED ON R23**.
 - **2026-09-19 — P3/P4 numeric hole closed; both RESOLVED/FROZEN FOR ARCHITECTURE (issue #941).** With R23 complete, the value-family matrix and `ProviderBoundaryValue` model were extended with Integer/Decimal/Rational/Float64 rows/fields preserving R22's exact coefficient/exponent, numerator/denominator, and bit-exact Float64 semantics without inheriting R23's JSON-specific stability gates or intervals, and without coercing to Python `decimal.Decimal`/`fractions.Fraction` or host binary64. A skeptical freeze review found and fixed one documentation-completeness gap (explicit per-kind Core IR/display-rendering distinctness) and found no genuine semantic hole. No wire codec is selected; `GENIA_STATE.md` is untouched.
 
+- **2026-09-19 — P8 resolved by concrete substitution proof (issue #945).**
+  `retrieve/4` (design `docs/design/p8-alternate-provider-substitution-proof-design.md`,
+  issue #943) now has two realizations behind the unchanged
+  `GeniaRetrieveProvider`/`GeniaRetriever`/`create_fixture_retrieve_provider`
+  shape -- the existing fixed-order/fixed-score fixture and a new
+  `hosts/python/r12_retrieve_cosine_fixture.py` dict-backed real
+  cosine-similarity fixture -- proven identical in application-facing
+  Genia source, portable Outcome shape, and non-leakage, with genuinely
+  differing content (order/score), per
+  `tests/unit/test_r12_retrieve_alternate_realization.py` and
+  `GENIA_STATE.md` section 9.38. No `src/genia/retrieval.py` change was
+  required or made.
+
 ## Current Stage 0 verdict
 
-**P0/P1/P2/P3/P4/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED/FROZEN. No implementation authorization.**
+**P0/P1/P2/P3/P4/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED/FROZEN. P8 RESOLVED BY CONCRETE SUBSTITUTION PROOF. No implementation authorization beyond the resolved proofs.**
 
 P3 and P4 are now fully resolved and frozen for architecture, including all
 four numeric kinds, following R23's completion and issue #941's skeptical
-freeze review. P8/P9 remain future proof work. The resolved preflight does
-not promote a numbered release or change implemented semantics; the doc's
-`PROPOSED / EXPLORATORY` status and `GENIA_STATE.md`-is-final-authority
-disclaimer above remain in force for this content, numeric included.
+freeze review. P8 is resolved by the concrete `retrieve/4` substitution
+proof above (issue #945); P9 remains future proof work. The resolved
+preflight does not promote a numbered release or change implemented
+semantics beyond what section 9.38 documents; the doc's `PROPOSED /
+EXPLORATORY` status and `GENIA_STATE.md`-is-final-authority disclaimer
+above remain in force for this content, numeric included.
