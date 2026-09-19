@@ -303,30 +303,89 @@ blocked cells:
   later codec-contract decisions, per the "Explicit exclusions" list under
   P4 below.
 
-## P4 — Canonical non-numeric provider-boundary treatment
+## P4 — Canonical provider-boundary treatment
 
-Status: **NON-NUMERIC CANONICAL BOUNDARY SHAPE RESOLVED FOR ARCHITECTURE;
-numeric encoding/interchange remains BLOCKED ON R23.**
+Status: **RESOLVED/FROZEN FOR ARCHITECTURE.** With R23 complete, the numeric
+semantic shape below closes the previously blocked cells alongside the
+already-resolved non-numeric canonical boundary shape.
 
 `ProviderBoundaryValue` is a semantic admissibility model, not a runtime type,
-class hierarchy, codec, schema, or new Genia value family. For the non-numeric
-portion it contains only an approved ordinary semantic scalar, tagged Outcome,
-ordered sequence/pair, ordered map entry sequence, represented value with its
-ordered facet information, approved inert structural value, or explicitly
-approved semantic token, recursively subject to P3. Numeric slots exist only as
-an unresolved family marker pending R23; this analysis chooses no encoding.
+class hierarchy, codec, schema, or new Genia value family. It contains only an
+approved ordinary semantic scalar (including each of the four numeric kinds
+below), tagged Outcome, ordered sequence/pair, ordered map entry sequence,
+represented value with its ordered facet information, approved inert
+structural value, or explicitly approved semantic token, recursively subject
+to P3. This is a **semantic shape**, not a serialization format: it fixes
+which exact fields must survive a crossing and does not choose byte layout,
+text grammar, schema language, or transport protocol for any value family,
+numeric or otherwise.
 
 The crossing must preserve:
 
 - exact Genia value family and variant (including Bool versus Symbol versus
-  String, and every Outcome variant);
+  String, every Outcome variant, and Integer versus Decimal versus Rational
+  versus Float64 -- these four numeric kinds never collapse into one another
+  or into a host-native numeric type at the boundary);
+- for **Integer**: the exact arbitrary-precision mathematical value;
+- for **Decimal**: the exact canonical `(coefficient, exponent)` pair after
+  R22 §2 canonicalization (sign carried by coefficient; trailing zeros
+  stripped; Decimal kind retained even when the mathematical value is
+  integral) -- never a host `decimal.Decimal`/`float` standing in for this
+  pair, and never silently reduced through a JSON-style stability gate;
+- for **Rational**: the exact canonical `(numerator, denominator)` pair after
+  R22 §3 canonicalization (denominator positive and greater than `1` for a
+  surviving Rational; sign carried by numerator; gcd-reduced) -- never a host
+  `fractions.Fraction` standing in for this pair, and never silently rounded
+  to a terminating Decimal or binary64 approximation;
+- for **Float64**: the exact IEEE-754 binary64 bit pattern, including the
+  sign of zero and, when an already-approved boundary produced one, NaN
+  (presence only, no payload/sign guarantee) and signed infinities -- an
+  exact semantic category distinct from the exact numeric family, never
+  silently produced by rounding an Integer/Decimal/Rational, and never the
+  implicit target of a cross-kind numeric coercion;
 - exact order and multiplicity of sequences, map entries, representation
   facets, and other contract-defined ordered fields;
-- R18 equality and canonical map-key identity;
-- R9 carried value, facet order, and portable representation metadata;
-- normalized, non-sensitive Outcome reasons/contexts; and
+- R18 equality and canonical map-key identity, including for numeric keys
+  (for example Integer `1` and mathematically equal Decimal `1.0` remain one
+  canonical key on both sides of the boundary; NaN remains illegal as a key
+  on both sides);
+- for a successful Outcome: the exact `some(value[, context])` variant and
+  its recursively admissible value/context;
+- for a rejected/absent Outcome: the exact `none(reason, context?)` or
+  `err(reason, context?)` variant with normalized, non-sensitive reason/
+  context and no raw host/provider exception text;
+- for an ordered map: entry order exactly as constructed, never reordered by
+  a target's own native map/dictionary iteration order;
+- R9 carried value, facet order, and portable representation metadata for a
+  represented value (a represented numeric value, for example a numeric
+  value wrapped by a representation carrier, is admissible exactly when both
+  the facet stack/metadata and the carried numeric value are independently
+  admissible under their own rules -- representation does not relax or
+  substitute for the numeric preservation rules above);
+- R10 protected-carrier constraints unchanged for a protected payload of any
+  kind, numeric included: the carrier's opaque identity and every sink/
+  declassification rule must survive without exposing the payload, or the
+  crossing is rejected; and
 - an approved token's contract-defined semantic identity without exposing its
-  hidden representation.
+  hidden representation, and the token-versus-live-handle distinction: an
+  opaque immutable semantic token (R18) may cross when its owning contract
+  approves it, while a live identity-bearing resource/handle never does --
+  this distinction is orthogonal to numeric kind and applies unchanged
+  whether or not the token happens to wrap numeric data.
+
+This semantic shape is sufficient, without choosing a codec, for at least:
+a Python realization (the current reference host, whose `GeniaDecimal`/
+`GeniaRational`/explicit-Float64 runtime types already carry these exact
+fields per R22, so a Python-side `ProviderBoundaryValue` mapping is a direct
+field-for-field read, never a re-derivation through `decimal.Decimal` or
+`fractions.Fraction`); a future C++ realization (which needs only an
+arbitrary-precision integer pair for Decimal/Rational and a raw `uint64_t`/
+`double` bit pattern for Float64 to represent the same exact fields, with no
+Python-specific type required); and a future WIT mapping (WIT's own numeric
+primitive types are fixed-width and would need an explicit, separately
+contracted lowering for arbitrary-precision Integer/Decimal/Rational --
+P4 fixes only the semantic fields such a lowering must preserve, and does not
+itself attempt or approve that lowering).
 
 The crossing must never carry provider-native/SDK/runtime objects, raw host
 exceptions, executable code/closures/environments, live handles/resources,
