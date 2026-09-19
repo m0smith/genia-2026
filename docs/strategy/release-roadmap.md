@@ -67,12 +67,14 @@ candidate; scope and guardrails live in [`roadmap/parking-lot.md`](roadmap/parki
 
 ## Current state
 
-R15 through R22 are complete (`docs/releases/R22.md`; E22-11's skeptical
-release truth audit recorded PASS in
-`docs/analysis/r22-release-truth-audit.md`). Python remains the only
-implemented production host; `m0smith/genia-cpp` is still a non-semantic
-bootstrap shell with no interpreter. See the corresponding release pages
-and `GENIA_STATE.md` for implemented truth.
+R15 through R23 are complete (`docs/releases/R23.md`; E23-11's third,
+independent skeptical release truth audit recorded PASS in
+`docs/analysis/r23-release-truth-audit.md`, after two genuine, narrow
+findings during the audit gate -- E23-7 and E23-9 -- were each repaired
+and re-verified). Python remains the only implemented production host;
+`m0smith/genia-cpp` is still a non-semantic bootstrap shell with no
+interpreter. See the corresponding release pages and `GENIA_STATE.md` for
+implemented truth.
 
 ## Post-R20 planning reset
 
@@ -172,7 +174,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R20 | Open Functions and Extensible Pattern Dispatch | Complete | `docs/releases/R20.md` |
 | R21 | Numeric Source and Portable Representation | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R22 | Exact Numeric Runtime | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R23 | Numeric Representation and Interchange | In progress (E23-1..E23-6 complete, E23-7 audit pending) | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R23 | Numeric Representation and Interchange | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R25 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R26 | C++ REPL and Data Bridges | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |

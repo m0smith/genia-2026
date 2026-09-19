@@ -319,6 +319,38 @@ separately contracted release. See `docs/design/r14-composable-lifecycle-contrac
 `docs/strategy/r14-composable-lifecycles.md`, and `GENIA_STATE.md` sections
 9.8-9.20.
 
+**R23 — Numeric Representation and Interchange is complete (E23-1 through
+E23-11).** It implements canonical Integer/Decimal/Rational/Float64
+display/debug rendering (fixed/scientific Decimal notation,
+`<numerator>/<denominator>` Rational, an explicit
+`float64(<shortest-roundtrip-decimal>)` constructor atom), existing
+field-format-spec integration against that canonical rendering
+(alignment/width, half-up `.n` precision, zero-padding, grouping), a
+strict generic JSON boundary (the existing R9 safe-integer interval for
+Integer; a `stable_json_decimal` predicate gating Decimal/terminating-
+Rational JSON-number encode/decode so no fraction/exponent token is ever
+materialized through a host binary float; finite-Float64 encode via its
+canonical shortest-roundtrip spelling; NaN/infinity rejected), and
+compatibility-JSON reconciliation (`json_parse`/`json_stringify`/
+`json_pretty`/`parse_jsonl_record` share the same lexical Decimal
+token parser, deliberately without the stability gate, per compatibility
+JSON's legacy-tolerance character) plus a full diagnostics-normalization
+sweep so no numeric/JSON failure path leaks raw Python exception text or
+a raw Python class name. The skeptical release-truth audit gate ran
+three independent passes rather than one: E23-7 (issue #931) found one
+genuine `"GeniaRational"` class-name diagnostic leak, repaired by E23-8
+(#933); E23-9 (#935) found that repair's own `GENIA_STATE.md` edit had
+not documented itself, repaired by E23-10 (#937); E23-11 (#939), a third
+independent re-audit, passed cleanly. See
+`docs/design/r23-numeric-representation-interchange-contract.md`,
+`docs/analysis/r23-release-truth-audit.md`, and `GENIA_STATE.md` sections
+9.32-9.37. Per contract §10, R23 explicitly adds no arbitrary-precision
+JSON-number transport, no new JSON dialect, no R22 arithmetic/equality
+change, no Rational literal syntax, no Float64 suffix/raw-bit syntax, no
+public NaN payload/sign construction semantics, no locale-sensitive
+formatting, no new general formatting language, and no C++ host
+implementation.
+
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
 
