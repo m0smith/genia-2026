@@ -1,10 +1,274 @@
-# R23 Release Truth Audit — E23-7 (issue #931)
+# R23 Release Truth Audit
 
-Status: durable skeptical release-audit evidence for R23 (epic tracked via
-issue #931 / E23-7). Not a source-of-truth document; `GENIA_STATE.md`
-remains final authority. This audit re-derives R23's obligations
-independently from the approved contract and merged `main`, rather than
-trusting prior per-slice PR descriptions or `GENIA_STATE.md` prose.
+Status: durable skeptical release-audit evidence for R23. Not a
+source-of-truth document; `GENIA_STATE.md` remains final authority. This
+file records **two** independent audit passes, kept in full as an honest
+paper trail rather than overwritten:
+
+1. **E23-7 (issue #931, PR #932) — original audit — FAIL.** Found one
+   genuine leak (`json_stringify`'s diagnostic exposed the raw Python
+   class name `"GeniaRational"`). See "E23-7 original audit" below.
+2. **E23-8 (issue #933, PR #934) — repair** for that one finding: added a
+   `GeniaRational -> "rational"` branch to `_runtime_type_name`
+   (`src/genia/values.py`).
+3. **E23-9 (issue #935) — fresh, independent re-audit — see verdict at
+   the top of the "Re-audit after E23-8" section below** for the current,
+   authoritative verdict. Read that section first; the E23-7 section
+   beneath it is retained as historical record only.
+
+## Re-audit after E23-8 (issue #935, E23-9) — verdict: FAIL
+
+Audited commit: `37e66a8e` (`origin/main` tip at re-audit time; merges #934,
+includes E23-1 through E23-6 plus the E23-7 audit doc and the E23-8 repair
+-- test commit `e03c76bf`, docs commit `ec7d7abf`, fix commit `feda3a7d`).
+This is a second, fully independent pass -- not a check that the one known
+bug is fixed and a rubber stamp. Every contract section (§2-§11) was
+re-derived from source and live-probed again from scratch, plus new
+adversarial cases beyond the first audit's list (see below).
+
+### Confirming the E23-8 repair itself
+
+`genia -c 'print(json_stringify(1/3))'` now returns
+`received: "rational"`, not `received: "GeniaRational"` -- confirmed live
+against the audited commit, and confirmed with several further shapes
+(`json_stringify` on a bare Rational, a Rational nested in a List, a
+Rational nested in a Map -- all render `"rational"`/`"list"`/`"map"`
+cleanly, never a raw Python class name).
+
+`src/genia/values.py`'s `_runtime_type_name` (the one shared helper behind
+every "expected X, received Y" diagnostic in the codebase -- confirmed by
+grepping every call site across `builtins.py`, `callable.py`,
+`configuration.py`, `evaluator.py`, `host_bridge.py`,
+`http_annotation_binding.py`, `lifecycle_binding.py`, `lifecycle_plan.py`,
+`lifecycle_scope.py`, `model.py`, `retrieval.py`,
+`server_config_binding.py`, `server_route_binding.py`, `sheet.py`, and
+`test_kernel.py`) now has a `GeniaRational -> "rational"` branch
+immediately after `GeniaDecimal -> "decimal"`. Because this is the one
+shared helper, the fix is comprehensive across every one of those call
+sites, not merely `json_stringify` -- confirmed live for two more
+call sites: `sum([1, 1/3])` now says "item 2 received rational" (not
+"GeniaRational"), and `rational(1/2, 1)` now says "received rational".
+
+### New adversarial cases tried beyond the first audit
+
+- **Nested Map/List/Outcome across the JSON boundary**:
+  `json_encode({items: [1, 1/4, 0.1, float64(1e21)], nested: {r: 1/3}})`,
+  `json_encode(some({a: 1/4}))`, `json_encode(none("x", {a: 1/3}))` -- all
+  clean, structured `err(...)`/portable `value_type` strings, no raw
+  Python text anywhere.
+- **Format-spec combined with a real JSON round-trip through Genia
+  source** (not a direct Python-level function call): encode a Map with
+  Decimal/Rational-equivalent/Integer/Float64 fields, decode it back via
+  `json_decode` + `representation_match("json", ...)`, then apply a
+  `.n`-precision format spec to the round-tripped Decimal field --
+  produced the exact expected `"0.30"` with no error and no leak.
+- **REPL-level (not `-c`) numeric echo for all four kinds**: piped
+  `1+1`, `0.30000000000000004`, `1/3`, `float64(1e21)` into
+  `python -m genia.interpreter`'s interactive loop (confirmed `1+1`
+  evaluates to `2`, not merely echoing input, proving these are real
+  `_emit_result` renders) -- Integer/Decimal/Rational/Float64 all render
+  via the same canonical rules as `-c` mode.
+- **Combined misuse in one JSON document**: an out-of-range Integer
+  together with an unstable Decimal in the same array/object -- reports
+  the first failure deterministically (`cause: integer_out_of_range`) with
+  no leak, in both `[...]` and `{...}` shapes.
+- **Negative-zero Float64 through JSON**: confirmed `float64(-0.0)`
+  written as a *literal* collapses through Decimal's no-negative-zero
+  identity to `float64(0.0)` (expected, matches the first audit's own
+  documented reasoning for why it used multiplication instead), while a
+  genuinely-computed negative zero (`float64(0.0) * float64(-1.0)`)
+  correctly round-trips through both `json_encode` and `json_stringify` as
+  `-0.0`, sign preserved.
+- **Broad grep for every remaining raw-type-name risk**, not just
+  `_runtime_type_name` call sites: searched `type(`, `__class__.__name__`,
+  and `.__name__` across `numeric_runtime.py`, `_format_engine.py`,
+  `builtins.py`'s JSON sections, and `values.py`. Found:
+  - Four `type(value).__name__` sites remain in `numeric_runtime.py`:
+    `_as_decimal` (line 253), `to_float64` (line 639), `exact` (line 683)
+    -- all three already documented in `GENIA_STATE.md` §9.37 as
+    pre-existing, out-of-scope, frozen R22 code -- **plus a fourth,
+    previously undocumented site: `stable_json_decimal` (line 832),
+    introduced in E23-3 (`ea4d993d`), an R23-era commit.** Traced every
+    call site of `stable_json_decimal` (`builtins.py` lines 2062, 2161,
+    2195): all three always pass an already-`isinstance`-guarded or
+    internally-constructed `GeniaDecimal`, so this `TypeError` branch is a
+    defensive invariant guard, not reachable through any public Genia
+    entry point -- confirmed by direct read, the same class of "dead
+    branch" the first audit already proved for `_strict_json_to_runtime`'s
+    `AssertionError` guard. Not a bug; noted here because it was not
+    previously documented as audited.
+  - `values.py`'s `__class__.__name__ == "GeniaSheet"` branch (line 244)
+    is unrelated -- a declassification-authority containment walk, not a
+    type-name diagnostic.
+  - No other numeric-diagnostic leak site found anywhere in the four
+    files searched.
+
+### Genuine discrepancy found: `GENIA_STATE.md` does not document E23-8's actual fix
+
+E23-8's docs commit (`ec7d7abf`) edited `GENIA_STATE.md` §9.37, but only
+to correct an unrelated count ("two" pre-existing R22
+`type(value).__name__` sites -> "three", adding `to_float64`). It did
+**not** add any description of E23-8's own primary, headline change --
+the `GeniaRational -> "rational"` branch added to `_runtime_type_name` in
+`src/genia/values.py` (`feda3a7d`), which is the actual runtime-behavior
+fix for the bug E23-7 found. Confirmed by reading all of §9.37 in full:
+the bullet titled **"One genuine leak found and fixed"** still describes
+only E23-6's `_json_from_runtime` fallback fix; it was not updated (or a
+new bullet added) to also describe the second genuine leak that E23-7
+found and E23-8 fixed. Searching all of `GENIA_STATE.md` for
+`_runtime_type_name` or a `GeniaRational -> "rational"` mention finds
+nothing describing this fix anywhere in the document.
+
+This is a real violation of `AGENTS.md`'s own "Non-Negotiable Rule
+(CRITICAL)": *"Any change to language behavior, syntax, runtime
+semantics, parser rules, or examples MUST also update: `GENIA_STATE.md`
+... No exceptions."* `feda3a7d` is exactly such a change -- it alters the
+observable diagnostic text `_runtime_type_name` produces for every
+`GeniaRational` value across dozens of call sites throughout the codebase
+(confirmed above), and `GENIA_STATE.md` -- the project's declared *final
+authority* for implemented behavior -- does not narrate that this fix
+happened. `GENIA_STATE.md` §9.37 as it stands currently undersells its own
+release: it claims (accurately, at the time E23-6 landed) "one genuine
+leak found and fixed," but as of the current commit a second, distinct
+genuine leak (found by E23-7, fixed by E23-8) exists in the same release
+and is not mentioned.
+
+This is a narrow, docs-only gap -- the underlying runtime behavior is
+correct, well-tested (`e03c76bf` asserts the exact `received` field
+content, not merely the Outcome shape), and this audit found no other
+behavioral defect anywhere in the release. But per this repository's own
+explicit, "no exceptions" documentation-truth rule, and per this audit's
+own instruction to "confirm E23-8's edits are internally consistent," this
+is a genuine finding: E23-8's `GENIA_STATE.md` edit is not internally
+consistent with E23-8's own code change.
+
+A secondary, much smaller coverage observation (not blocking, noted for
+completeness): `tests/unit/test_r23_e23_6_diagnostics_sweep.py`'s generic
+`test_no_json_or_format_diagnostic_leaks_python_class_name` sweep -- the
+test explicitly designed to catch exactly this class of leak across every
+audited failure path -- collects only the `cause`, `value_type`, and
+`message` context keys from its probed Outcomes; it never reads the
+`received` key, which is the specific field the original bug (and its
+fix) live in. The bug now has direct, exact regression coverage via a
+dedicated test (`e03c76bf`'s
+`test_json_stringify_rejects_non_terminating_rational_received_field_is_portable`),
+so this is not a live gap for the known bug, but the *generic* sweep test
+would not catch a similar future leak surfacing specifically through a
+`received` field. Not required for this audit's verdict; worth a mention
+for whoever picks up the recommended repair below.
+
+### Validation battery, run fresh to completion at the re-audit commit
+
+```
+$ uv run ruff check .
+All checks passed!
+
+$ uv run pytest -n auto -q -m "not loopback"
+4684 passed in 313.79s (0:05:13)
+
+$ uv run pytest -n auto -q -m loopback
+26 passed in 3.12s
+
+$ uv run python -m tools.spec_runner
+Summary: total=740 passed=740 failed=0 invalid=0
+
+$ uv run python tools/gen_function_docs.py --check
+Function reference is up to date.
+
+$ uv run python tools/stage_docs_for_mkdocs.py && uv run mkdocs build --strict
+Documentation built in 5.52 seconds
+
+$ uv run pytest tests/doc/test_semantic_doc_sync.py tests/doc/test_roadmap_split.py tests/doc/test_composability_matrix_sync.py -q
+116 passed in 0.29s
+```
+
+Every command ran to actual completion, not estimated. The
+non-loopback-partition count (4684) is two higher than the first audit's
+4682, consistent with the one new test function E23-8 added
+(`e03c76bf`) plus incidental test additions from an unrelated,
+already-merged PR (#929, Ollama/Groq chat example) in the commit range
+between the two audits.
+
+### Documentation truth check (fresh)
+
+- `GENIA_STATE.md` §9.32-9.37: every behavioral sentence independently
+  re-verified against current code and live probes; the one gap is the
+  narrative-completeness issue described above (E23-8's own fix not
+  narrated), not a false behavioral claim.
+- `docs/releases/R23.md`: still accurately says "In progress -- E23-1
+  through E23-6 complete; E23-7 release truth audit pending," correctly
+  not claiming completion (E23-7's FAIL and E23-8's repair are not yet
+  reflected, which is correct given R23 is still not complete).
+- `docs/strategy/roadmap/r21-r24.md`, `docs/strategy/release-roadmap.md`:
+  both still correctly say "In progress" / "E23-7 audit pending" --
+  consistent with R23 not yet being complete.
+- `GENIA_RULES.md`, `GENIA_REPL_README.md`, `README.md`: their R23-related
+  sentences (safe-integer/`stable_json_decimal` boundary, compatibility
+  JSON lexical-decode/encode behavior) re-checked against current code --
+  all accurate, none overclaims.
+- `docs/ai/LLM_CONTRACT.md`: no R23-specific content; nothing to check.
+
+Because a genuine discrepancy was found, per this audit's own mandate, no
+completion-marking documentation is touched in this branch:
+`docs/releases/R23.md`, the roadmap docs, and `AGENTS.md`'s Product
+Priority section are left exactly as found.
+
+### Verdict: FAIL
+
+One genuine discrepancy was found and independently confirmed: E23-8's own
+`GENIA_STATE.md` edit does not document E23-8's own primary fix (the
+`GeniaRational -> "rational"` branch added to `_runtime_type_name` in
+`src/genia/values.py`) -- it edits an adjacent, unrelated sentence in the
+same section instead. This is a real violation of `AGENTS.md`'s
+"Non-Negotiable Rule (CRITICAL)" that any runtime-behavior change must
+update `GENIA_STATE.md`, and it leaves `GENIA_STATE.md` §9.37 -- the
+project's own final authority -- describing this release's diagnostics
+story incompletely (it says "one genuine leak found and fixed" when two
+now exist in this release's actual history).
+
+Everything else audited in this fresh, independent pass holds cleanly:
+
+- Every contract section §2 through §11 was independently re-derived and
+  live-probed again from scratch (not merely re-checking the one known
+  bug), including new adversarial cases beyond the first audit's list
+  (nested-container JSON round-trips, format-spec-over-JSON-round-trip,
+  REPL-level echo for all four numeric kinds, combined-misuse diagnostics,
+  and a broad fresh grep for any sibling raw-type-name leak).
+  Nothing else was found wrong.
+- The corrected R22 spec fixture
+  (`spec/eval/r22-mixed-exact-float64-rejected.yaml`) was independently
+  re-verified: its updated expected output (`"rational"`, not
+  `"GeniaRational"`) matches live execution of the exact same source
+  through the CLI, byte for byte.
+- The full validation battery (ruff, both pytest partitions, spec runner,
+  doc-generation check, mkdocs strict build, and the three targeted
+  doc-sync suites) is 100% green at the re-audited commit, run fresh to
+  completion.
+- A fourth, previously-undocumented defensive `type(value).__name__` site
+  (`stable_json_decimal`, R23-era) was found and confirmed genuinely
+  unreachable from any public Genia entry point -- not a bug.
+
+This FAIL means:
+
+- R23 is **not** marked complete by this audit. `docs/releases/R23.md`,
+  the roadmap docs, and `AGENTS.md`'s Product Priority section are left
+  unchanged.
+- A narrow, documentation-only repair is recommended (not filed by this
+  audit): add a bullet to `GENIA_STATE.md` §9.37 (or a short new
+  subsection) describing E23-8's actual fix -- the `GeniaRational ->
+  "rational"` branch added to `_runtime_type_name` in `src/genia/values.py`
+  (commit `feda3a7d`, test commit `e03c76bf`), found by the E23-7 audit
+  and repaired by E23-8 (issue #933) -- distinguishing it clearly from the
+  adjacent, already-correct "two/three pre-existing sites" bullet, which
+  describes different, deliberately-unfixed code. No runtime-code change
+  is needed; the underlying fix is already correct and tested. Optionally,
+  also add the `received` context key to
+  `test_no_json_or_format_diagnostic_leaks_python_class_name`'s probed-key
+  list in `tests/unit/test_r23_e23_6_diagnostics_sweep.py` so the generic
+  sweep would catch a similar future leak in that field, though this is
+  not required to resolve the blocking finding.
+
+## E23-7 original audit
 
 Audited commit: `9953f81ee355a1786857e846522979e18fd6f843` (merged #930,
 `origin/main` tip at audit time; includes E23-1 through E23-6, PRs
