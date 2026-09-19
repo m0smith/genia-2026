@@ -1,0 +1,238 @@
+// P9 — Genia<->WIT interoperability mapping, WIT proof target (slice A).
+//
+// Authoritative design source: docs/design/p9-genia-wit-interoperability-mapping.md
+// (merged, commit ce3aa5b). This file implements that design doc's §1/§2/§4
+// mapping for the R12 `retrieve/4` proof target, unchanged from P8's own
+// realization-substitution proof. See docs/design/p9-wit-toolchain-build.md
+// for the build/validation commands and the documented decisions this file
+// makes at the design doc's explicitly-open points (§6).
+//
+// Non-goals restated from the design doc: no Genia semantic change; no
+// general/recursive ProviderBoundaryValue type (only the narrow leaf shapes
+// this one interface's Outcome `context` fields actually use, per §1.4); no
+// Flow/Seq/`stream<T>`/`future<T>` mapping; no protected-carrier/authority
+// crossing (declassification happens host-side, before any call reaches
+// this boundary, per §1.7/§1.9).
+
+package genia:retrieve@0.1.0;
+
+interface types {
+  // --- Numeric kinds (design doc §1.11) -------------------------------
+  //
+  // Never a bare fixed-width WIT integer as the general Integer
+  // representation (that would silently truncate/overflow); never `f64`
+  // for Decimal/Rational (that would silently lose exactness). Both are
+  // explicit structural records over exact WIT primitives.
+
+  /// Arbitrary-precision Integer: sign + base-2^32 magnitude limbs.
+  /// Limb order (open question §6.4 of the design doc, resolved here):
+  /// little-endian, least-significant limb first, matching the natural
+  /// order produced by repeated `divmod(value, 2**32)` on the reference
+  /// host and requiring no reversal on either side of the boundary.
+  /// `magnitude-digits` is empty for the value zero (`negative` is then
+  /// always `false`, mirroring R22's no-negative-zero canonical rule).
+  record genia-integer {
+    negative: bool,
+    magnitude-digits: list<u32>,
+  }
+
+  /// Exact `coefficient * 10^exponent`, per R22 §2's canonical pair
+  /// (sign carried by `coefficient`, trailing-zero-stripped, no
+  /// negative-zero identity). `exponent: s32` is a pragmatic choice for
+  /// this proof target's realistic exponent magnitudes only (design doc
+  /// §6.5 open question) — not a general guarantee for every conceivable
+  /// R22 Decimal exponent.
+  record genia-decimal {
+    coefficient: genia-integer,
+    exponent: s32,
+  }
+
+  /// Exact reduced `numerator/denominator`, per R22 §3's canonical
+  /// gcd-reduced pair. `denominator` is always positive and greater than
+  /// 1 for a surviving Rational (a Rational that reduces to an integer
+  /// is represented as Integer instead, per R22 §3 canon, never here).
+  record genia-rational {
+    numerator: genia-integer,
+    denominator: genia-integer,
+  }
+
+  /// `retrieve/4`'s `score` field exercises all four admissible numeric
+  /// kinds in one call (design doc §1.11); represented as a tagged
+  /// `variant`, never a single numeric primitive. Float64 is bare `f64`
+  /// (direct, IEEE-754 binary64 both sides) — narrowed to the
+  /// finite-only case this interface legally admits, per
+  /// `_is_finite_score` in the reference host (design doc §1.11).
+  variant genia-score {
+    score-integer(genia-integer),
+    score-decimal(genia-decimal),
+    score-rational(genia-rational),
+    score-float64(f64),
+  }
+
+  // --- Narrow context leaf values (design doc §1.4) --------------------
+  //
+  // NOT a fully general recursive ProviderBoundaryValue. Scoped to
+  // exactly the closed set of leaf shapes retrieve/4's own Outcome
+  // `context` fields use today, per the P8 design's §8 table:
+  // `timeout_ms: Integer`, `retry_after_ms: option<Integer>`,
+  // `kind: Symbol`. A future WIT-mapped interface that needs a general
+  // recursive value type must design its own, per the design doc's own
+  // "not designed here" note.
+
+  /// A Genia Symbol has no WIT primitive equivalent (design doc §1.3);
+  /// represented as WIT `string` carrying the exact canonical symbol
+  /// spelling. This narrow field-scoped shortcut is explicitly permitted
+  /// by design doc §1.4 only because `reason`/`kind`-shaped fields here
+  /// come from one small closed vocabulary where Symbol/String kind
+  /// confusion is not observable in practice.
+  variant context-value {
+    context-integer(genia-integer),
+    context-symbol(string),
+  }
+
+  /// One `context` map entry. Keys are always plain strings for this
+  /// interface's context shape (`timeout_ms`, `retry_after_ms`, `kind`),
+  /// so the general R18 ordered-map key-canonicalization/legality
+  /// machinery (design doc §1.6) is not exercised by *this* field —
+  /// see the "config" field below for the interface's one general
+  /// ordered-Map exercise, and see docs/design/p9-wit-toolchain-build.md
+  /// for how this gap is tracked against the design doc's §6.1 open
+  /// question.
+  record context-entry {
+    key: string,
+    value: context-value,
+  }
+
+  /// Outcome `context`, when present: an ordered sequence of the small
+  /// closed set of context fields a `retrieve/4` Outcome carries.
+  record outcome-context {
+    entries: list<context-entry>,
+  }
+
+  // --- Ordered Map adapter (design doc §1.6) ---------------------------
+  //
+  // WIT has no native ordered, arbitrary-key-kind map type. This adapter
+  // is deliberately the *general* shape (not the narrower
+  // `record { id: string, timeout-ms: u32 }` the design doc notes would
+  // suffice for `config` alone), specifically to exercise the harder
+  // general mechanism per the design doc's own §1.6 closing paragraph.
+  // Enforcement (construction-time canonicalization, order preservation,
+  // inbound duplicate-key rejection, key-legality re-validation) is
+  // entirely adapter-code-side, per the design doc — WIT's type system
+  // cannot express or enforce it, and this .wit file does not claim
+  // otherwise.
+
+  /// A legal Genia map key is scoped, for this proof target's one Map
+  /// field (`config`), to the same narrow leaf shapes as `context-value`
+  /// above (Integer or Symbol/String) plus plain `string` — sufficient
+  /// for `retrieve/4`'s existing `config` fixtures
+  /// (`{id: String, timeout_ms: Integer}`) without generalizing to a
+  /// fully recursive legal-key family. A general `genia-map-entry` over
+  /// a fully recursive `provider-boundary-value` is future work per the
+  /// design doc's own scoping note.
+  variant map-value {
+    map-integer(genia-integer),
+    map-string(string),
+  }
+
+  record genia-map-entry {
+    key: map-value,
+    value: map-value,
+  }
+
+  /// `type genia-ordered-map = list<genia-map-entry>` per the design
+  /// doc's exact §1.6 shape.
+  type genia-ordered-map = list<genia-map-entry>;
+
+  // --- Outcome (design doc §1.4) ---------------------------------------
+  //
+  // A three-case `variant`, never WIT's two-case `result<T, E>` — folding
+  // `none(...)` into either `ok`/`err` would be a semantic falsification
+  // per the design doc's explicit rejection.
+
+  /// One evidence item: `{chunk: string, score: <numeric-variant>}`,
+  /// matching the issue's exact required shape.
+  record evidence {
+    chunk: string,
+    score: genia-score,
+  }
+
+  record outcome-some-payload {
+    value: list<evidence>,
+    context: option<outcome-context>,
+  }
+
+  record outcome-none-payload {
+    reason: string,
+    context: option<outcome-context>,
+  }
+
+  record outcome-err-payload {
+    reason: string,
+    context: option<outcome-context>,
+  }
+
+  variant genia-outcome {
+    outcome-some(outcome-some-payload),
+    outcome-none(outcome-none-payload),
+    outcome-err(outcome-err-payload),
+  }
+
+  // --- Index reference (design doc §1.2/§1.8; open question resolved) --
+  //
+  // A live Python `GeniaIndexHandle` object obviously cannot cross the
+  // Wasm boundary. Documented decision for this slice: represent index
+  // identity as explicit per-pairing compatibility *data* (an opaque
+  // `handle-id` plus the exact `space`/`dims` pair E12-4's three ordered
+  // guards check), never as a WIT `resource`/`borrow<T>`.
+  //
+  // Rationale: the design doc's §1.8 already classifies `resource`/
+  // `borrow<T>` as the *structurally* correct future target and names its
+  // own feasibility test (host-owned resource, borrow-trap-on-escape,
+  // single-transfer `own<T>`) as separate, not-yet-run implementation
+  // work "recommended for the implementation phase" — distinct from this
+  // slice's own scope, which is proving the WIT/component mechanics work
+  // end to end for a first component (per issue #949's step 3: "the
+  // component's actual implementation can be minimal/deterministic").
+  // A host-owned imported `resource` type requires the Wasmtime host
+  // embedding to supply a real resource implementation for the guest to
+  // borrow against, which is materially more machinery than a first
+  // build needs to prove. This record-based representation still carries
+  // exactly the data E12-4's compatibility check needs (§1.2: "the WIT
+  // proof target must represent E12-4's exact space/dims pairing as
+  // *data* carried alongside the resource handle... not rely on WIT's
+  // own versioning/resource mechanism"), and per-pairing identity
+  // checking (guard 1: object identity) remains host-side, before this
+  // call is ever made — exactly as the design doc requires regardless of
+  // whether `index-ref` is a record or a resource. A future slice may
+  // still add the `resource`/`borrow<T>` feasibility test the design doc
+  // names, without changing this decision's data shape.
+  record index-ref {
+    handle-id: u64,
+    space: string,
+    dims: u32,
+  }
+}
+
+interface retrieve {
+  use types.{genia-outcome, genia-ordered-map, index-ref};
+
+  // Mirrors R12's retrieve/4 handler shape (P8 design §2.1's
+  // `handler(config, backend_ref, query, k, credential: str)`), minus
+  // the already-declassified credential (design doc §1.7: it is
+  // consumed as an ordinary string by the *existing* Python handler
+  // signature already, and this proof target's minimal component omits
+  // it entirely rather than re-adding a credential parameter no fixture
+  // in this slice exercises) and minus the never-crossing
+  // provider/authority values (design doc §1.9).
+  retrieve: func(
+    query-embedding: list<f64>,
+    k: u32,
+    index: index-ref,
+    config: genia-ordered-map,
+  ) -> genia-outcome;
+}
+
+world genia-retrieve-world {
+  export retrieve;
+}

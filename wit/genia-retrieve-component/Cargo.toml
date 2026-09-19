@@ -1,0 +1,16 @@
+[package]
+name = "genia-retrieve-component"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "P9 slice A minimal Wasm component realizing the genia:retrieve/retrieve WIT interface (issue #949). Deterministic fixture logic only -- not a reimplementation of P8's cosine-similarity realization."
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wit-bindgen = "0.62.0"
+
+[profile.release]
+opt-level = "s"
+lto = true
