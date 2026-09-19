@@ -5603,8 +5603,11 @@ new-behavior slice.
   `float_non_finite`, or `non_finite_constant` for a rejected
   `NaN`/`Infinity`/`-Infinity` JSON literal), a purely additive context-map
   key that breaks no existing `reason`-symbol assertion.
-- **One genuine leak found and fixed: compatibility `json_stringify`'s
-  unsupported-value diagnostic.** `_json_from_runtime`'s final fallback
+- **The first of two genuine leaks found and fixed across this release:
+  compatibility `json_stringify`'s unsupported-value diagnostic.** (See
+  the second, `GeniaRational -> "rational"` leak, documented further
+  below and fixed by issue #933's E23-8 repair.) `_json_from_runtime`'s
+  final fallback
   `TypeError` (extended in scope by E23-5's rewrite of this function, see
   section 9.36) read a raw Python `type(value).__name__` instead of the
   portable `_runtime_type_name` table every sibling "expected X, received
@@ -5622,7 +5625,27 @@ new-behavior slice.
   code never touched by any E23 slice. Left unchanged -- out of this
   ticket's R23-only scope (R22 arithmetic/equality is explicitly frozen);
   noted as a candidate for a future, separately scoped ticket if one is
-  ever opened.
+  ever opened. This bullet is distinct from, and must not be conflated
+  with, the E23-8 fix documented immediately below: the three sites here
+  are deliberately-unfixed pre-existing R22 code, not a second instance of
+  the same leak E23-8 fixed.
+- **A second, distinct genuine leak, found by the E23-7 skeptical release
+  truth audit and fixed by issue #933's E23-8 repair: `json_stringify`'s
+  diagnostics raw-leaked the Python class name `"GeniaRational"` instead
+  of the portable type name `"rational"`.** `_runtime_type_name` in
+  `src/genia/values.py` had no branch for `GeniaRational`, so any
+  `_json_from_runtime`/`_strict_json_from_runtime` "expected X, received
+  Y" diagnostic over an unsupported rational value fell through to a raw
+  Python `type(value).__name__` string instead of the same portable
+  vocabulary (`"integer"`, `"decimal"`, `"float64"`, ...) every sibling
+  runtime type already renders through `_runtime_type_name`. Fixed by
+  adding a `GeniaRational -> "rational"` branch to `_runtime_type_name`
+  (implementation commit `feda3a7d`, failing-test commit `e03c76bf`, both
+  landed via the now-merged E23-8 branch/PR history). This is a second,
+  independent instance of the same "expected X, received Y" leak class
+  E23-6 fixed for compatibility `json_stringify` above -- not a
+  duplicate of that fix and not the same finding as the three deferred
+  R22 `numeric_runtime.py` sites in the bullet above.
 - **E23-4's `AssertionError` dead-code guard in
   `_strict_json_to_runtime`'s `float` branch: confirmed genuinely
   unreachable through every public JSON entry point** (`_json_parse`,
