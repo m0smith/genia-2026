@@ -88,7 +88,7 @@ External precedent to review only after the Genia evidence above:
 | Interface identity | R20 has explicit interface/contribution identity; R12 has hidden compatibility identity. | **PARTIAL** | There is strong identity precedent but no general component-interface identity/revision model. |
 | Interface revision/version negotiation | R16 has contract revisions; R12 has compatibility labels; R36 plans compatibility/capability revision negotiation. | **PARTIAL** | Start with exact identity/revision matching. Do not infer SemVer compatibility initially. |
 | Provider conformance evidence | R16 has deterministic capability/conformance evidence; R11/R12 have deterministic provider fixtures and exact normalization contracts. | **PARTIAL** | Ingredients exist, but no reusable `provider implements interface X` conformance protocol exists yet. |
-| Canonical cross-language component value boundary | Core IR is a portability boundary for Genia semantics; R11/R12 have capability-specific conversions; R21/R22 settle numeric source/runtime while R23 still owns interchange. | **NEW, NON-NUMERIC PORTION RESOLVED BELOW** | Preserve the P3/P4 non-numeric model; numeric representation remains blocked on R23. Do not make Python conversion rules the ABI. |
+| Canonical cross-language component value boundary | Core IR is a portability boundary for Genia semantics; R11/R12 have capability-specific conversions; R21/R22 settle numeric source/runtime and R23 completes interchange. | **RESOLVED BELOW (P3/P4, INCLUDING NUMERIC)** | Preserve the full P3/P4 model, numeric and non-numeric alike, now that R23 is complete. Do not make Python conversion rules the ABI. |
 | Canonical component resource boundary | R18 identity plus R12 opaque handles provide ingredients, but no Python/C++/Wasm-neutral resource-handle contract exists. | **NEW** | Likely a small handle identity/lifetime contract, not serialization of underlying objects. |
 | Raw FFI underneath a portable provider | Current FFI is explicitly host-specific; R11/R12 private host adapters already hide Python provider mechanics behind portable Genia values. | **PARTIAL** | Prove that raw FFI can implement a provider without leaking host specificity into application source. |
 | Actual WIT provider | No current Genia/WIT component integration. | **NEW** | Use as a later interoperability proof, not as the starting semantic model. |
@@ -160,8 +160,9 @@ Need one host-neutral contract for values/resources crossing a provider boundary
 - R11/R12's capability-specific private conversions.
 
 This must preserve Genia's own semantics for Outcome, maps/order/equality,
-representations, protected values, diagnostics, and—after R23—Integer/Decimal/
-Rational/Float64 interchange.
+representations, protected values, diagnostics, and—now that R23 is
+complete—Integer/Decimal/Rational/Float64 interchange, per the frozen P3/P4
+sections below.
 
 ### D. Failure layering
 
@@ -227,7 +228,7 @@ it does not select JSON, a host dictionary, or a wire encoding.
 | List | Ordinary immutable ordered container | **Conditional** | Ordered sequence of recursively portable elements. | Recursive structural equality; legal key use follows R18, not host hashing. | `GENIA_STATE.md` §2; R18. | Size/resource limits belong to a later codec/ABI contract. |
 | Pair | Ordinary structural value | **Conditional** | Explicit pair with recursively portable `car` and `cdr`; never silently flattened to a List. | Recursive structural equality and existing key rules. | `GENIA_STATE.md` §2; R18 structural families. | Promise-backed streams are local because Promise is local-only. |
 | Tuple | Full argument-tuple/pattern mechanism; no current public ordinary Tuple value family | **Explicitly deferred** | No provider-boundary Tuple tag is invented. Public sequence data uses List or an explicitly contracted record/pair. | Host tuple identity/layout has no semantic authority. | `GENIA_RULES.md` §4; R18 map-key section explicitly rejects host tuples as authority for a public kind. | A future public Tuple value would need its own contract. |
-| Map / ordered map | Persistent ordered structural container | **Conditional** | Preserve deterministic entry order and each recursively portable key/value. Encode as an ordered entry sequence at the semantic layer, not a JSON object or host dictionary. | Key legality and canonical identity are exactly R18; equal cross-kind legal keys remain one entry identity. | `GENIA_STATE.md` §§2, 7.2; R17/R18; R9 JSON distinguishes object mapping. | Numeric key representation is blocked on R23. |
+| Map / ordered map | Persistent ordered structural container | **Conditional** | Preserve deterministic entry order and each recursively portable key/value. Encode as an ordered entry sequence at the semantic layer, not a JSON object or host dictionary. | Key legality and canonical identity are exactly R18; equal cross-kind legal keys remain one entry identity, including numeric keys per the Integer/Decimal/Rational/Float64 rows below. | `GENIA_STATE.md` §§2, 7.2; R17/R18; R9 JSON distinguishes object mapping. | None; numeric key representation is resolved in the numeric rows below. |
 | Sheet | Immutable structural columnar value | **Conditional** | Preserve ordered columns and rows/cells only when column identifiers and every cell are recursively portable; do not lower implicitly to CSV or maps. | R18 names semantic fields; no live backing identity crosses. | `GENIA_STATE.md` §3.2; R18 structural families. | A codec schema/layout remains future work. |
 | Bytes | Immutable structural byte value | **Portable** | Preserve exact byte sequence as Bytes, not Unicode String or rendered/base64 text. | Structural equality; current non-keyability remains. | `GENIA_STATE.md` Bytes/JSON/ZIP section; R18. | Wire encoding is unspecified. |
 | ZIP entry | Immutable structural descriptor/value | **Conditional** | Preserve its contract-defined semantic fields recursively; no open archive/file handle crosses. | Structural equality over named semantic fields. | R18 “RNG, Format, bytes, ZIP entries, Sheets…” | Codec/schema is unspecified. |
@@ -297,6 +298,18 @@ blocked cells:
   normalize the failure as `numeric-resource-limit` (never as a smaller
   language domain), never silently round/truncate, and never leak raw host/
   library exception text.
+- **Distinct from Core IR and from display/debug rendering.** For all four
+  numeric kinds, the provider-boundary role defined above (exact value,
+  exact coefficient/exponent pair, exact numerator/denominator pair, exact
+  bit pattern) is a distinct concept from both R21's tagged Core IR literal
+  encoding (which governs how a numeric literal is classified and carried
+  through parsing/compilation, per R21's own contract) and from R23's
+  canonical display/debug rendering (fixed/scientific Decimal notation,
+  `<numerator>/<denominator>`, `float64(...)`, which govern human-facing
+  text). A future codec may choose to reuse R23's rendering text as one
+  possible lossless encoding for a specific transport, but the boundary's
+  admissibility rule above does not depend on, assume, or require any of the
+  three.
 - **What is explicitly NOT decided here.** No wire encoding, no mandatory
   codec, no textual spelling chosen as *the* boundary format, and no general
   NaN/infinity interchange policy for every future realization. Those remain
@@ -421,6 +434,29 @@ distributed identity; provider discovery; ambient registry; authority transfer;
 credential transport; or WIT mapping. Each requires a separate future contract
 unless already explicitly implemented for a different, narrower boundary.
 
+## P3/P4 skeptical architecture freeze review (issue #941)
+
+Before marking P3/P4 frozen, the numeric additions above were reviewed
+adversarially against nine specific failure modes. Each is recorded with what
+was checked and the outcome (clean, or found-and-fixed).
+
+| Check | What was verified | Outcome |
+| --- | --- | --- |
+| JSON leakage | Whether the model implicitly assumes JSON is the provider boundary anywhere. Every numeric row explicitly names R23's JSON-specific rules (the safe-integer interval, `stable_json_decimal`, the Rational finite-equivalent gate, the Float64 finite-only rule) and explicitly states this boundary does not inherit them. The general P4 paragraph already states the boundary is "distinct from ... JSON." | **Clean.** No JSON assumption found; each JSON-specific rule is named only to be explicitly excluded. |
+| Python `Decimal`/`Fraction` leakage | Whether any numeric field is described as if Python's own `decimal.Decimal`/`fractions.Fraction` were the semantic model, rather than R22's `GeniaDecimal`/`GeniaRational` semantics. Every Decimal/Rational bullet states "never a host `decimal.Decimal`/`float` standing in for this pair" and "never a host `fractions.Fraction` standing in for this pair," and ties the canonical fields directly to R22 §2/§3's own canonicalization rules, not to any Python stdlib type's canonicalization behavior (which differs -- for example Python's `Fraction` does not reduce a denominator of `1` to a plain `int`). | **Clean.** No Python-stdlib-as-semantics phrasing found. |
+| Binary64 coercion | Whether Decimal/Rational are implied to be silently converted to Float64 anywhere in the boundary crossing. Every Decimal/Rational bullet states the pair is preserved "never through a host binary float" / "never silently rounded to a terminating Decimal or binary64 approximation," and the general "must preserve" list states Float64 is "never silently produced by rounding an Integer/Decimal/Rational" and "never the implicit target of a cross-kind numeric coercion." | **Clean.** No implicit coercion path found; explicit prohibitions were already present in the draft. |
+| Lost map-key identity | Whether R18 key identity survives the boundary. The P4 preservation list has an explicit numeric-keys bullet (Integer `1`/Decimal `1.0` remain one key; NaN remains illegal as a key on both sides), and the Numeric admissibility summary repeats this for List/Pair/Map/Sheet admissibility. | **Clean.** R18 key identity is explicit, not assumed. |
+| Lost representation metadata | Whether R9 represented-value facets survive when the carried value is numeric. The P4 list has an explicit represented-value bullet stating a represented numeric value is admissible only when both the facet stack/metadata and the carried numeric value are independently admissible, and that representation does not relax the numeric preservation rules. | **Clean.** No implicit facet-dropping found. |
+| Protected payload exposure | Whether a numeric value inside a protected carrier is handled consistently with the already-resolved non-numeric protected-value rule (R10 fail-closed, P3's protected-carrier row). The P4 list has an explicit protected-carrier bullet stating the rule is "unchanged for a protected payload of any kind, numeric included," and the Numeric admissibility summary repeats this rather than inventing a numeric-specific protection rule. | **Clean.** No separate/weaker numeric protected-value rule was introduced; the existing R10/R18 rule is reused unchanged. |
+| Accidental live-handle serialization | Whether adding numeric rows accidentally implies a live resource/handle could be serialized because it happens to wrap or reference a number (for example a numeric field inside an opaque handle). The token-versus-handle distinction in the P4 list is explicit and orthogonal to numeric kind; the existing non-numeric P3 rows already reject every live-handle family unconditionally, and nothing in the numeric additions creates an exception for a handle merely because its payload is numeric. | **Clean.** No new live-handle crossing path was introduced. |
+| Confusion between Core IR and provider boundary | Whether it is clear R21's tagged Core IR and this provider boundary are different concepts. The initial draft stated this only at the general P4 level, not per numeric kind, which the requirement (issue #941: "distinguish from Core IR literal encoding and from display spelling") called for explicitly per family. | **Found and fixed.** Added an explicit "Distinct from Core IR and from display/debug rendering" bullet to the Numeric admissibility summary naming R21's tagged Core IR literal encoding and R23's canonical rendering as two separate, non-authoritative-for-this-boundary concepts for all four numeric kinds. |
+| Ambiguity around Float64 NaN/zero | Whether the boundary treatment of NaN/`-0.0` is fully specified rather than left as "TBD." The Float64 row and the P4 list state precisely: `+0.0`/`-0.0` are always distinct and always preserved when a Float64 crosses at all; NaN is preserved as "the value is NaN" only (no payload/sign guarantee, matching R22 §4/R23 §10's own non-goal); and whether a *specific future realization* is permitted to admit NaN/infinity at all (versus rejecting them the way R23's own JSON boundary does) is the one deliberately open codec-level choice, consistent with the issue's own scope constraint that this work selects no mandatory wire codec. | **Clean, with one deliberately scoped-out codec choice.** The semantic floor (bit-exactness whenever a value is permitted to cross at all, exact zero-sign/NaN-presence handling) is fully specified; only the codec-level admit/reject policy for a specific transport is left to a later contract, which is in scope for exclusion under P4's own "Explicit exclusions" list, not an unresolved semantic hole. |
+
+No check surfaced a genuine unresolved semantic hole that would block P8 or
+P9. The one finding (Core IR/display-rendering distinctness) was a
+documentation-completeness gap, not a semantic contradiction, and was fixed
+in this same review before freezing.
+
 ## Relationship to WIT
 
 WIT is useful as:
@@ -480,8 +516,8 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 | **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **RESOLVED IN PREFLIGHT** | The preflight records the evidence matrix and PAI-1 through PAI-13; no new behavior is claimed. |
 | **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | **RESOLVED: MINIMAL MANIFEST CONCEPT** | Inert whole-computation metadata enables transitive pre-execution inspection; ordinary arguments remain operational and R16 supplies only the enforcement shape. |
 | **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | **RESOLVED FOR ARCHITECTURE** | Dynamic R14-owned carrier, singular ownership, bounded non-escaping borrow, expiry misuse, and one parent-to-child move; APIs and advanced lifetimes deferred. |
-| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | **NON-NUMERIC INVENTORY RESOLVED FOR ARCHITECTURE; numeric representation remains BLOCKED ON R23.** | Explicit value-family matrix tied to existing contracts. |
-| **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | **NON-NUMERIC CANONICAL BOUNDARY SHAPE RESOLVED FOR ARCHITECTURE; numeric encoding/interchange remains BLOCKED ON R23.** | Semantic boundary contract sufficient for later Python/C++ proofs without choosing a codec or leaking host defaults. |
+| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | **RESOLVED/FROZEN FOR ARCHITECTURE** | Explicit value-family matrix, including all four numeric kinds, tied to existing contracts. |
+| **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | **RESOLVED/FROZEN FOR ARCHITECTURE** | Semantic boundary contract, including numeric exact-value preservation, sufficient for later Python/C++/WIT proofs without choosing a codec or leaking host defaults. |
 | **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | **RESOLVED FOR ARCHITECTURE** | Exact nominal identity plus exact opaque revision; no structural/SemVer inference, registry, or package system. |
 | **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED FOR ARCHITECTURE** | Same-process calls keep interface Outcomes, composition/validity faults are misuse, and R36 remains the sole outer execution envelope. |
 | **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED FOR ARCHITECTURE** | Explicit immutable validated binding plan over already-constructed capabilities; exact matching, closed transitive graph, fail-closed ambiguity/cycles, no R20 selection. |
@@ -495,7 +531,7 @@ Recommended sequence:
 1. **P0 is resolved.** PAI-1 through PAI-13 make the existing invariants explicit without adding behavior.
 2. **P6 is resolved for architecture.** Same-process interface Outcomes remain ordinary; R36 alone owns the outer execution envelope.
 3. **P1 and P2 are resolved for architecture.** The selected scope is a minimal inert manifest plus a narrow R14/R18 resource model, not a component subsystem.
-4. **R22 is complete; leave only P3/P4 numeric interchange open for R23.** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
+4. **R22 and R23 are complete; P3/P4 numeric interchange is resolved/frozen for architecture (issue #941).** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
 5. **P5/P7 only after the semantic need is clear.** Avoid building a registry/DI system in anticipation of requirements.
 6. **P8 must reuse existing Genia provider semantics instead of inventing two toy providers from scratch.**
 7. **P9 is last.** WIT is an interoperability test, not the starting model.
@@ -561,11 +597,15 @@ Keep this short and append-only unless correcting a factual error.
 - **2026-09-15 — R37 included as integration consumer.** R37's planned composition of R35 Store and R36 Execution makes it a future proving ground for the generalized model.
 - **2026-09-17 — P0/P1/P2/P5/P6/P7 preflight resolved.** The focused preflight selects a minimal inert manifest, R14-owned dynamic resource lifetimes, exact nominal interface revisions, ordinary same-process Outcomes with an R36 outer envelope, and an explicit immutable binding plan. It authorizes no implementation or release change.
 - **2026-09-18 — P3/P4 non-numeric boundary inventory resolved.** The recursive admissibility matrix and semantic `ProviderBoundaryValue` treatment preserve R9/R10/R14/R18 rules without defining a codec. Numeric provider-boundary encoding/interchange remains **BLOCKED ON R23**.
+- **2026-09-19 — P3/P4 numeric hole closed; both RESOLVED/FROZEN FOR ARCHITECTURE (issue #941).** With R23 complete, the value-family matrix and `ProviderBoundaryValue` model were extended with Integer/Decimal/Rational/Float64 rows/fields preserving R22's exact coefficient/exponent, numerator/denominator, and bit-exact Float64 semantics without inheriting R23's JSON-specific stability gates or intervals, and without coercing to Python `decimal.Decimal`/`fractions.Fraction` or host binary64. A skeptical freeze review found and fixed one documentation-completeness gap (explicit per-kind Core IR/display-rendering distinctness) and found no genuine semantic hole. No wire codec is selected; `GENIA_STATE.md` is untouched.
 
 ## Current Stage 0 verdict
 
-**P0/P1/P2/P3-NON-NUMERIC/P4-NON-NUMERIC/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED. No implementation authorization.**
+**P0/P1/P2/P3/P4/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED/FROZEN. No implementation authorization.**
 
-P3/P4 remain partially open only for numeric provider-boundary interchange,
-which is **BLOCKED ON R23**. P8/P9 remain future proof work. The resolved
-preflight does not promote a numbered release or change implemented semantics.
+P3 and P4 are now fully resolved and frozen for architecture, including all
+four numeric kinds, following R23's completion and issue #941's skeptical
+freeze review. P8/P9 remain future proof work. The resolved preflight does
+not promote a numbered release or change implemented semantics; the doc's
+`PROPOSED / EXPLORATORY` status and `GENIA_STATE.md`-is-final-authority
+disclaimer above remain in force for this content, numeric included.
