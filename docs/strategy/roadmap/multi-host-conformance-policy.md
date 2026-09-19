@@ -159,8 +159,10 @@ with **no real C++ interpreter**. `hosts/cpp/` in `genia-2026` transitioned
 in the same change to a pointer/scaffold location (see `hosts/cpp/
 README.md`); no duplicate authoritative-looking C++ implementation exists
 in two locations. Production C++ implementation belongs in
-`m0smith/genia-cpp`, landing in R21 (`docs/strategy/roadmap/r16-r20.md`),
-unless a later approved architecture decision changes this plan.
+`m0smith/genia-cpp`, landing in R24 (`docs/strategy/roadmap/r21-r24.md`;
+originally planned as R21 before planning issue #845 decomposed the Exact
+Numeric Model into R21-R23), unless a later approved architecture decision
+changes this plan.
 
 ## Scope guardrail
 

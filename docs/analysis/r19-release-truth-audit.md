@@ -157,7 +157,7 @@ Open Functions and Extensible Pattern Dispatch, per
 `docs/strategy/roadmap/r16-r20.md`. R20's own contract gate has not been
 run; nothing in this audit authorizes R20 implementation to begin.
 
-The C++-host prerequisite set (`docs/design/r21-cpp-host-preflight.md`,
+The C++-host prerequisite set (`docs/design/r24-cpp-host-preflight.md (renamed from r21-cpp-host-preflight.md when the C++ host was renumbered to R24)`,
 R21's dependency list in `docs/strategy/roadmap/sequence.md`) is unchanged
 by R19: R21 still depends on R16, R17, R18, completed R19 (now satisfied),
 completed R20 (not yet), and the separately gated exact-numeric-model

@@ -57,7 +57,7 @@ Implemented today:
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: bootstrapped as a repository shell (`m0smith/genia-cpp`, above) with no real interpreter; production C++ implementation is R21, entirely in that repository.
+- C++: bootstrapped as a repository shell (`m0smith/genia-cpp`, above) with no real interpreter; production C++ implementation is R24, entirely in that repository. (Originally numbered R21; planning issue #845 decomposed the Exact Numeric Model into R21-R23 and moved the C++ host to R24 — see `docs/design/r24-cpp-host-preflight.md`.)
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
 - **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). What remains true: **no real second production host is implemented yet.** Every proof to date is either about the Python reference host itself (through both the in-process and subprocess paths) or against non-semantic proof fixtures that do not interpret Genia source — the deterministic fixture adapter (`tools/spec_runner/fixtures/protocol_fixture_adapter.py`) and the `genia-cpp` bootstrap placeholder.
 
@@ -2575,8 +2575,11 @@ summary.
 described in section 4.7 above, with the E20-8 skeptical release audit
 (`docs/analysis/r20-release-truth-audit.md`) verdict and full evidence
 recorded there and in `docs/releases/R20.md`. See section 4.7 for the
-implemented boundary; the next roadmap release is R21 — the C++ host — only
-once that release's own separate gates are run.
+implemented boundary. R21 (numeric source classification), R22 (exact
+numeric runtime), and R23 (numeric representation and interchange) have
+since completed; the C++ host is now numbered R24 and its pre-flight gate
+(`docs/design/r24-cpp-host-preflight.md`) records a GO decision, though no
+C++ language behavior is implemented yet.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

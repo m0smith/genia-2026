@@ -48,7 +48,7 @@ Relevant planning/evidence inputs:
 - `docs/analysis/r19-float-current-behavior-inventory.md` (historical/current-state evidence for the separate numeric workstream)
 - `docs/design/exact-numeric-model-preflight.md`
 - `docs/design/exact-numeric-model-resolved-decisions.md`
-- `docs/design/r21-cpp-host-preflight.md`
+- `docs/design/r24-cpp-host-preflight.md (renamed from r21-cpp-host-preflight.md when the C++ host was renumbered to R24)`
 
 Current Python implementation is evidence, not semantic authority.
 

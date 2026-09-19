@@ -1,0 +1,98 @@
+{
+  "_comment": "R24 vertical bootstrap suite. Deliberately small; all cases resolved against EXISTING spec/*/*.yaml files (none invented). See docs/design/r24-cpp-host-preflight.md section 6. Run via: python -m tools.spec_runner --host '<cpp-adapter-cmd>' --evidence <path> (the runner has no case-filter flag, so a genia-cpp CI job stages only these files into a temp spec/ tree, or filters the --evidence output post-hoc).",
+  "genia_2026_contract_revision": "b859ddc6374d8c930180ef546b103cb2fa1c0d9b",
+  "categories": {
+    "literals": {
+      "capability": "parser",
+      "cases": [
+        "spec/parse/parse-literal-number.yaml",
+        "spec/eval/pattern-literal-string.yaml"
+      ]
+    },
+    "exact_integer_arithmetic": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/arithmetic-basic.yaml",
+        "spec/eval/integer-arithmetic-large-magnitude-no-overflow.yaml"
+      ]
+    },
+    "list_construction_and_use": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/pattern-list-exact.yaml"
+      ]
+    },
+    "ordered_map_behavior": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/map-items.yaml",
+        "spec/eval/map-put-replace-existing-key-preserves-order.yaml"
+      ]
+    },
+    "equality_and_legal_key_behavior": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/r18-equality-structural-contents.yaml",
+        "spec/eval/r18-map-key-equivalence-is-equality.yaml"
+      ]
+    },
+    "outcome_values": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/outcome-err-render.yaml",
+        "spec/eval/outcome-pipeline-err-short-circuit.yaml"
+      ]
+    },
+    "lambda_function_call": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/lambda-pattern-list-param.yaml"
+      ]
+    },
+    "pattern_case_dispatch": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/pattern-map-partial.yaml"
+      ]
+    },
+    "pipeline_composition": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/pipeline-call-shape-basic.yaml",
+        "spec/eval/pipeline-map-sum.yaml"
+      ]
+    },
+    "deterministic_runtime_error_behavior": {
+      "capability": "core_ir_eval",
+      "cases": [
+        "spec/eval/error-undefined-name.yaml"
+      ]
+    },
+    "cli_command_mode": {
+      "capability": "cli_command_mode",
+      "cases": [
+        "spec/cli/command_mode_basic.yaml"
+      ]
+    },
+    "cli_file_mode": {
+      "capability": "cli_file_mode",
+      "cases": [
+        "spec/cli/file_mode_basic.yaml"
+      ]
+    },
+    "open_functions_r20": {
+      "capability": "open_functions",
+      "cases": [
+        "spec/eval/r20-gcd-grouped-clause-equivalent.yaml",
+        "spec/eval/r20-cross-module-order-independence.yaml"
+      ]
+    }
+  },
+  "total_case_count": 19,
+  "expansion_policy": [
+    "Expansion beyond this list is a per-slice decision made by the E24 implementation ticket introducing the new capability or behavior (see docs/strategy/roadmap/e24-issue-sequence.md), never a blanket 'add more cases' change.",
+    "A category may not be widened, and a new category may not be added, without the corresponding capability already being declared in docs/design/r24/capability-floor.json.",
+    "Every case added to this file must already exist in genia-2026's spec/ tree at the pinned contract revision; genia-cpp must never invent its own case files as a substitute.",
+    "This file is updated in the same PR that changes genia-cpp's declared capability set, so the two never drift apart."
+  ]
+}
