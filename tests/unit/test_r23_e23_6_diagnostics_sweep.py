@@ -216,7 +216,7 @@ def test_no_json_or_format_diagnostic_leaks_python_class_name():
         if isinstance(result, GeniaOptionErr):
             messages.append(str(result.reason))
             if result.context is not None:
-                for key in ("cause", "value_type", "message"):
+                for key in ("cause", "value_type", "message", "received"):
                     if result.context.has(key):
                         messages.append(str(result.context.get(key)))
 
