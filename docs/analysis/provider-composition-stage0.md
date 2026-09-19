@@ -179,9 +179,12 @@ Do not create duplicate meanings for timeout, unauthorized, incompatible, provid
 
 ## P3 — Provider-boundary value inventory
 
-Status: **NON-NUMERIC INVENTORY RESOLVED FOR ARCHITECTURE; numeric
-representation remains BLOCKED ON R23.** This is a non-authoritative
-admissibility inventory, not implemented serialization behavior.
+Status: **RESOLVED/FROZEN FOR ARCHITECTURE.** With R23 complete, the
+Integer/Decimal/Rational/Float64 rows below close the previously blocked
+numeric cells alongside the already-resolved non-numeric inventory. This is a
+non-authoritative admissibility inventory, not implemented serialization
+behavior, and it selects no wire encoding for any value family, numeric or
+otherwise.
 
 The inventory applies PAI-3 without turning every runtime value into portable
 data. A value may cross only when its complete semantic value can survive the
@@ -234,10 +237,10 @@ it does not select JSON, a host dictionary, or a wire encoding.
 | R9 represented value | Representation carrier / structural value | **Conditional** | Preserve the exact ordered facet stack plus recursively portable carried value and portable facet metadata. Never collapse to display text, JSON text, or the unrepresented value. | R9 recursive equality and facet order remain authoritative; reserved/protected facets retain stronger rules. | R9 “Representation value model”, “Identity, equality, and keys”. | Provider-owned facet metadata needs an owning contract. |
 | R10 protected carrier | Protected identity-bearing carrier | **Conditional, fail closed** | Crossing is allowed only if the boundary can preserve the same opaque protected carrier and all R10 sink/declassification rules without exposing/reconstructing its payload. Transport must never become declassification. Otherwise reject. | Carrier-identity equality; never a map key; only matching scoped authority may reveal immediately at an authorized sink. | R10 protected carrier, transport, sinks, declassification; R18 protected family. | Cross-process/cross-provider reconstruction or credential transport is **deferred**; no rule is invented here. |
 | Approved opaque semantic token | Immutable opaque semantic token | **Contract-specific conditional** | Crosses only when its owning contract explicitly defines boundary materialization preserving hidden domain/provenance/semantic identity. Token crossing is not live-handle identity transfer. | R18 three-component equality, with no callback/IO/exposure. | R18 “Opaque semantic tokens”; P5 uses the category conceptually. | No generic token reconstruction, schema, or minting rule. |
-| Integer | Numeric semantic scalar | **Semantic family known; representation deferred** | R22 mathematical/equality/key facts survive. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R18/R22 equality and key identity remain authoritative. | R21/R22; R23 roadmap. | **BLOCKED ON R23.** |
-| Decimal | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Decimal kind and exact value in any future treatment. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 exact equality/comparison/key rules. | R22; R23 roadmap. | **BLOCKED ON R23.** |
-| Rational | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Rational semantics and denominator-one collapse rules. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 exact equality/comparison/key rules. | R22; R23 roadmap. | **BLOCKED ON R23.** |
-| Float64 | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Float64 domain distinctions required by R22. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 finite/zero/NaN/infinity equality and key rules remain authoritative. | R22; R23 roadmap. | **BLOCKED ON R23**, including bit/text form and NaN/infinity interchange. |
+| Integer | Numeric semantic scalar; arbitrary-precision exact integer (R17/R22 §1) | **Portable** | Preserve the exact arbitrary-precision mathematical Integer value and its distinct kind (never Bool, never folded into Decimal/Rational/Float64). The boundary role is the exact value itself, analogous to String's "exact Unicode scalar sequence"; it is neither R23's canonical decimal-digit display spelling (a rendering surface) nor R23's JSON safe-integer interval `[-9007199254740991, 9007199254740991]` (a JSON-specific interoperability restriction this boundary does not inherit). A realization may materialize it as canonical decimal digit text or a native big-integer type, but never a fixed-width silent-truncation host integer. | R18/R22 mathematical-value equality and canonical key identity; Integer and Bool remain distinct kinds/keys; a boundary-crossed Integer participates in R22 §10.1 cross-family equality (for example `1 == 1.0`) without losing its own Integer kind tag. | R17; R22 §1, §10.1; R18 key rules; R23 §2.1, §4.1 (contrasted, not adopted as boundary rule). | Per-realization magnitude/resource-limit ceilings are R22 §11's normalized `numeric-resource-limit` concern, not defined here; no wire width is chosen. |
+| Decimal | Numeric semantic scalar; arbitrary-precision exact `coefficient * 10^exponent` value (R22 §2) | **Conditional** | Crosses only when the exact canonical `(coefficient, exponent)` pair after R22 §2 canonicalization (trailing-zero-stripped coefficient, sign carried by coefficient, no Decimal negative-zero identity, Decimal kind retained even for mathematically integral values) is preserved. The boundary role is this exact coefficient/exponent structural pair -- not R23 §2.2's fixed/scientific display spelling, and not R23 §4.2's `stable_json_decimal`-gated JSON number token, which is a strictly narrower, lossy-by-design JSON interoperability rule this boundary does not inherit or bypass. A realization may materialize the pair as two arbitrary-precision Integers, or as a canonical decimal string it parses lexically back into the exact pair, but never through a host binary float and never through a `stable_json_decimal`-style stability gate. | R18/R22 mathematical-value equality and canonical key identity; a boundary-crossed Decimal must reconstruct to the identical canonical `(coefficient, exponent)` pair so R18 map-key identity and R22 §10.1 cross-family equality behave identically before and after crossing. | R22 §2, §10.1; R18; R23 §2.2, §4.2 (contrasted, not adopted). | Concrete coefficient/exponent wire encoding is a later codec choice, not fixed here; R22 §11 resource limits on coefficient/exponent magnitude apply unchanged. |
+| Rational | Numeric semantic scalar; exact reduced ratio of arbitrary-precision Integers (R22 §3) | **Conditional** | Crosses only when the exact canonical `(numerator, denominator)` pair after R22 §3 canonicalization (denominator positive and greater than `1` for a surviving Rational; sign carried by numerator; gcd-reduced) is preserved. A non-terminating Rational such as `1/3` crosses this boundary as an exact Rational: R23 §4.3's rule that a Rational is JSON-encodable only when it has a finite `stable_json_decimal`-satisfying Decimal equivalent is a JSON-specific interoperability restriction, not a provider-boundary admissibility rule, and is not inherited here. The boundary role is the exact numerator/denominator structural pair, not R23 §2.3's `<numerator>/<denominator>` display spelling. A realization may materialize the pair as two arbitrary-precision Integers or as a lexically parsed canonical `<numerator>/<denominator>` string reconstructed into the exact pair -- never through a host float or a finite-decimal intermediate. | R18/R22 mathematical-value equality and canonical key identity; cross-family equality with Integer/Decimal must hold identically after crossing (a denominator-one Rational already collapsed to Integer before construction, so it is never observed as a "surviving" Rational at the boundary either). | R22 §3, §10.1; R18; R23 §2.3, §4.3 (contrasted, not adopted). | Wire encoding for the two Integer components is a later codec choice; numerator/denominator magnitude limits reuse R22 §11 unchanged. |
+| Float64 | Numeric semantic scalar; one explicit IEEE-754 binary64 bit pattern, an explicit approximate domain distinct from the exact family (R22 §4) | **Conditional** | Crosses only when the exact binary64 bit pattern is preserved bit-for-bit, including the sign of zero (`+0.0` distinct from `-0.0`) and, when present, NaN (as "the value is NaN" only -- R22 §4/R23 §10 approve no public NaN payload/sign construction, so no specific payload bit pattern is guaranteed) and signed infinities distinctly. This boundary does **not** inherit R23 §4.4's stricter JSON rule (finite-only; NaN/infinity rejected outright): that is JSON's own narrower interoperability policy, not this boundary's admissibility rule. A future codec contract may still choose to restrict a *specific* realization to finite values only (mirroring R23 §4.4) or to permit full bit-exact NaN/infinity crossing; this analysis fixes only the semantic floor (bit-exactness whenever permitted at all) and forbids silent coercion, payload fabrication, or loss. R23's shortest-roundtrip decimal spelling remains one proven lossless *finite*-value encoding a future codec may reuse, without this analysis selecting it as mandatory. | R18/R22 finite/zero/NaN/infinity equality and key rules remain authoritative after crossing: a boundary-crossed finite Float64 equals an exact value with the identical mathematical dyadic value (R22 §10.2 bridge) without rounding the exact operand to Float64 first; NaN remains non-reflexive and therefore illegal as a map key on both sides; `+0.0`/`-0.0` remain the same map key and compare equal to exact zero on both sides. | R22 §4, §9, §10.2; R18; R23 §2.4, §4.4 (contrasted, not adopted). | Whether/how a *specific future* realization permits NaN/infinity to cross at all, and the concrete finite-value wire encoding, are later codec decisions explicitly out of scope here. |
 | Provider capabilities, configuration providers, model/retrieval providers | Identity-bearing runtime capabilities | **Local-only / non-transferable** | The capability object does not cross. A later explicit binding supplies a capability on the receiving side. | R18 identity; possession grants no authority; providers remain explicit and opaque. | R11/R12/R14; R18; PAI-1/6/7. | Remote reference/proxy semantics are not inferred. |
 | Authorities | Opaque identity-bearing host capabilities | **Local-only / non-transferable** | Never ordinary boundary data; receiving realization must receive its own explicit authorized capability. | Identity-only; non-serializable; separate from provider identity. | R10 declassification; PAI-7. | Authority transfer and credential transport excluded. |
 | Retrieval/index and other host handles | Identity-bearing live handles | **Local-only / non-transferable** | Reject the live handle. A separately contracted descriptor/token/reconstruction request would be a distinct value. | Runtime identity cannot be reconstructed structurally. | R12 index handle; R18 identity family. | Handle reconstruction/proxy/distributed identity excluded. |
@@ -253,6 +256,52 @@ it does not select JSON, a host dictionary, or a wire encoding.
 Planned Store/Execution/job/subscription handles are examples of the R18
 identity-bearing default only. They are not current values and this inventory
 does not define them.
+
+### Numeric admissibility summary (Integer/Decimal/Rational/Float64)
+
+Now that R23 is complete, the four numeric rows above close the previously
+blocked cells:
+
+- **Outcome admissibility.** Each numeric kind is an ordinary structural leaf
+  under the recursive admissibility rule; a numeric value inside `none(...)`,
+  `some(...)`, or `err(...)` is admissible exactly when that numeric value is
+  itself admissible under its row above, recursively.
+- **List/Pair/Map/Sheet/represented-value admissibility.** Each numeric kind
+  is an ordinary recursively portable leaf inside these families, subject to
+  the same recursive admissibility rule as any other leaf: a List/Pair/Map/
+  Sheet/represented value containing an inadmissible numeric leaf (for
+  example a Float64 whose NaN/infinity a target realization has chosen not to
+  admit, per that row's deferred note) makes the entire attempted crossing
+  inadmissible, never silently dropped or coerced. A numeric Map key follows
+  R18/R22 canonical key identity exactly as in a non-boundary Map (for
+  example, Integer `1` and mathematically-equal Decimal `1.0` remain the same
+  key; NaN remains illegal as a key on both sides of the boundary).
+- **Recursive failure conditions.** Recursion into a numeric leaf can fail
+  only for reasons already stated in its row: loss of exact
+  coefficient/exponent or numerator/denominator identity, loss of bit-exact
+  Float64 identity (including sign of zero), silent binary64 coercion of an
+  exact value, silent JSON-style stability-gate rejection applied outside an
+  actual JSON boundary, or a realization's declared resource limit (R22
+  §11). No numeric leaf fails for a reason invented here beyond its row.
+- **Protected-carrier interaction.** A numeric value may appear as the
+  payload of an R10 protected carrier exactly as any other value family may:
+  the protected-carrier row's fail-closed rule governs unchanged -- the
+  carrier crosses only if its opaque identity and every R10 sink/
+  declassification rule survive without exposing the numeric payload, and
+  transport of a protected numeric value never becomes declassification. No
+  numeric-specific protected-value rule is introduced; the existing R10/R18
+  protected family rule already covers it.
+- **Resource limits.** All four kinds reuse R22 §11's `numeric-resource-limit`
+  normalization unchanged: a realization may impose implementation-specific
+  coefficient/numerator/denominator/exponent magnitude ceilings, but must
+  normalize the failure as `numeric-resource-limit` (never as a smaller
+  language domain), never silently round/truncate, and never leak raw host/
+  library exception text.
+- **What is explicitly NOT decided here.** No wire encoding, no mandatory
+  codec, no textual spelling chosen as *the* boundary format, and no general
+  NaN/infinity interchange policy for every future realization. Those remain
+  later codec-contract decisions, per the "Explicit exclusions" list under
+  P4 below.
 
 ## P4 — Canonical non-numeric provider-boundary treatment
 
