@@ -377,9 +377,19 @@ needs a later numbered-release contract and normal phase gates.
 
 ### 2. What remains for P3/P4?
 
-Blocked on R22/R23 completion: exact Integer/Decimal/Rational/Float64 boundary
-sets and representation; post-R22 numeric equality/keys; R23 textual/JSON
-preservation; and binary/ABI mappings depending on those distinctions.
+**Update (2026-09-19, issue #941):** P3/P4 are now resolved/frozen for
+architecture, including the numeric hole this section originally described as
+blocked. See `docs/analysis/provider-composition-stage0.md`'s P3/P4 sections
+and its skeptical freeze review for the full Integer/Decimal/Rational/Float64
+value-family rows and `ProviderBoundaryValue` numeric fields. The paragraphs
+below are kept as the original historical record of what this preflight
+identified as blocked at the time it was written (before R23 completed); they
+are no longer the current state of P3/P4.
+
+Was blocked on R22/R23 completion at the time this preflight was written:
+exact Integer/Decimal/Rational/Float64 boundary sets and representation;
+post-R22 numeric equality/keys; R23 textual/JSON preservation; and binary/ABI
+mappings depending on those distinctions.
 
 Investigable now, but not implemented here: non-numeric primitives; List/Pair/
 Map ordering and keys; Outcomes; represented/protected values; Unicode; Bytes;

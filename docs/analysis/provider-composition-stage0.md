@@ -88,7 +88,7 @@ External precedent to review only after the Genia evidence above:
 | Interface identity | R20 has explicit interface/contribution identity; R12 has hidden compatibility identity. | **PARTIAL** | There is strong identity precedent but no general component-interface identity/revision model. |
 | Interface revision/version negotiation | R16 has contract revisions; R12 has compatibility labels; R36 plans compatibility/capability revision negotiation. | **PARTIAL** | Start with exact identity/revision matching. Do not infer SemVer compatibility initially. |
 | Provider conformance evidence | R16 has deterministic capability/conformance evidence; R11/R12 have deterministic provider fixtures and exact normalization contracts. | **PARTIAL** | Ingredients exist, but no reusable `provider implements interface X` conformance protocol exists yet. |
-| Canonical cross-language component value boundary | Core IR is a portability boundary for Genia semantics; R11/R12 have capability-specific conversions; R21/R22 settle numeric source/runtime while R23 still owns interchange. | **NEW, NON-NUMERIC PORTION RESOLVED BELOW** | Preserve the P3/P4 non-numeric model; numeric representation remains blocked on R23. Do not make Python conversion rules the ABI. |
+| Canonical cross-language component value boundary | Core IR is a portability boundary for Genia semantics; R11/R12 have capability-specific conversions; R21/R22 settle numeric source/runtime and R23 completes interchange. | **RESOLVED BELOW (P3/P4, INCLUDING NUMERIC)** | Preserve the full P3/P4 model, numeric and non-numeric alike, now that R23 is complete. Do not make Python conversion rules the ABI. |
 | Canonical component resource boundary | R18 identity plus R12 opaque handles provide ingredients, but no Python/C++/Wasm-neutral resource-handle contract exists. | **NEW** | Likely a small handle identity/lifetime contract, not serialization of underlying objects. |
 | Raw FFI underneath a portable provider | Current FFI is explicitly host-specific; R11/R12 private host adapters already hide Python provider mechanics behind portable Genia values. | **PARTIAL** | Prove that raw FFI can implement a provider without leaking host specificity into application source. |
 | Actual WIT provider | No current Genia/WIT component integration. | **NEW** | Use as a later interoperability proof, not as the starting semantic model. |
@@ -160,8 +160,9 @@ Need one host-neutral contract for values/resources crossing a provider boundary
 - R11/R12's capability-specific private conversions.
 
 This must preserve Genia's own semantics for Outcome, maps/order/equality,
-representations, protected values, diagnostics, and—after R23—Integer/Decimal/
-Rational/Float64 interchange.
+representations, protected values, diagnostics, and—now that R23 is
+complete—Integer/Decimal/Rational/Float64 interchange, per the frozen P3/P4
+sections below.
 
 ### D. Failure layering
 
@@ -179,9 +180,12 @@ Do not create duplicate meanings for timeout, unauthorized, incompatible, provid
 
 ## P3 — Provider-boundary value inventory
 
-Status: **NON-NUMERIC INVENTORY RESOLVED FOR ARCHITECTURE; numeric
-representation remains BLOCKED ON R23.** This is a non-authoritative
-admissibility inventory, not implemented serialization behavior.
+Status: **RESOLVED/FROZEN FOR ARCHITECTURE.** With R23 complete, the
+Integer/Decimal/Rational/Float64 rows below close the previously blocked
+numeric cells alongside the already-resolved non-numeric inventory. This is a
+non-authoritative admissibility inventory, not implemented serialization
+behavior, and it selects no wire encoding for any value family, numeric or
+otherwise.
 
 The inventory applies PAI-3 without turning every runtime value into portable
 data. A value may cross only when its complete semantic value can survive the
@@ -224,7 +228,7 @@ it does not select JSON, a host dictionary, or a wire encoding.
 | List | Ordinary immutable ordered container | **Conditional** | Ordered sequence of recursively portable elements. | Recursive structural equality; legal key use follows R18, not host hashing. | `GENIA_STATE.md` §2; R18. | Size/resource limits belong to a later codec/ABI contract. |
 | Pair | Ordinary structural value | **Conditional** | Explicit pair with recursively portable `car` and `cdr`; never silently flattened to a List. | Recursive structural equality and existing key rules. | `GENIA_STATE.md` §2; R18 structural families. | Promise-backed streams are local because Promise is local-only. |
 | Tuple | Full argument-tuple/pattern mechanism; no current public ordinary Tuple value family | **Explicitly deferred** | No provider-boundary Tuple tag is invented. Public sequence data uses List or an explicitly contracted record/pair. | Host tuple identity/layout has no semantic authority. | `GENIA_RULES.md` §4; R18 map-key section explicitly rejects host tuples as authority for a public kind. | A future public Tuple value would need its own contract. |
-| Map / ordered map | Persistent ordered structural container | **Conditional** | Preserve deterministic entry order and each recursively portable key/value. Encode as an ordered entry sequence at the semantic layer, not a JSON object or host dictionary. | Key legality and canonical identity are exactly R18; equal cross-kind legal keys remain one entry identity. | `GENIA_STATE.md` §§2, 7.2; R17/R18; R9 JSON distinguishes object mapping. | Numeric key representation is blocked on R23. |
+| Map / ordered map | Persistent ordered structural container | **Conditional** | Preserve deterministic entry order and each recursively portable key/value. Encode as an ordered entry sequence at the semantic layer, not a JSON object or host dictionary. | Key legality and canonical identity are exactly R18; equal cross-kind legal keys remain one entry identity, including numeric keys per the Integer/Decimal/Rational/Float64 rows below. | `GENIA_STATE.md` §§2, 7.2; R17/R18; R9 JSON distinguishes object mapping. | None; numeric key representation is resolved in the numeric rows below. |
 | Sheet | Immutable structural columnar value | **Conditional** | Preserve ordered columns and rows/cells only when column identifiers and every cell are recursively portable; do not lower implicitly to CSV or maps. | R18 names semantic fields; no live backing identity crosses. | `GENIA_STATE.md` §3.2; R18 structural families. | A codec schema/layout remains future work. |
 | Bytes | Immutable structural byte value | **Portable** | Preserve exact byte sequence as Bytes, not Unicode String or rendered/base64 text. | Structural equality; current non-keyability remains. | `GENIA_STATE.md` Bytes/JSON/ZIP section; R18. | Wire encoding is unspecified. |
 | ZIP entry | Immutable structural descriptor/value | **Conditional** | Preserve its contract-defined semantic fields recursively; no open archive/file handle crosses. | Structural equality over named semantic fields. | R18 “RNG, Format, bytes, ZIP entries, Sheets…” | Codec/schema is unspecified. |
@@ -234,10 +238,10 @@ it does not select JSON, a host dictionary, or a wire encoding.
 | R9 represented value | Representation carrier / structural value | **Conditional** | Preserve the exact ordered facet stack plus recursively portable carried value and portable facet metadata. Never collapse to display text, JSON text, or the unrepresented value. | R9 recursive equality and facet order remain authoritative; reserved/protected facets retain stronger rules. | R9 “Representation value model”, “Identity, equality, and keys”. | Provider-owned facet metadata needs an owning contract. |
 | R10 protected carrier | Protected identity-bearing carrier | **Conditional, fail closed** | Crossing is allowed only if the boundary can preserve the same opaque protected carrier and all R10 sink/declassification rules without exposing/reconstructing its payload. Transport must never become declassification. Otherwise reject. | Carrier-identity equality; never a map key; only matching scoped authority may reveal immediately at an authorized sink. | R10 protected carrier, transport, sinks, declassification; R18 protected family. | Cross-process/cross-provider reconstruction or credential transport is **deferred**; no rule is invented here. |
 | Approved opaque semantic token | Immutable opaque semantic token | **Contract-specific conditional** | Crosses only when its owning contract explicitly defines boundary materialization preserving hidden domain/provenance/semantic identity. Token crossing is not live-handle identity transfer. | R18 three-component equality, with no callback/IO/exposure. | R18 “Opaque semantic tokens”; P5 uses the category conceptually. | No generic token reconstruction, schema, or minting rule. |
-| Integer | Numeric semantic scalar | **Semantic family known; representation deferred** | R22 mathematical/equality/key facts survive. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R18/R22 equality and key identity remain authoritative. | R21/R22; R23 roadmap. | **BLOCKED ON R23.** |
-| Decimal | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Decimal kind and exact value in any future treatment. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 exact equality/comparison/key rules. | R22; R23 roadmap. | **BLOCKED ON R23.** |
-| Rational | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Rational semantics and denominator-one collapse rules. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 exact equality/comparison/key rules. | R22; R23 roadmap. | **BLOCKED ON R23.** |
-| Float64 | Numeric semantic scalar | **Semantic family known; representation deferred** | Preserve Float64 domain distinctions required by R22. **Provider-boundary encoding/representation: BLOCKED ON R23.** | R22 finite/zero/NaN/infinity equality and key rules remain authoritative. | R22; R23 roadmap. | **BLOCKED ON R23**, including bit/text form and NaN/infinity interchange. |
+| Integer | Numeric semantic scalar; arbitrary-precision exact integer (R17/R22 §1) | **Portable** | Preserve the exact arbitrary-precision mathematical Integer value and its distinct kind (never Bool, never folded into Decimal/Rational/Float64). The boundary role is the exact value itself, analogous to String's "exact Unicode scalar sequence"; it is neither R23's canonical decimal-digit display spelling (a rendering surface) nor R23's JSON safe-integer interval `[-9007199254740991, 9007199254740991]` (a JSON-specific interoperability restriction this boundary does not inherit). A realization may materialize it as canonical decimal digit text or a native big-integer type, but never a fixed-width silent-truncation host integer. | R18/R22 mathematical-value equality and canonical key identity; Integer and Bool remain distinct kinds/keys; a boundary-crossed Integer participates in R22 §10.1 cross-family equality (for example `1 == 1.0`) without losing its own Integer kind tag. | R17; R22 §1, §10.1; R18 key rules; R23 §2.1, §4.1 (contrasted, not adopted as boundary rule). | Per-realization magnitude/resource-limit ceilings are R22 §11's normalized `numeric-resource-limit` concern, not defined here; no wire width is chosen. |
+| Decimal | Numeric semantic scalar; arbitrary-precision exact `coefficient * 10^exponent` value (R22 §2) | **Conditional** | Crosses only when the exact canonical `(coefficient, exponent)` pair after R22 §2 canonicalization (trailing-zero-stripped coefficient, sign carried by coefficient, no Decimal negative-zero identity, Decimal kind retained even for mathematically integral values) is preserved. The boundary role is this exact coefficient/exponent structural pair -- not R23 §2.2's fixed/scientific display spelling, and not R23 §4.2's `stable_json_decimal`-gated JSON number token, which is a strictly narrower, lossy-by-design JSON interoperability rule this boundary does not inherit or bypass. A realization may materialize the pair as two arbitrary-precision Integers, or as a canonical decimal string it parses lexically back into the exact pair, but never through a host binary float and never through a `stable_json_decimal`-style stability gate. | R18/R22 mathematical-value equality and canonical key identity; a boundary-crossed Decimal must reconstruct to the identical canonical `(coefficient, exponent)` pair so R18 map-key identity and R22 §10.1 cross-family equality behave identically before and after crossing. | R22 §2, §10.1; R18; R23 §2.2, §4.2 (contrasted, not adopted). | Concrete coefficient/exponent wire encoding is a later codec choice, not fixed here; R22 §11 resource limits on coefficient/exponent magnitude apply unchanged. |
+| Rational | Numeric semantic scalar; exact reduced ratio of arbitrary-precision Integers (R22 §3) | **Conditional** | Crosses only when the exact canonical `(numerator, denominator)` pair after R22 §3 canonicalization (denominator positive and greater than `1` for a surviving Rational; sign carried by numerator; gcd-reduced) is preserved. A non-terminating Rational such as `1/3` crosses this boundary as an exact Rational: R23 §4.3's rule that a Rational is JSON-encodable only when it has a finite `stable_json_decimal`-satisfying Decimal equivalent is a JSON-specific interoperability restriction, not a provider-boundary admissibility rule, and is not inherited here. The boundary role is the exact numerator/denominator structural pair, not R23 §2.3's `<numerator>/<denominator>` display spelling. A realization may materialize the pair as two arbitrary-precision Integers or as a lexically parsed canonical `<numerator>/<denominator>` string reconstructed into the exact pair -- never through a host float or a finite-decimal intermediate. | R18/R22 mathematical-value equality and canonical key identity; cross-family equality with Integer/Decimal must hold identically after crossing (a denominator-one Rational already collapsed to Integer before construction, so it is never observed as a "surviving" Rational at the boundary either). | R22 §3, §10.1; R18; R23 §2.3, §4.3 (contrasted, not adopted). | Wire encoding for the two Integer components is a later codec choice; numerator/denominator magnitude limits reuse R22 §11 unchanged. |
+| Float64 | Numeric semantic scalar; one explicit IEEE-754 binary64 bit pattern, an explicit approximate domain distinct from the exact family (R22 §4) | **Conditional** | Crosses only when the exact binary64 bit pattern is preserved bit-for-bit, including the sign of zero (`+0.0` distinct from `-0.0`) and, when present, NaN (as "the value is NaN" only -- R22 §4/R23 §10 approve no public NaN payload/sign construction, so no specific payload bit pattern is guaranteed) and signed infinities distinctly. This boundary does **not** inherit R23 §4.4's stricter JSON rule (finite-only; NaN/infinity rejected outright): that is JSON's own narrower interoperability policy, not this boundary's admissibility rule. A future codec contract may still choose to restrict a *specific* realization to finite values only (mirroring R23 §4.4) or to permit full bit-exact NaN/infinity crossing; this analysis fixes only the semantic floor (bit-exactness whenever permitted at all) and forbids silent coercion, payload fabrication, or loss. R23's shortest-roundtrip decimal spelling remains one proven lossless *finite*-value encoding a future codec may reuse, without this analysis selecting it as mandatory. | R18/R22 finite/zero/NaN/infinity equality and key rules remain authoritative after crossing: a boundary-crossed finite Float64 equals an exact value with the identical mathematical dyadic value (R22 §10.2 bridge) without rounding the exact operand to Float64 first; NaN remains non-reflexive and therefore illegal as a map key on both sides; `+0.0`/`-0.0` remain the same map key and compare equal to exact zero on both sides. | R22 §4, §9, §10.2; R18; R23 §2.4, §4.4 (contrasted, not adopted). | Whether/how a *specific future* realization permits NaN/infinity to cross at all, and the concrete finite-value wire encoding, are later codec decisions explicitly out of scope here. |
 | Provider capabilities, configuration providers, model/retrieval providers | Identity-bearing runtime capabilities | **Local-only / non-transferable** | The capability object does not cross. A later explicit binding supplies a capability on the receiving side. | R18 identity; possession grants no authority; providers remain explicit and opaque. | R11/R12/R14; R18; PAI-1/6/7. | Remote reference/proxy semantics are not inferred. |
 | Authorities | Opaque identity-bearing host capabilities | **Local-only / non-transferable** | Never ordinary boundary data; receiving realization must receive its own explicit authorized capability. | Identity-only; non-serializable; separate from provider identity. | R10 declassification; PAI-7. | Authority transfer and credential transport excluded. |
 | Retrieval/index and other host handles | Identity-bearing live handles | **Local-only / non-transferable** | Reject the live handle. A separately contracted descriptor/token/reconstruction request would be a distinct value. | Runtime identity cannot be reconstructed structurally. | R12 index handle; R18 identity family. | Handle reconstruction/proxy/distributed identity excluded. |
@@ -254,30 +258,147 @@ Planned Store/Execution/job/subscription handles are examples of the R18
 identity-bearing default only. They are not current values and this inventory
 does not define them.
 
-## P4 — Canonical non-numeric provider-boundary treatment
+### Numeric admissibility summary (Integer/Decimal/Rational/Float64)
 
-Status: **NON-NUMERIC CANONICAL BOUNDARY SHAPE RESOLVED FOR ARCHITECTURE;
-numeric encoding/interchange remains BLOCKED ON R23.**
+Now that R23 is complete, the four numeric rows above close the previously
+blocked cells:
+
+- **Outcome admissibility.** Each numeric kind is an ordinary structural leaf
+  under the recursive admissibility rule; a numeric value inside `none(...)`,
+  `some(...)`, or `err(...)` is admissible exactly when that numeric value is
+  itself admissible under its row above, recursively.
+- **List/Pair/Map/Sheet/represented-value admissibility.** Each numeric kind
+  is an ordinary recursively portable leaf inside these families, subject to
+  the same recursive admissibility rule as any other leaf: a List/Pair/Map/
+  Sheet/represented value containing an inadmissible numeric leaf (for
+  example a Float64 whose NaN/infinity a target realization has chosen not to
+  admit, per that row's deferred note) makes the entire attempted crossing
+  inadmissible, never silently dropped or coerced. A numeric Map key follows
+  R18/R22 canonical key identity exactly as in a non-boundary Map (for
+  example, Integer `1` and mathematically-equal Decimal `1.0` remain the same
+  key; NaN remains illegal as a key on both sides of the boundary).
+- **Recursive failure conditions.** Recursion into a numeric leaf can fail
+  only for reasons already stated in its row: loss of exact
+  coefficient/exponent or numerator/denominator identity, loss of bit-exact
+  Float64 identity (including sign of zero), silent binary64 coercion of an
+  exact value, silent JSON-style stability-gate rejection applied outside an
+  actual JSON boundary, or a realization's declared resource limit (R22
+  §11). No numeric leaf fails for a reason invented here beyond its row.
+- **Protected-carrier interaction.** A numeric value may appear as the
+  payload of an R10 protected carrier exactly as any other value family may:
+  the protected-carrier row's fail-closed rule governs unchanged -- the
+  carrier crosses only if its opaque identity and every R10 sink/
+  declassification rule survive without exposing the numeric payload, and
+  transport of a protected numeric value never becomes declassification. No
+  numeric-specific protected-value rule is introduced; the existing R10/R18
+  protected family rule already covers it.
+- **Resource limits.** All four kinds reuse R22 §11's `numeric-resource-limit`
+  normalization unchanged: a realization may impose implementation-specific
+  coefficient/numerator/denominator/exponent magnitude ceilings, but must
+  normalize the failure as `numeric-resource-limit` (never as a smaller
+  language domain), never silently round/truncate, and never leak raw host/
+  library exception text.
+- **Distinct from Core IR and from display/debug rendering.** For all four
+  numeric kinds, the provider-boundary role defined above (exact value,
+  exact coefficient/exponent pair, exact numerator/denominator pair, exact
+  bit pattern) is a distinct concept from both R21's tagged Core IR literal
+  encoding (which governs how a numeric literal is classified and carried
+  through parsing/compilation, per R21's own contract) and from R23's
+  canonical display/debug rendering (fixed/scientific Decimal notation,
+  `<numerator>/<denominator>`, `float64(...)`, which govern human-facing
+  text). A future codec may choose to reuse R23's rendering text as one
+  possible lossless encoding for a specific transport, but the boundary's
+  admissibility rule above does not depend on, assume, or require any of the
+  three.
+- **What is explicitly NOT decided here.** No wire encoding, no mandatory
+  codec, no textual spelling chosen as *the* boundary format, and no general
+  NaN/infinity interchange policy for every future realization. Those remain
+  later codec-contract decisions, per the "Explicit exclusions" list under
+  P4 below.
+
+## P4 — Canonical provider-boundary treatment
+
+Status: **RESOLVED/FROZEN FOR ARCHITECTURE.** With R23 complete, the numeric
+semantic shape below closes the previously blocked cells alongside the
+already-resolved non-numeric canonical boundary shape.
 
 `ProviderBoundaryValue` is a semantic admissibility model, not a runtime type,
-class hierarchy, codec, schema, or new Genia value family. For the non-numeric
-portion it contains only an approved ordinary semantic scalar, tagged Outcome,
-ordered sequence/pair, ordered map entry sequence, represented value with its
-ordered facet information, approved inert structural value, or explicitly
-approved semantic token, recursively subject to P3. Numeric slots exist only as
-an unresolved family marker pending R23; this analysis chooses no encoding.
+class hierarchy, codec, schema, or new Genia value family. It contains only an
+approved ordinary semantic scalar (including each of the four numeric kinds
+below), tagged Outcome, ordered sequence/pair, ordered map entry sequence,
+represented value with its ordered facet information, approved inert
+structural value, or explicitly approved semantic token, recursively subject
+to P3. This is a **semantic shape**, not a serialization format: it fixes
+which exact fields must survive a crossing and does not choose byte layout,
+text grammar, schema language, or transport protocol for any value family,
+numeric or otherwise.
 
 The crossing must preserve:
 
 - exact Genia value family and variant (including Bool versus Symbol versus
-  String, and every Outcome variant);
+  String, every Outcome variant, and Integer versus Decimal versus Rational
+  versus Float64 -- these four numeric kinds never collapse into one another
+  or into a host-native numeric type at the boundary);
+- for **Integer**: the exact arbitrary-precision mathematical value;
+- for **Decimal**: the exact canonical `(coefficient, exponent)` pair after
+  R22 §2 canonicalization (sign carried by coefficient; trailing zeros
+  stripped; Decimal kind retained even when the mathematical value is
+  integral) -- never a host `decimal.Decimal`/`float` standing in for this
+  pair, and never silently reduced through a JSON-style stability gate;
+- for **Rational**: the exact canonical `(numerator, denominator)` pair after
+  R22 §3 canonicalization (denominator positive and greater than `1` for a
+  surviving Rational; sign carried by numerator; gcd-reduced) -- never a host
+  `fractions.Fraction` standing in for this pair, and never silently rounded
+  to a terminating Decimal or binary64 approximation;
+- for **Float64**: the exact IEEE-754 binary64 bit pattern, including the
+  sign of zero and, when an already-approved boundary produced one, NaN
+  (presence only, no payload/sign guarantee) and signed infinities -- an
+  exact semantic category distinct from the exact numeric family, never
+  silently produced by rounding an Integer/Decimal/Rational, and never the
+  implicit target of a cross-kind numeric coercion;
 - exact order and multiplicity of sequences, map entries, representation
   facets, and other contract-defined ordered fields;
-- R18 equality and canonical map-key identity;
-- R9 carried value, facet order, and portable representation metadata;
-- normalized, non-sensitive Outcome reasons/contexts; and
+- R18 equality and canonical map-key identity, including for numeric keys
+  (for example Integer `1` and mathematically equal Decimal `1.0` remain one
+  canonical key on both sides of the boundary; NaN remains illegal as a key
+  on both sides);
+- for a successful Outcome: the exact `some(value[, context])` variant and
+  its recursively admissible value/context;
+- for a rejected/absent Outcome: the exact `none(reason, context?)` or
+  `err(reason, context?)` variant with normalized, non-sensitive reason/
+  context and no raw host/provider exception text;
+- for an ordered map: entry order exactly as constructed, never reordered by
+  a target's own native map/dictionary iteration order;
+- R9 carried value, facet order, and portable representation metadata for a
+  represented value (a represented numeric value, for example a numeric
+  value wrapped by a representation carrier, is admissible exactly when both
+  the facet stack/metadata and the carried numeric value are independently
+  admissible under their own rules -- representation does not relax or
+  substitute for the numeric preservation rules above);
+- R10 protected-carrier constraints unchanged for a protected payload of any
+  kind, numeric included: the carrier's opaque identity and every sink/
+  declassification rule must survive without exposing the payload, or the
+  crossing is rejected; and
 - an approved token's contract-defined semantic identity without exposing its
-  hidden representation.
+  hidden representation, and the token-versus-live-handle distinction: an
+  opaque immutable semantic token (R18) may cross when its owning contract
+  approves it, while a live identity-bearing resource/handle never does --
+  this distinction is orthogonal to numeric kind and applies unchanged
+  whether or not the token happens to wrap numeric data.
+
+This semantic shape is sufficient, without choosing a codec, for at least:
+a Python realization (the current reference host, whose `GeniaDecimal`/
+`GeniaRational`/explicit-Float64 runtime types already carry these exact
+fields per R22, so a Python-side `ProviderBoundaryValue` mapping is a direct
+field-for-field read, never a re-derivation through `decimal.Decimal` or
+`fractions.Fraction`); a future C++ realization (which needs only an
+arbitrary-precision integer pair for Decimal/Rational and a raw `uint64_t`/
+`double` bit pattern for Float64 to represent the same exact fields, with no
+Python-specific type required); and a future WIT mapping (WIT's own numeric
+primitive types are fixed-width and would need an explicit, separately
+contracted lowering for arbitrary-precision Integer/Decimal/Rational --
+P4 fixes only the semantic fields such a lowering must preserve, and does not
+itself attempt or approve that lowering).
 
 The crossing must never carry provider-native/SDK/runtime objects, raw host
 exceptions, executable code/closures/environments, live handles/resources,
@@ -312,6 +433,29 @@ closure/code mobility; remote proxy semantics; handle reconstruction;
 distributed identity; provider discovery; ambient registry; authority transfer;
 credential transport; or WIT mapping. Each requires a separate future contract
 unless already explicitly implemented for a different, narrower boundary.
+
+## P3/P4 skeptical architecture freeze review (issue #941)
+
+Before marking P3/P4 frozen, the numeric additions above were reviewed
+adversarially against nine specific failure modes. Each is recorded with what
+was checked and the outcome (clean, or found-and-fixed).
+
+| Check | What was verified | Outcome |
+| --- | --- | --- |
+| JSON leakage | Whether the model implicitly assumes JSON is the provider boundary anywhere. Every numeric row explicitly names R23's JSON-specific rules (the safe-integer interval, `stable_json_decimal`, the Rational finite-equivalent gate, the Float64 finite-only rule) and explicitly states this boundary does not inherit them. The general P4 paragraph already states the boundary is "distinct from ... JSON." | **Clean.** No JSON assumption found; each JSON-specific rule is named only to be explicitly excluded. |
+| Python `Decimal`/`Fraction` leakage | Whether any numeric field is described as if Python's own `decimal.Decimal`/`fractions.Fraction` were the semantic model, rather than R22's `GeniaDecimal`/`GeniaRational` semantics. Every Decimal/Rational bullet states "never a host `decimal.Decimal`/`float` standing in for this pair" and "never a host `fractions.Fraction` standing in for this pair," and ties the canonical fields directly to R22 §2/§3's own canonicalization rules, not to any Python stdlib type's canonicalization behavior (which differs -- for example Python's `Fraction` does not reduce a denominator of `1` to a plain `int`). | **Clean.** No Python-stdlib-as-semantics phrasing found. |
+| Binary64 coercion | Whether Decimal/Rational are implied to be silently converted to Float64 anywhere in the boundary crossing. Every Decimal/Rational bullet states the pair is preserved "never through a host binary float" / "never silently rounded to a terminating Decimal or binary64 approximation," and the general "must preserve" list states Float64 is "never silently produced by rounding an Integer/Decimal/Rational" and "never the implicit target of a cross-kind numeric coercion." | **Clean.** No implicit coercion path found; explicit prohibitions were already present in the draft. |
+| Lost map-key identity | Whether R18 key identity survives the boundary. The P4 preservation list has an explicit numeric-keys bullet (Integer `1`/Decimal `1.0` remain one key; NaN remains illegal as a key on both sides), and the Numeric admissibility summary repeats this for List/Pair/Map/Sheet admissibility. | **Clean.** R18 key identity is explicit, not assumed. |
+| Lost representation metadata | Whether R9 represented-value facets survive when the carried value is numeric. The P4 list has an explicit represented-value bullet stating a represented numeric value is admissible only when both the facet stack/metadata and the carried numeric value are independently admissible, and that representation does not relax the numeric preservation rules. | **Clean.** No implicit facet-dropping found. |
+| Protected payload exposure | Whether a numeric value inside a protected carrier is handled consistently with the already-resolved non-numeric protected-value rule (R10 fail-closed, P3's protected-carrier row). The P4 list has an explicit protected-carrier bullet stating the rule is "unchanged for a protected payload of any kind, numeric included," and the Numeric admissibility summary repeats this rather than inventing a numeric-specific protection rule. | **Clean.** No separate/weaker numeric protected-value rule was introduced; the existing R10/R18 rule is reused unchanged. |
+| Accidental live-handle serialization | Whether adding numeric rows accidentally implies a live resource/handle could be serialized because it happens to wrap or reference a number (for example a numeric field inside an opaque handle). The token-versus-handle distinction in the P4 list is explicit and orthogonal to numeric kind; the existing non-numeric P3 rows already reject every live-handle family unconditionally, and nothing in the numeric additions creates an exception for a handle merely because its payload is numeric. | **Clean.** No new live-handle crossing path was introduced. |
+| Confusion between Core IR and provider boundary | Whether it is clear R21's tagged Core IR and this provider boundary are different concepts. The initial draft stated this only at the general P4 level, not per numeric kind, which the requirement (issue #941: "distinguish from Core IR literal encoding and from display spelling") called for explicitly per family. | **Found and fixed.** Added an explicit "Distinct from Core IR and from display/debug rendering" bullet to the Numeric admissibility summary naming R21's tagged Core IR literal encoding and R23's canonical rendering as two separate, non-authoritative-for-this-boundary concepts for all four numeric kinds. |
+| Ambiguity around Float64 NaN/zero | Whether the boundary treatment of NaN/`-0.0` is fully specified rather than left as "TBD." The Float64 row and the P4 list state precisely: `+0.0`/`-0.0` are always distinct and always preserved when a Float64 crosses at all; NaN is preserved as "the value is NaN" only (no payload/sign guarantee, matching R22 §4/R23 §10's own non-goal); and whether a *specific future realization* is permitted to admit NaN/infinity at all (versus rejecting them the way R23's own JSON boundary does) is the one deliberately open codec-level choice, consistent with the issue's own scope constraint that this work selects no mandatory wire codec. | **Clean, with one deliberately scoped-out codec choice.** The semantic floor (bit-exactness whenever a value is permitted to cross at all, exact zero-sign/NaN-presence handling) is fully specified; only the codec-level admit/reject policy for a specific transport is left to a later contract, which is in scope for exclusion under P4's own "Explicit exclusions" list, not an unresolved semantic hole. |
+
+No check surfaced a genuine unresolved semantic hole that would block P8 or
+P9. The one finding (Core IR/display-rendering distinctness) was a
+documentation-completeness gap, not a semantic contradiction, and was fixed
+in this same review before freezing.
 
 ## Relationship to WIT
 
@@ -372,8 +516,8 @@ Use this table as the ordered preflight. Work one row at a time. Each completed 
 | **P0** | What common provider invariants can be extracted from R11/R12/R14/R16/R18 without adding behavior? | **RESOLVED IN PREFLIGHT** | The preflight records the evidence matrix and PAI-1 through PAI-13; no new behavior is claimed. |
 | **P1** | Do we need an application-facing whole-computation `requires`/`provides` concept? What does it add beyond explicit arguments/modules? | **RESOLVED: MINIMAL MANIFEST CONCEPT** | Inert whole-computation metadata enables transitive pre-execution inspection; ordinary arguments remain operational and R16 supplies only the enforcement shape. |
 | **P2** | What is the smallest owned/borrowed/expired resource model built on R14 + R18? | **RESOLVED FOR ARCHITECTURE** | Dynamic R14-owned carrier, singular ownership, bounded non-escaping borrow, expiry misuse, and one parent-to-child move; APIs and advanced lifetimes deferred. |
-| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | **NON-NUMERIC INVENTORY RESOLVED FOR ARCHITECTURE; numeric representation remains BLOCKED ON R23.** | Explicit value-family matrix tied to existing contracts. |
-| **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | **NON-NUMERIC CANONICAL BOUNDARY SHAPE RESOLVED FOR ARCHITECTURE; numeric encoding/interchange remains BLOCKED ON R23.** | Semantic boundary contract sufficient for later Python/C++ proofs without choosing a codec or leaking host defaults. |
+| **P3** | Which Genia values may cross a component/provider boundary after R22/R23, and which remain host/process-local? | **RESOLVED/FROZEN FOR ARCHITECTURE** | Explicit value-family matrix, including all four numeric kinds, tied to existing contracts. |
+| **P4** | What is the canonical provider-boundary representation, distinct from Core IR and host-native representation? | **RESOLVED/FROZEN FOR ARCHITECTURE** | Semantic boundary contract, including numeric exact-value preservation, sufficient for later Python/C++/WIT proofs without choosing a codec or leaking host defaults. |
 | **P5** | How are interface identity, exact contract revision, and provider compatibility represented? | **RESOLVED FOR ARCHITECTURE** | Exact nominal identity plus exact opaque revision; no structural/SemVer inference, registry, or package system. |
 | **P6** | Where is the line between operation Outcome, provider-realization failure, and R36 ExecutionResult/execution failure? | **RESOLVED FOR ARCHITECTURE** | Same-process calls keep interface Outcomes, composition/validity faults are misuse, and R36 remains the sole outer execution envelope. |
 | **P7** | If a provider graph exists, how does it stay explicit, inert, inspectable, and non-DI? | **RESOLVED FOR ARCHITECTURE** | Explicit immutable validated binding plan over already-constructed capabilities; exact matching, closed transitive graph, fail-closed ambiguity/cycles, no R20 selection. |
@@ -387,7 +531,7 @@ Recommended sequence:
 1. **P0 is resolved.** PAI-1 through PAI-13 make the existing invariants explicit without adding behavior.
 2. **P6 is resolved for architecture.** Same-process interface Outcomes remain ordinary; R36 alone owns the outer execution envelope.
 3. **P1 and P2 are resolved for architecture.** The selected scope is a minimal inert manifest plus a narrow R14/R18 resource model, not a component subsystem.
-4. **R22 is complete; leave only P3/P4 numeric interchange open for R23.** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
+4. **R22 and R23 are complete; P3/P4 numeric interchange is resolved/frozen for architecture (issue #941).** Do not define a component ABI that accidentally routes exact Genia numerics through host binary floats.
 5. **P5/P7 only after the semantic need is clear.** Avoid building a registry/DI system in anticipation of requirements.
 6. **P8 must reuse existing Genia provider semantics instead of inventing two toy providers from scratch.**
 7. **P9 is last.** WIT is an interoperability test, not the starting model.
@@ -453,11 +597,15 @@ Keep this short and append-only unless correcting a factual error.
 - **2026-09-15 — R37 included as integration consumer.** R37's planned composition of R35 Store and R36 Execution makes it a future proving ground for the generalized model.
 - **2026-09-17 — P0/P1/P2/P5/P6/P7 preflight resolved.** The focused preflight selects a minimal inert manifest, R14-owned dynamic resource lifetimes, exact nominal interface revisions, ordinary same-process Outcomes with an R36 outer envelope, and an explicit immutable binding plan. It authorizes no implementation or release change.
 - **2026-09-18 — P3/P4 non-numeric boundary inventory resolved.** The recursive admissibility matrix and semantic `ProviderBoundaryValue` treatment preserve R9/R10/R14/R18 rules without defining a codec. Numeric provider-boundary encoding/interchange remains **BLOCKED ON R23**.
+- **2026-09-19 — P3/P4 numeric hole closed; both RESOLVED/FROZEN FOR ARCHITECTURE (issue #941).** With R23 complete, the value-family matrix and `ProviderBoundaryValue` model were extended with Integer/Decimal/Rational/Float64 rows/fields preserving R22's exact coefficient/exponent, numerator/denominator, and bit-exact Float64 semantics without inheriting R23's JSON-specific stability gates or intervals, and without coercing to Python `decimal.Decimal`/`fractions.Fraction` or host binary64. A skeptical freeze review found and fixed one documentation-completeness gap (explicit per-kind Core IR/display-rendering distinctness) and found no genuine semantic hole. No wire codec is selected; `GENIA_STATE.md` is untouched.
 
 ## Current Stage 0 verdict
 
-**P0/P1/P2/P3-NON-NUMERIC/P4-NON-NUMERIC/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED. No implementation authorization.**
+**P0/P1/P2/P3/P4/P5/P6/P7 ARCHITECTURE PREFLIGHT RESOLVED/FROZEN. No implementation authorization.**
 
-P3/P4 remain partially open only for numeric provider-boundary interchange,
-which is **BLOCKED ON R23**. P8/P9 remain future proof work. The resolved
-preflight does not promote a numbered release or change implemented semantics.
+P3 and P4 are now fully resolved and frozen for architecture, including all
+four numeric kinds, following R23's completion and issue #941's skeptical
+freeze review. P8/P9 remain future proof work. The resolved preflight does
+not promote a numbered release or change implemented semantics; the doc's
+`PROPOSED / EXPLORATORY` status and `GENIA_STATE.md`-is-final-authority
+disclaimer above remain in force for this content, numeric included.
