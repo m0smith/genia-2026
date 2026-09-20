@@ -5,8 +5,7 @@
     "literals": {
       "capability": "parser",
       "cases": [
-        "spec/parse/parse-literal-number.yaml",
-        "spec/eval/pattern-literal-string.yaml"
+        "spec/parse/parse-literal-number.yaml"
       ]
     },
     "exact_integer_arithmetic": {
@@ -94,5 +93,11 @@
     "A category may not be widened, and a new category may not be added, without the corresponding capability already being declared in docs/design/r24/capability-floor.json.",
     "Every case added to this file must already exist in genia-2026's spec/ tree at the pinned contract revision; genia-cpp must never invent its own case files as a substitute.",
     "This file is updated in the same PR that changes genia-cpp's declared capability set, so the two never drift apart."
+  ],
+  "corrections": [
+    {
+      "issue": "m0smith/genia-2026#963",
+      "change": "Removed spec/eval/pattern-literal-string.yaml from the 'literals' category. That case requires function definitions, full pattern/case dispatch, and string-literal support to execute (category: eval) -- none of which match this category's own 'capability: parser' tag, and all of which are out of E24-2's declared scope (pattern/case dispatch is separately evidenced by the pattern_case_dispatch category and is E24-4's scope; string-literal parsing is E24-3's scope per docs/strategy/roadmap/e24-issue-sequence.md). No replacement case exists yet under spec/parse/ for bare string-literal parsing; add one as part of E24-3 if that category needs widening then. Also corrected total_case_count, which was already stale before this fix (documented as 19 while the categories actually summed to 20); the true post-fix sum is 19."
+    }
   ]
 }
