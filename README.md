@@ -547,7 +547,9 @@ Boundary validation note:
 
 ## Multi-Host Direction
 
-Python is the only implemented host today, and it remains the current reference host.
+Python is the full-language reference host. `m0smith/genia-cpp` (R24) is a second
+production host implementing one deliberately minimal, evidence-backed grammar slice
+as of E24-2 — see its `README.md`/`AGENTS.md` for the exact current boundary.
 
 The repo now also includes shared portability scaffolding for future hosts, plus a
 generic multi-host conformance runner (R16 E16-1 through E16-7, issues #758-#764;
@@ -560,8 +562,8 @@ see `GENIA_STATE.md` §0):
 - `tools/spec_runner --host '<command>'`: runs applicable shared spec cases through a
   versioned subprocess protocol, with capability advertisement, revision pinning, and
   deterministic per-host evidence reporting. Proven against the Python reference host
-  and the [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) bootstrap
-  placeholder; no real second production host exists yet.
+  and [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp), which as of E24-2
+  is a real second production host for one deliberately minimal grammar slice.
 
 Alignment rule:
 
@@ -575,7 +577,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | Bootstrapped external repository shell ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)), no real interpreter |
+| C++ | Real production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)) for one minimal, evidence-backed grammar slice (E24-2: integer literals/arithmetic/`-c` command mode); most language behavior remains unimplemented |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
