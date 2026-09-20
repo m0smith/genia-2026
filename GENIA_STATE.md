@@ -57,9 +57,9 @@ Implemented today:
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: production implementation is R24, entirely in `m0smith/genia-cpp`. E24-1 (toolchain bootstrap) and E24-2 (first real vertical slice — integer literals/arithmetic/`-c` command mode) are complete; E24-3 through E24-8 remain (lists/maps/equality/file mode, Outcomes/lambdas/pattern dispatch/pipelines, diagnostic normalization, open functions, exact numeric model, and release completion evidence). (Originally numbered R21; planning issue #845 decomposed the Exact Numeric Model into R21-R23 and moved the C++ host to R24 — see `docs/design/r24-cpp-host-preflight.md`.)
+- C++: production implementation is R24, entirely in `m0smith/genia-cpp`. E24-1 (toolchain bootstrap), E24-2 (first real vertical slice — integer literals/arithmetic/`-c` command mode), and E24-3 (lists, ordered maps, R18 equality, file mode) are complete; E24-4 through E24-8 remain (Outcomes/lambdas/pattern dispatch/pipelines, diagnostic normalization, open functions, exact numeric model, and release completion evidence). (Originally numbered R21; planning issue #845 decomposed the Exact Numeric Model into R21-R23 and moved the C++ host to R24 — see `docs/design/r24-cpp-host-preflight.md`.)
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
-- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). What remains true: **no second production host implements the full language yet.** `m0smith/genia-cpp` (R24, E24-2) is a real second production host for one deliberately minimal, evidence-backed grammar slice; every other proof to date is either about the Python reference host itself (through both the in-process and subprocess paths) or against non-semantic proof fixtures that do not interpret Genia source — the deterministic fixture adapter (`tools/spec_runner/fixtures/protocol_fixture_adapter.py`).
+- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). What remains true: **no second production host implements the full language yet.** `m0smith/genia-cpp` (R24, E24-1 through E24-3) is a real second production host for one deliberately minimal, evidence-backed grammar slice (integer/string/boolean/list literals, assignment, `+ - * / ==`, native map/utf8 functions, `-c`/file-mode CLI); every other proof to date is either about the Python reference host itself (through both the in-process and subprocess paths) or against non-semantic proof fixtures that do not interpret Genia source — the deterministic fixture adapter (`tools/spec_runner/fixtures/protocol_fixture_adapter.py`).
 
 **Maturity:**
 
@@ -70,9 +70,9 @@ Scaffolded or planned, not implemented as hosts:
 
 **Explicit limitations:**
 
-- Python is the full-language production host; `m0smith/genia-cpp` (R24) is a second production host implementing only one deliberately minimal, evidence-backed grammar slice (E24-2: integer literals/arithmetic/`-c` command mode) — see `m0smith/genia-cpp`'s `README.md`/`AGENTS.md` for its exact current boundary. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
+- Python is the full-language production host; `m0smith/genia-cpp` (R24) is a second production host implementing only one deliberately minimal, evidence-backed grammar slice (E24-1 through E24-3: integer/string/boolean/list literals, assignment, `+ - * / ==`, native map_*/utf8_encode functions, `-c`/file-mode CLI) — see `m0smith/genia-cpp`'s `README.md`/`AGENTS.md` for its exact current boundary. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7); most conformance evidence to date is still about the Python reference host or non-semantic proof fixtures, with `m0smith/genia-cpp`'s narrow E24-2 slice as the sole other host-backed evidence so far.
+- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7); most conformance evidence to date is still about the Python reference host or non-semantic proof fixtures, with `m0smith/genia-cpp`'s narrow E24-1 through E24-3 slice as the sole other host-backed evidence so far.
 - Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
 - Parse shared semantic-spec coverage is limited to initial cases for stable, already-implemented syntax forms; parse spec coverage expands only when new forms are explicitly added and tested.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
@@ -2582,19 +2582,28 @@ since completed; the C++ host is now numbered R24 and its pre-flight gate
 (`m0smith/genia-2026#955`) completed toolchain bootstrap: a real,
 compiled C++ E16-1 adapter honestly declaring every capability
 unsupported, with no Genia language behavior implemented. **E24-2
-(`m0smith/genia-2026#956`) has since completed**, adding the first real
-C++ Genia semantics: `m0smith/genia-cpp` now genuinely parses, lowers to
-portable Core IR, and evaluates one deliberately minimal grammar
-(integer literals, one evidenced bare-name reference, and `+ - * /`
-binary expressions with standard precedence) plus `-c` command mode,
-declaring `parser`/`ast_lowering`/`cli_command_mode` `supported` and
-`core_ir_eval` `partial` with real shared-conformance evidence
-(`total=740 passed=10 failed=0 unsupported=730` against the full spec
-corpus). Lists, maps, lambdas, pattern matching, Decimal/Rational/
-Float64, file mode, and open functions remain entirely unimplemented in
-C++ — see `m0smith/genia-cpp`'s `README.md`/`AGENTS.md` for the current
-boundary and `docs/strategy/roadmap/e24-issue-sequence.md` for the
-remaining E24-3 through E24-8 slices.
+(`m0smith/genia-2026#956`) and E24-3 (`m0smith/genia-2026#957`) have
+since completed**, adding the first real C++ Genia semantics:
+`m0smith/genia-cpp` now genuinely parses, lowers to portable Core IR,
+and evaluates one deliberately minimal grammar (integer/string/boolean
+literals, list literals, assignment, function calls, and `+ - * / ==`
+binary expressions with standard precedence) plus `-c`/file-mode CLI,
+declaring `parser`/`ast_lowering`/`cli_command_mode`/`cli_file_mode`
+`supported` and `core_ir_eval` `partial` with real shared-conformance
+evidence (`total=744 passed=21 failed=0 unsupported=723` against the
+full spec corpus). E24-3 adds R17 ordered-map behavior and R18
+structural/legal-key equality via a native in-house insertion-ordered
+map and native `map_new`/`map_get`/`map_put`/`map_has?`/`map_remove`/
+`map_count`/`map_items`/`utf8_encode` callables (the map functions
+mirror genia-2026's real trivial 1:1 prelude wrappers exactly; genuine
+prelude-source interpretation for non-trivial functions like
+`map_keys`/`map_values` remains E24-4+ scope, once user-level function
+definitions exist). Lambdas, pattern matching, Outcomes,
+Decimal/Rational/Float64, and open functions remain entirely
+unimplemented in C++ — see `m0smith/genia-cpp`'s `README.md`/
+`AGENTS.md` for the current boundary and
+`docs/strategy/roadmap/e24-issue-sequence.md` for the remaining E24-4
+through E24-8 slices.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 

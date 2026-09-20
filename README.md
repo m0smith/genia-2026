@@ -549,7 +549,7 @@ Boundary validation note:
 
 Python is the full-language reference host. `m0smith/genia-cpp` (R24) is a second
 production host implementing one deliberately minimal, evidence-backed grammar slice
-as of E24-2 — see its `README.md`/`AGENTS.md` for the exact current boundary.
+as of E24-3 — see its `README.md`/`AGENTS.md` for the exact current boundary.
 
 The repo now also includes shared portability scaffolding for future hosts, plus a
 generic multi-host conformance runner (R16 E16-1 through E16-7, issues #758-#764;
@@ -562,7 +562,7 @@ see `GENIA_STATE.md` §0):
 - `tools/spec_runner --host '<command>'`: runs applicable shared spec cases through a
   versioned subprocess protocol, with capability advertisement, revision pinning, and
   deterministic per-host evidence reporting. Proven against the Python reference host
-  and [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp), which as of E24-2
+  and [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp), which as of E24-3
   is a real second production host for one deliberately minimal grammar slice.
 
 Alignment rule:
@@ -577,7 +577,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | Real production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)) for one minimal, evidence-backed grammar slice (E24-2: integer literals/arithmetic/`-c` command mode); most language behavior remains unimplemented |
+| C++ | Real production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)) for one minimal, evidence-backed grammar slice (E24-1 through E24-3: integer/string/boolean/list literals, assignment, `+ - * / ==`, native map/utf8 functions, `-c`/file-mode CLI); most language behavior remains unimplemented |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
