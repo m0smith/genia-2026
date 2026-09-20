@@ -1,28 +1,59 @@
-# R21 C++ Minimal Host Pre-flight
+# R24 C++ Minimal Host Pre-flight
 
 Status: **Planning contract — non-authoritative.** `GENIA_STATE.md` remains final authority for implemented behavior.
+
+Historical note: this contract was originally drafted as **R21-0** (issue
+`m0smith/genia-2026#814`, "establish C++ minimal-host pre-flight"). Planning
+issue `#845` decomposed the Exact Numeric Model into three numbered
+releases (R21, R22, R23) and moved the C++ host to **R24**. Issue `#814`
+was retitled to `R24-0` and closed as completed (PR `#815`) under the old
+numbering; this file is the renumbering cleanup that old issue explicitly
+deferred. The pre-flight intent, and every substantive rule below, is
+unchanged by the renumbering.
 
 This document defines the implementation discipline for the first real C++ host in `m0smith/genia-cpp`. It does not add language semantics, Core IR nodes, host capabilities, or C++ implementation behavior.
 
 ## Purpose
 
-R21 should be an implementation exercise against already-approved portable semantics, not a venue for inventing new Genia behavior.
+R24 should be an implementation exercise against already-approved portable semantics, not a venue for inventing new Genia behavior.
 
 The C++ host MUST consume the authoritative contract from `genia-2026`, record the exact contract revision it implements, and stop rather than guess whenever the portable contract is ambiguous.
 
 ## Entry prerequisites
 
-R21 semantic implementation MUST NOT begin until:
+R24 semantic implementation MUST NOT begin until:
 
 - R16 multi-host conformance infrastructure remains green and usable by an external host
 - R17 numeric and ordered-map portability is complete
 - R18 portable value equality is complete
 - R19 Unicode and diagnostic portability is approved and complete
 - R20 open functions / extensible pattern dispatch is approved and complete
-- the separately gated exact-numeric-model contract (Integer/Decimal/Rational/explicit Float64) is approved and complete before C++ numeric semantics are implemented
+- R21 (numeric source and portable representation), R22 (exact numeric runtime), and R23 (numeric representation and interchange) — the decomposed exact-numeric-model releases — are approved and complete before C++ numeric semantics are implemented
 - the target `genia-2026` contract revision is pinned in `m0smith/genia-cpp`
 
+**Status as of this refresh (2026-09-19): all of the above are satisfied.**
+R16 through R23 each carry a recorded skeptical release-truth-audit PASS
+(`docs/analysis/r16..r23-release-truth-audit.md`, `docs/releases/R16.md`
+through `R23.md`), and `GENIA_STATE.md` §4 records each as complete. R23's
+audit trail (`docs/analysis/r23-release-truth-audit.md`) shows two genuine
+findings (E23-7, E23-9) caught and repaired before the third independent
+audit (E23-11, `#939`) recorded PASS — this is the entry prerequisite
+working as intended, not an open gap.
+
 Toolchain/bootstrap work that does not interpret Genia semantics may proceed earlier, but MUST NOT claim host conformance.
+
+## Post-R23 architecture note (P8/P9)
+
+`P8` (alternate-provider substitution proof) and `P9` (Genia↔WIT
+interoperability mapping and toolchain proof) landed after R23 as
+Provider Composition work-ledger items (`docs/strategy/roadmap/
+provider-composition.md`). Both are explicitly non-authoritative design
+proofs that changed no Genia semantics and no Core IR. Neither expands or
+narrows R24 scope: `provider-composition.md` states its track is relevant
+to planned R32/R35/R36/R37 and does not change the numbering or scope of
+other releases. R24's non-goals (below) are unaffected — WIT/provider
+interoperability is explicitly **not** pulled forward into the minimal
+C++ host merely because P8/P9 now exist.
 
 ## Repository boundary
 
@@ -41,7 +72,7 @@ The C++ repository may document implementation choices, but MUST NOT copy semant
 
 ## 1. Minimal capability floor
 
-Before implementation, R21 MUST define a machine-checkable minimal capability set and the exact shared cases expected to be applicable.
+Before implementation, R24 MUST define a machine-checkable minimal capability set and the exact shared cases expected to be applicable.
 
 Rules:
 
@@ -52,6 +83,8 @@ Rules:
 - mixed-capability categories MUST NOT be claimed wholesale merely because a subset passes
 
 The first capability floor should remain deliberately capability-light and centered on parse, Core IR, eval, error, and minimal non-interactive CLI behavior.
+
+**The pinned machine-readable declaration is `docs/design/r24/capability-floor.json`.** It distinguishes capabilities the generic `spec/manifest.json` marks `required` for any host from those it marks `optional` but that this pre-flight makes mandatory for R24 completion specifically (`open_functions` is the working example: optional in the generic manifest, mandatory here because R20 is an entry prerequisite).
 
 ## 2. Mandatory implementation layering
 
@@ -91,7 +124,9 @@ Any public behavior implemented natively in C++ instead of through the shared pr
 
 ## 4. Native primitive boundary
 
-R21 MUST publish the initial native primitive inventory in `m0smith/genia-cpp` before broad evaluator work.
+R24 MUST publish the initial native primitive inventory in `m0smith/genia-cpp` before broad evaluator work.
+
+**The pinned inventory for this refresh is `docs/design/r24/native-primitive-inventory.md`.**
 
 The inventory MUST state for each primitive:
 
@@ -116,7 +151,7 @@ Forbidden as portable output unless explicitly contracted by R19:
 - filesystem/library implementation details
 - demangled C++ symbols
 
-R19 defines the portable Unicode/string and diagnostic surface. The separate exact-numeric-model contract defines Decimal/Rational/Float64 semantics and rendering. R21 implements both; it does not infer either from C++ defaults.
+R19 defines the portable Unicode/string and diagnostic surface. R21-R23 define Decimal/Rational/Float64 semantics and rendering. R24 implements both; it does not infer either from C++ defaults.
 
 ## 6. Vertical bootstrap suite
 
@@ -139,10 +174,14 @@ The bootstrap suite MUST be selected from existing shared cases and MUST include
 - pipeline composition
 - one deterministic runtime/error case
 - one `-c` command-mode case
-- one file-mode case when file mode becomes part of the declared floor
-- approved R20 function-group/open-function behavior before R21 completion
+- one file-mode case (file mode is part of the declared floor — see capability floor)
+- approved R20 function-group/open-function behavior before R24 completion
 
-The exact case list and count MUST be pinned and machine-readable before implementation claims begin. Expansion happens in small evidence-backed increments.
+**The pinned case list is `docs/design/r24/bootstrap-cases.json`** (exact
+existing `spec/*/*.yaml` case IDs, one file per category above, resolved
+against this refresh's pinned `genia-2026` revision). Expansion happens in
+small evidence-backed increments; the file documents how the inventory
+grows without allowing capability claims ahead of evidence.
 
 ## 7. Dependency policy
 
@@ -157,6 +196,8 @@ Before semantic coding, `m0smith/genia-cpp` MUST document choices for at least:
 - arbitrary-precision integer representation
 - Unicode support strategy
 - ordered-map representation strategy
+
+**The pinned decisions are `docs/design/r24/dependency-toolchain-policy.md`**, mirrored into `m0smith/genia-cpp/AGENTS.md`.
 
 The Genia contract MUST NOT depend on those library choices. Libraries implement approved semantics; they do not define them.
 
@@ -194,7 +235,7 @@ No host-specific interpretation may become de facto Genia semantics merely becau
 
 ## 10. Work-unit discipline
 
-R21 should progress as narrow vertical increments.
+R24 should progress as narrow vertical increments.
 
 Each semantic increment should contain:
 
@@ -209,17 +250,18 @@ Avoid repo-wide feature batches that combine parsing, evaluation, CLI, diagnosti
 
 ## 11. Explicit non-goals for the minimal host
 
-Unless the R21 roadmap is explicitly revised through its own gate, the first minimal C++ host does not need:
+Unless the R24 roadmap is explicitly revised through its own gate, the first minimal C++ host does not need:
 
 - pipe mode
 - REPL
 - Flow runtime parity
 - refs/cells/processes/actors
-- storage/resource IO beyond the minimal file-mode bootstrap required by R21
+- storage/resource IO beyond the minimal file-mode bootstrap required by R24
 - external/distributed execution
 - HTTP serving or outbound HTTP
 - configuration/secret provider parity
 - AI/retrieval provider capabilities
+- WIT/provider interoperability (P8/P9 do not change this — see the post-R23 architecture note above)
 - browser runtime
 - host-specific interop convenience
 
@@ -227,7 +269,7 @@ These capabilities must not delay the first capability-light conforming host.
 
 ## 12. Completion evidence
 
-R21 completion requires:
+R24 completion requires:
 
 - exact pinned `genia-2026` contract revision
 - declared C++ capability set
@@ -240,9 +282,21 @@ R21 completion requires:
 
 ## Final go/no-go
 
-Semantic C++ implementation is **NO-GO** until R19, R20, and the separately gated exact-numeric-model contract required by the minimal host are complete.
+**R24 SEMANTIC IMPLEMENTATION: GO**, as of this refresh (2026-09-19),
+subject to the four mandatory entry artifacts pinned alongside this
+document:
 
-Once those prerequisites are complete, R21 may begin if this pre-flight is satisfied and the initial capability floor, dependency choices, native primitive inventory, and bootstrap case list are pinned.
+- `docs/design/r24/capability-floor.json`
+- `docs/design/r24/bootstrap-cases.json`
+- `docs/design/r24/native-primitive-inventory.md`
+- `docs/design/r24/dependency-toolchain-policy.md`
+
+R16-R23 are complete and audited, P8/P9 do not expand R24 scope, and
+`m0smith/genia-cpp` has no C++ code yet — this GO authorizes drafting the
+dependency-ordered E24 implementation ticket sequence
+(`docs/strategy/roadmap/e24-issue-sequence.md`). It does **not** authorize
+or constitute C++ semantic implementation itself, which begins only once
+the first E24 ticket is picked up.
 
 The governing rule is:
 

@@ -1,0 +1,55 @@
+{
+  "_comment": "R24 minimal capability floor. Machine-readable, evidence-oriented. See docs/design/r24-cpp-host-preflight.md section 1. Capability names are drawn exactly from spec/manifest.json's required_capabilities/optional_capabilities vocabulary; this file does not invent new capability names.",
+  "genia_2026_contract_revision": "b859ddc6374d8c930180ef546b103cb2fa1c0d9b",
+  "e16_1_adapter_protocol_version": 1,
+  "generic_manifest_required_capabilities_claimed_at_r24_floor": [
+    "parser",
+    "ast_lowering",
+    "core_ir_eval",
+    "cli_file_mode",
+    "cli_command_mode",
+    "prelude_autoload",
+    "shared_spec_runner"
+  ],
+  "generic_manifest_required_capabilities_deferred_past_r24_floor": [
+    {
+      "capability": "doc_help",
+      "reason": "generic manifest marks this required, but the R24 minimal bootstrap floor does not require full help-text parity; the pre-flight's bootstrap suite (docs/design/r24/bootstrap-cases.json) does not include doc_help cases. Must be claimed with real evidence before R24 completion (see docs/design/r24-cpp-host-preflight.md section 12), not before."
+    }
+  ],
+  "generic_manifest_optional_capabilities_mandatory_for_r24_completion": [
+    {
+      "capability": "open_functions",
+      "reason": "R20 (open functions / extensible pattern dispatch) is an R24 entry prerequisite per docs/design/r24-cpp-host-preflight.md 'Entry prerequisites'. The generic host manifest treats open_functions as optional because not every host capability floor needs it, but R24 specifically cannot be declared complete without it. Distinguishing generic-optional from R24-mandatory is required by the pre-flight (item 5A)."
+    }
+  ],
+  "generic_manifest_optional_capabilities_explicitly_out_of_r24_scope": [
+    "cli_pipe_mode",
+    "repl",
+    "flow_phase_1",
+    "http_server",
+    "http_outbound_transport",
+    "allowlisted_host_interop",
+    "refs",
+    "process_primitives",
+    "bytes_json_zip",
+    "debugger_stdio",
+    "shell_stage",
+    "resource_io",
+    "configuration_environment_snapshot",
+    "configuration_dotenv_snapshot",
+    "model_deterministic_fixture",
+    "model_gemini_rest",
+    "embedding_deterministic_fixture",
+    "indexing_deterministic_fixture",
+    "retrieval_deterministic_fixture",
+    "reranking_deterministic_fixture",
+    "multi_file_eval"
+  ],
+  "claim_rules": [
+    "A capability may only be declared 'supported' in a genia-cpp capabilities response once real implementation exists AND the applicable shared cases in bootstrap-cases.json (or a later evidence-backed expansion) pass deterministically via tools/spec_runner --host.",
+    "Every capability not yet implemented MUST be declared 'unsupported' in the capabilities response, never omitted and never partially claimed.",
+    "No capability in generic_manifest_optional_capabilities_explicitly_out_of_r24_scope may be declared 'supported' as part of R24 completion evidence; adding one requires a roadmap-level scope change, not an implementation-time decision.",
+    "This file must be updated in the same commit as any change to which capability genia-cpp claims support for -- capability growth is never a silent side effect of unrelated implementation work."
+  ]
+}
