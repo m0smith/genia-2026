@@ -2578,8 +2578,9 @@ recorded there and in `docs/releases/R20.md`. See section 4.7 for the
 implemented boundary. R21 (numeric source classification), R22 (exact
 numeric runtime), and R23 (numeric representation and interchange) have
 since completed; the C++ host is now numbered R24 and its pre-flight gate
-(`docs/design/r24-cpp-host-preflight.md`) records a GO decision, though no
-C++ language behavior is implemented yet.
+(`docs/design/r24-cpp-host-preflight.md`) records a GO decision. No C++
+language behavior is implemented yet; `m0smith/genia-cpp` remains
+bootstrap-only.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
