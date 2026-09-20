@@ -41,12 +41,12 @@ docs sync -> audit.
 - **Includes:** a parser for integer literals and `+ - * /`-style binary expressions; lowering to the approved `IrLiteral`/`IrBinary` Core IR nodes only; an evaluator for exact Integer arithmetic (using the native bignum kernel from `docs/design/r24/native-primitive-inventory.md`); `-c` command-mode CLI wiring; declaring `parser`, `ast_lowering`, `core_ir_eval` (partial), and `cli_command_mode` in the capabilities response once evidence passes.
 - **Excludes:** lists, maps, lambdas, pattern matching, Decimal/Rational/Float64, file mode, open functions.
 - **Affected docs/tests/specs:** none in `genia-2026` (uses existing cases); `genia-cpp` capability-status doc gains its first `supported` entries.
-- **Acceptance criteria:** the `literals`, `exact_integer_arithmetic`, and `cli_command_mode` categories of `docs/design/r24/bootstrap-cases.json` (5 cases) pass with 0 fail via `tools/spec_runner --host`; capabilities response matches actual behavior exactly.
+- **Acceptance criteria:** the `literals`, `exact_integer_arithmetic`, and `cli_command_mode` categories of `docs/design/r24/bootstrap-cases.json` (4 cases; see `m0smith/genia-2026#963` -- the `literals` category was corrected from 2 to 1 case, dropping a case that required out-of-scope pattern dispatch and string literals) pass with 0 fail via `tools/spec_runner --host`; capabilities response matches actual behavior exactly.
 - **Non-goals:** any capability beyond the three named above.
 - **Drift risk:** low-medium; the temptation is to "also handle lists while I'm in the evaluator" — explicitly excluded.
 - **Required phases:** failing spec evidence (run bootstrap cases against E24-1's binary, confirm they fail/unsupported) -> minimal implementation -> capability declaration -> docs sync.
 - **Prerequisites:** E24-1.
-- **Capability/case evidence targeted:** `docs/design/r24/bootstrap-cases.json` categories `literals`, `exact_integer_arithmetic`, `cli_command_mode` (5 cases).
+- **Capability/case evidence targeted:** `docs/design/r24/bootstrap-cases.json` categories `literals`, `exact_integer_arithmetic`, `cli_command_mode` (4 cases; see `m0smith/genia-2026#963`).
 
 ## E24-3 — Lists, ordered maps, equality/legal-key behavior, file mode
 
