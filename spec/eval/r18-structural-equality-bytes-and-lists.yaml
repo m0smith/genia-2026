@@ -1,0 +1,30 @@
+name: r18-structural-equality-bytes-and-lists
+category: eval
+description: >-
+  R18 portable value equality: structural values compare recursively by
+  semantic contents, not by runtime allocation identity. Two independently
+  constructed byte values with the same bytes are equal, and structural
+  recursion applies the same relation to nested list elements -- observed
+  using only Bytes/List/Integer values (no Decimal/Float64/Option involved).
+input:
+  source: |
+    a = utf8_encode("hi")
+    b = utf8_encode("hi")
+    c = utf8_encode("no")
+    [a == b, a == c, [a] == [b], [1, 2] == [1, 2], [1, 2] == [1, 2, 3], [] == []]
+expected:
+  stdout: "[true, false, true, true, false, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 968
+  release: R24 (E24-3 bootstrap evidence)
+  contract: docs/design/r18-portable-value-equality-contract.md "Structural values"
+  note: >-
+    Added as a narrower substitute for r18-equality-structural-contents.yaml
+    in docs/design/r24/bootstrap-cases.json's equality_and_legal_key_behavior
+    category: that case's `[1, [2, 3]] == [1, [2, 3.0]]` and
+    `some(a) == some(b)` sub-cases require Decimal literals (E24-7 scope)
+    and Option values (E24-4's outcome_values scope) respectively. This
+    case proves the same byte/list structural-equality property using only
+    Bytes/List/Integer values.
