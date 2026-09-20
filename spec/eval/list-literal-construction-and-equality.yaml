@@ -1,0 +1,21 @@
+name: list-literal-construction-and-equality
+category: eval
+description: >-
+  List construction and structural equality using only list literal syntax
+  and the `==` operator -- no function calls, pattern dispatch, or prelude
+  autoload required.
+input:
+  source: |
+    [1, 2] == [1, 2]
+expected:
+  stdout: "true\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 968
+  release: R24 (E24-3 bootstrap evidence)
+  note: >-
+    Added as a narrower substitute for pattern-list-exact.yaml in
+    docs/design/r24/bootstrap-cases.json's list_construction_and_use
+    category: that case required full multi-clause pattern dispatch
+    (E24-4's pattern_case_dispatch scope), not list construction/use.
