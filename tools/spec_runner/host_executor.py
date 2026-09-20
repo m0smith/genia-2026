@@ -89,12 +89,28 @@ def build_host_request(spec: LoadedSpec) -> dict[str, Any] | None:
     return build_request(spec.name, operation, input_payload)
 
 
-def _outcome_to_actual_result(operation: str, result: dict[str, Any]) -> ActualResult:
+def _normalize_text(text: str) -> str:
+    return text.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _outcome_to_actual_result(operation: str, category: str, result: dict[str, Any]) -> ActualResult:
     if operation == "parse":
         return ActualResult(parse=result)
     if operation == "lower":
         return ActualResult(ir=result["ir"])
-    return ActualResult(stdout=result["stdout"], stderr=result["stderr"], exit_code=result["exit_code"])
+    stdout = result["stdout"]
+    stderr = result["stderr"]
+    if category == "cli":
+        # Mirror hosts/python/adapter.py's run_case exactly: every
+        # spec/cli/*.yaml expected_stdout/expected_stderr is authored
+        # already stripped of trailing newlines (see issue #965 -- this
+        # was previously only applied on the in-process Python-host path,
+        # never on this generic external-host path, so every external
+        # host's cli-category evidence was compared against the wrong
+        # (unstripped) standard).
+        stdout = _normalize_text(stdout).rstrip("\n")
+        stderr = _normalize_text(stderr).rstrip("\n")
+    return ActualResult(stdout=stdout, stderr=stderr, exit_code=result["exit_code"])
 
 
 def execute_spec_via_host(
@@ -141,7 +157,7 @@ def execute_spec_via_host(
     if outcome.kind in ("unsupported", "protocol_error", "crash", "timeout"):
         return HostCaseResult(kind=outcome.kind, reason=outcome.reason)
 
-    actual = _outcome_to_actual_result(request["operation"], outcome.result)
+    actual = _outcome_to_actual_result(request["operation"], spec.category, outcome.result)
     failures = compare_spec(spec, actual)
     if failures:
         return HostCaseResult(kind="fail", failures=tuple(failures))

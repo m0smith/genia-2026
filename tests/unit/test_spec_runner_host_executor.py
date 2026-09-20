@@ -130,6 +130,39 @@ def test_execute_spec_via_host_fail() -> None:
     assert result.failures[0].field == "stdout"
 
 
+def test_execute_spec_via_host_cli_strips_trailing_newlines() -> None:
+    # Regression for issue #965: every spec/cli/*.yaml expected_stdout is
+    # authored already stripped of trailing newlines (matching
+    # hosts/python/adapter.py's in-process run_case behavior for the
+    # "cli" category), but this generic external-host path used to
+    # compare against the adapter's raw, unstripped stdout. The fixture
+    # adapter always returns "fixture-stdout:<source>\n"; a cli-category
+    # request carries no "source" input field, so its raw stdout is
+    # "fixture-stdout:\n" -- this must be compared as "fixture-stdout:".
+    spec = _spec(
+        "ok",
+        category="cli",
+        command="unused",
+        expected_stdout="fixture-stdout:",
+        expected_stderr="",
+        expected_exit_code=0,
+    )
+    result = execute_spec_via_host(spec, FIXTURE_ADAPTER_COMMAND, timeout=5.0)
+    assert result.kind == "pass"
+    assert result.failures == ()
+
+
+def test_execute_spec_via_host_eval_does_not_strip_trailing_newlines() -> None:
+    # The stripping in the fix above is cli-category-only: eval/error/flow
+    # keep the exact stdout the adapter returned (matching
+    # hosts/python/adapter.py, which never strips those categories).
+    spec = _spec("ok", expected_stdout="fixture-stdout:hello", expected_stderr="", expected_exit_code=0)
+    result = execute_spec_via_host(spec, FIXTURE_ADAPTER_COMMAND, timeout=5.0)
+    assert result.kind == "fail"
+    assert len(result.failures) == 1
+    assert result.failures[0].field == "stdout"
+
+
 def test_execute_spec_via_host_unsupported_from_adapter() -> None:
     spec = _spec("unsupported")
     result = execute_spec_via_host(spec, FIXTURE_ADAPTER_COMMAND, timeout=5.0)
