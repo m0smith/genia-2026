@@ -1,0 +1,28 @@
+name: r18-legal-key-kind-separation-integer-string
+category: eval
+description: >-
+  R18 portable value equality: for legal keys, map key identity is exactly
+  Genia ==. Booleans and numbers are distinct kinds and therefore distinct
+  keys, as are strings and numbers -- observed using only Integer/Boolean/
+  String keys (no Decimal/Float64 involved).
+input:
+  source: |
+    bools = map_put(map_put(map_new(), true, "bool"), 1, "int")
+    kinds = map_put(map_put(map_new(), "1", "string"), 1, "int")
+    [map_count(bools), map_get(bools, true), map_get(bools, 1), map_count(kinds), map_get(kinds, "1"), map_get(kinds, 1)]
+expected:
+  stdout: "[2, \"bool\", \"int\", 2, \"string\", \"int\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 968
+  release: R24 (E24-3 bootstrap evidence)
+  contract: docs/design/r18-portable-value-equality-contract.md "Legal map keys and key equivalence"
+  note: >-
+    Added as a narrower substitute for r18-map-key-equivalence-is-equality.yaml
+    in docs/design/r24/bootstrap-cases.json's equality_and_legal_key_behavior
+    category: that case's nums/zeros sub-cases require Decimal literals
+    (1.0, 0.0, -0.0), which is E24-7's exact-numeric-model scope, not R18
+    equality per se. This case proves the same boolean/number and
+    string/number kind-separation property using only Integer/Boolean/
+    String values.

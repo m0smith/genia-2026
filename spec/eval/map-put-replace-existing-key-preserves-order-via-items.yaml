@@ -1,0 +1,30 @@
+name: map-put-replace-existing-key-preserves-order-via-items
+category: eval
+description: >-
+  R17 ordered-map portability contract: map_put on an already-present key
+  replaces only the value and leaves that key's position unchanged,
+  observed via map_items (a trivial native-delegation prelude wrapper)
+  rather than map_keys (which additionally requires the pattern-dispatch-
+  and-recursion-based map/map_acc chain).
+input:
+  source: |
+    m = map_put(map_put(map_put(map_new(), "a", 1), "b", 2), "c", 3)
+    map_items(map_put(m, "a", 99))
+expected:
+  stdout: "[[\"a\", 99], [\"b\", 2], [\"c\", 3]]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 968
+  release: R24 (E24-3 bootstrap evidence)
+  note: >-
+    Added as a narrower substitute for
+    map-put-replace-existing-key-preserves-order.yaml in
+    docs/design/r24/bootstrap-cases.json's ordered_map_behavior category:
+    that case's use of map_keys (map_keys(m) = map(map_item_key,
+    map_items(m)), with map/map_acc requiring tuple patterns, list
+    rest-patterns, recursion, and apply_raw) is E24-4-scope machinery, not
+    "the in-house insertion-ordered map" E24-3 describes. This case proves
+    the identical R17 property (replace preserves position) using only
+    map_new/map_put/map_items, each a trivial single-clause,
+    positional-parameter native delegation.

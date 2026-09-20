@@ -55,7 +55,7 @@ docs sync -> audit.
 - **Includes:** list literal/construction Core IR + evaluator support; the in-house insertion-ordered map (per dependency policy); structural/identity equality per R18; file-mode CLI wiring; native UTF-8 decode for string literals used in these cases.
 - **Excludes:** lambdas, pattern matching beyond what these cases already require, Decimal/Rational/Float64, open functions.
 - **Affected docs/tests/specs:** none in `genia-2026`.
-- **Acceptance criteria:** `list_construction_and_use`, `ordered_map_behavior`, `equality_and_legal_key_behavior`, `cli_file_mode` categories of `bootstrap-cases.json` (7 cases) pass with 0 fail.
+- **Acceptance criteria:** `list_construction_and_use`, `ordered_map_behavior`, `equality_and_legal_key_behavior`, `cli_file_mode` categories of `bootstrap-cases.json` (7 cases; two were replaced by `m0smith/genia-2026#968` with narrower substitutes that don't require E24-4-scope pattern dispatch/recursion) pass with 0 fail.
 - **Non-goals:** widening equality/map coverage beyond these pinned cases in this ticket.
 - **Drift risk:** medium — map/equality code is where "just special-case this Python behavior" temptation is highest; ambiguity-stop rule applies if any case's expected behavior isn't traceable to R17/R18 docs.
 - **Required phases:** failing evidence -> minimal implementation -> capability declaration -> docs sync.

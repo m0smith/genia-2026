@@ -18,21 +18,21 @@
     "list_construction_and_use": {
       "capability": "core_ir_eval",
       "cases": [
-        "spec/eval/pattern-list-exact.yaml"
+        "spec/eval/list-literal-construction-and-equality.yaml"
       ]
     },
     "ordered_map_behavior": {
       "capability": "core_ir_eval",
       "cases": [
         "spec/eval/map-items.yaml",
-        "spec/eval/map-put-replace-existing-key-preserves-order.yaml"
+        "spec/eval/map-put-replace-existing-key-preserves-order-via-items.yaml"
       ]
     },
     "equality_and_legal_key_behavior": {
       "capability": "core_ir_eval",
       "cases": [
-        "spec/eval/r18-equality-structural-contents.yaml",
-        "spec/eval/r18-map-key-equivalence-is-equality.yaml"
+        "spec/eval/r18-structural-equality-bytes-and-lists.yaml",
+        "spec/eval/r18-legal-key-kind-separation-integer-string.yaml"
       ]
     },
     "outcome_values": {
@@ -98,6 +98,10 @@
     {
       "issue": "m0smith/genia-2026#963",
       "change": "Removed spec/eval/pattern-literal-string.yaml from the 'literals' category. That case requires function definitions, full pattern/case dispatch, and string-literal support to execute (category: eval) -- none of which match this category's own 'capability: parser' tag, and all of which are out of E24-2's declared scope (pattern/case dispatch is separately evidenced by the pattern_case_dispatch category and is E24-4's scope; string-literal parsing is E24-3's scope per docs/strategy/roadmap/e24-issue-sequence.md). No replacement case exists yet under spec/parse/ for bare string-literal parsing; add one as part of E24-3 if that category needs widening then. Also corrected total_case_count, which was already stale before this fix (documented as 19 while the categories actually summed to 20); the true post-fix sum is 19."
+    },
+    {
+      "issue": "m0smith/genia-2026#968",
+      "change": "Replaced spec/eval/pattern-list-exact.yaml in 'list_construction_and_use' with the new spec/eval/list-literal-construction-and-equality.yaml: the original case required a full function definition with multi-clause pattern dispatch (list-destructure clause + wildcard fallback), which is E24-4's pattern_case_dispatch scope (already separately evidenced by pattern-map-partial.yaml), not list construction/use. Replaced spec/eval/map-put-replace-existing-key-preserves-order.yaml in 'ordered_map_behavior' with the new spec/eval/map-put-replace-existing-key-preserves-order-via-items.yaml: the original case's use of map_keys pulls in map/map_acc (tuple patterns, list rest-patterns, recursion, apply_raw), also E24-4-scope machinery; the replacement proves the identical R17 replace-preserves-order property via map_items (a trivial native-delegation prelude wrapper, like the category's other pinned case) instead. Also replaced both cases in 'equality_and_legal_key_behavior': spec/eval/r18-equality-structural-contents.yaml and spec/eval/r18-map-key-equivalence-is-equality.yaml each required Decimal literals (1.0, 0.0, -0.0), which is E24-7's exact-numeric-model scope, and the former also required Option values (some(...)), E24-4's outcome_values scope; replaced with spec/eval/r18-structural-equality-bytes-and-lists.yaml and spec/eval/r18-legal-key-kind-separation-integer-string.yaml, proving the identical structural-equality and legal-key-kind-separation properties using only Bytes/List/Integer/Boolean/String values. All four new cases were verified against the Python reference host via the in-process spec_runner (744 total, 744 passed, 0 failed) before being pinned here."
     }
   ]
 }
