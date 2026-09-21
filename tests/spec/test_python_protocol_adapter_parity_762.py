@@ -27,7 +27,7 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     exit_code = runner_module.main(["--host", PROTOCOL_ADAPTER_COMMAND, "--host-timeout", "30"])
     out = capsys.readouterr().out
 
-    # The in-process default path passes all 703 cases (see
+    # The in-process default path passes all 755 cases (see
     # `python -m tools.spec_runner`). 18 of those rely on an injected
     # Python-host-only test fixture or --debug-stdio, neither of which is
     # expressible over the generic protocol yet (E16-2); every other case
@@ -87,5 +87,10 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     # decimal literals and literal-pattern matching). Expressible over the
     # protocol like any other case, so both total and passed increase by
     # exactly 1.
-    assert "Summary: total=740 passed=722 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # R23 plus follow-up regression coverage added 15 further ordinary,
+    # protocol-expressible shared cases (list/map/equality regressions and
+    # numeric formatting/JSON interchange evidence). None require a Python-only
+    # fixture, so total and passed both increase by exactly 15 while the same
+    # 18 fixture/debug-stdio cases remain unsupported over protocol v1.
+    assert "Summary: total=755 passed=737 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
     assert exit_code == 0
