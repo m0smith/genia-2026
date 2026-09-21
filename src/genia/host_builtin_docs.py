@@ -129,7 +129,8 @@ _cell_new _cell_send _cell_status _cell_stop _cell_with_state _clear_screen
 _cli_chars _cli_flag? _cli_option _cli_option_or _cli_spec _cli_type_error
 _cli_value_error _collect _concat _contains _cors _diagnostic_error
 _diagnostic_skipped _each _ends_with _ensure_seq_compatible _err _evolve
-_find _flat_map_some _flow? _flow_debug _flush _format _format_compose _get
+_execution_process _find _flat_map_some _flow? _flow_debug _flush _format
+_format_compose _get
 _get? _http_send _is_empty _is_none? _is_some? _join _json_decode _json_encode
 _json_parse _json_schema _json_stringify _keep_some _keep_some_else _lines
 _lower _map_count _map_get _map_has? _map_items _map_new _map_put

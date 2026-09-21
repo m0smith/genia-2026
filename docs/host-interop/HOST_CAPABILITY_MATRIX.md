@@ -13,11 +13,16 @@ All other hosts below are placeholders for planned work.
 
 For the formal per-capability contract (name, Genia surface, input/output shapes, normalized error behavior, and portability status), see `capabilities.md`.
 For the three-dimensional architecture classification, see
-`../architecture/host-capability-taxonomy.md`. Planned external process
-execution is intentionally absent from this implemented-host matrix; its
-non-authoritative boundary is recorded in
-`../architecture/external-process-execution.md` and its proposed, unimplemented
-contract is `../design/execution-process-contract.md`.
+`../architecture/host-capability-taxonomy.md`. External direct process
+execution (`execution.process`) is now implemented in the Python
+reference host (row below) and registered as `execution_process` in
+`spec/manifest.json`; its architecture boundary is recorded in
+`../architecture/external-process-execution.md`, its approved contract is
+`../design/execution-process-contract.md`, and its implementation design
+is `../design/execution-process-design.md`. It has a **portable semantic
+contract**, but its R16 `supported` self-declaration is not yet exercised
+by any shared-spec case — see `capabilities.md`'s `execution.process`
+entry for the runtime-implementation-vs-conformance-evidence distinction.
 
 Browser playground adapter note:
 
@@ -57,5 +62,6 @@ Browser playground adapter note:
 | doc/help support | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `help()` / `help("name")` in Python host |
 | shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | implemented runner with active eval, ir, cli, flow, error, and parse shared case coverage against the Python reference host |
 | shell pipeline stage `$(...)` | Python-host-only | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |
+| external process execution `execution.process` | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Portable semantic contract (`docs/design/execution-process-contract.md`), implemented only by the Python reference host today. Registered as `execution_process` in `spec/manifest.json`'s `optional_capabilities` (self-declared `supported` by the Python protocol adapter, matching `shell_stage`/`debugger_stdio`'s existing name-only registration precedent); no shared-spec case requires it yet, since no host-neutral capability-provisioning fixture mechanism exists — see `docs/host-interop/capabilities.md`'s entry for the runtime-implementation-vs-conformance-evidence distinction. Distinct from `$(...)`: structured argv, no shell, no `PATH` search. See `GENIA_STATE.md` section 9.40. |
 | open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | R20 local open-clause dispatch and explicit cross-module contribution/linking (`open`/`extend`/`use ... from ... with ...`); Core IR nodes `IrOpenFuncDef`/`IrOpenContribution`/`IrOpenUse`; a host without this capability must report it unsupported rather than silently pass R20 shared cases |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |

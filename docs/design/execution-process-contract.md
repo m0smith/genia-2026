@@ -1,14 +1,19 @@
 # External Direct Process Execution Contract
 
-Status: **Proposed contract — contract phase only, not implemented.**
+Status: **Approved and implemented.** This contract was approved
+(independent contract review passed, PR #977, merged) and is now
+implemented in the Python reference host per
+[`docs/design/execution-process-design.md`](execution-process-design.md)
+— see `GENIA_STATE.md` section 9.40 for the authoritative implemented
+contract and `docs/host-interop/capabilities.md` for its registry entry.
 
-This document defines the first bounded portable contract for external direct
-process execution. It adds no current Genia behavior. In particular, it adds no
-syntax, builtin, provider factory, host adapter, capability-registry entry,
-shared spec, runtime test, or Core IR node. `GENIA_STATE.md` remains final
-authority for implemented behavior.
-
-Independent contract review is required before design or implementation.
+This document remains the frozen contract text below, preserved as the
+approved baseline; it is not rewritten into an implementation document.
+Where this document says a behavior is not yet implemented (capability-
+registry entry, shared spec, runtime test, Core IR node, etc.), read that
+against `GENIA_STATE.md` for current implemented truth — this file
+describes what the contract *requires and permits*, not a live status
+report.
 
 ## 1. Scope
 

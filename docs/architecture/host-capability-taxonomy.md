@@ -91,8 +91,9 @@ logical Genia computation runs. Provisioning does not imply a dependency-
 injection framework, a global host object, `host.supports(...)`, or
 `host.process(...)`.
 
-## Planned application
+## Implemented application
 
-The first planned application of the optional / explicit-provider / portable-
-semantics category is external direct execution under `execution.process`.
-See [External Process Execution Architecture](external-process-execution.md).
+The first application of the optional / explicit-provider / portable-
+semantics category is external direct execution under `execution.process`,
+now implemented in the Python reference host (`GENIA_STATE.md` section
+9.40). See [External Process Execution Architecture](external-process-execution.md).

@@ -950,6 +950,12 @@ Pipeline (Phase 2) evaluation model:
 - `$(...)` outside a pipeline raises `SyntaxError`
 - **Implemented and supported on Python host only.**
 - **Not part of portable Core IR or shared multi-host contract.**
+- Distinct from, and not superseded by, `execution.process` (section 9.40):
+  `$(...)` remains nonportable host-shell text execution with no argv
+  structure of its own; `execution.process` is structured direct
+  execution (an exact argv, no shell, no PATH search) under a portable
+  contract currently implemented by Python. Neither wraps or replaces the
+  other.
 
 ## 4) Functions and dispatch
 
@@ -5941,6 +5947,176 @@ execution envelope is exercised or claimed (§1.10 L4) -- this is a
 same-process, same-machine `wasmtime` component call. This is the last
 row in the Stage 0 provider-composition work ledger; it is not a new
 release and adds no new Genia-visible syntax, builtin, or factory.
+
+## 9.40) External direct process execution (`execution.process`)
+
+Status: Implemented (Python reference host). Implements the approved
+cross-cutting contract `execution.process(capability, request) ->
+some(ProcessResult) | err(reason, context)`
+(`docs/design/execution-process-contract.md`, PR #977) per the approved
+implementation design (`docs/design/execution-process-design.md`, PR #978).
+This capability has no release number (it specializes the existing
+host-capability taxonomy and R14 ownership/finalization patterns rather
+than opening a new numbered release) and is distinct from the unrelated,
+already-implemented `process.*` logical process/mailbox family (`spawn`,
+`send`, `process_alive?`): `execution.process` is external direct
+executable execution; `process.*` is Genia's own in-process concurrency
+primitive.
+
+LANGUAGE CONTRACT:
+
+- `import execution` then `execution.process(capability, request)` is an
+  ordinary two-argument call. `capability` must be an opaque, host-created
+  process-execution capability; pure Genia source cannot construct,
+  compare, serialize, or meaningfully render one, and there is no ambient
+  capability, global `host` object, or `host.supports(...)` operation —
+  the capability must be supplied explicitly, exactly as R11's model
+  provider or R14's outbound-HTTP transport already require.
+- `request` is exactly the closed map `{executable: symbol, args: [string,
+  ...], timeout_ms: integer}`. `executable` is a provider-bound symbolic
+  identity (e.g. `quote(candidate_host)`), never an OS path, command
+  string, or portable promise to search `PATH`. `args` elements become
+  exact, separate child argv elements after `executable` — no shell is
+  ever invoked, and no quoting, splitting, glob expansion, variable
+  interpolation, or command substitution occurs at any layer. `timeout_ms`
+  is a plain Integer in `1..300000`; a Python-style `bool` (or any other
+  non-Integer numeric domain, including Decimal/Rational) is rejected as
+  misuse, not silently accepted or coerced.
+- A malformed capability, request shape, `executable`, `args`, `timeout_ms`,
+  or any request value that recursively contains a protected leaf
+  (reusing the existing R10 `contains_protected`/`reject_protected`
+  machinery — no new taint mechanism) is runtime misuse, raised before any
+  resolution or provider effect. V1 defines no process declassification
+  sink and no authority argument: this differs from the R14 protected-HTTP-header
+  sink model, where a matching authority does authorize revealing a
+  protected value immediately before the one transport attempt.
+- A completed child attempt is always `some({exit_code, stdout, stderr})`
+  — including a nonzero `exit_code`. A program's nonzero exit status is
+  the program's own ordinary result data, never an `execution.process`
+  failure; nothing in this capability's normalization can turn a
+  completed nonzero exit into `err(...)`. `stdout`/`stderr` are opaque
+  `Bytes` values (never implicitly decoded to text, never line-ending
+  normalized); each channel has an independent fixed maximum of exactly
+  `1,048,576` bytes — a channel of exactly that size succeeds, one more
+  byte is overflow.
+- Recoverable failures are exactly the closed taxonomy:
+  `err("process-executable-unavailable", {executable})` (unbound symbol),
+  `err("process-unauthorized", {operation: quote(execute), executable})`
+  (bound symbol, capability policy denies it),
+  `err("process-launch-failure", {executable})` (resolution succeeded, the
+  bound target could not be started),
+  `err("process-timeout", {timeout_ms})` (the deadline elapsed; the owned
+  child is terminated and reaped before this is returned),
+  `err("process-output-limit", {limit_bytes: 1048576})` (either channel
+  exceeded its independent bound; all partial output is discarded, never
+  included), and `err("process-provider-failure", {operation:
+  quote(execute)})` (any other host condition, including an unexpected
+  exception from the capability's own launcher). No raw Python exception
+  text, exception type name, errno description, native executable path,
+  or process identifier ever crosses into a returned context, a
+  diagnostic, or a rendered value. `process-unsupported` is reserved
+  taxonomy this operation never emits itself — that reason belongs
+  entirely to the deferred, not-yet-implemented capability-provisioning
+  boundary (see Explicit limitations).
+- Adds no syntax, no `IrProcess`/`IrSpawnExternal`/`IrHostCall`/shell-AST
+  Core IR node, and no Flow/Seq change: `execution.process(...)` lowers
+  through the existing ordinary-call/map/list/quote node families exactly
+  like any other dotted module call.
+
+PYTHON REFERENCE HOST:
+
+- `src/genia/process_capability.py` (new): `GeniaProcessCapability` is an
+  opaque `__slots__`-based value (symbol -> native-target bindings, an
+  authorization predicate, and a launcher callable), mirroring
+  `GeniaModelProvider`'s shape. The private factory
+  `create_process_capability(bindings, authorized, launcher)` is
+  consumed only by privileged host-side code — there is no Genia-callable
+  constructor, matching R11's model-provider/R14's declassification-authority
+  precedent of privileged-host-only minting.
+- `src/genia/process_transport.py` (new): `launch_process(executable, args,
+  timeout_ms, spawn_hook=None) -> ProcessTransportResult |
+  ProcessTransportFailure` is the narrow launcher:
+  `subprocess.Popen(argv, shell=False, ...)` with `stdin=DEVNULL`; two
+  dedicated reader threads drain `stdout`/`stderr` concurrently, each
+  incrementally counting bytes and stopping the instant the running total
+  exceeds `1,048,576` (never buffering past that bound plus one read
+  chunk); timeout uses a monotonic-clock deadline polled at a short fixed
+  interval, never `subprocess.run(..., timeout=...)`'s own raised
+  `TimeoutExpired`. Cleanup (`Popen.kill()`, which sends `SIGKILL` on
+  POSIX — unblockable, so a child that installs a `SIGTERM` handler still
+  dies) plus reap is unconditional and idempotent on every failure path
+  (launch failure, timeout, either channel's overflow, or an unexpected
+  host error), so no owned child survives the attempt. Nonzero exit
+  becomes `ProcessTransportResult` unconditionally; `subprocess.run(...,
+  check=True)`/`check_call`/`check_output` are not used anywhere in this
+  module, by design.
+- `src/genia/process_execution.py` (new): `perform_process_execution(capability,
+  request)` is the validation/normalization boundary — exact closed-request
+  validation in field order (`executable`, `args`, `timeout_ms`), the
+  existing `reject_protected(request, "execution.process")` call before
+  any resolution or launch, symbol resolution against the capability
+  (`is_bound`/`is_authorized`/`target_for`), and failure-taxonomy
+  normalization. No native target string or raw exception ever appears in
+  a value this function returns.
+- `src/genia/std/prelude/execution.genia` (new): `process(capability,
+  request) = _execution_process(capability, request)`, resolved through
+  the existing packaged-prelude-module import mechanism (`import
+  execution`) exactly like `import web`/`import resource` — no new
+  module-loading mechanism. `src/genia/builtins.py` registers the private
+  raw builtin `_execution_process`, mirroring `_http_send`.
+- Validated by 115 tests across 13 files under
+  `tests/unit/test_execution_process_*.py`: exact capability/request
+  misuse validation including boolean-as-`timeout_ms` rejection; recursive
+  protected-value rejection with sentinel-non-leak proof; unavailable vs.
+  unauthorized vs. launch-failure kept observably distinct; nonzero exit
+  (`1`, `2`, `17`, `127`, `255`) always `some(ProcessResult)`, with an
+  explicit guard against `subprocess.CalledProcessError`-style semantics;
+  byte-exact capture including non-UTF-8 payloads; concurrent stdout/stderr
+  draining sized past a 64 KiB OS pipe buffer so a naive sequential reader
+  would deadlock; exact-at-limit and one-byte-over independent output
+  bounds, plus an endless-writer fixture proving incremental (not
+  buffer-then-check) enforcement; timeout against a fixture that ignores
+  `SIGTERM`; PID-liveness-checked no-leaked-child proof across every
+  terminal path; failure-context non-leak proof using recognizable
+  sentinel strings; a real command-injection-style proof (a
+  shell-significant argv element that would create a marker file if any
+  shell ever evaluated it); and a Core IR regression confirming
+  `execution.process(...)` lowers to the same node-family shape as any
+  other dotted call.
+
+Explicit limitations (deferred, not implemented):
+
+- No source-level capability provisioning/bootstrap API — the contract
+  intentionally defers this; only privileged host-side Python code (a
+  test harness, a future host bootstrap) can call
+  `create_process_capability`. No file, command, pipe, import, REPL, test,
+  or server mode provisions a usable capability implicitly.
+- No protected argv/environment sink, no user-specified environment, no
+  cwd, no child stdin beyond immediate EOF, no streaming output, no TTY,
+  no signals/general cancellation, no process handles, no supervision, no
+  retries, and no remote execution — all explicitly out of scope for this
+  slice.
+- **Portable contract, single-host implementation, no multi-host
+  conformance evidence yet.** `execution.process` has a portable semantic
+  contract that any future host must satisfy identically, and the Python
+  reference host currently implements that contract — this does **not**
+  mean another host currently implements it. `execution.process` is
+  registered as `execution_process` in `spec/manifest.json`'s
+  `optional_capabilities` (the Python host self-declares it `supported`,
+  matching the existing `shell_stage`/`debugger_stdio`/`process_primitives`
+  name-only-registration precedent), but no shared-spec case declares
+  `requires: [execution_process]` yet, because no host-neutral fixture/
+  provisioning mechanism exists to let a portable case inject a capability
+  into the sandboxed `eval` category — so that `supported` self-declaration
+  is not yet exercised or falsified by any actual conformance test. Runtime
+  implementation and R16 capability *advertisement* are not conformance
+  *evidence*; a natural future consumer of the missing fixture mechanism is
+  R37 Genia-native conformance tooling, which the roadmap already names as
+  a concrete future consumer of this primitive — see
+  `docs/host-interop/capabilities.md`.
+- No new Core IR, R35 portable storage/location semantics, or R36
+  location-independent execution behavior is implemented or implied by
+  this capability.
 
 ## 10) Explicitly not implemented (current)
 

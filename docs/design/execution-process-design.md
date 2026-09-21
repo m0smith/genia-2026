@@ -1,14 +1,30 @@
 # External Process Execution — Implementation Design
 
-Status: **Design phase only — not implemented.** This document designs *how*
-the approved [`execution.process` contract](execution-process-contract.md)
-(merged in PR #977, commit `7df2c890`) should eventually be implemented and
-tested. It adds no syntax, builtin, provider factory, host adapter,
-capability-registry entry, shared spec, runtime test, or Core IR node.
-`GENIA_STATE.md` remains final authority for implemented behavior. The next
-phase after this document is **failing tests**, followed by implementation,
-documentation sync, and a skeptical release-truth audit — this document does
-none of those.
+Status: **Approved and implemented.** This document designed *how* the
+approved [`execution.process` contract](execution-process-contract.md)
+(merged in PR #977, commit `7df2c890`) should be implemented and tested,
+and that design has since been implemented in the Python reference host
+(PR #980) with the failing-test suite this design anticipated (PR #979)
+now green — see `GENIA_STATE.md` section 9.40 for the authoritative
+implemented contract.
+
+This document remains the frozen design text below, preserved as the
+approved implementation plan; it is not rewritten into a live status
+report. A small number of implementation-detail adjustments were made
+while preserving this design's observable requirements — most notably,
+process ownership/cleanup uses a local, directly-managed launcher
+function rather than the R14 `lifecycle_runtime.py` peer/unwind machinery
+this document originally proposed reusing (§7), because a local
+try/cleanup-style resource owner proved clearer for this specific
+synchronous single-attempt shape; the observable guarantee ("no owned
+child survives the attempt") is unchanged and is what `GENIA_STATE.md`
+documents as implemented truth. Where this document's own internal API
+proposals (module names, exact function signatures, the
+`_bindings`/`_authorized`/`_launcher` field names) differ from the final
+implementation in incidental ways, `GENIA_STATE.md` section 9.40 and the
+source under `src/genia/process_*.py` are authoritative — this design
+document is not re-litigated by such details, per its own §25 "Open
+questions/blockers," which already flagged most of them as non-binding.
 
 This document does not reopen any decision already settled by the contract.
 Where the contract leaves a choice open (provisioning API naming, host

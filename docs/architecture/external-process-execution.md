@@ -1,11 +1,17 @@
 # External Process Execution Architecture
 
-Status: Architecture and planning record — not implemented and not a language
-contract. This document fixes boundaries consumed by the proposed
-[external direct process execution contract](../design/execution-process-contract.md); it adds no
-syntax, builtin, runtime behavior, host adapter, Flow behavior, subprocess API,
-Core IR node, or capability-registry entry. `GENIA_STATE.md` remains final
-authority.
+Status: Architecture and planning record — not itself a language contract.
+This document fixed the boundaries later consumed by the
+[external direct process execution contract](../design/execution-process-contract.md)
+and [implementation design](../design/execution-process-design.md), both
+now approved, and the resulting `execution.process` capability is now
+**implemented in the Python reference host** — see `GENIA_STATE.md`
+section 9.40 for the authoritative implemented contract and
+`docs/host-interop/capabilities.md` for its registry entry. This document
+itself still adds no syntax, host adapter, Flow behavior, or Core IR node
+of its own; where a boundary below was resolved by the approved contract,
+this record notes the resolution rather than restating it. `GENIA_STATE.md`
+remains final authority for implemented behavior.
 
 ## Classification and namespace
 
@@ -21,14 +27,22 @@ The namespaces remain distinct:
 
 ```text
 process.*          = implemented Genia logical process/actor facilities
-execution.process  = planned external executable/process execution
+execution.process  = implemented (Python reference host) external
+                      executable/process execution; portable contract,
+                      registered as execution_process in spec/manifest.json,
+                      not yet exercised by any shared-spec case
 ```
 
 An implementing host will use R16's existing `supported`, `partial`, or
 `unsupported` declaration vocabulary. Absence of this optional capability will
-not by itself make a host generally nonconforming. The future contract may add
-`execution.process` to the existing registry; this record does not add it or
-create another registry.
+not by itself make a host generally nonconforming. `execution.process` is
+registered as `execution_process` in `spec/manifest.json`'s registry
+(matching the existing name-only-registration precedent of other
+Python-host-only capabilities such as `shell_stage`); no shared-spec case
+requires it yet, since no host-neutral provisioning mechanism exists to
+exercise that claim (see `docs/host-interop/capabilities.md`'s
+`execution.process` entry for the full reasoning); this record still does
+not create another registry.
 
 ## Provisioning boundary
 
@@ -81,8 +95,14 @@ Process argv or future environment values must not bypass R10 protection:
 > explicitly authorized sink/declassification path.
 
 Execution handles contain execution identity/state, not undeclassified
-protected payloads. The future contract must reconcile exact authority purpose,
-sink behavior, and declassification with R10.
+protected payloads. **Resolved by the approved v1 contract:** rather than
+defining a sink, v1 rejects any request value recursively containing a
+protected leaf as misuse, before any resolution or provider effect,
+reusing R10's existing `contains_protected`/`reject_protected` machinery.
+There is no process declassification sink and no authority argument in
+this phase — a later contract would need its own sink/purpose/
+non-leak proof to add one, exactly like R14's protected-HTTP-header sink
+required its own.
 
 The process capability must not silently grant access to the complete parent
 environment. Environment behavior is deferred and remains subject to R10;
@@ -106,9 +126,13 @@ resource boundary and that relationship can be evaluated.
 ### Lifecycle and cancellation
 
 R14 provides lifecycle ownership and cleanup; it does not provide general
-external-process cancellation. The first slice requires finite timeout plus
-deterministic child cleanup. General `cancel`, `kill`, and signal behavior
-remain deferred.
+external-process cancellation. **Resolved by the approved v1 contract and
+now implemented:** a finite `1..300000`ms timeout plus unconditional,
+idempotent owned-child termination and reap (on POSIX, `SIGKILL` — strong
+enough that a child installing a `SIGTERM` handler still cannot survive)
+across every failure path. General `cancel`, `kill` as a public operation,
+signal identity, and process handles remain deferred — this is bounded
+timeout-driven cleanup, not general cancellation.
 
 ### Flow and internal concurrency
 
@@ -125,7 +149,13 @@ Structured `executable + argv` can have portable direct-execution semantics;
 shell text delegates quoting, pipelines, expansion, redirection, globbing, and
 builtins to a shell dialect. Genia must not silently turn structured invocation
 into shell command text. This record neither contracts `execution.shell` nor
-designs a portable shell language.
+designs a portable shell language. **Resolved by the approved v1 contract and
+now implemented:** the Python reference host's launcher never sets
+`shell=True` and never PATH-searches a resolved native target of its own
+accord; `execution.process` remains a distinct, permanently separate
+surface from the pre-existing Python-host-only shell pipeline stage
+`$(...)` (`GENIA_STATE.md` section 3), which this capability does not wrap
+or supersede.
 
 ## First-slice non-goals
 
@@ -138,18 +168,30 @@ designs a portable shell language.
 
 ## Roadmap relationship
 
-This capability is cross-cutting planned architecture, not a new numbered
-release and not implemented by an earlier completed or C++ bring-up release.
-R35 may inform the deferred working-location decision. External direct
-execution is not R36 location-independent Genia execution: a local process
-provider may later sit beneath broader execution architecture, but R36
-describes bounded Genia computation independent of physical placement. R37 is
-a concrete dogfooding consumer because Genia-native conformance tooling must
-eventually invoke host adapters. Any numbered release placement requires
-separate approval.
+This capability is cross-cutting architecture, implemented in the Python
+reference host without a new numbered release and not implemented by an
+earlier completed or C++ bring-up release (`m0smith/genia-cpp`/R24 does
+not implement it). R35 still owns the still-deferred portable
+working-location (`cwd`) decision this capability does not touch. External
+direct execution is not R36 location-independent Genia execution: a local
+process provider may later sit beneath broader execution architecture, but
+R36 describes bounded Genia computation independent of physical placement,
+and R36 remains entirely unimplemented future architecture — nothing here
+changes that. R37 (Genia-native conformance tooling, also unimplemented)
+remains a concrete future dogfooding consumer, now with a real, already-
+implemented primitive available to consume once R37 itself begins;
+`execution.process` is not thereby part of R37 and R37 is not thereby
+started. Any numbered release placement requires separate approval.
 
-## Next phase
+## Current status
 
-The proposed contract is now recorded in
-[`docs/design/execution-process-contract.md`](../design/execution-process-contract.md).
-Its next phase is **INDEPENDENT CONTRACT REVIEW**, not design or implementation.
+The contract is approved and merged
+([`docs/design/execution-process-contract.md`](../design/execution-process-contract.md)),
+its implementation design is approved
+([`docs/design/execution-process-design.md`](../design/execution-process-design.md)),
+and the Python reference host implements it — see `GENIA_STATE.md` section
+9.40 for the authoritative implemented contract. This architecture record
+remains a planning document; it is not re-litigated by the completed
+implementation, and any further evolution (protected sinks, environment,
+cwd, streaming, signals, provisioning ergonomics, R16 registration) is new,
+separately scoped work.
