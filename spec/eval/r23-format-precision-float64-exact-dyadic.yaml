@@ -1,0 +1,24 @@
+name: r23-format-precision-float64-exact-dyadic
+description: R23 E23-2 `.n` field-format precision on a Float64 rounds the exact dyadic bit value, never the shortest-roundtrip display text (avoiding double rounding)
+category: eval
+input:
+  source: |
+    format("{n:.2}", {n: float64(2.675)})
+expected:
+  stdout: |
+    "2.67"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section 7:
+  "Float64 formatting starts from the exact dyadic value represented by
+  its bits, not from an arbitrary host decimal formatter". 2.675's exact
+  binary64 value is 2.67499999999999982236431605997495353221893310546875,
+  which rounds DOWN to 2.67 at 2 places under half-up. Rounding the
+  shortest-roundtrip decimal display text "2.675" instead (double
+  rounding) would incorrectly give 2.68. Matches
+  tests/unit/test_r23_format_spec_numeric_integration.py's
+  test_precision_float64_uses_exact_dyadic_value_not_shortest_repr
+  exactly (issue #913, E23-2) -- that test's own comment cites this as
+  the exact bug docs/analysis/issue-913-...-preflight.md's "Investigation
+  findings" #2 describes.

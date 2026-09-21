@@ -1,0 +1,28 @@
+name: r23-json-encode-rational-nonterminating-rejected
+category: eval
+description: R23 E23-4 a non-terminating Rational (e.g. 1/3) is rejected at the generic JSON boundary rather than rounded
+input:
+  source: |
+    reason(result) =
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    reason(json_encode(1 / 3))
+expected:
+  stdout: |
+    "unsupported_json_value"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  4.3: "A non-terminating Rational such as `1/3` is rejected rather than
+  rounded." `1 / 3` is R22's exact non-terminating Rational (E22-4); its
+  base-10 expansion never terminates, so it has no finite Decimal
+  representation to encode and is rejected with the existing
+  `unsupported_json_value` diagnostic (this repository's own already-
+  pinned `spec/eval/json-representation-errors.yaml` uses the identical
+  diagnostic for an unsupported JSON encode target). Matches
+  tests/unit/test_r23_json_rational_float64_boundary.py's
+  test_encode_non_terminating_rational_rejected_with_normalized_diagnostic
+  and its own source-level counterpart
+  test_genia_source_rejects_non_terminating_rational_via_division exactly
+  (issue #921, E23-4).

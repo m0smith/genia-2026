@@ -107,16 +107,16 @@ docs sync -> audit.
 ## E24-7 — Exact numeric runtime and interchange (R21-R23), including the R23 evidence gap
 
 - **Release target / roadmap alignment:** R24.
-- **Problem statement:** `docs/design/r24/portability-obligation-map.md` flags that no R23-specific (canonical rendering/JSON-boundary) shared eval cases were identified in the current spec inventory beyond the R22 numeric family. This ticket has a mandatory first phase to resolve that gap in `genia-2026` (contract/spec clarification — find or add the missing shared cases) before `genia-cpp` implementation proceeds, per the ambiguity-stop rule.
-- **Includes:** Phase A (`genia-2026`): confirm whether R23-specific shared cases exist under a name not yet found, and if genuinely absent, open the gap as its own small `genia-2026` ticket to add them (this ticket does not silently invent them). Phase B (`genia-cpp`): Decimal/Rational runtime values, Float64 explicit boxing and mixed-domain rejection, exact-family arithmetic/division/comparison, canonical numeric rendering and JSON boundary.
+- **Problem statement:** `docs/design/r24/portability-obligation-map.md` previously flagged that no R23-specific (canonical rendering/JSON-boundary) shared eval cases were identified in the current spec inventory beyond the R22 numeric family. Issue #954 resolved that gap (Phase A, below) before this ticket's `genia-cpp` implementation work begins, per the ambiguity-stop rule.
+- **Includes:** Phase A (`genia-2026`, resolved by issue #954): added `spec/eval/r23-format-*.yaml` (4 cases, E23-2 format-spec numeric integration for Decimal/Rational), `spec/error/error-r23-format-*.yaml` (1 case), and `spec/eval/r23-json-*.yaml` (6 cases, E23-4 Rational/Float64 JSON boundary policy plus Decimal/Rational JSON encode-side behavior mirroring the existing decode-side case) — each derived exclusively from `docs/design/r23-numeric-representation-interchange-contract.md` and verified directly against the reference host, never invented. Phase B (`genia-cpp`): Decimal/Rational runtime values, Float64 explicit boxing and mixed-domain rejection, exact-family arithmetic/division/comparison, canonical numeric rendering and JSON boundary.
 - **Excludes:** any numeric syntax/semantics not already approved by R21-R23.
-- **Affected docs/tests/specs:** possibly a new `genia-2026` spec addition (Phase A), gated through the normal spec-change process, not this ticket's `genia-cpp` implementation work.
-- **Acceptance criteria:** `spec/eval/r22-*.yaml` (6 cases) plus whatever R23-specific cases Phase A resolves, all pass with 0 fail.
+- **Affected docs/tests/specs:** `genia-2026` spec additions from issue #954 (Phase A, already merged) plus `docs/design/r24/portability-obligation-map.md`'s R23 row (updated to record the gap as resolved).
+- **Acceptance criteria:** `spec/eval/r22-*.yaml` (6 cases) plus the R23 cases issue #954 added (11 cases: 4 `r23-format-*` eval, 1 `error-r23-format-*`, 6 `r23-json-*` eval), all pass with 0 fail.
 - **Non-goals:** transcendentals, ambient precision, new numeric syntax (all explicitly excluded by R21-R23 themselves).
-- **Drift risk:** high if Phase A is skipped — implementing R23 rendering "by inference" from R22 evidence alone is exactly the ambiguity-stop rule's concern.
-- **Required phases:** contract/spec clarification (Phase A) -> failing evidence -> minimal implementation -> capability declaration -> docs sync.
+- **Drift risk:** medium — R23's remaining un-evidenced surface (compatibility JSON reconciliation E23-5, the full diagnostics sweep E23-6) stays a later-slice concern, not blocking; implementing genia-cpp's R23 rendering must still track the contract sections issue #954's cases cite, not infer behavior from R22 evidence alone for anything those 11 cases don't cover.
+- **Required phases:** failing evidence -> minimal implementation -> capability declaration -> docs sync.
 - **Prerequisites:** E24-4.
-- **Capability/case evidence targeted:** `spec/eval/r22-*.yaml` (6 cases) plus Phase A's resolved R23 cases.
+- **Capability/case evidence targeted:** `spec/eval/r22-*.yaml` (6 cases) plus issue #954's 11 R23 cases.
 
 ## E24-8 — R24 completion evidence, capability declaration, docs sync, audit
 

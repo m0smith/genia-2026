@@ -1,0 +1,31 @@
+name: error-r23-format-zero-pad-rational-rejected
+category: error
+description: R23 zero-padding a Rational is rejected with the normalized format-error diagnostic rather than mangling the num/den atom text
+input:
+  source: |
+    format("{n:06}", {n: 3 / 4})
+expected:
+  stdout: ""
+  stderr: |
+    Error: format-error: format spec '06' is not supported for this numeric representation
+  exit_code: 1
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  7: "Rational's canonical `<numerator>/<denominator>` atom is not
+  silently reinterpreted as a Decimal shape merely to apply unrelated
+  padding/grouping behavior". Zero-padding only applies to a plain
+  numeral's canonical text; a Rational's "3/4" atom is not a plain
+  numeral, so this rejects with the existing normalized `format-error`
+  diagnostic (R19 diagnostic portability, section 8) rather than
+  mangling the atom text (e.g. "0000003/4") or silently degrading.
+  Verified directly against the reference host
+  (`PYTHONPATH=src python3 src/genia/interpreter.py -c '...'`); the
+  exact diagnostic text is distinct from
+  `spec/error/error-format-field-zero-pad-non-numeric.yaml`'s ("requires
+  numeric value", for a non-numeric value like a String) since a
+  Rational *is* numeric but its atom shape does not support zero-
+  padding. Behavior matches
+  tests/unit/test_r23_format_spec_numeric_integration.py's
+  test_zero_pad_rational_rejects_with_normalized_diagnostic (issue #913,
+  E23-2), which only asserts the "format-error" substring, not exact
+  wording.
