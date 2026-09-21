@@ -66,6 +66,7 @@ nav:
       - Host Capability Taxonomy: architecture/host-capability-taxonomy.md
       - External Process Execution: architecture/external-process-execution.md
       - External Process Execution Contract: design/execution-process-contract.md
+      - External Process Execution Design: design/execution-process-design.md
       - Execution Realization: architecture/execution-realization.md
 
   - Host Interop:
