@@ -12,6 +12,11 @@ All other hosts below are placeholders for planned work.
 `hosts/python/` is also a placeholder directory for the future monorepo layout; the live Python implementation remains in `src/genia/`.
 
 For the formal per-capability contract (name, Genia surface, input/output shapes, normalized error behavior, and portability status), see `capabilities.md`.
+For the three-dimensional architecture classification, see
+`../architecture/host-capability-taxonomy.md`. Planned external process
+execution is intentionally absent from this implemented-host matrix; its
+non-authoritative boundary is recorded in
+`../architecture/external-process-execution.md`.
 
 Browser playground adapter note:
 

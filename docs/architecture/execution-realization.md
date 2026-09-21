@@ -5,6 +5,11 @@ Status: **Architectural direction — non-authoritative and not implemented.**
 This document records constraints for future Genia design. It does not define
 current language behavior. `GENIA_STATE.md` remains final authority.
 
+Capability **provisioning** is a separate concern: it combines declared host
+support with policy to supply authority to a program. It must not be conflated
+with execution realization. See [Host Capability Taxonomy](host-capability-taxonomy.md)
+and the planned [External Process Execution Architecture](external-process-execution.md).
+
 ## Principle
 
 Genia is intended to describe the logical computation of a system independently

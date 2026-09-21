@@ -5,6 +5,10 @@ This document freezes the minimal portable Core IR contract for Genia.
 Python is the current reference host and may use additional host-local optimized IR after lowering.
 Those host-local optimized nodes are explicitly outside the shared portability contract.
 
+Planned external direct execution does not add a Core IR node. Its architecture
+boundary is recorded separately in
+[External Process Execution Architecture](external-process-execution.md).
+
 ## Layer Separation
 
 Hosts must keep these layers conceptually separate:
