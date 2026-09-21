@@ -1,0 +1,22 @@
+name: r23-format-align-rational-canonical-atom
+category: eval
+description: R23 field-format alignment/width operates on a Rational's canonical <numerator>/<denominator> rendered text
+input:
+  source: |
+    format("{n:>8}", {n: 3 / 4})
+expected:
+  stdout: |
+    "     3/4"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  3 ("The canonical atoms above govern ordinary user-facing and debug
+  numeric rendering wherever the existing surface delegates to the
+  canonical renderer") and section 7 ("alignment/width operates on
+  canonical rendered text"). `3 / 4` is R22's exact terminating Rational
+  (E22-4); its R23 E23-1 canonical atom is "3/4" (section 2.3, no
+  spaces), right-aligned to width 8 with 5 leading spaces. Matches
+  tests/unit/test_r23_format_spec_numeric_integration.py's
+  test_align_right_rational_uses_canonical_text exactly (issue #913,
+  E23-2).

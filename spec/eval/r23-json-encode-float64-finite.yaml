@@ -1,0 +1,22 @@
+name: r23-json-encode-float64-finite
+category: eval
+description: R23 E23-4 a finite Float64 encodes to generic JSON using its canonical shortest-roundtrip decimal spelling
+input:
+  source: |
+    unwrap_or("", json_encode(float64(-123.456)))
+expected:
+  stdout: |
+    "-123.456"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  4.4: "Finite Float64 values are JSON-number encodable using their
+  canonical shortest-roundtrip decimal spelling." -123.456's canonical
+  Float64 rendering atom (section 2.4) is `float64(-123.456)`; JSON
+  encoding emits the inner shortest-roundtrip decimal text without the
+  `float64(...)` wrapper. Matches
+  tests/unit/test_r23_json_rational_float64_boundary.py's
+  test_encode_finite_float64_matches_canonical_shortest_roundtrip_text
+  (parametrized with -123.456 among other values) exactly (issue #921,
+  E23-4).

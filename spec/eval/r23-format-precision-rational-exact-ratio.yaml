@@ -1,0 +1,25 @@
+name: r23-format-precision-rational-exact-ratio
+category: eval
+description: R23 E23-2 `.n` field-format precision on a Rational rounds the exact ratio (never the num/den atom text) using decimal half-up
+input:
+  source: |
+    format("{n:.2}", {n: 1 / 3})
+expected:
+  stdout: |
+    "0.33"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section 7:
+  "Rational formatting rounds the exact ratio only for the presentation
+  result" and "Rational's canonical `<numerator>/<denominator>` atom is
+  not silently reinterpreted as a Decimal shape merely to apply unrelated
+  padding/grouping behavior" (the precision case is presentation, not
+  padding/grouping, and rounds the true mathematical value). `1 / 3` is
+  R22's exact non-terminating Rational (E22-4); its exact value is
+  0.333... repeating, so `.2` must round the true ratio to "0.33", never
+  reformat the "1/3" atom text. Matches
+  tests/unit/test_r23_format_spec_numeric_integration.py's
+  test_precision_rational_rounds_exact_ratio_not_atom_text exactly
+  (issue #913, E23-2).
+

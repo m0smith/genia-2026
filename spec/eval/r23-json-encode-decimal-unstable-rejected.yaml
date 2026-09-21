@@ -1,0 +1,28 @@
+name: r23-json-encode-decimal-unstable-rejected
+category: eval
+description: R23 E23-3 a Decimal with more significant digits than binary64 round-trip precision can preserve is rejected rather than rounded or degraded to a string
+input:
+  source: |
+    reason(result) =
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    reason(json_encode(0.1000000000000000000001))
+expected:
+  stdout: |
+    "json_number_out_of_range"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  4.2 (`stable_json_decimal`): a Decimal whose additional information
+  would be lost by the retained binary64-oriented generic JSON boundary
+  is rejected. `0.1000000000000000000001` (coefficient
+  1000000000000000000001, exponent -22) carries far more significant
+  digits than binary64 round-trip precision preserves, so it is not the
+  shortest-roundtrip decimal for its nearest binary64 value and fails
+  `stable_json_decimal`. Matches
+  tests/unit/test_r23_json_integer_decimal_boundary.py's
+  test_encode_unstable_decimal_rejected_not_degraded_to_string_or_rounded
+  exactly (issue #915, E23-3), which constructs the identical value
+  directly as GeniaDecimal(1000000000000000000001, -22) and asserts the
+  same "json_number_out_of_range" diagnostic (section 8).

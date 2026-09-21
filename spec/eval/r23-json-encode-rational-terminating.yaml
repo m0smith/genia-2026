@@ -1,0 +1,22 @@
+name: r23-json-encode-rational-terminating
+category: eval
+description: R23 E23-4 a Rational whose exact value has a finite, stable base-10 Decimal representation encodes to generic JSON as that Decimal's canonical text
+input:
+  source: |
+    unwrap_or("", json_encode(1 / 4))
+expected:
+  stdout: |
+    "0.25"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  4.3: "A Rational is generic-JSON encodable only when its exact value
+  has a finite base-10 Decimal representation and that Decimal satisfies
+  `stable_json_decimal`." `1 / 4` is R22's exact terminating Rational
+  (E22-4); its exact value 0.25 is a finite, stable Decimal, so it
+  encodes as the raw number `0.25`. Matches
+  tests/unit/test_r23_json_rational_float64_boundary.py's
+  test_encode_terminating_rational_emits_correct_decimal_text (issue
+  #921, E23-4) and its own source-level counterpart
+  test_genia_source_encodes_terminating_rational_via_division exactly.

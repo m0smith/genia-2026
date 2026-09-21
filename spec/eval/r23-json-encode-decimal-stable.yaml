@@ -1,0 +1,27 @@
+name: r23-json-encode-decimal-stable
+category: eval
+description: R23 E23-3 a stable Decimal encodes to generic JSON as a raw canonical-text number, never a quoted string
+input:
+  source: |
+    unwrap_or("", json_encode(0.1))
+expected:
+  stdout: |
+    "0.1"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  4.2 (`stable_json_decimal`): "A Decimal may encode as a JSON number
+  exactly when `stable_json_decimal(d)` is true. Encoding emits the
+  exact canonical Decimal value and never rounds it merely to fit JSON."
+  `0.1` is the canonical shortest-roundtrip decimal for its corresponding
+  binary64 value, so it satisfies `stable_json_decimal` and encodes as
+  the raw number `0.1` (the outer `unwrap_or("", ...)` unwraps the
+  `some(...)` Outcome to the encoded text; the adapter-level display
+  quotes it as a String result, matching this repository's own
+  `spec/eval/json-representation-number-boundaries.yaml` convention of
+  unwrapping before display). Mirrors the encode side of that already-
+  pinned decode-side case, and matches
+  tests/unit/test_r23_json_integer_decimal_boundary.py's
+  test_encode_stable_decimal_emits_canonical_text_as_raw_number exactly
+  (issue #915, E23-3).

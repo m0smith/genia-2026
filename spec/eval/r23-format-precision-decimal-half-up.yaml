@@ -1,0 +1,21 @@
+name: r23-format-precision-decimal-half-up
+category: eval
+description: R23 E23-2 `.n` field-format precision on a Decimal rounds the exact coefficient/exponent using decimal half-up
+input:
+  source: |
+    format("{n:.2}", {n: 1.005})
+expected:
+  stdout: |
+    "1.01"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section 7:
+  "`.n` means `n` digits after the decimal point and rounds presentation
+  using decimal half-up" and "Decimal formatting operates directly on
+  exact coefficient/exponent". Matches
+  tests/unit/test_r23_format_spec_numeric_integration.py's
+  test_precision_decimal_half_up_rounds_up exactly (issue #913, E23-2).
+  1.005 is exact as a Decimal (coefficient 1005, exponent -3), so
+  half-up rounding at 2 places is deterministic (never the binary64
+  double-rounding pitfall a naive float-based implementation would hit).

@@ -1,0 +1,27 @@
+name: r23-json-round-trip-rational-terminating-cross-kind-equality
+category: eval
+description: R23 E23-4/section 5 a terminating Rational's JSON round trip decodes to a Decimal that is mathematically equal to the original Rational (R18 cross-kind equality)
+input:
+  source: |
+    encoded = unwrap_or("", json_encode(3 / 8))
+    decoded = unwrap_or(0, json_decode(encoded)) |> representation_match("json") |> unwrap_or(0)
+    [encoded, decoded, decoded == 3 / 8]
+expected:
+  stdout: "[\"0.375\", 0.375, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  docs/design/r23-numeric-representation-interchange-contract.md section
+  5: "JSON never directly constructs Rational" -- a Rational's JSON
+  encoding round-trips through decode as a Decimal, never a Rational.
+  `3 / 8` is R22's exact terminating Rational (E22-4) equal to 0.375;
+  encoding emits "0.375", decoding that fraction token yields the exact
+  Decimal 0.375 (never a Rational or host float), and R22's mathematical
+  cross-kind equality (R18 equality integration) holds the decoded
+  Decimal and the original Rational equal via `==`. Matches
+  tests/unit/test_r23_json_rational_float64_boundary.py's
+  test_decode_encoded_rational_form_yields_decimal_not_rational and
+  test_round_trip_terminating_rational_mathematically_equal_via_r18_equality
+  exactly (issue #921, E23-4), and mirrors this repository's own already-
+  pinned `spec/eval/json-representation-number-boundaries.yaml`'s
+  `representation_match("json")` unwrapping convention.
