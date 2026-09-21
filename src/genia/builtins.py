@@ -69,6 +69,7 @@ if __package__ in (None, ""):
     from genia.http_operation import construct_http_operation
     from genia.http_client import perform_http_send
     from genia.http_annotation_binding import perform_send_annotated
+    from genia.process_execution import perform_process_execution
     from genia.model import construct_model
     from genia.retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from genia.evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -196,6 +197,7 @@ else:
     from .http_operation import construct_http_operation
     from .http_client import perform_http_send
     from .http_annotation_binding import perform_send_annotated
+    from .process_execution import perform_process_execution
     from .model import construct_model
     from .retrieval import assemble_grounded_answer, assemble_grounded_context, construct_chunks, construct_embed, construct_index, construct_rerank, construct_retrieve
     from .evaluator import Evaluator, GeniaPromise, GeniaMetaEnv, _syntax_tagged_list, _syntax_pair_nth
@@ -772,6 +774,9 @@ def make_global_env(
         )
 
     http_send_fn.__genia_handles_none__ = True  # type: ignore[attr-defined]
+
+    def execution_process_fn(capability: Any, request: Any) -> Any:
+        return perform_process_execution(capability, request)
 
     def send_annotated_fn(fn: Any, base_url: Any, authority: Any, timeout_ms: Any) -> Any:
         return perform_send_annotated(
@@ -6089,6 +6094,7 @@ def make_global_env(
     env.set("_with_headers", with_headers_fn)
     env.set("_cors", cors_fn)
     env.set("_http_send", http_send_fn)
+    env.set("_execution_process", execution_process_fn)
     env.set("_send_annotated", send_annotated_fn)
     env.set("_zip_read", zip_read_fn)
     env.set("_zip_write", zip_write_flow_fn)

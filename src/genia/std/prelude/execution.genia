@@ -1,0 +1,31 @@
+@doc """Attempt one bounded direct external process execution.
+
+## Arguments
+- `capability`: an opaque, host-provisioned process-execution capability
+  (not constructible from Genia source)
+- `request`: a closed map `{executable: symbol, args: [string, ...],
+  timeout_ms: integer}` -- `executable` is a provider-bound symbolic
+  identity, never a host path or command string; `timeout_ms` is an
+  integer in `1..300000`
+
+## Returns
+- `some({exit_code, stdout, stderr})` for any completed child attempt,
+  including a nonzero `exit_code` -- a program's nonzero status is the
+  program's own result, not an execution failure
+- a normalized `err(reason, context)` failure for
+  `process-unauthorized`, `process-executable-unavailable`,
+  `process-launch-failure`, `process-timeout`, `process-output-limit`, or
+  `process-provider-failure`
+
+## Notes
+- no shell is ever invoked: `args` become exact child argv elements, with
+  no quoting, splitting, expansion, or PATH search performed by this
+  operation
+- each of `stdout`/`stderr` is an independent bounded byte channel
+  (`1,048,576` bytes); exceeding either discards all captured output and
+  returns `err("process-output-limit", ...)`
+- a request carrying any protected value anywhere is runtime misuse: v1
+  defines no protected argv/environment sink and no declassification
+  point for this operation
+"""
+process(capability, request) = _execution_process(capability, request)
