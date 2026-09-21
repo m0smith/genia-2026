@@ -22,8 +22,6 @@ No production capability class is implemented in this file.
 
 from __future__ import annotations
 
-import pytest
-
 from genia.values import GeniaOptionErr, symbol
 from tests.fixtures.execution_process_helpers import (
     make_capability,
