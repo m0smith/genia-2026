@@ -94,15 +94,15 @@ docs sync -> audit.
 
 - **Release target / roadmap alignment:** R24 (mandatory-for-completion capability per `docs/design/r24/capability-floor.json`).
 - **Problem statement:** `open_functions` is an entry prerequisite and a completion-gate requirement, but not yet implemented in `genia-cpp`.
-- **Includes:** local grouped/repeated open-function clauses; cross-module `open`/`extend`/`use` contribution and selection; declaring `open_functions` `supported`.
-- **Excludes:** any dispatch specificity/priority ranking (explicitly out of scope per R20 contract itself).
+- **Includes:** local grouped/repeated open-function clauses; declaring `open_functions` `partial` (see acceptance-criteria annotation below for why not `supported`). Cross-module `open`/`extend`/`use` contribution and selection describes R20 the language contract, not this ticket's achievable `genia-cpp` scope — see `m0smith/genia-2026#971`.
+- **Excludes:** any dispatch specificity/priority ranking (explicitly out of scope per R20 contract itself); cross-module `extend`/`use` evidence (requires `multi_file_eval`, explicitly out of R24 scope per `docs/design/r24/capability-floor.json` — see `#971`).
 - **Affected docs/tests/specs:** none in `genia-2026`.
-- **Acceptance criteria:** `open_functions_r20` category of `bootstrap-cases.json` (2 cases) passes; capability declared only after passing.
+- **Acceptance criteria:** `open_functions_r20` category of `bootstrap-cases.json` (2 cases; the cross-module case was replaced by `m0smith/genia-2026#971` with the repeated-clause sibling of the grouped-clause case, since the original required `multi_file_eval`) passes; capability declared `partial` (not `supported` — no in-scope evidence proves cross-module dispatch) only after passing.
 - **Non-goals:** anything R20's own contract lists as non-goals.
-- **Drift risk:** medium — cross-module selection ambiguity handling must match R20's contract exactly (ambiguity is by design, not a bug to "fix").
+- **Drift risk:** medium — cross-module selection ambiguity handling must match R20's contract exactly (ambiguity is by design, not a bug to "fix"); moot for this ticket's actual (local-only) scope, relevant again once `multi_file_eval` enters R24 scope.
 - **Required phases:** failing evidence -> minimal implementation -> capability declaration -> docs sync.
 - **Prerequisites:** E24-4.
-- **Capability/case evidence targeted:** `bootstrap-cases.json` category `open_functions_r20` (2 cases); wider `spec/eval/r20-*.yaml`/`spec/ir/r20-*.yaml`/`spec/error/error-r20-*.yaml` families as follow-up evidence before declaring the capability fully (not partially) supported.
+- **Capability/case evidence targeted:** `bootstrap-cases.json` category `open_functions_r20` (2 cases, both single-file/local as of `#971`); wider `spec/eval/r20-*.yaml`/`spec/ir/r20-*.yaml`/`spec/error/error-r20-*.yaml` families — including every `r20-cross-module-*.yaml` case, all of which require `multi_file_eval` — remain future follow-up evidence, gated on a roadmap-level decision to bring `multi_file_eval` into R24 scope, before `open_functions` can ever be declared fully (not partially) supported.
 
 ## E24-7 — Exact numeric runtime and interchange (R21-R23), including the R23 evidence gap
 
