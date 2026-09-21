@@ -9,8 +9,9 @@ The non-authoritative [host capability taxonomy](../architecture/host-capability
 separately classifies portability requirement, acquisition/authority, and
 semantic surface. In particular, an R16 host support declaration is not program
 authority, and a host-backed facility need not expose an explicit provider.
-Planned `execution.process` is documented only in the
-[external process architecture record](../architecture/external-process-execution.md);
+Planned `execution.process` is documented in the
+[external process architecture record](../architecture/external-process-execution.md)
+and its [proposed contract](../design/execution-process-contract.md);
 it is not an implemented registry entry.
 
 A host capability is a named, host-backed service available to the Genia

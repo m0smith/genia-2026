@@ -1,7 +1,8 @@
 # External Process Execution Architecture
 
 Status: Architecture and planning record — not implemented and not a language
-contract. This document fixes boundaries for a later contract; it adds no
+contract. This document fixes boundaries consumed by the proposed
+[external direct process execution contract](../design/execution-process-contract.md); it adds no
 syntax, builtin, runtime behavior, host adapter, Flow behavior, subprocess API,
 Core IR node, or capability-registry entry. `GENIA_STATE.md` remains final
 authority.
@@ -149,5 +150,6 @@ separate approval.
 
 ## Next phase
 
-After review of this record, the next phase is **PROCESS EXECUTION CONTRACT**,
-not implementation.
+The proposed contract is now recorded in
+[`docs/design/execution-process-contract.md`](../design/execution-process-contract.md).
+Its next phase is **INDEPENDENT CONTRACT REVIEW**, not design or implementation.
