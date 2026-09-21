@@ -109,6 +109,9 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 - **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
 - **R30–R34:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
 - **R35–R37:** [`roadmap/r35-r37.md`](roadmap/r35-r37.md)
+- **Cross-cutting host capability and external process architecture (planned,
+  unnumbered):** [`../architecture/host-capability-taxonomy.md`](../architecture/host-capability-taxonomy.md)
+  and [`../architecture/external-process-execution.md`](../architecture/external-process-execution.md)
 - **R38:** [`roadmap/r38.md`](roadmap/r38.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)

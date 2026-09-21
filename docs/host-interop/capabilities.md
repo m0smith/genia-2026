@@ -4,7 +4,21 @@
 
 This document is the authoritative reference for host capability names, Genia surface, input/output shapes, normalized error behavior, and portability status for each host capability.
 
-A host capability is a named, host-backed service exposed to Genia programs through the runtime substrate — not through language semantics or Core IR. Adding, removing, or renaming a capability requires updating this document, `HOST_CAPABILITY_MATRIX.md`, `GENIA_STATE.md`, and relevant tests.
+The registry's per-name contract is only one part of capability architecture.
+The non-authoritative [host capability taxonomy](../architecture/host-capability-taxonomy.md)
+separately classifies portability requirement, acquisition/authority, and
+semantic surface. In particular, an R16 host support declaration is not program
+authority, and a host-backed facility need not expose an explicit provider.
+Planned `execution.process` is documented only in the
+[external process architecture record](../architecture/external-process-execution.md);
+it is not an implemented registry entry.
+
+A host capability is a named, host-backed service available to the Genia
+runtime substrate; depending on its acquisition classification, it may be
+exposed to programs or remain internally mediated. It is not language syntax or
+Core IR. Adding, removing, or renaming an implemented capability requires
+updating this document, `HOST_CAPABILITY_MATRIX.md`, `GENIA_STATE.md`, and
+relevant tests.
 
 **R16 E16-3 (issue #760) note:** the names in this document are the single
 vocabulary genia-2026 owns for capability names (mirrored in

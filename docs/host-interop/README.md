@@ -1,5 +1,12 @@
 # Host Interop Docs
 
+Architecture planning distinguishes the capability registry, host support,
+program authority, and semantic surface. See
+[`../architecture/host-capability-taxonomy.md`](../architecture/host-capability-taxonomy.md)
+and the not-implemented
+[`../architecture/external-process-execution.md`](../architecture/external-process-execution.md)
+record.
+
 This folder holds the shared portability contract for Genia's future multi-host work.
 
 > **Terminology — two distinct concerns, do not conflate them:**
