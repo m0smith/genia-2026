@@ -282,7 +282,7 @@ python -m tools.spec_runner --host 'python -m hosts.python.protocol_adapter'
   identical outcome as the in-process default path for every currently
   applicable case (`755 total, 737 passed, 0 failed, 18 unsupported
   (fixture/debug-stdio cases not yet expressible over the protocol, same
-  as E16-2), 0 protocol_error/crash/timeout`) -- real Genia evaluation
+  as E16-2), 0 protocol_error/crash/timeout/invalid`) -- real Genia evaluation
   through two full subprocess hops per `eval`/`cli` case, not the
   deterministic fixture.
 - Nightly/manually dispatched regression CI runs ordinary slow `tests/spec/`
