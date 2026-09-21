@@ -280,7 +280,7 @@ python -m tools.spec_runner --host 'python -m hosts.python.protocol_adapter'
   `full_conformance`): running the
   entire real `spec/` suite through this subprocess path produces the
   identical outcome as the in-process default path for every currently
-  applicable case (`641 total, 623 passed, 0 failed, 18 unsupported
+  applicable case (`755 total, 737 passed, 0 failed, 18 unsupported
   (fixture/debug-stdio cases not yet expressible over the protocol, same
   as E16-2), 0 protocol_error/crash/timeout`) -- real Genia evaluation
   through two full subprocess hops per `eval`/`cli` case, not the
