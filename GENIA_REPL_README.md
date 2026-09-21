@@ -216,6 +216,7 @@ CLI contract summary (actual behavior):
   - includes public option helpers from `src/genia/std/prelude/option.genia`: `some`, `none?`, `some?`, `get`, `get?`, `map_some`, `flat_map_some`, `then_get`, `then_first`, `then_nth`, `then_find`, `unwrap_or`, `is_some?`, `is_none?`, `or_else`, `or_else_with`, `absence_reason`, `absence_context`
   - includes public string helpers from `src/genia/std/prelude/string.genia`: `byte_length`, `is_empty`, `concat`, `contains`, `starts_with`, `ends_with`, `find`, `split`, `split_whitespace`, `join`, `trim`, `trim_start`, `trim_end`, `lower`, `upper`, `parse_int`
   - includes a public Python-host-only web module in `src/genia/std/prelude/web.genia` (import via `import web` and use exports such as `web.serve_http`, `web.get`, `web.post`, `web.route_request`, `web.with_headers`, `web.cors`, `web.json`, and `web.ok_text`)
+  - includes a public Python-host-only external-process module in `src/genia/std/prelude/execution.genia` (import via `import execution`, then `execution.process(capability, request) -> some({exit_code, stdout, stderr}) | err(reason, context)`); `capability` must be an already-provisioned opaque process capability supplied by the host — there is no Genia-facing constructor for one, so no standalone pure-Genia example can mint `capability` itself (see `GENIA_STATE.md` section 9.40 for the full contract, request/result shape, and failure taxonomy)
   - includes Flow rule/refine helper constructors from `src/genia/std/prelude/flow.genia`: `rule_skip`, `rule_emit`, `rule_emit_many`, `rule_set`, `rule_ctx`, `rule_halt`, `rule_step`, plus preferred `step_*` aliases
   - includes stream helpers `stream_cons`, `stream_head`, `stream_tail`, `stream_map`, `stream_take`, `stream_filter`
   - includes syntax helpers `self_evaluating?`, `symbol_expr?`, `tagged_list?`, `quoted_expr?`, `quasiquoted_expr?`, `assignment_expr?`, `lambda_expr?`, `application_expr?`, `block_expr?`, `match_expr?`, `text_of_quotation`, `assignment_name`, `assignment_value`, `lambda_params`, `lambda_body`, `operator`, `operands`, `block_expressions`, `match_branches`, `branch_pattern`, `branch_has_guard?`, `branch_guard`, `branch_body`
@@ -363,6 +364,11 @@ CLI contract summary (actual behavior):
   - Option propagation: `none(...)` short-circuits; `some(x)` unwraps, result re-wrapped
   - `$(...)` outside a pipeline is a `SyntaxError`
   - not part of portable Core IR; Python-host-only in this phase
+  - distinct from `execution.process` (`import execution`): this stage
+    remains nonportable host-shell text execution, while
+    `execution.process` is structured direct execution (exact argv, no
+    shell, no `PATH` search) under a portable contract currently
+    implemented by Python — see `GENIA_STATE.md` section 9.40
 - promises:
   - `delay(expr)` captures an unevaluated expression plus its lexical environment
   - `force(promise)` evaluates once and memoizes the successful value

@@ -82,7 +82,8 @@
     "retrieval_deterministic_fixture",
     "reranking_deterministic_fixture",
     "open_functions",
-    "multi_file_eval"
+    "multi_file_eval",
+    "execution_process"
   ],
   "shared_prelude_paths": [
     "src/genia/std/prelude"

@@ -108,13 +108,14 @@ Do not use one-shot implementation prompts for behavior changes.
 - The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior, including eval Option rendering/propagation cases for `some(...)` and `none(...)`, plus deterministic pattern-matching eval cases (first-match, literal/wildcard/binding, list/tuple/map/option/guard/glob forms) for already-implemented behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
+- `execution.process(capability, request)` (`import execution`) is direct external process execution under a **portable semantic contract** (structured argv, no shell, no `PATH` search, independent 1,048,576-byte stdout/stderr bounds, `1..300000`ms timeout, nonzero exit as ordinary data, a closed normalized failure taxonomy, protected request values rejected with no declassification sink) — distinct from, and not a replacement for, `$(...)`. The Python reference host currently implements this contract; that is not yet evidence that any other host does, and the capability itself must be supplied by privileged host-side code (there is no Genia-facing constructor). See `GENIA_STATE.md` section 9.40 and `docs/host-interop/capabilities.md`.
 - See `docs/host-interop/` and `spec/` for details.
 
 Maturity:
 
 - `Stable`: core parser/eval surfaces and the documented portable contract categories enforced through the current Python reference host
 - `Partial`: shared-host enforcement beyond Python and broader host-capability coverage
-- `Experimental`: explicitly marked surfaces such as the shell pipeline stage `$(...)`
+- `Experimental`: explicitly marked surfaces such as the shell pipeline stage `$(...)` and `execution.process`
 
 Other hosts, browser runtimes, and playgrounds are not implemented yet; all related directories are documentation scaffolds only.
 
@@ -1344,6 +1345,25 @@ lifecycle_scope([config], (root) ->
 A peer is an ordinary closed map `{name, enter, exit}`; peers enter in list order and unwind in strict reverse order, and `work`'s return value is carried into the result verbatim (never inspected). `lifecycle_child` runs a nested scope synchronously from inside the parent's own `work`; a child's `LifecycleResult` comes back as ordinary data, so a failed child never implicitly fails the parent. `lifecycle_context` reads inward-only, checking the calling scope then each ancestor in turn — it never writes and never becomes a lexical binding. A scope handle is valid only for the duration of its own operation; later use raises the same "already consumed" family of error as a stale Flow.
 
 R14 is complete through E14-15 (issues #621, #692, #693, #694, #622, #623, #624, #625, #626, #627, #695, #628, #696, #629, #630), building on this same scope core: `lifecycle_repeat(peers, source, element_work)` runs one fresh element scope per consumed `List`/`Flow` element with reserved `element`/`index` context; `lifecycle_config(provider)` binds an already-constructed R10/R13 configuration provider as one reserved, non-shadowable peer; `http_operation(method, base_url, path, headers, query, body)` builds one inert closed value with zero network IO, and `web.http_send(operation, authority, timeout_ms)` composes it with a narrow Python-host transport capability into the first outbound HTTP call reachable from Genia source — a protected value may sit in `headers` and is declassified only immediately before the one transport attempt; `@get {path}`/`@post {path}` are inert descriptor metadata (annotating a function never changes how it is called), and `web.send_annotated(fn, base_url, authority, timeout_ms)` is the sole function that reads them and performs IO; and an R8 route handler is an ordinary function that may call `web.http_send`/`web.send_annotated` any number of times per request while the server stays active. Two proving applications compose all of this over real loopback fixtures with no real network/credential dependency: `examples/r14_repeated_record_lifecycle_proving_case.genia` (repeated record processing) and `examples/r14_youversion_bible_proxy_proving_case.genia` (a configured, protected vertical HTTP proxy). A combined cross-cutting hardening pass (E14-13) further confirms import/discovery inertness, sentinel-free rendering, combined multi-peer failure ordering, and Python-exception normalization all hold together; E14-14/E14-15 completed documentation synchronization and a **PASS** release truth audit with no runtime behavior. R14 is release-complete and adds no new `map`/`filter`/`scan`/`rules` mechanism, AWK syntax, dependency injection, or second server/routing/configuration system; see `docs/releases/R14.md` and `GENIA_STATE.md` sections 9.8-9.20 for the complete contract.
+
+Also cross-cutting (no release number): `import execution` then
+`execution.process(capability, request) -> some({exit_code, stdout,
+stderr}) | err(reason, context)` is direct external process execution.
+`capability` is an opaque, host-created value with no Genia-facing
+constructor — this is explicit-provider capability acquisition, exactly
+like R11's model provider or R14's outbound-HTTP transport. `request` is
+the closed map `{executable: symbol, args: [string, ...], timeout_ms:
+integer}`: `executable` is a provider-bound symbolic identity, never a
+`PATH`-searched command or OS path, and every `args` element becomes one
+exact child argv element with no shell parsing, quoting, or expansion
+anywhere in the call. A completed attempt is `some(...)` even for a
+nonzero exit code — only an inability to complete the attempt at all is
+`err(...)` — and `stdout`/`stderr` are independently bounded `Bytes`
+values at `1,048,576` bytes each. A request value carrying a protected
+leaf anywhere is rejected before any resolution or launch (reusing R10's
+existing protected-value machinery); v1 defines no process
+declassification sink. See `GENIA_STATE.md` section 9.40 for the full
+contract and closed failure taxonomy.
 
 `config_get_or(provider, key, default)` invokes its zero-argument default exactly once only when lookup is missing. Found and empty values bypass it. Ordinary default results become `some(...)`; returned Outcomes remain unchanged. Conversion stays explicit and composes with existing callable Templates:
 

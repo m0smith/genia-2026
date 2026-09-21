@@ -9,10 +9,18 @@ The non-authoritative [host capability taxonomy](../architecture/host-capability
 separately classifies portability requirement, acquisition/authority, and
 semantic surface. In particular, an R16 host support declaration is not program
 authority, and a host-backed facility need not expose an explicit provider.
-Planned `execution.process` is documented in the
-[external process architecture record](../architecture/external-process-execution.md)
-and its [proposed contract](../design/execution-process-contract.md);
-it is not an implemented registry entry.
+`execution.process` is now implemented in the Python reference host (see
+the entry below and `GENIA_STATE.md` section 9.40) per its approved
+[contract](../design/execution-process-contract.md) and
+[implementation design](../design/execution-process-design.md); its
+architecture record is the
+[external process architecture record](../architecture/external-process-execution.md).
+It is documented here as an implemented Python-host capability and is
+registered as `execution_process` in the R16 vocabulary
+(`spec/manifest.json`) — see its own entry below for the important
+distinction between that self-declared registration and actual
+cross-host conformance evidence, which does not yet exist for this
+capability.
 
 A host capability is a named, host-backed service available to the Genia
 runtime substrate; depending on its acquisition classification, it may be
@@ -334,6 +342,31 @@ Explicit seeded randomness is state-threaded and deterministic; the same seed yi
 - **errors:** a normalized transport failure carrying only a closed `kind` in `{timeout, connect, tls, dns, other}` — never the underlying exception's message, type name, or traceback
 - **portability:** `Python-host-only`
 - **notes:** R14 E14-6 uses the Python standard library (`urllib.request`), one synchronous attempt per call, no redirects, no retries, no connection pooling, and no provider SDK — mirroring `model.gemini-rest`'s own mechanics but generic over method/URL instead of one fixed endpoint. Automated tests inject an offline fake transport for DNS/TLS/timeout classification and use a real local loopback server fixture for the happy path, an HTTP-error-status response, redirect-non-following, and connect-refused; no external network access is required. A future host must supply an equivalent narrow capability or report it unavailable.
+
+---
+
+### Group: External Process Execution
+
+**Status:** Implemented in the Python reference host, per the approved
+[contract](../design/execution-process-contract.md) and
+[implementation design](../design/execution-process-design.md). The
+contract is portable; only Python currently implements it. This is
+permanently distinct from `process.*` (Genia's own in-process
+concurrency primitives, documented in the "Group: Process / Mailbox"
+section immediately below) and from the shell pipeline stage `$(...)`
+(nonportable host-shell text execution, not structured direct execution).
+
+#### `execution.process`
+
+- **name:** `execution.process`
+- **genia_surface:** `import execution` then `execution.process(capability, request)`
+- **input:** `capability` — an opaque, host-created process-execution capability with no Genia-facing constructor (explicit-provider acquisition, like `model.deterministic-fixture`'s provider or `http.transport`'s implicit-only consumption); `request` — the closed map `{executable: symbol, args: [string, ...], timeout_ms: integer}`, where `executable` is a provider-bound symbolic identity (never an OS path or `PATH`-searched command) and `timeout_ms` is a plain Integer in `1..300000`
+- **output:** `some({exit_code, stdout, stderr})` for any completed child attempt, including a nonzero `exit_code` — a program's nonzero status is ordinary result data, never a failure; `stdout`/`stderr` are opaque `Bytes` values, each independently bounded at exactly `1,048,576` bytes
+- **errors:** the closed taxonomy `err("process-executable-unavailable", {executable})`, `err("process-unauthorized", {operation, executable})`, `err("process-launch-failure", {executable})`, `err("process-timeout", {timeout_ms})`, `err("process-output-limit", {limit_bytes: 1048576})`, and `err("process-provider-failure", {operation})` — no raw exception text, native path, or process identifier ever crosses into a returned context. A malformed capability/request, or any request value recursively containing a protected leaf, is runtime misuse raised before any resolution or provider effect (no process declassification sink exists in this phase)
+- **portability:** `Python-host-only` implementation of a **portable contract** — see the distinction note below
+- **notes:** No shell is ever invoked and no `PATH` search occurs at any layer; each `args` element becomes exactly one child argv element. Cleanup on timeout or either channel's overflow terminates and reaps the owned child unconditionally (POSIX `SIGKILL`, so a `SIGTERM`-ignoring child still dies) before the call returns. See `GENIA_STATE.md` section 9.40 for the complete implemented contract and `src/genia/process_capability.py`/`process_transport.py`/`process_execution.py` for the Python reference-host mechanism (mechanism only — not portable semantics).
+- **portable-contract vs. Python-implementation vs. multi-host-conformance:** three distinct statements. (1) `execution.process` **has a portable semantic contract** any future host must satisfy identically. (2) **The Python reference host currently implements that contract.** (3) That does **not** mean another host currently implements it, and it is **not** "multi-host supported." Do not conflate these.
+- **`spec/manifest.json` / R16 registration — registered, but not yet conformance-proven:** `execution_process` is registered in `spec/manifest.json`'s `optional_capabilities`, matching this repository's established naming convention and the existing precedent that manifest registration is purely a recognized-name declaration, not a proof of shared-spec coverage — several other Python-host-only capabilities (`shell_stage`, `debugger_stdio`, `process_primitives`) are registered the same way with zero shared-spec cases requiring them today. `tools/spec_runner/capabilities.py::known_capabilities()` reads the manifest as the sole source of recognized names, and `hosts/python/protocol_adapter.py::_python_claimed_capabilities()` automatically self-declares every recognized name `supported` (unless listed as `partial`) purely from the name's presence — this is exactly how the precedent capabilities above already work, not a special exception made for this one. **What this registration does *not* mean:** no host-neutral shared-spec fixture/provisioning mechanism yet exists to let a portable `eval`-category case inject a process capability into the sandboxed evaluation, so no shared-spec case declares `requires: [execution_process]` yet, and the Python host's `supported` self-declaration is therefore not yet exercised or falsified by any actual conformance test. Runtime implementation and R16 conformance-runner capability *advertisement* are separate facts from conformance *evidence*; "implemented in Python, registered as a recognized capability name" does not yet mean "proven by the external-host protocol against real shared cases." A future host-neutral provisioning/fixture mechanism (R37 Genia-native conformance tooling is the roadmap's named future consumer of this primitive, per `docs/strategy/roadmap/r35-r37.md`) would be what actually exercises this claim.
 
 ---
 

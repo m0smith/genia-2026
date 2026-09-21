@@ -195,6 +195,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "shell pipeline stage `$(...)`": "shell_stage",
         "open functions (R20)": "open_functions",
         "multi-file eval fixture (R16/#836)": "multi_file_eval",
+        "external process execution `execution.process`": "execution_process",
     }
 
     for display_name in matrix_caps:
