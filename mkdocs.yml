@@ -65,6 +65,7 @@ nav:
       - Core IR Portability: architecture/core-ir-portability.md
       - Host Capability Taxonomy: architecture/host-capability-taxonomy.md
       - External Process Execution: architecture/external-process-execution.md
+      - External Process Execution Contract: design/execution-process-contract.md
       - Execution Realization: architecture/execution-realization.md
 
   - Host Interop:

@@ -16,7 +16,8 @@ For the three-dimensional architecture classification, see
 `../architecture/host-capability-taxonomy.md`. Planned external process
 execution is intentionally absent from this implemented-host matrix; its
 non-authoritative boundary is recorded in
-`../architecture/external-process-execution.md`.
+`../architecture/external-process-execution.md` and its proposed, unimplemented
+contract is `../design/execution-process-contract.md`.
 
 Browser playground adapter note:
 
