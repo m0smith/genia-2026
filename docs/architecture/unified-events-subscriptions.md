@@ -52,6 +52,12 @@ Kafka separates publish durability from consume/process delivery guarantees, pro
 
 Useful lesson: **ordering scope, durability, replay, acknowledgement, and fan-out/load-balancing are separate dimensions**. Genia must not use a single word such as "subscribe" to imply all of them.
 
+### AWS SQS and Lambda
+
+SQS makes an especially useful counterpoint to Kafka. Receiving a message does not mean the work is complete: delivery has a visibility interval, successful processing normally leads to deletion, and failure or timeout can make the message available for redelivery. Lambda event-source mappings add another realization: AWS owns the poller and invokes bounded batches of work rather than exposing the queue consumer loop directly to application code.
+
+Useful lesson: **the semantic fact and one consumer's delivery of that fact are different things**. Receipt handles, visibility/deadline state, acknowledgement/deletion, retry/redelivery, batch identity, and dead-letter behavior belong to delivery/provider semantics rather than the portable Event value. Execution placement is also separate: the same logical subscription may be consumed by an in-process Flow worker, a Genia execution worker, or a Lambda-style provider-managed worker without redefining the event payload.
+
 ### DOM EventTarget
 
 DOM EventTarget is intentionally simple: subscribe by string event type and invoke listeners. Its simplicity is attractive for UI/event callbacks, but stringly typed event names and callback-driven control do not fit Genia's pattern/value orientation or Flow composition.
@@ -64,9 +70,10 @@ The smallest coherent model is:
 
 ```text
 Event        = an immutable ordinary Genia value describing a fact
+Delivery     = one provider/source delivery of an event, when delivery semantics exist
 EventSource  = an explicit value/capability that can produce events
 Subscription = the owned relationship between one source and one consumer
-EventStream  = Flow<Event>
+EventStream  = Flow<Event> for the simple/live baseline
 Lifecycle    = owns acquisition and release of subscription resources
 ```
 
@@ -85,6 +92,8 @@ events
 ```
 
 `subscribe` should not create a second EventStream collection type if existing Flow can carry the semantics. The contract must first determine whether today's pull-only Flow can represent live event demand directly or whether a provider adapter needs a bounded bridge beneath Flow.
+
+The contract must also settle an **Event versus Delivery** boundary before durable providers are designed. `Event` is the portable semantic fact. `Delivery` is a candidate provider-facing/portable-capability value for one consumer's receipt of that fact when acknowledgement, progress, lease/visibility, replay position, or redelivery semantics exist. The simple local baseline should remain `Flow<Event>` unless the contract proves that a delivery wrapper is necessary there; durable providers must not contaminate every ordinary event with Kafka offsets, SQS receipt handles, or equivalent transport metadata.
 
 ## Event shape
 
@@ -125,6 +134,12 @@ Flow is a sequence abstraction. Event is a semantic fact. A Flow may carry event
 
 Instrumentation subscribers must not change the source operation's semantic result merely because they exist. Control flow remains explicit through ordinary calls, Flow, Outcome, lifecycle, open dispatch, and future actor/execution contracts.
 
+### Event is not Delivery
+
+An Event describes what happened. A Delivery describes how a particular consumer received that event. Kafka partition/offset/progress and SQS receipt-handle/visibility/delete semantics are delivery concerns, not universal event fields. R39 should preserve this distinction so local events remain simple while durable providers can expose stronger capabilities honestly.
+
+This is a contract question, not approved syntax. A future durable source might conceptually expose a delivery-bearing Flow while a simple live source remains `Flow<Event>`. The design must avoid both extremes: forcing delivery machinery onto every event, or hiding acknowledgement/progress so thoroughly that reliable processing becomes impossible to express.
+
 ### Pub/sub is not durable messaging by default
 
 A local live subscription, a broker-backed durable stream, an actor mailbox, and a replayable event log have different guarantees. R39 should define a portable baseline and explicit capability/option dimensions rather than pretending these transports are interchangeable.
@@ -151,10 +166,12 @@ R14's per-element scopes also provide a natural instrumentation boundary for opt
 | Ordering | only within an explicitly documented source/order domain; no global total-order promise |
 | Live vs replay | explicit; portable baseline should not imply replay |
 | Durability | explicit provider capability; not implied by EventSource |
-| Acknowledgement | only where a durable provider contract requires it |
+| Acknowledgement | only where a durable provider contract requires it; belongs to Delivery/provider semantics, not Event |
 | Fan-out | explicit broadcast vs competing-consumer semantics; do not conflate them |
 | Subscriber failure | must not silently corrupt the publisher or unrelated subscribers |
 | No subscribers | contract must say whether events are dropped, retained by a durable source, or source-specific |
+| Delivery metadata | provider/source-specific progress/lease/receipt metadata must not pollute the portable Event value |
+| Execution realization | consumption may be in-process, Genia-execution-backed, or provider-managed (for example Lambda-style); placement must not redefine Event semantics |
 | Distribution | same portable event values/subscription shape where guarantees are compatible; provider mechanics stay below boundary |
 | Import behavior | inert; no subscription or IO on import/load |
 
@@ -175,6 +192,17 @@ The first contract should be intentionally smaller than Kafka, NATS, or an actor
 
 Durable/replayable providers can later add capabilities without changing application-level event values. If a provider cannot preserve the portable baseline, incompatibility must be explicit rather than approximated silently.
 
+## Provider realization sketches
+
+These are architecture checks, not R39 implementation commitments.
+
+- **Kafka:** topic/partition records can become ordinary Event payloads; consumer-group membership, partition assignment, offset/progress, replay position, and acknowledgement/commit behavior remain subscription/delivery capabilities. Genia must not silently invent a consumer group or promise global ordering.
+- **SQS:** message payloads can become ordinary Event payloads; receipt handles, visibility/deadline, deletion acknowledgement, redelivery, batching, and dead-letter behavior remain delivery/provider concerns.
+- **SQS → Lambda-style execution:** the provider may own polling and invoke bounded batches. Genia's application-level transformation/validation logic should remain transport-independent where practical; execution placement and batch invocation belong below the event value boundary and should reuse R36 execution concepts when that release exists.
+- **Local source:** remains the proving baseline and should not pay for durable-delivery machinery it does not need.
+
+A useful scale-up target is therefore: the same Genia record-processing logic can begin over a local Flow, later consume events from Kafka or SQS, and potentially run under provider-managed execution such as Lambda without rewriting domain transformations merely to accommodate transport identity. This is an architectural direction, not a claim of current portability or implementation.
+
 ## Why not a global event bus?
 
 A global bus is convenient initially but conflicts with Genia's explicit authority/lifecycle direction. It hides ownership, makes import-time activation tempting, makes tests order-sensitive, and makes distributed realization ambiguous. Explicit sources compose better with R10/R13 authority, R14 lifecycle ownership, R35 Store authority, and R36 Execution placement.
@@ -193,14 +221,14 @@ R39 can be designed after the already-complete R14 lifecycle foundation and curr
 
 Suggested gated slices:
 
-- **E39-0 — Contract:** event/source/subscription identities, lifetime, demand, terminal behavior, ordering scope, live/replay boundary, failure isolation, and non-goals.
+- **E39-0 — Contract:** event/delivery/source/subscription identities, lifetime, demand, terminal behavior, ordering scope, live/replay boundary, acknowledgement/progress boundary, failure isolation, and non-goals.
 - **E39-1 — Ordinary event values and local source:** no network, broker, actor, or persistence.
 - **E39-2 — Flow subscription bridge:** prove bounded demand, cancellation, no over-pull, and terminal behavior.
 - **E39-3 — Lifecycle ownership:** deterministic acquire/release and failure cleanup using R14.
 - **E39-4 — State-change proving case:** current-state read remains separate from change observation.
 - **E39-5 — Flow/lifecycle instrumentation proving case:** observational only; no semantic change when no subscriber exists.
 - **E39-6 — Cross-cutting hardening:** subscriber failure isolation, multiple subscribers, no-subscriber behavior, protected-value non-leakage, import inertness, cross-mode checks.
-- **E39-7 — Provider-readiness proof:** document capability dimensions for durable/replayable/distributed providers without implementing a broker.
+- **E39-7 — Provider-readiness proof:** document capability dimensions and semantic mappings for at least Kafka and SQS, including provider-managed SQS→Lambda-style consumption, without implementing a broker/cloud adapter.
 - **E39-8 — Documentation/truth audit and distillation.**
 
 ## Explicit non-goals for R39
@@ -208,7 +236,7 @@ Suggested gated slices:
 - actor system or mailbox semantics;
 - event sourcing;
 - durable event log;
-- Kafka/NATS/SQS implementation;
+- Kafka/NATS/SQS implementation or Lambda runtime integration;
 - exactly-once processing claims;
 - global total ordering;
 - implicit retries;
@@ -230,6 +258,8 @@ Before contract approval, reject a design if it:
 - lets subscriber failure alter publisher results by default;
 - activates subscriptions during import;
 - encodes provider/broker identity into portable application logic;
+- puts Kafka offsets, SQS receipt handles, visibility leases, or equivalent provider delivery metadata into the universal Event shape;
+- conflates receiving an Event with successfully acknowledging/completing its Delivery;
 - promises ordering, replay, durability, or exactly-once semantics that a local and distributed provider cannot both prove;
 - duplicates R14 lifecycle ownership, Flow transformations, Outcome failure semantics, or R20 pattern dispatch.
 
