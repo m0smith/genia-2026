@@ -20,7 +20,11 @@ def test_root_roadmap_is_small_canonical_index() -> None:
     assert "R15 — Validated Value Modeling" in text
     assert "R21 | Numeric Source and Portable Representation" in text
     assert "R28 | Genia MCP Server" in text
-    assert "R37 | Genia-Native Conformance Tooling" in text
+    assert "R37 | Unified Events and Subscriptions" in text
+    assert "R38 | Portable Actors, Messaging and Supervision" in text
+    assert "R39 | Genia-Native Conformance Tooling" in text
+    assert "R40 | Configuration and Secret Hardening and Ergonomics" in text
+    assert "R41 | Portable Core IR Artifacts" in text
     assert "roadmap/r15.md" in text
     assert "roadmap/r16-r20.md" in text
     assert "roadmap/r21-r24.md" in text
@@ -41,12 +45,16 @@ def test_focused_roadmap_files_cover_active_and_future_releases_once() -> None:
         read(ROADMAP_DIR / "r25-r29.md"),
         read(ROADMAP_DIR / "r30-r32.md"),
         read(ROADMAP_DIR / "r35-r37.md"),
+        read(ROADMAP_DIR / "r38.md"),
+        read(ROADMAP_DIR / "r39.md"),
+        read(ROADMAP_DIR / "r40.md"),
+        read(ROADMAP_DIR / "r41.md"),
     ]
 
     assert len(re.findall(r"^# R15 — Validated Value Modeling$", r15, re.MULTILINE)) == 1
 
     combined_future = "\n".join(focused)
-    for release in range(16, 38):
+    for release in range(16, 42):
         matches = re.findall(rf"^## Release R{release}\b", combined_future, re.MULTILINE)
         assert len(matches) == 1, f"R{release} should appear exactly once in focused roadmap detail"
 
@@ -64,8 +72,12 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     assert "R24 — C++ Minimal Conforming Host" in sequence
     assert "R28 — Genia MCP Server" in sequence
     assert "R29 — Sheet Record Pipelines" in sequence
-    assert "R37 — Genia-Native Conformance Tooling" in sequence
-    assert "R8 through R22 are complete" in sequence
+    assert "R37 — Unified Events & Subscriptions" in sequence
+    assert "R38 — Portable Actors, Messaging & Supervision" in sequence
+    assert "R39 — Genia-Native Conformance Tooling" in sequence
+    assert "R40 — Configuration and Secret Hardening and Ergonomics" in sequence
+    assert "R41 — Portable Core IR Artifacts" in sequence
+    assert "R8 through R23 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
     assert "#102" in parking
