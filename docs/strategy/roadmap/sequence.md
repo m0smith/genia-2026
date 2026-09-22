@@ -75,7 +75,7 @@ R30 — Sheet Shaped Computation
 R31 — Relational Sheet Operations
  |
  v
-R32 — Database Data Boundary
+R32 — Portable Data Store Boundary
  |
  v
 R33 — Developer Experience & Language Tooling
@@ -124,7 +124,9 @@ R28 is placed after the C++ host expansion arc to keep that arc contiguous. Its 
 
 ## Data workflow and tooling arc
 
-R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped whole-column computation. R31 adds relational Sheet operations. R32 adds one explicit database data boundary. R33 is developer tooling derived from implemented parser/Core-IR/help/debugger truth. R34 adds reproducible cross-host performance evidence and permits optimization only when shared conformance proves no semantic drift.
+R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped whole-column computation. R31 adds relational Sheet operations. R32 adds the portable data-store boundary: ordinary Genia values, Flow, Sheet, Outcome, configuration/secrets, and lifecycle remain the application model while relational, document, key/value, immutable/temporal, query, transaction, and change-feed behavior is exposed only through truthful provider capabilities. R31 is compositional input to R32; it does not make R32 relational. SQLite is the planned embedded proving provider, with a deterministic non-relational fixture required to prevent SQL/table leakage. JDBC, ODBC, ADBC, and native clients are adapter mechanisms rather than language dependencies. The R32 contract must also reconcile naming/authority/lifecycle with R35's later Store/Location/resource architecture rather than create a competing generic Store concept. R33 is developer tooling derived from implemented parser/Core-IR/help/debugger truth. R34 adds reproducible cross-host performance evidence and permits optimization only when shared conformance proves no semantic drift.
+
+After R32 is audited, heterogeneous real-provider proving (at minimum one client/server relational provider, one document or key/value provider, and one change-feed provider) is a separately gated follow-up release candidate rather than an implicit expansion of R32. MongoDB, DynamoDB, PostgreSQL through a standard adapter, ADBC, and Datomic are candidates, not roadmap commitments. See `docs/architecture/portable-data-store-survey.md`.
 
 ## Storage, execution, and dogfooding arc
 
