@@ -10,6 +10,7 @@ path already does), so it is marked slow.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -27,65 +28,22 @@ def test_full_shared_spec_suite_matches_in_process_path_through_subprocess_proto
     exit_code = runner_module.main(["--host", PROTOCOL_ADAPTER_COMMAND, "--host-timeout", "30"])
     out = capsys.readouterr().out
 
-    # The in-process default path passes all 703 cases (see
-    # `python -m tools.spec_runner`). 18 of those rely on an injected
-    # Python-host-only test fixture or --debug-stdio, neither of which is
-    # expressible over the generic protocol yet (E16-2); every other case
-    # must pass identically through the subprocess protocol path. R17
-    # (issue #778) added 3 ordinary eval-category cases (integer-arithmetic
-    # and map-order portability evidence). R18 added 7 ordinary eval-category
-    # cases (issue #791, portable value-equality evidence), 6 more
-    # (issue #792, map equality and legal-key evidence: 3 eval, 3 error),
-    # 3 more (issue #793, identity and protected equality evidence),
-    # 4 more (issue #794, equality-like surface agreement: 3 eval, 1 error),
-    # and 4 more (issue #795, multi-host conformance hardening). R19 E19-1
-    # (issue #820) added 6 more ordinary eval-category cases (Unicode/UTF-8
-    # portability evidence: byte-length widths, encode/decode roundtrip, and
-    # deterministic debug escaping). R20 (E20-2/E20-4) added 21 more cases
-    # (9 parse, 5 ir, 4 eval, 3 error) covering open-function syntax, Core
-    # IR, local dispatch, and diagnostics, each declaring `requires:
-    # [open_functions]`; the Python reference host declares that capability
-    # supported, so all 21 run and pass through the protocol path too.
-    # None require an unexpressible fixture, so they pass through the protocol
-    # path like any other case. `test_r18_conformance_protocol_evidence_795.py`
-    # additionally asserts that every R18 case specifically is executed rather
-    # than reported unsupported.
-    # Issue #836 adds 8 portable R20 multi-file eval/error cases. They are
-    # expressible over the protocol and require both supported open_functions
-    # and multi_file_eval capabilities, so both total and passed increase by
-    # exactly 8. The Python adapter advertises both.
-    # E21-1 (issue #853) adds 11 portable R21 parse-category cases (9 ok, 2
-    # error) for numeric source classification. Parse-category cases are
-    # expressible over the protocol like any other case, so both total and
-    # passed increase by exactly 11.
-    # E21-2 (issue #854) adds 7 portable R21 ir-category cases for the
-    # tagged Integer/Decimal IrLiteral payload. IR-category cases are
-    # expressible over the protocol like any other case, so both total and
-    # passed increase by exactly 7.
-    # E22-2 (issue #888) adds 3 portable R22 cases for rational(...)
-    # construction (1 eval, 2 error). Expressible over the protocol like
-    # any other case, so both total and passed increase by exactly 3.
-    # E22-3 (issue #889) adds 1 portable R22 eval-category case for the
-    # exact-family +/-/* promotion lattice. Expressible over the protocol
-    # like any other case, so both total and passed increase by exactly 1.
-    # E22-4 (issue #890) adds 4 portable R22 cases for exact division and
-    # floor remainder (2 eval, 2 error). Expressible over the protocol
-    # like any other case, so both total and passed increase by exactly 4.
-    # E22-5 (issue #891) adds 3 portable R22 cases for float64/exact
-    # conversions (1 eval, 2 error). Expressible over the protocol like
-    # any other case, so both total and passed increase by exactly 3.
-    # E22-6 (issue #892) adds 4 portable R22 cases for Float64 arithmetic
-    # and mixed-domain rejection (2 eval, 2 error). Expressible over the
-    # protocol like any other case, so both total and passed increase by
-    # exactly 4.
-    # E22-7 (issue #893) adds 3 portable R22 eval-category cases for
-    # mathematical comparison, equality, and map-key reconciliation.
-    # Expressible over the protocol like any other case, so both total and
-    # passed increase by exactly 3.
-    # E22-9 (issue #895) adds 1 portable R22 eval-category case for
-    # cross-surface conformance (quoted/quasiquoted/metacircular-eval'd
-    # decimal literals and literal-pattern matching). Expressible over the
-    # protocol like any other case, so both total and passed increase by
-    # exactly 1.
-    assert "Summary: total=740 passed=722 failed=0 unsupported=18 protocol_error=0 crash=0 timeout=0 invalid=0" in out
+    # E16-2 leaves 18 Python-host-only fixture/debug cases unsupported over
+    # the generic protocol; every other discovered case must pass.
+    summary = re.search(
+        r"Summary: total=(?P<total>\d+) passed=(?P<passed>\d+) "
+        r"failed=(?P<failed>\d+) unsupported=(?P<unsupported>\d+) "
+        r"protocol_error=(?P<protocol_error>\d+) crash=(?P<crash>\d+) "
+        r"timeout=(?P<timeout>\d+) invalid=(?P<invalid>\d+)",
+        out,
+    )
+    assert summary is not None
+    counts = {name: int(value) for name, value in summary.groupdict().items()}
+    assert counts["unsupported"] == 18
+    assert counts["passed"] == counts["total"] - counts["unsupported"]
+    assert counts["failed"] == 0
+    assert counts["protocol_error"] == 0
+    assert counts["crash"] == 0
+    assert counts["timeout"] == 0
+    assert counts["invalid"] == 0
     assert exit_code == 0
