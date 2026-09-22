@@ -96,7 +96,11 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R34 — Cross-Host Performance and Optimization Evidence**
 - **R35 — Portable Storage and Resource Semantics**
 - **R36 — Location-Independent Genia Execution**
-- **R37 — Genia-Native Conformance Tooling**
+- **R37 — Unified Events and Subscriptions**
+- **R38 — Portable Actors, Messaging and Supervision**
+- **R39 — Genia-Native Conformance Tooling**
+- **R40 — Configuration and Secret Hardening and Ergonomics**
+- **R41 — Portable Core IR Artifacts**
 
 The process correction is documented in `docs/analysis/exact-numeric-gate-postmortem.md`. New implementation is re-derived from current `main` in independently mergeable slices rather than mechanically cherry-picked from #839.
 
@@ -114,6 +118,9 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
   unnumbered):** [`../architecture/host-capability-taxonomy.md`](../architecture/host-capability-taxonomy.md)
   and [`../architecture/external-process-execution.md`](../architecture/external-process-execution.md)
 - **R38:** [`roadmap/r38.md`](roadmap/r38.md)
+- **R39:** [`roadmap/r39.md`](roadmap/r39.md)
+- **R40:** [`roadmap/r40.md`](roadmap/r40.md)
+- **R41:** [`roadmap/r41.md`](roadmap/r41.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -192,8 +199,11 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R34 | Cross-Host Performance and Optimization Evidence | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R35 | Portable Storage and Resource Semantics | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
 | R36 | Location-Independent Genia Execution | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
-| R37 | Genia-Native Conformance Tooling | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
-| R38 | Configuration and Secret Hardening and Ergonomics | Planned | [`roadmap/r38.md`](roadmap/r38.md) |
+| R37 | Unified Events and Subscriptions | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
+| R38 | Portable Actors, Messaging and Supervision | Planned | [`roadmap/r38.md`](roadmap/r38.md) |
+| R39 | Genia-Native Conformance Tooling | Planned | [`roadmap/r39.md`](roadmap/r39.md) |
+| R40 | Configuration and Secret Hardening and Ergonomics | Planned | [`roadmap/r40.md`](roadmap/r40.md) |
+| R41 | Portable Core IR Artifacts | Planned | [`roadmap/r41.md`](roadmap/r41.md) |
 
 ## Scheduling
 
