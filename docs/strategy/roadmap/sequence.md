@@ -50,7 +50,7 @@ R21 — Numeric Source & Portable Representation ✓ COMPLETE
 R22 — Exact Numeric Runtime ✓ COMPLETE
  |
  v
-R23 — Numeric Representation & Interchange
+R23 — Numeric Representation & Interchange ✓ COMPLETE
  |
  v
 R24 — C++ Minimal Conforming Host
@@ -94,6 +94,10 @@ R37 — Genia-Native Conformance Tooling
 
 R38 — Configuration and Secret Hardening and Ergonomics
   (depends only on completed R10/R13; not chained through R14–R37)
+
+R39 — Unified Events and Subscriptions
+  (builds on completed R14 + existing Flow; local baseline is independent of R35/R36,
+   while later resource/distributed providers reuse R35/R36)
 ```
 
 This ordering does not imply that every release is a strict technical dependency of the next. Roadmap placement is planning authority only and never makes candidate behavior implemented.
@@ -130,7 +134,7 @@ R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. These releases consume prior equality, lifecycle, host-protocol, and authority boundaries rather than inventing local substitutes.
 
-R8 through R22 are complete. R23 through R38 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R23 are complete. R24 through R39 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
 
 ## Configuration and secret hardening
 
@@ -141,3 +145,7 @@ because it depends only on completed R10 and R13, not on any release from
 R14 onward; it is free to schedule and ship independently, subject to its
 own contract/design/test/implementation/documentation/audit gates. See
 `docs/strategy/roadmap/r38.md`.
+
+## Unified events and subscriptions
+
+R39 promotes the cross-cutting event/subscription architecture described in `docs/architecture/unified-events-subscriptions.md`. It reuses R14 lifecycle ownership and existing Flow composition rather than creating a second event-stream or lifecycle system. The first contract is local/live and bounded-demand; durability, replay, broker mechanics, actor mailboxes, and distributed realization remain separate capability/provider concerns. See `docs/strategy/roadmap/r39.md`.
