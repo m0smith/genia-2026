@@ -91,7 +91,7 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R29 — Sheet Record Pipelines**
 - **R30 — Sheet Shaped Computation**
 - **R31 — Relational Sheet Operations**
-- **R32 — Database Data Boundary**
+- **R32 — Portable Data Store Boundary**
 - **R33 — Developer Experience and Language Tooling**
 - **R34 — Cross-Host Performance and Optimization Evidence**
 - **R35 — Portable Storage and Resource Semantics**
@@ -109,6 +109,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 - **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
 - **R30–R34:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
 - **R35–R37:** [`roadmap/r35-r37.md`](roadmap/r35-r37.md)
+- **R32 portable data-store architecture survey (planned, non-authoritative):** [`../architecture/portable-data-store-survey.md`](../architecture/portable-data-store-survey.md)
 - **Cross-cutting host capability and external process architecture (planned,
   unnumbered):** [`../architecture/host-capability-taxonomy.md`](../architecture/host-capability-taxonomy.md)
   and [`../architecture/external-process-execution.md`](../architecture/external-process-execution.md)
@@ -186,7 +187,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R29 | Sheet Record Pipelines | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R30 | Sheet Shaped Computation | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R31 | Relational Sheet Operations | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
-| R32 | Database Data Boundary | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
+| R32 | Portable Data Store Boundary | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R33 | Developer Experience and Language Tooling | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R34 | Cross-Host Performance and Optimization Evidence | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R35 | Portable Storage and Resource Semantics | Planned | [`roadmap/r35-r37.md`](roadmap/r35-r37.md) |
