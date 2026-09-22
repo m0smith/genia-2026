@@ -7,6 +7,27 @@ For every issue:
    - Pre-flight must include a completed PORTABILITY ANALYSIS block (section 3a).
    - All seven portability fields must be answered before the contract phase begins.
    - Incomplete portability analysis is grounds for blocking the contract step.
+   - If the change adds or changes portable observable behavior, complete the
+     executable semantic conformance obligation from
+     `docs/architecture/executable-semantic-conformance.md` before the contract
+     phase:
+     1. identify the portable authority and representation/boundary;
+     2. identify the shared executable spec evidence (or explicitly justify why
+        shared evidence is impossible without claiming unproved cross-host
+        conformance);
+     3. identify applicability using the existing `spec/manifest.json`
+        capability vocabulary, adding a capability only for a genuinely new,
+        independently claimable host surface;
+     4. identify the host capability claim/evidence impact;
+     5. identify implemented-truth documentation that must be synchronized
+        after implementation and verification.
+   - If an implementing host must inspect another host's implementation source
+     to determine observable Genia semantics, stop. Clarify the authoritative
+     contract and add or repair shared evidence before host implementation
+     resumes.
+   - This obligation reuses R16. Do not create a parallel runner, protocol,
+     evidence format, capability registry/profile system, semantic manifest, or
+     Core IR mechanism merely to satisfy this process gate.
 3. Commit preflight
 4. Run contract prompt
 5. Commit contract
