@@ -50,7 +50,7 @@ R21 — Numeric Source & Portable Representation ✓ COMPLETE
 R22 — Exact Numeric Runtime ✓ COMPLETE
  |
  v
-R23 — Numeric Representation & Interchange
+R23 — Numeric Representation & Interchange ✓ COMPLETE
  |
  v
 R24 — C++ Minimal Conforming Host
@@ -90,10 +90,19 @@ R35 — Portable Storage & Resource Semantics
 R36 — Location-Independent Genia Execution
  |
  v
-R37 — Genia-Native Conformance Tooling
+R37 — Unified Events & Subscriptions
+ |
+ v
+R38 — Portable Actors, Messaging & Supervision
+ |
+ v
+R39 — Genia-Native Conformance Tooling
+ |
+ v
+R41 — Portable Core IR Artifacts
 
-R38 — Configuration and Secret Hardening and Ergonomics
-  (depends only on completed R10/R13; not chained through R14–R37)
+R40 — Configuration and Secret Hardening and Ergonomics
+  (depends only on completed R10/R13; reservation number does not imply dependency on R14–R39 or R41)
 ```
 
 This ordering does not imply that every release is a strict technical dependency of the next. Roadmap placement is planning authority only and never makes candidate behavior implemented.
@@ -130,16 +139,16 @@ After R32 is audited, heterogeneous real-provider proving (at minimum one client
 
 ## Storage, execution, and dogfooding arc
 
-R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. These releases consume prior equality, lifecycle, host-protocol, and authority boundaries rather than inventing local substitutes.
+R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 establishes the unified event/subscription spine before R38 defines portable actors, so actor observability can reuse events without reducing actor mailboxes to pub/sub. R39 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. R41 then packages the existing Core IR portability boundary as stable versioned artifacts. These releases consume prior equality, lifecycle, Flow, host-protocol, and authority boundaries rather than inventing local substitutes.
 
-R8 through R22 are complete. R23 through R38 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R23 are complete. R24 through R41 remain planned and not active unless a specific gate says otherwise. Python remains the only implemented production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
 
 ## Configuration and secret hardening
 
-R38 promotes the outstanding candidates from
+R40 promotes the outstanding candidates from
 `docs/parking-lot/post-r13-configuration-followups.md` (C-1 through C-11) as
 one numbered release. It is listed outside the main dependency chain above
 because it depends only on completed R10 and R13, not on any release from
 R14 onward; it is free to schedule and ship independently, subject to its
 own contract/design/test/implementation/documentation/audit gates. See
-`docs/strategy/roadmap/r38.md`.
+`docs/strategy/roadmap/r40.md`.
