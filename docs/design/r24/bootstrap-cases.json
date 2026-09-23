@@ -1,6 +1,6 @@
 {
   "_comment": "R24 vertical bootstrap suite. Deliberately small; all cases resolved against EXISTING spec/*/*.yaml files (none invented). See docs/design/r24-cpp-host-preflight.md section 6. Run via: python -m tools.spec_runner --host '<cpp-adapter-cmd>' --evidence <path> (the runner has no case-filter flag, so a genia-cpp CI job stages only these files into a temp spec/ tree, or filters the --evidence output post-hoc).",
-  "genia_2026_contract_revision": "b859ddc6374d8c930180ef546b103cb2fa1c0d9b",
+  "genia_2026_contract_revision": "a2229cb9b079a379a5eeae76a618fe69a2bd6daa",
   "categories": {
     "literals": {
       "capability": "parser",

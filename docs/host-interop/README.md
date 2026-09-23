@@ -33,9 +33,10 @@ This folder holds the shared portability contract for Genia's future multi-host 
 
 Current status in this phase:
 
-- Python is the only implemented host.
+- Python is the full-language reference host; C++ is the bounded R24 production host.
 - The files in this folder define shared guidance and scaffolding for future hosts.
-- They do not imply that Node.js, Java, Rust, Go, or C++ hosts already exist.
+- They do not imply that Node.js, Java, Rust, or Go hosts already exist, or that
+  C++ implements behavior beyond its declared R24 floor.
 
 Start here:
 

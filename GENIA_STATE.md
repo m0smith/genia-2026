@@ -7,7 +7,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 Implemented today:
 
-- **Python is the only implemented host and is the reference host.**
+- **Python is the full-language reference host; C++ is the bounded R24 production host.**
 - Shared semantic-spec contract categories are:
   - parse
   - ir
@@ -51,15 +51,15 @@ Implemented today:
   - `hosts/python/protocol_adapter.py` (E16-5, issue #762): the Python reference host itself, proven through this same subprocess protocol at full scale — 641 total, 623 passed, 0 failed, 18 unsupported, 0 protocol_error/crash/timeout, identical to the in-process path for every applicable case.
     CI keeps this authoritative full-suite proof in `tests/spec/test_python_protocol_adapter_parity_762.py`, marked `full_conformance`, and runs it nightly or by manual dispatch on canonical Python 3.14 in the dedicated regression `full-conformance` job. Ordinary slow spec-runner pytest coverage runs in the same regression workflow on canonical Python 3.14 with `full_conformance` excluded; supported-version compatibility is established separately by the regression compatibility matrix. This is test organization only and does not change case discovery, protocol behavior, or semantic coverage.
     Issue #883 further deduplicates semantic-spec execution within `tests/spec/`: `test_spec_ir_runner_blackbox.py` and `test_cli_shared_spec_runner.py` previously replayed most of the shared corpus (parametrized over nearly every eval/ir/cli/flow/error fixture) purely to prove runner wiring; they now execute a small representative sample per category instead, and the expensive `command_mode_collect_sum` CLI fixture is kept unique to a single pytest file. The full corpus is still proven once per supported Python version by `python -m tools.spec_runner` in the regression compatibility matrix, and once on Python 3.14 in routine CI; no shared case, expected result, or discovery assertion changed. This is test organization only.
-  - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (E16-6, issue #763): bootstrapped as the first external production-host repository — a repository shell with a pinned contract revision/protocol declaration and a minimal, self-contained, non-semantic protocol-participation placeholder. **No real C++ interpreter exists there**; `hosts/cpp/` here is now a pointer to that repository (see `hosts/cpp/README.md`).
+  - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (R24): the first external production host, implementing the deliberately bounded R24 parser -> portable Core IR -> evaluator floor with pinned R16 evidence. It is not feature-parity with Python; `hosts/cpp/` here remains a pointer to that repository (see `hosts/cpp/README.md`).
   - `tools/spec_runner/evidence.py` and `--evidence <path>` (E16-7, issue #764): one deterministic per-host JSON evidence document (contract revision, protocol version, capabilities, applicable-case count, full outcome taxonomy), a pure function of its inputs so identical runs produce byte-identical evidence. Proven against both the Python reference host (623 pass / 18 unsupported / 0 else, revision `current`) and the `genia-cpp` bootstrap placeholder (641 unsupported / 0 else, revision `resolvable_ancestor`). See `docs/strategy/roadmap/multi-host-conformance-policy.md`'s "Evidence model and CI expectations" for the external-host CI contract this defines.
 
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: production implementation is R24, entirely in `m0smith/genia-cpp`. E24-1 (toolchain bootstrap), E24-2 (first real vertical slice — integer literals/arithmetic/`-c` command mode), and E24-3 (lists, ordered maps, R18 equality, file mode) are complete; E24-4 through E24-8 remain (Outcomes/lambdas/pattern dispatch/pipelines, diagnostic normalization, open functions, exact numeric model, and release completion evidence). (Originally numbered R21; planning issue #845 decomposed the Exact Numeric Model into R21-R23 and moved the C++ host to R24 — see `docs/design/r24-cpp-host-preflight.md`.)
+- C++: R24 is complete, entirely in `m0smith/genia-cpp`. Its bounded floor covers parser/AST lowering, command/file CLI, local open functions, partial portable Core IR evaluation, a bounded source-level prelude, and the selected R17-R23 value/numeric surface. Pinned revision `a2229cb9b079a379a5eeae76a618fe69a2bd6daa` evidence is `755 total / 141 pass / 614 unsupported`, with every failure-class count zero. Later capabilities remain unsupported and belong to R25+; C++ is a genuine second host, not Python feature parity. (Originally numbered R21; planning issue #845 moved it to R24.)
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
-- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). What remains true: **no second production host implements the full language yet.** `m0smith/genia-cpp` (R24, E24-1 through E24-3) is a real second production host for one deliberately minimal, evidence-backed grammar slice (integer/string/boolean/list literals, assignment, `+ - * / ==`, native map/utf8 functions, `-c`/file-mode CLI); every other proof to date is either about the Python reference host itself (through both the in-process and subprocess paths) or against non-semantic proof fixtures that do not interpret Genia source — the deterministic fixture adapter (`tools/spec_runner/fixtures/protocol_fixture_adapter.py`).
+- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). No second production host implements the full language. `m0smith/genia-cpp` is the R24-complete second host for a deliberately bounded, evidence-backed subset; other external-host proofs remain either Python-reference-host evidence or non-semantic protocol fixtures.
 
 **Maturity:**
 
@@ -70,9 +70,9 @@ Scaffolded or planned, not implemented as hosts:
 
 **Explicit limitations:**
 
-- Python is the full-language production host; `m0smith/genia-cpp` (R24) is a second production host implementing only one deliberately minimal, evidence-backed grammar slice (E24-1 through E24-3: integer/string/boolean/list literals, assignment, `+ - * / ==`, native map_*/utf8_encode functions, `-c`/file-mode CLI) — see `m0smith/genia-cpp`'s `README.md`/`AGENTS.md` for its exact current boundary. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
+- Python is the full-language production host; `m0smith/genia-cpp` is the R24-complete second production host for the bounded floor recorded above. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
-- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7); most conformance evidence to date is still about the Python reference host or non-semantic proof fixtures, with `m0smith/genia-cpp`'s narrow E24-1 through E24-3 slice as the sole other host-backed evidence so far.
+- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7); `m0smith/genia-cpp` supplies the completed R24 external-host evidence while Python remains the full-language reference.
 - Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
 - Parse shared semantic-spec coverage is limited to initial cases for stable, already-implemented syntax forms; parse spec coverage expands only when new forms are explicitly added and tested.
 - Flow is implemented as a lazy, pull-based, single-use runtime value; async, multi-port, and advanced flow features are not present.
@@ -135,7 +135,7 @@ LANGUAGE CONTRACT:
 
 PYTHON REFERENCE HOST:
 
-- Python is the only implemented host and is the reference host.
+- Python is the full-language reference host; C++ implements the bounded R24 floor.
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`. Eval shared coverage includes list-side Seq-compatible `collect`, `run`, lazy `each`, item-preserving `each |> collect`, the existing `seq-compatible-list-transform-chain` fixture, list-side `scan` (accepting list input and returning list), Seq-compatible non-list/non-Flow diagnostics for `each`, `collect`, `run`, `map`, `filter`, `take`, `drop`, and `scan`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
@@ -183,8 +183,8 @@ PYTHON REFERENCE HOST:
 - `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
 
 **Planned/Scaffolded:**
-- Node.js, Java, Rust, Go: planned only, not implemented; C++ is bootstrapped as a repository shell (`m0smith/genia-cpp`) with no real interpreter (R16 E16-6, issue #763)
-- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7; see §0 above), but no real second production host is implemented yet
+- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R24 production host in `m0smith/genia-cpp`
+- A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7; see §0 above), with pinned evidence for the bounded C++ R24 host
 
 **Limitations:**
 - Only Python is implemented; all other hosts are planned or scaffolded only.
@@ -2587,29 +2587,26 @@ since completed; the C++ host is now numbered R24 and its pre-flight gate
 (`docs/design/r24-cpp-host-preflight.md`) records a GO decision. E24-1
 (`m0smith/genia-2026#955`) completed toolchain bootstrap: a real,
 compiled C++ E16-1 adapter honestly declaring every capability
-unsupported, with no Genia language behavior implemented. **E24-2
-(`m0smith/genia-2026#956`) and E24-3 (`m0smith/genia-2026#957`) have
-since completed**, adding the first real C++ Genia semantics:
-`m0smith/genia-cpp` now genuinely parses, lowers to portable Core IR,
-and evaluates one deliberately minimal grammar (integer/string/boolean
-literals, list literals, assignment, function calls, and `+ - * / ==`
-binary expressions with standard precedence) plus `-c`/file-mode CLI,
-declaring `parser`/`ast_lowering`/`cli_command_mode`/`cli_file_mode`
-`supported` and `core_ir_eval` `partial` with real shared-conformance
-evidence (`total=744 passed=21 failed=0 unsupported=723` against the
-full spec corpus). E24-3 adds R17 ordered-map behavior and R18
-structural/legal-key equality via a native in-house insertion-ordered
-map and native `map_new`/`map_get`/`map_put`/`map_has?`/`map_remove`/
-`map_count`/`map_items`/`utf8_encode` callables (the map functions
-mirror genia-2026's real trivial 1:1 prelude wrappers exactly; genuine
-prelude-source interpretation for non-trivial functions like
-`map_keys`/`map_values` remains E24-4+ scope, once user-level function
-definitions exist). Lambdas, pattern matching, Outcomes,
-Decimal/Rational/Float64, and open functions remain entirely
-unimplemented in C++ — see `m0smith/genia-cpp`'s `README.md`/
-`AGENTS.md` for the current boundary and
-`docs/strategy/roadmap/e24-issue-sequence.md` for the remaining E24-4
-through E24-8 slices.
+unsupported, with no Genia language behavior implemented. **E24-2 through
+E24-8 are now complete.** The host genuinely parses source, lowers only to
+approved portable Core IR, evaluates its deliberately bounded grammar, and
+provides `-c`/file-mode CLI. The floor includes R17 integers/ordered maps,
+R18 equality/key identity, R19-normalized adapter diagnostics, local R20 open
+functions, and the selected R21-R23 Decimal/Rational/Float64 arithmetic,
+comparison, rendering, format, and strict numeric JSON evidence.
+
+The final capability declaration is: `parser`, `ast_lowering`,
+`cli_command_mode`, `cli_file_mode`, and `open_functions` `supported`;
+`core_ir_eval`, `prelude_autoload`, and `shared_spec_runner` `partial`; every
+other capability at the pinned revision `unsupported`. The latter two partial
+claims describe the bounded source-level prelude and deterministic external-host
+runner participation actually evidenced by R24; they do not claim the full
+Python prelude or feature parity. `core_ir_eval` intentionally remains partial.
+Pinned evidence against Genia revision
+`a2229cb9b079a379a5eeae76a618fe69a2bd6daa` is `total=755 passed=141
+unsupported=614 failed=0 protocol_error=0 crash=0 timeout=0 invalid=0`.
+Unsupported behavior is expected and explicitly deferred to R25+; see
+`docs/releases/R24.md` and `docs/analysis/r24-release-truth-audit.md`.
 
 ### Host-backed persistent associative maps (Phase 1 bridge; ordering Experimental, R17 complete through E17-3)
 
@@ -3402,7 +3399,7 @@ Assertion failure behavior:
 
 Not implemented in this phase:
 - `assert_false`, `assert_ne`, `assert_raises`, custom assertion messages, snapshot testing, property testing, soft assertions, or matcher DSLs
-- cross-host implementation; Python is the only implemented host
+- broader cross-host implementation beyond the bounded C++ R24 host
 - assertion lifecycle hooks, grouping, or count tracking
 
 A Genia-native fixture now covers the R1 validated pipeline path. Validated by `tests/unit/test_r1_validated_pipeline_native_tests.py` (1 test, Python reference host only); the fixture is `tests/native/r1_validated_pipeline.genia`. Validated pipeline behavior is covered by a native test fixture using `parse_jsonl_record`, `validate_each`, `validate_record`, `collect_validated`, and `assert_eq`.

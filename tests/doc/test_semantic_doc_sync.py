@@ -294,7 +294,8 @@ def test_cheatsheets_list_current_active_shared_spec_categories(relpath: str) ->
 
     assert normalize("parse, ir, eval, cli, flow, error") in text
     assert normalize("partial") in text
-    assert normalize("Python") in text and normalize("only implemented host") in text
+    assert normalize("Python") in text and normalize("C++") in text
+    assert normalize("bounded R24 production host") in text
 
 
 @pytest.mark.parametrize(
@@ -413,7 +414,7 @@ def test_instruction_surfaces_reference_semantic_sync_guardrails() -> None:
         ("spec/README.md", FACTS["host_status"]),
         ("docs/browser/README.md", FACTS["host_status"]),
         ("apps/playground/README.md", FACTS["host_status"]),
-        ("docs/host-interop/HOST_INTEROP.md", "Python is the only implemented host and is the reference host today."),
+        ("docs/host-interop/HOST_INTEROP.md", FACTS["host_status"]),
     ],
 )
 def test_host_status_docs_stay_clear(relpath: str, expected_excerpt: str) -> None:

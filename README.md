@@ -10,7 +10,7 @@ messy records in → clear pipelines → validated shaped output / reports + use
 
 The strongest end-to-end proof is the [validated pipeline demo](#run-the-validated-pipeline-demo-experimental). For the implementation and portability boundaries, see the [current language state](GENIA_STATE.md).
 
-> **Current status:** Genia is a prototype. Python is the only implemented host and the reference host. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or multi-host support.
+> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R24 production host. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
 ## Quick start
 
@@ -101,7 +101,7 @@ Do not use one-shot implementation prompts for behavior changes.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
-- Python is the only implemented host and is the reference host.
+- Python is the full-language reference host; C++ implements the bounded R24 floor.
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is not covered by shared executable specs.
@@ -137,7 +137,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
-- Python is the only implemented host and is the reference host.
+- Python is the full-language reference host; C++ implements the bounded R24 floor.
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
@@ -549,8 +549,8 @@ Boundary validation note:
 ## Multi-Host Direction
 
 Python is the full-language reference host. `m0smith/genia-cpp` (R24) is a second
-production host implementing one deliberately minimal, evidence-backed grammar slice
-as of E24-3 — see its `README.md`/`AGENTS.md` for the exact current boundary.
+production host implementing the complete, deliberately bounded R24 capability floor
+— see its `README.md`/`AGENTS.md` for the exact current boundary.
 
 The repo now also includes shared portability scaffolding for future hosts, plus a
 generic multi-host conformance runner (R16 E16-1 through E16-7, issues #758-#764;
@@ -563,8 +563,8 @@ see `GENIA_STATE.md` §0):
 - `tools/spec_runner --host '<command>'`: runs applicable shared spec cases through a
   versioned subprocess protocol, with capability advertisement, revision pinning, and
   deterministic per-host evidence reporting. Proven against the Python reference host
-  and [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp), which as of E24-3
-  is a real second production host for one deliberately minimal grammar slice.
+  and [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp), which is a real
+  second production host for the evidence-backed R24 subset.
 
 Alignment rule:
 
@@ -578,7 +578,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | Real production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)) for one minimal, evidence-backed grammar slice (E24-1 through E24-3: integer/string/boolean/list literals, assignment, `+ - * / ==`, native map/utf8 functions, `-c`/file-mode CLI); most language behavior remains unimplemented |
+| C++ | R24-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): parser -> portable Core IR -> evaluator over a deliberately bounded subset, pinned at `a2229cb9` with `755 total / 141 pass / 614 unsupported` and zero failure-class outcomes; not Python feature parity |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.

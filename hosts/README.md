@@ -4,13 +4,14 @@ This directory documents Genia's intended multi-host monorepo layout.
 
 Current status (for formal term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms):
 
-- Python is the only implemented host today.
+- Python is the full-language reference host; C++ is the bounded R24 production host. Its implementation lives externally in `m0smith/genia-cpp`.
 - The working Python implementation still lives at the repo root in:
   - `src/genia/`
   - `tests/`
   - `src/genia/std/prelude/`
-- The `hosts/*` directories are scaffold/placeholder directories in this phase.
-- Node.js, Java, Rust, Go, and C++ remain planned placeholder surfaces only.
+- The `hosts/*` directories remain documentation/scaffold locations; `hosts/cpp/`
+  points to the external production repository.
+- Node.js, Java, Rust, and Go remain planned placeholder surfaces only.
 
 ## Target Layout
 
@@ -54,4 +55,4 @@ Portability boundary note:
 | Java | Planned | placeholder docs only |
 | Rust | Planned | placeholder docs only |
 | Go | Planned | placeholder docs only |
-| C++ | Planned | placeholder docs only |
+| C++ | Implemented (bounded R24 floor) | external repository pointer |

@@ -2,7 +2,8 @@
 
 This document freezes the minimal portable Core IR contract for Genia.
 
-Python is the current reference host and may use additional host-local optimized IR after lowering.
+Python is the current full-language reference host and may use additional host-local optimized IR after lowering.
+C++ implements the bounded R24 subset through this same portable boundary.
 Those host-local optimized nodes are explicitly outside the shared portability contract.
 
 Planned external direct execution does not add a Core IR node. Its architecture

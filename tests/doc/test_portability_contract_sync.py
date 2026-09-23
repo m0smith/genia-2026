@@ -13,14 +13,14 @@ def read_text(relpath: str) -> str:
 def test_manifest_host_status_matches_portability_docs():
     manifest = json.loads((REPO / "spec" / "manifest.json").read_text(encoding="utf-8"))
 
-    assert manifest["host_status"]["implemented_hosts"] == ["python"]
+    assert manifest["host_status"]["implemented_hosts"] == ["python", "cpp"]
     assert manifest["host_status"]["live_python_source"] == [
         "src/genia",
         "tests",
         "src/genia/std/prelude",
     ]
     assert manifest["host_status"]["scaffolded_host_directories"] == ["hosts/python"]
-    assert manifest["host_status"]["planned_hosts"] == ["node", "java", "rust", "go", "cpp"]
+    assert manifest["host_status"]["planned_hosts"] == ["node", "java", "rust", "go"]
     assert manifest["host_status"]["generic_spec_runner"] == "implemented"
 
     required_docs = [
@@ -35,11 +35,8 @@ def test_manifest_host_status_matches_portability_docs():
     ]
     for relpath in required_docs:
         text = read_text(relpath)
-        assert (
-            "Python is the only implemented host" in text
-            or "Python is the only implemented reference host" in text
-            or "Python is the current reference host" in text
-        )
+        assert "Python" in text and ("reference host" in text or "reference-host" in text)
+        assert "C++" in text or "genia-cpp" in text
 
     # Updated assertions to match new doc wording
     assert (
@@ -221,8 +218,8 @@ def test_status_terms_defined_in_host_interop():
         assert term in text, f"Missing status term definition: {term}"
 
 
-def test_no_doc_implies_multiple_implemented_hosts():
-    """No portability doc should imply any host besides Python is implemented."""
+def test_no_doc_implies_unimplemented_planned_hosts_are_implemented():
+    """Only Python and the bounded C++ R24 host may be described as implemented."""
     portability_docs = [
         "GENIA_STATE.md",
         "README.md",
@@ -239,7 +236,6 @@ def test_no_doc_implies_multiple_implemented_hosts():
         re.compile(r"Java\b.{0,20}(?:is |are )?implemented", re.IGNORECASE),
         re.compile(r"Rust.{0,20}(?:is |are )?implemented", re.IGNORECASE),
         re.compile(r"\bGo\b.{0,20}(?:is |are )?implemented", re.IGNORECASE),
-        re.compile(r"C\+\+.{0,20}(?:is |are )?implemented", re.IGNORECASE),
     ]
     for relpath in portability_docs:
         text = read_text(relpath)

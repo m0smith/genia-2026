@@ -4,7 +4,7 @@ This directory is a scaffold for a future browser playground app.
 
 Current status:
 
-- Python is the only implemented host today.
+- Python is the full-language reference host; C++ is the bounded R24 production host.
 - documentation scaffold only
 - no production browser app implementation yet
 
