@@ -13,24 +13,36 @@ implementation begins. It is preflight/architecture work only. It includes no
 R26 implementation, no `genia-cpp` changes, no capability additions or
 renames, no roadmap edits or renumbering, and no implementation tickets.
 
-Baseline: `main` at `ab19233` (merge of PR #995, the R25 preflight). R24 is
-confirmed **still in progress**:
+Historical baseline: this preflight was originally performed against
+`main` at `ab19233` (merge of PR #995, the R25 preflight), while R24 was
+still in progress. That historical baseline matters because the detailed
+inventory and line references below were derived before R24's final merge.
 
-- `GENIA_STATE.md` §0 records E24-1 through E24-3 complete and E24-4 through
-  E24-8 remaining.
-- Issues #958 (E24-4), #959 (E24-5), #961 (E24-7) and #962 (E24-8) are open.
+**Current status after R24 completion:** R24 is now merged and authoritative.
+`GENIA_STATE.md` records the C++ host as the bounded R24 production host,
+and `docs/strategy/release-roadmap.md` marks R24 complete. The merged R24
+completion chain is:
 
-R24 implementation lives in `m0smith/genia-cpp`, which this preflight neither
-read nor modified. Every statement below about what R24 "implements"
-therefore means **what R24's pinned acceptance evidence in `genia-2026`
-obliges it to implement**. That evidence is `docs/design/r24/*` and
-`docs/strategy/roadmap/e24-issue-sequence.md`. It is not a reading of C++
-source.
+- `m0smith/genia-cpp` PR #19 — E24-7 final hardening;
+- `m0smith/genia-cpp` PR #20 — E24-8 C++ completion state;
+- `m0smith/genia-2026` PR #998 — authoritative R24 truth synchronization.
 
-The R25 preflight (`docs/analysis/r25-release-size-preflight.md`) is merged
-and is the structural precedent this document follows.
+The final R24 evidence is pinned to Genia revision
+`a2229cb9b079a379a5eeae76a618fe69a2bd6daa`: 755 total cases, 141 passed,
+614 unsupported, and zero fail/protocol-error/crash/timeout/invalid results.
 
-Line references are to `ab19233` and are approximate where marked `~`.
+This status refresh does **not** change the preflight's architectural findings.
+Where the analysis below says that R24 had already consumed part of the
+historical R26 surface, read that against the now-completed R24 boundary.
+The original analysis did not inspect or modify `m0smith/genia-cpp`; its R24
+claims were derived from the pinned acceptance evidence in `genia-2026`.
+
+The R25 preflight (`docs/analysis/r25-release-size-preflight.md`) remains the
+structural precedent this document follows.
+
+Unless explicitly refreshed above, detailed line references and historical
+inventory statements remain relative to `ab19233` and are approximate where
+marked `~`.
 
 ---
 
