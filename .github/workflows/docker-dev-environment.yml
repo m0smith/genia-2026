@@ -27,6 +27,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           path: workspace/genia-2026
+          fetch-depth: 0
 
       - name: Check out genia-cpp
         uses: actions/checkout@v6
