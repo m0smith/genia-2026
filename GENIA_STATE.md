@@ -2149,6 +2149,14 @@ Behavior:
 
 ### Refs
 
+R25 portability status: the observable Ref behavior in this section is the
+approved portable contract for the ordinary opaque `refs` capability. The
+Python reference host implements it. The C++ host does not claim it until
+E25-1 passes the applicable R16 shared evidence. Lock/condition-variable type,
+host thread identity, fairness, wake latency, and thread count are realization
+details, not portable semantics. See
+`docs/design/r25-stateful-runtime-concurrency-contract.md`.
+
 - public ref helpers are thin prelude wrappers in `src/genia/std/prelude/ref.genia`
   - `ref([initial])`
   - `ref_get(ref)`
@@ -2168,6 +2176,12 @@ Behavior:
 - reads and writes are serialized through a single condition variable per ref
 
 ### Host-backed concurrency
+
+R25 portability status: the local Process/mailbox observations in this section
+are the approved portable contract for `process_primitives`. The Python
+reference host implements them. The C++ host does not claim them until E25-3
+passes applicable R16 shared evidence. Actor behavior remains Python-host-only
+and is excluded from R25; portable actors belong to R38.
 
 - public process helpers are thin prelude wrappers in `src/genia/std/prelude/process.genia`
   - `spawn(handler)`
@@ -2194,6 +2208,12 @@ Behavior:
 - there is no graceful shutdown — the daemon thread runs until it fails or the program exits
 
 ### Cell helpers (Phase 1, runtime-backed fail-stop)
+
+R25 portability status: the Cell observations in this section are the approved
+portable contract for the independently claimable `cell_primitives`
+capability. The Python reference host implements them. The C++ host does not
+claim them until E25-2 passes applicable R16 shared evidence. Cell's specific
+restart is not a general supervision policy and creates no Actor precedent.
 
 - public prelude helpers:
   - `cell(initial)`
