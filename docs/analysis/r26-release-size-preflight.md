@@ -44,7 +44,7 @@ different maturity levels, sharing a title:**
 | **REPL** | Essentially no portable contract | No shared-evidence route at all | — |
 | **Bytes/UTF-8** | Small and mostly contracted | Already partly consumed by R24 | — |
 | **Strict JSON** | Real, substantial portable contract | Strict-boundary evidence exists | Many unpinned details; several reference-host defects; partly consumed by R24 |
-| **ZIP** | Named, but not contracted | None | Documented surface contradicts the reference host; depends on Flow (an R27 surface); touches raw filesystem authority |
+| **ZIP** | Named, but not contracted | None | Split eager/Flow surfaces, raw filesystem authority, and unresolved archive semantics |
 
 Grouping the four under one release label and one capability name
 (`bytes_json_zip`) repeats the pattern the exact-numeric postmortem warned
@@ -60,8 +60,9 @@ There are three concrete problems:
    and the R16 runner cannot express a REPL case today.
 2. **ZIP is disproportionately different.** It has:
    - raw filesystem path authority;
-   - a Flow-returning read surface (`zip_read`), while Flow and pipe mode are
-     an explicit R26 non-goal;
+   - two different read surfaces: eager `zip_entries(path)` and lazy
+     Flow-returning `zip_read(path)`; the latter intersects R27 while the
+     former shows that ZIP is not categorically blocked on Flow;
    - archive and compression semantics that no contract fixes;
    - security and resource exhaustion questions (path traversal, archive
      bombs, duplicate names);
@@ -82,27 +83,28 @@ There are three concrete problems:
    It works only because **no shared case anywhere declares
    `requires: [bytes_json_zip]`**.
 
-**Verdict: RESTRUCTURE.**
+**Semantic verdict: SPLIT. Roadmap action for now: RESTRUCTURE without renumbering.**
 
-- Keep the `R26` number and position; renumber nothing.
+The REPL, portable data-boundary, and ZIP concerns are separate semantic
+tracks. That architectural split does not require assigning new release
+numbers today.
+
+- Keep the `R26` number and position for the data-boundary work; renumber nothing.
 - Re-scope R26's headline to **C++ Data Bridges: Bytes/UTF-8 and strict JSON**.
 - Deliver R26 as an explicit epic sequence, `E26-0` … `E26-6` (§12), gated
   on a first contract/evidence reconciliation step.
 - **Remove ZIP from R26.** Defer it to a later, contract-first placement
-  after R27 Flow and aligned with R35 resource semantics.
-- **Remove REPL from R26's completion gate.** Its preferred home is R33
-  (Developer Experience and Language Tooling). A fallback that keeps it
-  inside R26 as a separately claimed, non-blocking epic track is described
-  in §12.
+  whose design explicitly reconciles the eager `zip_entries` surface, the
+  Flow-based `zip_read`/Flow-input `zip_write` surface, and R35 resource
+  semantics.
+- **Remove REPL from R26's completion gate.** Treat it as a separate,
+  contract-first portability track. Its final roadmap home is deliberately
+  **TBD**; this preflight does not assign it to R33 or any new number.
 
-A numbered SPLIT is **not** recommended. The tracks are genuinely
-independent, but renumbering R27–R41 would disturb:
-
-- R28's existing issue set (#700–#707);
-- the settled R37–R41 sequence;
-
-and it would buy nothing that moving REPL and ZIP to *existing* releases
-does not already buy (§12, §15).
+A semantic SPLIT **is** recommended; a numbered split is not yet required.
+Renumbering R27–R41 would disturb R28's existing issue set (#700–#707) and
+the settled R37–R41 sequence. Preserve numbering until the maintainer makes
+a separate roadmap-placement decision for REPL and ZIP (§12, §15).
 
 ---
 
@@ -122,7 +124,7 @@ Every area the wording could reasonably reach, classified:
 
 | Area | Authoritative behavior (where) | Capability | Shared evidence | R24 overlap | Classification |
 |---|---|---|---|---|---|
-| **REPL loop** (start, submission, echo, error recovery, `:help`/`:env`/`:quit`) | Thin. `GENIA_STATE.md` ~L305-310 gives only the start-up line (mode selection). `GENIA_REPL_README.md` ~L773-779 (commands listed only), ~L847 (no automatic `main`), ~L438 (stdout/stderr split). `GENIA_STATE.md` ~L2918-2925 (absence display) | `repl` (optional; **no `capabilities.md` entry**) | **None.** `GENIA_STATE.md` ~L144: "REPL mode is not included in shared executable spec coverage." | None; explicitly out of R24 scope (`capability-floor.json`) | **Independent sibling track → should move to a later release (R33 preferred); contract/evidence gap** |
+| **REPL loop** (start, submission, echo, error recovery, `:help`/`:env`/`:quit`) | Thin. `GENIA_STATE.md` ~L305-310 gives only the start-up line (mode selection). `GENIA_REPL_README.md` ~L773-779 (commands listed only), ~L847 (no automatic `main`), ~L438 (stdout/stderr split). `GENIA_STATE.md` ~L2918-2925 (absence display) | `repl` (optional; **no `capabilities.md` entry**) | **None.** `GENIA_STATE.md` ~L144: "REPL mode is not included in shared executable spec coverage." | None; explicitly out of R24 scope (`capability-floor.json`) | **Independent sibling track; remove from R26; roadmap placement TBD; contract/evidence gap** |
 | **Bytes value** (opaque, structural equality, not a map key, `<bytes N>` display) | `GENIA_STATE.md` ~L708-711, ~L2363-2366, ~L3071; R18 contract (bytes → byte sequence; not keyable) | `bytes_json_zip` (bundled) | Equality only: 5 R18 cases, no `requires:`. Nothing on display or key rejection | **Yes, partly.** The bootstrap case `r18-structural-equality-bytes-and-lists.yaml` requires a C++ Bytes value and structural equality | **Partly completed by R24; remainder is definitely R26** |
 | **`utf8_encode`** | `GENIA_STATE.md` ~L3041-3042; R19 §3.2 | `bytes_json_zip` | `r19-unicode-utf8-encode-decode-roundtrip.yaml` plus the R18 cases | **Yes.** `GENIA_STATE.md` §0 records "native map_*/utf8_encode functions" (E24-3) | **Already completed by R24** (for well-formed input) |
 | **`utf8_decode`, strict** | `GENIA_STATE.md` ~L2508-2513 (R19 U2): message `utf8_decode invalid UTF-8 at byte offset N`, no U+FFFD replacement | `bytes_json_zip` | Round trip only. **No malformed-input case exists, and none can be written today**: Genia source has no way to build arbitrary bytes | Not listed as implemented in C++ | **Definitely R26; contract/evidence gap for malformed input** |
@@ -254,8 +256,11 @@ R24 (numeric JSON path, Bytes value, utf8_encode, Outcome, facets, diagnostics)
  │    input path)            └───────────────────────────────► compatibility JSON / JSONL
  │                                                              (after portability decision)
  │
- └─► R27 Flow ──► R35 resource/authority ──► ZIP (contract-first, later)
-                                              also needs Bytes/UTF-8 and, for entry_json, JSON
+ └─► ZIP (contract-first, later)
+       ├─► eager `zip_entries` path can exist without Flow
+       ├─► `zip_read` / Flow-input `zip_write` consume R27 Flow
+       └─► raw path authority must reconcile with R35 resource semantics
+           (also needs Bytes/UTF-8 and, for `entry_json`, JSON)
 ```
 
 **Independence claims:**
@@ -265,8 +270,12 @@ R24 (numeric JSON path, Bytes value, utf8_encode, Outcome, facets, diagnostics)
   consumes it.
 - Strict JSON decode and encode are separable. Encode needs no parser; decode
   needs no writer.
-- ZIP depends on tracks that come *after* R26 (Flow, resource authority), so
-  it cannot be completed honestly inside R26 as written.
+- ZIP is not categorically blocked on Flow because `zip_entries(path)` is
+  eager, but the current public ZIP family also includes Flow-based
+  `zip_read` and Flow-input `zip_write`, while all ZIP path authority remains
+  unreconciled with R35. Treating that mixed family as one R26 capability
+  would either narrow the public surface arbitrarily or pull later concerns
+  forward.
 
 **R25 independence, verified.** No R26 track consumes Ref, Cell, Process,
 threads, mailboxes or any R25 surface:
@@ -592,15 +601,19 @@ that.**
   (`examples/zip_json_puzzle.genia`) and no JSONL/CSV-in-ZIP workflow
   contract.
 - **Size:**
-  - **large inside R26**, because it cannot finish without R27;
-  - **release-threatening** if attempted anyway, because it would force
-    either pulling Flow into R26 or shipping a non-Flow ZIP that later
-    diverges from the reference host;
-  - once placed after R27 and aligned with R35, **medium**.
+  - **large inside R26**, because the current ZIP family mixes eager archive
+    access, Flow-based archive access, compression policy, raw path authority,
+    and an uncontracted failure/resource model;
+  - **release-threatening** if attempted as one R26 claim, because an
+    implementer must either narrow the public ZIP family, pull Flow concerns
+    forward, or let host/archive-library defaults define semantics;
+  - once separately contracted with its eager/Flow split and R35 authority
+    relationship explicit, **medium**.
 
 **Recommendation:** remove ZIP from R26 entirely. Record it as a
-contract-first candidate that consumes R27 Flow and R35 resource authority.
-Placement (for example, a later R35 follow-up) is a separate roadmap decision.
+contract-first candidate whose eventual placement explicitly accounts for
+R27 Flow where applicable and R35 resource authority. The exact roadmap home
+is a separate decision.
 
 In the meantime, the reference-host documentation contradictions
 (`zip_write` argument order, error classes, misfiled entry) are worth a
@@ -687,9 +700,9 @@ repair.
 
 ## 12) Recommended decomposition
 
-**Verdict: RESTRUCTURE.**
+**Semantic verdict: SPLIT. Roadmap action for now: RESTRUCTURE without renumbering.**
 
-- Keep `R26` as the umbrella, with its number and position.
+- Keep `R26` as the data-boundary release, with its number and position.
 - Narrow its headline claim to **"The C++ host provides the portable
   Bytes/UTF-8 and strict JSON data boundaries with evidence-backed capability
   claims."**
@@ -743,34 +756,35 @@ repair.
   Flow, `resource_io`) is re-gated or replaced. It is never implemented
   "while we're here."
 
-**Extracted tracks (no renumbering):**
+**Extracted tracks (no renumbering yet):**
 
-- **REPL.** Preferred home is **R33 — Developer Experience and Language
-  Tooling**. There, the REPL contract (submission unit, echo rule including
-  `none` display, error recovery and exit code, commands, stdin/argv inside
-  the REPL, EOF and interrupt) and the R16 evidence route (scripted-stdin CLI
-  case gated by `requires: [repl]`) are designed first. C++ and Python then
-  realize it.
-  - *Fallback,* if the maintainer wants a C++ REPL before R33: keep a
-    separately claimed **E26-R0 (REPL contract plus evidence route) → E26-R1
-    (C++ REPL)** track under the R26 umbrella. It must be explicitly
-    **non-blocking** for R26 data-bridge completion, audited on its own, and
-    must not start E26-R1 before E26-R0 lands.
-- **ZIP.** Remove it from R26. Record it as a contract-first candidate after
-  R27 (Flow) and aligned with R35 (resource/authority), with its own
-  dependency-policy review for compression. Placement is a later roadmap
-  decision.
+- **REPL.** Remove it from R26's completion gate and treat it as a separate
+  portability track. Its final numbered home is **TBD**. Before any C++ REPL
+  implementation, define the REPL contract (submission unit, echo rule
+  including `none` display, error recovery and exit code, commands,
+  stdin/argv inside the REPL, EOF and interrupt) and add an R16 evidence route
+  (for example, scripted-stdin CLI evidence gated by `requires: [repl]`).
+  A later roadmap decision can place that track in R33, a small standalone
+  release, or another justified slot; this preflight intentionally does not
+  decide that placement.
+- **ZIP.** Remove it from R26. Record it as a contract-first candidate that
+  explicitly separates eager `zip_entries` from Flow-based `zip_read` /
+  Flow-input `zip_write`, reconciles raw path authority with R35, and performs
+  its own dependency-policy review for compression. Placement is a later
+  roadmap decision.
 - **`json_schema`.** Out of R26. It follows whichever future release brings
   Templates to C++.
 
-**Why not SPLIT into numbered releases:**
+**Why semantic SPLIT does not require immediate renumbering:**
 
-- Splitting REPL and ZIP into their own numbers would push R27–R41 by one or
-  two. That churns R28's existing issue set (#700–#707, E28-*) and the
-  settled R37–R41 sequence.
-- Both extracted tracks already have natural homes in existing releases (R33;
-  post-R27/R35).
-- Hypothetical SPLIT shape, for the record only:
+- REPL, the portable data boundary, and ZIP are independent semantic tracks,
+  so the architecture is a split.
+- Assigning new numbers today would push R27–R41 and churn R28's existing
+  issue set (#700–#707, E28-*), before REPL's eventual home has even been
+  decided.
+- Therefore keep numbering stable now and make placement a separate roadmap
+  decision after this analysis is accepted.
+- A hypothetical numbered SPLIT shape, for the record only:
   - R26 = data bridges;
   - R27 = C++ REPL;
   - R28 = Flow, pipe mode, HTTP (former R27);
@@ -868,11 +882,11 @@ This preflight does not, and R26 planning built on it must not:
   The same exposure may already affect R24's own completion gate ("every
   applicable shared case in the declared minimal capability set"). That is
   flagged for the R24 audit, not acted on here.
-- **Moving REPL to R33:** R33 grows by one contract-first track. This is
-  mitigated because REPL fits R33's theme and is small once contracted.
-
-  Regret if a C++ REPL is needed earlier: the §12 fallback keeps that path
-  open without blocking R26.
+- **Prematurely assigning REPL to R33:** R33 currently focuses on formatter,
+  editor diagnostics, navigation and related tooling; it does not yet claim
+  REPL portability. Assigning REPL there in this preflight would turn an
+  adjacency into a roadmap decision. Keep placement TBD until separately
+  approved.
 - **Deferring ZIP:** the Python-only ZIP example stays Python-only for
   longer. This is low regret given its killer-workflow weight and its current
   documentation contradictions.
@@ -912,7 +926,7 @@ This preflight does not, and R26 planning built on it must not:
 5. **Malformed-UTF-8 evidence route:** byte-construction surface, a
    `resource_io` fixture, or an explicitly narrowed claim. Also pin the
    offset semantics.
-6. **REPL contract, for R33 or the fallback E26-R0:**
+6. **REPL contract, for its later separately approved roadmap home:**
    - submission unit;
    - echo rule;
    - error recovery and exit code;
@@ -921,7 +935,7 @@ This preflight does not, and R26 planning built on it must not:
    - EOF and interrupt;
    - the `print` return-value contradiction;
    - the R16 scripted-session case shape plus the loader/adapter changes.
-7. **ZIP contract, contract-first, post-R27:**
+7. **ZIP contract, contract-first, with R27/R35 relationships explicit:**
    - entry names and traversal;
    - duplicates;
    - directories;
@@ -971,7 +985,8 @@ published-doc synchronization is required.
 - a small Bytes/UTF-8 remainder;
 - a well-contracted but detail-heavy strict JSON boundary with live
   reference-host defects;
-- an uncontracted, Flow-dependent, filesystem-authority ZIP bridge.
+- an uncontracted ZIP family spanning eager and Flow-based access plus raw
+  filesystem authority.
 
 These share a title and one fused capability name, not dependencies, failure
 models or evidence.
@@ -987,7 +1002,9 @@ have:
 1. **Two tracks would set portable semantics by C++ precedent:**
    - REPL echo, continuation and error recovery;
    - ZIP archive behavior.
-2. **One track cannot finish inside the release.** ZIP needs R27's Flow.
+2. **One track spans later concerns.** ZIP has an eager `zip_entries` path,
+   but the same public family also includes Flow-based `zip_read` / Flow-input
+   `zip_write` and raw path authority that must reconcile with R35.
 3. **Its only capability name gates nothing.** Every "evidence-backed
    capability claim" R26 promises would be unfalsifiable until the vocabulary
    is fixed.
@@ -999,6 +1016,7 @@ roadmap does not record that overlap.
 
 - keep R26 as a medium, epic-sequenced **Bytes/UTF-8 plus strict JSON**
   release, gated on an E26-0 contract/evidence reconciliation;
-- re-home REPL to R33, or run it as a non-blocking, contract-first fallback
-  track;
-- defer ZIP to a contract-first slot after R27 and aligned with R35.
+- remove REPL from R26 and leave its final roadmap home TBD pending a
+  separate contract/placement decision;
+- defer ZIP to a contract-first slot whose eventual placement explicitly
+  accounts for its eager/Flow split and R35 authority model.
