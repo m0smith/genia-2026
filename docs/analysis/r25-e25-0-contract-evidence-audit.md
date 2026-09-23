@@ -87,4 +87,3 @@ semantic defect was found.
 **PASS.** E25-0 resolves the causal-evidence ambiguity with the smallest R16
 extension, Python passes the new host-neutral evidence, Actor remains excluded,
 and no document claims C++ support. E25-1 may begin after issue #1001 is merged.
-

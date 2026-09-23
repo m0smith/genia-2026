@@ -158,4 +158,3 @@ fixed-point nested-send handling, and deterministic repeated evidence. The
 skeptical audit searches specifically for polling, missed in-flight work,
 registry lifetime leaks, fixture exposure, capability bypass, and any claim of
 C++ support.
-
