@@ -1,0 +1,25 @@
+name: r25-process-fifo-fail-stop
+category: eval
+description: Local Process handles FIFO messages serially and then remains failed.
+requires: [process_primitives, refs]
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    log = ref([])
+    handle("boom") = 1 / 0
+    handle(msg) = ref_update(log, (xs) -> append(xs, [msg]))
+    p = spawn(handle)
+    send(p, 1)
+    send(p, 2)
+    send(p, "boom")
+    send(p, 3)
+    _r25_await_idle()
+    [ref_get(log), process_failed?(p), process_alive?(p), some?(process_error(p))]
+expected:
+  stdout: '[[1, 2], true, false, true]\n'
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1001
+  release: R25 E25-0
+  contract: docs/design/r25-stateful-runtime-concurrency-contract.md section 6

@@ -1,0 +1,28 @@
+name: r25-cell-nested-send-transaction
+category: eval
+description: Nested Cell sends commit on outer success and discard on outer failure.
+requires: [cell_primitives]
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    target = cell(10)
+    committed = cell(0)
+    discarded = cell(0)
+    cell_send(committed, (x) -> {
+      cell_send(target, (n) -> n + 5)
+      x + 1
+    })
+    cell_send(discarded, (x) -> {
+      cell_send(target, (n) -> n + 100)
+      1 / 0
+    })
+    _r25_await_idle()
+    [cell_get(committed), cell_get(target), cell_failed?(discarded)]
+expected:
+  stdout: "[1, 15, true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1001
+  release: R25 E25-0
+  contract: docs/design/r25-stateful-runtime-concurrency-contract.md section 5.2

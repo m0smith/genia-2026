@@ -107,6 +107,18 @@ def test_build_host_request_returns_none_for_fixture_bearing_case() -> None:
     assert build_host_request(spec) is None
 
 
+def test_build_host_request_forwards_r25_concurrency_fixture() -> None:
+    spec = _spec("ok", fixtures=("r25_concurrency",))
+    request = build_host_request(spec)
+    assert request["operation"] == "eval"
+    assert request["input"] == {
+        "source": "hello",
+        "stdin": None,
+        "argv": None,
+        "fixtures": ["r25_concurrency"],
+    }
+
+
 def test_build_host_request_returns_none_for_debug_stdio_case() -> None:
     spec = _spec("ok", category="cli", command="1 + 1", debug_stdio=True)
     assert build_host_request(spec) is None
