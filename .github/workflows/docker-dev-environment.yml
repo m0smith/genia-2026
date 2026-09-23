@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - infra/docker-dev-environment
+  pull_request:
+    paths:
+      - "docker/**"
+      - ".dockerignore"
+      - ".github/workflows/docker-dev-environment.yml"
+      - "docs/architecture/development-container.md"
+      - "README.md"
   workflow_dispatch:
 
 permissions:
