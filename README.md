@@ -92,6 +92,13 @@ Genia changes must follow the workflow in:
 
 Do not use one-shot implementation prompts for behavior changes.
 
+### Containerized development and conformance
+
+A Docker development image is available for reproducible Python/C++ build and
+multi-host conformance work without installing the full toolchain on the host.
+It is development infrastructure only; it does not define Genia deployment or
+runtime semantics. See [Containerized Development and Conformance Environment](docs/architecture/development-container.md).
+
 ## Host Portability & Spec Contract
 
 **LANGUAGE CONTRACT:**
