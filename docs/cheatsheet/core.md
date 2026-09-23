@@ -246,7 +246,8 @@ Error: format missing field: name
 
 ## Randomness
 
-Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
+Portable R25 `refs` contract, currently implemented and shared-evidenced by the
+Python reference host. C++ support is pending E25-1.
 
 | Helper | Shape |
 | --- | --- |
@@ -301,7 +302,8 @@ Classification: **Valid** (directly tested)
 
 ## Refs
 
-Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
+Portable local R25 `process_primitives` contract, currently implemented and
+shared-evidenced by Python. C++ support is pending E25-3. This is not Actor.
 
 | Helper | Shape |
 | --- | --- |
@@ -314,7 +316,8 @@ Python-host-only runtime helpers in the current reference host; not part of the 
 
 ## Processes
 
-Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
+Portable R25 `cell_primitives` contract, currently implemented and
+shared-evidenced by Python. C++ support is pending E25-2.
 
 | Helper | Shape |
 | --- | --- |

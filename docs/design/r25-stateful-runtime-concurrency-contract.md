@@ -129,6 +129,7 @@ mutation.
 older generations, and ensures a worker realization is available. Work already
 executing from an older generation may finish its callable, but none of its
 state or staged-send effects may commit after restart.
+It returns the same Cell handle.
 
 `cell_stop` marks the Cell stopped immediately, rejects later sends, drains
 already accepted updates in the current generation, then ends its worker
@@ -202,4 +203,3 @@ support. E25-1 through E25-3 update host support only after external-host
 evidence passes. E25-5 synchronizes `GENIA_STATE.md`, rules, REPL/README,
 host-interop docs, capability matrix, roadmap, semantic guards where useful,
 and `docs/releases/R25.md` with the exact implemented floor.
-

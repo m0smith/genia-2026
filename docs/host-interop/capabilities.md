@@ -372,11 +372,13 @@ section immediately below) and from the shell pipeline stage `$(...)`
 
 ### Group: Process / Mailbox
 
-**Status:** Python-host-only — host-thread process model only; not part of the shared portable contract.
+**Status:** Portable R25 contract; implemented and shared-evidenced by the Python
+reference host. C++ remains unsupported until E25-3.
 
 **Guarantees:** Each process has a FIFO mailbox; one handler invocation runs at a time per process. Processes are fail-stop: an unhandled exception in the handler exits the worker, caches an error string, and causes subsequent `send` calls to raise.
 
-**Not Guaranteed:** Preemption, distributed messaging, process supervision trees, cross-host portability, or any scheduling fairness guarantee in the current phase.
+**Not Guaranteed:** Preemption, distributed messaging, process supervision trees,
+mailbox capacity/backpressure, thread identity/count, or scheduling fairness.
 
 Host-backed concurrency substrate. Processes are fail-stop: handler exceptions cache an error string, exit the worker, and cause future `send` calls to raise.
 
@@ -388,7 +390,7 @@ Host-backed concurrency substrate. Processes are fail-stop: handler exceptions c
 - **output:** opaque Process handle value
 - **errors:**
   - `TypeError` — when `handler` is not callable
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25; Python implemented/evidenced, C++ pending E25-3)
 - **notes:** Creates a host-thread worker with a FIFO mailbox. One handler invocation runs at a time per process.
 
 #### `process.send`
@@ -399,7 +401,7 @@ Host-backed concurrency substrate. Processes are fail-stop: handler exceptions c
 - **output:** `none("nil")` (side effect: message enqueued in process mailbox)
 - **errors:**
   - `RuntimeError` — when the target process has already failed
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25; Python implemented/evidenced, C++ pending E25-3)
 - **notes:** Mailbox is FIFO per process. Messages are delivered in the order sent.
 
 #### `process.alive`
@@ -409,7 +411,7 @@ Host-backed concurrency substrate. Processes are fail-stop: handler exceptions c
 - **input:** `process` — Process handle value
 - **output:** Boolean
 - **errors:** none defined
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25; Python implemented/evidenced, C++ pending E25-3)
 
 #### `process.failed`
 
@@ -418,7 +420,7 @@ Host-backed concurrency substrate. Processes are fail-stop: handler exceptions c
 - **input:** `process` — Process handle value
 - **output:** Boolean
 - **errors:** none defined
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25; Python implemented/evidenced, C++ pending E25-3)
 
 #### `process.error`
 
@@ -427,17 +429,21 @@ Host-backed concurrency substrate. Processes are fail-stop: handler exceptions c
 - **input:** `process` — Process handle value
 - **output:** `some(error_string)` when the process has failed; `none("nil")` otherwise
 - **errors:** none defined
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25; Python implemented/evidenced, C++ pending E25-3)
 
 ---
 
 ### Group: Refs / Cells
 
-**Status:** Python-host-only — host-backed synchronized primitives only; not part of the shared portable contract.
+**Status:** Portable R25 contracts with independent `refs` and
+`cell_primitives` gates; implemented and shared-evidenced by Python. C++
+remains unsupported until E25-1/E25-2 respectively.
 
 **Guarantees:** `ref_get`, `ref_set`, and `ref_update` are individually synchronized (host-lock-protected). `cell_send` updates are serialized one at a time; failed updates preserve the last successful state and mark the cell failed.
 
-**Not Guaranteed:** Atomicity across multiple ref operations, cross-cell update ordering, distributed state, cell supervision, or portability to non-Python hosts in the current phase.
+**Not Guaranteed:** Atomicity across multiple Ref operations, cross-Cell order,
+distributed state, general supervision, host thread/lock/queue identity,
+fairness, or wake-latency bounds.
 
 Host-backed synchronized state substrate.
 
@@ -448,7 +454,7 @@ Host-backed synchronized state substrate.
 - **input:** `initial_value` — any Genia value
 - **output:** opaque Ref value
 - **errors:** none defined
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `refs`; Python implemented/evidenced, C++ pending E25-1)
 - **notes:** Refs are synchronized host objects. The opaque Ref value is not a plain Genia data type.
 
 #### `ref.get`
@@ -459,28 +465,28 @@ Host-backed synchronized state substrate.
 - **output:** the current stored Genia value
 - **errors:**
   - `TypeError` — when the argument is not a Ref value
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `refs`; Python implemented/evidenced, C++ pending E25-1)
 
 #### `ref.set`
 
 - **name:** `ref.set`
 - **genia_surface:** `ref_set(ref_value, new_value)`
 - **input:** `ref_value` — Ref value; `new_value` — any Genia value
-- **output:** `none("nil")` (side effect: stored value updated)
+- **output:** the exact installed value
 - **errors:**
   - `TypeError` — when the first argument is not a Ref value
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `refs`; Python implemented/evidenced, C++ pending E25-1)
 
 #### `ref.update`
 
 - **name:** `ref.update`
 - **genia_surface:** `ref_update(ref_value, f)`
 - **input:** `ref_value` — Ref value; `f` — Function with shape `(current_value) -> new_value`
-- **output:** `none("nil")` (side effect: stored value replaced by `f(current_value)`)
+- **output:** the exact replacement returned by `f(current_value)`
 - **errors:**
   - `TypeError` — when the first argument is not a Ref value
   - `TypeError` — when `f` is not callable
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `refs`; Python implemented/evidenced, C++ pending E25-1)
 
 #### `cell.create`
 
@@ -489,7 +495,7 @@ Host-backed synchronized state substrate.
 - **input:** `initial_state` — any Genia value (for `cell`); `ref_value` — Ref value (for `cell_with_state`)
 - **output:** opaque Cell value
 - **errors:** none defined
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `cell_primitives`; Python implemented/evidenced, C++ pending E25-2)
 - **notes:** Cells queue asynchronous updates serialized one at a time. Cells are fail-stop: failed updates preserve the last successful state, cache an error string, and mark the cell failed.
 
 #### `cell.send`
@@ -500,7 +506,7 @@ Host-backed synchronized state substrate.
 - **output:** `none("nil")` (update is asynchronous; side effect: update enqueued)
 - **errors:**
   - `RuntimeError` — when the cell has already failed
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `cell_primitives`; Python implemented/evidenced, C++ pending E25-2)
 - **notes:** Failed updates preserve the last successful state. Nested `cell_send` calls issued during an update are staged and committed only if that update succeeds.
 
 #### `cell.get`
@@ -511,16 +517,16 @@ Host-backed synchronized state substrate.
 - **output:** the last successful state Genia value
 - **errors:**
   - `RuntimeError` — when the cell has already failed
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `cell_primitives`; Python implemented/evidenced, C++ pending E25-2)
 
 #### `cell.restart`
 
 - **name:** `cell.restart`
 - **genia_surface:** `restart_cell(cell, new_state)`
 - **input:** `cell` — Cell value; `new_state` — any Genia value
-- **output:** `none("nil")` (side effect: failure cleared, state replaced, queued pre-restart updates discarded)
+- **output:** the same Cell handle after failure/stopped state is cleared, state is replaced, and queued pre-restart updates are discarded
 - **errors:** none defined
-- **portability:** `Python-host-only`
+- **portability:** `language contract` (R25 `cell_primitives`; Python implemented/evidenced, C++ pending E25-2)
 
 ---
 
