@@ -1,0 +1,33 @@
+FROM python:3.14.7-trixie@sha256:f04eecb42959a44a0e5c99c725f16710bcd62c6e457fe3c5c3efec6709056683
+
+ARG UV_VERSION=0.12.18
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HOME=/tmp/genia-home \
+    UV_CACHE_DIR=/tmp/uv-cache \
+    CC=clang \
+    CXX=clang++
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        clang-22 \
+        clang-format-22 \
+        clang-tidy-22 \
+        cmake \
+        git \
+        ninja-build \
+    && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 220 \
+    && update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 220 \
+    && update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-22 220 \
+    && update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-22 220 \
+    && python -m pip install --no-cache-dir "uv==${UV_VERSION}" \
+    && mkdir -p "${HOME}" "${UV_CACHE_DIR}" \
+    && chmod 1777 "${HOME}" "${UV_CACHE_DIR}" \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+CMD ["bash"]
