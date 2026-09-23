@@ -302,8 +302,8 @@ Classification: **Valid** (directly tested)
 
 ## Refs
 
-Portable local R25 `process_primitives` contract, currently implemented and
-shared-evidenced by Python. C++ support is pending E25-3. This is not Actor.
+Portable R25 `refs` contract, currently implemented and shared-evidenced by the
+Python reference host. C++ support is pending E25-1.
 
 | Helper | Shape |
 | --- | --- |
@@ -316,8 +316,8 @@ shared-evidenced by Python. C++ support is pending E25-3. This is not Actor.
 
 ## Processes
 
-Portable R25 `cell_primitives` contract, currently implemented and
-shared-evidenced by Python. C++ support is pending E25-2.
+Portable local R25 `process_primitives` contract, currently implemented and
+shared-evidenced by Python. C++ support is pending E25-3. This is not Actor.
 
 | Helper | Shape |
 | --- | --- |
@@ -329,7 +329,8 @@ FIFO mailbox, one handler call at a time. Handler exceptions enter fail-stop sta
 
 ## Cells
 
-Python-host-only runtime helpers in the current reference host; not part of the shared portability contract.
+Portable R25 `cell_primitives` contract, currently implemented and
+shared-evidenced by Python. C++ support is pending E25-2.
 
 | Helper | Shape |
 | --- | --- |
