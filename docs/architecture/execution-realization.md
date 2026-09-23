@@ -68,6 +68,76 @@ host / transport / infrastructure capabilities
 
 Infrastructure details must not become the definition of Genia semantics.
 
+## Composition as Inspectable Structure
+
+Logical composition should remain distinct from execution realization.
+
+Ordinary Genia pipelines must stay lightweight and preserve their existing value,
+Flow/Seq, Outcome, and lifecycle semantics. Future designs may additionally need
+an **inspectable representation of composition** when tooling, placement,
+parallelism, tracing, actors, or distributed execution require reasoning about
+the work before it runs.
+
+The architectural direction is:
+
+```text
+pipeline / ordinary composition
+        |
+        v
+logical composition structure, when explicitly materialized
+        |
+        v
+execution realization
+```
+
+This does **not** mean every `|>` expression becomes a heavyweight workflow
+graph or runtime object. Materialization must be explicit or otherwise narrowly
+defined by a future contract.
+
+Future composition participants should satisfy small semantic contracts rather
+than inherit from a host-language base class. A participant may be an ordinary
+callable, Flow/Seq transformation, validation step, model operation, future
+execution unit, or future actor-facing stage when its contract permits.
+
+Sequential composition and future fan-out/fan-in should preserve existing Genia
+abstractions:
+
+- `|>` remains the canonical pipeline syntax; do not introduce a second pipe
+  merely to model executable graphs.
+- ordinary maps/lists remain ordinary values; appearing after a pipeline stage
+  must not implicitly make a map mean parallel execution.
+- fan-out or parallel composition, if promoted, must be explicit and must define
+  result ordering, failure/Outcome behavior, bounded demand, cancellation,
+  lifecycle ownership, and placement requirements.
+- Flow/Seq remains the ordered-stream abstraction rather than being replaced by
+  a graph-stream type.
+- Outcome remains the value-level presence/absence/failure model rather than
+  being replaced by graph-specific result wrappers.
+- R14 lifecycle remains the surrounding resource/cleanup model rather than
+  callbacks or tracing hooks becoming a second lifecycle system.
+- provider placement or transport must not change the logical business
+  transformation merely because a stage runs locally, in another process, on a
+  worker, or through a future actor provider.
+- Core IR/shared contracts remain the portability boundary; Python/C++/future
+  hosts must not invent different composition semantics.
+
+The motivating lesson from systems that model executable chains as reusable
+objects is not operator overloading. It is that **computation can be represented
+as composable structure so execution policy can vary independently**.
+
+That structure may later support inspection and tooling questions such as:
+
+- what stages exist and in what dependency order?
+- what values/templates each stage consumes or produces?
+- where Outcomes, capabilities, effects, or lifecycle scopes appear?
+- which independent branches may run concurrently?
+- which stages require order or bounded demand?
+- which work may cross a process/provider boundary?
+- which actor/event/execution adapters participate without changing the logical
+  computation?
+
+Any such introspection remains future work until explicitly contracted.
+
 ## Semantic Transparency, Not Infrastructure Transparency
 
 Genia must not pretend unlike systems are identical.
