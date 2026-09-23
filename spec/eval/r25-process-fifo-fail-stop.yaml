@@ -6,8 +6,9 @@ input:
   fixtures: [r25_concurrency]
   source: |
     log = ref([])
-    handle("boom") = 1 / 0
-    handle(msg) = ref_update(log, (xs) -> append(xs, [msg]))
+    handle(msg) =
+      "boom" -> 1 / 0 |
+      value -> ref_update(log, (xs) -> append(xs, [value]))
     p = spawn(handle)
     send(p, 1)
     send(p, 2)
@@ -16,7 +17,7 @@ input:
     _r25_await_idle()
     [ref_get(log), process_failed?(p), process_alive?(p), some?(process_error(p))]
 expected:
-  stdout: '[[1, 2], true, false, true]\n'
+  stdout: "[[1, 2], true, false, true]\n"
   stderr: ""
   exit_code: 0
 notes: |

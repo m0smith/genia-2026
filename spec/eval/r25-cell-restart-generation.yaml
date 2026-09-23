@@ -16,7 +16,7 @@ input:
     _r25_await_idle()
     [ref_get(state), cell_failed?(c), cell_status(c)]
 expected:
-  stdout: '[11, false, "ready"]\n'
+  stdout: "[11, false, \"ready\"]\n"
   stderr: ""
   exit_code: 0
 notes: |

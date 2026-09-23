@@ -67,7 +67,7 @@ def build_host_request(spec: LoadedSpec) -> dict[str, Any] | None:
     """Build the E16-1 request for one spec case, or ``None`` when the case
     is not yet expressible over the generic protocol (see
     ``_UNSUPPORTED_LOCAL_CAPABILITY_REASON``)."""
-    if spec.fixtures or spec.debug_stdio:
+    if (spec.fixtures and spec.fixtures != ("r25_concurrency",)) or spec.debug_stdio:
         return None
 
     operation = _OPERATION_BY_CATEGORY[spec.category]
@@ -75,6 +75,8 @@ def build_host_request(spec: LoadedSpec) -> dict[str, Any] | None:
         input_payload: dict[str, Any] = {"source": spec.source}
     elif operation == "eval":
         input_payload = {"source": spec.source, "stdin": spec.stdin or None, "argv": None}
+        if spec.fixtures:
+            input_payload["fixtures"] = list(spec.fixtures)
         if spec.module_entry is not None:
             input_payload["modules"] = {
                 "entry": spec.module_entry,

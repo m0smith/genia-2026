@@ -154,12 +154,12 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
         if (
             not isinstance(fixtures, list)
             or not all(isinstance(item, str) for item in fixtures)
-            or any(item not in {"r11_model", "r12_grounded"} for item in fixtures)
+            or any(item not in {"r11_model", "r12_grounded", "r25_concurrency"} for item in fixtures)
             or len(set(fixtures)) != len(fixtures)
         ):
             raise ValueError(
                 "input.fixtures must be a unique list containing only "
-                "r11_model or r12_grounded"
+                "r11_model, r12_grounded, or r25_concurrency"
             )
         if category not in ("flow", "cli"):
             return

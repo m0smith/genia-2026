@@ -14,7 +14,7 @@ input:
     _r25_await_idle()
     [ref_get(state), cell_failed?(c), cell_status(c), some?(cell_error(c))]
 expected:
-  stdout: '[36, true, "failed", true]\n'
+  stdout: "[36, true, \"failed\", true]\n"
   stderr: ""
   exit_code: 0
 notes: |

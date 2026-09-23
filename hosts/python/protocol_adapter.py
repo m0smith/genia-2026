@@ -52,6 +52,7 @@ def _spec_for_operation(operation: str, input_payload: dict[str, Any]) -> Simple
     if operation == "lower":
         return SimpleNamespace(category="ir", source=input_payload["source"])
     if operation == "eval":
+        fixtures = tuple(input_payload.get("fixtures", ()))
         modules = input_payload.get("modules")
         module_files = () if modules is None else tuple(
             (item["path"], item["source"]) for item in modules["files"]
@@ -60,7 +61,7 @@ def _spec_for_operation(operation: str, input_payload: dict[str, Any]) -> Simple
             category="eval",
             source=input_payload["source"],
             stdin=input_payload.get("stdin") or "",
-            fixtures=(),
+            fixtures=fixtures,
             module_entry=None if modules is None else modules["entry"],
             module_files=module_files,
         )
