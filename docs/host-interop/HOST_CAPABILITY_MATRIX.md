@@ -7,8 +7,8 @@ Status legend:
 - `Scaffolded` = docs/placeholder layout exists, but no host implementation yet
 - `Planned` = intended future work only
 
-Python is the only implemented host today.
-All other hosts below are placeholders for planned work.
+Python is the full-language reference host. C++ is the bounded R24 production
+host; all other hosts below are placeholders for planned work.
 `hosts/python/` is also a placeholder directory for the future monorepo layout; the live Python implementation remains in `src/genia/`.
 
 For the formal per-capability contract (name, Genia surface, input/output shapes, normalized error behavior, and portability status), see `capabilities.md`.
@@ -33,12 +33,12 @@ Browser playground adapter note:
 
 | Capability | Python | Node.js | Java | Rust | Go | C++ | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| parser | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python parser/lowering live in `src/genia/interpreter.py` today |
-| AST lowering | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Core IR lowering is part of current Python host |
-| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
-| Core IR eval | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python is the current semantic reference host |
-| CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `genia path/to/file.genia` |
-| `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | command mode |
+| parser | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Python parser/lowering live in `src/genia/interpreter.py`; C++ supports its declared floor |
+| AST lowering | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Both lower through the portable Core IR boundary |
+| minimal portable Core IR contract | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (R24 subset) | Frozen in `docs/architecture/core-ir-portability.md`; host-local optimized nodes are excluded |
+| Core IR eval | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial (R24 floor) | Python remains the full semantic reference host |
+| CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | `genia path/to/file.genia` |
+| `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
 | `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | pipe mode |
 | REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python REPL only today |
 | Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | lazy pull-based single-use Flow |
@@ -58,10 +58,10 @@ Browser playground adapter note:
 | resource-io | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `fs` backend only; `import resource as res`; ResourceRef `{uri, backend}` pattern |
 | allowlisted host interop | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | current Python host exposes only `python` / `python.json` with explicit conversion rules |
 | debugger stdio | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python debug adapter mode documented today |
-| prelude autoload | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | public stdlib surface is prelude-centered |
+| prelude autoload | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial (bounded R24 prelude) | public stdlib surface is prelude-centered |
 | doc/help support | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | `help()` / `help("name")` in Python host |
-| shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | implemented runner with active eval, ir, cli, flow, error, and parse shared case coverage against the Python reference host |
+| shared spec runner support | Partial | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial | generic runner evidence covers the declared R24 floor; pinned totals are in `docs/releases/R24.md` |
 | shell pipeline stage `$(...)` | Python-host-only | N/A | N/A | N/A | N/A | N/A | Python-host-only; not part of portable Core IR |
 | external process execution `execution.process` | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Portable semantic contract (`docs/design/execution-process-contract.md`), implemented only by the Python reference host today. Registered as `execution_process` in `spec/manifest.json`'s `optional_capabilities` (self-declared `supported` by the Python protocol adapter, matching `shell_stage`/`debugger_stdio`'s existing name-only registration precedent); no shared-spec case requires it yet, since no host-neutral capability-provisioning fixture mechanism exists — see `docs/host-interop/capabilities.md`'s entry for the runtime-implementation-vs-conformance-evidence distinction. Distinct from `$(...)`: structured argv, no shell, no `PATH` search. See `GENIA_STATE.md` section 9.40. |
-| open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | R20 local open-clause dispatch and explicit cross-module contribution/linking (`open`/`extend`/`use ... from ... with ...`); Core IR nodes `IrOpenFuncDef`/`IrOpenContribution`/`IrOpenUse`; a host without this capability must report it unsupported rather than silently pass R20 shared cases |
+| open functions (R20) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented (local only) | C++ supports the R24 local grouped/repeated evidence; cross-module contribution remains gated by unsupported `multi_file_eval` |
 | multi-file eval fixture (R16/#836) | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Optional protocol-v1 `eval.input.modules` transport, advertised as `multi_file_eval`; independent of `open_functions`, and never sent to a host that does not claim it supported |

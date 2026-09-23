@@ -1,6 +1,7 @@
 # Python Host
 
-Python is the only implemented host today.
+Python is the full-language reference host. C++ is implemented externally in
+`m0smith/genia-cpp` for the bounded R24 floor.
 
 Python host status:
 

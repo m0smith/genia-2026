@@ -55,7 +55,11 @@ nav:
       - "R17 — Numeric and Ordered-Map Portability Contract": releases/R17.md
       - "R18 — Portable Value Equality": releases/R18.md
       - "R19 — Unicode and Diagnostic Portability": releases/R19.md
+      - "R20 — Open Functions and Extensible Pattern Dispatch": releases/R20.md
       - "R21 — Numeric Source and Portable Representation": releases/R21.md
+      - "R22 — Exact Numeric Runtime": releases/R22.md
+      - "R23 — Numeric Representation and Interchange": releases/R23.md
+      - "R24 — C++ Minimal Conforming Host": releases/R24.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md

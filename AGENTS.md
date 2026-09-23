@@ -351,6 +351,18 @@ public NaN payload/sign construction semantics, no locale-sensitive
 formatting, no new general formatting language, and no C++ host
 implementation.
 
+**R24 — C++ Minimal Conforming Host is complete (E24-1 through E24-8).**
+The production implementation lives in `m0smith/genia-cpp` and remains
+subordinate to this repository's semantic authority. Its deliberately bounded
+floor declares parser/AST lowering, command/file CLI, and local open functions
+supported; Core IR evaluation, bounded prelude autoload, and shared-runner
+participation remain partial. Pinned evidence at
+`a2229cb9b079a379a5eeae76a618fe69a2bd6daa` records `755 total / 141 pass /
+614 unsupported` with every failure-class count zero. This is a genuine second
+production host, not Python feature parity. R25 and later behavior is not
+implemented by R24 and must not be inferred from roadmap placement. See
+`docs/releases/R24.md` and `docs/analysis/r24-release-truth-audit.md`.
+
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
 

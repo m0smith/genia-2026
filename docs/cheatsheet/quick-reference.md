@@ -1,4 +1,4 @@
-# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active shared semantic spec categories: parse, ir, eval, cli, flow, error. Coverage is partial and experimental; Python is the only implemented host. See GENIA_STATE.md for authoritative status.
+# Note: Examples in this cheatsheet are validated by the Semantic Spec System where covered. Active shared semantic spec categories: parse, ir, eval, cli, flow, error. Coverage is partial and experimental; Python is the full-language reference host and C++ is the bounded R24 production host. See GENIA_STATE.md for authoritative status.
 # Genia Quick Reference
 
 Implemented features only.

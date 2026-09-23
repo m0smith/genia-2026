@@ -67,14 +67,14 @@ candidate; scope and guardrails live in [`roadmap/parking-lot.md`](roadmap/parki
 
 ## Current state
 
-R15 through R23 are complete (`docs/releases/R23.md`; E23-11's third,
+R15 through R24 are complete (`docs/releases/R24.md`; R24's E24-8
+skeptical release audit records PASS). R23's E23-11 third,
 independent skeptical release truth audit recorded PASS in
 `docs/analysis/r23-release-truth-audit.md`, after two genuine, narrow
-findings during the audit gate -- E23-7 and E23-9 -- were each repaired
-and re-verified). Python remains the only implemented production host;
-`m0smith/genia-cpp` is still a non-semantic bootstrap shell with no
-interpreter. See the corresponding release pages and `GENIA_STATE.md` for
-implemented truth.
+findings during its audit gate -- E23-7 and E23-9 -- were each repaired
+and re-verified. Python remains the reference and full-language host;
+`m0smith/genia-cpp` is the bounded R24 production host, not feature parity.
+See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
 
@@ -158,6 +158,10 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 - Release R19 — Unicode and Diagnostic Portability Contract ✓ COMPLETE
 - Release R20 — Open Functions and Extensible Pattern Dispatch ✓ COMPLETE
 - Release R21 — Numeric Source and Portable Representation ✓ COMPLETE
+- Release R22 — Exact Numeric Runtime ✓ COMPLETE
+- Release R23 — Numeric Representation and Interchange ✓ COMPLETE
+- Release R24 — C++ Minimal Conforming Host ✓ COMPLETE
+- Release R21 — Numeric Source and Portable Representation ✓ COMPLETE
 
 ## Release status
 
@@ -186,7 +190,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R21 | Numeric Source and Portable Representation | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R22 | Exact Numeric Runtime | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R23 | Numeric Representation and Interchange | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
-| R24 | C++ Minimal Conforming Host | Planned | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
+| R24 | C++ Minimal Conforming Host | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R25 | C++ Stateful Runtime and Concurrency | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R26 | C++ REPL and Data Bridges | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R27 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
