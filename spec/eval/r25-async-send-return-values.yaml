@@ -6,7 +6,7 @@ input:
   fixtures: [r25_concurrency]
   source: |
     c = cell(0)
-    p = spawn((x) -> x)
+    p = spawn((_) -> 1 / 0)
     cell_result = cell_send(c, (x) -> x + 1)
     process_result = send(p, 1)
     _r25_await_idle()
