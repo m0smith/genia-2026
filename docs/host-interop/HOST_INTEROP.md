@@ -16,7 +16,7 @@ This document defines the shared portability contract for Genia hosts.
 - The contract requires host-neutral observable behavior; the current implemented shared semantic-spec suite applies executable comparison for `eval`, `ir`, `cli`, `flow`, and initial `error` behavior in the Python reference host.
 
 **PYTHON REFERENCE HOST**
-- Python is the full-language reference host; C++ is the bounded R24 production host.
+- Python is the full-language reference host; C++ is the bounded R25 production host with Ref, Cell, and local Process support.
 - The Python host adapter implements the shared host contract for these spec categories:
   - parse
   - ir
@@ -151,7 +151,7 @@ Normalization means all observable outputs (values, errors, IR, CLI, flow) are c
 
 ## Not Implemented
 
-- `m0smith/genia-cpp` is the bounded R24 production host; Node.js, Java, Rust, and Go remain planned.
+- `m0smith/genia-cpp` is the bounded R25 production host; Node.js, Java, Rust, and Go remain planned.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7, issues #758-#764; see `GENIA_STATE.md` §0), with pinned evidence for both the Python reference host and the bounded C++ R24 host.
 

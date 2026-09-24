@@ -7,7 +7,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 Implemented today:
 
-- **Python is the full-language reference host; C++ is the bounded R24 production host.**
+- **Python is the full-language reference host; C++ is the bounded R25 production host.**
 - Shared semantic-spec contract categories are:
   - parse
   - ir
@@ -51,15 +51,15 @@ Implemented today:
   - `hosts/python/protocol_adapter.py` (E16-5, issue #762): the Python reference host itself, proven through this same subprocess protocol at full scale — 641 total, 623 passed, 0 failed, 18 unsupported, 0 protocol_error/crash/timeout, identical to the in-process path for every applicable case.
     CI keeps this authoritative full-suite proof in `tests/spec/test_python_protocol_adapter_parity_762.py`, marked `full_conformance`, and runs it nightly or by manual dispatch on canonical Python 3.14 in the dedicated regression `full-conformance` job. Ordinary slow spec-runner pytest coverage runs in the same regression workflow on canonical Python 3.14 with `full_conformance` excluded; supported-version compatibility is established separately by the regression compatibility matrix. This is test organization only and does not change case discovery, protocol behavior, or semantic coverage.
     Issue #883 further deduplicates semantic-spec execution within `tests/spec/`: `test_spec_ir_runner_blackbox.py` and `test_cli_shared_spec_runner.py` previously replayed most of the shared corpus (parametrized over nearly every eval/ir/cli/flow/error fixture) purely to prove runner wiring; they now execute a small representative sample per category instead, and the expensive `command_mode_collect_sum` CLI fixture is kept unique to a single pytest file. The full corpus is still proven once per supported Python version by `python -m tools.spec_runner` in the regression compatibility matrix, and once on Python 3.14 in routine CI; no shared case, expected result, or discovery assertion changed. This is test organization only.
-  - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (R24): the first external production host, implementing the deliberately bounded R24 parser -> portable Core IR -> evaluator floor with pinned R16 evidence. It is not feature-parity with Python; `hosts/cpp/` here remains a pointer to that repository (see `hosts/cpp/README.md`).
+  - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (R25): the first external production host, implementing the deliberately bounded R24 parser -> portable Core IR -> evaluator floor plus R25 Ref, Cell, and local Process capabilities with pinned R16 evidence. It is not feature-parity with Python; `hosts/cpp/` here remains a pointer to that repository (see `hosts/cpp/README.md`).
   - `tools/spec_runner/evidence.py` and `--evidence <path>` (E16-7, issue #764): one deterministic per-host JSON evidence document (contract revision, protocol version, capabilities, applicable-case count, full outcome taxonomy), a pure function of its inputs so identical runs produce byte-identical evidence. Proven against both the Python reference host (623 pass / 18 unsupported / 0 else, revision `current`) and the `genia-cpp` bootstrap placeholder (641 unsupported / 0 else, revision `resolvable_ancestor`). See `docs/strategy/roadmap/multi-host-conformance-policy.md`'s "Evidence model and CI expectations" for the external-host CI contract this defines.
 
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: R24 is complete, entirely in `m0smith/genia-cpp`. Its bounded floor covers parser/AST lowering, command/file CLI, local open functions, partial portable Core IR evaluation, a bounded source-level prelude, and the selected R17-R23 value/numeric surface. Pinned revision `a2229cb9b079a379a5eeae76a618fe69a2bd6daa` evidence is `755 total / 141 pass / 614 unsupported`, with every failure-class count zero. Later capabilities remain unsupported and belong to R25+; C++ is a genuine second host, not Python feature parity. (Originally numbered R21; planning issue #845 moved it to R24.)
+- C++: R25 is complete through its reviewed PR stack in `m0smith/genia-cpp`. In addition to the bounded R24 floor, it supports the independently gated portable `refs`, `cell_primitives`, and local `process_primitives` contracts. Final E25-4 evidence is `761 total / 148 pass / 613 unsupported`, with every failure-class count zero; the exact E25-5 contract revision and C++ evidence commit are recorded in `docs/releases/R25.md`. Actor remains unsupported and belongs to R38. C++ is a genuine second host, not Python feature parity.
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
-- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). No second production host implements the full language. `m0smith/genia-cpp` is the R24-complete second host for a deliberately bounded, evidence-backed subset; other external-host proofs remain either Python-reference-host evidence or non-semantic protocol fixtures.
+- **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). No second production host implements the full language. `m0smith/genia-cpp` is the R25-complete second host for a deliberately bounded, evidence-backed subset; other external-host proofs remain either Python-reference-host evidence or non-semantic protocol fixtures.
 
 **Maturity:**
 
@@ -70,7 +70,7 @@ Scaffolded or planned, not implemented as hosts:
 
 **Explicit limitations:**
 
-- Python is the full-language production host; `m0smith/genia-cpp` is the R24-complete second production host for the bounded floor recorded above. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
+- Python is the full-language production host; `m0smith/genia-cpp` is the R25-complete second production host for the bounded floor recorded above. All other hosts (Node.js, Java, Rust, Go) are planned or scaffolded only.
 - No browser runtime or playground is implemented; browser artifacts are documentation only.
 - A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7); `m0smith/genia-cpp` supplies the completed R24 external-host evidence while Python remains the full-language reference.
 - Shared semantic-spec case files currently exist under `spec/eval/`, `spec/ir/`, `spec/cli/`, `spec/flow/`, `spec/error/`, and `spec/parse/` in this phase.
@@ -135,7 +135,7 @@ LANGUAGE CONTRACT:
 
 PYTHON REFERENCE HOST:
 
-- Python is the full-language reference host; C++ implements the bounded R24 floor.
+- Python is the full-language reference host; C++ implements the bounded R25 floor.
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`. Eval shared coverage includes list-side Seq-compatible `collect`, `run`, lazy `each`, item-preserving `each |> collect`, the existing `seq-compatible-list-transform-chain` fixture, list-side `scan` (accepting list input and returning list), Seq-compatible non-list/non-Flow diagnostics for `each`, `collect`, `run`, `map`, `filter`, `take`, `drop`, and `scan`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
@@ -183,7 +183,7 @@ PYTHON REFERENCE HOST:
 - `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
 
 **Planned/Scaffolded:**
-- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R24 production host in `m0smith/genia-cpp`
+- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R25 production host in `m0smith/genia-cpp`
 - A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7; see §0 above), with pinned evidence for the bounded C++ R24 host
 
 **Limitations:**
@@ -2151,8 +2151,8 @@ Behavior:
 
 R25 portability status: the observable Ref behavior in this section is the
 approved portable contract for the ordinary opaque `refs` capability. The
-Python reference host implements it. The C++ host does not claim it until
-E25-1 passes the applicable R16 shared evidence. Lock/condition-variable type,
+Python reference host and bounded C++ host implement it and pass the applicable
+R16 shared evidence. Lock/condition-variable type,
 host thread identity, fairness, wake latency, and thread count are realization
 details, not portable semantics. See
 `docs/design/r25-stateful-runtime-concurrency-contract.md`.
@@ -2179,8 +2179,8 @@ Behavior:
 
 R25 portability status: the local Process/mailbox observations in this section
 are the approved portable contract for `process_primitives`. The Python
-reference host implements them. The C++ host does not claim them until E25-3
-passes applicable R16 shared evidence. Actor behavior remains Python-host-only
+reference host and bounded C++ host implement them and pass applicable R16
+shared evidence. Actor behavior remains Python-host-only
 and is excluded from R25; portable actors belong to R38.
 
 - public process helpers are thin prelude wrappers in `src/genia/std/prelude/process.genia`
@@ -2211,8 +2211,8 @@ Behavior:
 
 R25 portability status: the Cell observations in this section are the approved
 portable contract for the independently claimable `cell_primitives`
-capability. The Python reference host implements them. The C++ host does not
-claim them until E25-2 passes applicable R16 shared evidence. Cell's specific
+capability. The Python reference host and bounded C++ host implement them and
+pass applicable R16 shared evidence. Cell's specific
 restart is not a general supervision policy and creates no Actor precedent.
 
 - public prelude helpers:
