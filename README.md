@@ -578,7 +578,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | R25-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref, Cell, and local Process, with `761 total / 148 pass / 613 unsupported` and zero failure-class outcomes; not Python feature parity |
+| C++ | R25-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref, Cell, and local Process, with `762 total / 149 pass / 613 unsupported` and zero failure-class outcomes; not Python feature parity |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.

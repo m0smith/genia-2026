@@ -57,7 +57,7 @@ Implemented today:
 Scaffolded or planned, not implemented as hosts:
 
 - Node.js, Java, Rust, Go: planned only, not implemented.
-- C++: R25 is complete through its reviewed PR stack in `m0smith/genia-cpp`. In addition to the bounded R24 floor, it supports the independently gated portable `refs`, `cell_primitives`, and local `process_primitives` contracts. Final E25-4 evidence is `761 total / 148 pass / 613 unsupported`, with every failure-class count zero; the exact E25-5 contract revision and C++ evidence commit are recorded in `docs/releases/R25.md`. Actor remains unsupported and belongs to R38. C++ is a genuine second host, not Python feature parity.
+- C++: R25 is complete through its reviewed PR stack in `m0smith/genia-cpp`. In addition to the bounded R24 floor, it supports the independently gated portable `refs`, `cell_primitives`, and local `process_primitives` contracts. Final E25-5 evidence is `762 total / 149 pass / 613 unsupported`, with every failure-class count zero; the exact E25-5 contract revision and C++ evidence commit are recorded in `docs/releases/R25.md`. Actor remains unsupported and belongs to R38. C++ is a genuine second host, not Python feature parity.
 - `hosts/python/` is the adapter location, but the core runtime remains in `src/genia/`.
 - **A generic multi-host runner now exists** (`tools/spec_runner --host`, R16 E16-1 through E16-7, above). No second production host implements the full language. `m0smith/genia-cpp` is the R25-complete second host for a deliberately bounded, evidence-backed subset; other external-host proofs remain either Python-reference-host evidence or non-semantic protocol fixtures.
 
