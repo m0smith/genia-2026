@@ -35,6 +35,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R22 — Exact Numeric Runtime](R22.md) — COMPLETE; E22-1 through E22-11 delivered
 - [R23 — Numeric Representation and Interchange](R23.md) — COMPLETE; E23-11 skeptical audit PASS
 - [R24 — C++ Minimal Conforming Host](R24.md) — COMPLETE; E24-8 skeptical audit PASS
+- [R25 — C++ Stateful Runtime and Concurrency](R25.md) — COMPLETE; E25-5 skeptical audit PASS
 
 ## Process
 
