@@ -132,6 +132,11 @@ jobs:
 
       - name: Upload evidence artifacts
         if: always()
+        # Best-effort only: the parity gate above is the actual pass/fail
+        # signal. Artifact upload can fail for reasons entirely outside this
+        # workflow (e.g. account-level Actions storage quota), and that must
+        # never be conflated with a real parity failure.
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: host-parity-evidence
