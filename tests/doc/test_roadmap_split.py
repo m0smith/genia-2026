@@ -77,7 +77,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     assert "R39 — Genia-Native Conformance Tooling" in sequence
     assert "R40 — Configuration and Secret Hardening and Ergonomics" in sequence
     assert "R41 — Portable Core IR Artifacts" in sequence
-    assert "R8 through R24 are complete" in sequence
+    assert "R8 through R25 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking
     assert "#102" in parking
