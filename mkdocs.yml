@@ -60,6 +60,7 @@ nav:
       - "R22 — Exact Numeric Runtime": releases/R22.md
       - "R23 — Numeric Representation and Interchange": releases/R23.md
       - "R24 — C++ Minimal Conforming Host": releases/R24.md
+      - "R25 — C++ Stateful Runtime and Concurrency": releases/R25.md
 
   - Design:
       - Pipeline Semantics: design/pipeline-semantics.md

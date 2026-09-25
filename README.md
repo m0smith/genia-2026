@@ -10,7 +10,7 @@ messy records in → clear pipelines → validated shaped output / reports + use
 
 The strongest end-to-end proof is the [validated pipeline demo](#run-the-validated-pipeline-demo-experimental). For the implementation and portability boundaries, see the [current language state](GENIA_STATE.md).
 
-> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R24 production host. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
+> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R25 production host with Ref, Cell, and local Process support. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
 ## Quick start
 
@@ -101,7 +101,7 @@ Do not use one-shot implementation prompts for behavior changes.
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
-- Python is the full-language reference host; C++ implements the bounded R24 floor.
+- Python is the full-language reference host; C++ implements the bounded R25 floor.
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is not covered by shared executable specs.
@@ -137,7 +137,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
-- Python is the full-language reference host; C++ implements the bounded R24 floor.
+- Python is the full-language reference host; C++ implements the bounded R25 floor.
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
@@ -549,7 +549,7 @@ Boundary validation note:
 ## Multi-Host Direction
 
 Python is the full-language reference host. `m0smith/genia-cpp` (R24) is a second
-production host implementing the complete, deliberately bounded R24 capability floor
+production host implementing the complete, deliberately bounded R25 capability floor
 — see its `README.md`/`AGENTS.md` for the exact current boundary.
 
 The repo now also includes shared portability scaffolding for future hosts, plus a
@@ -578,7 +578,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | R24-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): parser -> portable Core IR -> evaluator over a deliberately bounded subset, pinned at `a2229cb9` with `755 total / 141 pass / 614 unsupported` and zero failure-class outcomes; not Python feature parity |
+| C++ | R25-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref, Cell, and local Process, with `762 total / 149 pass / 613 unsupported` and zero failure-class outcomes; not Python feature parity |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
@@ -1078,7 +1078,7 @@ flush(stdout)
 
 Ref, Cell, and local Process observations are portable R25 capability
 contracts. The Python reference host implements and passes their E25-0 shared
-evidence; the bounded C++ host does not claim them until E25-1 through E25-3.
+evidence; the bounded C++ host also implements and passes the applicable cases.
 Actor remains Python-host-only and is excluded from R25.
 
 ```genia
@@ -1485,7 +1485,7 @@ main() = print("Hello world")
 ### Refs
 
 - public helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
-- portable R25 `refs` contract; Python implemented/evidenced, C++ pending E25-1
+- portable R25 `refs` contract; Python and C++ implemented/evidenced
 
 ### Strings
 
@@ -1542,7 +1542,7 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 
 - public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - processes are fail-stop: handler exceptions are cached and queryable
-- portable local R25 `process_primitives` contract; Python implemented/evidenced, C++ pending E25-3
+- portable local R25 `process_primitives` contract; Python and C++ implemented/evidenced
 - Actor is not included; portable Actor semantics belong to R38
 
 ### Simulation primitives (Phase 2)

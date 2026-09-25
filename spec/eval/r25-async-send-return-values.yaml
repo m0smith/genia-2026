@@ -1,0 +1,21 @@
+name: r25-async-send-return-values
+category: eval
+description: Cell and local Process asynchronous sends return the exact nil Option.
+requires: [cell_primitives, process_primitives]
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    c = cell(0)
+    p = spawn((_) -> 1 / 0)
+    cell_result = cell_send(c, (x) -> x + 1)
+    process_result = send(p, 1)
+    _r25_await_idle()
+    [cell_result, process_result]
+expected:
+  stdout: "[none(\"nil\"), none(\"nil\")]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1006
+  release: R25 E25-5 audit repair
+  contract: docs/design/r25-stateful-runtime-concurrency-contract.md sections 5.1 and 6.1

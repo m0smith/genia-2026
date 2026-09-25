@@ -4,7 +4,7 @@ This folder documents the planned browser playground architecture for Genia.
 
 Current status:
 
-- Python is the full-language reference host; C++ is the bounded R24 production host.
+- Python is the full-language reference host; C++ is the bounded R25 production host with Ref, Cell, and local Process support.
 - Implemented now: architecture and contract documentation only.
 - V1 runtime plan: browser UI with the current Python reference host running on a backend service.
 - Later plan: browser-native runtime using a JavaScript host or a Rust/WASM host behind the same adapter contract.

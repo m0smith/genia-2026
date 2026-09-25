@@ -363,6 +363,15 @@ production host, not Python feature parity. R25 and later behavior is not
 implemented by R24 and must not be inferred from roadmap placement. See
 `docs/releases/R24.md` and `docs/analysis/r24-release-truth-audit.md`.
 
+**R25 — C++ Stateful Runtime and Concurrency is a verified release candidate
+(E25-0 through E25-5), pending the ordered PR merge recorded in
+`docs/releases/R25.md`.** Its bounded C++ additions are independently gated
+portable Ref, Cell, and local Process/mailbox support with R16 shared evidence.
+Actor/ActorRef, supervision, distribution, placement, scheduler guarantees,
+and timing semantics remain excluded; portable actors belong to R38. Do not
+describe R25 as merged-complete until the dependency stack lands in the order
+recorded by the release page.
+
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
 

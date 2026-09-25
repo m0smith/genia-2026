@@ -6,7 +6,11 @@ As of R16 E16-6 (issue #763), the planned production C++ host lives in a separat
 
 `genia-2026` remains the sole authority for the Genia language contract, Core IR portability boundary, shared specs (`spec/`), the generic conformance runner (`tools/spec_runner`), and the E16-1 host-adapter protocol (`tools/spec_runner/protocol.py`). `m0smith/genia-cpp` consumes that contract; it does not define it.
 
-R16 bootstrapped `m0smith/genia-cpp` as a repository shell only. No real C++ interpreter is implemented in R16. The real C++ host implementation begins in **R24 — C++ Minimal Conforming Host**, after R21–R23 exact numeric releases complete, and happens entirely in `m0smith/genia-cpp`, not here. See `docs/strategy/roadmap/r21-r24.md`.
+R16 bootstrapped `m0smith/genia-cpp` as a repository shell only. The real C++
+host implementation begins in **R24 — C++ Minimal Conforming Host** and R25
+adds the bounded Ref, Cell, and local Process capability floor. Implementation
+remains entirely in `m0smith/genia-cpp`, not here. See `docs/releases/R24.md`
+and `docs/releases/R25.md`.
 
 ## What used to be here
 

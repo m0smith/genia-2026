@@ -10,7 +10,7 @@
   "pipe_bypasses_main": "pipe mode bypasses `main`",
   "flow_single_use": "Flow values are lazy, pull-based, source-bound, and single-use.",
   "flow_early_termination": "`head` / `take` stop upstream pulling promptly.",
-  "host_status": "Python is the full-language reference host; C++ is the bounded R24 production host.",
+  "host_status": "Python is the full-language reference host; C++ is the bounded R25 production host with Ref, Cell, and local Process support.",
   "naming_rule": "new `?`-suffixed APIs are boolean-returning; `get?` remains the current compatibility exception.",
   "annotation_builtins": "`@doc`, `@meta`, `@since`, `@deprecated`, `@category`, inert Experimental `@route`, inert Experimental `@server`, and inert Experimental `@cors`",
   "canonical_format_field_path_separator": "Dot (`.`) is the canonical field-path separator for representation/format placeholders; slash (`/`) is not the format field-path separator and remains limited to existing slash operator/Core IR wording.",
