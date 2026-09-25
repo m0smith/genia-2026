@@ -42,7 +42,7 @@ def _request(method: str, url: str, *, body: str | None = None, headers: dict[st
                 return response.status, response.headers, response.read().decode("utf-8")
         except HTTPError as exc:
             return exc.code, exc.headers, exc.read().decode("utf-8")
-        except URLError as exc:
+        except (URLError, socket.timeout) as exc:
             last_error = exc
             time.sleep(0.02)
 

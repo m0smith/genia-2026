@@ -81,8 +81,10 @@ jobs:
         run: python -m uv sync --dev --python "$UV_PYTHON"
       - name: Lint (ruff)
         run: python -m uv run --python "$UV_PYTHON" ruff check .
-      - name: Run non-slow tests with coverage
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 --cov=genia --cov-report=term-missing -m "not slow" -n auto
+      - name: Run non-slow, non-loopback tests with coverage
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 --cov=genia --cov-report=term-missing -m "not slow and not loopback" -n auto
+      - name: Run non-slow loopback tests
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 --cov=genia --cov-append --cov-report=term-missing -m "not slow and loopback" -n auto
       - name: Run semantic specs
         run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
 

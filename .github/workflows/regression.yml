@@ -46,8 +46,10 @@ jobs:
           python -m uv --version
       - name: Sync dependencies
         run: python -m uv sync --dev --python "$UV_PYTHON"
-      - name: Run non-slow compatibility tests
-        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow" -n auto
+      - name: Run non-slow, non-loopback compatibility tests
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow and not loopback" -n auto
+      - name: Run non-slow loopback compatibility tests
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv --maxfail=1 -m "not slow and loopback" -n auto
       - name: Run semantic specs
         run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
 
