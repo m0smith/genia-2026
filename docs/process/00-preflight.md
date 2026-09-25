@@ -216,6 +216,35 @@ Pipeline:
 
 ---
 
+12. HOST PARITY / CONFORMANCE
+
+Affected hosts:
+[ ] Python
+[ ] C++
+[ ] Other / future
+
+Does this change portable semantics?
+YES / NO
+
+If YES:
+- Spec/conformance tests added or updated:
+- Python implementation updated:
+- C++ implementation updated:
+- Cross-host behavior verified:
+- Known host gaps documented:
+
+Can one host merge before the other?
+YES / NO
+
+If YES, temporary compatibility note:
+-
+
+Portable semantic changes must land first as shared contract/conformance
+changes. Python and C++ must then both implement the change, or the temporary
+host gap must be documented before merge.
+
+---
+
 FINAL GO / NO-GO
 
 Ready to proceed?

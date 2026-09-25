@@ -1,6 +1,16 @@
 # Running a Genia Change
 
-For every issue:
+Starting with R26, complete the
+[GENIA Change Pre-Flight issue template](../../.github/ISSUE_TEMPLATE/genia-change-preflight.md)
+before implementation for new release work, semantic or language changes,
+runtime or host behavior changes, conformance/spec changes, and multi-file
+changes. Small typo or documentation-only fixes may skip it only when they have
+no semantic, host, conformance, or process impact. If the pre-flight cannot be
+completed, the work is not ready to implement. This is a project process
+control, not Genia runtime behavior, and does not apply retroactively to closed
+releases through R25.
+
+For work requiring pre-flight:
 
 1. Create branch: `issue-<number>-<short-name>`
 2. Run preflight prompt
@@ -28,6 +38,10 @@ For every issue:
    - This obligation reuses R16. Do not create a parallel runner, protocol,
      evidence format, capability registry/profile system, semantic manifest, or
      Core IR mechanism merely to satisfy this process gate.
+   - Identify whether Python, C++, or both are affected. A semantic change must
+     land first as shared contract/conformance work; then both hosts must
+     implement it, or a temporary host gap must be documented before merge.
+     Add or update shared spec/conformance tests wherever applicable.
 3. Commit preflight
 4. Run contract prompt
 5. Commit contract

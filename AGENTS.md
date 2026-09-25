@@ -650,6 +650,25 @@ The `implementation` phase must reference the failing-test commit SHA.
 4. update or add tests
 5. run the relevant audit/validation
 
+## R26+ Change Pre-Flight Gate
+
+Starting with R26, future agents must complete the
+[`GENIA Change Pre-Flight`](.github/ISSUE_TEMPLATE/genia-change-preflight.md)
+issue template before implementing new release work, semantic or language
+changes, runtime or host behavior changes, conformance/spec changes, or
+multi-file changes. Small typo or documentation-only fixes may skip the gate
+only when they have no semantic, host, conformance, or process impact. If the
+pre-flight cannot be completed, the work is not ready to implement. Follow the
+canonical procedure in `docs/process/run-change.md`.
+
+Every pre-flight must identify whether Python, C++, or both are affected. Any
+semantic change must land first as a shared contract/conformance change, with
+shared spec/conformance tests added or updated where applicable. Python and C++
+must then both implement the contract, or the change must document a temporary
+host gap before merge. This gate is a project process control, not a runtime
+language feature, and is not retroactive to already-closed releases through
+R25.
+
 ---
 
 # 🚫 HARD CONSTRAINTS
