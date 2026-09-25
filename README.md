@@ -1076,6 +1076,11 @@ flush(stdout)
 
 ### Concurrency and cells
 
+Ref, Cell, and local Process observations are portable R25 capability
+contracts. The Python reference host implements and passes their E25-0 shared
+evidence; the bounded C++ host does not claim them until E25-1 through E25-3.
+Actor remains Python-host-only and is excluded from R25.
+
 ```genia
 counter = cell(0)
 cell_send(counter, (n) -> n + 1)
@@ -1480,6 +1485,7 @@ main() = print("Hello world")
 ### Refs
 
 - public helpers from `src/genia/std/prelude/ref.genia`: `ref`, `ref_get`, `ref_set`, `ref_is_set`, `ref_update`
+- portable R25 `refs` contract; Python implemented/evidenced, C++ pending E25-1
 
 ### Strings
 
@@ -1536,6 +1542,8 @@ Integration note: [design/pipeline-semantics.md](design/pipeline-semantics.md)
 
 - public helpers from `src/genia/std/prelude/process.genia`: `spawn`, `send`, `process_alive?`, `process_failed?`, `process_error`
 - processes are fail-stop: handler exceptions are cached and queryable
+- portable local R25 `process_primitives` contract; Python implemented/evidenced, C++ pending E25-3
+- Actor is not included; portable Actor semantics belong to R38
 
 ### Simulation primitives (Phase 2)
 

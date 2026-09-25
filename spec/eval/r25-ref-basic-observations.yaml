@@ -1,0 +1,18 @@
+name: r25-ref-basic-observations
+category: eval
+description: R25 Ref creation, set, update, and exact return observations.
+requires: [refs]
+input:
+  source: |
+    r = ref(10)
+    set_result = ref_set(r, 20)
+    update_result = ref_update(r, (x) -> x + 2)
+    [ref_is_set(r), set_result, update_result, ref_get(r)]
+expected:
+  stdout: "[true, 20, 22, 22]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1001
+  release: R25 E25-0
+  contract: docs/design/r25-stateful-runtime-concurrency-contract.md section 4

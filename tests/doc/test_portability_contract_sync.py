@@ -181,6 +181,7 @@ def test_manifest_capabilities_cover_capability_matrix():
         "HTTP serving": "http_server",
         "HTTP outbound transport": "http_outbound_transport",
         "refs": "refs",
+        "cell primitives": "cell_primitives",
         "process primitives": "process_primitives",
         "bytes/json/zip": "bytes_json_zip",
         "resource-io": "resource_io",

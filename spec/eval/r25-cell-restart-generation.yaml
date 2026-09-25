@@ -1,0 +1,25 @@
+name: r25-cell-restart-generation
+category: eval
+description: Cell restart installs a new generation and prevents stale work from committing.
+requires: [cell_primitives, refs]
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    state = ref(0)
+    gate = ref()
+    c = cell_with_state(state)
+    cell_send(c, (_) -> ref_get(gate))
+    cell_send(c, (x) -> x + 100)
+    restart_cell(c, 10)
+    ref_set(gate, 999)
+    cell_send(c, (x) -> x + 1)
+    _r25_await_idle()
+    [ref_get(state), cell_failed?(c), cell_status(c)]
+expected:
+  stdout: "[11, false, \"ready\"]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1001
+  release: R25 E25-0
+  contract: docs/design/r25-stateful-runtime-concurrency-contract.md section 5.3

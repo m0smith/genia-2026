@@ -1,0 +1,21 @@
+name: r25-ref-blocking-process-producer
+category: eval
+description: An unset Ref consumer observes exactly the causally sent producer value.
+requires: [refs, process_primitives]
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    r = ref()
+    producer = spawn((value) -> ref_set(r, value))
+    send(producer, 42)
+    observed = ref_get(r)
+    _r25_await_idle()
+    [ref_is_set(r), observed]
+expected:
+  stdout: "[true, 42]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1001
+  release: R25 E25-0
+  evidence: causal blocking/wakeup; no clock, sleep, or wake-latency assertion

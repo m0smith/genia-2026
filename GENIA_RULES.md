@@ -1052,6 +1052,16 @@ This protects helper-based and pattern-based Option handling from silent semanti
 
 ## 10) Ref + concurrency runtime guarantees
 
+R25 promotes the exact Ref, Cell, and local Process observations below to
+portable capability contracts over opaque ordinary runtime values. Capability
+gates are `refs`, `cell_primitives`, and `process_primitives`; none implies
+another. Python currently implements all three. C++ support is claimed only
+after the matching R16 shared evidence passes. Actor remains Python-host-only
+and belongs to R38, not R25. Host thread/lock/queue identity, scheduling,
+fairness, wake latency, thread count, mailbox capacity, and backpressure are
+not language semantics. See
+`docs/design/r25-stateful-runtime-concurrency-contract.md`.
+
 - refs are synchronized host objects
 - public ref helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/ref.genia`
 - public process helper names are exposed through thin prelude wrappers in `src/genia/std/prelude/process.genia`

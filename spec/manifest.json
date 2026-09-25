@@ -68,6 +68,7 @@
     "http_outbound_transport",
     "allowlisted_host_interop",
     "refs",
+    "cell_primitives",
     "process_primitives",
     "bytes_json_zip",
     "debugger_stdio",

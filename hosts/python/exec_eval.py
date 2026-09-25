@@ -29,6 +29,7 @@ def run_eval_subprocess(
         fixture_modules = {
             ("r11_model",): "hosts.python.exec_model_fixture",
             ("r12_grounded",): "hosts.python.exec_r12_grounded_fixture",
+            ("r25_concurrency",): "hosts.python.exec_r25_concurrency_fixture",
         }
         if fixtures not in fixture_modules:
             raise ValueError(f"unsupported eval fixtures: {fixtures!r}")

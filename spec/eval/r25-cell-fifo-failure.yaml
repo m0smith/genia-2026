@@ -1,0 +1,23 @@
+name: r25-cell-fifo-failure
+category: eval
+description: Cell commits FIFO successes, preserves last state, then becomes failed.
+requires: [cell_primitives, refs]
+input:
+  fixtures: [r25_concurrency]
+  source: |
+    state = ref(10)
+    c = cell_with_state(state)
+    cell_send(c, (x) -> x + 2)
+    cell_send(c, (x) -> x * 3)
+    cell_send(c, (_) -> 1 / 0)
+    cell_send(c, (x) -> x + 1000)
+    _r25_await_idle()
+    [ref_get(state), cell_failed?(c), cell_status(c), some?(cell_error(c))]
+expected:
+  stdout: "[36, true, \"failed\", true]\n"
+  stderr: ""
+  exit_code: 0
+notes: |
+  issue: 1001
+  release: R25 E25-0
+  contract: docs/design/r25-stateful-runtime-concurrency-contract.md section 5

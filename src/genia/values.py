@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import queue
 import threading
+import weakref
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable, Iterator
 
@@ -551,6 +552,30 @@ class GeniaRef:
             return "<ref <unset>>"
 
 
+_R25_ENTITIES_LOCK = threading.Lock()
+_R25_ENTITIES: weakref.WeakSet[Any] = weakref.WeakSet()
+
+
+def _register_r25_entity(entity: Any) -> None:
+    with _R25_ENTITIES_LOCK:
+        _R25_ENTITIES.add(entity)
+
+
+def r25_await_runtime_idle() -> None:
+    """Test-fixture-only causal barrier for accepted Cell/Process work."""
+    while True:
+        with _R25_ENTITIES_LOCK:
+            before = tuple(_R25_ENTITIES)
+        for entity in before:
+            entity._r25_wait_idle()
+        with _R25_ENTITIES_LOCK:
+            after = tuple(_R25_ENTITIES)
+        before_state = sorted((id(entity), entity._r25_accepted_count()) for entity in before)
+        after_state = sorted((id(entity), entity._r25_accepted_count()) for entity in after)
+        if before_state == after_state and all(entity._r25_is_idle() for entity in after):
+            return
+
+
 class GeniaCell:
     _STOP = object()
 
@@ -561,9 +586,13 @@ class GeniaCell:
         self._stopped = False
         self._error: str | None = None
         self._generation = 0
-        self._mailbox: queue.Queue[tuple[int, Any]] = queue.Queue()
+        self._accepted = 0
+        self._completed = 0
+        self._in_flight = False
+        self._mailbox: queue.Queue[tuple[int, int, Any]] = queue.Queue()
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+        _register_r25_entity(self)
 
     def _error_text(self, exc: BaseException) -> str:
         return format_exception_text(exc)
@@ -577,19 +606,24 @@ class GeniaCell:
                 first.send(second)
                 continue
             if kind == "cell_stop":
-                first._stopped = True
-                first._mailbox.put((first._generation, GeniaCell._STOP))
+                first.stop()
                 continue
             raise RuntimeError(f"Unknown cell action kind: {kind}")
 
     def _run(self) -> None:
         while True:
-            generation, update_fn = self._mailbox.get()
+            generation, sequence, update_fn = self._mailbox.get()
             if update_fn is GeniaCell._STOP:
+                with self._condition:
+                    self._completed = max(self._completed, sequence)
+                    self._condition.notify_all()
                 return
             with self._condition:
                 if generation != self._generation or self._failed:
+                    self._completed = max(self._completed, sequence)
+                    self._condition.notify_all()
                     continue
+                self._in_flight = True
 
             try:
                 _push_cell_tx()
@@ -601,15 +635,26 @@ class GeniaCell:
 
                 with self._condition:
                     if generation != self._generation or self._failed:
+                        self._in_flight = False
+                        self._completed = max(self._completed, sequence)
+                        self._condition.notify_all()
                         continue
                     self._commit_actions(actions)
                     self._state_ref.set(next_state)
+                    self._in_flight = False
+                    self._completed = max(self._completed, sequence)
+                    self._condition.notify_all()
             except Exception as exc:
                 with self._condition:
                     if generation != self._generation:
+                        self._in_flight = False
+                        self._completed = max(self._completed, sequence)
+                        self._condition.notify_all()
                         continue
                     self._failed = True
                     self._error = self._error_text(exc)
+                    self._in_flight = False
+                    self._completed = self._accepted
                     self._condition.notify_all()
 
     def send(self, update_fn: Any) -> None:
@@ -619,7 +664,9 @@ class GeniaCell:
             if self._stopped:
                 raise RuntimeError("Cell has been stopped")
             generation = self._generation
-        self._mailbox.put((generation, update_fn))
+            self._accepted += 1
+            sequence = self._accepted
+        self._mailbox.put((generation, sequence, update_fn))
 
     def get(self) -> Any:
         with self._condition:
@@ -644,6 +691,7 @@ class GeniaCell:
             self._stopped = False
             self._error = None
             self._state_ref.set(value)
+            self._completed = self._accepted
             self._condition.notify_all()
         if not self._thread.is_alive():
             self._thread = threading.Thread(target=self._run, daemon=True)
@@ -656,7 +704,22 @@ class GeniaCell:
                 return
             self._stopped = True
             generation = self._generation
-        self._mailbox.put((generation, GeniaCell._STOP))
+            self._accepted += 1
+            sequence = self._accepted
+        self._mailbox.put((generation, sequence, GeniaCell._STOP))
+
+    def _r25_wait_idle(self) -> None:
+        with self._condition:
+            target = self._accepted
+            self._condition.wait_for(lambda: self._completed >= target and not self._in_flight)
+
+    def _r25_accepted_count(self) -> int:
+        with self._condition:
+            return self._accepted
+
+    def _r25_is_idle(self) -> bool:
+        with self._condition:
+            return self._completed >= self._accepted and not self._in_flight
 
     def stopped(self) -> bool:
         with self._condition:
@@ -680,25 +743,42 @@ class GeniaCell:
 class GeniaProcess:
     def __init__(self, handler: Callable[[Any], Any]):
         self._handler = handler
-        self._mailbox: queue.Queue[Any] = queue.Queue()
+        self._mailbox: queue.Queue[tuple[int, Any]] = queue.Queue()
         self._failed = False
         self._error: str | None = None
-        self._lock = threading.Lock()
+        self._lock = threading.Condition()
+        self._accepted = 0
+        self._completed = 0
+        self._in_flight = False
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+        _register_r25_entity(self)
 
     def _error_text(self, exc: BaseException) -> str:
         return format_exception_text(exc)
 
     def _run(self) -> None:
         while True:
-            message = self._mailbox.get()
+            sequence, message = self._mailbox.get()
+            with self._lock:
+                if self._failed:
+                    self._completed = self._accepted
+                    self._lock.notify_all()
+                    return
+                self._in_flight = True
             try:
                 self._handler(message)
+                with self._lock:
+                    self._in_flight = False
+                    self._completed = max(self._completed, sequence)
+                    self._lock.notify_all()
             except Exception as exc:
                 with self._lock:
                     self._failed = True
                     self._error = self._error_text(exc)
+                    self._in_flight = False
+                    self._completed = self._accepted
+                    self._lock.notify_all()
                 return
 
     def send(self, message: Any) -> None:
@@ -707,7 +787,22 @@ class GeniaProcess:
         with self._lock:
             if self._failed:
                 raise RuntimeError(f"Process has failed: {self._error}")
-        self._mailbox.put(message)
+            self._accepted += 1
+            sequence = self._accepted
+        self._mailbox.put((sequence, message))
+
+    def _r25_wait_idle(self) -> None:
+        with self._lock:
+            target = self._accepted
+            self._lock.wait_for(lambda: self._completed >= target and not self._in_flight)
+
+    def _r25_accepted_count(self) -> int:
+        with self._lock:
+            return self._accepted
+
+    def _r25_is_idle(self) -> bool:
+        with self._lock:
+            return self._completed >= self._accepted and not self._in_flight
 
     def is_alive(self) -> bool:
         return self._thread.is_alive()
