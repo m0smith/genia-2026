@@ -1,0 +1,138 @@
+name: Docker development environment
+
+on:
+  push:
+    branches:
+      - infra/docker-dev-environment
+  pull_request:
+    paths:
+      - "docker/**"
+      - ".dockerignore"
+      - ".github/workflows/docker-dev-environment.yml"
+      - "docs/architecture/development-container.md"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Build and prove dev image
+    runs-on: [self-hosted, linux, x64, genia]
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out genia-2026
+        uses: actions/checkout@v6
+        with:
+          path: workspace/genia-2026
+          fetch-depth: 0
+
+      - name: Check out genia-cpp
+        uses: actions/checkout@v6
+        with:
+          repository: m0smith/genia-cpp
+          ref: main
+          path: workspace/genia-cpp
+
+      - name: Build development image
+        run: >-
+          docker build
+          -f workspace/genia-2026/docker/Dockerfile.dev
+          -t genia-dev:ci
+          workspace/genia-2026
+
+      - name: Show container toolchain
+        run: |
+          docker run --rm genia-dev:ci bash -lc '
+            set -euo pipefail
+            python --version
+            uv --version
+            cmake --version
+            ninja --version
+            clang --version
+            clang-format --version
+            clang-tidy --version
+          '
+
+      - name: Run representative Python reference-host tests
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-2026 \
+            genia-dev:ci bash -lc '
+              set -euo pipefail
+              python -m uv sync --dev --python python
+              python -m uv run --python python pytest -q tests/unit/test_examples.py
+            '
+
+      - name: Configure and build C++ host
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-cpp \
+            genia-dev:ci bash -lc '
+              set -euo pipefail
+              cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+              cmake --build build
+            '
+
+      - name: Run C++ unit tests
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-cpp \
+            genia-dev:ci \
+            ctest --test-dir build --output-on-failure
+
+      - name: Check C++ formatting
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-cpp \
+            genia-dev:ci bash -lc \
+            'clang-format --dry-run --Werror src/*.cpp src/*.hpp tests/*.cpp'
+
+      - name: Run C++ static analysis
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-cpp \
+            genia-dev:ci \
+            clang-tidy -p build src/main.cpp src/adapter.hpp src/protocol.hpp
+
+      - name: Run shared conformance against C++ host
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -v "$RUNNER_TEMP:/runner-temp" \
+            -w /workspace/genia-2026 \
+            genia-dev:ci bash -lc '
+              set -euo pipefail
+              python -m uv run --python python python -m tools.spec_runner \
+                --host /workspace/genia-cpp/build/genia-adapter \
+                --evidence /runner-temp/genia-cpp-docker-evidence.json
+            '
+
+      - name: Verify and report conformance counts
+        run: |
+          python3 - "$RUNNER_TEMP/genia-cpp-docker-evidence.json" <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          evidence = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          counts = evidence["counts"]
+          print(json.dumps(counts, sort_keys=True))
+          failing = ("fail", "protocol_error", "crash", "timeout", "invalid")
+          nonzero = {name: counts[name] for name in failing if counts[name]}
+          if nonzero:
+              raise SystemExit(f"conformance failure counts are nonzero: {nonzero}")
+          PY
