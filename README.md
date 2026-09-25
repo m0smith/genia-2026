@@ -95,13 +95,14 @@ Do not use one-shot implementation prompts for behavior changes.
 ### R26+ change intake
 
 Starting with R26, qualifying work must complete the
-[GENIA Change Pre-Flight](.github/ISSUE_TEMPLATE/genia-change-preflight.md)
+[GENIA Change Pre-Flight](https://github.com/m0smith/genia-2026/blob/main/.github/ISSUE_TEMPLATE/genia-change-preflight.md)
 before implementation. The gate covers new release work and semantic,
 language, runtime, host, conformance/spec, or multi-file changes; small typo or
 documentation-only fixes may skip it when they have no semantic, host,
 conformance, or process impact. The canonical rules, including Python/C++
 parity and temporary host-gap handling, are in
-[`docs/process/run-change.md`](docs/process/run-change.md). This is a project
+[`docs/process/run-change.md`](https://github.com/m0smith/genia-2026/blob/main/docs/process/run-change.md).
+This is a project
 process control, not Genia runtime behavior, and it is not retroactive to
 closed releases through R25.
 
