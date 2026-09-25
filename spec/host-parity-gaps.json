@@ -1,0 +1,39 @@
+{
+  "python": {
+    "expected_non_supported_capabilities": {
+      "shared_spec_runner": "partial"
+    },
+    "unsupported_case_policy": "allowed",
+    "unsupported_case_reason": "Protocol-v1 cannot express injected Python test fixtures or debug-stdio cases; the runner reports each such case as UNSUPPORTED."
+  },
+  "cpp": {
+    "expected_non_supported_capabilities": {
+      "allowlisted_host_interop": "unsupported",
+      "bytes_json_zip": "unsupported",
+      "cli_pipe_mode": "unsupported",
+      "configuration_dotenv_snapshot": "unsupported",
+      "configuration_environment_snapshot": "unsupported",
+      "core_ir_eval": "partial",
+      "debugger_stdio": "unsupported",
+      "doc_help": "unsupported",
+      "embedding_deterministic_fixture": "unsupported",
+      "execution_process": "unsupported",
+      "flow_phase_1": "unsupported",
+      "http_outbound_transport": "unsupported",
+      "http_server": "unsupported",
+      "indexing_deterministic_fixture": "unsupported",
+      "model_deterministic_fixture": "unsupported",
+      "model_gemini_rest": "unsupported",
+      "multi_file_eval": "unsupported",
+      "prelude_autoload": "partial",
+      "repl": "unsupported",
+      "reranking_deterministic_fixture": "unsupported",
+      "resource_io": "unsupported",
+      "retrieval_deterministic_fixture": "unsupported",
+      "shared_spec_runner": "partial",
+      "shell_stage": "unsupported"
+    },
+    "unsupported_case_policy": "allowed",
+    "unsupported_case_reason": "The bounded R25 host attempts its declared parser/Core IR/CLI/prelude/open-function/state floor; cases outside that capability floor remain explicit UNSUPPORTED results, not passes."
+  }
+}

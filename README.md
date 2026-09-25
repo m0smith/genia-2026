@@ -181,6 +181,13 @@ python -m tools.spec_runner
 python -m tools.spec_runner --verbose
 ```
 
+CI also runs the complete discovered inventory through both production host
+protocol adapters and enforces their evidence with
+`python tools/check_host_parity.py`. Build `m0smith/genia-cpp` in a neighboring
+checkout and follow `tools/spec_runner/README.md` to reproduce the two-host
+gate locally. Unsupported cases are reported as explicit, documented known
+gaps from `spec/host-parity-gaps.json`; they are not passes.
+
 - `--verbose` / `-v` prints each spec name before execution begins, then prints a single elapsed-time line in the format `<spec-name>\t<elapsed>s`.
 
 **What the spec guarantees:**

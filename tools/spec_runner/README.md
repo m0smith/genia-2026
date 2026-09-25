@@ -306,3 +306,36 @@ python -m tools.spec_runner --host 'python -m hosts.python.protocol_adapter'
 - No Python-private semantic shortcut exists in the generic runner: this
   adapter uses only the same public `run_case` entrypoint, `LoadedSpec`-
   shaped translation, and E16-1 envelope every other host must speak.
+
+## Python/C++ CI parity gate
+
+Routine CI builds the production `m0smith/genia-cpp` adapter and runs the same
+discovered shared inventory through the Python and C++ protocol adapters. It
+then validates both E16-7 evidence files with:
+
+```bash
+python tools/check_host_parity.py \
+  --python-evidence /tmp/python-conformance.json \
+  --cpp-evidence /tmp/cpp-conformance.json
+```
+
+Generate those evidence files with the existing runner (after building the C++
+adapter in a neighboring checkout):
+
+```bash
+python -m tools.spec_runner \
+  --host 'python -m hosts.python.protocol_adapter' \
+  --evidence /tmp/python-conformance.json
+python -m tools.spec_runner \
+  --host ../genia-cpp/build/genia-adapter \
+  --evidence /tmp/cpp-conformance.json
+```
+
+The parity checker fails if either host records `fail`, `protocol_error`,
+`crash`, `timeout`, or `invalid`; if the hosts discover different case totals
+or run against different authority checkouts; or if advertised non-supported
+capabilities drift from `spec/host-parity-gaps.json`. Its output names each
+host's pass and unsupported totals. Unsupported cases remain visible
+`KNOWN GAP` results with a checked-in reason; they are never counted as passes.
+The C++ gate proves only its bounded advertised capability floor, not full
+Python feature parity.

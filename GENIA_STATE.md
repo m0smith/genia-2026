@@ -53,6 +53,14 @@ Implemented today:
     Issue #883 further deduplicates semantic-spec execution within `tests/spec/`: `test_spec_ir_runner_blackbox.py` and `test_cli_shared_spec_runner.py` previously replayed most of the shared corpus (parametrized over nearly every eval/ir/cli/flow/error fixture) purely to prove runner wiring; they now execute a small representative sample per category instead, and the expensive `command_mode_collect_sum` CLI fixture is kept unique to a single pytest file. The full corpus is still proven once per supported Python version by `python -m tools.spec_runner` in the regression compatibility matrix, and once on Python 3.14 in routine CI; no shared case, expected result, or discovery assertion changed. This is test organization only.
   - [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp) (R25): the first external production host, implementing the deliberately bounded R24 parser -> portable Core IR -> evaluator floor plus R25 Ref, Cell, and local Process capabilities with pinned R16 evidence. It is not feature-parity with Python; `hosts/cpp/` here remains a pointer to that repository (see `hosts/cpp/README.md`).
   - `tools/spec_runner/evidence.py` and `--evidence <path>` (E16-7, issue #764): one deterministic per-host JSON evidence document (contract revision, protocol version, capabilities, applicable-case count, full outcome taxonomy), a pure function of its inputs so identical runs produce byte-identical evidence. Proven against both the Python reference host (623 pass / 18 unsupported / 0 else, revision `current`) and the `genia-cpp` bootstrap placeholder (641 unsupported / 0 else, revision `resolvable_ancestor`). See `docs/strategy/roadmap/multi-host-conformance-policy.md`'s "Evidence model and CI expectations" for the external-host CI contract this defines.
+  - Routine CI now runs the complete discovered shared inventory through both
+    the Python and production C++ protocol adapters, then validates their E16-7
+    evidence with `tools/check_host_parity.py`. Any host failure class, inventory
+    or authority-checkout disagreement, or drift from the explicit capability
+    gaps in `spec/host-parity-gaps.json` fails the job. Unsupported cases remain
+    reported known gaps and never count as passes. This is an infrastructure
+    enforcement gate over existing semantics, not a change to the portable
+    contract or a claim of full Python/C++ feature parity.
 
 Scaffolded or planned, not implemented as hosts:
 
