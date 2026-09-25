@@ -586,6 +586,11 @@ see `GENIA_STATE.md` §0):
   deterministic per-host evidence reporting. Proven against the Python reference host
   and [`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp), which is a real
   second production host for the evidence-backed R24 subset.
+- `tools/spec_runner/host_parity_gate.py` plus `spec/known_host_gaps.json`: the
+  enforced host-parity CI gate. It compares Python and C++ evidence documents at
+  the optional-capability granularity and fails on any undocumented or stale
+  gap; see `docs/architecture/development-container.md`'s "Host parity gate"
+  section to run it locally, and `.github/workflows/host-parity.yml` for the CI job.
 
 Alignment rule:
 
