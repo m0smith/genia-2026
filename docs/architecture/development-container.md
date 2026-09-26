@@ -206,8 +206,11 @@ against C++" command above for both hosts (producing one evidence document
 each) and then runs `tools/spec_runner/host_parity_gate.py`, which compares
 them against `spec/known_host_gaps.json` -- the checked-in, reasoned record
 of which optional capabilities the C++ host does not yet declare
-`supported`. A capability gap with no matching manifest entry, or a manifest
-entry the host has since closed, fails the gate; so does any nonzero
+`supported`. Each manifest entry must include a GitHub issue reference, affected
+host, affected tests or spec area, short reason, and removal condition. A
+capability gap with no matching manifest entry, a malformed/unowned manifest
+entry, or a manifest entry the host has since closed, fails the gate; so does
+any nonzero
 `fail`/`protocol_error`/`crash`/`timeout`/`invalid` count in either evidence
 document. To run the same check locally after building both hosts:
 

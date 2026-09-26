@@ -53,8 +53,17 @@ def _evidence(*, capabilities: dict[str, str] | None = None, **count_overrides) 
     }
 
 
+_ONE_GAP_ENTRY = {
+    "capability": "cli_pipe_mode",
+    "reason": "not implemented yet",
+    "tracking_issue": "m0smith/genia-2026#1018",
+    "affected_host": "cpp",
+    "affected_tests": ["spec/cli/**"],
+    "removal_condition": "remove when supported",
+}
+
 _ONE_GAP = {
-    "cli_pipe_mode": {"capability": "cli_pipe_mode", "reason": "not implemented yet", "tracking": "docs/x.md"},
+    "cli_pipe_mode": _ONE_GAP_ENTRY,
 }
 
 
@@ -175,10 +184,29 @@ def test_missing_cpp_evidence_with_reason_still_fails_on_python_regression() -> 
 def test_load_known_gaps_rejects_unknown_capability_name(tmp_path) -> None:
     manifest_path = tmp_path / "known_host_gaps.json"
     manifest_path.write_text(
-        json.dumps({"gaps": [{"capability": "not_a_real_capability", "reason": "x", "tracking": "y"}]}),
+        json.dumps({"gaps": [dict(_ONE_GAP_ENTRY, capability="not_a_real_capability")]}),
         encoding="utf-8",
     )
     with pytest.raises(HostParityGateError, match="unknown optional capability"):
+        load_known_gaps(manifest_path)
+
+
+def test_load_known_gaps_rejects_missing_tracking_issue(tmp_path) -> None:
+    manifest_path = tmp_path / "known_host_gaps.json"
+    gap = dict(_ONE_GAP_ENTRY)
+    del gap["tracking_issue"]
+    manifest_path.write_text(json.dumps({"gaps": [gap]}), encoding="utf-8")
+    with pytest.raises(HostParityGateError, match="tracking_issue"):
+        load_known_gaps(manifest_path)
+
+
+def test_load_known_gaps_rejects_non_issue_tracking(tmp_path) -> None:
+    manifest_path = tmp_path / "known_host_gaps.json"
+    manifest_path.write_text(
+        json.dumps({"gaps": [dict(_ONE_GAP_ENTRY, tracking_issue="docs/releases/R24.md")]}),
+        encoding="utf-8",
+    )
+    with pytest.raises(HostParityGateError, match="GitHub issue reference"):
         load_known_gaps(manifest_path)
 
 
@@ -188,8 +216,8 @@ def test_load_known_gaps_rejects_duplicate_capability_entries(tmp_path) -> None:
         json.dumps(
             {
                 "gaps": [
-                    {"capability": "cli_pipe_mode", "reason": "x", "tracking": "y"},
-                    {"capability": "cli_pipe_mode", "reason": "x2", "tracking": "y2"},
+                    _ONE_GAP_ENTRY,
+                    dict(_ONE_GAP_ENTRY, reason="x2"),
                 ]
             }
         ),
