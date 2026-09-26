@@ -31,6 +31,7 @@ STRATEGY_DOCS = [
     "docs/strategy/roadmap/r16-r20.md",
     "docs/strategy/roadmap/r21-r24.md",
     "docs/strategy/roadmap/r25-r29.md",
+    "docs/strategy/roadmap/cpp-host-gap-burndown.md",
     "docs/strategy/roadmap/r30-r32.md",
     "docs/strategy/roadmap/r35-r37.md",
     "docs/strategy/roadmap/r38.md",
