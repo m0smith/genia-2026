@@ -196,6 +196,43 @@ checkouts, then runs:
 This workflow proves the development image only. It does not replace the
 existing Python compatibility matrix or `genia-cpp`'s pinned conformance CI.
 
+## Host parity gate
+
+`.github/workflows/host-parity.yml` reuses this same image and `genia-cpp`
+checkout/build steps for a different, narrower purpose: enforcing that a
+portable-semantic change cannot silently pass in the Python reference host
+while the C++ host drifts, or the reverse. It runs the "Shared conformance
+against C++" command above for both hosts (producing one evidence document
+each) and then runs `tools/spec_runner/host_parity_gate.py`, which compares
+them against `spec/known_host_gaps.json` -- the checked-in, reasoned record
+of which optional capabilities the C++ host does not yet declare
+`supported`. A capability gap with no matching manifest entry, or a manifest
+entry the host has since closed, fails the gate; so does any nonzero
+`fail`/`protocol_error`/`crash`/`timeout`/`invalid` count in either evidence
+document. To run the same check locally after building both hosts:
+
+```bash
+docker run --rm \
+  --user "$(id -u):$(id -g)" \
+  -v "$WORKSPACE:/workspace" \
+  -w /workspace/genia-2026 \
+  genia-dev bash -lc \
+  'python -m uv run --python python python -m tools.spec_runner \
+     --host "python -m hosts.python.protocol_adapter" \
+     --evidence /tmp/python-evidence.json &&
+   python -m uv run --python python python -m tools.spec_runner \
+     --host /workspace/genia-cpp/build/genia-adapter \
+     --evidence /tmp/cpp-evidence.json &&
+   python -m uv run --python python python -m tools.spec_runner.host_parity_gate \
+     --python-evidence /tmp/python-evidence.json \
+     --cpp-evidence /tmp/cpp-evidence.json \
+     --known-gaps spec/known_host_gaps.json'
+```
+
+This gate is CI/process infrastructure only; it defines no Genia language or
+Core IR behavior, and it does not replace `.github/workflows/docker-dev-environment.yml`'s
+dev-image validation above.
+
 ## Self-hosted runner implications
 
 A future runner can reasonably move toward:

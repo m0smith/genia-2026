@@ -1,0 +1,146 @@
+name: Host parity gate
+
+# Enforces that a portable-semantic change cannot quietly pass in the Python
+# reference host while the bounded C++ host (m0smith/genia-cpp) silently
+# drifts, or the reverse. Reuses the existing E16 generic conformance runner
+# (tools/spec_runner) and E16-7 evidence documents; adds no new protocol,
+# runner, or evidence format. Every capability the C++ host does not
+# declare `supported` must be explicitly documented in
+# spec/known_host_gaps.json (tools/spec_runner/host_parity_gate.py) or this
+# gate fails. This is distinct from .github/workflows/docker-dev-environment.yml,
+# which stays scoped to proving the development image only (see
+# docs/architecture/development-container.md).
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "spec/**"
+      - "src/genia/**"
+      - "hosts/**"
+      - "tools/spec_runner/**"
+      - ".github/workflows/host-parity.yml"
+  pull_request:
+    paths:
+      - "spec/**"
+      - "src/genia/**"
+      - "hosts/**"
+      - "tools/spec_runner/**"
+      - ".github/workflows/host-parity.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: host-parity-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    name: Python/C++ host parity
+    runs-on: [self-hosted, linux, x64, genia]
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out genia-2026
+        uses: actions/checkout@v6
+        with:
+          path: workspace/genia-2026
+          fetch-depth: 0
+
+      - name: Check out genia-cpp
+        uses: actions/checkout@v6
+        with:
+          repository: m0smith/genia-cpp
+          ref: main
+          path: workspace/genia-cpp
+
+      - name: Build development image
+        run: >-
+          docker build
+          -f workspace/genia-2026/docker/Dockerfile.dev
+          -t genia-dev:host-parity
+          workspace/genia-2026
+
+      - name: Sync Python dependencies
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-2026 \
+            genia-dev:host-parity bash -lc \
+            'python -m uv sync --dev --python python'
+
+      - name: Configure and build C++ host
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -w /workspace/genia-cpp \
+            genia-dev:host-parity bash -lc '
+              set -euo pipefail
+              cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+              cmake --build build
+            '
+
+      - name: Generate Python reference-host evidence
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -v "$RUNNER_TEMP:/runner-temp" \
+            -w /workspace/genia-2026 \
+            genia-dev:host-parity bash -lc '
+              set -euo pipefail
+              python -m uv run --python python python -m tools.spec_runner \
+                --host "python -m hosts.python.protocol_adapter" \
+                --evidence /runner-temp/python-evidence.json
+            '
+
+      - name: Generate C++ host evidence
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -v "$RUNNER_TEMP:/runner-temp" \
+            -w /workspace/genia-2026 \
+            genia-dev:host-parity bash -lc '
+              set -euo pipefail
+              python -m uv run --python python python -m tools.spec_runner \
+                --host /workspace/genia-cpp/build/genia-adapter \
+                --evidence /runner-temp/cpp-evidence.json
+            '
+
+      - name: Run host parity gate
+        run: |
+          docker run --rm \
+            --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE/workspace:/workspace" \
+            -v "$RUNNER_TEMP:/runner-temp" \
+            -w /workspace/genia-2026 \
+            genia-dev:host-parity bash -lc '
+              set -euo pipefail
+              python -m uv run --python python python -m tools.spec_runner.host_parity_gate \
+                --python-evidence /runner-temp/python-evidence.json \
+                --cpp-evidence /runner-temp/cpp-evidence.json \
+                --known-gaps spec/known_host_gaps.json
+            '
+
+      - name: Upload evidence artifacts
+        if: always()
+        # Best-effort only: the parity gate above is the actual pass/fail
+        # signal. Artifact upload can fail for reasons entirely outside this
+        # workflow (e.g. account-level Actions storage quota), and that must
+        # never be conflated with a real parity failure.
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: host-parity-evidence
+          path: |
+            ${{ runner.temp }}/python-evidence.json
+            ${{ runner.temp }}/cpp-evidence.json
+          if-no-files-found: warn

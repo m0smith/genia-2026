@@ -1,0 +1,106 @@
+{
+  "$comment": "Explicit, checked-in record of optional capabilities (spec/manifest.json's optional_capabilities) that the bounded C++ host does not yet declare `supported`. Read by tools/spec_runner/host_parity_gate.py. Each entry's `capability` must be a name from spec/manifest.json's optional_capabilities list. An optional capability the C++ host declares `unsupported` (or does not declare at all) that is NOT listed here fails the host-parity CI gate as an undocumented gap. An entry here whose capability the C++ host now declares `supported` also fails the gate (a stale entry) until this file is updated. This file makes no portable-semantics claim of its own -- see docs/releases/R24.md and docs/releases/R25.md for the authoritative evidence it summarizes.",
+  "host": "cpp",
+  "gaps": [
+    {
+      "capability": "cli_pipe_mode",
+      "reason": "R27 pipe mode is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "repl",
+      "reason": "R26 REPL is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "flow_phase_1",
+      "reason": "R27 Flow is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "http_server",
+      "reason": "R27 HTTP serving is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "http_outbound_transport",
+      "reason": "R14/R27 outbound HTTP is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "allowlisted_host_interop",
+      "reason": "Host interop is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "bytes_json_zip",
+      "reason": "Compatibility JSON / bytes / zip data bridges are not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "debugger_stdio",
+      "reason": "Debugger/stdio bridge is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "shell_stage",
+      "reason": "Shell-stage host interop is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "resource_io",
+      "reason": "Resource I/O is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "configuration_environment_snapshot",
+      "reason": "R10/R13 configuration and secrets are not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "configuration_dotenv_snapshot",
+      "reason": "R10/R13 configuration and secrets are not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "model_deterministic_fixture",
+      "reason": "R11 AI composition is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "model_gemini_rest",
+      "reason": "R11 AI composition is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "embedding_deterministic_fixture",
+      "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "indexing_deterministic_fixture",
+      "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "retrieval_deterministic_fixture",
+      "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "reranking_deterministic_fixture",
+      "reason": "R12 retrieval and grounding is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "multi_file_eval",
+      "reason": "Cross-module open-function contribution/selection is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    },
+    {
+      "capability": "execution_process",
+      "reason": "External process execution is not implemented by the bounded R24/R25 C++ host.",
+      "tracking": "docs/releases/R24.md#explicitly-unsupported-after-r24"
+    }
+  ]
+}
