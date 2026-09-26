@@ -665,9 +665,11 @@ Every pre-flight must identify whether Python, C++, or both are affected. Any
 semantic change must land first as a shared contract/conformance change, with
 shared spec/conformance tests added or updated where applicable. Python and C++
 must then both implement the contract, or the change must document a temporary
-host gap before merge. This gate is a project process control, not a runtime
-language feature, and is not retroactive to already-closed releases through
-R25.
+host gap before merge. Temporary host gaps recorded in
+`spec/known_host_gaps.json` must include a GitHub issue reference, short reason,
+affected host, affected tests or spec area, and removal condition. This gate is
+a project process control, not a runtime language feature, and is not
+retroactive to already-closed releases through R25.
 
 ---
 

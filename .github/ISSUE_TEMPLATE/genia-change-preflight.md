@@ -128,7 +128,7 @@ completed, the change is not ready to implement. -->
 - **Python implementation updated:**
 - **C++ implementation updated:**
 - **Cross-host behavior verified:**
-- **Known host gaps documented:**
+- **Known host gaps documented with issue, affected tests, affected host, and removal condition:**
 
 **Can one host merge before the other?** YES / NO
 
@@ -137,7 +137,7 @@ completed, the change is not ready to implement. -->
 
 <!-- Portable semantic changes must land first as shared contract/conformance
 changes. Python and C++ must then both implement the change, or the temporary
-host gap must be explicit and documented before merge. -->
+host gap must be explicit, issue-backed, and documented before merge. -->
 
 ## 12. Final GO / NO-GO
 

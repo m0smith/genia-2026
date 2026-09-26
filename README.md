@@ -589,8 +589,10 @@ see `GENIA_STATE.md` §0):
 - `tools/spec_runner/host_parity_gate.py` plus `spec/known_host_gaps.json`: the
   enforced host-parity CI gate. It compares Python and C++ evidence documents at
   the optional-capability granularity and fails on any undocumented or stale
-  gap; see `docs/architecture/development-container.md`'s "Host parity gate"
-  section to run it locally, and `.github/workflows/host-parity.yml` for the CI job.
+  gap. Each temporary gap must include an issue reference, affected host,
+  affected tests or spec area, and removal condition; see
+  `docs/architecture/development-container.md`'s "Host parity gate" section to
+  run it locally, and `.github/workflows/host-parity.yml` for the CI job.
 
 Alignment rule:
 

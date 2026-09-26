@@ -40,6 +40,15 @@ def optional_capabilities() -> frozenset[str]:
 
 _FAILING_COUNT_FIELDS = ("fail", "protocol_error", "crash", "timeout", "invalid")
 
+_REQUIRED_GAP_FIELDS = (
+    "capability",
+    "reason",
+    "tracking_issue",
+    "affected_host",
+    "affected_tests",
+    "removal_condition",
+)
+
 PARITY_OK = "PARITY_OK"
 KNOWN_GAP = "KNOWN_GAP"
 UNDOCUMENTED_GAP = "UNDOCUMENTED_GAP"
@@ -86,17 +95,34 @@ def load_known_gaps(path: str | Path = DEFAULT_KNOWN_GAPS_PATH) -> dict[str, dic
     """Load the known-gaps manifest, keyed by capability name. Raises
     ``HostParityGateError`` for a manifest entry naming a capability outside
     the genia-2026-owned vocabulary (``spec/manifest.json``), so a typo in
-    the manifest itself is never silently ignored."""
+    the manifest itself is never silently ignored. Each checked-in gap must
+    also carry enough issue-backed tracking detail to keep this file from
+    becoming an unowned skip list."""
     raw = json.loads(Path(path).read_text(encoding="utf-8"))
     gaps = raw.get("gaps", [])
     known = optional_capabilities()
     by_capability: dict[str, dict] = {}
     for entry in gaps:
+        for field in _REQUIRED_GAP_FIELDS:
+            if field not in entry or entry[field] in ("", [], None):
+                raise HostParityGateError(
+                    f"known-gaps manifest {path} entry {entry.get('capability', '<unknown>')!r} "
+                    f"is missing required field {field!r}"
+                )
         capability = entry.get("capability")
         if capability not in known:
             raise HostParityGateError(
                 f"known-gaps manifest {path} names unknown optional capability {capability!r}; "
                 f"known optional capabilities: {sorted(known)}"
+            )
+        tracking_issue = entry["tracking_issue"]
+        if not isinstance(tracking_issue, str) or (
+            "github.com/m0smith/genia-2026/issues/" not in tracking_issue
+            and "m0smith/genia-2026#" not in tracking_issue
+        ):
+            raise HostParityGateError(
+                f"known-gaps manifest {path} entry {capability!r} must include a GitHub issue reference "
+                "in 'tracking_issue'"
             )
         if capability in by_capability:
             raise HostParityGateError(f"known-gaps manifest {path} lists capability {capability!r} twice")
@@ -175,7 +201,7 @@ def check_parity(
                     CapabilityParity(
                         capability=capability,
                         status=KNOWN_GAP,
-                        detail=f"cpp declares {cpp_status!r}: {gap['reason']} ({gap.get('tracking', 'no tracking link')})",
+                        detail=f"cpp declares {cpp_status!r}: {gap['reason']} ({gap['tracking_issue']})",
                     )
                 )
             else:

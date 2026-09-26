@@ -42,6 +42,9 @@ For work requiring pre-flight:
      land first as shared contract/conformance work; then both hosts must
      implement it, or a temporary host gap must be documented before merge.
      Add or update shared spec/conformance tests wherever applicable.
+   - Every temporary host gap recorded in `spec/known_host_gaps.json` must have
+     a GitHub issue reference, short reason, affected host, affected tests or
+     spec area, and removal condition. Do not add unowned skip-list entries.
 3. Commit preflight
 4. Run contract prompt
 5. Commit contract
