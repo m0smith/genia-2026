@@ -138,6 +138,24 @@ Scaffolded or planned, not implemented as hosts:
   JSON value mapping, limit, or Outcome shape changed for any input that
   was already well-behaved. See `tests/unit/test_r22_misuse_resource_limits_894.py`
   and `tests/unit/test_r23_e23_6_diagnostics_sweep.py`.
+- **R26-2 E26-0 data bridge contract (issue #1024):** the portable
+  `bytes_utf8`/`json_strict` boundary is approved in
+  `docs/design/r26-cpp-data-bridge-contract.md`. It restates and pins
+  already-implemented behavior only (key-sort basis, escape set, layout,
+  BOM rejection, `line`/`column` semantics, error precedence, the
+  `value_type` vocabulary, and the numeric/nesting resource bounds) -- no
+  JSON/Bytes value mapping, limit, or Outcome shape changes. It inherits
+  R24/E24-7's numeric codec path and R9 facet carrier rather than
+  re-deriving them, decides compatibility JSON
+  (`json_parse`/`json_stringify`/`json_pretty`, plus `parse_jsonl_record`)
+  is **not portable** and remains Python-host-only, narrows the malformed-
+  `utf8_decode` portable claim to well-formed input only (Genia source
+  cannot construct arbitrary malformed bytes today), and removes ZIP from
+  R26 entirely (deferred, contract-first, roadmap home TBD). Adding the
+  `bytes_utf8`/`json_strict` capability names to `spec/manifest.json`,
+  retro-gating the currently-ungated JSON/Bytes/compatibility-JSON shared
+  cases, and adding the missing shared coverage this contract identifies
+  are separate follow-up implementation work, not done by this contract.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
