@@ -107,6 +107,38 @@ def test_resource_limit_seam_triggers_deterministically_for_rational() -> None:
     assert str(excinfo.value) == "numeric-resource-limit"
 
 
+def test_as_fraction_rejects_exponent_expansion_beyond_resource_limit() -> None:
+    """R26-2 E26-0 defect repair: a GeniaDecimal with a small-magnitude
+    exponent (comfortably under the bit-length bound `__init__` already
+    checks) can still expand to an astronomically large `10 ** exponent`
+    result when `_as_fraction` is called -- e.g. by `stable_json_decimal`,
+    which `json_decode`/`json_encode` call on every fraction/exponent
+    number. Without its own guard, `GeniaDecimal(1, 999999999)._as_fraction()`
+    would materialize a ~3.3-billion-bit integer, an unbounded
+    resource-exhaustion hang reachable from ordinary Genia source via
+    `json_decode("1e999999999")`. The guard must trip before that
+    expansion is attempted, not merely bound the stored exponent."""
+    huge_exponent_decimal = GeniaDecimal(1, 999_999_999)
+    with pytest.raises(NumericResourceLimitError) as excinfo:
+        huge_exponent_decimal._as_fraction()
+    assert str(excinfo.value) == "numeric-resource-limit"
+
+    huge_negative_exponent_decimal = GeniaDecimal(1, -999_999_999)
+    with pytest.raises(NumericResourceLimitError):
+        huge_negative_exponent_decimal._as_fraction()
+
+
+def test_json_decode_huge_exponent_is_clean_resource_limit_not_a_hang() -> None:
+    """The same defect, exercised through the actual json_decode boundary
+    (R23 contract sections 4-5's stable_json_decimal call) rather than the
+    numeric runtime directly -- this must return promptly with the
+    project's existing clean, deterministic misuse diagnostic, never hang
+    and never leak raw Python exception text."""
+    with pytest.raises(NumericResourceLimitError) as excinfo:
+        _run('json_decode("1e999999999")')
+    assert str(excinfo.value) == "numeric-resource-limit"
+
+
 def test_resource_limit_seam_restores_previous_bound() -> None:
     with _numeric_resource_limit_test_seam(max_bits=32):
         pass

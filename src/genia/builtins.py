@@ -4458,6 +4458,11 @@ def make_global_env(
             # never silently materializes a JSON number token as a raw
             # host Python float.
             parsed = json.loads(text, parse_float=_compat_json_decimal)
+            # R26-2 E26-0 defect repair: this conversion recurses per
+            # container level with no depth limit of its own -- it must
+            # stay inside this same try so the RecursionError handler
+            # below also covers it, not just the `json.loads` call above.
+            return _json_to_runtime(parsed)
         except json.JSONDecodeError as exc:
             context = (
                 GeniaMap()
@@ -4474,7 +4479,23 @@ def make_global_env(
                 .put("message", "invalid numeric token")
             )
             return make_none("json-parse-error", context)
-        return _json_to_runtime(parsed)
+        except RecursionError:
+            # `json.loads` and `_json_to_runtime` both recurse per
+            # container level with no depth limit of their own; deeply
+            # nested untrusted input previously raised a raw Python
+            # RecursionError ("maximum recursion depth exceeded") straight
+            # through this boundary instead of the project's own clean,
+            # deterministic diagnostic shape every other json_parse
+            # failure already uses. Deliberately minimal work in this
+            # handler (a fixed literal message, no further traversal of
+            # `value`): Python's recursion-depth check leaves only a
+            # small usable-stack buffer once it has already fired once.
+            context = (
+                GeniaMap()
+                .put("source", "json_parse")
+                .put("message", "maximum nesting depth exceeded")
+            )
+            return make_none("json-parse-error", context)
 
     def json_decode_fn(value: Any) -> Any:
         if isinstance(value, GeniaBytes):
@@ -5008,6 +5029,17 @@ def make_global_env(
             # decode hook as `json_parse` above -- shared machinery, not a
             # second parser.
             parsed = json.loads(text, parse_float=_compat_json_decimal)
+            # R26-2 E26-0 defect repair: this conversion recurses per
+            # container level with no depth limit of its own -- it must
+            # stay inside this same try so the RecursionError handler
+            # below also covers it, not just the `json.loads` call above.
+            runtime_value = _json_to_runtime(parsed)
+            if not isinstance(runtime_value, GeniaMap):
+                context = _jsonl_context("error", "jsonl_record_not_object", text).put(
+                    "value_type", _jsonl_value_type(parsed)
+                )
+                return GeniaOptionErr(symbol("jsonl_record_not_object"), context)
+            return GeniaOptionSome(runtime_value, _jsonl_context("parsed", "parsed", text))
         except json.JSONDecodeError as exc:
             context = (
                 _jsonl_context("error", "invalid_jsonl_record", text)
@@ -5021,22 +5053,32 @@ def make_global_env(
                 .put("message", "invalid numeric token")
             )
             return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
-
-        runtime_value = _json_to_runtime(parsed)
-        if not isinstance(runtime_value, GeniaMap):
-            context = _jsonl_context("error", "jsonl_record_not_object", text).put(
-                "value_type", _jsonl_value_type(parsed)
+        except RecursionError:
+            # Same class of leak as json_parse's RecursionError above --
+            # `parse_jsonl_record` shares the same unbounded-recursion
+            # `json.loads`/`_json_to_runtime` scan. Deliberately minimal
+            # work in this handler; see the matching comment in
+            # json_parse_fn.
+            context = (
+                _jsonl_context("error", "invalid_jsonl_record", text)
+                .put("message", "maximum nesting depth exceeded")
             )
-            return GeniaOptionErr(symbol("jsonl_record_not_object"), context)
-
-        return GeniaOptionSome(runtime_value, _jsonl_context("parsed", "parsed", text))
+            return GeniaOptionErr(symbol("invalid_jsonl_record"), context)
 
     def json_stringify_fn(value: Any) -> Any:
-        if contains_protected(value):
-            return make_none(
-                "protected-value", GeniaMap().put("operation", "json-stringify")
-            )
         try:
+            # R26-2 E26-0 defect repair: `contains_protected` recurses per
+            # container level with no depth limit of its own, exactly
+            # like `_json_from_runtime` below -- it previously ran
+            # *before* this try block, so a deeply nested Genia value
+            # raised a raw Python RecursionError before this function
+            # even reached its own recursion handling. Moving it inside
+            # the same try/except closes that gap without changing its
+            # protected-value detection at all.
+            if contains_protected(value):
+                return make_none(
+                    "protected-value", GeniaMap().put("operation", "json-stringify")
+                )
             decimal_sentinels: dict[str, str] = {}
             serializable = _json_from_runtime(value, decimal_sentinels)
             text = json.dumps(
@@ -5053,32 +5095,49 @@ def make_global_env(
                 .put("received", _runtime_type_name(value))
             )
             return make_none("json-stringify-error", context)
+        except RecursionError:
+            # Deliberately minimal work here: Python's recursion-depth
+            # check leaves only a small buffer of usable stack once it
+            # has already fired once, so this handler must not itself
+            # call back into a value-shaped traversal (including
+            # `_runtime_type_name`, which is a flat isinstance chain but
+            # still a real call) -- a fixed literal message is enough,
+            # and matches the fixed "json_nesting_too_deep" reason strict
+            # decode/encode already use for the identical failure class.
+            context = GeniaMap().put("source", "json_stringify").put(
+                "message", "maximum nesting depth exceeded"
+            )
+            return make_none("json-stringify-error", context)
 
     def json_encode_fn(value: Any) -> Any:
-        if isinstance(value, GeniaRepresented):
-            if value.facet != "json":
+        try:
+            if isinstance(value, GeniaRepresented):
+                if value.facet != "json":
+                    return _json_boundary_err(
+                        "encode",
+                        _JsonBoundaryFailure(
+                            "unsupported_json_value", value_type="represented"
+                        ),
+                    )
+                value = value.value
+
+            # R26-2 E26-0 defect repair: see the matching comment in
+            # json_stringify_fn above -- these two checks previously ran
+            # before this try block and so bypassed its RecursionError
+            # handling entirely for a deeply nested encode input.
+            if contains_declassification_authority(value):
                 return _json_boundary_err(
                     "encode",
                     _JsonBoundaryFailure(
-                        "unsupported_json_value", value_type="represented"
+                        "unsupported_json_value", value_type="declassification-authority"
                     ),
                 )
-            value = value.value
 
-        if contains_declassification_authority(value):
-            return _json_boundary_err(
-                "encode",
-                _JsonBoundaryFailure(
-                    "unsupported_json_value", value_type="declassification-authority"
-                ),
-            )
+            if contains_protected(value):
+                return GeniaOptionErr(
+                    "protected-value", GeniaMap().put("operation", "json-encode")
+                )
 
-        if contains_protected(value):
-            return GeniaOptionErr(
-                "protected-value", GeniaMap().put("operation", "json-encode")
-            )
-
-        try:
             decimal_sentinels: dict[str, str] = {}
             serializable = _strict_json_from_runtime(value, decimal_sentinels=decimal_sentinels)
             text = json.dumps(

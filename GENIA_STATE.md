@@ -102,6 +102,42 @@ Scaffolded or planned, not implemented as hosts:
   `>>> `/`... ` prompts to `stdout` when `stdin` is not an interactive tty,
   since section 3 already documented them as host-local, non-portable
   cosmetics that must not appear in the portable observation.
+- **R26-2 reference-host defect repairs (issue #1024):** `docs/analysis/r26-release-size-preflight.md`'s
+  preflight probing found genuine Python reference-host defects in the
+  bytes/JSON boundary that a future C++ host must not inherit; three are
+  now repaired:
+  - `GeniaDecimal._as_fraction()` (used by `stable_json_decimal`, and
+    therefore by `json_decode`/`json_encode` on every fraction/exponent
+    number) now rejects an exponent whose `10 ** exponent` expansion would
+    exceed the existing private numeric resource-limit bound before
+    attempting that expansion, raising the same
+    `NumericResourceLimitError` R22 already uses for this failure class.
+    Previously, a small-magnitude exponent (e.g. from decoding
+    `"1e999999999"`) passed the constructor's own bit-length check but
+    still expanded to an astronomically large integer, an unbounded
+    resource-exhaustion hang reachable from ordinary Genia source.
+  - `_runtime_type_name` (the portable type-name table every diagnostic
+    boundary uses) now has an explicit `GeniaSymbol` branch returning
+    `"symbol"`. Previously, a bare symbol is not a `str` subclass and has
+    no explicit branch, so it fell through to Python's own
+    `type(value).__name__`, and `json_encode(quote(a))` leaked the raw
+    class name `"GeniaSymbol"` as `value_type` -- the same leak class the
+    E23-6 diagnostics sweep already repaired for other unsupported kinds,
+    just never exercised with a symbol value.
+  - `json_parse`, `parse_jsonl_record`, `json_stringify`, and `json_encode`
+    now normalize `RecursionError` from deeply nested input into their
+    existing clean, deterministic diagnostic shape (`none("json-parse-error", ...)`,
+    `err("invalid_jsonl_record", ...)`, `none("json-stringify-error", ...)`,
+    and `err("json_nesting_too_deep", ...)` respectively), matching strict
+    `json_decode`'s existing `RecursionError` handling. Previously, deep
+    nesting (or, for encode/stringify, a deeply nested protected-value
+    check that ran before any try block) raised a raw uncaught Python
+    `RecursionError` with the literal message "maximum recursion depth
+    exceeded" straight through the boundary.
+  These are diagnostics-cleanliness and resource-safety repairs only -- no
+  JSON value mapping, limit, or Outcome shape changed for any input that
+  was already well-behaved. See `tests/unit/test_r22_misuse_resource_limits_894.py`
+  and `tests/unit/test_r23_e23_6_diagnostics_sweep.py`.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.

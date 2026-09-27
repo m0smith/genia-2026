@@ -31,6 +31,8 @@ def _runtime_type_name(value: Any) -> str:
         return "rational"
     if isinstance(value, float):
         return "float"
+    if isinstance(value, GeniaSymbol):
+        return "symbol"
     if isinstance(value, str):
         return "string"
     if isinstance(value, list):
