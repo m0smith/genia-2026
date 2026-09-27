@@ -36,10 +36,13 @@ capability coupling).
 
 A host declaring `bytes_utf8: supported` must provide:
 
-1. **Bytes value.** Opaque, not a map key (map-key rejection is a
-   deterministic misuse diagnostic, never a Python `TypeError`/`ValueError`
-   class name). Two independently constructed byte values with the same
-   bytes are equal (R18).
+1. **Bytes value.** Opaque, not a map key. Map-key rejection is a
+   deterministic misuse diagnostic with the exact message `bytes cannot be a
+   map key`, never a raw host class name (the reference host previously
+   leaked `"GeniaBytes"` here via the generic map-key-rejection fallback;
+   repaired as part of this contract -- see `src/genia/equality.py`'s
+   `canonical_map_key`). Two independently constructed byte values with the
+   same bytes are equal (R18).
 2. **`utf8_encode(string) -> bytes`.** Total for any Genia string (Genia
    strings are already-validated Unicode scalar sequences; no encode failure
    exists for well-formed input).

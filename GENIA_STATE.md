@@ -791,6 +791,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `spawn` returns a host-backed process handle value
 - Bytes
   - `utf8_encode` and ZIP helpers produce opaque bytes wrapper values
+  - Bytes is not a legal map key; rejection is the exact clean diagnostic
+    `bytes cannot be a map key`, never a raw host class name (R26-2
+    `bytes_utf8` contract, `docs/design/r26-cpp-data-bridge-contract.md`
+    section 2)
 - ZipEntry
   - `zip_entries` returns opaque zip entry wrapper values
 - HTTP serving

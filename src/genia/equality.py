@@ -525,6 +525,14 @@ def canonical_map_key(value: Any) -> Any:
         raise _key_error("declassification authority cannot be a map key")
     if type(value).__name__ == "GeniaIndexHandle":
         raise _key_error("index handles cannot be map keys")
+    if isinstance(value, GeniaBytes):
+        # R26-2 bytes_utf8 contract (docs/design/r26-cpp-data-bridge-contract.md
+        # section 2): Bytes is not a legal map key. Found and repaired here
+        # rather than left as the generic fallback below, which would leak
+        # the raw Python class name "GeniaBytes" in the diagnostic text --
+        # the same leak class the E23-6 JSON diagnostics sweep already
+        # repaired for other unsupported kinds.
+        raise _key_error("bytes cannot be a map key")
 
     # Host-internal accommodations. The approved R18 contract is explicit that
     # these are "not authority to introduce a new public tuple/null key kind", so
