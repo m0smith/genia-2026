@@ -1,0 +1,19 @@
+name: json-encode-key-sort-basis
+category: eval
+description: json_encode sorts object member names by Unicode code point order
+requires: [json_strict]
+input:
+  source: |
+    m = map_put(map_put(map_put(map_put(map_put(map_new(), "b", 1), "a", 2), "Z", 3), "z", 4), "A", 5)
+    expected = "{\n  \"A\": 5,\n  \"Z\": 3,\n  \"a\": 2,\n  \"b\": 1,\n  \"z\": 4\n}"
+    unwrap_or("", json_encode(m)) == expected
+expected:
+  stdout: |
+    true
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  section 3.3): object member names sort by plain Unicode code point
+  order (uppercase ASCII before lowercase ASCII: "A" < "Z" < "a" < "z"),
+  not locale-sensitive collation or UTF-16 code-unit order.

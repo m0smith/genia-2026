@@ -1,5 +1,6 @@
 name: r19-unicode-utf8-encode-decode-roundtrip
 category: eval
+requires: [bytes_utf8]
 input:
   source: |
     utf8_decode(utf8_encode("hello 漢字 😀"))

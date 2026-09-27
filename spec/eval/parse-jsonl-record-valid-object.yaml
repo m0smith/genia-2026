@@ -1,6 +1,7 @@
 name: parse-jsonl-record-valid-object
 category: eval
 description: parse_jsonl_record returns some(record, context) for a valid JSON object line
+requires: [json_compat]
 input:
   source: |
     describe(result) =

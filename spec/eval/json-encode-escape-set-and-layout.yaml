@@ -1,0 +1,30 @@
+name: json-encode-escape-set-and-layout
+category: eval
+description: json_encode's escape set, 2-space layout, and empty-container rendering
+requires: [json_strict]
+input:
+  source: |
+    text = "a\tb\nc\u0001d/e"
+    expected_text = "\"a\\tb\\nc\\u0001d/e\""
+    layout_value = {items: [1, 2], empty_list: [], empty_map: {}}
+    expected_layout = "{\n  \"empty_list\": [],\n  \"empty_map\": {},\n  \"items\": [\n    1,\n    2\n  ]\n}"
+    [
+      unwrap_or("", json_encode(text)) == expected_text,
+      unwrap_or("", json_encode(layout_value)) == expected_layout
+    ]
+expected:
+  stdout: |
+    [true, true]
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  sections 3.4-3.5): control characters below U+0020 are escaped
+  (short escapes for tab/newline, \u00XX otherwise); "/" is not escaped.
+  Layout uses 2-space indentation, one member/element per line, a
+  ": " key separator, and empty object/array render as "{}"/"[]" with
+  no internal whitespace. Non-ASCII passthrough is already covered by
+  json-representation-encode.yaml's "é" case; DEL (U+007F) and U+2028
+  not being escaped is documented in the contract and verified by direct
+  probing during E26-0, but is not separately re-asserted here to avoid
+  embedding raw non-printable/separator bytes in this shared spec file.

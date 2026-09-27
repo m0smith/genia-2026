@@ -1,6 +1,7 @@
 name: parse-jsonl-record-blank-lines
 category: eval
 description: parse_jsonl_record returns none(context) for empty and whitespace-only lines
+requires: [json_compat]
 input:
   source: |
     describe(result) =

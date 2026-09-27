@@ -1,6 +1,7 @@
 name: r23-json-round-trip-rational-terminating-cross-kind-equality
 category: eval
 description: R23 E23-4/section 5 a terminating Rational's JSON round trip decodes to a Decimal that is mathematically equal to the original Rational (R18 cross-kind equality)
+requires: [json_strict]
 input:
   source: |
     encoded = unwrap_or("", json_encode(3 / 8))

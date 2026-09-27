@@ -151,11 +151,19 @@ Scaffolded or planned, not implemented as hosts:
   is **not portable** and remains Python-host-only, narrows the malformed-
   `utf8_decode` portable claim to well-formed input only (Genia source
   cannot construct arbitrary malformed bytes today), and removes ZIP from
-  R26 entirely (deferred, contract-first, roadmap home TBD). Adding the
-  `bytes_utf8`/`json_strict` capability names to `spec/manifest.json`,
-  retro-gating the currently-ungated JSON/Bytes/compatibility-JSON shared
-  cases, and adding the missing shared coverage this contract identifies
-  are separate follow-up implementation work, not done by this contract.
+  R26 entirely (deferred, contract-first, roadmap home TBD).
+  `spec/manifest.json` now declares `bytes_utf8`, `json_strict`, and
+  `json_compat` in place of the retired `bytes_json_zip` bundle; every
+  previously-ungated JSON/Bytes/compatibility-JSON shared case is
+  retro-gated with the matching `requires:` tag, and the missing coverage
+  this contract identified (nesting 128/129 boundary for decode and
+  encode, lone-vs-paired surrogate handling, duplicate-key `key` context,
+  BOM rejection, key-sort basis, escape-set/layout rules) is added as new
+  `spec/eval/*.yaml` cases, all passing against the Python reference host
+  (`spec/known_host_gaps.json` tracks `bytes_utf8`/`json_strict` as
+  issue-backed C++ gaps and `json_compat` as a permanent-by-design
+  Python-host-only classification). C++ implementation has not started
+  and remains blocked on this gating.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.

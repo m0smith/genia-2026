@@ -1,6 +1,7 @@
 name: json-representation-decode
 category: eval
 description: Strict JSON decoding returns one represented ordinary root in an Outcome
+requires: [json_strict]
 input:
   source: |
     decoded = json_decode("{\"name\":\"Ada\",\"active\":true,\"score\":7,\"items\":[1,null,{\"city\":\"Zürich\"}]}")

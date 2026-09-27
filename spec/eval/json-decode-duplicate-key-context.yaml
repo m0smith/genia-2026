@@ -1,0 +1,19 @@
+name: json-decode-duplicate-key-context
+category: eval
+description: json_decode's duplicate_json_key failure carries the duplicated key name in context
+requires: [json_strict]
+input:
+  source: |
+    key_of(result) =
+      err(_, context) -> unwrap_or("", get("key", context)) |
+      _ -> "unexpected"
+    key_of(json_decode("{\"a\": 1, \"a\": 2}"))
+expected:
+  stdout: |
+    "a"
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  section 3.10): a duplicate_json_key failure's context carries the
+  exact duplicated key name under "key".

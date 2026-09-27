@@ -1,6 +1,7 @@
 name: json-representation-template-flow
 category: flow
 description: JSON boundary Outcomes compose with representation and structural Templates
+requires: [json_strict]
 input:
   source: |
     pattern Present(value) = refinement_match((x) -> x != "", value)

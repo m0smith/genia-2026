@@ -532,6 +532,11 @@ Host-backed synchronized state substrate.
 ### Group: Bytes / JSON / ZIP Bridge
 
 Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
+As of R26-2's E26-0 contract (`../design/r26-cpp-data-bridge-contract.md`),
+Bytes/UTF-8 and strict JSON are portable, independently-claimable capability
+families (`bytes_utf8`, `json_strict`); compatibility JSON is decided
+Python-host-only (`json_compat`); ZIP is removed from R26 and remains
+Python-host-only with no capability of its own yet.
 
 #### `bytes.utf8-encode`
 
@@ -541,8 +546,8 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **output:** opaque Bytes wrapper value
 - **errors:**
   - `TypeError` — when the argument is not a String
-- **portability:** `Python-host-only`
-- **notes:** The opaque Bytes wrapper value is not a plain Genia data type (not a list or string).
+- **portability:** `language contract` for hosts that opt into this capability (`bytes_utf8`)
+- **notes:** The opaque Bytes wrapper value is not a plain Genia data type (not a list or string). Two independently constructed byte values with the same bytes are equal (R18). C++ already has this value plus structural equality and well-formed `utf8_encode` from R24's E24-3, but has not yet declared `bytes_utf8` supported (see `spec/known_host_gaps.json`).
 
 #### `bytes.utf8-decode`
 
@@ -553,7 +558,8 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **errors:**
   - `ValueError` — for invalid UTF-8 byte sequences
   - `TypeError` — when the argument is not a Bytes wrapper value
-- **portability:** `Python-host-only`
+- **portability:** `language contract` for hosts that opt into this capability (`bytes_utf8`)
+- **notes:** The portable claim is narrowed to well-formed input for now: Genia source has no way to construct arbitrary malformed bytes, so shared executable evidence for the malformed-input error path does not exist yet (`../design/r26-cpp-data-bridge-contract.md` section 6).
 
 #### `json.parse`
 
@@ -562,8 +568,8 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **input:** String
 - **output:** parsed Genia value on success; `none("json-parse-error", context)` on failure (structured absence — not a raised exception)
 - **errors:** none raised — parse failures return `none("json-parse-error", context)` as structured absence
-- **portability:** `Python-host-only`
-- **notes:** JSON objects become runtime Map values (same family as `map_new`/`map_put`). Failures are returned as structured absence, not exceptions.
+- **portability:** `Python-host-only` (`json_compat`)
+- **notes:** JSON objects become runtime Map values (same family as `map_new`/`map_put`). Failures are returned as structured absence, not exceptions. Decided not portable by `../design/r26-cpp-data-bridge-contract.md` section 5 — deliberately permissive legacy behavior (e.g. accepts `NaN`/`Infinity`), not a stricter/laxer variant of `json.decode`.
 
 #### `json.decode`
 
@@ -572,8 +578,8 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **input:** String or opaque Bytes containing strict UTF-8 JSON
 - **output:** `some(represent("json", ordinary_value), context)` on success; normalized `err(reason, context)` on recoverable data failure
 - **errors:** `TypeError` for an input that is neither String nor Bytes; JSON data failures are Outcome values
-- **portability:** `language contract`
-- **notes:** The Python host supplies parsing, but duplicate rejection, safe-integer/finite-binary64 limits, Unicode scalar validation, 128-container nesting, ordinary-value mapping, outer facet placement, and Outcome observations are portable.
+- **portability:** `language contract` for hosts that opt into this capability (`json_strict`)
+- **notes:** The Python host supplies parsing, but duplicate rejection (with the duplicated key in context), safe-integer/finite-binary64 limits, Unicode scalar validation (lone surrogates rejected, valid surrogate pairs accepted), 128-container nesting, ordinary-value mapping, outer facet placement, and Outcome observations are portable. A leading byte-order mark is rejected, not stripped. C++ already has R24's E24-7 scalar-numeric slice (inherited unchanged, not re-derived) but has not yet declared `json_strict` supported (see `spec/known_host_gaps.json`).
 
 #### `json.stringify`
 
@@ -582,8 +588,8 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **input:** any Genia value representable as JSON (Number, String, Boolean, List, Map, `none("nil")`)
 - **output:** String on success; `none("json-stringify-error", context)` on failure (structured absence — not a raised exception)
 - **errors:** none raised — stringify failures return `none("json-stringify-error", context)` as structured absence
-- **portability:** `Python-host-only`
-- **notes:** Current output format uses 2-space indentation and sorted keys. `json_pretty` is a compatibility alias for `json_stringify`.
+- **portability:** `Python-host-only` (`json_compat`)
+- **notes:** Current output format uses 2-space indentation and sorted keys. `json_pretty` is a compatibility alias for `json_stringify`. Decided not portable by `../design/r26-cpp-data-bridge-contract.md` section 5, alongside `json.parse`.
 
 #### `json.encode`
 
@@ -592,8 +598,8 @@ Host-backed bridge for binary data, JSON serialization, and ZIP archive access.
 - **input:** a supported ordinary JSON-domain value or one outer `json`-represented supported value
 - **output:** `some(deterministic_json_text, context)` on success; normalized `err(reason, context)` on unsupported/out-of-contract data
 - **errors:** recoverable unsupported, number, Unicode, and nesting failures are Outcome values
-- **portability:** `language contract`
-- **notes:** Output uses two-space indentation, sorted object member names, direct Unicode scalars, and preserved array order. No other representation layer is stripped.
+- **portability:** `language contract` for hosts that opt into this capability (`json_strict`)
+- **notes:** Output uses two-space indentation, a `": "` key separator, sorted object member names (plain Unicode code point order), direct Unicode scalars, and preserved array order; empty objects/arrays render as `{}`/`[]`. `value_type` in an `unsupported_json_value` context is always a name from the portable type-name table, never a raw host class name. No other representation layer is stripped.
 
 #### `zip.entries`
 

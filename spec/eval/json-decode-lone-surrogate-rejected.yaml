@@ -1,0 +1,25 @@
+name: json-decode-lone-surrogate-rejected
+category: eval
+description: json_decode rejects a lone surrogate JSON string escape but accepts a valid surrogate pair
+requires: [json_strict]
+input:
+  source: |
+    classify(result) =
+      some(_, _) -> "ok" |
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    [classify(json_decode("\"😀\"")), classify(json_decode("\"\ud800\""))]
+expected:
+  stdout: |
+    ["ok", "invalid_json_unicode"]
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  section 3.2): decoded strings must be valid Unicode scalar sequences.
+  A JSON string escape naming a valid surrogate pair (U+D83D U+DE00,
+  which combine to one scalar) decodes successfully; a lone surrogate
+  (U+D800 with no matching low surrogate) is rejected as
+  invalid_json_unicode. Both are constructed here as JSON text escape
+  sequences within an ordinary Genia string literal -- no byte-level
+  construction surface is needed for this case.

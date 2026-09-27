@@ -1,6 +1,7 @@
 name: r23-json-encode-rational-nonterminating-rejected
 category: eval
 description: R23 E23-4 a non-terminating Rational (e.g. 1/3) is rejected at the generic JSON boundary rather than rounded
+requires: [json_strict]
 input:
   source: |
     reason(result) =

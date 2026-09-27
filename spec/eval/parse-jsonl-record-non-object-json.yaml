@@ -1,6 +1,7 @@
 name: parse-jsonl-record-non-object-json
 category: eval
 description: parse_jsonl_record returns err(jsonl_record_not_object, context) for valid non-object JSON values
+requires: [json_compat]
 input:
   source: |
     describe(result) =

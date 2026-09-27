@@ -1,6 +1,7 @@
 name: json-representation-number-boundaries
 category: eval
 description: JSON uses safe integers and finite binary64 fractional numbers
+requires: [json_strict]
 input:
   source: |
     low = unwrap_or(0, json_decode("-9007199254740991")) |> representation_match("json") |> unwrap_or(0)

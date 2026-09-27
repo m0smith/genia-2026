@@ -1,6 +1,7 @@
 name: parse-jsonl-record-pipeline-shape
 category: eval
 description: parse_jsonl_record composes as an ordinary function over record-like list pipelines
+requires: [json_compat]
 input:
   source: |
     classify(result) =

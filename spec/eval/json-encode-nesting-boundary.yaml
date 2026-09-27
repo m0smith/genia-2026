@@ -1,0 +1,22 @@
+name: json-encode-nesting-boundary
+category: eval
+description: json_encode accepts exactly 128 nested containers and rejects 129
+requires: [json_strict]
+input:
+  source: |
+    classify(result) =
+      some(_, _) -> "ok" |
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    v128 = [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+    [classify(json_encode(v128)), classify(json_encode([v128]))]
+expected:
+  stdout: |
+    ["ok", "json_nesting_too_deep"]
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  section 3.2): encode nesting is bounded at exactly 128 containers,
+  matching decode. v128 is a literal list nested 128 levels deep;
+  wrapping it in one more list ([v128]) reaches 129 levels.

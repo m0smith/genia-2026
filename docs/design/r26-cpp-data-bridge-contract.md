@@ -9,8 +9,10 @@ defines this focused portability slice under the completed R26 pre-flight
 ## 1. Purpose and scope
 
 This contract defines the portable data-bridge boundary a C++ host must
-satisfy before claiming the (to-be-split) `bytes_json_zip` capability family
-for **Bytes/UTF-8 and strict JSON only**. It does not cover:
+satisfy before claiming the `bytes_utf8`/`json_strict` capability family for
+**Bytes/UTF-8 and strict JSON only**. `spec/manifest.json` records these
+(plus `json_compat` for the non-portable compatibility surface, section 5)
+in place of the retired `bytes_json_zip` bundle. It does not cover:
 
 - **ZIP** (`zip_entries`/`zip_read`/`zip_write`/`entry_*`) — removed from R26
   entirely per the scope decision on #1024. Zero shared evidence exists, the
@@ -304,6 +306,42 @@ this contract identifies (nesting 128/129 boundary cases, lone/paired
 surrogate cases, `invalid_json_utf8`, duplicate-key `key` context, BOM
 rejection, layout/escape-set cases) is the next E26 implementation slice,
 not this contract.
+
+**Status update (E26-1/E26-2/E26-3 shared-spec/manifest gating, issue
+#1024):** `bytes_utf8`, `json_strict`, and `json_compat` now exist in
+`spec/manifest.json`'s `optional_capabilities`, replacing `bytes_json_zip`.
+Every currently-ungated JSON/compatibility-JSON shared case identified above
+is retro-gated with the appropriate `requires:` tag, and the missing
+coverage this contract identified (nesting 128/129 boundary for both decode
+and encode, lone-vs-paired surrogate handling, duplicate-key `key` context,
+BOM rejection, key-sort basis, and the escape-set/layout rules) has been
+added as new `spec/eval/*.yaml` cases, all passing against the Python
+reference host.
+
+One correction from the original E26-0 pass: the five `r18-*.yaml`
+cross-family equality cases that happen to construct a Bytes value via
+`utf8_encode` are **not** gated under `bytes_utf8`. `tests/spec/
+test_r18_conformance_protocol_evidence_795.py` already asserts every
+`r18-*.yaml` case must resolve to `pass` (never `unsupported`) through the
+generic host protocol with no capability gating at all -- R18 (Portable
+Value Equality) established Bytes-value structural equality as required
+baseline conformance in an earlier, separately-approved release, and this
+contract does not get to retroactively make part of that optional. Only
+`r19-unicode-utf8-encode-decode-roundtrip.yaml` (the `utf8_encode`/
+`utf8_decode` roundtrip itself, not bare equality) is gated under
+`bytes_utf8`; this was caught by the full pytest regression
+(`test_every_r18_case_passes_through_the_generic_host_protocol` failing)
+before merge, not discovered after.
+
+`spec/known_host_gaps.json` now tracks `bytes_utf8` and `json_strict` as
+issue-backed C++ gaps (tracking issue #1024) and `json_compat` as a
+permanent-by-design Python-host-only classification, not an in-progress
+gap. `invalid_json_utf8` (malformed-UTF-8 bytes input to `json_decode`)
+remains undecided per section 6's evidence-route decision -- it is not
+addable today for the same reason `utf8_decode`'s malformed-input case is
+not: Genia source has no way to construct arbitrary invalid UTF-8 bytes.
+C++ implementation has not started; that remains blocked on this gating
+landing.
 
 ## 10. Exclusions
 

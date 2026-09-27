@@ -1,6 +1,7 @@
 name: json-representation-encode
 category: eval
 description: JSON encoding accepts represented or ordinary values and emits deterministic text
+requires: [json_strict]
 input:
   source: |
     value = {z: [3, 2, 1], a: "é"}
