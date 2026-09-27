@@ -81,6 +81,11 @@ def exec_cli(spec) -> dict:
         argv.extend(["-p", command])
         stdin = stdin_text
 
+    elif not file and not command and not test and stdin_text != "":
+        # REPL mode: bare invocation with no mode flags; stdin is the
+        # whole scripted session (docs/design/r26-cpp-repl-contract.md).
+        stdin = stdin_text
+
     else:
         raise ValueError(
             "Invalid CLI spec: file mode requires file only; "

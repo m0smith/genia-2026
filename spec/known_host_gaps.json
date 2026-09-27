@@ -12,11 +12,11 @@
     },
     {
       "capability": "repl",
-      "reason": "The R26-1 portable REPL contract is approved, but shared executable REPL evidence and C++ implementation have not landed.",
+      "reason": "The R26-1 portable REPL contract is approved and three capability-gated requires: [repl] shared cli cases now pass against the Python reference host, but C++ implementation has not landed.",
       "tracking_issue": "m0smith/genia-2026#1023",
       "affected_host": "cpp",
-      "affected_tests": ["planned capability-gated whole-session REPL cases in spec/cli/**"],
-      "removal_condition": "Remove after shared REPL cases declare requires: [repl], genia-cpp passes those cases and declares repl supported, and the host parity gate reports the capability as PARITY_OK."
+      "affected_tests": ["spec/cli/repl_persistent_binding_basic.yaml", "spec/cli/repl_failed_submission_diagnostic.yaml", "spec/cli/repl_none_result_rendering.yaml"],
+      "removal_condition": "Remove after genia-cpp passes the requires: [repl] shared cli cases, declares repl supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "flow_phase_1",

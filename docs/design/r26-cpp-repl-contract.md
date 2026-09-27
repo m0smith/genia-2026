@@ -84,13 +84,27 @@ cross-stream timing are not portable parity evidence.
 
 ## 5. Capability and gap rule
 
-Python currently implements the section 2 observations, but shared executable
-REPL evidence has not yet landed. C++ remains unsupported for `repl`.
+Python implements the section 2 observations. Shared executable REPL evidence
+now exists as three capability-gated `cli` cases declaring `requires: [repl]`
+(`spec/cli/repl_persistent_binding_basic.yaml`,
+`spec/cli/repl_failed_submission_diagnostic.yaml`,
+`spec/cli/repl_none_result_rendering.yaml`), and they pass via the R16 runner
+against the Python reference host. C++ remains unsupported for `repl`.
 
 The C++ host must not declare `repl: supported`, and the known-host-gap entry
-must remain, until capability-gated shared REPL evidence exists and passes via
+must remain, until it passes this capability-gated shared REPL evidence via
 the R16 runner. Removing the gap additionally requires the host parity gate to
 report `repl` as `PARITY_OK`.
+
+Making this evidence honestly comparable required one narrow Python
+reference-host fix: `repl()` previously wrote its banner and `>>> `/`... `
+prompts to `stdout` unconditionally, even though section 3 already documents
+them as host-local cosmetics outside the portable contract. `repl()` now
+checks `sys.stdin.isatty()` and suppresses both when `stdin` is not an
+interactive tty, so a scripted/piped session's `stdout` is exactly the
+section 2 portable observation. This is a reference-host defect repair, not a
+semantic or contract change: section 2's observations are unchanged, and
+interactive terminal use is unaffected.
 
 ## 6. Exclusions
 

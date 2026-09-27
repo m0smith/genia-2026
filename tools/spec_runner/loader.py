@@ -233,6 +233,19 @@ def _validate_input(category: str, input_data: dict[str, Any]) -> None:
             raise ValueError("cli pipe mode requires input.argv to be empty")
         return  # pipe mode (command + stdin)
 
+    if has_stdin:
+        # REPL mode: no file/command/test selects a persistent-session
+        # REPL invocation (docs/design/r26-cpp-repl-contract.md section 2);
+        # input.stdin is the whole scripted session, input.source mirrors
+        # it for consistency with the other mode-selecting fields.
+        if input_data["argv"]:
+            raise ValueError("cli repl mode requires input.argv to be empty")
+        if input_data.get("debug_stdio", False):
+            raise ValueError("cli repl mode requires input.debug_stdio to be false")
+        if input_data["source"] != stdin_value:
+            raise ValueError("cli repl mode requires input.source to match input.stdin")
+        return  # repl mode
+
     raise ValueError("cli spec must provide input.file or input.command")
 
 

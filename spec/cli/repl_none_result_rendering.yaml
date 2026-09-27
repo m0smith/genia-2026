@@ -1,0 +1,19 @@
+id: repl_none_result_rendering
+name: repl_none_result_rendering
+category: cli
+description: >-
+  A non-empty successful REPL submission renders its final value with the
+  canonical debug renderer, including none("nil")
+  (docs/design/r26-cpp-repl-contract.md section 2, item 4).
+requires: [repl]
+input:
+  source: 'none("nil")'
+  file: null
+  command: null
+  stdin: 'none("nil")'
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: 'none("nil")'
+  stderr: ""
+  exit_code: 0

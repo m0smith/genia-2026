@@ -1,0 +1,26 @@
+id: repl_persistent_binding_basic
+name: repl_persistent_binding_basic
+category: cli
+description: >-
+  REPL mode (no file/command/test) evaluates a sequence of submissions in one
+  persistent top-level environment; a binding from an earlier submission is
+  available to a later one, and each successful submission's final value is
+  rendered to stdout (docs/design/r26-cpp-repl-contract.md section 2).
+requires: [repl]
+input:
+  source: |-
+    x = 1
+    x + 2
+  file: null
+  command: null
+  stdin: |-
+    x = 1
+    x + 2
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    1
+    3
+  stderr: ""
+  exit_code: 0

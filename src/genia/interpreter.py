@@ -346,20 +346,27 @@ def _emit_error(env: Env, message: str) -> None:
 
 def repl() -> None:
     env = make_global_env([])
-    try:
-        env.get("_writeln")(env.get("stdout"), "Genia prototype REPL. Type :help for examples, :quit to exit.")
-    except GeniaQuietBrokenPipe:
-        return
+    # Banner and prompts are host-local terminal cosmetics (see
+    # docs/design/r26-cpp-repl-contract.md section 3); a non-interactive
+    # (piped/scripted) stdin must not have them mixed into the portable
+    # stdout observation.
+    interactive = sys.stdin.isatty()
+    if interactive:
+        try:
+            env.get("_writeln")(env.get("stdout"), "Genia prototype REPL. Type :help for examples, :quit to exit.")
+        except GeniaQuietBrokenPipe:
+            return
     buf = ""
     while True:
         try:
-            prompt = "... " if buf else ">>> "
+            prompt = ("... " if buf else ">>> ") if interactive else ""
             line = input(prompt)
         except EOFError:
-            try:
-                env.get("_writeln")(env.get("stdout"), "")
-            except GeniaQuietBrokenPipe:
-                return
+            if interactive:
+                try:
+                    env.get("_writeln")(env.get("stdout"), "")
+                except GeniaQuietBrokenPipe:
+                    return
             break
         if not buf and line.strip() == ":quit":
             break

@@ -90,9 +90,18 @@ Scaffolded or planned, not implemented as hosts:
   `stdout`, normalized diagnostics to `stderr` with session recovery,
   successful EOF termination, and no implicit `main` dispatch. Banner/prompt
   text, terminal editing/history, signals, Python colon commands, and
-  cross-stream timing remain host-local. Shared executable REPL evidence has
-  not landed, and C++ still declares `repl` unsupported; this contract adds no
-  C++ implementation or Python/C++ feature-parity claim.
+  cross-stream timing remain host-local. Shared executable REPL evidence now
+  exists (three capability-gated `cli` cases declaring `requires: [repl]`:
+  `repl_persistent_binding_basic`, `repl_failed_submission_diagnostic`,
+  `repl_none_result_rendering`) and passes against the Python reference host;
+  C++ still declares `repl` unsupported and the known-gap entry remains until
+  it passes this evidence and the host parity gate reports `repl` as
+  `PARITY_OK`. This contract adds no C++ implementation or Python/C++
+  feature-parity claim. Making that evidence honestly comparable required one
+  narrow Python reference-host fix: `repl()` no longer writes its banner or
+  `>>> `/`... ` prompts to `stdout` when `stdin` is not an interactive tty,
+  since section 3 already documented them as host-local, non-portable
+  cosmetics that must not appear in the portable observation.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
@@ -154,7 +163,7 @@ PYTHON REFERENCE HOST:
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
 - The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, `collect` materialization, and `reduce` accumulation over Flow; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
-- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode behavior, and selected native `--test` mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results, plus selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL mode is not included in shared executable spec coverage.
+- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode behavior, and selected native `--test` mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results, plus selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL mode is covered only by the three capability-gated `requires: [repl]` cases described above (issue #1023); every other REPL scenario remains uncovered by shared executable specs.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
 - The observable error shared-spec contract in this phase is limited to `stdout`, `stderr`, and `exit_code`.
 - Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.

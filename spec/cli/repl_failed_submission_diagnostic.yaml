@@ -1,0 +1,28 @@
+id: repl_failed_submission_diagnostic
+name: repl_failed_submission_diagnostic
+category: cli
+description: >-
+  A failed REPL submission writes the normalized "Error: <diagnostic>" line
+  to stderr, and the session remains available for later submissions in the
+  same persistent environment (docs/design/r26-cpp-repl-contract.md section 2,
+  item 5).
+requires: [repl]
+input:
+  source: |-
+    x = 1
+    undefined_name
+    x + 1
+  file: null
+  command: null
+  stdin: |-
+    x = 1
+    undefined_name
+    x + 1
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: |-
+    1
+    2
+  stderr: "Error: Undefined name: undefined_name"
+  exit_code: 0
