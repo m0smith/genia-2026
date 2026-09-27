@@ -74,7 +74,12 @@ CLI contract summary (actual behavior):
 - native test assertion helpers (Python reference host, Experimental): `assert_true(value)` and `assert_eq(actual, expected)` are minimal assertion helpers available in native test bodies; passing helpers return `none` and print nothing; inside native test mode, failing helpers are reported as test `FAIL` outcomes rather than evaluation `ERROR` outcomes; incorrect arity remains an evaluation `ERROR`; this is not a full assertion framework; see `GENIA_STATE.md` section 9.1.1
 
 **Limitations:**
-- Only the Python host is implemented; all CLI, REPL, and pipe behavior is enforced and tested only for Python.
+- Python is the full-language reference host and is currently the only host
+  implementing a REPL. The bounded C++ production host does not implement the
+  approved portable REPL contract yet.
+- Shared executable REPL evidence has not landed. The portable observation
+  boundary is defined in `docs/design/r26-cpp-repl-contract.md`; the Python
+  banner, prompts, line editing, signals, and colon commands remain host-local.
 - No browser, Node.js, or other host runtimes are implemented.
 - No undocumented modes or advanced CLI features exist; only the modes above are supported. Server annotations remain inert outside explicit serve mode.
 
@@ -772,6 +777,8 @@ Current behavior:
 - ordinary list literals such as `[1, 2, 3]` are still separate list values in this phase
 
 ## REPL commands
+
+**PYTHON REFERENCE HOST (host-local commands, not portable REPL semantics):**
 
 - `:help`
 - `:env`
