@@ -21,6 +21,7 @@ FOCUSED_ROADMAP_DOCS = [
     "docs/strategy/roadmap/r16-r20.md",
     "docs/strategy/roadmap/r21-r24.md",
     "docs/strategy/roadmap/r25-r29.md",
+    "docs/strategy/roadmap/cpp-host-gap-burndown.md",
     "docs/strategy/roadmap/r30-r32.md",
     "docs/strategy/roadmap/r35-r37.md",
     "docs/strategy/roadmap/r38.md",
@@ -92,6 +93,7 @@ def test_staging_excludes_frozen_archive_and_unapproved_strategy_documents() -> 
     staged_roadmap_names = sorted(p.name for p in staged_roadmap_dir.glob("*.md"))
     assert staged_roadmap_names == [
         "README.md",
+        "cpp-host-gap-burndown.md",
         "multi-host-conformance-policy.md",
         "parking-lot.md",
         "r15.md",

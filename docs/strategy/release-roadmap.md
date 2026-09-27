@@ -112,6 +112,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 - **R16–R20:** [`roadmap/r16-r20.md`](roadmap/r16-r20.md)
 - **R21–R24:** [`roadmap/r21-r24.md`](roadmap/r21-r24.md)
 - **R25–R29:** [`roadmap/r25-r29.md`](roadmap/r25-r29.md)
+- **C++ host gap burn-down:** [`roadmap/cpp-host-gap-burndown.md`](roadmap/cpp-host-gap-burndown.md)
 - **R30–R34:** [`roadmap/r30-r32.md`](roadmap/r30-r32.md)
 - **R35–R37:** [`roadmap/r35-r37.md`](roadmap/r35-r37.md)
 - **R32 portable data-store architecture survey (planned, non-authoritative):** [`../architecture/portable-data-store-survey.md`](../architecture/portable-data-store-survey.md)
