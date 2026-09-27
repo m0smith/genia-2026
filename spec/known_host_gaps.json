@@ -12,11 +12,11 @@
     },
     {
       "capability": "repl",
-      "reason": "R26 REPL is not implemented by the bounded R24/R25 C++ host.",
-      "tracking_issue": "m0smith/genia-2026#1018",
+      "reason": "The R26-1 portable REPL contract is approved, but shared executable REPL evidence and C++ implementation have not landed.",
+      "tracking_issue": "m0smith/genia-2026#1023",
       "affected_host": "cpp",
-      "affected_tests": ["REPL is outside current shared executable spec coverage"],
-      "removal_condition": "Remove when genia-cpp declares repl supported and the host parity gate reports the capability as PARITY_OK."
+      "affected_tests": ["planned capability-gated whole-session REPL cases in spec/cli/**"],
+      "removal_condition": "Remove after shared REPL cases declare requires: [repl], genia-cpp passes those cases and declares repl supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "flow_phase_1",

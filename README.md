@@ -126,6 +126,12 @@ runtime semantics. See [Containerized Development and Conformance Environment](d
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is not covered by shared executable specs.
+- The approved R26-1 portable REPL contract is intentionally smaller than the
+  Python terminal UI: persistent complete submissions, canonical result echo,
+  normalized error recovery, clean EOF, and no implicit `main` dispatch are
+  portable; banners, prompts, terminal mechanics, signals, and Python colon
+  commands are host-local. Shared executable evidence and C++ implementation
+  have not landed. See `docs/design/r26-cpp-repl-contract.md`.
 - The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior, including eval Option rendering/propagation cases for `some(...)` and `none(...)`, plus deterministic pattern-matching eval cases (first-match, literal/wildcard/binding, list/tuple/map/option/guard/glob forms) for already-implemented behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.

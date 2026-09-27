@@ -81,6 +81,18 @@ Scaffolded or planned, not implemented as hosts:
 - Step/rule helpers are available as both `step_*` (preferred) and `rule_*` (compatibility) names.
 - Flow shared semantic-spec coverage is limited to first-wave observable cases only; advanced Flow behavior remains uncovered in shared specs.
 - CLI contract covers file, command, pipe, and REPL modes as described; no shell tokenization, `$1`/`$2`/`ARGV`-style, or advanced CLI features exist.
+- **R26-1 REPL portability contract (issue #1023):** the smallest portable
+  `repl` boundary is now approved in
+  `docs/design/r26-cpp-repl-contract.md`. It covers no-argument mode
+  selection, persistent successful bindings across complete submissions,
+  multiline submission without standardizing Python's completeness
+  heuristic, canonical debug-result echo (including `none("nil")`) to
+  `stdout`, normalized diagnostics to `stderr` with session recovery,
+  successful EOF termination, and no implicit `main` dispatch. Banner/prompt
+  text, terminal editing/history, signals, Python colon commands, and
+  cross-stream timing remain host-local. Shared executable REPL evidence has
+  not landed, and C++ still declares `repl` unsupported; this contract adds no
+  C++ implementation or Python/C++ feature-parity claim.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
