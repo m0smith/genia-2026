@@ -51,16 +51,6 @@
       "removal_condition": "Remove when genia-cpp declares allowlisted_host_interop supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
-      "capability": "bytes_utf8",
-      "reason": "The R26-2 E26-0 portable Bytes/UTF-8 contract is approved (docs/design/r26-cpp-data-bridge-contract.md) and a capability-gated requires: [bytes_utf8] shared spec now passes against the Python reference host, but C++ has not declared bytes_utf8 supported. R24's E24-3 bootstrap evidence already required a C++ Bytes value and utf8_encode for well-formed input, but that partial coverage does not satisfy the full contract (utf8_decode roundtrip, malformed-input handling per the contract's narrowed well-formed-only evidence route, and <bytes N> display are also required). Bytes value equality itself is NOT gated by this capability: it is pre-existing required R18 baseline conformance (see tests/spec/test_r18_conformance_protocol_evidence_795.py, which asserts every r18-*.yaml case must pass, never unsupported, through the generic host protocol with no capability gating) and stays ungated.",
-      "tracking_issue": "m0smith/genia-2026#1024",
-      "affected_host": "cpp",
-      "affected_tests": [
-        "spec/eval/r19-unicode-utf8-encode-decode-roundtrip.yaml"
-      ],
-      "removal_condition": "Remove after genia-cpp passes every requires: [bytes_utf8] shared case, declares bytes_utf8 supported, and the host parity gate reports the capability as PARITY_OK."
-    },
-    {
       "capability": "json_strict",
       "reason": "The R26-2 E26-0 portable strict JSON contract is approved (docs/design/r26-cpp-data-bridge-contract.md) and capability-gated requires: [json_strict] shared specs now pass against the Python reference host, but C++ has not declared json_strict supported. R24's E24-7 acceptance evidence already required a scalar-numeric slice of json_encode/json_decode, but that partial coverage does not satisfy the full contract (objects, arrays, strings, Unicode validation, nesting/duplicate-key limits, layout, and Bytes input are also required); the numeric path itself is inherited unchanged, not re-implemented.",
       "tracking_issue": "m0smith/genia-2026#1024",

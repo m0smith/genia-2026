@@ -18,18 +18,17 @@ own pre-flight and focused issue set.
 
 | Bucket | Gap count | Intent |
 |---|---:|---|
-| R26 -- C++ REPL and Data Bridges | 3 | Close REPL and the Bytes/UTF-8 + strict JSON data-bridge gaps already named by R26 (`debugger_stdio` deferred; ZIP removed from R26 -- see below). |
+| R26 -- C++ REPL and Data Bridges | 2 | Close REPL and the strict JSON data-bridge gap already named by R26 (`bytes_utf8` closed; `debugger_stdio` deferred; ZIP removed from R26 -- see below). |
 | R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 4 | Close the largest runtime/CLI/server parity gaps already named by R27. |
 | Later release / separate gate | 15 | Keep provider, host-interop, resource, shell, config, AI, retrieval, external-process, `debugger_stdio`, ZIP, and (permanently) `json_compat` work outside R26/R27 unless a later pre-flight promotes it. |
 
 ## R26 -- C++ REPL and Data Bridges
 
-**Scope narrowed by `docs/analysis/r26-release-size-preflight.md` and the R26-0/R26-2 decisions (#1015, #1024): `debugger_stdio` deferred (#1025, closed) and ZIP removed from R26 entirely (tracked in "Later Release / Separate Gate" below, pending its own contract-first placement).** The `bytes_json_zip` capability name is retired: `spec/manifest.json` now declares `bytes_utf8`, `json_strict`, and `json_compat` per the approved E26-0 contract (`docs/design/r26-cpp-data-bridge-contract.md`), with shared spec cases retro-gated accordingly.
+**Scope narrowed by `docs/analysis/r26-release-size-preflight.md` and the R26-0/R26-2 decisions (#1015, #1024): `debugger_stdio` deferred (#1025, closed) and ZIP removed from R26 entirely (tracked in "Later Release / Separate Gate" below, pending its own contract-first placement).** The `bytes_json_zip` capability name is retired: `spec/manifest.json` now declares `bytes_utf8`, `json_strict`, and `json_compat` per the approved E26-0 contract (`docs/design/r26-cpp-data-bridge-contract.md`), with shared spec cases retro-gated accordingly. `bytes_utf8` is now closed: `genia-cpp` implements `utf8_decode` for well-formed input and `<bytes N>` display, declares `bytes_utf8` supported, and the host parity gate reports `PARITY_OK` (its former `spec/known_host_gaps.json` entry has been removed).
 
 | Gap | Current tracking | Planned issue | Affected tests / spec area | Removal condition |
 |---|---|---|---|---|
 | `repl` | `m0smith/genia-2026#1023` | R26-1 REPL contract/evidence issue (contract approved, `docs/design/r26-cpp-repl-contract.md`; capability-gated shared evidence landed against Python; C++ implementation not started) | `spec/cli/repl_persistent_binding_basic.yaml`, `spec/cli/repl_failed_submission_diagnostic.yaml`, `spec/cli/repl_none_result_rendering.yaml` (`requires: [repl]`) | Remove when `genia-cpp` declares `repl` supported and the host parity gate reports `PARITY_OK`. |
-| `bytes_utf8` | `m0smith/genia-2026#1024` | R26-2 Bytes/UTF-8 contract/evidence issue (contract approved, shared specs gated and passing against Python; C++ implementation not started) | `requires: [bytes_utf8]` shared specs in `spec/eval/` (see `spec/known_host_gaps.json`) | Remove after `genia-cpp` passes every `requires: [bytes_utf8]` shared case, declares `bytes_utf8` supported, and the host parity gate reports `PARITY_OK`. |
 | `json_strict` | `m0smith/genia-2026#1024` | R26-2 strict JSON contract/evidence issue (contract approved, shared specs gated and passing against Python; C++ implementation not started) | `requires: [json_strict]` shared specs in `spec/eval/`, `spec/error/`, `spec/flow/` (see `spec/known_host_gaps.json`) | Remove after `genia-cpp` passes every `requires: [json_strict]` shared case, declares `json_strict` supported, and the host parity gate reports `PARITY_OK`. |
 
 R26 should not absorb pipe/Flow or HTTP serving. Those remain R27 per

@@ -547,7 +547,7 @@ Python-host-only with no capability of its own yet.
 - **errors:**
   - `TypeError` — when the argument is not a String
 - **portability:** `language contract` for hosts that opt into this capability (`bytes_utf8`)
-- **notes:** The opaque Bytes wrapper value is not a plain Genia data type (not a list or string). Two independently constructed byte values with the same bytes are equal (R18). C++ already has this value plus structural equality and well-formed `utf8_encode` from R24's E24-3, but has not yet declared `bytes_utf8` supported (see `spec/known_host_gaps.json`).
+- **notes:** The opaque Bytes wrapper value is not a plain Genia data type (not a list or string). Two independently constructed byte values with the same bytes are equal (R18). C++ (R26-2) declares `bytes_utf8` supported: it has this value plus structural equality and well-formed `utf8_encode` from R24's E24-3, and now also `utf8_decode` and `<bytes N>` display.
 
 #### `bytes.utf8-decode`
 

@@ -162,8 +162,23 @@ Scaffolded or planned, not implemented as hosts:
   `spec/eval/*.yaml` cases, all passing against the Python reference host
   (`spec/known_host_gaps.json` tracks `bytes_utf8`/`json_strict` as
   issue-backed C++ gaps and `json_compat` as a permanent-by-design
-  Python-host-only classification). C++ implementation has not started
-  and remains blocked on this gating.
+  Python-host-only classification). C++ implementation had not started
+  as of this gating; see the following entry for `bytes_utf8`'s
+  completion.
+- **R26-2 C++ `bytes_utf8` (issue #1024, `genia-cpp`):** `genia-cpp`
+  implements `utf8_decode` for well-formed UTF-8 input (an in-house RFC
+  3629 validator, `src/utf8.hpp` -- no ICU, per the R24 dependency policy;
+  malformed input or a non-Bytes argument stays honestly `unsupported`,
+  never guessed at) and `<bytes N>` display rendering (`src/render.hpp`,
+  matching `GeniaBytes.__repr__` verbatim), closing the sole
+  `requires: [bytes_utf8]` shared case,
+  `spec/eval/r19-unicode-utf8-encode-decode-roundtrip.yaml`. `genia-cpp`
+  now declares `bytes_utf8` supported and `tools/spec_runner/host_parity_gate.py`
+  reports it `PARITY_OK`; its `spec/known_host_gaps.json` entry has been
+  removed. Bytes-value structural equality was already required R18
+  baseline conformance, ungated by this capability. `json_strict` and
+  `json_compat` remain unimplemented by `genia-cpp` and are unaffected by
+  this change.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
