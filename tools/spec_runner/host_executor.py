@@ -60,6 +60,9 @@ def _cli_argv(spec: LoadedSpec) -> list[str]:
         return ["-c", spec.command, *spec.argv]
     if spec.command:
         return ["-p", spec.command]
+    if spec.stdin:
+        # REPL mode: bare invocation, no mode flags (docs/design/r26-cpp-repl-contract.md).
+        return []
     raise ValueError(f"cli spec {spec.name!r} has no file or command")
 
 

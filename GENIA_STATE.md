@@ -90,9 +90,95 @@ Scaffolded or planned, not implemented as hosts:
   `stdout`, normalized diagnostics to `stderr` with session recovery,
   successful EOF termination, and no implicit `main` dispatch. Banner/prompt
   text, terminal editing/history, signals, Python colon commands, and
-  cross-stream timing remain host-local. Shared executable REPL evidence has
-  not landed, and C++ still declares `repl` unsupported; this contract adds no
-  C++ implementation or Python/C++ feature-parity claim.
+  cross-stream timing remain host-local. Shared executable REPL evidence now
+  exists (three capability-gated `cli` cases declaring `requires: [repl]`:
+  `repl_persistent_binding_basic`, `repl_failed_submission_diagnostic`,
+  `repl_none_result_rendering`) and passes against the Python reference host;
+  C++ still declares `repl` unsupported and the known-gap entry remains until
+  it passes this evidence and the host parity gate reports `repl` as
+  `PARITY_OK`. This contract adds no C++ implementation or Python/C++
+  feature-parity claim. Making that evidence honestly comparable required one
+  narrow Python reference-host fix: `repl()` no longer writes its banner or
+  `>>> `/`... ` prompts to `stdout` when `stdin` is not an interactive tty,
+  since section 3 already documented them as host-local, non-portable
+  cosmetics that must not appear in the portable observation.
+- **R26-2 reference-host defect repairs (issue #1024):** `docs/analysis/r26-release-size-preflight.md`'s
+  preflight probing found genuine Python reference-host defects in the
+  bytes/JSON boundary that a future C++ host must not inherit; three are
+  now repaired:
+  - `GeniaDecimal._as_fraction()` (used by `stable_json_decimal`, and
+    therefore by `json_decode`/`json_encode` on every fraction/exponent
+    number) now rejects an exponent whose `10 ** exponent` expansion would
+    exceed the existing private numeric resource-limit bound before
+    attempting that expansion, raising the same
+    `NumericResourceLimitError` R22 already uses for this failure class.
+    Previously, a small-magnitude exponent (e.g. from decoding
+    `"1e999999999"`) passed the constructor's own bit-length check but
+    still expanded to an astronomically large integer, an unbounded
+    resource-exhaustion hang reachable from ordinary Genia source.
+  - `_runtime_type_name` (the portable type-name table every diagnostic
+    boundary uses) now has an explicit `GeniaSymbol` branch returning
+    `"symbol"`. Previously, a bare symbol is not a `str` subclass and has
+    no explicit branch, so it fell through to Python's own
+    `type(value).__name__`, and `json_encode(quote(a))` leaked the raw
+    class name `"GeniaSymbol"` as `value_type` -- the same leak class the
+    E23-6 diagnostics sweep already repaired for other unsupported kinds,
+    just never exercised with a symbol value.
+  - `json_parse`, `parse_jsonl_record`, `json_stringify`, and `json_encode`
+    now normalize `RecursionError` from deeply nested input into their
+    existing clean, deterministic diagnostic shape (`none("json-parse-error", ...)`,
+    `err("invalid_jsonl_record", ...)`, `none("json-stringify-error", ...)`,
+    and `err("json_nesting_too_deep", ...)` respectively), matching strict
+    `json_decode`'s existing `RecursionError` handling. Previously, deep
+    nesting (or, for encode/stringify, a deeply nested protected-value
+    check that ran before any try block) raised a raw uncaught Python
+    `RecursionError` with the literal message "maximum recursion depth
+    exceeded" straight through the boundary.
+  These are diagnostics-cleanliness and resource-safety repairs only -- no
+  JSON value mapping, limit, or Outcome shape changed for any input that
+  was already well-behaved. See `tests/unit/test_r22_misuse_resource_limits_894.py`
+  and `tests/unit/test_r23_e23_6_diagnostics_sweep.py`.
+- **R26-2 E26-0 data bridge contract (issue #1024):** the portable
+  `bytes_utf8`/`json_strict` boundary is approved in
+  `docs/design/r26-cpp-data-bridge-contract.md`. It restates and pins
+  already-implemented behavior only (key-sort basis, escape set, layout,
+  BOM rejection, `line`/`column` semantics, error precedence, the
+  `value_type` vocabulary, and the numeric/nesting resource bounds) -- no
+  JSON/Bytes value mapping, limit, or Outcome shape changes. It inherits
+  R24/E24-7's numeric codec path and R9 facet carrier rather than
+  re-deriving them, decides compatibility JSON
+  (`json_parse`/`json_stringify`/`json_pretty`, plus `parse_jsonl_record`)
+  is **not portable** and remains Python-host-only, narrows the malformed-
+  `utf8_decode` portable claim to well-formed input only (Genia source
+  cannot construct arbitrary malformed bytes today), and removes ZIP from
+  R26 entirely (deferred, contract-first, roadmap home TBD).
+  `spec/manifest.json` now declares `bytes_utf8`, `json_strict`, and
+  `json_compat` in place of the retired `bytes_json_zip` bundle; every
+  previously-ungated JSON/Bytes/compatibility-JSON shared case is
+  retro-gated with the matching `requires:` tag, and the missing coverage
+  this contract identified (nesting 128/129 boundary for decode and
+  encode, lone-vs-paired surrogate handling, duplicate-key `key` context,
+  BOM rejection, key-sort basis, escape-set/layout rules) is added as new
+  `spec/eval/*.yaml` cases, all passing against the Python reference host
+  (`spec/known_host_gaps.json` tracks `bytes_utf8`/`json_strict` as
+  issue-backed C++ gaps and `json_compat` as a permanent-by-design
+  Python-host-only classification). C++ implementation had not started
+  as of this gating; see the following entry for `bytes_utf8`'s
+  completion.
+- **R26-2 C++ `bytes_utf8` (issue #1024, `genia-cpp`):** `genia-cpp`
+  implements `utf8_decode` for well-formed UTF-8 input (an in-house RFC
+  3629 validator, `src/utf8.hpp` -- no ICU, per the R24 dependency policy;
+  malformed input or a non-Bytes argument stays honestly `unsupported`,
+  never guessed at) and `<bytes N>` display rendering (`src/render.hpp`,
+  matching `GeniaBytes.__repr__` verbatim), closing the sole
+  `requires: [bytes_utf8]` shared case,
+  `spec/eval/r19-unicode-utf8-encode-decode-roundtrip.yaml`. `genia-cpp`
+  now declares `bytes_utf8` supported and `tools/spec_runner/host_parity_gate.py`
+  reports it `PARITY_OK`; its `spec/known_host_gaps.json` entry has been
+  removed. Bytes-value structural equality was already required R18
+  baseline conformance, ungated by this capability. `json_strict` and
+  `json_compat` remain unimplemented by `genia-cpp` and are unaffected by
+  this change.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
@@ -154,7 +240,7 @@ PYTHON REFERENCE HOST:
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
 - The current shared spec runner executes Flow cases (`spec/flow/`) through command-source execution in the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`. Flow shared coverage includes first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs, including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases; Seq-compatible terminal coverage for `each` preserving items, `each(print) |> run`, `collect` materialization, and `reduce` accumulation over Flow; and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output.
 - The current shared spec runner executes error cases (`spec/error/`) through the same eval execution path used by eval cases, comparing exact normalized `stdout`, exact normalized `stderr`, and exact `exit_code`.
-- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode behavior, and selected native `--test` mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results, plus selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL mode is not included in shared executable spec coverage.
+- CLI shared spec coverage proves deterministic non-interactive file mode, `-c` command mode, `-p` pipe mode behavior, and selected native `--test` mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, explicit `stdin` / `run` rejection, current pipe-mode guidance for bare per-item stages, bare reducers, and non-Flow final results, plus selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL mode is covered only by the three capability-gated `requires: [repl]` cases described above (issue #1023); every other REPL scenario remains uncovered by shared executable specs.
 - The observable CLI shared-spec contract is limited to `stdout`, `stderr`, and `exit_code`.
 - The observable error shared-spec contract in this phase is limited to `stdout`, `stderr`, and `exit_code`.
 - Eval shared spec cases are loaded from YAML files under `spec/eval/`; each case provides source text plus optional stdin text and is executed independently.
@@ -720,6 +806,10 @@ This is the current runtime value model in `main`. It is intentionally descripti
   - `spawn` returns a host-backed process handle value
 - Bytes
   - `utf8_encode` and ZIP helpers produce opaque bytes wrapper values
+  - Bytes is not a legal map key; rejection is the exact clean diagnostic
+    `bytes cannot be a map key`, never a raw host class name (R26-2
+    `bytes_utf8` contract, `docs/design/r26-cpp-data-bridge-contract.md`
+    section 2)
 - ZipEntry
   - `zip_entries` returns opaque zip entry wrapper values
 - HTTP serving

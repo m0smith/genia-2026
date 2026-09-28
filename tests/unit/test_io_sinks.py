@@ -145,7 +145,9 @@ def test_file_mode_diagnostics_go_to_stderr(tmp_path, capsys):
     assert "Error: Undefined name: unknown_name" in captured.err
 
 
-def test_repl_result_output_goes_to_stdout(monkeypatch):
+def test_repl_result_output_goes_to_stdout_interactive(monkeypatch):
+    # Banner/prompts are host-local terminal cosmetics, shown only when
+    # stdin is a real interactive tty (docs/design/r26-cpp-repl-contract.md).
     prompts: list[str] = []
     inputs = iter(["1 + 2", ":quit"])
     stdout = io.StringIO()
@@ -156,6 +158,7 @@ def test_repl_result_output_goes_to_stdout(monkeypatch):
         return next(inputs)
 
     monkeypatch.setattr("builtins.input", fake_input)
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
     monkeypatch.setattr("sys.stdout", stdout)
     monkeypatch.setattr("sys.stderr", stderr)
 
@@ -167,12 +170,13 @@ def test_repl_result_output_goes_to_stdout(monkeypatch):
     assert stderr.getvalue() == ""
 
 
-def test_repl_errors_go_to_stderr(monkeypatch):
+def test_repl_errors_go_to_stderr_interactive(monkeypatch):
     inputs = iter(["unknown_name", ":quit"])
     stdout = io.StringIO()
     stderr = io.StringIO()
 
     monkeypatch.setattr("builtins.input", lambda prompt="": next(inputs))
+    monkeypatch.setattr("sys.stdin.isatty", lambda: True)
     monkeypatch.setattr("sys.stdout", stdout)
     monkeypatch.setattr("sys.stderr", stderr)
 
@@ -180,6 +184,32 @@ def test_repl_errors_go_to_stderr(monkeypatch):
 
     assert "Error: Undefined name: unknown_name" in stderr.getvalue()
     assert "Genia prototype REPL" in stdout.getvalue()
+
+
+def test_repl_non_interactive_suppresses_banner_and_prompts(monkeypatch):
+    # Non-interactive (piped/scripted) stdin must produce only the
+    # portable observation from docs/design/r26-cpp-repl-contract.md
+    # section 2: no banner, no prompts.
+    inputs = iter(["1 + 2"])
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+
+    def fake_input(prompt: str = "") -> str:
+        assert prompt == ""
+        try:
+            return next(inputs)
+        except StopIteration:
+            raise EOFError
+
+    monkeypatch.setattr("builtins.input", fake_input)
+    monkeypatch.setattr("sys.stdin.isatty", lambda: False)
+    monkeypatch.setattr("sys.stdout", stdout)
+    monkeypatch.setattr("sys.stderr", stderr)
+
+    repl()
+
+    assert stdout.getvalue() == "3\n"
+    assert stderr.getvalue() == ""
 
 
 def test_broken_pipe_on_stdout_path_is_quiet(monkeypatch):

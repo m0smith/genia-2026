@@ -1,6 +1,7 @@
 name: parse-jsonl-record-json-parse-regression
 category: eval
 description: existing json_parse invalid-JSON behavior remains none(json-parse-error)
+requires: [json_compat]
 input:
   source: |
     parsed = json_parse("{\"x\":")

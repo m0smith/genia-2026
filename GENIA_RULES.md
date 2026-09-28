@@ -627,7 +627,7 @@ These operators apply Outcome matcher functions. A matcher function is a callabl
   - `stdout`
   - `stderr`
   - `exit_code`
-- Current shared cli cases cover deterministic non-interactive file, command, and pipe modes; REPL is not covered by shared executable specs
+- Current shared cli cases cover deterministic non-interactive file, command, and pipe modes, plus three capability-gated `requires: [repl]` whole-session REPL cases (issue #1023); every other REPL scenario remains uncovered by shared executable specs
 - Portable REPL support is the bounded whole-session contract in
   `docs/design/r26-cpp-repl-contract.md`: one persistent top-level
   environment across complete submissions, canonical debug echo of each
@@ -637,7 +637,9 @@ These operators apply Outcome matcher functions. A matcher function is a callabl
 - REPL banner/prompts, line editing/history, parser-completeness heuristics,
   signals, Python `:help`/`:env`/`:quit`, and cross-stream timing are
   host-local. Shared REPL cases must use the existing `cli` category and
-  declare `requires: [repl]`; no REPL shared cases are implemented yet.
+  declare `requires: [repl]`; the Python reference host now suppresses
+  banner/prompt output when `stdin` is not an interactive tty so this
+  host-local cosmetic never leaks into the portable observation.
 - Current shared ir cases compare normalized portable Core IR
 - Determinism in the current shared semantic-spec scope means:
   - eval and cli asserted outputs must match exactly after newline normalization

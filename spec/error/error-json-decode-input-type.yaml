@@ -1,6 +1,7 @@
 name: error-json-decode-input-type
 category: error
 description: JSON decode rejects programmer input-type misuse
+requires: [json_strict]
 input:
   source: |
     json_decode(42)

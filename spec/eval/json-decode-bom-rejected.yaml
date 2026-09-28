@@ -1,0 +1,19 @@
+name: json-decode-bom-rejected
+category: eval
+description: json_decode rejects a leading byte-order mark rather than skipping it as insignificant whitespace
+requires: [json_strict]
+input:
+  source: |
+    reason(result) =
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    reason(json_decode("﻿{}"))
+expected:
+  stdout: |
+    "invalid_json"
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  section 3.6): a leading U+FEFF is not stripped and is not accepted as
+  insignificant whitespace.

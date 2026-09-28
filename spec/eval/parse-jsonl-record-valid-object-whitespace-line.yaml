@@ -1,6 +1,7 @@
 name: parse-jsonl-record-valid-object-whitespace-line
 category: eval
 description: parse_jsonl_record preserves surrounding whitespace in success context line metadata
+requires: [json_compat]
 input:
   source: |
     describe(result) =

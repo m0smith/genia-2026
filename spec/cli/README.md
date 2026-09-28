@@ -6,11 +6,11 @@ CLI shared coverage is intentionally partial and limited to deterministic non-in
 
 CLI cases in this directory must:
 
-- cover only file mode, `-c` command mode, `-p` pipe mode, native `--test` mode, or explicit `--debug-stdio` argument validation
+- cover only file mode, `-c` command mode, `-p` pipe mode, native `--test` mode, explicit `--debug-stdio` argument validation, or capability-gated whole-session REPL mode (`requires: [repl]`, per `docs/design/r26-cpp-repl-contract.md`)
 - assert only normalized `stdout`, normalized `stderr`, and exact `exit_code`
 - remain deterministic
-- avoid REPL behavior
-- avoid Python-specific leakage that is not part of the documented CLI contract
+- a REPL case's `input.stdin` is the whole scripted session; `input.file`/`input.command`/`input.test` must be absent, `input.argv` must be empty, and `input.debug_stdio` must be false
+- avoid Python-specific leakage that is not part of the documented CLI contract, and avoid non-portable REPL mechanics (banner, prompts, line editing, signals, colon commands) that `docs/design/r26-cpp-repl-contract.md` section 3 keeps host-local
 
 Current CLI shared coverage proves:
 
@@ -34,12 +34,13 @@ Current CLI shared coverage proves:
 - deterministic file-mode parse/runtime failures (`error_parse`, `error_runtime`)
 - deterministic `--debug-stdio` / mode-validation behavior (`debug_stdio_suppression`)
 - selected native test-runner outcomes exposed through `--test`: passing suite, runtime-erroring suite, and discovery-error suite
+- capability-gated (`requires: [repl]`) whole-session REPL behavior: persistent bindings across submissions (`repl_persistent_binding_basic`), normalized failed-submission diagnostics with session recovery (`repl_failed_submission_diagnostic`), and canonical result rendering including `none("nil")` (`repl_none_result_rendering`)
 
 Shared CLI coverage does not yet prove the full CLI surface.
 
 In particular, this directory does not define executable shared coverage for:
 
-- REPL mode
+- REPL mode beyond the three capability-gated cases above (interactive terminal mechanics, `:help`/`:env`/`:quit`, multiline submission edge cases, and cross-stream timing remain host-local per `docs/design/r26-cpp-repl-contract.md` section 3)
 - every malformed mode/arg combination
 - failing native test-suite outcomes not currently producible through the Genia-facing `--test` surface
 - every pipe-mode guidance diagnostic

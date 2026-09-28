@@ -1,6 +1,7 @@
 name: r23-json-encode-float64-finite
 category: eval
 description: R23 E23-4 a finite Float64 encodes to generic JSON using its canonical shortest-roundtrip decimal spelling
+requires: [json_strict]
 input:
   source: |
     unwrap_or("", json_encode(float64(-123.456)))

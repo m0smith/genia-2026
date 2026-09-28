@@ -1,6 +1,7 @@
 name: parse-jsonl-record-non-string-error
 category: error
 description: parse_jsonl_record treats non-string input as runtime API misuse
+requires: [json_compat]
 input:
   source: |
     parse_jsonl_record(42)

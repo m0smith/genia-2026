@@ -69,7 +69,14 @@ def _spec_for_operation(operation: str, input_payload: dict[str, Any]) -> Simple
         argv = list(input_payload["argv"])
         stdin = input_payload.get("stdin") or ""
         if not argv:
-            raise ValueError("cli input.argv must be non-empty")
+            # REPL mode: bare invocation, no mode flags
+            # (docs/design/r26-cpp-repl-contract.md).
+            if not stdin:
+                raise ValueError("cli input.argv must be non-empty unless input.stdin selects REPL mode")
+            return SimpleNamespace(
+                category="cli", file=None, command=None, test=None,
+                stdin=stdin, debug_stdio=False, argv=[], fixtures=(),
+            )
         if argv[0] == "--test":
             return SimpleNamespace(
                 category="cli", file=None, command=None, test=argv[1],

@@ -153,7 +153,26 @@ class GeniaDecimal:
 
     # -- exact rational value, used internally for arithmetic/compat only --
     def _as_fraction(self) -> tuple[int, int]:
-        """Return (numerator, denominator) with denominator a positive power of ten."""
+        """Return (numerator, denominator) with denominator a positive power of ten.
+
+        `__init__`'s own `_check_resource_limit` bounds `coefficient` and
+        `exponent` as stored integers, but a small-magnitude `exponent`
+        (e.g. 999999999, comfortably under any bit-length bound) still
+        expands to a `10 ** exponent` result with roughly `exponent *
+        3.32` bits -- astronomically larger than the stored exponent
+        itself. Without its own guard here, that expansion is a direct
+        resource-exhaustion path reachable from Genia source via ordinary
+        arithmetic and, in particular, via `json_decode`/`json_encode` on
+        an attacker-controlled fraction/exponent number token (R23
+        contract sections 4-5's `stable_json_decimal`, which calls this
+        method, is exactly such a boundary). Checking `abs(exponent)`
+        directly against the same bound is cheap and conservative: it
+        guarantees the expanded result cannot exceed roughly
+        `_max_magnitude_bits * 3.32` bits before the expansion is even
+        attempted.
+        """
+        if abs(self.exponent) * 4 > _max_magnitude_bits:
+            raise NumericResourceLimitError("numeric-resource-limit")
         if self.exponent >= 0:
             return self.coefficient * (10**self.exponent), 1
         return self.coefficient, 10 ** (-self.exponent)

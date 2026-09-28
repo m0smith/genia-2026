@@ -1,0 +1,24 @@
+name: json-decode-nesting-boundary
+category: eval
+description: json_decode accepts exactly 128 nested containers and rejects 129
+requires: [json_strict]
+input:
+  source: |
+    classify(result) =
+      some(_, _) -> "ok" |
+      err(why, _) -> display(why) |
+      _ -> "unexpected"
+    n128 = "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]"
+    n129 = "[" + n128 + "]"
+    [classify(json_decode(n128)), classify(json_decode(n129))]
+expected:
+  stdout: |
+    ["ok", "json_nesting_too_deep"]
+  stderr: ""
+  exit_code: 0
+notes: |
+  R26-2 E26-0 contract (docs/design/r26-cpp-data-bridge-contract.md
+  section 3.2): decode nesting is bounded at exactly 128 containers.
+  n129 is built by wrapping the already-128-deep n128 literal in one more
+  array, rather than hand-writing 129 brackets, to keep the source
+  readable while still proving the exact 128/129 boundary.

@@ -220,6 +220,18 @@ def test_non_keyable_families_stay_rejected(key: object) -> None:
         canonical_map_key(key)
 
 
+def test_bytes_key_rejection_does_not_leak_python_class_name() -> None:
+    # R26-2 bytes_utf8 contract (docs/design/r26-cpp-data-bridge-contract.md
+    # section 2) defect repair: this previously fell through to the generic
+    # "map key type is not supported: <type(value).__name__>" branch, which
+    # leaked the raw Python implementation class name "GeniaBytes" across
+    # the portable diagnostic boundary.
+    with pytest.raises(TypeError) as excinfo:
+        canonical_map_key(GeniaBytes(b"x"))
+    assert "GeniaBytes" not in str(excinfo.value)
+    assert str(excinfo.value) == "bytes cannot be a map key"
+
+
 def test_protected_values_remain_illegal_keys() -> None:
     protected = GeniaProtected("secret", object(), symbol("purpose"))
     with pytest.raises(TypeError) as excinfo:

@@ -1,6 +1,7 @@
 name: parse-jsonl-record-invalid-json
 category: eval
 description: parse_jsonl_record returns err(invalid_jsonl_record, context) for malformed non-blank JSON
+requires: [json_compat]
 input:
   source: |
     describe(result) =

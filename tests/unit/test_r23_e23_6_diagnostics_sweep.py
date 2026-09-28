@@ -34,7 +34,7 @@ import pytest
 
 from src.genia import make_global_env
 from src.genia.numeric_runtime import GeniaDecimal, rational_from_integers
-from src.genia.values import GeniaOptionErr, GeniaOptionNone, GeniaOptionSome
+from src.genia.values import GeniaOptionErr, GeniaOptionNone, GeniaOptionSome, symbol
 
 
 def _env():
@@ -189,6 +189,22 @@ def test_json_stringify_unsupported_value_uses_portable_type_name():
     assert "function" in message
 
 
+def test_json_encode_symbol_uses_portable_type_name():
+    # R26-2 E26-0 defect repair: a bare symbol (quote(a)) is not JSON-
+    # compatible via strict json_encode, and _runtime_type_name must map
+    # it to the portable name "symbol" -- before this fix,
+    # _runtime_type_name had no explicit GeniaSymbol branch and a
+    # GeniaSymbol is not a str subclass, so it fell through to Python's
+    # own `type(value).__name__`, leaking the raw class name
+    # "GeniaSymbol" as `value_type`. This is the same leak class the
+    # E23-6 sweep already repaired for other unsupported kinds, just
+    # never actually exercised with a symbol value.
+    result = _encode(symbol("a"))
+    assert isinstance(result, GeniaOptionErr)
+    assert str(result.reason) == "unsupported_json_value"
+    assert str(result.context.get("value_type")) == "symbol"
+
+
 def test_no_json_or_format_diagnostic_leaks_python_class_name():
     """Direct sweep: no message produced by any audited failure path
     contains a Python-internal class-name fragment (a capitalized
@@ -212,6 +228,7 @@ def test_no_json_or_format_diagnostic_leaks_python_class_name():
         _encode(9_007_199_254_740_991 + 1),
         _decode("NaN"),
         _encode(lambda: None),
+        _encode(symbol("a")),
     ]:
         if isinstance(result, GeniaOptionErr):
             messages.append(str(result.reason))
@@ -340,3 +357,43 @@ def test_round_trip_json_parse_and_stringify_unsupported_value_message_is_portab
     assert isinstance(result, GeniaOptionNone)
     message = str(result.context.get("message"))
     assert "<function" not in message
+
+
+# ---------------------------------------------------------------------------
+# R26-2 E26-0: unbounded-recursion diagnostic leak (docs/analysis/
+# r26-release-size-preflight.md section 8.3)
+# ---------------------------------------------------------------------------
+
+
+def _deeply_nested_json_array_text(depth: int) -> str:
+    return "[" * depth + "1" + "]" * depth
+
+
+def test_json_parse_deep_nesting_is_clean_not_a_recursion_error_leak():
+    result = _parse(_deeply_nested_json_array_text(5000))
+    assert isinstance(result, GeniaOptionNone)
+    assert str(result.reason) == "json-parse-error"
+    message = str(result.context.get("message"))
+    assert "maximum recursion depth" not in message
+    assert "RecursionError" not in message
+
+
+def test_parse_jsonl_record_deep_nesting_is_clean_not_a_recursion_error_leak():
+    result = _parse_jsonl_record(_deeply_nested_json_array_text(5000))
+    assert isinstance(result, GeniaOptionErr)
+    assert str(result.reason) == "invalid_jsonl_record"
+    message = str(result.context.get("message"))
+    assert "maximum recursion depth" not in message
+    assert "RecursionError" not in message
+
+
+def test_json_stringify_deep_nesting_is_clean_not_a_recursion_error_leak():
+    nested = 1
+    for _ in range(5000):
+        nested = [nested]
+    result = _stringify(nested)
+    assert isinstance(result, GeniaOptionNone)
+    assert str(result.reason) == "json-stringify-error"
+    message = str(result.context.get("message"))
+    assert "maximum recursion depth" not in message
+    assert "RecursionError" not in message

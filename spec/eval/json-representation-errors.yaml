@@ -1,6 +1,7 @@
 name: json-representation-errors
 category: eval
 description: JSON data failures are normalized err Outcomes
+requires: [json_strict]
 input:
   source: |
     reason(result) =

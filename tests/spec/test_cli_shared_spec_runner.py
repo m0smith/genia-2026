@@ -297,17 +297,46 @@ def test_exec_cli_pipe_mode_rejects_explicit_run_stdin() -> None:
     assert actual["exit_code"] == 1
 
 
-def test_exec_cli_pipe_mode_requires_command() -> None:
+def test_exec_cli_no_mode_and_no_stdin_is_invalid() -> None:
     spec = SimpleNamespace(
         file=None,
         command=None,
-        stdin="x\n",
+        test=None,
+        stdin="",
         argv=[],
         debug_stdio=False,
+        fixtures=(),
     )
 
-    with pytest.raises(ValueError, match="pipe mode requires command"):
+    with pytest.raises(ValueError, match="file mode requires file only"):
         exec_cli(spec)
+
+
+def test_exec_cli_repl_mode_uses_bare_invocation(monkeypatch) -> None:
+    # No file/command/test with non-empty stdin selects REPL mode: a bare
+    # invocation (no -c/-p/file/--test flags) with stdin as the whole
+    # scripted session (docs/design/r26-cpp-repl-contract.md).
+    calls: list[dict[str, object]] = []
+
+    def fake_run(argv: list[str], **kwargs: object) -> SimpleNamespace:
+        calls.append({"argv": argv, **kwargs})
+        return SimpleNamespace(stdout="3\n", stderr="", returncode=0)
+
+    monkeypatch.setattr(exec_cli_module.subprocess, "run", fake_run)
+    spec = SimpleNamespace(
+        file=None,
+        command=None,
+        test=None,
+        stdin="x = 1\nx + 2\n",
+        argv=[],
+        debug_stdio=False,
+        fixtures=(),
+    )
+
+    exec_cli(spec)
+
+    assert calls[0]["argv"][3:] == []
+    assert calls[0]["input"] == "x = 1\nx + 2\n"
 
 
 def test_exec_cli_uses_subprocess_without_shell_piping(monkeypatch) -> None:

@@ -125,13 +125,16 @@ runtime semantics. See [Containerized Development and Conformance Environment](d
 - Python is the full-language reference host; C++ implements the bounded R25 floor.
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
-- REPL mode is not covered by shared executable specs.
+- REPL mode is covered only by three capability-gated `requires: [repl]`
+  whole-session shared cases (issue #1023); no other REPL scenario is
+  covered by shared executable specs.
 - The approved R26-1 portable REPL contract is intentionally smaller than the
   Python terminal UI: persistent complete submissions, canonical result echo,
   normalized error recovery, clean EOF, and no implicit `main` dispatch are
   portable; banners, prompts, terminal mechanics, signals, and Python colon
-  commands are host-local. Shared executable evidence and C++ implementation
-  have not landed. See `docs/design/r26-cpp-repl-contract.md`.
+  commands are host-local. Shared executable evidence now passes against the
+  Python reference host; C++ implementation has not landed, so C++ still
+  declares `repl` unsupported. See `docs/design/r26-cpp-repl-contract.md`.
 - The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior, including eval Option rendering/propagation cases for `some(...)` and `none(...)`, plus deterministic pattern-matching eval cases (first-match, literal/wildcard/binding, list/tuple/map/option/guard/glob forms) for already-implemented behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
@@ -172,7 +175,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - The current shared spec runner executes Error cases (spec/error/) through the same eval execution path used by eval cases, comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes Parse cases (spec/parse/) by calling the Python host parse adapter directly; for `kind: ok` cases the normalized AST is compared exactly; for `kind: error` cases the error type is compared exactly and the message is matched as a substring.
 - CLI shared specs use the same envelope shape as eval and IR specs. Their input fields are `source`, `file`, `command`, `test`, `stdin`, `argv`, and `debug_stdio`; their expected fields are `stdout`, `stderr`, and `exit_code`.
-- CLI shared specs cover file mode, command mode, pipe mode, and selected native test-mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, non-Flow final results, and selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes. REPL is excluded from shared executable coverage.
+- CLI shared specs cover file mode, command mode, pipe mode, and selected native test-mode outcomes. Current shared CLI coverage includes basic file execution, file-mode `main(argv())` dispatch, trailing `argv()` exposure, command-mode final-value execution, valid pipe-mode Flow-stage usage, current pipe-mode guidance/error cases for explicit `stdin`, explicit `run`, bare per-item stages, bare reducers, non-Flow final results, selected native test-runner passing, runtime-erroring, and discovery-error suite outcomes, and three capability-gated `requires: [repl]` whole-session REPL cases. Every other REPL scenario remains excluded from shared executable coverage.
 - Flow shared coverage is partial and limited to first-wave cases proving lazy pull-based observable behavior through early termination, single-use enforcement, deterministic outputs, `evolve(init, f)` progression, `refine(..steps)`, `rules(..fns)`, `step_*` / `rule_*` equivalence, `rules()` identity, selected rule result defaulting/no-effect behavior, deterministic `keep_some(...)` option-filtering behavior, selected Seq-compatible terminal behavior including `reduce` accumulation over Flow, and a resource lifecycle case (`seq-finalization-drop-take`) proving Flow-aware `drop |> take |> collect` composition with bounded pulling and correct output; focused core stdlib Flow coverage for direct `map`, `filter`, and `scan` over Flow inputs (including composed `map`/`filter` and bounded `evolve |> scan |> take |> collect` cases) has been added but does not constitute full stdlib conformance.
 - Error shared coverage is active but initial only. Current error shared cases assert only the observable surface: `stdout`, `stderr`, and `exit_code`; this now includes deterministic pattern-related failure coverage for match-miss, guard-all-fail, and malformed glob diagnostics. In this phase, `stdout` must be `""`, `stderr` must match exactly, `exit_code` must be `1`, and `notes` remain informational only.
 - Parse shared coverage is active but initial only. Current parse shared cases cover stable, already-implemented syntax forms. Parse spec coverage expands only when new forms are explicitly added and tested.

@@ -1,6 +1,7 @@
 name: r23-json-encode-decimal-unstable-rejected
 category: eval
 description: R23 E23-3 a Decimal with more significant digits than binary64 round-trip precision can preserve is rejected rather than rounded or degraded to a string
+requires: [json_strict]
 input:
   source: |
     reason(result) =

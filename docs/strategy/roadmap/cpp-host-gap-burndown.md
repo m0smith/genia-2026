@@ -18,20 +18,22 @@ own pre-flight and focused issue set.
 
 | Bucket | Gap count | Intent |
 |---|---:|---|
-| R26 -- C++ REPL and Data Bridges | 3 | Close interactive and data-bridge gaps already named by R26. |
+| R26 -- C++ REPL and Data Bridges | 2 | Close REPL and the strict JSON data-bridge gap already named by R26 (`bytes_utf8` closed; `debugger_stdio` deferred; ZIP removed from R26 -- see below). |
 | R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 4 | Close the largest runtime/CLI/server parity gaps already named by R27. |
-| Later release / separate gate | 13 | Keep provider, host-interop, resource, shell, config, AI, retrieval, and external-process work outside R26/R27 unless a later pre-flight promotes it. |
+| Later release / separate gate | 15 | Keep provider, host-interop, resource, shell, config, AI, retrieval, external-process, `debugger_stdio`, ZIP, and (permanently) `json_compat` work outside R26/R27 unless a later pre-flight promotes it. |
 
 ## R26 -- C++ REPL and Data Bridges
 
+**Scope narrowed by `docs/analysis/r26-release-size-preflight.md` and the R26-0/R26-2 decisions (#1015, #1024): `debugger_stdio` deferred (#1025, closed) and ZIP removed from R26 entirely (tracked in "Later Release / Separate Gate" below, pending its own contract-first placement).** The `bytes_json_zip` capability name is retired: `spec/manifest.json` now declares `bytes_utf8`, `json_strict`, and `json_compat` per the approved E26-0 contract (`docs/design/r26-cpp-data-bridge-contract.md`), with shared spec cases retro-gated accordingly. `bytes_utf8` is now closed: `genia-cpp` implements `utf8_decode` for well-formed input and `<bytes N>` display, declares `bytes_utf8` supported, and the host parity gate reports `PARITY_OK` (its former `spec/known_host_gaps.json` entry has been removed).
+
 | Gap | Current tracking | Planned issue | Affected tests / spec area | Removal condition |
 |---|---|---|---|---|
-| `repl` | `m0smith/genia-2026#1018` | R26 REPL contract/evidence issue | REPL is outside current shared executable spec coverage | Remove when `genia-cpp` declares `repl` supported and the host parity gate reports `PARITY_OK`. |
-| `bytes_json_zip` | `m0smith/genia-2026#1018` | R26 data-bridge contract/evidence issue | bytes/json/zip requires-gated shared specs | Remove when `genia-cpp` declares `bytes_json_zip` supported and the host parity gate reports `PARITY_OK`. |
-| `debugger_stdio` | `m0smith/genia-2026#1018` | R26 debugger/stdio bridge issue, only if approved by R26 pre-flight | debugger stdio requires-gated shared specs | Remove when `genia-cpp` declares `debugger_stdio` supported and the host parity gate reports `PARITY_OK`. |
+| `repl` | `m0smith/genia-2026#1023` | R26-1 REPL contract/evidence issue (contract approved, `docs/design/r26-cpp-repl-contract.md`; capability-gated shared evidence landed against Python; C++ implementation not started) | `spec/cli/repl_persistent_binding_basic.yaml`, `spec/cli/repl_failed_submission_diagnostic.yaml`, `spec/cli/repl_none_result_rendering.yaml` (`requires: [repl]`) | Remove when `genia-cpp` declares `repl` supported and the host parity gate reports `PARITY_OK`. |
+| `json_strict` | `m0smith/genia-2026#1024` | R26-2 strict JSON contract/evidence issue (contract approved, shared specs gated and passing against Python; C++ implementation not started) | `requires: [json_strict]` shared specs in `spec/eval/`, `spec/error/`, `spec/flow/` (see `spec/known_host_gaps.json`) | Remove after `genia-cpp` passes every `requires: [json_strict]` shared case, declares `json_strict` supported, and the host parity gate reports `PARITY_OK`. |
 
 R26 should not absorb pipe/Flow or HTTP serving. Those remain R27 per
-`docs/strategy/roadmap/r25-r29.md`.
+`docs/strategy/roadmap/r25-r29.md`. R26 also does not include `debugger_stdio`
+(deferred, #1025) or ZIP (removed, see "Later Release / Separate Gate" below).
 
 ## R27 -- C++ Flow, Pipe Mode, and HTTP Serving
 
@@ -50,6 +52,9 @@ should explicitly keep it as a later gap rather than claiming partial closure.
 
 | Gap | Current tracking | Candidate bucket | Planned issue | Affected tests / spec area | Removal condition |
 |---|---|---|---|---|---|
+| ZIP (`zip_entries`/`zip_read`/`zip_write`/`entry_*`; no manifest capability of its own) | `m0smith/genia-2026#1024` | Removed from R26; later contract-first placement, roadmap home explicitly TBD | ZIP contract issue (not yet created): entry-name/traversal rules, duplicates, directories, compression, timestamps/determinism, resource limits, R35 authority reconciliation, dependency-policy amendment for DEFLATE, and reconciling the eager `zip_entries` vs. Flow-based `zip_read`/`zip_write` split | Remove/replace once ZIP has its own contract-first placement, a capability name is assigned, `genia-cpp` declares it supported, and the host parity gate reports `PARITY_OK`. Zero shared evidence exists today. |
+| `json_compat` (`json_parse`/`json_stringify`/`json_pretty`/`parse_jsonl_record`) | `m0smith/genia-2026#1024` | Decided not portable by `docs/design/r26-cpp-data-bridge-contract.md` section 5; permanent Python-host-only classification, not an in-progress gap | `requires: [json_compat]` shared specs in `spec/eval/`, `spec/error/` (see `spec/known_host_gaps.json`) | Not expected to be removed by C++ implementation. Remove only if a future contract revision makes compatibility JSON portable, `genia-cpp` then declares `json_compat` supported, and the host parity gate reports `PARITY_OK`. |
+| `debugger_stdio` | `m0smith/genia-2026#1018` | Deferred developer-tooling/host-capability work (decided #1025, closed) | Not created -- the R26-1 REPL contract does not require it | debugger stdio requires-gated shared specs | Remove when `genia-cpp` declares `debugger_stdio` supported and the host parity gate reports `PARITY_OK`. |
 | `allowlisted_host_interop` | `m0smith/genia-2026#1018` | Later host-interop work | Host interop contract/evidence issue | allowlisted host-interop requires-gated shared specs | Remove when `genia-cpp` declares `allowlisted_host_interop` supported and the host parity gate reports `PARITY_OK`. |
 | `shell_stage` | `m0smith/genia-2026#1018` | Later host-interop work | Shell-stage disposition issue | shell-stage requires-gated shared specs | Remove when `genia-cpp` declares `shell_stage` supported and the host parity gate reports `PARITY_OK`. |
 | `resource_io` | `m0smith/genia-2026#1018` | R35 or later resource work | Resource I/O contract/evidence issue | resource I/O requires-gated shared specs | Remove when `genia-cpp` declares `resource_io` supported and the host parity gate reports `PARITY_OK`. |
@@ -66,16 +71,17 @@ should explicitly keep it as a later gap rather than claiming partial closure.
 
 ## Recommended Creation Order
 
-1. R26 pre-flight for REPL/data bridges.
-2. R26 contract/evidence issue for `repl`.
-3. R26 contract/evidence issue for `bytes_json_zip`.
-4. R26 disposition issue for `debugger_stdio`.
-5. R27 pre-flight for Flow/pipe/HTTP.
-6. R27 contract/evidence issue for `flow_phase_1`.
-7. R27 contract/evidence issue for `cli_pipe_mode`.
-8. R27 contract/evidence issue for `http_server`.
-9. R27 disposition issue for `http_outbound_transport`.
-10. Later-host-gap review for the remaining 13 entries after R27 scope is settled.
+1. R26 pre-flight for REPL/data bridges (#1015, GO recorded).
+2. R26-1 contract/evidence issue for `repl` (#1023 -- contract approved, evidence landed against Python; C++ implementation next).
+3. R26-2 contract/evidence issue for Bytes/UTF-8 + strict JSON (#1024 -- scope decision recorded: SPLIT, ZIP removed; E26-0 contract reconciliation next).
+4. R26-X disposition issue for `debugger_stdio` (#1025 -- decided: deferred, closed).
+5. ZIP contract-first placement issue (not yet created; roadmap home TBD, out of R26).
+6. R27 pre-flight for Flow/pipe/HTTP.
+7. R27 contract/evidence issue for `flow_phase_1`.
+8. R27 contract/evidence issue for `cli_pipe_mode`.
+9. R27 contract/evidence issue for `http_server`.
+10. R27 disposition issue for `http_outbound_transport`.
+11. Later-host-gap review for the remaining entries after R27 scope is settled.
 
 Do not create implementation tickets directly from this report. Use
 `docs/process/08-roadmap-ticketing.md` after the relevant pre-flight approves a

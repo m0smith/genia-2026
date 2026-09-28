@@ -1,6 +1,7 @@
 name: r23-json-encode-decimal-stable
 category: eval
 description: R23 E23-3 a stable Decimal encodes to generic JSON as a raw canonical-text number, never a quoted string
+requires: [json_strict]
 input:
   source: |
     unwrap_or("", json_encode(0.1))
