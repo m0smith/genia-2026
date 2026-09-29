@@ -11,14 +11,6 @@
       "removal_condition": "Remove when genia-cpp declares cli_pipe_mode supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
-      "capability": "flow_phase_1",
-      "reason": "R27 Flow is not implemented by the bounded R24/R25 C++ host.",
-      "tracking_issue": "m0smith/genia-2026#1018",
-      "affected_host": "cpp",
-      "affected_tests": ["spec/flow/**", "Flow requires-gated shared specs"],
-      "removal_condition": "Remove when genia-cpp declares flow_phase_1 supported and the host parity gate reports the capability as PARITY_OK."
-    },
-    {
       "capability": "http_server",
       "reason": "R27 HTTP serving is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
