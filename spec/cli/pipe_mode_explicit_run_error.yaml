@@ -2,6 +2,7 @@ id: pipe_mode_explicit_run_error
 name: pipe_mode_explicit_run_error
 category: cli
 description: Pipe mode rejects explicit unbound run.
+requires: [cli_pipe_mode]
 input:
   file: null
   source: "run"

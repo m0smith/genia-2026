@@ -2,6 +2,7 @@ id: error_pipe_mode_explicit_run
 name: error_pipe_mode_explicit_run
 category: cli
 description: Pipe mode rejects explicit unbound stdin.
+requires: [cli_pipe_mode]
 input:
   source: "stdin"
   file: null
