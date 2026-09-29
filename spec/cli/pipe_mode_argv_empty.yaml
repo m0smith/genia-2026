@@ -2,6 +2,7 @@ id: pipe_mode_argv_empty
 name: pipe_mode_argv_empty
 category: cli
 description: Pipe mode exposes empty argv when no trailing args are supplied.
+requires: [cli_pipe_mode]
 input:
   source: "each((line) -> print(argv()))"
   file: null

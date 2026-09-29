@@ -2,6 +2,7 @@ id: pipe_mode_bypass_main
 name: pipe_mode_bypass_main
 category: cli
 description: Pipe mode executes the stage expression path, not file/command main dispatch.
+requires: [cli_pipe_mode]
 input:
   source: "each(print)"
   file: null

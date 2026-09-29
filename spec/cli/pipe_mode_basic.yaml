@@ -2,6 +2,7 @@ id: pipe_mode_basic
 name: pipe_mode_basic
 category: cli
 description: Pipe mode runs a stage expression over stdin lines.
+requires: [cli_pipe_mode]
 input:
   source: "each(print)"
   file: null

@@ -2,6 +2,7 @@ id: pipe_mode_collect_error
 name: pipe_mode_collect_error
 category: cli
 description: Pipe mode rejects a final non-flow result.
+requires: [cli_pipe_mode]
 input:
   source: "collect"
   file: null
