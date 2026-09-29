@@ -1,5 +1,6 @@
 name: stdin-lines-take-early-stop
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> take(2) |> collect

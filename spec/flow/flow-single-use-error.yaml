@@ -1,5 +1,6 @@
 name: flow-single-use-error
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     x = stdin |> lines

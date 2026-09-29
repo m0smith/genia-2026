@@ -1,5 +1,6 @@
 name: seq-compatible-flow-scan-bounded-evolve
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     evolve(0, (n) -> n + 1)

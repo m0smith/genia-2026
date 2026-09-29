@@ -1,5 +1,6 @@
 name: evolve-init-f-doubles-from-seed
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     double(n) -> n * 2

@@ -1,5 +1,6 @@
 name: seq-finalization-drop-take
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> drop(2) |> take(2) |> collect

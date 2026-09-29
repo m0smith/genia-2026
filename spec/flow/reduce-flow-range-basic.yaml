@@ -1,6 +1,7 @@
 name: reduce-flow-range-basic
 category: flow
 description: reduce accepts a Flow produced from stdin and returns the final accumulator
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> reduce((acc, line) -> acc + 1, 0)
