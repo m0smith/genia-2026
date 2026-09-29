@@ -7,7 +7,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 Implemented today:
 
-- **Python is the full-language reference host; C++ is the bounded R25 production host.**
+- **Python is the full-language reference host; C++ is the bounded R26 production host.**
 - Shared semantic-spec contract categories are:
   - parse
   - ir
@@ -187,6 +187,29 @@ Scaffolded or planned, not implemented as hosts:
   baseline conformance, ungated by this capability. `json_strict` and
   `json_compat` remain unimplemented by `genia-cpp` and are unaffected by
   this change.
+- **R26-2 C++ `json_strict` (issue #1024, `genia-cpp` PR #33):** `genia-cpp`
+  widens R24's E24-7 scalar-numeric-only `json_decode`/`json_encode` slice
+  to the full contract grammar -- objects, arrays, strings (with `\uXXXX`
+  surrogate-pair combination and Unicode-scalar validation), booleans,
+  `null` (decoding to `none("nil")`), nesting bounded at exactly 128
+  containers for both decode and encode, duplicate-object-key rejection
+  with the key in context, a leading BOM correctly not accepted as
+  insignificant whitespace, and deterministic sorted-key/2-space-indented
+  encode layout -- reusing E24-7's numeric codec unchanged (no second
+  numeric parser). `json_decode`/`json_encode` accept exactly one outer
+  `json`-represented layer, and a non-String/Bytes `json_decode` argument
+  raises the exact contract-required `TypeError`. `genia-cpp` now declares
+  `json_strict` supported; `spec/known_host_gaps.json`'s entry has been
+  removed. Pinned C++ evidence: `772 total / 178 pass / 594 unsupported`
+  with every failure-class count zero; every `requires: [json_strict]`
+  shared case passes except `spec/flow/json-representation-template-flow.yaml`,
+  which needs Template/Flow features (`pattern`, `refinement_match`,
+  `open_shape_match`, `validate_each`, `collect`) genuinely outside this
+  bounded host's floor and stays honestly `unsupported`.
+  `tools/spec_runner/host_parity_gate.py` reports `json_strict`
+  `PARITY_OK`. `json_compat` remains unimplemented by `genia-cpp`
+  (permanent, by contract) and is unaffected by this change. This closes
+  R26-2 and, with R26-1's completed scripted REPL, completes R26.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
@@ -290,7 +313,7 @@ PYTHON REFERENCE HOST:
 - `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
 
 **Planned/Scaffolded:**
-- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R25 production host in `m0smith/genia-cpp`
+- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R26 production host in `m0smith/genia-cpp`
 - A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7; see §0 above), with pinned evidence for the bounded C++ R24 host
 
 **Limitations:**

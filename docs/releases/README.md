@@ -36,6 +36,7 @@ These pages are illustrations, not the authority on implemented behavior.
 - [R23 — Numeric Representation and Interchange](R23.md) — COMPLETE; E23-11 skeptical audit PASS
 - [R24 — C++ Minimal Conforming Host](R24.md) — COMPLETE; E24-8 skeptical audit PASS
 - [R25 — C++ Stateful Runtime and Concurrency](R25.md) — COMPLETE; E25-5 skeptical audit PASS
+- [R26 — C++ REPL and Data Bridges](R26.md) — COMPLETE; `repl`, `bytes_utf8`, `json_strict` all `PARITY_OK`
 
 ## Process
 

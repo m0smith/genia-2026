@@ -579,7 +579,7 @@ Python-host-only with no capability of its own yet.
 - **output:** `some(represent("json", ordinary_value), context)` on success; normalized `err(reason, context)` on recoverable data failure
 - **errors:** `TypeError` for an input that is neither String nor Bytes; JSON data failures are Outcome values
 - **portability:** `language contract` for hosts that opt into this capability (`json_strict`)
-- **notes:** The Python host supplies parsing, but duplicate rejection (with the duplicated key in context), safe-integer/finite-binary64 limits, Unicode scalar validation (lone surrogates rejected, valid surrogate pairs accepted), 128-container nesting, ordinary-value mapping, outer facet placement, and Outcome observations are portable. A leading byte-order mark is rejected, not stripped. C++ already has R24's E24-7 scalar-numeric slice (inherited unchanged, not re-derived) but has not yet declared `json_strict` supported (see `spec/known_host_gaps.json`).
+- **notes:** The Python host supplies parsing, but duplicate rejection (with the duplicated key in context), safe-integer/finite-binary64 limits, Unicode scalar validation (lone surrogates rejected, valid surrogate pairs accepted), 128-container nesting, ordinary-value mapping, outer facet placement, and Outcome observations are portable. A leading byte-order mark is rejected, not stripped. C++ (R26-2) widens R24's E24-7 scalar-numeric slice (inherited unchanged, not re-derived) to the full grammar and declares `json_strict` supported.
 
 #### `json.stringify`
 

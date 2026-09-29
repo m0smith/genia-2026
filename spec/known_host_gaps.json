@@ -43,34 +43,6 @@
       "removal_condition": "Remove when genia-cpp declares allowlisted_host_interop supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
-      "capability": "json_strict",
-      "reason": "The R26-2 E26-0 portable strict JSON contract is approved (docs/design/r26-cpp-data-bridge-contract.md) and capability-gated requires: [json_strict] shared specs now pass against the Python reference host, but C++ has not declared json_strict supported. R24's E24-7 acceptance evidence already required a scalar-numeric slice of json_encode/json_decode, but that partial coverage does not satisfy the full contract (objects, arrays, strings, Unicode validation, nesting/duplicate-key limits, layout, and Bytes input are also required); the numeric path itself is inherited unchanged, not re-implemented.",
-      "tracking_issue": "m0smith/genia-2026#1024",
-      "affected_host": "cpp",
-      "affected_tests": [
-        "spec/eval/json-representation-decode.yaml",
-        "spec/eval/json-representation-encode.yaml",
-        "spec/eval/json-representation-errors.yaml",
-        "spec/eval/json-representation-number-boundaries.yaml",
-        "spec/eval/r23-json-encode-decimal-stable.yaml",
-        "spec/eval/r23-json-encode-decimal-unstable-rejected.yaml",
-        "spec/eval/r23-json-encode-float64-finite.yaml",
-        "spec/eval/r23-json-encode-rational-nonterminating-rejected.yaml",
-        "spec/eval/r23-json-encode-rational-terminating.yaml",
-        "spec/eval/r23-json-round-trip-rational-terminating-cross-kind-equality.yaml",
-        "spec/error/error-json-decode-input-type.yaml",
-        "spec/flow/json-representation-template-flow.yaml",
-        "spec/eval/json-decode-nesting-boundary.yaml",
-        "spec/eval/json-encode-nesting-boundary.yaml",
-        "spec/eval/json-decode-duplicate-key-context.yaml",
-        "spec/eval/json-decode-lone-surrogate-rejected.yaml",
-        "spec/eval/json-decode-bom-rejected.yaml",
-        "spec/eval/json-encode-key-sort-basis.yaml",
-        "spec/eval/json-encode-escape-set-and-layout.yaml"
-      ],
-      "removal_condition": "Remove after genia-cpp passes every requires: [json_strict] shared case, declares json_strict supported, and the host parity gate reports the capability as PARITY_OK."
-    },
-    {
       "capability": "json_compat",
       "reason": "docs/design/r26-cpp-data-bridge-contract.md section 5 decided compatibility JSON (json_parse/json_stringify/json_pretty) and parse_jsonl_record are NOT portable and remain Python-host-only, so their previously-ungated shared cases are now retro-gated behind this capability. This is a permanent host-local classification by design, not an in-progress gap awaiting C++ implementation, unless a future contract revision explicitly makes compatibility JSON portable.",
       "tracking_issue": "m0smith/genia-2026#1024",
