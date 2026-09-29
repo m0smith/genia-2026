@@ -19,7 +19,7 @@ own pre-flight and focused issue set.
 | Bucket | Gap count | Intent |
 |---|---:|---|
 | R26 -- C++ REPL and Data Bridges | 0 | Complete: `repl`, `bytes_utf8`, and `json_strict` all closed (`debugger_stdio` deferred; ZIP removed from R26 -- see below). |
-| R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 3 | E27-1 closed `flow_phase_1`; `cli_pipe_mode`, `http_server`, and `http_outbound_transport` remain (HTTP dispositions pending E27-3/E27-4). |
+| R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 2 | E27-1 closed `flow_phase_1` and E27-2 closed `cli_pipe_mode`; `http_server` and `http_outbound_transport` remain (dispositions pending E27-3/E27-4). |
 | Later release / separate gate | 15 | Keep provider, host-interop, resource, shell, config, AI, retrieval, external-process, `debugger_stdio`, ZIP, and (permanently) `json_compat` work outside R26/R27 unless a later pre-flight promotes it. |
 
 ## R26 -- C++ REPL and Data Bridges
@@ -34,9 +34,10 @@ R26 does not include pipe/Flow or HTTP serving. Those remain R27 per
 
 **E27-1 (#1035) closed `flow_phase_1`.** `genia-cpp` declares it `supported` for exactly the 17 `requires: [flow_phase_1]` first-wave shared cases in `spec/flow/` (C++ evidence `total=772 passed=209 failed=0 unsupported=563`, all failure classes 0), and the host parity gate reports `PARITY_OK`; the `spec/known_host_gaps.json` entry is removed. The rest of `spec/flow/*` is not gated by the capability and remains unsupported in C++ (see `genia-cpp` `docs/r27-e27-1-flow-phase-1.md`).
 
+**E27-2 (#1038) closed `cli_pipe_mode`.** `genia-cpp` declares it `supported` for exactly the 9 `requires: [cli_pipe_mode]` pipe-mode shared cases in `spec/cli/` (C++ evidence `total=772 passed=220 failed=0 unsupported=552`, all failure classes 0), and the host parity gate reports `PARITY_OK`; the `spec/known_host_gaps.json` entry is removed. `pipe_mode_record_pipeline_collect_validated_boundary_error` needs `json_compat` (Python-host-only) and stays unsupported in C++; trailing `-p` script arguments and Option-receiver guidance are also unsupported (see `genia-cpp` `docs/r27-e27-2-pipe-mode.md`).
+
 | Gap | Current tracking | Planned issue | Affected tests / spec area | Removal condition |
 |---|---|---|---|---|
-| `cli_pipe_mode` | `m0smith/genia-2026#1018` | R27 pipe-mode contract/evidence issue | `spec/cli/**` | Remove when `genia-cpp` declares `cli_pipe_mode` supported and the host parity gate reports `PARITY_OK`. |
 | `http_server` | `m0smith/genia-2026#1018` | R27 HTTP serving contract/evidence issue | HTTP server requires-gated shared specs | Remove when `genia-cpp` declares `http_server` supported and the host parity gate reports `PARITY_OK`. |
 | `http_outbound_transport` | `m0smith/genia-2026#1018` | R27 outbound HTTP disposition issue | HTTP outbound transport requires-gated shared specs | Remove when `genia-cpp` declares `http_outbound_transport` supported and the host parity gate reports `PARITY_OK`. |
 
@@ -73,7 +74,7 @@ should explicitly keep it as a later gap rather than claiming partial closure.
    `docs/analysis/r27-release-size-preflight.md`, then complete the R26+
    change pre-flight issue before contract work.
 3. R27 E27-1 `flow_phase_1` is complete (#1035); its gap entry is removed.
-4. R27 contract/evidence issue for `cli_pipe_mode`.
+4. R27 E27-2 `cli_pipe_mode` is complete (#1038); its gap entry is removed.
 5. R27 contract/disposition issue for `http_server`.
 6. R27 contract/disposition issue for `http_outbound_transport`.
 7. ZIP contract-first placement issue (not yet created; roadmap home TBD, out

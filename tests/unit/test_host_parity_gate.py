@@ -229,8 +229,12 @@ def test_load_known_gaps_rejects_duplicate_capability_entries(tmp_path) -> None:
 
 def test_load_known_gaps_loads_the_real_checked_in_manifest() -> None:
     gaps = load_known_gaps()
-    assert "cli_pipe_mode" in gaps
-    assert gaps["cli_pipe_mode"]["reason"]
+    # Uses a gap that is still open (deferred R27 HTTP work); closed gaps such as
+    # cli_pipe_mode and flow_phase_1 must not be listed.
+    assert "http_server" in gaps
+    assert gaps["http_server"]["reason"]
+    assert "cli_pipe_mode" not in gaps
+    assert "flow_phase_1" not in gaps
 
 
 # --- CLI entry point ---------------------------------------------------------------------------
