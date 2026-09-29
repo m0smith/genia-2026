@@ -198,7 +198,8 @@ Candidate scope:
 - Flow finalization and failure cleanup;
 - known-host-gap freshness;
 - no protected-value leakage through pipe or HTTP surfaces;
-- no drift between Python reference evidence and bounded C++ evidence.
+- Python reference evidence and bounded C++ evidence report the same approved
+  capability boundary.
 
 ### E27-6 — Release Truth Sync and Audit
 
