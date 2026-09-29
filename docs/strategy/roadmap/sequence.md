@@ -57,7 +57,7 @@ R24 — C++ Minimal Conforming Host ✓ COMPLETE
  |
  +----> R25 — C++ Stateful Runtime & Concurrency ✓ COMPLETE
  |
- +----> R26 — C++ REPL & Data Bridges
+ +----> R26 — C++ REPL & Data Bridges ✓ COMPLETE
            |
            v
 R27 — C++ Flow, Pipe Mode & HTTP Serving
@@ -123,7 +123,10 @@ The delivery postmortem is `docs/analysis/exact-numeric-gate-postmortem.md`. Eac
 
 R24 is the completed first production C++ implementation release and depends on completed/audited R16–R23. C++ production implementation belongs in `m0smith/genia-cpp`; `genia-2026` remains authoritative for contracts, shared specs, conformance infrastructure, and portability documentation. The completed floor is deliberately bounded and is not Python feature parity.
 
-R25 has extended the C++ host with a bounded stateful runtime; R26 remains the planned REPL/data-bridge track. R27 consumes the approved contracts needed for Flow, pipe mode, and HTTP serving and closes only capabilities it can prove.
+R25 extended the C++ host with a bounded stateful runtime, and R26 completed
+the bounded scripted REPL plus Bytes/UTF-8 and strict JSON data bridges. R27
+consumes the approved contracts needed for Flow, pipe mode, and HTTP serving
+and closes only capabilities it can prove.
 
 ## MCP
 
