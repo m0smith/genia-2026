@@ -93,11 +93,13 @@ Scaffolded or planned, not implemented as hosts:
   cross-stream timing remain host-local. Shared executable REPL evidence now
   exists (three capability-gated `cli` cases declaring `requires: [repl]`:
   `repl_persistent_binding_basic`, `repl_failed_submission_diagnostic`,
-  `repl_none_result_rendering`) and passes against the Python reference host;
-  C++ still declares `repl` unsupported and the known-gap entry remains until
-  it passes this evidence and the host parity gate reports `repl` as
-  `PARITY_OK`. This contract adds no C++ implementation or Python/C++
-  feature-parity claim. Making that evidence honestly comparable required one
+  `repl_none_result_rendering`) and passes against the Python reference host.
+  At the time this contract was approved, C++ still declared `repl`
+  unsupported with the known-gap entry pending this evidence and a
+  `PARITY_OK` host-parity result; both are now satisfied -- see the
+  following "R26-1 C++ scripted REPL" entry for the completed state. This
+  contract itself adds no C++ implementation or Python/C++ feature-parity
+  claim. Making that evidence honestly comparable required one
   narrow Python reference-host fix: `repl()` no longer writes its banner or
   `>>> `/`... ` prompts to `stdout` when `stdin` is not an interactive tty,
   since section 3 already documented them as host-local, non-portable
