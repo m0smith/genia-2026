@@ -1,5 +1,6 @@
 name: evolve-init-f-integer-progression
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     inc(n) -> n + 1

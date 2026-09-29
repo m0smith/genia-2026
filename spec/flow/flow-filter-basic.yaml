@@ -1,5 +1,6 @@
 name: flow-filter-basic
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> filter((line) -> contains(line, "error")) |> collect

@@ -1,5 +1,6 @@
 name: flow-map-filter-chain
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> map(trim) |> filter((line) -> line != "") |> collect

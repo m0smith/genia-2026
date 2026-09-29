@@ -1,6 +1,7 @@
 name: reduce-flow-bounded-evolve
 category: flow
 description: reduce on a bounded infinite Flow terminates without eager materialization
+requires: [flow_phase_1]
 input:
   source: |
     inc(n) -> n + 1

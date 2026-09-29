@@ -1,5 +1,6 @@
 name: seq-compatible-flow-scan-basic
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     ["1", "2", "3"]
