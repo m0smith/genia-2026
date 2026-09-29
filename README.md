@@ -10,7 +10,7 @@ messy records in → clear pipelines → validated shaped output / reports + use
 
 The strongest end-to-end proof is the [validated pipeline demo](#run-the-validated-pipeline-demo-experimental). For the implementation and portability boundaries, see the [current language state](GENIA_STATE.md).
 
-> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R25 production host with Ref, Cell, and local Process support. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
+> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R26 production host with Ref, Cell, local Process, a scripted REPL, and Bytes/UTF-8 plus strict JSON data bridges. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
 ## Quick start
 
@@ -122,7 +122,7 @@ runtime semantics. See [Containerized Development and Conformance Environment](d
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
-- Python is the full-language reference host; C++ implements the bounded R25 floor.
+- Python is the full-language reference host; C++ implements the bounded R26 floor (R24's minimal conforming floor, R25's stateful runtime, and R26's scripted REPL plus Bytes/UTF-8 and strict JSON data bridges).
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is covered only by three capability-gated `requires: [repl]`
@@ -132,9 +132,10 @@ runtime semantics. See [Containerized Development and Conformance Environment](d
   Python terminal UI: persistent complete submissions, canonical result echo,
   normalized error recovery, clean EOF, and no implicit `main` dispatch are
   portable; banners, prompts, terminal mechanics, signals, and Python colon
-  commands are host-local. Shared executable evidence now passes against the
-  Python reference host; C++ implementation has not landed, so C++ still
-  declares `repl` unsupported. See `docs/design/r26-cpp-repl-contract.md`.
+  commands are host-local. Shared executable evidence passes against both the
+  Python reference host and the bounded C++ host, which declares `repl`
+  supported with the host parity gate reporting `PARITY_OK`. See
+  `docs/design/r26-cpp-repl-contract.md`.
 - The current eval and cli shared case inventory covers deterministic `stdout`, `stderr`, and `exit_code` behavior, including eval Option rendering/propagation cases for `some(...)` and `none(...)`, plus deterministic pattern-matching eval cases (first-match, literal/wildcard/binding, list/tuple/map/option/guard/glob forms) for already-implemented behavior.
 - The HTTP helper surface and actor surface are Python reference host behavior only (**Python-host-only**; not portable contract).
 - The shell pipeline stage `$(...)` is a **Python-host-only feature**: implemented and supported only on Python, not part of the portable Core IR or shared multi-host contract. Other hosts do not support it.
@@ -167,7 +168,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
-- Python is the full-language reference host; C++ implements the bounded R25 floor.
+- Python is the full-language reference host; C++ implements the bounded R26 floor.
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
@@ -615,7 +616,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | R25-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref, Cell, and local Process, with `762 total / 149 pass / 613 unsupported` and zero failure-class outcomes; not Python feature parity |
+| C++ | R26-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref/Cell/local Process (R25), scripted REPL (R26-1), and Bytes/UTF-8 plus strict JSON (R26-2), with `772 total / 178 pass / 594 unsupported` and zero failure-class outcomes; not Python feature parity |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.
