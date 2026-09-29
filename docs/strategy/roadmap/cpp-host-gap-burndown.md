@@ -66,17 +66,18 @@ should explicitly keep it as a later gap rather than claiming partial closure.
 
 ## Recommended Creation Order
 
-1. R26 pre-flight for REPL/data bridges (#1015, GO recorded).
-2. R26-1 contract/evidence issue for `repl` (#1023 -- contract approved, evidence landed against Python; C++ implementation next).
-3. R26-2 contract/evidence issue for Bytes/UTF-8 + strict JSON (#1024 -- scope decision recorded: SPLIT, ZIP removed; E26-0 contract reconciliation next).
-4. R26-X disposition issue for `debugger_stdio` (#1025 -- decided: deferred, closed).
-5. ZIP contract-first placement issue (not yet created; roadmap home TBD, out of R26).
-6. R27 pre-flight for Flow/pipe/HTTP.
-7. R27 contract/evidence issue for `flow_phase_1`.
-8. R27 contract/evidence issue for `cli_pipe_mode`.
-9. R27 contract/evidence issue for `http_server`.
-10. R27 disposition issue for `http_outbound_transport`.
-11. Later-host-gap review for the remaining entries after R27 scope is settled.
+1. R26 is complete: `repl`, `bytes_utf8`, and `json_strict` all declare C++
+   support and report `PARITY_OK`; `debugger_stdio` and ZIP remain outside R26.
+2. Begin R27 with the release-size preflight in
+   `docs/analysis/r27-release-size-preflight.md`, then complete the R26+
+   change pre-flight issue before contract work.
+3. R27 contract/evidence issue for `flow_phase_1`.
+4. R27 contract/evidence issue for `cli_pipe_mode`.
+5. R27 contract/disposition issue for `http_server`.
+6. R27 contract/disposition issue for `http_outbound_transport`.
+7. ZIP contract-first placement issue (not yet created; roadmap home TBD, out
+   of R26/R27 unless a later gate promotes it).
+8. Later-host-gap review for the remaining entries after R27 scope is settled.
 
 Do not create implementation tickets directly from this report. Use
 `docs/process/08-roadmap-ticketing.md` after the relevant pre-flight approves a
