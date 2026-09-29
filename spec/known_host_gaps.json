@@ -11,14 +11,6 @@
       "removal_condition": "Remove when genia-cpp declares cli_pipe_mode supported and the host parity gate reports the capability as PARITY_OK."
     },
     {
-      "capability": "repl",
-      "reason": "The R26-1 portable REPL contract is approved and three capability-gated requires: [repl] shared cli cases now pass against the Python reference host, but C++ implementation has not landed.",
-      "tracking_issue": "m0smith/genia-2026#1023",
-      "affected_host": "cpp",
-      "affected_tests": ["spec/cli/repl_persistent_binding_basic.yaml", "spec/cli/repl_failed_submission_diagnostic.yaml", "spec/cli/repl_none_result_rendering.yaml"],
-      "removal_condition": "Remove after genia-cpp passes the requires: [repl] shared cli cases, declares repl supported, and the host parity gate reports the capability as PARITY_OK."
-    },
-    {
       "capability": "flow_phase_1",
       "reason": "R27 Flow is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",

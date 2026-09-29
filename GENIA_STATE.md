@@ -102,6 +102,14 @@ Scaffolded or planned, not implemented as hosts:
   `>>> `/`... ` prompts to `stdout` when `stdin` is not an interactive tty,
   since section 3 already documented them as host-local, non-portable
   cosmetics that must not appear in the portable observation.
+- **R26-1 C++ scripted REPL (issue #1023, `genia-cpp`):** the C++ adapter
+  retains one environment across complete submissions, renders each result,
+  reports normalized submission failures, and continues after a failure.
+  All three `requires: [repl]` shared CLI cases pass. The pinned C++ evidence
+  is `772 total / 149 pass / 623 unsupported` with zero failure classes;
+  the host parity gate reports `repl` as `PARITY_OK` after removing its
+  stale known-gap entry. Interactive prompt/banner/history behavior remains
+  host-local. Strict JSON is tracked separately by #1024.
 - **R26-2 reference-host defect repairs (issue #1024):** `docs/analysis/r26-release-size-preflight.md`'s
   preflight probing found genuine Python reference-host defects in the
   bytes/JSON boundary that a future C++ host must not inherit; three are
