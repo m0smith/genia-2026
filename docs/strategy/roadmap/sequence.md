@@ -60,7 +60,7 @@ R24 — C++ Minimal Conforming Host ✓ COMPLETE
  +----> R26 — C++ REPL & Data Bridges ✓ COMPLETE
            |
            v
-R27 — C++ Flow, Pipe Mode & HTTP Serving
+R27 — C++ Flow & Pipe Mode ✓ COMPLETE
  |
  +------------------------------+
  |                              |
@@ -134,8 +134,8 @@ R24 is the completed first production C++ implementation release and depends on 
 
 R25 extended the C++ host with a bounded stateful runtime, and R26 completed
 the bounded scripted REPL plus Bytes/UTF-8 and strict JSON data bridges. R27
-consumes the approved contracts needed for Flow, pipe mode, and HTTP serving
-and closes only capabilities it can prove.
+delivered C++ Flow phase 1 and pipe mode against shared evidence; HTTP serving
+and outbound HTTP were deferred (E27-3, E27-4) rather than partially claimed.
 
 ## MCP
 
@@ -170,7 +170,7 @@ After R32 is audited, heterogeneous real-provider proving (at minimum one client
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 establishes the unified event/subscription spine before R38 defines portable actors, so actor observability can reuse events without reducing actor mailboxes to pub/sub. R39 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. R41 then packages the existing Core IR portability boundary as stable versioned artifacts. These releases consume prior equality, lifecycle, Flow, host-protocol, and authority boundaries rather than inventing local substitutes.
 
-R8 through R26 are complete; R27 through R42 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R26 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R27 are complete; R28 through R42 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R27 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
 
 ## Configuration and secret hardening
 

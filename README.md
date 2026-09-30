@@ -10,7 +10,7 @@ messy records in → clear pipelines → validated shaped output / reports + use
 
 The strongest end-to-end proof is the [validated pipeline demo](#run-the-validated-pipeline-demo-experimental). For the implementation and portability boundaries, see the [current language state](GENIA_STATE.md).
 
-> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R26 production host with Ref, Cell, local Process, a scripted REPL, and Bytes/UTF-8 plus strict JSON data bridges. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
+> **Current status:** Genia is a prototype. Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode. Shared cross-host enforcement is Partial, and surfaces marked Experimental—including `genia serve`—should not be read as production-readiness or broad multi-host support.
 
 ## Quick start
 
@@ -122,7 +122,7 @@ runtime semantics. See [Containerized Development and Conformance Environment](d
 - CLI pipe mode and Flow are part of the current shared public behavior.
 
 **PYTHON REFERENCE HOST:**
-- Python is the full-language reference host; C++ implements the bounded R26 floor (R24's minimal conforming floor, R25's stateful runtime, and R26's scripted REPL plus Bytes/UTF-8 and strict JSON data bridges).
+- Python is the full-language reference host; C++ implements the bounded R27 floor (R24's minimal conforming floor, R25's stateful runtime, R26's scripted REPL plus Bytes/UTF-8 and strict JSON data bridges, and R27's Flow phase 1 and `genia -p` pipe mode; HTTP serving and outbound HTTP are not implemented in C++).
 - The shared contract categories above exist now, and the implemented shared semantic-spec suite currently covers `eval`, `ir`, `cli`, first-wave `flow`, initial `error`, and initial `parse`.
 - CLI shared specs use the same top-level YAML envelope as other executable shared specs and cover deterministic non-interactive file, command, and pipe modes.
 - REPL mode is covered only by three capability-gated `requires: [repl]`
@@ -168,7 +168,7 @@ The Semantic Spec System defines and validates observable behavior for Genia usi
 - Coverage is still partial and experimental.
 
 **PYTHON REFERENCE HOST:**
-- Python is the full-language reference host; C++ implements the bounded R26 floor.
+- Python is the full-language reference host; C++ implements the bounded R27 floor.
 - The current shared spec runner executes eval cases (spec/eval/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes CLI cases (spec/cli/), comparing normalized stdout, stderr, and exit_code.
 - The current shared spec runner executes IR cases (spec/ir/), comparing normalized portable Core IR output before host-local optimization.
@@ -580,7 +580,7 @@ Boundary validation note:
 ## Multi-Host Direction
 
 Python is the full-language reference host. `m0smith/genia-cpp` (R24) is a second
-production host implementing the complete, deliberately bounded R25 capability floor
+production host implementing the complete, deliberately bounded R27 capability floor
 — see its `README.md`/`AGENTS.md` for the exact current boundary.
 
 The repo now also includes shared portability scaffolding for future hosts, plus a
@@ -616,7 +616,7 @@ Current host status:
 | Host | Status |
 | --- | --- |
 | Python | Implemented reference host |
-| C++ | R26-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref/Cell/local Process (R25), scripted REPL (R26-1), and Bytes/UTF-8 plus strict JSON (R26-2), with `772 total / 178 pass / 594 unsupported` and zero failure-class outcomes; not Python feature parity |
+| C++ | R27-complete production host ([`m0smith/genia-cpp`](https://github.com/m0smith/genia-cpp)): bounded R24 floor plus portable Ref/Cell/local Process (R25), scripted REPL (R26-1), Bytes/UTF-8 plus strict JSON (R26-2), and Flow phase 1 plus `genia -p` pipe mode (R27, 53 gated shared cases), with `793 total / 257 pass / 536 unsupported` and zero failure-class outcomes; HTTP serving and outbound HTTP deferred; not Python feature parity |
 | Node.js / Java / Rust / Go | Planned only |
 
 For formal status term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms.

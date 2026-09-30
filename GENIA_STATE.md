@@ -7,7 +7,7 @@ This file describes what is **actually implemented now** in the Python runtime.
 
 Implemented today:
 
-- **Python is the full-language reference host; C++ is the bounded R26 production host.**
+- **Python is the full-language reference host; C++ is the bounded R27 production host.**
 - Shared semantic-spec contract categories are:
   - parse
   - ir
@@ -212,6 +212,26 @@ Scaffolded or planned, not implemented as hosts:
   `PARITY_OK`. `json_compat` remains unimplemented by `genia-cpp`
   (permanent, by contract) and is unaffected by this change. This closes
   R26-2 and, with R26-1's completed scripted REPL, completes R26.
+- **R27 C++ Flow phase 1 and pipe mode (issues #1035, #1038, #1047, #1049;
+  `genia-cpp` PRs #34, #35, #36):** `genia-cpp` implements the portable Flow
+  runtime kernel -- lazy, pull-based, single-use Flow with `stdin`/list `lines`,
+  `evolve`, `map`/`filter`/`take`/`drop`/`scan`/`keep_some`/`each`, and
+  `collect`/`run`/`reduce` -- and `genia -p '<stage expr>'` pipe mode, and declares
+  `flow_phase_1` and `cli_pipe_mode` supported. The claim is exactly the shared
+  cases that carry `requires: [flow_phase_1]` (37) or `requires: [cli_pipe_mode]`
+  (16); all 53 pass. Pinned C++ evidence: `793 total / 257 pass / 536 unsupported`
+  with every failure-class count zero (Python: `793 total / 775 pass / 18
+  unsupported`). `tools/spec_runner/host_parity_gate.py` reports both capabilities
+  `PARITY_OK` and their `spec/known_host_gaps.json` entries are removed. C++
+  limits: no trailing script arguments after `-p <expr>`; `argv()` only in pipe
+  mode; `upper`/`trim`/`parse_int` decide ASCII input only; `tee`/`merge`/`zip`,
+  `rules`/`refine`, list-form `scan`, Flow display, and a pipeline inside call
+  arguments are unsupported; the config/model/Template/JSON cross-release Flow and
+  pipe cases stay Python-host-only. The HTTP server (#1041) and outbound HTTP
+  (#1043) were decided **not** part of R27: both remain Python-host-only with
+  tracked C++ gaps. This adds no language behavior; Python semantics are
+  unchanged. See `docs/releases/R27.md` and
+  `docs/analysis/r27-release-truth-audit.md`.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for eval cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for CLI cases.
 - The current shared semantic-spec runner asserts `stdout`, `stderr`, and `exit_code` for error cases.
@@ -267,7 +287,7 @@ LANGUAGE CONTRACT:
 
 PYTHON REFERENCE HOST:
 
-- Python is the full-language reference host; C++ implements the bounded R25 floor.
+- Python is the full-language reference host; C++ implements the bounded R27 floor.
 - All conformance is validated against the Python reference host.
 - The current shared spec runner executes eval cases (`spec/eval/`), comparing normalized `stdout`, `stderr`, and `exit_code`. Eval shared coverage includes list-side Seq-compatible `collect`, `run`, lazy `each`, item-preserving `each |> collect`, the existing `seq-compatible-list-transform-chain` fixture, list-side `scan` (accepting list input and returning list), Seq-compatible non-list/non-Flow diagnostics for `each`, `collect`, `run`, `map`, `filter`, `take`, `drop`, and `scan`.
 - The current shared spec runner executes CLI cases (`spec/cli/`) through the Python host adapter, comparing normalized `stdout`, `stderr`, and `exit_code`.
@@ -315,7 +335,7 @@ PYTHON REFERENCE HOST:
 - `hosts/python/adapter.py::run_case(spec: LoadedSpec) -> ActualResult` is the canonical adapter entrypoint, wired to the shared spec runner via `tools/spec_runner/executor.py::execute_spec`. All spec categories route through `run_case`.
 
 **Planned/Scaffolded:**
-- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R26 production host in `m0smith/genia-cpp`
+- Node.js, Java, Rust, Go: planned only, not implemented; C++ is the bounded R27 production host in `m0smith/genia-cpp`
 - A generic multi-host runner exists (`tools/spec_runner --host`, R16 E16-1 through E16-7; see §0 above), with pinned evidence for the bounded C++ R24 host
 
 **Limitations:**

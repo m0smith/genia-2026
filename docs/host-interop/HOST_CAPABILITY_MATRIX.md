@@ -7,7 +7,7 @@ Status legend:
 - `Scaffolded` = docs/placeholder layout exists, but no host implementation yet
 - `Planned` = intended future work only
 
-Python is the full-language reference host. C++ is the bounded R25 production
+Python is the full-language reference host. C++ is the bounded R27 production
 host; all other hosts below are placeholders for planned work.
 `hosts/python/` is also a placeholder directory for the future monorepo layout; the live Python implementation remains in `src/genia/`.
 
@@ -39,9 +39,9 @@ Browser playground adapter note:
 | Core IR eval | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Partial (R24 floor) | Python remains the full semantic reference host |
 | CLI file mode | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | `genia path/to/file.genia` |
 | `-c` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | command mode |
-| `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | pipe mode |
+| `-p` | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | pipe mode; C++ (R27 E27-2) passes the 16 `requires: [cli_pipe_mode]` shared cases, with no trailing script arguments and no config/model/Template/`json_compat` pipelines |
 | REPL | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | portable `repl` contract in `../design/r26-cpp-repl-contract.md`; C++ (R26-1) implements the scripted-session observations, declares `repl` supported, and passes the shared evidence; interactive terminal mechanics remain host-local |
-| Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | lazy pull-based single-use Flow |
+| Flow phase 1 | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Implemented | lazy pull-based single-use Flow; C++ (R27 E27-1, E27-5) passes the 37 `requires: [flow_phase_1]` shared cases; `tee`/`merge`/`zip`, `rules`/`refine`, list-form `scan` and Flow display are not implemented in C++ |
 | configuration environment snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python snapshots `os.environ` only during explicit immutable provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
 | configuration `.env` snapshot | Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Python reads bytes from one exact explicit path once during provider construction; portable hosts may report capability unavailable; E13-7 verifies public portability wording |
 | deterministic model fixture | Python-host-only | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Not Implemented | Offline E11-1/E11-4 fixture injected only for explicitly selected shared eval/error/Flow/CLI spec and test environments; E11-7 verifies its public runnable examples; no real provider or ambient binding |

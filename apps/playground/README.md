@@ -4,7 +4,7 @@ This directory is a scaffold for a future browser playground app.
 
 Current status:
 
-- Python is the full-language reference host; C++ is the bounded R26 production host with Ref, Cell, local Process, a scripted REPL, and Bytes/UTF-8 plus strict JSON data bridges.
+- Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode.
 - documentation scaffold only
 - no production browser app implementation yet
 
