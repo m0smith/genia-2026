@@ -9,7 +9,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 import tools.stage_docs_for_mkdocs as stage_docs_for_mkdocs
+
+# Every test here calls stage_docs_for_mkdocs.main(), which deletes and rebuilds the
+# one shared .tmp/mkdocs-docs directory. On different xdist workers they race
+# (FileExistsError / missing files), so keep them on one worker; pytest.ini's
+# --dist=loadgroup honors this group.
+pytestmark = pytest.mark.xdist_group("mkdocs_staging")
 
 ROOT = Path(__file__).resolve().parents[2]
 ROADMAP_SOURCE = ROOT / "docs" / "strategy" / "release-roadmap.md"

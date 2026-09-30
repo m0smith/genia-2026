@@ -371,6 +371,20 @@ and timing semantics remain excluded; portable actors belong to R38. Do not
 infer Python feature parity from the completed bounded C++ floor. See
 `docs/releases/R25.md` for the merged release evidence.
 
+**R26 — C++ REPL and Data Bridges is complete** (scripted REPL, Bytes/UTF-8,
+strict JSON; see `docs/releases/R26.md`).
+
+**R27 — C++ Flow and Pipe Mode is complete (E27-0 through E27-6).** It
+delivers C++ Flow phase 1 (`flow_phase_1`, 37 gated shared cases) and `genia -p`
+pipe mode (`cli_pipe_mode`, 16 gated shared cases), all passing, with
+`793 total / 257 pass / 536 unsupported` and zero failure-class outcomes
+(Python: `775 pass / 18 unsupported`). The HTTP server (E27-3, #1041) and outbound
+HTTP (E27-4, #1043) were **deferred**, not partially delivered: both remain
+Python-host-only with tracked C++ gaps, and R27 was retitled from "C++ Flow, Pipe
+Mode, and HTTP Serving" accordingly. R28 and later behavior is not implemented by
+R27 and must not be inferred from roadmap placement. See `docs/releases/R27.md`
+and `docs/analysis/r27-release-truth-audit.md`.
+
 Prefer work that strengthens Genia's first killer workflow:
 **Outcome-aware validated data pipelines.**
 

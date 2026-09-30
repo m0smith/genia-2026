@@ -67,15 +67,15 @@ candidate; scope and guardrails live in [`roadmap/parking-lot.md`](roadmap/parki
 
 ## Current state
 
-R15 through R26 are complete (`docs/releases/R25.md`, `docs/releases/R26.md`;
+R15 through R27 are complete (`docs/releases/R25.md`, `docs/releases/R26.md`, `docs/releases/R27.md`;
 R24's E24-8 skeptical release audit records PASS). R23's E23-11 third,
 independent skeptical release truth audit recorded PASS in
 `docs/analysis/r23-release-truth-audit.md`, after two genuine, narrow
 findings during its audit gate -- E23-7 and E23-9 -- were each repaired
 and re-verified. Python remains the reference and full-language host;
-`m0smith/genia-cpp` is the bounded R26 production host (R24's minimal
-floor, R25's stateful runtime, and R26's scripted REPL/strict JSON data
-bridge), not feature parity.
+`m0smith/genia-cpp` is the bounded R27 production host (R24's minimal
+floor, R25's stateful runtime, R26's scripted REPL/strict JSON data
+bridge, and R27's Flow phase 1 and pipe mode), not feature parity.
 See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
@@ -88,7 +88,7 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R24 — C++ Minimal Conforming Host**
 - **R25 — C++ Stateful Runtime and Concurrency**
 - **R26 — C++ REPL and Data Bridges**
-- **R27 — C++ Flow, Pipe Mode, and HTTP Serving**
+- **R27 — C++ Flow and Pipe Mode**
 - **R28 — Genia MCP Server**
 - **R29 — Sheet Record Pipelines**
 - **R30 — Sheet Shaped Computation**
@@ -198,7 +198,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R24 | C++ Minimal Conforming Host | Complete | [`roadmap/r21-r24.md`](roadmap/r21-r24.md) |
 | R25 | C++ Stateful Runtime and Concurrency | Complete | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R26 | C++ REPL and Data Bridges | Complete | `docs/releases/R26.md` |
-| R27 | C++ Flow, Pipe Mode, and HTTP Serving | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R27 | C++ Flow and Pipe Mode | Complete | `docs/releases/R27.md` |
 | R28 | Genia MCP Server | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R29 | Sheet Record Pipelines | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R30 | Sheet Shaped Computation | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |

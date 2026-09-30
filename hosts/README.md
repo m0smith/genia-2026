@@ -4,7 +4,7 @@ This directory documents Genia's intended multi-host monorepo layout.
 
 Current status (for formal term definitions see `docs/host-interop/HOST_INTEROP.md` §Status Terms):
 
-- Python is the full-language reference host; C++ is the bounded R26 production host with Ref, Cell, local Process, a scripted REPL, and Bytes/UTF-8 plus strict JSON data bridges. Its implementation lives externally in `m0smith/genia-cpp`.
+- Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode. Its implementation lives externally in `m0smith/genia-cpp`.
 - The working Python implementation still lives at the repo root in:
   - `src/genia/`
   - `tests/`
@@ -55,4 +55,4 @@ Portability boundary note:
 | Java | Planned | placeholder docs only |
 | Rust | Planned | placeholder docs only |
 | Go | Planned | placeholder docs only |
-| C++ | Implemented (bounded R25 floor) | external repository pointer |
+| C++ | Implemented (bounded R27 floor) | external repository pointer |

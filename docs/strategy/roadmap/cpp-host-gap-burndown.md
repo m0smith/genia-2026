@@ -19,7 +19,7 @@ own pre-flight and focused issue set.
 | Bucket | Gap count | Intent |
 |---|---:|---|
 | R26 -- C++ REPL and Data Bridges | 0 | Complete: `repl`, `bytes_utf8`, and `json_strict` all closed (`debugger_stdio` deferred; ZIP removed from R26 -- see below). |
-| R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 0 | Complete for the delivery lane: E27-1 closed `flow_phase_1` and E27-2 closed `cli_pipe_mode`; E27-3 (#1041) and E27-4 (#1043) deferred `http_server` and `http_outbound_transport` to a later gate. |
+| R27 -- C++ Flow and Pipe Mode (HTTP deferred) | 0 | Complete: E27-1 closed `flow_phase_1` and E27-2 closed `cli_pipe_mode`; E27-3 (#1041) and E27-4 (#1043) deferred `http_server` and `http_outbound_transport` to a later gate. |
 | Later release / separate gate | 17 | Keep provider, host-interop, resource, shell, config, AI, retrieval, external-process, `debugger_stdio`, ZIP, and (permanently) `json_compat` work outside R26/R27 unless a later pre-flight promotes it. |
 
 ## R26 -- C++ REPL and Data Bridges
@@ -30,7 +30,9 @@ R26 does not include pipe/Flow or HTTP serving. Those remain R27 per
 `docs/strategy/roadmap/r25-r29.md`. R26 also does not include `debugger_stdio`
 (deferred, #1025) or ZIP (removed, see "Later Release / Separate Gate" below).
 
-## R27 -- C++ Flow, Pipe Mode, and HTTP Serving
+## R27 -- C++ Flow and Pipe Mode (HTTP deferred)
+
+**E27-6 (#1049) closed R27.** The release was retitled from "C++ Flow, Pipe Mode, and HTTP Serving" to the scope it delivered; see `docs/releases/R27.md`.
 
 **E27-1 (#1035) closed `flow_phase_1`.** `genia-cpp` declares it `supported` for exactly the 17 `requires: [flow_phase_1]` first-wave shared cases in `spec/flow/` (C++ evidence `total=772 passed=209 failed=0 unsupported=563`, all failure classes 0), and the host parity gate reports `PARITY_OK`; the `spec/known_host_gaps.json` entry is removed. The rest of `spec/flow/*` is not gated by the capability and remains unsupported in C++ (see `genia-cpp` `docs/r27-e27-1-flow-phase-1.md`).
 

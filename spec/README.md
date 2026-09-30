@@ -6,7 +6,7 @@ This directory holds the shared cross-host spec suite for Genia.
 
 # Shared Spec Suite
 
-**Python is the full-language reference host; C++ is the bounded R26 production host with Ref, Cell, local Process, a scripted REPL, and Bytes/UTF-8 plus strict JSON data bridges.**
+**Python is the full-language reference host; C++ is the bounded R27 production host with Ref, Cell, local Process, a scripted REPL, Bytes/UTF-8 plus strict JSON data bridges, Flow phase 1, and pipe mode.**
 
 ## Canonical Semantic-Spec Categories
 

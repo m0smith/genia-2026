@@ -81,6 +81,11 @@ CLI contract summary (actual behavior):
   pass and the host parity gate reports `PARITY_OK`. Interactive terminal
   mechanics (banner, prompts, line editing, signals, colon commands) remain
   host-local and are not part of the portable contract.
+- The bounded C++ host also implements `genia -p '<stage expr>'` pipe mode for
+  the `requires: [cli_pipe_mode]` shared cases (R27) and declares `cli_pipe_mode`
+  supported. It does not accept trailing script arguments after the stage
+  expression, and pipe-mode pipelines that need configuration, model, Template,
+  or `json_compat` features remain Python-host-only.
 - No browser, Node.js, or other host runtimes are implemented.
 - No undocumented modes or advanced CLI features exist; only the modes above are supported. Server annotations remain inert outside explicit serve mode.
 
