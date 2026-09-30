@@ -141,7 +141,8 @@ def test_command_starts_the_native_server_with_only_the_revision():
     launcher = _launcher()
     command = launcher.build_server_command(REVISION, python=sys.executable)
     assert command[0] == sys.executable
-    assert command[1:3] == ["-m", "genia.interpreter"]
+    assert command[1] == "-c" and "genia.interpreter" in command[2]
+    assert "-m" not in command  # same invocation as hosts/python/exec_cli.py
     assert Path(command[3]) == SERVER_PATH
     assert command[4:] == [REVISION]  # no other datum crosses the boundary
 

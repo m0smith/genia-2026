@@ -20,6 +20,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SERVER_PATH = REPO_ROOT / "apps" / "mcp" / "mcp.genia"
 LAUNCHER_PATH = REPO_ROOT / "hosts" / "python" / "mcp_launch.py"
 
+GENIA_MAIN = "from genia.interpreter import _main; raise SystemExit(_main())"
+
 REVISION = "0123456789abcdef0123456789abcdef01234567"
 OTHER_REVISION = "fedcba9876543210fedcba9876543210fedcba98"
 
@@ -71,7 +73,9 @@ def server_command(args):
         "E28-1 not implemented: apps/mcp/mcp.genia does not exist "
         "(native Genia MCP server expected at this path)"
     )
-    return [sys.executable, "-m", "genia.interpreter", str(SERVER_PATH), *args]
+    # Same invocation as hosts/python/exec_cli.py (`-m genia.interpreter` would emit
+    # a runpy RuntimeWarning on stderr, which must stay free of protocol noise).
+    return [sys.executable, "-c", GENIA_MAIN, str(SERVER_PATH), *args]
 
 
 def run_raw(lines, *, args=(REVISION,), cwd=None, env=None, timeout=60):
