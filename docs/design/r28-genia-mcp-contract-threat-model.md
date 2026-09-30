@@ -8,17 +8,19 @@ host capability, or transport current merely by naming it.
 
 ## 1. Purpose and boundary
 
-R28 publishes a small, governed Model Context Protocol (MCP) adapter over
-existing Genia parsing and evaluation. MCP is an integration boundary, not a
-second semantic authority. The adapter may select a narrower execution policy
-than the ordinary Genia CLI, but it must not reinterpret accepted source.
+R28 publishes a small, governed Model Context Protocol (MCP) server authored
+primarily in native Genia and composed with existing Genia parsing and
+evaluation. MCP is an integration boundary, not a second semantic authority.
+The server may select a narrower execution policy than the ordinary Genia CLI,
+but it must not reinterpret accepted source.
 
 The v1 product path is:
 
 ```text
-explicit MCP arguments
-  -> closed adapter policy
-  -> existing Python reference-host parse or evaluation surface
+explicit MCP request on stdin
+  -> native Genia decode / validation / dispatch / policy
+  -> narrow host boundary where authority is required
+  -> existing Genia parse or evaluation surface
   -> bounded, normalized MCP result
 ```
 
@@ -26,6 +28,37 @@ The release is approved infrastructure work that can expose an existing
 Outcome-aware validated-data pipeline to MCP clients. It adds no Genia syntax,
 parser rule, AST or Core IR node, evaluator behavior, builtin, prelude function,
 MCP client, or ambient authority.
+
+### 1.1 Native-Genia architecture requirement
+
+R28 delivers an MCP server application authored primarily in Genia. Host
+implementation code is permitted only for capabilities that Genia cannot
+currently express or safely enforce. The implementation must minimize that
+surface, document every host dependency, and distinguish intrinsic host
+capabilities from missing reusable Genia facilities.
+
+The intended ownership is:
+
+```text
+MCP client -> stdio -> mcp.genia
+                         |
+                         +-- protocol/value pipeline in Genia
+                         |
+                         +-- narrow explicit host capabilities
+                               |-- existing Genia runtime/parser/evaluator
+                               `-- OS isolation and enforcement
+```
+
+MCP is a protocol, not a reason to move application logic into a host adapter.
+An MCP SDK is optional implementation machinery, not architectural authority
+or a requirement. When current Genia facilities can correctly implement a
+protocol or application responsibility, native Genia is the required default.
+The fact that R28 initially executes on the Python reference host describes the
+runtime used to run `mcp.genia`; it does not make the server application a
+Python MCP server.
+
+No statement in this section claims that every required facility already
+exists. E28-0 adds no language or runtime behavior merely to reach this target.
 
 ## 2. Locked v1 public surface
 
@@ -123,7 +156,7 @@ Genia, policy, limit, timeout, and cancellation outcomes use this envelope.
 Transport loss may prevent any envelope from being delivered and must not be
 misreported as a Genia result.
 
-Messages are fixed, adapter-owned summaries. They must not include source text,
+Messages are fixed, server-owned summaries. They must not include source text,
 rendered runtime values, native paths, environment values, raw host exceptions,
 Python class names, stack traces, process identifiers, or SDK error text.
 
@@ -202,7 +235,7 @@ Success result:
 }
 ```
 
-`ast` is the existing normalized parse-adapter JSON, unchanged. A Genia parse
+`ast` is the existing normalized parse-surface JSON, unchanged. A Genia parse
 failure is `status: "error"`, `kind: "parse_error"`, `phase: "parse"`, with a
 bounded normalized diagnostic summary. Parsing never evaluates source and does
 not open files, resolve imports, acquire providers, inspect environment state,
@@ -246,10 +279,10 @@ Success result:
 
 `value.rendered`, `stdout`, and `stderr` are distinct channels. The returned
 value is rendered by the existing canonical debug renderer; it is not claimed
-to be lossless JSON or a new Genia serialization. The adapter must capture
-output-sink writes separately and must not derive `value` by scraping CLI
-stdout. A successful `none("nil")` remains a present rendered value. No MCP,
-adapter, or SDK logging may enter either program channel.
+to be lossless JSON or a new Genia serialization. The narrow execution boundary
+must capture output-sink writes separately and must not derive `value` by
+scraping CLI stdout. A successful `none("nil")` remains a present rendered
+value. No MCP, host, or SDK logging may enter either program channel.
 
 A parse failure uses `parse_error`; a rejected authority request uses
 `policy_denied`; a Genia evaluation failure uses `runtime_error`. Failure
@@ -257,11 +290,34 @@ responses contain no `result` and therefore no partial stdout, stderr, value,
 or AST. `exit_code` is fixed to `0` for a completed v1 evaluation and is not a
 second outcome taxonomy; failed execution uses the error envelope.
 
-## 3. Mapping to existing Genia surfaces
+## 3. Native Genia ownership and existing surfaces
 
-The MCP adapter reuses, without changing them:
+The server is expected to express the following in `mcp.genia`, using existing
+ordinary values, functions, pattern matching, Outcomes, Templates/validation,
+strict JSON boundaries, and explicit I/O:
 
-- the Python host's normalized parse adapter for `genia_parse`;
+- MCP/JSON message interpretation after transport framing yields one request;
+- protocol-version and closed request-shape validation;
+- tool discovery and `genia_capabilities` value construction;
+- tool-name dispatch and argument validation;
+- policy decisions over normalized request and parse data;
+- composition of the parse/execution operations supplied at the narrow host
+  boundary;
+- normalized success/error selection and result value construction; and
+- response encoding and explicit stdout production when the current JSON/I/O
+  surfaces can satisfy the exact framing and byte-bound requirements.
+
+`stdin |> lines`, `json_decode`/`json_encode`, callable Templates and ordinary
+pattern dispatch, Outcome-aware composition, and `write`/`writeln`/`flush` over
+`stdout` provide real current building blocks. This list is an architectural
+allocation, not a claim that those facilities by themselves already satisfy
+the complete MCP framing, compact encoding, isolation, cancellation, or byte
+enforcement contract. Flow is appropriate only where it naturally expresses
+ordered request input; R28 does not require a Flow-specific server framework.
+
+The narrow runtime boundary reuses, without changing them:
+
+- the existing normalized parse surface for `genia_parse`;
 - the existing parser/evaluator and canonical debug renderer for
   `genia_run`;
 - existing output sinks for program stdout/stderr capture; and
@@ -280,19 +336,43 @@ The ordinary CLI remains unchanged. MCP policy rejection is not a new Genia
 parse/evaluation diagnostic and must not appear when the same source is run
 directly outside this adapter profile.
 
+### 3.1 Required host-dependency classification
+
+Every non-Genia dependency proposed in design or implementation must be entered
+in a bounded R28 host-dependency inventory with its file/symbol, purpose,
+authority, inputs/outputs, affected host, tests, and removal condition. Each
+entry has exactly one classification:
+
+1. **Intrinsic host capability** — inherently needs runtime/OS authority and
+   remains behind a narrow explicit boundary.
+2. **Current Genia capability gap** — belongs conceptually in `mcp.genia`, but
+   current Genia cannot express or enforce it cleanly and safely.
+3. **Native Genia responsibility** — current Genia is sufficient; host-side
+   application logic is prohibited and must move into `mcp.genia`.
+
+Anticipated candidates for the first class are parser/evaluator bootstrap, hard
+OS process isolation, forceful worker termination/reaping, OS-enforced
+filesystem/network/process denial, hard monotonic deadlines, and incremental
+encoded-byte enforcement. These are provisional hypotheses, not pre-approved
+host code: design and failing evidence must verify each one against current
+Genia before implementation. Compact MCP response framing and any stdin loop
+glue must likewise be evaluated rather than presumed host-owned.
+
 ## 4. Authority and isolation policy
 
-`genia_run` executes in a fresh, disposable worker for every call. No bindings,
+`mcp.genia` must cause `genia_run` to execute in a fresh, disposable worker for
+every call through the narrow host boundary. No bindings,
 modules, configuration, credentials, caches, filesystem mutations, processes,
 or runtime state persist between calls. The worker receives only the explicit
-source and adapter-owned fixed policy data.
+source and server-owned fixed policy data.
 
-Before evaluation, the adapter parses source and rejects syntax or resolved
-runtime access outside a minimal ordinary-computation profile. Defense must be
-layered: AST policy checks alone are insufficient. The worker must also omit or
-disable prohibited builtins/modules/capabilities and run with the OS-level
-restrictions available to the supported deployment. Failure to establish the
-required profile is `internal_error`; it is never permission to run broadly.
+Before evaluation, native Genia policy composition rejects syntax or normalized
+runtime access outside a minimal ordinary-computation profile wherever current
+facilities permit. Defense must be layered: application policy or AST checks
+alone are insufficient. The worker host capability must also omit or disable
+prohibited builtins/modules/capabilities and establish the required OS-level
+restrictions. Failure at either layer is `internal_error`; it is never
+permission to run broadly.
 
 V1 policy is:
 
@@ -348,13 +428,13 @@ work may survive. If the transport can still answer, cancellation returns the
 `cancelled` envelope and timeout returns the `timeout` envelope. A transport
 closure may make delivery impossible. Cancellation has no Genia-level value or
 cleanup guarantee beyond terminating the disposable worker, and races resolve
-by the first terminal state recorded by the adapter. No partial output is
+by the first terminal state recorded by the supervisor. No partial output is
 returned for either outcome.
 
 The deadline bounds the entire worker parse/policy/evaluation/render operation,
 not server startup, MCP framing/dispatch, or queue time. Infinite Flow
 consumption, recursion, sleep, busy loops, output floods, and oversized/infinite
-value rendering are therefore bounded at the adapter boundary without adding
+value rendering are therefore bounded at the server boundary without adding
 Genia semantics.
 
 ## 6. Protected values and diagnostic hygiene
@@ -364,10 +444,11 @@ sink and has no declassification authority. A protected value must never appear
 in source echoes, AST diagnostics, `value.rendered`, stdout, stderr, error
 messages, logs, traces, or capability metadata.
 
-The adapter must apply the existing recursive protected-value rejection at
-every value boundary it can reach and preserve existing redacted display/debug
-behavior. If a protected carrier nevertheless reaches an MCP result path, the
-call fails closed with `policy_denied`, all partial fields are discarded, and a
+`mcp.genia` and its host boundaries must apply the existing recursive
+protected-value rejection at every value boundary they can reach and preserve
+existing redacted display/debug behavior. If a protected carrier nevertheless
+reaches an MCP result path, the call fails closed with `policy_denied`, all
+partial fields are discarded, and a
 fixed message is returned. Catch-all host exceptions become `internal_error`
 with a fixed message. Raw exception text, reprs, traceback frames, native file
 paths, provider contexts, request source, and SDK diagnostics never cross the
@@ -385,13 +466,15 @@ protocol revision fails at the MCP protocol layer before a Genia tool is
 dispatched. A future protocol version requires an explicit compatibility
 review; MCP protocol dates and `genia.mcp.v1` are independent version axes.
 
-The Python SDK is an implementation dependency, not contract authority. E28-1
-must select a released SDK supporting MCP `2026-07-28`, pin its exact resolved
-version in the repository lockfile, record it in server version metadata, and
-verify schemas and cancellation behavior against that version. Dependency
-updates require protocol/schema/security regression review; an SDK major or
-behavioral change may not silently widen tools, transports, logging, roots,
-sampling, elicitation, resources, prompts, or authority.
+An MCP SDK is optional implementation machinery, not contract authority or an
+architectural requirement. Protocol behavior that existing Genia facilities
+can implement belongs in `mcp.genia`. If a later design proves a narrow SDK
+dependency necessary, it must support MCP `2026-07-28`, be recorded in the
+host-dependency inventory, expose no application policy, and have its exact
+resolved version pinned in the repository lockfile and server metadata. SDK
+addition or update requires protocol/schema/security regression review and may
+not silently widen tools, transports, logging, roots, sampling, elicitation,
+resources, prompts, or authority.
 
 V1 transport scope is local **stdio only**. Server stdout is reserved for MCP
 frames; server logs go to a separately controlled stderr and obey section 6.
@@ -400,20 +483,27 @@ release completion. No legacy HTTP+SSE transport is in scope.
 
 ## 8. Portable and host-specific contract portions
 
-The following are host-neutral adapter requirements a future implementation
+The following are host-neutral server requirements a future implementation
 can adopt: the three tool names, closed JSON schemas, envelope taxonomy,
 source-only profile, channel separation, limits, denial policy, protected-value
 requirements, MCP version, stdio transport, and capability-reporting fields.
 They do not become Genia language semantics or an R16 host capability merely
 because they are portable to another adapter.
 
-R28 implementation is Python-reference-host-only. Normalized AST details and
-rendered/evaluated observations are whatever current authoritative Genia
-contracts define; another host may claim MCP v1 only after shared evidence
-proves the applicable observations and it reports its own host identity.
-`portable_mcp_implementation` therefore remains `false` in R28. No C++ MCP
-server, Python/C++ MCP parity, or new entry in the host capability registry is
-claimed by E28-0.
+R28 runs the native `mcp.genia` server on the Python reference host because that
+is the initial host for the required parse/evaluation and isolation boundaries.
+Python-specific objects and conventions must not leak into `mcp.genia` or its
+closed values. Normalized AST details and rendered/evaluated observations remain
+whatever current authoritative Genia contracts define.
+
+The portability target is the same `mcp.genia` program running on a future C++
+host, with each host supplying the minimal explicit capabilities that program
+actually requires. R28 does not implement or claim that C++ support. Another
+host may claim MCP v1 only after shared evidence proves applicable observations
+and it reports its own identity; `portable_mcp_implementation` therefore remains
+`false` in R28. The host-dependency inventory and parity evidence must make a
+future multi-host decision evidence-based rather than designing the application
+around Python now.
 
 ## 9. Threat model
 
@@ -424,8 +514,9 @@ configuration and secrets, network and listening authority, subprocess/shell
 authority, server availability, other requests, diagnostics/logs, and Genia's
 semantic integrity. Source text, every tool argument, client metadata, and MCP
 cancellation/timing behavior are untrusted. The MCP client is outside the trust
-boundary; the adapter, its fixed policy, and its disposable worker supervisor
-are inside it. Evaluated Genia source remains hostile even after it parses.
+boundary; `mcp.genia`, its fixed policy, the narrow host capabilities, and the
+disposable worker supervisor are inside it. Evaluated Genia source remains
+hostile even after it parses.
 
 ### 9.2 Threats and required mitigations
 
@@ -458,7 +549,36 @@ request/concurrency/rate/body limits, reverse proxies, cancellation on
 disconnect, audit logging, and tenant isolation. It must not reuse local stdio
 trust assumptions or describe R28 as a production sandbox.
 
-## 10. Verification obligations for later R28 tickets
+## 10. Native-Genia gap audit and follow-up rule
+
+The host-dependency inventory is a release deliverable, not a temporary design
+note. Every host-side implementation of pure policy, validation, dispatch,
+protocol interpretation, result/error selection, composition, or other value
+transformation must be reviewed as presumed application logic. Before R28 is
+complete:
+
+- accidental host application logic must move into `mcp.genia`;
+- intrinsic host capabilities may remain only with their explicit inventory
+  entry and boundary tests; and
+- genuine current Genia capability gaps must become owned follow-up proposals.
+
+The final R28 release audit (currently E28-6/#707; if the issue plan later adds
+a distinct audit ticket, that ticket inherits this obligation) must publish the
+bounded inventory and disposition. Each proposed gap follow-up must identify:
+
+1. the missing reusable Genia capability;
+2. concrete R28 implementation evidence showing why it is needed;
+3. affected hosts;
+4. expected shared conformance requirements;
+5. exact host code removable once the capability exists;
+6. an owning issue and completed pre-flight proposal; and
+7. roadmap placement through the normal roadmap process.
+
+E28-0 assigns no release number and authorizes no speculative language feature
+for these follow-ups. Temporary host code must not become permanent architecture
+merely because R28 can ship with it.
+
+## 11. Verification obligations for later R28 tickets
 
 Before any tool is claimed implemented, later phases must provide tests for:
 
@@ -476,14 +596,18 @@ Before any tool is claimed implemented, later phases must provide tests for:
 7. endless computation and output, cancellation races, worker termination,
    reap, and no cross-request state;
 8. malformed Unicode/JSON, hostile diagnostics, raw host exceptions, and
-   adapter/SDK logging isolation; and
-9. stdio framing under programs that write both stdout and stderr.
+   host/SDK logging isolation; and
+9. stdio framing under programs that write both stdout and stderr;
+10. native-Genia ownership of validation, dispatch, policy, composition, and
+    result/error shaping, with no equivalent Python application path; and
+11. every host-dependency inventory entry's classification, boundary, and
+    removal condition.
 
 R16 machinery should be reused only where it honestly proves direct-host
 observation parity. MCP protocol behavior and security policy need focused
-adapter tests; unsupported or unexercised cases are never parity evidence.
+server tests; unsupported or unexercised cases are never parity evidence.
 
-## 11. Explicit deferrals and non-goals
+## 12. Explicit deferrals and non-goals
 
 E28-0 and v1 do not include:
 
