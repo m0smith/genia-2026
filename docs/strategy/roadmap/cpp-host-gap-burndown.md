@@ -19,8 +19,8 @@ own pre-flight and focused issue set.
 | Bucket | Gap count | Intent |
 |---|---:|---|
 | R26 -- C++ REPL and Data Bridges | 0 | Complete: `repl`, `bytes_utf8`, and `json_strict` all closed (`debugger_stdio` deferred; ZIP removed from R26 -- see below). |
-| R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 1 | E27-1 closed `flow_phase_1` and E27-2 closed `cli_pipe_mode`; E27-3 deferred `http_server` to a later gate (#1041); `http_outbound_transport` disposition is pending E27-4. |
-| Later release / separate gate | 16 | Keep provider, host-interop, resource, shell, config, AI, retrieval, external-process, `debugger_stdio`, ZIP, and (permanently) `json_compat` work outside R26/R27 unless a later pre-flight promotes it. |
+| R27 -- C++ Flow, Pipe Mode, and HTTP Serving | 0 | Complete for the delivery lane: E27-1 closed `flow_phase_1` and E27-2 closed `cli_pipe_mode`; E27-3 (#1041) and E27-4 (#1043) deferred `http_server` and `http_outbound_transport` to a later gate. |
+| Later release / separate gate | 17 | Keep provider, host-interop, resource, shell, config, AI, retrieval, external-process, `debugger_stdio`, ZIP, and (permanently) `json_compat` work outside R26/R27 unless a later pre-flight promotes it. |
 
 ## R26 -- C++ REPL and Data Bridges
 
@@ -34,17 +34,13 @@ R26 does not include pipe/Flow or HTTP serving. Those remain R27 per
 
 **E27-1 (#1035) closed `flow_phase_1`.** `genia-cpp` declares it `supported` for exactly the 17 `requires: [flow_phase_1]` first-wave shared cases in `spec/flow/` (C++ evidence `total=772 passed=209 failed=0 unsupported=563`, all failure classes 0), and the host parity gate reports `PARITY_OK`; the `spec/known_host_gaps.json` entry is removed. The rest of `spec/flow/*` is not gated by the capability and remains unsupported in C++ (see `genia-cpp` `docs/r27-e27-1-flow-phase-1.md`).
 
-**E27-3 (#1041) deferred `http_server`** out of R27 (Python-host-only surface, no shared evidence route, and the C++ host lacks `import`, annotations, a `serve` mode and sockets); it now lives under "Later Release / Separate Gate". See `docs/analysis/r27-http-server-decision.md`.
-
 **E27-2 (#1038) closed `cli_pipe_mode`.** `genia-cpp` declares it `supported` for exactly the 9 `requires: [cli_pipe_mode]` pipe-mode shared cases in `spec/cli/` (C++ evidence `total=772 passed=220 failed=0 unsupported=552`, all failure classes 0), and the host parity gate reports `PARITY_OK`; the `spec/known_host_gaps.json` entry is removed. `pipe_mode_record_pipeline_collect_validated_boundary_error` needs `json_compat` (Python-host-only) and stays unsupported in C++; trailing `-p` script arguments and Option-receiver guidance are also unsupported (see `genia-cpp` `docs/r27-e27-2-pipe-mode.md`).
 
-| Gap | Current tracking | Planned issue | Affected tests / spec area | Removal condition |
-|---|---|---|---|---|
-| `http_outbound_transport` | `m0smith/genia-2026#1018` | R27 outbound HTTP disposition issue | HTTP outbound transport requires-gated shared specs | Remove when `genia-cpp` declares `http_outbound_transport` supported and the host parity gate reports `PARITY_OK`. |
+**E27-3 (#1041) deferred `http_server`** out of R27 (Python-host-only surface, no shared evidence route, and the C++ host lacks `import`, annotations, a `serve` mode and sockets); it now lives under "Later Release / Separate Gate". See `docs/analysis/r27-http-server-decision.md`.
 
-R27 should close only capabilities it can prove with shared evidence. If outbound
-HTTP remains outside the approved C++ runtime boundary, the R27 pre-flight
-should explicitly keep it as a later gap rather than claiming partial closure.
+**E27-4 (#1043) deferred `http_outbound_transport`** out of R27 (no Genia surface of its own, host-minted declassification authority, no runner fixture channel, and the C++ host lacks `import`, protected values and lifecycle scopes); it joins `http_server` under "Later Release / Separate Gate". See `docs/analysis/r27-outbound-http-decision.md`.
+
+No R27 gap remains in the delivery lane. R27 closed only capabilities it could prove with shared evidence; the two HTTP gaps are tracked under "Later Release / Separate Gate" rather than counted as partially closed.
 
 ## Later Release / Separate Gate
 
@@ -54,6 +50,7 @@ should explicitly keep it as a later gap rather than claiming partial closure.
 | `json_compat` (`json_parse`/`json_stringify`/`json_pretty`/`parse_jsonl_record`) | `m0smith/genia-2026#1024` | Decided not portable by `docs/design/r26-cpp-data-bridge-contract.md` section 5; permanent Python-host-only classification, not an in-progress gap | `requires: [json_compat]` shared specs in `spec/eval/`, `spec/error/` (see `spec/known_host_gaps.json`) | Not expected to be removed by C++ implementation. Remove only if a future contract revision makes compatibility JSON portable, `genia-cpp` then declares `json_compat` supported, and the host parity gate reports `PARITY_OK`. |
 | `debugger_stdio` | `m0smith/genia-2026#1018` | Deferred developer-tooling/host-capability work (decided #1025, closed) | Not created -- the R26-1 REPL contract does not require it | debugger stdio requires-gated shared specs | Remove when `genia-cpp` declares `debugger_stdio` supported and the host parity gate reports `PARITY_OK`. |
 | `http_server` | `m0smith/genia-2026#1041` | Deferred by E27-3; later contract-first HTTP-server release, home TBD | HTTP-server contract issue (not yet created): portable request/response shapes, listener authority, an evidence mechanism that can drive a served request, and `genia-cpp` module/annotation/`serve`-mode prerequisites (`docs/analysis/r27-http-server-decision.md`) | HTTP server requires-gated shared specs (none exist yet) | Remove only after a separate contract-first release defines portable shared evidence, `genia-cpp` declares `http_server` supported, and the host parity gate reports `PARITY_OK`. |
+| `http_outbound_transport` | `m0smith/genia-2026#1043` | Deferred by E27-4; later contract-first outbound-HTTP release, home TBD | Outbound-HTTP contract issue (not yet created): host authority model for declassification, a runner-drivable deterministic transport fixture, `genia-cpp` module/protected-value/lifecycle prerequisites, and cross-host failure-classification evidence (`docs/analysis/r27-outbound-http-decision.md`) | HTTP outbound transport requires-gated shared specs (none exist yet) | Remove only after a separate contract-first release defines portable authority and fixture evidence, `genia-cpp` declares `http_outbound_transport` supported, and the host parity gate reports `PARITY_OK`. |
 | `allowlisted_host_interop` | `m0smith/genia-2026#1018` | Later host-interop work | Host interop contract/evidence issue | allowlisted host-interop requires-gated shared specs | Remove when `genia-cpp` declares `allowlisted_host_interop` supported and the host parity gate reports `PARITY_OK`. |
 | `shell_stage` | `m0smith/genia-2026#1018` | Later host-interop work | Shell-stage disposition issue | shell-stage requires-gated shared specs | Remove when `genia-cpp` declares `shell_stage` supported and the host parity gate reports `PARITY_OK`. |
 | `resource_io` | `m0smith/genia-2026#1018` | R35 or later resource work | Resource I/O contract/evidence issue | resource I/O requires-gated shared specs | Remove when `genia-cpp` declares `resource_io` supported and the host parity gate reports `PARITY_OK`. |
@@ -78,7 +75,7 @@ should explicitly keep it as a later gap rather than claiming partial closure.
 3. R27 E27-1 `flow_phase_1` is complete (#1035); its gap entry is removed.
 4. R27 E27-2 `cli_pipe_mode` is complete (#1038); its gap entry is removed.
 5. R27 E27-3 `http_server` is deferred (#1041); it moves to the later gate.
-6. R27 contract/disposition issue for `http_outbound_transport`.
+6. R27 E27-4 `http_outbound_transport` is deferred (#1043); it moves to the later gate.
 7. ZIP contract-first placement issue (not yet created; roadmap home TBD, out
    of R26/R27 unless a later gate promotes it).
 8. Later-host-gap review for the remaining entries after R27 scope is settled.

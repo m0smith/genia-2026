@@ -12,11 +12,11 @@
     },
     {
       "capability": "http_outbound_transport",
-      "reason": "R14/R27 outbound HTTP is not implemented by the bounded R24/R25 C++ host.",
-      "tracking_issue": "m0smith/genia-2026#1018",
+      "reason": "Deferred out of R27 by E27-4 (docs/analysis/r27-outbound-http-decision.md): outbound HTTP has no Genia surface of its own, needs host-minted R10 declassification authority and runner fixture plumbing the shared protocol lacks, and the bounded C++ host lacks import, protected values, lifecycle scopes, and sockets.",
+      "tracking_issue": "m0smith/genia-2026#1043",
       "affected_host": "cpp",
-      "affected_tests": ["HTTP outbound transport requires-gated shared specs"],
-      "removal_condition": "Remove when genia-cpp declares http_outbound_transport supported and the host parity gate reports the capability as PARITY_OK."
+      "affected_tests": ["HTTP outbound transport requires-gated shared specs (none exist yet)"],
+      "removal_condition": "Remove only after a separate contract-first outbound-HTTP release defines portable authority and fixture evidence, genia-cpp declares http_outbound_transport supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "allowlisted_host_interop",
