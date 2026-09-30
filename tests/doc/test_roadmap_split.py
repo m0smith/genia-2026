@@ -14,7 +14,7 @@ def read(path: Path) -> str:
 def test_root_roadmap_is_small_canonical_index() -> None:
     text = read(ROADMAP)
 
-    assert len(text.splitlines()) < 220
+    assert len(text.splitlines()) < 225
     assert "GENIA_STATE.md" in text
     assert "does not define implemented language behavior" in text
     assert "R15 — Validated Value Modeling" in text
@@ -25,6 +25,7 @@ def test_root_roadmap_is_small_canonical_index() -> None:
     assert "R39 | Genia-Native Conformance Tooling" in text
     assert "R40 | Configuration and Secret Hardening and Ergonomics" in text
     assert "R41 | Portable Core IR Artifacts" in text
+    assert "R42 | Persistent Interactive Sessions and Jupyter Kernel" in text
     assert "roadmap/r15.md" in text
     assert "roadmap/r16-r20.md" in text
     assert "roadmap/r21-r24.md" in text
@@ -58,6 +59,10 @@ def test_focused_roadmap_files_cover_active_and_future_releases_once() -> None:
         matches = re.findall(rf"^## Release R{release}\b", combined_future, re.MULTILINE)
         assert len(matches) == 1, f"R{release} should appear exactly once in focused roadmap detail"
 
+    r42 = read(ROADMAP_DIR / "r42.md")
+    assert r42.startswith("# R42 — Persistent Interactive Sessions and Jupyter Kernel")
+    assert "Issue #1045 is the umbrella for R42" in r42
+
     combined = "\n".join([r15, combined_future])
     for release in range(1, 15):
         assert not re.search(rf"^## Release R{release}\b", combined, re.MULTILINE)
@@ -77,6 +82,7 @@ def test_sequence_and_parking_material_have_dedicated_files() -> None:
     assert "R39 — Genia-Native Conformance Tooling" in sequence
     assert "R40 — Configuration and Secret Hardening and Ergonomics" in sequence
     assert "R41 — Portable Core IR Artifacts" in sequence
+    assert "R42 — Persistent Interactive Sessions & Jupyter" in sequence
     assert "R8 through R26 are complete" in sequence
     assert "## Parking Lot / Later" in parking
     assert "## Post-R1 Issue Disposition" in parking

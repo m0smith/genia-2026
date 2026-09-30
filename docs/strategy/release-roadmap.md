@@ -103,6 +103,7 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R39 — Genia-Native Conformance Tooling**
 - **R40 — Configuration and Secret Hardening and Ergonomics**
 - **R41 — Portable Core IR Artifacts**
+- **R42 — Persistent Interactive Sessions and Jupyter Kernel** (scheduled from the R26/R27 interactive foundation, independent of R28–R41 numbering)
 
 The process correction is documented in `docs/analysis/exact-numeric-gate-postmortem.md`. New implementation is re-derived from current `main` in independently mergeable slices rather than mechanically cherry-picked from #839.
 
@@ -124,6 +125,7 @@ The process correction is documented in `docs/analysis/exact-numeric-gate-postmo
 - **R39:** [`roadmap/r39.md`](roadmap/r39.md)
 - **R40:** [`roadmap/r40.md`](roadmap/r40.md)
 - **R41:** [`roadmap/r41.md`](roadmap/r41.md)
+- **R42 interactive-session/Jupyter branch:** [`roadmap/r42.md`](roadmap/r42.md)
 - **Multi-host repository/conformance policy:** [`roadmap/multi-host-conformance-policy.md`](roadmap/multi-host-conformance-policy.md)
 - **Release sequence and dependencies:** [`roadmap/sequence.md`](roadmap/sequence.md)
 - **Parking lot and historical issue disposition:** [`roadmap/parking-lot.md`](roadmap/parking-lot.md)
@@ -211,6 +213,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R39 | Genia-Native Conformance Tooling | Planned | [`roadmap/r39.md`](roadmap/r39.md) |
 | R40 | Configuration and Secret Hardening and Ergonomics | Planned | [`roadmap/r40.md`](roadmap/r40.md) |
 | R41 | Portable Core IR Artifacts | Planned | [`roadmap/r41.md`](roadmap/r41.md) |
+| R42 | Persistent Interactive Sessions and Jupyter Kernel | Planned | [`roadmap/r42.md`](roadmap/r42.md) |
 
 ## Scheduling
 

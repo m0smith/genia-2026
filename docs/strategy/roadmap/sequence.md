@@ -62,8 +62,10 @@ R24 — C++ Minimal Conforming Host ✓ COMPLETE
            v
 R27 — C++ Flow, Pipe Mode & HTTP Serving
  |
- v
-R28 — Genia MCP Server
+ +------------------------------+
+ |                              |
+ v                              v
+R28 — Genia MCP Server         R42 — Persistent Interactive Sessions & Jupyter
  |
  v
 R29 — Sheet Record Pipelines
@@ -107,6 +109,13 @@ R40 — Configuration and Secret Hardening and Ergonomics
 
 This ordering does not imply that every release is a strict technical dependency of the next. Roadmap placement is planning authority only and never makes candidate behavior implemented.
 
+R42 deliberately appears at its dependency position rather than after R41.
+It consumes the completed R26 scripted-REPL foundation and R27's delivered
+Flow/pipe lane, but does not depend on R28 MCP. Its next unreserved identifier
+preserves the established R28 epic/E28 issue set and all other published
+planning identifiers. R42 should land before R33 needs a reusable interactive
+execution seam; R29–R32 do not depend on it and need not wait for it.
+
 R16–R20 are complete portability foundations. R16 supplies the external-host protocol/capability/evidence boundary, R17 arbitrary-precision Integer and ordered-map portability, R18 portable equality/key semantics, R19 Unicode/diagnostic portability, and R20 open-function/extensible-pattern dispatch semantics.
 
 ## Exact numeric decomposition
@@ -134,6 +143,23 @@ R28 is the planned Genia MCP Server release. It is integration infrastructure, n
 
 R28 is placed after the C++ host expansion arc to keep that arc contiguous. Its own contract may still authorize an initial Python-reference-host implementation; roadmap position alone does not require complete cross-host parity.
 
+## Interactive sessions and Jupyter
+
+R42 is the planned persistent interactive-session and first-class Jupyter
+kernel release. Issue #1045 is its umbrella. E42-0 defines the narrow
+host-neutral session observations; E42-1 implements them in Python and makes
+the existing REPL the first consumer; E42-2 adds the minimal Jupyter kernel;
+and E42-3 hardens cross-mode behavior and synchronizes release truth. See
+[`r42.md`](r42.md).
+
+The session contract is portable where its observations are accepted into
+shared conformance, but the initial Jupyter transport is Python-host tooling.
+C++ Jupyter support is not a prerequisite, and C++ retains its R26 `repl`
+claim without adopting a new API. Completion/inspection and rich display are
+soft follow-ups, not blockers for the first kernel. MCP and Jupyter remain
+independent: a later notebook may demonstrate MCP-backed work, but basic
+kernel tests and examples must be offline and credential-free.
+
 ## Data workflow and tooling arc
 
 R29 adds the explicit Sheet record-pipeline boundary. R30 deepens it into shaped whole-column computation. R31 adds relational Sheet operations. R32 adds the portable data-store boundary: ordinary Genia values, Flow, Sheet, Outcome, configuration/secrets, and lifecycle remain the application model while relational, document, key/value, immutable/temporal, query, transaction, and change-feed behavior is exposed only through truthful provider capabilities. R31 is compositional input to R32; it does not make R32 relational. SQLite is the planned embedded proving provider, with a deterministic non-relational fixture required to prevent SQL/table leakage. JDBC, ODBC, ADBC, and native clients are adapter mechanisms rather than language dependencies. The R32 contract must also reconcile naming/authority/lifecycle with R35's later Store/Location/resource architecture rather than create a competing generic Store concept. R33 is developer tooling derived from implemented parser/Core-IR/help/debugger truth. R34 adds reproducible cross-host performance evidence and permits optimization only when shared conformance proves no semantic drift.
@@ -144,7 +170,7 @@ After R32 is audited, heterogeneous real-provider proving (at minimum one client
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 establishes the unified event/subscription spine before R38 defines portable actors, so actor observability can reuse events without reducing actor mailboxes to pub/sub. R39 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. R41 then packages the existing Core IR portability boundary as stable versioned artifacts. These releases consume prior equality, lifecycle, Flow, host-protocol, and authority boundaries rather than inventing local substitutes.
 
-R8 through R26 are complete; R27 through R41 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R26 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
+R8 through R26 are complete; R27 through R42 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R26 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
 
 ## Configuration and secret hardening
 
