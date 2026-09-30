@@ -15,6 +15,12 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - configuration/domain values that intentionally encode absence must remain explicit; this helper must not become a workaround for unclear modeling
   - directly supports the Outcome-aware validated-data-pipeline north star and later HTTP, AI, storage, and database composition
   - no release number is assigned yet; schedule through the normal contract/design/failing-test/implementation/docs/audit/distillation gates before implementation
+- HTTP server and outbound HTTP portable contracts
+  - R27 deliberately deferred both surfaces after contract-decision issues #1041 and #1043; see `docs/analysis/r27-http-server-decision.md` and `docs/analysis/r27-outbound-http-decision.md`
+  - future work needs its own release assignment before implementation starts
+  - server prerequisites include a portable request/response shape, listener authority model, a test-runner route for served requests, and C++ support for import, annotations, serve mode, and sockets
+  - outbound prerequisites include host authority/declassification, a deterministic transport fixture mechanism, protected values, lifecycle/config interaction, and cross-host failure-taxonomy evidence
+  - do not treat either capability as an R27 follow-up implementation task
 - actor system
   - includes actor lifecycle, supervision, and actor-oriented runtime expansion
   - keep out of R5 unless a narrow use case explicitly requires it
