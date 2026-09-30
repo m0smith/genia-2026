@@ -1,164 +1,200 @@
 # R28 E28-1 — Native Genia MCP Skeleton and Capabilities: Design
 
-Status: **Design phase only (issue #702, epic #700).** No MCP server, `mcp.genia`,
-host capability, or test is implemented by this document. `GENIA_STATE.md`
-remains final authority for implemented behavior. This document applies the
-merged E28-0 contract (`r28-genia-mcp-contract-threat-model.md`); it does not
-amend it.
+Status: **Design approved with corrections (issue #702, epic #700); no server is
+implemented.** `GENIA_STATE.md` remains final authority for implemented behavior.
+This document applies the merged E28-0 contract
+(`r28-genia-mcp-contract-threat-model.md`). Where verified MCP `2026-07-28` wire
+requirements or the intermediate-surface rule need wording the contract lacks, the
+gap is listed in §9 as a **proposed clarification** rather than silently
+contradicted.
 
-## 1. Issue/contract reconciliation (needs approval)
+## 1. Issue/contract reconciliation
 
-Issue #702's body predates the E28-0 native-Genia amendment. It says "minimal
-Python-reference-host MCP server package using the official MCP Python SDK",
-"approved capability/resource metadata", and "local test harness using the
-official MCP client". The merged contract overrides it:
+Issue #702's original body predated the native-Genia amendment (Python package,
+mandatory official SDK, "resource metadata"). The merged contract overrides it, and
+#702 has been rewritten to match (see the E28-1 report). E28-1 is: a native
+`apps/mcp/mcp.genia` over stdio, `server/discover`, `tools/list`, and
+`tools/call` for `genia_capabilities` only. No SDK, no resources, no prompts.
 
-| #702 body | Merged contract | Design decision |
-|---|---|---|
-| Python MCP package | §1.1: server authored primarily in native Genia (`mcp.genia`) | `mcp.genia` is the application; Python is a narrow host boundary |
-| Official MCP Python SDK | §7: SDK optional, must be justified and inventoried | No SDK in E28-1 (see §5); a test-only client may be used for evidence |
-| "resource metadata" | §2.1: no MCP resources, no prompts | No resources/prompts of any kind |
+## 2. Final surface vs intermediate development surface
 
-Recommendation: edit #702's body to match the contract before implementation.
+- **Final R28 v1 surface** (contract §2.1, unchanged): exactly `genia_capabilities`,
+  `genia_parse`, `genia_run`. Required by final R28 acceptance (E28-5/E28-6).
+- **Intermediate surface** (this design): a server advertises only tools whose
+  behavior is implemented at that ticket.
+  - E28-1: `["genia_capabilities"]`
+  - E28-2 adds `genia_parse`; E28-3 adds `genia_run`.
+- An unadvertised tool name is an **unknown tool** protocol error (§7). There is no
+  fabricated "not implemented" envelope and no `internal_error` stand-in.
+- Intermediate evidence never presents an advertised-but-nonfunctional tool as a
+  completed capability. The three-name assertion is a final-acceptance test owned by
+  E28-3+/E28-5, not E28-1.
+- Consequence for `genia_capabilities.tools`: it reports the tools the running server
+  actually exposes (E28-1: one name). See §9 C1.
 
-## 2. Capability reconnaissance (evidence table)
+## 3. Capability reconnaissance (evidence table)
 
-Probed with the real CLI (`uv run genia`) on the Python reference host, and
-cross-read against `GENIA_STATE.md`.
+Probed with the real CLI on the Python reference host and cross-read against
+`GENIA_STATE.md`.
 
-| Capability | Authority | Usable from `.genia` | Result / MCP-relevant limit |
+| Capability | Authority | From `.genia` | Result / MCP-relevant limit |
 |---|---|---|---|
-| stdin consumption | STATE §(stdin lazy source) | yes: `stdin \|> lines` | works; line-oriented only. Per-line byte limit is not enforceable before the line is materialized (gap) |
-| stdout | STATE 1776-1780 | yes: `writeln(stdout, s)` | works; `writeln/1` does not exist (sink is required). `write`/`flush` exist |
-| stderr | STATE sink section | yes (sink value) | not yet exercised in proof |
-| strict JSON decode | STATE 3218-3254 | yes: `json_decode` | strict; returns `some(represent("json", root), ctx)` — the outer `json` facet hides a bare map pattern; `pattern Json(v) = representation_match("json", v)` is required (verified) |
-| strict JSON encode | STATE 3219, 3252 | yes: `json_encode` | **always two-space-indented, sorted keys** → multi-line; not MCP-framing-safe as is |
-| compact JSON | — | partial | Verified natively: `split(t, "\n") \|> map(trim) \|> join("")` yields valid single-line JSON (literal newlines in encoded output are structural only; string newlines are escaped). Result keeps `": "` separators, so it is single-line, **not byte-compact**. Byte-compactness is a gap (class B) |
-| object key order | STATE 3252 | no | `json_encode` sorts members; contract fixes only array order, so acceptable |
-| bytes/Unicode | STATE 3211-3254, `utf8_*` | yes | strict UTF-8 + scalar validation in `json_decode`; UTF-8 byte-length of a string via `utf8_encode` (length helper for bytes not yet verified) |
-| functions / pattern matching | GENIA_RULES 45-62 | yes | verified; top-level params are identifiers only — dispatch uses arm bodies (`f(x) = pat -> e \| _ -> e`), not multi-clause heads |
-| Outcomes | STATE | yes | verified `some/err` arm matching; `unwrap_or` rejects `err` |
-| maps / records | STATE | yes | `{k: v}` literals and partial map patterns work |
-| ordered maps | R17 | yes (Experimental) | not needed by E28-1 |
-| Templates / `json_schema` | STATE 3255+ | yes | usable for closed request validation (`additionalProperties: false`); to be proven in the test phase |
-| Flow | STATE | yes | `map`/`each` are lazy; a terminal `run` is required (verified) |
-| modules/imports | STATE | yes (`import`) | v1 worker policy forbids caller imports; `mcp.genia` itself may import packaged modules |
-| program entry / CLI | STATE, CLI help | yes | `genia file.genia` calls `main(args)` (verified) |
-| error normalization | STATE, R23 | yes | `err(reason, ctx)`; host text not portable. A decode error's `reason` was not a string in my probe and failed `json_encode` — the test phase must pin the reason shape |
-| **spawn a worker / run Genia source in a disposable child** | STATE 9.40 | **partially** | `execution.process(cap, {executable, args, timeout_ms})` already gives hard monotonic timeout, SIGKILL+reap, incremental 1 MiB-per-channel limits. But: no Genia-side way to obtain `cap` (bootstrap deferred); child stdin is immediate EOF (source must travel as argv, which Linux caps at 128 KiB per argument < 262,144-byte source limit); blocking call cannot observe MCP cancellation |
-| parse surface (`genia_parse`) | `hosts/python/parse_adapter.py` | **no** | not exposed as a builtin (E28-2 scope) |
-| eval surface (`genia_run`) | CLI `-c` | **no** as value API | only via CLI/subprocess (E28-3 scope) |
+| stdin | STATE (`stdin` lazy source) | yes: `stdin \|> lines` | line-oriented; per-line byte bound not enforceable before materialization (gap, E28-3+) |
+| stdout | STATE 1776-1780 | yes: `writeln(stdout, s)` | no `writeln/1`; sink required |
+| stderr | STATE sink section | yes | used only for fixed startup diagnostics |
+| strict JSON decode | STATE 3218-3254 | yes | returns `some(represent("json", root), ctx)`; needs `pattern Json(v) = representation_match("json", v)` before map patterns match (verified) |
+| strict JSON encode | STATE 3219, 3252 | yes | always indented + sorted keys; multi-line → must be framed (§6) |
+| single-line framing | — | yes (verified) | `split(t, "\n") \|> map(trim) \|> join("")` yields valid one-line JSON; `": "` separators remain (accepted, §6) |
+| bytes/Unicode | STATE, `utf8_*` | yes | strict UTF-8 + scalar validation in `json_decode` |
+| functions / patterns | GENIA_RULES 45-62 | yes | top-level params are identifiers; dispatch via arm bodies `f(x) = pat -> e \| _ -> e` (verified) |
+| Outcomes | STATE | yes | `some/err` arms work; `unwrap_or` rejects `err` (verified) |
+| maps | STATE | yes | `{k: v}` literals and partial map patterns |
+| Templates / `json_schema` | STATE 3255+ | yes | candidate for closed validation; may use hand patterns where simpler |
+| Flow | STATE | yes | lazy; terminal `run` required (verified) |
+| entry / CLI | CLI help | yes | `genia file.genia args…` calls `main(args)`; argv reaches Genia (verified) |
+| spawn worker | STATE 9.40 | partial | `execution.process` has hard deadline, kill+reap, incremental limits; no Genia-side capability bootstrap, child stdin EOF, argv ≤128 KiB/arg, non-cancellable (E28-3 concerns) |
+| parse / eval value APIs | `parse_adapter.py`, CLI | no | E28-2 / E28-3 scope |
 
-## 3. Native proof (experiment, not committed as product code)
+## 4. Native proof (experiment, not product code)
 
-```genia
-pattern Json(value) = representation_match("json", value)
-enc(o) = some(t, _) -> t | err(_, _) -> "{\"internal\":1}"
-route(req) =
-  {method: "tools/list"} -> {tools: ["genia_capabilities", "genia_parse"]} |
-  _ -> {error: "unknown"}
-handle(d) =
-  some(Json(req), _) -> enc(json_encode(route(req))) |
-  err(reason, _) -> enc(json_encode({error: reason}))
-main(args) = stdin |> lines |> map(json_decode) |> map(handle)
-  |> each((t) -> writeln(stdout, t)) |> run
+A throwaway program read stdin lines, decoded JSON, matched the `Json(...)` facet and
+a map pattern, built a value, encoded it, and wrote it to stdout. **Yes**: the
+validation/dispatch/composition centre lives in Genia. The E28-1 tests now encode that
+pipeline.
+
+## 5. E28-1 scope and architecture
+
+```text
+MCP client --(newline-delimited JSON-RPC, stdio)--> apps/mcp/mcp.genia
+   main(args): args = [contract_revision]      # only host-supplied datum
+   stdin |> lines |> decode |> validate |> dispatch |> build response |> encode+frame |> stdout
 ```
 
-Piping `{"method":"tools/list"}`, `{"x":1}`, `{bad` produced the tools object,
-`{"error":"unknown"}`, and an error line. **Answer: yes** — decode → facet
-pattern → map-pattern dispatch → value construction → encode → stdout can live
-in Genia. Remaining native-side gaps are framing shape (§2, compact JSON) and
-per-line byte bounds, not dispatch/validation/composition.
+Native (`mcp.genia`): line decode, JSON-RPC shape validation, `_meta` validation,
+protocol-version check, method dispatch (`server/discover`, `tools/list`,
+`tools/call`), tool dispatch, closed argument validation, the `genia_capabilities`
+value, the result envelope, the `CallToolResult`/`ListToolsResult`/`DiscoverResult`
+values, protocol-error selection, JSON encoding and single-line framing, stdout.
 
-## 4. E28-1 scope
+Host (narrow): the launcher passes exactly one datum, `contract_revision`, as argv[0]
+and starts the same program any MCP client could start (a future `.mcp.json` command
+launches this same thing). `mcp.genia` validates the value (40 lowercase hex) and
+refuses to start otherwise (nonzero exit, fixed stderr text, nothing on stdout).
 
-Authorized by the contract and #702, nothing more:
+Not in E28-1: parsing, execution, workers, limits, cancellation behavior beyond
+ignoring notifications, VS Code acceptance, C++.
 
-1. `mcp.genia` — stdin→decode→validate→dispatch→capability value→encode→stdout.
-2. `genia_capabilities` exactly per contract §2.3 (closed shape, array order).
-3. Discovery lists exactly the three tool names. `genia_parse`/`genia_run` are
-   discoverable but **not implemented**: a call returns the fixed
-   `internal_error`/`phase: "adapter"` envelope message "tool not implemented
-   in this server revision". This is an E28-1 inert boundary; it is not parse or
-   run behavior. (Decision requested — see §8.)
-4. Unknown tool, unknown protocol version, malformed JSON, unknown arguments →
-   MCP protocol errors, per contract §2.2, produced natively.
-5. A minimal launcher so `genia mcp.genia` (and later a `.mcp.json` command) can
-   start the same server; no VS Code-specific code.
+## 6. JSON framing (decision)
 
-Explicitly not in E28-1: parsing, execution, workers, limits enforcement,
-cancellation, timeouts, cross-mode evidence, VS Code acceptance, C++.
+Single-line valid JSON is the E28-1 bar; byte-minimized JSON is **not** required and is
+removed from the gap backlog. Native `json_encode → split("\n") → trim → join("")` is
+accepted provided tests prove (a) exactly one protocol line per frame, (b) string
+escapes stay correct, (c) newlines inside strings (including U+2028, control
+characters, quotes, backslashes, astral code points) cannot become framing newlines,
+and (d) decoding the emitted line reproduces the intended value. Test vector: the
+JSON-RPC `id`, which the server echoes verbatim.
 
-## 5. Host-dependency inventory (E28-1)
+## 7. Verified MCP 2026-07-28 wire shapes
+
+Authoritative sources (raw files from `modelcontextprotocol/modelcontextprotocol`,
+`main`, fetched during this phase):
+
+| Topic | Source |
+|---|---|
+| stdio framing | `docs/specification/2026-07-28/basic/transports/stdio.mdx` |
+| JSON-RPC shapes, `resultType`, error codes, `_meta`, statelessness | `docs/specification/2026-07-28/basic/index.mdx` |
+| version handling, `UnsupportedProtocolVersionError`, `server/discover` MUST | `docs/specification/2026-07-28/basic/versioning.mdx` |
+| `tools/list`, `tools/call`, tool errors, unknown tool | `docs/specification/2026-07-28/server/tools.mdx` |
+| cancellation | `docs/specification/2026-07-28/basic/patterns/cancellation.mdx` |
+| typed shapes (`RequestMetaObject`, `CacheableResult`, `DiscoverResult`, `ListToolsResult`, `CallToolResult`, `Tool`, error codes) | `schema/2026-07-28/schema.ts` (+ generated `schema.json`) |
+
+Pinned facts:
+
+- **Framing:** one JSON-RPC message per line; messages MUST NOT contain embedded
+  newlines; server stdout carries only valid MCP messages; logging only on stderr;
+  server exits promptly on stdin EOF.
+- **Request:** `{jsonrpc:"2.0", id:string|integer (never null), method, params?}`;
+  a message without `id` is a notification and gets no response.
+- **Per-request `_meta`** (in `params._meta`, required): `io.modelcontextprotocol/protocolVersion`
+  (string, required), `io.modelcontextprotocol/clientCapabilities` (object, required),
+  `io.modelcontextprotocol/clientInfo` (optional). Missing required field → `-32602`.
+- **No `initialize`, no session.** The server MUST implement `server/discover`.
+- **Unsupported version** → error `-32022`, `data:{supported:["2026-07-28"], requested:<v>}`.
+- **Result:** `{jsonrpc, id, result:{resultType:"complete", …}}`; server SHOULD add
+  `_meta["io.modelcontextprotocol/serverInfo"]:{name,version}`.
+- **`server/discover`:** `DiscoverResult` = `resultType`, `supportedVersions`, `capabilities`,
+  `ttlMs`, `cacheScope`, optional `instructions`. E28-1 capabilities: exactly `{tools:{}}`.
+- **`tools/list`:** `resultType`, `tools[]` (each `name`, `inputSchema{type:"object"}`,
+  optional `description`), `ttlMs`, `cacheScope`, optional `nextCursor` (E28-1: omitted).
+- **`tools/call`:** `CallToolResult`: `resultType`, `content[]`, optional `structuredContent`,
+  optional `isError`. Contract §2.2 maps to one text item plus `structuredContent`.
+- **Protocol errors:** unknown tool, malformed call params → `-32602`; unknown method →
+  `-32601`; invalid JSON-RPC object → `-32600`; unparseable JSON → `-32700`; error
+  responses omit `id` when it cannot be read. `-32002`/`-32042` MUST NOT be emitted;
+  `-32020..-32099` only as defined (`-32022` used).
+- **Cancellation (stdio):** `notifications/cancelled`; server MAY ignore unknown/finished
+  requests; notifications never get a response.
+- Fixed protocol-error messages (no echo of caller strings): "Invalid request",
+  "Parse error", "Method not found", "Invalid params", "Unknown tool",
+  "Unsupported protocol version".
+- `tools/list` and `server/discover` use `ttlMs: 0`, `cacheScope: "public"` because the
+  intermediate surface changes between tickets (decision D1).
+- `serverInfo` = `{name:"genia-mcp", version:<contract_revision>}` (decision D2).
+
+## 8. Host-dependency inventory (corrected)
 
 Classes: A intrinsic host; B Genia capability gap; C native Genia.
 
-| # | Responsibility | Class | Evidence | Proposed host API / authority | Tests | Removal condition |
+| # | Responsibility | Class | Evidence | Host API / authority | Tests | Removal condition |
 |---|---|---|---|---|---|---|
-| 1 | MCP framing glue: line read, decode, validate, dispatch, tool discovery | C | §3 proof | none | behavioral stdio tests | n/a — must stay native |
-| 2 | `genia_capabilities` value, tool array, profile constants, envelope construction, fixed error selection | C | §3 proof, maps/arms verified | none | exact-shape + order tests | n/a |
-| 3 | Closed request/schema validation | C | `json_schema` + `additionalProperties:false` exist | none | closed-schema tests | n/a |
-| 4 | JSON response single-line framing | C (workaround) + B | `split/trim/join` gives single-line; not byte-compact | none for single-line | framing test: no embedded newline | remove workaround when a compact-encode option exists |
-| 5 | Byte-compact JSON (`separators=(",",":")`) | B | `json_encode` fixed pretty/sorted | none in E28-1 | recorded gap only | reusable compact JSON encoder (general utility beyond MCP) |
-| 6 | MCP protocol version `2026-07-28` fixed check | C | string compare | none | version-reject test | n/a |
-| 7 | Contract revision (40-hex) for capabilities | A/B (open) | Genia has no build-info builtin; must not read request paths or describe a dirty tree | launcher passes one fixed value (see §8 Q2) | format test | a reusable build-identity facility |
-| 8 | Launching the worker (`genia_run`) | A (+B) | `execution.process` exists but has no Genia bootstrap | host-provisioned `execution.process` capability bound to one symbol | E28-3 | capability bootstrap API |
-| 9 | Hard deadline, kill+reap, incremental byte bounds | A | already in `process_transport.py` | reuse, unchanged | existing 115 tests | n/a |
-| 10 | Source to worker stdin / >128 KiB | B | child stdin is EOF; argv cap 128 KiB/arg | none in E28-1 | recorded gap | `execution.process` stdin option |
-| 11 | MCP cancellation of in-flight worker | B | blocking call; no signals/handles | none in E28-1 | recorded gap | non-blocking/cancellable process handle |
-| 12 | Per-line/stdin byte bounds | B | `lines` materializes whole line | none in E28-1 | recorded gap | bounded line reader |
-| 13 | MCP Python SDK | **not adopted** | items 1–6 are native-capable; SDK would own dispatch | n/a | n/a | n/a |
-| 14 | Launcher (`genia mcp.genia` entry) | A | existing CLI file mode | existing CLI | launch test | n/a |
+| 1 | stdio loop, decode, validation, dispatch, discovery | C | §4 proof | none | stdio behavioral + drift tests | n/a |
+| 2 | `genia_capabilities` value, envelope, protocol results/errors | C | maps/arms verified | none | exact-shape tests | n/a |
+| 3 | Closed request/argument validation | C | patterns verified | none | schema tests | n/a |
+| 4 | Single-line JSON framing | C | `split/trim/join` verified | none | framing tests (§6) | n/a |
+| 5 | **Build/launch identity: `contract_revision` (40 lowercase hex)** | **A** | Genia has no build-info facility; value must not be request-selected and must carry no dirty state | launcher computes `git rev-parse HEAD` at repo root (module-relative, not caller cwd), passes as argv[0]; fails closed if unavailable; sanitized env allowlist | format, determinism, no-dirty, no-request-fs, no-Python-capability-construction tests | a reusable build-identity facility |
+| 6 | Launch command / env allowlist | A | existing CLI file mode | `hosts/python/mcp_launch.py` only | launcher tests | n/a |
+| 7 | Worker launch, deadline, kill/reap, byte bounds | A (reuse) | `execution.process` | provisioned capability | E28-3 | n/a |
+| 8 | Capability bootstrap for `execution.process` | B | STATE 9.40 | none in E28-1 | E28-3 | bootstrap API |
+| 9 | Source → worker stdin / >128 KiB | B | STATE 9.40 | none | E28-3 | stdin option |
+| 10 | In-flight cancellation | B | blocking call | none | E28-3 | cancellable handle |
+| 11 | Per-line stdin byte bound | B | `lines` materializes | none | E28-3+ | bounded reader |
+| 12 | MCP Python SDK | not adopted | items 1–4 native | n/a | AST/dependency test | n/a |
 
-Items 8–12 are recorded for E28-3/E28-4 and the final audit; E28-1 adds no host
-code for them.
+Byte-compact JSON is no longer listed as a gap.
 
-## 6. Python code permitted in E28-1
+The host must not construct the capability response: the launcher imports no JSON
+module and contains no tool-name, envelope, or protocol literal; `mcp.genia` is the
+only place they exist.
 
-None beyond test harness code and, if needed, a one-function launcher constant
-for item 7. No Python dispatch, schema, policy, or envelope code. Drift is caught
-by a behavioral test that runs `mcp.genia` with the Python package's MCP-named
-modules absent, plus an architecture test asserting no Python module defines the
-tool names or envelope literals (AST string-constant scan, not filename grep).
+## 9. Proposed E28-0 clarifications (flagged, not applied)
 
-## 7. Failing-test plan (next phase)
+- **C1 (§2.1/§2.3):** The exact three-tool list is the final R28 v1 surface; before E28-3
+  the server advertises only implemented tools, and `genia_capabilities.tools` reports
+  exactly that. Requires a wording amendment so the "exact result shape" does not force an
+  untruthful three-element array.
+- **C2 (§2.2/§7):** Map contract errors to the verified wire: protocol-version failure is
+  `-32022` with `data.supported`; unknown tool/argument-schema failure is `-32602`;
+  `CallToolResult` adds `resultType:"complete"` and `isError` (false for `status:"ok"`;
+  value for `status:"error"` to be fixed in E28-3 when errors exist).
+- **C3 (§7):** The contract says nothing about `server/discover`, which the verified spec
+  says servers MUST implement; it also omits `ttlMs`/`cacheScope` on list/discover results.
+- **C4 (§2.3):** `execution_profile` limits are governed policy; E28-1 executes nothing, so
+  nothing is yet enforced. E28-1 reports the fixed profile values as policy (all authority
+  `false` is literally true). Confirm this reading or amend.
 
-1. `genia_capabilities` response deep-equals the contract §2.3 shape; array order
-   fixed; same bytes on repeated calls (stateless, deterministic).
-2. Discovery returns exactly the three names; no resources/prompts.
-3. Unknown tool, other protocol version, malformed JSON, extra argument
-   properties, non-object arguments → protocol errors; no crash; server remains
-   usable for the next line.
-4. Every response is exactly one line on stdout; stderr carries no protocol data.
-5. `genia_parse`/`genia_run` calls return the fixed unimplemented envelope.
-6. Architecture/drift: Python sources contain no tool-name/envelope/dispatch
-   constants; `mcp.genia` is the sole owner.
-7. No-authority: server source has no `import` of file/web/process modules; run
-   with cwd elsewhere and empty environment gives identical output.
-8. Regression: existing doc-sync and spec suites unchanged.
+## 10. Failing-test plan (implemented in this phase)
 
-## 8. Decisions and blockers for approval
+`tests/unit/test_r28_mcp_skeleton.py` (wire), `tests/unit/test_r28_mcp_launcher.py`
+(launch identity), `tests/unit/test_r28_mcp_architecture.py` (drift). Coverage:
+discovery, `tools/list`, `genia_capabilities` exact shape, determinism/statelessness,
+unknown tool (including `genia_parse`/`genia_run` at E28-1), closed arguments,
+`_meta` validation, unsupported version, legacy `initialize`, resources/prompts
+methods, malformed JSON/requests, notifications, framing vectors, startup revision
+validation, launcher identity, and Python-ownership drift (AST scans, dependency scan,
+host-only-supplies-revision differential, no-authority behavior).
 
-- **Q1:** Approve the inert `genia_parse`/`genia_run` behavior in §4.3 (alternative:
-  protocol "unknown tool" error, but that contradicts the exact three-name discovery).
-- **Q2:** How `contract_revision` is supplied: recommended a server-owned constant in
-  `mcp.genia` updated by the release process, guarded by a test that it is 40
-  lowercase hex; alternative is a launcher-provided value.
-- **Q3:** Accept single-line (not byte-compact) framing as the E28-1 bar and
-  record byte-compactness as a gap.
-- **BLOCKED:** MCP `2026-07-28` transport text (exact stdio framing, request
-  envelope, required fields) could not be fetched — `modelcontextprotocol.io` is
-  denied by the egress proxy. Wire-level field names must be verified against the
-  spec before the test phase; I will not guess them. Provide the spec text or
-  allow the domain.
-- **Process:** `AGENTS.md` forbids mixing design and implementation in one step
-  and requires stopping between phases; this commit is the design phase. The
-  pre-flight (#1055 covers R28) should confirm no separate #702 pre-flight is
-  required.
-
-## 9. Future C++ host needs (recorded, not claimed)
+## 11. Future C++ host needs (recorded, not claimed)
 
 To run the same `mcp.genia`: `stdin |> lines`, `json_decode`/`json_encode`,
-`representation_match`, map/arm dispatch, `writeln(stdout, …)`, and — for E28-3 —
-a provisioned `execution.process`. C++ currently supports strict JSON and pipe
-mode (R26/R27); no MCP or C++ parity is claimed.
+`representation_match`, map/arm dispatch, `split/trim/join`, argv, `writeln(stdout, …)`;
+E28-3 adds a provisioned `execution.process`. No C++ MCP support or parity is claimed.
