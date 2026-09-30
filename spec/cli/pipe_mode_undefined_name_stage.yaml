@@ -1,0 +1,16 @@
+id: pipe_mode_undefined_name_stage
+name: pipe_mode_undefined_name_stage
+category: cli
+description: Pipe mode wraps an undefined stage name with generic Flow-stage guidance.
+requires: [cli_pipe_mode]
+input:
+  source: "undefined_fn"
+  file: null
+  command: "undefined_fn"
+  stdin: "a\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 2 failed in Flow mode at undefined_fn [<pipe>:1]: stage received flow; Undefined name: undefined_fn. Pipe mode stages receive a Flow, not one row at a time. Use Flow stages such as map(...), filter(...), head(...), each(...), or keep_some(...); use -c/--command for reducers such as sum or count."
+  exit_code: 1

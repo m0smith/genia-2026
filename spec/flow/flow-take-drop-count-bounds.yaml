@@ -1,0 +1,15 @@
+name: flow-take-drop-count-bounds
+category: flow
+description: take and drop clamp non-positive and oversized counts
+requires: [flow_phase_1]
+input:
+  source: |
+    a = evolve(1, (n) -> n + 1) |> take(0) |> collect
+    b = evolve(1, (n) -> n + 1) |> take(-1) |> collect
+    c = evolve(1, (n) -> n + 1) |> take(3) |> drop(5) |> collect
+    d = evolve(1, (n) -> n + 1) |> take(3) |> drop(-1) |> collect
+    [a, b, c, d]
+expected:
+  stdout: "[[], [], [], [1, 2, 3]]\n"
+  stderr: ""
+  exit_code: 0

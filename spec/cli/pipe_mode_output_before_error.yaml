@@ -1,0 +1,16 @@
+id: pipe_mode_output_before_error
+name: pipe_mode_output_before_error
+category: cli
+description: Output printed before a non-Flow final result error stays on stdout.
+requires: [cli_pipe_mode]
+input:
+  source: "each(print) |> collect"
+  file: null
+  command: "each(print) |> collect"
+  stdin: "a\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "a"
+  stderr: "Error: Pipe mode stage must produce a flow; received list. Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`."
+  exit_code: 1

@@ -1,0 +1,16 @@
+id: pipe_mode_count_final_int
+name: pipe_mode_count_final_int
+category: cli
+description: Pipe mode rejects a reducer result that is not a Flow.
+requires: [cli_pipe_mode]
+input:
+  source: "count"
+  file: null
+  command: "count"
+  stdin: "a\nb\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: Pipe mode stage must produce a flow; received int. Use -c/--command when you want a final value such as `collect |> sum` or `collect |> count`."
+  exit_code: 1

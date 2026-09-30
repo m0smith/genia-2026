@@ -1,0 +1,14 @@
+name: flow-downstream-consumes-upstream-lazily
+category: flow
+description: creating a downstream Flow does not consume its upstream
+requires: [flow_phase_1]
+input:
+  source: |
+    x = stdin |> lines
+    y = x |> map(upper)
+    x |> collect
+  stdin: "a\n"
+expected:
+  stdout: "[\"a\"]\n"
+  stderr: ""
+  exit_code: 0

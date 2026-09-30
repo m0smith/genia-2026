@@ -1,5 +1,6 @@
 name: flow-error-propagation-sum-on-flow
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> map(parse_int) |> sum |> collect

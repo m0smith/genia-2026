@@ -1,0 +1,12 @@
+name: flow-each-print-order-then-collect
+category: flow
+description: each runs its effect per item in order before collect materializes
+requires: [flow_phase_1]
+input:
+  source: |
+    stdin |> lines |> each(print) |> collect
+  stdin: "a\nb\n"
+expected:
+  stdout: "a\nb\n[\"a\", \"b\"]\n"
+  stderr: ""
+  exit_code: 0

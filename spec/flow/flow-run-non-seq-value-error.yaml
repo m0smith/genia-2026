@@ -1,0 +1,11 @@
+name: flow-run-non-seq-value-error
+category: flow
+description: run rejects a non-Seq-compatible value
+requires: [flow_phase_1]
+input:
+  source: |
+    run(5)
+expected:
+  stdout: ""
+  stderr: "Error: run expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1

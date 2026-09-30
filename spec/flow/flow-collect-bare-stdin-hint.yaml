@@ -1,0 +1,12 @@
+name: flow-collect-bare-stdin-hint
+category: flow
+description: collect on a bare stdin source explains how to adapt it
+requires: [flow_phase_1]
+input:
+  source: |
+    stdin |> collect
+  stdin: "a\n"
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at collect [<command>:1]: stage received stdin; collect expected a Seq-compatible value (list or Flow); received stdin. Use stdin |> lines to adapt stdin into a Flow.\n"
+  exit_code: 1

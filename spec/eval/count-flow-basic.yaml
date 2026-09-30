@@ -1,6 +1,7 @@
 name: count-flow-basic
 category: eval
 description: count on a Flow returns the number of consumed elements
+requires: [flow_phase_1]
 input:
   source: |
     inc(n) -> n + 1

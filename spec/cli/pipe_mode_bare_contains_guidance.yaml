@@ -1,0 +1,16 @@
+id: pipe_mode_bare_contains_guidance
+name: pipe_mode_bare_contains_guidance
+category: cli
+description: Pipe mode gives per-item guidance for a partially applied string stage.
+requires: [cli_pipe_mode]
+input:
+  source: "contains(\"a\")"
+  file: null
+  command: "contains(\"a\")"
+  stdin: "a\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 2 failed in Flow mode at contains(\"a\") [<pipe>:1]: stage received flow; contains expected a string, received flow\nPipe mode passes a Flow through each stage, not one item at a time.\nDid you mean: map(contains(\"a\")) or keep_some(contains(\"a\"))"
+  exit_code: 1

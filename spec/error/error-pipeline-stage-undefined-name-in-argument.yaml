@@ -1,0 +1,10 @@
+name: error-pipeline-stage-undefined-name-in-argument
+category: error
+description: an undefined name inside a stage argument is wrapped with the stage prefix
+input:
+  source: |
+    [1] |> map(nope)
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at map(nope) [<command>:1]: stage received list; Undefined name: nope\n"
+  exit_code: 1
