@@ -38,6 +38,7 @@ STRATEGY_DOCS = [
     "docs/strategy/roadmap/r39.md",
     "docs/strategy/roadmap/r40.md",
     "docs/strategy/roadmap/r41.md",
+    "docs/strategy/roadmap/r42.md",
     "docs/strategy/roadmap/sequence.md",
     "docs/strategy/roadmap/parking-lot.md",
     "docs/strategy/roadmap/multi-host-conformance-policy.md",
