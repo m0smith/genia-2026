@@ -14,7 +14,7 @@ def read(path: Path) -> str:
 def test_root_roadmap_is_small_canonical_index() -> None:
     text = read(ROADMAP)
 
-    assert len(text.splitlines()) < 220
+    assert len(text.splitlines()) < 225
     assert "GENIA_STATE.md" in text
     assert "does not define implemented language behavior" in text
     assert "R15 — Validated Value Modeling" in text

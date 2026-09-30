@@ -103,8 +103,7 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R39 — Genia-Native Conformance Tooling**
 - **R40 — Configuration and Secret Hardening and Ergonomics**
 - **R41 — Portable Core IR Artifacts**
-- **R42 — Persistent Interactive Sessions and Jupyter Kernel** (scheduled
-  from the R26/R27 interactive foundation, independent of R28–R41 numbering)
+- **R42 — Persistent Interactive Sessions and Jupyter Kernel** (scheduled from the R26/R27 interactive foundation, independent of R28–R41 numbering)
 
 The process correction is documented in `docs/analysis/exact-numeric-gate-postmortem.md`. New implementation is re-derived from current `main` in independently mergeable slices rather than mechanically cherry-picked from #839.
 
