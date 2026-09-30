@@ -208,14 +208,16 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-1.
 
 **R28-H14 — E28-0 wording vs. intermediate surface and verified MCP 2026-07-28**
-- Class: **N (contract wording; proposed clarifications)**. Status: `open`.
-- Evidence: design §9: C1 (three-tool list vs. intermediate surface and
-  `genia_capabilities.tools`), C2 (contract errors vs. verified wire codes and
-  `resultType`/`isError`), C3 (`server/discover`, `ttlMs`/`cacheScope` absent from
-  the contract), C4 (`execution_profile` limits as policy before enforcement), plus
-  decision D2 (`serverInfo.version`).
-- Disposition: awaiting an approved narrow E28-0 amendment; not applied silently.
-- Raised in: E28-1.
+- Class: **N (contract wording)**. Status: `closed`.
+- Evidence: verified `2026-07-28` spec/schema showed E28-0 lacked: intermediate vs.
+  final tool surface (C1), verified error codes and `resultType`/`isError` (C2),
+  mandatory `server/discover` and `ttlMs`/`cacheScope` (C3), the reporting meaning of
+  `execution_profile` before execution exists (C4), and `serverInfo.version` (D2).
+  Discovery detail: E28-1 design §7 and §9.
+- Disposition: resolved by narrow E28-0 **Clarification A1** (contract §2.1–§2.3,
+  §7.1, §11, §12.2, §14); no architecture or authority change. The E28-1 failing
+  tests already encode the clarified contract.
+- Raised in: E28-1. Resolved in: E28-0 Clarification A1 (issue #702).
 
 ## 5. Phase update log
 
@@ -223,6 +225,7 @@ pre-flight, when promoted), **raised in**.
 |---|---|
 | E28-0 (contract) | provisional A-class candidates named in §3.1 (folded into H01–H10) |
 | E28-1 design + failing tests | H01–H14 seeded; H03, H11, H12 closed on evidence |
+| E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |

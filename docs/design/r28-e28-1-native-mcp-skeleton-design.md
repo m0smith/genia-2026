@@ -1,12 +1,12 @@
 # R28 E28-1 — Native Genia MCP Skeleton and Capabilities: Design
 
-Status: **Design approved with corrections (issue #702, epic #700); no server is
-implemented.** `GENIA_STATE.md` remains final authority for implemented behavior.
+Status: **Design approved with corrections (issue #702, epic #700); contract
+Clarification A1 applied; no server is implemented.** `GENIA_STATE.md` remains final authority for implemented behavior.
 This document applies the merged E28-0 contract
 (`r28-genia-mcp-contract-threat-model.md`). Where verified MCP `2026-07-28` wire
 requirements or the intermediate-surface rule need wording the contract lacks, the
-gap is listed in §9 as a **proposed clarification** rather than silently
-contradicted.
+gap was listed as a proposed clarification and is now resolved by contract
+Clarification A1 (§9) rather than silently contradicted.
 
 ## 0. Relationship to the R28 ledger
 
@@ -185,21 +185,20 @@ The host must not construct the capability response: the launcher imports no JSO
 module and contains no tool-name, envelope, or protocol literal; `mcp.genia` is the
 only place they exist.
 
-## 9. Proposed E28-0 clarifications (flagged, not applied)
+## 9. E28-0 clarifications (resolved)
 
-- **C1 (§2.1/§2.3):** The exact three-tool list is the final R28 v1 surface; before E28-3
-  the server advertises only implemented tools, and `genia_capabilities.tools` reports
-  exactly that. Requires a wording amendment so the "exact result shape" does not force an
-  untruthful three-element array.
-- **C2 (§2.2/§7):** Map contract errors to the verified wire: protocol-version failure is
-  `-32022` with `data.supported`; unknown tool/argument-schema failure is `-32602`;
-  `CallToolResult` adds `resultType:"complete"` and `isError` (false for `status:"ok"`;
-  value for `status:"error"` to be fixed in E28-3 when errors exist).
-- **C3 (§7):** The contract says nothing about `server/discover`, which the verified spec
-  says servers MUST implement; it also omits `ttlMs`/`cacheScope` on list/discover results.
-- **C4 (§2.3):** `execution_profile` limits are governed policy; E28-1 executes nothing, so
-  nothing is yet enforced. E28-1 reports the fixed profile values as policy (all authority
-  `false` is literally true). Confirm this reading or amend.
+C1–C4 and D2, found while verifying MCP `2026-07-28`, were applied as narrow
+**Clarification A1** in the E28-0 contract (`r28-genia-mcp-contract-threat-model.md`
+§2.1, §2.2, §2.3, §7.1, §11, §12.2, §14) and ledger entry R28-H14 is closed. This
+design and the E28-1 tests implement the clarified contract:
+
+- **C1:** final three-tool surface vs. truthful intermediate surface; `tools` reports
+  the advertised set.
+- **C2:** `CallToolResult` (`resultType`, `isError`) and verified error codes
+  (`-32022`, `-32602`, `-32601`, `-32600`, `-32700`).
+- **C3:** mandatory `server/discover`; `ttlMs: 0`, `cacheScope: "public"`.
+- **C4:** `execution_profile` reported as governed policy before execution exists.
+- **D2:** `serverInfo.version` is the injected `contract_revision`.
 
 ## 10. Failing-test plan (implemented in this phase)
 
