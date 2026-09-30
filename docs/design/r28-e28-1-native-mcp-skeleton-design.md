@@ -8,6 +8,18 @@ requirements or the intermediate-surface rule need wording the contract lacks, t
 gap is listed in §9 as a **proposed clarification** rather than silently
 contradicted.
 
+## 0. Relationship to the R28 ledger
+
+`docs/analysis/r28-host-dependency-inventory.md` is the **primary, living record**
+of host dependencies and Genia capability gaps for all of R28 (what we found and
+what we are doing about it). **This document records how each E28-1 finding was
+discovered** (probes, outputs, wire verification). The ledger is a required input
+to every later R28 phase and the final audit. Discovery here creates no issue: an
+entry is promoted to an issue only through the normal finding → evidence → issue →
+pre-flight → roadmap process, at the R28 audit or earlier only if a gap blocks R28.
+Section 8's table is the E28-1 slice of the ledger; on any conflict the ledger wins.
+Ledger IDs are cited as `[H##]` below.
+
 ## 1. Issue/contract reconciliation
 
 Issue #702's original body predated the native-Genia amendment (Python package,
@@ -54,6 +66,13 @@ Probed with the real CLI on the Python reference host and cross-read against
 | entry / CLI | CLI help | yes | `genia file.genia args…` calls `main(args)`; argv reaches Genia (verified) |
 | spawn worker | STATE 9.40 | partial | `execution.process` has hard deadline, kill+reap, incremental limits; no Genia-side capability bootstrap, child stdin EOF, argv ≤128 KiB/arg, non-cancellable (E28-3 concerns) |
 | parse / eval value APIs | `parse_adapter.py`, CLI | no | E28-2 / E28-3 scope |
+
+Discovery notes (ledger cross-references): `json_decode`'s outer `json` facet and the
+need for a `Json(...)` pattern [H11]; lazy Flow requiring terminal `run`, `writeln`
+requiring a sink, identifier-only top-level parameters [H12]; single-line JSON via
+`split/trim/join` [H03]; `execution.process` limits (capability bootstrap [H05],
+stdin [H06], argv size [H07], cancellation [H08]); unbounded `lines` and the
+unverified U+2028 behavior [H09]; build identity [H10].
 
 ## 4. Native proof (experiment, not product code)
 
@@ -141,7 +160,7 @@ Pinned facts:
   intermediate surface changes between tickets (decision D1).
 - `serverInfo` = `{name:"genia-mcp", version:<contract_revision>}` (decision D2).
 
-## 8. Host-dependency inventory (corrected)
+## 8. Host-dependency inventory (E28-1 slice; ledger is authoritative)
 
 Classes: A intrinsic host; B Genia capability gap; C native Genia.
 
