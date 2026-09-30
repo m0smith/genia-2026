@@ -117,7 +117,7 @@ The envelope schema is exactly:
 
 `status: "ok"` requires a non-null `result` and null `error`; `status:
 "error"` requires null `result` and a non-null `error`. JSON-RPC/MCP framing,
-negotiation, unknown-tool, and argument-schema failures remain MCP protocol
+protocol-version, unknown-tool, and argument-schema failures remain MCP protocol
 errors. Once a known tool with schema-valid arguments is dispatched, expected
 Genia, policy, limit, timeout, and cancellation outcomes use this envelope.
 Transport loss may prevent any envelope from being delivered and must not be
@@ -144,7 +144,7 @@ The successful `result` has this exact shape:
 ```json
 {
   "server": {"name": "genia-mcp", "contract": "genia.mcp.v1"},
-  "mcp": {"protocol_version": "2025-06-18", "transport": "stdio"},
+  "mcp": {"protocol_version": "2026-07-28", "transport": "stdio"},
   "genia": {
     "host": "python-reference",
     "contract_revision": "<40 lowercase hexadecimal Git commit>",
@@ -352,9 +352,10 @@ by the first terminal state recorded by the adapter. No partial output is
 returned for either outcome.
 
 The deadline bounds the entire worker parse/policy/evaluation/render operation,
-not MCP initialization or queue time. Infinite Flow consumption, recursion,
-sleep, busy loops, output floods, and oversized/infinite value rendering are
-therefore bounded at the adapter boundary without adding Genia semantics.
+not server startup, MCP framing/dispatch, or queue time. Infinite Flow
+consumption, recursion, sleep, busy loops, output floods, and oversized/infinite
+value rendering are therefore bounded at the adapter boundary without adding
+Genia semantics.
 
 ## 6. Protected values and diagnostic hygiene
 
@@ -377,13 +378,15 @@ no-environment, no-filesystem, and no-network policy.
 
 ## 7. MCP protocol, SDK, and transport policy
 
-V1 supports MCP protocol version `2025-06-18` only. Initialization that cannot
-negotiate that version fails at the MCP protocol layer before any Genia tool is
-available. A future protocol version requires an explicit compatibility review;
-MCP protocol dates and `genia.mcp.v1` are independent version axes.
+V1 adopts the current MCP protocol version `2026-07-28` only. It follows that
+revision's stateless request model: R28 defines no MCP initialize exchange,
+negotiated session, or session-carried authority. A request using another
+protocol revision fails at the MCP protocol layer before a Genia tool is
+dispatched. A future protocol version requires an explicit compatibility
+review; MCP protocol dates and `genia.mcp.v1` are independent version axes.
 
 The Python SDK is an implementation dependency, not contract authority. E28-1
-must select a released SDK supporting MCP `2025-06-18`, pin its exact resolved
+must select a released SDK supporting MCP `2026-07-28`, pin its exact resolved
 version in the repository lockfile, record it in server version metadata, and
 verify schemas and cancellation behavior against that version. Dependency
 updates require protocol/schema/security regression review; an SDK major or
@@ -460,7 +463,8 @@ trust assumptions or describe R28 as a production sandbox.
 Before any tool is claimed implemented, later phases must provide tests for:
 
 1. exact closed schemas, discovery names, duplicate text/structured content,
-   protocol negotiation, and deterministic capability ordering;
+   protocol-version rejection, stateless repeated requests, and deterministic
+   capability ordering;
 2. parse parity with the existing normalized Python parse adapter;
 3. run parity for representative accepted programs, including an
    Outcome-aware validated-data pipeline, with separate value/stdout/stderr;
