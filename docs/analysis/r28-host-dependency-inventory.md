@@ -157,8 +157,10 @@ pre-flight, when promoted), **raised in**.
 - Evidence: `stdin |> lines` materializes each full line before any size check, so
   a per-request byte bound cannot be enforced incrementally in Genia (contract §5
   asks for incremental enforcement). Also unverified: whether `lines` treats
-  U+2028/U+2029 as separators (MCP frames on `\n` only) — E28-1 framing tests
-  include raw U+2028 input to verify this at implementation.
+  U+2028/U+2029 as separators (MCP frames on `\n` only) — **verified in E28-1**:
+  `lines` splits only on `\n` (raw U+2028, `\r`, and NUL stay inside the line), and
+  invalid UTF-8 input reaches Genia as a line that `json_decode` rejects, so the
+  server answers `-32700` and continues.
 - Workaround: none in E28-1.
 - Usefulness beyond MCP: high (safe streaming of untrusted input).
 - Disposition: evaluate as a general safe-streaming capability; preserve evidence.
@@ -175,6 +177,10 @@ pre-flight, when promoted), **raised in**.
 - Usefulness beyond MCP: to be assessed (version/identity reporting).
 - Removable code: `resolve_contract_revision` / launcher glue if a general facility
   is adopted.
+- E28-1 implementation: `hosts/python/mcp_launch.py` resolves `git rev-parse HEAD`
+  (module-relative, `GIT_*` ignored, workspace state never described), validates
+  40 lowercase hex, and passes it as the single argv datum; `mcp.genia` validates it
+  again natively and constructs every result that contains it.
 - Disposition: R28 injects build identity; assess at the audit whether Genia needs a
   general facility. A is the current classification for the injection boundary; B is
   the open question.
@@ -195,9 +201,44 @@ pre-flight, when promoted), **raised in**.
 - Class: **N (documented behavior)**. Status: `closed`.
 - Evidence: `map`/`each` over `stdin |> lines` produced `<flow each ready>` until
   `|> run` was added (verified). Also: `writeln` requires a sink; top-level function
-  parameters are identifiers, so dispatch uses arm bodies.
+  parameters are identifiers, so dispatch uses arm bodies. Further E28-1
+  implementation observations (all verified while writing `mcp.genia`): arms over a
+  multi-parameter function match the argument tuple, so they need tuple patterns
+  (`(a, b) -> …`, catch-all `(_, _)`); a binary operator cannot start a line and a
+  clause body cannot start on the line after `->`.
 - Disposition: behavior is documented; no feature.
 - Raised in: E28-1.
+
+
+**R28-H15 — No Genia-level process exit status**
+- Class: **B**. Status: `open`.
+- Evidence: a Genia program cannot choose its exit code: `main` returning `7`,
+  `err(...)`, or `none(...)` all exit 0, and no `exit`/`halt`/`error` builtin exists
+  (probed; `exit` in STATE is the lifecycle peer callback). E28-1 needs a nonzero
+  exit when the launch datum is rejected (contract §2.3).
+- Workaround (temporary, in `mcp.genia` `reject_start`): write one fixed stderr
+  diagnostic, then fail through a deliberate undefined-name runtime error, which
+  exits 1 with nothing on stdout. The rejected datum is never echoed.
+- Hosts: Python verified; C++ not assessed. Usefulness beyond MCP: high (any CLI
+  program or pipeline stage reporting failure).
+- Removable code: the `reject_start` undefined-name trigger.
+- Disposition: preserve evidence; evaluate a general process-exit facility at the
+  audit. Not yet an issue.
+- Raised in: E28-1 implementation.
+
+**R28-H16 — `none(...)` call short-circuit and non-short-circuit `&&`/`||` shape protocol code**
+- Class: **N (language behavior, observed)**. Status: `open` (verify documentation).
+- Evidence: `nil` is `none("nil")`; an ordinary function called with a `none(...)`
+  argument is not run unless its arms handle `none`, so validity predicates return
+  `none(...)` instead of `false` (`is_object(nil)` → `none("nil")`). `&&` and `||`
+  evaluated both operands (`is_object(x) && map_has?(x, k)` raised on a non-map).
+  `mcp.genia` therefore normalizes JSON null/absent to `[]` (`norm`) and uses total
+  accessors and guard arms. Not yet checked: whether `GENIA_STATE.md`/`GENIA_RULES.md`
+  document both behaviors.
+- Workaround: `norm`, `field`, `present` in `mcp.genia`. Hosts: Python observed.
+- Disposition: confirm against STATE in the E28-1 docs phase; close as documented
+  behavior or record a documentation gap. No language change proposed.
+- Raised in: E28-1 implementation.
 
 ### Process / documentation drift
 
@@ -226,6 +267,7 @@ pre-flight, when promoted), **raised in**.
 | E28-0 (contract) | provisional A-class candidates named in §3.1 (folded into H01–H10) |
 | E28-1 design + failing tests | H01–H14 seeded; H03, H11, H12 closed on evidence |
 | E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
+| E28-1 implementation | H09 (`lines`/UTF-8 verified), H10 (launcher implemented), H12 (syntax observations) updated; H15, H16 added |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |

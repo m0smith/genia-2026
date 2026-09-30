@@ -1,0 +1,307 @@
+# mcp.genia -- native Genia MCP server (R28 E28-1, issue #702).
+#
+# Application entry for the Genia MCP server over local stdio, MCP 2026-07-28
+# (stateless; no initialize/session). This program owns decode, validation,
+# dispatch, result construction, JSON encoding/framing, and stdout production.
+# The only host-supplied datum is the build/launch `contract_revision`, passed
+# as the single program argument. See
+# docs/design/r28-genia-mcp-contract-threat-model.md (sections 2, 7.1, 14) and
+# docs/design/r28-e28-1-native-mcp-skeleton-design.md.
+#
+# E28-1 intermediate surface: exactly one tool, genia_capabilities.
+
+pattern Json(value) = representation_match("json", value)
+
+# ---- closed JSON type checks (Genia Templates compiled from json_schema) ----
+
+schema_template(o) =
+  some(sch, _) -> json_schema(sch) |
+  _ -> err("schema-unavailable", {})
+
+template(text) =
+  unwrap_or((_) -> none("schema-unavailable"), schema_template(json_decode(text)))
+
+StringT = template("{\"type\":\"string\"}")
+IntegerT = template("{\"type\":\"integer\"}")
+ObjectT = template("{\"type\":\"object\"}")
+
+accepted(o) = some(_) -> true | _ -> false
+
+is_string(v) = accepted(StringT(v))
+is_integer(v) = accepted(IntegerT(v))
+is_object(v) = accepted(ObjectT(v))
+is_id(v) = is_string(v) || is_integer(v)
+
+# ---- fixed protocol constants ----
+
+PROTOCOL_VERSION = "2026-07-28"
+META_VERSION = "io.modelcontextprotocol/protocolVersion"
+META_CAPABILITIES = "io.modelcontextprotocol/clientCapabilities"
+
+# ---- JSON framing: one protocol line per message ----
+
+squash(text) = split(text, "\n") |> map(trim) |> join("")
+
+INTERNAL_FRAME = "{\"error\": {\"code\": -32603,\"message\": \"Internal error\"},\"jsonrpc\": \"2.0\"}"
+
+finish(o) =
+  some(text, _) -> squash(text) |
+  _ -> INTERNAL_FRAME
+
+frame(message) = finish(json_encode(message))
+
+# ---- response construction ----
+
+# idv is [] (id unreadable or absent) or [id]; Outcome values are avoided as
+# data because none(...) propagates through ordinary calls.
+with_id(base, idv) =
+  (b, [x]) -> map_put(b, "id", x) |
+  (b, _) -> b
+
+error_body(code, message) = {code: code, message: message}
+
+error_response(c, code, message) =
+  with_id(
+    {jsonrpc: "2.0", error: error_body(code, message)},
+    map_get(c, "idv"))
+
+parse_error(c) = error_response(c, -32700, "Parse error")
+invalid_request(c) = error_response(c, -32600, "Invalid request")
+method_not_found(c) = error_response(c, -32601, "Method not found")
+invalid_params(c) = error_response(c, -32602, "Invalid params")
+internal_error(c) = error_response(c, -32603, "Internal error")
+
+version_error(c, requested) =
+  with_id(
+    {jsonrpc: "2.0",
+     error: {code: -32022,
+             message: "Unsupported protocol version",
+             data: {supported: [PROTOCOL_VERSION], requested: requested}}},
+    map_get(c, "idv"))
+
+unknown_tool_response(c) =
+  with_id(
+    {jsonrpc: "2.0", error: error_body(-32602, "Unknown tool")},
+    map_get(c, "idv"))
+
+result_response(c, result) =
+  with_id({jsonrpc: "2.0", result: result}, map_get(c, "idv"))
+
+server_info(c) = {"name": "genia-mcp", "version": map_get(c, "rev")}
+
+result_meta(c) = {"io.modelcontextprotocol/serverInfo": server_info(c)}
+
+# ---- capability values ----
+
+TOOL_NAMES = ["genia_capabilities"]
+
+EXECUTION_PROFILE = {
+  name: "source-only-isolated-v1",
+  source_max_bytes: 262144,
+  timeout_ms: 5000,
+  stdout_max_bytes: 1048576,
+  stderr_max_bytes: 1048576,
+  value_max_bytes: 1048576,
+  diagnostic_max_bytes: 65536,
+  filesystem: false,
+  environment: false,
+  configuration: false,
+  secrets: false,
+  network: false
+}
+
+capabilities_value(c) = {
+  server: {name: "genia-mcp", contract: "genia.mcp.v1"},
+  mcp: {protocol_version: PROTOCOL_VERSION, transport: "stdio"},
+  genia: {host: "python-reference",
+          contract_revision: map_get(c, "rev"),
+          portable_mcp_implementation: false},
+  tools: TOOL_NAMES,
+  execution_profile: EXECUTION_PROFILE
+}
+
+capabilities_envelope(c) = {
+  schema_version: "genia.mcp.v1",
+  status: "ok",
+  result: capabilities_value(c),
+  error: nil
+}
+
+tool_descriptor = {
+  name: "genia_capabilities",
+  description: "Report the Genia MCP server identity, protocol revision, transport, advertised tools, and governed execution profile.",
+  inputSchema: {type: "object", additionalProperties: false, properties: {}}
+}
+
+discover_result(c) = {
+  resultType: "complete",
+  supportedVersions: [PROTOCOL_VERSION],
+  capabilities: {tools: {}},
+  ttlMs: 0,
+  cacheScope: "public",
+  "_meta": result_meta(c)
+}
+
+list_result(c) = {
+  resultType: "complete",
+  tools: [tool_descriptor],
+  ttlMs: 0,
+  cacheScope: "public",
+  "_meta": result_meta(c)
+}
+
+call_result(c) =
+  finish_call(c, json_encode(capabilities_envelope(c)))
+
+finish_call(c, o) =
+  (k, some(text, _)) -> {
+    resultType: "complete",
+    content: [{type: "text", text: squash(text)}],
+    structuredContent: capabilities_envelope(k),
+    isError: false,
+    "_meta": result_meta(k)
+  } |
+  (k, _) -> internal_error(k)
+
+# ---- request validation (JSON-RPC shape and per-request _meta) ----
+
+# Total accessors: `&&`/`||` do not short-circuit, so every check below is safe
+# to evaluate on any JSON value. `field` yields nil for an absent key or a
+# non-object, and nil satisfies none of the type checks.
+# JSON null decodes to none("nil"), and none(...) short-circuits ordinary calls,
+# so null and absent both normalize to [] (which fails every type check).
+norm(v) =
+  none(_) -> [] |
+  none(_, _) -> [] |
+  x -> x
+
+field_present(m, key) =
+  (y, j) ? map_has?(y, j) -> norm(map_get(y, j)) |
+  (_, _) -> []
+
+field(m, key) =
+  (x, k) ? is_object(x) -> field_present(x, k) |
+  (_, _) -> []
+
+present(m, key) =
+  (x, k) ? is_object(x) -> map_has?(x, k) |
+  (_, _) -> false
+
+empty_object(v) =
+  x ? is_object(x) -> map_count(x) == 0 |
+  _ -> false
+
+header_valid(r) = field(r, "jsonrpc") == "2.0" && is_string(field(r, "method"))
+
+msg_of(c) = map_get(c, "msg")
+
+params_of(c) = field(msg_of(c), "params")
+
+params_valid(c) = is_object(params_of(c))
+
+meta_of(c) = field(params_of(c), "_meta")
+
+meta_valid(c) = is_object(meta_of(c)) && is_string(field(meta_of(c), META_VERSION)) && is_object(field(meta_of(c), META_CAPABILITIES))
+
+method_of(c) = field(msg_of(c), "method")
+
+known_method(m) = m == "server/discover" || m == "tools/list" || m == "tools/call"
+
+# ---- dispatch ----
+
+tool_name_valid(c) = is_string(field(params_of(c), "name"))
+
+arguments_ok(c) = present(params_of(c), "arguments") == false || empty_object(field(params_of(c), "arguments"))
+
+call_tool(c) =
+  k ? tool_name_valid(k) == false -> invalid_params(k) |
+  k ? field(params_of(k), "name") != "genia_capabilities" -> unknown_tool_response(k) |
+  k ? arguments_ok(k) == false -> invalid_params(k) |
+  k -> result_response(k, call_result(k))
+
+list_tools(c) =
+  k ? present(params_of(k), "cursor") -> invalid_params(k) |
+  k -> result_response(k, list_result(k))
+
+run_method(c) =
+  k ? method_of(k) == "server/discover" -> result_response(k, discover_result(k)) |
+  k ? method_of(k) == "tools/list" -> list_tools(k) |
+  k -> call_tool(k)
+
+check_version(c) =
+  k ? field(meta_of(k), META_VERSION) != PROTOCOL_VERSION -> version_error(k, field(meta_of(k), META_VERSION)) |
+  k -> run_method(k)
+
+check_meta(c) =
+  k ? params_valid(k) == false -> invalid_params(k) |
+  k ? meta_valid(k) == false -> invalid_params(k) |
+  k -> check_version(k)
+
+dispatch(c) =
+  k ? known_method(method_of(k)) == false -> method_not_found(k) |
+  k -> check_meta(k)
+
+# A message with a readable id that is a valid JSON-RPC request object.
+request_with_id(c) =
+  k ? header_valid(msg_of(k)) == false -> invalid_request(k) |
+  k -> dispatch(k)
+
+context(rev, msg, idv) = {rev: rev, msg: msg, idv: idv}
+
+# A message without id: a notification (no response) when well formed.
+notification(c) =
+  k ? header_valid(msg_of(k)) -> "" |
+  k -> invalid_request(k)
+
+handle_object(c) =
+  k ? present(msg_of(k), "id") == false -> notification(k) |
+  k ? is_id(field(msg_of(k), "id")) == false -> invalid_request(k) |
+  k -> request_with_id(
+         context(map_get(k, "rev"), msg_of(k),
+                 [field(msg_of(k), "id")]))
+
+handle_value(c) =
+  k ? is_object(msg_of(k)) == false -> invalid_request(k) |
+  k -> handle_object(k)
+
+handle_decoded(pair) =
+  [rev, some(Json(root), _)] -> handle_value(context(rev, norm(root), [])) |
+  [rev, _] -> parse_error(context(rev, [], []))
+
+# Outcome-or-response -> optional output line.
+to_line(m) =
+  "" -> "" |
+  x -> frame(x)
+
+handle_line(rev, line) =
+  to_line(handle_decoded([rev, json_decode(line)]))
+
+# ---- program entry ----
+
+nonempty(line) = is_empty(line) == false
+
+serve(rev) =
+  stdin
+    |> lines
+    |> filter(nonempty)
+    |> map((line) -> handle_line(rev, line))
+    |> filter(nonempty)
+    |> each((text) -> writeln(stdout, text))
+    |> run
+
+hex_revision(s) =
+  glob"[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]" -> true |
+  _ -> false
+
+# Genia has no process-exit facility (ledger R28-H15): a rejected launch datum
+# writes one fixed diagnostic to stderr, then halts through a deliberate runtime
+# error (nonzero exit, nothing on stdout). The datum is never echoed.
+reject_start() =
+  writeln(stderr, "genia-mcp: contract revision must be 40 lowercase hex digits") |>
+  (_) -> genia_mcp_launch_rejected
+
+start(args) =
+  [rev] ? hex_revision(rev) -> serve(rev) |
+  _ -> reject_start()
+
+main(args) = start(args)
