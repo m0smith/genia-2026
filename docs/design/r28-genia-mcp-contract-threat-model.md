@@ -607,7 +607,87 @@ R16 machinery should be reused only where it honestly proves direct-host
 observation parity. MCP protocol behavior and security policy need focused
 server tests; unsupported or unexercised cases are never parity evidence.
 
-## 12. Explicit deferrals and non-goals
+## 12. VS Code / AI development acceptance
+
+R28 is not complete until the native `mcp.genia` server is proven as a local
+development tool from a supported VS Code/GitHub Copilot agent client. VS Code
+is the required acceptance client, not the owner of the protocol or application
+architecture. This acceptance adds no tool, resource, prompt, transport, Genia
+semantic, or client implementation to the v1 surface.
+
+### 12.1 Checked-in discovery configuration
+
+The completed release must check in one credential-free MCP configuration that
+a repository clone can use after installing the documented Genia development
+prerequisites. Prefer repository-level `.mcp.json` when the then-supported VS
+Code/Copilot client accepts it; use `.vscode/mcp.json` only when verified client
+requirements make the VS Code-specific location necessary. Do not duplicate the
+configuration. The configuration and launch command must:
+
+- start the same local stdio `mcp.genia` server usable by other compatible MCP
+  clients, rather than a VS Code-specific implementation;
+- use repository-relative or otherwise portable commands and contain no
+  credentials, secrets, machine-specific absolute paths, or developer-specific
+  settings; and
+- grant no filesystem, environment, configuration, secret, network, shell,
+  process, import, stdin, argv, or other authority beyond sections 4 and 6.
+
+Configuration-file selection and the supported VS Code/Copilot version must be
+verified during implementation against current client documentation. E28-0 does
+not add either configuration file or claim current client discovery.
+
+### 12.2 End-to-end evidence
+
+Automated evidence where the client permits it, plus a recorded reproducible
+VS Code/Copilot acceptance run, must prove all of the following before the final
+release audit:
+
+1. VS Code discovers and starts the repository-configured local stdio server
+   with only the documented development prerequisites and enablement steps.
+2. Tool discovery returns exactly `genia_capabilities`, `genia_parse`, and
+   `genia_run`, with no resources, prompts, or additional tools.
+3. An AI coding agent calls `genia_capabilities` and receives the normalized v1
+   capability description.
+4. The agent submits explicit source to `genia_parse` and receives the
+   contract-defined structured parse result or normalized diagnostic.
+5. The agent submits explicit source to `genia_run` and receives separately the
+   rendered value, program stdout, program stderr, and normalized
+   error/diagnostic outcome.
+6. One recorded development loop starts with invalid Genia source, uses
+   `genia_parse` feedback to revise it, and then executes the corrected program
+   successfully through `genia_run`.
+7. A program that writes both stdout and stderr cannot corrupt MCP framing;
+   protocol output remains isolated from both program channels.
+8. The launch configuration and observed process have no authority beyond the
+   fixed R28 execution profile.
+
+The evidence must record the client version, repository revision, exact portable
+configuration path, enablement steps, tool-discovery result, requests, redacted
+responses, and pass/fail disposition. It must not include secrets or promote
+unexecuted manual claims to automated evidence.
+
+### 12.3 Release and developer documentation
+
+The documentation phase and final release page must state prerequisites, how VS
+Code discovers and starts the server, how to enable it, how to verify the exact
+three tools, a short Copilot/Agent example, and troubleshooting for startup or
+discovery failures. Those instructions must remain client-thin: no VS Code
+extension, VS Code-specific Genia semantics, extra MCP tool, or extra transport.
+They are not added during E28-0 because the integration is not implemented.
+
+After the acceptance evidence exists, shared AI-development guidance (including
+`docs/ai/LLM_CONTRACT.md` and applicable tool-specific instructions) must direct
+Genia development agents to prefer the Genia MCP for appropriate Genia parsing
+and execution instead of reconstructing behavior from Python implementation
+details. Until then, those documents must not claim the MCP is available.
+
+The final R28 audit must also inventory every agent bypass or fallback to
+Python, shell, or internal runtime knowledge. Each observation is evidence for
+the section 10 gap process, not automatic authority for a language feature: a
+follow-up still requires general utility beyond MCP, an owning issue, pre-flight,
+and normal roadmap placement.
+
+## 13. Explicit deferrals and non-goals
 
 E28-0 and v1 do not include:
 
