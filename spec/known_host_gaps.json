@@ -3,14 +3,6 @@
   "host": "cpp",
   "gaps": [
     {
-      "capability": "cli_pipe_mode",
-      "reason": "R27 pipe mode is not implemented by the bounded R24/R25 C++ host.",
-      "tracking_issue": "m0smith/genia-2026#1018",
-      "affected_host": "cpp",
-      "affected_tests": ["spec/cli/**"],
-      "removal_condition": "Remove when genia-cpp declares cli_pipe_mode supported and the host parity gate reports the capability as PARITY_OK."
-    },
-    {
       "capability": "http_server",
       "reason": "R27 HTTP serving is not implemented by the bounded R24/R25 C++ host.",
       "tracking_issue": "m0smith/genia-2026#1018",
