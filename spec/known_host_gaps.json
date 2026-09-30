@@ -4,11 +4,11 @@
   "gaps": [
     {
       "capability": "http_server",
-      "reason": "R27 HTTP serving is not implemented by the bounded R24/R25 C++ host.",
-      "tracking_issue": "m0smith/genia-2026#1018",
+      "reason": "Deferred out of R27 by E27-3 (docs/analysis/r27-http-server-decision.md): the HTTP server is a Python-host-only blocking bridge with no shared evidence route, and the bounded C++ host lacks import, annotations, a serve mode, and sockets.",
+      "tracking_issue": "m0smith/genia-2026#1041",
       "affected_host": "cpp",
-      "affected_tests": ["HTTP server requires-gated shared specs"],
-      "removal_condition": "Remove when genia-cpp declares http_server supported and the host parity gate reports the capability as PARITY_OK."
+      "affected_tests": ["HTTP server requires-gated shared specs (none exist yet)"],
+      "removal_condition": "Remove only after a separate contract-first HTTP-server release defines portable shared evidence, genia-cpp declares http_server supported, and the host parity gate reports the capability as PARITY_OK."
     },
     {
       "capability": "http_outbound_transport",
