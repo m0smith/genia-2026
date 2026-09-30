@@ -27,7 +27,6 @@ from tests.fixtures.r28_mcp_helpers import (
     SERVER_PATH,
     request,
     run_messages,
-    server_env,
 )
 
 pytestmark = pytest.mark.unit
