@@ -1,0 +1,16 @@
+id: pipe_mode_shadowed_reserved_name_allowed
+name: pipe_mode_shadowed_reserved_name_allowed
+category: cli
+description: Pipe mode allows a lambda parameter named run.
+requires: [cli_pipe_mode]
+input:
+  source: "map((run) -> run) |> each(print)"
+  file: null
+  command: "map((run) -> run) |> each(print)"
+  stdin: "x\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "x"
+  stderr: ""
+  exit_code: 0

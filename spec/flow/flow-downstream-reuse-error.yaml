@@ -1,0 +1,15 @@
+name: flow-downstream-reuse-error
+category: flow
+description: a downstream Flow whose upstream was already consumed fails when pulled
+requires: [flow_phase_1]
+input:
+  source: |
+    x = stdin |> lines
+    y = x |> map(upper)
+    x |> collect
+    y |> collect
+  stdin: "a\n"
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Explicit bridge mode at collect [<command>:4]: stage received flow; Flow has already been consumed\n"
+  exit_code: 1

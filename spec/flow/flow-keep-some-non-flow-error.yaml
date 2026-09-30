@@ -1,0 +1,11 @@
+name: flow-keep-some-non-flow-error
+category: flow
+description: keep_some rejects a non-Flow argument
+requires: [flow_phase_1]
+input:
+  source: |
+    5 |> keep_some |> collect
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at keep_some [<command>:1]: stage received int; keep_some expected a flow, received int\n"
+  exit_code: 1

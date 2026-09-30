@@ -1,0 +1,15 @@
+name: flow-stdin-sources-share-position
+category: flow
+description: two stdin |> lines Flows share one read position
+requires: [flow_phase_1]
+input:
+  source: |
+    a = stdin |> lines
+    b = stdin |> lines
+    a |> take(1) |> collect
+    b |> collect
+  stdin: "1\n2\n3\n"
+expected:
+  stdout: "[\"2\", \"3\"]\n"
+  stderr: ""
+  exit_code: 0

@@ -1,5 +1,6 @@
 name: seq-compatible-flow-transform-chain
 category: flow
+requires: [flow_phase_1]
 input:
   source: |
     ["1", "skip", "2", "stop", "3"]

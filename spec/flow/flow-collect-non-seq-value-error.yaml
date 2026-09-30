@@ -1,0 +1,11 @@
+name: flow-collect-non-seq-value-error
+category: flow
+description: collect rejects a non-Seq-compatible value through the stage wrapper
+requires: [flow_phase_1]
+input:
+  source: |
+    5 |> collect
+expected:
+  stdout: ""
+  stderr: "Error: pipeline stage 1 failed in Value mode at collect [<command>:1]: stage received int; collect expected a Seq-compatible value (list or Flow); received int.\n"
+  exit_code: 1

@@ -1,0 +1,16 @@
+id: pipe_mode_full_program_rejected
+name: pipe_mode_full_program_rejected
+category: cli
+description: Pipe mode rejects an assignment as not a single stage expression.
+requires: [cli_pipe_mode]
+input:
+  source: "x = 1"
+  file: null
+  command: "x = 1"
+  stdin: "a\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: ""
+  stderr: "Error: Pipe mode expression must be a single stage expression, not a full program"
+  exit_code: 1

@@ -1,0 +1,12 @@
+name: flow-parse-int-option-forms
+category: flow
+description: parse_int over Flow items yields some/none for signs, underscores and blanks
+requires: [flow_phase_1]
+input:
+  source: |
+    stdin |> lines |> map(parse_int) |> collect
+  stdin: "1\nx\n 7 \n-3\n+4\n1_0\n_1\n1_\n"
+expected:
+  stdout: "[some(1), none(\"parse-error\", {source: \"parse_int\", expected: \"integer_string\", received: \"x\", base: 10}), some(7), some(-3), some(4), some(10), none(\"parse-error\", {source: \"parse_int\", expected: \"integer_string\", received: \"_1\", base: 10}), none(\"parse-error\", {source: \"parse_int\", expected: \"integer_string\", received: \"1_\", base: 10})]\n"
+  stderr: ""
+  exit_code: 0

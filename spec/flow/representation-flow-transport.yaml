@@ -1,6 +1,7 @@
 name: representation-flow-transport
 category: flow
 description: Flow transports represented values unchanged without implicit unwrapping
+requires: [flow_phase_1]
 input:
   source: |
     represented = represent("source", "row")

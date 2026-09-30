@@ -1,0 +1,16 @@
+id: pipe_mode_take_bounded
+name: pipe_mode_take_bounded
+category: cli
+description: Pipe mode take stops reading after the bound.
+requires: [cli_pipe_mode]
+input:
+  source: "take(1) |> each(print)"
+  file: null
+  command: "take(1) |> each(print)"
+  stdin: "a\nb\n"
+  argv: []
+  debug_stdio: false
+expected:
+  stdout: "a"
+  stderr: ""
+  exit_code: 0

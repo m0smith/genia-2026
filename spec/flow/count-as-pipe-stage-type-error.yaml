@@ -1,6 +1,7 @@
 name: count-as-pipe-stage-type-error
 category: flow
 description: count on flow now works; collect after count fails because count returns int
+requires: [flow_phase_1]
 input:
   source: |
     stdin |> lines |> count |> collect
