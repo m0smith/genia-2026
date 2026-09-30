@@ -6,6 +6,10 @@ issue #701, under epic #700 and the approved R28 pre-flight #1055.
 This document constrains later R28 tickets; it does not make any MCP surface,
 host capability, or transport current merely by naming it.
 
+Clarification A1 (issue #702, ledger entry R28-H14) narrowly aligns this contract
+with the verified MCP `2026-07-28` specification; see section 14. It changes no
+architecture, authority, limit, or threat-model decision.
+
 ## 1. Purpose and boundary
 
 R28 publishes a small, governed Model Context Protocol (MCP) server authored
@@ -64,11 +68,19 @@ exists. E28-0 adds no language or runtime behavior merely to reach this target.
 
 ### 2.1 Names and discovery
 
-V1 exposes exactly these MCP tools:
+The **final R28 v1 surface** exposes exactly these MCP tools, in this order:
 
 - `genia_capabilities`
 - `genia_parse`
 - `genia_run`
+
+Final R28 acceptance (release audit) requires discovery to return exactly these
+three. Before final acceptance, each ticket's development server advertises
+**only tools whose behavior that ticket has implemented** (E28-1:
+`genia_capabilities`; E28-2 adds `genia_parse`; E28-3 adds `genia_run`), preserving
+the order above. An unadvertised tool name is an unknown tool (section 7.1); a
+server never advertises a tool it deliberately leaves nonfunctional, and
+intermediate evidence never presents one as a completed capability.
 
 V1 exposes no MCP resources and no MCP prompts. In particular, it does not
 publish files, source trees, environment values, configuration, logs, schemas,
@@ -156,6 +168,15 @@ Genia, policy, limit, timeout, and cancellation outcomes use this envelope.
 Transport loss may prevent any envelope from being delivered and must not be
 misreported as a Genia result.
 
+**MCP `2026-07-28` wire mapping (Clarification A1).** The envelope above is the
+tool result's `structuredContent`. The `tools/call` result is a `CallToolResult`:
+`resultType: "complete"`, `content` (the single text item), `structuredContent`
+(the envelope), `isError`, and `_meta`. `isError` is `false` when the envelope
+`status` is `"ok"` and `true` when it is `"error"`. The text item is the
+single-line JSON encoding of that same envelope (one protocol line; not required to
+be byte-minimized). Protocol
+failures use JSON-RPC errors as defined in section 7.1, never the envelope.
+
 Messages are fixed, server-owned summaries. They must not include source text,
 rendered runtime values, native paths, environment values, raw host exceptions,
 Python class names, stack traces, process identifiers, or SDK error text.
@@ -203,9 +224,32 @@ The successful `result` has this exact shape:
 
 The object and its nested objects are closed. `contract_revision` is the exact
 repository revision used to build the server; it is evidence of identity, not a
-claim that every Genia capability is available through MCP. Array order is
-fixed as shown. Later implementation must obtain version/build data without
-reading request-selected paths or exposing a dirty workspace description.
+claim that every Genia capability is available through MCP. Later implementation
+must obtain version/build data without reading request-selected paths or exposing
+a dirty workspace description.
+
+**Clarification A1 — `tools`.** The example above shows the final v1 value. The
+`tools` array reports exactly the tools the running server advertises in
+`tools/list` (section 2.1), in the fixed order `genia_capabilities`,
+`genia_parse`, `genia_run`; a development server reports the implemented subset
+(E28-1: `["genia_capabilities"]`). It never reports an unimplemented tool.
+
+**Clarification A1 — `contract_revision` and identity.** `contract_revision` is
+server-owned build/launch metadata supplied through the narrow host boundary as an
+inert 40-lowercase-hex value; it is not hard-coded in `mcp.genia`, and the host does
+not construct the capability result. `mcp.genia` validates the value and refuses to
+start when it is absent or not exactly 40 lowercase hexadecimal characters. The
+server identity reported in MCP result `_meta` under
+`io.modelcontextprotocol/serverInfo` is `{"name": "genia-mcp", "version":
+"<contract_revision>"}`.
+
+**Clarification A1 — `execution_profile` is governed policy.** The profile states
+the fixed policy this server is governed by. A server that does not yet execute
+source (E28-1, E28-2) still reports it: every authority flag is literally `false`
+because no such authority exists, and the limits are the policy later enforced by
+the execution ticket. Reporting the profile is not evidence that any limit is
+enforced or that `genia_run` exists; enforcement is proven only by the tests of the
+ticket that implements it.
 
 ### 2.4 `genia_parse`
 
@@ -476,6 +520,48 @@ addition or update requires protocol/schema/security regression review and may
 not silently widen tools, transports, logging, roots, sampling, elicitation,
 resources, prompts, or authority.
 
+### 7.1 MCP `2026-07-28` request/response requirements (Clarification A1)
+
+Verified against the `2026-07-28` specification and schema (stdio transport,
+`basic/index`, `basic/versioning`, `server/tools`, cancellation pattern, and
+`schema.ts`). The server is stateless: no `initialize`, no session, no state
+carried between requests.
+
+- **Framing.** One JSON-RPC message per line, `\n`-delimited, no embedded
+  newlines; server stdout carries only valid MCP messages; logging only on stderr;
+  the server exits when stdin reaches EOF.
+- **Per-request metadata.** `params._meta` must carry
+  `io.modelcontextprotocol/protocolVersion` (string) and
+  `io.modelcontextprotocol/clientCapabilities` (object); `clientInfo` is optional
+  and never changes server behavior. A missing or malformed required field is
+  JSON-RPC `-32602`. An unsupported version is `-32022` with
+  `data: {"supported": ["2026-07-28"], "requested": <version>}`.
+- **`server/discover` (required).** The server implements `server/discover`,
+  returning `resultType: "complete"`, `supportedVersions: ["2026-07-28"]`,
+  `capabilities` of exactly `{"tools": {}}` (no resources, prompts, logging,
+  completions, subscriptions, or list-changed), `ttlMs: 0`, `cacheScope: "public"`,
+  and `_meta` serverInfo (section 2.3). It carries no `instructions` in v1.
+- **`tools/list`.** `resultType: "complete"`, `tools` in the order of section 2.1
+  (each with `name`, `description`, and the closed `inputSchema` of its tool),
+  `ttlMs: 0`, `cacheScope: "public"`, `_meta` serverInfo. There is no pagination; any
+  `cursor` is `-32602`. (`ttlMs: 0` because the advertised set changes between
+  tickets.)
+- **`tools/call`.** Result per section 2.2. An unknown or unadvertised tool, a
+  missing or non-string `name`, a non-object `arguments`, or arguments that violate
+  the tool's closed schema are protocol errors (`-32602`), not envelopes.
+- **Protocol error codes.** Unparseable JSON `-32700`; invalid JSON-RPC object
+  (including a `null`, boolean, fractional, or object `id`) `-32600`; unknown method
+  (including legacy `initialize`, resources, and prompts methods) `-32601`;
+  invalid params, unknown tool, missing or malformed `_meta` `-32602`; unsupported
+  version `-32022`. The server never emits `-32002`, `-32042`, or an undefined code
+  in `-32020`..`-32099`. Error responses carry a fixed server-owned `message`
+  (never caller strings) and omit `id` when it cannot be read.
+- **Notifications.** A message without `id` gets no response. `notifications/cancelled`
+  is accepted; before the execution ticket there is no cancellable work, so it is
+  ignored.
+- **Result identity.** Every result carries `resultType: "complete"`; the server
+  does not use `input_required` in v1.
+
 V1 transport scope is local **stdio only**. Server stdout is reserved for MCP
 frames; server logs go to a separately controlled stderr and obey section 6.
 Streamable HTTP is explicitly deferred from R28 v1 and is not required for
@@ -582,9 +668,10 @@ merely because R28 can ship with it.
 
 Before any tool is claimed implemented, later phases must provide tests for:
 
-1. exact closed schemas, discovery names, duplicate text/structured content,
-   protocol-version rejection, stateless repeated requests, and deterministic
-   capability ordering;
+1. exact closed schemas, discovery names (the implemented subset at each ticket;
+   exactly the three contract tools at final acceptance), duplicate text/structured
+   content, protocol-version rejection, `server/discover`, stateless repeated
+   requests, and deterministic capability ordering;
 2. parse parity with the existing normalized Python parse adapter;
 3. run parity for representative accepted programs, including an
    Outcome-aware validated-data pipeline, with separate value/stdout/stderr;
@@ -644,8 +731,8 @@ release audit:
 
 1. VS Code discovers and starts the repository-configured local stdio server
    with only the documented development prerequisites and enablement steps.
-2. Tool discovery returns exactly `genia_capabilities`, `genia_parse`, and
-   `genia_run`, with no resources, prompts, or additional tools.
+2. Tool discovery at final acceptance returns exactly `genia_capabilities`,
+   `genia_parse`, and `genia_run`, with no resources, prompts, or additional tools.
 3. An AI coding agent calls `genia_capabilities` and receives the normalized v1
    capability description.
 4. The agent submits explicit source to `genia_parse` and receives the
@@ -711,3 +798,21 @@ E28-0 and v1 do not include:
 E28-1 (#702) may begin only after this contract is approved. It must not invent
 behavior deferred here. E28-0 stops at this document and does not authorize
 work on #702 or later R28 tickets.
+
+## 14. Clarification A1 (issue #702, R28 ledger entry R28-H14)
+
+Recorded while implementing E28-1's design, after verifying the MCP `2026-07-28`
+specification. Scope is limited to the items below; every other section, and every
+authority, limit, isolation, and threat-model decision, is unchanged.
+
+| Item | Section changed | Clarification |
+|---|---|---|
+| C1 | 2.1, 2.3, 11, 12.2 | The exact three-tool list is the final v1 surface; development servers advertise only implemented tools; `genia_capabilities.tools` reports the advertised set |
+| C2 | 2.2, 7.1 | `tools/call` maps to `CallToolResult` (`resultType`, `isError`); protocol errors use the verified JSON-RPC codes including `-32022` |
+| C3 | 7.1 | `server/discover` is required; discover/list results carry `ttlMs` and `cacheScope` |
+| C4 | 2.3 | `execution_profile` is governed policy and is reported before execution exists, without implying enforcement |
+| D2 | 2.3 | `serverInfo.version` is the injected `contract_revision`; `contract_revision` is build/launch metadata supplied through the narrow host boundary |
+
+A1 adds no tool, resource, prompt, transport, Genia semantic, SDK requirement, or
+host capability, and it does not implement anything. Findings it leaves open remain
+in `docs/analysis/r28-host-dependency-inventory.md`.
