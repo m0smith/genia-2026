@@ -79,20 +79,19 @@ CI results for the merged PRs, so it makes no claim about them.
 - `docs/sicp/*`: out of scope by instruction.
 - `spec/manifest.json` and `spec/known_host_gaps.json`: already correct.
 
-## 4) Remaining follow-ups (none block R27)
+## 4) Post-R27 follow-up disposition
 
-1. **HTTP server and outbound HTTP** need their own contract-first releases; neither
-   has a release assigned. Preconditions are listed in
-   `docs/analysis/r27-http-server-decision.md` and
-   `docs/analysis/r27-outbound-http-decision.md`.
-2. **C++ parser gap:** a pipeline inside call arguments (`f(a |> b)`).
-3. **Unsupported Flow surface in C++:** `tee`/`merge`/`zip`, `rules`/`refine`/`step_*`,
-   `rand_flow`, list-form `scan`, `reduce` with an Option accumulator (needs the
-   `none` literal), Flow display.
-4. **Python-host-only cross-release pipelines** (config views, model fixtures,
-   Templates, `json_compat`) stay unsupported in C++ until their prerequisites land.
-5. **Unicode and stdin edge cases:** non-ASCII `upper`/`trim`/`parse_int`, carriage
-   returns in stdin, trailing `-p` arguments.
-6. **Ungated passes:** several eval cases C++ now passes (`seq-compatible-*-nonseq-error`,
-   `issue-306-seq-boundary-*-error`) are base-corpus cases outside any capability claim.
-7. **Differential harness:** consider promoting it to a checked-in tool (O2).
+None of these items block R27. Each is classified with the ticketing vocabulary in
+`docs/process/08-roadmap-ticketing.md`.
+
+| Item | Classification | Durable home / issue | Disposition |
+|---|---|---|---|
+| HTTP server portable contract | Later release, unassigned | #1041, `docs/analysis/r27-http-server-decision.md`, `docs/strategy/roadmap/parking-lot.md` | Deferred out of R27. Needs a future contract-first release assignment before implementation. |
+| HTTP outbound transport portable contract | Later release, unassigned | #1043, `docs/analysis/r27-outbound-http-decision.md`, `docs/strategy/roadmap/parking-lot.md` | Deferred out of R27. Needs a future contract-first release assignment before implementation. |
+| C++ parser gap: pipeline expression inside call arguments (`f(a |> b)`) | Follow-up | #1051 | File shared parse evidence first; then implement the minimal C++ parser support. |
+| Python/C++ differential harness used during R27 | Required infrastructure | #1052 | Promote the scratch-only comparison scripts into a checked-in advisory tool. |
+| CI visibility for parity-gate merge readiness | Required infrastructure | #1053 | Make the manual R27 merge-readiness check visible/repeatable in CI. |
+| Unsupported Flow surface in C++: `tee`/`merge`/`zip`, `rules`/`refine`/`step_*`, `rand_flow`, list-form `scan`, `reduce` with an Option accumulator, Flow display | Parking lot unless promoted by R28/R29 or another approved release | This audit record | Do not create issues yet; bundle only when a concrete release need appears. |
+| Python-host-only cross-release pipelines: config views, model fixtures, Templates, `json_compat` | Parking lot / prerequisite-gated | This audit record | Stay unsupported in C++ until their prerequisites land. |
+| Unicode and stdin edge cases: non-ASCII `upper`/`trim`/`parse_int`, carriage returns in stdin, trailing `-p` arguments | Parking lot unless promoted | This audit record | Leave as unsupported rather than guessing. |
+| Ungated eval passes outside a capability claim | Optional follow-up | This audit record | No action required unless a future release wants to claim or gate them. |
