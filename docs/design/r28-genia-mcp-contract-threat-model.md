@@ -10,6 +10,9 @@ Clarification A1 (issue #702, ledger entry R28-H14) narrowly aligns this contrac
 with the verified MCP `2026-07-28` specification; see section 14. It changes no
 architecture, authority, limit, or threat-model decision.
 
+Clarification A2 (issue #703, ledger entry R28-H19) narrowly places invalid Unicode
+at the JSON-RPC decoding boundary rather than in `genia_parse`; see section 15.
+
 ## 1. Purpose and boundary
 
 R28 publishes a small, governed Model Context Protocol (MCP) server authored
@@ -267,8 +270,12 @@ Input schema:
 ```
 
 `maxLength` is an early character-count guard only. The normative limit is
-262,144 bytes after UTF-8 encoding. Invalid Unicode input or a larger encoding
-returns `input_limit` without parsing.
+262,144 bytes after UTF-8 encoding. A well-formed, successfully decoded `source`
+string whose UTF-8 encoding exceeds 262,144 bytes returns `input_limit` without
+parsing. Invalid Unicode never reaches this tool: a request containing it (for
+example a lone surrogate escape such as `"\ud800"`) is malformed JSON and is
+rejected at the JSON-RPC boundary with `-32700` before any tool is dispatched
+(section 7.1, Clarification A2).
 
 Success result:
 
@@ -549,6 +556,13 @@ carried between requests.
 - **`tools/call`.** Result per section 2.2. An unknown or unadvertised tool, a
   missing or non-string `name`, a non-object `arguments`, or arguments that violate
   the tool's closed schema are protocol errors (`-32602`), not envelopes.
+- **Decoding boundary (Clarification A2).** Each request line is decoded with
+  strict JSON decoding before any validation or dispatch. Malformed JSON,
+  including invalid Unicode such as an unpaired surrogate escape (`"\ud800"`) or
+  bytes that are not valid UTF-8, is a JSON-RPC parse error (`-32700`) and invokes
+  no MCP tool. MCP tools validate only values that successfully cross this
+  boundary; a decoded string is always valid Unicode, and tool-level limits
+  (such as `genia_parse` `input_limit`) apply to it.
 - **Protocol error codes.** Unparseable JSON `-32700`; invalid JSON-RPC object
   (including a `null`, boolean, fractional, or object `id`) `-32600`; unknown method
   (including legacy `initialize`, resources, and prompts methods) `-32601`;
@@ -816,3 +830,21 @@ authority, limit, isolation, and threat-model decision, is unchanged.
 A1 adds no tool, resource, prompt, transport, Genia semantic, SDK requirement, or
 host capability, and it does not implement anything. Findings it leaves open remain
 in `docs/analysis/r28-host-dependency-inventory.md`.
+
+## 15. Clarification A2 (issue #703, R28 ledger entry R28-H19)
+
+Recorded during the E28-2 design, after observing that the server's strict JSON
+decoder rejects a request containing a lone surrogate escape (`"\ud800"`) with
+`-32700` before tool dispatch. Section 2.4 had required `genia_parse` to answer
+invalid Unicode with `input_limit`, a case that cannot reach the tool.
+
+| Input | Outcome |
+|---|---|
+| Malformed JSON, including invalid Unicode (unpaired surrogate escape, invalid UTF-8) | JSON-RPC `-32700`; no MCP tool is invoked |
+| Well-formed JSON whose decoded `source` exceeds 262,144 UTF-8 bytes | `genia_parse` `input_limit` envelope, without parsing |
+
+Sections changed: 2.4 (input limit wording) and 7.1 (decoding boundary). MCP tools
+validate only values that successfully cross the JSON-RPC decoding boundary. A2
+does not loosen JSON decoding and changes no parser, evaluator, Genia language,
+MCP transport, or host semantics; it adds no tool, builtin, or capability, and it
+implements nothing.

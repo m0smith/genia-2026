@@ -1,6 +1,7 @@
 # R28 E28-2 — `genia_parse` Tool: Design
 
-Status: **Design phase only (issue #703, epic #700).** Nothing here is implemented.
+Status: **Design approved (issue #703, epic #700); contract Clarification A2 resolves
+its blocking item (§6).** Nothing here is implemented.
 `GENIA_STATE.md` remains final authority (E28-1 behavior: section 9.41). Governing
 contract: `docs/design/r28-genia-mcp-contract-threat-model.md` §2.2, §2.4, §5, §7.1,
 §14 (Clarification A1). Findings: `docs/analysis/r28-host-dependency-inventory.md`
@@ -96,11 +97,11 @@ validation (a callable under a known key) happens in `mcp.genia`.
 |---|---|---|---|
 | H17 | Reach the existing parser from Genia | A | parser is runtime; boundary is one explicit capability, no builtin |
 | H18 | Code-point length / substring (char `maxLength`, line/column) | B | byte check subsumes `maxLength`; offset-only diagnostics |
-| H19 | Contract §2.4 "invalid Unicode → `input_limit`" vs strict `json_decode` | N (contract) | see §6; **blocks failing tests** |
+| H19 | Contract §2.4 "invalid Unicode → `input_limit`" vs strict `json_decode` | N (contract) | resolved by Clarification A2 (§6) |
 | H20 | Capability provisioning needs an in-process host bootstrap | A (relates H05) | `exec_ollama_chat.py` precedent; explicit argument |
-| H13-like | Stale #703 "official MCP client" wording | N | correct issue text |
+| H21 | Stale #703 "official MCP client" wording | N | corrected (#703 body rewritten) |
 
-## 5. Failing-test plan (next phase, after §6 is resolved)
+## 5. Failing-test plan
 
 1. CLI-mode server still advertises only `genia_capabilities`; `genia_parse` is an unknown tool there.
 2. Launcher-mode discovery lists `[genia_capabilities, genia_parse]` with the exact schema; `genia_capabilities.tools` matches.
@@ -113,7 +114,7 @@ validation (a callable under a known key) happens in `mcp.genia`.
 9. Drift: the capability module has no MCP literals; `mcp.genia` owns the `genia_parse` descriptor, validation, limits, and envelopes; changing only the revision changes only revision bytes.
 10. Framing and determinism as in E28-1 (repeated requests give identical bytes).
 
-## 6. Contract conflict found (STOP item)
+## 6. Contract conflict found (resolved by Clarification A2)
 
 Contract §2.4: "Invalid Unicode input or a larger encoding returns `input_limit`
 without parsing." With the verified MCP framing and strict `json_decode`, a request
@@ -128,8 +129,11 @@ source whose UTF-8 encoding exceeds 262,144 bytes. The alternative, decoding
 loosely so invalid Unicode reaches `genia_parse`, would weaken the strict JSON
 boundary and is not recommended.
 
-Per the R28 rule, this is recorded as [H19] and must be resolved in a contract
-phase before failing tests are written.
+Per the R28 rule, this was recorded as [H19]. **Resolved** by contract
+Clarification A2 (PR #1062, contract §2.4, §7.1, §15): invalid Unicode is `-32700`
+at the JSON-RPC boundary and invokes no tool; `input_limit` applies only to a
+well-formed decoded `source` over 262,144 UTF-8 bytes. The test plan above tests
+both sides of that boundary.
 
 ## 7. Out of scope
 
