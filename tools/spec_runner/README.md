@@ -132,6 +132,15 @@ command as one shell-quoted string, e.g.:
 python -m tools.spec_runner --host 'python3 -m my_host.adapter' --host-timeout 10
 ```
 
+External-host cases are serial by default. `--host-jobs N` permits up to `N`
+independent case requests to run concurrently. This changes runner scheduling
+only: every request still spawns exactly one E16-1 adapter process, keeps its
+own per-case timeout and outcome classification, and contributes to the same
+deterministic evidence counts. Results are consumed in discovered-spec order,
+so concurrency does not change evidence ordering or classification. In
+parallel verbose mode, elapsed timing lines are emitted in discovered-spec
+order after each corresponding result becomes available.
+
 - `tools/spec_runner/host_executor.py::execute_spec_via_host` maps each
   `LoadedSpec` onto an E16-1 request (`ir` category -> `lower` operation;
   `flow`/`error` categories -> `eval` operation, matching the existing
