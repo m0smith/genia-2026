@@ -60,10 +60,9 @@ contract, design, failing-test, implementation, documentation, audit, and
 distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
-## Promoted R20 follow-up
+## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
-Open-function declaration ergonomics is promoted as an R20 follow-up design
-candidate; scope and guardrails live in [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
+Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and before R29** without a new release number or R28 scope expansion. Detailed staging and guardrails live in [`roadmap/sequence.md`](roadmap/sequence.md) and [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
 ## Current state
 
@@ -90,6 +89,7 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R26 — C++ REPL and Data Bridges**
 - **R27 — C++ Flow and Pipe Mode**
 - **R28 — Genia MCP Server**
+- **R20 follow-up — Unified Function Model and Open-Function Repairs** (issue #1067; unnumbered; scheduled after R28 and before R29)
 - **R29 — Sheet Record Pipelines**
 - **R30 — Sheet Shaped Computation**
 - **R31 — Relational Sheet Operations**
