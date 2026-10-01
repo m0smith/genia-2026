@@ -1,7 +1,14 @@
 # R28 E28-1 — Native Genia MCP Skeleton and Capabilities: Design
 
-Status: **Design approved with corrections (issue #702, epic #700); contract
-Clarification A1 applied; no server is implemented.** `GENIA_STATE.md` remains final authority for implemented behavior.
+Status: **Design approved and implemented (issue #702, epic #700); contract
+Clarification A1 applied.** The implemented behavior is recorded in
+`GENIA_STATE.md` section 9.41; this document remains the design and discovery
+record. Implementation differences from the original plan: the launcher starts
+Genia with `python -c "from genia.interpreter import _main; ..."` (as
+`hosts/python/exec_cli.py` does) because `-m genia.interpreter` writes a runpy
+warning to stderr; nonzero exit on a rejected launch datum uses a deliberate
+runtime error because Genia has no exit facility (ledger R28-H15); and `mcp.genia`
+uses total accessors and guard arms rather than `&&` chains (ledger R28-H16). `GENIA_STATE.md` remains final authority for implemented behavior.
 This document applies the merged E28-0 contract
 (`r28-genia-mcp-contract-threat-model.md`). Where verified MCP `2026-07-28` wire
 requirements or the intermediate-surface rule need wording the contract lacks, the

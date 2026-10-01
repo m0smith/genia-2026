@@ -6291,6 +6291,93 @@ Explicit limitations (deferred, not implemented):
   location-independent execution behavior is implemented or implied by
   this capability.
 
+## 9.41) R28 E28-1 native Genia MCP server skeleton (`apps/mcp/mcp.genia`)
+
+Status: Implemented (Python reference host), **Experimental, intermediate
+development surface of an incomplete release**. R28 (epic #700) is not complete;
+this section records only what E28-1 (issue #702) landed under the approved
+contract `docs/design/r28-genia-mcp-contract-threat-model.md` (including
+Clarification A1) and design `docs/design/r28-e28-1-native-mcp-skeleton-design.md`.
+It is not an availability claim for agents or editors: no checked-in MCP client
+configuration exists and no VS Code/Copilot acceptance has been demonstrated.
+
+LANGUAGE CONTRACT:
+
+- E28-1 adds no syntax, parser rule, AST or Core IR node, builtin, prelude function,
+  evaluator behavior, or host capability claim to Genia. `apps/mcp/mcp.genia` is an
+  ordinary Genia program built only from existing behavior (`stdin |> lines`,
+  `json_decode`/`json_encode`, `json_schema` Templates, guard/tuple/list/map patterns,
+  Outcomes, `writeln(stdout, ...)`). The MCP wire behavior below is that program's
+  application contract, not Genia language semantics.
+
+APPLICATION BEHAVIOR (`apps/mcp/mcp.genia`, MCP `2026-07-28`, local stdio only):
+
+- The program takes exactly one argument, `contract_revision`, which must be exactly
+  40 lowercase hexadecimal characters. Any other argument list writes one fixed
+  diagnostic to stderr, writes nothing to stdout, and exits nonzero. The rejected
+  value is never echoed. Because Genia has no process-exit facility, the nonzero exit
+  is produced by a deliberate runtime error (ledger entry R28-H15).
+- It reads one JSON-RPC message per stdin line (split on `\n` only) and writes one
+  response per request, each on exactly one stdout line. Empty lines are ignored; a
+  message without `id` that is a well-formed notification (for example
+  `notifications/cancelled`) gets no response. It exits when stdin reaches EOF.
+- Implemented methods: `server/discover`, `tools/list`, and `tools/call`. There is
+  no `initialize`, no session, and no state carried between requests.
+- The advertised tool set is exactly `["genia_capabilities"]`. `genia_parse` and
+  `genia_run` are not implemented and are not advertised; calling them is an
+  unknown-tool error (`-32602`).
+- `genia_capabilities` takes no arguments (arguments may be omitted or `{}`; anything
+  else is `-32602`) and returns a `CallToolResult` with `resultType: "complete"`,
+  `isError: false`, one text content item, and `structuredContent` equal to the
+  contract envelope `{schema_version: "genia.mcp.v1", status: "ok", result:
+  <capabilities>, error: null}`. The capabilities object has exactly the contract
+  fields (`server`, `mcp`, `genia`, `tools`, `execution_profile`); `tools` is
+  `["genia_capabilities"]` and `contract_revision` is the launch argument. The
+  `execution_profile` reports the governed policy only; nothing is executed or
+  enforced in E28-1.
+- Per-request `params._meta` must carry `io.modelcontextprotocol/protocolVersion` (a
+  string) and `io.modelcontextprotocol/clientCapabilities` (an object); results carry
+  `_meta["io.modelcontextprotocol/serverInfo"]` of `{name: "genia-mcp", version:
+  <contract_revision>}`. Discover and list results use `ttlMs: 0`,
+  `cacheScope: "public"`; `server/discover` capabilities are exactly `{tools: {}}`;
+  `tools/list` has no pagination (any `cursor` is `-32602`).
+- Protocol errors use fixed messages that never echo caller text: unparseable JSON
+  `-32700`; invalid JSON-RPC object (including an `id` that is not a string or
+  integer) `-32600`; unknown method (including `initialize`, resources, prompts)
+  `-32601`; missing/malformed `_meta`, bad `tools/call` params, unknown tool, or
+  non-empty arguments `-32602`; unsupported version `-32022` with
+  `data.supported = ["2026-07-28"]` and `data.requested`.
+- Native Genia owns decoding, shape/type validation, dispatch, result and error
+  construction, JSON encoding, single-line framing (`json_encode`, split on
+  newline, trim, join), and stdout. The program imports no module and references no
+  filesystem, network, process, configuration, or secret facility.
+
+PYTHON REFERENCE HOST:
+
+- `hosts/python/mcp_launch.py` is build/launch identity plumbing only: it resolves
+  `git rev-parse HEAD` for the repository (module-relative; ambient `GIT_*`
+  ignored; workspace modifications never described), validates 40 lowercase hex,
+  builds the command (`python -c "from genia.interpreter import _main; ..."`, the
+  same invocation as `hosts/python/exec_cli.py`), applies a fixed environment
+  allowlist, and starts `mcp.genia` with the revision as its only argument. It
+  imports no JSON module and contains no tool, envelope, or protocol logic. No MCP
+  SDK is used.
+- Validated by `tests/unit/test_r28_mcp_skeleton.py` (wire behavior, framing,
+  startup), `tests/unit/test_r28_mcp_launcher.py` (launch identity), and
+  `tests/unit/test_r28_mcp_architecture.py` (native ownership and Python-drift
+  guards, including a differential run proving the host controls only the revision).
+
+Explicit limitations (not implemented in E28-1):
+
+- No `genia_parse`, no `genia_run`, no worker process, no timeout/cancellation/size
+  enforcement, no MCP resources or prompts, no MCP client, no HTTP transport, no
+  checked-in `.mcp.json`/`.vscode/mcp.json`, no VS Code/Copilot acceptance, and no
+  C++ MCP support or parity claim. The `portable_mcp_implementation` field is
+  `false`.
+- Host dependencies and Genia gaps found while building it are recorded in the
+  living ledger `docs/analysis/r28-host-dependency-inventory.md`; recording a gap
+  adds no language feature.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
@@ -6299,6 +6386,7 @@ Explicit limitations (deferred, not implemented):
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
+- MCP `genia_parse`/`genia_run` tools, MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers only the E28-1 skeleton so far; see section 9.41)
 
 ## 11) Example demos shipped in-repo
 

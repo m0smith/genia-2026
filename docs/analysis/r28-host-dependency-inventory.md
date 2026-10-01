@@ -226,19 +226,25 @@ pre-flight, when promoted), **raised in**.
   audit. Not yet an issue.
 - Raised in: E28-1 implementation.
 
-**R28-H16 — `none(...)` call short-circuit and non-short-circuit `&&`/`||` shape protocol code**
-- Class: **N (language behavior, observed)**. Status: `open` (verify documentation).
-- Evidence: `nil` is `none("nil")`; an ordinary function called with a `none(...)`
+**R28-H16 — `none(...)` call short-circuit (documented) and eager `&&`/`||` (undocumented)**
+- Class: **N (language behavior, observed)**. Status: `open` (part b).
+- Evidence: (a) `nil` is `none("nil")`; an ordinary function called with a `none(...)`
   argument is not run unless its arms handle `none`, so validity predicates return
-  `none(...)` instead of `false` (`is_object(nil)` → `none("nil")`). `&&` and `||`
-  evaluated both operands (`is_object(x) && map_has?(x, k)` raised on a non-map).
-  `mcp.genia` therefore normalizes JSON null/absent to `[]` (`norm`) and uses total
-  accessors and guard arms. Not yet checked: whether `GENIA_STATE.md`/`GENIA_RULES.md`
-  document both behaviors.
-- Workaround: `norm`, `field`, `present` in `mcp.genia`. Hosts: Python observed.
-- Disposition: confirm against STATE in the E28-1 docs phase; close as documented
-  behavior or record a documentation gap. No language change proposed.
-- Raised in: E28-1 implementation.
+  `none(...)` instead of `false` (`is_object(nil)` → `none("nil")`). This **is
+  documented**: `GENIA_STATE.md` ("ordinary function calls short-circuit on
+  `none(...)` arguments unless the callee explicitly handles absence", section on
+  Outcomes). Part (a) is closed as documented behavior.
+  (b) `&&` and `||` evaluate both operands (`false && boom("s")` raised
+  from `boom`). `GENIA_RULES.md` lists the operators but neither it nor
+  `GENIA_STATE.md` states their evaluation order. `mcp.genia` therefore uses total
+  accessors (`norm`, `field`, `present`) and guard arms instead of `&&` for
+  safety checks.
+- Workaround: the total accessors in `mcp.genia`. Hosts: Python observed.
+- Disposition: R28 documents nothing about `&&`/`||` (that would be a language
+  documentation change outside R28). Retain as evidence; the final audit decides
+  whether it is a documentation gap or a semantic question, through the normal
+  process. No language change proposed.
+- Raised in: E28-1 implementation; refined in E28-1 documentation.
 
 ### Process / documentation drift
 
@@ -268,6 +274,7 @@ pre-flight, when promoted), **raised in**.
 | E28-1 design + failing tests | H01–H14 seeded; H03, H11, H12 closed on evidence |
 | E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
 | E28-1 implementation | H09 (`lines`/UTF-8 verified), H10 (launcher implemented), H12 (syntax observations) updated; H15, H16 added |
+| E28-1 documentation | H16 refined (a: documented, closed; b: eager `&&`/`||` undocumented, open); `GENIA_STATE.md` section 9.41 added |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |
