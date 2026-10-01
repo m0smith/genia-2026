@@ -13,6 +13,7 @@ a substitute for behavior. Expected to fail until ``mcp.genia`` exists.
 from __future__ import annotations
 
 import ast
+import os
 import re
 import tempfile
 from pathlib import Path
@@ -189,6 +190,11 @@ def test_output_is_identical_with_empty_cwd_and_minimal_environment():
             "PYTHONPATH": str(REPO_ROOT / "src"),
             "PYTHONIOENCODING": "utf-8",
         }
+        # Loader paths are launch plumbing for a shared-library Python (for
+        # example actions/setup-python on a self-hosted runner), not user state.
+        for key in ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
+            if key in os.environ:
+                minimal[key] = os.environ[key]
         completed = run_messages(SESSION, cwd=Path(empty), env=minimal)
     assert completed.returncode == 0, completed.stderr.decode("utf-8", "replace")
     assert completed.stdout == baseline  # no cwd/environment/workspace dependence
