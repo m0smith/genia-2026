@@ -6378,6 +6378,63 @@ Explicit limitations (not implemented in E28-1):
   living ledger `docs/analysis/r28-host-dependency-inventory.md`; recording a gap
   adds no language feature.
 
+## 9.42) R28 E28-2 `genia_parse` over the native Genia MCP server
+
+Status: Implemented (Python reference host), **Experimental, intermediate development
+surface of an incomplete release** (R28, epic #700, is not complete; E28-2 is issue #703).
+Governing documents: contract `docs/design/r28-genia-mcp-contract-threat-model.md`
+(Clarifications A2 and A3) and design `docs/design/r28-e28-2-parse-tool-design.md`.
+Section 9.41 still applies; this section records only what E28-2 adds.
+
+LANGUAGE CONTRACT:
+
+- E28-2 adds no syntax, parser rule, AST or Core IR node, builtin, prelude function,
+  integer type, JSON facility, or change to R9/R23 `json_decode`/`json_encode`. Genia
+  integer semantics and the R9 portable-JSON integer range
+  `[-9007199254740991, 9007199254740991]` are unchanged. The behavior below is
+  application and host-transport behavior of `apps/mcp/mcp.genia`.
+
+APPLICATION BEHAVIOR:
+
+- `genia_parse` is advertised and callable only when the host launcher provisions the
+  `parse` capability as an explicit argument to `serve(revision, host)`. Plain
+  `genia apps/mcp/mcp.genia <revision>` (CLI mode) provisions none and keeps the
+  section 9.41 surface (`genia_capabilities` only; `genia_parse` is an unknown tool).
+- Input is exactly one string `source`; missing, non-string, or extra properties are
+  `-32602`. A well-formed `source` over 262,144 UTF-8 bytes is an `input_limit`
+  envelope without parsing; invalid Unicode is `-32700` at the JSON-RPC boundary
+  (Clarification A2). Parsing never evaluates source.
+- Success is `{schema_version: "genia.mcp.v1", status: "ok", result: {kind: "parsed",
+  ast}, error: null}` where `ast` is the existing normalized parse surface
+  (`hosts/python/parse_adapter.parse_and_normalize`), unchanged. A Genia syntax
+  failure is a `parse_error` / phase `parse` envelope carrying only a character
+  offset (never source text or host error text); any other host failure is a fixed
+  `internal_error` envelope; a result over 3,276,800 bytes is `result_limit`.
+- Lossless AST transport (ledger R28-H22, Clarification A3): the host capability
+  serializes the normalized AST losslessly and `mcp.genia` inserts that text into the
+  result without decoding or re-encoding it through R9 JSON, so integer literals
+  outside the R9 range (for example `9007199254740992` or
+  `123456789012345678901234567890`) are returned as exact JSON integer tokens,
+  neither rounded nor stringified. `mcp.genia` still validates the capability header
+  and AST text shape, applies the source and result limits, and builds the envelope.
+  This is not a general Genia raw-JSON facility. A client whose JSON decoder is
+  IEEE-754-only may not preserve such integers as native numbers; that is outside
+  this contract.
+- The normalized AST is the existing minimal projection: most node kinds (including
+  unary negation, so a negative literal) appear as `{kind}` only (ledger R28-H23);
+  E28-2 does not change normalization.
+
+PYTHON REFERENCE HOST:
+
+- `hosts/python/mcp_parse_capability.py` (`parse_source`) wraps `parse_and_normalize`;
+  `hosts/python/mcp_host.py` is the in-process bootstrap that calls
+  `serve(revision, {parse: ...})` (the launcher starts it). No MCP SDK is used.
+- Validated by `tests/unit/test_r28_mcp_parse.py`,
+  `tests/unit/test_r28_mcp_parse_capability.py`, and the existing R28 tests.
+
+Explicit limitations: no `genia_run`, no worker/timeout/cancellation, no MCP resources
+or prompts, no C++ MCP support or parity claim, no checked-in client configuration.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
@@ -6386,7 +6443,7 @@ Explicit limitations (not implemented in E28-1):
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
-- MCP `genia_parse`/`genia_run` tools, MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers only the E28-1 skeleton so far; see section 9.41)
+- MCP `genia_run` tool, MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers only the E28-1 skeleton and the E28-2 `genia_parse` tool so far; see sections 9.41 and 9.42)
 
 ## 11) Example demos shipped in-repo
 

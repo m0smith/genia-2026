@@ -1,7 +1,7 @@
 # R28 E28-2 — `genia_parse` Tool: Design
 
 Status: **Design approved (issue #703, epic #700); contract Clarification A2 resolves
-its blocking item (§6).** Nothing here is implemented.
+its blocking item (§6); Clarification A3 and §6.1 amend AST transport (H22).**
 `GENIA_STATE.md` remains final authority (E28-1 behavior: section 9.41). Governing
 contract: `docs/design/r28-genia-mcp-contract-threat-model.md` §2.2, §2.4, §5, §7.1,
 §14 (Clarification A1). Findings: `docs/analysis/r28-host-dependency-inventory.md`
@@ -150,6 +150,49 @@ Clarification A2 (PR #1062, contract §2.4, §7.1, §15): invalid Unicode is `-3
 at the JSON-RPC boundary and invokes no tool; `input_limit` applies only to a
 well-formed decoded `source` over 262,144 UTF-8 bytes. The test plan above tests
 both sides of that boundary.
+
+## 6.1 Amendment: lossless AST transport (H22, contract Clarification A3)
+
+Found during implementation. `parse_and_normalize` can return integer literals beyond
+the R9 portable-JSON range (for example `9007199254740992`, or
+`123456789012345678901234567890`). Probes showed the first rejection is native
+`json_decode` of the capability reply (`_strict_json_int`), with a second behind it in
+native `json_encode`. The R9 limit is a data-boundary rule, not an AST or wire rule, so
+the AST must not pass through those calls (contract §16).
+
+Amended §3.1/§3.3 (everything else in this document is unchanged):
+
+- **Capability reply.** `parse_source` returns text of exactly one of:
+  - parsed: `{"status": "parsed"}` + `"\n"` + `<AST fragment>`, where the fragment is
+    the unchanged `parse_and_normalize` AST serialized by the host with Python
+    `json.dumps` (exact integers; `sort_keys`, `ensure_ascii=False`,
+    `allow_nan=False`, separators `","` and `": "`, so it has no raw newline);
+  - syntax error: `{"offset": <int or null>, "status": "syntax_error"}` (no fragment);
+  - `{"status": "internal_error"}`.
+  The host owns only this lossless serialization. It still contains no tool name,
+  envelope, or MCP literal.
+- **Native handling.** `mcp.genia` splits the reply at its first newline. The header
+  is small and is decoded natively with `json_decode` (it never carries an AST).
+  The AST fragment is never decoded. For `parsed` it checks that a fragment is present,
+  is a non-empty object text (starts with `{` and ends with `}`), and that the header
+  has no other keys; otherwise `internal_error`.
+- **Splice.** The success envelope is built natively with a fixed placeholder at the
+  `ast` position, encoded with `json_encode`, and the placeholder is replaced by the
+  fragment using ordinary string operations (`split`/`join`), once for `structuredContent`
+  and once, JSON-string-escaped by `json_encode`, inside the text content item. Exactly
+  one placeholder occurrence is required (else `internal_error`). This is local to
+  `genia_parse`, not a Genia facility, and not a generic raw-JSON helper.
+- **Limits.** The source limit is unchanged and checked before the capability call.
+  The result limit is measured on the final single-line `structuredContent` text
+  including the fragment; an oversized result is replaced by `result_limit`.
+- **Trust.** The fragment is produced by repository host code from the existing
+  normalized AST; native code does not re-validate its JSON grammar. A
+  serialization failure (for example an unserializable value) is `internal_error`.
+- **Unchanged.** R9 `json_decode`/`json_encode`, Genia integer semantics, parser,
+  normalized AST shape, A2, and every non-AST MCP behavior.
+
+Client note: lossless on the wire does not mean lossless in an IEEE-754-only client
+decoder; see contract §16.
 
 ## 7. Out of scope
 

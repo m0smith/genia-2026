@@ -320,7 +320,7 @@ pre-flight, when promoted), **raised in**.
 
 
 **R28-H22 — Parse AST integers beyond the strict JSON safe-integer range cannot cross the native boundary**
-- Class: **B** (also a contract conflict: §2.4 requires `ast` "unchanged"). Status: `open` — **blocks E28-2 acceptance**.
+- Class: **B** (also a contract conflict: §2.4 requires `ast` "unchanged"). Status: `closed` (resolved by Clarification A3 and implemented in E28-2; see Disposition).
 - Evidence: `parse_and_normalize("123456789012345678901234567890")` returns
   `{"kind": "Literal", "value": 123456789012345678901234567890}` (R21 exact Integer
   source, shared spec `spec/parse/parse-r21-huge-integer-source-classification.yaml`).
@@ -370,11 +370,47 @@ pre-flight, when promoted), **raised in**.
 - Hosts: Python; any host sharing the strict JSON boundary has the same limit.
 - Usefulness beyond MCP: moderate (exact-integer interchange); promotion only through
   the normal process.
-- Disposition: **STOPPED at the decision gate** -- awaiting a design/contract decision
-  (options above, plus whether lossless wire integers are required for IEEE-754
-  clients). The earlier recommendation of A is withdrawn pending that decision because
-  A weakens AST parity. No code, test, or STATE change was made for H22.
+- Disposition: **Option (i) selected by explicit decision** (originally listed as option
+  C; the rejection recorded for C above was for unvalidated host splicing and is
+  superseded by the constrained form below). Contract **Clarification A3** (contract §16)
+  and design §6.1 record it. The capability serializes the existing normalized AST
+  losslessly (`json.dumps`, exact integers); `mcp.genia` validates the capability header
+  and limits natively and inserts the AST fragment opaquely into the result using
+  ordinary string operations, never decoding it through R9 `json_decode` nor encoding it
+  through R9 `json_encode`.
+- Why R9 is unchanged: no R9 function, safe-integer rule, parser, AST shape, or Genia
+  integer semantics is touched; the AST simply never enters the R9 data domain. R9
+  `json_decode`/`json_encode` still reject integers beyond +/-(2^53-1) (regression
+  tests unchanged).
+- Why this is transport, not new Genia semantics: the splice is a local `genia_parse`
+  function in an application program built from existing `split`/`join`/`json_encode`;
+  it is not a general raw-JSON facility, builtin, type, or language rule. Unlike the
+  rejected form, native code still owns status handling, error normalization, the
+  fragment shape check, and the source and result byte limits.
+- Client note: a lossless wire fragment is not a guarantee about IEEE-754-only client
+  decoders (outside E28-2).
 - Raised in: E28-2 implementation.
+
+**R28-H23 — Normalized parse AST collapses most nodes (for example negative literals) to `{kind}` only**
+- Class: **N (existing behavior; normalization coverage, not a parser defect)**. Status: `closed` (observation; follow-up candidate only through the parse-spec process).
+- Evidence: `parse_and_normalize("-9007199254740992")` returns `{"kind": "ok", "ast":
+  {"kind": "Unary"}}`; `-1`, `-x`, `!x`, and `-(1+2)` give the same, and `- 1 + 2` gives
+  `Binary` with `left: {"kind": "Unary"}`. `hosts/python/parse_adapter.py` `normalize_ast`
+  handles only a minimal set of node types and ends with `# Add more node kinds as
+  contract expands` / `return {'kind': node_type}`. `spec/parse/README.md`: parse spec
+  coverage expands only when forms are explicitly added; unary operators are specified
+  at the IR level (`spec/ir/unary-operators.yaml`), not in parse specs. The parser
+  itself builds `Unary(op, expr)` (`src/genia/ast_nodes.py`).
+- Classification: expected existing minimal-normalization behavior, not a parser or
+  semantic defect, and not caused by E28-2. Consequence for R28: `genia_parse` returns
+  that normalized AST unchanged (parity), so a negative integer literal cannot appear
+  with its magnitude in the AST today, and large negative integers cannot exercise the
+  H22 transport. E28-2 does not bless a test of that shape as meaningful transport
+  proof and does not change normalization.
+- Disposition: closed as an observation; no R28 change. Follow-up candidate (not R28, not scheduled): extend the shared parse contract to
+  cover unary and other node kinds through the normal parse-spec process, which would
+  make the MCP AST richer without any MCP change.
+- Raised in: E28-2 implementation (H22 follow-up).
 
 ### Process / documentation drift
 
@@ -408,6 +444,7 @@ pre-flight, when promoted), **raised in**.
 | E28-2 design | H17, H18, H19 (blocking contract item), H20, H21 added |
 | E28-0 Clarification A2 | H19 recorded and closed (invalid Unicode is `-32700` at the JSON-RPC boundary; `input_limit` is byte size only) |
 | E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
+| E28-2 H22 resolution | H22 resolved by contract Clarification A3 / design §6.1 (lossless opaque AST transport); H23 added and closed (normalization collapses unary nodes; not a defect) |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |

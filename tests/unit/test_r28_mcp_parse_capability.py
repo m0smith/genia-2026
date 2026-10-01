@@ -38,13 +38,33 @@ def _imports(path):
     return names
 
 
+def _split(text):
+    head, newline, fragment = text.partition("\n")
+    return json.loads(head), newline, fragment
+
+
 def test_success_returns_the_unchanged_normalized_ast():
-    reply = json.loads(_capability().parse_source("x = 1"))
-    assert reply == {"status": "parsed", "ast": parse_and_normalize("x = 1")["ast"]}
+    header, newline, fragment = _split(_capability().parse_source("x = 1"))
+    assert header == {"status": "parsed"} and newline == "\n"
+    assert json.loads(fragment) == parse_and_normalize("x = 1")["ast"]
+
+
+@pytest.mark.parametrize(
+    "literal",
+    ["9007199254740991", "9007199254740992", "123456789012345678901234567890"],
+)
+def test_integers_beyond_the_r9_range_are_lossless_json_number_tokens(literal):
+    # H22 / Clarification A3: exact integer tokens, never rounded or stringified.
+    _, _, fragment = _split(_capability().parse_source(literal))
+    assert fragment == '{"kind": "Literal","value": ' + literal + "}"
+    assert json.loads(fragment) == parse_and_normalize(literal)["ast"]
+    assert isinstance(json.loads(fragment)["value"], int)
 
 
 def test_syntax_error_returns_only_the_offset():
-    reply = json.loads(_capability().parse_source("f(x) = x | SENTINEL ="))
+    text = _capability().parse_source("f(x) = x | SENTINEL =")
+    assert "\n" not in text
+    reply = json.loads(text)
     assert set(reply) == {"status", "offset"}
     assert reply["status"] == "syntax_error"
     assert isinstance(reply["offset"], int)
@@ -76,9 +96,9 @@ def test_recursion_failure_is_internal_error():
     assert reply == {"status": "internal_error"}
 
 
-def test_reply_is_single_line_json_text():
+def test_reply_is_a_header_line_and_one_newline_free_ast_fragment():
     text = _capability().parse_source("x = 1\ny = 2")
-    assert isinstance(text, str) and "\n" not in text
+    assert isinstance(text, str) and text.count("\n") == 1
 
 
 def test_capability_and_bootstrap_import_only_narrow_dependencies():

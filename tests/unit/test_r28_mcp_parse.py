@@ -139,6 +139,77 @@ def test_parse_matches_the_existing_parse_surface(name, source):
     assert result["isError"] is (expected["status"] == "error")
 
 
+# --- H22 / Clarification A3: lossless AST transport beyond the R9 range -------------
+
+LARGE_INTEGER_SOURCES = [
+    "9007199254740991",
+    "9007199254740992",
+    "9007199254740993",
+    "123456789012345678901234567890",
+    "x = 123456789012345678901234567890",
+    "9007199254740992 + 123456789012345678901234567890",
+    "1\n9007199254740992",
+]
+
+
+def _digits(ast):
+    if isinstance(ast, dict):
+        for value in ast.values():
+            yield from _digits(value)
+    elif isinstance(ast, list):
+        for value in ast:
+            yield from _digits(value)
+    elif isinstance(ast, int) and not isinstance(ast, bool):
+        yield ast
+
+
+@pytest.mark.parametrize("source", LARGE_INTEGER_SOURCES)
+def test_large_integer_ast_matches_the_existing_parse_surface_exactly(source):
+    expected = parse_and_normalize(source)["ast"]
+    response = launcher_call(parse_request(source))
+    result = _tool_result(response)
+    envelope = result["structuredContent"]
+    assert envelope["status"] == "ok" and result["isError"] is False
+    assert envelope["result"] == {"kind": "parsed", "ast": expected}
+    assert envelope["error"] is None
+    # No integer-to-string mutation and no rounding: Python decodes integer tokens exactly.
+    assert sorted(_digits(envelope["result"]["ast"])) == sorted(_digits(expected))
+    assert all(type(n) is int for n in _digits(envelope["result"]["ast"]))
+
+
+@pytest.mark.parametrize(
+    "literal",
+    ["9007199254740991", "9007199254740992", "123456789012345678901234567890"],
+)
+def test_large_integer_is_an_exact_json_number_token_on_the_wire(literal):
+    out = run_launcher_raw([encode(parse_request(literal, 1))])
+    (line,) = frames(out.stdout)  # exactly one single-line frame
+    assert f'"value": {literal}'.encode() in line or f'"value":{literal}'.encode() in line
+    assert f'"{literal}"'.encode() not in line  # never stringified
+    # The text content item carries the same exact token (JSON-string-escaped).
+    text = json.loads(line)["result"]["content"][0]["text"]
+    assert f'"value": {literal}' in text and f'"{literal}"' not in text
+
+
+def test_small_and_large_integers_in_one_session_do_not_interfere():
+    messages = [
+        parse_request("9007199254740992", 1),
+        parse_request("x = 1", 2),
+        parse_request("y = = 2", 3),
+        parse_request("9007199254740992", 4),
+    ]
+    out = responses(run_launcher_raw([encode(m) for m in messages]))
+    assert out[0]["result"] == out[3]["result"]
+    assert out[1]["result"]["structuredContent"]["status"] == "ok"
+    assert out[2]["result"]["structuredContent"]["error"]["kind"] == "parse_error"
+
+
+def test_large_integer_ast_is_not_an_internal_error():
+    result = _tool_result(launcher_call(parse_request("123456789012345678901234567890")))
+    assert result["structuredContent"]["error"] is None
+    assert result["structuredContent"] != INTERNAL
+
+
 def test_parse_success_shape():
     result = _tool_result(launcher_call(parse_request("x = 1")))
     assert result["isError"] is False

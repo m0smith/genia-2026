@@ -13,6 +13,10 @@ architecture, authority, limit, or threat-model decision.
 Clarification A2 (issue #703, ledger entry R28-H19) narrowly places invalid Unicode
 at the JSON-RPC decoding boundary rather than in `genia_parse`; see section 15.
 
+Clarification A3 (issue #703, ledger entry R28-H22) states that the `genia_parse`
+`ast` is carried as a lossless JSON wire fragment and is not subject to the R9
+portable-JSON integer range; see section 16.
+
 ## 1. Purpose and boundary
 
 R28 publishes a small, governed Model Context Protocol (MCP) server authored
@@ -848,3 +852,33 @@ validate only values that successfully cross the JSON-RPC decoding boundary. A2
 does not loosen JSON decoding and changes no parser, evaluator, Genia language,
 MCP transport, or host semantics; it adds no tool, builtin, or capability, and it
 implements nothing.
+
+## 16. Clarification A3 (issue #703, R28 ledger entry R28-H22)
+
+Recorded during E28-2 implementation. Section 2.4 requires `ast` to be the existing
+normalized parse-surface JSON, unchanged. The parser accepts arbitrary-size Genia
+integer literals (R21 exact Integer source), so a normalized AST can hold an integer
+outside the R9 portable-JSON data range `[-9007199254740991, 9007199254740991]`.
+
+Three layers, deliberately kept separate:
+
+| Layer | Integer range |
+|---|---|
+| Genia language / normalized parser AST | unrestricted (unchanged) |
+| R9 portable JSON data boundary (`json_decode`, `json_encode`) | `[-9007199254740991, 9007199254740991]` (unchanged) |
+| `genia_parse` `ast` on the MCP/JSON-RPC wire | lossless: exact JSON integer tokens, never rounded and never stringified |
+
+`genia_parse` must return the normalized AST unchanged, including integer literals
+beyond the R9 range, as exact JSON number tokens. The AST is governed transport data
+that the host parse capability serializes losslessly and `mcp.genia` carries opaquely
+into the result; it is not decoded or re-encoded through the R9 JSON value domain.
+`mcp.genia` still owns capability invocation, status handling, error normalization,
+the source and result byte limits, and the envelope. The AST fragment is not a Genia
+value, and this adds no Genia builtin, JSON facility, integer type, or R9/R23 change.
+
+Not guaranteed: a client whose JSON decoder is IEEE-754-only (for example
+conventional JavaScript `JSON.parse`) may not preserve such integers as native
+numbers. That client-side representation is outside this contract.
+
+Sections changed: 2.4 (`ast` wire representation). No tool, resource, prompt,
+transport, authority, limit, or threat-model decision changes.

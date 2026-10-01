@@ -60,6 +60,12 @@ INDENT_PATTERNS = reverse(indent_patterns(0, "\n", []))
 
 squash(text) = reduce((t, sep) -> join("", split(t, sep)), text, INDENT_PATTERNS)
 
+# Fixed placeholders for the genia_parse splice (a quoted JSON string in the encoding).
+AST_SLOT_VALUE = "@@genia-ast-slot@@"
+STRUCT_SLOT_VALUE = "@@genia-structured-slot@@"
+AST_SLOT = concat(concat("\"", AST_SLOT_VALUE), "\"")
+STRUCT_SLOT = concat(concat("\"", STRUCT_SLOT_VALUE), "\"")
+
 INTERNAL_FRAME = "{\"error\": {\"code\": -32603,\"message\": \"Internal error\"},\"jsonrpc\": \"2.0\"}"
 
 finish(o) =
@@ -297,24 +303,62 @@ call_capabilities(c) =
 
 call_parse(c) =
   k ? parse_arguments_ok(k) == false -> invalid_params(k) |
-  k -> result_response(k, parse_result(k, field(args_of(k), "source")))
+  k -> parse_response(k, parse_result(k, field(args_of(k), "source")))
+
+# parse_result yields [result, structured]. `structured` is "" for an ordinary result.
+# For a parsed AST it is the final single-line structuredContent text (see below), and
+# the result carries a placeholder where that text goes.
+parse_response(c, pair) =
+  (k, [r, ""]) -> result_response(k, r) |
+  (k, [r, s]) -> {genia_splice: [result_response(k, r), s]}
 
 # genia_parse: size policy is native; only the parser itself is host-provided.
 parse_result(c, source) =
-  (k, src) ? byte_length(src) > SOURCE_MAX_BYTES -> tool_result(k, error_envelope("input_limit", "protocol", "Genia source exceeds the 262144-byte limit")) |
-  (k, src) -> parse_reply(k, json_decode((map_get(map_get(k, "host"), "parse"))(src)))
+  (k, src) ? byte_length(src) > SOURCE_MAX_BYTES -> parse_plain(k, error_envelope("input_limit", "protocol", "Genia source exceeds the 262144-byte limit")) |
+  (k, src) -> parse_reply(k, split((map_get(map_get(k, "host"), "parse"))(src), "\n"))
 
-# Interpret the host capability's closed reply natively.
-parse_reply(c, decoded) =
-  (k, some(Json(r), _)) -> parse_status(k, field(r, "status"), r) |
-  (k, _) -> tool_result(k, parse_internal())
+parse_plain(c, envelope) = [tool_result(c, envelope), ""]
 
 parse_internal() = error_envelope("internal_error", "adapter", "Internal error while parsing")
 
-parse_status(c, status, r) =
-  (k, "parsed", reply) ? present(reply, "ast") -> tool_result(k, parsed_envelope(field(reply, "ast"))) |
-  (k, "syntax_error", reply) -> tool_result(k, syntax_error_envelope(field(reply, "offset"))) |
-  (k, _, _) -> tool_result(k, parse_internal())
+# H22 / contract Clarification A3: the AST is lossless opaque transport text. The host
+# capability replies with a small JSON header, and for a parsed source a newline and
+# the AST text. Only the header is decoded here (json_decode); the AST text is never
+# decoded or re-encoded, so integers outside the R9 portable-JSON range (+/-(2^53-1))
+# cross unchanged. This is a local string splice for genia_parse, not a Genia facility.
+parse_reply(c, parts) =
+  (k, [head, ast]) -> parse_parsed(k, json_decode(head), ast) |
+  (k, [head]) -> parse_head(k, json_decode(head)) |
+  (k, _) -> parse_plain(k, parse_internal())
+
+parse_head(c, decoded) =
+  (k, some(Json(r), _)) ? field(r, "status") == "syntax_error" -> parse_plain(k, syntax_error_envelope(field(r, "offset"))) |
+  (k, _) -> parse_plain(k, parse_internal())
+
+parsed_header_ok(r) = field(r, "status") == "parsed" && object_size(r) == 1
+
+# The AST must be an object or array text.
+fragment_ok(a) =
+  (starts_with(a, "{") && ends_with(a, "}")) || (starts_with(a, "[") && ends_with(a, "]"))
+
+parse_parsed(c, decoded, ast) =
+  (k, some(Json(r), _), a) ? parsed_header_ok(r) && fragment_ok(a) -> parsed_slotted(k, a, split(squash(unwrap_or("", json_encode(parsed_envelope(AST_SLOT_VALUE)))), AST_SLOT)) |
+  (k, _, _) -> parse_plain(k, parse_internal())
+
+parsed_slotted(c, ast, parts) =
+  (k, a, [before, after]) -> parsed_structured(k, join(a, [before, after])) |
+  (k, _, _) -> parse_plain(k, parse_internal())
+
+# The result limit is measured on the final single-line structuredContent text.
+parsed_structured(c, structured) =
+  (k, s) ? byte_length(s) > RESULT_MAX_BYTES -> [limited_result(k), ""] |
+  (k, s) -> [{
+    resultType: "complete",
+    content: [{type: "text", text: s}],
+    structuredContent: STRUCT_SLOT_VALUE,
+    isError: false,
+    "_meta": result_meta(k)
+  }, s]
 
 parsed_envelope(ast) = {
   schema_version: "genia.mcp.v1",
@@ -381,7 +425,17 @@ handle_decoded(pair) =
 # Outcome-or-response -> optional output line.
 to_line(m) =
   "" -> "" |
+  x ? present(x, "genia_splice") -> splice_line(field(x, "genia_splice")) |
   x -> frame(x)
+
+# Insert the already-built structuredContent text at its placeholder in the frame.
+splice_line(pair) =
+  [message, structured] -> splice_frame(split(frame(message), STRUCT_SLOT), structured) |
+  _ -> INTERNAL_FRAME
+
+splice_frame(parts, structured) =
+  ([before, after], s) -> join(s, [before, after]) |
+  (_, _) -> INTERNAL_FRAME
 
 handle_line(boot, line) =
   to_line(handle_decoded([boot, json_decode(line)]))
