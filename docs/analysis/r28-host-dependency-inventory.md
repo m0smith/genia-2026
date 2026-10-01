@@ -415,6 +415,52 @@ pre-flight, when promoted), **raised in**.
   make the MCP AST richer without any MCP change.
 - Raised in: E28-2 implementation (H22 follow-up).
 
+**R28-H24 — No restricted-authority evaluation profile in Genia**
+- Class: **B**. Status: `open`.
+- Evidence: in command mode `read_file("/etc/hostname")` succeeds; the default global
+  environment has 241 bindings of which roughly 45 are authority-bearing (`read_file`,
+  `write_file`, `_http_send`, `_spawn`, `_execution_process`, `zip_*`, `resource_*`,
+  config/secret/model/retrieve bindings, `sleep`), and prelude autoloads (`file`, `web`,
+  `process`, `execution`, `resource`) add more. `make_global_env` accepts sink and
+  provider overrides but no allowlist/denylist.
+- Workaround (E28-3 design): the host worker prunes the environment and autoload table
+  before evaluation (decision D1/D2 pending).
+- Usefulness beyond MCP: high (any untrusted-source consumer).
+- Disposition: preserve evidence; the E28-6 audit decides whether a general
+  capability-restricted environment facility is worth a proposal.
+- Raised in: E28-3 design.
+
+**R28-H25 — Normalized parse AST is too coarse for MCP policy**
+- Class: **N/B** (consequence of H23). Status: `open`.
+- Evidence: `read_file("x")` normalizes to `{"kind": "Call"}` and `import web` to
+  `{"kind": "ImportStmt"}`; callees and import targets are not in the normalized AST,
+  so contract section 3's native "policy over normalized parse data" cannot detect
+  prohibited calls or imports.
+- Workaround (E28-3 design): policy over the raw parser AST inside the host worker
+  (decision D1).
+- Disposition: decision required; parse-normalization expansion is a separate
+  parse-spec follow-up (see H23).
+- Raised in: E28-3 design.
+
+**R28-H26 — `execution.process` cannot launch the E28-3 worker**
+- Class: **A** (refines H04, H06, H07). Status: `open`.
+- Evidence: stdin is `DEVNULL`, argv elements cap near 128 KiB (source limit is
+  262,144 bytes), the executable is a host-bound symbol, and the call is one
+  synchronous operation (STATE 9.40).
+- Workaround (E28-3 design): a new narrow host supervisor with a stdin pipe, deadline,
+  and incremental byte counting, leaving `execution.process` unchanged (decision D2).
+- Disposition: decision required.
+- Raised in: E28-3 design.
+
+**R28-H27 — Cancellation cannot be honored by the native stdin loop**
+- Class: **B** (refines H08, H09). Status: `open`.
+- Evidence: `serve_lines` processes one request synchronously; a
+  `notifications/cancelled` message sits unread in stdin while `genia_run` blocks.
+  Contract section 5 requires cancellation to terminate and reap the worker.
+- Workaround: none chosen; options in the E28-3 design (decision D3).
+- Disposition: decision required.
+- Raised in: E28-3 design.
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -449,6 +495,7 @@ pre-flight, when promoted), **raised in**.
 | E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
 | E28-2 H22 resolution | H22 resolved by contract Clarification A3 / design §6.1 (lossless opaque AST transport); H23 added and closed (normalization collapses unary nodes; not a defect) |
 | E28-2 documentation | `GENIA_STATE.md` section 9.42 added; H17, H18, H20 dispositions updated to implemented (still `open` for the E28-6 audit); no further entries added |
-| E28-3 | _not started — expected to update H04–H09_ |
+| E28-3 design | H24–H27 added (restricted-profile gap, coarse normalized AST, supervisor vs `execution.process`, cancellation); H04, H06–H09 refined; decisions D1–D4 pending |
+| E28-3 | _failing tests and implementation not started — blocked on design decisions_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |
