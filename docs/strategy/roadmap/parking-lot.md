@@ -35,14 +35,22 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - deployment may eventually use Ansible, Terraform, Kubernetes, cloud APIs, or another provisioning mechanism; none is part of Genia semantics
   - host portability and execution distribution are separate axes
   - do not create implementation tickets until a concrete workflow demonstrates the need and a contract answers the semantic questions in `docs/architecture/execution-realization.md`
-- open-function declaration ergonomics — **promoted to an R20 follow-up design candidate**
+- unified Function model and open-function repairs — **promoted as the primary R20 follow-up; issue #1067**
+  - schedule after R28 and before R29 without assigning a new release number or expanding R28
+  - preserve ordinary functions as closed by default and preserve `open` as the explicit declaration that an API is a cross-module extension point
+  - first re-validate and repair the concrete R20 defects recorded by PR #1066: contribution identity/storage and export leakage, open-function/view TCO, per-stratum Outcome/none-awareness, grouped-header binder behavior, open docstrings, and diagnostics
+  - gate module entry-scope isolation separately because it affects the broader module model and needs a compatibility survey
+  - only after those repairs, contract/design a single internal Function/Clause dispatch model if evidence still shows a material simplification; do not require a breaking portable Core IR change
+  - preserve `extend` and `use` semantics unless a separately approved contract changes them
+  - require shared conformance evidence and exact Python/C++ capability claims for every portable semantic repair
+  - defer breaking Core IR consolidation to R41 or another separately approved versioned-IR gate
+  - `docs/analysis/unified-function-model-contract-gate-DRAFT.md` is proposed/non-authoritative input; #1067 is GO for contract/evidence and NO-GO for implementation until its missing decisions/evidence are closed
+- open-function declaration ergonomics — **optional later R20 surface-design candidate, subordinate to #1067**
   - keep ordinary functions closed by default; do not make every function an open multimethod
   - preserve the architectural meaning of `open`: the declaring API is intentionally an extension point
-  - first investigate clause-less declarations such as `open f(x)`
-  - then investigate grouped `open { ... }` as declaration-only shorthand with no protocol/group identity
-  - grouped syntax must lower to independent R20 open interfaces and must not change dispatch, ambiguity, provenance, linking, `extend`, or `use`
+  - clause-less declarations such as `open f(x)` and grouped declaration shorthand may be reconsidered only after #1067 settles the underlying Function model
+  - any syntax work requires its own gate and must not change dispatch, ambiguity, provenance, linking, `extend`, or `use` implicitly
   - protocols, traits, typeclasses, implementation blocks, nominal interface identity, implicit conformance, and receiver dispatch remain parked separately
-  - no release number is assigned; this is a follow-up to completed R20 and must pass the normal gates before implementation
 - open functions / extensible pattern dispatch — **promoted to planned R20**
   - R20 now owns the local repeated-clause and explicit cross-module extension contract described in [`r16-r20.md`](r16-r20.md)
   - historical motivating local example:
