@@ -106,6 +106,52 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - R28 may improve local project/tooling ergonomics but must not introduce package-distribution semantics without separate ecosystem pressure and its own contract/process work
 - **#102** — broad scope; should be split into smaller targeted tickets or updated before use as a release tracker; do not use as a release blocker in its current form
 
+## Selective Non-Strict Evaluation / Call-by-Need
+
+**Classification:** Follow-up candidate; release unassigned.
+
+**Problem:** Genia's boolean `&&` and `||` currently motivate expected
+short-circuit behavior, but implementing those operators as isolated evaluator
+special cases may miss a more composable language feature.
+
+**Research direction:** keep Genia eager by default while investigating
+selectively non-strict parameters with call-by-need behavior. A delayed
+argument would not be evaluated before the call, would be evaluated only if the
+callee demands it, and would be evaluated at most once. This is a design
+hypothesis, not approved behavior.
+
+The pre-flight must compare at least:
+
+- direct `&&`/`||` short-circuit special-casing
+- explicit thunk/closure APIs
+- macro/special-form approaches
+- selective call-by-name parameters
+- selective call-by-need parameters
+- global non-strict/normal-order evaluation as a control case, not the presumed
+  Genia direction
+
+Required semantic questions include evaluation order and at-most-once
+guarantees; how skipped expressions suppress effects, errors, and capability
+acquisition; interaction with ordinary `none`/`err` propagation and
+`apply_raw`; lexical-environment capture; lifecycle expiration and authority
+retention; protected-value non-leakage; whether delayed computations may
+escape; diagnostic behavior; Core IR representation; and identical portable
+behavior across Python and C++ hosts.
+
+The first proving cases should include `false && rhs` and `true || rhs`
+without evaluating `rhs`, plus demanded cases that evaluate `rhs` exactly
+once. Tests must also cover skipped errors/effects, Outcome interactions,
+lifecycle/capability boundaries, nesting/precedence, and shared-host
+conformance.
+
+**Non-goals:** this entry does not approve global laziness, normal-order
+evaluation, a first-class Promise/Delay value, new truthiness rules, operator
+overloading, syntax, Core IR nodes, or a release number. It must not expand R28.
+
+Promotion requires a Genia Change Pre-Flight, best-in-breed language survey,
+architecture decision, contract, failing shared specs, implementation,
+documentation synchronization, and skeptical truth audit.
+
 ## Promoted post-R24 data-workflow work
 
 The following ideas are no longer parking-lot-only and now have planned release homes in [`r25-r29.md`](r25-r29.md):
