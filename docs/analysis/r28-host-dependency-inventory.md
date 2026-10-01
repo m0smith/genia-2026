@@ -253,6 +253,63 @@ pre-flight, when promoted), **raised in**.
   only after that.
 - Raised in: E28-1 implementation; refined in E28-1 documentation.
 
+
+**R28-H17 — Genia source cannot reach the parser**
+- Class: **A**. Status: `open`.
+- Evidence: no Genia-visible `parse`/`read` facility exists (probed builtins and
+  prelude; metacircular `eval` works on quoted values). E28-0 §1 forbids R28 from
+  adding a builtin or prelude function. The approved parse surface is
+  `hosts/python/parse_adapter.parse_and_normalize`.
+- Workaround (E28-2 design): one host capability returning JSON text, provisioned
+  as an explicit argument to `serve(revision, host)`; no ambient binding.
+- Hosts: Python; a C++ host would provide the same capability over its parser.
+- Usefulness beyond MCP: a Genia-level "parse to normalized data" facility could
+  serve tooling, but nothing here proposes one.
+- Disposition: keep behind the narrow boundary; audit decides whether a general
+  facility is worth a proposal.
+- Raised in: E28-2 design.
+
+**R28-H18 — No code-point length or substring helpers**
+- Class: **B**. Status: `open`.
+- Evidence: `length("héllo")` and `substring`/`slice`/`chars` are unavailable;
+  `byte_length` exists. Contract §2.4 names a character `maxLength` guard, and
+  parse diagnostics would ideally give line/column.
+- Workaround: the byte limit check subsumes the character guard (more than
+  262,144 chars implies more than 262,144 bytes); diagnostics report a character
+  offset only.
+- Usefulness beyond MCP: high (text processing in general).
+- Disposition: preserve evidence for the audit.
+- Raised in: E28-2 design.
+
+**R28-H19 — Contract §2.4 invalid-Unicode wording vs strict JSON decoding**
+- Class: **N (contract wording)**. Status: `open` — **blocks E28-2 failing tests**.
+- Evidence: a request whose `source` holds invalid Unicode is rejected by strict
+  `json_decode` as malformed JSON (`-32700`) before dispatch, so `input_limit` for
+  invalid Unicode (contract §2.4) cannot be produced.
+- Disposition: proposed narrow Clarification A2 (E28-2 design §6); resolve in a
+  contract phase before tests are written.
+- Raised in: E28-2 design.
+
+**R28-H20 — Capability provisioning needs an in-process host bootstrap**
+- Class: **A** (relates to H05). Status: `open`.
+- Evidence: CLI file mode passes only strings to `main(args)`; a host-built
+  capability can reach `mcp.genia` only if the host loads the program in-process and
+  calls a Genia function with it, as `hosts/python/exec_ollama_chat.py` already does.
+- Workaround (E28-2 design): the launcher loads `mcp.genia` and calls
+  `serve(revision, {parse: capability})`; CLI mode calls `serve(revision, {})` and
+  advertises only `genia_capabilities`.
+- Removable code: the bootstrap, if a general Genia capability-provisioning
+  mechanism lands (see H05).
+- Disposition: keep as the explicit provisioning boundary for R28; the audit
+  decides together with H05 whether a general mechanism is worth a proposal.
+- Raised in: E28-2 design.
+
+**R28-H21 — Stale #703 wording ("official MCP client contract tests")**
+- Class: **N (process/documentation drift)**. Status: `open`.
+- Evidence: #703 predates the native-Genia architecture (same drift as H13).
+- Disposition: correct the issue text to the raw JSON-RPC harness (no SDK).
+- Raised in: E28-2 design.
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -282,6 +339,7 @@ pre-flight, when promoted), **raised in**.
 | E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
 | E28-1 implementation | H09 (`lines`/UTF-8 verified), H10 (launcher implemented), H12 (syntax observations) updated; H15, H16 added |
 | E28-1 documentation | H16 refined and closed (a: documented in STATE; b: captured as parking-lot follow-up via PR #1059); `GENIA_STATE.md` section 9.41 added |
+| E28-2 design | H17, H18, H19 (blocking contract item), H20, H21 added |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |
