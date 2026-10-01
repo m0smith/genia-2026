@@ -42,6 +42,8 @@ ALLOWED_ENV_KEYS = {
     "LANG",
     "LC_ALL",
     "SYSTEMROOT",
+    "LD_LIBRARY_PATH",
+    "DYLD_LIBRARY_PATH",
 }
 
 
@@ -156,6 +158,17 @@ def test_server_environment_is_a_fixed_allowlist(monkeypatch):
     assert set(env) <= ALLOWED_ENV_KEYS
     assert "SECRET_TOKEN_SENTINEL" not in env and "HOME" not in env
     assert all("s3cr3t" not in value for value in env.values())
+
+
+def test_server_environment_keeps_the_dynamic_loader_path(monkeypatch):
+    # A shared-library Python (for example actions/setup-python on a self-hosted
+    # runner) cannot start without its loader path: it is launch plumbing only.
+    launcher = _launcher()
+    monkeypatch.setenv("LD_LIBRARY_PATH", "/opt/python/lib")
+    monkeypatch.setenv("DYLD_LIBRARY_PATH", "/opt/python/lib")
+    env = launcher.server_environment(dict(os.environ))
+    assert env["LD_LIBRARY_PATH"] == "/opt/python/lib"
+    assert env["DYLD_LIBRARY_PATH"] == "/opt/python/lib"
 
 
 def test_launcher_end_to_end_reports_the_repository_revision():
