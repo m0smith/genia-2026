@@ -227,7 +227,7 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-1 implementation.
 
 **R28-H16 — `none(...)` call short-circuit (documented) and eager `&&`/`||` (undocumented)**
-- Class: **N (language behavior, observed)**. Status: `open` (part b).
+- Class: **N (language behavior, observed)**. Status: `closed` (captured outside R28).
 - Evidence: (a) `nil` is `none("nil")`; an ordinary function called with a `none(...)`
   argument is not run unless its arms handle `none`, so validity predicates return
   `none(...)` instead of `false` (`is_object(nil)` → `none("nil")`). This **is
@@ -240,10 +240,13 @@ pre-flight, when promoted), **raised in**.
   accessors (`norm`, `field`, `present`) and guard arms instead of `&&` for
   safety checks.
 - Workaround: the total accessors in `mcp.genia`. Hosts: Python observed.
-- Disposition: R28 documents nothing about `&&`/`||` (that would be a language
-  documentation change outside R28). Retain as evidence; the final audit decides
-  whether it is a documentation gap or a semantic question, through the normal
-  process. No language change proposed.
+- Disposition: (b) is captured outside R28 as the parking-lot follow-up candidate
+  "Selective Non-Strict Evaluation / Call-by-Need" (`docs/strategy/roadmap/parking-lot.md`,
+  merged via PR #1059), which uses `false && rhs` / `true || rhs` as its first proving
+  case and requires its own pre-flight. R28 changes and documents nothing about
+  `&&`/`||`; this entry is evidence for that candidate. Its workaround in
+  `mcp.genia` (total accessors) remains until such a feature lands; it is removable
+  only after that.
 - Raised in: E28-1 implementation; refined in E28-1 documentation.
 
 ### Process / documentation drift
@@ -274,7 +277,7 @@ pre-flight, when promoted), **raised in**.
 | E28-1 design + failing tests | H01–H14 seeded; H03, H11, H12 closed on evidence |
 | E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
 | E28-1 implementation | H09 (`lines`/UTF-8 verified), H10 (launcher implemented), H12 (syntax observations) updated; H15, H16 added |
-| E28-1 documentation | H16 refined (a: documented, closed; b: eager `&&`/`||` undocumented, open); `GENIA_STATE.md` section 9.41 added |
+| E28-1 documentation | H16 refined and closed (a: documented in STATE; b: captured as parking-lot follow-up via PR #1059); `GENIA_STATE.md` section 9.41 added |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |
