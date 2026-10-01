@@ -91,6 +91,22 @@ validation (a callable under a known key) happens in `mcp.genia`.
 - result limit: if the encoded result envelope exceeds 3,276,800 bytes →
   `result_limit` envelope, AST discarded.
 
+### 3.4 Pinned names and fixed messages (for the failing tests)
+
+| Item | Value |
+|---|---|
+| Host capability | `hosts/python/mcp_parse_capability.py`, `parse_source(source: str) -> str` (JSON text, §3.1) |
+| In-process bootstrap | `hosts/python/mcp_host.py`; the launcher's child command becomes `python -c "<runs hosts.python.mcp_host>" <apps/mcp/mcp.genia> <revision>` |
+| Native entry | `serve(revision, host)`; CLI `main(args)` calls `serve(revision, {})` |
+| Parse success | `status: "ok"`, `result: {kind: "parsed", ast}`, `error: null` |
+| Parse failure | `kind: "parse_error"`, `phase: "parse"`, message `Genia source failed to parse at character offset N`, or `Genia source failed to parse` when no offset |
+| Oversized source | `kind: "input_limit"`, `phase: "protocol"`, message `Genia source exceeds the 262144-byte limit` |
+| Oversized result | `kind: "result_limit"`, `phase: "adapter"`, message `Result exceeds the 3276800-byte limit` |
+| Capability failure | `kind: "internal_error"`, `phase: "adapter"`, message `Internal error while parsing` |
+
+The source byte limit is checked before the capability is called. The result limit is
+measured on the single-line JSON encoding of the result envelope (`structuredContent`).
+
 ## 4. Native vs host ledger (E28-2 slice)
 
 | # | Responsibility | Class | Note |
