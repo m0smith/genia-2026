@@ -253,6 +253,22 @@ pre-flight, when promoted), **raised in**.
   only after that.
 - Raised in: E28-1 implementation; refined in E28-1 documentation.
 
+
+**R28-H19 — Contract §2.4 invalid-Unicode wording vs strict JSON decoding**
+- Class: **N (contract wording)**. Status: `closed` (resolved by Clarification A2).
+- Evidence: contract §2.4 required `genia_parse` to return `input_limit` for invalid
+  Unicode input. On the live E28-1 server, a request containing a lone surrogate
+  escape (`"\ud800"`) is rejected by strict `json_decode`
+  (`invalid_json_unicode`) and answered with JSON-RPC `-32700` before any tool is
+  dispatched, so that `input_limit` case cannot exist.
+- Disposition: resolved by contract **Clarification A2** (contract §2.4, §7.1, §15).
+  Malformed JSON, including invalid Unicode, is `-32700` at the protocol boundary
+  and invokes no tool; `genia_parse` `input_limit` applies only to a well-formed
+  decoded `source` over 262,144 UTF-8 bytes. Strict JSON decoding is unchanged.
+  Raised by the E28-2 design (commit `33e77a2`, not yet on `main`, which also
+  records H17, H18, H20, H21); it blocked E28-2 failing tests until A2.
+- Raised in: E28-2 design. Resolved in: E28-0 Clarification A2 (issue #703).
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -282,6 +298,7 @@ pre-flight, when promoted), **raised in**.
 | E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
 | E28-1 implementation | H09 (`lines`/UTF-8 verified), H10 (launcher implemented), H12 (syntax observations) updated; H15, H16 added |
 | E28-1 documentation | H16 refined and closed (a: documented in STATE; b: captured as parking-lot follow-up via PR #1059); `GENIA_STATE.md` section 9.41 added |
+| E28-0 Clarification A2 | H19 recorded and closed (invalid Unicode is `-32700` at the JSON-RPC boundary; `input_limit` is byte size only) |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |
