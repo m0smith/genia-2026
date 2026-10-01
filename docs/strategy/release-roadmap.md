@@ -60,10 +60,24 @@ contract, design, failing-test, implementation, documentation, audit, and
 distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
-## Promoted R20 follow-up
+## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
-Open-function declaration ergonomics is promoted as an R20 follow-up design
-candidate; scope and guardrails live in [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
+Issue #1067 is the primary promoted R20 follow-up. It re-validates and repairs
+the completed R20 open-function implementation, then gates a narrower internal
+unification around one Function/Clause model while preserving `open` as the
+explicit declaration of cross-module extensibility.
+
+Planning placement is **after R28 and before R29**, without assigning a new
+release number or expanding R28. The follow-up is staged: defect repairs first,
+module entry-scope isolation separately, then the unified Function contract and
+runtime work only if the evidence still supports it, followed by shared/C++
+conformance. Breaking Core IR consolidation remains deferred to R41 or another
+separately approved versioned-IR gate.
+
+The older open-function declaration-ergonomics idea remains an optional later
+surface-design candidate. It must not compete with or silently broaden #1067.
+See [`roadmap/parking-lot.md`](roadmap/parking-lot.md) and
+`docs/analysis/unified-function-model-contract-gate-DRAFT.md`.
 
 ## Current state
 
@@ -90,6 +104,7 @@ Planning issue #845 records the decision not to merge PR #839 as one giant exact
 - **R26 — C++ REPL and Data Bridges**
 - **R27 — C++ Flow and Pipe Mode**
 - **R28 — Genia MCP Server**
+- **R20 follow-up — Unified Function Model and Open-Function Repairs** (issue #1067; unnumbered; scheduled after R28 and before R29)
 - **R29 — Sheet Record Pipelines**
 - **R30 — Sheet Shaped Computation**
 - **R31 — Relational Sheet Operations**
