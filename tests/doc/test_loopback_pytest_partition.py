@@ -31,6 +31,12 @@ EXPECTED_LOOPBACK_TESTS = {
     "tests/unit/test_r14_youversion_bible_proxy_proving_case_628.py::test_protected_credential_never_leaks_through_response_or_audit",
     "tests/unit/test_r14_cross_mode_hardening_696.py::test_serve_mode_annotation_registration_never_self_executes",
     "tests/unit/test_r14_cross_mode_hardening_696.py::test_combined_server_request_outbound_client_resilience_without_network",
+    # Port allocator for the tests above (tests/fixtures/loopback.py); binds loopback sockets.
+    "tests/unit/test_loopback_ports.py::test_ports_are_below_the_ephemeral_range",
+    "tests/unit/test_loopback_ports.py::test_worker_blocks_are_disjoint_and_below_the_ephemeral_range",
+    "tests/unit/test_loopback_ports.py::test_consecutive_ports_differ_so_a_test_can_take_several",
+    "tests/unit/test_loopback_ports.py::test_a_port_held_by_another_socket_is_skipped",
+    "tests/unit/test_loopback_ports.py::test_non_xdist_runs_use_the_first_block",
 }
 
 
