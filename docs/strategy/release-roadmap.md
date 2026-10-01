@@ -62,22 +62,12 @@ distillation gates. Detailed parking-lot disposition is recorded in
 
 ## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
-Issue #1067 is the primary promoted R20 follow-up. It re-validates and repairs
-the completed R20 open-function implementation, then gates a narrower internal
-unification around one Function/Clause model while preserving `open` as the
-explicit declaration of cross-module extensibility.
-
-Planning placement is **after R28 and before R29**, without assigning a new
-release number or expanding R28. The follow-up is staged: defect repairs first,
-module entry-scope isolation separately, then the unified Function contract and
-runtime work only if the evidence still supports it, followed by shared/C++
-conformance. Breaking Core IR consolidation remains deferred to R41 or another
-separately approved versioned-IR gate.
-
-The older open-function declaration-ergonomics idea remains an optional later
-surface-design candidate. It must not compete with or silently broaden #1067.
-See [`roadmap/parking-lot.md`](roadmap/parking-lot.md) and
-`docs/analysis/unified-function-model-contract-gate-DRAFT.md`.
+Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and
+before R29** without a new release number or R28 scope expansion. It preserves
+`open` as explicit cross-module extensibility and keeps ordinary functions
+closed by default. Detailed staging and guardrails live in
+[`roadmap/sequence.md`](roadmap/sequence.md) and
+[`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
 ## Current state
 
