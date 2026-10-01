@@ -97,6 +97,7 @@ jobs:
             genia-dev:host-parity bash -lc '
               set -euo pipefail
               python -m uv run --python python python -m tools.spec_runner \
+                --verbose \
                 --host "python -m hosts.python.protocol_adapter" \
                 --evidence /runner-temp/python-evidence.json
             '
