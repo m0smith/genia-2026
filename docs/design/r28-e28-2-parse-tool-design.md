@@ -1,6 +1,7 @@
 # R28 E28-2 — `genia_parse` Tool: Design
 
-Status: **Design approved (issue #703, epic #700); contract Clarification A2 resolves
+Status: **Implemented (Python reference host; see `GENIA_STATE.md` section 9.42).
+Design approved (issue #703, epic #700); contract Clarification A2 resolves
 its blocking item (§6); Clarification A3 and §6.1 amend AST transport (H22).**
 `GENIA_STATE.md` remains final authority (E28-1 behavior: section 9.41). Governing
 contract: `docs/design/r28-genia-mcp-contract-threat-model.md` §2.2, §2.4, §5, §7.1,

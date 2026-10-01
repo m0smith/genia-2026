@@ -265,7 +265,8 @@ pre-flight, when promoted), **raised in**.
 - Hosts: Python; a C++ host would provide the same capability over its parser.
 - Usefulness beyond MCP: a Genia-level "parse to normalized data" facility could
   serve tooling, but nothing here proposes one.
-- Disposition: keep behind the narrow boundary; audit decides whether a general
+- Disposition: implemented as designed (E28-2: `hosts/python/mcp_parse_capability.py`,
+  no builtin added); stays `open` for the E28-6 audit, which decides whether a general
   facility is worth a proposal.
 - Raised in: E28-2 design.
 
@@ -278,7 +279,8 @@ pre-flight, when promoted), **raised in**.
   262,144 chars implies more than 262,144 bytes); diagnostics report a character
   offset only.
 - Usefulness beyond MCP: high (text processing in general).
-- Disposition: preserve evidence for the audit.
+- Disposition: workaround implemented in E28-2 (byte-limit check native; diagnostics
+  are a character offset only, no line/column); evidence preserved for the E28-6 audit.
 - Raised in: E28-2 design.
 
 **R28-H19 — Contract §2.4 invalid-Unicode wording vs strict JSON decoding**
@@ -306,8 +308,9 @@ pre-flight, when promoted), **raised in**.
   advertises only `genia_capabilities`.
 - Removable code: the bootstrap, if a general Genia capability-provisioning
   mechanism lands (see H05).
-- Disposition: keep as the explicit provisioning boundary for R28; the audit
-  decides together with H05 whether a general mechanism is worth a proposal.
+- Disposition: implemented in E28-2 (`hosts/python/mcp_host.py`, explicit
+  `serve(revision, host)` argument); kept as the provisioning boundary for R28. The
+  E28-6 audit decides together with H05 whether a general mechanism is worth a proposal.
 - Raised in: E28-2 design.
 
 **R28-H21 — Stale #703 wording ("official MCP client contract tests")**
@@ -445,7 +448,7 @@ pre-flight, when promoted), **raised in**.
 | E28-0 Clarification A2 | H19 recorded and closed (invalid Unicode is `-32700` at the JSON-RPC boundary; `input_limit` is byte size only) |
 | E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
 | E28-2 H22 resolution | H22 resolved by contract Clarification A3 / design §6.1 (lossless opaque AST transport); H23 added and closed (normalization collapses unary nodes; not a defect) |
-| E28-2 | _not started — must read and update this ledger_ |
+| E28-2 documentation | `GENIA_STATE.md` section 9.42 added; H17, H18, H20 dispositions updated to implemented (still `open` for the E28-6 audit); no further entries added |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |
