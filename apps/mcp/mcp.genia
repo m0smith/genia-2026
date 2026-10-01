@@ -8,7 +8,10 @@
 # docs/design/r28-genia-mcp-contract-threat-model.md (sections 2, 7.1, 14) and
 # docs/design/r28-e28-1-native-mcp-skeleton-design.md.
 #
-# E28-1 intermediate surface: exactly one tool, genia_capabilities.
+# Surface: genia_capabilities always; genia_parse (E28-2) only when the host
+# provisions the `parse` capability as an explicit argument to serve(revision, host)
+# (docs/design/r28-e28-2-parse-tool-design.md). Plain file mode calls serve(rev, {}),
+# so it advertises only genia_capabilities. The execution tool belongs to E28-3.
 
 pattern Json(value) = representation_match("json", value)
 
@@ -40,7 +43,22 @@ META_CAPABILITIES = "io.modelcontextprotocol/clientCapabilities"
 
 # ---- JSON framing: one protocol line per message ----
 
-squash(text) = split(text, "\n") |> map(trim) |> join("")
+# json_encode emits one member per line, indented two spaces per nesting level, and
+# string values never contain a literal newline. Removing every "newline + indent"
+# pattern from the deepest level (Genia's JSON nesting limit is 128 containers) up
+# to the shallowest yields the same single line as trimming every line, in 129
+# native passes instead of one call per line (which is quadratic on large values).
+# The patterns are built once at load time.
+SQUASH_DEEPEST = 128
+
+indent_patterns(k, cur, acc) =
+  (n, c, a) ? n > SQUASH_DEEPEST -> a |
+  (n, c, a) -> indent_patterns(n + 1, concat(c, "  "), append(a, [c]))
+
+# Longest first, so a shorter pattern never cuts a longer one.
+INDENT_PATTERNS = reverse(indent_patterns(0, "\n", []))
+
+squash(text) = reduce((t, sep) -> join("", split(t, sep)), text, INDENT_PATTERNS)
 
 INTERNAL_FRAME = "{\"error\": {\"code\": -32603,\"message\": \"Internal error\"},\"jsonrpc\": \"2.0\"}"
 
@@ -94,6 +112,16 @@ result_meta(c) = {"io.modelcontextprotocol/serverInfo": server_info(c)}
 # ---- capability values ----
 
 TOOL_NAMES = ["genia_capabilities"]
+PARSE_TOOL_NAMES = ["genia_capabilities", "genia_parse"]
+SOURCE_MAX_BYTES = 262144
+RESULT_MAX_BYTES = 3276800
+
+# The host map holds provisioned capabilities; parse is advertised only if present.
+parse_enabled(c) = map_has?(map_get(c, "host"), "parse")
+
+tool_names(c) =
+  k ? parse_enabled(k) -> PARSE_TOOL_NAMES |
+  _ -> TOOL_NAMES
 
 EXECUTION_PROFILE = {
   name: "source-only-isolated-v1",
@@ -116,7 +144,7 @@ capabilities_value(c) = {
   genia: {host: "python-reference",
           contract_revision: map_get(c, "rev"),
           portable_mcp_implementation: false},
-  tools: TOOL_NAMES,
+  tools: tool_names(c),
   execution_profile: EXECUTION_PROFILE
 }
 
@@ -133,6 +161,17 @@ tool_descriptor = {
   inputSchema: {type: "object", additionalProperties: false, properties: {}}
 }
 
+parse_descriptor = {
+  name: "genia_parse",
+  description: "Parse explicit Genia source text and return the existing normalized parse output, or a bounded parse diagnostic. Parsing never evaluates the source.",
+  inputSchema: {type: "object", additionalProperties: false, required: ["source"],
+                properties: {source: {type: "string", maxLength: 262144}}}
+}
+
+tool_descriptors(c) =
+  k ? parse_enabled(k) -> [tool_descriptor, parse_descriptor] |
+  _ -> [tool_descriptor]
+
 discover_result(c) = {
   resultType: "complete",
   supportedVersions: [PROTOCOL_VERSION],
@@ -144,24 +183,46 @@ discover_result(c) = {
 
 list_result(c) = {
   resultType: "complete",
-  tools: [tool_descriptor],
+  tools: tool_descriptors(c),
   ttlMs: 0,
   cacheScope: "public",
   "_meta": result_meta(c)
 }
 
-call_result(c) =
-  finish_call(c, json_encode(capabilities_envelope(c)))
+# Tool-result construction shared by every tool: the envelope is both the
+# structuredContent and (single-line encoded) the sole text content item. An
+# envelope whose encoding exceeds the aggregate result limit is replaced by a
+# fixed result_limit envelope (the oversized content is discarded).
+tool_result(c, envelope) = bounded_result(c, envelope, json_encode(envelope))
 
-finish_call(c, o) =
-  (k, some(text, _)) -> {
-    resultType: "complete",
-    content: [{type: "text", text: squash(text)}],
-    structuredContent: capabilities_envelope(k),
-    isError: false,
-    "_meta": result_meta(k)
-  } |
-  (k, _) -> internal_error(k)
+bounded_result(c, envelope, encoded) =
+  (k, e, some(text, _)) ? byte_length(squash(text)) > RESULT_MAX_BYTES -> limited_result(k) |
+  (k, e, some(text, _)) -> finished_result(k, e, squash(text)) |
+  (k, _, _) -> internal_error(k)
+
+finished_result(c, envelope, text) = {
+  resultType: "complete",
+  content: [{type: "text", text: text}],
+  structuredContent: envelope,
+  isError: envelope_is_error(envelope),
+  "_meta": result_meta(c)
+}
+
+envelope_is_error(envelope) = field(envelope, "status") == "error"
+
+limited_result(c) =
+  finish_limited(c, error_envelope("result_limit", "adapter", "Result exceeds the 3276800-byte limit"))
+
+finish_limited(c, envelope) = finished_result(c, envelope, squash(unwrap_or("", json_encode(envelope))))
+
+error_envelope(kind, phase, message) = {
+  schema_version: "genia.mcp.v1",
+  status: "error",
+  result: nil,
+  error: {kind: kind, message: message, phase: phase}
+}
+
+call_result(c) = tool_result(c, capabilities_envelope(c))
 
 # ---- request validation (JSON-RPC shape and per-request _meta) ----
 
@@ -213,11 +274,61 @@ tool_name_valid(c) = is_string(field(params_of(c), "name"))
 
 arguments_ok(c) = present(params_of(c), "arguments") == false || empty_object(field(params_of(c), "arguments"))
 
+object_size(v) =
+  x ? is_object(x) -> map_count(x) |
+  _ -> -1
+
+args_of(c) = field(params_of(c), "arguments")
+
+# genia_parse takes exactly one string `source` (closed schema).
+parse_arguments_ok(c) = object_size(args_of(c)) == 1 && is_string(field(args_of(c), "source"))
+
+tool_of(c) = field(params_of(c), "name")
+
 call_tool(c) =
   k ? tool_name_valid(k) == false -> invalid_params(k) |
-  k ? field(params_of(k), "name") != "genia_capabilities" -> unknown_tool_response(k) |
+  k ? tool_of(k) == "genia_capabilities" -> call_capabilities(k) |
+  k ? tool_of(k) == "genia_parse" && parse_enabled(k) -> call_parse(k) |
+  k -> unknown_tool_response(k)
+
+call_capabilities(c) =
   k ? arguments_ok(k) == false -> invalid_params(k) |
   k -> result_response(k, call_result(k))
+
+call_parse(c) =
+  k ? parse_arguments_ok(k) == false -> invalid_params(k) |
+  k -> result_response(k, parse_result(k, field(args_of(k), "source")))
+
+# genia_parse: size policy is native; only the parser itself is host-provided.
+parse_result(c, source) =
+  (k, src) ? byte_length(src) > SOURCE_MAX_BYTES -> tool_result(k, error_envelope("input_limit", "protocol", "Genia source exceeds the 262144-byte limit")) |
+  (k, src) -> parse_reply(k, json_decode((map_get(map_get(k, "host"), "parse"))(src)))
+
+# Interpret the host capability's closed reply natively.
+parse_reply(c, decoded) =
+  (k, some(Json(r), _)) -> parse_status(k, field(r, "status"), r) |
+  (k, _) -> tool_result(k, parse_internal())
+
+parse_internal() = error_envelope("internal_error", "adapter", "Internal error while parsing")
+
+parse_status(c, status, r) =
+  (k, "parsed", reply) ? present(reply, "ast") -> tool_result(k, parsed_envelope(field(reply, "ast"))) |
+  (k, "syntax_error", reply) -> tool_result(k, syntax_error_envelope(field(reply, "offset"))) |
+  (k, _, _) -> tool_result(k, parse_internal())
+
+parsed_envelope(ast) = {
+  schema_version: "genia.mcp.v1",
+  status: "ok",
+  result: {kind: "parsed", ast: ast},
+  error: nil
+}
+
+syntax_error_envelope(offset) =
+  error_envelope("parse_error", "parse", parse_error_message(offset))
+
+parse_error_message(offset) =
+  o ? is_integer(o) -> concat("Genia source failed to parse at character offset ", display(o)) |
+  _ -> "Genia source failed to parse"
 
 list_tools(c) =
   k ? present(params_of(k), "cursor") -> invalid_params(k) |
@@ -246,7 +357,8 @@ request_with_id(c) =
   k ? header_valid(msg_of(k)) == false -> invalid_request(k) |
   k -> dispatch(k)
 
-context(rev, msg, idv) = {rev: rev, msg: msg, idv: idv}
+# `boot` is the launch map {rev, host}; each request context extends it.
+context(boot, msg, idv) = {rev: map_get(boot, "rev"), host: map_get(boot, "host"), msg: msg, idv: idv}
 
 # A message without id: a notification (no response) when well formed.
 notification(c) =
@@ -256,35 +368,35 @@ notification(c) =
 handle_object(c) =
   k ? present(msg_of(k), "id") == false -> notification(k) |
   k ? is_id(field(msg_of(k), "id")) == false -> invalid_request(k) |
-  k -> request_with_id(
-         context(map_get(k, "rev"), msg_of(k),
-                 [field(msg_of(k), "id")]))
+  k -> request_with_id(map_put(k, "idv", [field(msg_of(k), "id")]))
 
 handle_value(c) =
   k ? is_object(msg_of(k)) == false -> invalid_request(k) |
   k -> handle_object(k)
 
 handle_decoded(pair) =
-  [rev, some(Json(root), _)] -> handle_value(context(rev, norm(root), [])) |
-  [rev, _] -> parse_error(context(rev, [], []))
+  [boot, some(Json(root), _)] -> handle_value(context(boot, norm(root), [])) |
+  [boot, _] -> parse_error(context(boot, [], []))
 
 # Outcome-or-response -> optional output line.
 to_line(m) =
   "" -> "" |
   x -> frame(x)
 
-handle_line(rev, line) =
-  to_line(handle_decoded([rev, json_decode(line)]))
+handle_line(boot, line) =
+  to_line(handle_decoded([boot, json_decode(line)]))
 
 # ---- program entry ----
 
 nonempty(line) = is_empty(line) == false
 
-serve(rev) =
+serve(rev, host) = serve_lines({rev: rev, host: host})
+
+serve_lines(boot) =
   stdin
     |> lines
     |> filter(nonempty)
-    |> map((line) -> handle_line(rev, line))
+    |> map((line) -> handle_line(boot, line))
     |> filter(nonempty)
     |> each((text) -> writeln(stdout, text))
     |> run
@@ -301,7 +413,7 @@ reject_start() =
   (_) -> genia_mcp_launch_rejected
 
 start(args) =
-  [rev] ? hex_revision(rev) -> serve(rev) |
+  [rev] ? hex_revision(rev) -> serve(rev, {}) |
   _ -> reject_start()
 
 main(args) = start(args)

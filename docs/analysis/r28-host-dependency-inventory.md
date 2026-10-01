@@ -318,6 +318,35 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-2 design.
 
 
+
+**R28-H22 — Parse AST integers beyond the strict JSON safe-integer range cannot cross the native boundary**
+- Class: **B** (also a contract conflict: §2.4 requires `ast` "unchanged"). Status: `open` — **blocks E28-2 acceptance**.
+- Evidence: `parse_and_normalize("123456789012345678901234567890")` returns
+  `{"kind": "Literal", "value": 123456789012345678901234567890}` (R21 exact Integer
+  source, shared spec `spec/parse/parse-r21-huge-integer-source-classification.yaml`).
+  Genia's strict `json_decode`/`json_encode` accept only integers in
+  `[-9007199254740991, 9007199254740991]` (STATE R9/R23: "no arbitrary-precision
+  JSON-number transport"). Through the E28-2 implementation, an AST containing such a
+  literal makes the native decode reject the host reply, so `genia_parse` returns the
+  fixed `internal_error` envelope instead of the unchanged AST. Verified: sources whose
+  integer literal is 9007199254740991 or smaller (and all float/decimal literals tried)
+  match the host AST exactly; `9007199254740992` and larger do not. No wrong AST is
+  ever returned.
+- Workaround: none shipped. The shared-spec parity test for the huge-integer case
+  stays red until a decision is made (it was not weakened).
+- Options (human decision): (A) narrow contract clarification stating that an AST with
+  an integer outside the strict JSON safe range is reported with a distinct fixed
+  diagnostic rather than as `ast`, and adjust that one parity expectation; (B) a general
+  Genia facility for exact large-integer JSON transport, which R23 explicitly excluded
+  and R28 must not add; (C) host-side raw splicing of AST text into frames, rejected
+  because it bypasses native validation and encoding.
+- Hosts: Python; any host sharing the strict JSON boundary has the same limit.
+- Usefulness beyond MCP: moderate (exact-integer interchange); promotion only through
+  the normal process.
+- Disposition: awaiting a contract decision (recommend A for R28, with B left to the
+  audit as an evidence-backed gap).
+- Raised in: E28-2 implementation.
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -349,6 +378,7 @@ pre-flight, when promoted), **raised in**.
 | E28-1 documentation | H16 refined and closed (a: documented in STATE; b: captured as parking-lot follow-up via PR #1059); `GENIA_STATE.md` section 9.41 added |
 | E28-2 design | H17, H18, H19 (blocking contract item), H20, H21 added |
 | E28-0 Clarification A2 | H19 recorded and closed (invalid Unicode is `-32700` at the JSON-RPC boundary; `input_limit` is byte size only) |
+| E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
 | E28-2 | _not started — must read and update this ledger_ |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |

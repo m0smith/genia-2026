@@ -2,8 +2,9 @@
 
 This module is build/launch identity plumbing only. It resolves the repository
 revision (``contract_revision``), validates it as an inert 40-lowercase-hex value,
-and starts ``apps/mcp/mcp.genia`` on the Python reference host with a fixed
-environment allowlist and that single program argument. It contains no MCP
+and starts ``apps/mcp/mcp.genia`` on the Python reference host (through the
+in-process host bootstrap, ``hosts/python/mcp_host.py``) with a fixed environment
+allowlist and that single program argument. It contains no MCP
 protocol, validation, dispatch, policy, capability, or JSON construction: all of
 that lives in ``mcp.genia`` (docs/analysis/r28-host-dependency-inventory.md,
 R28-H10).
@@ -21,9 +22,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SERVER_PATH = REPO_ROOT / "apps" / "mcp" / "mcp.genia"
 
-# Same invocation as hosts/python/exec_cli.py (`-m genia.interpreter` would emit a
-# runpy RuntimeWarning on stderr, which must stay free of protocol noise).
-_GENIA_MAIN = "from genia.interpreter import _main; raise SystemExit(_main())"
+# The child runs the in-process host bootstrap, which loads mcp.genia and provisions
+# the parse capability as an explicit argument (R28 E28-2). `-c` rather than `-m`
+# keeps the runpy RuntimeWarning off stderr, which must stay free of protocol noise.
+_GENIA_MAIN = "from hosts.python.mcp_host import main; raise SystemExit(main())"
 _REVISION = re.compile(r"[0-9a-f]{40}")
 # Launch plumbing only: interpreter lookup, text encoding, and the dynamic loader
 # path a shared-library Python needs to start (for example actions/setup-python).
