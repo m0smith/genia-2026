@@ -195,3 +195,58 @@ def assert_protocol_error(response, code, *, req_id=..., message=None, data=None
     else:
         assert set(error) == {"code", "message", "data"}, error
         assert error["data"] == data
+
+
+# --- E28-2: launcher mode (host provisions the parse capability) -------------
+
+PARSE_TOOLS = ("genia_capabilities", "genia_parse")
+CAPABILITY_PATH = REPO_ROOT / "hosts" / "python" / "mcp_parse_capability.py"
+HOST_BOOTSTRAP_PATH = REPO_ROOT / "hosts" / "python" / "mcp_host.py"
+
+
+def repository_revision() -> str:
+    done = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return done.stdout.strip()
+
+
+def run_launcher_raw(lines, *, timeout=120):
+    """Run the server through the host launcher (parse capability provisioned)."""
+    assert HOST_BOOTSTRAP_PATH.is_file(), (
+        "E28-2 not implemented: hosts/python/mcp_host.py does not exist"
+    )
+    stdin = b"".join(line + b"\n" for line in lines)
+    return subprocess.run(
+        [sys.executable, "-m", "hosts.python.mcp_launch"],
+        input=stdin,
+        capture_output=True,
+        cwd=str(REPO_ROOT),
+        env=server_env(),
+        timeout=timeout,
+    )
+
+
+def launcher_call(message, **kwargs):
+    out = responses(run_launcher_raw([encode(message)], **kwargs))
+    assert len(out) == 1, out
+    return out[0]
+
+
+def parse_request(source, req_id=1, **extra_arguments):
+    arguments = {"source": source}
+    arguments.update(extra_arguments)
+    return request("tools/call", req_id, {"name": "genia_parse", "arguments": arguments})
+
+
+def error_envelope(kind, phase, message):
+    return {
+        "schema_version": "genia.mcp.v1",
+        "status": "error",
+        "result": None,
+        "error": {"kind": kind, "message": message, "phase": phase},
+    }

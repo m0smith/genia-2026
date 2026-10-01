@@ -100,16 +100,22 @@ def test_native_program_owns_every_application_literal_it_must_own():
         "genia-mcp",
         "2026-07-28",
         "io.modelcontextprotocol/protocolVersion",
+        # E28-2: the parse tool's descriptor, limits, and envelopes are native too.
+        "genia_parse",
+        "input_limit",
+        "result_limit",
+        "parse_error",
+        "Genia source failed to parse",
     ):
         assert literal in source, f"mcp.genia must own literal {literal!r}"
 
 
 def test_intermediate_surface_does_not_advertise_later_tickets_in_source_policy():
-    # E28-1 must not contain parse/run tool behavior or advertise those names as
-    # implemented; E28-2/E28-3 add them with their own evidence.
+    # Through E28-2 the server may implement genia_parse but not genia_run, which
+    # E28-3 adds with its own evidence.
     assert SERVER_PATH.is_file(), "E28-1 not implemented: apps/mcp/mcp.genia missing"
     source = SERVER_PATH.read_text(encoding="utf-8")
-    assert "genia_parse" not in source and "genia_run" not in source
+    assert "genia_run" not in source
 
 
 # --- negative: Python owns no application logic -------------------------------

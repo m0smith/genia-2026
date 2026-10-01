@@ -143,8 +143,10 @@ def test_command_starts_the_native_server_with_only_the_revision():
     launcher = _launcher()
     command = launcher.build_server_command(REVISION, python=sys.executable)
     assert command[0] == sys.executable
-    assert command[1] == "-c" and "genia.interpreter" in command[2]
-    assert "-m" not in command  # same invocation as hosts/python/exec_cli.py
+    # E28-2: the child runs the in-process host bootstrap, which provisions the
+    # parse capability explicitly (design §3.2).
+    assert command[1] == "-c" and "hosts.python.mcp_host" in command[2]
+    assert "-m" not in command
     assert Path(command[3]) == SERVER_PATH
     assert command[4:] == [REVISION]  # no other datum crosses the boundary
 
@@ -185,7 +187,9 @@ def test_launcher_end_to_end_reports_the_repository_revision():
     assert completed.returncode == 0, completed.stderr.decode("utf-8", "replace")
     (frame,) = frames(completed.stdout)
     message = json.loads(frame.decode("utf-8"))
-    assert message["result"]["structuredContent"] == expected_envelope(expected)
+    assert message["result"]["structuredContent"] == expected_envelope(
+        expected, tools=("genia_capabilities", "genia_parse")
+    )
     assert completed.stderr == b""
 
 
