@@ -332,6 +332,33 @@ pre-flight, when promoted), **raised in**.
   integer literal is 9007199254740991 or smaller (and all float/decimal literals tried)
   match the host AST exactly; `9007199254740992` and larger do not. No wrong AST is
   ever returned.
+- Failing boundary (isolated probes, not inferred): parser normalization
+  (`parse_and_normalize`) and host serialization (`mcp_parse_capability.parse_source`,
+  `json.dumps`) both preserve `9007199254740992` and `123456789012345678901234567890`
+  exactly. The first rejection is the native decode of the capability reply:
+  `json_decode(...)` at `apps/mcp/mcp.genia` `parse_result` reaches
+  `_strict_json_int` (`src/genia/builtins.py`, `parse_int` hook), which returns
+  `err(json_number_out_of_range, {cause: integer_out_of_range})`; `parse_reply` maps that
+  to `internal_error`. A second, independent rejection waits behind it: native result
+  construction uses `json_encode`, whose `_strict_json_from_runtime` rejects the same
+  range (`json_encode({a: 9007199254740992})` -> `err(json_number_out_of_range, ...)`,
+  while `9007199254740991` encodes). Genia runtime integers themselves are unrestricted
+  (`9007199254740992 + 1` evaluates to `9007199254740993`). So the limit is the R9
+  portable JSON data boundary, applied at two native calls, not a parser, capability,
+  or JSON-RPC limitation.
+- Distinction (do not conflate): Genia language/AST integer semantics are unrestricted;
+  the R9 +/-(2^53-1) range governs only Genia's documented portable JSON data boundary
+  (`json_decode`/`json_encode`); JSON as an external wire encoding has no such limit
+  (consumers differ: Python clients read exact integers, IEEE-754 clients such as
+  JavaScript would round). The current failure is fail-closed (never a wrong AST) but
+  violates "unchanged normalized AST".
+- Why no narrow fix exists inside the approved design: a lossless path needs either
+  (B) a Genia JSON facility that is not R9 (new language/runtime semantics; excluded
+  by R9/R23 and by contract §1), (C) opaque splicing of host-encoded AST text into the
+  native frame (changes the approved native/host split of design §3.1/§3.3: the host
+  would own AST encoding and native code would no longer decode/validate/size the AST),
+  or (A) not returning `ast` for such sources (weakens AST parity). Each is a design
+  or contract decision; no implementation was attempted.
 - Workaround: none shipped. The shared-spec parity test for the huge-integer case
   stays red until a decision is made (it was not weakened).
 - Options (human decision): (A) narrow contract clarification stating that an AST with
@@ -343,8 +370,10 @@ pre-flight, when promoted), **raised in**.
 - Hosts: Python; any host sharing the strict JSON boundary has the same limit.
 - Usefulness beyond MCP: moderate (exact-integer interchange); promotion only through
   the normal process.
-- Disposition: awaiting a contract decision (recommend A for R28, with B left to the
-  audit as an evidence-backed gap).
+- Disposition: **STOPPED at the decision gate** -- awaiting a design/contract decision
+  (options above, plus whether lossless wire integers are required for IEEE-754
+  clients). The earlier recommendation of A is withdrawn pending that decision because
+  A weakens AST parity. No code, test, or STATE change was made for H22.
 - Raised in: E28-2 implementation.
 
 ### Process / documentation drift
