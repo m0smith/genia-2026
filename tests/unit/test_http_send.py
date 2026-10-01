@@ -1,8 +1,9 @@
 import http.server
-import socket
 import threading
 
 import pytest
+
+from tests.fixtures.loopback import free_port
 
 from genia.builtins import make_global_env
 from genia.configuration import create_declassification_authority
@@ -332,9 +333,8 @@ def test_perform_http_send_timeout_seconds_derived_from_timeout_ms():
 
 
 def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
+    # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
+    return free_port()
 
 
 class _FixtureHandler(http.server.BaseHTTPRequestHandler):

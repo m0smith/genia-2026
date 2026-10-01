@@ -4,6 +4,8 @@ import threading
 import time
 from pathlib import Path
 import pytest
+
+from tests.fixtures.loopback import free_port
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -21,9 +23,8 @@ def run_web(src_suffix: str):
 
 
 def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
+    # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
+    return free_port()
 
 
 def _start_server(source: str, env, *, filename: str):
