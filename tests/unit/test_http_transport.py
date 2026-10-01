@@ -7,6 +7,8 @@ import urllib.error
 
 import pytest
 
+from tests.fixtures.loopback import free_port
+
 from genia.http_transport import (
     HttpTransportFailure,
     HttpTransportRequest,
@@ -16,9 +18,8 @@ from genia.http_transport import (
 
 
 def _free_port() -> int:
-    with socket.socket() as sock:
-        sock.bind(("127.0.0.1", 0))
-        return sock.getsockname()[1]
+    # Worker-reserved port below the ephemeral range: see tests/fixtures/loopback.py.
+    return free_port()
 
 
 class _FixtureServer(http.server.HTTPServer):
