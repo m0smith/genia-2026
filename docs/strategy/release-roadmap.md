@@ -60,41 +60,6 @@ contract, design, failing-test, implementation, documentation, audit, and
 distillation gates. Detailed parking-lot disposition is recorded in
 [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
-## Cross-cutting follow-up candidate: Selective Non-Strict Evaluation / Call-by-Need
-
-Selective non-strict evaluation is captured as a **cross-cutting follow-up
-candidate**, not as implemented behavior and not as part of R28.
-
-The motivating proving case is the current expectation that boolean `&&` and
-`||` short-circuit. The design investigation should determine whether Genia
-should solve that narrowly or through one reusable selective evaluation
-mechanism.
-
-Current research direction, subject to pre-flight and contract approval:
-
-- preserve eager evaluation as Genia's default
-- investigate selectively non-strict function parameters
-- prefer call-by-need semantics (evaluate on first demand, at most once, then
-  reuse the result) over global normal-order evaluation
-- keep ordinary call sites transparent if that can be done without ambiguity
-- use `&&` and `||` as the first proving case rather than adding unrelated
-  lazy-language surface
-- preserve existing truth/value semantics; this candidate concerns evaluation
-  timing, not a simultaneous redesign of boolean/result semantics
-- explicitly reconcile delayed arguments with Outcome propagation,
-  lifecycle/capability scope, protected values, diagnostics, effects, Core IR,
-  and Python/C++ conformance
-- investigate a bounded v1 in which delayed argument computations cannot escape
-  their owning call unless a later contract proves first-class delayed values
-  safe and necessary
-
-No syntax, Core IR shape, public Delay/Thunk type, operator lowering strategy, or
-release number is approved by this entry. Before implementation, run a Genia
-Change Pre-Flight and compare the generalized design against the simpler
-fallback of explicit short-circuit evaluation for `&&`/`||`. Only promote
-the generalized mechanism if it reduces semantic special cases without
-weakening predictability, lifecycle safety, or host portability.
-
 ## Promoted R20 follow-up
 
 Open-function declaration ergonomics is promoted as an R20 follow-up design
