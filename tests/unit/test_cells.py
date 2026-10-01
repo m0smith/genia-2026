@@ -127,15 +127,23 @@ def test_cell_error_returns_none_when_ready_and_some_after_failure():
     assert run_source("is_some?(cell_error(a))", env) is True
 
 
+# The first update blocks on `gate` until every later message has been queued, so
+# no `cell_send` can race the worker thread into the failed state.
 def test_queued_messages_after_failure_are_not_processed():
     env = make_global_env([])
     run_source(
         """
         state = ref(1)
+        gate = ref(false)
+        hold(x) =
+          v ? ref_get(gate) -> v |
+          v -> hold(v)
         a = cell_with_state(state)
+        cell_send(a, hold)
         cell_send(a, (x) -> x + 1)
         cell_send(a, (_) -> map_get(1, "bad"))
         cell_send(a, (x) -> x + 100)
+        ref_set(gate, true)
         """,
         env,
     )
@@ -150,9 +158,15 @@ def test_restart_cell_clears_failure_discards_old_queue_and_restores_usability()
     run_source(
         """
         state = ref(1)
+        gate = ref(false)
+        hold(x) =
+          v ? ref_get(gate) -> v |
+          v -> hold(v)
         a = cell_with_state(state)
+        cell_send(a, hold)
         cell_send(a, (_) -> map_get(1, "bad"))
         cell_send(a, (x) -> x + 100)
+        ref_set(gate, true)
         """,
         env,
     )
