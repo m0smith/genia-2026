@@ -62,12 +62,7 @@ distillation gates. Detailed parking-lot disposition is recorded in
 
 ## Promoted R20 follow-up: Unified Function Model and Open-Function Repairs
 
-Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and
-before R29** without a new release number or R28 scope expansion. It preserves
-`open` as explicit cross-module extensibility and keeps ordinary functions
-closed by default. Detailed staging and guardrails live in
-[`roadmap/sequence.md`](roadmap/sequence.md) and
-[`roadmap/parking-lot.md`](roadmap/parking-lot.md).
+Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and before R29** without a new release number or R28 scope expansion. Detailed staging and guardrails live in [`roadmap/sequence.md`](roadmap/sequence.md) and [`roadmap/parking-lot.md`](roadmap/parking-lot.md).
 
 ## Current state
 
