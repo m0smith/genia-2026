@@ -254,6 +254,35 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-1 implementation; refined in E28-1 documentation.
 
 
+**R28-H17 — Genia source cannot reach the parser**
+- Class: **A**. Status: `open`.
+- Evidence: no Genia-visible `parse`/`read` facility exists (probed builtins and
+  prelude; metacircular `eval` works on quoted values). E28-0 §1 forbids R28 from
+  adding a builtin or prelude function. The approved parse surface is
+  `hosts/python/parse_adapter.parse_and_normalize`.
+- Workaround (E28-2 design): one host capability returning JSON text, provisioned
+  as an explicit argument to `serve(revision, host)`; no ambient binding.
+- Hosts: Python; a C++ host would provide the same capability over its parser.
+- Usefulness beyond MCP: a Genia-level "parse to normalized data" facility could
+  serve tooling, but nothing here proposes one.
+- Disposition: implemented as designed (E28-2: `hosts/python/mcp_parse_capability.py`,
+  no builtin added); stays `open` for the E28-6 audit, which decides whether a general
+  facility is worth a proposal.
+- Raised in: E28-2 design.
+
+**R28-H18 — No code-point length or substring helpers**
+- Class: **B**. Status: `open`.
+- Evidence: `length("héllo")` and `substring`/`slice`/`chars` are unavailable;
+  `byte_length` exists. Contract §2.4 names a character `maxLength` guard, and
+  parse diagnostics would ideally give line/column.
+- Workaround: the byte limit check subsumes the character guard (more than
+  262,144 chars implies more than 262,144 bytes); diagnostics report a character
+  offset only.
+- Usefulness beyond MCP: high (text processing in general).
+- Disposition: workaround implemented in E28-2 (byte-limit check native; diagnostics
+  are a character offset only, no line/column); evidence preserved for the E28-6 audit.
+- Raised in: E28-2 design.
+
 **R28-H19 — Contract §2.4 invalid-Unicode wording vs strict JSON decoding**
 - Class: **N (contract wording)**. Status: `closed` (resolved by Clarification A2).
 - Evidence: contract §2.4 required `genia_parse` to return `input_limit` for invalid
@@ -265,9 +294,126 @@ pre-flight, when promoted), **raised in**.
   Malformed JSON, including invalid Unicode, is `-32700` at the protocol boundary
   and invokes no tool; `genia_parse` `input_limit` applies only to a well-formed
   decoded `source` over 262,144 UTF-8 bytes. Strict JSON decoding is unchanged.
-  Raised by the E28-2 design (commit `33e77a2`, not yet on `main`, which also
-  records H17, H18, H20, H21); it blocked E28-2 failing tests until A2.
+  Raised by the E28-2 design (commit `33e77a2`, which also records H17, H18,
+  H20, H21); it blocked E28-2 failing tests until A2.
 - Raised in: E28-2 design. Resolved in: E28-0 Clarification A2 (issue #703).
+
+**R28-H20 — Capability provisioning needs an in-process host bootstrap**
+- Class: **A** (relates to H05). Status: `open`.
+- Evidence: CLI file mode passes only strings to `main(args)`; a host-built
+  capability can reach `mcp.genia` only if the host loads the program in-process and
+  calls a Genia function with it, as `hosts/python/exec_ollama_chat.py` already does.
+- Workaround (E28-2 design): the launcher loads `mcp.genia` and calls
+  `serve(revision, {parse: capability})`; CLI mode calls `serve(revision, {})` and
+  advertises only `genia_capabilities`.
+- Removable code: the bootstrap, if a general Genia capability-provisioning
+  mechanism lands (see H05).
+- Disposition: implemented in E28-2 (`hosts/python/mcp_host.py`, explicit
+  `serve(revision, host)` argument); kept as the provisioning boundary for R28. The
+  E28-6 audit decides together with H05 whether a general mechanism is worth a proposal.
+- Raised in: E28-2 design.
+
+**R28-H21 — Stale #703 wording ("official MCP client contract tests")**
+- Class: **N (process/documentation drift)**. Status: `closed`.
+- Evidence: #703 predates the native-Genia architecture (same drift as H13).
+- Disposition: corrected — #703 body rewritten to the native-Genia scope and the
+  raw JSON-RPC stdio harness (no SDK).
+- Raised in: E28-2 design.
+
+
+
+**R28-H22 — Parse AST integers beyond the strict JSON safe-integer range cannot cross the native boundary**
+- Class: **B** (also a contract conflict: §2.4 requires `ast` "unchanged"). Status: `closed` (resolved by Clarification A3 and implemented in E28-2; see Disposition).
+- Evidence: `parse_and_normalize("123456789012345678901234567890")` returns
+  `{"kind": "Literal", "value": 123456789012345678901234567890}` (R21 exact Integer
+  source, shared spec `spec/parse/parse-r21-huge-integer-source-classification.yaml`).
+  Genia's strict `json_decode`/`json_encode` accept only integers in
+  `[-9007199254740991, 9007199254740991]` (STATE R9/R23: "no arbitrary-precision
+  JSON-number transport"). Through the E28-2 implementation, an AST containing such a
+  literal makes the native decode reject the host reply, so `genia_parse` returns the
+  fixed `internal_error` envelope instead of the unchanged AST. Verified: sources whose
+  integer literal is 9007199254740991 or smaller (and all float/decimal literals tried)
+  match the host AST exactly; `9007199254740992` and larger do not. No wrong AST is
+  ever returned.
+- Failing boundary (isolated probes, not inferred): parser normalization
+  (`parse_and_normalize`) and host serialization (`mcp_parse_capability.parse_source`,
+  `json.dumps`) both preserve `9007199254740992` and `123456789012345678901234567890`
+  exactly. The first rejection is the native decode of the capability reply:
+  `json_decode(...)` at `apps/mcp/mcp.genia` `parse_result` reaches
+  `_strict_json_int` (`src/genia/builtins.py`, `parse_int` hook), which returns
+  `err(json_number_out_of_range, {cause: integer_out_of_range})`; `parse_reply` maps that
+  to `internal_error`. A second, independent rejection waits behind it: native result
+  construction uses `json_encode`, whose `_strict_json_from_runtime` rejects the same
+  range (`json_encode({a: 9007199254740992})` -> `err(json_number_out_of_range, ...)`,
+  while `9007199254740991` encodes). Genia runtime integers themselves are unrestricted
+  (`9007199254740992 + 1` evaluates to `9007199254740993`). So the limit is the R9
+  portable JSON data boundary, applied at two native calls, not a parser, capability,
+  or JSON-RPC limitation.
+- Distinction (do not conflate): Genia language/AST integer semantics are unrestricted;
+  the R9 +/-(2^53-1) range governs only Genia's documented portable JSON data boundary
+  (`json_decode`/`json_encode`); JSON as an external wire encoding has no such limit
+  (consumers differ: Python clients read exact integers, IEEE-754 clients such as
+  JavaScript would round). The current failure is fail-closed (never a wrong AST) but
+  violates "unchanged normalized AST".
+- Why no narrow fix exists inside the approved design: a lossless path needs either
+  (B) a Genia JSON facility that is not R9 (new language/runtime semantics; excluded
+  by R9/R23 and by contract §1), (C) opaque splicing of host-encoded AST text into the
+  native frame (changes the approved native/host split of design §3.1/§3.3: the host
+  would own AST encoding and native code would no longer decode/validate/size the AST),
+  or (A) not returning `ast` for such sources (weakens AST parity). Each is a design
+  or contract decision; no implementation was attempted.
+- Workaround: none shipped. The shared-spec parity test for the huge-integer case
+  stays red until a decision is made (it was not weakened).
+- Options (human decision): (A) narrow contract clarification stating that an AST with
+  an integer outside the strict JSON safe range is reported with a distinct fixed
+  diagnostic rather than as `ast`, and adjust that one parity expectation; (B) a general
+  Genia facility for exact large-integer JSON transport, which R23 explicitly excluded
+  and R28 must not add; (C) host-side raw splicing of AST text into frames, rejected
+  because it bypasses native validation and encoding.
+- Hosts: Python; any host sharing the strict JSON boundary has the same limit.
+- Usefulness beyond MCP: moderate (exact-integer interchange); promotion only through
+  the normal process.
+- Disposition: **Option (i) selected by explicit decision** (originally listed as option
+  C; the rejection recorded for C above was for unvalidated host splicing and is
+  superseded by the constrained form below). Contract **Clarification A3** (contract §16)
+  and design §6.1 record it. The capability serializes the existing normalized AST
+  losslessly (`json.dumps`, exact integers); `mcp.genia` validates the capability header
+  and limits natively and inserts the AST fragment opaquely into the result using
+  ordinary string operations, never decoding it through R9 `json_decode` nor encoding it
+  through R9 `json_encode`.
+- Why R9 is unchanged: no R9 function, safe-integer rule, parser, AST shape, or Genia
+  integer semantics is touched; the AST simply never enters the R9 data domain. R9
+  `json_decode`/`json_encode` still reject integers beyond +/-(2^53-1) (regression
+  tests unchanged).
+- Why this is transport, not new Genia semantics: the splice is a local `genia_parse`
+  function in an application program built from existing `split`/`join`/`json_encode`;
+  it is not a general raw-JSON facility, builtin, type, or language rule. Unlike the
+  rejected form, native code still owns status handling, error normalization, the
+  fragment shape check, and the source and result byte limits.
+- Client note: a lossless wire fragment is not a guarantee about IEEE-754-only client
+  decoders (outside E28-2).
+- Raised in: E28-2 implementation.
+
+**R28-H23 — Normalized parse AST collapses most nodes (for example negative literals) to `{kind}` only**
+- Class: **N (existing behavior; normalization coverage, not a parser defect)**. Status: `closed` (observation; follow-up candidate only through the parse-spec process).
+- Evidence: `parse_and_normalize("-9007199254740992")` returns `{"kind": "ok", "ast":
+  {"kind": "Unary"}}`; `-1`, `-x`, `!x`, and `-(1+2)` give the same, and `- 1 + 2` gives
+  `Binary` with `left: {"kind": "Unary"}`. `hosts/python/parse_adapter.py` `normalize_ast`
+  handles only a minimal set of node types and ends with `# Add more node kinds as
+  contract expands` / `return {'kind': node_type}`. `spec/parse/README.md`: parse spec
+  coverage expands only when forms are explicitly added; unary operators are specified
+  at the IR level (`spec/ir/unary-operators.yaml`), not in parse specs. The parser
+  itself builds `Unary(op, expr)` (`src/genia/ast_nodes.py`).
+- Classification: expected existing minimal-normalization behavior, not a parser or
+  semantic defect, and not caused by E28-2. Consequence for R28: `genia_parse` returns
+  that normalized AST unchanged (parity), so a negative integer literal cannot appear
+  with its magnitude in the AST today, and large negative integers cannot exercise the
+  H22 transport. E28-2 does not bless a test of that shape as meaningful transport
+  proof and does not change normalization.
+- Disposition: closed as an observation; no R28 change. Follow-up candidate (not R28, not scheduled): extend the shared parse contract to
+  cover unary and other node kinds through the normal parse-spec process, which would
+  make the MCP AST richer without any MCP change.
+- Raised in: E28-2 implementation (H22 follow-up).
 
 ### Process / documentation drift
 
@@ -298,8 +444,11 @@ pre-flight, when promoted), **raised in**.
 | E28-0 Clarification A1 | H14 closed (contract clarified; no new entries) |
 | E28-1 implementation | H09 (`lines`/UTF-8 verified), H10 (launcher implemented), H12 (syntax observations) updated; H15, H16 added |
 | E28-1 documentation | H16 refined and closed (a: documented in STATE; b: captured as parking-lot follow-up via PR #1059); `GENIA_STATE.md` section 9.41 added |
+| E28-2 design | H17, H18, H19 (blocking contract item), H20, H21 added |
 | E28-0 Clarification A2 | H19 recorded and closed (invalid Unicode is `-32700` at the JSON-RPC boundary; `input_limit` is byte size only) |
-| E28-2 | _not started — must read and update this ledger_ |
+| E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
+| E28-2 H22 resolution | H22 resolved by contract Clarification A3 / design §6.1 (lossless opaque AST transport); H23 added and closed (normalization collapses unary nodes; not a defect) |
+| E28-2 documentation | `GENIA_STATE.md` section 9.42 added; H17, H18, H20 dispositions updated to implemented (still `open` for the E28-6 audit); no further entries added |
 | E28-3 | _not started — expected to update H04–H09_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |
