@@ -181,6 +181,10 @@ pre-flight, when promoted), **raised in**.
   (module-relative, `GIT_*` ignored, workspace state never described), validates
   40 lowercase hex, and passes it as the single argv datum; `mcp.genia` validates it
   again natively and constructs every result that contains it.
+  Its environment allowlist (`PATH`, `LD_LIBRARY_PATH`, `DYLD_LIBRARY_PATH`,
+  `PYTHONIOENCODING`, `PYTHONUTF8`, `LANG`, `LC_ALL`, `SYSTEMROOT`, plus the computed
+  `PYTHONPATH`) carries only what the host runtime needs to start; the loader paths
+  were added after CI showed a shared-library Python 3.14 could not start without them.
 - Disposition: R28 injects build identity; assess at the audit whether Genia needs a
   general facility. A is the current classification for the injection boundary; B is
   the open question.

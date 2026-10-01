@@ -25,8 +25,12 @@ SERVER_PATH = REPO_ROOT / "apps" / "mcp" / "mcp.genia"
 # runpy RuntimeWarning on stderr, which must stay free of protocol noise).
 _GENIA_MAIN = "from genia.interpreter import _main; raise SystemExit(_main())"
 _REVISION = re.compile(r"[0-9a-f]{40}")
+# Launch plumbing only: interpreter lookup, text encoding, and the dynamic loader
+# path a shared-library Python needs to start (for example actions/setup-python).
 _ENV_ALLOWLIST = (
     "PATH",
+    "LD_LIBRARY_PATH",
+    "DYLD_LIBRARY_PATH",
     "PYTHONIOENCODING",
     "PYTHONUTF8",
     "LANG",
