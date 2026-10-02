@@ -6509,8 +6509,10 @@ WORKER FLOOR (guaranteed on the Python reference host, POSIX):
   5,000 ms deadline from spawn; forceful kill of the process group and reap on timeout,
   cancellation, overflow, or failure; worker stderr drained and discarded.
 - **Best effort, only if verified at runtime:** a user + network namespace
-  (`unshare --user --map-root-user --net`), probed once per process; when the probe fails
-  the worker runs without it and nothing claims it.
+  (`unshare --user --map-root-user --net`), verified once during host initialization
+  (before the server reads any request; bounded at 5 s and cached), so a request never runs
+  a capability probe. When the probe fails or times out, workers run without it and nothing
+  claims it; a hung `unshare` can only delay server startup by the probe bound.
 - **Not provided or claimed:** filesystem namespaces, seccomp, cgroup memory or CPU
   limits, a PID namespace, protection against interpreter or kernel defects, or isolation
   from other processes of the same user. This is a defense-in-depth profile, not a

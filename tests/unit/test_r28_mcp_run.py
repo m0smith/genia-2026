@@ -38,7 +38,6 @@ from tests.fixtures.r28_mcp_helpers import (
     frames,
     launcher_call,
     parse_request,
-    pid_alive,
     repository_revision,
     request,
     responses,
@@ -368,6 +367,18 @@ def test_combined_channels_over_the_aggregate_limit_are_result_limit():
 # --- deadline -----------------------------------------------------------------------
 
 LOOP = "loop(n) = loop(n + 1)\nloop(0)"
+DEADLINE_S = 5.0  # contract section 5: fixed by the profile, never lengthened to pass tests
+
+# These live tests share one synchronization discipline (ledger R28-H33): wait for the
+# server to be *ready* (bootstrap and the one-time isolation probe are over), then wait on
+# the *observable* existence of the governed worker with a bounded poll. A fixed sleep
+# measured from the send time races server bootstrap, which is slow under load.
+
+
+def _gone(identities):
+    from tests.fixtures.r28_mcp_helpers import identity_exists
+
+    return [i for i in identities if identity_exists(i)] == []
 
 
 @pytest.mark.parametrize(
@@ -377,88 +388,167 @@ LOOP = "loop(n) = loop(n + 1)\nloop(0)"
 )
 def test_deadline_returns_timeout_and_reaps_the_worker(source):
     with LauncherSession() as session:
-        started = time.monotonic()
+        session.wait_ready()
+        sent = time.monotonic()
         session.send(run_request(source, 1))
-        time.sleep(1.0)
-        workers = session.workers()
-        assert workers, "no worker process observed during the call"
-        response = session.read(timeout=30)
-        elapsed = time.monotonic() - started
-        _, envelope = structured(response)
-        assert envelope == TIMEOUT
-        assert 4.5 <= elapsed <= 10, elapsed
-        assert not any(pid_alive(pid) for pid in workers), "worker survived the deadline"
+        workers = session.wait_for_worker()  # a real governed worker, not the probe
+        response = session.read(timeout=60)
+        elapsed = time.monotonic() - sent
+        assert structured(response)[1] == TIMEOUT
+        # The deadline starts when the worker is spawned, which is after the send, so the
+        # response can never arrive before DEADLINE_S: a load-independent lower bound.
+        assert elapsed >= DEADLINE_S - 0.01, elapsed
+        assert elapsed <= DEADLINE_S + 15, elapsed  # generous: only catches a lost deadline
+        # Killed AND reaped before the response: not alive, and not even a zombie.
+        assert _gone(workers), "worker survived (or was left unreaped) after the deadline"
+        assert session.governed_workers() == set()
+
+
+def _recording_unshare(tmp_path, probe_behavior):
+    """A fake `unshare` first on PATH: logs every invocation, then delegates to the real one.
+
+    `probe_behavior` is shell run only for the namespace probe invocation, so tests can make
+    the probe slow or hanging deterministically instead of relying on real timing.
+    """
+    import os
+    import shutil
+    import stat
+
+    real = shutil.which("unshare")
+    if real is None:
+        pytest.skip("unshare is unavailable here; the best-effort namespace is not in play")
+    log = tmp_path / "unshare.log"
+    script = tmp_path / "bin" / "unshare"
+    script.parent.mkdir()
+    script.write_text(
+        "#!/bin/sh\n"
+        f'echo "$*" >> "{log}"\n'
+        'case "$*" in *proc/net/dev*)\n'
+        f"{probe_behavior}\n"
+        ";; esac\n"
+        f'exec "{real}" "$@"\n'
+    )
+    script.chmod(script.stat().st_mode | stat.S_IEXEC)
+    return log, {"PATH": f"{script.parent}{os.pathsep}{os.environ['PATH']}"}
+
+
+def _entries(log, needle):
+    return [line for line in log.read_text().splitlines() if needle in line] if log.exists() else []
+
+
+def test_isolation_probe_runs_once_during_initialization_before_readiness(tmp_path):
+    # Discriminating evidence (ledger R28-H33): a slow probe delays *startup*, not a request.
+    log, env = _recording_unshare(tmp_path, "sleep 1")
+    with LauncherSession(extra_env=env) as session:
+        session.wait_ready()
+        # By the time the server answers anything, the one probe has already happened.
+        assert len(_entries(log, "/proc/net/dev")) == 1
+        assert _entries(log, "hosts.python.mcp_worker") == []  # no worker has been needed yet
+        for i, source in enumerate(["1", "2"], start=1):
+            session.send(run_request(source, i))
+            assert structured(session.read(timeout=60))[1] == completed_envelope(source)
+        # Two governed runs later: still exactly one probe, and each run used a worker.
+        assert len(_entries(log, "/proc/net/dev")) == 1
+        assert len(_entries(log, "hosts.python.mcp_worker")) == 2
+
+
+def test_hanging_probe_is_bounded_at_startup_and_runs_degrade_to_unwrapped_workers(tmp_path):
+    from hosts.python.mcp_run_capability import PROBE_TIMEOUT_S
+
+    log, env = _recording_unshare(tmp_path, "sleep 60")  # the probe never finishes
+    with LauncherSession(extra_env=env) as session:
+        started = time.monotonic()
+        session.wait_ready(timeout=120)
+        startup = time.monotonic() - started
+        assert startup >= PROBE_TIMEOUT_S - 0.5  # init waited for the bounded probe...
+        # ...and never for 60 s: the probe was cut off at its timeout.
+        assert startup < 60
+        assert len(_entries(log, "/proc/net/dev")) == 1
+        session.send(run_request("1 + 2", 1))
+        assert structured(session.read(timeout=60))[1] == completed_envelope("3")
+        # The request used no namespace wrapper and ran no second probe.
+        assert _entries(log, "hosts.python.mcp_worker") == []
+        assert len(_entries(log, "/proc/net/dev")) == 1
 
 
 # --- cancellation -------------------------------------------------------------------
 
 
-def test_cancel_queued_with_the_request_cancels_and_reaps():
+def test_cancel_queued_with_the_request_cancels_without_a_surviving_worker():
     with LauncherSession() as session:
-        session.send(run_request(LOOP, 7))
-        session.send(cancel_notification(7))
-        started = time.monotonic()
-        response = session.read(timeout=30)
+        session.wait_ready()
+        # One write: the cancel is queued with the request, so it is claimed either before
+        # a worker exists or immediately after one does. Both must cancel and leave nothing.
+        session.proc.stdin.write(
+            encode(run_request(LOOP, 7)) + b"\n" + encode(cancel_notification(7)) + b"\n"
+        )
+        session.proc.stdin.flush()
+        response = session.read(timeout=60)
         assert response["id"] == 7
         assert structured(response)[1] == CANCELLED
-        assert time.monotonic() - started < 4.5  # well before the 5000 ms deadline
-        time.sleep(0.5)
-        assert session.workers() == set()
+        assert session.governed_workers() == set()  # reaped before the response
         # The server is still alive and answers the next request.
         session.send(run_request("1 + 1", 8))
-        assert structured(session.read())[1] == completed_envelope("2")
+        assert structured(session.read(timeout=60))[1] == completed_envelope("2")
 
 
-def test_cancel_arriving_mid_run_cancels_and_reaps():
+def test_cancel_immediately_after_worker_creation_cancels_and_reaps():
     with LauncherSession() as session:
+        session.wait_ready()
         session.send(run_request(LOOP, 11))
-        time.sleep(1.0)
-        workers = session.workers()
-        assert workers
+        workers = session.wait_for_worker()
         started = time.monotonic()
-        session.send(cancel_notification(11))
-        response = session.read(timeout=30)
+        session.send(cancel_notification(11))  # as soon as the worker is observable
+        response = session.read(timeout=60)
         assert structured(response)[1] == CANCELLED
-        assert time.monotonic() - started < 3
-        assert not any(pid_alive(pid) for pid in workers)
+        assert time.monotonic() - started < DEADLINE_S  # claimed, not timed out
+        assert _gone(workers), "cancelled worker was not reaped"
+        assert session.governed_workers() == set()
 
 
 def test_cancel_for_another_request_id_is_ignored():
     with LauncherSession() as session:
+        session.wait_ready()
         session.send(run_request("sleep(1500)\n5", 21))
         session.send(cancel_notification(999))
-        assert structured(session.read(timeout=30))[1] == completed_envelope("5")
+        assert structured(session.read(timeout=60))[1] == completed_envelope("5")
 
 
 def test_cancel_after_completion_is_ignored_and_the_server_continues():
     with LauncherSession() as session:
+        session.wait_ready()
         session.send(run_request("1", 31))
-        assert structured(session.read())[1] == completed_envelope("1")
+        assert structured(session.read(timeout=60))[1] == completed_envelope("1")
         session.send(cancel_notification(31))
         session.send(run_request("2", 32))
-        response = session.read()
+        response = session.read(timeout=60)
         assert response["id"] == 32 and structured(response)[1] == completed_envelope("2")
 
 
 def test_other_requests_during_a_run_are_answered_in_order_after_it():
     with LauncherSession() as session:
+        session.wait_ready()
         session.send(run_request(LOOP, 41))
         session.send(request("tools/list", 42))
-        time.sleep(0.5)
+        workers = session.wait_for_worker()
         session.send(cancel_notification(41))
-        first = session.read(timeout=30)
-        second = session.read(timeout=30)
+        first = session.read(timeout=60)
+        second = session.read(timeout=60)
         assert [first["id"], second["id"]] == [41, 42]
         assert structured(first)[1] == CANCELLED
         assert [t["name"] for t in second["result"]["tools"]] == list(RUN_TOOLS)
+        assert _gone(workers)
 
 
 def test_cancelled_envelope_carries_no_partial_data():
+    # The deterministic partial-output case (a worker mid-reply when cancelled) is in the
+    # supervisor tests; here the full wire path must still return only the fixed envelope.
     with LauncherSession() as session:
+        session.wait_ready()
         session.send(run_request('print("partial-out")\n' + LOOP, 51))
-        time.sleep(1.0)
+        session.wait_for_worker()
         session.send(cancel_notification(51))
-        result = session.read(timeout=30)
+        result = session.read(timeout=60)
         assert "partial-out" not in json.dumps(result)
         assert structured(result)[1] == CANCELLED
 

@@ -34,6 +34,9 @@ def main(argv: list[str] | None = None) -> int:
     mux = LineMux(sys.stdin.fileno())
     env = make_global_env(cli_args=[], stdin_provider=mux.provider)
     run_source(server_path.read_text(encoding="utf-8"), env, filename=str(server_path))
-    host = GeniaMap().put("parse", parse_source).put("run", RunCapability(mux).run)
+    # Constructing the run capability determines its best-effort isolation profile (a
+    # bounded one-time probe) here, before `serve` reads any request (ledger R28-H33).
+    run_capability = RunCapability(mux)
+    host = GeniaMap().put("parse", parse_source).put("run", run_capability.run)
     env.get("serve")(revision, host)
     return 0

@@ -12,8 +12,12 @@ removed after the worker is reaped; only the three standard pipes inherited; the
 sent over the stdin pipe; a monotonic 5,000 ms deadline; incremental reply-size cap;
 forceful kill of the process group and reap on timeout, cancellation, overflow, or any
 failure; worker stderr drained and discarded. Where a user+network namespace is
-*verified* to work here it is added (best effort, never claimed otherwise). This is a
-defense-in-depth profile, not a security sandbox.
+*verified* to work here it is added (best effort, never claimed otherwise). That
+verification happens once, when the capability is constructed during host
+initialization and before the server reads any request; the request path only consumes
+the already-determined isolation profile, so first-request behavior does not depend on
+a capability probe (ledger R28-H33). This is a defense-in-depth profile, not a security
+sandbox.
 
 It checks only the reply's shape (one ASCII line with a known status); native
 `mcp.genia` decodes and interprets it. Cancellation is observed by handing each raw
@@ -35,6 +39,9 @@ import time
 from pathlib import Path
 
 DEADLINE_MS = 5000
+# The one-time namespace probe runs at host initialization. It is bounded so a hung
+# `unshare` can delay server start by at most this long, never a request.
+PROBE_TIMEOUT_S = 5
 REPLY_CAP_BYTES = 20 * 1024 * 1024  # 3 channels at 1 MiB, worst-case ASCII escaping
 _READ_SIZE = 65536
 _WRITE_SIZE = 65536
@@ -58,6 +65,7 @@ _REPLY_SHAPE = re.compile(
 )
 
 _namespace_probe = None
+_unshare_path = None  # resolved once, by the successful probe
 
 
 def _probe_code() -> str:
@@ -68,7 +76,11 @@ def _probe_code() -> str:
 
 
 def network_isolation_available() -> bool:
-    """True only if a user+network namespace was *verified* to work (cached)."""
+    """True only if a user+network namespace was *verified* to work (cached).
+
+    `RunCapability` forces this at construction, so it is already determined before the
+    first request; later calls are a cached read.
+    """
     global _namespace_probe
     if _namespace_probe is None:
         _namespace_probe = _run_probe()
@@ -76,6 +88,7 @@ def network_isolation_available() -> bool:
 
 
 def _run_probe() -> bool:
+    global _unshare_path
     unshare = shutil.which("unshare")
     if unshare is None or not sys.platform.startswith("linux"):
         return False
@@ -84,19 +97,25 @@ def _run_probe() -> bool:
             [unshare, "--user", "--map-root-user", "--net", "--", sys.executable, "-S", "-c", _probe_code()],
             capture_output=True,
             text=True,
-            timeout=15,
+            timeout=PROBE_TIMEOUT_S,
             stdin=subprocess.DEVNULL,
             check=False,
         )
     except (OSError, subprocess.SubprocessError):
         return False
-    return done.returncode == 0 and done.stdout.strip() == "lo"
+    verified = done.returncode == 0 and done.stdout.strip() == "lo"
+    if verified:
+        _unshare_path = unshare
+    return verified
 
 
-def worker_command(argv):
-    """The worker argv, wrapped in a verified user+network namespace when available."""
-    if network_isolation_available():
-        return [shutil.which("unshare"), "--user", "--map-root-user", "--net", "--", *argv]
+def worker_command(argv, isolated=None):
+    """The worker argv, wrapped in a verified user+network namespace when `isolated`.
+
+    `isolated=None` consults the cached probe result (used by tests and tools).
+    """
+    if network_isolation_available() if isolated is None else isolated:
+        return [_unshare_path or shutil.which("unshare"), "--user", "--map-root-user", "--net", "--", *argv]
     return list(argv)
 
 
@@ -113,6 +132,13 @@ class RunCapability:
         self._mux = mux
         self._argv = list(worker_argv) if worker_argv is not None else list(DEFAULT_WORKER_ARGV)
         self._deadline_s = deadline_ms / 1000.0
+        # Determined here, during host initialization, never inside a request.
+        self._isolated = network_isolation_available()
+
+    @property
+    def isolation_profile(self) -> dict:
+        """The best-effort isolation actually in force (honest reporting; not a sandbox)."""
+        return {"network_namespace": self._isolated}
 
     def run(self, source: str, is_cancel) -> str:
         try:
@@ -127,7 +153,7 @@ class RunCapability:
         if mux is not None and mux.scan(is_cancel):
             return _CANCELLED  # claimed before any worker existed
         data = source.encode("utf-8")
-        command = worker_command(self._argv)  # may run the one-time namespace probe
+        command = worker_command(self._argv, self._isolated)
         workdir = tempfile.mkdtemp(prefix="genia-worker-")
         deadline = time.monotonic() + self._deadline_s
         proc = None

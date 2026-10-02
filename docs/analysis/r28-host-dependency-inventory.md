@@ -454,7 +454,9 @@ pre-flight, when promoted), **raised in**.
   synchronous operation (STATE 9.40).
 - Workaround (E28-3 design, approved D2): a narrow supervisor
   (`hosts/python/mcp_run_capability.py`), leaving `execution.process` unchanged.
-  Responsibilities: fresh process per call; private empty temporary cwd removed after
+  Responsibilities (the best-effort namespace profile is determined once at host
+  initialization, bounded at 5 s and cached, never inside a request; see H33): fresh
+  process per call; private empty temporary cwd removed after
   reap; fixed environment allowlist (no `PATH`/`HOME`); `close_fds`; own process group;
   source over a stdin pipe while draining output; monotonic 5,000 ms deadline;
   incremental byte caps; kill and reap on timeout, cancel, limit, or failure; worker
@@ -553,6 +555,39 @@ pre-flight, when promoted), **raised in**.
   whether a portable rendering for callable values is worth a proposal.
 - Raised in: E28-3 implementation.
 
+**R28-H33 — Live-process tests raced server bootstrap, and the namespace probe sat in the request path**
+- Class: **A** (host-initialization responsibility) and **N** (test-synchronization finding). Status: `closed`.
+- Evidence: PR CI (self-hosted runner, Python 3.14.7, 16 xdist workers) failed
+  `test_cancel_arriving_mid_run_cancels_and_reaps` and
+  `test_deadline_returns_timeout_and_reaps_the_worker[sleep]` with `assert set()` after a fixed
+  `sleep(1.0)` measured from the send time. Reproduced locally with 12 CPU-bound processes plus
+  12 xdist workers on 4 cores (3 of 7 live tests failed, identical symptom). Measured timeline of
+  the first run request: server bootstrap (launcher, `git rev-parse`, host start, Genia import,
+  `mcp.genia` load) dominated, with the governed worker first observable at 0.5-0.65 s unloaded
+  and 1.8-2.2 s loaded; the one-time namespace probe cost only 20-40 ms in both cases but is
+  bounded only by a 15 s timeout, a latent hazard. Independently, `LauncherSession.workers()`
+  counted the probe's `python -S -c ... /proc/net/dev` process as "a worker", so "a worker was
+  observed" could be satisfied by the probe and the reap assertions then checked the probe's
+  pid rather than the governed worker. `process_children`-based discovery matched the actual
+  topology (the worker is a direct child of the host, and `unshare` execs in place, so no
+  wrapper process exists); topology was not a contributing cause, but the tests no longer
+  depend on it. A reaped-but-zombie check (`pid_alive` ignoring zombies) could also hide a reap
+  failure.
+- Disposition: fixed in E28-3 (PR #1073) without changing the 5,000 ms deadline or disabling
+  isolation. Product: `RunCapability` determines the best-effort namespace profile once at
+  construction, which happens during host initialization before the server reads any request;
+  the probe is bounded at 5 s (`PROBE_TIMEOUT_S`) and cached, and requests only consume it, so
+  first-request behavior never depends on a capability probe. Tests: a readiness barrier
+  (`wait_ready`), bounded observable polling for the governed worker (`wait_for_worker`, matched
+  by its `-m hosts.python.mcp_worker` command line, not by depth or parentage and never the
+  probe), strict reap checks (identity = pid + start time; an unreaped zombie fails), and
+  load-independent timing assertions (the deadline lower bound is measured from before the send,
+  so it holds under any load). Discriminating evidence: recording fake `unshare` tests prove the
+  probe runs exactly once, before readiness, even when slow or hanging, and that a hung probe
+  delays startup (bounded) rather than a request; seven probe tests fail against the previous
+  product code.
+- Raised in: E28-3 implementation (CI repair).
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -593,6 +628,7 @@ pre-flight, when promoted), **raised in**.
 | E28-3 failing tests | no new entries; tests pin H24 (default-deny classification), H26 (supervisor floor), H27 (cancellation), H28 (shell stage), H29 (no `main` dispatch), H30 (render limit) |
 | E28-3 implementation | H25 closed; H26, H27, H28, H29, H30 implemented as designed; H31 (responses not flushed on a live pipe) found and fixed natively; H32 (renderer exposes host representations) added |
 | E28-3 documentation | `GENIA_STATE.md` section 9.43 added; roadmap status updated |
+| E28-3 CI repair (PR #1073) | H33 added and closed (probe moved to host initialization; live tests synchronize on readiness and observable worker state); H26 responsibilities refined |
 | E28-3 audit | _not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |

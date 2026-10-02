@@ -111,7 +111,8 @@ already read wins over a later cancel; a cancel seen first wins over a late repl
 
 fresh process per call; private empty temporary working directory, removed after reap;
 fixed environment allowlist (no `PATH`, no `HOME`, no user variables); `close_fds`,
-stdin/stdout/stderr pipes only; own session/process group; source written to the worker
+stdin/stdout/stderr pipes only; own session/process group; best-effort namespace profile
+determined once at host initialization (never in a request); source written to the worker
 stdin pipe while draining output (solves H06/H07 for this worker only); monotonic 5,000 ms
 deadline from spawn; incremental byte caps with kill on excess; kill and reap on timeout,
 cancel, limit, or any internal failure; worker `stderr` drained and discarded (never
@@ -160,9 +161,13 @@ monotonic 5,000 ms deadline; kill of the process group and reap; pruned Genia en
 and rejected policy forms.
 
 Best effort, used **only if verified at runtime**: a user + network namespace
-(`unshare --user --map-root-user --net`). The supervisor probes once per process by running
-a check inside the namespace; if the probe fails the worker runs without it, and nothing
-claims it. Not provided and not claimed: filesystem namespaces, seccomp, memory or CPU
+(`unshare --user --map-root-user --net`). The supervisor verifies it **once, during host
+initialization** (constructing the `run` capability, before the server reads any request) by
+running a check inside the namespace, bounded at 5 seconds (`PROBE_TIMEOUT_S`); the result is
+cached and every request only consumes it (`RunCapability.isolation_profile`). If the probe
+fails or times out the workers run without the namespace and nothing claims it. A hung
+`unshare` can therefore delay server *startup* by at most the probe bound and can never delay,
+or make nondeterministic, a request (ledger R28-H33). Not provided and not claimed: filesystem namespaces, seccomp, memory or CPU
 cgroups, a PID namespace, protection against kernel or interpreter bugs, or isolation from
 other processes owned by the same user. This is a defense-in-depth profile, **not a security
 sandbox and not production multi-tenant isolation**.
@@ -223,7 +228,12 @@ shared helpers in `tests/fixtures/r28_mcp_helpers.py`. Required coverage:
     messages contain no source, path, class name, or Genia diagnostic text.
 11. Protected values never reach `value.rendered`, stdout, stderr, or messages
     (`policy_denied`, fixed message; injected carrier in a worker unit test).
-12. Drift guards: host modules contain no MCP literals; no new Genia builtin, prelude
+12. Live-process synchronization (ledger R28-H33): tests that observe workers wait for server
+    readiness and then poll, with a bounded deadline, for the governed worker (identified by its
+    command line, never the namespace probe); they assert reaping strictly (a zombie fails) and
+    never rely on fixed sleeps measured from the send time. Recording-`unshare` tests prove the
+    probe runs once, at initialization, even when slow or hanging.
+13. Drift guards: host modules contain no MCP literals; no new Genia builtin, prelude
     function, syntax, or Core IR node; normalized parse output and ordinary CLI output
     unchanged; R9 JSON unchanged; changing only the revision changes only revision bytes;
     the profile classification covers every binding and autoload (a new unclassified

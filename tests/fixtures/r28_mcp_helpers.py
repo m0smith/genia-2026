@@ -335,25 +335,70 @@ def process_children(pid):
     return found
 
 
-def pid_alive(pid):
+def _stat_fields(pid):
     try:
         stat = Path(f"/proc/{pid}/stat").read_text()
     except OSError:
-        return False
-    return stat.rsplit(")", 1)[1].split()[0] != "Z"  # a zombie is not reaped
+        return None
+    return stat.rsplit(")", 1)[1].split()  # state, ppid, ..., starttime at index 19
+
+
+def pid_alive(pid):
+    """True while the pid is still in /proc. An unreaped zombie counts as alive: a
+    killed worker that was never waited for is a reap failure, not a clean exit."""
+    return _stat_fields(pid) is not None
+
+
+def process_identity(pid):
+    """(pid, start time): a stable identity that survives pid reuse within a test."""
+    fields = _stat_fields(pid)
+    return None if fields is None else (pid, fields[19])
+
+
+def identity_exists(identity):
+    fields = _stat_fields(identity[0])
+    return fields is not None and fields[19] == identity[1]
+
+
+def _cmdline(pid):
+    try:
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
+    except OSError:
+        return []
+    return [part.decode("utf-8", "replace") for part in raw.split(b"\0") if part]
+
+
+def is_governed_worker(pid):
+    """The governed execution worker: a Python process run as `-m hosts.python.mcp_worker`.
+
+    Deliberately not an `unshare` wrapper (if one were ever a separate process) and not
+    the one-time namespace probe: those are not the governed worker. Depth and parentage
+    are not part of the contract, so this inspects only the command line.
+    """
+    argv = _cmdline(pid)
+    return (
+        len(argv) >= 3
+        and Path(argv[0]).name.startswith("python")
+        and "-m" in argv
+        and argv[argv.index("-m") + 1] == "hosts.python.mcp_worker"
+    )
+
+
+def is_namespace_probe(pid):
+    return any("/proc/net/dev" in part for part in _cmdline(pid))
 
 
 class LauncherSession:
     """A live launcher-mode server with timed writes (for cancellation tests)."""
 
-    def __init__(self):
+    def __init__(self, extra_env=None):
         self.proc = subprocess.Popen(
             [sys.executable, "-m", "hosts.python.mcp_launch"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             cwd=str(REPO_ROOT),
-            env=server_env(),
+            env=server_env(extra_env),
         )
         self._buffer = b""
 
@@ -376,14 +421,43 @@ class LauncherSession:
         line, self._buffer = self._buffer.split(b"\n", 1)
         return json.loads(line.decode("utf-8"))
 
-    def workers(self):
-        """Live worker processes: descendants of the in-process host, not the host."""
-        parents = _parent_map()
-        hosts = {p for p, parent in parents.items() if parent == self.proc.pid}
-        found = set()
-        for host in hosts:
-            found |= process_children(host)
-        return found
+    def wait_ready(self, timeout=120):
+        """Barrier: the server has bootstrapped and answered a request.
+
+        Host initialization (including the one-time isolation probe) completes before the
+        server reads its first request, so after this returns no bootstrap or probe work is
+        left in the request path (ledger R28-H33).
+        """
+        self.send(request("server/discover", "ready"))
+        response = self.read(timeout)
+        assert response["id"] == "ready" and "result" in response, response
+
+    def descendants(self):
+        return process_children(self.proc.pid)
+
+    def governed_workers(self):
+        """Identities of live governed workers anywhere below the launcher."""
+        return {
+            process_identity(pid)
+            for pid in self.descendants()
+            if is_governed_worker(pid) and process_identity(pid) is not None
+        }
+
+    def probe_processes(self):
+        return {pid for pid in self.descendants() if is_namespace_probe(pid)}
+
+    def wait_for_worker(self, timeout=60):
+        """Poll (bounded) until a governed worker exists; return its identities.
+
+        An observable condition with a deadline, not a fixed sleep.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            found = self.governed_workers()
+            if found:
+                return found
+            time.sleep(0.01)
+        raise AssertionError("no governed worker process appeared within the timeout")
 
     def close(self):
         try:

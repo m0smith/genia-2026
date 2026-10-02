@@ -211,15 +211,86 @@ def test_a_worker_that_never_reads_stdin_does_not_hang_or_spin(tmp_path):
     assert time.monotonic() - started < 3
 
 
-def test_namespace_probe_time_does_not_count_against_the_deadline(tmp_path, monkeypatch):
+# --- isolation profile is determined at initialization, not in a request (ledger R28-H33) ---
+
+
+@pytest.fixture
+def fresh_probe(monkeypatch):
+    """A clean probe cache with a counting stand-in for the real probe."""
     supervisor = _supervisor()
+    calls = []
+
+    def counting_probe():
+        calls.append(time.monotonic())
+        return True
+
+    monkeypatch.setattr(supervisor, "_namespace_probe", None)
+    monkeypatch.setattr(supervisor, "_run_probe", counting_probe)
+    return supervisor, calls
+
+
+def test_probe_runs_once_at_construction_and_never_in_the_request_path(tmp_path, fresh_probe):
+    supervisor, calls = fresh_probe
+    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, GOOD_REPLY))
+    assert len(calls) == 1  # determined during initialization, before any request
+    assert capability.isolation_profile == {"network_namespace": True}
+    # Requests consume the cached profile. The stand-in claims a namespace the host may not
+    # have, so run the requests with the real cached answer replaced by "unavailable".
+    capability._isolated = False
+    for _ in range(3):
+        assert json.loads(capability("1", lambda line: False))["status"] == "completed"
+    assert len(calls) == 1
+
+
+def test_a_request_never_triggers_the_probe_even_if_the_cache_is_cold(tmp_path, monkeypatch):
+    supervisor = _supervisor()
+    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, GOOD_REPLY))
+    monkeypatch.setattr(supervisor, "_namespace_probe", None)  # as if never determined
     monkeypatch.setattr(
-        supervisor, "worker_command", lambda argv: (time.sleep(0.8), list(argv))[1]
+        supervisor, "_run_probe", lambda: pytest.fail("probe ran inside a request")
     )
-    reply = json.loads(
-        _capability(_script(tmp_path, GOOD_REPLY), deadline_ms=600)("1", lambda line: False)
-    )
-    assert reply["status"] == "completed"
+    assert json.loads(capability("1", lambda line: False))["status"] == "completed"
+
+
+def test_probe_timeout_is_bounded_and_means_unavailable_not_an_error(monkeypatch):
+    import subprocess as sp
+
+    supervisor = _supervisor()
+    assert supervisor.PROBE_TIMEOUT_S <= 5
+    monkeypatch.setattr(supervisor, "_namespace_probe", None)
+    monkeypatch.setattr(supervisor.shutil, "which", lambda name: "/usr/bin/unshare")
+    seen = {}
+
+    def hanging_run(command, **kwargs):
+        seen["timeout"] = kwargs.get("timeout")
+        raise sp.TimeoutExpired(command, kwargs.get("timeout"))
+
+    monkeypatch.setattr(supervisor.subprocess, "run", hanging_run)
+    assert supervisor.network_isolation_available() is False
+    assert seen["timeout"] == supervisor.PROBE_TIMEOUT_S
+
+
+def test_failed_probe_leaves_requests_working_without_a_namespace(tmp_path, monkeypatch):
+    supervisor = _supervisor()
+    monkeypatch.setattr(supervisor, "_namespace_probe", None)
+    monkeypatch.setattr(supervisor, "_run_probe", lambda: False)
+    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, FACTS))
+    assert capability.isolation_profile == {"network_namespace": False}
+    reply = json.loads(capability("x", lambda line: False))
+    assert reply["status"] == "completed"  # requests still work, just unwrapped
+    # Honest reporting: no wrapper is used and none is claimed.
+    assert "unshare" not in " ".join(supervisor.worker_command(["w"], capability._isolated))
+
+
+def test_request_time_does_not_include_any_probe_work(tmp_path, fresh_probe):
+    supervisor, calls = fresh_probe
+    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, GOOD_REPLY))
+    capability._isolated = False
+    before = len(calls)
+    started = time.monotonic()
+    capability("1", lambda line: False)
+    assert len(calls) == before
+    assert time.monotonic() - started < supervisor.DEADLINE_MS / 1000.0
 
 
 # --- deadline and reaping --------------------------------------------------------------------
@@ -250,24 +321,44 @@ def _worker_processes_left():
     return found
 
 
-def test_worker_children_die_with_the_worker(tmp_path):
+@pytest.mark.parametrize("isolated", [False, True], ids=["plain", "namespace"])
+def test_worker_children_die_with_the_worker(tmp_path, isolated):
+    supervisor = _supervisor()
+    if isolated and not supervisor.network_isolation_available():
+        pytest.skip("namespace not verified on this host (best effort, not claimed)")
     body = """
     import os, subprocess, sys, time
     sys.stdin.buffer.read()
     subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     time.sleep(60)
     """
-    reply = json.loads(
-        _capability(_script(tmp_path, body), deadline_ms=600)("1", lambda line: False)
-    )
+    capability = _capability(_script(tmp_path, body), deadline_ms=600)
+    capability._isolated = isolated  # exercise both process layouts explicitly
+    reply = json.loads(capability("1", lambda line: False))
     assert reply == {"status": "timeout"}
-    time.sleep(0.3)
+    # The group kill and reap finished before the reply: nothing may remain, not even a zombie.
     leaked = [
         pid
         for pid in process_children(os.getpid())
         if b"time.sleep(60)" in _read(Path(f"/proc/{pid}/cmdline")) and pid_alive(pid)
     ]
     assert leaked == [], "worker descendants survived"
+
+
+def test_strict_reap_check_sees_an_unreaped_zombie():
+    # The reap assertions are only meaningful if an unreaped child is detected as alive.
+    import subprocess
+
+    child = subprocess.Popen(["true"])
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        fields = Path(f"/proc/{child.pid}/stat").read_text().rsplit(")", 1)[1].split()
+        if fields[0] == "Z":
+            break
+        time.sleep(0.01)
+    assert pid_alive(child.pid), "a zombie must count as not reaped"
+    child.wait()
+    assert not pid_alive(child.pid)
 
 
 def _read(path):
@@ -300,22 +391,66 @@ def test_cancel_line_already_queued_with_the_request_cancels(tmp_path):
     assert not _worker_processes_left()
 
 
+MARKER_WORKER = """
+import os, sys, time
+marker = sys.stdin.buffer.read().decode("utf-8")
+{pre}
+open(marker, "w").close()  # observable: the worker is running its program
+time.sleep(60)
+"""
+
+
+def _wait_for(path, timeout=60):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if path.exists():
+            return
+        time.sleep(0.01)
+    raise AssertionError(f"{path} never appeared")
+
+
 def test_cancel_line_arriving_mid_run_cancels_and_other_lines_are_preserved(tmp_path):
     mux, write_end = _pipe_mux()
+    marker = tmp_path / "running"
+    body = MARKER_WORKER.format(pre="")
 
-    def later():
-        time.sleep(0.8)
+    def after_worker_is_running():
+        _wait_for(marker)  # an observable condition, not a fixed sleep
         os.write(write_end, b"other-1\nCANCEL\nother-2\n")
 
-    threading.Thread(target=later, daemon=True).start()
-    started = time.monotonic()
+    threading.Thread(target=after_worker_is_running, daemon=True).start()
     reply = json.loads(
-        _capability(_script(tmp_path, SLEEPER), mux)("1", lambda line: line == "CANCEL")
+        _capability(_script(tmp_path, body), mux)(str(marker), lambda line: line == "CANCEL")
     )
     assert reply == {"status": "cancelled"}
-    assert 0.7 <= time.monotonic() - started < 4
+    assert marker.exists()  # it really was cancelled mid-run, not before it started
     assert list(mux.pending) == ["other-1", "other-2"]  # order preserved, cancel dropped
     assert not _worker_processes_left()
+
+
+def test_cancel_mid_reply_returns_only_the_fixed_cancelled_reply(tmp_path):
+    # The worker has already written a partial completed reply when the cancel arrives.
+    mux, write_end = _pipe_mux()
+    marker = tmp_path / "running"
+    pre = (
+        "sys.stdout.write('{\"status\": \"completed\", \"value\": \"partial-out\"')\n"
+        "sys.stdout.flush()"
+    )
+    body = MARKER_WORKER.format(pre=pre)
+    threading.Thread(
+        target=lambda: (_wait_for(marker), os.write(write_end, b"CANCEL\n")), daemon=True
+    ).start()
+    text = _capability(_script(tmp_path, body), mux)(str(marker), lambda line: line == "CANCEL")
+    assert json.loads(text) == {"status": "cancelled"} and "partial-out" not in text
+
+
+def test_deadline_with_partial_output_is_only_the_fixed_timeout_reply(tmp_path):
+    body = MARKER_WORKER.format(
+        pre="sys.stdout.write('{\"status\": \"completed\", \"value\": \"partial-out\"')\nsys.stdout.flush()"
+    )
+    marker = tmp_path / "running"
+    text = _capability(_script(tmp_path, body), deadline_ms=1500)(str(marker), lambda line: False)
+    assert json.loads(text) == {"status": "timeout"} and "partial-out" not in text
 
 
 def test_non_matching_lines_do_not_cancel(tmp_path):
