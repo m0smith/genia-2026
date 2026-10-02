@@ -127,12 +127,13 @@ class RunCapability:
         if mux is not None and mux.scan(is_cancel):
             return _CANCELLED  # claimed before any worker existed
         data = source.encode("utf-8")
-        deadline = time.monotonic() + self._deadline_s
+        command = worker_command(self._argv)  # may run the one-time namespace probe
         workdir = tempfile.mkdtemp(prefix="genia-worker-")
+        deadline = time.monotonic() + self._deadline_s
         proc = None
         try:
             proc = subprocess.Popen(
-                worker_command(self._argv),
+                command,
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -194,8 +195,10 @@ class RunCapability:
             if stdin_open and stdin_fd in ready_w:
                 try:
                     sent += os.write(stdin_fd, data[sent : sent + _WRITE_SIZE])
-                except (BrokenPipeError, BlockingIOError):
+                except BlockingIOError:
                     pass
+                except BrokenPipeError:  # the worker stopped reading: stop writing
+                    sent = len(data)
                 if sent >= len(data):
                     proc.stdin.close()
                     stdin_open = False

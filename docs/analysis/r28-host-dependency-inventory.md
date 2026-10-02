@@ -435,15 +435,16 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-3 design.
 
 **R28-H25 — Normalized parse AST is too coarse for MCP policy**
-- Class: **N/B** (consequence of H23). Status: `open`.
+- Class: **N/B** (consequence of H23). Status: `closed` (resolved by Clarification A4; implemented in E28-3).
 - Evidence: `read_file("x")` normalizes to `{"kind": "Call"}` and `import web` to
   `{"kind": "ImportStmt"}`; callees and import targets are not in the normalized AST,
   so contract section 3's native "policy over normalized parse data" cannot detect
   prohibited calls or imports.
 - Disposition: **resolved by contract Clarification A4** (decision D1): policy runs in
   the worker over the raw parser AST; the shared normalized surface is not expanded.
-  Stays `open` until the E28-3 implementation lands, then closes. Normalization
-  expansion remains a separate parse-spec follow-up (see H23).
+  Implemented in E28-3: `hosts/python/mcp_worker_profile.py` `policy_violation` walks the
+  raw parser AST (a test asserts the normalized surface cannot see the callee while the
+  raw AST can). Normalization expansion remains a separate parse-spec follow-up (see H23).
 - Raised in: E28-3 design. Resolved in: E28-0 Clarification A4 (issue #704).
 
 **R28-H26 — `execution.process` cannot launch the E28-3 worker**
@@ -460,7 +461,9 @@ pre-flight, when promoted), **raised in**.
   stderr discarded; reply shape check only; any exception becomes `internal_error`.
 - Removable/generalizable: the whole supervisor if a general cancellable
   process-with-stdin capability lands (H05-H08).
-- Disposition: decision approved; implementation pending.
+- Disposition: implemented in E28-3 as designed; stays `open` for the E28-6 audit (which
+  decides, with H05-H08, whether a general cancellable process-with-stdin capability is worth
+  a proposal).
 - Raised in: E28-3 design.
 
 **R28-H27 — Cancellation versus the native single-threaded stdin loop**
@@ -483,7 +486,10 @@ pre-flight, when promoted), **raised in**.
   cannot be observed for cancellation (best effort); a transport closure may prevent
   delivery of any envelope (contract section 5).
 - Removable code: the multiplexer, if Genia gains a bounded/non-blocking stdin source.
-- Disposition: mechanism approved; implementation pending.
+- Disposition: implemented in E28-3 (`mcp_stdin.py`, supervisor select loop, native
+  `cancel_matcher`); verified by `tests/unit/test_r28_mcp_run.py` (cancel queued with the
+  request, mid-run, other id ignored, after completion ignored, other lines preserved in
+  order, worker reaped) and the supervisor tests. Stays `open` for the E28-6 audit.
 - Raised in: E28-3 design.
 
 **R28-H28 — Shell stages bypass environment pruning**
@@ -496,7 +502,9 @@ pre-flight, when promoted), **raised in**.
   `RLIMIT_FSIZE` limit damage where available. The classification test asserts a shell
   stage creates no marker.
 - Usefulness beyond MCP: moderate (an evaluator-level capability gate).
-- Disposition: preserve evidence; audit decides.
+- Disposition: implemented as designed in E28-3 (policy rejects `ShellStage`; runtime stubs
+  for `subprocess`, process-creating `os` functions, and sockets; tests assert a shell stage
+  creates no marker with policy on and off). Preserve evidence; audit decides.
 - Raised in: E28-3 design.
 
 **R28-H29 — Contract "no implicit entrypoint" versus STATE command-mode `main` dispatch**
@@ -505,7 +513,7 @@ pre-flight, when promoted), **raised in**.
   file-mode `main` dispatch or implicit entrypoint; STATE section 9 states that in file
   and `-c` command mode `main/1` is preferred over `main/0`, and `_resolve_program_result`
   dispatches it. The contract text is explicit.
-- Disposition: the contract wins for the MCP profile: the worker evaluates with
+- Disposition: implemented as stated (`main` is not dispatched; pinned by a test). The contract wins for the MCP profile: the worker evaluates with
   `run_source` and renders the resulting value without dispatching `main`; a regression
   test pins that a source defining `main` is not invoked. Parity tests with ordinary
   command mode use sources without `main`. No contract change needed; recorded so the
@@ -519,8 +527,31 @@ pre-flight, when promoted), **raised in**.
 - Workaround (E28-3 design): the worker bounds the rendering with the wall-clock
   deadline and `RLIMIT_AS`, then checks the size; an overflow is `result_limit`.
 - Usefulness beyond MCP: moderate (a bounded renderer).
-- Disposition: preserve evidence; audit decides.
+- Disposition: implemented as designed (channel limits enforced incrementally in the worker
+  sinks; value limit checked after rendering, bounded by the deadline and `RLIMIT_AS`).
+  Preserve evidence; audit decides.
 - Raised in: E28-3 design.
+
+**R28-H31 — The E28-1 server did not flush responses on a live pipe**
+- Class: **N (defect found in an earlier phase; native Genia fix)**. Status: `closed`.
+- Evidence: a persistent client got no response because `writeln(stdout, ...)` left each
+  frame in a block-buffered pipe until exit; every E28-1/E28-2 test used a batch run (all
+  stdin, then read all stdout) and could not see it. E28-3's live cancellation tests
+  exposed it: a launcher session answered `tools/list` only after stdin closed.
+- Disposition: fixed in native `mcp.genia` (`emit(text)` writes then calls `flush(stdout)`),
+  with the live-session tests as the regression guard. No host or language change.
+- Raised in: E28-3 implementation.
+
+**R28-H32 — The canonical debug renderer exposes host representations**
+- Class: **N (existing behavior; observation)**. Status: `open`.
+- Evidence: `genia_run` of `print` returns `<function make_global_env.<locals>.print_fn at
+  0x...>` and of a user function `GeniaFunctionGroup(name='f', functions={1: <function
+  f/1>}, ...)`, exactly what ordinary command mode prints, so MCP inherits Python class and
+  function names and a non-deterministic address for such values. Contract section 2.5 says
+  the value is rendered by the existing renderer, not claimed to be a serialization.
+- Disposition: not changed (a renderer change is outside R28). The E28-6 audit decides
+  whether a portable rendering for callable values is worth a proposal.
+- Raised in: E28-3 implementation.
 
 ### Process / documentation drift
 
@@ -560,6 +591,8 @@ pre-flight, when promoted), **raised in**.
 | E28-0 Clarification A4 | H25 resolved by A4 (policy over the raw AST in the worker; closes at implementation) |
 | E28-3 final design | decisions D1–D4 approved; H27 mechanism proven by prototype (no A5); H24, H26 refined; H28 (shell stage bypass), H29 (no implicit entrypoint vs STATE), H30 (rendering not boundable) added |
 | E28-3 failing tests | no new entries; tests pin H24 (default-deny classification), H26 (supervisor floor), H27 (cancellation), H28 (shell stage), H29 (no `main` dispatch), H30 (render limit) |
-| E28-3 | _implementation, documentation, and audit not started_ |
+| E28-3 implementation | H25 closed; H26, H27, H28, H29, H30 implemented as designed; H31 (responses not flushed on a live pipe) found and fixed natively; H32 (renderer exposes host representations) added |
+| E28-3 documentation | `GENIA_STATE.md` section 9.43 added; roadmap status updated |
+| E28-3 audit | _not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |

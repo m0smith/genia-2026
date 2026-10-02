@@ -1,7 +1,7 @@
 # R28 E28-3 — `genia_run` Tool: Design
 
-Status: **Final design (decisions D1-D4 approved; contract Clarification A4 merged
-into the contract).** Nothing here is implemented until the implementation phase;
+Status: **Implemented (Python reference host; see `GENIA_STATE.md` section 9.43).** Final design
+(decisions D1-D4 approved; contract Clarification A4 recorded in the contract);
 `GENIA_STATE.md` remains final authority (E28-1: section 9.41; E28-2: section 9.42;
 `execution.process`: section 9.40). Governing contract:
 `docs/design/r28-genia-mcp-contract-threat-model.md` sections 2.5, 3, 4, 5, 6, 7.1 and

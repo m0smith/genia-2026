@@ -195,21 +195,24 @@ def _serialize(reply: dict) -> bytes:
 
 
 def main() -> int:
-    try:
-        apply_limits()
-        data = sys.stdin.buffer.read(SOURCE_MAX_BYTES + 1)
-        if len(data) > SOURCE_MAX_BYTES:
+    # The runtime stubs stay installed until the process exits, so threads an evaluated
+    # program leaves behind cannot create processes or use sockets after evaluation.
+    with _restricted_runtime():
+        try:
+            apply_limits()
+            data = sys.stdin.buffer.read(SOURCE_MAX_BYTES + 1)
+            if len(data) > SOURCE_MAX_BYTES:
+                reply = {"status": "internal_error"}
+            else:
+                reply = execute_source(data.decode("utf-8"))
+        except BaseException:  # noqa: BLE001
             reply = {"status": "internal_error"}
-        else:
-            reply = execute_source(data.decode("utf-8"))
-    except BaseException:  # noqa: BLE001
-        reply = {"status": "internal_error"}
-    try:
-        sys.stdout.buffer.write(_serialize(reply))
-        sys.stdout.buffer.flush()
-    finally:
-        # Evaluated programs may leave non-daemon threads behind; never wait for them.
-        os._exit(0)
+        try:
+            sys.stdout.buffer.write(_serialize(reply))
+            sys.stdout.buffer.flush()
+        finally:
+            # Evaluated programs may leave non-daemon threads behind; never wait for them.
+            os._exit(0)
 
 
 if __name__ == "__main__":

@@ -6435,6 +6435,105 @@ PYTHON REFERENCE HOST:
 Explicit limitations: no `genia_run`, no worker/timeout/cancellation, no MCP resources
 or prompts, no C++ MCP support or parity claim, no checked-in client configuration.
 
+## 9.43) R28 E28-3 `genia_run` over the native Genia MCP server
+
+Status: Implemented (Python reference host), **Experimental, intermediate development
+surface of an incomplete release** (R28, epic #700, is not complete; E28-3 is issue
+#704). Governing documents: contract `docs/design/r28-genia-mcp-contract-threat-model.md`
+(Clarifications A2, A3, A4) and design `docs/design/r28-e28-3-genia-run-design.md`.
+Sections 9.41 and 9.42 still apply; this section records only what E28-3 adds. It is not
+an availability claim for agents or editors and **not a security sandbox**.
+
+LANGUAGE CONTRACT:
+
+- E28-3 adds no syntax, parser rule, normalized parse change, AST or Core IR node, builtin,
+  prelude function, evaluator behavior, integer type, JSON facility, `execution.process`
+  change, or ordinary CLI behavior, and changes no R9/R23 JSON rule. The behavior below is
+  application and host behavior of `apps/mcp/mcp.genia` and its host modules.
+
+APPLICATION BEHAVIOR:
+
+- `genia_run` is advertised and callable only when the host launcher provisions the `run`
+  capability. The advertised order is `genia_capabilities`, `genia_parse`, `genia_run`;
+  launcher mode lists exactly these three, plain CLI mode (`genia apps/mcp/mcp.genia
+  <revision>`) still lists only `genia_capabilities` and treats `genia_run` as an unknown
+  tool. `genia_capabilities.tools` and `execution_profile` keep their closed shape; the
+  profile flags report governed policy (no such Genia authority is provisioned), not OS
+  mechanisms.
+- Input is exactly one string `source` (any other argument is `-32602`). A well-formed
+  `source` over 262,144 UTF-8 bytes is `input_limit` before any worker starts; invalid
+  Unicode is `-32700` at the JSON-RPC boundary (Clarification A2).
+- Success is `{schema_version, status: "ok", result: {kind: "completed", value:
+  {rendered}, stdout, stderr, exit_code: 0}, error: null}`. `value.rendered` is the
+  existing canonical debug rendering of the final value (`format_debug`); `stdout` and
+  `stderr` are the program's output-sink writes captured separately; none is scraped from
+  the others. A successful `none("nil")` is a present rendered value. Source is evaluated
+  with `run_source` (command-source evaluation); `main` is **not** dispatched (contract
+  section 2.5, ledger R28-H29), unlike ordinary `-c` mode.
+- Failure envelopes (no `result`, no partial value, stdout, or stderr; every message is a
+  fixed server-owned string): `parse_error` (phase `parse`, character offset only),
+  `policy_denied` (`policy`), `runtime_error` (`execution`, no Genia diagnostic text),
+  `timeout` (`execution`, 5,000 ms), `cancelled` (`execution`), `result_limit`
+  (`adapter`: a channel or the rendered value over 1,048,576 bytes, or the whole result
+  over 3,276,800 bytes), and `internal_error` (`adapter`).
+- Cancellation is honored: a `notifications/cancelled` message whose `params.requestId`
+  equals the active request id, queued with the request or arriving during the run,
+  terminates and reaps the worker and yields `cancelled`. The match is made in native
+  `mcp.genia`; a cancel for another id, or after completion, is ignored; other lines that
+  arrive during a run are answered in order afterwards.
+- Every response is flushed as soon as it is written (previously it could be held in the
+  stdout buffer until exit; ledger R28-H31).
+
+POLICY AND RUNTIME (each call, in a fresh worker):
+
+- Pre-execution policy runs in the worker over the **raw parser AST** (Clarification A4);
+  the shared normalized parse surface is unchanged. It rejects every `import`, shell stage
+  `$(...)`, and any reference to an authority-bearing name (file, zip, resource, HTTP,
+  server, external process, configuration, secret, declassification, model, retrieval,
+  `input`, `stdin_keys`). It is conservative: a user definition reusing such a name is
+  rejected too.
+- The Genia environment is pruned by an explicit default-deny classification
+  (`hosts/python/mcp_worker_profile.py`; a test fails if any binding or autoload is
+  unclassified), `import` loading is denied, and process creation and socket use are
+  stubbed at runtime (shell stages bypass bindings; ledger R28-H28). `argv()` is empty and
+  `stdin` is immediate EOF; no environment, dotenv, configuration, or secret source exists.
+- A protected-value carrier in the result is `policy_denied` with a fixed message.
+
+WORKER FLOOR (guaranteed on the Python reference host, POSIX):
+
+- fresh process per call in its own process group; fixed minimal environment (no `PATH`,
+  `HOME`, or user variable); private empty working directory removed after reap; only the
+  three standard pipes inherited; source sent over the worker's stdin pipe; reply is one
+  ASCII JSON line; process limits (`RLIMIT_FSIZE` 0, `CORE` 0, `CPU` 10 s, `NOFILE` 64,
+  `AS` 2 GiB); channel limits enforced incrementally inside the worker; monotonic
+  5,000 ms deadline from spawn; forceful kill of the process group and reap on timeout,
+  cancellation, overflow, or failure; worker stderr drained and discarded.
+- **Best effort, only if verified at runtime:** a user + network namespace
+  (`unshare --user --map-root-user --net`), probed once per process; when the probe fails
+  the worker runs without it and nothing claims it.
+- **Not provided or claimed:** filesystem namespaces, seccomp, cgroup memory or CPU
+  limits, a PID namespace, protection against interpreter or kernel defects, or isolation
+  from other processes of the same user. This is a defense-in-depth profile, not a
+  security sandbox and not production multi-tenant isolation.
+
+PYTHON REFERENCE HOST (modules contain no MCP literals; enforced by tests):
+
+- `hosts/python/mcp_run_capability.py` (supervisor), `hosts/python/mcp_worker.py` (worker),
+  `hosts/python/mcp_worker_profile.py` (classification and policy), and
+  `hosts/python/mcp_stdin.py` (raw stdin line multiplexer: transport framing only, splits
+  on `\n`, back-pressure at 8 MiB). `hosts/python/mcp_host.py` provisions `parse` and
+  `run` and feeds the multiplexer to the existing `stdin_provider` hook; native Genia
+  still owns decoding, validation, dispatch, cancellation matching, limits, and envelopes.
+- Validated by `tests/unit/test_r28_mcp_run.py`, `tests/unit/test_r28_mcp_run_worker.py`,
+  `tests/unit/test_r28_mcp_run_supervisor.py`, and the existing R28 tests.
+
+Explicit limitations: the canonical debug renderer shows host representations for some
+values (for example a builtin renders as a Python function representation with an
+address; ledger R28-H32); while more than 8 MiB of client input is pending the server
+stops reading and cannot observe a cancellation; a closed transport may prevent any
+envelope; Windows is not supported; no resources or prompts, no C++ MCP support or parity
+claim, no checked-in client configuration, and no VS Code or Copilot acceptance.
+
 ## 10) Explicitly not implemented (current)
 
 - general unrestricted host interop / FFI layer
@@ -6443,7 +6542,7 @@ or prompts, no C++ MCP support or parity claim, no checked-in client configurati
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
-- MCP `genia_run` tool, MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers only the E28-1 skeleton and the E28-2 `genia_parse` tool so far; see sections 9.41 and 9.42)
+- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool so far; see sections 9.41, 9.42, and 9.43)
 
 ## 11) Example demos shipped in-repo
 

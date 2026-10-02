@@ -270,3 +270,56 @@ def test_runtime_process_creation_is_stubbed_even_without_policy(tmp_path):
     )
     assert reply["status"] in {"runtime_error", "policy_denied"}
     assert not marker.exists()
+
+
+def test_runtime_stubs_deny_process_creation_and_sockets_and_are_restored():
+    import os
+    import socket
+
+    worker = _worker()
+    original_run, original_system = subprocess.run, os.system
+    with worker._restricted_runtime():
+        with pytest.raises(PermissionError):
+            subprocess.run(["true"])
+        with pytest.raises(PermissionError):
+            subprocess.Popen(["true"])
+        with pytest.raises(PermissionError):
+            os.system("true")
+        with pytest.raises(PermissionError):
+            os.execv("/bin/true", ["true"])
+        probe = socket.socket()
+        try:
+            with pytest.raises(PermissionError):
+                probe.connect(("127.0.0.1", 9))
+            with pytest.raises(PermissionError):
+                probe.bind(("127.0.0.1", 0))
+        finally:
+            probe.close()
+        with pytest.raises(PermissionError):
+            socket.create_connection(("127.0.0.1", 9))
+    assert subprocess.run is original_run and os.system is original_system
+    assert subprocess.run(["true"]).returncode == 0  # restored for the host process
+
+
+def test_worker_process_keeps_the_stubs_until_exit_and_denies_leftover_threads():
+    # A program-spawned thread outliving evaluation must still be unable to run commands.
+    code = (
+        "import subprocess, threading\n"
+        "from hosts.python import mcp_worker as w\n"
+        "with w._restricted_runtime():\n"
+        "    w.execute_source('1')\n"
+        "    try:\n"
+        "        subprocess.run(['true'])\n"
+        "        print('ESCAPED')\n"
+        "    except PermissionError:\n"
+        "        print('denied')\n"
+    )
+    done = subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        cwd=str(REPO_ROOT),
+        env=server_env({"PYTHONPATH": f"{REPO_ROOT}:{REPO_ROOT / 'src'}"}),
+        timeout=60,
+    )
+    assert done.stdout.split() == ["denied"], (done.stdout, done.stderr)

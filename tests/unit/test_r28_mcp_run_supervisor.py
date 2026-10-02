@@ -201,6 +201,27 @@ def test_oversized_reply_is_killed_and_internal_error(tmp_path):
     assert time.monotonic() - started < 4.5
 
 
+def test_a_worker_that_never_reads_stdin_does_not_hang_or_spin(tmp_path):
+    big = "x" * 262144
+    started = time.monotonic()
+    reply = json.loads(
+        _capability(_script(tmp_path, "import sys; sys.exit(0)"))(big, lambda line: False)
+    )
+    assert reply == {"status": "internal_error"}
+    assert time.monotonic() - started < 3
+
+
+def test_namespace_probe_time_does_not_count_against_the_deadline(tmp_path, monkeypatch):
+    supervisor = _supervisor()
+    monkeypatch.setattr(
+        supervisor, "worker_command", lambda argv: (time.sleep(0.8), list(argv))[1]
+    )
+    reply = json.loads(
+        _capability(_script(tmp_path, GOOD_REPLY), deadline_ms=600)("1", lambda line: False)
+    )
+    assert reply["status"] == "completed"
+
+
 # --- deadline and reaping --------------------------------------------------------------------
 
 SLEEPER = """
