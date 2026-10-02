@@ -418,16 +418,20 @@ pre-flight, when promoted), **raised in**.
 **R28-H24 — No restricted-authority evaluation profile in Genia**
 - Class: **B**. Status: `open`.
 - Evidence: in command mode `read_file("/etc/hostname")` succeeds; the default global
-  environment has 241 bindings of which roughly 45 are authority-bearing (`read_file`,
-  `write_file`, `_http_send`, `_spawn`, `_execution_process`, `zip_*`, `resource_*`,
-  config/secret/model/retrieve bindings, `sleep`), and prelude autoloads (`file`, `web`,
-  `process`, `execution`, `resource`) add more. `make_global_env` accepts sink and
-  provider overrides but no allowlist/denylist.
-- Workaround (E28-3 design): the host worker prunes the environment and autoload table
-  before evaluation (decision D1/D2 pending).
+  environment has 241 bindings and 234 prelude autoload entries. Authority-bearing
+  ones include file/zip/resource I/O, `_http_send`/`_serve_http`/`_cors`, config/secret/
+  declassification/model/embedding/retrieval bindings, `input`, `stdin_keys`, and the
+  `file`, `web`, `execution`, and `resource` modules. `make_global_env` accepts sink,
+  stdin, and snapshot-provider overrides but no allowlist or denylist.
+- Workaround (E28-3 design, approved D1/D2): the host worker applies a default-deny
+  classification (`hosts/python/mcp_worker_profile.py`): only explicitly allowed bindings
+  and autoloads survive, `env.load_module` is replaced by a denial, and a drift test
+  fails when any binding is unclassified.
 - Usefulness beyond MCP: high (any untrusted-source consumer).
-- Disposition: preserve evidence; the E28-6 audit decides whether a general
-  capability-restricted environment facility is worth a proposal.
+- Removable code: the profile module, if Genia gains a capability-restricted
+  environment facility.
+- Disposition: preserve evidence; the E28-6 audit decides whether a general facility is
+  worth a proposal.
 - Raised in: E28-3 design.
 
 **R28-H25 — Normalized parse AST is too coarse for MCP policy**
@@ -436,29 +440,86 @@ pre-flight, when promoted), **raised in**.
   `{"kind": "ImportStmt"}`; callees and import targets are not in the normalized AST,
   so contract section 3's native "policy over normalized parse data" cannot detect
   prohibited calls or imports.
-- Workaround (E28-3 design): policy over the raw parser AST inside the host worker
-  (decision D1).
-- Disposition: decision required; parse-normalization expansion is a separate
-  parse-spec follow-up (see H23).
-- Raised in: E28-3 design.
+- Disposition: **resolved by contract Clarification A4** (decision D1): policy runs in
+  the worker over the raw parser AST; the shared normalized surface is not expanded.
+  Stays `open` until the E28-3 implementation lands, then closes. Normalization
+  expansion remains a separate parse-spec follow-up (see H23).
+- Raised in: E28-3 design. Resolved in: E28-0 Clarification A4 (issue #704).
 
 **R28-H26 — `execution.process` cannot launch the E28-3 worker**
 - Class: **A** (refines H04, H06, H07). Status: `open`.
 - Evidence: stdin is `DEVNULL`, argv elements cap near 128 KiB (source limit is
   262,144 bytes), the executable is a host-bound symbol, and the call is one
   synchronous operation (STATE 9.40).
-- Workaround (E28-3 design): a new narrow host supervisor with a stdin pipe, deadline,
-  and incremental byte counting, leaving `execution.process` unchanged (decision D2).
-- Disposition: decision required.
+- Workaround (E28-3 design, approved D2): a narrow supervisor
+  (`hosts/python/mcp_run_capability.py`), leaving `execution.process` unchanged.
+  Responsibilities: fresh process per call; private empty temporary cwd removed after
+  reap; fixed environment allowlist (no `PATH`/`HOME`); `close_fds`; own process group;
+  source over a stdin pipe while draining output; monotonic 5,000 ms deadline;
+  incremental byte caps; kill and reap on timeout, cancel, limit, or failure; worker
+  stderr discarded; reply shape check only; any exception becomes `internal_error`.
+- Removable/generalizable: the whole supervisor if a general cancellable
+  process-with-stdin capability lands (H05-H08).
+- Disposition: decision approved; implementation pending.
 - Raised in: E28-3 design.
 
-**R28-H27 — Cancellation cannot be honored by the native stdin loop**
+**R28-H27 — Cancellation versus the native single-threaded stdin loop**
 - Class: **B** (refines H08, H09). Status: `open`.
-- Evidence: `serve_lines` processes one request synchronously; a
+- Evidence: `serve_lines` processes one request synchronously, so a
   `notifications/cancelled` message sits unread in stdin while `genia_run` blocks.
-  Contract section 5 requires cancellation to terminate and reap the worker.
-- Workaround: none chosen; options in the E28-3 design (decision D3).
-- Disposition: decision required.
+  Contract section 5 requires cancellation to terminate and reap the worker; E28-3 may
+  not ignore it (decision D3).
+- Investigation (prototype in the session scratchpad, not committed): a Python line
+  multiplexer fed to the existing public `make_global_env(stdin_provider=...)` hook, plus
+  a host `select` loop that calls a **Genia closure** (`is_cancel`) for each raw line,
+  honored (a) a cancel line queued in the same write as the request, (b) a cancel
+  arriving one second into the run, and (c) kept a non-cancel line that arrived during
+  the run, answered in order afterwards. Protocol interpretation (method, request id)
+  stayed in the Genia closure; the host only multiplexes, forwards raw lines, and
+  terminates. No move of the MCP loop into Python was required, so no Clarification A5.
+- Workaround (E28-3 design): `hosts/python/mcp_stdin.py` (multiplexer) plus the
+  supervisor's select loop; native builds `is_cancel`. Limits: while more than 8 MiB of
+  input is pending the multiplexer stops reading (back-pressure), so a flooding client
+  cannot be observed for cancellation (best effort); a transport closure may prevent
+  delivery of any envelope (contract section 5).
+- Removable code: the multiplexer, if Genia gains a bounded/non-blocking stdin source.
+- Disposition: mechanism approved; implementation pending.
+- Raised in: E28-3 design.
+
+**R28-H28 — Shell stages bypass environment pruning**
+- Class: **A**. Status: `open`.
+- Evidence: `$(cmd)` lexes to `SHELL_STAGE`; the evaluator's `_eval_shell_stage` calls
+  `subprocess.run(shell=True)` directly, not through a global binding, so removing
+  bindings cannot deny it.
+- Workaround (E28-3 design): policy rejects `ShellStage`; the worker stubs subprocess and
+  process-creating `os` functions at runtime; the network/user namespace and
+  `RLIMIT_FSIZE` limit damage where available. The classification test asserts a shell
+  stage creates no marker.
+- Usefulness beyond MCP: moderate (an evaluator-level capability gate).
+- Disposition: preserve evidence; audit decides.
+- Raised in: E28-3 design.
+
+**R28-H29 — Contract "no implicit entrypoint" versus STATE command-mode `main` dispatch**
+- Class: **N (contract versus documented CLI behavior)**. Status: `open`.
+- Evidence: contract section 2.5 requires command-source evaluation semantics with no
+  file-mode `main` dispatch or implicit entrypoint; STATE section 9 states that in file
+  and `-c` command mode `main/1` is preferred over `main/0`, and `_resolve_program_result`
+  dispatches it. The contract text is explicit.
+- Disposition: the contract wins for the MCP profile: the worker evaluates with
+  `run_source` and renders the resulting value without dispatching `main`; a regression
+  test pins that a source defining `main` is not invoked. Parity tests with ordinary
+  command mode use sources without `main`. No contract change needed; recorded so the
+  difference is not rediscovered as a defect.
+- Raised in: E28-3 design.
+
+**R28-H30 — Canonical value rendering cannot be bounded incrementally**
+- Class: **B**. Status: `open`.
+- Evidence: `format_debug` returns a finished string; contract section 5 asks for
+  incremental limit enforcement and the 1 MiB value limit.
+- Workaround (E28-3 design): the worker bounds the rendering with the wall-clock
+  deadline and `RLIMIT_AS`, then checks the size; an overflow is `result_limit`.
+- Usefulness beyond MCP: moderate (a bounded renderer).
+- Disposition: preserve evidence; audit decides.
 - Raised in: E28-3 design.
 
 ### Process / documentation drift
@@ -495,7 +556,9 @@ pre-flight, when promoted), **raised in**.
 | E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
 | E28-2 H22 resolution | H22 resolved by contract Clarification A3 / design §6.1 (lossless opaque AST transport); H23 added and closed (normalization collapses unary nodes; not a defect) |
 | E28-2 documentation | `GENIA_STATE.md` section 9.42 added; H17, H18, H20 dispositions updated to implemented (still `open` for the E28-6 audit); no further entries added |
-| E28-3 design | H24–H27 added (restricted-profile gap, coarse normalized AST, supervisor vs `execution.process`, cancellation); H04, H06–H09 refined; decisions D1–D4 pending |
-| E28-3 | _failing tests and implementation not started — blocked on design decisions_ |
+| E28-3 design | H24–H27 added (restricted-profile gap, coarse normalized AST, supervisor vs `execution.process`, cancellation); H04, H06–H09 refined |
+| E28-0 Clarification A4 | H25 resolved by A4 (policy over the raw AST in the worker; closes at implementation) |
+| E28-3 final design | decisions D1–D4 approved; H27 mechanism proven by prototype (no A5); H24, H26 refined; H28 (shell stage bypass), H29 (no implicit entrypoint vs STATE), H30 (rendering not boundable) added |
+| E28-3 | _failing tests, implementation, documentation, and audit not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |
