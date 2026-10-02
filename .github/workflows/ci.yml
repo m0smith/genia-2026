@@ -5,11 +5,9 @@ on:
     branches:
       - main
       - master
-      - infra/self-hosted-ci
   pull_request:
   workflow_dispatch:
 
-# September 2026 temporary policy: no GitHub-hosted runner compute.
 # Fork PRs intentionally skip CI until reviewed and run from a trusted branch/manual dispatch.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -19,7 +17,7 @@ jobs:
   docs-coverage:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Docs coverage
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -41,7 +39,7 @@ jobs:
   cheatsheet:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Cheatsheet validation
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
@@ -61,7 +59,7 @@ jobs:
   test:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: Fast tests (py3.14)
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -91,7 +89,7 @@ jobs:
   extension:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     name: VS Code extension (Node)
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: vscode/genia-debugger

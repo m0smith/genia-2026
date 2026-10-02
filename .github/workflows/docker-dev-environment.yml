@@ -19,7 +19,7 @@ permissions:
 jobs:
   validate:
     name: Build and prove dev image
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     timeout-minutes: 45
 
     steps:
