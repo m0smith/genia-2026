@@ -1,0 +1,65 @@
+name: GitHub-hosted runner canary
+
+on:
+  push:
+    branches:
+      - infra/github-hosted-runner-canary
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    if: github.repository == 'm0smith/genia-2026'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Show runner environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "runner_name=${RUNNER_NAME}"
+          echo "runner_os=${RUNNER_OS}"
+          echo "runner_arch=${RUNNER_ARCH}"
+          uname -a
+
+      - name: Confirm authoritative repository documents
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f AGENTS.md
+          test -f GENIA_STATE.md
+          test -f GENIA_RULES.md
+          test -f GENIA_REPL_README.md
+          test -f README.md
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Bootstrap uv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
+          python -m uv --version
+
+      - name: Sync dependencies
+        run: python -m uv sync --dev --python "$UV_PYTHON"
+
+      - name: Validate LLM instruction sync
+        run: python -m uv run --python "$UV_PYTHON" python tools/validate_llm_instructions.py
+
+      - name: Run semantic specs
+        run: python -m uv run --python "$UV_PYTHON" python -m tools.spec_runner
+
+      - name: Run representative fast tests
+        run: python -m uv run --python "$UV_PYTHON" pytest -q tests/unit/test_cheatsheet_*.py
