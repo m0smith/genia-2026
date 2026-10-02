@@ -552,9 +552,16 @@ pre-flight, when promoted), **raised in**.
   f/1>}, ...)`, exactly what ordinary command mode prints, so MCP inherits Python class and
   function names and a non-deterministic address for such values. Contract section 2.5 says
   the value is rendered by the existing renderer, not claimed to be a serialization.
-- Disposition: not changed (a renderer change is outside R28). The E28-6 audit decides
-  whether a portable rendering for callable values is worth a proposal.
-- Raised in: E28-3 implementation.
+- E28-5 evidence (matrix Z1): with a protected carrier injected into the real worker, a closure that
+  captures it (`(x) -> CARRIER`), a named function returning it, and builtins all render only
+  host text (`<function ... at 0x...>`, `GeniaFunctionGroup(...)`): the sentinel never appears in
+  any byte of the session, because a closure's environment is not rendered. Callable values are
+  excluded from every deterministic comparison (the 55-program parity corpus contains none), and the
+  shape equals ordinary command mode (same renderer). No R28 contract violation was found.
+- Disposition: not changed (a renderer change is outside R28). E28-5 recommends documenting it as an
+  accepted limitation for R28 (non-deterministic address text, Python class names, no leakage); the
+  E28-6 audit decides whether a portable rendering for callable values is worth a proposal.
+- Raised in: E28-3 implementation. Refined in: E28-5.
 
 **R28-H33 — Live-process tests raced server bootstrap, and the namespace probe sat in the request path**
 - Class: **A** (host-initialization responsibility) and **N** (test-synchronization finding). Status: `closed`.
@@ -647,7 +654,41 @@ pre-flight, when promoted), **raised in**.
 - Disposition: not changed in E28-4 (supporting `initialize` is a contract amendment, section 7). The
   limitation and the required client mode are documented; the E28-5/E28-6 phases and the recorded
   VS Code run decide whether an amendment is needed.
-- Raised in: E28-4 pre-flight.
+- E28-5 investigation (evidence: `tools/mcp_acceptance/negotiation.mjs`, pinned by
+  `tests/unit/test_r28_mcp_official_client.py::test_version_negotiation_evidence_for_ledger_h36`):
+  with client 2.2.0 the SDK default and `legacy` both fail with `Method not found`; `auto` and
+  `{pin: '2026-07-28'}` both connect and list exactly the three tools. The SDK documents the
+  negotiation as **opt-in** (`legacy` is "byte-identical to a client without this option") and its
+  source says changing the default "is a flip of this single line"; `auto` probes `server/discover` and
+  falls back to `initialize` only when the probe is not definitive modern evidence. Public notes on the
+  2026-07-28 revision describe SDKs that keep backward compatibility on every endpoint. The v1 SDK
+  1.31.0 has no `server/discover` at all.
+  1. *Merely an SDK-default issue?* At the SDK level yes: one line of client configuration
+     (`auto` or a pin) works with no Genia change. It is transitional, not a protocol defect.
+  2. *Can mainstream target clients use modern negotiation without Genia changes?* Programmatic SDK
+     clients: yes. GUI hosts: **unverified**. No VS Code or Copilot negotiation behavior could be
+     observed or found documented (H39).
+  3. *Does `.mcp.json` provide enough information?* No, and it cannot: the portable format carries
+     command, args and type only; it has no protocol-version or negotiation field. Era selection is
+     entirely the host client's decision.
+  4. *Would supporting legacy `initialize` materially improve interoperability?* Potentially yes, for
+     every client whose SDK default or only mode is the 2025 era (all v1-SDK clients). How many target
+     hosts that is cannot be established without the H39 run.
+  5. *Burden?* A second protocol era in `mcp.genia`: `initialize` and `notifications/initialized`,
+     protocol and capability negotiation, the session-initialized state the stateless contract (7.1,
+     A1) forbids, `ping`, 2025-era result shapes (no `resultType`, `ttlMs`, `cacheScope`, per-request
+     `_meta`) and error codes, a second conformance matrix, and an amended contract section 7 and
+     Clarification A1. Native Genia could carry it, but it expands the approved protocol surface.
+  6. *Is an amendment necessary before release?* **Not demonstrated by E28-5 evidence.** It becomes
+     necessary only if the E28-6 VS Code/Copilot run (or the chosen release host) cannot negotiate the
+     modern era. **Recommendation for E28-6:** do not amend now; obtain the H39 run first; if the
+     target host negotiates modern (or `auto`), keep the contract and document the client requirement;
+     if it cannot, stop and decide on this proposed amendment before claiming mainstream-host
+     interoperability: "accept `initialize` with a requested `protocolVersion` of 2025-11-25 or
+     earlier, answer once with the current capabilities and a legacy-compatible result shape, treat
+     `notifications/initialized` as a no-op, keep every other behavior stateless". E28-5 implemented
+     none of this.
+- Raised in: E28-4 pre-flight. Refined in: E28-5.
 
 **R28-H37 — A stdio client may launch the server more than once, through a wrapper chain**
 - Class: **N (client behavior, observed)**. Status: `closed`.
@@ -685,7 +726,45 @@ pre-flight, when promoted), **raised in**.
 - Disposition: the executed acceptance is the official SDK client; a documented manual VS Code
   procedure and evidence record stay required by contract 12.2 before the final audit. Nothing
   claims a VS Code run.
-- Raised in: E28-4 pre-flight.
+- E28-5 re-check: still not executable. No `code` binary, no GUI, no Copilot authentication in the
+  cloud container; `code.visualstudio.com` is unreachable through the proxy. **H39 stays open and no
+  VS Code or Copilot acceptance is claimed.** The manual procedure in `docs/mcp/stdio-development.md`
+  was made exact. E28-6 must obtain, before release closure: the VS Code version and Copilot
+  extension version; the workspace folder opened and trusted; the MCP servers view showing `genia`
+  running (or the output-log error); the tool list showing exactly the three tools; a `genia_parse`
+  then `genia_run` exchange performed from the host (not scripted); and whether the host sent
+  `initialize` or `server/discover` (the server's stderr stays empty, so this is read from the host's
+  MCP log). That record also settles H36.
+- Raised in: E28-4 pre-flight. Refined in: E28-5.
+
+**R28-H40 — UTF-16 surrogate escapes in program strings cannot cross the JSON boundary unchanged**
+- Class: **N (host string representation; documented limitation)**. Status: `open` (for the E28-6 audit).
+- Evidence: found by the E28-5 channel matrix. Genia `\u` escapes build strings holding UTF-16
+  surrogate code units, which are not Unicode scalar values. Direct evaluation keeps them
+  (`"\ud83d\ude00"` renders as two code units). Through MCP the worker reply is JSON: a valid pair is
+  merged by the decoder into the real scalar U+1F600 (rendered value and stdout differ from the direct
+  result), and a lone surrogate (`"\ud800"`, written to stdout, stderr, or returned) makes the reply
+  undecodable, so the call fails closed as `internal_error` with the fixed message and no partial data.
+  No data leaks and no framing is affected.
+- Disposition: not changed. It is pinned by
+  `tests/unit/test_r28_mcp_conformance_run.py::test_utf16_surrogate_escapes_are_a_documented_transcoding_limitation`
+  and matrix row C10. The E28-6 audit decides whether to document it only (recommended) or to ask
+  for a Genia string-semantics decision (surrogates in strings are a Python-host detail a second host
+  need not share).
+- Raised in: E28-5.
+
+**R28-H41 — SIGHUP left the worker running and its private temp directory behind**
+- Class: **A** (host lifecycle; refines H38). Status: `closed`.
+- Evidence: the E28-5 lifecycle matrix sent SIGHUP to the client-launched process mid-run. The
+  launcher forwarded it, but the host only handled SIGTERM, so SIGHUP's default action ended the host
+  without unwinding: the worker survived until its 8 s orphan backstop and its `genia-worker-*`
+  directory was never removed. STATE 9.44 and the E28-4 design describe SIGHUP forwarding; they claimed
+  cleanup only for SIGTERM, so this was a gap in E28-4's hardening, not a contract violation.
+- Disposition: fixed in E28-5 (red test `7503510`, fix `2568176`): `mcp_host.main` handles SIGHUP like SIGTERM
+  (host plumbing only). `tests/unit/test_r28_mcp_conformance_lifecycle.py::test_sighup_to_the_client_launched_process_stops_the_chain_and_cleans_up`
+  is red before and green after.
+- Removable code: with the rest of H26/H38 if a general supervised-process facility lands.
+- Raised in: E28-5. Resolved in: E28-5.
 
 ### Process / documentation drift
 
@@ -734,5 +813,6 @@ pre-flight, when promoted), **raised in**.
 | E28-3 audit | _not started_ |
 | E28-4 audit | Findings: two narrow-import allowlist tests (launcher, host bootstrap) needed `signal`/`contextlib` and were updated with a comment; no other defect. Suites verified with namespaces available and denied |
 | E28-4 implementation | H37 and H38 closed; H36 and H39 stay open (documented limitations, for E28-5/E28-6) |
-| E28-4 – E28-5 | _not started_ |
+| E28-5 pre-flight and tests | matrix design recorded; the matrix found H40 (surrogate escapes) and H41 (SIGHUP leak); H41 fixed and closed |
+| E28-5 evidence | H32 (renderer: no leak, no destabilization), H36 (investigation and recommendation), H39 (re-checked, still open) refined; no entry closed except H41 |
 | E28-6 final audit | _must disposition every non-closed entry_ |

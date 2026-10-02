@@ -1,6 +1,6 @@
 # Genia MCP server over local stdio (development guide)
 
-Status: R28 E28-4 (issue #705). `GENIA_STATE.md` is the final authority. This is a local
+Status: R28 E28-4 (issue #705), conformance evidence in E28-5 (`docs/mcp/conformance-matrix.md`). `GENIA_STATE.md` is the final authority. This is a local
 development tool for trusted stdio clients: it is **not a security sandbox**.
 
 ## What you get
@@ -37,19 +37,36 @@ secret.
 
 - **Streamable HTTP is deferred.** Only local stdio exists; there is no listener.
 - **Stateless protocol (2026-07-28):** the server has no `initialize`. A client that only speaks
-  the legacy `initialize` handshake gets `Method not found` and cannot use the server (the official
-  TypeScript client v2 must use version negotiation `auto`). Supporting it needs a contract
-  amendment (ledger R28-H36).
+  the legacy `initialize` handshake gets `Method not found` and cannot use the server. The official
+  TypeScript client v2 (2.2.0) defaults to that legacy mode: configure `versionNegotiation` `auto` (or
+  a pin of `2026-07-28`); the portable `.mcp.json` has no field for it. Whether VS Code and Copilot
+  negotiate the modern era is unverified. Supporting `initialize` would need a contract amendment
+  (ledger R28-H36 records the investigation and the recommendation).
 - Startup takes about 0.5 s; wait for the first response.
 - `uv` or `git` missing, or a wrong working directory, makes the server fail to start; the client
   shows the launcher's stderr line.
 - Server stderr appears in the client's MCP output log; stdout carries only JSON-RPC frames.
-- Stdin EOF lets an in-flight run finish then exits; SIGTERM stops the whole chain; a SIGKILLed
-  host leaves at most an orphan worker for 8 s and possibly an empty private temp directory.
+- Stdin EOF lets an in-flight run finish then exits; SIGTERM and SIGHUP (and SIGINT) stop the whole
+  chain; a SIGKILLed host leaves at most an orphan worker for 8 s and possibly an empty private temp
+  directory.
 
 ## Acceptance
 
 Automated: `tools/mcp_acceptance/` runs the official MCP TypeScript client against the command
-read from `.mcp.json`. A VS Code / GitHub Copilot run cannot be executed in the CI environment: we
-do not claim one (ledger R28-H39). Manual procedure: do steps 1-3 above and record the tool list
-and a parse-then-run exchange.
+read from `.mcp.json` (`node acceptance.mjs`; `node negotiation.mjs` records how each negotiation
+mode behaves). The full evidence matrix is `docs/mcp/conformance-matrix.md`; run the whole R28 suite
+as on a host that denies unprivileged namespaces with `GENIA_R28_TEST_DENY_NAMESPACE=1`.
+
+A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment: we do not claim one
+(ledger R28-H39). Manual procedure, to be performed on a developer machine, with the record the
+release audit needs:
+
+1. Record the VS Code version and the Copilot extension version.
+2. Open the repository folder as the workspace and trust it; start the `genia` server from the MCP
+   servers view.
+3. Record whether the server shows as running (otherwise copy the launcher's stderr line from the
+   MCP output log).
+4. Confirm exactly three tools: `genia_capabilities`, `genia_parse`, `genia_run`.
+5. From the host, ask for a `genia_parse` of `f(x) = x +` (a diagnostic), then of `f(x) = x + 1\nf(41)`,
+   then a `genia_run` of that program (rendered value `42`). Record the exchange.
+6. In the MCP output log, record whether the host sent `initialize` or `server/discover`.

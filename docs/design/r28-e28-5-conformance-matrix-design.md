@@ -1,6 +1,6 @@
 # R28 E28-5 — MCP conformance and parity test matrix: Pre-flight and design
 
-Status: **Pre-flight and design for E28-5** (issue #706, epic #700). `GENIA_STATE.md` remains final
+Status: **Pre-flight and design for E28-5; implemented in the E28-5 change (results in section 9)** (issue #706, epic #700). `GENIA_STATE.md` remains final
 authority (E28-1: 9.41, E28-2: 9.42, E28-3: 9.43, E28-4: 9.44). Governing contract:
 `docs/design/r28-genia-mcp-contract-threat-model.md` (sections 2, 4, 5, 6, 7.1, 11, 12 and
 Clarifications A1–A4). Findings are cited as `[H##]` from
@@ -113,3 +113,44 @@ obtain is specified.
 
 HTTP, resources, prompts, additional tools, C++ MCP, new Genia semantics, renderer changes,
 legacy-handshake support, #1078, the demo, packaging/publishing, and the final audit (E28-6).
+
+## 9. Results (recorded after the tests ran)
+
+- The matrix is `docs/mcp/conformance-matrix.md`; its test is `tests/unit/test_r28_mcp_conformance_matrix.py`.
+- Two findings came from the matrix. **H41**: SIGHUP left the worker and its temp directory behind
+  (fixed in host plumbing, red test first). **H40**: UTF-16 surrogate escapes in program strings do not
+  cross the JSON boundary unchanged (documented limitation, fails closed).
+- No parity defect was found: the 55-program corpus equals direct command-source evaluation; every
+  difference found is by contract (envelope, `main`, denied authority) or a documented limitation.
+- H36: no contract amendment is shown to be necessary; the decision depends on the H39 run (ledger).
+- H39 remains open; H32 is evidenced as a non-leaking, non-destabilizing limitation.
+- Namespace: every wire matrix row runs with the real and the simulated-denied namespace; the whole R28
+  suite also passes with `GENIA_R28_TEST_DENY_NAMESPACE=1`.
+
+## 10. Skeptical audit (after green tests)
+
+Each statement was attacked, not just re-read. "Held" means the attack failed with evidence.
+
+| # | Statement | Result |
+|---|---|---|
+| 1 | Exactly three tools | Held: 16 near-miss/host names are `Unknown tool`; pagination absent; tool literals only in `mcp.genia` |
+| 2 | MCP adds no Genia semantics | Held for the 55-program corpus (exact equality). Two differences found and classified: `main` not dispatched (contract), surrogate escapes (H40, limitation). No hidden divergence in rendered value, stdout, or stderr |
+| 3 | MCP does not widen authority | Held: 55 attempts at every layer, plus all 39 denied names, with the namespace granted and denied. Observation: `spawn` is in-language concurrency (a worker thread), not host process authority |
+| 4 | Protected values cannot leak | Held: 61 programs, six limit/lifecycle paths, 28 extra observation paths probed during the audit; no sentinel fragment in any response byte |
+| 5 | Program output cannot corrupt framing | Held, including a cancellation lookalike for the running request and U+2028/U+2029/U+0085 (legal raw JSON, `\n`-only framing, official client unaffected) |
+| 6 | Determinism where required | Held (identical envelopes across calls and launches); `rand`, time and callable addresses excluded by Genia semantics |
+| 7 | Timeout/cancellation reap workers | Held, strict (zombie counts as alive), plus directory removal. **Found H41**: SIGHUP leaked the directory; fixed |
+| 8 | Limits are UTF-8 bytes | Held at every boundary, including multibyte and the encoded aggregate |
+| 9 | Namespace denial does not weaken policy | Held: identical outcomes; capabilities never mention an OS mechanism; whole suite passes with `GENIA_R28_TEST_DENY_NAMESPACE=1` |
+| 10 | Differences are envelope/policy or documented | Held after recording H40 |
+| 11 | Official-client interoperability as documented | Held (SDK 2.2.0, `auto`); legacy default fails as documented |
+| 12 | H36 understood | Investigated: SDK-opt-in era selection; `.mcp.json` cannot carry it; amendment not shown necessary; depends on H39 |
+| 13 | H39 honest | Held: no VS Code binary, GUI or Copilot auth; not claimed; procedure sharpened |
+| 14 | No Python MCP architecture | Held (`arch` tests; hosts hold no tool literals) |
+| 15 | No SDK in the server | Held (the SDK is only in the Node acceptance harness) |
+| 16 | No HTTP | Held: no listener in any chain process; configuration has no URL |
+| 17 | No machine-specific `.mcp.json` | Held; the file is unchanged by this phase |
+| 18 | Docs claim no more than the evidence | Matrix tests check citations and corpus sizes; limitations are listed, R28 is not claimed complete |
+
+Deferred to E28-6: dispositions of every non-closed ledger entry (H32, H36, H39, H40 especially); the
+real VS Code/Copilot run; the demo; the release page.

@@ -283,6 +283,21 @@ PROTECTED_PROGRAMS = {
     # carrier-derived observations that are not the secret
     "S6-equality-oracle": 'CARRIER == "' + SENTINEL + '"',
     "S6-identity": "CARRIER == CARRIER",
+    # further observation paths found while auditing (E28-5 skeptical pass)
+    "S7-trace": "trace(CARRIER, 1)",
+    "S7-tap": "tap(CARRIER, print)",
+    "S7-help": "help(CARRIER)",
+    "S7-meta": "meta(CARRIER)",
+    "S7-map-display": "[CARRIER] |> map(display) |> collect",
+    "S8-render-csv": "render_csv([[CARRIER]])",
+    "S8-utf8-encode": "utf8_encode(CARRIER)",
+    "S9-validate-required": 'validate_required("a", {a: CARRIER})',
+    "S9-ref": "ref(CARRIER) |> ref_get",
+    "S9-cell": "cell(CARRIER) |> cell_get",
+    "S9-process": "spawn(() -> CARRIER) |> process_alive?",
+    "S9-actor": "actor(CARRIER, (s, m) -> s)",
+    "S2-flow-each-print": "[CARRIER] |> each(print)",
+    "S5-assert-true": "assert_true(false, CARRIER)",
     # source echo on every failure class: the sentinel is *in the source text*
     "S4-source-in-parse-error": '"' + SENTINEL + '" +',
     "S4-source-in-policy-denial": 'read_file("' + SENTINEL + '")',

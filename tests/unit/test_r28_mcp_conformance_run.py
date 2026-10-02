@@ -12,8 +12,10 @@ behavior and with `unshare` simulated as denied.
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -555,5 +557,6 @@ def test_namespace_mode_does_not_change_limit_behavior():
     host = run_sources(sources, "host")
     denied = run_sources(sources, "denied")
     assert [e for _, e in host] == [e for _, e in denied]
-    assert env_for("denied")["PATH"] != env_for("host")["PATH"]  # the simulation is really in effect
+    first = env_for("denied")["PATH"].split(os.pathsep)[0]  # the simulation is really in effect
+    assert (Path(first) / "unshare").is_file()
     assert structured(host[0][0])[1]["status"] == "ok"
