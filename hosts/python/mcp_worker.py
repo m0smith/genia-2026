@@ -31,6 +31,11 @@ from genia.interpreter import Parser, lex
 
 from hosts.python.mcp_worker_profile import policy_violation, prune_environment
 
+# Written to the worker's real stderr once bootstrap (interpreter, imports, limits) is done
+# and before any source is read or evaluated: the supervisor starts the execution deadline
+# here, so the 5,000 ms bounds parse/policy/evaluation/render, not process launch (contract
+# section 5). Trusted bootstrap runs no user code. Keep in sync with the supervisor.
+READY_MARKER = b"GENIA-WORKER-READY\n"
 SOURCE_MAX_BYTES = 262144
 CHANNEL_MAX_BYTES = 1048576
 ADDRESS_SPACE_BYTES = 2 * 1024 * 1024 * 1024
@@ -200,6 +205,8 @@ def main() -> int:
     with _restricted_runtime():
         try:
             apply_limits()
+            sys.stderr.buffer.write(READY_MARKER)
+            sys.stderr.buffer.flush()
             data = sys.stdin.buffer.read(SOURCE_MAX_BYTES + 1)
             if len(data) > SOURCE_MAX_BYTES:
                 reply = {"status": "internal_error"}

@@ -6506,8 +6506,12 @@ WORKER FLOOR (guaranteed on the Python reference host, POSIX):
   three standard pipes inherited; source sent over the worker's stdin pipe; reply is one
   ASCII JSON line; process limits (`RLIMIT_FSIZE` 0, `CORE` 0, `CPU` 10 s, `NOFILE` 64,
   `AS` 2 GiB); channel limits enforced incrementally inside the worker; monotonic
-  5,000 ms deadline from spawn; forceful kill of the process group and reap on timeout,
-  cancellation, overflow, or failure; worker stderr drained and discarded.
+  5,000 ms deadline that starts when the worker reports readiness (after its trusted
+  bootstrap: interpreter start, imports, limits; before any source is evaluated), with bootstrap
+  separately bounded at 30 s (a worker that never becomes ready is `internal_error`);
+  forceful kill of the process group and reap on timeout,
+  cancellation, overflow, or failure; worker stderr drained and discarded (only its one
+  readiness marker is recognized).
 - **Best effort, only if verified at runtime:** a user + network namespace
   (`unshare --user --map-root-user --net`), verified once during host initialization
   (before the server reads any request; bounded at 5 s and cached), so a request never runs

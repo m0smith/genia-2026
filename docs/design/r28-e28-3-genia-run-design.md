@@ -114,7 +114,8 @@ fixed environment allowlist (no `PATH`, no `HOME`, no user variables); `close_fd
 stdin/stdout/stderr pipes only; own session/process group; best-effort namespace profile
 determined once at host initialization (never in a request); source written to the worker
 stdin pipe while draining output (solves H06/H07 for this worker only); monotonic 5,000 ms
-deadline from spawn; incremental byte caps with kill on excess; kill and reap on timeout,
+deadline that starts at the worker's readiness marker (bootstrap is excluded and separately
+bounded at 30 s; ledger H34); incremental byte caps with kill on excess; kill and reap on timeout,
 cancel, limit, or any internal failure; worker `stderr` drained and discarded (never
 forwarded); reply validated only for shape (single ASCII line, bounded) before native
 decoding; any exception becomes `internal_error`. It contains no MCP literals, no envelope
@@ -152,12 +153,25 @@ abort. Rendering cannot be bounded incrementally (`format_debug` returns a finis
 string), so a pathological value is bounded by the deadline and `RLIMIT_AS` and then
 checked; recorded in H30.
 
+### 4.6 Deadline start (ledger R28-H34)
+
+Contract section 5: the deadline bounds the worker's parse/policy/evaluation/render operation,
+"not server startup". The worker therefore writes one marker line (`GENIA-WORKER-READY`) to its
+real stderr after interpreter start, imports, and limits, and before it reads or evaluates any
+source; the supervisor starts the 5,000 ms clock there. Bootstrap runs only trusted code, so
+excluding it lets no program run longer. Anything before readiness, including `unshare` creating
+namespaces and interpreter and Genia import time, which grow with host load, is bounded
+separately at `STARTUP_LIMIT_MS` (30 s); a worker that never becomes ready is killed, reaped, and
+reported as `internal_error` (an adapter failure, not a `timeout`). Cancellation is honored
+throughout, including during bootstrap. The 5,000 ms value, the single deadline, and the
+`timeout` envelope are unchanged.
+
 ## 5. Isolation: guarantees versus best effort (D4)
 
 Mandatory floor, every call, on any host that runs the Python reference host:
 fresh process; fixed minimal environment; private empty working directory; only the three
 pipes inherited; empty argv; program stdin at EOF; `RLIMIT_FSIZE`/`AS`/`CPU`/`CORE`/`NOFILE`;
-monotonic 5,000 ms deadline; kill of the process group and reap; pruned Genia environment
+monotonic 5,000 ms deadline from worker readiness; kill of the process group and reap; pruned Genia environment
 and rejected policy forms.
 
 Best effort, used **only if verified at runtime**: a user + network namespace
@@ -233,7 +247,12 @@ shared helpers in `tests/fixtures/r28_mcp_helpers.py`. Required coverage:
     command line, never the namespace probe); they assert reaping strictly (a zombie fails) and
     never rely on fixed sleeps measured from the send time. Recording-`unshare` tests prove the
     probe runs once, at initialization, even when slow or hanging.
-13. Drift guards: host modules contain no MCP literals; no new Genia builtin, prelude
+13. Deadline start (ledger R28-H34): supervisor tests with substitute workers prove slow bootstrap
+    is not charged to the deadline, the clock runs from readiness, a worker that never becomes ready
+    is `internal_error` after the startup bound, cancel works during bootstrap, and the marker
+    constants agree; a recording-`unshare` wire test makes real worker launch exceed the whole
+    deadline and still completes. Tests unrelated to the deadline use a generous one.
+14. Drift guards: host modules contain no MCP literals; no new Genia builtin, prelude
     function, syntax, or Core IR node; normalized parse output and ordinary CLI output
     unchanged; R9 JSON unchanged; changing only the revision changes only revision bytes;
     the profile classification covers every binding and autoload (a new unclassified

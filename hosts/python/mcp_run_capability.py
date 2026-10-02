@@ -11,7 +11,13 @@ environment (no PATH, no HOME, no user variables); a private empty working direc
 removed after the worker is reaped; only the three standard pipes inherited; the source
 sent over the stdin pipe; a monotonic 5,000 ms deadline; incremental reply-size cap;
 forceful kill of the process group and reap on timeout, cancellation, overflow, or any
-failure; worker stderr drained and discarded. Where a user+network namespace is
+failure; worker stderr drained and discarded (apart from recognizing the one readiness
+marker). The 5,000 ms deadline starts when the worker reports readiness, after its trusted
+bootstrap (interpreter start, imports, limits) and before any source is evaluated, so it
+bounds parse/policy/evaluation/render as contract section 5 states and does not charge
+process launch time, which grows with host load, against the program. Bootstrap itself is
+bounded separately (`STARTUP_LIMIT_MS`); a worker that never becomes ready is
+`internal_error` (ledger R28-H34). Where a user+network namespace is
 *verified* to work here it is added (best effort, never claimed otherwise). That
 verification happens once, when the capability is constructed during host
 initialization and before the server reads any request; the request path only consumes
@@ -39,6 +45,12 @@ import time
 from pathlib import Path
 
 DEADLINE_MS = 5000
+# Worker bootstrap (interpreter start, imports, limits) is bounded separately from, and
+# before, the execution deadline. Generous: it only guards a worker that never starts.
+STARTUP_LIMIT_MS = 30000
+# Keep in sync with hosts/python/mcp_worker.py READY_MARKER (a test pins equality).
+READY_MARKER = b"GENIA-WORKER-READY\n"
+_READY_SCAN_BYTES = 65536
 # The one-time namespace probe runs at host initialization. It is bounded so a hung
 # `unshare` can delay server start by at most this long, never a request.
 PROBE_TIMEOUT_S = 5
@@ -128,12 +140,25 @@ def _worker_environment() -> dict:
 
 
 class RunCapability:
-    def __init__(self, mux=None, *, worker_argv=None, deadline_ms: int = DEADLINE_MS):
+    def __init__(
+        self,
+        mux=None,
+        *,
+        worker_argv=None,
+        deadline_ms: int = DEADLINE_MS,
+        startup_ms: int = STARTUP_LIMIT_MS,
+        handshake=None,
+        isolated=None,
+    ):
         self._mux = mux
         self._argv = list(worker_argv) if worker_argv is not None else list(DEFAULT_WORKER_ARGV)
         self._deadline_s = deadline_ms / 1000.0
-        # Determined here, during host initialization, never inside a request.
-        self._isolated = network_isolation_available()
+        self._startup_s = startup_ms / 1000.0
+        # The real worker reports readiness; a substitute worker (tests) only does if asked.
+        self._handshake = (worker_argv is None) if handshake is None else bool(handshake)
+        # Determined here, during host initialization, never inside a request. An explicit
+        # `isolated` (tests of unrelated behavior) skips the probe and the namespace.
+        self._isolated = network_isolation_available() if isolated is None else bool(isolated)
 
     @property
     def isolation_profile(self) -> dict:
@@ -155,7 +180,6 @@ class RunCapability:
         data = source.encode("utf-8")
         command = worker_command(self._argv, self._isolated)
         workdir = tempfile.mkdtemp(prefix="genia-worker-")
-        deadline = time.monotonic() + self._deadline_s
         proc = None
         try:
             proc = subprocess.Popen(
@@ -169,17 +193,23 @@ class RunCapability:
                 start_new_session=True,
                 bufsize=0,
             )
-            return self._supervise(proc, data, deadline, is_cancel)
+            return self._supervise(proc, data, is_cancel)
         finally:
             if proc is not None:
                 _kill_and_reap(proc)
             shutil.rmtree(workdir, ignore_errors=True)
 
-    def _supervise(self, proc, data: bytes, deadline: float, is_cancel) -> str:
+    def _supervise(self, proc, data: bytes, is_cancel) -> str:
         mux = self._mux
         stdin_fd, out_fd, err_fd = proc.stdin.fileno(), proc.stdout.fileno(), proc.stderr.fileno()
         for fd in (stdin_fd, out_fd, err_fd):
             os.set_blocking(fd, False)
+        spawned = time.monotonic()
+        # Without a handshake the execution deadline runs from spawn; with one it starts at
+        # the worker's readiness marker and bootstrap has its own (generous) bound.
+        ready = not self._handshake
+        deadline = spawned + self._deadline_s if ready else spawned + self._startup_s
+        err_seen = b""
         sent = 0
         stdin_open = True
         out_open = err_open = True
@@ -187,7 +217,7 @@ class RunCapability:
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                return _TIMEOUT
+                return _TIMEOUT if ready else _INTERNAL
             readers = []
             if out_open:
                 readers.append(out_fd)
@@ -216,8 +246,15 @@ class RunCapability:
                     if len(reply) > REPLY_CAP_BYTES:
                         return _INTERNAL
             if err_fd in ready_r:
-                if os.read(err_fd, _READ_SIZE) == b"":  # drained and discarded
+                chunk = os.read(err_fd, _READ_SIZE)  # drained; only the marker is recognized
+                if chunk == b"":
                     err_open = False
+                elif not ready:
+                    err_seen = (err_seen + chunk)[:_READY_SCAN_BYTES]
+                    if READY_MARKER in err_seen:
+                        ready = True
+                        deadline = time.monotonic() + self._deadline_s
+                        err_seen = b""
             if stdin_open and stdin_fd in ready_w:
                 try:
                     sent += os.write(stdin_fd, data[sent : sent + _WRITE_SIZE])

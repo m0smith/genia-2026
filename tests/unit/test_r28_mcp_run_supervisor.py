@@ -48,7 +48,17 @@ def _script(tmp_path, body):
     return [sys.executable, "-B", str(path)]
 
 
+# Unit tests that are not about the deadline must not be exposed to it: a shared CI host can
+# stall for seconds. The 5,000 ms profile value has its own tests (and `deadline_ms` is the
+# constructor parameter they use); everything else gets a generous bound.
+GENEROUS_DEADLINE_MS = 120_000
+
+
 def _capability(argv, mux=None, **kwargs):
+    kwargs.setdefault("deadline_ms", GENEROUS_DEADLINE_MS)
+    # Unit tests of unrelated behavior do not create kernel namespaces (many parallel
+    # create/destroy cycles can stall a shared host); namespace tests opt in explicitly.
+    kwargs.setdefault("isolated", False)
     return _supervisor().RunCapability(mux, worker_argv=argv, **kwargs)
 
 
@@ -132,7 +142,7 @@ def test_network_namespace_is_used_only_when_verified_and_then_isolates(tmp_path
     supervisor = _supervisor()
     available = supervisor.network_isolation_available()
     assert isinstance(available, bool)
-    facts = _facts(tmp_path)
+    facts = _facts(tmp_path, isolated=None)  # None: use the verified-probe result
     if available:
         assert facts["net"] == ["lo"], facts["net"]
     else:
@@ -231,7 +241,9 @@ def fresh_probe(monkeypatch):
 
 def test_probe_runs_once_at_construction_and_never_in_the_request_path(tmp_path, fresh_probe):
     supervisor, calls = fresh_probe
-    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, GOOD_REPLY))
+    capability = supervisor.RunCapability(
+        None, worker_argv=_script(tmp_path, GOOD_REPLY), deadline_ms=GENEROUS_DEADLINE_MS
+    )
     assert len(calls) == 1  # determined during initialization, before any request
     assert capability.isolation_profile == {"network_namespace": True}
     # Requests consume the cached profile. The stand-in claims a namespace the host may not
@@ -244,7 +256,9 @@ def test_probe_runs_once_at_construction_and_never_in_the_request_path(tmp_path,
 
 def test_a_request_never_triggers_the_probe_even_if_the_cache_is_cold(tmp_path, monkeypatch):
     supervisor = _supervisor()
-    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, GOOD_REPLY))
+    capability = supervisor.RunCapability(
+        None, worker_argv=_script(tmp_path, GOOD_REPLY), deadline_ms=GENEROUS_DEADLINE_MS
+    )
     monkeypatch.setattr(supervisor, "_namespace_probe", None)  # as if never determined
     monkeypatch.setattr(
         supervisor, "_run_probe", lambda: pytest.fail("probe ran inside a request")
@@ -274,7 +288,9 @@ def test_failed_probe_leaves_requests_working_without_a_namespace(tmp_path, monk
     supervisor = _supervisor()
     monkeypatch.setattr(supervisor, "_namespace_probe", None)
     monkeypatch.setattr(supervisor, "_run_probe", lambda: False)
-    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, FACTS))
+    capability = supervisor.RunCapability(
+        None, worker_argv=_script(tmp_path, FACTS), deadline_ms=GENEROUS_DEADLINE_MS
+    )
     assert capability.isolation_profile == {"network_namespace": False}
     reply = json.loads(capability("x", lambda line: False))
     assert reply["status"] == "completed"  # requests still work, just unwrapped
@@ -284,13 +300,114 @@ def test_failed_probe_leaves_requests_working_without_a_namespace(tmp_path, monk
 
 def test_request_time_does_not_include_any_probe_work(tmp_path, fresh_probe):
     supervisor, calls = fresh_probe
-    capability = supervisor.RunCapability(None, worker_argv=_script(tmp_path, GOOD_REPLY))
+    capability = supervisor.RunCapability(
+        None, worker_argv=_script(tmp_path, GOOD_REPLY), deadline_ms=GENEROUS_DEADLINE_MS
+    )
     capability._isolated = False
     before = len(calls)
     started = time.monotonic()
     capability("1", lambda line: False)
     assert len(calls) == before
     assert time.monotonic() - started < supervisor.DEADLINE_MS / 1000.0
+
+
+# --- the execution deadline starts at worker readiness, not at spawn (ledger R28-H34) ---
+
+READY = 'import sys; sys.stderr.write("GENIA-WORKER-READY\\n"); sys.stderr.flush()'
+
+
+def _handshake_script(tmp_path, before_ready, after_ready):
+    body = f"""
+import sys, time
+{before_ready}
+{READY}
+{after_ready}
+"""
+    return _script(tmp_path, body)
+
+
+def test_ready_marker_is_the_same_in_worker_and_supervisor():
+    worker = importlib.import_module("hosts.python.mcp_worker")
+    assert worker.READY_MARKER == _supervisor().READY_MARKER
+    assert _supervisor().STARTUP_LIMIT_MS >= 10_000  # generous: only guards a worker that never starts
+
+
+def test_slow_bootstrap_is_not_charged_against_the_execution_deadline(tmp_path):
+    # Bootstrap takes longer (1.2 s) than the whole execution deadline (0.6 s) and the run
+    # still completes: process launch is not part of parse/policy/evaluation/render.
+    script = _handshake_script(
+        tmp_path,
+        "time.sleep(1.2)",
+        'import json; sys.stdin.buffer.read(); print(json.dumps({"status": "completed", "value": "1", "stdout": "", "stderr": ""}))',
+    )
+    capability = _supervisor().RunCapability(None, worker_argv=script, deadline_ms=600, handshake=True)
+    assert json.loads(capability("1", lambda line: False))["status"] == "completed"
+
+
+def test_deadline_is_measured_from_readiness_not_from_spawn(tmp_path):
+    script = _handshake_script(tmp_path, "time.sleep(0.8)", "time.sleep(60)")
+    capability = _supervisor().RunCapability(None, worker_argv=script, deadline_ms=600, handshake=True)
+    started = time.monotonic()
+    assert json.loads(capability("1", lambda line: False)) == {"status": "timeout"}
+    # >= bootstrap (0.8 s) + deadline (0.6 s): the clock did not start at spawn.
+    assert time.monotonic() - started >= 1.3
+    assert not _worker_processes_left()
+
+
+def test_without_a_handshake_the_deadline_still_runs_from_spawn(tmp_path):
+    started = time.monotonic()
+    reply = json.loads(
+        _capability(_script(tmp_path, SLEEPER), deadline_ms=600, handshake=False)("1", lambda line: False)
+    )
+    assert reply == {"status": "timeout"} and time.monotonic() - started < 3
+
+
+def test_worker_that_never_becomes_ready_is_internal_error_after_the_startup_limit(tmp_path):
+    script = _script(tmp_path, SLEEPER)  # never writes the marker
+    capability = _supervisor().RunCapability(
+        None, worker_argv=script, deadline_ms=GENEROUS_DEADLINE_MS, startup_ms=700, handshake=True
+    )
+    started = time.monotonic()
+    assert json.loads(capability("1", lambda line: False)) == {"status": "internal_error"}
+    assert 0.6 <= time.monotonic() - started < 5
+    assert not _worker_processes_left()
+
+
+def test_marker_after_other_stderr_noise_is_still_recognized(tmp_path):
+    script = _handshake_script(
+        tmp_path,
+        'sys.stderr.write("some interpreter warning\\n" * 100); sys.stderr.flush()',
+        'import json; sys.stdin.buffer.read(); print(json.dumps({"status": "completed", "value": "1", "stdout": "", "stderr": ""}))',
+    )
+    capability = _supervisor().RunCapability(None, worker_argv=script, deadline_ms=2000, handshake=True)
+    assert json.loads(capability("1", lambda line: False))["status"] == "completed"
+
+
+def test_cancel_during_bootstrap_cancels_and_reaps(tmp_path):
+    mux, write_end = _pipe_mux()
+    marker = tmp_path / "bootstrapping"
+    body = """
+import sys, time
+marker = sys.stdin.buffer.read().decode("utf-8")
+open(marker, "w").close()  # observable: the worker exists but has not reported ready
+time.sleep(60)
+"""
+    threading.Thread(
+        target=lambda: (_wait_for(marker), os.write(write_end, b"CANCEL\n")), daemon=True
+    ).start()
+    capability = _supervisor().RunCapability(
+        mux, worker_argv=_script(tmp_path, body), deadline_ms=GENEROUS_DEADLINE_MS, handshake=True
+    )
+    reply = json.loads(capability(str(marker), lambda line: line == "CANCEL"))
+    assert reply == {"status": "cancelled"} and marker.exists()
+    assert not _worker_processes_left()
+
+
+def test_the_real_worker_reports_readiness_and_completes():
+    capability = _supervisor().RunCapability(None, deadline_ms=GENEROUS_DEADLINE_MS)
+    assert capability._handshake is True  # the default worker is the handshaking one
+    reply = json.loads(capability("1 + 2", lambda line: False))
+    assert reply == {"status": "completed", "value": "3", "stdout": "", "stderr": ""}
 
 
 # --- deadline and reaping --------------------------------------------------------------------
@@ -332,8 +449,7 @@ def test_worker_children_die_with_the_worker(tmp_path, isolated):
     subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     time.sleep(60)
     """
-    capability = _capability(_script(tmp_path, body), deadline_ms=600)
-    capability._isolated = isolated  # exercise both process layouts explicitly
+    capability = _capability(_script(tmp_path, body), deadline_ms=600, isolated=isolated)
     reply = json.loads(capability("1", lambda line: False))
     assert reply == {"status": "timeout"}
     # The group kill and reap finished before the reply: nothing may remain, not even a zombie.

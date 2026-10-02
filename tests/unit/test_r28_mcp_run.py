@@ -404,11 +404,12 @@ def test_deadline_returns_timeout_and_reaps_the_worker(source):
         assert session.governed_workers() == set()
 
 
-def _recording_unshare(tmp_path, probe_behavior):
+def _recording_unshare(tmp_path, probe_behavior, worker_behavior=""):
     """A fake `unshare` first on PATH: logs every invocation, then delegates to the real one.
 
-    `probe_behavior` is shell run only for the namespace probe invocation, so tests can make
-    the probe slow or hanging deterministically instead of relying on real timing.
+    `probe_behavior` is shell run only for the namespace probe invocation and `worker_behavior`
+    only for governed-worker launches, so tests can make either slow or hanging
+    deterministically instead of relying on real timing.
     """
     import os
     import shutil
@@ -425,6 +426,9 @@ def _recording_unshare(tmp_path, probe_behavior):
         f'echo "$*" >> "{log}"\n'
         'case "$*" in *proc/net/dev*)\n'
         f"{probe_behavior}\n"
+        ";;\n"
+        "*)\n"
+        f"{worker_behavior}\n"
         ";; esac\n"
         f'exec "{real}" "$@"\n'
     )
@@ -450,6 +454,18 @@ def test_isolation_probe_runs_once_during_initialization_before_readiness(tmp_pa
         # Two governed runs later: still exactly one probe, and each run used a worker.
         assert len(_entries(log, "/proc/net/dev")) == 1
         assert len(_entries(log, "hosts.python.mcp_worker")) == 2
+
+
+def test_slow_worker_launch_is_not_charged_against_the_5000_ms_deadline(tmp_path):
+    # Launching the worker takes 6 s here (longer than the whole execution deadline), as it can
+    # on an oversubscribed host. Contract section 5 bounds parse/policy/evaluation/render, not
+    # process launch, so the run completes; and a launch that never ends is not a "timeout".
+    log, env = _recording_unshare(tmp_path, "", worker_behavior="sleep 6")
+    with LauncherSession(extra_env=env) as session:
+        session.wait_ready()
+        session.send(run_request("1 + 2", 1))
+        assert structured(session.read(timeout=120))[1] == completed_envelope("3")
+        assert len(_entries(log, "hosts.python.mcp_worker")) == 1  # it really went through the slow launch
 
 
 def test_hanging_probe_is_bounded_at_startup_and_runs_degrade_to_unwrapped_workers(tmp_path):

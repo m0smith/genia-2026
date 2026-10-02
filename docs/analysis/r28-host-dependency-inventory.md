@@ -458,7 +458,8 @@ pre-flight, when promoted), **raised in**.
   initialization, bounded at 5 s and cached, never inside a request; see H33): fresh
   process per call; private empty temporary cwd removed after
   reap; fixed environment allowlist (no `PATH`/`HOME`); `close_fds`; own process group;
-  source over a stdin pipe while draining output; monotonic 5,000 ms deadline;
+  source over a stdin pipe while draining output; monotonic 5,000 ms deadline measured from
+  worker readiness, with bootstrap separately bounded at 30 s (H34);
   incremental byte caps; kill and reap on timeout, cancel, limit, or failure; worker
   stderr discarded; reply shape check only; any exception becomes `internal_error`.
 - Removable/generalizable: the whole supervisor if a general cancellable
@@ -588,6 +589,31 @@ pre-flight, when promoted), **raised in**.
   product code.
 - Raised in: E28-3 implementation (CI repair).
 
+**R28-H34 — The execution deadline charged worker launch time to the program**
+- Class: **A** (supervisor responsibility). Status: `closed`.
+- Evidence: after the H33 repair, PR CI on `eb39aaf8` still failed three tests with `timeout`
+  where the source normally finishes in about a second: two policy-denied wire tests
+  (`[secret]`, `[shell stage side effect]`) and `test_eof_during_a_run_lets_the_run_finish`,
+  which uses a trivial fake Python worker with the default 5 s deadline, so the host was
+  stalled globally, not merely slow at importing Genia. The same job runs beside the C++ host
+  parity and Node jobs on a shared self-hosted runner. Local reproduction under 40 processes on
+  4 cores slows each wire test to 16-19 s without a timeout, showing how close worker launch
+  gets to 5 s. The exact stall source on the CI host is **not proven**: candidates are CPU
+  oversubscription and kernel-wide network-namespace create/destroy serialization (not
+  reproduced locally: 160 `unshare --user --net` launches at 16-way showed a 91 ms maximum).
+  The design charged the deadline from process spawn, but contract section 5 bounds parse/policy/
+  evaluation/render and excludes startup; launch time (interpreter, imports, namespace creation)
+  grows with host load and is not user code.
+- Disposition: fixed in E28-3 without changing the 5,000 ms value or the single deadline: the
+  worker writes a readiness marker to its real stderr after its trusted bootstrap and before
+  reading or evaluating any source, and the supervisor starts the clock there; bootstrap is
+  bounded separately (`STARTUP_LIMIT_MS`, 30 s; a worker that never becomes ready is
+  `internal_error`). Cancellation works throughout. Discriminating evidence: a recording fake
+  `unshare` makes the real worker's launch take 6 s (longer than the whole deadline); the run
+  completes with the new supervisor and is a `timeout` with the previous one. Supervisor unit
+  tests unrelated to the deadline now use a generous deadline and no kernel namespace.
+- Raised in: E28-3 implementation (second CI repair).
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -629,6 +655,7 @@ pre-flight, when promoted), **raised in**.
 | E28-3 implementation | H25 closed; H26, H27, H28, H29, H30 implemented as designed; H31 (responses not flushed on a live pipe) found and fixed natively; H32 (renderer exposes host representations) added |
 | E28-3 documentation | `GENIA_STATE.md` section 9.43 added; roadmap status updated |
 | E28-3 CI repair (PR #1073) | H33 added and closed (probe moved to host initialization; live tests synchronize on readiness and observable worker state); H26 responsibilities refined |
+| E28-3 CI repair 2 (PR #1073) | H34 added and closed (the 5,000 ms deadline starts at worker readiness; bootstrap separately bounded); H26 refined |
 | E28-3 audit | _not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |
