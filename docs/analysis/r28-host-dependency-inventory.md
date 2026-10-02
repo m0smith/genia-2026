@@ -661,7 +661,7 @@ pre-flight, when promoted), **raised in**.
 
 **R28-H38 — A worker and its temp directory outlive a host that dies mid-run**
 - Class: **A** (host lifecycle; refines H26). Status: `open` (closes when fixed and evidenced).
-- Evidence (measured on the E28-3 code): SIGKILL to the host while a worker evaluated
+- Evidence: measured on the E28-3 code: SIGKILL to the host while a worker evaluated
   `sleep(60000)` left the worker alive for at least 25 s; SIGTERM to the host did the same and left
   the private `genia-worker-*` directory behind; SIGTERM to the launcher left the host and worker
   running as orphans. EOF on stdin (idle or mid-run, with stdout closed) was already clean (0.06 s
