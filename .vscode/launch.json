@@ -1,15 +1,17 @@
 {
   "version": "0.2.0",
   "configurations": [
+
+    
     {
       "type": "genia",
       "request": "launch",
       "name": "Launch Genia File (${workspaceFolderBasename})",
       "program": "${file}",
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/src",
       
-      "runtimeExecutable": "uv",
-      "runtimeArgs": ["run", "-m", "genia.interpreter"],
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "genia.interpreter"],
       "stopOnEntry": true
     }
   ]
