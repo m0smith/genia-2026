@@ -12,8 +12,10 @@ R28-H10).
 
 from __future__ import annotations
 
+import contextlib
 import os
 import re
+import signal
 import subprocess
 import sys
 from collections.abc import Mapping
@@ -39,6 +41,9 @@ _ENV_ALLOWLIST = (
     "LC_ALL",
     "SYSTEMROOT",
 )
+
+
+_FORWARDED_SIGNALS = ("SIGTERM", "SIGINT", "SIGHUP")
 
 
 class McpLaunchError(RuntimeError):
@@ -98,9 +103,23 @@ def main() -> int:
     except McpLaunchError as error:
         sys.stderr.write(f"launcher: {error}\n")
         return 1
-    return subprocess.run(
-        command, env=server_environment(os.environ), cwd=str(REPO_ROOT), check=False
-    ).returncode
+    child = subprocess.Popen(  # noqa: S603 - fixed argv built above
+        command, env=server_environment(os.environ), cwd=str(REPO_ROOT)
+    )
+
+    def forward(signum, _frame):
+        # Termination plumbing only: hand the signal to the host, which unwinds, reaps
+        # its worker, and exits; this launcher then returns the host's status.
+        with contextlib.suppress(OSError):
+            child.send_signal(signum)
+
+    for name in _FORWARDED_SIGNALS:
+        signal.signal(getattr(signal, name), forward)
+    while True:
+        try:
+            return child.wait()
+        except KeyboardInterrupt:
+            forward(signal.SIGINT, None)
 
 
 if __name__ == "__main__":
