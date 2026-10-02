@@ -614,6 +614,25 @@ pre-flight, when promoted), **raised in**.
   tests unrelated to the deadline now use a generous deadline and no kernel namespace.
 - Raised in: E28-3 implementation (second CI repair).
 
+**R28-H35 — The CI host class denies unprivileged namespaces; tests assumed it worked**
+- Class: **N (environment observation; test assumption)**. Status: `closed`.
+- Evidence: after the H34 repair PR CI moved to GitHub-hosted runners and two tests failed with
+  `0 == 2` / `0 == 1`: `test_isolation_probe_runs_once_during_initialization_before_readiness` and
+  `test_slow_worker_launch_is_not_charged_against_the_5000_ms_deadline` expected governed workers to
+  pass through the `unshare` wrapper. On that host class `unshare --user` is denied, so the
+  one-time probe (correctly) fails and workers run unwrapped. Simulating it locally with an
+  `unshare` that always fails reproduced exactly those two failures and no others (386 other R28
+  tests passed). Earlier self-hosted runs permitted namespaces, which hid the assumption.
+- Disposition: tests fixed, not the product (the honest degrade is the specified behavior): the
+  probe-once test asserts the wrapper count only for the outcome the host actually permits; the
+  slow-launch injection test skips with a stated reason where a real namespace is unavailable (the
+  property is covered without a namespace by the supervisor tests); a new wire test using a denying
+  fake `unshare` proves the degrade deterministically everywhere (probe runs once before
+  readiness, runs succeed, no wrapper is claimed or used). The suite now passes with the
+  namespace both working (391 passed) and denied (388 passed, 3 skipped). Consequence: on CI of this
+  class the namespace layer is not exercised; its behavior is verified only where available.
+- Raised in: E28-3 implementation (third CI repair).
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -656,6 +675,7 @@ pre-flight, when promoted), **raised in**.
 | E28-3 documentation | `GENIA_STATE.md` section 9.43 added; roadmap status updated |
 | E28-3 CI repair (PR #1073) | H33 added and closed (probe moved to host initialization; live tests synchronize on readiness and observable worker state); H26 responsibilities refined |
 | E28-3 CI repair 2 (PR #1073) | H34 added and closed (the 5,000 ms deadline starts at worker readiness; bootstrap separately bounded); H26 refined |
+| E28-3 CI repair 3 (PR #1073) | H35 added and closed (CI host class denies unprivileged namespaces; two tests assumed otherwise; suite verified with the namespace working and denied) |
 | E28-3 audit | _not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |

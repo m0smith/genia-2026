@@ -404,19 +404,47 @@ def test_deadline_returns_timeout_and_reaps_the_worker(source):
         assert session.governed_workers() == set()
 
 
-def _recording_unshare(tmp_path, probe_behavior, worker_behavior=""):
+def _real_namespace_works():
+    """Whether a real unprivileged user+network namespace can be created on this host.
+
+    Some hosts (for example hardened GitHub-hosted Linux images) deny it. The product must
+    degrade honestly there, so tests assert behavior for *both* outcomes and only skip what
+    genuinely needs a working namespace.
+    """
+    import functools
+    import shutil
+    import subprocess
+
+    @functools.lru_cache(maxsize=None)
+    def probe():
+        unshare = shutil.which("unshare")
+        if unshare is None:
+            return False
+        done = subprocess.run(
+            [unshare, "--user", "--map-root-user", "--net", "--", sys.executable, "-S", "-c", "pass"],
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        return done.returncode == 0
+
+    return probe()
+
+
+def _recording_unshare(tmp_path, probe_behavior, worker_behavior="", deny=False):
     """A fake `unshare` first on PATH: logs every invocation, then delegates to the real one.
 
     `probe_behavior` is shell run only for the namespace probe invocation and `worker_behavior`
     only for governed-worker launches, so tests can make either slow or hanging
-    deterministically instead of relying on real timing.
+    deterministically instead of relying on real timing. With `deny=True` it behaves like a
+    host that forbids unprivileged namespaces (every invocation fails), needing no real one.
     """
     import os
     import shutil
     import stat
 
     real = shutil.which("unshare")
-    if real is None:
+    if real is None and not deny:
         pytest.skip("unshare is unavailable here; the best-effort namespace is not in play")
     log = tmp_path / "unshare.log"
     script = tmp_path / "bin" / "unshare"
@@ -430,7 +458,11 @@ def _recording_unshare(tmp_path, probe_behavior, worker_behavior=""):
         "*)\n"
         f"{worker_behavior}\n"
         ";; esac\n"
-        f'exec "{real}" "$@"\n'
+        + (
+            'echo "unshare: unshare failed: Operation not permitted" >&2\nexit 1\n'
+            if deny
+            else f'exec "{real}" "$@"\n'
+        )
     )
     script.chmod(script.stat().st_mode | stat.S_IEXEC)
     return log, {"PATH": f"{script.parent}{os.pathsep}{os.environ['PATH']}"}
@@ -451,21 +483,45 @@ def test_isolation_probe_runs_once_during_initialization_before_readiness(tmp_pa
         for i, source in enumerate(["1", "2"], start=1):
             session.send(run_request(source, i))
             assert structured(session.read(timeout=60))[1] == completed_envelope(source)
-        # Two governed runs later: still exactly one probe, and each run used a worker.
+        # Two governed runs later: still exactly one probe. Each run went through the namespace
+        # wrapper only if a real namespace works here; where the host denies it the probe fails
+        # once, at initialization, and workers run unwrapped (honest degrade, still working).
         assert len(_entries(log, "/proc/net/dev")) == 1
-        assert len(_entries(log, "hosts.python.mcp_worker")) == 2
+        expected = 2 if _real_namespace_works() else 0
+        assert len(_entries(log, "hosts.python.mcp_worker")) == expected
 
 
 def test_slow_worker_launch_is_not_charged_against_the_5000_ms_deadline(tmp_path):
     # Launching the worker takes 6 s here (longer than the whole execution deadline), as it can
     # on an oversubscribed host. Contract section 5 bounds parse/policy/evaluation/render, not
     # process launch, so the run completes; and a launch that never ends is not a "timeout".
+    if not _real_namespace_works():
+        pytest.skip(
+            "injecting a slow launch needs the namespace wrapper, and this host denies "
+            "unprivileged namespaces; the same property is covered without a namespace by the "
+            "supervisor tests (slow bootstrap is not charged to the deadline)"
+        )
     log, env = _recording_unshare(tmp_path, "", worker_behavior="sleep 6")
     with LauncherSession(extra_env=env) as session:
         session.wait_ready()
         session.send(run_request("1 + 2", 1))
         assert structured(session.read(timeout=120))[1] == completed_envelope("3")
         assert len(_entries(log, "hosts.python.mcp_worker")) == 1  # it really went through the slow launch
+
+
+def test_denied_namespace_degrades_honestly_and_runs_still_work(tmp_path):
+    # A host that forbids unprivileged namespaces (simulated; needs no real one): the probe
+    # fails once at initialization and every run executes unwrapped, with no error.
+    log, env = _recording_unshare(tmp_path, "", deny=True)
+    with LauncherSession(extra_env=env) as session:
+        session.wait_ready()
+        assert len(_entries(log, "/proc/net/dev")) == 1  # probed once, before readiness
+        for i, source in enumerate(["1 + 2", "[1, 2, 3]"], start=1):
+            session.send(run_request(source, i))
+            result, envelope = structured(session.read(timeout=120))
+            assert envelope["status"] == "ok", envelope
+        assert len(_entries(log, "/proc/net/dev")) == 1
+        assert _entries(log, "hosts.python.mcp_worker") == []  # no wrapper was claimed or used
 
 
 def test_hanging_probe_is_bounded_at_startup_and_runs_degrade_to_unwrapped_workers(tmp_path):

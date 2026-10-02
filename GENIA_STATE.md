@@ -6516,7 +6516,9 @@ WORKER FLOOR (guaranteed on the Python reference host, POSIX):
   (`unshare --user --map-root-user --net`), verified once during host initialization
   (before the server reads any request; bounded at 5 s and cached), so a request never runs
   a capability probe. When the probe fails or times out, workers run without it and nothing
-  claims it; a hung `unshare` can only delay server startup by the probe bound.
+  claims it; a hung `unshare` can only delay server startup by the probe bound. Some hosts
+  (observed: GitHub-hosted Linux CI) deny unprivileged namespaces; workers then run without
+  one, and the namespace-specific tests are skipped there.
 - **Not provided or claimed:** filesystem namespaces, seccomp, cgroup memory or CPU
   limits, a PID namespace, protection against interpreter or kernel defects, or isolation
   from other processes of the same user. This is a defense-in-depth profile, not a
