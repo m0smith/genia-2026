@@ -6553,15 +6553,16 @@ Implemented (Python reference host, POSIX only):
 - A mainstream client discovers exactly `genia_capabilities`, `genia_parse`, `genia_run` (no resources
   or prompts) and enabling the configuration grants no authority beyond the E28-3 profile.
 - Lifecycle plumbing (host only, no MCP semantics): the launcher forwards SIGTERM/SIGINT/SIGHUP to
-  the host; the host unwinds on SIGTERM, reaping its worker and temp directory; the worker has an 8 s
+  the host; the host unwinds on SIGTERM and SIGHUP (SIGINT unwinds as `KeyboardInterrupt`), reaping its
+  worker and temp directory (SIGHUP handling added by E28-5, ledger R28-H41); the worker has an 8 s
   orphan backstop (`SIGALRM` armed after readiness; not a second deadline).
 - Executed acceptance: the official MCP TypeScript client SDK `@modelcontextprotocol/client` 2.2.0
   (`tools/mcp_acceptance/`, CI job `mcp-client-acceptance`) with version negotiation `auto`.
 
 Explicit limitations: Streamable HTTP is deferred (no listener); a client that only speaks the legacy
 `initialize` handshake cannot use the server (R28-H36); no VS Code or GitHub Copilot run is recorded
-(R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 is not complete (E28-5
-conformance matrix and E28-6 demo/audit remain); no C++ MCP support or parity is claimed.
+(R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 is not complete (the
+E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit remain); no C++ MCP support or parity is claimed.
 
 ## 10) Explicitly not implemented (current)
 
@@ -6649,3 +6650,41 @@ It is a teaching architecture layer — same colony behavior, different executio
 - the browser uses Canvas drawing and client-side repeated `/step` calls for run/pause controls
 
 It is a viewer over the current simulation/session logic. It does **not** implement browser-native Genia execution, a browser playground runtime, WebSockets, SSE, a generalized event loop, or a new server framework. Terminal ants remains the developer UI.
+
+## 9.45) R28 E28-5 MCP conformance and parity matrix (issue #706)
+
+Evidence phase; it adds no Genia syntax, builtin, Core IR node, MCP tool, resource, prompt, or
+transport. The only behavior change is host lifecycle plumbing: the host now unwinds on SIGHUP like
+SIGTERM, so the worker is reaped and its private directory removed (ledger R28-H41).
+
+- **Matrix:** `docs/mcp/conformance-matrix.md` records, per behavior, the authority, direct Genia
+  behavior, MCP behavior, expected relationship, evidence test, host limitation, and a status of
+  PASS, KNOWN LIMITATION, or NOT APPLICABLE. `tests/unit/test_r28_mcp_conformance_matrix.py` fails if
+  a cited test does not exist. Design: `docs/design/r28-e28-5-conformance-matrix-design.md`.
+- **Adapter, not a second semantics path:** a 55-program corpus (literals, arithmetic, exact
+  numerics, collections, functions, Outcomes, pipelines and Flow, program output) yields rendered
+  value, stdout, and stderr identical to direct command-source evaluation (`run_source` with
+  `filename="<command>"` and the canonical debug renderer). Intentional differences are
+  classified, not hidden: `main` is not dispatched by MCP (contract 2.5; the CLI `-c` mode
+  dispatches it, R28-H29); an authority available to direct execution is a policy restriction
+  (`policy_denied`), not a semantic difference.
+- **Verified boundaries:** exactly the three tools and closed schemas; no resources, prompts, or
+  other protocol surface; every failure class is the closed envelope with a fixed message and no
+  partial data; limits are UTF-8 byte sizes (one below, exact, one above, including multibyte and
+  the aggregate); 55 authority attempts plus every denied binding are rejected by static policy,
+  absent after pruning, and unbound at runtime; a protected carrier injected into the real worker
+  never appears in any response byte on any path; program output (JSON-RPC and cancellation
+  lookalikes, Unicode separators) is data, never framing; cancellation, timeout, and lifecycle edge
+  cases leave no worker; results are identical with the optional namespace granted or denied.
+- **Official client:** the E28-4 harness (SDK 2.2.0, negotiation `auto`) also covers schemas,
+  parse-repair-run, failing runs, authority denial, sequential calls, client-abort cancellation,
+  disconnect, and relaunch.
+
+Explicit limitations (unchanged or newly recorded): UTF-16 surrogate `\u` escapes in program
+strings do not cross the JSON boundary unchanged (a pair becomes the scalar value, a lone surrogate is
+`internal_error`; R28-H40); the debug renderer shows host text for callable values (R28-H32);
+Unicode identifiers are not accepted by the parser; SDK-default clients that send `initialize`
+cannot connect and E28-5 recommends no amendment before the VS Code/Copilot run (R28-H36); no
+VS Code or Copilot run is recorded (R28-H39); Streamable HTTP is deferred and C++ MCP is not
+supported; R28 is not complete and E28-6 (demo, publishing, final audit) remains. Issue #1078 (the
+spec-runner adapter timeout) is separate infrastructure work.

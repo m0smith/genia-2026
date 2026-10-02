@@ -36,9 +36,12 @@ def main(argv: list[str] | None = None) -> int:
     server_path, revision = Path(args[0]), args[1]
     # The host owns raw stdin line multiplexing (not protocol work) so that a
     # cancellation notification can be observed while a run is in flight (ledger R28-H27).
-    # SIGTERM unwinds like an exit so the supervisor's cleanup (kill and reap the worker
-    # group, remove its temp directory) runs; without it the worker would be orphaned.
+    # SIGTERM and SIGHUP unwind like an exit so the supervisor's cleanup (kill and reap the worker
+    # group, remove its temp directory) runs; without it the worker would be orphaned and its
+    # private directory leaked (SIGHUP: ledger R28-H41, found by the E28-5 lifecycle matrix).
+    # SIGINT already unwinds as KeyboardInterrupt.
     signal.signal(signal.SIGTERM, _terminate)
+    signal.signal(signal.SIGHUP, _terminate)
     mux = LineMux(sys.stdin.fileno())
     env = make_global_env(cli_args=[], stdin_provider=mux.provider)
     run_source(server_path.read_text(encoding="utf-8"), env, filename=str(server_path))

@@ -65,8 +65,41 @@ def server_env(extra=None):
     src = str(REPO_ROOT / "src")
     existing = env.get("PYTHONPATH")
     env["PYTHONPATH"] = src if not existing else os.pathsep.join([src, existing])
+    if os.environ.get(DENY_NAMESPACE_SWITCH) == "1":
+        # E28-5: run the whole R28 suite as on a host that forbids unprivileged namespaces.
+        env["PATH"] = denied_namespace_path(env.get("PATH", ""))
     env.update(extra or {})
     return env
+
+
+# --- E28-5: simulating a host that denies unprivileged namespaces ------------------------
+
+DENY_NAMESPACE_SWITCH = "GENIA_R28_TEST_DENY_NAMESPACE"
+_DENIED_UNSHARE_DIR = []
+
+
+def denied_namespace_path(path: str) -> str:
+    """`path` with a fake `unshare` first that always fails like a hardened CI host.
+
+    The server must then degrade honestly (workers run without the namespace) and every
+    policy and runtime layer must still hold: the namespace is defense in depth, never the
+    security contract (E28-3 design section 5).
+    """
+    import atexit
+    import shutil
+    import stat
+    import tempfile
+
+    if not _DENIED_UNSHARE_DIR:
+        directory = Path(tempfile.mkdtemp(prefix="genia-r28-denied-ns-"))
+        script = directory / "unshare"
+        script.write_text(
+            "#!/bin/sh\necho 'unshare: unshare failed: Operation not permitted' >&2\nexit 1\n"
+        )
+        script.chmod(script.stat().st_mode | stat.S_IEXEC)
+        _DENIED_UNSHARE_DIR.append(directory)
+        atexit.register(shutil.rmtree, directory, True)
+    return os.pathsep.join([str(_DENIED_UNSHARE_DIR[0]), path])
 
 
 def server_command(args):
@@ -216,7 +249,7 @@ def repository_revision() -> str:
     return done.stdout.strip()
 
 
-def run_launcher_raw(lines, *, timeout=120):
+def run_launcher_raw(lines, *, timeout=120, env=None):
     """Run the server through the host launcher (parse capability provisioned)."""
     assert HOST_BOOTSTRAP_PATH.is_file(), (
         "E28-2 not implemented: hosts/python/mcp_host.py does not exist"
@@ -227,7 +260,7 @@ def run_launcher_raw(lines, *, timeout=120):
         input=stdin,
         capture_output=True,
         cwd=str(REPO_ROOT),
-        env=server_env(),
+        env=env if env is not None else server_env(),
         timeout=timeout,
     )
 
