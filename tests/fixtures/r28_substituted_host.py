@@ -28,6 +28,7 @@ def _terminate(signum, _frame):
 def main() -> int:
     server_path, revision, worker = sys.argv[1], sys.argv[2], sys.argv[3]
     signal.signal(signal.SIGTERM, _terminate)
+    signal.signal(signal.SIGHUP, _terminate)
     mux = LineMux(sys.stdin.fileno())
     env = make_global_env(cli_args=[], stdin_provider=mux.provider)
     run_source(Path(server_path).read_text(encoding="utf-8"), env, filename=server_path)
