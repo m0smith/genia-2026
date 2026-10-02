@@ -1,7 +1,7 @@
 # R28 E28-4 — Local stdio transport and client configuration: Design
 
-Status: **Design (decisions below); nothing here is implemented until the implementation phase.**
-`GENIA_STATE.md` remains final authority (E28-1: 9.41, E28-2: 9.42, E28-3: 9.43). Governing
+Status: **Implemented in E28-4** (issue #705); decisions below as designed.
+`GENIA_STATE.md` remains final authority (E28-1: 9.41, E28-2: 9.42, E28-3: 9.43, E28-4: 9.44). Governing
 contract: `docs/design/r28-genia-mcp-contract-threat-model.md` sections 7, 7.1, 9.3, 12 (this design
 references the contract and E28-3 design; it does not restate them). Issue #705.
 Pre-flight: `docs/analysis/r28-e28-4-stdio-preflight.md`. Findings: ledger

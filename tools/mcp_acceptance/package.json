@@ -1,0 +1,10 @@
+{
+  "name": "genia-mcp-acceptance",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Real-client acceptance for the Genia MCP stdio server (R28 E28-4, issue #705)",
+  "dependencies": {
+    "@modelcontextprotocol/client": "2.2.0"
+  }
+}
