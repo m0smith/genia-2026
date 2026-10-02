@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import shlex
 from time import perf_counter
 
@@ -47,6 +48,16 @@ def _build_parser() -> argparse.ArgumentParser:
             "instead of the in-process Python adapter; pass the full "
             "command as one shell-quoted string, e.g. "
             "--host 'python3 -m my_host.adapter'"
+        ),
+    )
+    parser.add_argument(
+        "--host-jobs",
+        type=int,
+        default=1,
+        metavar="N",
+        help=(
+            "maximum concurrent external-host case invocations when --host is given "
+            "(default: 1; each request still uses its own E16-1 adapter process)"
         ),
     )
     parser.add_argument(
@@ -123,6 +134,8 @@ def _run_in_process(args: argparse.Namespace) -> int:
 
 def _run_via_host(args: argparse.Namespace) -> int:
     host_command = shlex.split(args.host)
+    if args.host_jobs < 1:
+        raise SystemExit("--host-jobs must be at least 1")
 
     capabilities_outcome = fetch_capabilities(host_command, timeout=args.host_timeout)
     if capabilities_outcome.kind != "ok":
@@ -152,33 +165,42 @@ def _run_via_host(args: argparse.Namespace) -> int:
     for invalid_spec in invalid_specs:
         report_invalid(str(invalid_spec.path), invalid_spec.message)
 
-    for spec in specs:
+    def run_host_case(spec):
         start_time = perf_counter()
-        if args.verbose:
-            report_spec_started(spec)
-
         result = execute_spec_via_host(
             spec, host_command, timeout=args.host_timeout, host_capabilities=host_capabilities
         )
+        return result, perf_counter() - start_time
 
-        if args.verbose:
-            report_spec_elapsed(spec, perf_counter() - start_time)
+    if args.host_jobs == 1:
+        case_results = map(run_host_case, specs)
+    else:
+        executor = ThreadPoolExecutor(max_workers=args.host_jobs)
+        case_results = executor.map(run_host_case, specs)
 
-        if result.kind == "pass":
-            passed += 1
-        elif result.kind == "fail":
-            failed += 1
-            report_failure(spec, list(result.failures))
-        else:
-            if result.kind == "unsupported":
-                unsupported += 1
-            elif result.kind == "protocol_error":
-                protocol_error += 1
-            elif result.kind == "crash":
-                crash += 1
+    try:
+        for spec, (result, elapsed) in zip(specs, case_results):
+            if args.verbose:
+                report_spec_elapsed(spec, elapsed)
+
+            if result.kind == "pass":
+                passed += 1
+            elif result.kind == "fail":
+                failed += 1
+                report_failure(spec, list(result.failures))
             else:
-                timeout += 1
-            report_host_outcome(spec, result.kind, result.reason)
+                if result.kind == "unsupported":
+                    unsupported += 1
+                elif result.kind == "protocol_error":
+                    protocol_error += 1
+                elif result.kind == "crash":
+                    crash += 1
+                else:
+                    timeout += 1
+                report_host_outcome(spec, result.kind, result.reason)
+    finally:
+        if args.host_jobs != 1:
+            executor.shutdown(wait=True)
 
     report_host_summary(
         total=total,
