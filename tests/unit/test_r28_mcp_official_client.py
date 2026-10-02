@@ -23,12 +23,19 @@ pytestmark = pytest.mark.unit
 REQUIRED_STEPS = [
     "discover",
     "tools",
+    "schemas",
     "capabilities",
     "parse_invalid",
     "parse_valid",
+    "parse_repair_run",
     "run",
+    "run_failing",
     "framing",
     "authority",
+    "sequential",
+    "cancel",
+    "disconnect",
+    "relaunch",
 ]
 
 
@@ -84,3 +91,48 @@ def test_the_official_client_completes_the_acceptance_scenario():
     assert run_step["detail"]["stdout"] == "to-stdout\n"
     assert run_step["detail"]["stderr"] == "to-stderr\n"
     assert run_step["detail"]["exit_code"] == 0
+
+
+def test_the_official_client_matrix_covers_cancel_disconnect_and_relaunch():
+    # E28-5 (matrix O1-O12): the extra end-to-end rows run inside the same harness and the same CI
+    # job; the details below must be real observations, not vacuous passes.
+    _harness_ready()
+    done = subprocess.run(
+        ["node", "acceptance.mjs"],
+        cwd=str(ACCEPTANCE_HARNESS_DIR),
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    report = json.loads(done.stdout.strip().splitlines()[-1])
+    details = {step["name"]: step["detail"] for step in report["steps"]}
+    assert details["cancel"]["elapsed_ms"] < 5000  # cancelled well inside the 5,000 ms deadline
+    assert details["disconnect"]["checked"] is True and details["disconnect"]["processes"] >= 2
+    assert details["relaunch"]["clean_shutdown"] is True
+    assert set(details["authority"].values()) == {"policy_denied"} and len(details["authority"]) >= 8
+    assert details["sequential"]["calls"] == 12
+    assert not (ACCEPTANCE_HARNESS_DIR.parent.parent / "genia-acceptance-must-not-exist").exists()
+
+
+def test_version_negotiation_evidence_for_ledger_h36():
+    # R28-H36: the SDK default (`legacy`) sends `initialize`, which the contract-mandated stateless
+    # server rejects; `auto` and a pinned 2026-07-28 connect and list exactly the three tools.
+    # Evidence only: nothing here changes or widens the server.
+    _harness_ready()
+    done = subprocess.run(
+        ["node", "negotiation.mjs"],
+        cwd=str(ACCEPTANCE_HARNESS_DIR),
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+    )
+    assert done.returncode == 0, done.stdout + done.stderr
+    report = json.loads(done.stdout.strip().splitlines()[-1])
+    by_label = {r["label"]: r for r in report["results"]}
+    assert report["client_version"] == "2.2.0"
+    for label in ("sdk-default", "legacy"):
+        assert by_label[label]["connected"] is False and "Method not found" in by_label[label]["error"]
+    for label in ("auto", "pin"):
+        assert by_label[label]["connected"] is True and by_label[label]["tools"] == list(RUN_TOOLS)
