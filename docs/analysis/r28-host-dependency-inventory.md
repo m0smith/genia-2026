@@ -559,6 +559,7 @@ pre-flight, when promoted), **raised in**.
 | E28-3 design | H24–H27 added (restricted-profile gap, coarse normalized AST, supervisor vs `execution.process`, cancellation); H04, H06–H09 refined |
 | E28-0 Clarification A4 | H25 resolved by A4 (policy over the raw AST in the worker; closes at implementation) |
 | E28-3 final design | decisions D1–D4 approved; H27 mechanism proven by prototype (no A5); H24, H26 refined; H28 (shell stage bypass), H29 (no implicit entrypoint vs STATE), H30 (rendering not boundable) added |
-| E28-3 | _failing tests, implementation, documentation, and audit not started_ |
+| E28-3 failing tests | no new entries; tests pin H24 (default-deny classification), H26 (supervisor floor), H27 (cancellation), H28 (shell stage), H29 (no `main` dispatch), H30 (render limit) |
+| E28-3 | _implementation, documentation, and audit not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |

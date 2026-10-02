@@ -184,7 +184,7 @@ mechanism. The OS layer is described in STATE and this document only.
 | H29 | Contract "no implicit entrypoint" vs STATE `-c` main dispatch | N | contract wins for MCP; recorded |
 | H30 | Value rendering cannot be bounded incrementally | B | deadline + `RLIMIT_AS` + post check |
 
-## 7. Failing-test plan (written next, before any implementation)
+## 7. Failing-test plan (written; red before implementation)
 
 New files: `tests/unit/test_r28_mcp_run.py` (wire behavior through the launcher),
 `tests/unit/test_r28_mcp_run_worker.py` (worker, policy, profile),

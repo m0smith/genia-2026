@@ -250,3 +250,156 @@ def error_envelope(kind, phase, message):
         "result": None,
         "error": {"kind": kind, "message": message, "phase": phase},
     }
+
+
+# --- E28-3: genia_run over the launcher (host provisions parse and run) ---------
+
+RUN_TOOLS = ("genia_capabilities", "genia_parse", "genia_run")
+RUN_CAPABILITY_PATH = REPO_ROOT / "hosts" / "python" / "mcp_run_capability.py"
+STDIN_MUX_PATH = REPO_ROOT / "hosts" / "python" / "mcp_stdin.py"
+WORKER_PATH = REPO_ROOT / "hosts" / "python" / "mcp_worker.py"
+WORKER_PROFILE_PATH = REPO_ROOT / "hosts" / "python" / "mcp_worker_profile.py"
+
+RUN_POLICY_MESSAGE = "source requests a capability unavailable in the MCP v1 profile"
+RUN_RUNTIME_MESSAGE = "Genia source failed during evaluation"
+RUN_TIMEOUT_MESSAGE = "Execution exceeded the 5000 ms limit"
+RUN_CANCELLED_MESSAGE = "Execution was cancelled"
+RUN_CHANNEL_LIMIT_MESSAGE = "Result exceeds a 1048576-byte channel limit"
+RUN_INTERNAL_MESSAGE = "Internal error while executing"
+
+
+def run_request(source, req_id=1, **extra_arguments):
+    arguments = {"source": source}
+    arguments.update(extra_arguments)
+    return request("tools/call", req_id, {"name": "genia_run", "arguments": arguments})
+
+
+def cancel_notification(request_id, reason="client cancelled"):
+    return notification(
+        "notifications/cancelled", {"requestId": request_id, "reason": reason}
+    )
+
+
+def completed_envelope(rendered, stdout="", stderr=""):
+    return {
+        "schema_version": "genia.mcp.v1",
+        "status": "ok",
+        "result": {
+            "kind": "completed",
+            "value": {"rendered": rendered},
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": 0,
+        },
+        "error": None,
+    }
+
+
+def structured(response):
+    """Return (CallToolResult, envelope) after checking the common wire shape."""
+    assert set(response) == {"jsonrpc", "id", "result"}, response
+    result = response["result"]
+    assert result["resultType"] == "complete"
+    (item,) = result["content"]
+    assert item["type"] == "text" and "\n" not in item["text"]
+    assert json.loads(item["text"]) == result["structuredContent"]
+    envelope = result["structuredContent"]
+    assert result["isError"] is (envelope["status"] == "error")
+    return result, envelope
+
+
+def _parent_map():
+    parents = {}
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            stat = (entry / "stat").read_text()
+        except OSError:
+            continue
+        # the command name may contain spaces/parentheses: split after the last ')'
+        fields = stat.rsplit(")", 1)[1].split()
+        parents[int(entry.name)] = int(fields[1])
+    return parents
+
+
+def process_children(pid):
+    """Return the set of live descendant pids of `pid` (Linux /proc)."""
+    parents = _parent_map()
+    found, frontier = set(), {pid}
+    while frontier:
+        nxt = {p for p, parent in parents.items() if parent in frontier and p not in found}
+        found |= nxt
+        frontier = nxt
+    return found
+
+
+def pid_alive(pid):
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except OSError:
+        return False
+    return stat.rsplit(")", 1)[1].split()[0] != "Z"  # a zombie is not reaped
+
+
+class LauncherSession:
+    """A live launcher-mode server with timed writes (for cancellation tests)."""
+
+    def __init__(self):
+        self.proc = subprocess.Popen(
+            [sys.executable, "-m", "hosts.python.mcp_launch"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=str(REPO_ROOT),
+            env=server_env(),
+        )
+
+    def send(self, message):
+        self.proc.stdin.write(encode(message) + b"\n")
+        self.proc.stdin.flush()
+
+    def read(self, timeout=30):
+        import selectors
+
+        selector = selectors.DefaultSelector()
+        selector.register(self.proc.stdout, selectors.EVENT_READ)
+        try:
+            if not selector.select(timeout):
+                raise AssertionError("no response frame within the timeout")
+        finally:
+            selector.close()
+        line = self.proc.stdout.readline()
+        assert line.endswith(b"\n"), line
+        return json.loads(line.decode("utf-8"))
+
+    def workers(self):
+        """Live worker processes: descendants of the in-process host, not the host."""
+        parents = _parent_map()
+        hosts = {p for p, parent in parents.items() if parent == self.proc.pid}
+        found = set()
+        for host in hosts:
+            found |= process_children(host)
+        return found
+
+    def close(self):
+        try:
+            self.proc.stdin.close()
+        except OSError:
+            pass
+        try:
+            self.proc.wait(timeout=30)
+        finally:
+            for stream in (self.proc.stdout, self.proc.stderr):
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        if self.proc.poll() is None:
+            self.proc.kill()
+        self.close()
