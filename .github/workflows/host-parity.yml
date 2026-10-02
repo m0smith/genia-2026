@@ -30,6 +30,12 @@ on:
       - "tools/spec_runner/**"
       - ".github/workflows/host-parity.yml"
   workflow_dispatch:
+    inputs:
+      force_full_cpp_build:
+        description: "Ignore the C++ build cache and rebuild from scratch"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -75,8 +81,25 @@ jobs:
             genia-dev:host-parity bash -lc \
             'python -m uv sync --dev --python python'
 
+      # Cache only compiled C++ build products. The key includes every C++ source,
+      # vendored dependency, CMake input, and the development-image definition that
+      # pins the compiler/toolchain. Evidence is never cached: both hosts are always
+      # executed below and fresh evidence is always compared.
+      - name: Restore exact C++ build
+        id: cpp-build-cache
+        if: github.event_name != 'workflow_dispatch' || !inputs.force_full_cpp_build
+        uses: actions/cache@v4
+        with:
+          path: workspace/genia-cpp/build
+          key: >-
+            host-parity-cpp-build-${{ runner.os }}-${{ runner.arch }}-
+            ${{ hashFiles('workspace/genia-2026/docker/Dockerfile.dev') }}-
+            ${{ hashFiles('workspace/genia-cpp/CMakeLists.txt', 'workspace/genia-cpp/src/**', 'workspace/genia-cpp/third_party/**') }}
+
       - name: Configure and build C++ host
+        if: steps.cpp-build-cache.outputs.cache-hit != 'true'
         run: |
+          rm -rf workspace/genia-cpp/build
           docker run --rm \
             --user "$(id -u):$(id -g)" \
             -v "$GITHUB_WORKSPACE/workspace:/workspace" \
