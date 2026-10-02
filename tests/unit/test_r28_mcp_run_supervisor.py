@@ -21,7 +21,6 @@ from pathlib import Path
 import pytest
 
 from tests.fixtures.r28_mcp_helpers import (
-    REPO_ROOT,
     RUN_CAPABILITY_PATH,
     STDIN_MUX_PATH,
     pid_alive,
@@ -237,7 +236,6 @@ def test_worker_children_die_with_the_worker(tmp_path):
     subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     time.sleep(60)
     """
-    before = set(_worker_processes_left())
     reply = json.loads(
         _capability(_script(tmp_path, body), deadline_ms=600)("1", lambda line: False)
     )
