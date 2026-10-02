@@ -51,10 +51,14 @@ Facts established by running code or counting files in this checkout:
   list: many of the 58 assert Python value types (`is True`,
   `format_debug`) and some already have shared-spec twins.
 - Genia `json_encode` and Python `json.dumps(sort_keys=True, indent=2)` agree
-  structurally on ASCII data but differ on non-ASCII (`é` versus `é`) and
-  trailing newline (Python's encoder appends one). The current evidence documents are ASCII, so this has not
-  bitten, but it is a concrete byte-parity hazard for any dual-run evidence
-  comparison (section 3.1).
+  structurally on ASCII data but differ on non-ASCII: Python's default
+  `json.dumps` escapes it (`\u00e9`), while Genia's `json_encode` emitted the
+  raw character (`é`) in a direct check. Separately, the trailing newline in
+  the evidence file comes from `tools/spec_runner/evidence.py::encode_evidence()`
+  (`json.dumps(...) + "\n"`), not from `json.dumps` itself; a Genia encoder
+  would have to add it explicitly. The current evidence documents are ASCII,
+  so this has not bitten, but it is a concrete byte-parity hazard for any
+  dual-run evidence comparison (section 3.1).
 - Genia has no documented way for a program to set the process exit status;
   a returned `err(...)` exits 0 (`GENIA_STATE.md` Outcome section). A Genia
   gate therefore needs a host-edge mapping from report to exit status
@@ -142,7 +146,7 @@ host should keep it. Payoff and risk are technical, not ranked politically.
 | `protocol.py` — envelope shape validation, request build/encode/decode | Closed-shape validation of E16-1 messages | Portable policy (B) | Medium | MOVE validation later; keep Python implementation as oracle | R23 strict JSON ✓; R39 | Med | Med: byte framing | R39 |
 | `protocol.py` — `run_adapter_request` (`subprocess.run`, timeout, kill/reap, stdout/stderr capture) | Process supervision | **Host mechanic** (D) | No | KEEP | — | — | — | stays; R36 provider beneath |
 | `revision.py` (`git rev-parse HEAD`, `git cat-file -e`) | Revision identity | **Host mechanic** (D); the three-way classification is trivial policy | Low | KEEP; Genia receives revision facts as injected values | — | Low | Med if re-implemented | stays |
-| `evidence.py` — `build_evidence`, count-sum invariant | Pure construction of the per-host evidence document | **Portable policy** (B) | **High** | MOVE construction; canonical-bytes rule must be specified first | R39 pre-flight defines canonical encoding | High (deterministic evidence is a stated R39 deliverable) | Med: `json_encode` ≠ `json.dumps` on non-ASCII/newline | R39 (E39-7) |
+| `evidence.py` — `build_evidence`, count-sum invariant | Pure construction of the per-host evidence document | **Portable policy** (B) | **High** | MOVE construction; canonical-bytes rule must be specified first | R39 pre-flight defines canonical encoding | High (deterministic evidence is a stated R39 deliverable) | Med: `json_encode` ≠ `json.dumps` on non-ASCII; newline added by `encode_evidence()` | R39 (E39-7) |
 | `reporter.py` (109 lines of formatting) | Deterministic text report | Portable policy | Medium | MOVE with the runner | R39 | Low–Med | Low | R39 (E39-7) |
 | `runner.py` — orchestration (mode selection, case loop, summary, evidence write) | Control flow over the above | Orchestration is portable; `ThreadPoolExecutor` fan-out and exit status are host | Medium–High | MOVE orchestration; keep concurrency/exit-status at the edge until R36 | R36; exit-status decision | High (it is the "runner as Genia program") | Med | R39 |
 | **`host_parity_gate.py`** (285 lines) | Load two evidence docs + known-gaps manifest; classify per capability `PARITY_OK`/`KNOWN_GAP`/`UNDOCUMENTED_GAP`/`STALE_GAP`; evidence-failure counts; report; exit 0/1/2 | **Portable policy** (B); only three file reads and the exit status are host | **High** | **MOVE — first R39 policy slice**; keep Python gate as oracle | Pure core: none beyond R18/R23. Edge: R35 reads; exit-status mapping | **High** — closes the loop on C++ parity CI | Low–Med; CI-critical, so dual-run first | **R39 (named slice)** |
@@ -207,7 +211,7 @@ dual-run gate.
 
 - **Canonical evidence bytes.** `evidence.encode_evidence` is
   `json.dumps(..., sort_keys=True, indent=2) + "\n"`. Genia `json_encode`
-  differs on non-ASCII escaping and the trailing newline (measured, section
+  differs on non-ASCII escaping, and the trailing newline is added by `encode_evidence()`, not by `json.dumps` (measured, section
   0). R39 must define the canonical byte form (or compare parsed values and
   separately specify bytes) before "byte-identical evidence" is a gate.
 - **Self-referee risk.** A Genia runner executing on the Python host and
@@ -281,8 +285,8 @@ correct. The preferred venue for a portable observation is a shared spec
 for Genia-facing source-level behavior that is not (yet) portable or reads
 better as assertions in Genia.
 
-**Proposed durable rule (recommended, not adopted by this PR — it edits agent
-governance and needs owner approval):**
+**Durable rule (approved by the project owner during review of this PR and
+adopted in `AGENTS.md` and `docs/process/04-test.md`):**
 
 > No new Python test may be the sole authority for behavior the Genia contract
 > treats as portable when the same observation can reasonably be expressed as a
@@ -296,10 +300,9 @@ governance and needs owner approval):**
 > same change. Do not mass-migrate, and do not delete a Python test until its
 > twin demonstrably covers the same observations.
 
-Candidate homes if approved: the `TESTING RULE` section of `AGENTS.md` and
-`docs/process/04-test.md`. If adopted, `tests/unit/test_llm_instructions.py`,
-`tools/validate_llm_instructions.py`, and `tests/doc/test_semantic_doc_sync.py`
-must be re-run in that change.
+Homes: the `TESTING RULE` section of `AGENTS.md` and `docs/process/04-test.md`.
+`tests/unit/test_llm_instructions.py`, `tools/validate_llm_instructions.py`, and
+`tests/doc/test_semantic_doc_sync.py` were re-run with that change.
 
 ### 3.4 CI and release evidence
 
@@ -468,7 +471,7 @@ same interactive-session seam.
    documentation-tooling consumers; the parking lot records the release-check
    candidate.
 2. **Adopt the portable-behavior test rule** (section 3.3) — documentation/
-   process only; requires owner approval because it edits agent governance.
+   process only; approved by the owner and adopted in this PR.
 3. **Test-migration audit** — an inventory of the ~58 candidate unit files
    with a shared-spec/native twin check per file (no migration in the
    audit). Start where twins likely exist (`validation-*`, `outcome-*`,
@@ -573,21 +576,23 @@ prerequisite only for the documentation/lint migrations.
 - `docs/strategy/roadmap/parking-lot.md` — records the release-check program
   candidate and the explicit non-plan for `validate_llm_instructions.py`.
 
-*Proposed, deliberately not made (needs owner decision):* adding the test
-placement rule to `AGENTS.md` and `docs/process/04-test.md`; promoting the
-MCP split to a standalone `docs/architecture/` principle note.
+*Added after owner approval:* the test placement rule in `AGENTS.md` and
+`docs/process/04-test.md`.
+
+*Proposed, deliberately not made:* promoting the MCP split to a standalone
+`docs/architecture/` principle note.
 
 ## 10. Proposed issue list (per `docs/process/08-roadmap-ticketing.md`)
 
 Applying the ticketing guide's final check (supports current/next roadmap
 release? small enough for one process run? speculative features excluded?
-docs protected from future claims?), only two items are ticket-ready; the rest
+docs protected from future claims?), one item (#2) is ticket-ready and #1 is done in this PR; the rest
 are listed so they are not lost, and **none are created by this PR**.
 
 | # | Proposed item | Classification | Create now? | Reason |
 |---|---|---|---|---|
-| 1 | Adopt the portable-behavior test placement rule in `AGENTS.md` and `docs/process/04-test.md` | Required infrastructure (process) | Yes, after owner approval | Docs-only; protects every later release; no behavior claim |
-| 2 | Inventory pure-portable Python unit tests and check shared-spec/native twin coverage (audit only) | Follow-up | Yes, after #1 | Bounded, no migration, feeds opportunistic twins |
+| 1 | Adopt the portable-behavior test placement rule in `AGENTS.md` and `docs/process/04-test.md` | Required infrastructure (process) | Done in this PR (owner-approved); no ticket needed | Docs-only; protects every later release; no behavior claim |
+| 2 | Inventory pure-portable Python unit tests and check shared-spec/native twin coverage (audit only) | Follow-up | Yes | Bounded, no migration, feeds opportunistic twins |
 | 3 | R39 pre-flight: dual-run harness baseline and parity-gate policy-core slice (incl. canonical evidence bytes and negative fixtures) | Follow-up (R39) | **No** — create with the R39 epic when R39 is scheduled | R39 is planned, not active |
 | 4 | General bootstrap of an `execution.process` capability from Genia (R28-H05) | Required infrastructure | **No** — keep in the R28 ledger; promote via its own process | Shared prerequisite of R28 and R39; the ledger forbids ticketing from discovery alone |
 | 5 | Documentation record export/introspection for `gen_function_docs`/`lint_doc` | Follow-up (R33) | **No** | Candidate consumer of an R33 surface not yet designed |

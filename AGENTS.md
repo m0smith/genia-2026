@@ -804,6 +804,22 @@ Tests must:
 
 No vague assertions.
 
+## Portable-behavior test placement
+
+No new Python test should be the sole authority for portable Genia behavior
+when the same observable behavior can reasonably be expressed as a shared
+semantic spec or, for Genia-facing behavior that is not yet portable, a native
+Genia test. Native tests are Python-host-only today and do not by themselves
+prove portability; covered portable behavior stays in shared specs.
+
+Python tests remain the home for Python internals, OS behavior, transport
+mechanics, Python exception normalization, Python adapters,
+subprocess/threading behavior, and host-specific security boundaries; say so in
+the test module docstring. Migrate existing tests opportunistically: when a
+change touches a Python test whose only subject is portable behavior, add the
+shared-spec or native twin in the same change. Do not mass-migrate, and do not
+delete a Python test until its twin demonstrably covers the same observations.
+
 This repository is managed by `uv`. Run pytest as `uv run pytest ...`, never as
 bare `pytest ...`; a bare command may select a system environment without the
 locked development dependencies. Full regression uses
