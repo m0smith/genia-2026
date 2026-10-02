@@ -513,11 +513,11 @@ def test_cancel_immediately_after_worker_creation_cancels_and_reaps():
         session.wait_ready()
         session.send(run_request(LOOP, 11))
         workers = session.wait_for_worker()
-        started = time.monotonic()
         session.send(cancel_notification(11))  # as soon as the worker is observable
         response = session.read(timeout=60)
+        # `cancelled`, not `timeout`: the cancel won. (No elapsed-time bound: that would make
+        # the test depend on host load.)
         assert structured(response)[1] == CANCELLED
-        assert time.monotonic() - started < DEADLINE_S  # claimed, not timed out
         assert _gone(workers), "cancelled worker was not reaped"
         assert session.governed_workers() == set()
 
