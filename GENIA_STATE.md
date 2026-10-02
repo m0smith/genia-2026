@@ -6540,7 +6540,28 @@ values (for example a builtin renders as a Python function representation with a
 address; ledger R28-H32); while more than 8 MiB of client input is pending the server
 stops reading and cannot observe a cancellation; a closed transport may prevent any
 envelope; Windows is not supported; no resources or prompts, no C++ MCP support or parity
-claim, no checked-in client configuration, and no VS Code or Copilot acceptance.
+claim, and no VS Code or Copilot acceptance (the client configuration is section 9.44).
+
+## 9.44) R28 E28-4 local stdio client configuration and lifecycle (issue #705)
+
+Implemented (Python reference host, POSIX only):
+
+- Repository-root `.mcp.json` (portable `mcpServers` format) registers one stdio server `genia`:
+  `uv run --no-project --no-python-downloads python hosts/python/mcp_launch.py`. No `env`, URL,
+  token, or absolute path. Run it with the repository root as working directory and `git` and `uv`
+  available. Guide: `docs/mcp/stdio-development.md`.
+- A mainstream client discovers exactly `genia_capabilities`, `genia_parse`, `genia_run` (no resources
+  or prompts) and enabling the configuration grants no authority beyond the E28-3 profile.
+- Lifecycle plumbing (host only, no MCP semantics): the launcher forwards SIGTERM/SIGINT/SIGHUP to
+  the host; the host unwinds on SIGTERM, reaping its worker and temp directory; the worker has an 8 s
+  orphan backstop (`SIGALRM` armed after readiness; not a second deadline).
+- Executed acceptance: the official MCP TypeScript client SDK `@modelcontextprotocol/client` 2.2.0
+  (`tools/mcp_acceptance/`, CI job `mcp-client-acceptance`) with version negotiation `auto`.
+
+Explicit limitations: Streamable HTTP is deferred (no listener); a client that only speaks the legacy
+`initialize` handshake cannot use the server (R28-H36); no VS Code or GitHub Copilot run is recorded
+(R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 is not complete (E28-5
+conformance matrix and E28-6 demo/audit remain); no C++ MCP support or parity is claimed.
 
 ## 10) Explicitly not implemented (current)
 
@@ -6550,7 +6571,7 @@ claim, no checked-in client configuration, and no VS Code or Copilot acceptance.
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
-- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool so far; see sections 9.41, 9.42, and 9.43)
+- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool, and the E28-4 stdio client configuration so far; see sections 9.41 to 9.44)
 
 ## 11) Example demos shipped in-repo
 

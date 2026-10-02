@@ -176,7 +176,8 @@ def test_launcher_is_a_narrow_host_shim_with_no_json_or_protocol_code():
             imported.update(alias.name.split(".")[0] for alias in node.names)
         elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
             imported.add(node.module.split(".")[0])
-    allowed = {"__future__", "collections", "os", "pathlib", "re", "subprocess", "sys", "typing"}
+    # contextlib and signal: E28-4 termination forwarding (process plumbing, no protocol work).
+    allowed = {"__future__", "collections", "contextlib", "os", "pathlib", "re", "signal", "subprocess", "sys", "typing"}
     assert imported <= allowed, f"launcher imports beyond the narrow allowlist: {imported - allowed}"
     assert "json" not in imported  # the host never constructs JSON responses
 

@@ -18,6 +18,7 @@ import contextlib
 import json
 import os
 import re
+import signal
 import socket
 import subprocess
 import sys
@@ -36,6 +37,10 @@ from hosts.python.mcp_worker_profile import policy_violation, prune_environment
 # here, so the 5,000 ms bounds parse/policy/evaluation/render, not process launch (contract
 # section 5). Trusted bootstrap runs no user code. Keep in sync with the supervisor.
 READY_MARKER = b"GENIA-WORKER-READY\n"
+# Orphan backstop (E28-4): not a second deadline. The supervisor kills the worker at its
+# deadline, so a healthy run never reaches this; it bounds only a worker whose host died
+# without cleaning up (SIGKILL). SIGALRM's default action terminates the process.
+ORPHAN_BACKSTOP_SECONDS = 8
 SOURCE_MAX_BYTES = 262144
 CHANNEL_MAX_BYTES = 1048576
 ADDRESS_SPACE_BYTES = 2 * 1024 * 1024 * 1024
@@ -207,6 +212,7 @@ def main() -> int:
             apply_limits()
             sys.stderr.buffer.write(READY_MARKER)
             sys.stderr.buffer.flush()
+            signal.setitimer(signal.ITIMER_REAL, ORPHAN_BACKSTOP_SECONDS)
             data = sys.stdin.buffer.read(SOURCE_MAX_BYTES + 1)
             if len(data) > SOURCE_MAX_BYTES:
                 reply = {"status": "internal_error"}

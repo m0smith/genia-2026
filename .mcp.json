@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "genia": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--no-project",
+        "--no-python-downloads",
+        "python",
+        "hosts/python/mcp_launch.py"
+      ]
+    }
+  }
+}

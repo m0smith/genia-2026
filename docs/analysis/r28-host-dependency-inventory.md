@@ -633,6 +633,60 @@ pre-flight, when promoted), **raised in**.
   class the namespace layer is not exercised; its behavior is verified only where available.
 - Raised in: E28-3 implementation (third CI repair).
 
+**R28-H36 — Default-configured official SDK clients use the legacy `initialize` handshake**
+- Class: **N (contract-mandated limitation; interoperability risk)**. Status: `open`.
+- Evidence: the official TypeScript client `@modelcontextprotocol/client` 2.2.0 (2026-09-28, spec
+  2026-07-28) defaults to `DEFAULT_VERSION_NEGOTIATION_MODE = "legacy"`. Against the launcher its
+  `connect()` sent `{"method":"initialize","params":{"protocolVersion":"2025-11-25",...}}` and
+  received `-32601 Method not found` (contract 7.1 makes `initialize` an unknown method). With
+  `versionNegotiation` `auto` or `{pin: "2026-07-28"}` the same client connected, listed exactly the
+  three tools, and called `genia_capabilities` and `genia_run`. The v1 SDK `@modelcontextprotocol/sdk`
+  1.31.0 knows no protocol newer than `2025-11-25` and has no `server/discover`. Whether VS Code and
+  Copilot negotiate the modern era is not stated in the VS Code documentation source fetched in this
+  phase and could not be run here.
+- Disposition: not changed in E28-4 (supporting `initialize` is a contract amendment, section 7). The
+  limitation and the required client mode are documented; the E28-5/E28-6 phases and the recorded
+  VS Code run decide whether an amendment is needed.
+- Raised in: E28-4 pre-flight.
+
+**R28-H37 — A stdio client may launch the server more than once, through a wrapper chain**
+- Class: **N (client behavior, observed)**. Status: `closed`.
+- Evidence: the official v2 client in `auto` mode launched the server twice for one connection
+  (process 1: a `server/discover` probe, then closed; process 2: `tools/list`, `tools/call`). Under
+  `uv run` the process chain is `uv` (stays alive) -> launcher -> host -> worker, four levels, with
+  every level inheriting the client's stdio descriptors.
+- Disposition: tests prove each launch is independent and stateless and that the chain shuts down
+  and cleans up under EOF and signals (see H38).
+- Validated by `tests/unit/test_r28_mcp_stdio_launch.py` (independent and double launches) and
+  `tests/unit/test_r28_mcp_stdio_lifecycle.py`.
+- Raised in: E28-4 design.
+
+**R28-H38 — A worker and its temp directory outlive a host that dies mid-run**
+- Class: **A** (host lifecycle; refines H26). Status: `closed`.
+- Evidence: measured on the E28-3 code: SIGKILL to the host while a worker evaluated
+  `sleep(60000)` left the worker alive for at least 25 s; SIGTERM to the host did the same and left
+  the private `genia-worker-*` directory behind; SIGTERM to the launcher left the host and worker
+  running as orphans. EOF on stdin (idle or mid-run, with stdout closed) was already clean (0.06 s
+  and 2.3 s respectively).
+- Workaround (E28-4 design, section 6): launcher signal forwarding; a host SIGTERM handler that
+  unwinds so the supervisor kills and reaps the worker group and removes the directory; a worker
+  orphan backstop (one-shot `SIGALRM` 8 s after readiness; not a second deadline).
+- Removable code: all of it, if a general supervised-process facility lands (H05-H08).
+- Disposition: implemented as designed (`hosts/python/mcp_launch.py`, `mcp_host.py`,
+  `mcp_worker.py`). A SIGKILLed host can still leave an empty private temp directory (documented).
+  Validated by `tests/unit/test_r28_mcp_stdio_lifecycle.py`, red before the change and green after.
+- Raised in: E28-4 design.
+
+**R28-H39 — VS Code/Copilot acceptance cannot be executed in the development environment**
+- Class: **N (process limitation)**. Status: `open` (for the E28-6 audit).
+- Evidence: this environment has no GUI and no GitHub authentication, and the proxy blocks
+  `code.visualstudio.com`. Configuration facts were taken from the `microsoft/vscode-docs` source
+  (pre-flight section 3), which does not state VS Code's protocol versions.
+- Disposition: the executed acceptance is the official SDK client; a documented manual VS Code
+  procedure and evidence record stay required by contract 12.2 before the final audit. Nothing
+  claims a VS Code run.
+- Raised in: E28-4 pre-flight.
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -676,6 +730,9 @@ pre-flight, when promoted), **raised in**.
 | E28-3 CI repair (PR #1073) | H33 added and closed (probe moved to host initialization; live tests synchronize on readiness and observable worker state); H26 responsibilities refined |
 | E28-3 CI repair 2 (PR #1073) | H34 added and closed (the 5,000 ms deadline starts at worker readiness; bootstrap separately bounded); H26 refined |
 | E28-3 CI repair 3 (PR #1073) | H35 added and closed (CI host class denies unprivileged namespaces; two tests assumed otherwise; suite verified with the namespace working and denied) |
+| E28-4 pre-flight and design | H36 (legacy-handshake clients), H37 (multiple launches, wrapper chain), H38 (worker and temp dir outlive a dead host), H39 (VS Code run not executable here) added with evidence |
 | E28-3 audit | _not started_ |
+| E28-4 audit | Findings: two narrow-import allowlist tests (launcher, host bootstrap) needed `signal`/`contextlib` and were updated with a comment; no other defect. Suites verified with namespaces available and denied |
+| E28-4 implementation | H37 and H38 closed; H36 and H39 stay open (documented limitations, for E28-5/E28-6) |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |

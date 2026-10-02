@@ -109,6 +109,6 @@ def test_capability_and_bootstrap_import_only_narrow_dependencies():
     assert capability_imports <= {"__future__", "json", "re", "hosts"}, capability_imports
     bootstrap_imports = _imports(HOST_BOOTSTRAP_PATH)
     assert "json" not in bootstrap_imports  # the bootstrap never builds JSON
-    assert bootstrap_imports <= {"__future__", "sys", "pathlib", "genia", "hosts"}, (
+    assert bootstrap_imports <= {"__future__", "signal", "sys", "pathlib", "genia", "hosts"}, (  # signal: E28-4 SIGTERM unwind
         bootstrap_imports
     )

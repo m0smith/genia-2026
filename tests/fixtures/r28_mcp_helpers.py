@@ -391,16 +391,17 @@ def is_namespace_probe(pid):
 class LauncherSession:
     """A live launcher-mode server with timed writes (for cancellation tests)."""
 
-    def __init__(self, extra_env=None):
+    def __init__(self, extra_env=None, *, command=None, cwd=None, env=None):
         self.proc = subprocess.Popen(
-            [sys.executable, "-m", "hosts.python.mcp_launch"],
+            command if command is not None else [sys.executable, "-m", "hosts.python.mcp_launch"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            cwd=str(REPO_ROOT),
-            env=server_env(extra_env),
+            cwd=str(cwd if cwd is not None else REPO_ROOT),
+            env=env if env is not None else server_env(extra_env),
         )
         self._buffer = b""
+        self.raw_stdout = b""  # every byte the server wrote to stdout, in order
 
     def send(self, message):
         self.proc.stdin.write(encode(message) + b"\n")
@@ -417,6 +418,7 @@ class LauncherSession:
                 raise AssertionError("no response frame within the timeout")
             chunk = os.read(self.proc.stdout.fileno(), 65536)
             assert chunk != b"", "server closed stdout before the expected frame"
+            self.raw_stdout += chunk
             self._buffer += chunk
         line, self._buffer = self._buffer.split(b"\n", 1)
         return json.loads(line.decode("utf-8"))
@@ -480,3 +482,98 @@ class LauncherSession:
         if self.proc.poll() is None:
             self.proc.kill()
         self.close()
+
+
+# --- E28-4: the checked-in client configuration and the stdio lifecycle -------------------
+
+MCP_CONFIG_PATH = REPO_ROOT / ".mcp.json"
+VSCODE_MCP_CONFIG_PATH = REPO_ROOT / ".vscode" / "mcp.json"
+MCP_SERVER_NAME = "genia"
+ACCEPTANCE_HARNESS_DIR = REPO_ROOT / "tools" / "mcp_acceptance"
+STDIO_GUIDE_PATH = REPO_ROOT / "docs" / "mcp" / "stdio-development.md"
+
+# What a typical stdio client passes to a child it launches (the official SDK's default
+# environment): a handful of basic variables, not the developer's whole environment.
+CLIENT_ENV_NAMES = ("HOME", "LOGNAME", "PATH", "SHELL", "TERM", "USER")
+
+
+def load_mcp_config():
+    assert MCP_CONFIG_PATH.is_file(), (
+        "E28-4 not implemented: the repository-root .mcp.json does not exist"
+    )
+    return json.loads(MCP_CONFIG_PATH.read_text(encoding="utf-8"))
+
+
+def configured_server():
+    """The server entry exactly as a client would read it from `.mcp.json`."""
+    return load_mcp_config()["mcpServers"][MCP_SERVER_NAME]
+
+
+def configured_command():
+    entry = configured_server()
+    return [entry["command"], *entry.get("args", [])]
+
+
+def client_environment():
+    return {name: os.environ[name] for name in CLIENT_ENV_NAMES if name in os.environ}
+
+
+def require_configured_launcher():
+    """The configured command's executable must exist; skip locally, fail in CI."""
+    import shutil
+
+    import pytest
+
+    executable = configured_command()[0]
+    if shutil.which(executable, path=client_environment().get("PATH")) is None:
+        message = f"the configured launcher {executable!r} is not on PATH here"
+        if os.environ.get("CI"):
+            pytest.fail(message)
+        pytest.skip(message)
+
+
+def configured_session():
+    """Start the server the way a client does: the exact configured command, the repository
+    root as working directory, a client-style minimal environment."""
+    require_configured_launcher()
+    return LauncherSession(
+        command=configured_command(), cwd=REPO_ROOT, env=client_environment()
+    )
+
+
+def listening_inodes():
+    """Socket inodes currently in LISTEN state (TCP and TCP6), from /proc."""
+    inodes = set()
+    for name in ("tcp", "tcp6"):
+        try:
+            lines = Path(f"/proc/net/{name}").read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            fields = line.split()
+            if fields[3] == "0A":  # TCP_LISTEN
+                inodes.add(fields[9])
+    return inodes
+
+
+def socket_inodes(pid):
+    found = set()
+    try:
+        for fd in Path(f"/proc/{pid}/fd").iterdir():
+            try:
+                target = os.readlink(fd)
+            except OSError:
+                continue
+            if target.startswith("socket:["):
+                found.add(target[len("socket:["):-1])
+    except OSError:
+        pass
+    return found
+
+
+def worker_workdir(identity):
+    """The governed worker's private working directory, read while it is alive."""
+    try:
+        return Path(os.readlink(f"/proc/{identity[0]}/cwd"))
+    except OSError:
+        return None

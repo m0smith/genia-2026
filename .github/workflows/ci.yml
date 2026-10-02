@@ -106,3 +106,37 @@ jobs:
         run: npm ci
       - name: Build and test extension
         run: npm test
+
+  mcp-client-acceptance:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    name: MCP stdio client acceptance (official SDK)
+    runs-on: ubuntu-latest
+    env:
+      GENIA_REQUIRE_MCP_CLIENT: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+      - name: Bootstrap uv
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check --no-input uv
+          echo "UV_PYTHON=$(command -v python)" >> "$GITHUB_ENV"
+          echo "UV_PYTHON_DOWNLOADS=never" >> "$GITHUB_ENV"
+      - name: Sync dependencies
+        run: python -m uv sync --dev --python "$UV_PYTHON"
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tools/mcp_acceptance/package-lock.json
+      - name: Install the locked MCP client
+        working-directory: tools/mcp_acceptance
+        run: npm ci
+      - name: Run the stdio configuration, launch, lifecycle, and official-client tests
+        run: python -m uv run --python "$UV_PYTHON" pytest -q -vv -n0 tests/unit/test_r28_mcp_stdio_config.py tests/unit/test_r28_mcp_stdio_launch.py tests/unit/test_r28_mcp_stdio_lifecycle.py tests/unit/test_r28_mcp_official_client.py

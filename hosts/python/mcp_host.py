@@ -13,6 +13,7 @@ Usage (started by `hosts/python/mcp_launch.py`):
 
 from __future__ import annotations
 
+import signal
 import sys
 from pathlib import Path
 
@@ -23,6 +24,10 @@ from hosts.python.mcp_run_capability import RunCapability
 from hosts.python.mcp_stdin import LineMux
 
 
+def _terminate(signum, _frame):
+    raise SystemExit(128 + signum)
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if len(args) != 2:
@@ -31,6 +36,9 @@ def main(argv: list[str] | None = None) -> int:
     server_path, revision = Path(args[0]), args[1]
     # The host owns raw stdin line multiplexing (not protocol work) so that a
     # cancellation notification can be observed while a run is in flight (ledger R28-H27).
+    # SIGTERM unwinds like an exit so the supervisor's cleanup (kill and reap the worker
+    # group, remove its temp directory) runs; without it the worker would be orphaned.
+    signal.signal(signal.SIGTERM, _terminate)
     mux = LineMux(sys.stdin.fileno())
     env = make_global_env(cli_args=[], stdin_provider=mux.provider)
     run_source(server_path.read_text(encoding="utf-8"), env, filename=str(server_path))
