@@ -107,3 +107,15 @@ OUTPUT:
 5. Ambiguities/blockers
 
 No implementation. No redesign. No scope expansion.
+
+---
+
+TEST PLACEMENT
+
+No new Python test should be the sole authority for portable Genia behavior
+when the same observable behavior can reasonably be expressed as a shared
+semantic spec or, for Genia-facing behavior that is not yet portable, a native
+Genia test. Keep Python tests for Python internals, OS behavior, transport
+mechanics, Python exception normalization, Python adapters,
+subprocess/threading behavior, and host-specific security boundaries. See
+AGENTS.md (Portable-behavior test placement).
