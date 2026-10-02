@@ -68,7 +68,7 @@ def test_main_is_not_dispatched():
 
 
 def test_stdin_is_immediate_eof_and_argv_is_empty():
-    reply = _worker().execute_source("[argv(), stdin |> collect]")
+    reply = _worker().execute_source("[argv(), stdin |> lines |> collect]")
     assert reply["status"] == "completed" and reply["value"] == "[[], []]"
 
 
@@ -84,7 +84,7 @@ DENIED = {
     "read_file": 'read_file("/etc/hostname")',
     "write_file": 'write_file("{marker}", "x")',
     "zip_write": 'zip_write("{marker}", [])',
-    "resource": 'resource_write_text("{marker}", "x")',
+    "resource": '_resource_write_text("{marker}", "x")',
     "http": '_http_send',
     "serve": "_serve_http",
     "config": 'config_get("HOME")',
@@ -206,7 +206,7 @@ def test_policy_denies_imports_and_shell_stages_structurally():
 
 
 def test_protected_carrier_in_the_result_is_policy_denied_with_no_partial_fields():
-    from src.genia.values import GeniaProtected, GeniaSymbol
+    from genia.values import GeniaProtected, GeniaSymbol
 
     carrier = GeniaProtected("SECRET-VALUE", object(), GeniaSymbol("purpose"))
     reply = _worker().build_reply(carrier, "out", "err")

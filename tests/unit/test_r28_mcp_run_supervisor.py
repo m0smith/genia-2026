@@ -25,6 +25,7 @@ from tests.fixtures.r28_mcp_helpers import (
     RUN_CAPABILITY_PATH,
     STDIN_MUX_PATH,
     pid_alive,
+    process_children,
 )
 
 pytestmark = pytest.mark.unit
@@ -221,15 +222,11 @@ def test_deadline_returns_timeout_and_reaps_the_worker(tmp_path):
 
 
 def _worker_processes_left():
+    """Live fake workers that are descendants of *this* process (xdist-safe)."""
     found = []
-    for entry in Path("/proc").iterdir():
-        if entry.name.isdigit():
-            try:
-                cmdline = (entry / "cmdline").read_bytes()
-            except OSError:
-                continue
-            if b"fake_worker.py" in cmdline and pid_alive(int(entry.name)):
-                found.append(int(entry.name))
+    for pid in process_children(os.getpid()):
+        if b"fake_worker.py" in _read(Path(f"/proc/{pid}/cmdline")) and pid_alive(pid):
+            found.append(pid)
     return found
 
 
@@ -247,11 +244,9 @@ def test_worker_children_die_with_the_worker(tmp_path):
     assert reply == {"status": "timeout"}
     time.sleep(0.3)
     leaked = [
-        e.name
-        for e in Path("/proc").iterdir()
-        if e.name.isdigit()
-        and b"time.sleep(60)" in _read(e / "cmdline")
-        and pid_alive(int(e.name))
+        pid
+        for pid in process_children(os.getpid())
+        if b"time.sleep(60)" in _read(Path(f"/proc/{pid}/cmdline")) and pid_alive(pid)
     ]
     assert leaked == [], "worker descendants survived"
 

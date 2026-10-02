@@ -13,6 +13,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from functools import lru_cache
 from pathlib import Path
 
@@ -354,23 +355,25 @@ class LauncherSession:
             cwd=str(REPO_ROOT),
             env=server_env(),
         )
+        self._buffer = b""
 
     def send(self, message):
         self.proc.stdin.write(encode(message) + b"\n")
         self.proc.stdin.flush()
 
     def read(self, timeout=30):
-        import selectors
+        """Return the next response frame (own buffering: select never misses data)."""
+        import select
 
-        selector = selectors.DefaultSelector()
-        selector.register(self.proc.stdout, selectors.EVENT_READ)
-        try:
-            if not selector.select(timeout):
+        deadline = time.monotonic() + timeout
+        while b"\n" not in self._buffer:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([self.proc.stdout], [], [], remaining)[0]:
                 raise AssertionError("no response frame within the timeout")
-        finally:
-            selector.close()
-        line = self.proc.stdout.readline()
-        assert line.endswith(b"\n"), line
+            chunk = os.read(self.proc.stdout.fileno(), 65536)
+            assert chunk != b"", "server closed stdout before the expected frame"
+            self._buffer += chunk
+        line, self._buffer = self._buffer.split(b"\n", 1)
         return json.loads(line.decode("utf-8"))
 
     def workers(self):

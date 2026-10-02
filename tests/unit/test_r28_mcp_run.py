@@ -254,7 +254,7 @@ DENIED_SOURCES = {
     "file read": 'read_file("/etc/hostname")',
     "file write": 'write_file("MARKER_PATH", "x")',
     "zip": 'zip_read("/tmp/x.zip")',
-    "resource": 'resource_read_text("/etc/hostname")',
+    "resource": '_resource_read_text("/etc/hostname")',
     "import web": "import web\n1",
     "import execution": "import execution\n1",
     "import file": "import file\n1",
