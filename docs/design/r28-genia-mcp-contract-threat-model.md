@@ -17,6 +17,11 @@ Clarification A3 (issue #703, ledger entry R28-H22) states that the `genia_parse
 `ast` is carried as a lossless JSON wire fragment and is not subject to the R9
 portable-JSON integer range; see section 16.
 
+Clarification A4 (issue #704, ledger entries R28-H24 and R28-H25) places pre-execution
+policy inspection at the host execution boundary, over the existing raw parser AST,
+because the normalized parse surface lacks the information policy needs; see
+section 17.
+
 ## 1. Purpose and boundary
 
 R28 publishes a small, governed Model Context Protocol (MCP) server authored
@@ -882,3 +887,35 @@ numbers. That client-side representation is outside this contract.
 
 Sections changed: 2.4 (`ast` wire representation). No tool, resource, prompt,
 transport, authority, limit, or threat-model decision changes.
+
+## 17. Clarification A4 (issue #704, R28 ledger entries R28-H24, R28-H25)
+
+Recorded during E28-3 design. Section 3 allocates "policy decisions over normalized
+request and parse data" to native `mcp.genia`, and section 4 requires a
+pre-execution policy check. The existing normalized parse surface
+(`hosts/python/parse_adapter.parse_and_normalize`, the shared `parse` spec category)
+intentionally projects only a minimal set of node kinds: a call such as
+`read_file("x")` normalizes to `{"kind": "Call"}` and `import web` to
+`{"kind": "ImportStmt"}`, so callees and import targets are absent. That surface
+cannot support the approved execution policy.
+
+| Concern | Owner after A4 |
+|---|---|
+| MCP request validation, argument validation, tool dispatch, source byte limit, tool-result composition, mapping of the closed worker reply to the envelope, result-size check | native `mcp.genia` (unchanged) |
+| Pre-execution policy inspection of the source | the disposable worker, over the **existing raw parser AST** (the same parser, before lowering), at the host execution boundary |
+| Restricted Genia runtime surface (prohibited authority absent) | the worker (unchanged from section 4) |
+| OS-level restrictions, deadline, kill and reap | the worker supervisor (unchanged from section 4) |
+
+Policy inspection in the worker is one layer of the defense in depth that section 4
+requires; it is not a substitute for the restricted runtime or the OS layer, and its
+failure is `internal_error`, never permission to run broadly. A rejected source is the
+`policy_denied` envelope (phase `policy`) with the fixed server-owned message; the
+worker reports only the closed outcome, never which construct was found.
+
+The shared normalized parse surface is **not** expanded for MCP, and A4 changes no
+Genia parser semantics, normalized parse semantics, Core IR, builtin, prelude
+function, or ordinary CLI behavior. The ordinary CLI accepts the same sources it
+accepted before; policy rejection exists only in the MCP execution profile.
+
+Sections changed: 3 (policy ownership) and 4 (where the pre-execution check runs).
+No tool, limit, envelope, authority, or threat-model decision changes.
