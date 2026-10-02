@@ -732,6 +732,7 @@ pre-flight, when promoted), **raised in**.
 | E28-3 CI repair 3 (PR #1073) | H35 added and closed (CI host class denies unprivileged namespaces; two tests assumed otherwise; suite verified with the namespace working and denied) |
 | E28-4 pre-flight and design | H36 (legacy-handshake clients), H37 (multiple launches, wrapper chain), H38 (worker and temp dir outlive a dead host), H39 (VS Code run not executable here) added with evidence |
 | E28-3 audit | _not started_ |
+| E28-4 audit | Findings: two narrow-import allowlist tests (launcher, host bootstrap) needed `signal`/`contextlib` and were updated with a comment; no other defect. Suites verified with namespaces available and denied |
 | E28-4 implementation | H37 and H38 closed; H36 and H39 stay open (documented limitations, for E28-5/E28-6) |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |
