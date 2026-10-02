@@ -183,7 +183,7 @@ declared by `genia-cpp`, as its own CI already does.
 ## Validation workflow
 
 `.github/workflows/docker-dev-environment.yml` is intentionally narrow. It
-builds this image on the existing Linux self-hosted runner, mounts sibling
+builds this image on a standard GitHub-hosted Linux runner, mounts sibling
 checkouts, then runs:
 
 1. representative Python reference-host tests
@@ -236,7 +236,7 @@ This gate is CI/process infrastructure only; it defines no Genia language or
 Core IR behavior, and it does not replace `.github/workflows/docker-dev-environment.yml`'s
 dev-image validation above.
 
-## Self-hosted runner implications
+## Runner implications
 
 A future runner can reasonably move toward:
 

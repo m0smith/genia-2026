@@ -8,7 +8,6 @@ on:
 permissions:
   contents: read
 
-# September 2026 temporary policy: no GitHub-hosted runner compute.
 # Scheduled runs share a cancellation group so stale nightly work does not pile up.
 # Manual runs use their run ID so separate on-demand release checks remain usable.
 concurrency:
@@ -18,7 +17,7 @@ concurrency:
 jobs:
   compatibility:
     name: Compatibility (py${{ matrix.python-version }})
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     # 3.15 is prerelease/experimental and does not affect stable compatibility results.
     continue-on-error: ${{ matrix.experimental || false }}
     strategy:
@@ -55,7 +54,7 @@ jobs:
 
   slow-tests:
     name: Slow tests (${{ matrix.section }}, py3.14)
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -82,7 +81,7 @@ jobs:
 
   full-conformance:
     name: Full Python protocol conformance (py3.14)
-    runs-on: [self-hosted, linux, x64, genia]
+    runs-on: ubuntu-latest
     steps:
       - name: Check out repository
         uses: actions/checkout@v6

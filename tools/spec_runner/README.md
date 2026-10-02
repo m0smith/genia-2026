@@ -300,7 +300,7 @@ python -m tools.spec_runner --host 'python -m hosts.python.protocol_adapter'
   runs this complete parity proof once on Python 3.14. The marker isolates cost
   only: the proof still discovers and executes the complete shared suite
   through the Python subprocess protocol and remains a required
-  self-hosted-runner regression check. The separate compatibility job runs the
+  regression check. The separate compatibility job runs the
   canonical spec runner across every supported Python version.
 - `tests/unit/test_python_protocol_adapter_762.py` proves transport
   isolation directly: a program that prints non-JSON text to its own

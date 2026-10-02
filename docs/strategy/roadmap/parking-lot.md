@@ -90,11 +90,11 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - nominal variants / closed constructor identity / exhaustiveness
   - R15 delivered structural discriminated alternatives only
   - nominal variant identity, constructor objects or syntax, sealed/closed nominal hierarchies, and exhaustiveness checking remain deferred
-  - do not smuggle this work into R25/R26 shaped or relational Sheet semantics
+  - do not smuggle this work into R30/R31 shaped or relational Sheet semantics
 - broad function contracts beyond the Template/validation boundaries already implemented
   - promote only when a concrete API-boundary use case proves the need
 - purity / effect metadata
-  - R25 may define only the minimum observable independence rules required for shaped computation
+  - R30 may define only the minimum observable independence rules required for shaped computation
   - do not add `pure`, effect rows, an effect type system, or optimizer-facing user syntax unless concrete optimization/tooling use cases prove that existing semantics are insufficient
 - module instances / initialized components
   - future distinction: import/load remains inert definition/namespace loading; explicit initialization may later create independent runtime instances with lifecycle-owned resources
@@ -111,7 +111,7 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
 - notebook mode
 - parallel native test execution
 - package manager / public package registry
-  - R28 may improve local project/tooling ergonomics but must not introduce package-distribution semantics without separate ecosystem pressure and its own contract/process work
+  - R33 may improve local project/tooling ergonomics but must not introduce package-distribution semantics without separate ecosystem pressure and its own contract/process work
 - **#102** — broad scope; should be split into smaller targeted tickets or updated before use as a release tracker; do not use as a release blocker in its current form
 
 ## Selective Non-Strict Evaluation / Call-by-Need
@@ -162,13 +162,13 @@ documentation synchronization, and skeptical truth audit.
 
 ## Promoted post-R24 data-workflow work
 
-The following ideas are no longer parking-lot-only and now have planned release homes in [`r25-r29.md`](r25-r29.md):
+The following ideas are no longer parking-lot-only and now have planned release homes in the current roadmap (see [`r30-r32.md`](r30-r32.md) and the release sequence):
 
-- shaped whole-column computation, scalar lifting, and shape conformance → **R25**
-- grouping, summarization, ordering, and explicit joins over Sheets → **R26**
-- one explicit parameterized database source/sink boundary → **R27**
-- formatter/editor/navigation/diagnostic tooling hardening → **R28**
-- reproducible Python/C++ performance evidence and evidence-driven optimization → **R29**
+- shaped whole-column computation, scalar lifting, and shape conformance → **R30**
+- grouping, summarization, ordering, and explicit joins over Sheets → **R31**
+- portable data-store/provider boundary, including explicit source/sink capabilities → **R32**
+- formatter/editor/navigation/diagnostic tooling hardening → **R33**
+- reproducible Python/C++ performance evidence and evidence-driven optimization → **R34**
 
 Roadmap placement does not approve syntax or behavior; each release still requires its own contract/design/failing-test/implementation/documentation/audit gates.
 
