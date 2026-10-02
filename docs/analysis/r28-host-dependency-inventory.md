@@ -415,6 +415,224 @@ pre-flight, when promoted), **raised in**.
   make the MCP AST richer without any MCP change.
 - Raised in: E28-2 implementation (H22 follow-up).
 
+**R28-H24 — No restricted-authority evaluation profile in Genia**
+- Class: **B**. Status: `open`.
+- Evidence: in command mode `read_file("/etc/hostname")` succeeds; the default global
+  environment has 241 bindings and 234 prelude autoload entries. Authority-bearing
+  ones include file/zip/resource I/O, `_http_send`/`_serve_http`/`_cors`, config/secret/
+  declassification/model/embedding/retrieval bindings, `input`, `stdin_keys`, and the
+  `file`, `web`, `execution`, and `resource` modules. `make_global_env` accepts sink,
+  stdin, and snapshot-provider overrides but no allowlist or denylist.
+- Workaround (E28-3 design, approved D1/D2): the host worker applies a default-deny
+  classification (`hosts/python/mcp_worker_profile.py`): only explicitly allowed bindings
+  and autoloads survive, `env.load_module` is replaced by a denial, and a drift test
+  fails when any binding is unclassified.
+- Usefulness beyond MCP: high (any untrusted-source consumer).
+- Removable code: the profile module, if Genia gains a capability-restricted
+  environment facility.
+- Disposition: preserve evidence; the E28-6 audit decides whether a general facility is
+  worth a proposal.
+- Raised in: E28-3 design.
+
+**R28-H25 — Normalized parse AST is too coarse for MCP policy**
+- Class: **N/B** (consequence of H23). Status: `closed` (resolved by Clarification A4; implemented in E28-3).
+- Evidence: `read_file("x")` normalizes to `{"kind": "Call"}` and `import web` to
+  `{"kind": "ImportStmt"}`; callees and import targets are not in the normalized AST,
+  so contract section 3's native "policy over normalized parse data" cannot detect
+  prohibited calls or imports.
+- Disposition: **resolved by contract Clarification A4** (decision D1): policy runs in
+  the worker over the raw parser AST; the shared normalized surface is not expanded.
+  Implemented in E28-3: `hosts/python/mcp_worker_profile.py` `policy_violation` walks the
+  raw parser AST (a test asserts the normalized surface cannot see the callee while the
+  raw AST can). Normalization expansion remains a separate parse-spec follow-up (see H23).
+- Raised in: E28-3 design. Resolved in: E28-0 Clarification A4 (issue #704).
+
+**R28-H26 — `execution.process` cannot launch the E28-3 worker**
+- Class: **A** (refines H04, H06, H07). Status: `open`.
+- Evidence: stdin is `DEVNULL`, argv elements cap near 128 KiB (source limit is
+  262,144 bytes), the executable is a host-bound symbol, and the call is one
+  synchronous operation (STATE 9.40).
+- Workaround (E28-3 design, approved D2): a narrow supervisor
+  (`hosts/python/mcp_run_capability.py`), leaving `execution.process` unchanged.
+  Responsibilities (the best-effort namespace profile is determined once at host
+  initialization, bounded at 5 s and cached, never inside a request; see H33): fresh
+  process per call; private empty temporary cwd removed after
+  reap; fixed environment allowlist (no `PATH`/`HOME`); `close_fds`; own process group;
+  source over a stdin pipe while draining output; monotonic 5,000 ms deadline measured from
+  worker readiness, with bootstrap separately bounded at 30 s (H34);
+  incremental byte caps; kill and reap on timeout, cancel, limit, or failure; worker
+  stderr discarded; reply shape check only; any exception becomes `internal_error`.
+- Removable/generalizable: the whole supervisor if a general cancellable
+  process-with-stdin capability lands (H05-H08).
+- Disposition: implemented in E28-3 as designed; stays `open` for the E28-6 audit (which
+  decides, with H05-H08, whether a general cancellable process-with-stdin capability is worth
+  a proposal).
+- Raised in: E28-3 design.
+
+**R28-H27 — Cancellation versus the native single-threaded stdin loop**
+- Class: **B** (refines H08, H09). Status: `open`.
+- Evidence: `serve_lines` processes one request synchronously, so a
+  `notifications/cancelled` message sits unread in stdin while `genia_run` blocks.
+  Contract section 5 requires cancellation to terminate and reap the worker; E28-3 may
+  not ignore it (decision D3).
+- Investigation (prototype in the session scratchpad, not committed): a Python line
+  multiplexer fed to the existing public `make_global_env(stdin_provider=...)` hook, plus
+  a host `select` loop that calls a **Genia closure** (`is_cancel`) for each raw line,
+  honored (a) a cancel line queued in the same write as the request, (b) a cancel
+  arriving one second into the run, and (c) kept a non-cancel line that arrived during
+  the run, answered in order afterwards. Protocol interpretation (method, request id)
+  stayed in the Genia closure; the host only multiplexes, forwards raw lines, and
+  terminates. No move of the MCP loop into Python was required, so no Clarification A5.
+- Workaround (E28-3 design): `hosts/python/mcp_stdin.py` (multiplexer) plus the
+  supervisor's select loop; native builds `is_cancel`. Limits: while more than 8 MiB of
+  input is pending the multiplexer stops reading (back-pressure), so a flooding client
+  cannot be observed for cancellation (best effort); a transport closure may prevent
+  delivery of any envelope (contract section 5).
+- Removable code: the multiplexer, if Genia gains a bounded/non-blocking stdin source.
+- Disposition: implemented in E28-3 (`mcp_stdin.py`, supervisor select loop, native
+  `cancel_matcher`); verified by `tests/unit/test_r28_mcp_run.py` (cancel queued with the
+  request, mid-run, other id ignored, after completion ignored, other lines preserved in
+  order, worker reaped) and the supervisor tests. Stays `open` for the E28-6 audit.
+- Raised in: E28-3 design.
+
+**R28-H28 — Shell stages bypass environment pruning**
+- Class: **A**. Status: `open`.
+- Evidence: `$(cmd)` lexes to `SHELL_STAGE`; the evaluator's `_eval_shell_stage` calls
+  `subprocess.run(shell=True)` directly, not through a global binding, so removing
+  bindings cannot deny it.
+- Workaround (E28-3 design): policy rejects `ShellStage`; the worker stubs subprocess and
+  process-creating `os` functions at runtime; the network/user namespace and
+  `RLIMIT_FSIZE` limit damage where available. The classification test asserts a shell
+  stage creates no marker.
+- Usefulness beyond MCP: moderate (an evaluator-level capability gate).
+- Disposition: implemented as designed in E28-3 (policy rejects `ShellStage`; runtime stubs
+  for `subprocess`, process-creating `os` functions, and sockets; tests assert a shell stage
+  creates no marker with policy on and off). Preserve evidence; audit decides.
+- Raised in: E28-3 design.
+
+**R28-H29 — Contract "no implicit entrypoint" versus STATE command-mode `main` dispatch**
+- Class: **N (contract versus documented CLI behavior)**. Status: `open`.
+- Evidence: contract section 2.5 requires command-source evaluation semantics with no
+  file-mode `main` dispatch or implicit entrypoint; STATE section 9 states that in file
+  and `-c` command mode `main/1` is preferred over `main/0`, and `_resolve_program_result`
+  dispatches it. The contract text is explicit.
+- Disposition: implemented as stated (`main` is not dispatched; pinned by a test). The contract wins for the MCP profile: the worker evaluates with
+  `run_source` and renders the resulting value without dispatching `main`; a regression
+  test pins that a source defining `main` is not invoked. Parity tests with ordinary
+  command mode use sources without `main`. No contract change needed; recorded so the
+  difference is not rediscovered as a defect.
+- Raised in: E28-3 design.
+
+**R28-H30 — Canonical value rendering cannot be bounded incrementally**
+- Class: **B**. Status: `open`.
+- Evidence: `format_debug` returns a finished string; contract section 5 asks for
+  incremental limit enforcement and the 1 MiB value limit.
+- Workaround (E28-3 design): the worker bounds the rendering with the wall-clock
+  deadline and `RLIMIT_AS`, then checks the size; an overflow is `result_limit`.
+- Usefulness beyond MCP: moderate (a bounded renderer).
+- Disposition: implemented as designed (channel limits enforced incrementally in the worker
+  sinks; value limit checked after rendering, bounded by the deadline and `RLIMIT_AS`).
+  Preserve evidence; audit decides.
+- Raised in: E28-3 design.
+
+**R28-H31 — The E28-1 server did not flush responses on a live pipe**
+- Class: **N (defect found in an earlier phase; native Genia fix)**. Status: `closed`.
+- Evidence: a persistent client got no response because `writeln(stdout, ...)` left each
+  frame in a block-buffered pipe until exit; every E28-1/E28-2 test used a batch run (all
+  stdin, then read all stdout) and could not see it. E28-3's live cancellation tests
+  exposed it: a launcher session answered `tools/list` only after stdin closed.
+- Disposition: fixed in native `mcp.genia` (`emit(text)` writes then calls `flush(stdout)`),
+  with the live-session tests as the regression guard. No host or language change.
+- Raised in: E28-3 implementation.
+
+**R28-H32 — The canonical debug renderer exposes host representations**
+- Class: **N (existing behavior; observation)**. Status: `open`.
+- Evidence: `genia_run` of `print` returns `<function make_global_env.<locals>.print_fn at
+  0x...>` and of a user function `GeniaFunctionGroup(name='f', functions={1: <function
+  f/1>}, ...)`, exactly what ordinary command mode prints, so MCP inherits Python class and
+  function names and a non-deterministic address for such values. Contract section 2.5 says
+  the value is rendered by the existing renderer, not claimed to be a serialization.
+- Disposition: not changed (a renderer change is outside R28). The E28-6 audit decides
+  whether a portable rendering for callable values is worth a proposal.
+- Raised in: E28-3 implementation.
+
+**R28-H33 — Live-process tests raced server bootstrap, and the namespace probe sat in the request path**
+- Class: **A** (host-initialization responsibility) and **N** (test-synchronization finding). Status: `closed`.
+- Evidence: PR CI (self-hosted runner, Python 3.14.7, 16 xdist workers) failed
+  `test_cancel_arriving_mid_run_cancels_and_reaps` and
+  `test_deadline_returns_timeout_and_reaps_the_worker[sleep]` with `assert set()` after a fixed
+  `sleep(1.0)` measured from the send time. Reproduced locally with 12 CPU-bound processes plus
+  12 xdist workers on 4 cores (3 of 7 live tests failed, identical symptom). Measured timeline of
+  the first run request: server bootstrap (launcher, `git rev-parse`, host start, Genia import,
+  `mcp.genia` load) dominated, with the governed worker first observable at 0.5-0.65 s unloaded
+  and 1.8-2.2 s loaded; the one-time namespace probe cost only 20-40 ms in both cases but is
+  bounded only by a 15 s timeout, a latent hazard. Independently, `LauncherSession.workers()`
+  counted the probe's `python -S -c ... /proc/net/dev` process as "a worker", so "a worker was
+  observed" could be satisfied by the probe and the reap assertions then checked the probe's
+  pid rather than the governed worker. `process_children`-based discovery matched the actual
+  topology (the worker is a direct child of the host, and `unshare` execs in place, so no
+  wrapper process exists); topology was not a contributing cause, but the tests no longer
+  depend on it. A reaped-but-zombie check (`pid_alive` ignoring zombies) could also hide a reap
+  failure.
+- Disposition: fixed in E28-3 (PR #1073) without changing the 5,000 ms deadline or disabling
+  isolation. Product: `RunCapability` determines the best-effort namespace profile once at
+  construction, which happens during host initialization before the server reads any request;
+  the probe is bounded at 5 s (`PROBE_TIMEOUT_S`) and cached, and requests only consume it, so
+  first-request behavior never depends on a capability probe. Tests: a readiness barrier
+  (`wait_ready`), bounded observable polling for the governed worker (`wait_for_worker`, matched
+  by its `-m hosts.python.mcp_worker` command line, not by depth or parentage and never the
+  probe), strict reap checks (identity = pid + start time; an unreaped zombie fails), and
+  load-independent timing assertions (the deadline lower bound is measured from before the send,
+  so it holds under any load). Discriminating evidence: recording fake `unshare` tests prove the
+  probe runs exactly once, before readiness, even when slow or hanging, and that a hung probe
+  delays startup (bounded) rather than a request; seven probe tests fail against the previous
+  product code.
+- Raised in: E28-3 implementation (CI repair).
+
+**R28-H34 — The execution deadline charged worker launch time to the program**
+- Class: **A** (supervisor responsibility). Status: `closed`.
+- Evidence: after the H33 repair, PR CI on `eb39aaf8` still failed three tests with `timeout`
+  where the source normally finishes in about a second: two policy-denied wire tests
+  (`[secret]`, `[shell stage side effect]`) and `test_eof_during_a_run_lets_the_run_finish`,
+  which uses a trivial fake Python worker with the default 5 s deadline, so the host was
+  stalled globally, not merely slow at importing Genia. The same job runs beside the C++ host
+  parity and Node jobs on a shared self-hosted runner. Local reproduction under 40 processes on
+  4 cores slows each wire test to 16-19 s without a timeout, showing how close worker launch
+  gets to 5 s. The exact stall source on the CI host is **not proven**: candidates are CPU
+  oversubscription and kernel-wide network-namespace create/destroy serialization (not
+  reproduced locally: 160 `unshare --user --net` launches at 16-way showed a 91 ms maximum).
+  The design charged the deadline from process spawn, but contract section 5 bounds parse/policy/
+  evaluation/render and excludes startup; launch time (interpreter, imports, namespace creation)
+  grows with host load and is not user code.
+- Disposition: fixed in E28-3 without changing the 5,000 ms value or the single deadline: the
+  worker writes a readiness marker to its real stderr after its trusted bootstrap and before
+  reading or evaluating any source, and the supervisor starts the clock there; bootstrap is
+  bounded separately (`STARTUP_LIMIT_MS`, 30 s; a worker that never becomes ready is
+  `internal_error`). Cancellation works throughout. Discriminating evidence: a recording fake
+  `unshare` makes the real worker's launch take 6 s (longer than the whole deadline); the run
+  completes with the new supervisor and is a `timeout` with the previous one. Supervisor unit
+  tests unrelated to the deadline now use a generous deadline and no kernel namespace.
+- Raised in: E28-3 implementation (second CI repair).
+
+**R28-H35 — The CI host class denies unprivileged namespaces; tests assumed it worked**
+- Class: **N (environment observation; test assumption)**. Status: `closed`.
+- Evidence: after the H34 repair PR CI moved to GitHub-hosted runners and two tests failed with
+  `0 == 2` / `0 == 1`: `test_isolation_probe_runs_once_during_initialization_before_readiness` and
+  `test_slow_worker_launch_is_not_charged_against_the_5000_ms_deadline` expected governed workers to
+  pass through the `unshare` wrapper. On that host class `unshare --user` is denied, so the
+  one-time probe (correctly) fails and workers run unwrapped. Simulating it locally with an
+  `unshare` that always fails reproduced exactly those two failures and no others (386 other R28
+  tests passed). Earlier self-hosted runs permitted namespaces, which hid the assumption.
+- Disposition: tests fixed, not the product (the honest degrade is the specified behavior): the
+  probe-once test asserts the wrapper count only for the outcome the host actually permits; the
+  slow-launch injection test skips with a stated reason where a real namespace is unavailable (the
+  property is covered without a namespace by the supervisor tests); a new wire test using a denying
+  fake `unshare` proves the degrade deterministically everywhere (probe runs once before
+  readiness, runs succeed, no wrapper is claimed or used). The suite now passes with the
+  namespace both working (391 passed) and denied (388 passed, 3 skipped). Consequence: on CI of this
+  class the namespace layer is not exercised; its behavior is verified only where available.
+- Raised in: E28-3 implementation (third CI repair).
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -449,6 +667,15 @@ pre-flight, when promoted), **raised in**.
 | E28-2 implementation | H22 added (huge-integer AST literals vs strict JSON range; blocks acceptance); H17, H20 realized as designed |
 | E28-2 H22 resolution | H22 resolved by contract Clarification A3 / design §6.1 (lossless opaque AST transport); H23 added and closed (normalization collapses unary nodes; not a defect) |
 | E28-2 documentation | `GENIA_STATE.md` section 9.42 added; H17, H18, H20 dispositions updated to implemented (still `open` for the E28-6 audit); no further entries added |
-| E28-3 | _not started — expected to update H04–H09_ |
+| E28-3 design | H24–H27 added (restricted-profile gap, coarse normalized AST, supervisor vs `execution.process`, cancellation); H04, H06–H09 refined |
+| E28-0 Clarification A4 | H25 resolved by A4 (policy over the raw AST in the worker; closes at implementation) |
+| E28-3 final design | decisions D1–D4 approved; H27 mechanism proven by prototype (no A5); H24, H26 refined; H28 (shell stage bypass), H29 (no implicit entrypoint vs STATE), H30 (rendering not boundable) added |
+| E28-3 failing tests | no new entries; tests pin H24 (default-deny classification), H26 (supervisor floor), H27 (cancellation), H28 (shell stage), H29 (no `main` dispatch), H30 (render limit) |
+| E28-3 implementation | H25 closed; H26, H27, H28, H29, H30 implemented as designed; H31 (responses not flushed on a live pipe) found and fixed natively; H32 (renderer exposes host representations) added |
+| E28-3 documentation | `GENIA_STATE.md` section 9.43 added; roadmap status updated |
+| E28-3 CI repair (PR #1073) | H33 added and closed (probe moved to host initialization; live tests synchronize on readiness and observable worker state); H26 responsibilities refined |
+| E28-3 CI repair 2 (PR #1073) | H34 added and closed (the 5,000 ms deadline starts at worker readiness; bootstrap separately bounded); H26 refined |
+| E28-3 CI repair 3 (PR #1073) | H35 added and closed (CI host class denies unprivileged namespaces; two tests assumed otherwise; suite verified with the namespace working and denied) |
+| E28-3 audit | _not started_ |
 | E28-4 – E28-5 | _not started_ |
 | E28-6 final audit | _must disposition every non-closed entry_ |

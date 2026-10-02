@@ -13,6 +13,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from functools import lru_cache
 from pathlib import Path
 
@@ -250,3 +251,232 @@ def error_envelope(kind, phase, message):
         "result": None,
         "error": {"kind": kind, "message": message, "phase": phase},
     }
+
+
+# --- E28-3: genia_run over the launcher (host provisions parse and run) ---------
+
+RUN_TOOLS = ("genia_capabilities", "genia_parse", "genia_run")
+RUN_CAPABILITY_PATH = REPO_ROOT / "hosts" / "python" / "mcp_run_capability.py"
+STDIN_MUX_PATH = REPO_ROOT / "hosts" / "python" / "mcp_stdin.py"
+WORKER_PATH = REPO_ROOT / "hosts" / "python" / "mcp_worker.py"
+WORKER_PROFILE_PATH = REPO_ROOT / "hosts" / "python" / "mcp_worker_profile.py"
+
+RUN_POLICY_MESSAGE = "source requests a capability unavailable in the MCP v1 profile"
+RUN_RUNTIME_MESSAGE = "Genia source failed during evaluation"
+RUN_TIMEOUT_MESSAGE = "Execution exceeded the 5000 ms limit"
+RUN_CANCELLED_MESSAGE = "Execution was cancelled"
+RUN_CHANNEL_LIMIT_MESSAGE = "Result exceeds a 1048576-byte channel limit"
+RUN_INTERNAL_MESSAGE = "Internal error while executing"
+
+
+def run_request(source, req_id=1, **extra_arguments):
+    arguments = {"source": source}
+    arguments.update(extra_arguments)
+    return request("tools/call", req_id, {"name": "genia_run", "arguments": arguments})
+
+
+def cancel_notification(request_id, reason="client cancelled"):
+    return notification(
+        "notifications/cancelled", {"requestId": request_id, "reason": reason}
+    )
+
+
+def completed_envelope(rendered, stdout="", stderr=""):
+    return {
+        "schema_version": "genia.mcp.v1",
+        "status": "ok",
+        "result": {
+            "kind": "completed",
+            "value": {"rendered": rendered},
+            "stdout": stdout,
+            "stderr": stderr,
+            "exit_code": 0,
+        },
+        "error": None,
+    }
+
+
+def structured(response):
+    """Return (CallToolResult, envelope) after checking the common wire shape."""
+    assert set(response) == {"jsonrpc", "id", "result"}, response
+    result = response["result"]
+    assert result["resultType"] == "complete"
+    (item,) = result["content"]
+    assert item["type"] == "text" and "\n" not in item["text"]
+    assert json.loads(item["text"]) == result["structuredContent"]
+    envelope = result["structuredContent"]
+    assert result["isError"] is (envelope["status"] == "error")
+    return result, envelope
+
+
+def _parent_map():
+    parents = {}
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            stat = (entry / "stat").read_text()
+        except OSError:
+            continue
+        # the command name may contain spaces/parentheses: split after the last ')'
+        fields = stat.rsplit(")", 1)[1].split()
+        parents[int(entry.name)] = int(fields[1])
+    return parents
+
+
+def process_children(pid):
+    """Return the set of live descendant pids of `pid` (Linux /proc)."""
+    parents = _parent_map()
+    found, frontier = set(), {pid}
+    while frontier:
+        nxt = {p for p, parent in parents.items() if parent in frontier and p not in found}
+        found |= nxt
+        frontier = nxt
+    return found
+
+
+def _stat_fields(pid):
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except OSError:
+        return None
+    return stat.rsplit(")", 1)[1].split()  # state, ppid, ..., starttime at index 19
+
+
+def pid_alive(pid):
+    """True while the pid is still in /proc. An unreaped zombie counts as alive: a
+    killed worker that was never waited for is a reap failure, not a clean exit."""
+    return _stat_fields(pid) is not None
+
+
+def process_identity(pid):
+    """(pid, start time): a stable identity that survives pid reuse within a test."""
+    fields = _stat_fields(pid)
+    return None if fields is None else (pid, fields[19])
+
+
+def identity_exists(identity):
+    fields = _stat_fields(identity[0])
+    return fields is not None and fields[19] == identity[1]
+
+
+def _cmdline(pid):
+    try:
+        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
+    except OSError:
+        return []
+    return [part.decode("utf-8", "replace") for part in raw.split(b"\0") if part]
+
+
+def is_governed_worker(pid):
+    """The governed execution worker: a Python process run as `-m hosts.python.mcp_worker`.
+
+    Deliberately not an `unshare` wrapper (if one were ever a separate process) and not
+    the one-time namespace probe: those are not the governed worker. Depth and parentage
+    are not part of the contract, so this inspects only the command line.
+    """
+    argv = _cmdline(pid)
+    return (
+        len(argv) >= 3
+        and Path(argv[0]).name.startswith("python")
+        and "-m" in argv
+        and argv[argv.index("-m") + 1] == "hosts.python.mcp_worker"
+    )
+
+
+def is_namespace_probe(pid):
+    return any("/proc/net/dev" in part for part in _cmdline(pid))
+
+
+class LauncherSession:
+    """A live launcher-mode server with timed writes (for cancellation tests)."""
+
+    def __init__(self, extra_env=None):
+        self.proc = subprocess.Popen(
+            [sys.executable, "-m", "hosts.python.mcp_launch"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=str(REPO_ROOT),
+            env=server_env(extra_env),
+        )
+        self._buffer = b""
+
+    def send(self, message):
+        self.proc.stdin.write(encode(message) + b"\n")
+        self.proc.stdin.flush()
+
+    def read(self, timeout=30):
+        """Return the next response frame (own buffering: select never misses data)."""
+        import select
+
+        deadline = time.monotonic() + timeout
+        while b"\n" not in self._buffer:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([self.proc.stdout], [], [], remaining)[0]:
+                raise AssertionError("no response frame within the timeout")
+            chunk = os.read(self.proc.stdout.fileno(), 65536)
+            assert chunk != b"", "server closed stdout before the expected frame"
+            self._buffer += chunk
+        line, self._buffer = self._buffer.split(b"\n", 1)
+        return json.loads(line.decode("utf-8"))
+
+    def wait_ready(self, timeout=120):
+        """Barrier: the server has bootstrapped and answered a request.
+
+        Host initialization (including the one-time isolation probe) completes before the
+        server reads its first request, so after this returns no bootstrap or probe work is
+        left in the request path (ledger R28-H33).
+        """
+        self.send(request("server/discover", "ready"))
+        response = self.read(timeout)
+        assert response["id"] == "ready" and "result" in response, response
+
+    def descendants(self):
+        return process_children(self.proc.pid)
+
+    def governed_workers(self):
+        """Identities of live governed workers anywhere below the launcher."""
+        return {
+            process_identity(pid)
+            for pid in self.descendants()
+            if is_governed_worker(pid) and process_identity(pid) is not None
+        }
+
+    def probe_processes(self):
+        return {pid for pid in self.descendants() if is_namespace_probe(pid)}
+
+    def wait_for_worker(self, timeout=60):
+        """Poll (bounded) until a governed worker exists; return its identities.
+
+        An observable condition with a deadline, not a fixed sleep.
+        """
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            found = self.governed_workers()
+            if found:
+                return found
+            time.sleep(0.01)
+        raise AssertionError("no governed worker process appeared within the timeout")
+
+    def close(self):
+        try:
+            self.proc.stdin.close()
+        except OSError:
+            pass
+        try:
+            self.proc.wait(timeout=30)
+        finally:
+            for stream in (self.proc.stdout, self.proc.stderr):
+                try:
+                    stream.close()
+                except OSError:
+                    pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        if self.proc.poll() is None:
+            self.proc.kill()
+        self.close()

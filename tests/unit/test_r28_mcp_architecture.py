@@ -110,12 +110,24 @@ def test_native_program_owns_every_application_literal_it_must_own():
         assert literal in source, f"mcp.genia must own literal {literal!r}"
 
 
-def test_intermediate_surface_does_not_advertise_later_tickets_in_source_policy():
-    # Through E28-2 the server may implement genia_parse but not genia_run, which
-    # E28-3 adds with its own evidence.
+def test_native_program_owns_the_genia_run_application_literals():
+    # E28-3: the run tool's descriptor, envelopes, and cancellation matching are native.
     assert SERVER_PATH.is_file(), "E28-1 not implemented: apps/mcp/mcp.genia missing"
     source = SERVER_PATH.read_text(encoding="utf-8")
-    assert "genia_run" not in source
+    for literal in (
+        "genia_run",
+        "policy_denied",
+        "runtime_error",
+        "timeout",
+        "cancelled",
+        "notifications/cancelled",
+        "requestId",
+        "source requests a capability unavailable in the MCP v1 profile",
+        "Genia source failed during evaluation",
+        "Execution exceeded the 5000 ms limit",
+        "Execution was cancelled",
+    ):
+        assert literal in source, f"mcp.genia must own literal {literal!r}"
 
 
 # --- negative: Python owns no application logic -------------------------------

@@ -20,7 +20,7 @@ import yaml
 
 from hosts.python.parse_adapter import parse_and_normalize
 from tests.fixtures.r28_mcp_helpers import (
-    PARSE_TOOLS,
+    RUN_TOOLS,
     REPO_ROOT,
     UNKNOWN_TOOL_MESSAGE,
     assert_protocol_error,
@@ -114,7 +114,7 @@ def test_cli_mode_without_capability_keeps_the_e28_1_surface():
 
 def test_launcher_mode_advertises_parse_with_the_exact_closed_schema():
     listed = launcher_call(request("tools/list", 1))["result"]["tools"]
-    assert [tool["name"] for tool in listed] == list(PARSE_TOOLS)
+    assert [tool["name"] for tool in listed] == list(RUN_TOOLS)  # E28-3: genia_run is now implemented too
     descriptor = listed[1]
     assert set(descriptor) == {"name", "description", "inputSchema"}
     assert isinstance(descriptor["description"], str) and descriptor["description"]
@@ -124,7 +124,7 @@ def test_launcher_mode_advertises_parse_with_the_exact_closed_schema():
 def test_launcher_mode_capabilities_report_the_advertised_tools():
     response = launcher_call(request("tools/call", 1, {"name": "genia_capabilities"}))
     structured = _tool_result(response)["structuredContent"]
-    assert structured == expected_envelope(repository_revision(), tools=PARSE_TOOLS)
+    assert structured == expected_envelope(repository_revision(), tools=RUN_TOOLS)
 
 
 # --- parse parity with the existing normalized parse surface -------------------

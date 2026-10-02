@@ -117,17 +117,21 @@ result_meta(c) = {"io.modelcontextprotocol/serverInfo": server_info(c)}
 
 # ---- capability values ----
 
-TOOL_NAMES = ["genia_capabilities"]
-PARSE_TOOL_NAMES = ["genia_capabilities", "genia_parse"]
 SOURCE_MAX_BYTES = 262144
 RESULT_MAX_BYTES = 3276800
 
-# The host map holds provisioned capabilities; parse is advertised only if present.
+# The host map holds provisioned capabilities; a tool is advertised only if the host
+# provisioned what it needs (parse -> genia_parse, run -> genia_run).
 parse_enabled(c) = map_has?(map_get(c, "host"), "parse")
+run_enabled(c) = map_has?(map_get(c, "host"), "run")
 
-tool_names(c) =
-  k ? parse_enabled(k) -> PARSE_TOOL_NAMES |
-  _ -> TOOL_NAMES
+advertised(c, name) =
+  (k, "genia_capabilities") -> true |
+  (k, "genia_parse") -> parse_enabled(k) |
+  (k, "genia_run") -> run_enabled(k) |
+  (_, _) -> false
+
+tool_names(c) = tool_descriptors(c) |> map((t) -> field(t, "name"))
 
 EXECUTION_PROFILE = {
   name: "source-only-isolated-v1",
@@ -174,9 +178,16 @@ parse_descriptor = {
                 properties: {source: {type: "string", maxLength: 262144}}}
 }
 
+run_descriptor = {
+  name: "genia_run",
+  description: "Run explicit Genia source in a fresh, disposable, policy-restricted worker. Returns the canonical debug rendering of the value, program stdout, and program stderr as separate fields, or a bounded failure. Source only: no file, environment, configuration, secret, network, process, or import authority.",
+  inputSchema: {type: "object", additionalProperties: false, required: ["source"],
+                properties: {source: {type: "string", maxLength: 262144}}}
+}
+
+# Contract order: genia_capabilities, genia_parse, genia_run (only those provisioned).
 tool_descriptors(c) =
-  k ? parse_enabled(k) -> [tool_descriptor, parse_descriptor] |
-  _ -> [tool_descriptor]
+  [tool_descriptor, parse_descriptor, run_descriptor] |> filter((t) -> advertised(c, field(t, "name")))
 
 discover_result(c) = {
   resultType: "complete",
@@ -286,7 +297,7 @@ object_size(v) =
 
 args_of(c) = field(params_of(c), "arguments")
 
-# genia_parse takes exactly one string `source` (closed schema).
+# genia_parse and genia_run take exactly one string `source` (closed schema).
 parse_arguments_ok(c) = object_size(args_of(c)) == 1 && is_string(field(args_of(c), "source"))
 
 tool_of(c) = field(params_of(c), "name")
@@ -295,6 +306,7 @@ call_tool(c) =
   k ? tool_name_valid(k) == false -> invalid_params(k) |
   k ? tool_of(k) == "genia_capabilities" -> call_capabilities(k) |
   k ? tool_of(k) == "genia_parse" && parse_enabled(k) -> call_parse(k) |
+  k ? tool_of(k) == "genia_run" && run_enabled(k) -> call_run(k) |
   k -> unknown_tool_response(k)
 
 call_capabilities(c) =
@@ -374,6 +386,66 @@ parse_error_message(offset) =
   o ? is_integer(o) -> concat("Genia source failed to parse at character offset ", display(o)) |
   _ -> "Genia source failed to parse"
 
+# ---- genia_run (E28-3) ----
+#
+# Execution happens in a disposable host worker; this program validates the request,
+# builds the cancellation predicate, maps the worker's closed reply to the envelope,
+# and applies the result limit. Every failure message is fixed and server-owned.
+
+call_run(c) =
+  k ? parse_arguments_ok(k) == false -> invalid_params(k) |
+  k -> result_response(k, run_result(k, field(args_of(k), "source")))
+
+run_result(c, source) =
+  (k, src) ? byte_length(src) > SOURCE_MAX_BYTES -> tool_result(k, error_envelope("input_limit", "protocol", "Genia source exceeds the 262144-byte limit")) |
+  (k, src) -> run_reply(k, json_decode((map_get(map_get(k, "host"), "run"))(src, cancel_matcher(k))))
+
+keep(f) = f
+
+# Cancellation (contract section 5): the host hands each raw stdin line that arrives
+# during the run to this predicate. Only a notification whose requestId is this
+# request's id claims it; the host merely multiplexes lines and terminates the worker.
+cancel_matcher(c) = keep((line) -> is_cancel_line(json_decode(line), field(msg_of(c), "id")))
+
+is_cancel_line(decoded, id) =
+  (some(Json(m), _), i) -> is_cancel_message(m, i) |
+  (_, _) -> false
+
+is_cancel_message(m, id) =
+  is_object(m) && field(m, "method") == "notifications/cancelled" && present(m, "id") == false && field(field(m, "params"), "requestId") == id
+
+run_reply(c, decoded) =
+  (k, some(Json(r), _)) -> run_status(k, field(r, "status"), r) |
+  (k, _) -> tool_result(k, run_internal())
+
+run_status(c, status, r) =
+  (k, "completed", reply) ? run_completed_ok(reply) -> tool_result(k, run_completed_envelope(reply)) |
+  (k, "parse_error", reply) -> tool_result(k, syntax_error_envelope(field(reply, "offset"))) |
+  (k, "policy_denied", _) -> tool_result(k, error_envelope("policy_denied", "policy", "source requests a capability unavailable in the MCP v1 profile")) |
+  (k, "runtime_error", _) -> tool_result(k, error_envelope("runtime_error", "execution", "Genia source failed during evaluation")) |
+  (k, "timeout", _) -> tool_result(k, error_envelope("timeout", "execution", "Execution exceeded the 5000 ms limit")) |
+  (k, "cancelled", _) -> tool_result(k, error_envelope("cancelled", "execution", "Execution was cancelled")) |
+  (k, "result_limit", _) -> tool_result(k, error_envelope("result_limit", "adapter", "Result exceeds a 1048576-byte channel limit")) |
+  (k, _, _) -> tool_result(k, run_internal())
+
+run_internal() = error_envelope("internal_error", "adapter", "Internal error while executing")
+
+run_completed_ok(r) =
+  is_string(field(r, "value")) && is_string(field(r, "stdout")) && is_string(field(r, "stderr")) && object_size(r) == 4
+
+run_completed_envelope(r) = {
+  schema_version: "genia.mcp.v1",
+  status: "ok",
+  result: {
+    kind: "completed",
+    value: {rendered: field(r, "value")},
+    stdout: field(r, "stdout"),
+    stderr: field(r, "stderr"),
+    exit_code: 0
+  },
+  error: nil
+}
+
 list_tools(c) =
   k ? present(params_of(k), "cursor") -> invalid_params(k) |
   k -> result_response(k, list_result(k))
@@ -444,6 +516,10 @@ handle_line(boot, line) =
 
 nonempty(line) = is_empty(line) == false
 
+# Each response is flushed as soon as it is written: a live client waits on it, and a
+# block-buffered pipe would otherwise hold it back until exit (ledger R28-H31).
+emit(text) = writeln(stdout, text) |> (_) -> flush(stdout)
+
 serve(rev, host) = serve_lines({rev: rev, host: host})
 
 serve_lines(boot) =
@@ -452,7 +528,7 @@ serve_lines(boot) =
     |> filter(nonempty)
     |> map((line) -> handle_line(boot, line))
     |> filter(nonempty)
-    |> each((text) -> writeln(stdout, text))
+    |> each((text) -> emit(text))
     |> run
 
 hex_revision(s) =
