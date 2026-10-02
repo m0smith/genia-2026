@@ -185,6 +185,12 @@ After R32 is audited, heterogeneous real-provider proving (at minimum one client
 
 R35 is the portable Store/Location/resource contract. R36 is the location-independent Execution contract. R37 establishes the unified event/subscription spine before R38 defines portable actors, so actor observability can reuse events without reducing actor mailboxes to pub/sub. R39 is the Genia-native conformance-tooling migration, including the Genia-native YAML parser for the contracted shared-spec profile. R41 then packages the existing Core IR portability boundary as stable versioned artifacts. These releases consume prior equality, lifecycle, Flow, host-protocol, and authority boundaries rather than inventing local substitutes.
 
+### Host/Genia responsibility boundary for dogfooding migrations (planning only)
+
+Python-to-Genia migrations in this arc follow one rule: Genia owns portable policy, composition, validation, transformation, orchestration, comparison, aggregation, and reporting; hosts own privileged capabilities, bootstrap, OS integration, external-protocol adapters, and the machinery that implements Genia itself. R28's native MCP server is the reference split. Migration is justified by the policy moved, not by Python lines removed, and no one-off host API is created solely to rewrite a tool.
+
+Dependency note: R39's roadmap dependencies are R18, R35, and R36 (not R33). R33 tooling/introspection is the prerequisite only for the documentation-generation and lint-policy migrations, which also need R35 for writing outputs. R42 stays an independent branch. The host parity gate is part of R39 (see [`r39.md`](r39.md)); a Genia release-check program over evidence bundles is a parking-lot candidate. Rationale and inventory: `docs/analysis/python-to-genia-meaningful-migration-review.md` (non-authoritative).
+
 R8 through R27 are complete; R28 through R42 remain planned and not active unless a specific gate says otherwise. Python remains the full-language reference host; C++ is the bounded R27 production host. Every later behavior slice requires its own contract/design/test/implementation/documentation/audit gates; roadmap placement is not implementation authority.
 
 ## Configuration and secret hardening

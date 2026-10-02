@@ -15,6 +15,11 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - configuration/domain values that intentionally encode absence must remain explicit; this helper must not become a workaround for unclear modeling
   - directly supports the Outcome-aware validated-data-pipeline north star and later HTTP, AI, storage, and database composition
   - no release number is assigned yet; schedule through the normal contract/design/failing-test/implementation/docs/audit/distillation gates before implementation
+- Genia release-check program and other tooling dogfooding candidates (non-authoritative; no release number)
+  - shape: host tools/CI produce structured evidence; a Genia program validates, classifies, and aggregates it into a deterministic Outcome/report; GitHub Actions and host tools stay host-side
+  - depends on R35 storage and on R39 proving the shape with the host parity gate; do not add release-specific host APIs to start it
+  - `tools/validate_llm_instructions.py` is classified as portable text policy but not a killer-workflow case; no migration is planned, and no capability should be created to rewrite it
+  - rationale and inventory: `docs/analysis/python-to-genia-meaningful-migration-review.md`
 - HTTP server and outbound HTTP portable contracts
   - R27 deliberately deferred both surfaces after contract-decision issues #1041 and #1043; see `docs/analysis/r27-http-server-decision.md` and `docs/analysis/r27-outbound-http-decision.md`
   - future work needs its own release assignment before implementation starts
