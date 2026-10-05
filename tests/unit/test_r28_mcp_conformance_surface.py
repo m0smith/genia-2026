@@ -230,19 +230,31 @@ def test_capability_tools_agree_with_tools_list():
     ]
 
 
-# --- D8: the legacy handshake (documented limitation, ledger R28-H36) -----------------------
+# --- D8: the legacy handshake (ledger R28-H36; amendment A5 adds the 2025-11-25 era) ------------
 
 
-def test_initialize_is_method_not_found_and_changes_nothing():
+def test_initialize_with_a_modern_meta_is_still_method_not_found_and_changes_nothing():
     messages = [
         request("tools/list", 1),
-        {"jsonrpc": "2.0", "id": 2, "method": "initialize", "params": {
-            "protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "c", "version": "0"}}},
+        request("initialize", 2, {"protocolVersion": "2025-11-25", "capabilities": {},
+                                  "clientInfo": {"name": "c", "version": "0"}}),
         request("tools/list", 3),
     ]
     first, init, last = launcher_batch(messages)[1]
     assert_protocol_error(init, -32601, req_id=2)
     assert first["result"]["tools"] == last["result"]["tools"]
+
+
+def test_the_compat_initialize_handshake_succeeds_and_serves_the_same_three_tools():
+    messages = [
+        {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+            "protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "c", "version": "0"}}},
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+        request("tools/list", 3),
+    ]
+    init, compat, modern = launcher_batch(messages)[1]
+    assert init["result"]["protocolVersion"] == "2025-11-25"
+    assert compat["result"]["tools"] == modern["result"]["tools"]
 
 
 # --- P: genia_parse -----------------------------------------------------------------------

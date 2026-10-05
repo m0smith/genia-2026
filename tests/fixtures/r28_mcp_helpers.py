@@ -610,3 +610,60 @@ def worker_workdir(identity):
         return Path(os.readlink(f"/proc/{identity[0]}/cwd"))
     except OSError:
         return None
+
+
+# --- E28-6 / amendment A5: the 2025-11-25 compatibility era (initialize) ---------------------------
+
+COMPAT_VERSION = "2025-11-25"
+
+# Exactly what VS Code 1.138.0 sent on 2026-10-05 (docs/mcp/acceptance/vscode-copilot-evidence.md, run 1).
+VSCODE_INITIALIZE_LINE = (
+    b'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25",'
+    b'"capabilities":{"roots":{"listChanged":true},"sampling":{},"elicitation":{"form":{},"url":{}},'
+    b'"tasks":{"list":{},"cancel":{},"requests":{"sampling":{"createMessage":{}},'
+    b'"elicitation":{"create":{}}}},"extensions":{"io.modelcontextprotocol/ui":'
+    b'{"mimeTypes":["text/html;profile=mcp-app"]}}},"clientInfo":{"name":"Visual Studio Code",'
+    b'"version":"1.138.0"}}}'
+)
+VSCODE_INITIALIZE = json.loads(VSCODE_INITIALIZE_LINE)
+VSCODE_CAPABILITIES = VSCODE_INITIALIZE["params"]["capabilities"]
+VSCODE_CLIENT_INFO = VSCODE_INITIALIZE["params"]["clientInfo"]
+INITIALIZED_NOTIFICATION = {"jsonrpc": "2.0", "method": "notifications/initialized"}
+
+
+def initialize_request(req_id=1, version=COMPAT_VERSION, capabilities=None, client_info=None, **params):
+    """A compatibility-era `initialize` request (no per-request `_meta`)."""
+    body = {
+        "protocolVersion": version,
+        "capabilities": VSCODE_CAPABILITIES if capabilities is None else capabilities,
+        "clientInfo": VSCODE_CLIENT_INFO if client_info is None else client_info,
+    }
+    body.update(params)
+    return {"jsonrpc": "2.0", "id": req_id, "method": "initialize", "params": body}
+
+
+def compat_request(method, req_id=1, params=None):
+    """A compatibility-era request: no `_meta` (the session, not the request, carries the era)."""
+    message = {"jsonrpc": "2.0", "id": req_id, "method": method}
+    if params is not None:
+        message["params"] = params
+    return message
+
+
+def compat_call(name, arguments=None, req_id=1):
+    params = {"name": name}
+    if arguments is not None:
+        params["arguments"] = arguments
+    return compat_request("tools/call", req_id, params)
+
+
+def compat_run(source, req_id=1):
+    return compat_call("genia_run", {"source": source}, req_id)
+
+
+def compat_parse(source, req_id=1):
+    return compat_call("genia_parse", {"source": source}, req_id)
+
+
+def compat_handshake(init_id="init"):
+    return [initialize_request(init_id), INITIALIZED_NOTIFICATION]

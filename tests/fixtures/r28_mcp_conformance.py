@@ -21,6 +21,9 @@ from functools import lru_cache
 
 from tests.fixtures.r28_mcp_helpers import (
     REPO_ROOT,
+    compat_handshake,
+    compat_parse,
+    compat_run,
     denied_namespace_path,
     encode,
     frames,
@@ -85,19 +88,53 @@ def launcher_batch(messages, mode="host", timeout=600):
     return done.stdout, decoded
 
 
-def run_sources(sources, mode="host", timeout=600):
+ERAS = ("modern", "compat")  # the two supported MCP protocol eras (amendment A5)
+COMPAT_RESULT_KEYS = {"content", "structuredContent", "isError"}
+
+
+def structured_era(response, era="modern"):
+    """(CallToolResult, envelope) after checking the wire shape of the given protocol era."""
+    if era == "modern":
+        return structured(response)
+    assert set(response) == {"jsonrpc", "id", "result"}, response
+    result = response["result"]
+    assert set(result) == COMPAT_RESULT_KEYS, sorted(result)  # no resultType, ttlMs, cacheScope, _meta
+    (item,) = result["content"]
+    assert item["type"] == "text" and "\n" not in item["text"]
+    assert json.loads(item["text"]) == result["structuredContent"]
+    envelope = result["structuredContent"]
+    assert result["isError"] is (envelope["status"] == "error")
+    return result, envelope
+
+
+def era_batch(messages, era="modern", mode="host", timeout=600):
+    """Send `messages` in one session; the compatibility era completes the handshake first.
+
+    Returns (raw stdout, responses) with the handshake's own response checked and removed.
+    """
+    if era == "modern":
+        return launcher_batch(messages, mode, timeout)
+    raw, out = launcher_batch([*compat_handshake(), *messages], mode, timeout)
+    assert out[0]["id"] == "init" and "error" not in out[0], out[0]
+    assert out[0]["result"]["protocolVersion"] == "2025-11-25"
+    return raw, out[1:]
+
+
+def run_sources(sources, mode="host", timeout=600, era="modern"):
     """`genia_run` each source in one session; return [(raw response, envelope), ...]."""
-    messages = [run_request(source, index + 1) for index, source in enumerate(sources)]
-    _, out = launcher_batch(messages, mode, timeout)
+    build = run_request if era == "modern" else compat_run
+    messages = [build(source, index + 1) for index, source in enumerate(sources)]
+    _, out = era_batch(messages, era, mode, timeout)
     assert [r["id"] for r in out] == list(range(1, len(sources) + 1))
-    return [(r, structured(r)[1]) for r in out]
+    return [(r, structured_era(r, era)[1]) for r in out]
 
 
-def parse_sources(sources, mode="host", timeout=600):
-    messages = [parse_request(source, index + 1) for index, source in enumerate(sources)]
-    _, out = launcher_batch(messages, mode, timeout)
+def parse_sources(sources, mode="host", timeout=600, era="modern"):
+    build = parse_request if era == "modern" else compat_parse
+    messages = [build(source, index + 1) for index, source in enumerate(sources)]
+    _, out = era_batch(messages, era, mode, timeout)
     assert [r["id"] for r in out] == list(range(1, len(sources) + 1))
-    return [(r, structured(r)[1]) for r in out]
+    return [(r, structured_era(r, era)[1]) for r in out]
 
 
 @lru_cache(maxsize=None)
@@ -135,16 +172,17 @@ RESULT_KEYS = {"kind", "value", "stdout", "stderr", "exit_code"}
 CALL_RESULT_KEYS = {"resultType", "content", "structuredContent", "isError", "_meta"}
 
 
-def assert_wire_result(response):
-    """The CallToolResult wire shape (contract 2.2 / A1) around an envelope."""
+def assert_wire_result(response, era="modern"):
+    """The CallToolResult wire shape (contract 2.2 / A1, or A5.5 for the compatibility era)."""
     assert set(response) == {"jsonrpc", "id", "result"}
-    assert set(response["result"]) == CALL_RESULT_KEYS, sorted(response["result"])
-    return structured(response)[1]
+    expected = CALL_RESULT_KEYS if era == "modern" else COMPAT_RESULT_KEYS
+    assert set(response["result"]) == expected, sorted(response["result"])
+    return structured_era(response, era)[1]
 
 
-def assert_closed_failure(response, kind, phase, message):
+def assert_closed_failure(response, kind, phase, message, era="modern"):
     """A failure is exactly the closed envelope: no result, no partial data, a fixed message."""
-    envelope = assert_wire_result(response)
+    envelope = assert_wire_result(response, era)
     assert set(envelope) == ENVELOPE_KEYS
     assert envelope["schema_version"] == "genia.mcp.v1"
     assert envelope["status"] == "error"
@@ -158,8 +196,8 @@ def assert_closed_failure(response, kind, phase, message):
     return envelope
 
 
-def assert_completed(response):
-    envelope = assert_wire_result(response)
+def assert_completed(response, era="modern"):
+    envelope = assert_wire_result(response, era)
     assert set(envelope) == ENVELOPE_KEYS
     assert envelope["status"] == "ok" and envelope["error"] is None
     assert set(envelope["result"]) == RESULT_KEYS

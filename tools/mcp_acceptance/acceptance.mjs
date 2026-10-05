@@ -12,7 +12,12 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, '..', '..');
 const entry = JSON.parse(readFileSync(resolve(repo, '.mcp.json'), 'utf8')).mcpServers.genia;
 const PACKAGE = '@modelcontextprotocol/client';
-const NEGOTIATION = 'auto'; // the stateless server has no `initialize`; legacy mode cannot connect
+// Negotiation path under test (amendment A5): auto (default), legacy (initialize, 2025-11-25),
+// pin (2026-07-28), or sdk-default (client default). GENIA_ACCEPT_NEGOTIATION selects it.
+const PATH = process.env.GENIA_ACCEPT_NEGOTIATION ?? 'auto';
+const NEGOTIATION = { auto: { mode: 'auto' }, legacy: { mode: 'legacy' }, pin: { mode: { pin: '2026-07-28' } }, 'sdk-default': undefined }[PATH];
+if (!(PATH in { auto: 1, legacy: 1, pin: 1, 'sdk-default': 1 })) throw new Error(`unknown negotiation path ${PATH}`);
+const WANT_VERSION = PATH === 'legacy' || PATH === 'sdk-default' ? '2025-11-25' : '2026-07-28';
 const EXPECTED_TOOLS = ['genia_capabilities', 'genia_parse', 'genia_run'];
 const SOURCE_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['source'],
@@ -46,7 +51,7 @@ function newSession() {
   const session = { stderr: '', transport };
   transport.stderr?.on('data', (d) => { session.stderr += d; });
   const client = new Client({ name: 'genia-acceptance', version: '0.0.0' });
-  client.setVersionNegotiation({ mode: NEGOTIATION });
+  if (NEGOTIATION !== undefined) client.setVersionNegotiation(NEGOTIATION);
   session.client = client;
   session.call = async (name, args, options) =>
     (await client.callTool({ name, arguments: args }, options)).structuredContent;
@@ -94,7 +99,9 @@ let ok = false;
 try {
   await step('discover', async () => {
     await client.connect(main.transport);
-    return { server: client.getServerVersion?.() ?? null };
+    const negotiated = client.getNegotiatedProtocolVersion?.() ?? null;
+    eq(negotiated, WANT_VERSION, `negotiated protocol version on path ${PATH}`);
+    return { server: client.getServerVersion?.() ?? null, path: PATH, negotiated_protocol_version: negotiated };
   });
   await step('tools', async () => {
     tools = (await client.listTools()).tools.map((t) => t.name);
@@ -250,7 +257,7 @@ try {
 }
 const version = JSON.parse(readFileSync(resolve(here, 'node_modules', PACKAGE, 'package.json'), 'utf8')).version;
 console.log(JSON.stringify({
-  ok, client: { package: PACKAGE, version }, negotiation: NEGOTIATION, tools, steps,
+  ok, client: { package: PACKAGE, version }, negotiation: PATH, negotiated_protocol_version: WANT_VERSION, tools, steps,
   server_stderr: main.stderr.slice(0, 500),
 }));
 process.exit(ok ? 0 : 1);
