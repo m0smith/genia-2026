@@ -341,3 +341,76 @@ def test_the_default_backend_is_proc_where_it_exists_and_ps_otherwise(monkeypatc
     assert h.process_backend() == ("proc" if Path("/proc/self/stat").exists() else "ps")
     monkeypatch.setenv("GENIA_R28_PROCESS_BACKEND", "ps")
     assert h.process_backend() == "ps"
+
+
+# --- Darwin worker discovery (ledger R28-H47 sub-finding): argv shapes `ps` reports on macOS -----------------
+
+MAC_FRAMEWORK_PYTHON = (
+    "/usr/local/Cellar/python@3.12/3.12.9/Frameworks/Python.framework/Versions/3.12/Resources/"
+    "Python.app/Contents/MacOS/Python"
+)
+
+
+@pytest.mark.parametrize(
+    "argv, governed",
+    [
+        (["/repo/.venv/bin/python3", "-B", "-m", "hosts.python.mcp_worker"], True),
+        ([MAC_FRAMEWORK_PYTHON, "-B", "-m", "hosts.python.mcp_worker"], True),  # macOS: executable is `Python`
+        (["/usr/bin/python3.12", "-B", "-m", "hosts.python.mcp_worker"], True),
+        (["/usr/bin/unshare", "--user", "--net", "--", "python", "-B", "-m", "hosts.python.mcp_worker"], False),
+        ([MAC_FRAMEWORK_PYTHON, "-c", "import time; time.sleep(60)"], False),
+        ([MAC_FRAMEWORK_PYTHON, "-B", "-m", "hosts.python.mcp_host"], False),
+        ([MAC_FRAMEWORK_PYTHON, "-B", "-m"], False),
+        ([], False),
+    ],
+    ids=["venv-python3", "mac-framework-Python", "python3.12", "unshare-wrapper", "other-python", "host", "dangling-m", "empty"],
+)
+def test_the_governed_worker_is_recognized_by_its_command_line_on_every_platform(monkeypatch, argv, governed):
+    from tests.fixtures import r28_mcp_helpers as h
+
+    monkeypatch.setattr(h, "_cmdline", lambda pid: argv)
+    assert h.is_governed_worker(1) is governed
+
+
+def test_the_ps_backend_asks_for_untruncated_command_lines(monkeypatch):
+    # macOS `ps` cuts a command to the terminal width unless given -ww; a long interpreter path would hide `-m ...`.
+    from tests.fixtures import r28_mcp_helpers as h
+
+    seen = []
+    real_run = subprocess.run
+
+    def spy(command, *args, **kwargs):
+        seen.append(list(command))
+        return real_run(command, *args, **kwargs)
+
+    monkeypatch.setenv("GENIA_R28_PROCESS_BACKEND", "ps")
+    monkeypatch.setattr(h.subprocess, "run", spy)
+    h.process_snapshot()
+    h.process_snapshot(os.getpid())
+    assert seen and all(any(arg.startswith("-") and arg.endswith("ww") for arg in command) for command in seen), seen
+
+
+def test_the_ps_backend_sees_a_long_command_line_in_full(monkeypatch):
+    from tests.fixtures import r28_mcp_helpers as h
+
+    monkeypatch.setenv("GENIA_R28_PROCESS_BACKEND", "ps")
+    padding = "x" * 400
+    child = subprocess.Popen([sys.executable, "-c", f"import time; time.sleep(60)  # {padding}", "-m", "hosts.python.mcp_worker"])
+    try:
+        assert _wait(lambda: any("hosts.python.mcp_worker" in part for part in h._cmdline(child.pid)))
+    finally:
+        child.kill()
+        child.wait()
+
+
+def test_the_process_probe_reports_how_this_platform_shows_the_governed_worker():
+    done = subprocess.run(
+        [sys.executable, "tools/mcp_diagnostics/process_probe.py"],
+        cwd=str(REPO_ROOT), capture_output=True, text=True, timeout=180, check=False,
+        env={**os.environ, "PYTHONPATH": os.pathsep.join([str(REPO_ROOT), str(REPO_ROOT / "src")])},
+    )
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert done.stdout.strip().splitlines()[-1].startswith("VERDICT OK"), done.stdout
+    report = json.loads(done.stdout[: done.stdout.rindex("VERDICT")])
+    assert report["governed_workers"] and report["worker_rows"]
+    assert {"raw_ps_default", "raw_ps_ww", "parsed_argv", "is_governed_worker"} <= set(report["worker_rows"][0])
