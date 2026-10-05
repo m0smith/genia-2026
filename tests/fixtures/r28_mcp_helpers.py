@@ -379,9 +379,10 @@ def _proc_snapshot():
 
 def _ps_snapshot(pid=None):
     """{pid: (ppid, start token, argv)} from `ps` (POSIX; the start token is the 1 s `lstart` string)."""
-    command = ["ps", "-axo", "pid=,ppid=,lstart=,command="]
+    # -ww: macOS `ps` cuts a command at the terminal width otherwise, hiding `-m hosts.python.mcp_worker`.
+    command = ["ps", "-axww", "-o", "pid=,ppid=,lstart=,command="]
     if pid is not None:
-        command = ["ps", "-o", "pid=,ppid=,lstart=,command=", "-p", str(pid)]
+        command = ["ps", "-ww", "-o", "pid=,ppid=,lstart=,command=", "-p", str(pid)]
     done = subprocess.run(command, capture_output=True, text=True, check=False, env={"LC_ALL": "C", "PATH": _TOOL_PATH})
     table = {}
     for line in done.stdout.splitlines():
@@ -445,10 +446,11 @@ def is_governed_worker(pid):
     are not part of the contract, so this inspects only the command line.
     """
     argv = _cmdline(pid)
+    # Case-insensitive: on macOS the interpreter's executable is `Python` (Python.app in the framework).
     return (
         len(argv) >= 3
-        and Path(argv[0]).name.startswith("python")
-        and "-m" in argv
+        and "python" in Path(argv[0]).name.lower()
+        and "-m" in argv[:-1]
         and argv[argv.index("-m") + 1] == "hosts.python.mcp_worker"
     )
 
