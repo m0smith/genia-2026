@@ -36,7 +36,7 @@ that `.mcp.json` should work do not satisfy it. H36 (legacy `initialize`) is dec
 | G7 | MCP reference, security/deployment limitations, host-portability statement | PASS | `docs/mcp/reference.md`, `docs/mcp/security-and-deployment.md`, `docs/mcp/host-portability.md` |
 | G8 | Every non-closed ledger entry dispositioned | PASS (with H36, H39 held open by G2) | section 4 |
 | G9 | Docs, state, roadmap tell the truth | PASS for the release-candidate state | R28 stays In Progress everywhere; `tests/unit/test_r28_release_gate.py` fails any "Complete" claim while G2 is unmet |
-| G10 | Full regression, matrix, namespace granted and denied | PASS | section 7 |
+| G10 | Full regression, matrix, namespace granted and denied | PASS | `docs/releases/R28.md` verification table (5908 passed non-loopback, 31 loopback, spec runner 793/793, parity OK, denied-namespace R28 suite 944 passed) |
 | G11 | Skeptical audit | PASS with the recorded findings | section 7 |
 | G12 | Agent-guidance update (`LLM_CONTRACT.md` prefers the MCP, C§12.3) | **DEFERRED by rule** | contract: only after the acceptance evidence exists; not changed |
 | G13 | Inventory of agent bypasses/fallbacks (C§12.3) | PASS (inventory), observations H42/H43 | section 7.3 |
@@ -146,3 +146,25 @@ decide on the ledger's amendment proposal.
 - **H43:** the checked evidence is Linux only (`/proc`-based lifecycle tests, `unshare`, a Linux CI host);
   macOS is unverified. Earlier text said "POSIX (Linux or macOS)". The docs now say Linux verified, macOS
   not verified, Windows unsupported.
+
+## 8. Skeptical audit (assume the release claim is wrong)
+
+| Question | Result |
+|---|---|
+| Can a fresh user run this? Does the command work from a clean checkout? | Yes: a fresh `git clone` of the branch started the launcher, answered `tools/list` through `scripts/genia-mcp` from another directory, and ran the demo end to end; the demo and entrypoint tests pass in the clone |
+| Does the mainstream host connect? | **Unknown: never executed (G2).** SDK and Inspector connect only with `auto`; their default fails |
+| Exactly three tools? | Yes (M:D1–D6; SDK; Inspector) |
+| Can invalid code be parsed and repaired? Does the demo execute? Only implemented Genia? | Yes to all; `demo` tests; equality with direct evaluation; no denied name used |
+| Are diagnostics useful? | The parse offset points at the defect line (tested); a failed run gives no text (H42, accepted) |
+| Does any output cross framing? Can prohibited authority be reached? Protected leaks? | No (M:C-F, A1–A22, S1–S10) |
+| Are we relying on the namespace while claiming otherwise? | No: capabilities never mention it; identical outcomes granted and denied |
+| Limits in characters instead of UTF-8 bytes? | No (M:L1–L9, multibyte boundaries) |
+| Workers or temp directories left behind? | Only the documented SIGKILL case (M:X9, Y1–Y10; SIGHUP defect fixed in E28-5) |
+| Does client negotiation work without undocumented configuration? | **No**, and this is documented: both official clients need `auto` or a pin (H36) |
+| Python implementation called portable? | No: `portable_mcp_implementation: false`, the portability statement, no C++ claim |
+| Claiming Inspector, VS Code, Copilot, Windows, C++, HTTP, resources, prompts without evidence? | No. Inspector is labeled manual CLI only; VS Code/Copilot "not executed"; macOS found unverified and corrected (H43) |
+| Release doc ahead of `GENIA_STATE.md`? `GENIA_STATE.md` ahead of implementation? | No: every status says R28 is not complete; a gate test fails any other claim; STATE 9.46 describes only what exists |
+| Roadmap truthful? Ledger dispositioned? #1078 separate? #1067 after R28 and before R29? | Yes (stale "E28-4/E28-5 in progress" statuses corrected; 24 dispositions; #1078 untouched; ordering asserted by `gate::test_the_r20_followup_stays_after_r28_and_before_r29`) |
+| Machine-specific or secret configuration checked in? | No (`.mcp.json` unchanged; the evidence-record gate rejects secrets and personal paths) |
+
+New findings: H42 and H43 (accepted limitations). No new defect required code changes in this phase.
