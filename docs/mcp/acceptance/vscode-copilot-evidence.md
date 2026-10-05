@@ -164,4 +164,4 @@ supervised `1 + 2` returns `3`; `uv run pytest tests/unit/test_r28_mcp_run.py -v
 All normal `genia_run` tests pass; the 5 failures were the lifecycle helper not finding the worker through the
 Darwin `ps` backend (ledger R28-H47 sub-finding). Repaired and re-verified at `c4cf1743`: `process_probe.py` `VERDICT OK`, and the five tests pass (`-k "deadline or cancel or other_requests"`: 8 passed, 1 skipped). This is supporting
 evidence for run 3 only; it does not replace it. Full R28 suite on the Mac at `44ec62cd`: 1135 passed, 18 skipped, 3 failed
-(test assumptions and platform facts, ledger R28-H48; none is a `genia_run` failure).
+(test assumptions and platform facts, ledger R28-H48; none is a `genia_run` failure); the three affected files then passed at `b65e7218` (188 passed, 7 skipped).

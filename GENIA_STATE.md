@@ -6785,8 +6785,8 @@ prompt, protocol, authority, limit, parse behavior, or envelope changed.
 - **Tests:** `tests/unit/test_r28_mcp_portability.py` (simulated Darwin rejection, fail-closed rules, wire
   regression, diagnostic hygiene, probe, `ps`/`lsof` process backend); the lifecycle helpers use `/proc` on Linux
   and `ps`/`lsof` where there is no `/proc`; Linux-only namespace tests are skipped elsewhere with a stated reason.
-- **Full macOS suite run (owner, `44ec62cd`): 1135 passed, 18 skipped, 3 failed**, all test assumptions or platform facts (ledger R28-H48): the namespace-probe test assumed Linux; macOS injects `__CF_USER_TEXT_ENCODING` into every process (the supervisor does not pass it); plain file mode (a development path) reads stdin through the locale-dependent interpreter decoder, which is `strict` on macOS (the launcher path decodes with `surrogateescape` itself and is unaffected). Repaired in tests; awaiting re-run.
-- **Not claimed:** a full macOS pass (re-run pending). macOS governed execution, worker supervision, cancellation, timeout, and cleanup
+- **Full macOS suite run (owner, `44ec62cd`): 1135 passed, 18 skipped, 3 failed**, all test assumptions or platform facts (ledger R28-H48): the namespace-probe test assumed Linux; macOS injects `__CF_USER_TEXT_ENCODING` into every process (the supervisor does not pass it); plain file mode (a development path) reads stdin through the locale-dependent interpreter decoder, which is `strict` on macOS (the launcher path decodes with `surrogateescape` itself and is unaffected). Repaired in tests and Mac-verified on the three affected files at `b65e7218` (188 passed, 7 skipped, 0 failed); the full macOS suite re-run is pending.
+- **Not claimed:** a full macOS suite pass (re-run pending). macOS governed execution, worker supervision, cancellation, timeout, and cleanup
   remain **unverified** until the owner's macOS commands and VS Code run 3. R28 is **not complete**; R28-H39 and
   R28-H47 stay open; R28-H36 (protocol compatibility) is closed by run 2.
 
