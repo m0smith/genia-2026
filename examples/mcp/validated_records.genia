@@ -1,0 +1,48 @@
+# MCP demo: an Outcome-aware validated record pipeline
+"""
+# Validated records over MCP
+
+Validates four customer records, keeps the clean ones, and reports a diagnostic for each
+record that fails. It uses only implemented, ordinary Genia (`validate_record`,
+`validate_required`, `validate_field`, `validate_each`, `collect_validated`) and needs no file,
+network, environment, or secret, so it runs unchanged through the Genia MCP server's
+`genia_run` tool.
+
+## Run
+
+Through an MCP client: submit this file's source to `genia_parse`, then `genia_run`
+(see `docs/mcp/demo.md`). Directly:
+
+```bash
+genia examples/mcp/validated_records.genia
+```
+
+## Features Demonstrated
+
+* record validation returning Outcome values (`some(...)` / `err(...)`) instead of raising
+* `validate_each` over a list, then `collect_validated` into `{clean, diagnostics}`
+* ordinary program output: the clean count on stdout, one reason per bad record on stderr
+* the final expression as the program's value
+"""
+
+records = [
+  {id: 1, name: "Ada", age: 36},
+  {id: 2, name: "Grace"},
+  {id: 3, name: "Alan", age: -4},
+  {id: 4, name: "Edsger", age: 72}
+]
+
+valid_age(age) = age >= 0 && age <= 150
+
+check(record) =
+  validate_record(record, {
+    id: (r) -> validate_required("id", r),
+    name: (r) -> validate_required("name", r),
+    age: (r) -> validate_field("age", valid_age, "age between 0 and 150", r)
+  })
+
+report = records |> ((items) -> validate_each(items, check)) |> collect_validated
+
+print(length(report.clean))
+report.diagnostics |> each((d) -> writeln(stderr, diagnostic_reason(d))) |> run
+report

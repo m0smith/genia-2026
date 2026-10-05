@@ -1,0 +1,43 @@
+# MCP demo: the same program with one deliberate syntax error (a dangling `&&`)
+"""
+# Validated records over MCP (broken on purpose)
+
+The same program as `validated_records.genia` with one deliberate syntax error, used to show
+`genia_parse` diagnostics. It does not parse; the repaired program is `validated_records.genia`.
+
+## Run
+
+Submit this file's source to `genia_parse` through an MCP client (see `docs/mcp/demo.md`) to see
+the diagnostic. Directly, it fails with a syntax error:
+
+```bash
+genia examples/mcp/validated_records_broken.genia
+```
+
+## Features Demonstrated
+
+* a structured parse diagnostic (a character offset) from `genia_parse`
+* the repair loop: parse, read the diagnostic, fix, parse again
+"""
+
+records = [
+  {id: 1, name: "Ada", age: 36},
+  {id: 2, name: "Grace"},
+  {id: 3, name: "Alan", age: -4},
+  {id: 4, name: "Edsger", age: 72}
+]
+
+valid_age(age) = age >= 0 &&
+
+check(record) =
+  validate_record(record, {
+    id: (r) -> validate_required("id", r),
+    name: (r) -> validate_required("name", r),
+    age: (r) -> validate_field("age", valid_age, "age between 0 and 150", r)
+  })
+
+report = records |> ((items) -> validate_each(items, check)) |> collect_validated
+
+print(length(report.clean))
+report.diagnostics |> each((d) -> writeln(stderr, diagnostic_reason(d))) |> run
+report
