@@ -897,6 +897,16 @@ pre-flight, when promoted), **raised in**.
 - E28-6 final disposition: Held open until the owner's full macOS R28 suite and run 3 (the execution fix and the process-discovery repair are Mac-verified); the weaker macOS memory bound is an accepted R28 limitation once verified.
 - Raised in: E28-6 (run 2).
 
+**R28-H48 — Three further macOS differences found by the Mac suite run (test assumptions and platform facts)**
+- Class: **N (portability; test assumptions)**. Status: `open` (repaired; awaiting macOS re-run).
+- Evidence: owner's `pytest tests/unit -k "r28 or mcp" -q -n 4` on macOS at SHA `44ec62cd`: 1135 passed, 18 skipped, **3 failed**; none is a product failure of `genia_run`.
+  1. `test_probe_timeout_is_bounded_and_means_unavailable_not_an_error` (`KeyError: 'timeout'`): the test mocks the namespace probe but the supervisor correctly never probes off Linux, so the mock was never reached. The test now simulates Linux; a new test pins that the probe never runs on Darwin.
+  2. `test_worker_environment_is_a_fixed_minimal_allowlist` (extra `__CF_USER_TEXT_ENCODING`): macOS (CoreFoundation) adds this variable to every process's environment itself; the supervisor does not pass it (a test pins that) and Genia source cannot read the environment. The allowlist test now permits exactly that name on Darwin only.
+  3. `test_unparseable_line_is_parse_error_and_server_keeps_running[\xff\xfe]` (`'utf-8' codec can't decode byte 0xff`): **plain file mode** (`genia apps/mcp/mcp.genia <rev>`, a development path) reads stdin through the interpreter's own decoder, whose error handler is `strict` in a typical macOS UTF-8 locale and `surrogateescape` in a C/POSIX locale, so invalid UTF-8 crashes the file-mode server on a Mac. The **launcher path (production, VS Code) is unaffected**: the host multiplexer decodes with `surrogateescape` itself, and a test now proves the contract-A2 `-32700` behavior under a strict stdin handler. The reproduction on Linux uses `PYTHONIOENCODING=utf-8:strict`.
+- Disposition: tests fixed or pinned (the file-mode test helper pins UTF-8 mode; a test documents the locale dependence); no product code changed. The file-mode locale dependence is an accepted limitation of the development path (it is the ordinary Genia stdin source, not MCP code).
+- E28-6 final disposition: Held open until the owner's macOS re-run passes; then an accepted R28 limitation (file mode only).
+- Raised in: E28-6 (macOS suite run).
+
 ### Process / documentation drift
 
 **R28-H13 — Stale #702 wording (Python package, mandatory SDK, resources)**
@@ -948,6 +958,7 @@ pre-flight, when promoted), **raised in**.
 | E28-5 evidence | H32 (renderer: no leak, no destabilization), H36 (investigation and recommendation), H39 (re-checked, still open) refined; no entry closed except H41 |
 | E28-6 amendment A5 (after run 1) | H36 (executed evidence, amendment, implementation), H39 (run 1 recorded; rerun pending), H43 (macOS evidence stated at actual strength) updated; H44 (gate schema; closed), H45 (post-initialize behavior inferred; open), H46 (run 1 revision not recorded; accepted) added |
 | E28-6 run 2 (macOS) | H36 closed (A5 demonstrated in authentic VS Code); H39 held open (genia_run failed on macOS); H43 updated to actual strength; H47 added (governed worker does not run on macOS; repair implemented, awaiting macOS verification) |
+| E28-6 macOS verification 3 | full R28 suite on macOS: 1135 passed, 18 skipped, 3 failed; H48 added (probe-test Linux assumption, platform-injected `__CF_USER_TEXT_ENCODING`, file-mode stdin decoder locale dependence); repaired, awaiting re-run |
 | E28-6 macOS verification 2 | H47 sub-finding Mac-verified: the cause was the macOS interpreter name `Python`; the 5 lifecycle tests pass on a Mac; the full R28 macOS suite and run 3 remain |
 | E28-6 macOS verification 1 | H47: cause confirmed (Darwin rejects `RLIMIT_AS`), `genia_run` works on macOS (64 passed); sub-finding: lifecycle worker discovery failed on the `ps` backend (5 failures), repaired, awaiting macOS verification |
 | E28-6 final audit (release candidate) | all 22 non-closed entries dispositioned (H01 closed; H36 and H39 held open as release blockers; the rest accepted R28 limitations or post-R28 follow-up candidates, none ticketed); H42 and H43 added and dispositioned; the release gate test blocks any completion claim until the VS Code/Copilot evidence passes |

@@ -113,14 +113,20 @@ def server_command(args):
 
 
 def run_raw(lines, *, args=(REVISION,), cwd=None, env=None, timeout=60):
-    """Run the server directly (no launcher) with raw byte lines on stdin."""
+    """Run the server directly (no launcher) with raw byte lines on stdin.
+
+    Plain file mode reads stdin through the interpreter's own stdin decoder, whose error handler depends on
+    the locale (`surrogateescape` in a C/POSIX locale, `strict` in a typical macOS UTF-8 locale; ledger
+    R28-H48). UTF-8 mode pins it, so these tests mean the same thing on every platform. The launcher path
+    never uses that decoder (the host multiplexer decodes with `surrogateescape` itself).
+    """
     stdin = b"".join(line + b"\n" for line in lines)
     return subprocess.run(
         server_command(list(args)),
         input=stdin,
         capture_output=True,
         cwd=str(cwd) if cwd else str(REPO_ROOT),
-        env=env if env is not None else server_env(),
+        env=env if env is not None else server_env({"PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8:surrogateescape"}),
         timeout=timeout,
     )
 

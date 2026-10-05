@@ -109,9 +109,13 @@ def test_worker_environment_is_a_fixed_minimal_allowlist(tmp_path, monkeypatch):
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "SENTINEL")
     facts = _facts(tmp_path)
     assert not {"HOME", "USER_SECRET_TOKEN", "AWS_SECRET_ACCESS_KEY", "PATH"} & set(facts["env"])
+    # macOS adds `__CF_USER_TEXT_ENCODING` to every process's environment itself (CoreFoundation); the
+    # supervisor never passes it and Genia source cannot read the environment (ledger R28-H48).
+    platform_injected = {"__CF_USER_TEXT_ENCODING"} if sys.platform == "darwin" else set()
     assert set(facts["env"]) <= set(_supervisor().ENV_ALLOWLIST) | {"PYTHONPATH", "PYTHONUTF8",
                                                                    "PYTHONDONTWRITEBYTECODE",
-                                                                   "LC_CTYPE", "PWD"}
+                                                                   "LC_CTYPE", "PWD"} | platform_injected
+    assert "__CF_USER_TEXT_ENCODING" not in _supervisor()._worker_environment()
 
 
 def test_worker_runs_in_a_private_empty_directory_that_is_removed_afterwards(tmp_path):
@@ -275,6 +279,9 @@ def test_probe_timeout_is_bounded_and_means_unavailable_not_an_error(monkeypatch
     assert supervisor.PROBE_TIMEOUT_S <= 5
     monkeypatch.setattr(supervisor, "_namespace_probe", None)
     monkeypatch.setattr(supervisor.shutil, "which", lambda name: "/usr/bin/unshare")
+    # The probe only ever runs on Linux; this test is about its timeout handling, so simulate Linux
+    # (on macOS the probe correctly never runs: ledger R28-H48).
+    monkeypatch.setattr(supervisor.sys, "platform", "linux")
     seen = {}
 
     def hanging_run(command, **kwargs):

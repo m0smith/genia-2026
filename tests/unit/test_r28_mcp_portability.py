@@ -414,3 +414,39 @@ def test_the_process_probe_reports_how_this_platform_shows_the_governed_worker()
     report = json.loads(done.stdout[: done.stdout.rindex("VERDICT")])
     assert report["governed_workers"] and report["worker_rows"]
     assert {"raw_ps_default", "raw_ps_ww", "parsed_argv", "is_governed_worker"} <= set(report["worker_rows"][0])
+
+
+# --- macOS suite findings (ledger R28-H48): decoding, platform-injected environment, the namespace probe -------
+
+STRICT_STDIO = {"PYTHONIOENCODING": "utf-8:strict", "PYTHONUTF8": "0"}  # a typical macOS UTF-8 locale's stdin
+
+
+def test_the_launcher_path_decodes_invalid_utf8_the_same_whatever_the_locales_stdin_handler_is():
+    from tests.fixtures.r28_mcp_helpers import encode, frames, request, run_launcher_raw, server_env
+
+    done = run_launcher_raw([b"\xff\xfe", encode(request("tools/list", 1))], env=server_env(STRICT_STDIO))
+    assert done.returncode == 0, done.stderr
+    out = [json.loads(frame) for frame in frames(done.stdout)]
+    assert out[0]["error"]["code"] == -32700 and "id" not in out[0]  # contract A2: a protocol parse error
+    assert "result" in out[1] and out[1]["id"] == 1  # and the session keeps serving
+
+
+def test_plain_file_mode_depends_on_the_locales_stdin_decoder_which_is_pinned_for_the_tests():
+    from tests.fixtures.r28_mcp_helpers import encode, frames, request, run_raw, server_env
+
+    lines = [b"\xff\xfe", encode(request("tools/list", 1))]
+    strict = run_raw(lines, env=server_env(STRICT_STDIO))
+    assert strict.returncode != 0 and b"codec can't decode" in strict.stderr  # the documented dev-mode limitation
+    pinned = run_raw(lines)  # the default: UTF-8 mode, as in a C/POSIX locale
+    assert pinned.returncode == 0
+    assert json.loads(frames(pinned.stdout)[0])["error"]["code"] == -32700
+
+
+def test_the_namespace_probe_runs_only_on_linux(monkeypatch):
+    from hosts.python import mcp_run_capability as supervisor
+
+    monkeypatch.setattr(supervisor, "_namespace_probe", None)
+    monkeypatch.setattr(supervisor.shutil, "which", lambda name: "/usr/bin/unshare")
+    monkeypatch.setattr(supervisor.sys, "platform", "darwin")
+    assert supervisor.network_isolation_available() is False  # never probed, never claimed
+
