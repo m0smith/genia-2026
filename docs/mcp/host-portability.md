@@ -7,11 +7,14 @@ implementation and no cross-host MCP parity claim**.
 ## Native Genia responsibility (`apps/mcp/mcp.genia`)
 
 The MCP application is a Genia program. It owns: newline-delimited JSON-RPC handling and the protocol
-revision rules; request and `_meta` validation; the tool schemas and discovery results; tool dispatch;
+revision rules, including the two-era policy (`2026-07-28` and `2025-11-25`), the `initialize` handshake,
+the one-bit initialization state (a single `ref` cell in the program), and `ping`; request and `_meta`
+validation; the tool schemas and discovery results; tool dispatch;
 result-envelope composition and the fixed error messages; the source byte limit and the aggregate result
 limit; cancellation matching (which notification cancels which request); and the result policy decisions
 that native code owns. The host does not construct protocol messages, tool names, or envelopes (tests scan
-the host modules for MCP literals).
+the host modules for MCP literals; amendment A5 added no host code: `initialize`, `ping`, protocol-version
+strings and client-capability handling appear in no Python module).
 
 ## Python reference-host responsibility (`hosts/python/`)
 

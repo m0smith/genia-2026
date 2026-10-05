@@ -36,9 +36,10 @@ scripts/genia-mcp          # waits for a client on stdin; this is normal
 you. Point your client at the **absolute path** of that script (a stdio server with that command), or open
 the repository folder in a client that reads the checked-in `.mcp.json`.
 
-The server speaks the stateless MCP revision **2026-07-28**. It has no `initialize` handshake. A client
-that only sends `initialize` gets `Method not found`. Several official clients default to that older
-handshake; configure them for version negotiation `auto` (the option is `versionNegotiation` in the TypeScript client) or a pin of `2026-07-28`, as below.
+The server speaks two MCP protocol revisions and nothing else: **2025-11-25** (the client sends
+`initialize`; this is what VS Code and the official TypeScript client's default mode do) and the stateless
+**2026-07-28** (per-request `_meta`, `server/discover`). Either connects with no client configuration and
+reaches the same three tools. (The TypeScript client's `versionNegotiation` option selects the era: the default `legacy`, `auto`, or a pin; every choice connects.) Any other `initialize` version is rejected.
 
 ## 2. Connect a client
 
@@ -46,7 +47,8 @@ handshake; configure them for version negotiation `auto` (the option is `version
 
 ```js
 const client = new Client({ name: 'demo', version: '0.0.0' });
-client.setVersionNegotiation({ mode: 'auto' });   // required: the default mode cannot connect
+// Optional: the default (legacy, `initialize` / 2025-11-25), `{ mode: 'auto' }` and
+// `{ mode: { pin: '2026-07-28' } }` all connect; `client.getNegotiatedProtocolVersion()` reports which.
 await client.connect(new StdioClientTransport({ command: '/absolute/path/to/genia-2026/scripts/genia-mcp' }));
 ```
 
@@ -195,8 +197,9 @@ profile, not a security sandbox and not production multi-tenant isolation.
 
 ## Troubleshooting
 
-- **`Method not found` when connecting.** Your client sent the legacy `initialize` handshake. Configure
-  version negotiation `auto` (or a pin of `2026-07-28`).
+- **`Unsupported protocol version` when connecting.** Your client requested a revision other than
+  `2025-11-25` or `2026-07-28`; the error's `data.supported` lists what the server serves. Older revisions
+  are not served.
 - **The server exits immediately.** Run `scripts/genia-mcp` in a terminal: it prints one line. Usual
   causes are a copy of the repository without `.git`, `git` missing from `PATH`, or neither `uv` nor
   Python 3.10+ on `PATH`.

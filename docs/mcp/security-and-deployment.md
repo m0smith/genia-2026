@@ -21,6 +21,8 @@ production multi-tenant isolation**. Do not expose it to untrusted callers.
 | Runtime stubs beneath policy | process creation, sockets, and module loading are stubbed inside the worker (M:A9, A10) |
 | Protected values do not cross the boundary | a protected value in a result is `policy_denied`; sentinel tests found none in any response, error, or timing path (M:S1–S10) |
 | Program output cannot corrupt or steer the protocol | output is data inside one response; a cancellation lookalike does not cancel (M:C-F) |
+| One execution model for both protocol eras | the `2025-11-25` and `2026-07-28` paths dispatch into the same tool implementation, policy, worker, limits, and cancellation; the compat suite compares both eras' envelopes and repeats the authority, protected-value, timeout, cancel, and lifecycle rows (M:K10-K14) |
+| Client capabilities grant no authority | `initialize` capabilities (roots, sampling, elicitation, tasks, extensions) are validated for shape and discarded; results are identical for empty and maximal capabilities and the server never sends a request or notification (M:K8) |
 | Failures are fixed closed envelopes | no source, path, exception text, class name, or trace (M:F1–F9) |
 
 ## Operating-system isolation: best effort, never the contract
@@ -60,6 +62,11 @@ pruned environment, runtime stubs, and limits are the contract; the namespace is
 - **Strings:** UTF-16 surrogate `\u` escapes in program strings do not cross the JSON boundary unchanged.
 - **No failure text:** a failed run returns only a fixed message. Parse failures give a character offset
   only.
+
+- **Protocol revisions:** exactly `2026-07-28` and `2025-11-25` are served; older revisions that also use
+  `initialize` are rejected, not negotiated down. VS Code behavior after `initialize` (the `initialized`
+  notification, timing of `tools/list`, `ping`) rests on the SDK reference and the first authentic trace
+  and is pending the owner's second run (ledger R28-H39).
 
 ## Deployment
 

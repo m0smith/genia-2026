@@ -708,7 +708,28 @@ pre-flight, when promoted), **raised in**.
      `notifications/initialized` as a no-op, keep every other behavior stateless". E28-5 implemented
      none of this.
 - Raised in: E28-4 pre-flight. Refined in: E28-5.
-- E28-6 final disposition: **Held open (decided by H39).** No legacy `initialize` support was added. E28-6 evidence adds to E28-5's: the official Inspector 2.9.0 (CLI mode) also defaults to the legacy handshake and fails with `Method not found`, and works with `--protocol-era auto`; so both official tools need a one-line opt-in. Disposition once H39 is executed: `server/discover` observed means accepted compatibility limitation (legacy-only clients cannot connect; no legacy state); `initialize` observed means stop and decide on the amendment proposal above.
+- E28-6 final disposition: **Held open; decided by run 1 and amended — see the run 1 and amendment A5 paragraphs below.** Original text, written before run 1: No legacy `initialize` support was added. E28-6 evidence adds to E28-5's: the official Inspector 2.9.0 (CLI mode) also defaults to the legacy handshake and fails with `Method not found`, and works with `--protocol-era auto`; so both official tools need a one-line opt-in. Disposition once H39 is executed: `server/discover` observed means accepted compatibility limitation (legacy-only clients cannot connect; no legacy state); `initialize` observed means stop and decide on the amendment proposal above.
+
+- Run 1 evidence (2026-10-05, authentic owner run; `docs/mcp/acceptance/vscode-copilot-evidence.md` run 1):
+  VS Code 1.138.0 with GitHub Copilot Chat 0.66.0 on macOS (Darwin x64 24.6.0) discovered `.mcp.json`,
+  started the launcher, and sent `initialize` with `protocolVersion: "2025-11-25"` and no `_meta`; the server
+  answered `-32601 Method not found`; VS Code reported the failure and never reached tool discovery. This
+  proved the question left open above: the target host uses the `2025-11-25` handshake, so an amendment was
+  required. VS Code did not call `server/discover`.
+- Pre-flight and approved amendment (E28-6, issue #707): `docs/design/r28-e28-6-protocol-compat-preflight.md`
+  and contract Amendment A5 (section 18): exactly two revisions, `2026-07-28` and `2025-11-25`, selected per
+  request; `initialize` (version-checked, never negotiated down), one process-local state bit, `ping`,
+  silent `notifications/initialized`, `2025-11-25` result shapes; no tool, resource, prompt, transport,
+  authority, or limit added; client capabilities grant nothing.
+- Implementation: entirely native Genia in `apps/mcp/mcp.genia` (a single `ref` cell); no Python host change
+  (architecture tests assert it). Automated evidence: `tests/unit/test_r28_mcp_compat.py` replays VS Code's
+  exact `initialize` bytes; `tests/unit/test_r28_mcp_compat_conformance.py` and matrix section K repeat
+  the corpus, authority, protected-value, limit, timeout, cancellation, and lifecycle rows in the compat
+  era; the official client connects on the SDK default, `legacy`, `auto`, and `2026-07-28` pin paths and the
+  Inspector 2.9.0 connects on its default and `auto` eras.
+- E28-6 amendment A5 final disposition: **Implemented; remains open.** Automated and official-client
+  evidence is not VS Code evidence: H36 closes only when run 2 (post-amendment, authentic) passes (see H39).
+  Not verified for VS Code: the `initialized` notification, when `tools/list` is sent, `ping` use.
 
 **R28-H37 — A stdio client may launch the server more than once, through a wrapper chain**
 - Class: **N (client behavior, observed)**. Status: `closed`.
@@ -757,6 +778,17 @@ pre-flight, when promoted), **raised in**.
   MCP log). That record also settles H36.
 - Raised in: E28-4 pre-flight. Refined in: E28-5.
 - E28-6 final disposition: **Held open: release blocker.** The E28-6 environment again had no VS Code, no GUI, no Copilot authentication, and no reachable marketplace. The procedure is `docs/mcp/vscode-copilot-acceptance.md`; the record is `docs/mcp/acceptance/vscode-copilot-evidence.md` (status `NOT EXECUTED`); `tests/unit/test_r28_release_gate.py` blocks any completion claim until it is executed and passes. Note that E28-4 (#705) required that a mainstream host connect end to end and was closed on official-SDK evidence only; this entry carries that acceptance.
+
+- Run 1 (2026-10-05, executed by the owner; VS Code 1.138.0, Copilot Chat 0.66.0, macOS Darwin x64 24.6.0):
+  `.mcp.json` discovery succeeded, the launcher started (state "Running" until the failure), and
+  initialization **failed** (`-32601` for `initialize` `2025-11-25`; H36); tool discovery, parse, run, and
+  lifecycle were not reached. Recorded as `EXECUTED` / `FAIL`, `failed_at: initialize`, unedited; the
+  repository revision of that run was not recorded.
+- E28-6 amendment A5 final disposition: **Held open: release blocker.** The post-amendment rerun (run 2) is
+  pending and is the only evidence that can close this entry; the gate treats the latest run as governing,
+  accepts `initialize`/`2025-11-25` or `server/discover`/`2026-07-28`, and requires exactly three tools, no
+  resources or prompts, accepted parse and run, and a clean disconnect. The procedure the owner follows is
+  `docs/mcp/vscode-copilot-acceptance.md`.
 
 **R28-H40 — UTF-16 surrogate escapes in program strings cannot cross the JSON boundary unchanged**
 - Class: **N (host string representation; documented limitation)**. Status: `open` (for the E28-6 audit).
@@ -811,7 +843,28 @@ pre-flight, when promoted), **raised in**.
 - Disposition: documentation corrected in E28-6 to "Linux verified; macOS not verified; Windows not
   supported". No code change.
 - E28-6 final disposition: Accepted R28 limitation (stated in `docs/mcp/demo.md`, `reference.md`, `security-and-deployment.md`, `stdio-development.md`, and the release page).
+- Run 1 (macOS) at actual strength: it proved only that VS Code discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC to it on macOS. It did **not** reach tool execution, so it says nothing about the worker, process groups, the namespace layer, temp-directory cleanup, or cancellation on macOS. Those remain unverified there; Linux remains the only platform with lifecycle evidence.
 - Raised in: E28-6.
+
+**R28-H44 — The release gate could not represent a failed authentic run**
+- Class: **N (process; test schema)**. Status: `closed`.
+- Evidence: the first gate recognised only `NOT EXECUTED` and a passing record, so the owner's real run 1 (executed, failed at `initialize`) had no truthful place to be recorded.
+- Disposition: fixed in E28-6 amendment work: the evidence file holds numbered runs; a run is not executed, executed-failed (`failed_at` plus `not reached`/`not recorded`), or executed-passed; the latest run governs; permanent mutation tests prove each state. Run 1 was preserved verbatim.
+- Raised in: E28-6 (A5).
+
+**R28-H45 — VS Code's post-`initialize` behavior is inferred, not observed**
+- Class: **N (evidence gap)**. Status: `open` (accepted until run 2).
+- Evidence: only `initialize` was observed. Whether VS Code then sends `notifications/initialized`, when it lists tools, and whether it pings, is taken from the v1 SDK 1.31.0 reference. The server is therefore deliberately tolerant: it does not require `notifications/initialized`, answers `ping` in every state, and serves `tools/*` as soon as `initialize` succeeded.
+- Disposition: closed by run 2.
+- E28-6 final disposition: Held open for run 2 (H39); the tolerance rules are pinned by `tests/unit/test_r28_mcp_compat.py`.
+- Raised in: E28-6 (A5).
+
+**R28-H46 — The repository revision of the first authentic run was not recorded**
+- Class: **N (evidence provenance)**. Status: `open` (accepted limitation).
+- Evidence: the owner's trace did not include the commit that run used; run 1 records `repository_revision: not recorded` rather than a guess.
+- Disposition: the run 2 procedure makes `git rev-parse HEAD` the first step and the gate requires it.
+- E28-6 final disposition: Accepted: run 1 is history, not release evidence; run 2 must carry its revision.
+- Raised in: E28-6 (A5).
 
 ### Process / documentation drift
 
@@ -862,4 +915,5 @@ pre-flight, when promoted), **raised in**.
 | E28-4 implementation | H37 and H38 closed; H36 and H39 stay open (documented limitations, for E28-5/E28-6) |
 | E28-5 pre-flight and tests | matrix design recorded; the matrix found H40 (surrogate escapes) and H41 (SIGHUP leak); H41 fixed and closed |
 | E28-5 evidence | H32 (renderer: no leak, no destabilization), H36 (investigation and recommendation), H39 (re-checked, still open) refined; no entry closed except H41 |
+| E28-6 amendment A5 (after run 1) | H36 (executed evidence, amendment, implementation), H39 (run 1 recorded; rerun pending), H43 (macOS evidence stated at actual strength) updated; H44 (gate schema; closed), H45 (post-initialize behavior inferred; open), H46 (run 1 revision not recorded; accepted) added |
 | E28-6 final audit (release candidate) | all 22 non-closed entries dispositioned (H01 closed; H36 and H39 held open as release blockers; the rest accepted R28 limitations or post-R28 follow-up candidates, none ticketed); H42 and H43 added and dispositioned; the release gate test blocks any completion claim until the VS Code/Copilot evidence passes |

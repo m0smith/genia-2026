@@ -21,16 +21,16 @@ R28 is **Complete** only when docs, tests, capability claims, examples, and `GEN
 contract section 12.2 is satisfied by an authentic VS Code + GitHub Copilot run (C§12: "R28 is not complete
 until the native `mcp.genia` server is proven as a local development tool from a supported VS Code/GitHub
 Copilot agent client"). Official-SDK runs, the Inspector, unit tests, documentation reading, or reasoning
-that `.mcp.json` should work do not satisfy it. H36 (legacy `initialize`) is decided by that run.
+that `.mcp.json` should work do not satisfy it. H36 (legacy `initialize`) was decided by the first such run (2026-10-05, failed at `initialize`; section 8).
 
 ## 3. Release gates
 
 | Gate | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
 | G1 | Exactly three tools, no resources/prompts/HTTP | PASS | M:D1–D6, `client::test_the_official_client_completes_the_acceptance_scenario`, Inspector run (section 5) |
-| G2 | Authentic VS Code + Copilot run, evidence recorded (C§12.2, issue #707 hard gate) | **BLOCKER** | No VS Code binary, GUI, Copilot authentication, or reachable marketplace in the audit environment (re-verified). Evidence record `docs/mcp/acceptance/vscode-copilot-evidence.md` is a structured template, status `NOT EXECUTED` |
-| G3 | "At least one mainstream MCP host/client can connect over stdio" (E28-4 acceptance, #705) and the epic's "ordinary MCP client" criterion | **BLOCKER** | #705 closed on official-SDK evidence only; same missing run as G2. SDK default and Inspector default fail (H36); `auto`/pin work |
-| G4 | H36 disposition | **BLOCKER (decided by G2)** | Held open: no legacy `initialize` support is added; if the VS Code/Copilot run sends `initialize` and cannot connect, stop and use the amendment proposal (ledger H36) |
+| G2 | Authentic VS Code + Copilot run, evidence recorded (C§12.2, issue #707 hard gate) | **BLOCKER** | Run 1 (owner, 2026-10-05, VS Code 1.138.0 / Copilot Chat 0.66.0 / macOS) executed and **failed at `initialize`** (recorded verbatim as `evidence run=1`); run 2, after amendment A5, is `NOT EXECUTED`. The audit environment itself has no VS Code, GUI, or Copilot authentication |
+| G3 | "At least one mainstream MCP host/client can connect over stdio" (E28-4 acceptance, #705) and the epic's "ordinary MCP client" criterion | **BLOCKER** | #705 closed on official-SDK evidence only; same missing passing run as G2. After amendment A5 the SDK default, Inspector default, `auto`, and pin all connect in automation, which is not mainstream-host evidence |
+| G4 | H36 disposition | **BLOCKER (amended; verified by run 2)** | Run 1 sent `initialize` and could not connect; the amendment proposal was approved as contract A5 and implemented natively (section 8). H36 closes only when run 2 passes |
 | G5 | Runnable demo, no repository-internal knowledge | PASS | `docs/mcp/demo.md`, `examples/mcp/`, `tests/unit/test_r28_mcp_demo.py`, clean-clone run (section 5) |
 | G6 | Packaging/publishing and executable entrypoint | PASS | Decision section 6: repository launcher plus `scripts/genia-mcp`; no new CLI contract, no registry/PyPI/npm claim |
 | G7 | MCP reference, security/deployment limitations, host-portability statement | PASS | `docs/mcp/reference.md`, `docs/mcp/security-and-deployment.md`, `docs/mcp/host-portability.md` |
@@ -72,12 +72,11 @@ disposition is in the ledger; this is the table.
 | H29 no implicit `main` vs `-c` dispatch | accepted R28 limitation | contract wins; difference pinned (M:R9) |
 | H30 rendering cannot be bounded incrementally | accepted R28 limitation | deadline, `RLIMIT_AS`, post-check (M:L8) |
 | H32 debug renderer exposes host representations | accepted R28 limitation | no contract requirement violated (section 7.2); values are canonical debug text, not a portable serialization |
-| H36 legacy-`initialize` clients | **held open (decided by G2)** | the contract mandates the stateless protocol; evidence so far: SDK default and Inspector default fail, `auto`/pin work; no code is added |
-| H39 no VS Code/Copilot run | **held open: release blocker** | G2/G3 |
+| H36 legacy-`initialize` clients | **held open (amended; verified by run 2)** | run 1 failed at `initialize`; amendment A5 implemented (two eras, native Genia); automated and official-client evidence passes; awaiting run 2 |
+| H39 VS Code/Copilot acceptance | **held open: release blocker** | run 1 failed at `initialize`; run 2 pending (G2/G3) |
 | H40 UTF-16 surrogate escapes | accepted R28 limitation | contract requires no preservation of non-scalar code units; fails closed; no new string semantics (section 7.2) |
 
-New in this phase: H42 (no runtime diagnostic text for agents), H43 (macOS and Linux distributions beyond
-the CI host are unverified). Both are accepted limitations (section 7.3).
+New in this phase: H42 (no runtime diagnostic text for agents), H43 (the platform evidence is Linux only; macOS run 1 proved only discovery, launcher start, and stdio JSON-RPC transport). Both are accepted limitations (section 7.3). Added after run 1: H44 (gate schema; closed), H45 (post-`initialize` VS Code behavior inferred; open), H46 (run 1 revision not recorded; accepted).
 
 ## 5. Work completed in this phase
 
@@ -122,7 +121,7 @@ path observed), G3 (mainstream-host acceptance for E28-4/epic), G4 (H36 decided 
 `docs/mcp/vscode-copilot-acceptance.md` (a short deterministic procedure) producing the filled record
 `docs/mcp/acceptance/vscode-copilot-evidence.md`. Then, if the host negotiated the modern era, only the
 completion synchronization remains (listed in the release page); if it sent legacy `initialize`, stop and
-decide on the ledger's amendment proposal.
+decide on the ledger's amendment proposal. (Superseded by section 8: the host did send `initialize`.)
 
 ### 7.2 Dispositions that needed an argument
 
@@ -168,3 +167,18 @@ decide on the ledger's amendment proposal.
 | Machine-specific or secret configuration checked in? | No (`.mcp.json` unchanged; the evidence-record gate rejects secrets and personal paths) |
 
 New findings: H42 and H43 (accepted limitations). No new defect required code changes in this phase.
+
+## 8. Amendment A5 record (after authentic run 1, 2026-10-05)
+
+Run 1 (VS Code 1.138.0, Copilot Chat 0.66.0, macOS) failed at `initialize`: `protocolVersion: "2025-11-25"`
+answered `-32601`; tool discovery was never reached. Pre-flight: `docs/design/r28-e28-6-protocol-compat-preflight.md`
+(GO). Contract amendment A5 (section 18) serves exactly `2026-07-28` and `2025-11-25`; implemented only in
+`apps/mcp/mcp.genia` with one process-local state bit; no tool, resource, prompt, transport, authority, or
+limit added; client capabilities grant nothing; no Python host change. Evidence: matrix section K and the
+official client and Inspector runs on both paths. Gate: the release test now distinguishes not executed,
+executed-failed, and executed-passed runs; the latest run governs; the allowed negotiation paths are derived
+from the amended contract.
+
+**Decision: NOT READY TO CLOSE — awaiting post-amendment authentic VS Code/Copilot acceptance (run 2).**
+Unchanged blockers: G2, G3, G4 (verification), G12. New open item: H45 (VS Code behavior after `initialize`
+is inferred). Owner procedure: `docs/mcp/vscode-copilot-acceptance.md`.

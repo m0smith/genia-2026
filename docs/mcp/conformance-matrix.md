@@ -1,8 +1,8 @@
-# R28 MCP conformance and parity matrix (E28-5)
+# R28 MCP conformance and parity matrix (E28-5, extended by E28-6 amendment A5)
 
 Status: **E28-5 evidence matrix** (issue #706, epic #700). `GENIA_STATE.md` is the final authority
 for implemented behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`
-(sections cited as `C§`) with Clarifications A1–A4. Design and classification:
+(sections cited as `C§`) with Clarifications A1–A5 (A5, the `2025-11-25` compatibility era, section 18). Design and classification:
 `docs/design/r28-e28-5-conformance-matrix-design.md`. Findings: ledger
 `docs/analysis/r28-host-dependency-inventory.md` (`[H##]`). **R28 is not complete**: E28-6 (#707) owns
 the demo and the final release audit and re-reads every row below.
@@ -35,7 +35,7 @@ sandbox claim.
   `e3wrk`, `e4cfg`, `e4launch`, `e4life`, `arch`, `launcher`, `client` = the existing
   `tests/unit/test_r28_mcp_<name>.py` files (`skeleton`, `parse`, `run`, `run_supervisor`,
   `run_worker`, `stdio_config`, `stdio_launch`, `stdio_lifecycle`, `architecture`, `launcher`,
-  `official_client`); E28-6 adds `demo`, `entry` and `gate` = `test_r28_mcp_demo.py`, `test_r28_mcp_entrypoint.py`, `test_r28_release_gate.py`. `tests/unit/test_r28_mcp_conformance_matrix.py` fails if a cited test is missing.
+  `official_client`); E28-6 adds `demo`, `entry` and `gate` = `test_r28_mcp_demo.py`, `test_r28_mcp_entrypoint.py`, `test_r28_release_gate.py`; amendment A5 adds `compat` (`test_r28_mcp_compat.py`, protocol) and `compatconf` (`test_r28_mcp_compat_conformance.py`, both-era conformance). `tests/unit/test_r28_mcp_conformance_matrix.py` fails if a cited test is missing.
 - **Namespace:** wire tests marked *(ns)* run with the host's real namespace behavior **and** with
   `unshare` simulated as denied; the whole R28 suite can also be run denied with
   `GENIA_R28_TEST_DENY_NAMESPACE=1`. The namespace is defense in depth, never the security contract.
@@ -51,7 +51,7 @@ sandbox claim.
 | D5 | No fourth tool; no Python-host-only tool leakage | P | C§2.1, C§1.1 | n/a | 16 near-miss/host names → `-32602 Unknown tool`; tool literals live only in `mcp.genia` | EXACT | `surface::test_no_fourth_tool_and_no_host_only_tool_is_callable`; `surface::test_tool_names_exist_only_in_native_genia_not_in_python_host_modules`; `arch::test_no_python_module_defines_mcp_application_literals` | none | PASS |
 | D6 | Tool list is identical on every session | D | C§7.1 | n/a | repeated and independent launches | EXACT | `surface::test_discovery_advertises_exactly_the_three_tools_in_contract_order`; `e1::test_tools_list_is_deterministic_across_calls` | none | PASS |
 | D7 | `genia_capabilities` describes the implemented profile, claims no OS mechanism, identical with a granted or denied namespace | P / H | C§2.3, A1; E28-3 design §5 | n/a | `execution_profile` flags `false`; no namespace/sandbox/seccomp/rlimit wording | EXACT | `surface::test_capabilities_describe_the_implemented_profile_and_claim_no_os_isolation` *(ns)*; `surface::test_capabilities_are_byte_identical_whether_the_namespace_is_granted_or_denied`; `surface::test_capability_tools_agree_with_tools_list` | the OS layer is best effort and is intentionally absent from the response | PASS |
-| D8 | `initialize` (legacy handshake) is `Method not found` | L | C§7.1 | n/a | `-32601`; no session; later answers unchanged | DIFFERS-BY-CONTRACT | `surface::test_initialize_is_method_not_found_and_changes_nothing`; `client::test_version_negotiation_evidence_for_ledger_h36` | [H36]: SDK-default clients cannot connect; `auto` or a pinned `2026-07-28` works | KNOWN LIMITATION |
+| D8 | `initialize` carrying the `2026-07-28` `_meta` stays `Method not found`; no session; later answers unchanged (the `2025-11-25` handshake is the K section) | P | C§7.1, A5.2 | n/a | `-32601` | EXACT | `surface::test_initialize_with_a_modern_meta_is_still_method_not_found_and_changes_nothing`; `compat::test_initialize_carrying_the_modern_meta_is_still_method_not_found` | none | PASS |
 
 ## P — `genia_parse`
 
@@ -242,7 +242,7 @@ bounded observable polling.
 | N2 | The whole R28 suite runs under `GENIA_R28_TEST_DENY_NAMESPACE=1` | recorded in the E28-5 report; the switch is `tests/fixtures/r28_mcp_helpers.py` | PASS |
 | N3 | A failed probe means workers run without the namespace and nothing claims it | `e3run::test_denied_namespace_degrades_honestly_and_runs_still_work`; `e3sup::test_failed_probe_leaves_requests_working_without_a_namespace` | PASS |
 
-## O — Official TypeScript client (SDK 2.2.0, negotiation `auto`)
+## O — Official TypeScript client (SDK 2.2.0; negotiation `auto`, legacy/default, and a `2026-07-28` pin)
 
 Credential-free; the command comes from the checked-in `.mcp.json`; harness `tools/mcp_acceptance/`;
 CI job `mcp-client-acceptance`.
@@ -250,18 +250,42 @@ CI job `mcp-client-acceptance`.
 | ID | Step | Evidence | Status |
 |---|---|---|---|
 | O1–O12 | `discover`, `tools`, `schemas`, `capabilities`, `parse_invalid`, `parse_valid`, `parse_repair_run`, `run` (value/stdout/stderr/exit code distinct), `run_failing`, `framing` (hostile output incl. Unicode separators and a cancel lookalike), `authority` (8 denied authorities), `sequential` (12 calls), `cancel` (client abort), `disconnect` (no process survives), `relaunch` (clean shutdown) | `client::test_the_official_client_completes_the_acceptance_scenario`; `client::test_the_official_client_matrix_covers_cancel_disconnect_and_relaunch` | PASS |
-| O-N | Negotiation modes: SDK default and `legacy` fail with `Method not found`; `auto` and `{pin: '2026-07-28'}` connect | `client::test_version_negotiation_evidence_for_ledger_h36` | KNOWN LIMITATION ([H36]) |
+| O-N | Negotiation modes, each recording the negotiated protocol version: SDK default and `legacy` connect with `2025-11-25` (via `initialize`); `auto` and `{pin: '2026-07-28'}` connect with `2026-07-28`; all list exactly the three tools | `client::test_version_negotiation_evidence_for_ledger_h36`; `client::test_the_official_client_completes_the_scenario_on_every_negotiation_path` | PASS |
+| O-E | The complete acceptance scenario (discovery, parse, run, failures, authority, cancel, disconnect, relaunch) passes on the default `auto`, legacy, SDK-default, and pinned paths | `client::test_the_official_client_completes_the_acceptance_scenario`; `client::test_the_official_client_completes_the_scenario_on_every_negotiation_path` | PASS |
 
 ## Z — Limitations, deferrals, and items for E28-6
 
 | ID | Item | Class | Evidence / record | Status |
 |---|---|---|---|---|
 | Z1 | The debug renderer shows Python-level text for callable values (`<function ... at 0x...>`, `GeniaFunctionGroup(...)`): it cannot expose a protected value, does not enter any deterministic comparison, and equals ordinary command mode | L | `security::test_callable_renderings_are_host_representations_and_never_carry_a_protected_value`; `security::test_callable_rendering_is_host_text_and_equals_ordinary_command_mode_shape`; ledger [H32] | KNOWN LIMITATION |
-| Z2 | Legacy-`initialize` clients cannot connect | L | ledger [H36] (investigation and recommendation) | KNOWN LIMITATION |
-| Z3 | No VS Code / GitHub Copilot run is recorded | L | ledger [H39]; `docs/mcp/stdio-development.md` | KNOWN LIMITATION |
+| Z2 | Clients that send `initialize` for a revision other than `2025-11-25` (for example `2025-06-18`) cannot connect: the closed two-version policy rejects them with `data.supported` | L | ledger [H36]; `compat::test_any_other_version_is_rejected_never_negotiated_down_and_leaves_the_state_new` | KNOWN LIMITATION |
+| Z3 | No successful VS Code / GitHub Copilot run is recorded: run 1 (2026-10-05) failed at `initialize` before the amendment; the post-amendment rerun is pending | L | ledger [H39]; `docs/mcp/acceptance/vscode-copilot-evidence.md`; `gate::test_run_1_is_preserved_as_the_authentic_failure_that_triggered_amendment_a5` | KNOWN LIMITATION |
 | Z4 | Streamable HTTP parity | — | deferred by C§7 and C§9.3: no listener, no HTTP test | NOT APPLICABLE |
 | Z5 | C++ MCP parity | — | no C++ MCP implementation or parity claim | NOT APPLICABLE |
 | Z6 | Static boundaries: no Python MCP application architecture, no SDK dependency in the server, no listener, no machine-specific `.mcp.json` | P | `arch::test_no_python_module_defines_mcp_application_literals`; `arch::test_no_mcp_sdk_import_or_dependency`; `e4cfg::test_no_python_mcp_sdk_is_a_dependency`; `e4cfg::test_the_configuration_contains_no_secret_absolute_path_or_machine_detail`; `e4cfg::test_the_configuration_enables_no_http_transport` | PASS |
+
+## K — The 2025-11-25 compatibility era (amendment A5, issue #707)
+
+Pre-flight: `docs/design/r28-e28-6-protocol-compat-preflight.md`. Each row below is run in the compat era;
+the `compatconf` rows run the same corpora as the modern rows and compare envelopes.
+
+| ID | Behavior | Class | Evidence | Status |
+|---|---|---|---|---|
+| K1 | The exact `initialize` VS Code 1.138.0 sent (authentic run 1) now succeeds with exactly `{protocolVersion, capabilities: {tools: {}}, serverInfo}` and nothing for the notification | P | `compat::test_the_exact_vscode_initialize_from_the_first_authentic_run_now_succeeds`; `compat::test_initialize_result_is_exactly_version_tools_capability_and_identity` | PASS |
+| K2 | Closed version policy: every other version (`2025-06-18`, `2025-03-26`, `2024-11-05`, `2026-07-28`, empty, garbage) is `-32602` with `data.supported`; never negotiated down; state stays NEW | P | `compat::test_any_other_version_is_rejected_never_negotiated_down_and_leaves_the_state_new` | PASS |
+| K3 | Malformed, missing, non-object, unusable-id, and id-less `initialize` | P | `compat::test_a_malformed_initialize_is_invalid_params_and_leaves_the_state_new`; `compat::test_an_initialize_missing_a_required_member_is_invalid_params`; `compat::test_an_initialize_with_non_object_or_absent_params_is_invalid_params`; `compat::test_an_initialize_with_an_unusable_id_is_an_invalid_request`; `compat::test_initialize_without_an_id_is_a_notification_with_no_response_and_no_state_change` | PASS |
+| K4 | One-bit state: pre-initialize requests `-32602`, duplicate `initialize` `-32600`, `notifications/initialized` silent and effect-free, state never survives a launch | P | `compat::test_requests_before_initialize_are_invalid_params_exactly_as_before_the_amendment`; `compat::test_after_initialize_the_requests_are_served_and_a_second_initialize_is_invalid`; `compat::test_the_initialized_notification_is_accepted_silently_in_every_state_and_changes_nothing`; `compat::test_the_state_is_per_process_and_never_survives_a_launch`; `compat::test_the_initialization_state_is_one_process_local_cell_in_native_genia` | PASS |
+| K5 | `ping` is `{}` in every state; every other method (resources, prompts, completion, logging, tasks, roots, sampling, elicitation) is `-32601` | P | `compat::test_ping_answers_an_empty_result_in_every_state`; `compat::test_every_other_method_is_method_not_found_before_and_after_initialize` | PASS |
+| K6 | Same three tools, identical descriptors and order, no resources, prompts, or pagination; compat tool results carry exactly `content`, `structuredContent`, `isError` | P | `compat::test_the_compat_era_lists_exactly_the_same_three_tools_with_identical_descriptors`; `compat::test_the_compat_era_advertises_no_resources_or_prompts_and_no_pagination`; `compat::test_a_compat_tools_call_result_has_exactly_content_structuredcontent_and_iserror` | PASS |
+| K7 | `genia_capabilities` reports the serving era and is otherwise identical across eras | P | `compat::test_capabilities_report_the_serving_protocol_revision_and_are_otherwise_identical_across_eras` | PASS |
+| K8 | Client capabilities (roots, sampling, elicitation, tasks, extensions) grant no authority: identical results for empty, VS Code, and maximal capabilities; the server sends nothing unsolicited; client values are never reflected | S | `compat::test_results_are_identical_whatever_capabilities_the_client_advertises`; `compat::test_the_server_never_sends_a_request_or_notification_to_a_client_that_advertises_everything`; `compat::test_client_supplied_values_are_validated_for_shape_and_never_reflected_or_stored`; `compat::test_the_native_program_names_no_server_to_client_method_or_client_capability_behavior`; `compatconf::test_advertising_every_client_capability_widens_no_authority` | PASS |
+| K9 | Era selection and coexistence: the `_meta` version key always selects the modern path; modern errors and `-32022` unchanged | P | `compat::test_a_request_with_the_modern_meta_is_always_a_modern_request_even_after_initialize`; `compat::test_a_malformed_modern_meta_is_invalid_params_in_every_state`; `compat::test_the_modern_unsupported_version_error_is_unchanged`; `compatconf::test_both_eras_may_interleave_in_one_session_without_cross_effects` | PASS |
+| K10 | Both eras converge on one execution model: identical run and parse envelopes over the shared corpora, all failure classes, channels, hostile output | A | `compatconf::test_run_envelopes_are_identical_in_both_eras`; `compatconf::test_parse_envelopes_are_identical_in_both_eras`; `compatconf::test_the_compat_corpus_covers_success_and_every_failure_class_it_names`; `compatconf::test_stdout_stderr_and_value_stay_separate_channels_in_the_compat_era`; `compatconf::test_hostile_program_output_is_data_never_protocol_framing_in_the_compat_era` | PASS |
+| K11 | Authority denial in the compat era: every attempt in `AUTHORITY` is `policy_denied` with no effect | S | `compatconf::test_every_one_of_the_authority_attempts_is_policy_denied_in_the_compat_era` | PASS |
+| K12 | Limits and protected values in the compat era | S | `compatconf::test_source_limit_is_in_utf8_bytes_in_the_compat_era`; `compatconf::test_output_limits_close_with_no_partial_data_in_the_compat_era`; `compatconf::test_protected_values_never_cross_the_wire_in_the_compat_era` | PASS |
+| K13 | Timeout and cancellation (queued, mid-run, wrong id, duplicate) in the compat era, namespace granted and denied | R | `compatconf::test_timeout_is_the_same_closed_failure_and_the_session_survives_in_the_compat_era`; `compatconf::test_cancellation_mid_run_returns_no_partial_data_and_reaps_the_worker_in_the_compat_era`; `compatconf::test_a_cancel_queued_with_its_request_wins_in_the_compat_era` | PASS |
+| K14 | Lifecycle in the compat era: disconnect after `initialize`, repeated connections, failed-then-good initialize, SIGTERM mid-run; no orphan workers, no stale state | R | `compatconf::test_a_client_disconnect_after_initialize_leaves_nothing_behind`; `compatconf::test_repeated_connections_each_start_new_and_are_independent`; `compatconf::test_a_failed_initialize_then_a_good_one_still_works_and_runs_cleanly`; `compatconf::test_sigterm_mid_run_in_a_compat_session_reaps_the_worker` | PASS |
+| K15 | Architecture: no Python host module owns `initialize`, `ping`, protocol-version literals, or capability handling; the launcher is unchanged | P | `compat::test_no_python_host_module_gains_initialize_ping_or_any_protocol_version_literal`; `compat::test_the_launcher_and_host_are_unchanged_by_the_amendment` | PASS |
 
 ## E — E28-6 additions (demo, entrypoint, release gate)
 
@@ -271,5 +295,5 @@ CI job `mcp-client-acceptance`.
 | E2 | The demo uses no authority the governed profile denies and the walkthrough needs no repository-internal knowledge | S | `demo::test_the_demo_uses_no_authority_the_governed_profile_denies`; `demo::test_the_walkthrough_is_self_contained_for_a_first_time_user` | PASS |
 | E3 | `scripts/genia-mcp` starts the same launcher from any directory with no arguments and no stderr noise; packaging unchanged | H | `entry::test_the_entrypoint_works_from_any_working_directory`; `entry::test_the_entrypoint_takes_no_arguments`; `entry::test_packaging_is_unchanged_no_new_cli_command_and_no_published_package_claim` | PASS |
 | E4 | Official MCP Inspector 2.9.0 (CLI): default era fails with `Method not found`; `--protocol-era auto` lists exactly three tools and runs `genia_run` | P | manually executed in the E28-6 audit; not automated; web and terminal UIs not executed; recorded in ledger [H36] | KNOWN LIMITATION |
-| E5 | The release-completion gate: no "R28 complete" claim unless the VS Code/Copilot record is executed, complete, secret-free, and `PASS` with `server/discover` | P | `gate::test_no_authoritative_document_claims_r28_complete_unless_the_evidence_allows_it`; `gate::test_the_ledger_keeps_h36_and_h39_open_until_the_evidence_is_released`; `gate::test_an_executed_record_is_complete_secret_free_and_consistent` | PASS |
+| E5 | The release-completion gate: no "R28 complete" claim unless the VS Code/Copilot record is executed, complete, secret-free, and `PASS` with `server/discover` | P | `gate::test_no_authoritative_document_claims_r28_complete_unless_the_evidence_allows_it`; `gate::test_the_ledger_keeps_h36_and_h39_open_until_the_evidence_is_released`; `gate::test_an_executed_passing_run_is_complete_secret_free_and_consistent` | PASS |
 | E6 | Authentic VS Code + GitHub Copilot run (contract section 12.2) | P | ledger [H39]; `docs/mcp/acceptance/vscode-copilot-evidence.md` is `NOT EXECUTED` | KNOWN LIMITATION |

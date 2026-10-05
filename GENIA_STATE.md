@@ -6321,8 +6321,10 @@ APPLICATION BEHAVIOR (`apps/mcp/mcp.genia`, MCP `2026-07-28`, local stdio only):
   response per request, each on exactly one stdout line. Empty lines are ignored; a
   message without `id` that is a well-formed notification (for example
   `notifications/cancelled`) gets no response. It exits when stdin reaches EOF.
-- Implemented methods: `server/discover`, `tools/list`, and `tools/call`. There is
-  no `initialize`, no session, and no state carried between requests.
+- Implemented methods: `server/discover`, `tools/list`, and `tools/call`. For
+  `2026-07-28` there is no `initialize`, no session, and no state carried between
+  requests. (Amendment A5, section 9.47, adds the `2025-11-25` compatibility era:
+  `initialize`, `ping`, and one process-local state bit.)
 - The advertised tool set is exactly `["genia_capabilities"]`. `genia_parse` and
   `genia_run` are not implemented and are not advertised; calling them is an
   unknown-tool error (`-32602`).
@@ -6344,7 +6346,8 @@ APPLICATION BEHAVIOR (`apps/mcp/mcp.genia`, MCP `2026-07-28`, local stdio only):
 - Protocol errors use fixed messages that never echo caller text: unparseable JSON
   `-32700`; invalid JSON-RPC object (including an `id` that is not a string or
   integer) `-32600`; unknown method (including `initialize`, resources, prompts)
-  `-32601`; missing/malformed `_meta`, bad `tools/call` params, unknown tool, or
+  `-32601` (an `initialize` carrying the `2026-07-28` `_meta` stays `-32601`; section 9.47);
+  missing/malformed `_meta`, bad `tools/call` params, unknown tool, or
   non-empty arguments `-32602`; unsupported version `-32022` with
   `data.supported = ["2026-07-28"]` and `data.requested`.
 - Native Genia owns decoding, shape/type validation, dispatch, result and error
@@ -6560,8 +6563,8 @@ Implemented (Python reference host, POSIX only; verified on Linux only, R28-H43)
   (`tools/mcp_acceptance/`, CI job `mcp-client-acceptance`) with version negotiation `auto`.
 
 Explicit limitations: Streamable HTTP is deferred (no listener); a client that only speaks the legacy
-`initialize` handshake cannot use the server (R28-H36); no VS Code or GitHub Copilot run is recorded
-(R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 is not complete (the
+`initialize` handshake could not use the server when this section was written (R28-H36; superseded by
+amendment A5, section 9.47); no VS Code or GitHub Copilot run had succeeded (R28-H39); a SIGKILLed host may leave an empty private temp directory; R28 is not complete (the
 E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit remain); no C++ MCP support or parity is claimed.
 
 ## 10) Explicitly not implemented (current)
@@ -6685,8 +6688,8 @@ Explicit limitations (unchanged or newly recorded): UTF-16 surrogate `\u` escape
 strings do not cross the JSON boundary unchanged (a pair becomes the scalar value, a lone surrogate is
 `internal_error`; R28-H40); the debug renderer shows host text for callable values (R28-H32);
 Unicode identifiers are not accepted by the parser; SDK-default clients that send `initialize`
-cannot connect and E28-5 recommends no amendment before the VS Code/Copilot run (R28-H36); no
-VS Code or Copilot run is recorded (R28-H39); Streamable HTTP is deferred and C++ MCP is not
+could not connect when E28-5 was written (R28-H36; the VS Code run then showed an amendment was
+required; section 9.47); no successful VS Code or Copilot run is recorded (R28-H39); Streamable HTTP is deferred and C++ MCP is not
 supported; R28 is not complete and E28-6 (demo, publishing, final audit) remains. Issue #1078 (the
 spec-runner adapter timeout) is separate infrastructure work.
 
@@ -6707,13 +6710,50 @@ resource, prompt, or transport. **R28 is not complete**: this section records a 
   production multi-tenant isolation), `docs/mcp/host-portability.md` (native Genia versus Python reference
   host; no C++ MCP implementation and no cross-host parity).
 - **Clients:** the official TypeScript client is automated in CI; the official Inspector 2.9.0 CLI was run
-  manually (not in CI); both default to the legacy `initialize` handshake the server does not implement and
-  need version negotiation `auto`. VS Code with GitHub Copilot has **not** been run (R28-H39); the
-  procedure is `docs/mcp/vscode-copilot-acceptance.md` and the record is
-  `docs/mcp/acceptance/vscode-copilot-evidence.md` (`NOT EXECUTED`).
+  manually (not in CI); both default to the legacy `initialize` handshake, which the server serves since
+  amendment A5 (section 9.47). VS Code with GitHub Copilot run 1 (2026-10-05) **failed at `initialize`**
+  (R28-H39); the post-amendment rerun is pending; the procedure is `docs/mcp/vscode-copilot-acceptance.md`
+  and the record is `docs/mcp/acceptance/vscode-copilot-evidence.md`.
 - **Release gate:** `tests/unit/test_r28_release_gate.py` fails any document that claims R28 complete
-  until that record is executed, complete, and `PASS` with the host having negotiated `server/discover`.
+  until the latest run in that record is executed, complete, and `PASS` with a negotiation path the amended
+  contract allows (`initialize` with `2025-11-25`, or `server/discover` with `2026-07-28`).
 - **Audit:** `docs/design/r28-e28-6-final-audit-plan.md` and the ledger disposition of every non-closed
   entry; new findings R28-H42 (a failed run returns no diagnostic text) and R28-H43 (evidence is Linux only).
 - **Release page:** `docs/releases/R28.md` (Release Candidate). The R20 follow-up (#1067) remains scheduled
   after R28 and before R29; #1078 remains separate infrastructure work.
+
+## 9.47) R28 E28-6 amendment A5: the `2025-11-25` compatibility era (issue #707)
+
+Trigger: the first authentic VS Code 1.138.0 + GitHub Copilot Chat 0.66.0 run (macOS, 2026-10-05) sent
+`initialize` with `protocolVersion: "2025-11-25"`; the then stateless-only server answered `-32601` and no
+tool was reached (ledger R28-H36, R28-H39). Contract amendment A5 (section 18 of
+`docs/design/r28-genia-mcp-contract-threat-model.md`; pre-flight
+`docs/design/r28-e28-6-protocol-compat-preflight.md`) adds one compatibility era. It adds no Genia syntax,
+builtin, Core IR node, host capability, MCP tool, resource, prompt, transport, limit, or authority, and no
+Python host code: it is entirely native Genia in `apps/mcp/mcp.genia`.
+
+- **Closed policy:** exactly `2026-07-28` and `2025-11-25` are served. Era is selected per request: a request
+  whose `params._meta` has `io.modelcontextprotocol/protocolVersion` is a `2026-07-28` request (unchanged);
+  every other request is a `2025-11-25` request.
+- **`initialize`:** params must be an object with string `protocolVersion`, object `capabilities`, and object
+  `clientInfo` with string `name` and `version`. `protocolVersion` `2025-11-25` succeeds with exactly
+  `{protocolVersion, capabilities: {tools: {}}, serverInfo: {name: "genia-mcp", version: <contract_revision>}}`;
+  any other string is `-32602 Unsupported protocol version` with `data: {supported: ["2025-11-25"],
+  requested}` (never negotiated down); malformed params are `-32602`; a second `initialize` is `-32600`; an
+  id-less `initialize` is ignored; a failed `initialize` changes nothing.
+- **State:** one process-local bit (a single `ref` cell; NEW then INITIALIZED), never persisted or shared.
+  `tools/list` and `tools/call` before `initialize` are `-32602` (as before the amendment); `ping` is `{}` in
+  every state; `notifications/initialized` is accepted silently and gates nothing; every other method
+  (resources, prompts, completion, logging, tasks, roots, sampling, elicitation) is `-32601`.
+- **Wire shape:** compat results omit `resultType`, `ttlMs`, `cacheScope`, and `_meta`; descriptors, order,
+  envelope, messages, limits, cancellation, and policy are identical in both eras; `genia_capabilities`
+  reports the serving revision in `mcp.protocol_version`.
+- **Client capabilities grant nothing:** `roots`, `sampling`, `elicitation`, `tasks`, `extensions`, or any
+  other value are shape-checked and discarded; the server never sends a request or a notification.
+- **Evidence:** `tests/unit/test_r28_mcp_compat.py` (protocol, replaying VS Code's exact message),
+  `tests/unit/test_r28_mcp_compat_conformance.py` (both-era conformance), matrix section K, and the official
+  client scenario on the default, `auto`, legacy, and `2026-07-28`-pin paths (`docs/mcp/conformance-matrix.md`).
+- **Not claimed:** VS Code's behavior after `initialize` (the `initialized` notification, when it lists tools,
+  `ping`) rests on the SDK reference and run 1's trace; run 2 (pending; `docs/mcp/vscode-copilot-acceptance.md`)
+  decides it. R28 is **not complete**; R28-H39 stays open. macOS evidence so far shows only that VS Code
+  discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC (R28-H43).

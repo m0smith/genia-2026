@@ -1,12 +1,17 @@
 # VS Code + GitHub Copilot acceptance run (R28 release gate)
 
-Status: **Procedure; not yet executed.** Contract section 12.2 requires one authentic run of the
-repository-configured Genia MCP server from VS Code with GitHub Copilot before R28 may be called complete
-(ledger R28-H39). The audit environment had no VS Code, no GUI, and no Copilot authentication, so nobody
-has run it. Official-SDK and Inspector runs do **not** substitute. Expected effort: about 15 minutes.
+Status: **Run 1 executed 2026-10-05 and FAILED at `initialize`; run 2 (the post-amendment rerun) is
+pending.** Contract section 12.2 requires one authentic run of the repository-configured Genia MCP server
+from VS Code with GitHub Copilot before R28 may be called complete (ledger R28-H39). Run 1 (VS Code
+`1.138.0`, Copilot Chat `0.66.0`, macOS) found the server and started it, but VS Code sent `initialize` for
+protocol `2025-11-25`, which the then stateless-only server rejected; no tool was reached. Contract
+amendment A5 (`docs/design/r28-genia-mcp-contract-threat-model.md` section 18) now serves that
+`2025-11-25` era natively. Official-SDK and Inspector runs do **not** substitute for run 2. Run 1 stays in
+`docs/mcp/acceptance/vscode-copilot-evidence.md` as history and is never edited; run 2 is a new
+`evidence run=2` block, and the **latest** run governs the release gate. Expected effort: about 15 minutes.
 
-The run also decides ledger R28-H36: which protocol path VS Code uses (`server/discover`, the stateless
-revision this server implements, or the legacy `initialize`, which it rejects).
+Expected on run 2: `negotiation_path: initialize`, `negotiated_protocol_version: 2025-11-25` (or
+`server/discover` / `2026-07-28` if a future VS Code uses the modern path); both are accepted.
 
 ## Before you start
 
@@ -15,50 +20,47 @@ revision this server implements, or the legacy `initialize`, which it rejects).
 - Do not paste tokens, account names, e-mail addresses, or home-directory paths into the record. Redact
   them. Do not attach screenshots.
 
-## Steps
+## Steps (the owner's second run)
 
-1. **Revision.** `git clone https://github.com/m0smith/genia-2026.git && cd genia-2026`, check out the
-   release-candidate commit, and run `git rev-parse HEAD` (this is `repository_revision`). Confirm there is
-   no `.vscode/mcp.json` (`ls .vscode/mcp.json` must fail): the checked-in configuration is the root `.mcp.json`.
-2. **Open and trust.** `code .`, and when VS Code asks, trust the workspace folder (`.mcp.json` is executable
-   configuration). Record the VS Code version (`code --version`) and the Copilot extension version (Extensions view).
-3. **Discovery.** Open the MCP servers list (Command Palette: `MCP: List Servers`). Record whether `genia`
-   appears **without any edit** (`mcp_json_discovered`). If it does not, record `no`, stop, and report
-   exactly what VS Code showed. (Do not add `.vscode/mcp.json` to the repository: the contract allows it
-   only when verified to be necessary, which would be a finding.)
-4. **Start.** Start the `genia` server from that list. Record what state VS Code shows (`server_state_shown`),
-   for example `Running`. If it fails, copy the one-line error from the server's output (`Show Output`).
-5. **Protocol path.** In the MCP output log (raise the log level to trace if VS Code offers it, for example
-   with `Developer: Set Log Level`), find the **first request VS Code sent** and record it as
-   `negotiation_path`: `server/discover` or `initialize`. Copy the few log lines that show it into
-   `host_log_excerpt` (redacted).
-6. **Tools.** Open Copilot Chat in **Agent** mode and open the tools picker. Record the `genia` tools
-   (`tools_visible` must be exactly `genia_capabilities, genia_parse, genia_run`). Record whether VS Code
-   shows any MCP resources or prompts for this server (`resources_or_prompts_visible`: `none` expected;
-   for example `MCP: Browse Resources` is empty).
-7. **Capabilities.** In Agent mode ask: *Use the genia MCP tool genia_capabilities and show me the result.*
-   Confirm the tool call was approved and made by the host.
-8. **Parse, diagnose, repair.** Ask: *Call the genia MCP tool genia_parse with exactly this source:* followed
-   by the **broken** program from `docs/mcp/demo.md` (the block labeled `demo-broken`). Record that the host
-   made the call and the diagnostic it showed (`invalid_source_feedback`: expect `parse_error` at character
-   offset 171). Then ask it to call `genia_parse` with the **fixed** program (`demo-fixed`) and record the
-   success (`corrected_source_parsed`).
-9. **Run.** Ask: *Call the genia MCP tool genia_run with the same corrected source.* Record the outcome
-   (`run_result`: expect value, stdout `2`, two lines of stderr, exit code `0`) and whether VS Code shows
-   the value, stdout and stderr separately (`channel_separation_visible`: `yes`, `no`, or `not exposed by the host`).
-10. **Disconnect.** Stop the server (`MCP: Stop Server`) or quit VS Code, then run
-    `pgrep -af "mcp_launch|mcp_host|mcp_worker"`. It must print nothing (`clean_lifecycle_after_disconnect`).
-11. **Record.** Fill `docs/mcp/acceptance/vscode-copilot-evidence.md` (the fenced `evidence` block only,
-    `status: EXECUTED`, one value per field, no secrets), and run
-    `uv run pytest tests/unit/test_r28_release_gate.py -q`. Commit the file to the release-candidate
-    branch and return the commit.
+1. **Check out and update.** `git fetch origin claude/bold-euler-jb7uoy && git checkout claude/bold-euler-jb7uoy &&
+   git pull`, then `git rev-parse HEAD` (this is `repository_revision`). Confirm there is no
+   `.vscode/mcp.json` (`ls .vscode/mcp.json` must fail): the checked-in configuration is the root `.mcp.json`.
+2. **Restart VS Code** completely (quit and reopen the folder: `code .`), trust the workspace when asked
+   (`.mcp.json` is executable configuration), and record the VS Code version (`code --version`) and the
+   Copilot extension version (Extensions view). Raise the log level to trace if offered
+   (`Developer: Set Log Level`).
+3. **Start the `genia` server** from `MCP: List Servers` (it should appear without any edit:
+   `mcp_json_discovered`). Record the state shown (`server_state_shown`).
+4. **Verify initialization succeeds.** In the MCP output log, find the first request VS Code sent
+   (`negotiation_path`: `initialize` or `server/discover`) and its response; record the negotiated protocol
+   version (`negotiated_protocol_version`) and copy the few redacted log lines into `host_log_excerpt`. If
+   initialization fails again, record `failed_at` as the stage that failed (see the gate's stage names) and
+   everything after as `not reached`; stop.
+5. **Verify exactly three tools:** `genia_capabilities`, `genia_parse`, `genia_run` in the tools picker
+   (`tools_visible`), and no MCP resources or prompts (`resources_or_prompts_visible`: `none`).
+6. **Capabilities.** In Agent mode ask: *Use the genia MCP tool genia_capabilities and show me the result.*
+   The reported `mcp.protocol_version` should equal the negotiated version.
+7. **Broken parse.** Ask: *Call the genia MCP tool genia_parse with exactly this source:* followed by the
+   **broken** program from `docs/mcp/demo.md` (block `demo-broken`). Record the diagnostic
+   (`invalid_source_feedback`; expect `parse_error` at character offset 171).
+8. **Corrected parse.** Repeat with the **fixed** program (`demo-fixed`); record the success
+   (`corrected_source_parsed`).
+9. **Run the canonical demo.** Ask: *Call the genia MCP tool genia_run with the same corrected source.*
+   Record the value, stdout `2`, two lines of stderr, and exit code `0` (`run_result`) and whether the
+   channels are shown separately (`channel_separation_visible`: `yes`, `no`, or `not exposed by the host`).
+10. **Stop the server** (`MCP: Stop Server`) or quit VS Code.
+11. **Verify process cleanup.** `pgrep -af "mcp_launch|mcp_host|mcp_worker"` must print nothing
+    (`clean_lifecycle_after_disconnect`).
+12. **Provide the evidence.** Fill the `evidence run=2` block of
+    `docs/mcp/acceptance/vscode-copilot-evidence.md` (`status: EXECUTED`, every field, `failed_at: none` on
+    a pass, no secrets, no screenshots, nothing from an SDK client or the Inspector), run
+    `uv run pytest tests/unit/test_r28_release_gate.py -q`, commit the file, and return the commit.
 
 ## What happens next
 
-- `negotiation_path: server/discover`, `disposition: PASS`, all fields filled: R28-H39 closes, R28-H36 is
-  dispositioned as an accepted compatibility limitation (legacy-only clients cannot connect; no legacy
-  state is added), and the completion synchronization listed in `docs/releases/R28.md` follows as a
-  separate reviewed change.
-- `negotiation_path: initialize` (VS Code cannot connect): **stop.** R28 is not complete and nothing is
-  implemented. The decision is the contract-amendment proposal in ledger R28-H36.
-- Any other failure: record it as `FAIL` with the evidence; it is a release blocker until understood.
+- Run 2 with `disposition: PASS`, `failed_at: none`, a negotiation path the contract allows
+  (`initialize` with `2025-11-25`, or `server/discover` with `2026-07-28`), exactly three tools, no
+  resources or prompts, parse and run accepted, and a clean disconnect: R28-H39 closes and R28-H36 closes as
+  fixed; the completion synchronization listed in `docs/releases/R28.md` follows as a separate reviewed change.
+- Run 2 fails: record it as a new run (never edit run 1). The failing stage is the next finding; R28 stays
+  In Progress.

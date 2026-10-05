@@ -36,12 +36,14 @@ secret.
 ## Limits and troubleshooting
 
 - **Streamable HTTP is deferred.** Only local stdio exists; there is no listener.
-- **Stateless protocol (2026-07-28):** the server has no `initialize`. A client that only speaks
-  the legacy `initialize` handshake gets `Method not found` and cannot use the server. The official
-  TypeScript client v2 (2.2.0) defaults to that legacy mode: configure `versionNegotiation` `auto` (or
-  a pin of `2026-07-28`); the portable `.mcp.json` has no field for it. Whether VS Code and Copilot
-  negotiate the modern era is unverified. Supporting `initialize` would need a contract amendment
-  (ledger R28-H36 records the investigation and the recommendation).
+- **Two protocol eras, one server (amendment A5).** The server speaks exactly `2026-07-28` (stateless,
+  per-request `_meta`, `server/discover`) and `2025-11-25` (selected by `initialize`). Clients that send
+  `initialize` for `2025-11-25` (VS Code, the official TypeScript client's default) connect; `auto` and a
+  pin of `2026-07-28` still connect. Any other `initialize` version is rejected with `-32602` and a
+  `data.supported` list; the server never negotiates down. Both eras serve the same three tools. Client
+  capabilities (roots, sampling, elicitation, tasks, extensions) are accepted and ignored: they grant
+  nothing. The first VS Code run failed because this server then had no `initialize` (ledger R28-H36);
+  whether VS Code now completes the whole flow is pending run 2 (ledger R28-H39).
 - Startup takes about 0.5 s; wait for the first response.
 - `uv` or `git` missing, or a wrong working directory, makes the server fail to start; the client
   shows the launcher's stderr line.
@@ -69,4 +71,4 @@ A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment
 4. Confirm exactly three tools: `genia_capabilities`, `genia_parse`, `genia_run`.
 5. From the host, ask for a `genia_parse` of `f(x) = x +` (a diagnostic), then of `f(x) = x + 1\nf(41)`,
    then a `genia_run` of that program (rendered value `42`). Record the exchange.
-6. In the MCP output log, record whether the host sent `initialize` or `server/discover`.
+6. In the MCP output log, record whether the host sent `initialize` or `server/discover` and the negotiated protocol version.

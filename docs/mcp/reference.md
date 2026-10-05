@@ -8,19 +8,51 @@ behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`. 
 
 - Transport: **local stdio** only. Messages are newline-delimited JSON-RPC, one message per line, split on
   `\n` only. stdout carries protocol messages and nothing else.
-- Protocol revision: **2026-07-28** (stateless). Every request carries
-  `params._meta["io.modelcontextprotocol/protocolVersion"]` and `...clientCapabilities`. There is **no
-  `initialize` handshake**; it is answered `-32601 Method not found`.
-- Methods: `server/discover`, `tools/list`, `tools/call`, and the notification `notifications/cancelled`.
-  Everything else is `-32601`.
+- Protocol revisions: exactly two (contract amendment A5), selected per request.
+  - **2026-07-28** (stateless): every request carries
+    `params._meta["io.modelcontextprotocol/protocolVersion"]` and `...clientCapabilities`. `initialize`
+    carrying that `_meta` is `-32601`.
+  - **2025-11-25** (any request without that `_meta` key): begins with `initialize`. One process-local state
+    bit (NEW, then INITIALIZED); nothing else is remembered, and nothing survives the process.
+- Methods: `server/discover` (2026-07-28 only), `tools/list`, `tools/call`, `initialize` and `ping`
+  (2025-11-25), and the notifications `notifications/cancelled` and `notifications/initialized` (accepted,
+  never answered; the latter changes nothing). Everything else is `-32601`.
 - Tools: exactly `genia_capabilities`, `genia_parse`, `genia_run`, in that order.
 - **No MCP resources. No MCP prompts. No HTTP transport. No C++ MCP implementation.**
 - Platform: Python reference host, POSIX. Verified on Linux; macOS is not verified; Windows is not
   supported.
 
+## The 2025-11-25 era
+
+`initialize` params: object with string `protocolVersion`, object `capabilities`, object `clientInfo` with
+string `name` and `version`; other members are ignored. Result (exactly):
+
+```json
+{"protocolVersion": "2025-11-25", "capabilities": {"tools": {}},
+ "serverInfo": {"name": "genia-mcp", "version": "<40 hex git commit>"}}
+```
+
+| Situation | Answer |
+|---|---|
+| `protocolVersion` other than `2025-11-25` (including `2025-06-18`, `2025-03-26`, `2024-11-05`, `2026-07-28`, `""`) | `-32602 Unsupported protocol version`, `data: {supported: ["2025-11-25"], requested: ...}`; state stays NEW; never negotiated down |
+| malformed or missing member, non-object params | `-32602 Invalid params` |
+| second `initialize` once initialized | `-32600 Invalid request` |
+| `tools/list` / `tools/call` before a successful `initialize` | `-32602 Invalid params` |
+| `ping` (any state) | `{}` |
+| `server/discover` without its `_meta` | `-32602` |
+| `resources/*`, `prompts/*`, `completion/*`, `logging/*`, `tasks/*`, `roots/*`, `sampling/*`, `elicitation/*`, anything else | `-32601` |
+
+Wire shape differences from 2026-07-28: `tools/list` returns `{tools}` only; `tools/call` returns
+`{content, structuredContent, isError}`; the members `resultType`, `ttlMs`, `cacheScope`, and `_meta` are
+omitted. Descriptors, the envelope, the fixed messages, limits, cancellation, and policy are identical.
+`genia_capabilities` reports `mcp.protocol_version` of the era that served the call. **Client capabilities
+(`roots`, `sampling`, `elicitation`, `tasks`, `extensions`, any other) are validated for shape and
+discarded: they change no behavior and grant no authority.** The server never sends a request or a
+notification.
+
 ## Result envelope (every dispatched tool call)
 
-`CallToolResult` with `resultType: "complete"`, `isError`, one text item holding the single-line JSON of the
+`CallToolResult` (in 2026-07-28 with `resultType: "complete"` and serverInfo `_meta`), `isError`, one text item holding the single-line JSON of the
 envelope, and the envelope as `structuredContent`:
 
 ```json
@@ -62,7 +94,7 @@ Input: `{}` (closed; `arguments` may be omitted). Result (closed object):
 
 ```json
 {"server": {"name": "genia-mcp", "contract": "genia.mcp.v1"},
- "mcp": {"protocol_version": "2026-07-28", "transport": "stdio"},
+ "mcp": {"protocol_version": "2026-07-28" | "2025-11-25", "transport": "stdio"},
  "genia": {"host": "python-reference", "contract_revision": "<40 hex git commit>",
            "portable_mcp_implementation": false},
  "tools": ["genia_capabilities", "genia_parse", "genia_run"],
