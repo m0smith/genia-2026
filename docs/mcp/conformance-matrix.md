@@ -35,7 +35,7 @@ sandbox claim.
   `e3wrk`, `e4cfg`, `e4launch`, `e4life`, `arch`, `launcher`, `client` = the existing
   `tests/unit/test_r28_mcp_<name>.py` files (`skeleton`, `parse`, `run`, `run_supervisor`,
   `run_worker`, `stdio_config`, `stdio_launch`, `stdio_lifecycle`, `architecture`, `launcher`,
-  `official_client`). `tests/unit/test_r28_mcp_conformance_matrix.py` fails if a cited test is missing.
+  `official_client`); E28-6 adds `demo`, `entry` and `gate` = `test_r28_mcp_demo.py`, `test_r28_mcp_entrypoint.py`, `test_r28_release_gate.py`. `tests/unit/test_r28_mcp_conformance_matrix.py` fails if a cited test is missing.
 - **Namespace:** wire tests marked *(ns)* run with the host's real namespace behavior **and** with
   `unshare` simulated as denied; the whole R28 suite can also be run denied with
   `GENIA_R28_TEST_DENY_NAMESPACE=1`. The namespace is defense in depth, never the security contract.
@@ -262,3 +262,14 @@ CI job `mcp-client-acceptance`.
 | Z4 | Streamable HTTP parity | — | deferred by C§7 and C§9.3: no listener, no HTTP test | NOT APPLICABLE |
 | Z5 | C++ MCP parity | — | no C++ MCP implementation or parity claim | NOT APPLICABLE |
 | Z6 | Static boundaries: no Python MCP application architecture, no SDK dependency in the server, no listener, no machine-specific `.mcp.json` | P | `arch::test_no_python_module_defines_mcp_application_literals`; `arch::test_no_mcp_sdk_import_or_dependency`; `e4cfg::test_no_python_mcp_sdk_is_a_dependency`; `e4cfg::test_the_configuration_contains_no_secret_absolute_path_or_machine_detail`; `e4cfg::test_the_configuration_enables_no_http_transport` | PASS |
+
+## E — E28-6 additions (demo, entrypoint, release gate)
+
+| ID | Item | Class | Evidence | Status |
+|---|---|---|---|---|
+| E1 | The canonical validated-record demo: broken program → `parse_error` at the defect → repair → parse → run with value, stdout, stderr separate; equal to direct evaluation; deterministic; documented text equals the example files | A / P | `demo::test_the_documented_sources_are_exactly_the_example_programs`; `demo::test_the_broken_program_gets_a_structured_diagnostic_at_the_defect`; `demo::test_the_repaired_program_parses_runs_and_matches_direct_evaluation`; `demo::test_the_run_separates_value_stdout_and_stderr_as_documented`; `demo::test_the_whole_walkthrough_works_in_one_session` | PASS |
+| E2 | The demo uses no authority the governed profile denies and the walkthrough needs no repository-internal knowledge | S | `demo::test_the_demo_uses_no_authority_the_governed_profile_denies`; `demo::test_the_walkthrough_is_self_contained_for_a_first_time_user` | PASS |
+| E3 | `scripts/genia-mcp` starts the same launcher from any directory with no arguments and no stderr noise; packaging unchanged | H | `entry::test_the_entrypoint_works_from_any_working_directory`; `entry::test_the_entrypoint_takes_no_arguments`; `entry::test_packaging_is_unchanged_no_new_cli_command_and_no_published_package_claim` | PASS |
+| E4 | Official MCP Inspector 2.9.0 (CLI): default era fails with `Method not found`; `--protocol-era auto` lists exactly three tools and runs `genia_run` | P | manually executed in the E28-6 audit; not automated; web and terminal UIs not executed; recorded in ledger [H36] | KNOWN LIMITATION |
+| E5 | The release-completion gate: no "R28 complete" claim unless the VS Code/Copilot record is executed, complete, secret-free, and `PASS` with `server/discover` | P | `gate::test_no_authoritative_document_claims_r28_complete_unless_the_evidence_allows_it`; `gate::test_the_ledger_keeps_h36_and_h39_open_until_the_evidence_is_released`; `gate::test_an_executed_record_is_complete_secret_free_and_consistent` | PASS |
+| E6 | Authentic VS Code + GitHub Copilot run (contract section 12.2) | P | ledger [H39]; `docs/mcp/acceptance/vscode-copilot-evidence.md` is `NOT EXECUTED` | KNOWN LIMITATION |

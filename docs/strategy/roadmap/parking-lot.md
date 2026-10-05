@@ -20,6 +20,10 @@ These are valuable, but not part of the near roadmap unless explicitly promoted:
   - depends on R35 storage and on R39 proving the shape with the host parity gate; do not add release-specific host APIs to start it
   - `tools/validate_llm_instructions.py` is classified as portable text policy but not a killer-workflow case; no migration is planned, and no capability should be created to rewrite it
   - rationale and inventory: `docs/analysis/python-to-genia-meaningful-migration-review.md`
+- R28-derived general-facility candidates (non-authoritative; no release number; **not ticketed**)
+  - source: the R28 final audit (`docs/analysis/r28-host-dependency-inventory.md`, entries H05, H06, H07, H08, H09, H15, H24, H26, H42); R28 ships narrow host workarounds and promotes none of these
+  - candidate facilities, each only if general usefulness beyond MCP is shown: a cancellable process-with-stdin capability and a general capability bootstrap (H05-H08, H26); a bounded, non-blocking stdin source (H09); a Genia-level process exit status (H15); a capability-restricted evaluation environment (H24); a normalized, bounded diagnostic result for failed programs, with line and column (H42, H18)
+  - each needs finding, evidence, an owned issue in the shape of `docs/process/08-roadmap-ticketing.md`, a pre-flight, and normal roadmap placement; none is scheduled and none may be implemented merely because R28 recorded it
 - HTTP server and outbound HTTP portable contracts
   - R27 deliberately deferred both surfaces after contract-decision issues #1041 and #1043; see `docs/analysis/r27-http-server-decision.md` and `docs/analysis/r27-outbound-http-decision.md`
   - future work needs its own release assignment before implementation starts

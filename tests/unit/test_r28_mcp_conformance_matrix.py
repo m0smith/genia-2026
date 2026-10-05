@@ -35,6 +35,9 @@ KEYS = {
     "arch": "test_r28_mcp_architecture.py",
     "launcher": "test_r28_mcp_launcher.py",
     "client": "test_r28_mcp_official_client.py",
+    "demo": "test_r28_mcp_demo.py",
+    "entry": "test_r28_mcp_entrypoint.py",
+    "gate": "test_r28_release_gate.py",
 }
 STATUSES = {"PASS", "KNOWN LIMITATION", "NOT APPLICABLE"}
 REF = re.compile(r"`(" + "|".join(KEYS) + r")::(test_[A-Za-z0-9_]+)`")

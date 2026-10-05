@@ -57,7 +57,7 @@ pre-flight, when promoted), **raised in**.
 ### Native responsibilities and architecture decisions
 
 **R28-H01 — Native Genia can own decode / validate / dispatch / result composition**
-- Class: **C**. Status: `open` (standing constraint).
+- Class: **C**. Status: `closed` (standing constraint satisfied for the whole release).
 - Evidence: E28-1 native proof (stdin → `lines` → `json_decode` → `Json(...)`
   facet pattern → map-pattern dispatch → value construction → `json_encode` → stdout)
   ran on the Python reference host; design §4.
@@ -67,6 +67,7 @@ pre-flight, when promoted), **raised in**.
   `tests/unit/test_r28_mcp_architecture.py` (AST literal scan, differential
   host-supplies-only-revision run, no-authority run).
 - Raised in: E28-0/E28-1.
+- E28-6 final disposition: **Closed.** The constraint held for all of R28: the MCP application is native Genia and host modules contain no MCP literals (`tests/unit/test_r28_mcp_architecture.py`; `docs/mcp/host-portability.md`). It is evidence, not a deliverable, and can be reopened only by a regression.
 
 **R28-H02 — MCP SDK unnecessary**
 - Class: **N (architecture finding)**. Status: `closed` (decision recorded).
@@ -102,6 +103,7 @@ pre-flight, when promoted), **raised in**.
 - Disposition: keep behind the narrow host boundary; OS-level restrictions remain
   an E28-3 design question.
 - Raised in: E28-0/E28-1.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Evidence: M:T1–T8, M:X1–X10, M:A21–A22; the OS layer is best effort and never claimed as a sandbox.
 
 ### Current Genia capability gaps (class B)
 
@@ -118,6 +120,7 @@ pre-flight, when promoted), **raised in**.
 - Disposition: preserve evidence; evaluate a general capability at the audit, or
   earlier if E28-3 is blocked. Not yet an issue.
 - Raised in: E28-1 reconnaissance.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence: the supervisor works with an explicitly provisioned capability (M:Y1–Y8).
 
 **R28-H06 — Child process stdin unavailable**
 - Class: **B**. Status: `open`.
@@ -129,6 +132,7 @@ pre-flight, when promoted), **raised in**.
 - Disposition: strong candidate for a later general process improvement; preserve
   evidence; promote only via the normal process.
 - Raised in: E28-1 reconnaissance.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence: the supervisor owns its worker's stdin (M:L1).
 
 **R28-H07 — argv cannot carry the full allowed MCP source size**
 - Class: **B** (consequence of H06). Status: `open`.
@@ -138,6 +142,7 @@ pre-flight, when promoted), **raised in**.
 - Usefulness beyond MCP: follows H06. Removable code: none yet.
 - Disposition: evidence for H06; do not treat as an independent feature.
 - Raised in: E28-1 reconnaissance.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence for H06; solved by the stdin pipe (M:L1).
 
 **R28-H08 — Blocking process call cannot be cancelled**
 - Class: **B**. Status: `open`.
@@ -151,6 +156,7 @@ pre-flight, when promoted), **raised in**.
 - Usefulness beyond MCP: moderate to high (supervision, timeouts, servers).
 - Disposition: evaluate a cancellable process abstraction; preserve evidence.
 - Raised in: E28-1 reconnaissance.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence: cancellation works through the supervisor and multiplexer (M:X1–X10).
 
 **R28-H09 — No bounded stdin / line reader**
 - Class: **B**. Status: `open`.
@@ -165,6 +171,7 @@ pre-flight, when promoted), **raised in**.
 - Usefulness beyond MCP: high (safe streaming of untrusted input).
 - Disposition: evaluate as a general safe-streaming capability; preserve evidence.
 - Raised in: E28-1 reconnaissance.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence: the 8 MiB multiplexer back-pressure is the documented limitation (M:L8).
 
 **R28-H10 — No build / revision identity facility**
 - Class: **A/B (needs refinement)**. Status: `open`.
@@ -189,6 +196,7 @@ pre-flight, when promoted), **raised in**.
   general facility. A is the current classification for the injection boundary; B is
   the open question.
 - Raised in: E28-1 (approval feedback).
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. A clone without `.git`/`git` fails closed with one stderr line (documented prerequisite); no general build-identity facility is proposed.
 
 ### Observations (knowledge, not gaps)
 
@@ -229,6 +237,7 @@ pre-flight, when promoted), **raised in**.
 - Disposition: preserve evidence; evaluate a general process-exit facility at the
   audit. Not yet an issue.
 - Raised in: E28-1 implementation.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. The only workaround is `reject_start` in `mcp.genia` (a deliberate undefined-name error, exit 1, nothing on stdout).
 
 **R28-H16 — `none(...)` call short-circuit (documented) and eager `&&`/`||` (undocumented)**
 - Class: **N (language behavior, observed)**. Status: `closed` (captured outside R28).
@@ -269,6 +278,7 @@ pre-flight, when promoted), **raised in**.
   no builtin added); stays `open` for the E28-6 audit, which decides whether a general
   facility is worth a proposal.
 - Raised in: E28-2 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. One explicit host capability returns normalized parse JSON; no Genia builtin was added (M:P1–P12).
 
 **R28-H18 — No code-point length or substring helpers**
 - Class: **B**. Status: `open`.
@@ -282,6 +292,7 @@ pre-flight, when promoted), **raised in**.
 - Disposition: workaround implemented in E28-2 (byte-limit check native; diagnostics
   are a character offset only, no line/column); evidence preserved for the E28-6 audit.
 - Raised in: E28-2 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Parse diagnostics are a character offset only (no line/column); limits are UTF-8 bytes (M:P4, P8, L5).
 
 **R28-H19 — Contract §2.4 invalid-Unicode wording vs strict JSON decoding**
 - Class: **N (contract wording)**. Status: `closed` (resolved by Clarification A2).
@@ -312,6 +323,7 @@ pre-flight, when promoted), **raised in**.
   `serve(revision, host)` argument); kept as the provisioning boundary for R28. The
   E28-6 audit decides together with H05 whether a general mechanism is worth a proposal.
 - Raised in: E28-2 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. `serve(revision, host)` is the explicit provisioning boundary; `docs/mcp/host-portability.md` lists the host's responsibilities.
 
 **R28-H21 — Stale #703 wording ("official MCP client contract tests")**
 - Class: **N (process/documentation drift)**. Status: `closed`.
@@ -433,6 +445,7 @@ pre-flight, when promoted), **raised in**.
 - Disposition: preserve evidence; the E28-6 audit decides whether a general facility is
   worth a proposal.
 - Raised in: E28-3 design.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. Evidence: the default-deny classification and its drift test (M:A18).
 
 **R28-H25 — Normalized parse AST is too coarse for MCP policy**
 - Class: **N/B** (consequence of H23). Status: `closed` (resolved by Clarification A4; implemented in E28-3).
@@ -468,6 +481,7 @@ pre-flight, when promoted), **raised in**.
   decides, with H05-H08, whether a general cancellable process-with-stdin capability is worth
   a proposal).
 - Raised in: E28-3 design.
+- E28-6 final disposition: Post-R28 follow-up candidate: a general facility beyond MCP (recorded here and in `docs/strategy/roadmap/parking-lot.md`; **not ticketed**, because ticketing needs the owner's approval and the shape in `docs/process/08-roadmap-ticketing.md`; no release number assigned). R28 ships the narrow host workaround named above. Status stays `open` until the completion synchronization. The supervisor is the only code that would disappear (H05–H08).
 
 **R28-H27 — Cancellation versus the native single-threaded stdin loop**
 - Class: **B** (refines H08, H09). Status: `open`.
@@ -494,6 +508,7 @@ pre-flight, when promoted), **raised in**.
   request, mid-run, other id ignored, after completion ignored, other lines preserved in
   order, worker reaped) and the supervisor tests. Stays `open` for the E28-6 audit.
 - Raised in: E28-3 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Cancellation is implemented and tested (M:X1–X10); above 8 MiB of pending input it is best effort (documented).
 
 **R28-H28 — Shell stages bypass environment pruning**
 - Class: **A**. Status: `open`.
@@ -509,6 +524,7 @@ pre-flight, when promoted), **raised in**.
   for `subprocess`, process-creating `os` functions, and sockets; tests assert a shell stage
   creates no marker with policy on and off). Preserve evidence; audit decides.
 - Raised in: E28-3 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Static policy, runtime stubs, and the optional namespace are each asserted (M:A10, A9, A22).
 
 **R28-H29 — Contract "no implicit entrypoint" versus STATE command-mode `main` dispatch**
 - Class: **N (contract versus documented CLI behavior)**. Status: `open`.
@@ -522,6 +538,7 @@ pre-flight, when promoted), **raised in**.
   command mode use sources without `main`. No contract change needed; recorded so the
   difference is not rediscovered as a defect.
 - Raised in: E28-3 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. The contract wins for MCP; the difference from CLI `-c` is pinned (M:R9) and documented in `docs/mcp/reference.md`.
 
 **R28-H30 — Canonical value rendering cannot be bounded incrementally**
 - Class: **B**. Status: `open`.
@@ -534,6 +551,7 @@ pre-flight, when promoted), **raised in**.
   sinks; value limit checked after rendering, bounded by the deadline and `RLIMIT_AS`).
   Preserve evidence; audit decides.
 - Raised in: E28-3 design.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Bounded by the deadline, `RLIMIT_AS` and a post-check (M:L8); documented.
 
 **R28-H31 — The E28-1 server did not flush responses on a live pipe**
 - Class: **N (defect found in an earlier phase; native Genia fix)**. Status: `closed`.
@@ -562,6 +580,7 @@ pre-flight, when promoted), **raised in**.
   accepted limitation for R28 (non-deterministic address text, Python class names, no leakage); the
   E28-6 audit decides whether a portable rendering for callable values is worth a proposal.
 - Raised in: E28-3 implementation. Refined in: E28-5.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Audit: the contract (§2.5) says the value is rendered by the existing canonical debug renderer and is not claimed to be lossless JSON or a new serialization, so host text for callable values violates no requirement; E28-5 proved a captured protected value is never rendered and no deterministic comparison uses callable values. Documented as debug text, not a portable format. No renderer change. A portable callable rendering would be a separate proposal.
 
 **R28-H33 — Live-process tests raced server bootstrap, and the namespace probe sat in the request path**
 - Class: **A** (host-initialization responsibility) and **N** (test-synchronization finding). Status: `closed`.
@@ -689,6 +708,7 @@ pre-flight, when promoted), **raised in**.
      `notifications/initialized` as a no-op, keep every other behavior stateless". E28-5 implemented
      none of this.
 - Raised in: E28-4 pre-flight. Refined in: E28-5.
+- E28-6 final disposition: **Held open (decided by H39).** No legacy `initialize` support was added. E28-6 evidence adds to E28-5's: the official Inspector 2.9.0 (CLI mode) also defaults to the legacy handshake and fails with `Method not found`, and works with `--protocol-era auto`; so both official tools need a one-line opt-in. Disposition once H39 is executed: `server/discover` observed means accepted compatibility limitation (legacy-only clients cannot connect; no legacy state); `initialize` observed means stop and decide on the amendment proposal above.
 
 **R28-H37 — A stdio client may launch the server more than once, through a wrapper chain**
 - Class: **N (client behavior, observed)**. Status: `closed`.
@@ -736,6 +756,7 @@ pre-flight, when promoted), **raised in**.
   `initialize` or `server/discover` (the server's stderr stays empty, so this is read from the host's
   MCP log). That record also settles H36.
 - Raised in: E28-4 pre-flight. Refined in: E28-5.
+- E28-6 final disposition: **Held open: release blocker.** The E28-6 environment again had no VS Code, no GUI, no Copilot authentication, and no reachable marketplace. The procedure is `docs/mcp/vscode-copilot-acceptance.md`; the record is `docs/mcp/acceptance/vscode-copilot-evidence.md` (status `NOT EXECUTED`); `tests/unit/test_r28_release_gate.py` blocks any completion claim until it is executed and passes. Note that E28-4 (#705) required that a mainstream host connect end to end and was closed on official-SDK evidence only; this entry carries that acceptance.
 
 **R28-H40 — UTF-16 surrogate escapes in program strings cannot cross the JSON boundary unchanged**
 - Class: **N (host string representation; documented limitation)**. Status: `open` (for the E28-6 audit).
@@ -752,6 +773,7 @@ pre-flight, when promoted), **raised in**.
   for a Genia string-semantics decision (surrogates in strings are a Python-host detail a second host
   need not share).
 - Raised in: E28-5.
+- E28-6 final disposition: Accepted R28 limitation, compatible with the contract and documented in `docs/mcp/security-and-deployment.md` / `docs/mcp/host-portability.md`. Status stays `open` until the completion synchronization. Audit: the contract (§2.4, A2) requires rejecting invalid Unicode at the JSON-RPC boundary and does not require preserving UTF-16 surrogate code units created by string escapes; the path fails closed with a fixed message, leaks nothing, and framing is intact. Not a contract violation and no Genia string semantics are changed. A language-level ticket would need its own pre-flight and owner approval; none is created.
 
 **R28-H41 — SIGHUP left the worker running and its private temp directory behind**
 - Class: **A** (host lifecycle; refines H38). Status: `closed`.
@@ -765,6 +787,31 @@ pre-flight, when promoted), **raised in**.
   is red before and green after.
 - Removable code: with the rest of H26/H38 if a general supervised-process facility lands.
 - Raised in: E28-5. Resolved in: E28-5.
+
+**R28-H42 — A failed run gives an agent no diagnostic text**
+- Class: **N (design consequence; documented limitation)**. Status: `open` (accepted limitation).
+- Evidence: found by the E28-6 skeptical audit while building the demo. `genia_run` failures carry only a
+  fixed message (`Genia source failed during evaluation`) and parse failures only a character offset
+  (no line/column, H18), because contract sections 2.2 and 6 forbid raw diagnostics, source text, and host
+  exceptions in any response. An agent therefore cannot learn *why* a program failed (for example a missing
+  builtin) from MCP alone; during this work the author fell back to direct Python/CLI evaluation to read the
+  exception. That fallback is exactly the "agent bypass" that contract section 12.3 asks the audit to
+  inventory.
+- Disposition: not changed. The demo keeps its diagnostics inside the program's own values (the validation
+  report), which cross the boundary as data. A normalized, bounded diagnostic facility would be a
+  follow-up candidate (general usefulness beyond MCP: tooling and agents); it would need contract work
+  first. Documented in `docs/mcp/demo.md` and `docs/mcp/reference.md`.
+- E28-6 final disposition: Accepted R28 limitation; post-R28 follow-up candidate (recorded in the parking lot; not ticketed).
+- Raised in: E28-6.
+
+**R28-H43 — The platform evidence is Linux only**
+- Class: **N (evidence gap; documentation correction)**. Status: `open` (accepted limitation).
+- Evidence: every lifecycle and process test reads `/proc` and the namespace layer uses `unshare`; CI is a
+  Linux host. Earlier text said "POSIX (Linux or macOS)". No macOS run exists.
+- Disposition: documentation corrected in E28-6 to "Linux verified; macOS not verified; Windows not
+  supported". No code change.
+- E28-6 final disposition: Accepted R28 limitation (stated in `docs/mcp/demo.md`, `reference.md`, `security-and-deployment.md`, `stdio-development.md`, and the release page).
+- Raised in: E28-6.
 
 ### Process / documentation drift
 
@@ -815,4 +862,4 @@ pre-flight, when promoted), **raised in**.
 | E28-4 implementation | H37 and H38 closed; H36 and H39 stay open (documented limitations, for E28-5/E28-6) |
 | E28-5 pre-flight and tests | matrix design recorded; the matrix found H40 (surrogate escapes) and H41 (SIGHUP leak); H41 fixed and closed |
 | E28-5 evidence | H32 (renderer: no leak, no destabilization), H36 (investigation and recommendation), H39 (re-checked, still open) refined; no entry closed except H41 |
-| E28-6 final audit | _must disposition every non-closed entry_ |
+| E28-6 final audit (release candidate) | all 22 non-closed entries dispositioned (H01 closed; H36 and H39 held open as release blockers; the rest accepted R28 limitations or post-R28 follow-up candidates, none ticketed); H42 and H43 added and dispositioned; the release gate test blocks any completion claim until the VS Code/Copilot evidence passes |

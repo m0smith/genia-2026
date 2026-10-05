@@ -199,7 +199,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R25 | C++ Stateful Runtime and Concurrency | Complete | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R26 | C++ REPL and Data Bridges | Complete | `docs/releases/R26.md` |
 | R27 | C++ Flow and Pipe Mode | Complete | `docs/releases/R27.md` |
-| R28 | Genia MCP Server | In progress (E28-0 – E28-4 merged; E28-5 in progress) | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R28 | Genia MCP Server | In progress (E28-0 – E28-5 merged; E28-6 release candidate in review; VS Code/Copilot acceptance not yet executed) | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R29 | Sheet Record Pipelines | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R30 | Sheet Shaped Computation | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R31 | Relational Sheet Operations | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |

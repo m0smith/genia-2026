@@ -6544,7 +6544,7 @@ claim, and no VS Code or Copilot acceptance (the client configuration is section
 
 ## 9.44) R28 E28-4 local stdio client configuration and lifecycle (issue #705)
 
-Implemented (Python reference host, POSIX only):
+Implemented (Python reference host, POSIX only; verified on Linux only, R28-H43):
 
 - Repository-root `.mcp.json` (portable `mcpServers` format) registers one stdio server `genia`:
   `uv run --no-project --no-python-downloads python hosts/python/mcp_launch.py`. No `env`, URL,
@@ -6572,7 +6572,7 @@ E28-5 conformance evidence is section 9.45; the E28-6 demo and final audit remai
 - generalized flow runtime semantics beyond the current phase (async scheduling, advanced backpressure/cancellation, configurable multi-port stages)
 - full Flow system (stages/sinks/backpressure/multi-port pipelines)
 - language-level scheduler/selective receive/timeouts (concurrency remains host-primitive based)
-- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool, and the E28-4 stdio client configuration so far; see sections 9.41 to 9.44)
+- MCP resources/prompts, HTTP MCP transports, and any C++ MCP implementation (R28 delivers the E28-1 skeleton, the E28-2 `genia_parse` tool, and the E28-3 `genia_run` tool, the E28-4 stdio client configuration, the E28-5 conformance matrix, and the E28-6 demo and release-candidate documentation, with the VS Code/Copilot acceptance gate still open; see sections 9.41 to 9.46)
 
 ## 11) Example demos shipped in-repo
 
@@ -6587,6 +6587,7 @@ see `docs/releases/README.md`.
 - `examples/ants_web.genia`: browser visualization over the same ants simulation using the current blocking HTTP helper, JSON endpoints, and a Canvas renderer in plain browser JavaScript
 - `examples/validated_pipeline_demo.genia`: experimental first demo milestone for the Outcome-aware validated data pipeline direction — a file-mode demo covered by shared CLI spec `spec/cli/validated-data-pipeline-demo.yaml`; reads JSONL records from `examples/data/validated_pipeline_demo.jsonl`, validates each record using existing `parse_jsonl_record`, `validate_each`, `validate_record`, and `collect_validated` helpers, and emits clean records plus diagnostics; demonstrates the intended Outcome-aware validated data pipeline direction; does not add new helper/runtime semantics; Experimental
 - `examples/r3_validated_pipeline_native_tests.genia`: R3 native-test example for the validated-pipeline surface — runnable through the native test runner (`genia test examples/r3_validated_pipeline_native_tests.genia`); covers Outcome-boundary preservation through `validate_each`, direct `validate_each(...) |> collect_validated(...)` composition, and a JSONL-style pipeline with clean/diagnostic observability; uses existing `test(name, body)` native-test syntax and existing validation/Outcome helpers; validated by `tests/unit/test_r3_validated_pipeline_native_test_examples.py`; this is selected native coverage only, not complete validated-pipeline coverage; Experimental
+- `examples/mcp/validated_records.genia` and `examples/mcp/validated_records_broken.genia`: the R28 MCP demo — an Outcome-aware validated record pipeline (`validate_record`, `validate_each`, `collect_validated`) and the same program with one deliberate syntax error, used to show `genia_parse` diagnostics; both are ordinary Genia that runs unchanged through the Genia MCP server's `genia_run` (walkthrough `docs/mcp/demo.md`; R28 is not complete)
 - `examples/ollama_chat.genia`: Experimental application composition over existing R9/R10/R13/R14/R20 behavior — named `Ollama` and `Groq` Value Templates select independent open-function clauses for backend profile, inert request operation, and response-content extraction while generic code owns configuration precedence, immutable conversation state, HTTP status/JSON normalization, and complete Outcome continuation; local Ollama runs directly through `genia`, while Groq currently uses `hosts/python/exec_ollama_chat.py` to construct a provider-matched `chat_outbound` declassification authority for the existing protected HTTP sink; `GROQ_AUTHORIZATION` is the complete protected header value, including `Bearer `, because pure Genia cannot concatenate an ordinary prefix with a protected carrier; the launcher is Python reference-host realization, not portable language behavior or final launcher architecture; it does not add Ollama/Groq to R11 `model/4`, add language/Core IR semantics, weaken secret protection, or imply future-host networking; portable behavior and the Python protected-sink boundary are validated by `tests/native/ollama_chat_example.genia` and `tests/unit/test_ollama_chat_example.py`; Experimental
 
 `examples/ants.genia` intentionally uses only currently implemented features:
@@ -6688,3 +6689,31 @@ cannot connect and E28-5 recommends no amendment before the VS Code/Copilot run 
 VS Code or Copilot run is recorded (R28-H39); Streamable HTTP is deferred and C++ MCP is not
 supported; R28 is not complete and E28-6 (demo, publishing, final audit) remains. Issue #1078 (the
 spec-runner adapter timeout) is separate infrastructure work.
+
+## 9.46) R28 E28-6 demo, publishing documentation, and release-candidate audit (issue #707)
+
+Documentation, example, and entrypoint phase. It adds no Genia syntax, builtin, Core IR node, MCP tool,
+resource, prompt, or transport. **R28 is not complete**: this section records a release candidate.
+
+- **Demo:** `docs/mcp/demo.md` walks a first-time user from `git clone` to parse, diagnose, repair, and run of
+  an Outcome-aware validated record pipeline through the MCP server, using the ordinary Genia in
+  `examples/mcp/` (tested by `tests/unit/test_r28_mcp_demo.py`).
+- **Entrypoint:** `scripts/genia-mcp`, a POSIX shell script that takes no arguments, works from any
+  directory, and starts the launcher the checked-in `.mcp.json` starts (`uv` or Python 3.10+). The `genia`
+  CLI, `pyproject.toml`, and the wheel are unchanged; no package, registry, or container publication
+  exists.
+- **Reference and limits:** `docs/mcp/reference.md` (schemas, envelope, error kinds, limits),
+  `docs/mcp/security-and-deployment.md` (a defense-in-depth profile, not a security sandbox and not
+  production multi-tenant isolation), `docs/mcp/host-portability.md` (native Genia versus Python reference
+  host; no C++ MCP implementation and no cross-host parity).
+- **Clients:** the official TypeScript client is automated in CI; the official Inspector 2.9.0 CLI was run
+  manually (not in CI); both default to the legacy `initialize` handshake the server does not implement and
+  need version negotiation `auto`. VS Code with GitHub Copilot has **not** been run (R28-H39); the
+  procedure is `docs/mcp/vscode-copilot-acceptance.md` and the record is
+  `docs/mcp/acceptance/vscode-copilot-evidence.md` (`NOT EXECUTED`).
+- **Release gate:** `tests/unit/test_r28_release_gate.py` fails any document that claims R28 complete
+  until that record is executed, complete, and `PASS` with the host having negotiated `server/discover`.
+- **Audit:** `docs/design/r28-e28-6-final-audit-plan.md` and the ledger disposition of every non-closed
+  entry; new findings R28-H42 (a failed run returns no diagnostic text) and R28-H43 (evidence is Linux only).
+- **Release page:** `docs/releases/R28.md` (Release Candidate). The R20 follow-up (#1067) remains scheduled
+  after R28 and before R29; #1078 remains separate infrastructure work.

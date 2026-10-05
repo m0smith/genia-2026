@@ -1,6 +1,6 @@
 # Genia MCP server over local stdio (development guide)
 
-Status: R28 E28-4 (issue #705), conformance evidence in E28-5 (`docs/mcp/conformance-matrix.md`). `GENIA_STATE.md` is the final authority. This is a local
+Status: R28 E28-4 (issue #705), conformance evidence in E28-5 (`docs/mcp/conformance-matrix.md`); public walkthrough `docs/mcp/demo.md`, reference `docs/mcp/reference.md`, limits `docs/mcp/security-and-deployment.md`. `GENIA_STATE.md` is the final authority. This is a local
 development tool for trusted stdio clients: it is **not a security sandbox**.
 
 ## What you get
@@ -22,8 +22,8 @@ secret.
   or `git` it fails closed with one stderr line).
 - `uv` on `PATH` and a Python 3.10+ interpreter `uv` can find. Nothing is installed or downloaded
   at launch.
-- POSIX (Linux or macOS). Windows is not supported.
-- The client must start the command with the repository root as working directory.
+- Linux. This is the only platform with recorded evidence; macOS is not verified; Windows is not supported.
+- The client must start that command with the repository root as working directory, or use `scripts/genia-mcp` (no arguments), which works from any directory and starts the same launcher.
 
 ## Use
 
@@ -58,8 +58,8 @@ mode behaves). The full evidence matrix is `docs/mcp/conformance-matrix.md`; run
 as on a host that denies unprivileged namespaces with `GENIA_R28_TEST_DENY_NAMESPACE=1`.
 
 A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment: we do not claim one
-(ledger R28-H39). Manual procedure, to be performed on a developer machine, with the record the
-release audit needs:
+(ledger R28-H39). The exact procedure and the record format are `docs/mcp/vscode-copilot-acceptance.md` and
+`docs/mcp/acceptance/vscode-copilot-evidence.md`; the summary:
 
 1. Record the VS Code version and the Copilot extension version.
 2. Open the repository folder as the workspace and trust it; start the `genia` server from the MCP

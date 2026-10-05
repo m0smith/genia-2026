@@ -69,7 +69,7 @@ def _record():
         if not line.strip() or line.lstrip().startswith("#"):
             continue
         key, _, value = line.partition(":")
-        fields[key.strip()] = value.strip()
+        fields[key.strip()] = re.sub(r"^#.*$|\s{2,}#.*$", "", value.strip()).strip()
     return fields
 
 
@@ -108,15 +108,17 @@ def _release_satisfied(fields):
 
 
 def _claims_complete(text):
-    """Lines that call R28 complete (a negated or conditional mention is not a claim)."""
+    """Sentences in which R28 itself is called complete (a negated or conditional mention is not a claim)."""
     claims = []
     for line in text.splitlines():
-        if "R28" not in line:
-            continue
-        for match in re.finditer(r"\bcomplete(d)?\b", line, re.I):
-            before = line[max(0, match.start() - 40): match.start()].lower()
-            if re.search(r"\bnot\b|\bis not\b|until|only when|only after|before|incomplete|never|cannot|"
-                         r"may not|must not|become|becomes|marked", before):
+        for match in re.finditer(r"R28", line):
+            tail = re.split(r"[.;]", line[match.start(): match.start() + 90])[0]
+            found = re.search(r"\bcomplete(d)?\b", tail, re.I)
+            if not found:
+                continue
+            context = line[max(0, match.start() - 50): match.start()] + tail[: found.start()]
+            if re.search(r"\bnot\b|until|only when|only after|before|incomplete|never|cannot|may not|must not|"
+                         r"become|becomes|marked|\bmark\b|\bcall\b|\bclaims?\b|\bif\b|unless", context, re.I):
                 continue
             claims.append(line.strip())
     return claims
