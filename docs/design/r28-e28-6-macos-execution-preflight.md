@@ -148,7 +148,7 @@ The probe printed `VERDICT OK`; Darwin rejects `setrlimit(RLIMIT_AS, ...)` with 
 `test_r28_mcp_run.py` gave 64 passed, 5 failed, 4 skipped. The five failures are one test-observation
 sub-finding: the `ps` backend never saw the governed worker. Repaired without weakening any lifecycle assertion
 (case-insensitive interpreter name for macOS's `Python.app`; `ps -ww` against terminal-width truncation) and
-diagnosable with `tools/mcp_diagnostics/process_probe.py`.
+diagnosable with `tools/mcp_diagnostics/process_probe.py`. Second Mac run (`c4cf1743`): `VERDICT OK`; the cause was macOS's interpreter name `Python`; the five tests pass.
 
 ## GO / NO-GO
 

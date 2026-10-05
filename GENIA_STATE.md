@@ -6780,11 +6780,12 @@ prompt, protocol, authority, limit, parse behavior, or envelope changed.
   73 `test_r28_mcp_run.py` tests pass; development-only worker diagnostic `GENIA_MCP_WORKER_DIAG=1`, on the worker's
   own stderr, never forwarded, never on the wire). The 5 remaining failures were test-observation only (the `ps`
   backend did not recognise the governed worker: macOS names the interpreter `Python`; `ps` needs `-ww`);
-  repaired, awaiting macOS verification (`tools/mcp_diagnostics/process_probe.py`).
+  repaired and Mac-verified (`tools/mcp_diagnostics/process_probe.py` `VERDICT OK`; the 5 tests pass; the cause was
+  macOS's interpreter name `Python`; `-ww` was not needed here).
 - **Tests:** `tests/unit/test_r28_mcp_portability.py` (simulated Darwin rejection, fail-closed rules, wire
   regression, diagnostic hygiene, probe, `ps`/`lsof` process backend); the lifecycle helpers use `/proc` on Linux
   and `ps`/`lsof` where there is no `/proc`; Linux-only namespace tests are skipped elsewhere with a stated reason.
-- **Not claimed:** a full macOS pass (the lifecycle/cancellation rows are not yet Mac-verified). macOS governed execution, worker supervision, cancellation, timeout, and cleanup
+- **Not claimed:** a full macOS pass (the rest of the R28 suites are not yet run on a Mac). macOS governed execution, worker supervision, cancellation, timeout, and cleanup
   remain **unverified** until the owner's macOS commands and VS Code run 3. R28 is **not complete**; R28-H39 and
   R28-H47 stay open; R28-H36 (protocol compatibility) is closed by run 2.
 
