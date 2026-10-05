@@ -28,9 +28,9 @@ that `.mcp.json` should work do not satisfy it. H36 (legacy `initialize`) was de
 | Gate | Requirement | Status | Evidence / blocker |
 |---|---|---|---|
 | G1 | Exactly three tools, no resources/prompts/HTTP | PASS | M:D1–D6, `client::test_the_official_client_completes_the_acceptance_scenario`, Inspector run (section 5) |
-| G2 | Authentic VS Code + Copilot run, evidence recorded (C§12.2, issue #707 hard gate) | **BLOCKER** | Run 1 (owner, 2026-10-05, VS Code 1.138.0 / Copilot Chat 0.66.0 / macOS) executed and **failed at `initialize`** (recorded verbatim as `evidence run=1`); run 2, after amendment A5, is `NOT EXECUTED`. The audit environment itself has no VS Code, GUI, or Copilot authentication |
+| G2 | Authentic VS Code + Copilot run, evidence recorded (C§12.2, issue #707 hard gate) | **BLOCKER** | Run 1 (owner, 2026-10-05, macOS) **failed at `initialize`**; run 2 (after amendment A5) **failed at `genia_run`**: protocol, three tools, capabilities, and parse worked, governed execution did not run on macOS (H47). Both recorded unedited; run 3 after the macOS repair is `NOT EXECUTED`. The audit environment itself has no VS Code, GUI, macOS, or Copilot authentication |
 | G3 | "At least one mainstream MCP host/client can connect over stdio" (E28-4 acceptance, #705) and the epic's "ordinary MCP client" criterion | **BLOCKER** | #705 closed on official-SDK evidence only; same missing passing run as G2. After amendment A5 the SDK default, Inspector default, `auto`, and pin all connect in automation, which is not mainstream-host evidence |
-| G4 | H36 disposition | **BLOCKER (amended; verified by run 2)** | Run 1 sent `initialize` and could not connect; the amendment proposal was approved as contract A5 and implemented natively (section 8). H36 closes only when run 2 passes |
+| G4 | H36 disposition | **PASS (closed by run 2)** | Run 1 sent `initialize` and could not connect; contract A5 was implemented natively (section 8) and run 2 proved negotiation and tool discovery in authentic VS Code. Execution is G2/H47 |
 | G5 | Runnable demo, no repository-internal knowledge | PASS | `docs/mcp/demo.md`, `examples/mcp/`, `tests/unit/test_r28_mcp_demo.py`, clean-clone run (section 5) |
 | G6 | Packaging/publishing and executable entrypoint | PASS | Decision section 6: repository launcher plus `scripts/genia-mcp`; no new CLI contract, no registry/PyPI/npm claim |
 | G7 | MCP reference, security/deployment limitations, host-portability statement | PASS | `docs/mcp/reference.md`, `docs/mcp/security-and-deployment.md`, `docs/mcp/host-portability.md` |
@@ -72,8 +72,9 @@ disposition is in the ledger; this is the table.
 | H29 no implicit `main` vs `-c` dispatch | accepted R28 limitation | contract wins; difference pinned (M:R9) |
 | H30 rendering cannot be bounded incrementally | accepted R28 limitation | deadline, `RLIMIT_AS`, post-check (M:L8) |
 | H32 debug renderer exposes host representations | accepted R28 limitation | no contract requirement violated (section 7.2); values are canonical debug text, not a portable serialization |
-| H36 legacy-`initialize` clients | **held open (amended; verified by run 2)** | run 1 failed at `initialize`; amendment A5 implemented (two eras, native Genia); automated and official-client evidence passes; awaiting run 2 |
-| H39 VS Code/Copilot acceptance | **held open: release blocker** | run 1 failed at `initialize`; run 2 pending (G2/G3) |
+| H36 legacy-`initialize` clients | **closed (run 2)** | amendment A5 implemented; authentic VS Code negotiated, listed three tools, and parsed |
+| H39 VS Code/Copilot acceptance | **held open: release blocker** | run 1 failed at `initialize`; run 2 failed at `genia_run` (H47); run 3 pending (G2/G3) |
+| H47 governed worker does not run on macOS | **held open: release blocker** | repair implemented (platform-aware limits, portable test backend); awaiting the owner's macOS verification and run 3 |
 | H40 UTF-16 surrogate escapes | accepted R28 limitation | contract requires no preservation of non-scalar code units; fails closed; no new string semantics (section 7.2) |
 
 New in this phase: H42 (no runtime diagnostic text for agents), H43 (the platform evidence is Linux only; macOS run 1 proved only discovery, launcher start, and stdio JSON-RPC transport). Both are accepted limitations (section 7.3). Added after run 1: H44 (gate schema; closed), H45 (post-`initialize` VS Code behavior inferred; open), H46 (run 1 revision not recorded; accepted).
@@ -182,3 +183,15 @@ from the amended contract.
 **Decision: NOT READY TO CLOSE — awaiting post-amendment authentic VS Code/Copilot acceptance (run 2).**
 Unchanged blockers: G2, G3, G4 (verification), G12. New open item: H45 (VS Code behavior after `initialize`
 is inferred). Owner procedure: `docs/mcp/vscode-copilot-acceptance.md`.
+
+## 9. Run 2 and the macOS finding (after authentic run 2, 2026-10-05)
+
+Run 2 on revision `66b50594` proved amendment A5 in authentic VS Code (H36 closed) and failed at `genia_run`:
+the governed worker did not run on macOS, and the macOS test suite showed Linux-only test infrastructure (`/proc`).
+Pre-flight `docs/design/r28-e28-6-macos-execution-preflight.md` (GO, conditional on the Mac probe confirming
+`RLIMIT_AS`). Repair: platform-aware limits (four POSIX limits fail closed everywhere; `RLIMIT_AS` fails closed
+except on Darwin), a portable process-inspection test backend, Linux-only namespace tests skipped elsewhere,
+`tools/mcp_diagnostics/worker_probe.py`, and a development-only worker diagnostic. No contract change was needed.
+
+**Decision: NOT READY TO CLOSE — awaiting successful macOS governed-execution verification and authentic VS
+Code/Copilot acceptance (run 3).** Open items: G2, G3, G12, H39, H47 (macOS verification), H45.

@@ -19,7 +19,7 @@ behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`. 
   never answered; the latter changes nothing). Everything else is `-32601`.
 - Tools: exactly `genia_capabilities`, `genia_parse`, `genia_run`, in that order.
 - **No MCP resources. No MCP prompts. No HTTP transport. No C++ MCP implementation.**
-- Platform: Python reference host, POSIX. Verified on Linux; macOS is not verified; Windows is not
+- Platform: Python reference host, POSIX. Verified on Linux. macOS: not yet verified (run 2 found `genia_run` failing there; repair pending verification, ledger R28-H47; on macOS there is no address-space bound and no network namespace); Windows is not
   supported.
 
 ## The 2025-11-25 era

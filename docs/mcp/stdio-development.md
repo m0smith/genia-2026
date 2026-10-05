@@ -22,7 +22,7 @@ secret.
   or `git` it fails closed with one stderr line).
 - `uv` on `PATH` and a Python 3.10+ interpreter `uv` can find. Nothing is installed or downloaded
   at launch.
-- POSIX. Linux is the only platform with recorded evidence; macOS is not verified; Windows is not supported.
+- POSIX. Linux is the only platform with recorded evidence; macOS is not yet verified (authentic VS Code run 2 on macOS: discovery, negotiation, capabilities and parse worked, `genia_run` failed; repair pending verification, ledger R28-H47); Windows is not supported.
 - The client must start that command with the repository root as working directory, or use `scripts/genia-mcp` (no arguments), which works from any directory and starts the same launcher.
 
 ## Use

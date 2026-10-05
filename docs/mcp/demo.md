@@ -18,7 +18,7 @@ Status of each part, so nothing is mistaken for more than it is:
 
 ## Prerequisites
 
-- **Linux.** This is the only platform with recorded evidence. macOS is not verified. Windows is not supported.
+- **Linux.** This is the only platform with recorded evidence. **macOS is not yet verified**: on macOS the discovery and parse tools worked in an authentic VS Code run, but `genia_run` failed there; a repair awaits macOS verification. Windows is not supported.
 - `git`, and either `uv` (recommended) or Python 3.10 or newer, on `PATH`. Nothing is installed or downloaded when the server starts.
 - A **git clone** of the repository (the server reports the clone's commit as its revision; a copy without
   `.git` refuses to start with one line on stderr).

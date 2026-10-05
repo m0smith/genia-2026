@@ -35,7 +35,7 @@ sandbox claim.
   `e3wrk`, `e4cfg`, `e4launch`, `e4life`, `arch`, `launcher`, `client` = the existing
   `tests/unit/test_r28_mcp_<name>.py` files (`skeleton`, `parse`, `run`, `run_supervisor`,
   `run_worker`, `stdio_config`, `stdio_launch`, `stdio_lifecycle`, `architecture`, `launcher`,
-  `official_client`); E28-6 adds `demo`, `entry` and `gate` = `test_r28_mcp_demo.py`, `test_r28_mcp_entrypoint.py`, `test_r28_release_gate.py`; amendment A5 adds `compat` (`test_r28_mcp_compat.py`, protocol) and `compatconf` (`test_r28_mcp_compat_conformance.py`, both-era conformance). `tests/unit/test_r28_mcp_conformance_matrix.py` fails if a cited test is missing.
+  `official_client`); E28-6 adds `demo`, `entry` and `gate` = `test_r28_mcp_demo.py`, `test_r28_mcp_entrypoint.py`, `test_r28_release_gate.py`; amendment A5 adds `compat` (`test_r28_mcp_compat.py`, protocol), `compatconf` (`test_r28_mcp_compat_conformance.py`, both-era conformance) and `port` (`test_r28_mcp_portability.py`, macOS portability). `tests/unit/test_r28_mcp_conformance_matrix.py` fails if a cited test is missing.
 - **Namespace:** wire tests marked *(ns)* run with the host's real namespace behavior **and** with
   `unshare` simulated as denied; the whole R28 suite can also be run denied with
   `GENIA_R28_TEST_DENY_NAMESPACE=1`. The namespace is defense in depth, never the security contract.
@@ -163,7 +163,7 @@ and autoloads.
 | A18 | Complete deny list: every denied binding and autoload is rejected statically **and** absent after pruning **and** unbound at runtime | S | [H24] | all three | n/a | n/a | `security::test_every_denied_binding_and_autoload_is_unavailable_after_pruning`; `security::test_every_denied_name_is_rejected_statically_and_unbound_at_runtime`; `e3wrk::test_every_binding_and_autoload_is_explicitly_classified` | a user definition that only *defines* a denied name is not rejected; any reference is | PASS |
 | A19 | Indirection (`eval`, `lookup`) cannot reach a denied name | S | [H24] | static policy; pruned child environment | n/a | `policy_denied` / `runtime_error` | `security::test_static_policy_denies_every_authority_at_the_wire`; `security::test_authority_with_no_genia_binding_at_all_is_unavailable_not_stubbed`; `e3wrk::test_indirection_cannot_reach_prohibited_authority` | none | PASS |
 | A20 | Outcomes identical with the namespace granted or denied | H | E28-3 §5 | wire | n/a | identical | `security::test_authority_outcomes_are_identical_with_the_namespace_granted_or_denied` | none | PASS |
-| A21 | Host/OS defense in depth: rlimits (`FSIZE`=0, `AS`, `CPU`, `NOFILE`, `CORE`) | H | E28-3 §5 | process limits | n/a | n/a | `e3wrk::test_worker_applies_process_limits` | not a sandbox | PASS |
+| A21 | Host/OS defense in depth: rlimits (`FSIZE`=0, `CPU`, `NOFILE`, `CORE` on every platform; `AS` on Linux, absent on macOS by design; see section M) | H | E28-3 §5 | process limits | n/a | n/a | `e3wrk::test_worker_applies_process_limits` | not a sandbox | PASS |
 | A22 | Process/network namespace: optional, verified once at host initialization, claimed nowhere | H | E28-3 §5, [H33] | probe | n/a | n/a | `e3run::test_isolation_probe_runs_once_during_initialization_before_readiness`; `e3run::test_denied_namespace_degrades_honestly_and_runs_still_work`; `e3run::test_hanging_probe_is_bounded_at_startup_and_runs_degrade_to_unwrapped_workers` | availability depends on the host; hardened CI hosts deny it [H35] | PASS |
 
 ## S — Protected values and redaction
@@ -287,6 +287,22 @@ the `compatconf` rows run the same corpora as the modern rows and compare envelo
 | K14 | Lifecycle in the compat era: disconnect after `initialize`, repeated connections, failed-then-good initialize, SIGTERM mid-run; no orphan workers, no stale state | R | `compatconf::test_a_client_disconnect_after_initialize_leaves_nothing_behind`; `compatconf::test_repeated_connections_each_start_new_and_are_independent`; `compatconf::test_a_failed_initialize_then_a_good_one_still_works_and_runs_cleanly`; `compatconf::test_sigterm_mid_run_in_a_compat_session_reaps_the_worker` | PASS |
 | K15 | Architecture: no Python host module owns `initialize`, `ping`, protocol-version literals, or capability handling; the launcher is unchanged | P | `compat::test_no_python_host_module_gains_initialize_ping_or_any_protocol_version_literal`; `compat::test_the_launcher_and_host_are_unchanged_by_the_amendment` | PASS |
 
+## M — Platform portability (macOS governed execution, ledger R28-H47)
+
+Pre-flight: `docs/design/r28-e28-6-macos-execution-preflight.md`. Linux is the only platform with recorded evidence.
+macOS rows pass here only by *simulation* (a kernel that rejects `RLIMIT_AS`, and the `ps`/`lsof` process backend run
+on Linux); real macOS results are the owner's.
+
+| ID | Behavior | Class | Evidence | Status |
+|---|---|---|---|---|
+| M1 | A kernel that rejects `RLIMIT_AS` (Darwin) does not break `genia_run`: completed, parse, policy, runtime, and channel outcomes are all served | H | `port::test_a_darwin_kernel_rejecting_the_address_space_bound_does_not_break_every_run`; `port::test_discovery_and_parse_working_while_every_run_fails_cannot_recur_on_a_darwin_like_host` | PASS (simulated) |
+| M2 | Every other limit, and `RLIMIT_AS` on Linux, fails closed with `internal_error` (never runs without a bound) | S | `port::test_the_same_rejection_on_linux_fails_closed_for_every_run`; `port::test_a_rejected_portable_limit_fails_closed_on_every_platform`; `port::test_linux_still_applies_the_address_space_bound_and_fails_if_it_cannot` | PASS |
+| M3 | The portable limits are still applied when `RLIMIT_AS` is rejected; one platform decision, one tolerated limit | S | `port::test_a_rejected_address_space_bound_on_darwin_does_not_skip_the_portable_limits`; `port::test_only_the_address_space_bound_is_tolerated_and_only_on_darwin` | PASS |
+| M4 | The development diagnostic names an internal failure only on the worker's own stderr, only when asked, and never on the wire | S | `port::test_the_worker_names_an_internal_failure_on_its_own_stderr_only_when_asked`; `port::test_the_supervisor_never_forwards_the_diagnostic_switch_and_the_wire_stays_sanitized`; `port::test_the_probe_reproduces_the_production_path_and_localizes_a_failure` | PASS |
+| M5 | The lifecycle observation backend (`ps`/`lsof` where there is no `/proc`) sees descendants, command lines, identities, zombies, working directories, the governed worker, and listeners; the lifecycle suite also runs on the `ps` backend | R | `port::test_the_backend_sees_descendants_their_command_lines_and_identities`; `port::test_the_backend_counts_an_unreaped_zombie_as_alive`; `port::test_the_backend_reads_a_processs_working_directory`; `port::test_the_backend_finds_the_governed_worker_of_a_live_session_and_proves_cleanup`; `port::test_the_backend_sees_no_listener_for_the_launcher_chain`; `port::test_the_default_backend_is_proc_where_it_exists_and_ps_otherwise` | PASS |
+| M6 | Real macOS execution of the governed worker and the lifecycle suite | R | ledger [H47]; owner verification (`docs/mcp/vscode-copilot-acceptance.md`) | KNOWN LIMITATION |
+| M7 | macOS has no address-space bound and no network namespace (not claimed) | L | ledger [H47]; `docs/design/r28-e28-6-macos-execution-preflight.md` | KNOWN LIMITATION |
+
 ## E — E28-6 additions (demo, entrypoint, release gate)
 
 | ID | Item | Class | Evidence | Status |
@@ -295,5 +311,5 @@ the `compatconf` rows run the same corpora as the modern rows and compare envelo
 | E2 | The demo uses no authority the governed profile denies and the walkthrough needs no repository-internal knowledge | S | `demo::test_the_demo_uses_no_authority_the_governed_profile_denies`; `demo::test_the_walkthrough_is_self_contained_for_a_first_time_user` | PASS |
 | E3 | `scripts/genia-mcp` starts the same launcher from any directory with no arguments and no stderr noise; packaging unchanged | H | `entry::test_the_entrypoint_works_from_any_working_directory`; `entry::test_the_entrypoint_takes_no_arguments`; `entry::test_packaging_is_unchanged_no_new_cli_command_and_no_published_package_claim` | PASS |
 | E4 | Official MCP Inspector 2.9.0 (CLI): default era fails with `Method not found`; `--protocol-era auto` lists exactly three tools and runs `genia_run` | P | manually executed in the E28-6 audit; not automated; web and terminal UIs not executed; recorded in ledger [H36] | KNOWN LIMITATION |
-| E5 | The release-completion gate: no "R28 complete" claim unless the VS Code/Copilot record is executed, complete, secret-free, and `PASS` with `server/discover` | P | `gate::test_no_authoritative_document_claims_r28_complete_unless_the_evidence_allows_it`; `gate::test_the_ledger_keeps_h36_and_h39_open_until_the_evidence_is_released`; `gate::test_an_executed_passing_run_is_complete_secret_free_and_consistent` | PASS |
+| E5 | The release-completion gate: no "R28 complete" claim unless the VS Code/Copilot record is executed, complete, secret-free, and `PASS` with `server/discover` | P | `gate::test_no_authoritative_document_claims_r28_complete_unless_the_evidence_allows_it`; `gate::test_the_ledger_keeps_h39_and_h47_open_until_the_evidence_is_released`; `gate::test_an_executed_passing_run_is_complete_secret_free_and_consistent` | PASS |
 | E6 | Authentic VS Code + GitHub Copilot run (contract section 12.2) | P | ledger [H39]; `docs/mcp/acceptance/vscode-copilot-evidence.md` is `NOT EXECUTED` | KNOWN LIMITATION |

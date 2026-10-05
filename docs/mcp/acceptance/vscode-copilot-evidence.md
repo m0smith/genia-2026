@@ -71,14 +71,64 @@ Run 1 also shows (at the strength the trace supports) that on macOS the `.mcp.js
 launcher, the Genia MCP process start, and JSON-RPC request/response over stdio work; it does not show any
 Genia tool execution on macOS (ledger R28-H43).
 
-## Run 2: after amendment A5 (pending)
+## Run 2: after amendment A5, on revision `66b505949cb17a4a017291115efb8a1cc5970cab`
 
-**NOT EXECUTED.** To be performed by the repository owner on the amended branch with
-`docs/mcp/vscode-copilot-acceptance.md`. Expected: `negotiation_path: initialize`,
-`negotiated_protocol_version: 2025-11-25`. Do not fill any field from an SDK client, the Inspector,
-documentation, or reasoning.
+Executed by the repository owner on 2026-10-05, same machine and versions as run 1 (macOS, Darwin x64 24.6.0,
+VS Code `1.138.0`, GitHub Copilot Chat `0.66.0`), against commit
+`66b505949cb17a4a017291115efb8a1cc5970cab` of the PR #1082 branch. Reported by the owner (the raw VS Code
+trace for this run was not supplied; fields it would have filled say `not recorded`):
+
+- VS Code discovered `.mcp.json`, started Genia, and the server stayed **Running**.
+- VS Code reported `Discovered 3 tools`: `genia_capabilities`, `genia_parse`, `genia_run`.
+- `genia_capabilities` was invoked successfully.
+- `genia_parse` on the broken program returned the expected `parse_error` at character offset 171, and
+  `genia_parse` on the corrected program succeeded.
+- **`genia_run` of the canonical demo failed** with the sanitized adapter error:
+
+```json
+{"schema_version": "genia.mcp.v1", "status": "error", "result": null,
+ "error": {"kind": "internal_error", "message": "Internal error while executing", "phase": "adapter"}}
+```
+
+Consequences: the amendment A5 protocol compatibility is demonstrated in authentic VS Code (ledger R28-H36
+acceptance criteria met). The acceptance run still **fails**, at `genia_run` (ledger R28-H39, new finding
+R28-H47: the governed worker does not run on macOS). On the same Mac `uv run pytest
+tests/unit/test_r28_mcp_run.py -vv -s` gave 53 failed, 17 passed, 3 skipped: almost every execution test
+returned `internal_error` (a worker bootstrap failure; the Linux evidence is unaffected), and the lifecycle
+tests failed because the test helper assumed Linux `/proc` (`FileNotFoundError: /proc`).
 
 ```evidence run=2
+status: EXECUTED
+executed_on: 2026-10-05
+vscode_version: 1.138.0
+copilot_extension_version: 0.66.0
+repository_revision: 66b505949cb17a4a017291115efb8a1cc5970cab
+failed_at: run
+workspace_trusted: not recorded
+mcp_json_discovered: yes
+server_state_shown: Running
+negotiation_path: initialize
+negotiated_protocol_version: 2025-11-25
+host_log_excerpt: not recorded (owner reported: server Running, Discovered 3 tools, tool calls succeeded; the raw trace was not supplied)
+tools_visible: genia_capabilities, genia_parse, genia_run
+resources_or_prompts_visible: not recorded
+parse_invoked_from_host: yes
+invalid_source_feedback: parse_error at character offset 171
+corrected_source_parsed: yes
+run_invoked_from_host: yes
+run_result: FAIL: error internal_error (phase adapter), no value
+channel_separation_visible: not applicable (the run failed)
+clean_lifecycle_after_disconnect: not reached
+disposition: FAIL
+```
+
+## Run 3: after the macOS execution repair (pending)
+
+**NOT EXECUTED.** To be performed by the repository owner on the repaired branch with
+`docs/mcp/vscode-copilot-acceptance.md`, after the macOS verification commands in that document pass. Do
+not fill any field from an SDK client, the Inspector, documentation, or reasoning.
+
+```evidence run=3
 status: NOT EXECUTED
 executed_on:
 vscode_version:

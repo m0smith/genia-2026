@@ -6757,3 +6757,32 @@ Python host code: it is entirely native Genia in `apps/mcp/mcp.genia`.
   `ping`) rests on the SDK reference and run 1's trace; run 2 (pending; `docs/mcp/vscode-copilot-acceptance.md`)
   decides it. R28 is **not complete**; R28-H39 stays open. macOS evidence so far shows only that VS Code
   discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC (R28-H43).
+
+## 9.48) R28 E28-6 macOS portability of the governed `genia_run` profile (issue #707, ledger R28-H47)
+
+Trigger: authentic VS Code run 2 on macOS (Darwin x64 24.6.0, 2026-10-05, revision `66b50594`) proved amendment A5
+(negotiation, three tools, `genia_capabilities`, both `genia_parse` calls) but `genia_run` returned the sanitized
+`internal_error`; `tests/unit/test_r28_mcp_run.py` gave 53 failed, 17 passed, 3 skipped there. Pre-flight:
+`docs/design/r28-e28-6-macos-execution-preflight.md`. No Genia syntax, builtin, Core IR node, MCP tool, resource,
+prompt, protocol, authority, limit, parse behavior, or envelope changed.
+
+- **Worker limits are platform-aware.** `hosts/python/mcp_worker.py` `apply_limits()` applies `RLIMIT_FSIZE` 0,
+  `CORE` 0, `CPU` 10 s, `NOFILE` 64 on every platform, and `RLIMIT_AS` 2 GiB on every platform; any failure is
+  `internal_error` (the worker never runs without them). The single exception: on Darwin a rejected
+  `RLIMIT_AS` is tolerated (the kernel rejects an address-space bound below the process's current virtual size).
+  Linux behavior is unchanged. One execution model, same envelopes, on every platform.
+- **macOS has a weaker resource bound and no namespace.** There is no address-space bound on macOS, so memory is
+  bounded only by the 5,000 ms deadline and the 10 s CPU limit; there is no network namespace (Linux-only); the
+  network, file, process, and import denial rests on the static policy, the pruned environment, and the runtime
+  stubs. No namespace or sandbox is claimed on macOS.
+- **Root cause status:** the failing operation is localized to the worker's pre-readiness bootstrap and the
+  failure signature is reproduced on Linux by a rejected `RLIMIT_AS`; the exact Darwin call is a working
+  hypothesis until the owner runs `tools/mcp_diagnostics/worker_probe.py` on the Mac (development-only worker
+  diagnostic `GENIA_MCP_WORKER_DIAG=1`, written to the worker's own stderr, never forwarded, never on the wire).
+- **Tests:** `tests/unit/test_r28_mcp_portability.py` (simulated Darwin rejection, fail-closed rules, wire
+  regression, diagnostic hygiene, probe, `ps`/`lsof` process backend); the lifecycle helpers use `/proc` on Linux
+  and `ps`/`lsof` where there is no `/proc`; Linux-only namespace tests are skipped elsewhere with a stated reason.
+- **Not claimed:** any macOS pass. macOS governed execution, worker supervision, cancellation, timeout, and cleanup
+  remain **unverified** until the owner's macOS commands and VS Code run 3. R28 is **not complete**; R28-H39 and
+  R28-H47 stay open; R28-H36 (protocol compatibility) is closed by run 2.
+

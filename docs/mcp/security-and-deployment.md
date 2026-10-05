@@ -13,7 +13,7 @@ production multi-tenant isolation**. Do not expose it to untrusted callers.
 | A fresh, disposable worker per `genia_run` call; nothing carries over between calls | one process per call in its own process group, killed and reaped after every call (M:R10, X9, Y7) |
 | A fixed minimal worker environment | only loader and encoding variables; no `PATH`, no `HOME`, no user variables (M:A3) |
 | A private, empty working directory, removed after the worker is reaped | `genia-worker-*` temporary directory (M:X2, Y6) |
-| Operating-system resource limits in the worker | no file writes (`RLIMIT_FSIZE` 0), no core dumps, CPU 10 s, 64 open files, 2 GiB address space (M:A21) |
+| Operating-system resource limits in the worker | no file writes (`RLIMIT_FSIZE` 0), no core dumps, CPU 10 s, 64 open files on every platform, and a 2 GiB address-space bound on Linux; **macOS has no address-space bound** (M:A21, M:M1-M5) |
 | Bounded execution | fixed 5,000 ms deadline from worker readiness; kill and reap of the whole process group on timeout, cancellation, overflow, or any failure (M:T1–T8, X1–X10) |
 | Bounded input and output in UTF-8 bytes | source 262,144; stdout, stderr and value 1,048,576 each; whole result 3,276,800; enforced incrementally (M:L1–L9) |
 | A restricted Genia environment | a default-deny classification: only explicitly allowed bindings survive; a new binding is denied until classified, enforced by a drift test (M:A18) |
@@ -71,6 +71,6 @@ pruned environment, runtime stubs, and limits are the contract; the namespace is
 ## Deployment
 
 Supported: run the server from a git clone on Linux as a stdio child of a trusted client on the same machine
-(`docs/mcp/demo.md`). Not verified: macOS. Not supported: Windows. Prerequisites: `git`, and `uv` or
+(`docs/mcp/demo.md`). macOS: **not yet verified** — run 2 showed `genia_run` failing there; the repair (ledger R28-H47) is awaiting the owner's macOS verification, and even then macOS has no address-space bound and no network namespace (network denial rests on the policy, pruned-binding, and runtime-stub layers). Not supported: Windows. Prerequisites: `git`, and `uv` or
 Python 3.10+. Nothing is installed or downloaded when the server starts. There is no published package, no
 container image, and no registry entry; the supported distribution is the repository checkout.

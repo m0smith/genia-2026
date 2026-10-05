@@ -37,7 +37,7 @@ language feature by R28.
 
 - C++ MCP support, and any statement that the same `mcp.genia` runs over another host's capability boundary.
 - Cross-host MCP conformance or parity evidence.
-- Windows host support. macOS is unverified.
+- Windows host support. macOS is unverified: the governed worker's process limits are platform-aware (ledger R28-H47) but no macOS run has passed yet.
 - Streamable HTTP, MCP resources, MCP prompts, an MCP client inside Genia, an agent framework.
 
 The architecture keeps host code narrow so that a later host could provide the same capabilities, but R28

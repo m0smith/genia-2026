@@ -660,7 +660,7 @@ pre-flight, when promoted), **raised in**.
 - Raised in: E28-3 implementation (third CI repair).
 
 **R28-H36 — Default-configured official SDK clients use the legacy `initialize` handshake**
-- Class: **N (contract-mandated limitation; interoperability risk)**. Status: `open`.
+- Class: **N (contract-mandated limitation; interoperability risk)**. Status: `closed` (2026-10-05, authentic run 2).
 - Evidence: the official TypeScript client `@modelcontextprotocol/client` 2.2.0 (2026-09-28, spec
   2026-07-28) defaults to `DEFAULT_VERSION_NEGOTIATION_MODE = "legacy"`. Against the launcher its
   `connect()` sent `{"method":"initialize","params":{"protocolVersion":"2025-11-25",...}}` and
@@ -730,6 +730,16 @@ pre-flight, when promoted), **raised in**.
 - E28-6 amendment A5 final disposition: **Implemented; remains open.** Automated and official-client
   evidence is not VS Code evidence: H36 closes only when run 2 (post-amendment, authentic) passes (see H39).
   Not verified for VS Code: the `initialized` notification, when `tools/list` is sent, `ping` use.
+- Run 2 evidence and closure (2026-10-05, owner, macOS, VS Code 1.138.0, Copilot Chat 0.66.0, revision
+  `66b505949cb17a4a017291115efb8a1cc5970cab`): after amendment A5, authentic VS Code discovered `.mcp.json`,
+  started Genia (it stayed Running), reported `Discovered 3 tools` (`genia_capabilities`, `genia_parse`,
+  `genia_run`), invoked `genia_capabilities` successfully, received the expected `parse_error` at character
+  offset 171 from `genia_parse` on the broken program, and parsed the corrected program. H36's acceptance
+  criteria (an authentic mainstream host negotiates, lists exactly the three tools, and its parse
+  exchange works) are therefore **met and the entry is closed**. H36 says nothing about execution: the same run's
+  `genia_run` failed for an unrelated reason (macOS governed execution, H47), which is carried by H39 and H47.
+  Still unobserved for VS Code: the `initialized` notification, `ping` (H45).
+- E28-6 final disposition: Closed by run 2 (protocol compatibility demonstrated in authentic VS Code).
 
 **R28-H37 — A stdio client may launch the server more than once, through a wrapper chain**
 - Class: **N (client behavior, observed)**. Status: `closed`.
@@ -790,6 +800,15 @@ pre-flight, when promoted), **raised in**.
   resources or prompts, accepted parse and run, and a clean disconnect. The procedure the owner follows is
   `docs/mcp/vscode-copilot-acceptance.md`.
 
+- Run 2 (2026-10-05, owner, macOS Darwin x64 24.6.0, VS Code 1.138.0, Copilot Chat 0.66.0, revision
+  `66b505949cb17a4a017291115efb8a1cc5970cab`): protocol and tool discovery, capabilities, and both parse calls
+  succeeded (see H36). The canonical `genia_run` failed with the sanitized `internal_error` (phase `adapter`):
+  the governed worker does not run on macOS (H47). Recorded unedited as `evidence run=2`, `failed_at: run`,
+  `FAIL`; run 1 is unchanged.
+- E28-6 run-2 disposition: **Held open: release blocker (was: the protocol; now: macOS governed execution).**
+  Run 3 follows the H47 repair and the owner's macOS verification commands
+  (`docs/mcp/vscode-copilot-acceptance.md`).
+
 **R28-H40 — UTF-16 surrogate escapes in program strings cannot cross the JSON boundary unchanged**
 - Class: **N (host string representation; documented limitation)**. Status: `open` (for the E28-6 audit).
 - Evidence: found by the E28-5 channel matrix. Genia `\u` escapes build strings holding UTF-16
@@ -843,7 +862,9 @@ pre-flight, when promoted), **raised in**.
 - Disposition: documentation corrected in E28-6 to "Linux verified; macOS not verified; Windows not
   supported". No code change.
 - E28-6 final disposition: Accepted R28 limitation (stated in `docs/mcp/demo.md`, `reference.md`, `security-and-deployment.md`, `stdio-development.md`, and the release page).
-- Run 1 (macOS) at actual strength: it proved only that VS Code discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC to it on macOS. It did **not** reach tool execution, so it says nothing about the worker, process groups, the namespace layer, temp-directory cleanup, or cancellation on macOS. Those remain unverified there; Linux remains the only platform with lifecycle evidence.
+- Run 1 (macOS) at actual strength: it proved only that VS Code discovered `.mcp.json`, started the launcher, and spoke stdio JSON-RPC to it on macOS.
+- Run 2 (macOS), at actual strength: macOS now also proves MCP negotiation (`2025-11-25`), capabilities, tool discovery, and the parse path (the host-process parse capability). It proves that **governed execution did not work on macOS**: `genia_run` returned `internal_error` and 53 of 73 tests in `test_r28_mcp_run.py` failed there (H47). Worker supervision, process groups, cancellation, timeout, and cleanup are unverified on macOS (the macOS-only evidence is failure). After the H47 repair the platform claim is still only "Linux verified"; macOS becomes verified only by the owner's macOS commands and run 3.
+- E28-6 run-2 update: macOS evidence is stated above at its actual strength; the accepted-limitation wording "Linux verified; macOS not verified" stays until run 3 and the macOS suite pass.
 - Raised in: E28-6.
 
 **R28-H44 — The release gate could not represent a failed authentic run**
@@ -865,6 +886,15 @@ pre-flight, when promoted), **raised in**.
 - Disposition: the run 2 procedure makes `git rev-parse HEAD` the first step and the gate requires it.
 - E28-6 final disposition: Accepted: run 1 is history, not release evidence; run 2 must carry its revision.
 - Raised in: E28-6 (A5).
+
+**R28-H47 — The governed worker does not run on macOS: every `genia_run` is `internal_error`**
+- Class: **N (portability defect; Linux-only assumptions in the supervisor tests)**. Status: `open` (repair implemented; awaiting macOS verification).
+- Evidence: authentic run 2 and the owner's `pytest tests/unit/test_r28_mcp_run.py` on macOS (53 failed, 17 passed, 3 skipped). Class A: nearly every execution test, including worker-decided outcomes (`parse_error`, `policy_denied`, `runtime_error`), returned `internal_error`, i.e. the worker failed in its bootstrap before it read the source; `genia_parse` (host process) and discovery were unaffected. Class B: the test helper read `/proc` (absent on macOS), and the namespace tests assumed `/proc/net/dev` and `unshare`. The `ModuleNotFoundError: hosts` from running `mcp_worker.py` as a script is not the production path (production uses `-m hosts.python.mcp_worker` with `PYTHONPATH`).
+- Root cause: localized to the worker's `apply_limits()` (the only platform-sensitive production step before readiness; the supervisor, `Popen`, `start_new_session`, `killpg`, `select`, pruned environment, and the working directory are POSIX and the same on Linux). Linux reproduces the identical failure signature when the worker's `setrlimit(RLIMIT_AS)` raises. **The exact Darwin operation was not observed** (no macOS here): the working hypothesis is `RLIMIT_AS`, which Darwin rejects when the bound is below the process's current virtual size. `tools/mcp_diagnostics/worker_probe.py` and the development-only `GENIA_MCP_WORKER_DIAG` stderr diagnostic exist to confirm or refute it on the Mac in one command; the wire stays sanitized.
+- Disposition: (pre-flight `docs/design/r28-e28-6-macos-execution-preflight.md`) macOS can meet the R28 contract (no contract text names an rlimit, `/proc`, or a namespace). The four POSIX limits (`FSIZE`, `CORE`, `CPU`, `NOFILE`) are required and fail closed on every platform; `RLIMIT_AS` is required and fails closed on every platform except Darwin, where a rejection is tolerated and the memory bound is absent (a documented, weaker macOS bound). No other failure is tolerated; no Linux behavior changed; no namespace or sandbox is claimed on macOS. Tests: `test_r28_mcp_portability.py` (red first), a portable process-inspection backend (`/proc` on Linux, `ps`/`lsof` on macOS, tested on Linux), Linux-only namespace tests skipped elsewhere with a stated reason.
+- Follow-up candidates (not in R28): a supervisor-side memory watchdog for macOS; a reviewed macOS sandbox mechanism.
+- E28-6 final disposition: Held open until the owner's macOS verification and run 3; the weaker macOS memory bound is an accepted R28 limitation once verified.
+- Raised in: E28-6 (run 2).
 
 ### Process / documentation drift
 
@@ -916,4 +946,5 @@ pre-flight, when promoted), **raised in**.
 | E28-5 pre-flight and tests | matrix design recorded; the matrix found H40 (surrogate escapes) and H41 (SIGHUP leak); H41 fixed and closed |
 | E28-5 evidence | H32 (renderer: no leak, no destabilization), H36 (investigation and recommendation), H39 (re-checked, still open) refined; no entry closed except H41 |
 | E28-6 amendment A5 (after run 1) | H36 (executed evidence, amendment, implementation), H39 (run 1 recorded; rerun pending), H43 (macOS evidence stated at actual strength) updated; H44 (gate schema; closed), H45 (post-initialize behavior inferred; open), H46 (run 1 revision not recorded; accepted) added |
+| E28-6 run 2 (macOS) | H36 closed (A5 demonstrated in authentic VS Code); H39 held open (genia_run failed on macOS); H43 updated to actual strength; H47 added (governed worker does not run on macOS; repair implemented, awaiting macOS verification) |
 | E28-6 final audit (release candidate) | all 22 non-closed entries dispositioned (H01 closed; H36 and H39 held open as release blockers; the rest accepted R28 limitations or post-R28 follow-up candidates, none ticketed); H42 and H43 added and dispositioned; the release gate test blocks any completion claim until the VS Code/Copilot evidence passes |
