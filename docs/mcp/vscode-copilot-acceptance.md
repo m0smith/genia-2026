@@ -28,6 +28,8 @@ On the Mac, in the repository, on the repaired branch (`git pull`):
 ```bash
 # 1. One-command diagnosis of the governed worker (prints a JSON report and a final VERDICT line).
 uv run --no-project --no-python-downloads python tools/mcp_diagnostics/worker_probe.py
+# 1b. Does the lifecycle test helper find the live worker? (prints raw ps rows, parsed argv, VERDICT)
+uv run --no-project --no-python-downloads python tools/mcp_diagnostics/process_probe.py
 # 2. The execution suite that failed (53 failed on run 2). Expect: Linux-only namespace tests SKIPPED, nothing failed.
 uv run pytest tests/unit/test_r28_mcp_run.py -vv
 # 3. The portability tests and the lifecycle/cancellation/timeout rows on macOS.

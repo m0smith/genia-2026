@@ -141,8 +141,17 @@ Linux: full R28 suite granted and denied, compat suite, authority/protected/time
 non-loopback and loopback suites, spec runner, parity, official client (all paths), Inspector, lint/docs/gate.
 macOS (owner): the probe, `tests/unit/test_r28_mcp_run.py`, the lifecycle suite, then authentic VS Code run 3.
 
+## Addendum: Mac verification of `48467fcd` (owner)
+
+The probe printed `VERDICT OK`; Darwin rejects `setrlimit(RLIMIT_AS, ...)` with `ValueError: current limit exceeds maximum limit`
+(the hypothesis is now **confirmed**, and the decision above stands); supervised `1 + 2` returned `3`;
+`test_r28_mcp_run.py` gave 64 passed, 5 failed, 4 skipped. The five failures are one test-observation
+sub-finding: the `ps` backend never saw the governed worker. Repaired without weakening any lifecycle assertion
+(case-insensitive interpreter name for macOS's `Python.app`; `ps -ww` against terminal-width truncation) and
+diagnosable with `tools/mcp_diagnostics/process_probe.py`.
+
 ## GO / NO-GO
 
-**GO** for the worker limit change and the portable test infrastructure, conditional on the Mac probe confirming
+**GO (confirmed on the Mac)** for the worker limit change and the portable test infrastructure, conditional on the Mac probe confirming
 that the rejected operation is `RLIMIT_AS`. **NO-GO** (stop and amend the contract) if a limit other than
 `RLIMIT_AS` is the cause. R28 stays not complete either way.

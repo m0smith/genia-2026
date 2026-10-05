@@ -6775,14 +6775,16 @@ prompt, protocol, authority, limit, parse behavior, or envelope changed.
   bounded only by the 5,000 ms deadline and the 10 s CPU limit; there is no network namespace (Linux-only); the
   network, file, process, and import denial rests on the static policy, the pruned environment, and the runtime
   stubs. No namespace or sandbox is claimed on macOS.
-- **Root cause status:** the failing operation is localized to the worker's pre-readiness bootstrap and the
-  failure signature is reproduced on Linux by a rejected `RLIMIT_AS`; the exact Darwin call is a working
-  hypothesis until the owner runs `tools/mcp_diagnostics/worker_probe.py` on the Mac (development-only worker
-  diagnostic `GENIA_MCP_WORKER_DIAG=1`, written to the worker's own stderr, never forwarded, never on the wire).
+- **Root cause (confirmed on macOS):** Darwin rejects `setrlimit(RLIMIT_AS)` with `ValueError: current limit exceeds
+  maximum limit`; `tools/mcp_diagnostics/worker_probe.py` printed `VERDICT OK` and `genia_run` works there (64 of
+  73 `test_r28_mcp_run.py` tests pass; development-only worker diagnostic `GENIA_MCP_WORKER_DIAG=1`, on the worker's
+  own stderr, never forwarded, never on the wire). The 5 remaining failures were test-observation only (the `ps`
+  backend did not recognise the governed worker: macOS names the interpreter `Python`; `ps` needs `-ww`);
+  repaired, awaiting macOS verification (`tools/mcp_diagnostics/process_probe.py`).
 - **Tests:** `tests/unit/test_r28_mcp_portability.py` (simulated Darwin rejection, fail-closed rules, wire
   regression, diagnostic hygiene, probe, `ps`/`lsof` process backend); the lifecycle helpers use `/proc` on Linux
   and `ps`/`lsof` where there is no `/proc`; Linux-only namespace tests are skipped elsewhere with a stated reason.
-- **Not claimed:** any macOS pass. macOS governed execution, worker supervision, cancellation, timeout, and cleanup
+- **Not claimed:** a full macOS pass (the lifecycle/cancellation rows are not yet Mac-verified). macOS governed execution, worker supervision, cancellation, timeout, and cleanup
   remain **unverified** until the owner's macOS commands and VS Code run 3. R28 is **not complete**; R28-H39 and
   R28-H47 stay open; R28-H36 (protocol compatibility) is closed by run 2.
 

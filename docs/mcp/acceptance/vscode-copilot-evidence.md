@@ -156,3 +156,11 @@ disposition:
 ## Notes
 
 (Free text after each run: OS and versions, startup time, anything surprising.)
+
+### macOS verification of SHA `48467fcd` (owner; not a VS Code run, not an evidence run)
+
+Worker probe `VERDICT OK`; Darwin `setrlimit(RLIMIT_AS)` raises `ValueError: current limit exceeds maximum limit`;
+supervised `1 + 2` returns `3`; `uv run pytest tests/unit/test_r28_mcp_run.py -vv`: 64 passed, 5 failed, 4 skipped.
+All normal `genia_run` tests pass; the 5 failures were the lifecycle helper not finding the worker through the
+Darwin `ps` backend (ledger R28-H47 sub-finding; repaired, awaiting macOS verification). This is supporting
+evidence for run 3 only; it does not replace it.
