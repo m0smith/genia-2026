@@ -38,6 +38,8 @@ KEYS = {
     "demo": "test_r28_mcp_demo.py",
     "entry": "test_r28_mcp_entrypoint.py",
     "gate": "test_r28_release_gate.py",
+    "compat": "test_r28_mcp_compat.py",
+    "compatconf": "test_r28_mcp_compat_conformance.py",
 }
 STATUSES = {"PASS", "KNOWN LIMITATION", "NOT APPLICABLE"}
 REF = re.compile(r"`(" + "|".join(KEYS) + r")::(test_[A-Za-z0-9_]+)`")
@@ -99,7 +101,7 @@ def test_the_matrix_keeps_its_honesty_statements():
     assert "E28-6" in text
     assert re.search(r"Z4 \| Streamable HTTP parity .* NOT APPLICABLE", text)
     assert re.search(r"Z5 \| C\+\+ MCP parity .* NOT APPLICABLE", text)
-    assert "No VS Code / GitHub Copilot run is recorded" in text
+    assert "No successful VS Code / GitHub Copilot run is recorded" in text
     assert "not a sandbox" in text or "never the security contract" in text
     for banned in ("fully aligned", "complete coverage", "no drift", "all examples"):
         assert banned not in text.lower()

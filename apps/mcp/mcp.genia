@@ -1,12 +1,15 @@
 # mcp.genia -- native Genia MCP server (R28 E28-1, issue #702).
 #
-# Application entry for the Genia MCP server over local stdio, MCP 2026-07-28
-# (stateless; no initialize/session). This program owns decode, validation,
-# dispatch, result construction, JSON encoding/framing, and stdout production.
-# The only host-supplied datum is the build/launch `contract_revision`, passed
-# as the single program argument. See
-# docs/design/r28-genia-mcp-contract-threat-model.md (sections 2, 7.1, 14) and
-# docs/design/r28-e28-1-native-mcp-skeleton-design.md.
+# Application entry for the Genia MCP server over local stdio. Two protocol
+# eras are served (contract amendment A5, closed policy, nothing else): MCP
+# 2026-07-28 (stateless; per-request _meta; no session) and MCP 2025-11-25
+# (selected by `initialize`; one process-local state bit). This program owns
+# decode, validation, era selection, dispatch, result construction, JSON
+# encoding/framing, and stdout production. Both eras reach the same tool
+# definitions and implementations. The only host-supplied datum is the
+# build/launch `contract_revision`, passed as the single program argument. See
+# docs/design/r28-genia-mcp-contract-threat-model.md (sections 2, 7.1, 14, 18)
+# and docs/design/r28-e28-1-native-mcp-skeleton-design.md.
 #
 # Surface: genia_capabilities always; genia_parse (E28-2) only when the host
 # provisions the `parse` capability as an explicit argument to serve(revision, host)
@@ -38,6 +41,7 @@ is_id(v) = is_string(v) || is_integer(v)
 # ---- fixed protocol constants ----
 
 PROTOCOL_VERSION = "2026-07-28"
+COMPAT_PROTOCOL_VERSION = "2025-11-25"
 META_VERSION = "io.modelcontextprotocol/protocolVersion"
 META_CAPABILITIES = "io.modelcontextprotocol/clientCapabilities"
 
@@ -109,7 +113,15 @@ unknown_tool_response(c) =
     map_get(c, "idv"))
 
 result_response(c, result) =
-  with_id({jsonrpc: "2.0", result: result}, map_get(c, "idv"))
+  with_id({jsonrpc: "2.0", result: era_shaped(c, result)}, map_get(c, "idv"))
+
+# The 2025-11-25 wire shape omits the 2026-07-28-only members (contract A5.5).
+era_shaped(c, result) =
+  (k, r) ? modern_request(k) -> r |
+  (_, r) -> compat_shape(r)
+
+compat_shape(r) =
+  map_remove(map_remove(map_remove(map_remove(r, "resultType"), "ttlMs"), "cacheScope"), "_meta")
 
 server_info(c) = {"name": "genia-mcp", "version": map_get(c, "rev")}
 
@@ -150,7 +162,7 @@ EXECUTION_PROFILE = {
 
 capabilities_value(c) = {
   server: {name: "genia-mcp", contract: "genia.mcp.v1"},
-  mcp: {protocol_version: PROTOCOL_VERSION, transport: "stdio"},
+  mcp: {protocol_version: serving_version(c), transport: "stdio"},
   genia: {host: "python-reference",
           contract_revision: map_get(c, "rev"),
           portable_mcp_implementation: false},
@@ -284,6 +296,16 @@ meta_valid(c) = is_object(meta_of(c)) && is_string(field(meta_of(c), META_VERSIO
 method_of(c) = field(msg_of(c), "method")
 
 known_method(m) = m == "server/discover" || m == "tools/list" || m == "tools/call"
+
+# ---- era selection (contract A5.2) ----
+# A request whose params._meta carries the 2026-07-28 version key is a 2026-07-28
+# request; every other request is a 2025-11-25 request. This is the only protocol
+# decision the two eras do not share.
+modern_request(c) = present(meta_of(c), META_VERSION)
+
+serving_version(c) =
+  k ? modern_request(k) -> PROTOCOL_VERSION |
+  _ -> COMPAT_PROTOCOL_VERSION
 
 # ---- dispatch ----
 
@@ -464,17 +486,74 @@ check_meta(c) =
   k ? meta_valid(k) == false -> invalid_params(k) |
   k -> check_version(k)
 
-dispatch(c) =
+modern_dispatch(c) =
   k ? known_method(method_of(k)) == false -> method_not_found(k) |
   k -> check_meta(k)
+
+# ---- the 2025-11-25 era (contract A5.3 - A5.5) ----
+# The state is one process-local bit in a ref cell: false (NEW) until a successful
+# initialize, then true. Client capabilities and clientInfo are validated for shape
+# and discarded; they change no behavior and grant no authority.
+
+initialized(c) = ref_get(map_get(c, "state"))
+
+compat_dispatch(c) =
+  k ? method_of(k) == "initialize" -> handle_initialize(k) |
+  k ? method_of(k) == "ping" -> handle_ping(k) |
+  k ? method_of(k) == "server/discover" -> invalid_params(k) |
+  k ? method_of(k) == "tools/list" || method_of(k) == "tools/call" -> compat_tools(k) |
+  k -> method_not_found(k)
+
+compat_tools(c) =
+  k ? initialized(k) == false -> invalid_params(k) |
+  k ? method_of(k) == "tools/list" -> list_tools(k) |
+  k -> call_tool(k)
+
+handle_ping(c) =
+  k ? present(msg_of(k), "params") && params_valid(k) == false -> invalid_params(k) |
+  k -> result_response(k, {})
+
+client_info_of(c) = field(params_of(c), "clientInfo")
+
+client_info_ok(c) = is_string(field(client_info_of(c), "name")) && is_string(field(client_info_of(c), "version"))
+
+initialize_params_ok(c) = is_string(field(params_of(c), "protocolVersion")) && is_object(field(params_of(c), "capabilities")) && client_info_ok(c)
+
+handle_initialize(c) =
+  k ? initialized(k) -> invalid_request(k) |
+  k ? initialize_params_ok(k) == false -> invalid_params(k) |
+  k ? field(params_of(k), "protocolVersion") != COMPAT_PROTOCOL_VERSION -> compat_version_error(k) |
+  k -> enter_initialized(k)
+
+enter_initialized(c) =
+  ref_set(map_get(c, "state"), true) |> (_) -> result_response(c, initialize_result(c))
+
+initialize_result(c) = {
+  protocolVersion: COMPAT_PROTOCOL_VERSION,
+  capabilities: {tools: {}},
+  serverInfo: server_info(c)
+}
+
+compat_version_error(c) =
+  with_id(
+    {jsonrpc: "2.0",
+     error: {code: -32602,
+             message: "Unsupported protocol version",
+             data: {supported: [COMPAT_PROTOCOL_VERSION],
+                    requested: field(params_of(c), "protocolVersion")}}},
+    map_get(c, "idv"))
+
+dispatch(c) =
+  k ? modern_request(k) -> modern_dispatch(k) |
+  k -> compat_dispatch(k)
 
 # A message with a readable id that is a valid JSON-RPC request object.
 request_with_id(c) =
   k ? header_valid(msg_of(k)) == false -> invalid_request(k) |
   k -> dispatch(k)
 
-# `boot` is the launch map {rev, host}; each request context extends it.
-context(boot, msg, idv) = {rev: map_get(boot, "rev"), host: map_get(boot, "host"), msg: msg, idv: idv}
+# `boot` is the launch map {rev, host, state}; each request context extends it.
+context(boot, msg, idv) = {rev: map_get(boot, "rev"), host: map_get(boot, "host"), state: map_get(boot, "state"), msg: msg, idv: idv}
 
 # A message without id: a notification (no response) when well formed.
 notification(c) =
@@ -520,7 +599,7 @@ nonempty(line) = is_empty(line) == false
 # block-buffered pipe would otherwise hold it back until exit (ledger R28-H31).
 emit(text) = writeln(stdout, text) |> (_) -> flush(stdout)
 
-serve(rev, host) = serve_lines({rev: rev, host: host})
+serve(rev, host) = serve_lines({rev: rev, host: host, state: ref(false)})
 
 serve_lines(boot) =
   stdin

@@ -34,6 +34,7 @@ from tests.fixtures.r28_mcp_conformance import (
 )
 from tests.fixtures.r28_mcp_helpers import (
     RUN_CANCELLED_MESSAGE,
+    RUN_CHANNEL_LIMIT_MESSAGE,
     RUN_POLICY_MESSAGE,
     RUN_RUNTIME_MESSAGE,
     RUN_TIMEOUT_MESSAGE,
@@ -153,15 +154,15 @@ def test_source_limit_is_in_utf8_bytes_in_the_compat_era():
     multibyte = "é" * (SOURCE_LIMIT // 2 + 1)  # 2 bytes each: over the limit in bytes, under in characters
     ok, too_big, bytes_over = run_sources([exact, over, multibyte], era="compat")
     assert_completed(ok[0], era="compat")
-    assert_closed_failure(too_big[0], "input_limit", "input", "Source exceeds the 262144-byte limit", era="compat")
-    assert_closed_failure(bytes_over[0], "input_limit", "input", "Source exceeds the 262144-byte limit", era="compat")
+    assert_closed_failure(too_big[0], "input_limit", "protocol", "Genia source exceeds the 262144-byte limit", era="compat")
+    assert_closed_failure(bytes_over[0], "input_limit", "protocol", "Genia source exceeds the 262144-byte limit", era="compat")
 
 
 def test_output_limits_close_with_no_partial_data_in_the_compat_era():
-    over = f'{DOUBLING}\nprint(dbl("x", 21))\n1'  # ~2 MiB of stdout
+    over = DOUBLING + 'print("PARTIAL-STDOUT")\nwrite(stdout, dbl("x", 21))\n1'  # ~2 MiB of stdout
     ((response, _),) = run_sources([over], era="compat")
-    assert_closed_failure(response, "output_limit", "execution", "Result exceeds a 1048576-byte channel limit", era="compat")
-    assert "xxxx" not in json.dumps(response)
+    assert_closed_failure(response, "result_limit", "adapter", RUN_CHANNEL_LIMIT_MESSAGE, era="compat")
+    assert "xxxx" not in json.dumps(response) and "PARTIAL" not in json.dumps(response)
     assert CHANNEL_LIMIT == 1048576 and AGGREGATE_LIMIT == 3276800
 
 
