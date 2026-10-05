@@ -1,0 +1,23 @@
+#!/bin/sh
+# Start the Genia MCP server over local stdio (R28). Takes no arguments; works from any directory.
+# It runs the same launcher the repository-root .mcp.json runs. Not a CLI command of Genia itself.
+set -eu
+
+if [ "$#" -ne 0 ]; then
+  echo "genia-mcp: takes no arguments" >&2
+  exit 2
+fi
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+launcher="$root/hosts/python/mcp_launch.py"
+
+if command -v uv >/dev/null 2>&1; then
+  exec uv run --no-project --no-python-downloads python "$launcher"
+fi
+for py in python3 python; do
+  if command -v "$py" >/dev/null 2>&1; then
+    exec "$py" "$launcher"
+  fi
+done
+echo "genia-mcp: needs uv or Python 3.10+ on PATH" >&2
+exit 1
