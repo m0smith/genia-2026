@@ -90,6 +90,21 @@ def apply_limits() -> None:
     resource.setrlimit(resource.RLIMIT_AS, (ADDRESS_SPACE_BYTES, ADDRESS_SPACE_BYTES))
 
 
+def _development_diagnostic(exc: BaseException) -> None:
+    """Name an internal worker failure on the worker's own stderr, only when asked.
+
+    Development/test aid (ledger R28-H47). The supervisor drains and discards worker stderr
+    (apart from the readiness marker), so this never reaches an MCP client; the reply is
+    still the fixed `internal_error`. Off unless GENIA_MCP_WORKER_DIAG=1, which the supervisor
+    never forwards: only a developer who launches the worker directly can set it.
+    """
+    if os.environ.get("GENIA_MCP_WORKER_DIAG") != "1":
+        return
+    detail = f"{type(exc).__name__}: errno={getattr(exc, 'errno', None)} args={exc.args!r}"
+    sys.stderr.write(f"GENIA-WORKER-DIAG {detail}\n")
+    sys.stderr.flush()
+
+
 def _deny(*_args, **_kwargs):
     raise PermissionError("not permitted in the MCP execution profile")
 
@@ -218,7 +233,8 @@ def main() -> int:
                 reply = {"status": "internal_error"}
             else:
                 reply = execute_source(data.decode("utf-8"))
-        except BaseException:  # noqa: BLE001
+        except BaseException as exc:  # noqa: BLE001
+            _development_diagnostic(exc)
             reply = {"status": "internal_error"}
         try:
             sys.stdout.buffer.write(_serialize(reply))
