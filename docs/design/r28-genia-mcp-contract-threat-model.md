@@ -519,9 +519,13 @@ no-environment, no-filesystem, and no-network policy.
 
 ## 7. MCP protocol, SDK, and transport policy
 
-V1 adopts the current MCP protocol version `2026-07-28` only. It follows that
-revision's stateless request model: R28 defines no MCP initialize exchange,
-negotiated session, or session-carried authority. A request using another
+V1 adopts the current MCP protocol version `2026-07-28` and, **as amended by
+Clarification A5 (section 18)**, one compatibility revision, `2025-11-25`. The
+`2026-07-28` era follows that revision's stateless request model: it defines no MCP
+initialize exchange, negotiated session, or session-carried authority. The
+`2025-11-25` era exists only because the required acceptance client (VS Code with
+GitHub Copilot) speaks it; it is selected by `initialize`, holds one bit of
+per-process state, and grants no authority (section 18). A request using any other
 protocol revision fails at the MCP protocol layer before a Genia tool is
 dispatched. A future protocol version requires an explicit compatibility
 review; MCP protocol dates and `genia.mcp.v1` are independent version axes.
@@ -540,8 +544,10 @@ resources, prompts, or authority.
 
 Verified against the `2026-07-28` specification and schema (stdio transport,
 `basic/index`, `basic/versioning`, `server/tools`, cancellation pattern, and
-`schema.ts`). The server is stateless: no `initialize`, no session, no state
-carried between requests.
+`schema.ts`). The `2026-07-28` era is stateless: no `initialize`, no session, no state
+carried between requests. (Clarification A5 adds a separate `2025-11-25`
+compatibility era selected by `initialize`; this section's rules govern requests
+that carry the `2026-07-28` `_meta`, and A5 states exactly how the eras coexist.)
 
 - **Framing.** One JSON-RPC message per line, `\n`-delimited, no embedded
   newlines; server stdout carries only valid MCP messages; logging only on stderr;
@@ -574,7 +580,8 @@ carried between requests.
   (such as `genia_parse` `input_limit`) apply to it.
 - **Protocol error codes.** Unparseable JSON `-32700`; invalid JSON-RPC object
   (including a `null`, boolean, fractional, or object `id`) `-32600`; unknown method
-  (including legacy `initialize`, resources, and prompts methods) `-32601`;
+  (including resources and prompts methods; `initialize` is unknown to the `2026-07-28`
+  era and is served only as A5 specifies) `-32601`;
   invalid params, unknown tool, missing or malformed `_meta` `-32602`; unsupported
   version `-32022`. The server never emits `-32002`, `-32042`, or an undefined code
   in `-32020`..`-32099`. Error responses carry a fixed server-owned `message`
@@ -753,7 +760,10 @@ VS Code/Copilot acceptance run, must prove all of the following before the final
 release audit:
 
 1. VS Code discovers and starts the repository-configured local stdio server
-   with only the documented development prerequisites and enablement steps.
+   with only the documented development prerequisites and enablement steps, and
+   negotiates one of the two protocol revisions the contract supports (section 18;
+   the authentic run of 2026-10-05 showed VS Code `1.138.0` uses `initialize` for
+   `2025-11-25`, so that era is the expected path).
 2. Tool discovery at final acceptance returns exactly `genia_capabilities`,
    `genia_parse`, and `genia_run`, with no resources, prompts, or additional tools.
 3. An AI coding agent calls `genia_capabilities` and receives the normalized v1
@@ -919,3 +929,101 @@ accepted before; policy rejection exists only in the MCP execution profile.
 
 Sections changed: 3 (policy ownership) and 4 (where the pre-execution check runs).
 No tool, limit, envelope, authority, or threat-model decision changes.
+
+## 18. Amendment A5: the `2025-11-25` compatibility era (issue #707, R28 ledger entries R28-H36, R28-H39)
+
+Recorded after the first authentic VS Code + GitHub Copilot run (2026-10-05, VS Code `1.138.0`, Copilot Chat
+`0.66.0`, macOS; `docs/mcp/acceptance/vscode-copilot-evidence.md` run 1). VS Code did not call
+`server/discover`: it sent `initialize` with `protocolVersion: "2025-11-25"`, the server answered `-32601`, and
+no tool was reachable. Section 12.2 requires acceptance by this client, so section 7 is amended narrowly.
+Pre-flight and evidence base: `docs/design/r28-e28-6-protocol-compat-preflight.md`. **A5 adds no tool,
+resource, prompt, transport, Genia semantic, authority, limit, SDK requirement, or host capability, and no
+Python host protocol semantics.** Every authority, isolation, limit, and threat-model decision is unchanged.
+
+### A5.1 Closed supported-version policy
+
+The server supports exactly two MCP revisions, recorded here as the machine-readable source the code, the
+conformance matrix, and the release gate are checked against:
+
+```supported-protocol-versions
+modern: 2026-07-28
+compat: 2025-11-25
+```
+
+No other revision is supported or implied, including older revisions that also use `initialize`.
+
+### A5.2 Era selection (per message)
+
+A request whose `params._meta` object contains the key `io.modelcontextprotocol/protocolVersion` is a
+`2026-07-28` request and is validated and served exactly as section 7.1 states, regardless of any
+`initialize` that happened earlier. Every other request is a compatibility-era request. Era selection is
+the only protocol decision the two paths do not share; both dispatch into the same tool definitions, tool
+implementations, envelope construction, worker, policy, limits, and cancellation matching.
+
+### A5.3 `initialize` and the one-bit state
+
+A compatibility-era `initialize` request must have an object `params` with a string `protocolVersion`, an
+object `capabilities`, and an object `clientInfo` with string `name` and `version`; other members (including
+`_meta` without the version key) are ignored. Client capabilities and `clientInfo` are validated for shape
+and **discarded**: no client capability (`roots`, `sampling`, `elicitation`, `tasks`, `extensions`, or any
+other) changes server behavior or grants authority to the server or to a Genia program.
+
+- `protocolVersion` equal to `2025-11-25`: success with the result
+  `{"protocolVersion": "2025-11-25", "capabilities": {"tools": {}}, "serverInfo": {"name": "genia-mcp",
+  "version": "<contract_revision>"}}` (no `instructions`, no other capability), and the server enters
+  INITIALIZED.
+- Any other string: `-32602` `Unsupported protocol version` with `data: {"supported": ["2025-11-25"],
+  "requested": <the string>}`. The server does **not** negotiate down.
+- A missing or malformed member, or non-object `params`: `-32602 Invalid params`.
+- A request id that is not a string or integer: `-32600` (unchanged rule). An `initialize` without an id is a
+  notification and is ignored.
+- A failed `initialize` leaves the state NEW.
+
+The state is one bit held only in the server process: NEW at start, INITIALIZED after a successful
+`initialize`. It is never persisted, never shared between launches, and carries no client data. A second
+successful-state `initialize` is `-32600 Invalid request`.
+
+### A5.4 Which compatibility-era requests are served, in which state
+
+| Method | NEW | INITIALIZED |
+|---|---|---|
+| `initialize` | per A5.3 | `-32600` |
+| `ping` | `{}` | `{}` |
+| `tools/list`, `tools/call` | `-32602 Invalid params` (no era established; identical to the pre-amendment answer for a request without `_meta`) | served (A5.6) |
+| `server/discover` (without its `_meta`) | `-32602` | `-32602` (it is a `2026-07-28` method) |
+| any other method | `-32601` | `-32601` |
+
+`notifications/initialized` is accepted in every state, produces no response, and has no effect (the server
+does not gate on it; gating would add a state that protects no authority). `notifications/cancelled` is
+matched exactly as in section 5, in both eras. A `ping` sent while a run is in flight is answered after the
+run (the server handles one request at a time; ledger R28-H27).
+
+### A5.5 Result shapes in the compatibility era
+
+`tools/list` result: `{"tools": [...]}` with the same descriptors and order as section 2.1. `tools/call`
+result: `{"content": [<the one text item>], "structuredContent": <the section 2.2 envelope>, "isError": <bool>}`.
+The `2026-07-28`-only fields `resultType`, `ttlMs`, `cacheScope`, and `_meta` (serverInfo) are omitted. The
+envelope, its fixed messages, the text item, protocol errors for unknown tool, bad arguments, and oversized
+results are identical to the `2026-07-28` era. `tools/list` with any `cursor` is `-32602`.
+
+### A5.6 `genia_capabilities`
+
+The result shape of section 2.3 is unchanged. `mcp.protocol_version` reports the revision serving the request
+(`"2026-07-28"` or `"2025-11-25"`). Tools, execution profile, and identity are identical in both eras.
+
+### A5.7 What does not change
+
+The tool surface is exactly `genia_capabilities`, `genia_parse`, `genia_run`; there are no resources, prompts,
+logging, completions, tasks, pagination, or server-initiated messages (the server never sends a request or a
+notification). Stdio framing, the decoding boundary (A2), the lossless AST transport (A3), policy placement
+(A4), cancellation, limits, protected-value rules, the execution profile, isolation, and lifecycle are as
+before. Streamable HTTP and any C++ MCP implementation remain out of scope.
+
+### A5.8 Sections changed
+
+| Section | Change |
+|---|---|
+| 7 | the `2026-07-28`-only statement now names A5 and the one compatibility revision |
+| 7.1 | scope statement and the `initialize` wording defer to A5 |
+| 12.2 | item 1 accepts either supported negotiation path |
+| 18 | this amendment |
