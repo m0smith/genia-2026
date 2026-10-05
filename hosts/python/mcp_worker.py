@@ -79,15 +79,30 @@ class BoundedStream:
         return "".join(self._parts)
 
 
+# The platform whose process-limit facts apply. A module attribute so tests can simulate another kernel.
+PLATFORM = sys.platform
+
+
 def apply_limits() -> None:
-    """Self-imposed process limits (a runtime layer beneath policy and pruning)."""
+    """Self-imposed process limits (a runtime layer beneath policy and pruning).
+
+    Four limits are POSIX and apply on every platform; any failure is `internal_error` (the worker
+    never runs without them). The address-space bound (`RLIMIT_AS`) is applied on every platform
+    with the same fail-closed rule except Darwin, whose kernel does not honor an address-space
+    bound a Python process already exceeds: there a rejection is tolerated and the bound is simply
+    absent (a documented, weaker macOS bound; ledger R28-H47). No other failure is tolerated.
+    """
     import resource
 
     resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     resource.setrlimit(resource.RLIMIT_CPU, (CPU_SECONDS, CPU_SECONDS))
     resource.setrlimit(resource.RLIMIT_NOFILE, (OPEN_FILES, OPEN_FILES))
-    resource.setrlimit(resource.RLIMIT_AS, (ADDRESS_SPACE_BYTES, ADDRESS_SPACE_BYTES))
+    try:
+        resource.setrlimit(resource.RLIMIT_AS, (ADDRESS_SPACE_BYTES, ADDRESS_SPACE_BYTES))
+    except (ValueError, OSError):
+        if PLATFORM != "darwin":
+            raise
 
 
 def _development_diagnostic(exc: BaseException) -> None:

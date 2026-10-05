@@ -342,24 +342,67 @@ def structured(response):
     return result, envelope
 
 
-def _parent_map():
-    parents = {}
+# --- process inspection: `/proc` on Linux, `ps`/`lsof` where there is no `/proc` (macOS) -----------
+#
+# The lifecycle conformance suite proves a worker appears, is terminated and reaped, and leaves nothing
+# behind. That contract is portable; only the way a test *observes* processes is not (ledger R28-H47).
+# `GENIA_R28_PROCESS_BACKEND=proc|ps` forces a backend (the `ps` backend is also tested on Linux).
+
+
+_TOOL_PATH = "/usr/bin:/bin:/usr/sbin:/sbin"  # `ps` and `lsof` (macOS keeps lsof in /usr/sbin)
+
+
+def process_backend():
+    forced = os.environ.get("GENIA_R28_PROCESS_BACKEND")
+    if forced in ("proc", "ps"):
+        return forced
+    return "proc" if Path("/proc/self/stat").exists() else "ps"
+
+
+def _proc_snapshot():
+    """{pid: (ppid, start token, argv)} from /proc."""
+    table = {}
     for entry in Path("/proc").iterdir():
         if not entry.name.isdigit():
             continue
         try:
             stat = (entry / "stat").read_text()
+            raw = (entry / "cmdline").read_bytes()
         except OSError:
             continue
         # the command name may contain spaces/parentheses: split after the last ')'
         fields = stat.rsplit(")", 1)[1].split()
-        parents[int(entry.name)] = int(fields[1])
-    return parents
+        argv = [part.decode("utf-8", "replace") for part in raw.split(b"\0") if part]
+        table[int(entry.name)] = (int(fields[1]), fields[19], argv)
+    return table
+
+
+def _ps_snapshot(pid=None):
+    """{pid: (ppid, start token, argv)} from `ps` (POSIX; the start token is the 1 s `lstart` string)."""
+    command = ["ps", "-axo", "pid=,ppid=,lstart=,command="]
+    if pid is not None:
+        command = ["ps", "-o", "pid=,ppid=,lstart=,command=", "-p", str(pid)]
+    done = subprocess.run(command, capture_output=True, text=True, check=False, env={"LC_ALL": "C", "PATH": _TOOL_PATH})
+    table = {}
+    for line in done.stdout.splitlines():
+        parts = line.split(None, 7)  # pid ppid <lstart: weekday month day time year> command...
+        if len(parts) < 7 or not parts[0].isdigit() or not parts[1].isdigit():
+            continue
+        argv = parts[7].split() if len(parts) == 8 else []
+        table[int(parts[0])] = (int(parts[1]), " ".join(parts[2:7]), argv)
+    return table
+
+
+def process_snapshot(pid=None):
+    if process_backend() == "proc":
+        table = _proc_snapshot()
+        return table if pid is None else {pid: table[pid]} if pid in table else {}
+    return _ps_snapshot(pid)
 
 
 def process_children(pid):
-    """Return the set of live descendant pids of `pid` (Linux /proc)."""
-    parents = _parent_map()
+    """Return the set of live descendant pids of `pid`."""
+    parents = {p: entry[0] for p, entry in process_snapshot().items()}
     found, frontier = set(), {pid}
     while frontier:
         nxt = {p for p, parent in parents.items() if parent in frontier and p not in found}
@@ -368,37 +411,30 @@ def process_children(pid):
     return found
 
 
-def _stat_fields(pid):
-    try:
-        stat = Path(f"/proc/{pid}/stat").read_text()
-    except OSError:
-        return None
-    return stat.rsplit(")", 1)[1].split()  # state, ppid, ..., starttime at index 19
+def _entry(pid):
+    return process_snapshot(pid).get(pid)
 
 
 def pid_alive(pid):
-    """True while the pid is still in /proc. An unreaped zombie counts as alive: a
+    """True while the pid is still in the process table. An unreaped zombie counts as alive: a
     killed worker that was never waited for is a reap failure, not a clean exit."""
-    return _stat_fields(pid) is not None
+    return _entry(pid) is not None
 
 
 def process_identity(pid):
-    """(pid, start time): a stable identity that survives pid reuse within a test."""
-    fields = _stat_fields(pid)
-    return None if fields is None else (pid, fields[19])
+    """(pid, start token): a stable identity that survives pid reuse within a test."""
+    entry = _entry(pid)
+    return None if entry is None else (pid, entry[1])
 
 
 def identity_exists(identity):
-    fields = _stat_fields(identity[0])
-    return fields is not None and fields[19] == identity[1]
+    entry = _entry(identity[0])
+    return entry is not None and entry[1] == identity[1]
 
 
 def _cmdline(pid):
-    try:
-        raw = Path(f"/proc/{pid}/cmdline").read_bytes()
-    except OSError:
-        return []
-    return [part.decode("utf-8", "replace") for part in raw.split(b"\0") if part]
+    entry = _entry(pid)
+    return [] if entry is None else list(entry[2])
 
 
 def is_governed_worker(pid):
@@ -574,8 +610,28 @@ def configured_session():
     )
 
 
+def _lsof(args):
+    done = subprocess.run(["lsof", "-nP", "-F", "pn", *args], capture_output=True, text=True, check=False,
+                          env={"LC_ALL": "C", "PATH": _TOOL_PATH})
+    return done.stdout.splitlines()
+
+
+def _lsof_listening(pid=None):
+    """Tokens `pid:address` of TCP sockets in LISTEN state (all processes, or one)."""
+    lines = _lsof(["-iTCP", "-sTCP:LISTEN", *(["-a", "-p", str(pid)] if pid is not None else [])])
+    tokens, current = set(), None
+    for line in lines:
+        if line.startswith("p"):
+            current = line[1:]
+        elif line.startswith("n") and current is not None:
+            tokens.add(f"{current}:{line[1:]}")
+    return tokens
+
+
 def listening_inodes():
-    """Socket inodes currently in LISTEN state (TCP and TCP6), from /proc."""
+    """Identifiers of sockets currently in LISTEN state: inodes from /proc (Linux), else `pid:address`."""
+    if process_backend() == "ps":
+        return _lsof_listening()
     inodes = set()
     for name in ("tcp", "tcp6"):
         try:
@@ -590,6 +646,10 @@ def listening_inodes():
 
 
 def socket_inodes(pid):
+    """Identifiers (same scheme as `listening_inodes`) of `pid`'s sockets; the `ps` backend reports only
+    its listening sockets, which is what the no-listener assertions intersect with."""
+    if process_backend() == "ps":
+        return _lsof_listening(pid)
     found = set()
     try:
         for fd in Path(f"/proc/{pid}/fd").iterdir():
@@ -606,6 +666,11 @@ def socket_inodes(pid):
 
 def worker_workdir(identity):
     """The governed worker's private working directory, read while it is alive."""
+    if process_backend() == "ps":
+        for line in _lsof(["-a", "-d", "cwd", "-p", str(identity[0])]):
+            if line.startswith("n"):
+                return Path(line[1:])
+        return None
     try:
         return Path(os.readlink(f"/proc/{identity[0]}/cwd"))
     except OSError:

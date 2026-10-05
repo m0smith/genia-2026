@@ -442,7 +442,10 @@ def _recording_unshare(tmp_path, probe_behavior, worker_behavior="", deny=False)
     import os
     import shutil
     import stat
+    import sys
 
+    if not sys.platform.startswith("linux"):
+        pytest.skip("the user+network namespace layer is Linux-only; macOS never probes it (ledger R28-H47)")
     real = shutil.which("unshare")
     if real is None and not deny:
         pytest.skip("unshare is unavailable here; the best-effort namespace is not in play")

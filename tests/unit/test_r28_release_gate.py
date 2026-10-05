@@ -241,6 +241,19 @@ def test_run_1_is_preserved_as_the_authentic_failure_that_triggered_amendment_a5
     assert '"error":{"code":-32601,"message":"Method not found"}' in text  # the pre-amendment answer
 
 
+def test_run_2_is_preserved_as_protocol_success_and_the_genia_run_failure_on_macos():
+    run1, run2 = _runs()[:2]
+    assert run1["failed_at"] == "initialize"  # run 1 is never rewritten by run 2
+    assert _state(run2) == "failed" and run2["failed_at"] == "run" and run2["disposition"] == "FAIL"
+    assert run2["repository_revision"] == "66b505949cb17a4a017291115efb8a1cc5970cab"
+    assert (run2["negotiation_path"], run2["negotiated_protocol_version"]) == ("initialize", "2025-11-25")
+    assert run2["tools_visible"] == "genia_capabilities, genia_parse, genia_run"
+    assert "offset 171" in run2["invalid_source_feedback"] and run2["corrected_source_parsed"] == "yes"
+    assert "internal_error" in run2["run_result"] and run2["run_result"].startswith("FAIL")
+    assert run2["clean_lifecycle_after_disconnect"] == "not reached"
+    assert not _release_satisfied(_runs()[:2])  # a failed latest run never releases
+
+
 def test_the_gate_distinguishes_not_executed_failed_and_passed_runs():
     states = [_state(run) for run in _runs()]
     assert states[0] == "failed"
@@ -291,14 +304,18 @@ def test_the_release_page_covers_every_required_topic():
         assert topic in text, f"docs/releases/R28.md must cover {topic!r}"
 
 
-def test_the_ledger_keeps_h36_and_h39_open_until_the_evidence_is_released():
+def test_the_ledger_keeps_h39_and_h47_open_until_the_evidence_is_released():
     ledger = LEDGER.read_text(encoding="utf-8")
     parts = dict(re.findall(r"(?ms)^\*\*(R28-H\d{2}) — (.*?)(?=^\*\*R28-H|\Z)", ledger))
-    for entry in ("R28-H36", "R28-H39"):
-        status = re.search(r"Status: `(\w+)`", parts[entry]).group(1)
-        if _release_satisfied(_runs()):
-            continue
-        assert status == "open", f"{entry} must stay open until the VS Code/Copilot evidence passes"
+    status = {entry: re.search(r"Status: `(\w+)`", parts[entry]).group(1) for entry in ("R28-H36", "R28-H39", "R28-H47")}
+    if not _release_satisfied(_runs()):
+        assert status["R28-H39"] == "open", "H39 must stay open until the VS Code/Copilot evidence passes"
+        assert status["R28-H47"] == "open", "H47 must stay open until macOS governed execution is verified"
+    # H36 (protocol compatibility) may close only on authentic evidence that VS Code negotiated and listed tools.
+    if status["R28-H36"] == "closed":
+        proof = [r for r in _runs() if r["negotiated_protocol_version"] in {"2025-11-25", "2026-07-28"}
+                 and r["tools_visible"] == "genia_capabilities, genia_parse, genia_run"]
+        assert proof, "H36 closed without a run that negotiated and discovered the three tools"
 
 
 def test_every_non_closed_ledger_entry_has_a_recorded_final_disposition():

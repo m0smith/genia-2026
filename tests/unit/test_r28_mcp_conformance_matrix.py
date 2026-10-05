@@ -40,6 +40,7 @@ KEYS = {
     "gate": "test_r28_release_gate.py",
     "compat": "test_r28_mcp_compat.py",
     "compatconf": "test_r28_mcp_compat_conformance.py",
+    "port": "test_r28_mcp_portability.py",
 }
 STATUSES = {"PASS", "KNOWN LIMITATION", "NOT APPLICABLE"}
 REF = re.compile(r"`(" + "|".join(KEYS) + r")::(test_[A-Za-z0-9_]+)`")

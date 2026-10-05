@@ -63,6 +63,9 @@ HOST_LEAK_MARKERS = (
     "/home/",
     "/tmp/",
     "/proc",
+    "/Users/",
+    "/private/var",
+    "/var/folders",
     str(REPO_ROOT),
 )
 

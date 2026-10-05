@@ -1,6 +1,6 @@
-"""Development diagnostic for the governed `genia_run` worker path (ledger R28-H47).
+"""Development diagnostic for the governed run-tool worker path (ledger R28-H47).
 
-Run on the machine where `genia_run` returns `internal_error` (for example macOS):
+Run on the machine where the run tool returns `internal_error` (for example macOS):
 
     uv run --no-project --no-python-downloads python tools/mcp_diagnostics/worker_probe.py
 
