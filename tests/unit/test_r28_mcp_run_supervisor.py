@@ -23,6 +23,7 @@ import pytest
 from tests.fixtures.r28_mcp_helpers import (
     RUN_CAPABILITY_PATH,
     STDIN_MUX_PATH,
+    _cmdline,
     pid_alive,
     process_children,
 )
@@ -75,12 +76,13 @@ facts = {
     "env": sorted(os.environ),
     "cwd": os.getcwd(),
     "cwd_entries": os.listdir("."),
-    "fds": sorted(int(n) for n in os.listdir("/proc/self/fd")),
+    "fds": sorted(int(n) for n in os.listdir("/dev/fd")),
     "argv": sys.argv[1:],
     "source": source,
     "pid": os.getpid(),
     "pgid_is_leader": os.getpgid(0) == os.getpid(),
-    "net": [l.split(":")[0].strip() for l in open("/proc/net/dev").read().splitlines()[2:]],
+    "net": ([l.split(":")[0].strip() for l in open("/proc/net/dev").read().splitlines()[2:]]
+            if os.path.exists("/proc/net/dev") else None),  # Linux only (macOS has no /proc)
 }
 print(json.dumps({"status": "completed", "value": json.dumps(facts), "stdout": "", "stderr": ""}))
 """
@@ -107,9 +109,13 @@ def test_worker_environment_is_a_fixed_minimal_allowlist(tmp_path, monkeypatch):
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "SENTINEL")
     facts = _facts(tmp_path)
     assert not {"HOME", "USER_SECRET_TOKEN", "AWS_SECRET_ACCESS_KEY", "PATH"} & set(facts["env"])
+    # macOS adds `__CF_USER_TEXT_ENCODING` to every process's environment itself (CoreFoundation); the
+    # supervisor never passes it and Genia source cannot read the environment (ledger R28-H48).
+    platform_injected = {"__CF_USER_TEXT_ENCODING"} if sys.platform == "darwin" else set()
     assert set(facts["env"]) <= set(_supervisor().ENV_ALLOWLIST) | {"PYTHONPATH", "PYTHONUTF8",
                                                                    "PYTHONDONTWRITEBYTECODE",
-                                                                   "LC_CTYPE", "PWD"}
+                                                                   "LC_CTYPE", "PWD"} | platform_injected
+    assert "__CF_USER_TEXT_ENCODING" not in _supervisor()._worker_environment()
 
 
 def test_worker_runs_in_a_private_empty_directory_that_is_removed_afterwards(tmp_path):
@@ -128,7 +134,7 @@ def test_worker_inherits_only_the_three_standard_streams(tmp_path):
         os.close(read_end)
         os.close(write_end)
     assert facts["fds"][:3] == [0, 1, 2]
-    assert len([fd for fd in facts["fds"] if fd > 2]) <= 1  # only the /proc listing fd itself
+    assert len([fd for fd in facts["fds"] if fd > 2]) <= 1  # only the descriptor listing's own fd
 
 
 def test_each_call_is_a_fresh_process_in_its_own_process_group(tmp_path):
@@ -143,7 +149,7 @@ def test_network_namespace_is_used_only_when_verified_and_then_isolates(tmp_path
     available = supervisor.network_isolation_available()
     assert isinstance(available, bool)
     facts = _facts(tmp_path, isolated=None)  # None: use the verified-probe result
-    if available:
+    if available:  # only ever true on Linux: the namespace layer is Linux-only (ledger R28-H47)
         assert facts["net"] == ["lo"], facts["net"]
     else:
         pytest.skip("user+network namespaces unavailable here (best effort, not claimed)")
@@ -273,6 +279,9 @@ def test_probe_timeout_is_bounded_and_means_unavailable_not_an_error(monkeypatch
     assert supervisor.PROBE_TIMEOUT_S <= 5
     monkeypatch.setattr(supervisor, "_namespace_probe", None)
     monkeypatch.setattr(supervisor.shutil, "which", lambda name: "/usr/bin/unshare")
+    # The probe only ever runs on Linux; this test is about its timeout handling, so simulate Linux
+    # (on macOS the probe correctly never runs: ledger R28-H48).
+    monkeypatch.setattr(supervisor.sys, "platform", "linux")
     seen = {}
 
     def hanging_run(command, **kwargs):
@@ -433,7 +442,7 @@ def _worker_processes_left():
     """Live fake workers that are descendants of *this* process (xdist-safe)."""
     found = []
     for pid in process_children(os.getpid()):
-        if b"fake_worker.py" in _read(Path(f"/proc/{pid}/cmdline")) and pid_alive(pid):
+        if "fake_worker.py" in " ".join(_cmdline(pid)) and pid_alive(pid):
             found.append(pid)
     return found
 
@@ -456,7 +465,7 @@ def test_worker_children_die_with_the_worker(tmp_path, isolated):
     leaked = [
         pid
         for pid in process_children(os.getpid())
-        if b"time.sleep(60)" in _read(Path(f"/proc/{pid}/cmdline")) and pid_alive(pid)
+        if "time.sleep(60)" in " ".join(_cmdline(pid)) and pid_alive(pid)
     ]
     assert leaked == [], "worker descendants survived"
 
@@ -466,12 +475,10 @@ def test_strict_reap_check_sees_an_unreaped_zombie():
     import subprocess
 
     child = subprocess.Popen(["true"])
-    deadline = time.monotonic() + 30
-    while time.monotonic() < deadline:
-        fields = Path(f"/proc/{child.pid}/stat").read_text().rsplit(")", 1)[1].split()
-        if fields[0] == "Z":
-            break
-        time.sleep(0.01)
+    if hasattr(os, "waitid"):  # wait for the exit without reaping it (not available on macOS)
+        os.waitid(os.P_PID, child.pid, os.WEXITED | os.WNOWAIT)
+    else:
+        time.sleep(0.3)
     assert pid_alive(child.pid), "a zombie must count as not reaped"
     child.wait()
     assert not pid_alive(child.pid)

@@ -1,6 +1,6 @@
 # Genia MCP server over local stdio (development guide)
 
-Status: R28 E28-4 (issue #705), conformance evidence in E28-5 (`docs/mcp/conformance-matrix.md`). `GENIA_STATE.md` is the final authority. This is a local
+Status: R28 E28-4 (issue #705), conformance evidence in E28-5 (`docs/mcp/conformance-matrix.md`); public walkthrough `docs/mcp/demo.md`, reference `docs/mcp/reference.md`, limits `docs/mcp/security-and-deployment.md`. `GENIA_STATE.md` is the final authority. This is a local
 development tool for trusted stdio clients: it is **not a security sandbox**.
 
 ## What you get
@@ -22,8 +22,8 @@ secret.
   or `git` it fails closed with one stderr line).
 - `uv` on `PATH` and a Python 3.10+ interpreter `uv` can find. Nothing is installed or downloaded
   at launch.
-- POSIX (Linux or macOS). Windows is not supported.
-- The client must start the command with the repository root as working directory.
+- POSIX. Linux (CI) and macOS (owner-run, not in CI) are verified, including an authentic VS Code + GitHub Copilot run on macOS; macOS has no address-space bound and no network namespace (ledger R28-H47); Windows is not supported.
+- The client must start that command with the repository root as working directory, or use `scripts/genia-mcp` (no arguments), which works from any directory and starts the same launcher.
 
 ## Use
 
@@ -36,12 +36,14 @@ secret.
 ## Limits and troubleshooting
 
 - **Streamable HTTP is deferred.** Only local stdio exists; there is no listener.
-- **Stateless protocol (2026-07-28):** the server has no `initialize`. A client that only speaks
-  the legacy `initialize` handshake gets `Method not found` and cannot use the server. The official
-  TypeScript client v2 (2.2.0) defaults to that legacy mode: configure `versionNegotiation` `auto` (or
-  a pin of `2026-07-28`); the portable `.mcp.json` has no field for it. Whether VS Code and Copilot
-  negotiate the modern era is unverified. Supporting `initialize` would need a contract amendment
-  (ledger R28-H36 records the investigation and the recommendation).
+- **Two protocol eras, one server (amendment A5).** The server speaks exactly `2026-07-28` (stateless,
+  per-request `_meta`, `server/discover`) and `2025-11-25` (selected by `initialize`). Clients that send
+  `initialize` for `2025-11-25` (VS Code, the official TypeScript client's default) connect; `auto` and a
+  pin of `2026-07-28` still connect. Any other `initialize` version is rejected with `-32602` and a
+  `data.supported` list; the server never negotiates down. Both eras serve the same three tools. Client
+  capabilities (roots, sampling, elicitation, tasks, extensions) are accepted and ignored: they grant
+  nothing. The first VS Code run failed because this server then had no `initialize` (ledger R28-H36);
+  authentic VS Code acceptance run 3 (macOS) completed the whole flow: negotiation, three tools, parse, and run (ledger R28-H39).
 - Startup takes about 0.5 s; wait for the first response.
 - `uv` or `git` missing, or a wrong working directory, makes the server fail to start; the client
   shows the launcher's stderr line.
@@ -57,9 +59,10 @@ read from `.mcp.json` (`node acceptance.mjs`; `node negotiation.mjs` records how
 mode behaves). The full evidence matrix is `docs/mcp/conformance-matrix.md`; run the whole R28 suite
 as on a host that denies unprivileged namespaces with `GENIA_R28_TEST_DENY_NAMESPACE=1`.
 
-A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment: we do not claim one
-(ledger R28-H39). Manual procedure, to be performed on a developer machine, with the record the
-release audit needs:
+A VS Code / GitHub Copilot run cannot be executed in the CI or cloud environment; the recorded acceptance run is manual
+(owner, macOS: run 3 passed; ledger R28-H39), and we do not claim it as automated or CI evidence, nor claim Windows, HTTP, or
+multi-tenant use. The exact procedure and the record format are `docs/mcp/vscode-copilot-acceptance.md` and
+`docs/mcp/acceptance/vscode-copilot-evidence.md`; the summary:
 
 1. Record the VS Code version and the Copilot extension version.
 2. Open the repository folder as the workspace and trust it; start the `genia` server from the MCP
@@ -69,4 +72,4 @@ release audit needs:
 4. Confirm exactly three tools: `genia_capabilities`, `genia_parse`, `genia_run`.
 5. From the host, ask for a `genia_parse` of `f(x) = x +` (a diagnostic), then of `f(x) = x + 1\nf(41)`,
    then a `genia_run` of that program (rendered value `42`). Record the exchange.
-6. In the MCP output log, record whether the host sent `initialize` or `server/discover`.
+6. In the MCP output log, record whether the host sent `initialize` or `server/discover` and the negotiated protocol version.

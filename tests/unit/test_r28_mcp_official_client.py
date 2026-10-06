@@ -63,7 +63,7 @@ def test_the_harness_is_a_small_pinned_lockfile_project():
 def test_the_harness_reads_the_launch_command_from_the_checked_in_configuration():
     script = (ACCEPTANCE_HARNESS_DIR / "acceptance.mjs").read_text(encoding="utf-8")
     assert ".mcp.json" in script and "mcpServers" in script
-    assert "versionNegotiation" not in script or "auto" in script  # modern negotiation, not legacy
+    assert "GENIA_ACCEPT_NEGOTIATION" in script  # every negotiation path is selectable
     assert MCP_CONFIG_PATH.is_file()
 
 
@@ -82,7 +82,7 @@ def test_the_official_client_completes_the_acceptance_scenario():
     assert report["ok"] is True
     assert report["client"]["package"] == "@modelcontextprotocol/client"
     assert report["client"]["version"] == "2.2.0"
-    assert report["negotiation"] in ("auto", "pin")
+    assert report["negotiation"] == "auto" and report["negotiated_protocol_version"] == "2026-07-28"
     assert report["tools"] == list(RUN_TOOLS)
     assert [step["name"] for step in report["steps"]] == REQUIRED_STEPS
     assert all(step["ok"] for step in report["steps"]), report["steps"]
@@ -91,6 +91,28 @@ def test_the_official_client_completes_the_acceptance_scenario():
     assert run_step["detail"]["stdout"] == "to-stdout\n"
     assert run_step["detail"]["stderr"] == "to-stderr\n"
     assert run_step["detail"]["exit_code"] == 0
+
+
+@pytest.mark.parametrize("path,version", [("legacy", "2025-11-25"), ("sdk-default", "2025-11-25"), ("pin", "2026-07-28")])
+def test_the_official_client_completes_the_scenario_on_every_negotiation_path(path, version):
+    # Amendment A5: the same scenario (discovery, parse, run, channels, failures, cancel, disconnect,
+    # relaunch) passes whichever era the client negotiates; only the wire shape differs.
+    _harness_ready()
+    done = subprocess.run(
+        ["node", "acceptance.mjs"],
+        cwd=str(ACCEPTANCE_HARNESS_DIR),
+        capture_output=True,
+        text=True,
+        timeout=300,
+        check=False,
+        env={**os.environ, "GENIA_ACCEPT_NEGOTIATION": path},
+    )
+    assert done.returncode == 0, done.stdout + done.stderr
+    report = json.loads(done.stdout.strip().splitlines()[-1])
+    assert report["ok"] is True and report["negotiation"] == path
+    assert report["negotiated_protocol_version"] == version
+    assert report["tools"] == list(RUN_TOOLS)
+    assert all(step["ok"] for step in report["steps"]), report["steps"]
 
 
 def test_the_official_client_matrix_covers_cancel_disconnect_and_relaunch():
@@ -116,9 +138,8 @@ def test_the_official_client_matrix_covers_cancel_disconnect_and_relaunch():
 
 
 def test_version_negotiation_evidence_for_ledger_h36():
-    # R28-H36: the SDK default (`legacy`) sends `initialize`, which the contract-mandated stateless
-    # server rejects; `auto` and a pinned 2026-07-28 connect and list exactly the three tools.
-    # Evidence only: nothing here changes or widens the server.
+    # R28-H36 / amendment A5: the SDK default (`legacy`, `initialize` for 2025-11-25), `auto`, and a
+    # pinned 2026-07-28 all connect and list exactly the three tools; each records its negotiated era.
     _harness_ready()
     done = subprocess.run(
         ["node", "negotiation.mjs"],
@@ -132,7 +153,7 @@ def test_version_negotiation_evidence_for_ledger_h36():
     report = json.loads(done.stdout.strip().splitlines()[-1])
     by_label = {r["label"]: r for r in report["results"]}
     assert report["client_version"] == "2.2.0"
-    for label in ("sdk-default", "legacy"):
-        assert by_label[label]["connected"] is False and "Method not found" in by_label[label]["error"]
-    for label in ("auto", "pin"):
-        assert by_label[label]["connected"] is True and by_label[label]["tools"] == list(RUN_TOOLS)
+    expected = {"sdk-default": "2025-11-25", "legacy": "2025-11-25", "auto": "2026-07-28", "pin": "2026-07-28"}
+    for label, version in expected.items():
+        assert by_label[label]["connected"] is True and by_label[label]["tools"] == list(RUN_TOOLS), label
+        assert by_label[label]["negotiated_protocol_version"] == version, label

@@ -257,6 +257,23 @@ The completed R7 boundary excludes:
 - parser, lexer, Core IR, or unrelated host-adapter changes
 - unapproved optional or deferred candidates from `docs/strategy/release-roadmap.md`
 
+## Genia MCP server (R28)
+
+R28 delivered a local stdio MCP server for Genia (`apps/mcp/mcp.genia`; `GENIA_STATE.md` section 9.49; `docs/releases/R28.md`),
+accepted by an authentic VS Code + GitHub Copilot run (`docs/mcp/acceptance/vscode-copilot-evidence.md`).
+
+When an MCP client is available and the repository's `.mcp.json` server `genia` is enabled, Genia development agents should
+prefer it for parsing and running Genia source instead of reconstructing behavior from Python implementation details:
+
+- `genia_parse` for structured parse output or a normalized diagnostic;
+- `genia_run` for the rendered value, program stdout, and program stderr, separately, under the governed source-only profile;
+- `genia_capabilities` to confirm the tool set and profile.
+
+Boundaries: it is optional (agents without an MCP client keep using the normal CLI and test workflow); it is a defense-in-depth
+profile, not a security sandbox; it grants no file, environment, configuration, secret, network, process, or import authority; a
+failed run returns a fixed message and no diagnostic text; and it defines no Genia semantics (use `GENIA_STATE.md`). Prerequisites,
+setup, and troubleshooting: `docs/mcp/demo.md` and `docs/mcp/stdio-development.md`.
+
 ## Validation
 
 Repository tooling may validate tool-specific instruction files against this contract.

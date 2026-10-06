@@ -66,7 +66,7 @@ Issue #1067 is the primary promoted R20 follow-up, scheduled **after R28 and bef
 
 ## Current state
 
-R15 through R27 are complete (`docs/releases/R25.md`, `docs/releases/R26.md`, `docs/releases/R27.md`;
+R15 through R28 are complete (`docs/releases/R25.md`, `docs/releases/R26.md`, `docs/releases/R27.md`, `docs/releases/R28.md`;
 R24's E24-8 skeptical release audit records PASS). R23's E23-11 third,
 independent skeptical release truth audit recorded PASS in
 `docs/analysis/r23-release-truth-audit.md`, after two genuine, narrow
@@ -74,7 +74,7 @@ findings during its audit gate -- E23-7 and E23-9 -- were each repaired
 and re-verified. Python remains the reference and full-language host;
 `m0smith/genia-cpp` is the bounded R27 production host (R24's minimal
 floor, R25's stateful runtime, R26's scripted REPL/strict JSON data
-bridge, and R27's Flow phase 1 and pipe mode), not feature parity.
+bridge, and R27's Flow phase 1 and pipe mode), not feature parity. R28 adds the Genia MCP server (native `apps/mcp/mcp.genia` over local stdio on the Python reference host, exactly three tools, accepted by an authentic VS Code + GitHub Copilot run); it adds no Genia language semantics and no C++ MCP support.
 See the corresponding release pages and `GENIA_STATE.md` for implemented truth.
 
 ## Post-R20 planning reset
@@ -199,7 +199,7 @@ durable release summary lives in [`docs/releases/R4.md`](../releases/R4.md).
 | R25 | C++ Stateful Runtime and Concurrency | Complete | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R26 | C++ REPL and Data Bridges | Complete | `docs/releases/R26.md` |
 | R27 | C++ Flow and Pipe Mode | Complete | `docs/releases/R27.md` |
-| R28 | Genia MCP Server | In progress (E28-0 – E28-4 merged; E28-5 in progress) | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
+| R28 | Genia MCP Server | Complete (E28-0 – E28-6; authentic VS Code + GitHub Copilot run 3 passed on macOS; ledger R28-H39 and R28-H47 closed) | `docs/releases/R28.md` |
 | R29 | Sheet Record Pipelines | Planned | [`roadmap/r25-r29.md`](roadmap/r25-r29.md) |
 | R30 | Sheet Shaped Computation | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |
 | R31 | Relational Sheet Operations | Planned | [`roadmap/r30-r32.md`](roadmap/r30-r32.md) |

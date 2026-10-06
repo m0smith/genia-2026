@@ -249,7 +249,7 @@ def test_worker_applies_process_limits():
         "w.apply_limits()\n"
         "print(resource.getrlimit(resource.RLIMIT_FSIZE)[0], "
         "resource.getrlimit(resource.RLIMIT_CORE)[0], "
-        "resource.getrlimit(resource.RLIMIT_AS)[0] > 0)\n"
+        "resource.getrlimit(resource.RLIMIT_AS)[0])\n"
     )
     done = subprocess.run(
         [sys.executable, "-c", code],
@@ -260,7 +260,12 @@ def test_worker_applies_process_limits():
         timeout=60,
     )
     assert done.returncode == 0, done.stderr
-    assert done.stdout.split() == ["0", "0", "True"]
+    fsize, core, address_space = done.stdout.split()
+    assert (fsize, core) == ("0", "0")
+    if sys.platform.startswith("linux"):  # the address-space bound is a Linux hardening (ledger R28-H47)
+        assert int(address_space) == 2 * 1024 * 1024 * 1024
+    else:  # macOS: tolerated when the kernel rejects it, so only the portable limits are asserted
+        assert address_space.isdigit() or address_space == "-1"
 
 
 def test_runtime_process_creation_is_stubbed_even_without_policy(tmp_path):
