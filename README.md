@@ -54,7 +54,7 @@ Start here:
 - [Function Reference](https://m0smith.github.io/genia-2026/reference/)
 - [Release Roadmap](https://m0smith.github.io/genia-2026/strategy/release-roadmap/) (planning guidance, not implemented behavior)
 - [Working examples](#run-the-validated-pipeline-demo-experimental)
-- [Genia MCP server](https://github.com/m0smith/genia-2026/blob/main/docs/mcp/demo.md) (R28: a local stdio MCP server, a native Genia program on the Python reference host; exactly `genia_capabilities`, `genia_parse`, `genia_run`; accepted by an authentic VS Code + GitHub Copilot run; not a security sandbox, no HTTP, no C++ MCP; see `GENIA_STATE.md` section 9.49)
+- [Genia MCP server](https://github.com/m0smith/genia-2026/blob/main/docs/mcp/demo.md) (R28: a local stdio MCP server, a native Genia program on the Python reference host; exactly `genia_capabilities`, `genia_parse`, `genia_run`, `genia_language_profile` (added after the authentic VS Code + GitHub Copilot acceptance run, which saw the first three); not a security sandbox, no HTTP, no C++ MCP; see `GENIA_STATE.md` section 9.49)
 - [Architecture and portability](#core-ir-layer)
 - [Implemented language snapshot](#language-snapshot-implemented)
 - [CLI reference](#command-line-interface-cli)

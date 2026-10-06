@@ -39,6 +39,7 @@ KEYS = {
     "entry": "test_r28_mcp_entrypoint.py",
     "gate": "test_r28_release_gate.py",
     "compat": "test_r28_mcp_compat.py",
+    "lprofile": "test_r28_mcp_language_profile.py",
     "compatconf": "test_r28_mcp_compat_conformance.py",
     "port": "test_r28_mcp_portability.py",
 }

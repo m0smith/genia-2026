@@ -17,7 +17,7 @@ behavior; the contract is `docs/design/r28-genia-mcp-contract-threat-model.md`. 
 - Methods: `server/discover` (2026-07-28 only), `tools/list`, `tools/call`, `initialize` and `ping`
   (2025-11-25), and the notifications `notifications/cancelled` and `notifications/initialized` (accepted,
   never answered; the latter changes nothing). Everything else is `-32601`.
-- Tools: exactly `genia_capabilities`, `genia_parse`, `genia_run`, in that order.
+- Tools: exactly `genia_capabilities`, `genia_parse`, `genia_run`, `genia_language_profile`, in that order (the fourth is amendment A6).
 - **No MCP resources. No MCP prompts. No HTTP transport. No C++ MCP implementation.**
 - Platform: Python reference host, POSIX. Verified on Linux (CI) and macOS (owner-run, not in CI; on macOS there is no address-space bound and no network namespace, ledger R28-H47); Windows is not
   supported.
@@ -97,7 +97,7 @@ Input: `{}` (closed; `arguments` may be omitted). Result (closed object):
  "mcp": {"protocol_version": "2026-07-28" | "2025-11-25", "transport": "stdio"},
  "genia": {"host": "python-reference", "contract_revision": "<40 hex git commit>",
            "portable_mcp_implementation": false},
- "tools": ["genia_capabilities", "genia_parse", "genia_run"],
+ "tools": ["genia_capabilities", "genia_parse", "genia_run", "genia_language_profile"],
  "execution_profile": {"name": "source-only-isolated-v1", "source_max_bytes": 262144,
    "timeout_ms": 5000, "stdout_max_bytes": 1048576, "stderr_max_bytes": 1048576,
    "value_max_bytes": 1048576, "diagnostic_max_bytes": 65536,
@@ -109,6 +109,25 @@ authority is provisioned. They do not assert an operating-system mechanism; the 
 namespaces or any OS isolation, which is best effort and may be absent on a given host.
 `contract_revision` is the clone's `git rev-parse HEAD`; `portable_mcp_implementation: false` states that
 only this host implements MCP.
+
+## `genia_language_profile`
+
+Input: `{}` (closed; `arguments` may be omitted; any non-empty `arguments` is `-32602`). Needs no host capability, so every
+server advertises it. Result: the common envelope with `result = {"language": {...}}`, a fixed description of Genia's
+control-flow model for assistants. It is MCP adapter text, not language behavior (`GENIA_STATE.md` governs):
+
+- `name` (`"Genia"`), `contract_revision` (the same value `genia_capabilities` reports);
+- `control_flow`: `conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`, `recursion: true`,
+  `tail_call_optimization: true`;
+- `supported_forms`, `absent_forms` (`if_expression`, `while_loop`, `for_loop`), `patterns` (function-argument, literal,
+  wildcard, tuple, list, map, and guard patterns; `ordered_resolution: "first_match"`), `idioms` (branching, repetition, and
+  the `open` rule for multi-clause functions);
+- `examples`: `gcd` and `factorial`, each a runnable program (`gcd(48, 18)` is `6`, `fact(5)` is `120`). Several clauses of
+  one function with a literal first parameter must declare the first clause with `open`; the same text without `open` is
+  rejected by the language, so the profile does not use it.
+
+The output is byte-identical across calls, protocol eras, and namespace modes. Members are emitted in the encoder's sorted
+order; order is not a claim.
 
 ## `genia_parse`
 

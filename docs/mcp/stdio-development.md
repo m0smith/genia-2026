@@ -11,7 +11,8 @@ The repository-root `.mcp.json` registers one server, `genia`, started over stdi
 uv run --no-project --no-python-downloads python hosts/python/mcp_launch.py
 ```
 
-The client discovers exactly three tools: `genia_capabilities`, `genia_parse`, `genia_run`.
+The client discovers exactly four tools: `genia_capabilities`, `genia_parse`, `genia_run`, `genia_language_profile` (the fourth
+was added by contract amendment A6; the recorded VS Code runs below predate it and saw three).
 There are no resources and no prompts. Enabling the server grants no extra authority: execution
 uses the E28-3 worker profile and policy only, and the file holds no environment, token, URL, or
 secret.
@@ -30,7 +31,7 @@ secret.
 1. Open the repository folder as the workspace and trust it (the file is executable
    configuration; review it like code).
 2. Start or enable the `genia` server in your client (VS Code: the MCP servers view).
-3. Confirm exactly three tools, then call `genia_parse` on source and `genia_run` to execute it.
+3. Confirm exactly four tools, then call `genia_language_profile` to learn the language model, `genia_parse` on source and `genia_run` to execute it.
    `genia_run` returns value, stdout, stderr, and exit code separately.
 
 ## Limits and troubleshooting
@@ -40,10 +41,10 @@ secret.
   per-request `_meta`, `server/discover`) and `2025-11-25` (selected by `initialize`). Clients that send
   `initialize` for `2025-11-25` (VS Code, the official TypeScript client's default) connect; `auto` and a
   pin of `2026-07-28` still connect. Any other `initialize` version is rejected with `-32602` and a
-  `data.supported` list; the server never negotiates down. Both eras serve the same three tools. Client
+  `data.supported` list; the server never negotiates down. Both eras serve the same four tools. Client
   capabilities (roots, sampling, elicitation, tasks, extensions) are accepted and ignored: they grant
   nothing. The first VS Code run failed because this server then had no `initialize` (ledger R28-H36);
-  authentic VS Code acceptance run 3 (macOS) completed the whole flow: negotiation, three tools, parse, and run (ledger R28-H39).
+  authentic VS Code acceptance run 3 (macOS) completed the whole flow: negotiation, the then three tools, parse, and run (ledger R28-H39).
 - Startup takes about 0.5 s; wait for the first response.
 - `uv` or `git` missing, or a wrong working directory, makes the server fail to start; the client
   shows the launcher's stderr line.
@@ -69,7 +70,7 @@ multi-tenant use. The exact procedure and the record format are `docs/mcp/vscode
    servers view.
 3. Record whether the server shows as running (otherwise copy the launcher's stderr line from the
    MCP output log).
-4. Confirm exactly three tools: `genia_capabilities`, `genia_parse`, `genia_run`.
+4. Confirm exactly four tools: `genia_capabilities`, `genia_parse`, `genia_run`, `genia_language_profile`.
 5. From the host, ask for a `genia_parse` of `f(x) = x +` (a diagnostic), then of `f(x) = x + 1\nf(41)`,
    then a `genia_run` of that program (rendered value `42`). Record the exchange.
 6. In the MCP output log, record whether the host sent `initialize` or `server/discover` and the negotiated protocol version.
