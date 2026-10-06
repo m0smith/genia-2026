@@ -93,14 +93,15 @@ def test_tools_list_result_shape_is_exact():
     assert result["resultType"] == "complete"
     assert "nextCursor" not in result
     assert result["ttlMs"] == 0 and result["cacheScope"] == "public"
-    (tool,) = result["tools"]
-    assert set(tool) == {"name", "description", "inputSchema"}
-    assert isinstance(tool["description"], str) and tool["description"]
-    assert tool["inputSchema"] == {
-        "type": "object",
-        "additionalProperties": False,
-        "properties": {},
-    }
+    assert len(result["tools"]) == 2  # plain file mode: capabilities plus the native-only profile (A6)
+    for tool in result["tools"]:
+        assert set(tool) == {"name", "description", "inputSchema"}
+        assert isinstance(tool["description"], str) and tool["description"]
+        assert tool["inputSchema"] == {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {},
+        }
 
 
 def test_tools_list_is_deterministic_across_calls():
