@@ -114,7 +114,7 @@ only this host implements MCP.
 
 Input: `{}` (closed; `arguments` may be omitted; any non-empty `arguments` is `-32602`). Needs no host capability, so every
 server advertises it. Result: the common envelope with `result = {"language": {...}}`, a fixed description of Genia's
-control-flow model for assistants. It is MCP adapter text, not language behavior (`GENIA_STATE.md` governs):
+language model and selected maturity/host gaps for assistants. It is MCP adapter text, not language behavior (`GENIA_STATE.md` governs):
 
 - `name` (`"Genia"`), `contract_revision` (the same value `genia_capabilities` reports);
 - `control_flow`: `conditionals: "pattern_matching"`, `if_expression: false`, `loops: false`, `recursion: true`,
@@ -126,8 +126,25 @@ control-flow model for assistants. It is MCP adapter text, not language behavior
   one function with a literal first parameter must declare the first clause with `open`; the same text without `open` is
   rejected by the language, so the profile does not use it.
 
+Amendment A7 (#1086) also returns `discovery`, exactly `{coverage, facts}`:
+`coverage: "curated_non_exhaustive"` and an ordered array of 12 static facts.
+Each fact has exactly `id`, `scope`, `status`, `maturity`, `summary`, and
+`state_sections` (ordered strings referencing STATE at `contract_revision`).
+The IDs, scopes, statuses, maturity labels, and section mappings are listed in
+`GENIA_STATE.md` section 9.50; exact summaries are in contract section 20.
+
+Status is one of `implemented`, `partial`, `planned`, `scaffolded`,
+`unsupported`, within the stated scope. Maturity is `Experimental`, `Partial`,
+`Stable`, or JSON null for unspecified; none of these 12 facts is Stable.
+Partial shared Flow coverage does not mean missing Python Flow, bounded C++
+language support does not mean C++ MCP, and browser scaffolding is docs only.
+The catalogue grants no governed execution authority; omitted facts imply
+nothing. Discovery JSON is at most 16,384 UTF-8 bytes, summaries at most 256
+bytes; these bound the static payload, not execution. There are no live reads
+or host probes, including in plain file mode.
+
 The output is byte-identical across calls, protocol eras, and namespace modes. Members are emitted in the encoder's sorted
-order; order is not a claim.
+order; object member order is not a claim. The fact array order is fixed by A7.
 
 ## `genia_parse`
 
