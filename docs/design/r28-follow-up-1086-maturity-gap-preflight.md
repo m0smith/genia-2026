@@ -33,12 +33,13 @@ Read: `AGENTS.md`, `GENIA_STATE.md`, `GENIA_RULES.md`, `GENIA_REPL_README.md`,
 `docs/releases/R28.md`, and amendment A6 in
 `docs/design/r28-genia-mcp-contract-threat-model.md` section 19.
 
-The requested `docs/design/r28-follow-up-1085-classification-preflight.md` is
-absent on this checkout's main. It was read from parent branch commit
-`8412a963239ea2f4fa9dd8900335e452edcc1cc8` (reported in #1085). It promotes #1086
-only for a separate decision and leaves #1087 separate; it grants no runtime
-implementation authority. This document does not require that branch's merge
-and does not copy its roadmap edits.
+The parent `docs/design/r28-follow-up-1085-classification-preflight.md` is now
+on main through PR #1088 (merge `2a85290`), incorporated into this branch. It
+was initially reviewed at commit `8412a963239ea2f4fa9dd8900335e452edcc1cc8`.
+It promotes #1086 only for a separate decision and leaves #1087 separate; it
+grants no runtime implementation authority. Its merged AGENTS and roadmap
+wording preserves the four-tool A6 surface and historical three-tool acceptance
+and does not change this document's selected design or phase gates.
 
 **Authoritative sections:** STATE 0, 0.1, 1, 5, 8, 9.48–9.50; see the field
 and row mappings below. Relevant RULES: 6 (patterns), 8 (resolution), 8.4 (Core
@@ -289,3 +290,7 @@ release-gate test for a latest acceptance run that is not executed; run 3 is
 executed, so that scenario is inapplicable. `git diff --check` passed. These
 checks validate existing truth guardrails, not the proposed wire output; its
 new tests belong to the subsequent failing-test phase.
+
+After merging main at `2a85290` (PR #1088), the same focused selection plus
+`tests/doc/test_roadmap_split.py` passed: **683 passed, 1 skipped**, with the
+same inapplicable release-gate scenario. `git diff --check` passed again.
