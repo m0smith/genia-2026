@@ -107,7 +107,7 @@ def _tool_result(response):
 
 def test_cli_mode_without_capability_keeps_the_e28_1_surface():
     listed = call(request("tools/list", 1))["result"]["tools"]
-    assert [tool["name"] for tool in listed] == ["genia_capabilities"]
+    assert [tool["name"] for tool in listed] == ["genia_capabilities", "genia_language_profile"]
     response = call(parse_request("x = 1", 2))
     assert_protocol_error(response, -32602, req_id=2, message=UNKNOWN_TOOL_MESSAGE)
 

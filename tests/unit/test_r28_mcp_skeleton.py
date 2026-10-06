@@ -81,9 +81,9 @@ def test_discover_does_not_require_a_prior_request_or_session():
 def test_tools_list_advertises_only_implemented_tools():
     result = cached_call(request("tools/list", 2))["result"]
     names = [tool["name"] for tool in result["tools"]]
-    # E28-1 implements genia_capabilities only. genia_parse (E28-2) and
-    # genia_run (E28-3) must not be advertised before they work.
-    assert names == ["genia_capabilities"]
+    # Plain file mode provisions no host capability: genia_parse (E28-2) and genia_run (E28-3)
+    # must not be advertised before they work. genia_language_profile (A6) is native-only.
+    assert names == ["genia_capabilities", "genia_language_profile"]
 
 
 def test_tools_list_result_shape_is_exact():
@@ -132,7 +132,7 @@ def test_capabilities_call_uses_verified_calltoolresult_shape():
 def test_capabilities_structured_content_is_the_exact_contract_envelope():
     structured = cached_call(CAPS_CALL)["result"]["structuredContent"]
     assert structured == expected_envelope()
-    assert list(structured["result"]["tools"]) == ["genia_capabilities"]
+    assert list(structured["result"]["tools"]) == ["genia_capabilities", "genia_language_profile"]
 
 
 def test_capabilities_text_content_is_the_same_json_as_structured_content():
@@ -145,7 +145,7 @@ def test_capabilities_text_content_is_the_same_json_as_structured_content():
 def test_capabilities_is_truthful_about_implemented_tools_only():
     caps = cached_call(CAPS_CALL)["result"]["structuredContent"]["result"]
     assert "genia_parse" not in caps["tools"] and "genia_run" not in caps["tools"]
-    assert caps["tools"] == ["genia_capabilities"]
+    assert caps["tools"] == ["genia_capabilities", "genia_language_profile"]
     assert caps["mcp"] == {"protocol_version": PROTOCOL_VERSION, "transport": "stdio"}
     assert caps["genia"]["host"] == "python-reference"
     assert caps["genia"]["portable_mcp_implementation"] is False
@@ -255,7 +255,7 @@ def test_initialize_creates_no_session_and_does_not_change_later_answers():
         run_messages([request("initialize", 1), request("tools/list", 2)])
     )
     assert_protocol_error(out[0], -32601, req_id=1)
-    assert [t["name"] for t in out[1]["result"]["tools"]] == ["genia_capabilities"]
+    assert [t["name"] for t in out[1]["result"]["tools"]] == ["genia_capabilities", "genia_language_profile"]
 
 
 # --- per-request _meta and protocol version ----------------------------------

@@ -170,7 +170,11 @@ def cached_call(message):
     return _cached(("call", json.dumps(message, sort_keys=True)))
 
 
-def expected_capabilities(revision=REVISION, tools=("genia_capabilities",)):
+PROFILE_TOOL = "genia_language_profile"  # amendment A6: advertised by every server, fourth in contract order
+NATIVE_TOOLS = ("genia_capabilities", PROFILE_TOOL)  # what plain file mode (no host capability) advertises
+
+
+def expected_capabilities(revision=REVISION, tools=NATIVE_TOOLS):
     return {
         "server": {"name": "genia-mcp", "contract": "genia.mcp.v1"},
         "mcp": {"protocol_version": PROTOCOL_VERSION, "transport": "stdio"},
@@ -197,7 +201,7 @@ def expected_capabilities(revision=REVISION, tools=("genia_capabilities",)):
     }
 
 
-def expected_envelope(revision=REVISION, tools=("genia_capabilities",)):
+def expected_envelope(revision=REVISION, tools=NATIVE_TOOLS):
     return {
         "schema_version": "genia.mcp.v1",
         "status": "ok",
@@ -239,7 +243,7 @@ def assert_protocol_error(response, code, *, req_id=..., message=None, data=None
 
 # --- E28-2: launcher mode (host provisions the parse capability) -------------
 
-PARSE_TOOLS = ("genia_capabilities", "genia_parse")
+PARSE_TOOLS = ("genia_capabilities", "genia_parse", PROFILE_TOOL)
 CAPABILITY_PATH = REPO_ROOT / "hosts" / "python" / "mcp_parse_capability.py"
 HOST_BOOTSTRAP_PATH = REPO_ROOT / "hosts" / "python" / "mcp_host.py"
 
@@ -294,7 +298,7 @@ def error_envelope(kind, phase, message):
 
 # --- E28-3: genia_run over the launcher (host provisions parse and run) ---------
 
-RUN_TOOLS = ("genia_capabilities", "genia_parse", "genia_run")
+RUN_TOOLS = ("genia_capabilities", "genia_parse", "genia_run", PROFILE_TOOL)
 RUN_CAPABILITY_PATH = REPO_ROOT / "hosts" / "python" / "mcp_run_capability.py"
 STDIN_MUX_PATH = REPO_ROOT / "hosts" / "python" / "mcp_stdin.py"
 WORKER_PATH = REPO_ROOT / "hosts" / "python" / "mcp_worker.py"

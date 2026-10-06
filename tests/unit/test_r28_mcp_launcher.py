@@ -23,6 +23,7 @@ from tests.fixtures.r28_mcp_helpers import (
     LAUNCHER_PATH,
     REPO_ROOT,
     REVISION,
+    RUN_TOOLS,
     SERVER_PATH,
     encode,
     expected_envelope,
@@ -188,7 +189,7 @@ def test_launcher_end_to_end_reports_the_repository_revision():
     (frame,) = frames(completed.stdout)
     message = json.loads(frame.decode("utf-8"))
     assert message["result"]["structuredContent"] == expected_envelope(
-        expected, tools=("genia_capabilities", "genia_parse", "genia_run")
+        expected, tools=RUN_TOOLS
     )
     assert completed.stderr == b""
 

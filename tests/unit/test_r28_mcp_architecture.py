@@ -37,6 +37,7 @@ APPLICATION_LITERALS = (
     "genia_capabilities",
     "genia_parse",
     "genia_run",
+    "genia_language_profile",
     "genia.mcp.v1",
     "source-only-isolated-v1",
     "server/discover",
@@ -102,6 +103,7 @@ def test_native_program_owns_every_application_literal_it_must_own():
         "io.modelcontextprotocol/protocolVersion",
         # E28-2: the parse tool's descriptor, limits, and envelopes are native too.
         "genia_parse",
+        "genia_language_profile",
         "input_limit",
         "result_limit",
         "parse_error",
