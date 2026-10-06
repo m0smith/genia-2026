@@ -18,7 +18,7 @@ const PATH = process.env.GENIA_ACCEPT_NEGOTIATION ?? 'auto';
 const NEGOTIATION = { auto: { mode: 'auto' }, legacy: { mode: 'legacy' }, pin: { mode: { pin: '2026-07-28' } }, 'sdk-default': undefined }[PATH];
 if (!(PATH in { auto: 1, legacy: 1, pin: 1, 'sdk-default': 1 })) throw new Error(`unknown negotiation path ${PATH}`);
 const WANT_VERSION = PATH === 'legacy' || PATH === 'sdk-default' ? '2025-11-25' : '2026-07-28';
-const EXPECTED_TOOLS = ['genia_capabilities', 'genia_parse', 'genia_run'];
+const EXPECTED_TOOLS = ['genia_capabilities', 'genia_parse', 'genia_run', 'genia_language_profile'];
 const SOURCE_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['source'],
   properties: { source: { type: 'string', maxLength: 262144 } },
@@ -27,6 +27,7 @@ const EXPECTED_SCHEMAS = {
   genia_capabilities: { type: 'object', additionalProperties: false, properties: {} },
   genia_parse: SOURCE_SCHEMA,
   genia_run: SOURCE_SCHEMA,
+  genia_language_profile: { type: 'object', additionalProperties: false, properties: {} },
 };
 
 const steps = [];
